@@ -1,0 +1,401 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CommentsIndex</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils.search</a>
+</div>
+
+<h1>Coverage Summary for Class: CommentsIndex (jadx.gui.utils.search)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CommentsIndex</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CommentsIndex$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommentsIndex$CodeCommentNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommentsIndex$RefCommentNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/81)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils.search;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.List;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import javax.swing.Icon;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">10</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">11</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">12</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import io.reactivex.BackpressureStrategy;
+<i class="no-highlight">15</i>&nbsp;import io.reactivex.Flowable;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.CodePosition;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.ICodeInfo;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.JavaClass;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.JavaField;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.JavaMethod;
+<i class="no-highlight">22</i>&nbsp;import jadx.api.JavaNode;
+<i class="no-highlight">23</i>&nbsp;import jadx.api.data.ICodeComment;
+<i class="no-highlight">24</i>&nbsp;import jadx.api.data.IJavaCodeRef;
+<i class="no-highlight">25</i>&nbsp;import jadx.api.data.IJavaNodeRef;
+<i class="no-highlight">26</i>&nbsp;import jadx.api.data.annotations.ICodeRawOffset;
+<i class="no-highlight">27</i>&nbsp;import jadx.gui.JadxWrapper;
+<i class="no-highlight">28</i>&nbsp;import jadx.gui.settings.JadxProject;
+<i class="no-highlight">29</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">30</i>&nbsp;import jadx.gui.treemodel.JMethod;
+<i class="no-highlight">31</i>&nbsp;import jadx.gui.treemodel.JNode;
+<i class="no-highlight">32</i>&nbsp;import jadx.gui.utils.CacheObject;
+<i class="no-highlight">33</i>&nbsp;import jadx.gui.utils.JNodeCache;
+<i class="no-highlight">34</i>&nbsp;import jadx.gui.utils.JumpPosition;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;public class CommentsIndex {
+<i class="no-highlight">37</i>&nbsp;
+<b class="nc"><i class="no-highlight">38</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(CommentsIndex.class);</b>
+<i class="no-highlight">39</i>&nbsp;	private final JadxWrapper wrapper;
+<i class="no-highlight">40</i>&nbsp;	private final CacheObject cacheObject;
+<i class="no-highlight">41</i>&nbsp;	private final JadxProject project;
+<i class="no-highlight">42</i>&nbsp;
+<b class="nc"><i class="no-highlight">43</i>&nbsp;	public CommentsIndex(JadxWrapper wrapper, CacheObject cacheObject, JadxProject project) {</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		this.wrapper = wrapper;</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		this.cacheObject = cacheObject;</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		this.project = project;</b>
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	@Nullable
+<i class="no-highlight">50</i>&nbsp;	private JNode isMatch(SearchSettings searchSettings, ICodeComment comment) {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		boolean all = searchSettings.getSearchString().isEmpty();</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		if (all || searchSettings.isMatch(comment.getComment())) {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;			JNode refNode = getRefNode(comment);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;			if (refNode != null) {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;				JClass activeCls = searchSettings.getActiveCls();</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;				if (activeCls == null || Objects.equals(activeCls, refNode.getRootClass())) {</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;					return getCommentNode(comment, refNode);</b>
+<i class="no-highlight">58</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">59</i>&nbsp;			} else {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;				LOG.warn(&quot;Failed to get ref node for comment: {}&quot;, comment);</b>
+<i class="no-highlight">61</i>&nbsp;			}
+<i class="no-highlight">62</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		return null;</b>
+<i class="no-highlight">64</i>&nbsp;	}
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;	public Flowable&lt;JNode&gt; search(SearchSettings searchSettings) {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		List&lt;ICodeComment&gt; comments = project.getCodeData().getComments();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		if (comments == null || comments.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;			return Flowable.empty();</b>
+<i class="no-highlight">70</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		LOG.debug(&quot;Total comments count: {}&quot;, comments.size());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		return Flowable.create(emitter -&gt; {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;			for (ICodeComment comment : comments) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;				JNode foundNode = isMatch(searchSettings, comment);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;				if (foundNode != null) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;					emitter.onNext(foundNode);</b>
+<i class="no-highlight">77</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">78</i>&nbsp;				if (emitter.isCancelled()) {</b>
+<i class="no-highlight">79</i>&nbsp;					return;
+<i class="no-highlight">80</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">81</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;			emitter.onComplete();</b>
+<i class="no-highlight">83</i>&nbsp;		}, BackpressureStrategy.BUFFER);
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	private @NotNull RefCommentNode getCommentNode(ICodeComment comment, JNode refNode) {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		IJavaNodeRef nodeRef = comment.getNodeRef();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		if (nodeRef.getType() == IJavaNodeRef.RefType.METHOD &amp;&amp; comment.getCodeRef() != null) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			return new CodeCommentNode((JMethod) refNode, comment);</b>
+<i class="no-highlight">90</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		return new RefCommentNode(refNode, comment.getComment());</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	@Nullable
+<i class="no-highlight">95</i>&nbsp;	private JNode getRefNode(ICodeComment comment) {
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		IJavaNodeRef nodeRef = comment.getNodeRef();</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		JavaClass javaClass = wrapper.searchJavaClassByOrigClassName(nodeRef.getDeclaringClass());</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;		if (javaClass == null) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;			return null;</b>
+<i class="no-highlight">100</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		JNodeCache nodeCache = cacheObject.getNodeCache();</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		switch (nodeRef.getType()) {</b>
+<i class="no-highlight">103</i>&nbsp;			case CLASS:
+<b class="nc"><i class="no-highlight">104</i>&nbsp;				return nodeCache.makeFrom(javaClass);</b>
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;			case FIELD:
+<b class="nc"><i class="no-highlight">107</i>&nbsp;				for (JavaField field : javaClass.getFields()) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;					if (field.getFieldNode().getFieldInfo().getShortId().equals(nodeRef.getShortId())) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;						return nodeCache.makeFrom(field);</b>
+<i class="no-highlight">110</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">111</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;				break;</b>
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;			case METHOD:
+<b class="nc"><i class="no-highlight">115</i>&nbsp;				for (JavaMethod mth : javaClass.getMethods()) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;					if (mth.getMethodNode().getMethodInfo().getShortId().equals(nodeRef.getShortId())) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;						return nodeCache.makeFrom(mth);</b>
+<i class="no-highlight">118</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">119</i>&nbsp;				}</b>
+<i class="no-highlight">120</i>&nbsp;				break;
+<i class="no-highlight">121</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">122</i>&nbsp;		return null;</b>
+<i class="no-highlight">123</i>&nbsp;	}
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;	private static final class CodeCommentNode extends RefCommentNode {
+<i class="no-highlight">126</i>&nbsp;		private static final long serialVersionUID = 6208192811789176886L;
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;		private final int offset;
+<i class="no-highlight">129</i>&nbsp;		private JumpPosition pos;
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;		public CodeCommentNode(JMethod node, ICodeComment comment) {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;			super(node, comment.getComment());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;			IJavaCodeRef codeRef = Objects.requireNonNull(comment.getCodeRef(), &quot;Null comment code ref&quot;);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;			this.offset = codeRef.getIndex();</b>
+<i class="no-highlight">135</i>&nbsp;		}
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;		@Override
+<i class="no-highlight">138</i>&nbsp;		public int getLine() {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;			return getCachedPos().getLine();</b>
+<i class="no-highlight">140</i>&nbsp;		}
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;		@Override
+<i class="no-highlight">143</i>&nbsp;		public int getPos() {
+<b class="nc"><i class="no-highlight">144</i>&nbsp;			return getCachedPos().getPos();</b>
+<i class="no-highlight">145</i>&nbsp;		}
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;		private synchronized JumpPosition getCachedPos() {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;			if (pos == null) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;				pos = getJumpPos();</b>
+<i class="no-highlight">150</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">151</i>&nbsp;			return pos;</b>
+<i class="no-highlight">152</i>&nbsp;		}
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;		/**
+<i class="no-highlight">155</i>&nbsp;		 * Lazy decompilation to get comment location if requested
+<i class="no-highlight">156</i>&nbsp;		 */
+<i class="no-highlight">157</i>&nbsp;		private JumpPosition getJumpPos() {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;			int methodLine = javaMethod.getDecompiledLine();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;			ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;			for (Map.Entry&lt;CodePosition, Object&gt; entry : codeInfo.getAnnotations().entrySet()) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;				CodePosition codePos = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;				if (codePos.getOffset() == 0 &amp;&amp; codePos.getLine() &gt; methodLine) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;					Object ann = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;					if (ann instanceof ICodeRawOffset) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;						if (((ICodeRawOffset) ann).getOffset() == offset) {</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;							return new JumpPosition(node, codePos);</b>
+<i class="no-highlight">168</i>&nbsp;						}
+<i class="no-highlight">169</i>&nbsp;					}
+<i class="no-highlight">170</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">171</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;			return new JumpPosition(node);</b>
+<i class="no-highlight">173</i>&nbsp;		}
+<i class="no-highlight">174</i>&nbsp;	}
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;	private static class RefCommentNode extends JNode {
+<i class="no-highlight">177</i>&nbsp;		private static final long serialVersionUID = 3887992236082515752L;
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;		protected final JNode node;
+<i class="no-highlight">180</i>&nbsp;		protected final String comment;
+<i class="no-highlight">181</i>&nbsp;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;		public RefCommentNode(JNode node, String comment) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;			this.node = node;</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;			this.comment = comment;</b>
+<i class="no-highlight">185</i>&nbsp;		}
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;		@Override
+<i class="no-highlight">188</i>&nbsp;		public JClass getRootClass() {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;			return node.getRootClass();</b>
+<i class="no-highlight">190</i>&nbsp;		}
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;		@Override
+<i class="no-highlight">193</i>&nbsp;		public JavaNode getJavaNode() {
+<b class="nc"><i class="no-highlight">194</i>&nbsp;			return node.getJavaNode();</b>
+<i class="no-highlight">195</i>&nbsp;		}
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;		@Override
+<i class="no-highlight">198</i>&nbsp;		public JClass getJParent() {
+<b class="nc"><i class="no-highlight">199</i>&nbsp;			return node.getJParent();</b>
+<i class="no-highlight">200</i>&nbsp;		}
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;		@Override
+<i class="no-highlight">203</i>&nbsp;		public Icon getIcon() {
+<b class="nc"><i class="no-highlight">204</i>&nbsp;			return node.getIcon();</b>
+<i class="no-highlight">205</i>&nbsp;		}
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;		@Override
+<i class="no-highlight">208</i>&nbsp;		public String getSyntaxName() {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;			return node.getSyntaxName();</b>
+<i class="no-highlight">210</i>&nbsp;		}
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;		@Override
+<i class="no-highlight">213</i>&nbsp;		public String makeString() {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;			return node.makeString();</b>
+<i class="no-highlight">215</i>&nbsp;		}
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;		@Override
+<i class="no-highlight">218</i>&nbsp;		public int getLine() {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;			return node.getLine();</b>
+<i class="no-highlight">220</i>&nbsp;		}
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;		@Override
+<i class="no-highlight">223</i>&nbsp;		public String makeDescString() {
+<b class="nc"><i class="no-highlight">224</i>&nbsp;			return comment;</b>
+<i class="no-highlight">225</i>&nbsp;		}
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;		@Override
+<i class="no-highlight">228</i>&nbsp;		public boolean hasDescString() {
+<b class="nc"><i class="no-highlight">229</i>&nbsp;			return true;</b>
+<i class="no-highlight">230</i>&nbsp;		}
+<i class="no-highlight">231</i>&nbsp;	}
+<i class="no-highlight">232</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

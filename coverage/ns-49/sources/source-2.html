@@ -1,0 +1,199 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AboutDialog</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.dialog</a>
+</div>
+
+<h1>Coverage Summary for Class: AboutDialog (jadx.gui.ui.dialog)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AboutDialog</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.dialog;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.BorderLayout;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Container;
+<i class="no-highlight">5</i>&nbsp;import java.awt.Dimension;
+<i class="no-highlight">6</i>&nbsp;import java.awt.Font;
+<i class="no-highlight">7</i>&nbsp;import java.net.URL;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import javax.swing.BorderFactory;
+<i class="no-highlight">10</i>&nbsp;import javax.swing.Box;
+<i class="no-highlight">11</i>&nbsp;import javax.swing.BoxLayout;
+<i class="no-highlight">12</i>&nbsp;import javax.swing.Icon;
+<i class="no-highlight">13</i>&nbsp;import javax.swing.ImageIcon;
+<i class="no-highlight">14</i>&nbsp;import javax.swing.JButton;
+<i class="no-highlight">15</i>&nbsp;import javax.swing.JDialog;
+<i class="no-highlight">16</i>&nbsp;import javax.swing.JLabel;
+<i class="no-highlight">17</i>&nbsp;import javax.swing.JPanel;
+<i class="no-highlight">18</i>&nbsp;import javax.swing.SwingConstants;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">21</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">22</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;public class AboutDialog extends JDialog {
+<i class="no-highlight">25</i>&nbsp;	private static final long serialVersionUID = 5763493590584039096L;
+<i class="no-highlight">26</i>&nbsp;
+<b class="nc"><i class="no-highlight">27</i>&nbsp;	public AboutDialog() {</b>
+<b class="nc"><i class="no-highlight">28</i>&nbsp;		initUI();</b>
+<i class="no-highlight">29</i>&nbsp;	}
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	public final void initUI() {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		Font font = new Font(&quot;Serif&quot;, Font.BOLD, 13);</b>
+<i class="no-highlight">33</i>&nbsp;
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		URL logoURL = getClass().getResource(&quot;/logos/jadx-logo-48px.png&quot;);</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		Icon logo = new ImageIcon(logoURL, &quot;jadx logo&quot;);</b>
+<i class="no-highlight">36</i>&nbsp;
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		JLabel name = new JLabel(&quot;jadx&quot;, logo, SwingConstants.CENTER);</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		name.setFont(font);</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		name.setAlignmentX(0.5f);</b>
+<i class="no-highlight">40</i>&nbsp;
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		JLabel desc = new JLabel(&quot;Dex to Java decompiler&quot;);</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		desc.setFont(font);</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		desc.setAlignmentX(0.5f);</b>
+<i class="no-highlight">44</i>&nbsp;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		JLabel version = new JLabel(&quot;jadx version: &quot; + JadxDecompiler.getVersion());</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		version.setFont(font);</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		version.setAlignmentX(0.5f);</b>
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		String javaVm = System.getProperty(&quot;java.vm.name&quot;);</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		String javaVer = System.getProperty(&quot;java.version&quot;);</b>
+<i class="no-highlight">51</i>&nbsp;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		javaVm = javaVm == null ? &quot;&quot; : javaVm;</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		JLabel javaVmLabel = new JLabel(&quot;Java VM: &quot; + javaVm);</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		javaVmLabel.setFont(font);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		javaVmLabel.setAlignmentX(0.5f);</b>
+<i class="no-highlight">57</i>&nbsp;
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		javaVer = javaVer == null ? &quot;&quot; : javaVer;</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		JLabel javaVerLabel = new JLabel(&quot;Java version: &quot; + javaVer);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		javaVerLabel.setFont(font);</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		javaVerLabel.setAlignmentX(0.5f);</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		JPanel textPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		textPane.add(Box.createRigidArea(new Dimension(0, 10)));</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		textPane.add(name);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		textPane.add(Box.createRigidArea(new Dimension(0, 10)));</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		textPane.add(desc);</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		textPane.add(Box.createRigidArea(new Dimension(0, 10)));</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		textPane.add(version);</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		textPane.add(Box.createRigidArea(new Dimension(0, 20)));</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		textPane.add(javaVmLabel);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		textPane.add(javaVerLabel);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		textPane.add(Box.createRigidArea(new Dimension(0, 20)));</b>
+<i class="no-highlight">76</i>&nbsp;
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		JButton close = new JButton(NLS.str(&quot;tabs.close&quot;));</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		close.addActionListener(event -&gt; dispose());</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		close.setAlignmentX(0.5f);</b>
+<i class="no-highlight">80</i>&nbsp;
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		Container contentPane = getContentPane();</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		contentPane.add(textPane, BorderLayout.CENTER);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		contentPane.add(close, BorderLayout.PAGE_END);</b>
+<i class="no-highlight">84</i>&nbsp;
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		UiUtils.setWindowIcons(this);</b>
+<i class="no-highlight">86</i>&nbsp;
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		setModalityType(ModalityType.APPLICATION_MODAL);</b>
+<i class="no-highlight">88</i>&nbsp;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		setTitle(NLS.str(&quot;about_dialog.title&quot;));</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		pack();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		setDefaultCloseOperation(DISPOSE_ON_CLOSE);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		setLocationRelativeTo(null);</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

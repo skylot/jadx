@@ -1,0 +1,170 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EncodedValueReader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data.attributes</a>
+</div>
+
+<h1>Coverage Summary for Class: EncodedValueReader (jadx.plugins.input.java.data.attributes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EncodedValueReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data.attributes;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedType;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.data.impl.JadxFieldRef;
+<i class="no-highlight">10</i>&nbsp;import jadx.plugins.input.java.data.ConstPoolReader;
+<i class="no-highlight">11</i>&nbsp;import jadx.plugins.input.java.data.DataReader;
+<i class="no-highlight">12</i>&nbsp;import jadx.plugins.input.java.data.JavaClassData;
+<i class="no-highlight">13</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.JavaAnnotationsAttr;
+<i class="no-highlight">14</i>&nbsp;import jadx.plugins.input.java.utils.JavaClassParseException;
+<i class="no-highlight">15</i>&nbsp;
+<b class="nc"><i class="no-highlight">16</i>&nbsp;public class EncodedValueReader {</b>
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;	public static EncodedValue read(JavaClassData clsData, DataReader reader) {
+<b class="nc"><i class="no-highlight">19</i>&nbsp;		ConstPoolReader constPool = clsData.getConstPoolReader();</b>
+<b class="nc"><i class="no-highlight">20</i>&nbsp;		char tag = (char) reader.readU1();</b>
+<b class="nc"><i class="no-highlight">21</i>&nbsp;		switch (tag) {</b>
+<i class="no-highlight">22</i>&nbsp;			case &#39;B&#39;:
+<b class="nc"><i class="no-highlight">23</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_BYTE, (byte) constPool.getInt(reader.readU2()));</b>
+<i class="no-highlight">24</i>&nbsp;			case &#39;C&#39;:
+<b class="nc"><i class="no-highlight">25</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_CHAR, (char) constPool.getInt(reader.readU2()));</b>
+<i class="no-highlight">26</i>&nbsp;			case &#39;D&#39;:
+<b class="nc"><i class="no-highlight">27</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_DOUBLE, constPool.getDouble(reader.readU2()));</b>
+<i class="no-highlight">28</i>&nbsp;			case &#39;F&#39;:
+<b class="nc"><i class="no-highlight">29</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_FLOAT, constPool.getFloat(reader.readU2()));</b>
+<i class="no-highlight">30</i>&nbsp;			case &#39;I&#39;:
+<b class="nc"><i class="no-highlight">31</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_INT, constPool.getInt(reader.readU2()));</b>
+<i class="no-highlight">32</i>&nbsp;			case &#39;J&#39;:
+<b class="nc"><i class="no-highlight">33</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_LONG, constPool.getLong(reader.readU2()));</b>
+<i class="no-highlight">34</i>&nbsp;			case &#39;S&#39;:
+<b class="nc"><i class="no-highlight">35</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_SHORT, (short) constPool.getInt(reader.readU2()));</b>
+<i class="no-highlight">36</i>&nbsp;			case &#39;Z&#39;:
+<b class="nc"><i class="no-highlight">37</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_BOOLEAN, 1 == constPool.getInt(reader.readU2()));</b>
+<i class="no-highlight">38</i>&nbsp;			case &#39;s&#39;:
+<b class="nc"><i class="no-highlight">39</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_STRING, constPool.getUtf8(reader.readU2()));</b>
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;			case &#39;e&#39;:
+<b class="nc"><i class="no-highlight">42</i>&nbsp;				String cls = constPool.getUtf8(reader.readU2());</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;				String name = constPool.getUtf8(reader.readU2());</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_ENUM, new JadxFieldRef(cls, name, cls));</b>
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;			case &#39;c&#39;:
+<b class="nc"><i class="no-highlight">47</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_TYPE, constPool.getUtf8(reader.readU2()));</b>
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;			case &#39;@&#39;:
+<b class="nc"><i class="no-highlight">50</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_ANNOTATION,</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;						JavaAnnotationsAttr.readAnnotation(AnnotationVisibility.RUNTIME, clsData, reader));</b>
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;			case &#39;[&#39;:
+<b class="nc"><i class="no-highlight">54</i>&nbsp;				int len = reader.readU2();</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;				List&lt;EncodedValue&gt; values = new ArrayList&lt;&gt;(len);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;				for (int i = 0; i &lt; len; i++) {</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;					values.add(read(clsData, reader));</b>
+<i class="no-highlight">58</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">59</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_ARRAY, values);</b>
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">62</i>&nbsp;				throw new JavaClassParseException(&quot;Unknown element value tag: &quot; + tag);</b>
+<i class="no-highlight">63</i>&nbsp;		}
+<i class="no-highlight">64</i>&nbsp;	}
+<i class="no-highlight">65</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

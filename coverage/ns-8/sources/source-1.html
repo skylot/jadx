@@ -1,0 +1,246 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AccessFlags</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.data</a>
+</div>
+
+<h1>Coverage Summary for Class: AccessFlags (jadx.api.plugins.input.data)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AccessFlags</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (2/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    36.8%
+  </span>
+  <span class="absValue">
+    (7/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    59%
+  </span>
+  <span class="absValue">
+    (23/39)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AccessFlags$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    36.8%
+  </span>
+  <span class="absValue">
+    (7/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (24/40)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.data;
+<i class="no-highlight">2</i>&nbsp;
+<b class="nc"><i class="no-highlight">3</i>&nbsp;public class AccessFlags {</b>
+<i class="no-highlight">4</i>&nbsp;	public static final int PUBLIC = 0x1;
+<i class="no-highlight">5</i>&nbsp;	public static final int PRIVATE = 0x2;
+<i class="no-highlight">6</i>&nbsp;	public static final int PROTECTED = 0x4;
+<i class="no-highlight">7</i>&nbsp;	public static final int STATIC = 0x8;
+<i class="no-highlight">8</i>&nbsp;	public static final int FINAL = 0x10;
+<i class="no-highlight">9</i>&nbsp;	public static final int SYNCHRONIZED = 0x20;
+<i class="no-highlight">10</i>&nbsp;	public static final int SUPER = 0x20;
+<i class="no-highlight">11</i>&nbsp;	public static final int VOLATILE = 0x40;
+<i class="no-highlight">12</i>&nbsp;	public static final int BRIDGE = 0x40;
+<i class="no-highlight">13</i>&nbsp;	public static final int TRANSIENT = 0x80;
+<i class="no-highlight">14</i>&nbsp;	public static final int VARARGS = 0x80;
+<i class="no-highlight">15</i>&nbsp;	public static final int NATIVE = 0x100;
+<i class="no-highlight">16</i>&nbsp;	public static final int INTERFACE = 0x200;
+<i class="no-highlight">17</i>&nbsp;	public static final int ABSTRACT = 0x400;
+<i class="no-highlight">18</i>&nbsp;	public static final int STRICT = 0x800;
+<i class="no-highlight">19</i>&nbsp;	public static final int SYNTHETIC = 0x1000;
+<i class="no-highlight">20</i>&nbsp;	public static final int ANNOTATION = 0x2000;
+<i class="no-highlight">21</i>&nbsp;	public static final int ENUM = 0x4000;
+<i class="no-highlight">22</i>&nbsp;	public static final int MODULE = 0x8000;
+<i class="no-highlight">23</i>&nbsp;	public static final int CONSTRUCTOR = 0x10000;
+<i class="no-highlight">24</i>&nbsp;	public static final int DECLARED_SYNCHRONIZED = 0x20000;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	public static boolean hasFlag(int flags, int flagValue) {
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		return (flags &amp; flagValue) != 0;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	public static String format(int flags, AccessFlagsScope scope) {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		StringBuilder code = new StringBuilder();</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		if (hasFlag(flags, PUBLIC)) {</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;			code.append(&quot;public &quot;);</b>
+<i class="no-highlight">34</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">35</i>&nbsp;		if (hasFlag(flags, PRIVATE)) {</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			code.append(&quot;private &quot;);</b>
+<i class="no-highlight">37</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		if (hasFlag(flags, PROTECTED)) {</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;			code.append(&quot;protected &quot;);</b>
+<i class="no-highlight">40</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		if (hasFlag(flags, STATIC)) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;			code.append(&quot;static &quot;);</b>
+<i class="no-highlight">43</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		if (hasFlag(flags, FINAL)) {</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			code.append(&quot;final &quot;);</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">47</i>&nbsp;		if (hasFlag(flags, ABSTRACT)) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;			code.append(&quot;abstract &quot;);</b>
+<i class="no-highlight">49</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">50</i>&nbsp;		if (hasFlag(flags, NATIVE)) {</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			code.append(&quot;native &quot;);</b>
+<i class="no-highlight">52</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">53</i>&nbsp;		switch (scope) {</b>
+<i class="no-highlight">54</i>&nbsp;			case METHOD:
+<b class="pc"><i class="no-highlight">55</i>&nbsp;				if (hasFlag(flags, SYNCHRONIZED)) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;					code.append(&quot;synchronized &quot;);</b>
+<i class="no-highlight">57</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">58</i>&nbsp;				if (hasFlag(flags, BRIDGE)) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;					code.append(&quot;bridge &quot;);</b>
+<i class="no-highlight">60</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">61</i>&nbsp;				if (hasFlag(flags, VARARGS)) {</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;					code.append(&quot;varargs &quot;);</b>
+<i class="no-highlight">63</i>&nbsp;				}
+<i class="no-highlight">64</i>&nbsp;				break;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;			case FIELD:
+<b class="nc"><i class="no-highlight">67</i>&nbsp;				if (hasFlag(flags, VOLATILE)) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;					code.append(&quot;volatile &quot;);</b>
+<i class="no-highlight">69</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">70</i>&nbsp;				if (hasFlag(flags, TRANSIENT)) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;					code.append(&quot;transient &quot;);</b>
+<i class="no-highlight">72</i>&nbsp;				}
+<i class="no-highlight">73</i>&nbsp;				break;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;			case CLASS:
+<b class="pc"><i class="no-highlight">76</i>&nbsp;				if (hasFlag(flags, MODULE)) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;					code.append(&quot;module &quot;);</b>
+<i class="no-highlight">78</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">79</i>&nbsp;				if (hasFlag(flags, STRICT)) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;					code.append(&quot;strict &quot;);</b>
+<i class="no-highlight">81</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">82</i>&nbsp;				if (hasFlag(flags, SUPER)) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;					code.append(&quot;super &quot;);</b>
+<i class="no-highlight">84</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">85</i>&nbsp;				if (hasFlag(flags, ENUM)) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;					code.append(&quot;enum &quot;);</b>
+<i class="no-highlight">87</i>&nbsp;				}
+<i class="no-highlight">88</i>&nbsp;				break;
+<i class="no-highlight">89</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">90</i>&nbsp;		if (hasFlag(flags, SYNTHETIC)) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			code.append(&quot;synthetic &quot;);</b>
+<i class="no-highlight">92</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		return code.toString();</b>
+<i class="no-highlight">94</i>&nbsp;	}
+<i class="no-highlight">95</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

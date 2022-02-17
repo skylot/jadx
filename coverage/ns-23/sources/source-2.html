@@ -1,0 +1,491 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TypeUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.nodes.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: TypeUtils (jadx.core.dex.nodes.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TypeUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96%
+  </span>
+  <span class="absValue">
+    (24/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.2%
+  </span>
+  <span class="absValue">
+    (46/62)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.6%
+  </span>
+  <span class="absValue">
+    (171/193)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.nodes.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">6</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map;
+<i class="no-highlight">9</i>&nbsp;import java.util.Set;
+<i class="no-highlight">10</i>&nbsp;import java.util.function.BiConsumer;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.clsp.ClspClass;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.attributes.nodes.NotificationAttrNode;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.nodes.IMethodDetails;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static jadx.core.utils.Utils.isEmpty;
+<i class="no-highlight">29</i>&nbsp;import static jadx.core.utils.Utils.notEmpty;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;public class TypeUtils {
+<i class="no-highlight">32</i>&nbsp;	private final RootNode root;
+<i class="no-highlight">33</i>&nbsp;
+<b class="fc"><i class="no-highlight">34</i>&nbsp;	public TypeUtils(RootNode rootNode) {</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		this.root = rootNode;</b>
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	public List&lt;ArgType&gt; getClassGenerics(ArgType type) {
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		ClassNode classNode = root.resolveClass(type);</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		if (classNode != null) {</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;			return classNode.getGenericTypeParameters();</b>
+<i class="no-highlight">42</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		ClspClass clsDetails = root.getClsp().getClsDetails(type);</b>
+<b class="pc"><i class="no-highlight">44</i>&nbsp;		if (clsDetails == null || clsDetails.getTypeParameters().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		List&lt;ArgType&gt; generics = clsDetails.getTypeParameters();</b>
+<b class="pc"><i class="no-highlight">48</i>&nbsp;		return generics == null ? Collections.emptyList() : generics;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	@Nullable
+<i class="no-highlight">52</i>&nbsp;	public ClassTypeVarsAttr getClassTypeVars(ArgType type) {
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		ClassNode classNode = root.resolveClass(type);</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		if (classNode == null) {</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			return null;</b>
+<i class="no-highlight">56</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		ClassTypeVarsAttr typeVarsAttr = classNode.get(AType.CLASS_TYPE_VARS);</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		if (typeVarsAttr != null) {</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			return typeVarsAttr;</b>
+<i class="no-highlight">60</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		return buildClassTypeVarsAttr(classNode);</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	public ArgType expandTypeVariables(ClassNode cls, ArgType type) {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		if (type.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;			expandTypeVar(cls, type, getKnownTypeVarsAtClass(cls));</b>
+<i class="no-highlight">67</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		return type;</b>
+<i class="no-highlight">69</i>&nbsp;	}
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;	public ArgType expandTypeVariables(MethodNode mth, ArgType type) {
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		if (type.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;			expandTypeVar(mth, type, getKnownTypeVarsAtMethod(mth));</b>
+<i class="no-highlight">74</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		return type;</b>
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;	private void expandTypeVar(NotificationAttrNode node, ArgType type, Collection&lt;ArgType&gt; typeVars) {
+<b class="pc"><i class="no-highlight">79</i>&nbsp;		if (typeVars.isEmpty()) {</b>
+<i class="no-highlight">80</i>&nbsp;			return;
+<i class="no-highlight">81</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		boolean allExtendsEmpty = true;</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		for (ArgType argType : typeVars) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			if (notEmpty(argType.getExtendTypes())) {</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;				allExtendsEmpty = false;</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;				break;</b>
+<i class="no-highlight">87</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		if (allExtendsEmpty) {</b>
+<i class="no-highlight">90</i>&nbsp;			return;
+<i class="no-highlight">91</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		type.visitTypes(t -&gt; {</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			if (t.isGenericType()) {</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;				String typeVarName = t.getObject();</b>
+<b class="pc"><i class="no-highlight">95</i>&nbsp;				for (ArgType typeVar : typeVars) {</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;					if (typeVar.getObject().equals(typeVarName)) {</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;						t.setExtendTypes(typeVar.getExtendTypes());</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;						return null;</b>
+<i class="no-highlight">99</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">100</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;				node.addWarnComment(&quot;Unknown type variable: &quot; + typeVarName + &quot; in type: &quot; + type);</b>
+<i class="no-highlight">102</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;			return null;</b>
+<i class="no-highlight">104</i>&nbsp;		});
+<i class="no-highlight">105</i>&nbsp;	}
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;	public Set&lt;ArgType&gt; getKnownTypeVarsAtMethod(MethodNode mth) {
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		MethodTypeVarsAttr typeVarsAttr = mth.get(AType.METHOD_TYPE_VARS);</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		if (typeVarsAttr != null) {</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;			return typeVarsAttr.getTypeVars();</b>
+<i class="no-highlight">111</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		Set&lt;ArgType&gt; typeVars = collectKnownTypeVarsAtMethod(mth);</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		MethodTypeVarsAttr varsAttr = MethodTypeVarsAttr.build(typeVars);</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		mth.addAttr(varsAttr);</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		return varsAttr.getTypeVars();</b>
+<i class="no-highlight">116</i>&nbsp;	}
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;	private static Collection&lt;ArgType&gt; getKnownTypeVarsAtClass(ClassNode cls) {
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		if (cls.isInner()) {</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;			Set&lt;ArgType&gt; typeVars = new HashSet&lt;&gt;(cls.getGenericTypeParameters());</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;			cls.visitParentClasses(parent -&gt; typeVars.addAll(parent.getGenericTypeParameters()));</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;			return typeVars;</b>
+<i class="no-highlight">123</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		return cls.getGenericTypeParameters();</b>
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	private static Set&lt;ArgType&gt; collectKnownTypeVarsAtMethod(MethodNode mth) {
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		Set&lt;ArgType&gt; typeVars = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		typeVars.addAll(getKnownTypeVarsAtClass(mth.getParentClass()));</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		typeVars.addAll(mth.getTypeParameters());</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		return typeVars.isEmpty() ? Collections.emptySet() : typeVars;</b>
+<i class="no-highlight">132</i>&nbsp;	}
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;	/**
+<i class="no-highlight">135</i>&nbsp;	 * Search for unknown type vars at current method. Return only first.
+<i class="no-highlight">136</i>&nbsp;	 *
+<i class="no-highlight">137</i>&nbsp;	 * @return unknown type var, null if not found
+<i class="no-highlight">138</i>&nbsp;	 */
+<i class="no-highlight">139</i>&nbsp;	@Nullable
+<i class="no-highlight">140</i>&nbsp;	public ArgType checkForUnknownTypeVars(MethodNode mth, ArgType checkType) {
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		Set&lt;ArgType&gt; knownTypeVars = getKnownTypeVarsAtMethod(mth);</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		return checkType.visitTypes(type -&gt; {</b>
+<b class="pc"><i class="no-highlight">143</i>&nbsp;			if (type.isGenericType() &amp;&amp; !knownTypeVars.contains(type)) {</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;				return type;</b>
+<i class="no-highlight">145</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">146</i>&nbsp;			return null;</b>
+<i class="no-highlight">147</i>&nbsp;		});
+<i class="no-highlight">148</i>&nbsp;	}
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;	public boolean containsUnknownTypeVar(MethodNode mth, ArgType type) {
+<b class="pc"><i class="no-highlight">151</i>&nbsp;		return checkForUnknownTypeVars(mth, type) != null;</b>
+<i class="no-highlight">152</i>&nbsp;	}
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;	/**
+<i class="no-highlight">155</i>&nbsp;	 * Replace generic types in {@code typeWithGeneric} using instance types
+<i class="no-highlight">156</i>&nbsp;	 * &lt;br&gt;
+<i class="no-highlight">157</i>&nbsp;	 * Example:
+<i class="no-highlight">158</i>&nbsp;	 * &lt;ul&gt;
+<i class="no-highlight">159</i>&nbsp;	 * &lt;li&gt;{@code instanceType: Set&lt;String&gt;}
+<i class="no-highlight">160</i>&nbsp;	 * &lt;li&gt;{@code typeWithGeneric: Iterator&lt;E&gt;}
+<i class="no-highlight">161</i>&nbsp;	 * &lt;li&gt;{@code return: Iterator&lt;String&gt;}
+<i class="no-highlight">162</i>&nbsp;	 * &lt;/ul&gt;
+<i class="no-highlight">163</i>&nbsp;	 */
+<i class="no-highlight">164</i>&nbsp;	@Nullable
+<i class="no-highlight">165</i>&nbsp;	public ArgType replaceClassGenerics(ArgType instanceType, ArgType typeWithGeneric) {
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		return replaceClassGenerics(instanceType, instanceType, typeWithGeneric);</b>
+<i class="no-highlight">167</i>&nbsp;	}
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;	@Nullable
+<i class="no-highlight">170</i>&nbsp;	public ArgType replaceClassGenerics(ArgType instanceType, ArgType genericSourceType, ArgType typeWithGeneric) {
+<b class="pc"><i class="no-highlight">171</i>&nbsp;		if (typeWithGeneric == null || genericSourceType == null) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;			return null;</b>
+<i class="no-highlight">173</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		Map&lt;ArgType, ArgType&gt; typeVarsMap = Collections.emptyMap();</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		ClassTypeVarsAttr typeVars = getClassTypeVars(instanceType);</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		if (typeVars != null) {</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;			typeVarsMap = mergeTypeMaps(typeVarsMap, typeVars.getTypeVarsMapFor(genericSourceType));</b>
+<i class="no-highlight">178</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		typeVarsMap = mergeTypeMaps(typeVarsMap, getTypeVariablesMapping(instanceType));</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;		ArgType outerType = instanceType.getOuterType();</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		while (outerType != null) {</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;			typeVarsMap = mergeTypeMaps(typeVarsMap, getTypeVariablesMapping(outerType));</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;			outerType = outerType.getOuterType();</b>
+<i class="no-highlight">184</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		return replaceTypeVariablesUsingMap(typeWithGeneric, typeVarsMap);</b>
+<i class="no-highlight">186</i>&nbsp;	}
+<i class="no-highlight">187</i>&nbsp;
+<i class="no-highlight">188</i>&nbsp;	private static Map&lt;ArgType, ArgType&gt; mergeTypeMaps(Map&lt;ArgType, ArgType&gt; base, Map&lt;ArgType, ArgType&gt; addition) {
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		if (base.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;			return addition;</b>
+<i class="no-highlight">191</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		if (addition.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;			return base;</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		Map&lt;ArgType, ArgType&gt; map = new HashMap&lt;&gt;(base.size() + addition.size());</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		for (Map.Entry&lt;ArgType, ArgType&gt; entry : base.entrySet()) {</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;			ArgType value = entry.getValue();</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			ArgType type = addition.remove(value);</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;			if (type != null) {</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;				map.put(entry.getKey(), type);</b>
+<i class="no-highlight">201</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">202</i>&nbsp;				map.put(entry.getKey(), entry.getValue());</b>
+<i class="no-highlight">203</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		map.putAll(addition);</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		return map;</b>
+<i class="no-highlight">207</i>&nbsp;	}
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;	public Map&lt;ArgType, ArgType&gt; getTypeVariablesMapping(ArgType clsType) {
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		if (!clsType.isGeneric()) {</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;			return Collections.emptyMap();</b>
+<i class="no-highlight">212</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		List&lt;ArgType&gt; typeParameters = root.getTypeUtils().getClassGenerics(clsType);</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		if (typeParameters.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;			return Collections.emptyMap();</b>
+<i class="no-highlight">216</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		List&lt;ArgType&gt; actualTypes = clsType.getGenericTypes();</b>
+<b class="pc"><i class="no-highlight">218</i>&nbsp;		if (isEmpty(actualTypes)) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;			return Collections.emptyMap();</b>
+<i class="no-highlight">220</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		int genericParamsCount = actualTypes.size();</b>
+<b class="pc"><i class="no-highlight">222</i>&nbsp;		if (genericParamsCount != typeParameters.size()) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;			return Collections.emptyMap();</b>
+<i class="no-highlight">224</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		Map&lt;ArgType, ArgType&gt; replaceMap = new HashMap&lt;&gt;(genericParamsCount);</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;		for (int i = 0; i &lt; genericParamsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;			ArgType actualType = actualTypes.get(i);</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;			ArgType typeVar = typeParameters.get(i);</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;			replaceMap.put(typeVar, actualType);</b>
+<i class="no-highlight">230</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">231</i>&nbsp;		return replaceMap;</b>
+<i class="no-highlight">232</i>&nbsp;	}
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;	public Map&lt;ArgType, ArgType&gt; getTypeVarMappingForInvoke(BaseInvokeNode invokeInsn) {
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		IMethodDetails mthDetails = root.getMethodUtils().getMethodDetails(invokeInsn);</b>
+<b class="pc"><i class="no-highlight">236</i>&nbsp;		if (mthDetails == null) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;			return Collections.emptyMap();</b>
+<i class="no-highlight">238</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">239</i>&nbsp;		Map&lt;ArgType, ArgType&gt; map = new HashMap&lt;&gt;(1 + invokeInsn.getArgsCount());</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		addTypeVarMapping(map, mthDetails.getReturnType(), invokeInsn.getResult());</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		int argCount = Math.min(mthDetails.getArgTypes().size(), invokeInsn.getArgsCount());</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		for (int i = 0; i &lt; argCount; i++) {</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;			addTypeVarMapping(map, mthDetails.getArgTypes().get(i), invokeInsn.getArg(i));</b>
+<i class="no-highlight">244</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">245</i>&nbsp;		return map;</b>
+<i class="no-highlight">246</i>&nbsp;	}
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;	private static void addTypeVarMapping(Map&lt;ArgType, ArgType&gt; map, ArgType typeVar, InsnArg arg) {
+<b class="pc"><i class="no-highlight">249</i>&nbsp;		if (arg == null || typeVar == null || !typeVar.isTypeKnown()) {</b>
+<i class="no-highlight">250</i>&nbsp;			return;
+<i class="no-highlight">251</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		if (typeVar.isGenericType()) {</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;			map.put(typeVar, arg.getType());</b>
+<i class="no-highlight">254</i>&nbsp;		}
+<i class="no-highlight">255</i>&nbsp;		// TODO: resolve inner type vars: &#39;List&lt;T&gt; -&gt; List&lt;String&gt;&#39; to &#39;T -&gt; String&#39;
+<i class="no-highlight">256</i>&nbsp;	}
+<i class="no-highlight">257</i>&nbsp;
+<i class="no-highlight">258</i>&nbsp;	@Nullable
+<i class="no-highlight">259</i>&nbsp;	public ArgType replaceMethodGenerics(BaseInvokeNode invokeInsn, IMethodDetails details, ArgType typeWithGeneric) {
+<b class="nc"><i class="no-highlight">260</i>&nbsp;		if (typeWithGeneric == null) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;			return null;</b>
+<i class="no-highlight">262</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">263</i>&nbsp;		List&lt;ArgType&gt; methodArgTypes = details.getArgTypes();</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;		if (methodArgTypes.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;			return null;</b>
+<i class="no-highlight">266</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">267</i>&nbsp;		int firstArgOffset = invokeInsn.getFirstArgOffset();</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;		int argsCount = methodArgTypes.size();</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;		for (int i = 0; i &lt; argsCount; i++) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;			ArgType methodArgType = methodArgTypes.get(i);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;			InsnArg insnArg = invokeInsn.getArg(i + firstArgOffset);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;			ArgType insnType = insnArg.getType();</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;			if (methodArgType.equals(typeWithGeneric)) {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;				return insnType;</b>
+<i class="no-highlight">275</i>&nbsp;			}
+<i class="no-highlight">276</i>&nbsp;		}
+<i class="no-highlight">277</i>&nbsp;		// TODO build complete map for type variables
+<b class="nc"><i class="no-highlight">278</i>&nbsp;		return null;</b>
+<i class="no-highlight">279</i>&nbsp;	}
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;	@Nullable
+<i class="no-highlight">282</i>&nbsp;	public ArgType replaceTypeVariablesUsingMap(ArgType replaceType, Map&lt;ArgType, ArgType&gt; replaceMap) {
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		if (replaceMap.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">284</i>&nbsp;			return null;</b>
+<i class="no-highlight">285</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		if (replaceType.isGenericType()) {</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;			return replaceMap.get(replaceType);</b>
+<i class="no-highlight">288</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		if (replaceType.isArray()) {</b>
+<b class="fc"><i class="no-highlight">290</i>&nbsp;			ArgType replaced = replaceTypeVariablesUsingMap(replaceType.getArrayElement(), replaceMap);</b>
+<b class="fc"><i class="no-highlight">291</i>&nbsp;			if (replaced == null) {</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;				return null;</b>
+<i class="no-highlight">293</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">294</i>&nbsp;			return ArgType.array(replaced);</b>
+<i class="no-highlight">295</i>&nbsp;		}
+<i class="no-highlight">296</i>&nbsp;
+<b class="fc"><i class="no-highlight">297</i>&nbsp;		ArgType wildcardType = replaceType.getWildcardType();</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		if (wildcardType != null &amp;&amp; wildcardType.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;			ArgType newWildcardType = replaceTypeVariablesUsingMap(wildcardType, replaceMap);</b>
+<b class="pc"><i class="no-highlight">300</i>&nbsp;			if (newWildcardType == null) {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;				return null;</b>
+<i class="no-highlight">302</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">303</i>&nbsp;			return ArgType.wildcard(newWildcardType, replaceType.getWildcardBound());</b>
+<i class="no-highlight">304</i>&nbsp;		}
+<i class="no-highlight">305</i>&nbsp;
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		if (replaceType.isGeneric()) {</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;			ArgType outerType = replaceType.getOuterType();</b>
+<b class="fc"><i class="no-highlight">308</i>&nbsp;			if (outerType != null) {</b>
+<b class="fc"><i class="no-highlight">309</i>&nbsp;				ArgType replacedOuter = replaceTypeVariablesUsingMap(outerType, replaceMap);</b>
+<b class="pc"><i class="no-highlight">310</i>&nbsp;				if (replacedOuter == null) {</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;					return null;</b>
+<i class="no-highlight">312</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">313</i>&nbsp;				ArgType innerType = replaceType.getInnerType();</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;				ArgType replacedInner = replaceTypeVariablesUsingMap(innerType, replaceMap);</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;				return ArgType.outerGeneric(replacedOuter, replacedInner == null ? innerType : replacedInner);</b>
+<i class="no-highlight">316</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">317</i>&nbsp;			List&lt;ArgType&gt; genericTypes = replaceType.getGenericTypes();</b>
+<b class="fc"><i class="no-highlight">318</i>&nbsp;			if (notEmpty(genericTypes)) {</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;				List&lt;ArgType&gt; newTypes = Utils.collectionMap(genericTypes, t -&gt; {</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;					ArgType type = replaceTypeVariablesUsingMap(t, replaceMap);</b>
+<b class="fc"><i class="no-highlight">321</i>&nbsp;					return type == null ? t : type;</b>
+<i class="no-highlight">322</i>&nbsp;				});
+<b class="fc"><i class="no-highlight">323</i>&nbsp;				return ArgType.generic(replaceType, newTypes);</b>
+<i class="no-highlight">324</i>&nbsp;			}
+<i class="no-highlight">325</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">326</i>&nbsp;		return null;</b>
+<i class="no-highlight">327</i>&nbsp;	}
+<i class="no-highlight">328</i>&nbsp;
+<i class="no-highlight">329</i>&nbsp;	private ClassTypeVarsAttr buildClassTypeVarsAttr(ClassNode cls) {
+<b class="fc"><i class="no-highlight">330</i>&nbsp;		Map&lt;String, Map&lt;ArgType, ArgType&gt;&gt; map = new HashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		ArgType currentClsType = cls.getClassInfo().getType();</b>
+<b class="fc"><i class="no-highlight">332</i>&nbsp;		map.put(currentClsType.getObject(), getTypeVariablesMapping(currentClsType));</b>
+<i class="no-highlight">333</i>&nbsp;
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		cls.visitSuperTypes((parent, type) -&gt; {</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;			List&lt;ArgType&gt; currentVars = type.getGenericTypes();</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;			if (Utils.isEmpty(currentVars)) {</b>
+<i class="no-highlight">337</i>&nbsp;				return;
+<i class="no-highlight">338</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">339</i>&nbsp;			int varsCount = currentVars.size();</b>
+<b class="fc"><i class="no-highlight">340</i>&nbsp;			List&lt;ArgType&gt; sourceTypeVars = getClassGenerics(type);</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;			if (varsCount == sourceTypeVars.size()) {</b>
+<b class="fc"><i class="no-highlight">342</i>&nbsp;				Map&lt;ArgType, ArgType&gt; parentTypeMap = map.get(parent.getObject());</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;				Map&lt;ArgType, ArgType&gt; varsMap = new HashMap&lt;&gt;(varsCount);</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;				for (int i = 0; i &lt; varsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;					ArgType currentTypeVar = currentVars.get(i);</b>
+<b class="pc"><i class="no-highlight">346</i>&nbsp;					ArgType resultType = parentTypeMap != null ? parentTypeMap.get(currentTypeVar) : null;</b>
+<b class="fc"><i class="no-highlight">347</i>&nbsp;					varsMap.put(sourceTypeVars.get(i), resultType != null ? resultType : currentTypeVar);</b>
+<i class="no-highlight">348</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">349</i>&nbsp;				map.put(type.getObject(), varsMap);</b>
+<i class="no-highlight">350</i>&nbsp;			}
+<i class="no-highlight">351</i>&nbsp;		});
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		List&lt;ArgType&gt; currentTypeVars = cls.getGenericTypeParameters();</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;		ClassTypeVarsAttr typeVarsAttr = new ClassTypeVarsAttr(currentTypeVars, map);</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;		cls.addAttr(typeVarsAttr);</b>
+<b class="fc"><i class="no-highlight">355</i>&nbsp;		return typeVarsAttr;</b>
+<i class="no-highlight">356</i>&nbsp;	}
+<i class="no-highlight">357</i>&nbsp;
+<i class="no-highlight">358</i>&nbsp;	public void visitSuperTypes(ArgType type, BiConsumer&lt;ArgType, ArgType&gt; consumer) {
+<b class="fc"><i class="no-highlight">359</i>&nbsp;		ClassNode cls = root.resolveClass(type);</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		if (cls != null) {</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;			cls.visitSuperTypes(consumer);</b>
+<i class="no-highlight">362</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">363</i>&nbsp;			ClspClass clspClass = root.getClsp().getClsDetails(type);</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;			if (clspClass != null) {</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;				for (ArgType superType : clspClass.getParents()) {</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;					if (!superType.equals(ArgType.OBJECT)) {</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;						consumer.accept(type, superType);</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;						visitSuperTypes(superType, consumer);</b>
+<i class="no-highlight">369</i>&nbsp;					}
+<i class="no-highlight">370</i>&nbsp;				}
+<i class="no-highlight">371</i>&nbsp;			}
+<i class="no-highlight">372</i>&nbsp;		}
+<i class="no-highlight">373</i>&nbsp;	}
+<i class="no-highlight">374</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

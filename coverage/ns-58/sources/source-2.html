@@ -1,0 +1,224 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexLocalVar</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.sections.debuginfo</a>
+</div>
+
+<h1>Coverage Summary for Class: DexLocalVar (jadx.plugins.input.dex.sections.debuginfo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexLocalVar</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (12/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    84%
+  </span>
+  <span class="absValue">
+    (21/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.sections.debuginfo;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.data.ILocalVar;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.utils.Utils;
+<i class="no-highlight">7</i>&nbsp;import jadx.plugins.input.dex.sections.SectionReader;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;public class DexLocalVar implements ILocalVar {
+<i class="no-highlight">10</i>&nbsp;	private final int regNum;
+<i class="no-highlight">11</i>&nbsp;	private final String name;
+<i class="no-highlight">12</i>&nbsp;	private final String type;
+<i class="no-highlight">13</i>&nbsp;	@Nullable
+<i class="no-highlight">14</i>&nbsp;	private final String sign;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	private boolean isEnd;
+<i class="no-highlight">17</i>&nbsp;	private int startOffset;
+<i class="no-highlight">18</i>&nbsp;	private int endOffset;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	public DexLocalVar(SectionReader dex, int regNum, int nameId, int typeId, int signId) {
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		this(regNum, dex.getString(nameId), dex.getType(typeId), dex.getString(signId));</b>
+<i class="no-highlight">22</i>&nbsp;	}
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	public DexLocalVar(int regNum, String name, String type) {
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		this(regNum, name, type, null);</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;
+<b class="fc"><i class="no-highlight">28</i>&nbsp;	public DexLocalVar(int regNum, String name, String type, @Nullable String sign) {</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.regNum = regNum;</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		this.name = name;</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		this.type = type;</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		this.sign = sign;</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	public void start(int addr) {
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		this.isEnd = false;</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		this.startOffset = addr;</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	/**
+<i class="no-highlight">41</i>&nbsp;	 * Sets end address of local variable
+<i class="no-highlight">42</i>&nbsp;	 *
+<i class="no-highlight">43</i>&nbsp;	 * @param addr address
+<i class="no-highlight">44</i>&nbsp;	 * @return &lt;b&gt;true&lt;/b&gt; if local variable was active, else &lt;b&gt;false&lt;/b&gt;
+<i class="no-highlight">45</i>&nbsp;	 */
+<i class="no-highlight">46</i>&nbsp;	public boolean end(int addr) {
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		if (isEnd) {</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;			return false;</b>
+<i class="no-highlight">49</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		this.isEnd = true;</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		this.endOffset = addr;</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		return true;</b>
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	@Override
+<i class="no-highlight">56</i>&nbsp;	public int getRegNum() {
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		return regNum;</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	@Override
+<i class="no-highlight">61</i>&nbsp;	public String getName() {
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		return name;</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	@Override
+<i class="no-highlight">66</i>&nbsp;	public String getType() {
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		return type;</b>
+<i class="no-highlight">68</i>&nbsp;	}
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;	@Nullable
+<i class="no-highlight">71</i>&nbsp;	@Override
+<i class="no-highlight">72</i>&nbsp;	public String getSignature() {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		return sign;</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	@Override
+<i class="no-highlight">77</i>&nbsp;	public int getStartOffset() {
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		return startOffset;</b>
+<i class="no-highlight">79</i>&nbsp;	}
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	@Override
+<i class="no-highlight">82</i>&nbsp;	public int getEndOffset() {
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		return endOffset;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	public boolean isEnd() {
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		return isEnd;</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	@Override
+<i class="no-highlight">91</i>&nbsp;	public boolean equals(Object obj) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		return super.equals(obj);</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	@Override
+<i class="no-highlight">96</i>&nbsp;	public int hashCode() {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		return super.hashCode();</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;	@Override
+<i class="no-highlight">101</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		return (startOffset == -1 ? &quot;-1 &quot; : Utils.formatOffset(startOffset))</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;				+ &#39;-&#39; + (isEnd ? Utils.formatOffset(endOffset) : &quot;      &quot;)</b>
+<i class="no-highlight">104</i>&nbsp;				+ &quot;: r&quot; + regNum + &quot; &#39;&quot; + name + &quot;&#39; &quot; + type
+<i class="no-highlight">105</i>&nbsp;				+ (sign != null ? &quot;, signature: &quot; + sign : &quot;&quot;);
+<i class="no-highlight">106</i>&nbsp;	}
+<i class="no-highlight">107</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

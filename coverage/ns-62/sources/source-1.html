@@ -1,0 +1,202 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > InvokeDecoder</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data.code.decoders</a>
+</div>
+
+<h1>Coverage Summary for Class: InvokeDecoder (jadx.plugins.input.java.data.code.decoders)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InvokeDecoder</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.7%
+  </span>
+  <span class="absValue">
+    (11/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (46/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data.code.decoders;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.plugins.input.data.ICallSite;
+<i class="no-highlight">4</i>&nbsp;import jadx.api.plugins.input.data.IMethodProto;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.insns.Opcode;
+<i class="no-highlight">7</i>&nbsp;import jadx.plugins.input.java.data.DataReader;
+<i class="no-highlight">8</i>&nbsp;import jadx.plugins.input.java.data.code.CodeDecodeState;
+<i class="no-highlight">9</i>&nbsp;import jadx.plugins.input.java.data.code.JavaInsnData;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;public class InvokeDecoder implements IJavaInsnDecoder {
+<i class="no-highlight">12</i>&nbsp;	private final int payloadSize;
+<i class="no-highlight">13</i>&nbsp;	private final Opcode apiOpcode;
+<i class="no-highlight">14</i>&nbsp;
+<b class="fc"><i class="no-highlight">15</i>&nbsp;	public InvokeDecoder(int payloadSize, Opcode apiOpcode) {</b>
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		this.payloadSize = payloadSize;</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;		this.apiOpcode = apiOpcode;</b>
+<i class="no-highlight">18</i>&nbsp;	}
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	@Override
+<i class="no-highlight">21</i>&nbsp;	public void decode(CodeDecodeState state) {
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		DataReader reader = state.reader();</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		int mthIdx = reader.readS2();</b>
+<b class="fc"><i class="no-highlight">24</i>&nbsp;		if (payloadSize == 4) {</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;			reader.skip(2);</b>
+<i class="no-highlight">26</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		JavaInsnData insn = state.insn();</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;		insn.setIndex(mthIdx);</b>
+<i class="no-highlight">29</i>&nbsp;		boolean instanceCall;
+<i class="no-highlight">30</i>&nbsp;		IMethodProto mthProto;
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		if (apiOpcode == Opcode.INVOKE_CUSTOM) {</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;			ICallSite callSite = insn.getIndexAsCallSite();</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;			insn.setPayload(callSite);</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;			mthProto = (IMethodProto) callSite.getValues().get(2).getValue();</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;			instanceCall = false; // &#39;this&#39; arg already included in proto args</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;			IMethodRef mthRef = insn.getIndexAsMethod();</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;			mthRef.load();</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;			insn.setPayload(mthRef);</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;			mthProto = mthRef;</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;			instanceCall = apiOpcode != Opcode.INVOKE_STATIC;</b>
+<i class="no-highlight">42</i>&nbsp;		}
+<i class="no-highlight">43</i>&nbsp;
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		int argsCount = mthProto.getArgTypes().size();</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		if (instanceCall) {</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;			argsCount++;</b>
+<i class="no-highlight">47</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		insn.setRegsCount(argsCount * 2); // allocate twice of the size for worst case</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		int[] regs = insn.getRegsArray();</b>
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;		// calculate actual count of registers
+<i class="no-highlight">52</i>&nbsp;		// set &#39;1&#39; in regs to be filled with stack values later, &#39;0&#39; for skip
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		int regsCount = 0;</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		if (instanceCall) {</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			regs[regsCount++] = 1;</b>
+<i class="no-highlight">56</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		for (String type : mthProto.getArgTypes()) {</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;			int size = getRegsCountForType(type);</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			regs[regsCount++] = 1;</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;			if (size == 2) {</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;				regs[regsCount++] = 0;</b>
+<i class="no-highlight">62</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		insn.setRegsCount(regsCount);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		for (int i = regsCount - 1; i &gt;= 0; i--) {</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;			if (regs[i] == 1) {</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;				state.pop(i);</b>
+<i class="no-highlight">68</i>&nbsp;			}
+<i class="no-highlight">69</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		String returnType = mthProto.getReturnType();</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		if (!returnType.equals(&quot;V&quot;)) {</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;			insn.setResultReg(state.push(returnType));</b>
+<i class="no-highlight">73</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">74</i>&nbsp;			insn.setResultReg(-1);</b>
+<i class="no-highlight">75</i>&nbsp;		}
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;	private int getRegsCountForType(String type) {
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		char c = type.charAt(0);</b>
+<b class="pc"><i class="no-highlight">80</i>&nbsp;		if (c == &#39;J&#39; || c == &#39;D&#39;) {</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			return 2;</b>
+<i class="no-highlight">82</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		return 1;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

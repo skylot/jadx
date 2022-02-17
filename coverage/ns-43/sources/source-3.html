@@ -1,0 +1,218 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > QuarkReportData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.plugins.quark</a>
+</div>
+
+<h1>Coverage Summary for Class: QuarkReportData (jadx.gui.plugins.quark)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QuarkReportData</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">QuarkReportData$Crime</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">QuarkReportData$InvokePlace</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">QuarkReportData$Method</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.plugins.quark;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.List;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import com.google.gson.JsonElement;
+<i class="no-highlight">7</i>&nbsp;import com.google.gson.annotations.SerializedName;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;@SuppressWarnings(&quot;MemberName&quot;)
+<b class="nc"><i class="no-highlight">12</i>&nbsp;public class QuarkReportData {</b>
+<b class="nc"><i class="no-highlight">13</i>&nbsp;	public static class Crime {</b>
+<i class="no-highlight">14</i>&nbsp;		public String crime;
+<i class="no-highlight">15</i>&nbsp;		public String confidence;
+<i class="no-highlight">16</i>&nbsp;		public List&lt;String&gt; permissions;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;		List&lt;Method&gt; native_api;
+<i class="no-highlight">19</i>&nbsp;		List&lt;JsonElement&gt; combination;
+<i class="no-highlight">20</i>&nbsp;		List&lt;Map&lt;String, InvokePlace&gt;&gt; register;
+<i class="no-highlight">21</i>&nbsp;	}
+<i class="no-highlight">22</i>&nbsp;
+<b class="nc"><i class="no-highlight">23</i>&nbsp;	public static class Method {</b>
+<i class="no-highlight">24</i>&nbsp;		@SerializedName(&quot;class&quot;)
+<i class="no-highlight">25</i>&nbsp;		String cls;
+<i class="no-highlight">26</i>&nbsp;		String method;
+<i class="no-highlight">27</i>&nbsp;		String descriptor;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;		@Override
+<i class="no-highlight">30</i>&nbsp;		public String toString() {
+<b class="nc"><i class="no-highlight">31</i>&nbsp;			StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">32</i>&nbsp;			sb.append(Utils.cleanObjectName(cls)).append(&quot;.&quot;).append(method);</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;			if (descriptor != null) {</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;				sb.append(descriptor);</b>
+<i class="no-highlight">35</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			return sb.toString();</b>
+<i class="no-highlight">37</i>&nbsp;		}
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<b class="nc"><i class="no-highlight">40</i>&nbsp;	public static class InvokePlace {</b>
+<i class="no-highlight">41</i>&nbsp;		List&lt;String&gt; first;
+<i class="no-highlight">42</i>&nbsp;		List&lt;String&gt; second;
+<i class="no-highlight">43</i>&nbsp;	}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	String apk_filename;
+<i class="no-highlight">46</i>&nbsp;	String threat_level;
+<i class="no-highlight">47</i>&nbsp;	int total_score;
+<i class="no-highlight">48</i>&nbsp;	List&lt;Crime&gt; crimes;
+<i class="no-highlight">49</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

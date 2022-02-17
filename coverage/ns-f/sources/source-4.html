@@ -1,0 +1,249 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ZipSecurity</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: ZipSecurity (jadx.api.plugins.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ZipSecurity</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    13%
+  </span>
+  <span class="absValue">
+    (3/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.8%
+  </span>
+  <span class="absValue">
+    (44/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">4</i>&nbsp;import java.io.File;
+<i class="no-highlight">5</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">6</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">7</i>&nbsp;import java.util.Enumeration;
+<i class="no-highlight">8</i>&nbsp;import java.util.function.BiConsumer;
+<i class="no-highlight">9</i>&nbsp;import java.util.function.BiFunction;
+<i class="no-highlight">10</i>&nbsp;import java.util.zip.ZipEntry;
+<i class="no-highlight">11</i>&nbsp;import java.util.zip.ZipFile;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;public class ZipSecurity {
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	// size of uncompressed zip entry shouldn&#39;t be bigger of compressed in MAX_SIZE_DIFF times
+<i class="no-highlight">21</i>&nbsp;	private static final int MAX_SIZE_DIFF = 100;
+<i class="no-highlight">22</i>&nbsp;	private static final int MAX_ENTRIES_COUNT = 100_000;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	private ZipSecurity() {
+<i class="no-highlight">25</i>&nbsp;	}
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	private static boolean isInSubDirectoryInternal(File baseDir, File canonFile) {
+<b class="pc"><i class="no-highlight">28</i>&nbsp;		if (canonFile == null) {</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;			return false;</b>
+<i class="no-highlight">30</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		if (canonFile.equals(baseDir)) {</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;			return true;</b>
+<i class="no-highlight">33</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		return isInSubDirectoryInternal(baseDir, canonFile.getParentFile());</b>
+<i class="no-highlight">35</i>&nbsp;	}
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	public static boolean isInSubDirectory(File baseDir, File file) {
+<i class="no-highlight">38</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">39</i>&nbsp;			file = file.getCanonicalFile();</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;			baseDir = baseDir.getCanonicalFile();</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		} catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;			return false;</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		return isInSubDirectoryInternal(baseDir, file);</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	// checks that entry name contains no any traversals
+<i class="no-highlight">48</i>&nbsp;	// and prevents cases like &quot;../classes.dex&quot;, to limit output only to the specified directory
+<i class="no-highlight">49</i>&nbsp;	public static boolean isValidZipEntryName(String entryName) {
+<i class="no-highlight">50</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">51</i>&nbsp;			File currentPath = CommonFileUtils.CWD;</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;			File canonical = new File(currentPath, entryName).getCanonicalFile();</b>
+<b class="pc"><i class="no-highlight">53</i>&nbsp;			if (isInSubDirectoryInternal(currentPath, canonical)) {</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;				return true;</b>
+<i class="no-highlight">55</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">56</i>&nbsp;			LOG.error(&quot;Path traversal attack detected, invalid name: {}&quot;, entryName);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;			return false;</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;			LOG.error(&quot;Path traversal attack detected, invalid name: {}&quot;, entryName);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;			return false;</b>
+<i class="no-highlight">61</i>&nbsp;		}
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	public static boolean isZipBomb(ZipEntry entry) {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		long compressedSize = entry.getCompressedSize();</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		long uncompressedSize = entry.getSize();</b>
+<b class="pc"><i class="no-highlight">67</i>&nbsp;		if (compressedSize &lt; 0 || uncompressedSize &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;			LOG.error(&quot;Zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}&quot;,</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;					compressedSize, uncompressedSize, entry.getName());</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			return true;</b>
+<i class="no-highlight">71</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">72</i>&nbsp;		if (compressedSize * MAX_SIZE_DIFF &lt; uncompressedSize) {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;			LOG.error(&quot;Zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}&quot;,</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;					compressedSize, uncompressedSize, entry.getName());</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;			return true;</b>
+<i class="no-highlight">76</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		return false;</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	public static boolean isValidZipEntry(ZipEntry entry) {
+<b class="pc"><i class="no-highlight">81</i>&nbsp;		return isValidZipEntryName(entry.getName())</b>
+<b class="pc"><i class="no-highlight">82</i>&nbsp;				&amp;&amp; !isZipBomb(entry);</b>
+<i class="no-highlight">83</i>&nbsp;	}
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;	public static InputStream getInputStreamForEntry(ZipFile zipFile, ZipEntry entry) throws IOException {
+<b class="fc"><i class="no-highlight">86</i>&nbsp;		InputStream in = zipFile.getInputStream(entry);</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		LimitedInputStream limited = new LimitedInputStream(in, entry.getSize());</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		return new BufferedInputStream(limited);</b>
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	/**
+<i class="no-highlight">92</i>&nbsp;	 * Visit valid entries in zip file.
+<i class="no-highlight">93</i>&nbsp;	 * Return not null value from visitor to stop iteration.
+<i class="no-highlight">94</i>&nbsp;	 */
+<i class="no-highlight">95</i>&nbsp;	@Nullable
+<i class="no-highlight">96</i>&nbsp;	public static &lt;R&gt; R visitZipEntries(File file, BiFunction&lt;ZipFile, ZipEntry, R&gt; visitor) {
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		try (ZipFile zip = new ZipFile(file)) {</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;			Enumeration&lt;? extends ZipEntry&gt; entries = zip.entries();</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;			int entriesProcessed = 0;</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			while (entries.hasMoreElements()) {</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;				ZipEntry entry = entries.nextElement();</b>
+<b class="pc"><i class="no-highlight">102</i>&nbsp;				if (isValidZipEntry(entry)) {</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;					R result = visitor.apply(zip, entry);</b>
+<b class="pc"><i class="no-highlight">104</i>&nbsp;					if (result != null) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;						return result;</b>
+<i class="no-highlight">106</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">107</i>&nbsp;					entriesProcessed++;</b>
+<b class="pc"><i class="no-highlight">108</i>&nbsp;					if (entriesProcessed &gt; MAX_ENTRIES_COUNT) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;						throw new IllegalStateException(&quot;Zip entries count limit exceeded: &quot; + MAX_ENTRIES_COUNT</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;								+ &quot;, last entry: &quot; + entry.getName());</b>
+<i class="no-highlight">111</i>&nbsp;					}
+<i class="no-highlight">112</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">113</i>&nbsp;			}</b>
+<b class="pc"><i class="no-highlight">114</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;			throw new RuntimeException(&quot;Failed to process zip file: &quot; + file.getAbsolutePath(), e);</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		return null;</b>
+<i class="no-highlight">118</i>&nbsp;	}
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;	public static void readZipEntries(File file, BiConsumer&lt;ZipEntry, InputStream&gt; visitor) {
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		visitZipEntries(file, (zip, entry) -&gt; {</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;			if (!entry.isDirectory()) {</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;				try (InputStream in = getInputStreamForEntry(zip, entry)) {</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;					visitor.accept(entry, in);</b>
+<b class="pc"><i class="no-highlight">125</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;					throw new RuntimeException(&quot;Error process zip entry: &quot; + entry.getName());</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;				}</b>
+<i class="no-highlight">128</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">129</i>&nbsp;			return null;</b>
+<i class="no-highlight">130</i>&nbsp;		});
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

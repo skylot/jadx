@@ -1,0 +1,429 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CodeArea</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.codearea</a>
+</div>
+
+<h1>Coverage Summary for Class: CodeArea (jadx.gui.ui.codearea)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CodeArea</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/115)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CodeArea$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CodeArea$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/124)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.codearea;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Point;
+<i class="no-highlight">4</i>&nbsp;import java.awt.event.InputEvent;
+<i class="no-highlight">5</i>&nbsp;import java.awt.event.MouseAdapter;
+<i class="no-highlight">6</i>&nbsp;import java.awt.event.MouseEvent;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import javax.swing.JPopupMenu;
+<i class="no-highlight">9</i>&nbsp;import javax.swing.event.PopupMenuEvent;
+<i class="no-highlight">10</i>&nbsp;import javax.swing.text.BadLocationException;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+<i class="no-highlight">13</i>&nbsp;import org.fife.ui.rsyntaxtextarea.Token;
+<i class="no-highlight">14</i>&nbsp;import org.fife.ui.rsyntaxtextarea.TokenTypes;
+<i class="no-highlight">15</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.CodePosition;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.JavaNode;
+<i class="no-highlight">22</i>&nbsp;import jadx.gui.settings.JadxProject;
+<i class="no-highlight">23</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">24</i>&nbsp;import jadx.gui.treemodel.JNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">26</i>&nbsp;import jadx.gui.ui.panel.ContentPanel;
+<i class="no-highlight">27</i>&nbsp;import jadx.gui.utils.CaretPositionFix;
+<i class="no-highlight">28</i>&nbsp;import jadx.gui.utils.DefaultPopupMenuListener;
+<i class="no-highlight">29</i>&nbsp;import jadx.gui.utils.JNodeCache;
+<i class="no-highlight">30</i>&nbsp;import jadx.gui.utils.JumpPosition;
+<i class="no-highlight">31</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;/**
+<i class="no-highlight">34</i>&nbsp; * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
+<i class="no-highlight">35</i>&nbsp; * resources (e.g. AndroidManifest.xml)
+<i class="no-highlight">36</i>&nbsp; */
+<b class="nc"><i class="no-highlight">37</i>&nbsp;public final class CodeArea extends AbstractCodeArea {</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);</b>
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	private static final long serialVersionUID = 6312736869579635796L;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;	CodeArea(ContentPanel contentPanel) {
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		super(contentPanel);</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		setSyntaxEditingStyle(node.getSyntaxName());</b>
+<i class="no-highlight">45</i>&nbsp;
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		boolean isJavaCode = node instanceof JClass;</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		if (isJavaCode) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;			addMenuItems();</b>
+<i class="no-highlight">50</i>&nbsp;		}
+<i class="no-highlight">51</i>&nbsp;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		setHyperlinksEnabled(true);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		setLinkScanningMask(InputEvent.CTRL_DOWN_MASK);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		CodeLinkGenerator codeLinkGenerator = new CodeLinkGenerator(this);</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		setLinkGenerator(codeLinkGenerator);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">57</i>&nbsp;			@Override
+<i class="no-highlight">58</i>&nbsp;			public void mouseClicked(MouseEvent e) {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;				if (e.getClickCount() % 2 == 0 || e.isControlDown()) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;					navToDecl(e.getPoint(), codeLinkGenerator);</b>
+<i class="no-highlight">61</i>&nbsp;				}
+<i class="no-highlight">62</i>&nbsp;			}
+<i class="no-highlight">63</i>&nbsp;		});
+<i class="no-highlight">64</i>&nbsp;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		if (isJavaCode) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;			addMouseMotionListener(new MouseHoverHighlighter(this, codeLinkGenerator));</b>
+<i class="no-highlight">67</i>&nbsp;		}
+<i class="no-highlight">68</i>&nbsp;	}
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;	@SuppressWarnings(&quot;deprecation&quot;)
+<i class="no-highlight">71</i>&nbsp;	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		int offs = viewToModel(point);</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(CodeArea.this, offs);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		if (jump != null) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;			contentPanel.getTabbedPane().codeJump(jump);</b>
+<i class="no-highlight">76</i>&nbsp;		}
+<i class="no-highlight">77</i>&nbsp;	}
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;	@Override
+<i class="no-highlight">80</i>&nbsp;	public void load() {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		if (getText().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;			setText(node.getContent());</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;			setCaretPosition(0);</b>
+<i class="no-highlight">84</i>&nbsp;		}
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	@Override
+<i class="no-highlight">88</i>&nbsp;	public void refresh() {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		setText(node.getContent());</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	private void addMenuItems() {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		FindUsageAction findUsage = new FindUsageAction(this);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		RenameAction rename = new RenameAction(this);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		CommentAction comment = new CommentAction(this);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		FridaAction frida = new FridaAction(this);</b>
+<i class="no-highlight">98</i>&nbsp;
+<b class="nc"><i class="no-highlight">99</i>&nbsp;		JPopupMenu popup = getPopupMenu();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;		popup.addSeparator();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		popup.add(findUsage);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		popup.add(frida);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		popup.add(goToDeclaration);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;		popup.add(comment);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		popup.add(new CommentSearchAction(this));</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;		popup.add(rename);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;		popup.addPopupMenuListener(findUsage);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;		popup.addPopupMenuListener(goToDeclaration);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;		popup.addPopupMenuListener(comment);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;		popup.addPopupMenuListener(rename);</b>
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;		// move caret on mouse right button click
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		popup.addPopupMenuListener(new DefaultPopupMenuListener() {</b>
+<i class="no-highlight">114</i>&nbsp;			@Override
+<i class="no-highlight">115</i>&nbsp;			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;				CodeArea codeArea = CodeArea.this;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;				if (codeArea.getSelectedText() == null) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;					int offset = UiUtils.getOffsetAtMousePosition(codeArea);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;					if (offset &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;						codeArea.setCaretPosition(offset);</b>
+<i class="no-highlight">121</i>&nbsp;					}
+<i class="no-highlight">122</i>&nbsp;				}
+<i class="no-highlight">123</i>&nbsp;			}
+<i class="no-highlight">124</i>&nbsp;		});
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	public int adjustOffsetForToken(@Nullable Token token) {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;		if (token == null) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;			return -1;</b>
+<i class="no-highlight">130</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">131</i>&nbsp;		int type = token.getType();</b>
+<i class="no-highlight">132</i>&nbsp;		final int sourceOffset;
+<b class="nc"><i class="no-highlight">133</i>&nbsp;		if (node instanceof JClass) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;			if (type == TokenTypes.IDENTIFIER) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;				sourceOffset = token.getOffset();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			} else if (type == TokenTypes.ANNOTATION &amp;&amp; token.length() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;				sourceOffset = token.getOffset() + 1;</b>
+<i class="no-highlight">138</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;				return -1;</b>
+<i class="no-highlight">140</i>&nbsp;			}
+<i class="no-highlight">141</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;			if (type == TokenTypes.MARKUP_TAG_ATTRIBUTE_VALUE) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;				sourceOffset = token.getOffset() + 1; // skip quote at start (&quot;)</b>
+<i class="no-highlight">144</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;				return -1;</b>
+<i class="no-highlight">146</i>&nbsp;			}
+<i class="no-highlight">147</i>&nbsp;		}
+<i class="no-highlight">148</i>&nbsp;		// fast skip
+<b class="nc"><i class="no-highlight">149</i>&nbsp;		if (token.length() == 1) {</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;			char ch = token.getTextArray()[token.getTextOffset()];</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;			if (ch == &#39;.&#39; || ch == &#39;,&#39; || ch == &#39;;&#39;) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;				return -1;</b>
+<i class="no-highlight">153</i>&nbsp;			}
+<i class="no-highlight">154</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">155</i>&nbsp;		return sourceOffset;</b>
+<i class="no-highlight">156</i>&nbsp;	}
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;	/**
+<i class="no-highlight">159</i>&nbsp;	 * Search node by offset in {@code jCls} code and return its definition position
+<i class="no-highlight">160</i>&nbsp;	 * (useful for jumps from usage)
+<i class="no-highlight">161</i>&nbsp;	 */
+<i class="no-highlight">162</i>&nbsp;	@Nullable
+<i class="no-highlight">163</i>&nbsp;	public JumpPosition getDefPosForNodeAtOffset(int offset) {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;		if (offset == -1) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;			return null;</b>
+<i class="no-highlight">166</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">167</i>&nbsp;		JavaNode foundNode = getJavaNodeAtOffset(offset);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;		if (foundNode == null) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;			return null;</b>
+<i class="no-highlight">170</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">171</i>&nbsp;		CodePosition pos = getDecompiler().getDefinitionPosition(foundNode);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;		if (pos == null) {</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;			return null;</b>
+<i class="no-highlight">174</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">175</i>&nbsp;		JNode jNode = convertJavaNode(foundNode);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;		return new JumpPosition(jNode.getRootClass(), pos);</b>
+<i class="no-highlight">177</i>&nbsp;	}
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;	private JNode convertJavaNode(JavaNode javaNode) {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;		JNodeCache nodeCache = getMainWindow().getCacheObject().getNodeCache();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;		return nodeCache.makeFrom(javaNode);</b>
+<i class="no-highlight">182</i>&nbsp;	}
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;	@SuppressWarnings(&quot;deprecation&quot;)
+<i class="no-highlight">185</i>&nbsp;	public CodePosition getMouseCodePos() {
+<i class="no-highlight">186</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;			Point mousePos = UiUtils.getMousePosition(this);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;			return buildCodePosFromOffset(this.viewToModel(mousePos));</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			LOG.error(&quot;Failed to get offset at mouse position&quot;, e);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;			return null;</b>
+<i class="no-highlight">192</i>&nbsp;		}
+<i class="no-highlight">193</i>&nbsp;	}
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;	@Nullable
+<i class="no-highlight">196</i>&nbsp;	public CodePosition getCaretCodePos() {
+<i class="no-highlight">197</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;			return buildCodePosFromOffset(getCaretPosition());</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;			LOG.warn(&quot;Failed to get caret position&quot;, e);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;			return null;</b>
+<i class="no-highlight">202</i>&nbsp;		}
+<i class="no-highlight">203</i>&nbsp;	}
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;	private CodePosition buildCodePosFromOffset(int offset) throws BadLocationException {
+<b class="nc"><i class="no-highlight">206</i>&nbsp;		int start = getWordStart(offset);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;		if (start == -1) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;			start = offset;</b>
+<i class="no-highlight">209</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">210</i>&nbsp;		int line = getLineOfOffset(start);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;		int lineOffset = start - getLineStartOffset(line);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;		return new CodePosition(line + 1, lineOffset + 1, start);</b>
+<i class="no-highlight">213</i>&nbsp;	}
+<i class="no-highlight">214</i>&nbsp;
+<i class="no-highlight">215</i>&nbsp;	public JNode getNodeUnderCaret() {
+<b class="nc"><i class="no-highlight">216</i>&nbsp;		int start = getWordStart(getCaretPosition());</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;		if (start == -1) {</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;			start = getCaretPosition();</b>
+<i class="no-highlight">219</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">220</i>&nbsp;		return getJNodeAtOffset(start);</b>
+<i class="no-highlight">221</i>&nbsp;	}
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;	@Nullable
+<i class="no-highlight">224</i>&nbsp;	public JNode getJNodeAtOffset(int offset) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;		JavaNode javaNode = getJavaNodeAtOffset(offset);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;		if (javaNode != null) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;			return convertJavaNode(javaNode);</b>
+<i class="no-highlight">228</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">229</i>&nbsp;		return null;</b>
+<i class="no-highlight">230</i>&nbsp;	}
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;	/**
+<i class="no-highlight">233</i>&nbsp;	 * Search referenced java node by offset in {@code jCls} code
+<i class="no-highlight">234</i>&nbsp;	 */
+<i class="no-highlight">235</i>&nbsp;	public JavaNode getJavaNodeAtOffset(int offset) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;		if (offset == -1) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;			return null;</b>
+<i class="no-highlight">238</i>&nbsp;		}
+<i class="no-highlight">239</i>&nbsp;		try {
+<i class="no-highlight">240</i>&nbsp;			// TODO: add direct mapping for code offset to CodeWriter (instead of line and line offset pair)
+<b class="nc"><i class="no-highlight">241</i>&nbsp;			int line = this.getLineOfOffset(offset);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;			int lineOffset = offset - this.getLineStartOffset(line);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;			return node.getJavaNodeAtPosition(getDecompiler(), line + 1, lineOffset + 1);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;			LOG.error(&quot;Can&#39;t get java node by offset: {}&quot;, offset, e);</b>
+<i class="no-highlight">246</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">247</i>&nbsp;		return null;</b>
+<i class="no-highlight">248</i>&nbsp;	}
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;	public void refreshClass() {
+<b class="nc"><i class="no-highlight">251</i>&nbsp;		if (node instanceof JClass) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;			JClass cls = (JClass) node;</b>
+<i class="no-highlight">253</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;				CaretPositionFix caretFix = new CaretPositionFix(this);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;				caretFix.save();</b>
+<i class="no-highlight">256</i>&nbsp;
+<b class="nc"><i class="no-highlight">257</i>&nbsp;				cls.reload(getMainWindow().getCacheObject());</b>
+<i class="no-highlight">258</i>&nbsp;
+<b class="nc"><i class="no-highlight">259</i>&nbsp;				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;				codeContentPanel.getTabbedPane().refresh(cls);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;				codeContentPanel.getJavaCodePanel().refresh(caretFix);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;				LOG.error(&quot;Failed to reload class: {}&quot;, cls.getFullName(), e);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;			}</b>
+<i class="no-highlight">265</i>&nbsp;		}
+<i class="no-highlight">266</i>&nbsp;	}
+<i class="no-highlight">267</i>&nbsp;
+<i class="no-highlight">268</i>&nbsp;	public MainWindow getMainWindow() {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;		return contentPanel.getTabbedPane().getMainWindow();</b>
+<i class="no-highlight">270</i>&nbsp;	}
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;	public JadxDecompiler getDecompiler() {
+<b class="nc"><i class="no-highlight">273</i>&nbsp;		return getMainWindow().getWrapper().getDecompiler();</b>
+<i class="no-highlight">274</i>&nbsp;	}
+<i class="no-highlight">275</i>&nbsp;
+<i class="no-highlight">276</i>&nbsp;	public JadxProject getProject() {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;		return getMainWindow().getProject();</b>
+<i class="no-highlight">278</i>&nbsp;	}
+<i class="no-highlight">279</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

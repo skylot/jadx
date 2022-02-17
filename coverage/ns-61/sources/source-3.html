@@ -1,0 +1,353 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JavaCodeReader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data.code</a>
+</div>
+
+<h1>Coverage Summary for Class: JavaCodeReader (jadx.plugins.input.java.data.code)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavaCodeReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.9%
+  </span>
+  <span class="absValue">
+    (13/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (12/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.1%
+  </span>
+  <span class="absValue">
+    (112/123)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data.code;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">6</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map;
+<i class="no-highlight">9</i>&nbsp;import java.util.Set;
+<i class="no-highlight">10</i>&nbsp;import java.util.function.Consumer;
+<i class="no-highlight">11</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.ICodeReader;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.IDebugInfo;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.ILocalVar;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.ITry;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.impl.CatchData;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.plugins.input.data.impl.DebugInfo;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.plugins.input.insns.InsnData;
+<i class="no-highlight">22</i>&nbsp;import jadx.plugins.input.java.data.ConstPoolReader;
+<i class="no-highlight">23</i>&nbsp;import jadx.plugins.input.java.data.DataReader;
+<i class="no-highlight">24</i>&nbsp;import jadx.plugins.input.java.data.JavaClassData;
+<i class="no-highlight">25</i>&nbsp;import jadx.plugins.input.java.data.attributes.JavaAttrStorage;
+<i class="no-highlight">26</i>&nbsp;import jadx.plugins.input.java.data.attributes.JavaAttrType;
+<i class="no-highlight">27</i>&nbsp;import jadx.plugins.input.java.data.attributes.debuginfo.JavaLocalVar;
+<i class="no-highlight">28</i>&nbsp;import jadx.plugins.input.java.data.attributes.debuginfo.LineNumberTableAttr;
+<i class="no-highlight">29</i>&nbsp;import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarTypesAttr;
+<i class="no-highlight">30</i>&nbsp;import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarsAttr;
+<i class="no-highlight">31</i>&nbsp;import jadx.plugins.input.java.data.code.trycatch.JavaSingleCatch;
+<i class="no-highlight">32</i>&nbsp;import jadx.plugins.input.java.data.code.trycatch.JavaTryData;
+<i class="no-highlight">33</i>&nbsp;import jadx.plugins.input.java.utils.JavaClassParseException;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;public class JavaCodeReader implements ICodeReader {
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	private final JavaClassData clsData;
+<i class="no-highlight">38</i>&nbsp;	private final DataReader reader;
+<i class="no-highlight">39</i>&nbsp;	private final int codeOffset;
+<i class="no-highlight">40</i>&nbsp;
+<b class="fc"><i class="no-highlight">41</i>&nbsp;	public JavaCodeReader(JavaClassData clsData, int offset) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		this.clsData = clsData;</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		this.reader = clsData.getData();</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		this.codeOffset = offset;</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	@Override
+<i class="no-highlight">48</i>&nbsp;	public ICodeReader copy() {
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		return this;</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	@Override
+<i class="no-highlight">53</i>&nbsp;	public void visitInstructions(Consumer&lt;InsnData&gt; insnConsumer) {
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		Set&lt;Integer&gt; excHandlers = getExcHandlers();</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		int maxStack = readMaxStack();</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		reader.skip(2);</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		int codeSize = reader.readU4();</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		CodeDecodeState state = new CodeDecodeState(clsData, reader, maxStack, excHandlers);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		JavaInsnData insn = new JavaInsnData(state);</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		state.setInsn(insn);</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		int offset = 0;</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		while (offset &lt; codeSize) {</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;			insn.setDecoded(false);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			insn.setOffset(offset);</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;			insn.setInsnStart(reader.getOffset());</b>
+<i class="no-highlight">67</i>&nbsp;
+<b class="fc"><i class="no-highlight">68</i>&nbsp;			int opcode = reader.readU1();</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;			JavaInsnInfo insnInfo = JavaInsnsRegister.get(opcode);</b>
+<b class="pc"><i class="no-highlight">70</i>&nbsp;			if (insnInfo == null) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;				throw new JavaClassParseException(&quot;Unknown opcode: 0x&quot; + Integer.toHexString(opcode));</b>
+<i class="no-highlight">72</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">73</i>&nbsp;			insn.setInsnInfo(insnInfo);</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;			insn.setInsnInfo(insnInfo);</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;			insn.setRegsCount(insnInfo.getRegsCount());</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;			insn.setOpcode(insnInfo.getApiOpcode());</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;			insn.setPayloadSize(insnInfo.getPayloadSize());</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;			insn.setOpcodeUnit(opcode);</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;			insn.setPayload(null);</b>
+<i class="no-highlight">80</i>&nbsp;
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			state.onInsn(offset);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			insnConsumer.accept(insn);</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			int payloadSize = insn.getPayloadSize();</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;			if (!insn.isDecoded()) {</b>
+<b class="pc"><i class="no-highlight">86</i>&nbsp;				if (payloadSize == -1) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;					insn.skip();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;					payloadSize = insn.getPayloadSize();</b>
+<i class="no-highlight">89</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">90</i>&nbsp;					reader.skip(payloadSize);</b>
+<i class="no-highlight">91</i>&nbsp;				}
+<i class="no-highlight">92</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			offset += 1 + payloadSize;</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		}</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	@Override
+<i class="no-highlight">98</i>&nbsp;	public int getRegistersCount() {
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		int maxStack = readMaxStack();</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;		int maxLocals = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		return maxStack + maxLocals;</b>
+<i class="no-highlight">102</i>&nbsp;	}
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;	@Override
+<i class="no-highlight">105</i>&nbsp;	public int getArgsStartReg() {
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		return readMaxStack();</b>
+<i class="no-highlight">107</i>&nbsp;	}
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;	private int readMaxStack() {
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		reader.absPos(codeOffset);</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		int maxStack = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		return maxStack + 1; // add one temporary register (for `swap` opcode)</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	@Override
+<i class="no-highlight">116</i>&nbsp;	public int getUnitsCount() {
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		return reader.absPos(codeOffset + 4).readU4();</b>
+<i class="no-highlight">118</i>&nbsp;	}
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;	@Override
+<i class="no-highlight">121</i>&nbsp;	@Nullable
+<i class="no-highlight">122</i>&nbsp;	public IDebugInfo getDebugInfo() {
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		int maxStack = readMaxStack();</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		reader.skip(2);</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		reader.skip(reader.readU4());</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		reader.skip(reader.readU2() * 8);</b>
+<i class="no-highlight">127</i>&nbsp;
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		JavaAttrStorage attrs = clsData.getAttributesReader().load(reader);</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		LineNumberTableAttr linesAttr = attrs.get(JavaAttrType.LINE_NUMBER_TABLE);</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		LocalVarsAttr varsAttr = attrs.get(JavaAttrType.LOCAL_VAR_TABLE);</b>
+<b class="pc"><i class="no-highlight">131</i>&nbsp;		if (linesAttr == null &amp;&amp; varsAttr == null) {</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;			return null;</b>
+<i class="no-highlight">133</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">134</i>&nbsp;		Map&lt;Integer, Integer&gt; linesMap = linesAttr != null ? linesAttr.getLineMap() : Collections.emptyMap();</b>
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;		List&lt;ILocalVar&gt; vars;
+<b class="fc"><i class="no-highlight">137</i>&nbsp;		if (varsAttr == null) {</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;			vars = Collections.emptyList();</b>
+<i class="no-highlight">139</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">140</i>&nbsp;			List&lt;JavaLocalVar&gt; javaVars = varsAttr.getVars();</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;			LocalVarTypesAttr typedVars = attrs.get(JavaAttrType.LOCAL_VAR_TYPE_TABLE);</b>
+<b class="pc"><i class="no-highlight">142</i>&nbsp;			if (typedVars != null &amp;&amp; !typedVars.getVars().isEmpty()) {</b>
+<i class="no-highlight">143</i>&nbsp;				// merge signature from typedVars into javaVars
+<b class="nc"><i class="no-highlight">144</i>&nbsp;				Map&lt;JavaLocalVar, JavaLocalVar&gt; varsMap = new HashMap&lt;&gt;(javaVars.size());</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;				javaVars.forEach(v -&gt; varsMap.put(v, v));</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;				for (JavaLocalVar typedVar : typedVars.getVars()) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;					JavaLocalVar jv = varsMap.get(typedVar);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;					if (jv != null) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;						jv.setSignature(typedVar.getSignature());</b>
+<i class="no-highlight">150</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">151</i>&nbsp;				}</b>
+<i class="no-highlight">152</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			javaVars.forEach(v -&gt; v.shiftRegNum(maxStack));</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;			vars = Collections.unmodifiableList(javaVars);</b>
+<i class="no-highlight">155</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		return new DebugInfo(linesMap, vars);</b>
+<i class="no-highlight">157</i>&nbsp;	}
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;	@Override
+<i class="no-highlight">160</i>&nbsp;	public int getCodeOffset() {
+<b class="nc"><i class="no-highlight">161</i>&nbsp;		return codeOffset;</b>
+<i class="no-highlight">162</i>&nbsp;	}
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;	@Override
+<i class="no-highlight">165</i>&nbsp;	public List&lt;ITry&gt; getTries() {
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		skipToTries();</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		int excTableLen = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		if (excTableLen == 0) {</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">170</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		ConstPoolReader constPool = clsData.getConstPoolReader();</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		Map&lt;JavaTryData, List&lt;JavaSingleCatch&gt;&gt; tries = new HashMap&lt;&gt;(excTableLen);</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		for (int i = 0; i &lt; excTableLen; i++) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			int start = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			int end = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			int handler = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;			int type = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;			JavaTryData tryData = new JavaTryData(start, end);</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;			List&lt;JavaSingleCatch&gt; catches = tries.computeIfAbsent(tryData, k -&gt; new ArrayList&lt;&gt;());</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;			if (type == 0) {</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;				catches.add(new JavaSingleCatch(handler, null));</b>
+<i class="no-highlight">182</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">183</i>&nbsp;				catches.add(new JavaSingleCatch(handler, constPool.getClass(type)));</b>
+<i class="no-highlight">184</i>&nbsp;			}
+<i class="no-highlight">185</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		return tries.entrySet().stream()</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;				.map(e -&gt; {</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;					JavaTryData tryData = e.getKey();</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;					tryData.setCatch(convertSingleCatches(e.getValue()));</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;					return tryData;</b>
+<i class="no-highlight">191</i>&nbsp;				})
+<b class="fc"><i class="no-highlight">192</i>&nbsp;				.collect(Collectors.toList());</b>
+<i class="no-highlight">193</i>&nbsp;	}
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;	private static CatchData convertSingleCatches(List&lt;JavaSingleCatch&gt; list) {
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		int allHandler = -1;</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		for (JavaSingleCatch singleCatch : list) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			if (singleCatch.getType() == null) {</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;				allHandler = singleCatch.getHandler();</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;				list.remove(singleCatch);</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;				break;</b>
+<i class="no-highlight">202</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		int len = list.size();</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		int[] handlers = new int[len];</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		String[] types = new String[len];</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;			JavaSingleCatch singleCatch = list.get(i);</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;			handlers[i] = singleCatch.getHandler();</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;			types[i] = singleCatch.getType();</b>
+<i class="no-highlight">211</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		return new CatchData(handlers, types, allHandler);</b>
+<i class="no-highlight">213</i>&nbsp;	}
+<i class="no-highlight">214</i>&nbsp;
+<i class="no-highlight">215</i>&nbsp;	private Set&lt;Integer&gt; getExcHandlers() {
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		skipToTries();</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		int excTableLen = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		if (excTableLen == 0) {</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;			return Collections.emptySet();</b>
+<i class="no-highlight">220</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		Set&lt;Integer&gt; set = new HashSet&lt;&gt;(excTableLen);</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		for (int i = 0; i &lt; excTableLen; i++) {</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;			reader.skip(4);</b>
+<b class="fc"><i class="no-highlight">224</i>&nbsp;			int handler = reader.readU2();</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;			reader.skip(2);</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;			set.add(handler);</b>
+<i class="no-highlight">227</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">228</i>&nbsp;		return set;</b>
+<i class="no-highlight">229</i>&nbsp;	}
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;	private void skipToTries() {
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		reader.absPos(codeOffset + 4);</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		int codeSize = reader.readU4();</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		reader.skip(codeSize);</b>
+<i class="no-highlight">235</i>&nbsp;	}
+<i class="no-highlight">236</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,700 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BlockExceptionHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.blocks</a>
+</div>
+
+<h1>Coverage Summary for Class: BlockExceptionHandler (jadx.core.dex.visitors.blocks)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BlockExceptionHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.9%
+  </span>
+  <span class="absValue">
+    (30/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    79.2%
+  </span>
+  <span class="absValue">
+    (80/101)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.6%
+  </span>
+  <span class="absValue">
+    (315/333)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.blocks;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayDeque;
+<i class="no-highlight">4</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">7</i>&nbsp;import java.util.Deque;
+<i class="no-highlight">8</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">9</i>&nbsp;import java.util.List;
+<i class="no-highlight">10</i>&nbsp;import java.util.Map;
+<i class="no-highlight">11</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">12</i>&nbsp;import java.util.Set;
+<i class="no-highlight">13</i>&nbsp;import java.util.function.Predicate;
+<i class="no-highlight">14</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">17</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.plugins.utils.Utils;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.Consts;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.attributes.nodes.TmpEdgeAttr;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.args.NamedArg;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.trycatch.CatchAttr;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.trycatch.ExcHandlerAttr;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.trycatch.ExceptionHandler;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.trycatch.TryCatchBlockAttr;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.visitors.typeinference.TypeCompare;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.utils.ListUtils;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">44</i>&nbsp;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;public class BlockExceptionHandler {</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(BlockExceptionHandler.class);</b>
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;	public static boolean process(MethodNode mth) {
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		if (mth.isNoExceptionHandlers()) {</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;			return false;</b>
+<i class="no-highlight">51</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		BlockProcessor.updateCleanSuccessors(mth);</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		BlockProcessor.computeDominanceFrontier(mth);</b>
+<i class="no-highlight">54</i>&nbsp;
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		processCatchAttr(mth);</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		initExcHandlers(mth);</b>
+<i class="no-highlight">57</i>&nbsp;
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		List&lt;TryCatchBlockAttr&gt; tryBlocks = prepareTryBlocks(mth);</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		connectExcHandlers(mth, tryBlocks);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		mth.addAttr(AType.TRY_BLOCKS_LIST, tryBlocks);</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		mth.getBasicBlocks().forEach(BlockNode::updateCleanSuccessors);</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		for (ExceptionHandler eh : mth.getExceptionHandlers()) {</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;			removeMonitorExitFromExcHandler(mth, eh);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		BlockProcessor.removeMarkedBlocks(mth);</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		return true;</b>
+<i class="no-highlight">68</i>&nbsp;	}
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;	/**
+<i class="no-highlight">71</i>&nbsp;	 * Wrap try blocks with top/bottom splitter and connect them to handler block.
+<i class="no-highlight">72</i>&nbsp;	 * Sometimes try block can be handler block itself and should be connected before wrapping.
+<i class="no-highlight">73</i>&nbsp;	 * Use queue for postpone try blocks not ready for wrap.
+<i class="no-highlight">74</i>&nbsp;	 */
+<i class="no-highlight">75</i>&nbsp;	private static void connectExcHandlers(MethodNode mth, List&lt;TryCatchBlockAttr&gt; tryBlocks) {
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		if (tryBlocks.isEmpty()) {</b>
+<i class="no-highlight">77</i>&nbsp;			return;
+<i class="no-highlight">78</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		int limit = tryBlocks.size() * 3;</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		int count = 0;</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		Deque&lt;TryCatchBlockAttr&gt; queue = new ArrayDeque&lt;&gt;(tryBlocks);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		while (!queue.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;			TryCatchBlockAttr tryBlock = queue.removeFirst();</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			boolean complete = wrapBlocksWithTryCatch(mth, tryBlock);</b>
+<b class="pc"><i class="no-highlight">85</i>&nbsp;			if (!complete) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;				queue.addLast(tryBlock); // return to queue at the end</b>
+<i class="no-highlight">87</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">88</i>&nbsp;			if (count++ &gt; limit) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;				throw new JadxRuntimeException(&quot;Try blocks wrapping queue limit reached! Please report as an issue!&quot;);</b>
+<i class="no-highlight">90</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		}</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	private static void processCatchAttr(MethodNode mth) {
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;				if (insn.contains(AType.EXC_CATCH) &amp;&amp; !insn.canThrowException()) {</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;					insn.remove(AType.EXC_CATCH);</b>
+<i class="no-highlight">99</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		}</b>
+<i class="no-highlight">102</i>&nbsp;		// if all instructions in block have same &#39;catch&#39; attribute -&gt; add this attribute for whole block.
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;			CatchAttr commonCatchAttr = getCommonCatchAttr(block);</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			if (commonCatchAttr != null) {</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				block.addAttr(commonCatchAttr);</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;				for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;					if (insn.contains(AFlag.TRY_ENTER)) {</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;						block.add(AFlag.TRY_ENTER);</b>
+<i class="no-highlight">110</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">111</i>&nbsp;					if (insn.contains(AFlag.TRY_LEAVE)) {</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;						block.add(AFlag.TRY_LEAVE);</b>
+<i class="no-highlight">113</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">114</i>&nbsp;				}</b>
+<i class="no-highlight">115</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		}</b>
+<i class="no-highlight">117</i>&nbsp;	}
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;	@Nullable
+<i class="no-highlight">120</i>&nbsp;	private static CatchAttr getCommonCatchAttr(BlockNode block) {
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		CatchAttr commonCatchAttr = null;</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;			CatchAttr catchAttr = insn.get(AType.EXC_CATCH);</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;			if (catchAttr != null) {</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;				if (commonCatchAttr == null) {</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;					commonCatchAttr = catchAttr;</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;					continue;</b>
+<i class="no-highlight">128</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">129</i>&nbsp;				if (commonCatchAttr != catchAttr) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;					return null;</b>
+<i class="no-highlight">131</i>&nbsp;				}
+<i class="no-highlight">132</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		return commonCatchAttr;</b>
+<i class="no-highlight">135</i>&nbsp;	}
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;	@SuppressWarnings(&quot;ForLoopReplaceableByForEach&quot;)
+<i class="no-highlight">138</i>&nbsp;	private static void initExcHandlers(MethodNode mth) {
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		List&lt;BlockNode&gt; blocks = mth.getBasicBlocks();</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		int blocksCount = blocks.size();</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		for (int i = 0; i &lt; blocksCount; i++) { // will add new blocks to list end</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;			BlockNode block = blocks.get(i);</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;			InsnNode firstInsn = BlockUtils.getFirstInsn(block);</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;			if (firstInsn == null) {</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;				continue;</b>
+<i class="no-highlight">146</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">147</i>&nbsp;			ExcHandlerAttr excHandlerAttr = firstInsn.get(AType.EXC_HANDLER);</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;			if (excHandlerAttr == null) {</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;				continue;</b>
+<i class="no-highlight">150</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">151</i>&nbsp;			firstInsn.remove(AType.EXC_HANDLER);</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;			TmpEdgeAttr tmpEdgeAttr = block.get(AType.TMP_EDGE);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			if (tmpEdgeAttr != null) {</b>
+<i class="no-highlight">154</i>&nbsp;				// remove temp connection
+<b class="fc"><i class="no-highlight">155</i>&nbsp;				BlockSplitter.removeConnection(tmpEdgeAttr.getBlock(), block);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;				block.remove(AType.TMP_EDGE);</b>
+<i class="no-highlight">157</i>&nbsp;			}
+<i class="no-highlight">158</i>&nbsp;
+<b class="fc"><i class="no-highlight">159</i>&nbsp;			ExceptionHandler excHandler = excHandlerAttr.getHandler();</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;			if (block.getPredecessors().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">161</i>&nbsp;				excHandler.setHandlerBlock(block);</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;				block.addAttr(excHandlerAttr);</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;				excHandler.addBlock(block);</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;				BlockUtils.collectBlocksDominatedByWithExcHandlers(mth, block, block)</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;						.forEach(excHandler::addBlock);</b>
+<i class="no-highlight">166</i>&nbsp;			} else {
+<i class="no-highlight">167</i>&nbsp;				// ignore already connected handlers -&gt; make catch empty
+<b class="fc"><i class="no-highlight">168</i>&nbsp;				BlockNode emptyHandlerBlock = BlockSplitter.startNewBlock(mth, block.getStartOffset());</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;				emptyHandlerBlock.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;				emptyHandlerBlock.addAttr(excHandlerAttr);</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;				BlockSplitter.connect(emptyHandlerBlock, block);</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;				excHandler.setHandlerBlock(emptyHandlerBlock);</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;				excHandler.addBlock(emptyHandlerBlock);</b>
+<i class="no-highlight">174</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			fixMoveExceptionInsn(block, excHandlerAttr);</b>
+<i class="no-highlight">176</i>&nbsp;		}
+<i class="no-highlight">177</i>&nbsp;	}
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;	private static List&lt;TryCatchBlockAttr&gt; prepareTryBlocks(MethodNode mth) {
+<b class="fc"><i class="no-highlight">180</i>&nbsp;		Map&lt;ExceptionHandler, List&lt;BlockNode&gt;&gt; blocksByHandler = new HashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;			CatchAttr catchAttr = block.get(AType.EXC_CATCH);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;			if (catchAttr != null) {</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;				for (ExceptionHandler eh : catchAttr.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;					blocksByHandler</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;							.computeIfAbsent(eh, c -&gt; new ArrayList&lt;&gt;())</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;							.add(block);</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;				}</b>
+<i class="no-highlight">189</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		}</b>
+<i class="no-highlight">191</i>&nbsp;		if (Consts.DEBUG_EXC_HANDLERS) {
+<i class="no-highlight">192</i>&nbsp;			LOG.debug(&quot;Input exception handlers:&quot;);
+<b class="nc"><i class="no-highlight">193</i>&nbsp;			blocksByHandler.forEach((eh, blocks) -&gt; LOG.debug(&quot; {}, throw blocks: {}, handler blocks: {}&quot;, eh, blocks, eh.getBlocks()));</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		if (blocksByHandler.isEmpty()) {</b>
+<i class="no-highlight">196</i>&nbsp;			// no catch blocks -&gt; remove all handlers
+<b class="fc"><i class="no-highlight">197</i>&nbsp;			mth.getExceptionHandlers().forEach(eh -&gt; removeExcHandler(mth, eh));</b>
+<i class="no-highlight">198</i>&nbsp;		} else {
+<i class="no-highlight">199</i>&nbsp;			// remove handlers without blocks in catch attribute
+<b class="fc"><i class="no-highlight">200</i>&nbsp;			blocksByHandler.forEach((eh, blocks) -&gt; {</b>
+<b class="pc"><i class="no-highlight">201</i>&nbsp;				if (blocks.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;					removeExcHandler(mth, eh);</b>
+<i class="no-highlight">203</i>&nbsp;				}
+<i class="no-highlight">204</i>&nbsp;			});
+<i class="no-highlight">205</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		BlockSplitter.detachMarkedBlocks(mth);</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		mth.clearExceptionHandlers();</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		if (mth.isNoExceptionHandlers()) {</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">210</i>&nbsp;		}
+<i class="no-highlight">211</i>&nbsp;
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		blocksByHandler.forEach((eh, blocks) -&gt; {</b>
+<i class="no-highlight">213</i>&nbsp;			// remove catches from same handler
+<b class="fc"><i class="no-highlight">214</i>&nbsp;			blocks.removeAll(eh.getBlocks());</b>
+<i class="no-highlight">215</i>&nbsp;		});
+<i class="no-highlight">216</i>&nbsp;
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		List&lt;TryCatchBlockAttr&gt; tryBlocks = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		blocksByHandler.forEach((eh, blocks) -&gt; {</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;			List&lt;ExceptionHandler&gt; handlers = new ArrayList&lt;&gt;(1);</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;			handlers.add(eh);</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;			tryBlocks.add(new TryCatchBlockAttr(tryBlocks.size(), handlers, blocks));</b>
+<i class="no-highlight">222</i>&nbsp;		});
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		if (tryBlocks.size() &gt; 1) {</b>
+<i class="no-highlight">224</i>&nbsp;			// merge or mark as outer/inner
+<i class="no-highlight">225</i>&nbsp;			while (true) {
+<b class="fc"><i class="no-highlight">226</i>&nbsp;				boolean restart = combineTryCatchBlocks(tryBlocks);</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;				if (!restart) {</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;					break;</b>
+<i class="no-highlight">229</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">230</i>&nbsp;			}</b>
+<i class="no-highlight">231</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		checkForMultiCatch(mth, tryBlocks);</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		clearTryBlocks(mth, tryBlocks);</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		sortHandlers(mth, tryBlocks);</b>
+<i class="no-highlight">235</i>&nbsp;
+<i class="no-highlight">236</i>&nbsp;		if (Consts.DEBUG_EXC_HANDLERS) {
+<i class="no-highlight">237</i>&nbsp;			LOG.debug(&quot;Result try-catch blocks:&quot;);
+<b class="nc"><i class="no-highlight">238</i>&nbsp;			tryBlocks.forEach(tryBlock -&gt; LOG.debug(&quot; {}&quot;, tryBlock));</b>
+<i class="no-highlight">239</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		return tryBlocks;</b>
+<i class="no-highlight">241</i>&nbsp;	}
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;	private static void clearTryBlocks(MethodNode mth, List&lt;TryCatchBlockAttr&gt; tryBlocks) {
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		tryBlocks.forEach(tc -&gt; tc.getBlocks().removeIf(b -&gt; b.contains(AFlag.REMOVE)));</b>
+<b class="pc"><i class="no-highlight">245</i>&nbsp;		tryBlocks.removeIf(tb -&gt; tb.getBlocks().isEmpty() || tb.getHandlers().isEmpty());</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;		mth.clearExceptionHandlers();</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		BlockSplitter.detachMarkedBlocks(mth);</b>
+<i class="no-highlight">248</i>&nbsp;	}
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;	private static boolean combineTryCatchBlocks(List&lt;TryCatchBlockAttr&gt; tryBlocks) {
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		for (TryCatchBlockAttr outerTryBlock : tryBlocks) {</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;			for (TryCatchBlockAttr innerTryBlock : tryBlocks) {</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;				if (outerTryBlock == innerTryBlock || innerTryBlock.getOuterTryBlock() != null) {</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;					continue;</b>
+<i class="no-highlight">255</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">256</i>&nbsp;				if (checkTryCatchRelation(tryBlocks, outerTryBlock, innerTryBlock)) {</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;					return true;</b>
+<i class="no-highlight">258</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">259</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		return false;</b>
+<i class="no-highlight">262</i>&nbsp;	}
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;	private static boolean checkTryCatchRelation(List&lt;TryCatchBlockAttr&gt; tryBlocks,
+<i class="no-highlight">265</i>&nbsp;			TryCatchBlockAttr outerTryBlock, TryCatchBlockAttr innerTryBlock) {
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		if (outerTryBlock.getBlocks().equals(innerTryBlock.getBlocks())) {</b>
+<i class="no-highlight">267</i>&nbsp;			// same try blocks -&gt; merge handlers
+<b class="fc"><i class="no-highlight">268</i>&nbsp;			List&lt;ExceptionHandler&gt; handlers = Utils.concatDistinct(outerTryBlock.getHandlers(), innerTryBlock.getHandlers());</b>
+<b class="fc"><i class="no-highlight">269</i>&nbsp;			tryBlocks.add(new TryCatchBlockAttr(tryBlocks.size(), handlers, outerTryBlock.getBlocks()));</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;			tryBlocks.remove(outerTryBlock);</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;			tryBlocks.remove(innerTryBlock);</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;			return true;</b>
+<i class="no-highlight">273</i>&nbsp;		}
+<i class="no-highlight">274</i>&nbsp;
+<b class="fc"><i class="no-highlight">275</i>&nbsp;		Set&lt;BlockNode&gt; handlerBlocks = innerTryBlock.getHandlers().stream()</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;				.flatMap(eh -&gt; eh.getBlocks().stream())</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;				.collect(Collectors.toSet());</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		boolean catchInHandler = handlerBlocks.stream().anyMatch(isHandlersIntersects(outerTryBlock));</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		boolean catchInTry = innerTryBlock.getBlocks().stream().anyMatch(isHandlersIntersects(outerTryBlock));</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		boolean blocksOutsideHandler = outerTryBlock.getBlocks().stream().anyMatch(b -&gt; !handlerBlocks.contains(b));</b>
+<i class="no-highlight">281</i>&nbsp;
+<b class="pc"><i class="no-highlight">282</i>&nbsp;		boolean makeInner = catchInHandler &amp;&amp; (catchInTry || blocksOutsideHandler);</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		if (makeInner &amp;&amp; innerTryBlock.isAllHandler()) {</b>
+<i class="no-highlight">284</i>&nbsp;			// inner try block can&#39;t have catch-all handler
+<b class="fc"><i class="no-highlight">285</i>&nbsp;			outerTryBlock.setBlocks(Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks()));</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;			innerTryBlock.clear();</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;			return false;</b>
+<i class="no-highlight">288</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		if (makeInner) {</b>
+<i class="no-highlight">290</i>&nbsp;			// convert to inner
+<b class="fc"><i class="no-highlight">291</i>&nbsp;			List&lt;BlockNode&gt; mergedBlocks = Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks());</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;			innerTryBlock.getHandlers().removeAll(outerTryBlock.getHandlers());</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;			innerTryBlock.setOuterTryBlock(outerTryBlock);</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;			outerTryBlock.addInnerTryBlock(innerTryBlock);</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;			outerTryBlock.setBlocks(mergedBlocks);</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;			return false;</b>
+<i class="no-highlight">297</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		if (innerTryBlock.getHandlers().containsAll(outerTryBlock.getHandlers())) {</b>
+<i class="no-highlight">299</i>&nbsp;			// merge
+<b class="fc"><i class="no-highlight">300</i>&nbsp;			List&lt;BlockNode&gt; mergedBlocks = Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks());</b>
+<b class="fc"><i class="no-highlight">301</i>&nbsp;			List&lt;ExceptionHandler&gt; handlers = Utils.concatDistinct(outerTryBlock.getHandlers(), innerTryBlock.getHandlers());</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;			tryBlocks.add(new TryCatchBlockAttr(tryBlocks.size(), handlers, mergedBlocks));</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;			tryBlocks.remove(outerTryBlock);</b>
+<b class="fc"><i class="no-highlight">304</i>&nbsp;			tryBlocks.remove(innerTryBlock);</b>
+<b class="fc"><i class="no-highlight">305</i>&nbsp;			return true;</b>
+<i class="no-highlight">306</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">307</i>&nbsp;		return false;</b>
+<i class="no-highlight">308</i>&nbsp;	}
+<i class="no-highlight">309</i>&nbsp;
+<i class="no-highlight">310</i>&nbsp;	@NotNull
+<i class="no-highlight">311</i>&nbsp;	private static Predicate&lt;BlockNode&gt; isHandlersIntersects(TryCatchBlockAttr outerTryBlock) {
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		return block -&gt; {</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			CatchAttr catchAttr = block.get(AType.EXC_CATCH);</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;			return catchAttr != null &amp;&amp; Objects.equals(catchAttr.getHandlers(), outerTryBlock.getHandlers());</b>
+<i class="no-highlight">315</i>&nbsp;		};
+<i class="no-highlight">316</i>&nbsp;	}
+<i class="no-highlight">317</i>&nbsp;
+<i class="no-highlight">318</i>&nbsp;	private static void removeExcHandler(MethodNode mth, ExceptionHandler excHandler) {
+<b class="fc"><i class="no-highlight">319</i>&nbsp;		excHandler.markForRemove();</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;		BlockSplitter.removeConnection(mth.getEnterBlock(), excHandler.getHandlerBlock());</b>
+<i class="no-highlight">321</i>&nbsp;	}
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;	private static boolean wrapBlocksWithTryCatch(MethodNode mth, TryCatchBlockAttr tryCatchBlock) {
+<b class="fc"><i class="no-highlight">324</i>&nbsp;		List&lt;BlockNode&gt; blocks = tryCatchBlock.getBlocks();</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;		BlockNode top = searchTopBlock(mth, blocks);</b>
+<b class="pc"><i class="no-highlight">326</i>&nbsp;		if (top.getPredecessors().isEmpty() &amp;&amp; top != mth.getEnterBlock()) {</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;			return false;</b>
+<i class="no-highlight">328</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">329</i>&nbsp;		BlockNode bottom = searchBottomBlock(mth, blocks);</b>
+<i class="no-highlight">330</i>&nbsp;		if (Consts.DEBUG_EXC_HANDLERS) {
+<i class="no-highlight">331</i>&nbsp;			LOG.debug(&quot;TryCatch #{} split: top {}, bottom: {}&quot;, tryCatchBlock.id(), top, bottom);
+<i class="no-highlight">332</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">333</i>&nbsp;		BlockNode topSplitterBlock = getTopSplitterBlock(mth, top);</b>
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		topSplitterBlock.add(AFlag.EXC_TOP_SPLITTER);</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		topSplitterBlock.add(AFlag.SYNTHETIC);</b>
+<i class="no-highlight">336</i>&nbsp;
+<b class="fc"><i class="no-highlight">337</i>&nbsp;		int totalHandlerBlocks = tryCatchBlock.getHandlers().stream().mapToInt(eh -&gt; eh.getBlocks().size()).sum();</b>
+<i class="no-highlight">338</i>&nbsp;
+<i class="no-highlight">339</i>&nbsp;		BlockNode bottomSplitterBlock;
+<b class="pc"><i class="no-highlight">340</i>&nbsp;		if (bottom == null || totalHandlerBlocks == 0) {</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;			bottomSplitterBlock = null;</b>
+<i class="no-highlight">342</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">343</i>&nbsp;			BlockNode existBottomSplitter = BlockUtils.getBlockWithFlag(bottom.getSuccessors(), AFlag.EXC_BOTTOM_SPLITTER);</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;			bottomSplitterBlock = existBottomSplitter != null ? existBottomSplitter : BlockSplitter.startNewBlock(mth, -1);</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;			bottomSplitterBlock.add(AFlag.EXC_BOTTOM_SPLITTER);</b>
+<b class="fc"><i class="no-highlight">346</i>&nbsp;			bottomSplitterBlock.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">347</i>&nbsp;			BlockSplitter.connect(bottom, bottomSplitterBlock);</b>
+<i class="no-highlight">348</i>&nbsp;		}
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;		if (Consts.DEBUG_EXC_HANDLERS) {
+<i class="no-highlight">351</i>&nbsp;			LOG.debug(&quot;TryCatch #{} result splitters: top {}, bottom: {}&quot;,
+<i class="no-highlight">352</i>&nbsp;					tryCatchBlock.id(), topSplitterBlock, bottomSplitterBlock);
+<i class="no-highlight">353</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">354</i>&nbsp;		connectSplittersAndHandlers(tryCatchBlock, topSplitterBlock, bottomSplitterBlock);</b>
+<i class="no-highlight">355</i>&nbsp;
+<b class="fc"><i class="no-highlight">356</i>&nbsp;		for (BlockNode block : blocks) {</b>
+<b class="fc"><i class="no-highlight">357</i>&nbsp;			TryCatchBlockAttr currentTCBAttr = block.get(AType.TRY_BLOCK);</b>
+<b class="fc"><i class="no-highlight">358</i>&nbsp;			if (currentTCBAttr == null || currentTCBAttr.getInnerTryBlocks().contains(tryCatchBlock)) {</b>
+<b class="fc"><i class="no-highlight">359</i>&nbsp;				block.addAttr(tryCatchBlock);</b>
+<i class="no-highlight">360</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">361</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">362</i>&nbsp;		tryCatchBlock.setTopSplitter(topSplitterBlock);</b>
+<i class="no-highlight">363</i>&nbsp;
+<b class="fc"><i class="no-highlight">364</i>&nbsp;		topSplitterBlock.updateCleanSuccessors();</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;		if (bottomSplitterBlock != null) {</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;			bottomSplitterBlock.updateCleanSuccessors();</b>
+<i class="no-highlight">367</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">368</i>&nbsp;		return true;</b>
+<i class="no-highlight">369</i>&nbsp;	}
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;	private static BlockNode getTopSplitterBlock(MethodNode mth, BlockNode top) {
+<b class="pc"><i class="no-highlight">372</i>&nbsp;		if (top == mth.getEnterBlock()) {</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;			BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;			return BlockSplitter.blockSplitTop(mth, fixedTop);</b>
+<i class="no-highlight">375</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">376</i>&nbsp;		BlockNode existPredTopSplitter = BlockUtils.getBlockWithFlag(top.getPredecessors(), AFlag.EXC_TOP_SPLITTER);</b>
+<b class="fc"><i class="no-highlight">377</i>&nbsp;		if (existPredTopSplitter != null) {</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;			return existPredTopSplitter;</b>
+<i class="no-highlight">379</i>&nbsp;		}
+<i class="no-highlight">380</i>&nbsp;		// try to reuse exists splitter on empty simple path below top block
+<b class="fc"><i class="no-highlight">381</i>&nbsp;		if (top.getCleanSuccessors().size() == 1 &amp;&amp; top.getInstructions().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">382</i>&nbsp;			BlockNode otherTopSplitter = BlockUtils.getBlockWithFlag(top.getCleanSuccessors(), AFlag.EXC_TOP_SPLITTER);</b>
+<b class="pc"><i class="no-highlight">383</i>&nbsp;			if (otherTopSplitter != null &amp;&amp; otherTopSplitter.getPredecessors().size() == 1) {</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;				return otherTopSplitter;</b>
+<i class="no-highlight">385</i>&nbsp;			}
+<i class="no-highlight">386</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">387</i>&nbsp;		return BlockSplitter.blockSplitTop(mth, top);</b>
+<i class="no-highlight">388</i>&nbsp;	}
+<i class="no-highlight">389</i>&nbsp;
+<i class="no-highlight">390</i>&nbsp;	private static BlockNode searchTopBlock(MethodNode mth, List&lt;BlockNode&gt; blocks) {
+<b class="fc"><i class="no-highlight">391</i>&nbsp;		BlockNode top = BlockUtils.getTopBlock(blocks);</b>
+<b class="fc"><i class="no-highlight">392</i>&nbsp;		if (top != null) {</b>
+<b class="fc"><i class="no-highlight">393</i>&nbsp;			return adjustTopBlock(top);</b>
+<i class="no-highlight">394</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">395</i>&nbsp;		BlockNode topDom = BlockUtils.getCommonDominator(mth, blocks);</b>
+<b class="pc"><i class="no-highlight">396</i>&nbsp;		if (topDom != null) {</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;			return adjustTopBlock(topDom);</b>
+<i class="no-highlight">398</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">399</i>&nbsp;		throw new JadxRuntimeException(&quot;Failed to find top block for try-catch from: &quot; + blocks);</b>
+<i class="no-highlight">400</i>&nbsp;	}
+<i class="no-highlight">401</i>&nbsp;
+<i class="no-highlight">402</i>&nbsp;	private static BlockNode adjustTopBlock(BlockNode topBlock) {
+<b class="fc"><i class="no-highlight">403</i>&nbsp;		if (topBlock.getSuccessors().size() == 1 &amp;&amp; !topBlock.contains(AType.EXC_CATCH)) {</b>
+<i class="no-highlight">404</i>&nbsp;			// top block can be lifted by other exception handlers included in blocks list, trying to undo that
+<b class="fc"><i class="no-highlight">405</i>&nbsp;			return topBlock.getSuccessors().get(0);</b>
+<i class="no-highlight">406</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">407</i>&nbsp;		return topBlock;</b>
+<i class="no-highlight">408</i>&nbsp;	}
+<i class="no-highlight">409</i>&nbsp;
+<i class="no-highlight">410</i>&nbsp;	@Nullable
+<i class="no-highlight">411</i>&nbsp;	private static BlockNode searchBottomBlock(MethodNode mth, List&lt;BlockNode&gt; blocks) {
+<i class="no-highlight">412</i>&nbsp;		// search common post-dominator block inside input set
+<b class="fc"><i class="no-highlight">413</i>&nbsp;		BlockNode bottom = BlockUtils.getBottomBlock(blocks);</b>
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		if (bottom != null) {</b>
+<b class="fc"><i class="no-highlight">415</i>&nbsp;			return bottom;</b>
+<i class="no-highlight">416</i>&nbsp;		}
+<i class="no-highlight">417</i>&nbsp;		// not found -&gt; blocks don&#39;t have same dominator
+<i class="no-highlight">418</i>&nbsp;		// try to search common cross block outside input set
+<i class="no-highlight">419</i>&nbsp;		// NOTE: bottom block not needed for exit nodes (no data flow from them)
+<b class="fc"><i class="no-highlight">420</i>&nbsp;		BlockNode pathCross = BlockUtils.getPathCross(mth, blocks);</b>
+<b class="fc"><i class="no-highlight">421</i>&nbsp;		if (pathCross == null) {</b>
+<b class="fc"><i class="no-highlight">422</i>&nbsp;			return null;</b>
+<i class="no-highlight">423</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">424</i>&nbsp;		List&lt;BlockNode&gt; preds = new ArrayList&lt;&gt;(pathCross.getPredecessors());</b>
+<b class="fc"><i class="no-highlight">425</i>&nbsp;		preds.removeAll(blocks);</b>
+<b class="fc"><i class="no-highlight">426</i>&nbsp;		List&lt;BlockNode&gt; outsidePredecessors = preds.stream()</b>
+<b class="fc"><i class="no-highlight">427</i>&nbsp;				.filter(p -&gt; !BlockUtils.atLeastOnePathExists(blocks, p))</b>
+<b class="fc"><i class="no-highlight">428</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;		if (outsidePredecessors.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">430</i>&nbsp;			return pathCross;</b>
+<i class="no-highlight">431</i>&nbsp;		}
+<i class="no-highlight">432</i>&nbsp;		// some predecessors outside of input set paths -&gt; split block only for input set
+<b class="fc"><i class="no-highlight">433</i>&nbsp;		BlockNode splitCross = BlockSplitter.blockSplitTop(mth, pathCross);</b>
+<b class="fc"><i class="no-highlight">434</i>&nbsp;		splitCross.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">435</i>&nbsp;		for (BlockNode outsidePredecessor : outsidePredecessors) {</b>
+<i class="no-highlight">436</i>&nbsp;			// return predecessors to split bottom block (original)
+<b class="fc"><i class="no-highlight">437</i>&nbsp;			BlockSplitter.replaceConnection(outsidePredecessor, splitCross, pathCross);</b>
+<b class="fc"><i class="no-highlight">438</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">439</i>&nbsp;		return splitCross;</b>
+<i class="no-highlight">440</i>&nbsp;	}
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;	private static void connectSplittersAndHandlers(TryCatchBlockAttr tryCatchBlock, BlockNode topSplitterBlock,
+<i class="no-highlight">443</i>&nbsp;			@Nullable BlockNode bottomSplitterBlock) {
+<b class="fc"><i class="no-highlight">444</i>&nbsp;		for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">445</i>&nbsp;			BlockNode handlerBlock = handler.getHandlerBlock();</b>
+<b class="fc"><i class="no-highlight">446</i>&nbsp;			BlockSplitter.connect(topSplitterBlock, handlerBlock);</b>
+<b class="fc"><i class="no-highlight">447</i>&nbsp;			if (bottomSplitterBlock != null) {</b>
+<b class="fc"><i class="no-highlight">448</i>&nbsp;				BlockSplitter.connect(bottomSplitterBlock, handlerBlock);</b>
+<i class="no-highlight">449</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">450</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">451</i>&nbsp;		TryCatchBlockAttr outerTryBlock = tryCatchBlock.getOuterTryBlock();</b>
+<b class="fc"><i class="no-highlight">452</i>&nbsp;		if (outerTryBlock != null) {</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;			connectSplittersAndHandlers(outerTryBlock, topSplitterBlock, bottomSplitterBlock);</b>
+<i class="no-highlight">454</i>&nbsp;		}
+<i class="no-highlight">455</i>&nbsp;	}
+<i class="no-highlight">456</i>&nbsp;
+<i class="no-highlight">457</i>&nbsp;	private static void fixMoveExceptionInsn(BlockNode block, ExcHandlerAttr excHandlerAttr) {
+<b class="fc"><i class="no-highlight">458</i>&nbsp;		ExceptionHandler excHandler = excHandlerAttr.getHandler();</b>
+<b class="fc"><i class="no-highlight">459</i>&nbsp;		ArgType argType = excHandler.getArgType();</b>
+<b class="fc"><i class="no-highlight">460</i>&nbsp;		InsnNode me = BlockUtils.getLastInsn(block);</b>
+<b class="pc"><i class="no-highlight">461</i>&nbsp;		if (me != null &amp;&amp; me.getType() == InsnType.MOVE_EXCEPTION) {</b>
+<i class="no-highlight">462</i>&nbsp;			// set correct type for &#39;move-exception&#39; operation
+<b class="fc"><i class="no-highlight">463</i>&nbsp;			RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);</b>
+<b class="fc"><i class="no-highlight">464</i>&nbsp;			resArg.copyAttributesFrom(me);</b>
+<b class="fc"><i class="no-highlight">465</i>&nbsp;			me.setResult(resArg);</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;			me.add(AFlag.DONT_INLINE);</b>
+<b class="fc"><i class="no-highlight">467</i>&nbsp;			resArg.add(AFlag.CUSTOM_DECLARE);</b>
+<b class="fc"><i class="no-highlight">468</i>&nbsp;			excHandler.setArg(resArg);</b>
+<b class="fc"><i class="no-highlight">469</i>&nbsp;			me.addAttr(excHandlerAttr);</b>
+<i class="no-highlight">470</i>&nbsp;			return;
+<i class="no-highlight">471</i>&nbsp;		}
+<i class="no-highlight">472</i>&nbsp;		// handler arguments not used
+<b class="fc"><i class="no-highlight">473</i>&nbsp;		excHandler.setArg(new NamedArg(&quot;unused&quot;, argType));</b>
+<i class="no-highlight">474</i>&nbsp;	}
+<i class="no-highlight">475</i>&nbsp;
+<i class="no-highlight">476</i>&nbsp;	private static void removeMonitorExitFromExcHandler(MethodNode mth, ExceptionHandler excHandler) {
+<b class="fc"><i class="no-highlight">477</i>&nbsp;		for (BlockNode excBlock : excHandler.getBlocks()) {</b>
+<b class="fc"><i class="no-highlight">478</i>&nbsp;			InsnRemover remover = new InsnRemover(mth, excBlock);</b>
+<b class="fc"><i class="no-highlight">479</i>&nbsp;			for (InsnNode insn : excBlock.getInstructions()) {</b>
+<b class="pc"><i class="no-highlight">480</i>&nbsp;				if (insn.getType() == InsnType.MONITOR_ENTER) {</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;					break;</b>
+<i class="no-highlight">482</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">483</i>&nbsp;				if (insn.getType() == InsnType.MONITOR_EXIT) {</b>
+<b class="fc"><i class="no-highlight">484</i>&nbsp;					remover.addAndUnbind(insn);</b>
+<i class="no-highlight">485</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">486</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">487</i>&nbsp;			remover.perform();</b>
+<b class="fc"><i class="no-highlight">488</i>&nbsp;		}</b>
+<i class="no-highlight">489</i>&nbsp;	}
+<i class="no-highlight">490</i>&nbsp;
+<i class="no-highlight">491</i>&nbsp;	private static void checkForMultiCatch(MethodNode mth, List&lt;TryCatchBlockAttr&gt; tryBlocks) {
+<b class="fc"><i class="no-highlight">492</i>&nbsp;		boolean merged = false;</b>
+<b class="fc"><i class="no-highlight">493</i>&nbsp;		for (TryCatchBlockAttr tryBlock : tryBlocks) {</b>
+<b class="fc"><i class="no-highlight">494</i>&nbsp;			if (mergeMultiCatch(mth, tryBlock)) {</b>
+<b class="fc"><i class="no-highlight">495</i>&nbsp;				merged = true;</b>
+<i class="no-highlight">496</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">497</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">498</i>&nbsp;		if (merged) {</b>
+<b class="fc"><i class="no-highlight">499</i>&nbsp;			BlockSplitter.detachMarkedBlocks(mth);</b>
+<b class="fc"><i class="no-highlight">500</i>&nbsp;			mth.clearExceptionHandlers();</b>
+<i class="no-highlight">501</i>&nbsp;		}
+<i class="no-highlight">502</i>&nbsp;	}
+<i class="no-highlight">503</i>&nbsp;
+<i class="no-highlight">504</i>&nbsp;	private static boolean mergeMultiCatch(MethodNode mth, TryCatchBlockAttr tryCatch) {
+<b class="fc"><i class="no-highlight">505</i>&nbsp;		if (tryCatch.getHandlers().size() &lt; 2) {</b>
+<b class="fc"><i class="no-highlight">506</i>&nbsp;			return false;</b>
+<i class="no-highlight">507</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">508</i>&nbsp;		for (ExceptionHandler handler : tryCatch.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">509</i>&nbsp;			if (handler.getBlocks().size() != 1) {</b>
+<b class="fc"><i class="no-highlight">510</i>&nbsp;				return false;</b>
+<i class="no-highlight">511</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">512</i>&nbsp;			BlockNode block = handler.getHandlerBlock();</b>
+<b class="pc"><i class="no-highlight">513</i>&nbsp;			if (block.getInstructions().size() != 1</b>
+<b class="pc"><i class="no-highlight">514</i>&nbsp;					|| !BlockUtils.checkLastInsnType(block, InsnType.MOVE_EXCEPTION)) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;				return false;</b>
+<i class="no-highlight">516</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">517</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">518</i>&nbsp;		List&lt;BlockNode&gt; handlerBlocks = ListUtils.map(tryCatch.getHandlers(), ExceptionHandler::getHandlerBlock);</b>
+<b class="fc"><i class="no-highlight">519</i>&nbsp;		List&lt;BlockNode&gt; successorBlocks = handlerBlocks.stream()</b>
+<b class="fc"><i class="no-highlight">520</i>&nbsp;				.flatMap(h -&gt; h.getSuccessors().stream())</b>
+<b class="fc"><i class="no-highlight">521</i>&nbsp;				.distinct()</b>
+<b class="fc"><i class="no-highlight">522</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="pc"><i class="no-highlight">523</i>&nbsp;		if (successorBlocks.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;			return false;</b>
+<i class="no-highlight">525</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">526</i>&nbsp;		BlockNode successorBlock = successorBlocks.get(0);</b>
+<b class="pc"><i class="no-highlight">527</i>&nbsp;		if (!ListUtils.unorderedEquals(successorBlock.getPredecessors(), handlerBlocks)) {</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;			return false;</b>
+<i class="no-highlight">529</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">530</i>&nbsp;		List&lt;RegisterArg&gt; regs = tryCatch.getHandlers().stream()</b>
+<b class="fc"><i class="no-highlight">531</i>&nbsp;				.map(h -&gt; Objects.requireNonNull(BlockUtils.getLastInsn(h.getHandlerBlock())).getResult())</b>
+<b class="fc"><i class="no-highlight">532</i>&nbsp;				.distinct()</b>
+<b class="fc"><i class="no-highlight">533</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="pc"><i class="no-highlight">534</i>&nbsp;		if (regs.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;			return false;</b>
+<i class="no-highlight">536</i>&nbsp;		}
+<i class="no-highlight">537</i>&nbsp;
+<i class="no-highlight">538</i>&nbsp;		// merge confirm, leave only first handler, remove others
+<b class="fc"><i class="no-highlight">539</i>&nbsp;		ExceptionHandler resultHandler = tryCatch.getHandlers().get(0);</b>
+<b class="fc"><i class="no-highlight">540</i>&nbsp;		tryCatch.getHandlers().removeIf(handler -&gt; {</b>
+<b class="fc"><i class="no-highlight">541</i>&nbsp;			if (handler == resultHandler) {</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;				return false;</b>
+<i class="no-highlight">543</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">544</i>&nbsp;			resultHandler.addCatchTypes(handler.getCatchTypes());</b>
+<b class="fc"><i class="no-highlight">545</i>&nbsp;			handler.markForRemove();</b>
+<b class="fc"><i class="no-highlight">546</i>&nbsp;			return true;</b>
+<i class="no-highlight">547</i>&nbsp;		});
+<b class="fc"><i class="no-highlight">548</i>&nbsp;		return true;</b>
+<i class="no-highlight">549</i>&nbsp;	}
+<i class="no-highlight">550</i>&nbsp;
+<i class="no-highlight">551</i>&nbsp;	private static void sortHandlers(MethodNode mth, List&lt;TryCatchBlockAttr&gt; tryBlocks) {
+<b class="fc"><i class="no-highlight">552</i>&nbsp;		TypeCompare typeCompare = mth.root().getTypeCompare();</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;		Comparator&lt;ArgType&gt; comparator = typeCompare.getReversedComparator();</b>
+<b class="fc"><i class="no-highlight">554</i>&nbsp;		for (TryCatchBlockAttr tryBlock : tryBlocks) {</b>
+<b class="fc"><i class="no-highlight">555</i>&nbsp;			for (ExceptionHandler handler : tryBlock.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">556</i>&nbsp;				handler.getCatchTypes().sort((first, second) -&gt; compareByTypeAndName(comparator, first, second));</b>
+<b class="fc"><i class="no-highlight">557</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">558</i>&nbsp;			tryBlock.getHandlers().sort((first, second) -&gt; {</b>
+<b class="pc"><i class="no-highlight">559</i>&nbsp;				if (first.equals(second)) {</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;					throw new JadxRuntimeException(&quot;Same handlers in try block: &quot; + tryBlock);</b>
+<i class="no-highlight">561</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">562</i>&nbsp;				if (first.isCatchAll()) {</b>
+<b class="fc"><i class="no-highlight">563</i>&nbsp;					return 1;</b>
+<i class="no-highlight">564</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">565</i>&nbsp;				if (second.isCatchAll()) {</b>
+<b class="fc"><i class="no-highlight">566</i>&nbsp;					return -1;</b>
+<i class="no-highlight">567</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">568</i>&nbsp;				return compareByTypeAndName(comparator,</b>
+<b class="fc"><i class="no-highlight">569</i>&nbsp;						ListUtils.first(first.getCatchTypes()), ListUtils.first(second.getCatchTypes()));</b>
+<i class="no-highlight">570</i>&nbsp;			});
+<b class="fc"><i class="no-highlight">571</i>&nbsp;		}</b>
+<i class="no-highlight">572</i>&nbsp;	}
+<i class="no-highlight">573</i>&nbsp;
+<i class="no-highlight">574</i>&nbsp;	@SuppressWarnings(&quot;ComparatorResultComparison&quot;)
+<i class="no-highlight">575</i>&nbsp;	private static int compareByTypeAndName(Comparator&lt;ArgType&gt; comparator, ClassInfo first, ClassInfo second) {
+<b class="fc"><i class="no-highlight">576</i>&nbsp;		int r = comparator.compare(first.getType(), second.getType());</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;		if (r == -2) {</b>
+<i class="no-highlight">578</i>&nbsp;			// on conflict sort by name
+<b class="fc"><i class="no-highlight">579</i>&nbsp;			return first.compareTo(second);</b>
+<i class="no-highlight">580</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">581</i>&nbsp;		return r;</b>
+<i class="no-highlight">582</i>&nbsp;	}
+<i class="no-highlight">583</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

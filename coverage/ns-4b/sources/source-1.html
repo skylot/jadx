@@ -1,0 +1,269 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JPackagePopupMenu</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.popupmenu</a>
+</div>
+
+<h1>Coverage Summary for Class: JPackagePopupMenu (jadx.gui.ui.popupmenu)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JPackagePopupMenu</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/64)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JPackagePopupMenu$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.popupmenu;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.event.ActionEvent;
+<i class="no-highlight">4</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import javax.swing.AbstractAction;
+<i class="no-highlight">8</i>&nbsp;import javax.swing.JCheckBoxMenuItem;
+<i class="no-highlight">9</i>&nbsp;import javax.swing.JMenu;
+<i class="no-highlight">10</i>&nbsp;import javax.swing.JMenuItem;
+<i class="no-highlight">11</i>&nbsp;import javax.swing.JPopupMenu;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import jadx.gui.JadxWrapper;
+<i class="no-highlight">18</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">19</i>&nbsp;import jadx.gui.treemodel.JPackage;
+<i class="no-highlight">20</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">21</i>&nbsp;import jadx.gui.ui.dialog.ExcludePkgDialog;
+<i class="no-highlight">22</i>&nbsp;import jadx.gui.ui.dialog.RenameDialog;
+<i class="no-highlight">23</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">24</i>&nbsp;
+<b class="nc"><i class="no-highlight">25</i>&nbsp;public class JPackagePopupMenu extends JPopupMenu {</b>
+<i class="no-highlight">26</i>&nbsp;	private static final long serialVersionUID = -7781009781149224131L;
+<i class="no-highlight">27</i>&nbsp;
+<b class="nc"><i class="no-highlight">28</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JPackagePopupMenu.class);</b>
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	private final transient MainWindow mainWindow;
+<i class="no-highlight">31</i>&nbsp;
+<b class="nc"><i class="no-highlight">32</i>&nbsp;	public JPackagePopupMenu(MainWindow mainWindow, JPackage pkg) {</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		add(makeExcludeItem(pkg));</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		add(makeExcludeItem());</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		JMenuItem menuItem = makeRenameMenuItem(pkg);</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		if (menuItem != null) {</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;			add(menuItem);</b>
+<i class="no-highlight">40</i>&nbsp;		}
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	@Nullable
+<i class="no-highlight">44</i>&nbsp;	private JMenuItem makeRenameMenuItem(JPackage pkg) {
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		List&lt;String&gt; aliasShortParts = splitPackage(pkg.getName());</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		int count = aliasShortParts.size();</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		if (count == 0) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;			return null;</b>
+<i class="no-highlight">49</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		String rawPackage = getRawPackage(pkg);</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		if (rawPackage == null) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			return null;</b>
+<i class="no-highlight">53</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		List&lt;String&gt; aliasParts = splitPackage(pkg.getFullName());</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		List&lt;String&gt; rawParts = splitPackage(rawPackage); // can be longer then alias parts</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		int start = aliasParts.size() - count;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		if (count == 1) {</b>
+<i class="no-highlight">58</i>&nbsp;			// single case =&gt; no submenu
+<b class="nc"><i class="no-highlight">59</i>&nbsp;			JPackage renamePkg = new JPackage(concat(rawParts, start), aliasParts.get(start));</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;			JMenuItem pkgItem = new JMenuItem(NLS.str(&quot;popup.rename&quot;));</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;			pkgItem.addActionListener(e -&gt; rename(renamePkg));</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;			return pkgItem;</b>
+<i class="no-highlight">63</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		JMenuItem renameSubMenu = new JMenu(NLS.str(&quot;popup.rename&quot;));</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		for (int i = start; i &lt; aliasParts.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;			String aliasShortPkg = aliasParts.get(i);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;			JPackage pkgPart = new JPackage(concat(rawParts, i), aliasShortPkg);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;			JMenuItem pkgPartItem = new JMenuItem(aliasShortPkg);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;			pkgPartItem.addActionListener(e -&gt; rename(pkgPart));</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			renameSubMenu.add(pkgPartItem);</b>
+<i class="no-highlight">71</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		return renameSubMenu;</b>
+<i class="no-highlight">73</i>&nbsp;	}
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	private String concat(List&lt;String&gt; parts, int n) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;		if (n == 0) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			return parts.get(0);</b>
+<i class="no-highlight">78</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		sb.append(parts.get(0));</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		int count = parts.size();</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		for (int i = 1; i &lt; count &amp;&amp; i &lt;= n; i++) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;			sb.append(&#39;.&#39;);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			sb.append(parts.get(i));</b>
+<i class="no-highlight">85</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		return sb.toString();</b>
+<i class="no-highlight">87</i>&nbsp;	}
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;	private void rename(JPackage pkg) {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		LOG.debug(&quot;Renaming package: fullName={}, name={}&quot;, pkg.getFullName(), pkg.getName());</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		RenameDialog.rename(mainWindow, pkg);</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	private List&lt;String&gt; splitPackage(String rawPackage) {
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		return Arrays.asList(rawPackage.split(&quot;\\.&quot;));</b>
+<i class="no-highlight">96</i>&nbsp;	}
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;	private String getRawPackage(JPackage pkg) {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;		List&lt;JClass&gt; classes = pkg.getClasses();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;		if (!classes.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;			return classes.get(0).getRootClass().getCls().getClassNode().getClassInfo().getPackage();</b>
+<i class="no-highlight">102</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		for (JPackage innerPkg : pkg.getInnerPackages()) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;			String rawPackage = getRawPackage(innerPkg);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;			if (rawPackage != null) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;				return rawPackage;</b>
+<i class="no-highlight">107</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">108</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;		return null;</b>
+<i class="no-highlight">110</i>&nbsp;	}
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;	private JMenuItem makeExcludeItem(JPackage pkg) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		JMenuItem excludeItem = new JCheckBoxMenuItem(NLS.str(&quot;popup.exclude&quot;));</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;		excludeItem.setSelected(!pkg.isEnabled());</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;		excludeItem.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;			JadxWrapper wrapper = mainWindow.getWrapper();</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;			String fullName = pkg.getFullName();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;			if (excludeItem.isSelected()) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;				wrapper.addExcludedPackage(fullName);</b>
+<i class="no-highlight">120</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;				wrapper.removeExcludedPackage(fullName);</b>
+<i class="no-highlight">122</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">123</i>&nbsp;			mainWindow.reOpenFile();</b>
+<i class="no-highlight">124</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">125</i>&nbsp;		return excludeItem;</b>
+<i class="no-highlight">126</i>&nbsp;	}
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;	private JMenuItem makeExcludeItem() {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;		return new JMenuItem(new AbstractAction(NLS.str(&quot;popup.exclude_packages&quot;)) {</b>
+<i class="no-highlight">130</i>&nbsp;			private static final long serialVersionUID = -1111111202104151028L;
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;			@Override
+<i class="no-highlight">133</i>&nbsp;			public void actionPerformed(ActionEvent e) {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;				new ExcludePkgDialog(mainWindow).setVisible(true);</b>
+<i class="no-highlight">135</i>&nbsp;			}
+<i class="no-highlight">136</i>&nbsp;		});
+<i class="no-highlight">137</i>&nbsp;	}
+<i class="no-highlight">138</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

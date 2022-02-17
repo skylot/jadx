@@ -1,0 +1,297 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Opcode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.insns</a>
+</div>
+
+<h1>Coverage Summary for Class: Opcode (jadx.api.plugins.input.insns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Opcode</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (154/154)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.insns;
+<i class="no-highlight">2</i>&nbsp;
+<b class="fc"><i class="no-highlight">3</i>&nbsp;public enum Opcode {</b>
+<b class="fc"><i class="no-highlight">4</i>&nbsp;	UNKNOWN,</b>
+<b class="fc"><i class="no-highlight">5</i>&nbsp;	NOP,</b>
+<i class="no-highlight">6</i>&nbsp;
+<b class="fc"><i class="no-highlight">7</i>&nbsp;	ADD_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">8</i>&nbsp;	ADD_FLOAT,</b>
+<b class="fc"><i class="no-highlight">9</i>&nbsp;	ADD_INT,</b>
+<b class="fc"><i class="no-highlight">10</i>&nbsp;	ADD_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">11</i>&nbsp;	ADD_LONG,</b>
+<i class="no-highlight">12</i>&nbsp;
+<b class="fc"><i class="no-highlight">13</i>&nbsp;	AND_INT,</b>
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	AND_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">15</i>&nbsp;	AND_LONG,</b>
+<i class="no-highlight">16</i>&nbsp;
+<b class="fc"><i class="no-highlight">17</i>&nbsp;	AGET,</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	AGET_BOOLEAN,</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;	AGET_BYTE,</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;	AGET_BYTE_BOOLEAN,</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;	AGET_CHAR,</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;	AGET_OBJECT,</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;	AGET_SHORT,</b>
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	AGET_WIDE,</b>
+<i class="no-highlight">25</i>&nbsp;
+<b class="fc"><i class="no-highlight">26</i>&nbsp;	APUT,</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;	APUT_BOOLEAN,</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;	APUT_BYTE,</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;	APUT_BYTE_BOOLEAN,</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;	APUT_CHAR,</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;	APUT_OBJECT,</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;	APUT_SHORT,</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;	APUT_WIDE,</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="fc"><i class="no-highlight">35</i>&nbsp;	ARITH,</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;	ARRAY_LENGTH,</b>
+<i class="no-highlight">37</i>&nbsp;
+<b class="fc"><i class="no-highlight">38</i>&nbsp;	CAST,</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;	CHECK_CAST,</b>
+<i class="no-highlight">40</i>&nbsp;
+<b class="fc"><i class="no-highlight">41</i>&nbsp;	CMPG_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;	CMPG_FLOAT,</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;	CMPL_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;	CMPL_FLOAT,</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;	CMP_LONG,</b>
+<i class="no-highlight">46</i>&nbsp;
+<b class="fc"><i class="no-highlight">47</i>&nbsp;	CONST,</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;	CONST_CLASS,</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;	CONST_STRING,</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;	CONST_WIDE,</b>
+<i class="no-highlight">51</i>&nbsp;
+<b class="fc"><i class="no-highlight">52</i>&nbsp;	DIV_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;	DIV_FLOAT,</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;	DIV_INT,</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;	DIV_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;	DIV_LONG,</b>
+<i class="no-highlight">57</i>&nbsp;
+<b class="fc"><i class="no-highlight">58</i>&nbsp;	DOUBLE_TO_FLOAT,</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;	DOUBLE_TO_INT,</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;	DOUBLE_TO_LONG,</b>
+<i class="no-highlight">61</i>&nbsp;
+<b class="fc"><i class="no-highlight">62</i>&nbsp;	FLOAT_TO_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;	FLOAT_TO_INT,</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;	FLOAT_TO_LONG,</b>
+<i class="no-highlight">65</i>&nbsp;
+<b class="fc"><i class="no-highlight">66</i>&nbsp;	GOTO,</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;	IF,</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;	IF_EQ,</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;	IF_EQZ,</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;	IF_GE,</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;	IF_GEZ,</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;	IF_GT,</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;	IF_GTZ,</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;	IF_LE,</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;	IF_LEZ,</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;	IF_LT,</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;	IF_LTZ,</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;	IF_NE,</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;	IF_NEZ,</b>
+<i class="no-highlight">80</i>&nbsp;
+<b class="fc"><i class="no-highlight">81</i>&nbsp;	INSTANCE_OF,</b>
+<i class="no-highlight">82</i>&nbsp;
+<b class="fc"><i class="no-highlight">83</i>&nbsp;	INT_TO_BYTE,</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;	INT_TO_CHAR,</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;	INT_TO_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;	INT_TO_FLOAT,</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;	INT_TO_LONG,</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;	INT_TO_SHORT,</b>
+<i class="no-highlight">89</i>&nbsp;
+<b class="fc"><i class="no-highlight">90</i>&nbsp;	INVOKE_DIRECT,</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;	INVOKE_DIRECT_RANGE,</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;	INVOKE_INTERFACE,</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;	INVOKE_INTERFACE_RANGE,</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;	INVOKE_STATIC,</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;	INVOKE_STATIC_RANGE,</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;	INVOKE_SUPER,</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;	INVOKE_SUPER_RANGE,</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;	INVOKE_VIRTUAL,</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;	INVOKE_VIRTUAL_RANGE,</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;	INVOKE_SPECIAL,</b>
+<i class="no-highlight">101</i>&nbsp;
+<b class="fc"><i class="no-highlight">102</i>&nbsp;	IGET,</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;	IPUT,</b>
+<i class="no-highlight">104</i>&nbsp;
+<b class="fc"><i class="no-highlight">105</i>&nbsp;	SGET,</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;	SPUT,</b>
+<i class="no-highlight">107</i>&nbsp;
+<b class="fc"><i class="no-highlight">108</i>&nbsp;	LONG_TO_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;	LONG_TO_FLOAT,</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;	LONG_TO_INT,</b>
+<i class="no-highlight">111</i>&nbsp;
+<b class="fc"><i class="no-highlight">112</i>&nbsp;	MONITOR_ENTER,</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;	MONITOR_EXIT,</b>
+<i class="no-highlight">114</i>&nbsp;
+<b class="fc"><i class="no-highlight">115</i>&nbsp;	MOVE,</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;	MOVE_MULTI,</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;	MOVE_EXCEPTION,</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;	MOVE_OBJECT,</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;	MOVE_RESULT,</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;	MOVE_WIDE,</b>
+<i class="no-highlight">121</i>&nbsp;
+<b class="fc"><i class="no-highlight">122</i>&nbsp;	MUL_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;	MUL_FLOAT,</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;	MUL_INT,</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;	MUL_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;	MUL_LONG,</b>
+<i class="no-highlight">127</i>&nbsp;
+<b class="fc"><i class="no-highlight">128</i>&nbsp;	NEG,</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;	NEG_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;	NEG_FLOAT,</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;	NEG_INT,</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;	NEG_LONG,</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;	NEW_INSTANCE,</b>
+<i class="no-highlight">134</i>&nbsp;
+<b class="fc"><i class="no-highlight">135</i>&nbsp;	NOT_INT,</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;	NOT_LONG,</b>
+<i class="no-highlight">137</i>&nbsp;
+<b class="fc"><i class="no-highlight">138</i>&nbsp;	OR_INT,</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;	OR_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;	OR_LONG,</b>
+<i class="no-highlight">141</i>&nbsp;
+<b class="fc"><i class="no-highlight">142</i>&nbsp;	REM_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;	REM_FLOAT,</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;	REM_INT,</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;	REM_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;	REM_LONG,</b>
+<i class="no-highlight">147</i>&nbsp;
+<b class="fc"><i class="no-highlight">148</i>&nbsp;	RETURN,</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;	RETURN_VOID,</b>
+<i class="no-highlight">150</i>&nbsp;
+<b class="fc"><i class="no-highlight">151</i>&nbsp;	RSUB_INT,</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;	SHL_INT,</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;	SHL_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;	SHL_LONG,</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;	SHR_INT,</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;	SHR_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;	SHR_LONG,</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;	SUB_DOUBLE,</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;	SUB_FLOAT,</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;	SUB_INT,</b>
+<b class="fc"><i class="no-highlight">161</i>&nbsp;	SUB_LONG,</b>
+<i class="no-highlight">162</i>&nbsp;
+<b class="fc"><i class="no-highlight">163</i>&nbsp;	THROW,</b>
+<i class="no-highlight">164</i>&nbsp;
+<b class="fc"><i class="no-highlight">165</i>&nbsp;	USHR_INT,</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;	USHR_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;	USHR_LONG,</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;	XOR_INT,</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;	XOR_INT_LIT,</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;	XOR_LONG,</b>
+<i class="no-highlight">171</i>&nbsp;
+<b class="fc"><i class="no-highlight">172</i>&nbsp;	NEW_ARRAY,</b>
+<i class="no-highlight">173</i>&nbsp;
+<b class="fc"><i class="no-highlight">174</i>&nbsp;	FILLED_NEW_ARRAY,</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;	FILLED_NEW_ARRAY_RANGE,</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;	FILL_ARRAY_DATA,</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;	FILL_ARRAY_DATA_PAYLOAD,</b>
+<i class="no-highlight">178</i>&nbsp;
+<b class="fc"><i class="no-highlight">179</i>&nbsp;	PACKED_SWITCH,</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;	PACKED_SWITCH_PAYLOAD,</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;	SPARSE_SWITCH,</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;	SPARSE_SWITCH_PAYLOAD,</b>
+<i class="no-highlight">183</i>&nbsp;
+<b class="fc"><i class="no-highlight">184</i>&nbsp;	INVOKE_POLYMORPHIC,</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;	INVOKE_POLYMORPHIC_RANGE,</b>
+<i class="no-highlight">186</i>&nbsp;
+<b class="fc"><i class="no-highlight">187</i>&nbsp;	INVOKE_CUSTOM,</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;	INVOKE_CUSTOM_RANGE,</b>
+<i class="no-highlight">189</i>&nbsp;
+<b class="fc"><i class="no-highlight">190</i>&nbsp;	CONST_METHOD_HANDLE,</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;	CONST_METHOD_TYPE,</b>
+<i class="no-highlight">192</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

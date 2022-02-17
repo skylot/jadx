@@ -1,0 +1,226 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxUpdate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.update</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxUpdate (jadx.gui.update)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxUpdate</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JadxUpdate$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.update;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">4</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">5</i>&nbsp;import java.io.Reader;
+<i class="no-highlight">6</i>&nbsp;import java.lang.reflect.Type;
+<i class="no-highlight">7</i>&nbsp;import java.net.HttpURLConnection;
+<i class="no-highlight">8</i>&nbsp;import java.net.URL;
+<i class="no-highlight">9</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">10</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">11</i>&nbsp;import java.util.List;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import com.google.gson.Gson;
+<i class="no-highlight">17</i>&nbsp;import com.google.gson.reflect.TypeToken;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">20</i>&nbsp;import jadx.gui.update.data.Release;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;public class JadxUpdate {
+<b class="nc"><i class="no-highlight">23</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JadxUpdate.class);</b>
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;	public static final String JADX_RELEASES_URL = &quot;https://github.com/skylot/jadx/releases&quot;;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	private static final String GITHUB_API_URL = &quot;https://api.github.com/&quot;;
+<i class="no-highlight">28</i>&nbsp;	private static final String GITHUB_RELEASES_URL = GITHUB_API_URL + &quot;repos/skylot/jadx/releases&quot;;
+<i class="no-highlight">29</i>&nbsp;
+<b class="nc"><i class="no-highlight">30</i>&nbsp;	private static final Gson GSON = new Gson();</b>
+<i class="no-highlight">31</i>&nbsp;
+<b class="nc"><i class="no-highlight">32</i>&nbsp;	private static final Type RELEASES_LIST_TYPE = new TypeToken&lt;List&lt;Release&gt;&gt;() {</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;	}.getType();</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="nc"><i class="no-highlight">35</i>&nbsp;	private static final Comparator&lt;Release&gt; RELEASE_COMPARATOR = (o1, o2) -&gt; VersionComparator.checkAndCompare(o1.getName(), o2.getName());</b>
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	public interface IUpdateCallback {
+<i class="no-highlight">38</i>&nbsp;		void onUpdate(Release r);
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<b class="nc"><i class="no-highlight">41</i>&nbsp;	private JadxUpdate() {</b>
+<i class="no-highlight">42</i>&nbsp;	}
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;	public static void check(final IUpdateCallback callback) {
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		Runnable run = () -&gt; {</b>
+<i class="no-highlight">46</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">47</i>&nbsp;				Release release = checkForNewRelease();</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;				if (release != null) {</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;					callback.onUpdate(release);</b>
+<i class="no-highlight">50</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;				LOG.debug(&quot;Jadx update error&quot;, e);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;			}</b>
+<i class="no-highlight">54</i>&nbsp;		};
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		Thread thread = new Thread(run);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		thread.setName(&quot;Jadx update thread&quot;);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		thread.setPriority(Thread.MIN_PRIORITY);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		thread.start();</b>
+<i class="no-highlight">59</i>&nbsp;	}
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;	private static Release checkForNewRelease() throws IOException {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		String version = JadxDecompiler.getVersion();</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		if (version.contains(&quot;dev&quot;)) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;			LOG.debug(&quot;Ignore check for update: development version&quot;);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;			return null;</b>
+<i class="no-highlight">66</i>&nbsp;		}
+<i class="no-highlight">67</i>&nbsp;
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		List&lt;Release&gt; list = get(GITHUB_RELEASES_URL, RELEASES_LIST_TYPE);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		if (list == null) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			return null;</b>
+<i class="no-highlight">71</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		list.removeIf(release -&gt; release.getName().equalsIgnoreCase(version) || release.isPreRelease());</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		if (list.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;			return null;</b>
+<i class="no-highlight">75</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">76</i>&nbsp;		list.sort(RELEASE_COMPARATOR);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		Release latest = list.get(list.size() - 1);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		if (VersionComparator.checkAndCompare(version, latest.getName()) &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;			return null;</b>
+<i class="no-highlight">80</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		LOG.info(&quot;Found new jadx version: {}&quot;, latest);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		return latest;</b>
+<i class="no-highlight">83</i>&nbsp;	}
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;	private static &lt;T&gt; T get(String url, Type type) throws IOException {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		URL obj = new URL(url);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		HttpURLConnection con = (HttpURLConnection) obj.openConnection();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		con.setRequestMethod(&quot;GET&quot;);</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		if (con.getResponseCode() == 200) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;			Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			return GSON.fromJson(reader, type);</b>
+<i class="no-highlight">92</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		return null;</b>
+<i class="no-highlight">94</i>&nbsp;	}
+<i class="no-highlight">95</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

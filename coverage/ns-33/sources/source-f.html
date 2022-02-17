@@ -1,0 +1,742 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TypeUpdate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.typeinference</a>
+</div>
+
+<h1>Coverage Summary for Class: TypeUpdate (jadx.core.dex.visitors.typeinference)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TypeUpdate</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.1%
+  </span>
+  <span class="absValue">
+    (33/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.6%
+  </span>
+  <span class="absValue">
+    (100/134)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.5%
+  </span>
+  <span class="absValue">
+    (274/293)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TypeUpdate$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    97.1%
+  </span>
+  <span class="absValue">
+    (34/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.6%
+  </span>
+  <span class="absValue">
+    (100/134)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.5%
+  </span>
+  <span class="absValue">
+    (275/294)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.typeinference;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.EnumMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;import java.util.Map;
+<i class="no-highlight">6</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">7</i>&nbsp;import java.util.Set;
+<i class="no-highlight">8</i>&nbsp;import java.util.function.Function;
+<i class="no-highlight">9</i>&nbsp;import java.util.function.Supplier;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">12</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">13</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.Consts;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.instructions.args.PrimitiveType;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.IMethodDetails;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.nodes.utils.TypeUtils;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.utils.exceptions.JadxOverflowException;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.CHANGED;
+<i class="no-highlight">35</i>&nbsp;import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.REJECT;
+<i class="no-highlight">36</i>&nbsp;import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.SAME;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;public final class TypeUpdate {
+<b class="fc"><i class="no-highlight">39</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(TypeUpdate.class);</b>
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	private final RootNode root;
+<i class="no-highlight">42</i>&nbsp;	private final Map&lt;InsnType, ITypeListener&gt; listenerRegistry;
+<i class="no-highlight">43</i>&nbsp;	private final TypeCompare comparator;
+<i class="no-highlight">44</i>&nbsp;
+<b class="fc"><i class="no-highlight">45</i>&nbsp;	public TypeUpdate(RootNode root) {</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		this.root = root;</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		this.listenerRegistry = initListenerRegistry();</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		this.comparator = new TypeCompare(root);</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	/**
+<i class="no-highlight">52</i>&nbsp;	 * Perform recursive type checking and type propagation for all related variables
+<i class="no-highlight">53</i>&nbsp;	 */
+<i class="no-highlight">54</i>&nbsp;	public TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_EMPTY);</b>
+<i class="no-highlight">56</i>&nbsp;	}
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;	/**
+<i class="no-highlight">59</i>&nbsp;	 * Allow wider types for apply from debug info and some special cases
+<i class="no-highlight">60</i>&nbsp;	 */
+<i class="no-highlight">61</i>&nbsp;	public TypeUpdateResult applyWithWiderAllow(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER);</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	/**
+<i class="no-highlight">66</i>&nbsp;	 * Force type setting
+<i class="no-highlight">67</i>&nbsp;	 */
+<i class="no-highlight">68</i>&nbsp;	public TypeUpdateResult applyWithWiderIgnSame(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_SAME);</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public TypeUpdateResult applyWithWiderIgnoreUnknown(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_UNKNOWN);</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	private TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
+<b class="pc"><i class="no-highlight">77</i>&nbsp;		if (candidateType == null || !candidateType.isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;			return REJECT;</b>
+<i class="no-highlight">79</i>&nbsp;		}
+<i class="no-highlight">80</i>&nbsp;
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			return result;</b>
+<i class="no-highlight">85</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">86</i>&nbsp;		List&lt;TypeUpdateEntry&gt; updates = updateInfo.getUpdates();</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		if (updates.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;			return SAME;</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<i class="no-highlight">90</i>&nbsp;		if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">91</i>&nbsp;			LOG.debug(&quot;Applying type {} to {}&quot;, ssaVar.toShortString(), candidateType);
+<b class="nc"><i class="no-highlight">92</i>&nbsp;			updates.forEach(updateEntry -&gt; LOG.debug(&quot;  {} -&gt; {} in {}&quot;,</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;					updateEntry.getType(), updateEntry.getArg(), updateEntry.getArg().getParentInsn()));</b>
+<i class="no-highlight">94</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		updateInfo.applyUpdates();</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		return CHANGED;</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	private TypeUpdateResult updateTypeChecked(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
+<b class="pc"><i class="no-highlight">100</i>&nbsp;		if (candidateType == null) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;			throw new JadxRuntimeException(&quot;Null type update for arg: &quot; + arg);</b>
+<i class="no-highlight">102</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		ArgType currentType = arg.getType();</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		if (Objects.equals(currentType, candidateType)) {</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			if (!updateInfo.getFlags().isIgnoreSame()) {</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				return SAME;</b>
+<i class="no-highlight">107</i>&nbsp;			}
+<i class="no-highlight">108</i>&nbsp;		} else {
+<b class="pc"><i class="no-highlight">109</i>&nbsp;			if (candidateType.isWildcard()) {</b>
+<i class="no-highlight">110</i>&nbsp;				if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">111</i>&nbsp;					LOG.debug(&quot;Wildcard type rejected for {}: candidate={}, current={}&quot;, arg, candidateType, currentType);
+<i class="no-highlight">112</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">113</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">114</i>&nbsp;			}
+<i class="no-highlight">115</i>&nbsp;
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;			if (compareResult == TypeCompareEnum.UNKNOWN &amp;&amp; updateInfo.getFlags().isIgnoreUnknown()) {</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">119</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">120</i>&nbsp;			if (arg.isTypeImmutable() &amp;&amp; currentType != ArgType.UNKNOWN) {</b>
+<i class="no-highlight">121</i>&nbsp;				// don&#39;t changed type
+<b class="pc"><i class="no-highlight">122</i>&nbsp;				if (compareResult == TypeCompareEnum.EQUAL) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;					return SAME;</b>
+<i class="no-highlight">124</i>&nbsp;				}
+<i class="no-highlight">125</i>&nbsp;				if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">126</i>&nbsp;					LOG.debug(&quot;Type rejected for {} due to conflict: candidate={}, current={}&quot;, arg, candidateType, currentType);
+<i class="no-highlight">127</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">128</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">129</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">130</i>&nbsp;			if (compareResult.isWider() &amp;&amp; !updateInfo.getFlags().isAllowWider()) {</b>
+<i class="no-highlight">131</i>&nbsp;				if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">132</i>&nbsp;					LOG.debug(&quot;Type rejected for {}: candidate={} is wider than current={}&quot;, arg, candidateType, currentType);
+<i class="no-highlight">133</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">134</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">135</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">136</i>&nbsp;			if (candidateType.containsTypeVariable()) {</b>
+<i class="no-highlight">137</i>&nbsp;				// reject unknown type vars
+<b class="fc"><i class="no-highlight">138</i>&nbsp;				ArgType unknownTypeVar = root.getTypeUtils().checkForUnknownTypeVars(updateInfo.getMth(), candidateType);</b>
+<b class="pc"><i class="no-highlight">139</i>&nbsp;				if (unknownTypeVar != null) {</b>
+<i class="no-highlight">140</i>&nbsp;					if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">141</i>&nbsp;						LOG.debug(&quot;Type rejected for {}: candidate: &#39;{}&#39; has unknown type var: &#39;{}&#39;&quot;, arg, candidateType, unknownTypeVar);
+<i class="no-highlight">142</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">143</i>&nbsp;					return REJECT;</b>
+<i class="no-highlight">144</i>&nbsp;				}
+<i class="no-highlight">145</i>&nbsp;			}
+<i class="no-highlight">146</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">147</i>&nbsp;		if (arg instanceof RegisterArg) {</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;			RegisterArg reg = (RegisterArg) arg;</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;			return updateTypeForSsaVar(updateInfo, reg.getSVar(), candidateType);</b>
+<i class="no-highlight">150</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		return requestUpdate(updateInfo, arg, candidateType);</b>
+<i class="no-highlight">152</i>&nbsp;	}
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">155</i>&nbsp;		TypeInfo typeInfo = ssaVar.getTypeInfo();</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		ArgType immutableType = ssaVar.getImmutableType();</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;		if (immutableType != null &amp;&amp; !Objects.equals(immutableType, candidateType)) {</b>
+<i class="no-highlight">158</i>&nbsp;			if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">159</i>&nbsp;				LOG.info(&quot;Reject change immutable type {} to {} for {}&quot;, immutableType, candidateType, ssaVar);
+<i class="no-highlight">160</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">161</i>&nbsp;			return REJECT;</b>
+<i class="no-highlight">162</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		if (!inBounds(updateInfo, ssaVar, typeInfo.getBounds(), candidateType)) {</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;			return REJECT;</b>
+<i class="no-highlight">165</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		return requestUpdateForSsaVar(updateInfo, ssaVar, candidateType);</b>
+<i class="no-highlight">167</i>&nbsp;	}
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;	@NotNull
+<i class="no-highlight">170</i>&nbsp;	private TypeUpdateResult requestUpdateForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		boolean allSame = true;</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		TypeUpdateResult result = requestUpdate(updateInfo, ssaVar.getAssign(), candidateType);</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			return result;</b>
+<i class="no-highlight">175</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		List&lt;RegisterArg&gt; useList = ssaVar.getUseList();</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		for (RegisterArg arg : useList) {</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;			TypeUpdateResult useResult = requestUpdate(updateInfo, arg, candidateType);</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;			if (useResult == REJECT) {</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">181</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">182</i>&nbsp;			if (useResult != SAME) {</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;				allSame = false;</b>
+<i class="no-highlight">184</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		return allSame ? SAME : CHANGED;</b>
+<i class="no-highlight">187</i>&nbsp;	}
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;	private TypeUpdateResult requestUpdate(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		if (updateInfo.isProcessed(arg)) {</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;			return CHANGED;</b>
+<i class="no-highlight">192</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		updateInfo.requestUpdate(arg, candidateType);</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		updateInfo.checkUpdatesCount();</b>
+<i class="no-highlight">195</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">196</i>&nbsp;			TypeUpdateResult result = runListeners(updateInfo, arg, candidateType);</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;			if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;				updateInfo.rollbackUpdate(arg);</b>
+<i class="no-highlight">199</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">200</i>&nbsp;			return result;</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		} catch (StackOverflowError | BootstrapMethodError error) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;			throw new JadxOverflowException(&quot;Type update terminated with stack overflow, arg: &quot; + arg);</b>
+<i class="no-highlight">203</i>&nbsp;		}
+<i class="no-highlight">204</i>&nbsp;	}
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;	private TypeUpdateResult runListeners(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		InsnNode insn = arg.getParentInsn();</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		if (insn == null) {</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;			return SAME;</b>
+<i class="no-highlight">210</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		ITypeListener listener = listenerRegistry.get(insn.getType());</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		if (listener == null) {</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			return CHANGED;</b>
+<i class="no-highlight">214</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		return listener.update(updateInfo, insn, arg, candidateType);</b>
+<i class="no-highlight">216</i>&nbsp;	}
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;	boolean inBounds(Set&lt;ITypeBound&gt; bounds, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		for (ITypeBound bound : bounds) {</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;			ArgType boundType = bound.getType();</b>
+<b class="pc"><i class="no-highlight">221</i>&nbsp;			if (boundType != null &amp;&amp; !checkBound(candidateType, bound, boundType)) {</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;				return false;</b>
+<i class="no-highlight">223</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">224</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		return true;</b>
+<i class="no-highlight">226</i>&nbsp;	}
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;	private boolean inBounds(TypeUpdateInfo updateInfo, SSAVar ssaVar, Set&lt;ITypeBound&gt; bounds, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">229</i>&nbsp;		for (ITypeBound bound : bounds) {</b>
+<i class="no-highlight">230</i>&nbsp;			ArgType boundType;
+<b class="pc"><i class="no-highlight">231</i>&nbsp;			if (updateInfo != null &amp;&amp; bound instanceof ITypeBoundDynamic) {</b>
+<b class="fc"><i class="no-highlight">232</i>&nbsp;				boundType = ((ITypeBoundDynamic) bound).getType(updateInfo);</b>
+<i class="no-highlight">233</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">234</i>&nbsp;				boundType = bound.getType();</b>
+<i class="no-highlight">235</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">236</i>&nbsp;			if (boundType != null &amp;&amp; !checkBound(candidateType, bound, boundType)) {</b>
+<i class="no-highlight">237</i>&nbsp;				if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">238</i>&nbsp;					LOG.debug(&quot;Reject type &#39;{}&#39; for {} by bound: {}&quot;, candidateType, ssaVar, bound);
+<i class="no-highlight">239</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">240</i>&nbsp;				return false;</b>
+<i class="no-highlight">241</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		return true;</b>
+<i class="no-highlight">244</i>&nbsp;	}
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;	private boolean checkBound(ArgType candidateType, ITypeBound bound, ArgType boundType) {
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, boundType);</b>
+<b class="pc"><i class="no-highlight">248</i>&nbsp;		switch (compareResult) {</b>
+<i class="no-highlight">249</i>&nbsp;			case EQUAL:
+<b class="fc"><i class="no-highlight">250</i>&nbsp;				return true;</b>
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;			case WIDER:
+<b class="fc"><i class="no-highlight">253</i>&nbsp;				return bound.getBound() != BoundEnum.USE;</b>
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;			case NARROW:
+<b class="fc"><i class="no-highlight">256</i>&nbsp;				if (bound.getBound() == BoundEnum.ASSIGN) {</b>
+<b class="pc"><i class="no-highlight">257</i>&nbsp;					return !boundType.isTypeKnown() &amp;&amp; checkAssignForUnknown(boundType, candidateType);</b>
+<i class="no-highlight">258</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">259</i>&nbsp;				return true;</b>
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;			case WIDER_BY_GENERIC:
+<i class="no-highlight">262</i>&nbsp;			case NARROW_BY_GENERIC:
+<i class="no-highlight">263</i>&nbsp;				// allow replace object to same object with known generic type
+<i class="no-highlight">264</i>&nbsp;				// due to incomplete information about external methods and fields
+<b class="fc"><i class="no-highlight">265</i>&nbsp;				return true;</b>
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;			case CONFLICT:
+<b class="fc"><i class="no-highlight">268</i>&nbsp;				return false;</b>
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;			case UNKNOWN:
+<b class="fc"><i class="no-highlight">271</i>&nbsp;				LOG.warn(&quot;Can&#39;t compare types, unknown hierarchy: {} and {}&quot;, candidateType, boundType);</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;				comparator.compareTypes(candidateType, boundType);</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;				return true;</b>
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">276</i>&nbsp;				throw new JadxRuntimeException(&quot;Not processed type compare enum: &quot; + compareResult);</b>
+<i class="no-highlight">277</i>&nbsp;		}
+<i class="no-highlight">278</i>&nbsp;	}
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;	private boolean checkAssignForUnknown(ArgType boundType, ArgType candidateType) {
+<b class="pc"><i class="no-highlight">281</i>&nbsp;		if (boundType == ArgType.UNKNOWN) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;			return true;</b>
+<i class="no-highlight">283</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">284</i>&nbsp;		boolean candidateArray = candidateType.isArray();</b>
+<b class="pc"><i class="no-highlight">285</i>&nbsp;		if (boundType.isArray() &amp;&amp; candidateArray) {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;			return checkAssignForUnknown(boundType.getArrayElement(), candidateType.getArrayElement());</b>
+<i class="no-highlight">287</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">288</i>&nbsp;		if (candidateArray &amp;&amp; boundType.contains(PrimitiveType.ARRAY)) {</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;			return true;</b>
+<i class="no-highlight">290</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">291</i>&nbsp;		if (candidateType.isObject() &amp;&amp; boundType.contains(PrimitiveType.OBJECT)) {</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;			return true;</b>
+<i class="no-highlight">293</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">294</i>&nbsp;		if (candidateType.isPrimitive() &amp;&amp; boundType.contains(candidateType.getPrimitiveType())) {</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;			return true;</b>
+<i class="no-highlight">296</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">297</i>&nbsp;		return false;</b>
+<i class="no-highlight">298</i>&nbsp;	}
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;	private Map&lt;InsnType, ITypeListener&gt; initListenerRegistry() {
+<b class="fc"><i class="no-highlight">301</i>&nbsp;		Map&lt;InsnType, ITypeListener&gt; registry = new EnumMap&lt;&gt;(InsnType.class);</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		registry.put(InsnType.CONST, this::sameFirstArgListener);</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;		registry.put(InsnType.MOVE, this::moveListener);</b>
+<b class="fc"><i class="no-highlight">304</i>&nbsp;		registry.put(InsnType.PHI, this::allSameListener);</b>
+<b class="fc"><i class="no-highlight">305</i>&nbsp;		registry.put(InsnType.AGET, this::arrayGetListener);</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		registry.put(InsnType.APUT, this::arrayPutListener);</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;		registry.put(InsnType.IF, this::ifListener);</b>
+<b class="fc"><i class="no-highlight">308</i>&nbsp;		registry.put(InsnType.ARITH, this::arithListener);</b>
+<b class="fc"><i class="no-highlight">309</i>&nbsp;		registry.put(InsnType.NEG, this::suggestAllSameListener);</b>
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		registry.put(InsnType.NOT, this::suggestAllSameListener);</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		registry.put(InsnType.CHECK_CAST, this::checkCastListener);</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		registry.put(InsnType.INVOKE, this::invokeListener);</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;		registry.put(InsnType.CONSTRUCTOR, this::invokeListener);</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;		return registry;</b>
+<i class="no-highlight">315</i>&nbsp;	}
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;	private TypeUpdateResult invokeListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">318</i>&nbsp;		BaseInvokeNode invoke = (BaseInvokeNode) insn;</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;		if (isAssign(invoke, arg)) {</b>
+<i class="no-highlight">320</i>&nbsp;			// TODO: implement backward type propagation (from result to instance)
+<b class="fc"><i class="no-highlight">321</i>&nbsp;			return SAME;</b>
+<i class="no-highlight">322</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">323</i>&nbsp;		if (invoke.getInstanceArg() == arg) {</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;			IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails(invoke);</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;			if (methodDetails == null) {</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;				return SAME;</b>
+<i class="no-highlight">327</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">328</i>&nbsp;			TypeUtils typeUtils = root.getTypeUtils();</b>
+<b class="fc"><i class="no-highlight">329</i>&nbsp;			Set&lt;ArgType&gt; knownTypeVars = typeUtils.getKnownTypeVarsAtMethod(updateInfo.getMth());</b>
+<b class="fc"><i class="no-highlight">330</i>&nbsp;			Map&lt;ArgType, ArgType&gt; typeVarsMap = typeUtils.getTypeVariablesMapping(candidateType);</b>
+<i class="no-highlight">331</i>&nbsp;
+<b class="fc"><i class="no-highlight">332</i>&nbsp;			ArgType returnType = methodDetails.getReturnType();</b>
+<b class="fc"><i class="no-highlight">333</i>&nbsp;			List&lt;ArgType&gt; argTypes = methodDetails.getArgTypes();</b>
+<b class="fc"><i class="no-highlight">334</i>&nbsp;			int argsCount = argTypes.size();</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;			if (typeVarsMap.isEmpty()) {</b>
+<i class="no-highlight">336</i>&nbsp;				// generics can&#39;t be resolved =&gt; use as is
+<b class="fc"><i class="no-highlight">337</i>&nbsp;				return applyInvokeTypes(updateInfo, invoke, argsCount, knownTypeVars, () -&gt; returnType, argTypes::get);</b>
+<i class="no-highlight">338</i>&nbsp;			}
+<i class="no-highlight">339</i>&nbsp;			// resolve types before apply
+<b class="fc"><i class="no-highlight">340</i>&nbsp;			return applyInvokeTypes(updateInfo, invoke, argsCount, knownTypeVars,</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;					() -&gt; typeUtils.replaceTypeVariablesUsingMap(returnType, typeVarsMap),</b>
+<b class="fc"><i class="no-highlight">342</i>&nbsp;					argNum -&gt; typeUtils.replaceClassGenerics(candidateType, argTypes.get(argNum)));</b>
+<i class="no-highlight">343</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		return SAME;</b>
+<i class="no-highlight">345</i>&nbsp;	}
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;	private TypeUpdateResult applyInvokeTypes(TypeUpdateInfo updateInfo, BaseInvokeNode invoke, int argsCount,
+<i class="no-highlight">348</i>&nbsp;			Set&lt;ArgType&gt; knownTypeVars, Supplier&lt;ArgType&gt; getReturnType, Function&lt;Integer, ArgType&gt; getArgType) {
+<b class="fc"><i class="no-highlight">349</i>&nbsp;		boolean allSame = true;</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;		RegisterArg resultArg = invoke.getResult();</b>
+<b class="fc"><i class="no-highlight">351</i>&nbsp;		if (resultArg != null &amp;&amp; !resultArg.isTypeImmutable()) {</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;			ArgType returnType = checkType(knownTypeVars, getReturnType.get());</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;			if (returnType != null) {</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;				TypeUpdateResult result = updateTypeChecked(updateInfo, resultArg, returnType);</b>
+<b class="fc"><i class="no-highlight">355</i>&nbsp;				if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;					TypeCompareEnum compare = comparator.compareTypes(returnType, resultArg.getType());</b>
+<b class="pc"><i class="no-highlight">357</i>&nbsp;					if (compare.isWider()) {</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;						return REJECT;</b>
+<i class="no-highlight">359</i>&nbsp;					}
+<i class="no-highlight">360</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">361</i>&nbsp;				if (result == CHANGED) {</b>
+<b class="fc"><i class="no-highlight">362</i>&nbsp;					allSame = false;</b>
+<i class="no-highlight">363</i>&nbsp;				}
+<i class="no-highlight">364</i>&nbsp;			}
+<i class="no-highlight">365</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">366</i>&nbsp;		int argOffset = invoke.getFirstArgOffset();</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;		for (int i = 0; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;			InsnArg invokeArg = invoke.getArg(argOffset + i);</b>
+<b class="fc"><i class="no-highlight">369</i>&nbsp;			if (!invokeArg.isTypeImmutable()) {</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;				ArgType argType = checkType(knownTypeVars, getArgType.apply(i));</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;				if (argType != null) {</b>
+<b class="fc"><i class="no-highlight">372</i>&nbsp;					TypeUpdateResult result = updateTypeChecked(updateInfo, invokeArg, argType);</b>
+<b class="fc"><i class="no-highlight">373</i>&nbsp;					if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">374</i>&nbsp;						TypeCompareEnum compare = comparator.compareTypes(argType, invokeArg.getType());</b>
+<b class="fc"><i class="no-highlight">375</i>&nbsp;						if (compare.isNarrow()) {</b>
+<b class="fc"><i class="no-highlight">376</i>&nbsp;							return REJECT;</b>
+<i class="no-highlight">377</i>&nbsp;						}
+<i class="no-highlight">378</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">379</i>&nbsp;					if (result == CHANGED) {</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;						allSame = false;</b>
+<i class="no-highlight">381</i>&nbsp;					}
+<i class="no-highlight">382</i>&nbsp;				}
+<i class="no-highlight">383</i>&nbsp;			}
+<i class="no-highlight">384</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">385</i>&nbsp;		return allSame ? SAME : CHANGED;</b>
+<i class="no-highlight">386</i>&nbsp;	}
+<i class="no-highlight">387</i>&nbsp;
+<i class="no-highlight">388</i>&nbsp;	@Nullable
+<i class="no-highlight">389</i>&nbsp;	private ArgType checkType(Set&lt;ArgType&gt; knownTypeVars, @Nullable ArgType type) {
+<b class="fc"><i class="no-highlight">390</i>&nbsp;		if (type == null) {</b>
+<b class="fc"><i class="no-highlight">391</i>&nbsp;			return null;</b>
+<i class="no-highlight">392</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">393</i>&nbsp;		if (type.isWildcard()) {</b>
+<b class="fc"><i class="no-highlight">394</i>&nbsp;			return null;</b>
+<i class="no-highlight">395</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">396</i>&nbsp;		if (type.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;			if (knownTypeVars.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;				return null;</b>
+<i class="no-highlight">399</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">400</i>&nbsp;			Boolean hasUnknown = type.visitTypes(t -&gt; t.isGenericType() &amp;&amp; !knownTypeVars.contains(t) ? Boolean.TRUE : null);</b>
+<b class="fc"><i class="no-highlight">401</i>&nbsp;			if (hasUnknown != null) {</b>
+<b class="fc"><i class="no-highlight">402</i>&nbsp;				return null;</b>
+<i class="no-highlight">403</i>&nbsp;			}
+<i class="no-highlight">404</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">405</i>&nbsp;		return type;</b>
+<i class="no-highlight">406</i>&nbsp;	}
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">409</i>&nbsp;		InsnArg changeArg = isAssign(insn, arg) ? insn.getArg(0) : insn.getResult();</b>
+<b class="fc"><i class="no-highlight">410</i>&nbsp;		return updateTypeChecked(updateInfo, changeArg, candidateType);</b>
+<i class="no-highlight">411</i>&nbsp;	}
+<i class="no-highlight">412</i>&nbsp;
+<i class="no-highlight">413</i>&nbsp;	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		boolean assignChanged = isAssign(insn, arg);</b>
+<b class="fc"><i class="no-highlight">415</i>&nbsp;		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();</b>
+<i class="no-highlight">416</i>&nbsp;
+<i class="no-highlight">417</i>&nbsp;		boolean correctType;
+<b class="fc"><i class="no-highlight">418</i>&nbsp;		if (changeArg.getType().isTypeKnown()) {</b>
+<i class="no-highlight">419</i>&nbsp;			// allow result to be wider
+<b class="fc"><i class="no-highlight">420</i>&nbsp;			TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());</b>
+<b class="fc"><i class="no-highlight">421</i>&nbsp;			correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());</b>
+<b class="fc"><i class="no-highlight">422</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">423</i>&nbsp;			correctType = true;</b>
+<i class="no-highlight">424</i>&nbsp;		}
+<i class="no-highlight">425</i>&nbsp;
+<b class="fc"><i class="no-highlight">426</i>&nbsp;		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);</b>
+<b class="pc"><i class="no-highlight">427</i>&nbsp;		if (result == SAME &amp;&amp; !correctType) {</b>
+<i class="no-highlight">428</i>&nbsp;			if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">429</i>&nbsp;				LOG.debug(&quot;Move insn types mismatch: {} -&gt; {}, change arg: {}, insn: {}&quot;,
+<i class="no-highlight">430</i>&nbsp;						candidateType, changeArg.getType(), changeArg, insn);
+<i class="no-highlight">431</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">432</i>&nbsp;			return REJECT;</b>
+<i class="no-highlight">433</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">434</i>&nbsp;		if (result == REJECT &amp;&amp; correctType) {</b>
+<b class="fc"><i class="no-highlight">435</i>&nbsp;			return CHANGED;</b>
+<i class="no-highlight">436</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">437</i>&nbsp;		return result;</b>
+<i class="no-highlight">438</i>&nbsp;	}
+<i class="no-highlight">439</i>&nbsp;
+<i class="no-highlight">440</i>&nbsp;	/**
+<i class="no-highlight">441</i>&nbsp;	 * All args must have same types
+<i class="no-highlight">442</i>&nbsp;	 */
+<i class="no-highlight">443</i>&nbsp;	private TypeUpdateResult allSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">444</i>&nbsp;		if (!isAssign(insn, arg)) {</b>
+<b class="fc"><i class="no-highlight">445</i>&nbsp;			return updateTypeChecked(updateInfo, insn.getResult(), candidateType);</b>
+<i class="no-highlight">446</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">447</i>&nbsp;		boolean allSame = true;</b>
+<b class="fc"><i class="no-highlight">448</i>&nbsp;		for (InsnArg insnArg : insn.getArguments()) {</b>
+<b class="pc"><i class="no-highlight">449</i>&nbsp;			if (insnArg == arg) {</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;				continue;</b>
+<i class="no-highlight">451</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">452</i>&nbsp;			TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;			if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">454</i>&nbsp;				return result;</b>
+<i class="no-highlight">455</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">456</i>&nbsp;			if (result != SAME) {</b>
+<b class="fc"><i class="no-highlight">457</i>&nbsp;				allSame = false;</b>
+<i class="no-highlight">458</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">459</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">460</i>&nbsp;		return allSame ? SAME : CHANGED;</b>
+<i class="no-highlight">461</i>&nbsp;	}
+<i class="no-highlight">462</i>&nbsp;
+<i class="no-highlight">463</i>&nbsp;	private TypeUpdateResult arithListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">464</i>&nbsp;		ArithNode arithInsn = (ArithNode) insn;</b>
+<b class="pc"><i class="no-highlight">465</i>&nbsp;		if (candidateType == ArgType.BOOLEAN &amp;&amp; arithInsn.getOp().isBitOp()) {</b>
+<i class="no-highlight">466</i>&nbsp;			// force all args to boolean
+<b class="fc"><i class="no-highlight">467</i>&nbsp;			return allSameListener(updateInfo, insn, arg, candidateType);</b>
+<i class="no-highlight">468</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">469</i>&nbsp;		return suggestAllSameListener(updateInfo, insn, arg, candidateType);</b>
+<i class="no-highlight">470</i>&nbsp;	}
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;	/**
+<i class="no-highlight">473</i>&nbsp;	 * Try to set candidate type to all args, don&#39;t fail on reject
+<i class="no-highlight">474</i>&nbsp;	 */
+<i class="no-highlight">475</i>&nbsp;	private TypeUpdateResult suggestAllSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">476</i>&nbsp;		if (!isAssign(insn, arg)) {</b>
+<b class="fc"><i class="no-highlight">477</i>&nbsp;			RegisterArg resultArg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">478</i>&nbsp;			if (resultArg != null) {</b>
+<b class="fc"><i class="no-highlight">479</i>&nbsp;				updateTypeChecked(updateInfo, resultArg, candidateType);</b>
+<i class="no-highlight">480</i>&nbsp;			}
+<i class="no-highlight">481</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">482</i>&nbsp;		boolean allSame = true;</b>
+<b class="fc"><i class="no-highlight">483</i>&nbsp;		for (InsnArg insnArg : insn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">484</i>&nbsp;			if (insnArg != arg) {</b>
+<b class="fc"><i class="no-highlight">485</i>&nbsp;				TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);</b>
+<b class="fc"><i class="no-highlight">486</i>&nbsp;				if (result == REJECT) {</b>
+<i class="no-highlight">487</i>&nbsp;					// ignore
+<b class="fc"><i class="no-highlight">488</i>&nbsp;				} else if (result != SAME) {</b>
+<b class="fc"><i class="no-highlight">489</i>&nbsp;					allSame = false;</b>
+<i class="no-highlight">490</i>&nbsp;				}
+<i class="no-highlight">491</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">492</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">493</i>&nbsp;		return allSame ? SAME : CHANGED;</b>
+<i class="no-highlight">494</i>&nbsp;	}
+<i class="no-highlight">495</i>&nbsp;
+<i class="no-highlight">496</i>&nbsp;	private TypeUpdateResult checkCastListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">497</i>&nbsp;		IndexInsnNode checkCast = (IndexInsnNode) insn;</b>
+<b class="fc"><i class="no-highlight">498</i>&nbsp;		if (isAssign(insn, arg)) {</b>
+<b class="fc"><i class="no-highlight">499</i>&nbsp;			InsnArg insnArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">500</i>&nbsp;			TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);</b>
+<b class="fc"><i class="no-highlight">501</i>&nbsp;			return result == REJECT ? SAME : result;</b>
+<i class="no-highlight">502</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">503</i>&nbsp;		if (candidateType.containsGeneric()) {</b>
+<b class="fc"><i class="no-highlight">504</i>&nbsp;			ArgType castType = (ArgType) checkCast.getIndex();</b>
+<b class="fc"><i class="no-highlight">505</i>&nbsp;			TypeCompareEnum compResult = comparator.compareTypes(candidateType, castType);</b>
+<b class="fc"><i class="no-highlight">506</i>&nbsp;			if (compResult == TypeCompareEnum.NARROW_BY_GENERIC) {</b>
+<i class="no-highlight">507</i>&nbsp;				// propagate generic type to result
+<b class="fc"><i class="no-highlight">508</i>&nbsp;				return updateTypeChecked(updateInfo, checkCast.getResult(), candidateType);</b>
+<i class="no-highlight">509</i>&nbsp;			}
+<i class="no-highlight">510</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">511</i>&nbsp;		return SAME;</b>
+<i class="no-highlight">512</i>&nbsp;	}
+<i class="no-highlight">513</i>&nbsp;
+<i class="no-highlight">514</i>&nbsp;	private TypeUpdateResult arrayGetListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">515</i>&nbsp;		if (isAssign(insn, arg)) {</b>
+<b class="fc"><i class="no-highlight">516</i>&nbsp;			return updateTypeChecked(updateInfo, insn.getArg(0), ArgType.array(candidateType));</b>
+<i class="no-highlight">517</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">518</i>&nbsp;		InsnArg arrArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">519</i>&nbsp;		if (arrArg == arg) {</b>
+<b class="fc"><i class="no-highlight">520</i>&nbsp;			ArgType arrayElement = candidateType.getArrayElement();</b>
+<b class="pc"><i class="no-highlight">521</i>&nbsp;			if (arrayElement == null) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">523</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">524</i>&nbsp;			return updateTypeChecked(updateInfo, insn.getResult(), arrayElement);</b>
+<i class="no-highlight">525</i>&nbsp;		}
+<i class="no-highlight">526</i>&nbsp;		// index argument
+<b class="fc"><i class="no-highlight">527</i>&nbsp;		return SAME;</b>
+<i class="no-highlight">528</i>&nbsp;	}
+<i class="no-highlight">529</i>&nbsp;
+<i class="no-highlight">530</i>&nbsp;	private TypeUpdateResult arrayPutListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">531</i>&nbsp;		InsnArg arrArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">532</i>&nbsp;		InsnArg putArg = insn.getArg(2);</b>
+<b class="fc"><i class="no-highlight">533</i>&nbsp;		if (arrArg == arg) {</b>
+<b class="fc"><i class="no-highlight">534</i>&nbsp;			ArgType arrayElement = candidateType.getArrayElement();</b>
+<b class="pc"><i class="no-highlight">535</i>&nbsp;			if (arrayElement == null) {</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;				return REJECT;</b>
+<i class="no-highlight">537</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">538</i>&nbsp;			TypeUpdateResult result = updateTypeChecked(updateInfo, putArg, arrayElement);</b>
+<b class="fc"><i class="no-highlight">539</i>&nbsp;			if (result == REJECT) {</b>
+<b class="fc"><i class="no-highlight">540</i>&nbsp;				ArgType putType = putArg.getType();</b>
+<b class="pc"><i class="no-highlight">541</i>&nbsp;				if (putType.isTypeKnown() &amp;&amp; !putType.isPrimitive()) {</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;					TypeCompareEnum compResult = comparator.compareTypes(arrayElement, putType);</b>
+<b class="pc"><i class="no-highlight">543</i>&nbsp;					if (compResult == TypeCompareEnum.WIDER || compResult == TypeCompareEnum.WIDER_BY_GENERIC) {</b>
+<i class="no-highlight">544</i>&nbsp;						// allow wider result (i.e allow put in Object[] any objects)
+<b class="fc"><i class="no-highlight">545</i>&nbsp;						return CHANGED;</b>
+<i class="no-highlight">546</i>&nbsp;					}
+<i class="no-highlight">547</i>&nbsp;				}
+<i class="no-highlight">548</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">549</i>&nbsp;			return result;</b>
+<i class="no-highlight">550</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">551</i>&nbsp;		if (arrArg == putArg) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;			return updateTypeChecked(updateInfo, arrArg, ArgType.array(candidateType));</b>
+<i class="no-highlight">553</i>&nbsp;		}
+<i class="no-highlight">554</i>&nbsp;		// index
+<b class="fc"><i class="no-highlight">555</i>&nbsp;		return SAME;</b>
+<i class="no-highlight">556</i>&nbsp;	}
+<i class="no-highlight">557</i>&nbsp;
+<i class="no-highlight">558</i>&nbsp;	private TypeUpdateResult ifListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+<b class="fc"><i class="no-highlight">559</i>&nbsp;		InsnArg firstArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">560</i>&nbsp;		InsnArg secondArg = insn.getArg(1);</b>
+<b class="fc"><i class="no-highlight">561</i>&nbsp;		InsnArg updateArg = firstArg == arg ? secondArg : firstArg;</b>
+<b class="fc"><i class="no-highlight">562</i>&nbsp;		TypeUpdateResult result = updateTypeChecked(updateInfo, updateArg, candidateType);</b>
+<b class="fc"><i class="no-highlight">563</i>&nbsp;		if (result == REJECT) {</b>
+<i class="no-highlight">564</i>&nbsp;			// soft checks for objects and array - exact type not compared
+<b class="fc"><i class="no-highlight">565</i>&nbsp;			ArgType updateArgType = updateArg.getType();</b>
+<b class="pc"><i class="no-highlight">566</i>&nbsp;			if (candidateType.isObject() &amp;&amp; updateArgType.canBeObject()) {</b>
+<b class="fc"><i class="no-highlight">567</i>&nbsp;				return SAME;</b>
+<i class="no-highlight">568</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">569</i>&nbsp;			if (candidateType.isArray() &amp;&amp; updateArgType.canBeArray()) {</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;				return SAME;</b>
+<i class="no-highlight">571</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">572</i>&nbsp;			if (candidateType.isPrimitive()) {</b>
+<b class="fc"><i class="no-highlight">573</i>&nbsp;				if (updateArgType.canBePrimitive(candidateType.getPrimitiveType())) {</b>
+<b class="fc"><i class="no-highlight">574</i>&nbsp;					return SAME;</b>
+<i class="no-highlight">575</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">576</i>&nbsp;				if (updateArgType.isTypeKnown() &amp;&amp; candidateType.getRegCount() == updateArgType.getRegCount()) {</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;					return SAME;</b>
+<i class="no-highlight">578</i>&nbsp;				}
+<i class="no-highlight">579</i>&nbsp;			}
+<i class="no-highlight">580</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">581</i>&nbsp;		return result;</b>
+<i class="no-highlight">582</i>&nbsp;	}
+<i class="no-highlight">583</i>&nbsp;
+<i class="no-highlight">584</i>&nbsp;	private static boolean isAssign(InsnNode insn, InsnArg arg) {
+<b class="fc"><i class="no-highlight">585</i>&nbsp;		return insn.getResult() == arg;</b>
+<i class="no-highlight">586</i>&nbsp;	}
+<i class="no-highlight">587</i>&nbsp;
+<i class="no-highlight">588</i>&nbsp;	public TypeCompare getTypeCompare() {
+<b class="fc"><i class="no-highlight">589</i>&nbsp;		return comparator;</b>
+<i class="no-highlight">590</i>&nbsp;	}
+<i class="no-highlight">591</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

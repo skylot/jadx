@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ExportTask</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.jobs</a>
+</div>
+
+<h1>Coverage Summary for Class: ExportTask (jadx.gui.jobs)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ExportTask</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ExportTask$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.jobs;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.File;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import javax.swing.JOptionPane;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.ICodeCache;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">10</i>&nbsp;import jadx.gui.JadxWrapper;
+<i class="no-highlight">11</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">12</i>&nbsp;import jadx.gui.utils.FixedCodeCache;
+<i class="no-highlight">13</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;public class ExportTask implements IBackgroundTask {
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;	private final MainWindow mainWindow;
+<i class="no-highlight">18</i>&nbsp;	private final JadxWrapper wrapper;
+<i class="no-highlight">19</i>&nbsp;	private final File saveDir;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;	private int timeLimit;
+<i class="no-highlight">22</i>&nbsp;	private ICodeCache uiCodeCache;
+<i class="no-highlight">23</i>&nbsp;
+<b class="nc"><i class="no-highlight">24</i>&nbsp;	public ExportTask(MainWindow mainWindow, JadxWrapper wrapper, File saveDir) {</b>
+<b class="nc"><i class="no-highlight">25</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">26</i>&nbsp;		this.wrapper = wrapper;</b>
+<b class="nc"><i class="no-highlight">27</i>&nbsp;		this.saveDir = saveDir;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	@Override
+<i class="no-highlight">31</i>&nbsp;	public String getTitle() {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		return NLS.str(&quot;msg.saving_sources&quot;);</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	@Override
+<i class="no-highlight">36</i>&nbsp;	public List&lt;Runnable&gt; scheduleJobs() {
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		wrapCodeCache();</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		JadxDecompiler decompiler = wrapper.getDecompiler();</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		decompiler.getArgs().setRootDir(saveDir);</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		List&lt;Runnable&gt; saveTasks = decompiler.getSaveTasks();</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		this.timeLimit = DecompileTask.calcDecompileTimeLimit(saveTasks.size());</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		return saveTasks;</b>
+<i class="no-highlight">43</i>&nbsp;	}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	private void wrapCodeCache() {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		uiCodeCache = wrapper.getArgs().getCodeCache();</b>
+<i class="no-highlight">47</i>&nbsp;		// do not save newly decompiled code in cache to not increase memory usage
+<i class="no-highlight">48</i>&nbsp;		// TODO: maybe make memory limited cache?
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		wrapper.getArgs().setCodeCache(new FixedCodeCache(uiCodeCache));</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	@Override
+<i class="no-highlight">53</i>&nbsp;	public void onFinish(TaskStatus status, long skipped) {
+<i class="no-highlight">54</i>&nbsp;		// restore initial code cache
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		wrapper.getArgs().setCodeCache(uiCodeCache);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		if (skipped == 0) {</b>
+<i class="no-highlight">57</i>&nbsp;			return;
+<i class="no-highlight">58</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		String reason = getIncompleteReason(status);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		if (reason != null) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;			JOptionPane.showMessageDialog(mainWindow,</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;					NLS.str(&quot;message.saveIncomplete&quot;, reason, skipped),</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;					NLS.str(&quot;message.errorTitle&quot;), JOptionPane.ERROR_MESSAGE);</b>
+<i class="no-highlight">64</i>&nbsp;		}
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	private String getIncompleteReason(TaskStatus status) {
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		switch (status) {</b>
+<i class="no-highlight">69</i>&nbsp;			case CANCEL_BY_USER:
+<b class="nc"><i class="no-highlight">70</i>&nbsp;				return NLS.str(&quot;message.userCancelTask&quot;);</b>
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;			case CANCEL_BY_TIMEOUT:
+<b class="nc"><i class="no-highlight">73</i>&nbsp;				return NLS.str(&quot;message.taskTimeout&quot;, timeLimit());</b>
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;			case CANCEL_BY_MEMORY:
+<b class="nc"><i class="no-highlight">76</i>&nbsp;				mainWindow.showHeapUsageBar();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;				return NLS.str(&quot;message.memoryLow&quot;);</b>
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;			case ERROR:
+<b class="nc"><i class="no-highlight">80</i>&nbsp;				return NLS.str(&quot;message.taskError&quot;);</b>
+<i class="no-highlight">81</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		return null;</b>
+<i class="no-highlight">83</i>&nbsp;	}
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;	@Override
+<i class="no-highlight">86</i>&nbsp;	public int timeLimit() {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		return timeLimit;</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	@Override
+<i class="no-highlight">91</i>&nbsp;	public boolean canBeCanceled() {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		return true;</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	@Override
+<i class="no-highlight">96</i>&nbsp;	public boolean checkMemoryUsage() {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		return true;</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

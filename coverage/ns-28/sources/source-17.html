@@ -1,0 +1,244 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MoveInlineVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: MoveInlineVisitor (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MoveInlineVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    68.2%
+  </span>
+  <span class="absValue">
+    (15/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91%
+  </span>
+  <span class="absValue">
+    (61/67)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">6</i>&nbsp;import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
+<i class="no-highlight">7</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">8</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.visitors.ssa.SSATransform;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">19</i>&nbsp;		name = &quot;MoveInlineVisitor&quot;,
+<i class="no-highlight">20</i>&nbsp;		desc = &quot;Inline redundant move instructions&quot;,
+<i class="no-highlight">21</i>&nbsp;		runAfter = SSATransform.class,
+<i class="no-highlight">22</i>&nbsp;		runBefore = CodeShrinkVisitor.class
+<i class="no-highlight">23</i>&nbsp;)
+<b class="fc"><i class="no-highlight">24</i>&nbsp;public class MoveInlineVisitor extends AbstractVisitor {</b>
+<i class="no-highlight">25</i>&nbsp;	@Override
+<i class="no-highlight">26</i>&nbsp;	public void visit(MethodNode mth) {
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">28</i>&nbsp;			return;
+<i class="no-highlight">29</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		moveInline(mth);</b>
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	public static void moveInline(MethodNode mth) {
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		InsnRemover remover = new InsnRemover(mth);</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;			remover.setBlock(block);</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;				if (insn.getType() != InsnType.MOVE) {</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;					continue;</b>
+<i class="no-highlight">40</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">41</i>&nbsp;				if (processMove(mth, insn)) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;					remover.addAndUnbind(insn);</b>
+<i class="no-highlight">43</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">44</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			remover.perform();</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		}</b>
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	private static boolean processMove(MethodNode mth, InsnNode move) {
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		RegisterArg resultArg = move.getResult();</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		InsnArg moveArg = move.getArg(0);</b>
+<b class="pc"><i class="no-highlight">52</i>&nbsp;		if (resultArg.sameRegAndSVar(moveArg)) {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;			return true;</b>
+<i class="no-highlight">54</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		SSAVar ssaVar = resultArg.getSVar();</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		if (ssaVar.isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;			return deleteMove(mth, move);</b>
+<i class="no-highlight">58</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		RegDebugInfoAttr debugInfo = moveArg.get(AType.REG_DEBUG_INFO);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		for (RegisterArg useArg : ssaVar.getUseList()) {</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;			InsnNode useInsn = useArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">62</i>&nbsp;			if (useInsn == null) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;				return false;</b>
+<i class="no-highlight">64</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			if (debugInfo == null) {</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;				RegDebugInfoAttr debugInfoAttr = useArg.get(AType.REG_DEBUG_INFO);</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;				if (debugInfoAttr != null) {</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;					debugInfo = debugInfoAttr;</b>
+<i class="no-highlight">69</i>&nbsp;				}
+<i class="no-highlight">70</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		}</b>
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;		// all checks passed, execute inline
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		for (RegisterArg useArg : new ArrayList&lt;&gt;(ssaVar.getUseList())) {</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;			InsnNode useInsn = useArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">76</i>&nbsp;			if (useInsn == null) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;				continue;</b>
+<i class="no-highlight">78</i>&nbsp;			}
+<i class="no-highlight">79</i>&nbsp;			InsnArg replaceArg;
+<b class="pc"><i class="no-highlight">80</i>&nbsp;			if (moveArg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;				replaceArg = ((RegisterArg) moveArg).duplicate(useArg.getInitType());</b>
+<i class="no-highlight">82</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;				replaceArg = moveArg.duplicate();</b>
+<i class="no-highlight">84</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">85</i>&nbsp;			useInsn.inheritMetadata(move);</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;			replaceArg.copyAttributesFrom(useArg);</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;			if (debugInfo != null) {</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;				replaceArg.addAttr(debugInfo);</b>
+<i class="no-highlight">89</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">90</i>&nbsp;			if (!useInsn.replaceArg(useArg, replaceArg)) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;				mth.addWarnComment(&quot;Failed to replace arg in insn: &quot; + useInsn);</b>
+<i class="no-highlight">92</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		return true;</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	private static boolean deleteMove(MethodNode mth, InsnNode move) {
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		InsnArg moveArg = move.getArg(0);</b>
+<b class="pc"><i class="no-highlight">99</i>&nbsp;		if (!moveArg.isRegister()) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;			return false;</b>
+<i class="no-highlight">101</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		RegisterArg moveReg = (RegisterArg) moveArg;</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		SSAVar ssaVar = moveReg.getSVar();</b>
+<b class="pc"><i class="no-highlight">104</i>&nbsp;		if (ssaVar.getUseCount() != 1 || ssaVar.isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			return false;</b>
+<i class="no-highlight">106</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		RegisterArg assignArg = ssaVar.getAssign();</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		InsnNode parentInsn = assignArg.getParentInsn();</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		if (parentInsn == null) {</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;			return false;</b>
+<i class="no-highlight">111</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		if (parentInsn.getSourceLine() != move.getSourceLine()</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;				|| moveArg.contains(AType.REG_DEBUG_INFO)) {</b>
+<i class="no-highlight">114</i>&nbsp;			// preserve debug info
+<b class="fc"><i class="no-highlight">115</i>&nbsp;			return false;</b>
+<i class="no-highlight">116</i>&nbsp;		}
+<i class="no-highlight">117</i>&nbsp;		// set move result into parent insn result
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		InsnRemover.unbindAllArgs(mth, move);</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		InsnRemover.unbindResult(mth, parentInsn);</b>
+<i class="no-highlight">120</i>&nbsp;
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		RegisterArg resArg = parentInsn.getResult();</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		RegisterArg newResArg = move.getResult().duplicate(resArg.getInitType());</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		newResArg.copyAttributesFrom(resArg);</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		parentInsn.setResult(newResArg);</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		return true;</b>
+<i class="no-highlight">126</i>&nbsp;	}
+<i class="no-highlight">127</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

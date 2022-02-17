@@ -1,0 +1,136 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxCodeData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.data.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxCodeData (jadx.api.data.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxCodeData</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.data.impl;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.data.ICodeComment;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.data.ICodeData;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.data.ICodeRename;
+<i class="no-highlight">9</i>&nbsp;
+<b class="fc"><i class="no-highlight">10</i>&nbsp;public class JadxCodeData implements ICodeData {</b>
+<b class="fc"><i class="no-highlight">11</i>&nbsp;	private List&lt;ICodeComment&gt; comments = Collections.emptyList();</b>
+<b class="fc"><i class="no-highlight">12</i>&nbsp;	private List&lt;ICodeRename&gt; renames = Collections.emptyList();</b>
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;	@Override
+<i class="no-highlight">15</i>&nbsp;	public List&lt;ICodeComment&gt; getComments() {
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		return comments;</b>
+<i class="no-highlight">17</i>&nbsp;	}
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	public void setComments(List&lt;ICodeComment&gt; comments) {
+<b class="fc"><i class="no-highlight">20</i>&nbsp;		this.comments = comments;</b>
+<i class="no-highlight">21</i>&nbsp;	}
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	@Override
+<i class="no-highlight">24</i>&nbsp;	public List&lt;ICodeRename&gt; getRenames() {
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		return renames;</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	public void setRenames(List&lt;ICodeRename&gt; renames) {
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.renames = renames;</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

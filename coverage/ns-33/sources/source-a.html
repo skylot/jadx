@@ -1,0 +1,1107 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TypeInferenceVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.typeinference</a>
+</div>
+
+<h1>Coverage Summary for Class: TypeInferenceVisitor (jadx.core.dex.visitors.typeinference)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TypeInferenceVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    98%
+  </span>
+  <span class="absValue">
+    (50/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.1%
+  </span>
+  <span class="absValue">
+    (124/172)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.3%
+  </span>
+  <span class="absValue">
+    (464/514)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TypeInferenceVisitor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    98.1%
+  </span>
+  <span class="absValue">
+    (51/52)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.1%
+  </span>
+  <span class="absValue">
+    (124/172)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.3%
+  </span>
+  <span class="absValue">
+    (466/516)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.typeinference;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">9</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">10</i>&nbsp;import java.util.Set;
+<i class="no-highlight">11</i>&nbsp;import java.util.function.Function;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">14</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.Consts;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.clsp.ClspGraph;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.attributes.nodes.PhiListAttr;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.ArithOp;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.InvokeType;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.instructions.PhiInsn;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.instructions.args.PrimitiveType;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.instructions.mods.TernaryInsn;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.nodes.IMethodDetails;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.dex.nodes.utils.MethodUtils;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.dex.trycatch.ExcHandlerAttr;
+<i class="no-highlight">49</i>&nbsp;import jadx.core.dex.visitors.AbstractVisitor;
+<i class="no-highlight">50</i>&nbsp;import jadx.core.dex.visitors.AttachMethodDetails;
+<i class="no-highlight">51</i>&nbsp;import jadx.core.dex.visitors.ConstInlineVisitor;
+<i class="no-highlight">52</i>&nbsp;import jadx.core.dex.visitors.InitCodeVariables;
+<i class="no-highlight">53</i>&nbsp;import jadx.core.dex.visitors.JadxVisitor;
+<i class="no-highlight">54</i>&nbsp;import jadx.core.dex.visitors.ModVisitor;
+<i class="no-highlight">55</i>&nbsp;import jadx.core.dex.visitors.blocks.BlockSplitter;
+<i class="no-highlight">56</i>&nbsp;import jadx.core.dex.visitors.ssa.SSATransform;
+<i class="no-highlight">57</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">58</i>&nbsp;import jadx.core.utils.InsnList;
+<i class="no-highlight">59</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">60</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">61</i>&nbsp;import jadx.core.utils.exceptions.JadxOverflowException;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">64</i>&nbsp;		name = &quot;Type Inference&quot;,
+<i class="no-highlight">65</i>&nbsp;		desc = &quot;Calculate best types for SSA variables&quot;,
+<i class="no-highlight">66</i>&nbsp;		runAfter = {
+<i class="no-highlight">67</i>&nbsp;				SSATransform.class,
+<i class="no-highlight">68</i>&nbsp;				ConstInlineVisitor.class,
+<i class="no-highlight">69</i>&nbsp;				AttachMethodDetails.class
+<i class="no-highlight">70</i>&nbsp;		}
+<i class="no-highlight">71</i>&nbsp;)
+<b class="fc"><i class="no-highlight">72</i>&nbsp;public final class TypeInferenceVisitor extends AbstractVisitor {</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(TypeInferenceVisitor.class);</b>
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	private RootNode root;
+<i class="no-highlight">76</i>&nbsp;	private TypeUpdate typeUpdate;
+<i class="no-highlight">77</i>&nbsp;	private List&lt;Function&lt;MethodNode, Boolean&gt;&gt; resolvers;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;	@Override
+<i class="no-highlight">80</i>&nbsp;	public void init(RootNode root) {
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		this.root = root;</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		this.typeUpdate = root.getTypeUpdate();</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		this.resolvers = Arrays.asList(</b>
+<i class="no-highlight">84</i>&nbsp;				this::initTypeBounds,
+<i class="no-highlight">85</i>&nbsp;				this::runTypePropagation,
+<i class="no-highlight">86</i>&nbsp;				this::tryInsertCasts,
+<i class="no-highlight">87</i>&nbsp;				this::tryDeduceTypes,
+<i class="no-highlight">88</i>&nbsp;				this::trySplitConstInsns,
+<i class="no-highlight">89</i>&nbsp;				this::tryToFixIncompatiblePrimitives,
+<i class="no-highlight">90</i>&nbsp;				this::tryInsertAdditionalMove,
+<i class="no-highlight">91</i>&nbsp;				this::runMultiVariableSearch,
+<i class="no-highlight">92</i>&nbsp;				this::tryRemoveGenerics);
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	@Override
+<i class="no-highlight">96</i>&nbsp;	public void visit(MethodNode mth) {
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">98</i>&nbsp;			return;
+<i class="no-highlight">99</i>&nbsp;		}
+<i class="no-highlight">100</i>&nbsp;		if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">101</i>&nbsp;			LOG.info(&quot;Start type inference in method: {}&quot;, mth);
+<i class="no-highlight">102</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		assignImmutableTypes(mth);</b>
+<i class="no-highlight">104</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			for (Function&lt;MethodNode, Boolean&gt; resolver : resolvers) {</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				if (resolver.apply(mth) &amp;&amp; checkTypes(mth)) {</b>
+<i class="no-highlight">107</i>&nbsp;					return;
+<i class="no-highlight">108</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">109</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;			mth.addError(&quot;Type inference failed with exception&quot;, e);</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		}</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	/**
+<i class="no-highlight">116</i>&nbsp;	 * Check if all types resolved
+<i class="no-highlight">117</i>&nbsp;	 */
+<i class="no-highlight">118</i>&nbsp;	private static boolean checkTypes(MethodNode mth) {
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		for (SSAVar var : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;			ArgType type = var.getTypeInfo().getType();</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;			if (!type.isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;				return false;</b>
+<i class="no-highlight">123</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		return true;</b>
+<i class="no-highlight">126</i>&nbsp;	}
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;	/**
+<i class="no-highlight">129</i>&nbsp;	 * Collect initial type bounds from assign and usages
+<i class="no-highlight">130</i>&nbsp;	 */
+<i class="no-highlight">131</i>&nbsp;	private boolean initTypeBounds(MethodNode mth) {
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		List&lt;SSAVar&gt; ssaVars = mth.getSVars();</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		ssaVars.forEach(this::attachBounds);</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		ssaVars.forEach(this::mergePhiBounds);</b>
+<i class="no-highlight">135</i>&nbsp;		if (Consts.DEBUG_TYPE_INFERENCE) {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			ssaVars.forEach(ssaVar -&gt; LOG.debug(&quot;Type bounds for {}: {}&quot;, ssaVar.toShortString(), ssaVar.getTypeInfo().getBounds()));</b>
+<i class="no-highlight">137</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		return false;</b>
+<i class="no-highlight">139</i>&nbsp;	}
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;	/**
+<i class="no-highlight">142</i>&nbsp;	 * Guess type from usage and try to set it to current variable
+<i class="no-highlight">143</i>&nbsp;	 * and all connected instructions with {@link TypeUpdate#apply(MethodNode, SSAVar, ArgType)}
+<i class="no-highlight">144</i>&nbsp;	 */
+<i class="no-highlight">145</i>&nbsp;	private boolean runTypePropagation(MethodNode mth) {
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		List&lt;SSAVar&gt; ssaVars = mth.getSVars();</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;		ssaVars.forEach(var -&gt; setImmutableType(mth, var));</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;		ssaVars.forEach(var -&gt; setBestType(mth, var));</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		return true;</b>
+<i class="no-highlight">150</i>&nbsp;	}
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;	private boolean runMultiVariableSearch(MethodNode mth) {
+<i class="no-highlight">153</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">154</i>&nbsp;			TypeSearch typeSearch = new TypeSearch(mth);</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;			if (!typeSearch.run()) {</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;				mth.addWarnComment(&quot;Multi-variable type inference failed&quot;);</b>
+<i class="no-highlight">157</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">158</i>&nbsp;			for (SSAVar var : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;				if (!var.getTypeInfo().getType().isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;					return false;</b>
+<i class="no-highlight">161</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">162</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;			return true;</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;			mth.addWarnComment(&quot;Multi-variable type inference failed. Error: &quot; + Utils.getStackTrace(e));</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;			return false;</b>
+<i class="no-highlight">167</i>&nbsp;		}
+<i class="no-highlight">168</i>&nbsp;	}
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;	private void setImmutableType(MethodNode mth, SSAVar ssaVar) {
+<i class="no-highlight">171</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">172</i>&nbsp;			ArgType immutableType = ssaVar.getImmutableType();</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;			if (immutableType != null) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;				TypeUpdateResult result = typeUpdate.applyWithWiderIgnSame(mth, ssaVar, immutableType);</b>
+<i class="no-highlight">175</i>&nbsp;				if (Consts.DEBUG_TYPE_INFERENCE &amp;&amp; result == TypeUpdateResult.REJECT) {
+<i class="no-highlight">176</i>&nbsp;					LOG.info(&quot;Reject initial immutable type {} for {}&quot;, immutableType, ssaVar);
+<i class="no-highlight">177</i>&nbsp;				}
+<i class="no-highlight">178</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">179</i>&nbsp;		} catch (JadxOverflowException e) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;			throw e;</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;			LOG.error(&quot;Failed to set immutable type for var: {}&quot;, ssaVar, e);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		}</b>
+<i class="no-highlight">184</i>&nbsp;	}
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;	private boolean setBestType(MethodNode mth, SSAVar ssaVar) {
+<i class="no-highlight">187</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">188</i>&nbsp;			return calculateFromBounds(mth, ssaVar);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		} catch (JadxOverflowException e) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			throw e;</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;			LOG.error(&quot;Failed to calculate best type for var: {}&quot;, ssaVar, e);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;			return false;</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<i class="no-highlight">195</i>&nbsp;	}
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;	private boolean calculateFromBounds(MethodNode mth, SSAVar ssaVar) {
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		TypeInfo typeInfo = ssaVar.getTypeInfo();</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;		Set&lt;ITypeBound&gt; bounds = typeInfo.getBounds();</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		Optional&lt;ArgType&gt; bestTypeOpt = selectBestTypeFromBounds(bounds);</b>
+<b class="pc"><i class="no-highlight">201</i>&nbsp;		if (!bestTypeOpt.isPresent()) {</b>
+<i class="no-highlight">202</i>&nbsp;			if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">203</i>&nbsp;				LOG.warn(&quot;Failed to select best type from bounds, count={} : &quot;, bounds.size());
+<i class="no-highlight">204</i>&nbsp;				for (ITypeBound bound : bounds) {
+<i class="no-highlight">205</i>&nbsp;					LOG.warn(&quot;  {}&quot;, bound);
+<i class="no-highlight">206</i>&nbsp;				}
+<i class="no-highlight">207</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">208</i>&nbsp;			return false;</b>
+<i class="no-highlight">209</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		ArgType candidateType = bestTypeOpt.get();</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		TypeUpdateResult result = typeUpdate.apply(mth, ssaVar, candidateType);</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		if (result == TypeUpdateResult.REJECT) {</b>
+<i class="no-highlight">213</i>&nbsp;			if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">214</i>&nbsp;				if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
+<i class="no-highlight">215</i>&nbsp;					LOG.info(&quot;Same type rejected: {} -&gt; {}, bounds: {}&quot;, ssaVar, candidateType, bounds);
+<i class="no-highlight">216</i>&nbsp;				} else if (candidateType.isTypeKnown()) {
+<i class="no-highlight">217</i>&nbsp;					LOG.debug(&quot;Type rejected: {} -&gt; {}, bounds: {}&quot;, ssaVar, candidateType, bounds);
+<i class="no-highlight">218</i>&nbsp;				}
+<i class="no-highlight">219</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">220</i>&nbsp;			return false;</b>
+<i class="no-highlight">221</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		return result == TypeUpdateResult.CHANGED;</b>
+<i class="no-highlight">223</i>&nbsp;	}
+<i class="no-highlight">224</i>&nbsp;
+<i class="no-highlight">225</i>&nbsp;	private Optional&lt;ArgType&gt; selectBestTypeFromBounds(Set&lt;ITypeBound&gt; bounds) {
+<b class="fc"><i class="no-highlight">226</i>&nbsp;		return bounds.stream()</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;				.map(ITypeBound::getType)</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;				.filter(Objects::nonNull)</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;				.max(typeUpdate.getTypeCompare().getComparator());</b>
+<i class="no-highlight">230</i>&nbsp;	}
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;	private void attachBounds(SSAVar var) {
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		TypeInfo typeInfo = var.getTypeInfo();</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		typeInfo.getBounds().clear();</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		RegisterArg assign = var.getAssign();</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		addAssignBound(typeInfo, assign);</b>
+<i class="no-highlight">237</i>&nbsp;
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		for (RegisterArg regArg : var.getUseList()) {</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;			addBound(typeInfo, makeUseBound(regArg));</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		}</b>
+<i class="no-highlight">241</i>&nbsp;	}
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;	private void mergePhiBounds(SSAVar ssaVar) {
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		for (PhiInsn usedInPhi : ssaVar.getUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;			Set&lt;ITypeBound&gt; bounds = ssaVar.getTypeInfo().getBounds();</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;			bounds.addAll(usedInPhi.getResult().getSVar().getTypeInfo().getBounds());</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;			for (InsnArg arg : usedInPhi.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;				bounds.addAll(((RegisterArg) arg).getSVar().getTypeInfo().getBounds());</b>
+<b class="fc"><i class="no-highlight">249</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		}</b>
+<i class="no-highlight">251</i>&nbsp;	}
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;	private void addBound(TypeInfo typeInfo, ITypeBound bound) {
+<b class="fc"><i class="no-highlight">254</i>&nbsp;		if (bound == null) {</b>
+<i class="no-highlight">255</i>&nbsp;			return;
+<i class="no-highlight">256</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		if (bound instanceof ITypeBoundDynamic</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;				|| bound.getType() != ArgType.UNKNOWN) {</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;			typeInfo.getBounds().add(bound);</b>
+<i class="no-highlight">260</i>&nbsp;		}
+<i class="no-highlight">261</i>&nbsp;	}
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;	private void addAssignBound(TypeInfo typeInfo, RegisterArg assign) {
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		ArgType immutableType = assign.getImmutableType();</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		if (immutableType != null) {</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;			addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, immutableType));</b>
+<i class="no-highlight">267</i>&nbsp;			return;
+<i class="no-highlight">268</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">269</i>&nbsp;		InsnNode insn = assign.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">270</i>&nbsp;		if (insn == null || insn.getResult() == null) {</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;			addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, assign.getInitType()));</b>
+<i class="no-highlight">272</i>&nbsp;			return;
+<i class="no-highlight">273</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		switch (insn.getType()) {</b>
+<i class="no-highlight">275</i>&nbsp;			case NEW_INSTANCE:
+<b class="fc"><i class="no-highlight">276</i>&nbsp;				ArgType clsType = (ArgType) ((IndexInsnNode) insn).getIndex();</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, clsType));</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;				break;</b>
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;			case CONSTRUCTOR:
+<b class="fc"><i class="no-highlight">281</i>&nbsp;				ArgType ctrClsType = replaceAnonymousType((ConstructorInsn) insn);</b>
+<b class="fc"><i class="no-highlight">282</i>&nbsp;				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, ctrClsType));</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;				break;</b>
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;			case CONST:
+<b class="fc"><i class="no-highlight">286</i>&nbsp;				LiteralArg constLit = (LiteralArg) insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, constLit.getType()));</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;				break;</b>
+<i class="no-highlight">289</i>&nbsp;
+<i class="no-highlight">290</i>&nbsp;			case MOVE_EXCEPTION:
+<b class="fc"><i class="no-highlight">291</i>&nbsp;				ExcHandlerAttr excHandlerAttr = insn.get(AType.EXC_HANDLER);</b>
+<b class="pc"><i class="no-highlight">292</i>&nbsp;				if (excHandlerAttr != null) {</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;					for (ClassInfo catchType : excHandlerAttr.getHandler().getCatchTypes()) {</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;						addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, catchType.getType()));</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;					}</b>
+<i class="no-highlight">296</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;					addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, insn.getResult().getInitType()));</b>
+<i class="no-highlight">298</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">299</i>&nbsp;				break;</b>
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;			case INVOKE:
+<b class="fc"><i class="no-highlight">302</i>&nbsp;				addBound(typeInfo, makeAssignInvokeBound((InvokeNode) insn));</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;				break;</b>
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;			case IGET:
+<b class="fc"><i class="no-highlight">306</i>&nbsp;				addBound(typeInfo, makeAssignFieldGetBound((IndexInsnNode) insn));</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;				break;</b>
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;			case CHECK_CAST:
+<b class="fc"><i class="no-highlight">310</i>&nbsp;				addBound(typeInfo, new TypeBoundCheckCastAssign(root, (IndexInsnNode) insn));</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;				break;</b>
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;			default:
+<b class="fc"><i class="no-highlight">314</i>&nbsp;				ArgType type = insn.getResult().getInitType();</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));</b>
+<i class="no-highlight">316</i>&nbsp;				break;
+<i class="no-highlight">317</i>&nbsp;		}
+<i class="no-highlight">318</i>&nbsp;	}
+<i class="no-highlight">319</i>&nbsp;
+<i class="no-highlight">320</i>&nbsp;	private ArgType replaceAnonymousType(ConstructorInsn ctr) {
+<b class="pc"><i class="no-highlight">321</i>&nbsp;		if (ctr.isNewInstance()) {</b>
+<b class="fc"><i class="no-highlight">322</i>&nbsp;			ClassNode ctrCls = root.resolveClass(ctr.getClassType());</b>
+<b class="fc"><i class="no-highlight">323</i>&nbsp;			if (ctrCls != null &amp;&amp; ctrCls.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;				AnonymousClassBaseAttr baseTypeAttr = ctrCls.get(AType.ANONYMOUS_CLASS_BASE);</b>
+<b class="pc"><i class="no-highlight">325</i>&nbsp;				if (baseTypeAttr != null) {</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;					return baseTypeAttr.getBaseType();</b>
+<i class="no-highlight">327</i>&nbsp;				}
+<i class="no-highlight">328</i>&nbsp;			}
+<i class="no-highlight">329</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">330</i>&nbsp;		return ctr.getClassType().getType();</b>
+<i class="no-highlight">331</i>&nbsp;	}
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;	private ITypeBound makeAssignFieldGetBound(IndexInsnNode insn) {
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		ArgType initType = insn.getResult().getInitType();</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		if (initType.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;			return new TypeBoundFieldGetAssign(root, insn, initType);</b>
+<i class="no-highlight">337</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">338</i>&nbsp;		return new TypeBoundConst(BoundEnum.ASSIGN, initType);</b>
+<i class="no-highlight">339</i>&nbsp;	}
+<i class="no-highlight">340</i>&nbsp;
+<i class="no-highlight">341</i>&nbsp;	private ITypeBound makeAssignInvokeBound(InvokeNode invokeNode) {
+<b class="fc"><i class="no-highlight">342</i>&nbsp;		ArgType boundType = invokeNode.getCallMth().getReturnType();</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		ArgType genericReturnType = root.getMethodUtils().getMethodGenericReturnType(invokeNode);</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		if (genericReturnType != null) {</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;			if (genericReturnType.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">346</i>&nbsp;				InvokeType invokeType = invokeNode.getInvokeType();</b>
+<b class="pc"><i class="no-highlight">347</i>&nbsp;				if (invokeNode.getArgsCount() != 0</b>
+<i class="no-highlight">348</i>&nbsp;						&amp;&amp; invokeType != InvokeType.STATIC &amp;&amp; invokeType != InvokeType.SUPER) {
+<b class="fc"><i class="no-highlight">349</i>&nbsp;					return new TypeBoundInvokeAssign(root, invokeNode, genericReturnType);</b>
+<i class="no-highlight">350</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">351</i>&nbsp;			} else {</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;				boundType = genericReturnType;</b>
+<i class="no-highlight">353</i>&nbsp;			}
+<i class="no-highlight">354</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">355</i>&nbsp;		return new TypeBoundConst(BoundEnum.ASSIGN, boundType);</b>
+<i class="no-highlight">356</i>&nbsp;	}
+<i class="no-highlight">357</i>&nbsp;
+<i class="no-highlight">358</i>&nbsp;	@Nullable
+<i class="no-highlight">359</i>&nbsp;	private ITypeBound makeUseBound(RegisterArg regArg) {
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		InsnNode insn = regArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">361</i>&nbsp;		if (insn == null) {</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;			return null;</b>
+<i class="no-highlight">363</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">364</i>&nbsp;		if (insn instanceof BaseInvokeNode) {</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;			ITypeBound invokeUseBound = makeInvokeUseBound(regArg, (BaseInvokeNode) insn);</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;			if (invokeUseBound != null) {</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;				return invokeUseBound;</b>
+<i class="no-highlight">368</i>&nbsp;			}
+<i class="no-highlight">369</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">370</i>&nbsp;		if (insn.getType() == InsnType.CHECK_CAST &amp;&amp; insn.contains(AFlag.SOFT_CAST)) {</b>
+<i class="no-highlight">371</i>&nbsp;			// ignore
+<b class="fc"><i class="no-highlight">372</i>&nbsp;			return null;</b>
+<i class="no-highlight">373</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">374</i>&nbsp;		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);</b>
+<i class="no-highlight">375</i>&nbsp;	}
+<i class="no-highlight">376</i>&nbsp;
+<i class="no-highlight">377</i>&nbsp;	private ITypeBound makeInvokeUseBound(RegisterArg regArg, BaseInvokeNode invoke) {
+<b class="fc"><i class="no-highlight">378</i>&nbsp;		InsnArg instanceArg = invoke.getInstanceArg();</b>
+<b class="fc"><i class="no-highlight">379</i>&nbsp;		if (instanceArg == null) {</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;			return null;</b>
+<i class="no-highlight">381</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">382</i>&nbsp;		MethodUtils methodUtils = root.getMethodUtils();</b>
+<b class="fc"><i class="no-highlight">383</i>&nbsp;		IMethodDetails methodDetails = methodUtils.getMethodDetails(invoke);</b>
+<b class="fc"><i class="no-highlight">384</i>&nbsp;		if (methodDetails == null) {</b>
+<b class="fc"><i class="no-highlight">385</i>&nbsp;			return null;</b>
+<i class="no-highlight">386</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">387</i>&nbsp;		if (instanceArg != regArg) {</b>
+<b class="fc"><i class="no-highlight">388</i>&nbsp;			int argIndex = invoke.getArgIndex(regArg) - invoke.getFirstArgOffset();</b>
+<b class="fc"><i class="no-highlight">389</i>&nbsp;			ArgType argType = methodDetails.getArgTypes().get(argIndex);</b>
+<b class="fc"><i class="no-highlight">390</i>&nbsp;			if (!argType.containsTypeVariable()) {</b>
+<b class="fc"><i class="no-highlight">391</i>&nbsp;				return null;</b>
+<i class="no-highlight">392</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">393</i>&nbsp;			return new TypeBoundInvokeUse(root, invoke, regArg, argType);</b>
+<i class="no-highlight">394</i>&nbsp;		}
+<i class="no-highlight">395</i>&nbsp;
+<i class="no-highlight">396</i>&nbsp;		// for override methods use origin declared class as type
+<b class="fc"><i class="no-highlight">397</i>&nbsp;		if (methodDetails instanceof MethodNode) {</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;			MethodNode callMth = (MethodNode) methodDetails;</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;			ClassInfo declCls = methodUtils.getMethodOriginDeclClass(callMth);</b>
+<b class="fc"><i class="no-highlight">400</i>&nbsp;			return new TypeBoundConst(BoundEnum.USE, declCls.getType(), regArg);</b>
+<i class="no-highlight">401</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">402</i>&nbsp;		return null;</b>
+<i class="no-highlight">403</i>&nbsp;	}
+<i class="no-highlight">404</i>&nbsp;
+<i class="no-highlight">405</i>&nbsp;	private boolean tryPossibleTypes(MethodNode mth, SSAVar var, ArgType type) {
+<b class="fc"><i class="no-highlight">406</i>&nbsp;		List&lt;ArgType&gt; types = makePossibleTypesList(type, var);</b>
+<b class="fc"><i class="no-highlight">407</i>&nbsp;		if (types.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">408</i>&nbsp;			return false;</b>
+<i class="no-highlight">409</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">410</i>&nbsp;		for (ArgType candidateType : types) {</b>
+<b class="fc"><i class="no-highlight">411</i>&nbsp;			TypeUpdateResult result = typeUpdate.apply(mth, var, candidateType);</b>
+<b class="fc"><i class="no-highlight">412</i>&nbsp;			if (result == TypeUpdateResult.CHANGED) {</b>
+<b class="fc"><i class="no-highlight">413</i>&nbsp;				return true;</b>
+<i class="no-highlight">414</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">415</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">416</i>&nbsp;		return false;</b>
+<i class="no-highlight">417</i>&nbsp;	}
+<i class="no-highlight">418</i>&nbsp;
+<i class="no-highlight">419</i>&nbsp;	private List&lt;ArgType&gt; makePossibleTypesList(ArgType type, @Nullable SSAVar var) {
+<b class="pc"><i class="no-highlight">420</i>&nbsp;		if (type.isArray()) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;			List&lt;ArgType&gt; list = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;			for (ArgType arrElemType : makePossibleTypesList(type.getArrayElement(), null)) {</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;				list.add(ArgType.array(arrElemType));</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;			return list;</b>
+<i class="no-highlight">426</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">427</i>&nbsp;		if (var != null) {</b>
+<b class="fc"><i class="no-highlight">428</i>&nbsp;			for (ITypeBound b : var.getTypeInfo().getBounds()) {</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;				ArgType boundType = b.getType();</b>
+<b class="fc"><i class="no-highlight">430</i>&nbsp;				if (boundType.isObject() || boundType.isArray()) {</b>
+<i class="no-highlight">431</i>&nbsp;					// don&#39;t add primitive types
+<b class="fc"><i class="no-highlight">432</i>&nbsp;					return Collections.emptyList();</b>
+<i class="no-highlight">433</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">434</i>&nbsp;			}</b>
+<i class="no-highlight">435</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">436</i>&nbsp;		List&lt;ArgType&gt; list = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">437</i>&nbsp;		for (PrimitiveType possibleType : type.getPossibleTypes()) {</b>
+<b class="fc"><i class="no-highlight">438</i>&nbsp;			if (possibleType == PrimitiveType.VOID) {</b>
+<b class="fc"><i class="no-highlight">439</i>&nbsp;				continue;</b>
+<i class="no-highlight">440</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">441</i>&nbsp;			list.add(ArgType.convertFromPrimitiveType(possibleType));</b>
+<i class="no-highlight">442</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">443</i>&nbsp;		return list;</b>
+<i class="no-highlight">444</i>&nbsp;	}
+<i class="no-highlight">445</i>&nbsp;
+<i class="no-highlight">446</i>&nbsp;	private boolean tryDeduceTypes(MethodNode mth) {
+<b class="fc"><i class="no-highlight">447</i>&nbsp;		boolean fixed = false;</b>
+<b class="fc"><i class="no-highlight">448</i>&nbsp;		for (SSAVar ssaVar : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">449</i>&nbsp;			if (deduceType(mth, ssaVar)) {</b>
+<b class="fc"><i class="no-highlight">450</i>&nbsp;				fixed = true;</b>
+<i class="no-highlight">451</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">452</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;		return fixed;</b>
+<i class="no-highlight">454</i>&nbsp;	}
+<i class="no-highlight">455</i>&nbsp;
+<i class="no-highlight">456</i>&nbsp;	private boolean deduceType(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">457</i>&nbsp;		if (var.isTypeImmutable()) {</b>
+<b class="fc"><i class="no-highlight">458</i>&nbsp;			return false;</b>
+<i class="no-highlight">459</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">460</i>&nbsp;		ArgType type = var.getTypeInfo().getType();</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;		if (type.isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">462</i>&nbsp;			return false;</b>
+<i class="no-highlight">463</i>&nbsp;		}
+<i class="no-highlight">464</i>&nbsp;		// try best type from bounds again
+<b class="fc"><i class="no-highlight">465</i>&nbsp;		if (setBestType(mth, var)) {</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;			return true;</b>
+<i class="no-highlight">467</i>&nbsp;		}
+<i class="no-highlight">468</i>&nbsp;		// try all possible types (useful for primitives)
+<b class="fc"><i class="no-highlight">469</i>&nbsp;		if (tryPossibleTypes(mth, var, type)) {</b>
+<b class="fc"><i class="no-highlight">470</i>&nbsp;			return true;</b>
+<i class="no-highlight">471</i>&nbsp;		}
+<i class="no-highlight">472</i>&nbsp;		// for objects try super types
+<b class="fc"><i class="no-highlight">473</i>&nbsp;		if (tryWiderObjects(mth, var)) {</b>
+<b class="fc"><i class="no-highlight">474</i>&nbsp;			return true;</b>
+<i class="no-highlight">475</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">476</i>&nbsp;		return false;</b>
+<i class="no-highlight">477</i>&nbsp;	}
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;	private boolean tryRemoveGenerics(MethodNode mth) {
+<b class="fc"><i class="no-highlight">480</i>&nbsp;		boolean resolved = true;</b>
+<b class="fc"><i class="no-highlight">481</i>&nbsp;		for (SSAVar var : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">482</i>&nbsp;			ArgType type = var.getTypeInfo().getType();</b>
+<b class="fc"><i class="no-highlight">483</i>&nbsp;			if (!type.isTypeKnown()</b>
+<b class="pc"><i class="no-highlight">484</i>&nbsp;					&amp;&amp; !var.isTypeImmutable()</b>
+<b class="pc"><i class="no-highlight">485</i>&nbsp;					&amp;&amp; !tryRawType(mth, var)) {</b>
+<b class="fc"><i class="no-highlight">486</i>&nbsp;				resolved = false;</b>
+<i class="no-highlight">487</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">488</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">489</i>&nbsp;		return resolved;</b>
+<i class="no-highlight">490</i>&nbsp;	}
+<i class="no-highlight">491</i>&nbsp;
+<i class="no-highlight">492</i>&nbsp;	private boolean tryRawType(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">493</i>&nbsp;		Set&lt;ArgType&gt; objTypes = new LinkedHashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">494</i>&nbsp;		for (ITypeBound bound : var.getTypeInfo().getBounds()) {</b>
+<b class="fc"><i class="no-highlight">495</i>&nbsp;			ArgType boundType = bound.getType();</b>
+<b class="pc"><i class="no-highlight">496</i>&nbsp;			if (boundType.isTypeKnown() &amp;&amp; boundType.isObject()) {</b>
+<b class="fc"><i class="no-highlight">497</i>&nbsp;				objTypes.add(boundType);</b>
+<i class="no-highlight">498</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">499</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">500</i>&nbsp;		if (objTypes.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;			return false;</b>
+<i class="no-highlight">502</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">503</i>&nbsp;		for (ArgType objType : objTypes) {</b>
+<b class="pc"><i class="no-highlight">504</i>&nbsp;			if (checkRawType(mth, var, objType)) {</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;				mth.addDebugComment(&quot;Type inference failed for &quot; + var.toShortString() + &quot;.&quot;</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;						+ &quot; Raw type applied. Possible types: &quot; + Utils.listToString(objTypes));</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;				return true;</b>
+<i class="no-highlight">508</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">509</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">510</i>&nbsp;		return false;</b>
+<i class="no-highlight">511</i>&nbsp;	}
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;	private boolean checkRawType(MethodNode mth, SSAVar var, ArgType objType) {
+<b class="pc"><i class="no-highlight">514</i>&nbsp;		if (objType.isObject() &amp;&amp; objType.containsGeneric()) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;			ArgType rawType = objType.isGenericType() ? ArgType.OBJECT : ArgType.object(objType.getObject());</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;			TypeUpdateResult result = typeUpdate.applyWithWiderAllow(mth, var, rawType);</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;			return result == TypeUpdateResult.CHANGED;</b>
+<i class="no-highlight">518</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">519</i>&nbsp;		return false;</b>
+<i class="no-highlight">520</i>&nbsp;	}
+<i class="no-highlight">521</i>&nbsp;
+<i class="no-highlight">522</i>&nbsp;	@SuppressWarnings(&quot;ForLoopReplaceableByWhile&quot;)
+<i class="no-highlight">523</i>&nbsp;	private boolean tryInsertCasts(MethodNode mth) {
+<b class="fc"><i class="no-highlight">524</i>&nbsp;		int added = 0;</b>
+<b class="fc"><i class="no-highlight">525</i>&nbsp;		List&lt;SSAVar&gt; mthSVars = mth.getSVars();</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;		int varsCount = mthSVars.size();</b>
+<b class="fc"><i class="no-highlight">527</i>&nbsp;		for (int i = 0; i &lt; varsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">528</i>&nbsp;			SSAVar var = mthSVars.get(i);</b>
+<b class="fc"><i class="no-highlight">529</i>&nbsp;			ArgType type = var.getTypeInfo().getType();</b>
+<b class="fc"><i class="no-highlight">530</i>&nbsp;			if (!type.isTypeKnown() &amp;&amp; !var.isTypeImmutable()) {</b>
+<b class="fc"><i class="no-highlight">531</i>&nbsp;				added += tryInsertVarCast(mth, var);</b>
+<i class="no-highlight">532</i>&nbsp;			}
+<i class="no-highlight">533</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">534</i>&nbsp;		if (added != 0) {</b>
+<i class="no-highlight">535</i>&nbsp;			if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">536</i>&nbsp;				mth.addDebugComment(&quot;Additional &quot; + added + &quot; cast instructions added to help type inference&quot;);
+<i class="no-highlight">537</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">538</i>&nbsp;			InitCodeVariables.rerun(mth);</b>
+<b class="fc"><i class="no-highlight">539</i>&nbsp;			initTypeBounds(mth);</b>
+<b class="fc"><i class="no-highlight">540</i>&nbsp;			return runTypePropagation(mth);</b>
+<i class="no-highlight">541</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">542</i>&nbsp;		return false;</b>
+<i class="no-highlight">543</i>&nbsp;	}
+<i class="no-highlight">544</i>&nbsp;
+<i class="no-highlight">545</i>&nbsp;	private int tryInsertVarCast(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">546</i>&nbsp;		for (ITypeBound bound : var.getTypeInfo().getBounds()) {</b>
+<b class="fc"><i class="no-highlight">547</i>&nbsp;			ArgType boundType = bound.getType();</b>
+<b class="fc"><i class="no-highlight">548</i>&nbsp;			if (boundType.isTypeKnown()</b>
+<b class="pc"><i class="no-highlight">549</i>&nbsp;					&amp;&amp; !boundType.equals(var.getTypeInfo().getType())</b>
+<b class="fc"><i class="no-highlight">550</i>&nbsp;					&amp;&amp; boundType.containsTypeVariable()</b>
+<b class="pc"><i class="no-highlight">551</i>&nbsp;					&amp;&amp; !root.getTypeUtils().containsUnknownTypeVar(mth, boundType)) {</b>
+<b class="fc"><i class="no-highlight">552</i>&nbsp;				if (insertAssignCast(mth, var, boundType)) {</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;					return 1;</b>
+<i class="no-highlight">554</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">555</i>&nbsp;				return insertUseCasts(mth, var);</b>
+<i class="no-highlight">556</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">557</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">558</i>&nbsp;		return 0;</b>
+<i class="no-highlight">559</i>&nbsp;	}
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;	private int insertUseCasts(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">562</i>&nbsp;		List&lt;RegisterArg&gt; useList = var.getUseList();</b>
+<b class="pc"><i class="no-highlight">563</i>&nbsp;		if (useList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;			return 0;</b>
+<i class="no-highlight">565</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">566</i>&nbsp;		int useCasts = 0;</b>
+<b class="fc"><i class="no-highlight">567</i>&nbsp;		for (RegisterArg useReg : new ArrayList&lt;&gt;(useList)) {</b>
+<b class="fc"><i class="no-highlight">568</i>&nbsp;			if (insertSoftUseCast(mth, useReg)) {</b>
+<b class="fc"><i class="no-highlight">569</i>&nbsp;				useCasts++;</b>
+<i class="no-highlight">570</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">571</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">572</i>&nbsp;		return useCasts;</b>
+<i class="no-highlight">573</i>&nbsp;	}
+<i class="no-highlight">574</i>&nbsp;
+<i class="no-highlight">575</i>&nbsp;	private boolean insertAssignCast(MethodNode mth, SSAVar var, ArgType castType) {
+<b class="fc"><i class="no-highlight">576</i>&nbsp;		RegisterArg assignArg = var.getAssign();</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;		InsnNode assignInsn = assignArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">578</i>&nbsp;		if (assignInsn == null || assignInsn.getType() == InsnType.PHI) {</b>
+<b class="fc"><i class="no-highlight">579</i>&nbsp;			return false;</b>
+<i class="no-highlight">580</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">581</i>&nbsp;		BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);</b>
+<b class="pc"><i class="no-highlight">582</i>&nbsp;		if (assignBlock == null) {</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;			return false;</b>
+<i class="no-highlight">584</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">585</i>&nbsp;		RegisterArg newAssignArg = assignArg.duplicateWithNewSSAVar(mth);</b>
+<b class="fc"><i class="no-highlight">586</i>&nbsp;		assignInsn.setResult(newAssignArg);</b>
+<b class="fc"><i class="no-highlight">587</i>&nbsp;		IndexInsnNode castInsn = makeSoftCastInsn(assignArg, newAssignArg, castType);</b>
+<b class="fc"><i class="no-highlight">588</i>&nbsp;		return BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn);</b>
+<i class="no-highlight">589</i>&nbsp;	}
+<i class="no-highlight">590</i>&nbsp;
+<i class="no-highlight">591</i>&nbsp;	private boolean insertSoftUseCast(MethodNode mth, RegisterArg useArg) {
+<b class="fc"><i class="no-highlight">592</i>&nbsp;		InsnNode useInsn = useArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">593</i>&nbsp;		if (useInsn == null || useInsn.getType() == InsnType.PHI) {</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;			return false;</b>
+<i class="no-highlight">595</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">596</i>&nbsp;		if (useInsn.getType() == InsnType.IF &amp;&amp; useInsn.getArg(1).isZeroLiteral()) {</b>
+<i class="no-highlight">597</i>&nbsp;			// cast not needed if compare with null
+<b class="fc"><i class="no-highlight">598</i>&nbsp;			return false;</b>
+<i class="no-highlight">599</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">600</i>&nbsp;		BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);</b>
+<b class="pc"><i class="no-highlight">601</i>&nbsp;		if (useBlock == null) {</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;			return false;</b>
+<i class="no-highlight">603</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">604</i>&nbsp;		RegisterArg newUseArg = useArg.duplicateWithNewSSAVar(mth);</b>
+<b class="fc"><i class="no-highlight">605</i>&nbsp;		useInsn.replaceArg(useArg, newUseArg);</b>
+<i class="no-highlight">606</i>&nbsp;
+<b class="fc"><i class="no-highlight">607</i>&nbsp;		IndexInsnNode castInsn = makeSoftCastInsn(newUseArg, useArg, useArg.getInitType());</b>
+<b class="fc"><i class="no-highlight">608</i>&nbsp;		return BlockUtils.insertBeforeInsn(useBlock, useInsn, castInsn);</b>
+<i class="no-highlight">609</i>&nbsp;	}
+<i class="no-highlight">610</i>&nbsp;
+<i class="no-highlight">611</i>&nbsp;	@NotNull
+<i class="no-highlight">612</i>&nbsp;	private IndexInsnNode makeSoftCastInsn(RegisterArg result, RegisterArg arg, ArgType castType) {
+<b class="fc"><i class="no-highlight">613</i>&nbsp;		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);</b>
+<b class="fc"><i class="no-highlight">614</i>&nbsp;		castInsn.setResult(result.duplicate());</b>
+<b class="fc"><i class="no-highlight">615</i>&nbsp;		castInsn.addArg(arg.duplicate());</b>
+<b class="fc"><i class="no-highlight">616</i>&nbsp;		castInsn.add(AFlag.SOFT_CAST);</b>
+<b class="fc"><i class="no-highlight">617</i>&nbsp;		castInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">618</i>&nbsp;		return castInsn;</b>
+<i class="no-highlight">619</i>&nbsp;	}
+<i class="no-highlight">620</i>&nbsp;
+<i class="no-highlight">621</i>&nbsp;	private boolean trySplitConstInsns(MethodNode mth) {
+<b class="fc"><i class="no-highlight">622</i>&nbsp;		boolean constSplitted = false;</b>
+<b class="fc"><i class="no-highlight">623</i>&nbsp;		for (SSAVar var : new ArrayList&lt;&gt;(mth.getSVars())) {</b>
+<b class="fc"><i class="no-highlight">624</i>&nbsp;			if (checkAndSplitConstInsn(mth, var)) {</b>
+<b class="fc"><i class="no-highlight">625</i>&nbsp;				constSplitted = true;</b>
+<i class="no-highlight">626</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">627</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">628</i>&nbsp;		if (!constSplitted) {</b>
+<b class="fc"><i class="no-highlight">629</i>&nbsp;			return false;</b>
+<i class="no-highlight">630</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">631</i>&nbsp;		InitCodeVariables.rerun(mth);</b>
+<b class="fc"><i class="no-highlight">632</i>&nbsp;		initTypeBounds(mth);</b>
+<b class="fc"><i class="no-highlight">633</i>&nbsp;		return runTypePropagation(mth);</b>
+<i class="no-highlight">634</i>&nbsp;	}
+<i class="no-highlight">635</i>&nbsp;
+<i class="no-highlight">636</i>&nbsp;	private boolean checkAndSplitConstInsn(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">637</i>&nbsp;		ArgType type = var.getTypeInfo().getType();</b>
+<b class="fc"><i class="no-highlight">638</i>&nbsp;		if (type.isTypeKnown() || var.isTypeImmutable()) {</b>
+<b class="fc"><i class="no-highlight">639</i>&nbsp;			return false;</b>
+<i class="no-highlight">640</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">641</i>&nbsp;		if (var.getUsedInPhi().size() &lt; 2) {</b>
+<b class="fc"><i class="no-highlight">642</i>&nbsp;			return false;</b>
+<i class="no-highlight">643</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">644</i>&nbsp;		InsnNode assignInsn = var.getAssign().getAssignInsn();</b>
+<b class="fc"><i class="no-highlight">645</i>&nbsp;		InsnNode constInsn = InsnUtils.checkInsnType(assignInsn, InsnType.CONST);</b>
+<b class="pc"><i class="no-highlight">646</i>&nbsp;		if (constInsn == null) {</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;			return false;</b>
+<i class="no-highlight">648</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">649</i>&nbsp;		BlockNode blockNode = BlockUtils.getBlockByInsn(mth, constInsn);</b>
+<b class="pc"><i class="no-highlight">650</i>&nbsp;		if (blockNode == null) {</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;			return false;</b>
+<i class="no-highlight">652</i>&nbsp;		}
+<i class="no-highlight">653</i>&nbsp;		// for every PHI make separate CONST insn
+<b class="fc"><i class="no-highlight">654</i>&nbsp;		boolean first = true;</b>
+<b class="fc"><i class="no-highlight">655</i>&nbsp;		for (PhiInsn phiInsn : var.getUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">656</i>&nbsp;			if (first) {</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;				first = false;</b>
+<b class="fc"><i class="no-highlight">658</i>&nbsp;				continue;</b>
+<i class="no-highlight">659</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">660</i>&nbsp;			InsnNode copyInsn = constInsn.copyWithNewSsaVar(mth);</b>
+<b class="fc"><i class="no-highlight">661</i>&nbsp;			copyInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">662</i>&nbsp;			BlockUtils.insertAfterInsn(blockNode, constInsn, copyInsn);</b>
+<i class="no-highlight">663</i>&nbsp;
+<b class="fc"><i class="no-highlight">664</i>&nbsp;			RegisterArg phiArg = phiInsn.getArgBySsaVar(var);</b>
+<b class="fc"><i class="no-highlight">665</i>&nbsp;			phiInsn.replaceArg(phiArg, copyInsn.getResult().duplicate());</b>
+<b class="fc"><i class="no-highlight">666</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">667</i>&nbsp;		return true;</b>
+<i class="no-highlight">668</i>&nbsp;	}
+<i class="no-highlight">669</i>&nbsp;
+<i class="no-highlight">670</i>&nbsp;	private boolean tryInsertAdditionalMove(MethodNode mth) {
+<b class="fc"><i class="no-highlight">671</i>&nbsp;		int insnsAdded = 0;</b>
+<b class="fc"><i class="no-highlight">672</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">673</i>&nbsp;			PhiListAttr phiListAttr = block.get(AType.PHI_LIST);</b>
+<b class="fc"><i class="no-highlight">674</i>&nbsp;			if (phiListAttr != null) {</b>
+<b class="fc"><i class="no-highlight">675</i>&nbsp;				for (PhiInsn phiInsn : phiListAttr.getList()) {</b>
+<b class="fc"><i class="no-highlight">676</i>&nbsp;					insnsAdded += tryInsertAdditionalInsn(mth, phiInsn);</b>
+<b class="fc"><i class="no-highlight">677</i>&nbsp;				}</b>
+<i class="no-highlight">678</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">679</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">680</i>&nbsp;		if (insnsAdded == 0) {</b>
+<b class="fc"><i class="no-highlight">681</i>&nbsp;			return false;</b>
+<i class="no-highlight">682</i>&nbsp;		}
+<i class="no-highlight">683</i>&nbsp;		if (Consts.DEBUG_TYPE_INFERENCE) {
+<i class="no-highlight">684</i>&nbsp;			mth.addDebugComment(&quot;Additional &quot; + insnsAdded + &quot; move instructions added to help type inference&quot;);
+<i class="no-highlight">685</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">686</i>&nbsp;		InitCodeVariables.rerun(mth);</b>
+<b class="fc"><i class="no-highlight">687</i>&nbsp;		initTypeBounds(mth);</b>
+<b class="pc"><i class="no-highlight">688</i>&nbsp;		if (runTypePropagation(mth) &amp;&amp; checkTypes(mth)) {</b>
+<b class="nc"><i class="no-highlight">689</i>&nbsp;			return true;</b>
+<i class="no-highlight">690</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">691</i>&nbsp;		return tryDeduceTypes(mth);</b>
+<i class="no-highlight">692</i>&nbsp;	}
+<i class="no-highlight">693</i>&nbsp;
+<i class="no-highlight">694</i>&nbsp;	/**
+<i class="no-highlight">695</i>&nbsp;	 * Add MOVE instruction before PHI in bound blocks to make &#39;soft&#39; type link.
+<i class="no-highlight">696</i>&nbsp;	 * This allows to use different types in blocks merged by PHI.
+<i class="no-highlight">697</i>&nbsp;	 */
+<i class="no-highlight">698</i>&nbsp;	private int tryInsertAdditionalInsn(MethodNode mth, PhiInsn phiInsn) {
+<b class="fc"><i class="no-highlight">699</i>&nbsp;		ArgType phiType = getCommonTypeForPhiArgs(phiInsn);</b>
+<b class="pc"><i class="no-highlight">700</i>&nbsp;		if (phiType != null &amp;&amp; phiType.isTypeKnown()) {</b>
+<i class="no-highlight">701</i>&nbsp;			// all args have same known type =&gt; nothing to do here
+<b class="fc"><i class="no-highlight">702</i>&nbsp;			return 0;</b>
+<i class="no-highlight">703</i>&nbsp;		}
+<i class="no-highlight">704</i>&nbsp;		// check if instructions can be inserted
+<b class="pc"><i class="no-highlight">705</i>&nbsp;		if (insertMovesForPhi(mth, phiInsn, false) == 0) {</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;			return 0;</b>
+<i class="no-highlight">707</i>&nbsp;		}
+<i class="no-highlight">708</i>&nbsp;		// check passed =&gt; apply
+<b class="fc"><i class="no-highlight">709</i>&nbsp;		return insertMovesForPhi(mth, phiInsn, true);</b>
+<i class="no-highlight">710</i>&nbsp;	}
+<i class="no-highlight">711</i>&nbsp;
+<i class="no-highlight">712</i>&nbsp;	@Nullable
+<i class="no-highlight">713</i>&nbsp;	private ArgType getCommonTypeForPhiArgs(PhiInsn phiInsn) {
+<b class="fc"><i class="no-highlight">714</i>&nbsp;		ArgType phiArgType = null;</b>
+<b class="fc"><i class="no-highlight">715</i>&nbsp;		for (InsnArg arg : phiInsn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">716</i>&nbsp;			ArgType type = arg.getType();</b>
+<b class="fc"><i class="no-highlight">717</i>&nbsp;			if (phiArgType == null) {</b>
+<b class="fc"><i class="no-highlight">718</i>&nbsp;				phiArgType = type;</b>
+<b class="pc"><i class="no-highlight">719</i>&nbsp;			} else if (!phiArgType.equals(type)) {</b>
+<b class="nc"><i class="no-highlight">720</i>&nbsp;				return null;</b>
+<i class="no-highlight">721</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">722</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">723</i>&nbsp;		return phiArgType;</b>
+<i class="no-highlight">724</i>&nbsp;	}
+<i class="no-highlight">725</i>&nbsp;
+<i class="no-highlight">726</i>&nbsp;	private int insertMovesForPhi(MethodNode mth, PhiInsn phiInsn, boolean apply) {
+<b class="fc"><i class="no-highlight">727</i>&nbsp;		int argsCount = phiInsn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">728</i>&nbsp;		int count = 0;</b>
+<b class="fc"><i class="no-highlight">729</i>&nbsp;		for (int argIndex = 0; argIndex &lt; argsCount; argIndex++) {</b>
+<b class="fc"><i class="no-highlight">730</i>&nbsp;			RegisterArg reg = phiInsn.getArg(argIndex);</b>
+<b class="fc"><i class="no-highlight">731</i>&nbsp;			BlockNode startBlock = phiInsn.getBlockByArgIndex(argIndex);</b>
+<b class="fc"><i class="no-highlight">732</i>&nbsp;			BlockNode blockNode = checkBlockForInsnInsert(startBlock);</b>
+<b class="pc"><i class="no-highlight">733</i>&nbsp;			if (blockNode == null) {</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;				mth.addDebugComment(&quot;Failed to insert an additional move for type inference into block &quot; + startBlock);</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;				return 0;</b>
+<i class="no-highlight">736</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">737</i>&nbsp;			boolean add = true;</b>
+<b class="fc"><i class="no-highlight">738</i>&nbsp;			SSAVar var = reg.getSVar();</b>
+<b class="fc"><i class="no-highlight">739</i>&nbsp;			InsnNode assignInsn = var.getAssign().getAssignInsn();</b>
+<b class="fc"><i class="no-highlight">740</i>&nbsp;			if (assignInsn != null) {</b>
+<b class="fc"><i class="no-highlight">741</i>&nbsp;				InsnType assignType = assignInsn.getType();</b>
+<b class="pc"><i class="no-highlight">742</i>&nbsp;				if (assignType == InsnType.CONST</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;						|| (assignType == InsnType.MOVE &amp;&amp; var.getUseCount() == 1)) {</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;					add = false;</b>
+<i class="no-highlight">745</i>&nbsp;				}
+<i class="no-highlight">746</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">747</i>&nbsp;			if (add) {</b>
+<b class="fc"><i class="no-highlight">748</i>&nbsp;				count++;</b>
+<b class="fc"><i class="no-highlight">749</i>&nbsp;				if (apply) {</b>
+<b class="fc"><i class="no-highlight">750</i>&nbsp;					insertMove(mth, blockNode, phiInsn, reg);</b>
+<i class="no-highlight">751</i>&nbsp;				}
+<i class="no-highlight">752</i>&nbsp;			}
+<i class="no-highlight">753</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">754</i>&nbsp;		return count;</b>
+<i class="no-highlight">755</i>&nbsp;	}
+<i class="no-highlight">756</i>&nbsp;
+<i class="no-highlight">757</i>&nbsp;	private void insertMove(MethodNode mth, BlockNode blockNode, PhiInsn phiInsn, RegisterArg reg) {
+<b class="fc"><i class="no-highlight">758</i>&nbsp;		SSAVar var = reg.getSVar();</b>
+<b class="fc"><i class="no-highlight">759</i>&nbsp;		int regNum = reg.getRegNum();</b>
+<b class="fc"><i class="no-highlight">760</i>&nbsp;		RegisterArg resultArg = reg.duplicate(regNum, null);</b>
+<b class="fc"><i class="no-highlight">761</i>&nbsp;		SSAVar newSsaVar = mth.makeNewSVar(resultArg);</b>
+<b class="fc"><i class="no-highlight">762</i>&nbsp;		RegisterArg arg = reg.duplicate(regNum, var);</b>
+<i class="no-highlight">763</i>&nbsp;
+<b class="fc"><i class="no-highlight">764</i>&nbsp;		InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);</b>
+<b class="fc"><i class="no-highlight">765</i>&nbsp;		moveInsn.setResult(resultArg);</b>
+<b class="fc"><i class="no-highlight">766</i>&nbsp;		moveInsn.addArg(arg);</b>
+<b class="fc"><i class="no-highlight">767</i>&nbsp;		moveInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">768</i>&nbsp;		blockNode.getInstructions().add(moveInsn);</b>
+<i class="no-highlight">769</i>&nbsp;
+<b class="fc"><i class="no-highlight">770</i>&nbsp;		phiInsn.replaceArg(reg, reg.duplicate(regNum, newSsaVar));</b>
+<i class="no-highlight">771</i>&nbsp;	}
+<i class="no-highlight">772</i>&nbsp;
+<i class="no-highlight">773</i>&nbsp;	@Nullable
+<i class="no-highlight">774</i>&nbsp;	private BlockNode checkBlockForInsnInsert(BlockNode blockNode) {
+<b class="pc"><i class="no-highlight">775</i>&nbsp;		if (blockNode.isSynthetic()) {</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;			return null;</b>
+<i class="no-highlight">777</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">778</i>&nbsp;		InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);</b>
+<b class="fc"><i class="no-highlight">779</i>&nbsp;		if (lastInsn != null &amp;&amp; BlockSplitter.isSeparate(lastInsn.getType())) {</b>
+<i class="no-highlight">780</i>&nbsp;			// can&#39;t insert move in a block with &#39;separate&#39; instruction =&gt; try previous block by simple path
+<b class="fc"><i class="no-highlight">781</i>&nbsp;			List&lt;BlockNode&gt; preds = blockNode.getPredecessors();</b>
+<b class="pc"><i class="no-highlight">782</i>&nbsp;			if (preds.size() == 1) {</b>
+<b class="fc"><i class="no-highlight">783</i>&nbsp;				return checkBlockForInsnInsert(preds.get(0));</b>
+<i class="no-highlight">784</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">785</i>&nbsp;			return null;</b>
+<i class="no-highlight">786</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">787</i>&nbsp;		return blockNode;</b>
+<i class="no-highlight">788</i>&nbsp;	}
+<i class="no-highlight">789</i>&nbsp;
+<i class="no-highlight">790</i>&nbsp;	private boolean tryWiderObjects(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">791</i>&nbsp;		Set&lt;ArgType&gt; objTypes = new LinkedHashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">792</i>&nbsp;		for (ITypeBound bound : var.getTypeInfo().getBounds()) {</b>
+<b class="fc"><i class="no-highlight">793</i>&nbsp;			ArgType boundType = bound.getType();</b>
+<b class="fc"><i class="no-highlight">794</i>&nbsp;			if (boundType.isTypeKnown() &amp;&amp; boundType.isObject()) {</b>
+<b class="fc"><i class="no-highlight">795</i>&nbsp;				objTypes.add(boundType);</b>
+<i class="no-highlight">796</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">797</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">798</i>&nbsp;		if (objTypes.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">799</i>&nbsp;			return false;</b>
+<i class="no-highlight">800</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">801</i>&nbsp;		ClspGraph clsp = mth.root().getClsp();</b>
+<b class="fc"><i class="no-highlight">802</i>&nbsp;		for (ArgType objType : objTypes) {</b>
+<b class="fc"><i class="no-highlight">803</i>&nbsp;			for (String ancestor : clsp.getSuperTypes(objType.getObject())) {</b>
+<b class="fc"><i class="no-highlight">804</i>&nbsp;				ArgType ancestorType = ArgType.object(ancestor);</b>
+<b class="fc"><i class="no-highlight">805</i>&nbsp;				TypeUpdateResult result = typeUpdate.applyWithWiderAllow(mth, var, ancestorType);</b>
+<b class="fc"><i class="no-highlight">806</i>&nbsp;				if (result == TypeUpdateResult.CHANGED) {</b>
+<b class="fc"><i class="no-highlight">807</i>&nbsp;					return true;</b>
+<i class="no-highlight">808</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">809</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">810</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">811</i>&nbsp;		return false;</b>
+<i class="no-highlight">812</i>&nbsp;	}
+<i class="no-highlight">813</i>&nbsp;
+<i class="no-highlight">814</i>&nbsp;	@SuppressWarnings(&quot;ForLoopReplaceableByForEach&quot;)
+<i class="no-highlight">815</i>&nbsp;	private boolean tryToFixIncompatiblePrimitives(MethodNode mth) {
+<b class="fc"><i class="no-highlight">816</i>&nbsp;		boolean fixed = false;</b>
+<b class="fc"><i class="no-highlight">817</i>&nbsp;		List&lt;SSAVar&gt; ssaVars = mth.getSVars();</b>
+<b class="fc"><i class="no-highlight">818</i>&nbsp;		int ssaVarsCount = ssaVars.size();</b>
+<i class="no-highlight">819</i>&nbsp;		// new vars will be added at list end if fix is applied (can&#39;t use for-each loop)
+<b class="fc"><i class="no-highlight">820</i>&nbsp;		for (int i = 0; i &lt; ssaVarsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">821</i>&nbsp;			if (processIncompatiblePrimitives(mth, ssaVars.get(i))) {</b>
+<b class="fc"><i class="no-highlight">822</i>&nbsp;				fixed = true;</b>
+<i class="no-highlight">823</i>&nbsp;			}
+<i class="no-highlight">824</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">825</i>&nbsp;		if (!fixed) {</b>
+<b class="fc"><i class="no-highlight">826</i>&nbsp;			return false;</b>
+<i class="no-highlight">827</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">828</i>&nbsp;		InitCodeVariables.rerun(mth);</b>
+<b class="fc"><i class="no-highlight">829</i>&nbsp;		initTypeBounds(mth);</b>
+<b class="fc"><i class="no-highlight">830</i>&nbsp;		return runTypePropagation(mth);</b>
+<i class="no-highlight">831</i>&nbsp;	}
+<i class="no-highlight">832</i>&nbsp;
+<i class="no-highlight">833</i>&nbsp;	private boolean processIncompatiblePrimitives(MethodNode mth, SSAVar var) {
+<b class="fc"><i class="no-highlight">834</i>&nbsp;		TypeInfo typeInfo = var.getTypeInfo();</b>
+<b class="fc"><i class="no-highlight">835</i>&nbsp;		if (typeInfo.getType().isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">836</i>&nbsp;			return false;</b>
+<i class="no-highlight">837</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">838</i>&nbsp;		for (ITypeBound bound : typeInfo.getBounds()) {</b>
+<b class="fc"><i class="no-highlight">839</i>&nbsp;			ArgType boundType = bound.getType();</b>
+<b class="pc"><i class="no-highlight">840</i>&nbsp;			switch (bound.getBound()) {</b>
+<i class="no-highlight">841</i>&nbsp;				case ASSIGN:
+<b class="fc"><i class="no-highlight">842</i>&nbsp;					if (!boundType.contains(PrimitiveType.BOOLEAN)) {</b>
+<b class="fc"><i class="no-highlight">843</i>&nbsp;						return false;</b>
+<i class="no-highlight">844</i>&nbsp;					}
+<i class="no-highlight">845</i>&nbsp;					break;
+<i class="no-highlight">846</i>&nbsp;				case USE:
+<b class="fc"><i class="no-highlight">847</i>&nbsp;					if (!boundType.canBeAnyNumber()) {</b>
+<b class="fc"><i class="no-highlight">848</i>&nbsp;						return false;</b>
+<i class="no-highlight">849</i>&nbsp;					}
+<i class="no-highlight">850</i>&nbsp;					break;
+<i class="no-highlight">851</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">852</i>&nbsp;		}</b>
+<i class="no-highlight">853</i>&nbsp;
+<b class="fc"><i class="no-highlight">854</i>&nbsp;		boolean fixed = false;</b>
+<b class="fc"><i class="no-highlight">855</i>&nbsp;		for (ITypeBound bound : typeInfo.getBounds()) {</b>
+<b class="fc"><i class="no-highlight">856</i>&nbsp;			if (bound.getBound() == BoundEnum.USE</b>
+<b class="fc"><i class="no-highlight">857</i>&nbsp;					&amp;&amp; fixBooleanUsage(mth, bound)) {</b>
+<b class="fc"><i class="no-highlight">858</i>&nbsp;				fixed = true;</b>
+<i class="no-highlight">859</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">860</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">861</i>&nbsp;		return fixed;</b>
+<i class="no-highlight">862</i>&nbsp;	}
+<i class="no-highlight">863</i>&nbsp;
+<i class="no-highlight">864</i>&nbsp;	private boolean fixBooleanUsage(MethodNode mth, ITypeBound bound) {
+<b class="fc"><i class="no-highlight">865</i>&nbsp;		ArgType boundType = bound.getType();</b>
+<b class="fc"><i class="no-highlight">866</i>&nbsp;		if (boundType == ArgType.BOOLEAN</b>
+<b class="pc"><i class="no-highlight">867</i>&nbsp;				|| (boundType.isTypeKnown() &amp;&amp; !boundType.isPrimitive())) {</b>
+<b class="fc"><i class="no-highlight">868</i>&nbsp;			return false;</b>
+<i class="no-highlight">869</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">870</i>&nbsp;		RegisterArg boundArg = bound.getArg();</b>
+<b class="pc"><i class="no-highlight">871</i>&nbsp;		if (boundArg == null) {</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;			return false;</b>
+<i class="no-highlight">873</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">874</i>&nbsp;		InsnNode insn = boundArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">875</i>&nbsp;		if (insn == null || insn.getType() == InsnType.IF) {</b>
+<b class="fc"><i class="no-highlight">876</i>&nbsp;			return false;</b>
+<i class="no-highlight">877</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">878</i>&nbsp;		BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);</b>
+<b class="pc"><i class="no-highlight">879</i>&nbsp;		if (blockNode == null) {</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;			return false;</b>
+<i class="no-highlight">881</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">882</i>&nbsp;		List&lt;InsnNode&gt; insnList = blockNode.getInstructions();</b>
+<b class="fc"><i class="no-highlight">883</i>&nbsp;		int insnIndex = InsnList.getIndex(insnList, insn);</b>
+<b class="pc"><i class="no-highlight">884</i>&nbsp;		if (insnIndex == -1) {</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;			return false;</b>
+<i class="no-highlight">886</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">887</i>&nbsp;		InsnType insnType = insn.getType();</b>
+<b class="fc"><i class="no-highlight">888</i>&nbsp;		if (insnType == InsnType.CAST) {</b>
+<i class="no-highlight">889</i>&nbsp;			// replace cast
+<b class="fc"><i class="no-highlight">890</i>&nbsp;			ArgType type = (ArgType) ((IndexInsnNode) insn).getIndex();</b>
+<b class="fc"><i class="no-highlight">891</i>&nbsp;			TernaryInsn convertInsn = prepareBooleanConvertInsn(insn.getResult(), boundArg, type);</b>
+<b class="fc"><i class="no-highlight">892</i>&nbsp;			BlockUtils.replaceInsn(mth, blockNode, insnIndex, convertInsn);</b>
+<b class="fc"><i class="no-highlight">893</i>&nbsp;			return true;</b>
+<i class="no-highlight">894</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">895</i>&nbsp;		if (insnType == InsnType.ARITH) {</b>
+<b class="fc"><i class="no-highlight">896</i>&nbsp;			ArithNode arithInsn = (ArithNode) insn;</b>
+<b class="pc"><i class="no-highlight">897</i>&nbsp;			if (arithInsn.getOp() == ArithOp.XOR &amp;&amp; arithInsn.getArgsCount() == 2) {</b>
+<i class="no-highlight">898</i>&nbsp;				// replace (boolean ^ 1) with (!boolean)
+<b class="fc"><i class="no-highlight">899</i>&nbsp;				InsnArg secondArg = arithInsn.getArg(1);</b>
+<b class="pc"><i class="no-highlight">900</i>&nbsp;				if (secondArg.isLiteral() &amp;&amp; ((LiteralArg) secondArg).getLiteral() == 1) {</b>
+<b class="fc"><i class="no-highlight">901</i>&nbsp;					InsnNode convertInsn = notBooleanToInt(arithInsn, boundArg);</b>
+<b class="fc"><i class="no-highlight">902</i>&nbsp;					BlockUtils.replaceInsn(mth, blockNode, insnIndex, convertInsn);</b>
+<b class="fc"><i class="no-highlight">903</i>&nbsp;					return true;</b>
+<i class="no-highlight">904</i>&nbsp;				}
+<i class="no-highlight">905</i>&nbsp;			}
+<i class="no-highlight">906</i>&nbsp;		}
+<i class="no-highlight">907</i>&nbsp;
+<i class="no-highlight">908</i>&nbsp;		// insert before insn
+<b class="fc"><i class="no-highlight">909</i>&nbsp;		RegisterArg resultArg = boundArg.duplicateWithNewSSAVar(mth);</b>
+<b class="fc"><i class="no-highlight">910</i>&nbsp;		TernaryInsn convertInsn = prepareBooleanConvertInsn(resultArg, boundArg, boundType);</b>
+<b class="fc"><i class="no-highlight">911</i>&nbsp;		insnList.add(insnIndex, convertInsn);</b>
+<b class="fc"><i class="no-highlight">912</i>&nbsp;		insn.replaceArg(boundArg, convertInsn.getResult().duplicate());</b>
+<b class="fc"><i class="no-highlight">913</i>&nbsp;		return true;</b>
+<i class="no-highlight">914</i>&nbsp;	}
+<i class="no-highlight">915</i>&nbsp;
+<i class="no-highlight">916</i>&nbsp;	private InsnNode notBooleanToInt(ArithNode insn, RegisterArg boundArg) {
+<b class="fc"><i class="no-highlight">917</i>&nbsp;		InsnNode notInsn = new InsnNode(InsnType.NOT, 1);</b>
+<b class="fc"><i class="no-highlight">918</i>&nbsp;		notInsn.addArg(boundArg.duplicate());</b>
+<b class="fc"><i class="no-highlight">919</i>&nbsp;		notInsn.add(AFlag.SYNTHETIC);</b>
+<i class="no-highlight">920</i>&nbsp;
+<b class="fc"><i class="no-highlight">921</i>&nbsp;		InsnArg notArg = InsnArg.wrapArg(notInsn);</b>
+<b class="fc"><i class="no-highlight">922</i>&nbsp;		notArg.setType(ArgType.BOOLEAN);</b>
+<b class="fc"><i class="no-highlight">923</i>&nbsp;		TernaryInsn convertInsn = ModVisitor.makeBooleanConvertInsn(insn.getResult(), notArg, ArgType.INT);</b>
+<b class="fc"><i class="no-highlight">924</i>&nbsp;		convertInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">925</i>&nbsp;		return convertInsn;</b>
+<i class="no-highlight">926</i>&nbsp;	}
+<i class="no-highlight">927</i>&nbsp;
+<i class="no-highlight">928</i>&nbsp;	private TernaryInsn prepareBooleanConvertInsn(RegisterArg resultArg, RegisterArg boundArg, ArgType useType) {
+<b class="fc"><i class="no-highlight">929</i>&nbsp;		RegisterArg useArg = boundArg.getSVar().getAssign().duplicate();</b>
+<b class="fc"><i class="no-highlight">930</i>&nbsp;		TernaryInsn convertInsn = ModVisitor.makeBooleanConvertInsn(resultArg, useArg, useType);</b>
+<b class="fc"><i class="no-highlight">931</i>&nbsp;		convertInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">932</i>&nbsp;		return convertInsn;</b>
+<i class="no-highlight">933</i>&nbsp;	}
+<i class="no-highlight">934</i>&nbsp;
+<i class="no-highlight">935</i>&nbsp;	private static void assignImmutableTypes(MethodNode mth) {
+<b class="fc"><i class="no-highlight">936</i>&nbsp;		for (SSAVar ssaVar : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">937</i>&nbsp;			ArgType immutableType = getSsaImmutableType(ssaVar);</b>
+<b class="fc"><i class="no-highlight">938</i>&nbsp;			if (immutableType != null) {</b>
+<b class="fc"><i class="no-highlight">939</i>&nbsp;				ssaVar.markAsImmutable(immutableType);</b>
+<i class="no-highlight">940</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">941</i>&nbsp;		}</b>
+<i class="no-highlight">942</i>&nbsp;	}
+<i class="no-highlight">943</i>&nbsp;
+<i class="no-highlight">944</i>&nbsp;	@Nullable
+<i class="no-highlight">945</i>&nbsp;	private static ArgType getSsaImmutableType(SSAVar ssaVar) {
+<b class="fc"><i class="no-highlight">946</i>&nbsp;		if (ssaVar.getAssign().contains(AFlag.IMMUTABLE_TYPE)) {</b>
+<b class="fc"><i class="no-highlight">947</i>&nbsp;			return ssaVar.getAssign().getInitType();</b>
+<i class="no-highlight">948</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">949</i>&nbsp;		for (RegisterArg reg : ssaVar.getUseList()) {</b>
+<b class="fc"><i class="no-highlight">950</i>&nbsp;			if (reg.contains(AFlag.IMMUTABLE_TYPE)) {</b>
+<b class="fc"><i class="no-highlight">951</i>&nbsp;				return reg.getInitType();</b>
+<i class="no-highlight">952</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">953</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">954</i>&nbsp;		return null;</b>
+<i class="no-highlight">955</i>&nbsp;	}
+<i class="no-highlight">956</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

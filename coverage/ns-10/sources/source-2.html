@@ -1,0 +1,180 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxCLI</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.cli</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxCLI (jadx.cli)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxCLI</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (4/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    51.5%
+  </span>
+  <span class="absValue">
+    (17/33)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.cli;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">4</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.JadxArgs;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.impl.NoOpCodeCache;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.impl.SimpleCodeWriter;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.utils.exceptions.JadxArgsValidateException;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.utils.files.FileUtils;
+<i class="no-highlight">12</i>&nbsp;
+<b class="nc"><i class="no-highlight">13</i>&nbsp;public class JadxCLI {</b>
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);</b>
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	public static void main(String[] args) {
+<b class="nc"><i class="no-highlight">17</i>&nbsp;		int result = 0;</b>
+<i class="no-highlight">18</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">19</i>&nbsp;			result = execute(args);</b>
+<b class="nc"><i class="no-highlight">20</i>&nbsp;		} catch (JadxArgsValidateException e) {</b>
+<b class="nc"><i class="no-highlight">21</i>&nbsp;			LOG.error(&quot;Incorrect arguments: {}&quot;, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">22</i>&nbsp;			result = 1;</b>
+<b class="nc"><i class="no-highlight">23</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">24</i>&nbsp;			LOG.error(&quot;jadx error: {}&quot;, e.getMessage(), e);</b>
+<b class="nc"><i class="no-highlight">25</i>&nbsp;			result = 1;</b>
+<i class="no-highlight">26</i>&nbsp;		} finally {
+<b class="nc"><i class="no-highlight">27</i>&nbsp;			FileUtils.deleteTempRootDir();</b>
+<b class="nc"><i class="no-highlight">28</i>&nbsp;			System.exit(result);</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;		}</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	public static int execute(String[] args) {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		JadxCLIArgs jadxArgs = new JadxCLIArgs();</b>
+<b class="pc"><i class="no-highlight">34</i>&nbsp;		if (jadxArgs.processArgs(args)) {</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;			return processAndSave(jadxArgs.toJadxArgs());</b>
+<i class="no-highlight">36</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		return 0;</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	private static int processAndSave(JadxArgs jadxArgs) {
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		jadxArgs.setCodeCache(new NoOpCodeCache());</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;			jadx.load();</b>
+<b class="pc"><i class="no-highlight">45</i>&nbsp;			if (LogHelper.getLogLevel() == LogHelper.LogLevelEnum.QUIET) {</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;				jadx.save();</b>
+<i class="no-highlight">47</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">48</i>&nbsp;				jadx.save(500, (done, total) -&gt; {</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;					int progress = (int) (done * 100.0 / total);</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;					System.out.printf(&quot;INFO  - progress: %d of %d (%d%%)\r&quot;, done, total, progress);</b>
+<i class="no-highlight">51</i>&nbsp;				});
+<i class="no-highlight">52</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">53</i>&nbsp;			int errorsCount = jadx.getErrorsCount();</b>
+<b class="pc"><i class="no-highlight">54</i>&nbsp;			if (errorsCount != 0) {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;				jadx.printErrorsReport();</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;				LOG.error(&quot;finished with errors, count: {}&quot;, errorsCount);</b>
+<i class="no-highlight">57</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">58</i>&nbsp;				LOG.info(&quot;done&quot;);</b>
+<i class="no-highlight">59</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">60</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		return 0;</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

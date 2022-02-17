@@ -1,0 +1,198 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RectangleTypeAdapter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: RectangleTypeAdapter (jadx.gui.utils)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RectangleTypeAdapter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RectangleTypeAdapter$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Rectangle;
+<i class="no-highlight">4</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import com.google.gson.TypeAdapter;
+<i class="no-highlight">7</i>&nbsp;import com.google.gson.stream.JsonReader;
+<i class="no-highlight">8</i>&nbsp;import com.google.gson.stream.JsonToken;
+<i class="no-highlight">9</i>&nbsp;import com.google.gson.stream.JsonWriter;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;public class RectangleTypeAdapter {
+<i class="no-highlight">12</i>&nbsp;
+<b class="nc"><i class="no-highlight">13</i>&nbsp;	private static final TypeAdapter&lt;Rectangle&gt; SINGLETON = new TypeAdapter&lt;Rectangle&gt;() {</b>
+<i class="no-highlight">14</i>&nbsp;		@Override
+<i class="no-highlight">15</i>&nbsp;		public void write(JsonWriter out, Rectangle value) throws IOException {
+<b class="nc"><i class="no-highlight">16</i>&nbsp;			if (value == null) {</b>
+<b class="nc"><i class="no-highlight">17</i>&nbsp;				out.nullValue();</b>
+<i class="no-highlight">18</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">19</i>&nbsp;				out.beginObject();</b>
+<b class="nc"><i class="no-highlight">20</i>&nbsp;				out.name(&quot;x&quot;).value(value.getX());</b>
+<b class="nc"><i class="no-highlight">21</i>&nbsp;				out.name(&quot;y&quot;).value(value.getY());</b>
+<b class="nc"><i class="no-highlight">22</i>&nbsp;				out.name(&quot;width&quot;).value(value.getWidth());</b>
+<b class="nc"><i class="no-highlight">23</i>&nbsp;				out.name(&quot;height&quot;).value(value.getHeight());</b>
+<b class="nc"><i class="no-highlight">24</i>&nbsp;				out.endObject();</b>
+<i class="no-highlight">25</i>&nbsp;			}
+<i class="no-highlight">26</i>&nbsp;		}
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;		@Override
+<i class="no-highlight">29</i>&nbsp;		public Rectangle read(JsonReader in) throws IOException {
+<b class="nc"><i class="no-highlight">30</i>&nbsp;			if (in.peek() == JsonToken.NULL) {</b>
+<b class="nc"><i class="no-highlight">31</i>&nbsp;				in.nextNull();</b>
+<b class="nc"><i class="no-highlight">32</i>&nbsp;				return null;</b>
+<i class="no-highlight">33</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">34</i>&nbsp;			in.beginObject();</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;			Rectangle rectangle = new Rectangle();</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			while (in.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;				String name = in.nextName();</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;				switch (name) {</b>
+<i class="no-highlight">39</i>&nbsp;					case &quot;x&quot;:
+<b class="nc"><i class="no-highlight">40</i>&nbsp;						rectangle.x = in.nextInt();</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;						break;</b>
+<i class="no-highlight">42</i>&nbsp;					case &quot;y&quot;:
+<b class="nc"><i class="no-highlight">43</i>&nbsp;						rectangle.y = in.nextInt();</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;						break;</b>
+<i class="no-highlight">45</i>&nbsp;					case &quot;width&quot;:
+<b class="nc"><i class="no-highlight">46</i>&nbsp;						rectangle.width = in.nextInt();</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;						break;</b>
+<i class="no-highlight">48</i>&nbsp;					case &quot;height&quot;:
+<b class="nc"><i class="no-highlight">49</i>&nbsp;						rectangle.height = in.nextInt();</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;						break;</b>
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;					default:
+<b class="nc"><i class="no-highlight">53</i>&nbsp;						throw new IllegalArgumentException(&quot;Unknown field in Rectangle: &quot; + name);</b>
+<i class="no-highlight">54</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">55</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;			in.endObject();</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;			return rectangle;</b>
+<i class="no-highlight">58</i>&nbsp;		}
+<i class="no-highlight">59</i>&nbsp;	};
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;	public static TypeAdapter&lt;Rectangle&gt; singleton() {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		return SINGLETON;</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;	private RectangleTypeAdapter() {</b>
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

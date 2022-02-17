@@ -1,0 +1,1310 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RegionMaker</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.regions</a>
+</div>
+
+<h1>Coverage Summary for Class: RegionMaker (jadx.core.dex.visitors.regions)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RegionMaker</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.9%
+  </span>
+  <span class="absValue">
+    (37/39)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    70.3%
+  </span>
+  <span class="absValue">
+    (168/239)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90%
+  </span>
+  <span class="absValue">
+    (622/691)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RegionMaker$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    95%
+  </span>
+  <span class="absValue">
+    (38/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    70.3%
+  </span>
+  <span class="absValue">
+    (168/239)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90%
+  </span>
+  <span class="absValue">
+    (623/692)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.regions;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.BitSet;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">7</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">8</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">9</i>&nbsp;import java.util.List;
+<i class="no-highlight">10</i>&nbsp;import java.util.Map;
+<i class="no-highlight">11</i>&nbsp;import java.util.Map.Entry;
+<i class="no-highlight">12</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">13</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">14</i>&nbsp;import java.util.Set;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.attributes.nodes.LoopInfo;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.IfNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.SwitchInsn;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.nodes.Edge;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.nodes.IBlock;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.nodes.IContainer;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.nodes.IRegion;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.nodes.InsnContainer;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.regions.Region;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.regions.SwitchRegion;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.regions.SynchronizedRegion;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.regions.conditions.IfInfo;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.regions.conditions.IfRegion;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.regions.loops.LoopRegion;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.trycatch.ExcHandlerAttr;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.trycatch.ExceptionHandler;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.trycatch.TryCatchBlockAttr;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.utils.RegionUtils;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">49</i>&nbsp;import jadx.core.utils.exceptions.JadxOverflowException;
+<i class="no-highlight">50</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
+<i class="no-highlight">53</i>&nbsp;import static jadx.core.dex.visitors.regions.IfMakerHelper.makeIfInfo;
+<i class="no-highlight">54</i>&nbsp;import static jadx.core.dex.visitors.regions.IfMakerHelper.mergeNestedIfNodes;
+<i class="no-highlight">55</i>&nbsp;import static jadx.core.dex.visitors.regions.IfMakerHelper.searchNestedIf;
+<i class="no-highlight">56</i>&nbsp;import static jadx.core.utils.BlockUtils.followEmptyPath;
+<i class="no-highlight">57</i>&nbsp;import static jadx.core.utils.BlockUtils.getNextBlock;
+<i class="no-highlight">58</i>&nbsp;import static jadx.core.utils.BlockUtils.isPathExists;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;public class RegionMaker {
+<b class="fc"><i class="no-highlight">61</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);</b>
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;	private final MethodNode mth;
+<i class="no-highlight">64</i>&nbsp;	private final int regionsLimit;
+<i class="no-highlight">65</i>&nbsp;	private final BitSet processedBlocks;
+<i class="no-highlight">66</i>&nbsp;	private int regionsCount;
+<i class="no-highlight">67</i>&nbsp;
+<b class="fc"><i class="no-highlight">68</i>&nbsp;	public RegionMaker(MethodNode mth) {</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		this.mth = mth;</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		int blocksCount = mth.getBasicBlocks().size();</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		this.processedBlocks = new BitSet(blocksCount);</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		this.regionsLimit = blocksCount * 100;</b>
+<i class="no-highlight">73</i>&nbsp;	}
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		Region r = new Region(stack.peekRegion());</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		if (startBlock == null) {</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;			return r;</b>
+<i class="no-highlight">79</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		if (stack.containsExit(startBlock)) {</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			insertEdgeInsns(r, startBlock);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			return r;</b>
+<i class="no-highlight">83</i>&nbsp;		}
+<i class="no-highlight">84</i>&nbsp;
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		int startBlockId = startBlock.getId();</b>
+<b class="pc"><i class="no-highlight">86</i>&nbsp;		if (processedBlocks.get(startBlockId)) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			mth.addWarn(&quot;Removed duplicated region for block: &quot; + startBlock + &#39; &#39; + startBlock.getAttributesString());</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			return r;</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		processedBlocks.set(startBlockId);</b>
+<i class="no-highlight">91</i>&nbsp;
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		BlockNode next = startBlock;</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		while (next != null) {</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;			next = traverse(r, next, stack);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;			regionsCount++;</b>
+<b class="pc"><i class="no-highlight">96</i>&nbsp;			if (regionsCount &gt; regionsLimit) {</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;				throw new JadxOverflowException(&quot;Regions count limit reached&quot;);</b>
+<i class="no-highlight">98</i>&nbsp;			}
+<i class="no-highlight">99</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">100</i>&nbsp;		return r;</b>
+<i class="no-highlight">101</i>&nbsp;	}
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;	private void insertEdgeInsns(Region region, BlockNode exitBlock) {
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		List&lt;EdgeInsnAttr&gt; edgeInsns = exitBlock.getAll(AType.EDGE_INSN);</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;		if (edgeInsns.isEmpty()) {</b>
+<i class="no-highlight">106</i>&nbsp;			return;
+<i class="no-highlight">107</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		List&lt;InsnNode&gt; insns = new ArrayList&lt;&gt;(edgeInsns.size());</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		addOneInsnOfType(insns, edgeInsns, InsnType.BREAK);</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		addOneInsnOfType(insns, edgeInsns, InsnType.CONTINUE);</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		region.add(new InsnContainer(insns));</b>
+<i class="no-highlight">112</i>&nbsp;	}
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;	private void addOneInsnOfType(List&lt;InsnNode&gt; insns, List&lt;EdgeInsnAttr&gt; edgeInsns, InsnType insnType) {
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		for (EdgeInsnAttr edgeInsn : edgeInsns) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			InsnNode insn = edgeInsn.getInsn();</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;			if (insn.getType() == insnType) {</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;				insns.add(insn);</b>
+<i class="no-highlight">119</i>&nbsp;				return;
+<i class="no-highlight">120</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		}</b>
+<i class="no-highlight">122</i>&nbsp;	}
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;	/**
+<i class="no-highlight">125</i>&nbsp;	 * Recursively traverse all blocks from &#39;block&#39; until block from &#39;exits&#39;
+<i class="no-highlight">126</i>&nbsp;	 */
+<i class="no-highlight">127</i>&nbsp;	private BlockNode traverse(IRegion r, BlockNode block, RegionStack stack) {
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		if (block.contains(AFlag.MTH_EXIT_BLOCK)) {</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;			return null;</b>
+<i class="no-highlight">130</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		BlockNode next = null;</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		boolean processed = false;</b>
+<i class="no-highlight">133</i>&nbsp;
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		List&lt;LoopInfo&gt; loops = block.getAll(AType.LOOP);</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		int loopCount = loops.size();</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		if (loopCount != 0 &amp;&amp; block.contains(AFlag.LOOP_START)) {</b>
+<b class="pc"><i class="no-highlight">137</i>&nbsp;			if (loopCount == 1) {</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;				next = processLoop(r, loops.get(0), stack);</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;				processed = true;</b>
+<i class="no-highlight">140</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;				for (LoopInfo loop : loops) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;					if (loop.getStart() == block) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;						next = processLoop(r, loop, stack);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;						processed = true;</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;						break;</b>
+<i class="no-highlight">146</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">147</i>&nbsp;				}</b>
+<i class="no-highlight">148</i>&nbsp;			}
+<i class="no-highlight">149</i>&nbsp;		}
+<i class="no-highlight">150</i>&nbsp;
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		InsnNode insn = BlockUtils.getLastInsn(block);</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		if (!processed &amp;&amp; insn != null) {</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			switch (insn.getType()) {</b>
+<i class="no-highlight">154</i>&nbsp;				case IF:
+<b class="fc"><i class="no-highlight">155</i>&nbsp;					next = processIf(r, block, (IfNode) insn, stack);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;					processed = true;</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;					break;</b>
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;				case SWITCH:
+<b class="fc"><i class="no-highlight">160</i>&nbsp;					next = processSwitch(r, block, (SwitchInsn) insn, stack);</b>
+<b class="fc"><i class="no-highlight">161</i>&nbsp;					processed = true;</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;					break;</b>
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;				case MONITOR_ENTER:
+<b class="fc"><i class="no-highlight">165</i>&nbsp;					next = processMonitorEnter(r, block, insn, stack);</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;					processed = true;</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;					break;</b>
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;				default:
+<i class="no-highlight">170</i>&nbsp;					break;
+<i class="no-highlight">171</i>&nbsp;			}
+<i class="no-highlight">172</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		if (!processed) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			r.getSubBlocks().add(block);</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			next = getNextBlock(block);</b>
+<i class="no-highlight">176</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">177</i>&nbsp;		if (next != null &amp;&amp; !stack.containsExit(block) &amp;&amp; !stack.containsExit(next)) {</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;			return next;</b>
+<i class="no-highlight">179</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">180</i>&nbsp;		return null;</b>
+<i class="no-highlight">181</i>&nbsp;	}
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;	private BlockNode processLoop(IRegion curRegion, LoopInfo loop, RegionStack stack) {
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		BlockNode loopStart = loop.getStart();</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		Set&lt;BlockNode&gt; exitBlocksSet = loop.getExitNodes();</b>
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;		// set exit blocks scan order priority
+<i class="no-highlight">188</i>&nbsp;		// this can help if loop have several exits (after using &#39;break&#39; or &#39;return&#39; in loop)
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		List&lt;BlockNode&gt; exitBlocks = new ArrayList&lt;&gt;(exitBlocksSet.size());</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		BlockNode nextStart = getNextBlock(loopStart);</b>
+<b class="pc"><i class="no-highlight">191</i>&nbsp;		if (nextStart != null &amp;&amp; exitBlocksSet.remove(nextStart)) {</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;			exitBlocks.add(nextStart);</b>
+<i class="no-highlight">193</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		if (exitBlocksSet.remove(loopStart)) {</b>
+<b class="fc"><i class="no-highlight">195</i>&nbsp;			exitBlocks.add(loopStart);</b>
+<i class="no-highlight">196</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		if (exitBlocksSet.remove(loop.getEnd())) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			exitBlocks.add(loop.getEnd());</b>
+<i class="no-highlight">199</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		exitBlocks.addAll(exitBlocksSet);</b>
+<i class="no-highlight">201</i>&nbsp;
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		LoopRegion loopRegion = makeLoopRegion(curRegion, loop, exitBlocks);</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		if (loopRegion == null) {</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;			BlockNode exit = makeEndlessLoop(curRegion, stack, loop, loopStart);</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;			insertContinue(loop);</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;			return exit;</b>
+<i class="no-highlight">207</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		curRegion.getSubBlocks().add(loopRegion);</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		IRegion outerRegion = stack.peekRegion();</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		stack.push(loopRegion);</b>
+<i class="no-highlight">211</i>&nbsp;
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		IfInfo condInfo = makeIfInfo(mth, loopRegion.getHeader());</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		condInfo = searchNestedIf(condInfo);</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		confirmMerge(condInfo);</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		if (!loop.getLoopBlocks().contains(condInfo.getThenBlock())) {</b>
+<i class="no-highlight">216</i>&nbsp;			// invert loop condition if &#39;then&#39; points to exit
+<b class="fc"><i class="no-highlight">217</i>&nbsp;			condInfo = IfInfo.invert(condInfo);</b>
+<i class="no-highlight">218</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		loopRegion.updateCondition(condInfo);</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		exitBlocks.removeAll(condInfo.getMergedBlocks());</b>
+<i class="no-highlight">221</i>&nbsp;
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		if (!exitBlocks.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;			BlockNode loopExit = condInfo.getElseBlock();</b>
+<b class="pc"><i class="no-highlight">224</i>&nbsp;			if (loopExit != null) {</b>
+<i class="no-highlight">225</i>&nbsp;				// add &#39;break&#39; instruction before path cross between main loop exit and sub-exit
+<b class="fc"><i class="no-highlight">226</i>&nbsp;				for (Edge exitEdge : loop.getExitEdges()) {</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;					if (exitBlocks.contains(exitEdge.getSource())) {</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;						insertLoopBreak(stack, loop, loopExit, exitEdge);</b>
+<i class="no-highlight">229</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">230</i>&nbsp;				}</b>
+<i class="no-highlight">231</i>&nbsp;			}
+<i class="no-highlight">232</i>&nbsp;		}
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;		BlockNode out;
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		if (loopRegion.isConditionAtEnd()) {</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;			BlockNode thenBlock = condInfo.getThenBlock();</b>
+<b class="pc"><i class="no-highlight">237</i>&nbsp;			out = thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;			loopStart.remove(AType.LOOP);</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;			loop.getEnd().add(AFlag.ADDED_TO_REGION);</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;			stack.addExit(loop.getEnd());</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;			processedBlocks.clear(loopStart.getId());</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;			Region body = makeRegion(loopStart, stack);</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;			loopRegion.setBody(body);</b>
+<b class="fc"><i class="no-highlight">244</i>&nbsp;			loopStart.addAttr(AType.LOOP, loop);</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;			loop.getEnd().remove(AFlag.ADDED_TO_REGION);</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;			out = condInfo.getElseBlock();</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;			if (outerRegion != null</b>
+<b class="pc"><i class="no-highlight">249</i>&nbsp;					&amp;&amp; out.contains(AFlag.LOOP_START)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;					&amp;&amp; !out.getAll(AType.LOOP).contains(loop)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;					&amp;&amp; RegionUtils.isRegionContainsBlock(outerRegion, out)) {</b>
+<i class="no-highlight">252</i>&nbsp;				// exit to already processed outer loop
+<b class="nc"><i class="no-highlight">253</i>&nbsp;				out = null;</b>
+<i class="no-highlight">254</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">255</i>&nbsp;			stack.addExit(out);</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;			BlockNode loopBody = condInfo.getThenBlock();</b>
+<i class="no-highlight">257</i>&nbsp;			Region body;
+<b class="fc"><i class="no-highlight">258</i>&nbsp;			if (Objects.equals(loopBody, loopStart)) {</b>
+<i class="no-highlight">259</i>&nbsp;				// empty loop body
+<b class="fc"><i class="no-highlight">260</i>&nbsp;				body = new Region(loopRegion);</b>
+<i class="no-highlight">261</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">262</i>&nbsp;				body = makeRegion(loopBody, stack);</b>
+<i class="no-highlight">263</i>&nbsp;			}
+<i class="no-highlight">264</i>&nbsp;			// add blocks from loop start to first condition block
+<b class="fc"><i class="no-highlight">265</i>&nbsp;			BlockNode conditionBlock = condInfo.getFirstIfBlock();</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;			if (loopStart != conditionBlock) {</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;				Set&lt;BlockNode&gt; blocks = BlockUtils.getAllPathsBlocks(loopStart, conditionBlock);</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;				blocks.remove(conditionBlock);</b>
+<b class="fc"><i class="no-highlight">269</i>&nbsp;				for (BlockNode block : blocks) {</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;					if (block.getInstructions().isEmpty()</b>
+<b class="pc"><i class="no-highlight">271</i>&nbsp;							&amp;&amp; !block.contains(AFlag.ADDED_TO_REGION)</b>
+<b class="pc"><i class="no-highlight">272</i>&nbsp;							&amp;&amp; !RegionUtils.isRegionContainsBlock(body, block)) {</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;						body.add(block);</b>
+<i class="no-highlight">274</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">275</i>&nbsp;				}</b>
+<i class="no-highlight">276</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">277</i>&nbsp;			loopRegion.setBody(body);</b>
+<i class="no-highlight">278</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		stack.pop();</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		insertContinue(loop);</b>
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		return out;</b>
+<i class="no-highlight">282</i>&nbsp;	}
+<i class="no-highlight">283</i>&nbsp;
+<i class="no-highlight">284</i>&nbsp;	/**
+<i class="no-highlight">285</i>&nbsp;	 * Select loop exit and construct LoopRegion
+<i class="no-highlight">286</i>&nbsp;	 */
+<i class="no-highlight">287</i>&nbsp;	private LoopRegion makeLoopRegion(IRegion curRegion, LoopInfo loop, List&lt;BlockNode&gt; exitBlocks) {
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		for (BlockNode block : exitBlocks) {</b>
+<b class="pc"><i class="no-highlight">289</i>&nbsp;			if (block.contains(AType.EXC_HANDLER)) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;				continue;</b>
+<i class="no-highlight">291</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">292</i>&nbsp;			InsnNode lastInsn = BlockUtils.getLastInsn(block);</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;			if (lastInsn == null || lastInsn.getType() != InsnType.IF) {</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;				continue;</b>
+<i class="no-highlight">295</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">296</i>&nbsp;			List&lt;LoopInfo&gt; loops = block.getAll(AType.LOOP);</b>
+<b class="pc"><i class="no-highlight">297</i>&nbsp;			if (!loops.isEmpty() &amp;&amp; loops.get(0) != loop) {</b>
+<i class="no-highlight">298</i>&nbsp;				// skip nested loop condition
+<b class="nc"><i class="no-highlight">299</i>&nbsp;				continue;</b>
+<i class="no-highlight">300</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">301</i>&nbsp;			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, block == loop.getEnd());</b>
+<i class="no-highlight">302</i>&nbsp;			boolean found;
+<b class="fc"><i class="no-highlight">303</i>&nbsp;			if (block == loop.getStart() || block == loop.getEnd()</b>
+<b class="fc"><i class="no-highlight">304</i>&nbsp;					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {</b>
+<b class="fc"><i class="no-highlight">305</i>&nbsp;				found = true;</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;			} else if (block.getPredecessors().contains(loop.getStart())) {</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;				loopRegion.setPreCondition(loop.getStart());</b>
+<i class="no-highlight">308</i>&nbsp;				// if we can&#39;t merge pre-condition this is not correct header
+<b class="fc"><i class="no-highlight">309</i>&nbsp;				found = loopRegion.checkPreCondition();</b>
+<i class="no-highlight">310</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">311</i>&nbsp;				found = false;</b>
+<i class="no-highlight">312</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			if (found) {</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;				List&lt;LoopInfo&gt; list = mth.getAllLoopsForBlock(block);</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;				if (list.size() &gt;= 2) {</b>
+<i class="no-highlight">316</i>&nbsp;					// bad condition if successors going out of all loops
+<b class="fc"><i class="no-highlight">317</i>&nbsp;					boolean allOuter = true;</b>
+<b class="pc"><i class="no-highlight">318</i>&nbsp;					for (BlockNode outerBlock : block.getCleanSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;						List&lt;LoopInfo&gt; outLoopList = mth.getAllLoopsForBlock(outerBlock);</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;						outLoopList.remove(loop);</b>
+<b class="pc"><i class="no-highlight">321</i>&nbsp;						if (!outLoopList.isEmpty()) {</b>
+<i class="no-highlight">322</i>&nbsp;							// goes to outer loop
+<b class="fc"><i class="no-highlight">323</i>&nbsp;							allOuter = false;</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;							break;</b>
+<i class="no-highlight">325</i>&nbsp;						}
+<b class="nc"><i class="no-highlight">326</i>&nbsp;					}</b>
+<b class="pc"><i class="no-highlight">327</i>&nbsp;					if (allOuter) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;						found = false;</b>
+<i class="no-highlight">329</i>&nbsp;					}
+<i class="no-highlight">330</i>&nbsp;				}
+<i class="no-highlight">331</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">332</i>&nbsp;			if (found &amp;&amp; !checkLoopExits(loop, block)) {</b>
+<b class="fc"><i class="no-highlight">333</i>&nbsp;				found = false;</b>
+<i class="no-highlight">334</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">335</i>&nbsp;			if (found) {</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;				return loopRegion;</b>
+<i class="no-highlight">337</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">338</i>&nbsp;		}</b>
+<i class="no-highlight">339</i>&nbsp;		// no exit found =&gt; endless loop
+<b class="fc"><i class="no-highlight">340</i>&nbsp;		return null;</b>
+<i class="no-highlight">341</i>&nbsp;	}
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;	private boolean checkLoopExits(LoopInfo loop, BlockNode mainExitBlock) {
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		List&lt;Edge&gt; exitEdges = loop.getExitEdges();</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;		if (exitEdges.size() &lt; 2) {</b>
+<b class="fc"><i class="no-highlight">346</i>&nbsp;			return true;</b>
+<i class="no-highlight">347</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">348</i>&nbsp;		Optional&lt;Edge&gt; mainEdgeOpt = exitEdges.stream().filter(edge -&gt; edge.getSource() == mainExitBlock).findFirst();</b>
+<b class="pc"><i class="no-highlight">349</i>&nbsp;		if (!mainEdgeOpt.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;			throw new JadxRuntimeException(&quot;Not found exit edge by exit block: &quot; + mainExitBlock);</b>
+<i class="no-highlight">351</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		Edge mainExitEdge = mainEdgeOpt.get();</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;		BlockNode mainOutBlock = mainExitEdge.getTarget();</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;		for (Edge exitEdge : exitEdges) {</b>
+<b class="fc"><i class="no-highlight">355</i>&nbsp;			if (exitEdge != mainExitEdge) {</b>
+<i class="no-highlight">356</i>&nbsp;				// all exit paths must be same or don&#39;t cross (will be inside loop)
+<b class="fc"><i class="no-highlight">357</i>&nbsp;				BlockNode exitBlock = exitEdge.getTarget();</b>
+<b class="fc"><i class="no-highlight">358</i>&nbsp;				if (!isEqualPaths(mainOutBlock, exitBlock)) {</b>
+<b class="fc"><i class="no-highlight">359</i>&nbsp;					BlockNode crossBlock = BlockUtils.getPathCross(mth, mainOutBlock, exitBlock);</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;					if (crossBlock != null) {</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;						return false;</b>
+<i class="no-highlight">362</i>&nbsp;					}
+<i class="no-highlight">363</i>&nbsp;				}
+<i class="no-highlight">364</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">365</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;		return true;</b>
+<i class="no-highlight">367</i>&nbsp;	}
+<i class="no-highlight">368</i>&nbsp;
+<i class="no-highlight">369</i>&nbsp;	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopInfo loop, BlockNode loopStart) {
+<b class="fc"><i class="no-highlight">370</i>&nbsp;		LoopRegion loopRegion = new LoopRegion(curRegion, loop, null, false);</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;		curRegion.getSubBlocks().add(loopRegion);</b>
+<i class="no-highlight">372</i>&nbsp;
+<b class="fc"><i class="no-highlight">373</i>&nbsp;		loopStart.remove(AType.LOOP);</b>
+<b class="fc"><i class="no-highlight">374</i>&nbsp;		processedBlocks.clear(loopStart.getId());</b>
+<b class="fc"><i class="no-highlight">375</i>&nbsp;		stack.push(loopRegion);</b>
+<i class="no-highlight">376</i>&nbsp;
+<b class="fc"><i class="no-highlight">377</i>&nbsp;		BlockNode out = null;</b>
+<i class="no-highlight">378</i>&nbsp;		// insert &#39;break&#39; for exits
+<b class="fc"><i class="no-highlight">379</i>&nbsp;		List&lt;Edge&gt; exitEdges = loop.getExitEdges();</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;		if (exitEdges.size() == 1) {</b>
+<b class="fc"><i class="no-highlight">381</i>&nbsp;			Edge exitEdge = exitEdges.get(0);</b>
+<b class="fc"><i class="no-highlight">382</i>&nbsp;			BlockNode exit = exitEdge.getTarget();</b>
+<b class="fc"><i class="no-highlight">383</i>&nbsp;			if (insertLoopBreak(stack, loop, exit, exitEdge)) {</b>
+<b class="fc"><i class="no-highlight">384</i>&nbsp;				BlockNode nextBlock = getNextBlock(exit);</b>
+<b class="pc"><i class="no-highlight">385</i>&nbsp;				if (nextBlock != null) {</b>
+<b class="fc"><i class="no-highlight">386</i>&nbsp;					stack.addExit(nextBlock);</b>
+<b class="fc"><i class="no-highlight">387</i>&nbsp;					out = nextBlock;</b>
+<i class="no-highlight">388</i>&nbsp;				}
+<i class="no-highlight">389</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">390</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">391</i>&nbsp;			for (Edge exitEdge : exitEdges) {</b>
+<b class="fc"><i class="no-highlight">392</i>&nbsp;				BlockNode exit = exitEdge.getTarget();</b>
+<b class="fc"><i class="no-highlight">393</i>&nbsp;				List&lt;BlockNode&gt; blocks = BlockUtils.bitSetToBlocks(mth, exit.getDomFrontier());</b>
+<b class="fc"><i class="no-highlight">394</i>&nbsp;				for (BlockNode block : blocks) {</b>
+<b class="fc"><i class="no-highlight">395</i>&nbsp;					if (BlockUtils.isPathExists(exit, block)) {</b>
+<b class="fc"><i class="no-highlight">396</i>&nbsp;						stack.addExit(block);</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;						insertLoopBreak(stack, loop, block, exitEdge);</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;						out = block;</b>
+<i class="no-highlight">399</i>&nbsp;					} else {
+<b class="fc"><i class="no-highlight">400</i>&nbsp;						insertLoopBreak(stack, loop, exit, exitEdge);</b>
+<i class="no-highlight">401</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">402</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">403</i>&nbsp;			}</b>
+<i class="no-highlight">404</i>&nbsp;		}
+<i class="no-highlight">405</i>&nbsp;
+<b class="fc"><i class="no-highlight">406</i>&nbsp;		Region body = makeRegion(loopStart, stack);</b>
+<b class="fc"><i class="no-highlight">407</i>&nbsp;		BlockNode loopEnd = loop.getEnd();</b>
+<b class="fc"><i class="no-highlight">408</i>&nbsp;		if (!RegionUtils.isRegionContainsBlock(body, loopEnd)</b>
+<b class="fc"><i class="no-highlight">409</i>&nbsp;				&amp;&amp; !loopEnd.contains(AType.EXC_HANDLER)</b>
+<b class="fc"><i class="no-highlight">410</i>&nbsp;				&amp;&amp; !inExceptionHandlerBlocks(loopEnd)) {</b>
+<b class="fc"><i class="no-highlight">411</i>&nbsp;			body.getSubBlocks().add(loopEnd);</b>
+<i class="no-highlight">412</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">413</i>&nbsp;		loopRegion.setBody(body);</b>
+<i class="no-highlight">414</i>&nbsp;
+<b class="fc"><i class="no-highlight">415</i>&nbsp;		if (out == null) {</b>
+<b class="fc"><i class="no-highlight">416</i>&nbsp;			BlockNode next = getNextBlock(loopEnd);</b>
+<b class="pc"><i class="no-highlight">417</i>&nbsp;			out = RegionUtils.isRegionContainsBlock(body, next) ? null : next;</b>
+<i class="no-highlight">418</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">419</i>&nbsp;		stack.pop();</b>
+<b class="fc"><i class="no-highlight">420</i>&nbsp;		loopStart.addAttr(AType.LOOP, loop);</b>
+<b class="fc"><i class="no-highlight">421</i>&nbsp;		return out;</b>
+<i class="no-highlight">422</i>&nbsp;	}
+<i class="no-highlight">423</i>&nbsp;
+<i class="no-highlight">424</i>&nbsp;	private boolean inExceptionHandlerBlocks(BlockNode loopEnd) {
+<b class="pc"><i class="no-highlight">425</i>&nbsp;		if (mth.getExceptionHandlersCount() == 0) {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;			return false;</b>
+<i class="no-highlight">427</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">428</i>&nbsp;		for (ExceptionHandler eh : mth.getExceptionHandlers()) {</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;			if (eh.getBlocks().contains(loopEnd)) {</b>
+<b class="fc"><i class="no-highlight">430</i>&nbsp;				return true;</b>
+<i class="no-highlight">431</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">432</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">433</i>&nbsp;		return false;</b>
+<i class="no-highlight">434</i>&nbsp;	}
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;	private boolean canInsertBreak(BlockNode exit) {
+<b class="fc"><i class="no-highlight">437</i>&nbsp;		if (BlockUtils.containsExitInsn(exit)) {</b>
+<b class="fc"><i class="no-highlight">438</i>&nbsp;			return false;</b>
+<i class="no-highlight">439</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">440</i>&nbsp;		List&lt;BlockNode&gt; simplePath = BlockUtils.buildSimplePath(exit);</b>
+<b class="pc"><i class="no-highlight">441</i>&nbsp;		if (!simplePath.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">442</i>&nbsp;			BlockNode lastBlock = simplePath.get(simplePath.size() - 1);</b>
+<b class="pc"><i class="no-highlight">443</i>&nbsp;			if (lastBlock.contains(AFlag.RETURN)</b>
+<b class="fc"><i class="no-highlight">444</i>&nbsp;					|| lastBlock.getSuccessors().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">445</i>&nbsp;				return false;</b>
+<i class="no-highlight">446</i>&nbsp;			}
+<i class="no-highlight">447</i>&nbsp;		}
+<i class="no-highlight">448</i>&nbsp;		// check if there no outer switch (TODO: very expensive check)
+<b class="fc"><i class="no-highlight">449</i>&nbsp;		Set&lt;BlockNode&gt; paths = BlockUtils.getAllPathsBlocks(mth.getEnterBlock(), exit);</b>
+<b class="fc"><i class="no-highlight">450</i>&nbsp;		for (BlockNode block : paths) {</b>
+<b class="pc"><i class="no-highlight">451</i>&nbsp;			if (BlockUtils.checkLastInsnType(block, InsnType.SWITCH)) {</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;				return false;</b>
+<i class="no-highlight">453</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">454</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">455</i>&nbsp;		return true;</b>
+<i class="no-highlight">456</i>&nbsp;	}
+<i class="no-highlight">457</i>&nbsp;
+<i class="no-highlight">458</i>&nbsp;	private boolean insertLoopBreak(RegionStack stack, LoopInfo loop, BlockNode loopExit, Edge exitEdge) {
+<b class="fc"><i class="no-highlight">459</i>&nbsp;		BlockNode exit = exitEdge.getTarget();</b>
+<b class="fc"><i class="no-highlight">460</i>&nbsp;		Edge insertEdge = null;</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;		boolean confirm = false;</b>
+<i class="no-highlight">462</i>&nbsp;		// process special cases:
+<i class="no-highlight">463</i>&nbsp;		// 1. jump to outer loop
+<b class="fc"><i class="no-highlight">464</i>&nbsp;		BlockNode exitEnd = BlockUtils.followEmptyPath(exit);</b>
+<b class="fc"><i class="no-highlight">465</i>&nbsp;		List&lt;LoopInfo&gt; loops = exitEnd.getAll(AType.LOOP);</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;		for (LoopInfo loopAtEnd : loops) {</b>
+<b class="pc"><i class="no-highlight">467</i>&nbsp;			if (loopAtEnd != loop) {</b>
+<b class="fc"><i class="no-highlight">468</i>&nbsp;				insertEdge = exitEdge;</b>
+<b class="fc"><i class="no-highlight">469</i>&nbsp;				confirm = true;</b>
+<b class="fc"><i class="no-highlight">470</i>&nbsp;				break;</b>
+<i class="no-highlight">471</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">472</i>&nbsp;		}</b>
+<i class="no-highlight">473</i>&nbsp;
+<b class="fc"><i class="no-highlight">474</i>&nbsp;		if (!confirm) {</b>
+<b class="fc"><i class="no-highlight">475</i>&nbsp;			BlockNode insertBlock = null;</b>
+<b class="fc"><i class="no-highlight">476</i>&nbsp;			while (exit != null) {</b>
+<b class="fc"><i class="no-highlight">477</i>&nbsp;				if (insertBlock != null &amp;&amp; isPathExists(loopExit, exit)) {</b>
+<i class="no-highlight">478</i>&nbsp;					// found cross
+<b class="fc"><i class="no-highlight">479</i>&nbsp;					if (canInsertBreak(insertBlock)) {</b>
+<b class="fc"><i class="no-highlight">480</i>&nbsp;						insertEdge = new Edge(insertBlock, insertBlock.getSuccessors().get(0));</b>
+<b class="fc"><i class="no-highlight">481</i>&nbsp;						confirm = true;</b>
+<b class="fc"><i class="no-highlight">482</i>&nbsp;						break;</b>
+<i class="no-highlight">483</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">484</i>&nbsp;					return false;</b>
+<i class="no-highlight">485</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">486</i>&nbsp;				insertBlock = exit;</b>
+<b class="fc"><i class="no-highlight">487</i>&nbsp;				List&lt;BlockNode&gt; cs = exit.getCleanSuccessors();</b>
+<b class="fc"><i class="no-highlight">488</i>&nbsp;				exit = cs.size() == 1 ? cs.get(0) : null;</b>
+<b class="fc"><i class="no-highlight">489</i>&nbsp;			}</b>
+<i class="no-highlight">490</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">491</i>&nbsp;		if (!confirm) {</b>
+<b class="fc"><i class="no-highlight">492</i>&nbsp;			return false;</b>
+<i class="no-highlight">493</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">494</i>&nbsp;		InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);</b>
+<b class="fc"><i class="no-highlight">495</i>&nbsp;		breakInsn.addAttr(AType.LOOP, loop);</b>
+<b class="fc"><i class="no-highlight">496</i>&nbsp;		EdgeInsnAttr.addEdgeInsn(insertEdge, breakInsn);</b>
+<b class="fc"><i class="no-highlight">497</i>&nbsp;		stack.addExit(exit);</b>
+<i class="no-highlight">498</i>&nbsp;		// add label to &#39;break&#39; if needed
+<b class="fc"><i class="no-highlight">499</i>&nbsp;		addBreakLabel(exitEdge, exit, breakInsn);</b>
+<b class="fc"><i class="no-highlight">500</i>&nbsp;		return true;</b>
+<i class="no-highlight">501</i>&nbsp;	}
+<i class="no-highlight">502</i>&nbsp;
+<i class="no-highlight">503</i>&nbsp;	private void addBreakLabel(Edge exitEdge, BlockNode exit, InsnNode breakInsn) {
+<b class="fc"><i class="no-highlight">504</i>&nbsp;		BlockNode outBlock = BlockUtils.getNextBlock(exitEdge.getTarget());</b>
+<b class="fc"><i class="no-highlight">505</i>&nbsp;		if (outBlock == null) {</b>
+<i class="no-highlight">506</i>&nbsp;			return;
+<i class="no-highlight">507</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">508</i>&nbsp;		List&lt;LoopInfo&gt; exitLoop = mth.getAllLoopsForBlock(outBlock);</b>
+<b class="fc"><i class="no-highlight">509</i>&nbsp;		if (!exitLoop.isEmpty()) {</b>
+<i class="no-highlight">510</i>&nbsp;			return;
+<i class="no-highlight">511</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">512</i>&nbsp;		List&lt;LoopInfo&gt; inLoops = mth.getAllLoopsForBlock(exitEdge.getSource());</b>
+<b class="fc"><i class="no-highlight">513</i>&nbsp;		if (inLoops.size() &lt; 2) {</b>
+<i class="no-highlight">514</i>&nbsp;			return;
+<i class="no-highlight">515</i>&nbsp;		}
+<i class="no-highlight">516</i>&nbsp;		// search for parent loop
+<b class="fc"><i class="no-highlight">517</i>&nbsp;		LoopInfo parentLoop = null;</b>
+<b class="pc"><i class="no-highlight">518</i>&nbsp;		for (LoopInfo loop : inLoops) {</b>
+<b class="pc"><i class="no-highlight">519</i>&nbsp;			if (loop.getParentLoop() == null) {</b>
+<b class="fc"><i class="no-highlight">520</i>&nbsp;				parentLoop = loop;</b>
+<b class="fc"><i class="no-highlight">521</i>&nbsp;				break;</b>
+<i class="no-highlight">522</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">523</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">524</i>&nbsp;		if (parentLoop == null) {</b>
+<i class="no-highlight">525</i>&nbsp;			return;
+<i class="no-highlight">526</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">527</i>&nbsp;		if (parentLoop.getEnd() != exit &amp;&amp; !parentLoop.getExitNodes().contains(exit)) {</b>
+<b class="fc"><i class="no-highlight">528</i>&nbsp;			LoopLabelAttr labelAttr = new LoopLabelAttr(parentLoop);</b>
+<b class="fc"><i class="no-highlight">529</i>&nbsp;			breakInsn.addAttr(labelAttr);</b>
+<b class="fc"><i class="no-highlight">530</i>&nbsp;			parentLoop.getStart().addAttr(labelAttr);</b>
+<i class="no-highlight">531</i>&nbsp;		}
+<i class="no-highlight">532</i>&nbsp;	}
+<i class="no-highlight">533</i>&nbsp;
+<i class="no-highlight">534</i>&nbsp;	private static void insertContinue(LoopInfo loop) {
+<b class="fc"><i class="no-highlight">535</i>&nbsp;		BlockNode loopEnd = loop.getEnd();</b>
+<b class="fc"><i class="no-highlight">536</i>&nbsp;		List&lt;BlockNode&gt; predecessors = loopEnd.getPredecessors();</b>
+<b class="fc"><i class="no-highlight">537</i>&nbsp;		if (predecessors.size() &lt;= 1) {</b>
+<i class="no-highlight">538</i>&nbsp;			return;
+<i class="no-highlight">539</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">540</i>&nbsp;		Set&lt;BlockNode&gt; loopExitNodes = loop.getExitNodes();</b>
+<b class="fc"><i class="no-highlight">541</i>&nbsp;		for (BlockNode pred : predecessors) {</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;			if (canInsertContinue(pred, predecessors, loopEnd, loopExitNodes)) {</b>
+<b class="fc"><i class="no-highlight">543</i>&nbsp;				InsnNode cont = new InsnNode(InsnType.CONTINUE, 0);</b>
+<b class="fc"><i class="no-highlight">544</i>&nbsp;				pred.getInstructions().add(cont);</b>
+<i class="no-highlight">545</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">546</i>&nbsp;		}</b>
+<i class="no-highlight">547</i>&nbsp;	}
+<i class="no-highlight">548</i>&nbsp;
+<i class="no-highlight">549</i>&nbsp;	private static boolean canInsertContinue(BlockNode pred, List&lt;BlockNode&gt; predecessors, BlockNode loopEnd,
+<i class="no-highlight">550</i>&nbsp;			Set&lt;BlockNode&gt; loopExitNodes) {
+<b class="pc"><i class="no-highlight">551</i>&nbsp;		if (!pred.contains(AFlag.SYNTHETIC)</b>
+<b class="fc"><i class="no-highlight">552</i>&nbsp;				|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;			return false;</b>
+<i class="no-highlight">554</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">555</i>&nbsp;		List&lt;BlockNode&gt; preds = pred.getPredecessors();</b>
+<b class="pc"><i class="no-highlight">556</i>&nbsp;		if (preds.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;			return false;</b>
+<i class="no-highlight">558</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">559</i>&nbsp;		BlockNode codePred = preds.get(0);</b>
+<b class="fc"><i class="no-highlight">560</i>&nbsp;		if (codePred.contains(AFlag.ADDED_TO_REGION)) {</b>
+<b class="fc"><i class="no-highlight">561</i>&nbsp;			return false;</b>
+<i class="no-highlight">562</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">563</i>&nbsp;		if (loopEnd.isDominator(codePred)</b>
+<b class="fc"><i class="no-highlight">564</i>&nbsp;				|| loopExitNodes.contains(codePred)) {</b>
+<b class="fc"><i class="no-highlight">565</i>&nbsp;			return false;</b>
+<i class="no-highlight">566</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">567</i>&nbsp;		if (isDominatedOnBlocks(codePred, predecessors)) {</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;			return false;</b>
+<i class="no-highlight">569</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">570</i>&nbsp;		boolean gotoExit = false;</b>
+<b class="fc"><i class="no-highlight">571</i>&nbsp;		for (BlockNode exit : loopExitNodes) {</b>
+<b class="fc"><i class="no-highlight">572</i>&nbsp;			if (BlockUtils.isPathExists(codePred, exit)) {</b>
+<b class="fc"><i class="no-highlight">573</i>&nbsp;				gotoExit = true;</b>
+<b class="fc"><i class="no-highlight">574</i>&nbsp;				break;</b>
+<i class="no-highlight">575</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">576</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;		return gotoExit;</b>
+<i class="no-highlight">578</i>&nbsp;	}
+<i class="no-highlight">579</i>&nbsp;
+<i class="no-highlight">580</i>&nbsp;	private static boolean isDominatedOnBlocks(BlockNode dom, List&lt;BlockNode&gt; blocks) {
+<b class="pc"><i class="no-highlight">581</i>&nbsp;		for (BlockNode node : blocks) {</b>
+<b class="fc"><i class="no-highlight">582</i>&nbsp;			if (!node.isDominator(dom)) {</b>
+<b class="fc"><i class="no-highlight">583</i>&nbsp;				return false;</b>
+<i class="no-highlight">584</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">585</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;		return true;</b>
+<i class="no-highlight">587</i>&nbsp;	}
+<i class="no-highlight">588</i>&nbsp;
+<i class="no-highlight">589</i>&nbsp;	private BlockNode processMonitorEnter(IRegion curRegion, BlockNode block, InsnNode insn, RegionStack stack) {
+<b class="fc"><i class="no-highlight">590</i>&nbsp;		SynchronizedRegion synchRegion = new SynchronizedRegion(curRegion, insn);</b>
+<b class="fc"><i class="no-highlight">591</i>&nbsp;		synchRegion.getSubBlocks().add(block);</b>
+<b class="fc"><i class="no-highlight">592</i>&nbsp;		curRegion.getSubBlocks().add(synchRegion);</b>
+<i class="no-highlight">593</i>&nbsp;
+<b class="fc"><i class="no-highlight">594</i>&nbsp;		Set&lt;BlockNode&gt; exits = new LinkedHashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">595</i>&nbsp;		Set&lt;BlockNode&gt; cacheSet = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">596</i>&nbsp;		traverseMonitorExits(synchRegion, insn.getArg(0), block, exits, cacheSet);</b>
+<i class="no-highlight">597</i>&nbsp;
+<b class="fc"><i class="no-highlight">598</i>&nbsp;		for (InsnNode exitInsn : synchRegion.getExitInsns()) {</b>
+<b class="fc"><i class="no-highlight">599</i>&nbsp;			BlockNode insnBlock = BlockUtils.getBlockByInsn(mth, exitInsn);</b>
+<b class="pc"><i class="no-highlight">600</i>&nbsp;			if (insnBlock != null) {</b>
+<b class="fc"><i class="no-highlight">601</i>&nbsp;				insnBlock.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">602</i>&nbsp;			}
+<i class="no-highlight">603</i>&nbsp;			// remove arg from MONITOR_EXIT to allow inline in MONITOR_ENTER
+<b class="fc"><i class="no-highlight">604</i>&nbsp;			exitInsn.removeArg(0);</b>
+<b class="fc"><i class="no-highlight">605</i>&nbsp;			exitInsn.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">606</i>&nbsp;		}</b>
+<i class="no-highlight">607</i>&nbsp;
+<b class="fc"><i class="no-highlight">608</i>&nbsp;		BlockNode body = getNextBlock(block);</b>
+<b class="pc"><i class="no-highlight">609</i>&nbsp;		if (body == null) {</b>
+<b class="nc"><i class="no-highlight">610</i>&nbsp;			mth.addWarn(&quot;Unexpected end of synchronized block&quot;);</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;			return null;</b>
+<i class="no-highlight">612</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">613</i>&nbsp;		BlockNode exit = null;</b>
+<b class="fc"><i class="no-highlight">614</i>&nbsp;		if (exits.size() == 1) {</b>
+<b class="fc"><i class="no-highlight">615</i>&nbsp;			exit = getNextBlock(exits.iterator().next());</b>
+<b class="pc"><i class="no-highlight">616</i>&nbsp;		} else if (exits.size() &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">617</i>&nbsp;			cacheSet.clear();</b>
+<b class="fc"><i class="no-highlight">618</i>&nbsp;			exit = traverseMonitorExitsCross(body, exits, cacheSet);</b>
+<i class="no-highlight">619</i>&nbsp;		}
+<i class="no-highlight">620</i>&nbsp;
+<b class="fc"><i class="no-highlight">621</i>&nbsp;		stack.push(synchRegion);</b>
+<b class="fc"><i class="no-highlight">622</i>&nbsp;		if (exit != null) {</b>
+<b class="fc"><i class="no-highlight">623</i>&nbsp;			stack.addExit(exit);</b>
+<i class="no-highlight">624</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">625</i>&nbsp;			for (BlockNode exitBlock : exits) {</b>
+<i class="no-highlight">626</i>&nbsp;				// don&#39;t add exit blocks which leads to method end blocks (&#39;return&#39;, &#39;throw&#39;, etc)
+<b class="fc"><i class="no-highlight">627</i>&nbsp;				List&lt;BlockNode&gt; list = BlockUtils.buildSimplePath(exitBlock);</b>
+<b class="pc"><i class="no-highlight">628</i>&nbsp;				if (list.isEmpty() || !BlockUtils.isExitBlock(mth, Utils.last(list))) {</b>
+<b class="fc"><i class="no-highlight">629</i>&nbsp;					stack.addExit(exitBlock);</b>
+<i class="no-highlight">630</i>&nbsp;					// we can still try using this as an exit block to make sure it&#39;s visited.
+<b class="fc"><i class="no-highlight">631</i>&nbsp;					exit = exitBlock;</b>
+<i class="no-highlight">632</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">633</i>&nbsp;			}</b>
+<i class="no-highlight">634</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">635</i>&nbsp;		synchRegion.getSubBlocks().add(makeRegion(body, stack));</b>
+<b class="fc"><i class="no-highlight">636</i>&nbsp;		stack.pop();</b>
+<b class="fc"><i class="no-highlight">637</i>&nbsp;		return exit;</b>
+<i class="no-highlight">638</i>&nbsp;	}
+<i class="no-highlight">639</i>&nbsp;
+<i class="no-highlight">640</i>&nbsp;	/**
+<i class="no-highlight">641</i>&nbsp;	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
+<i class="no-highlight">642</i>&nbsp;	 */
+<i class="no-highlight">643</i>&nbsp;	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block, Set&lt;BlockNode&gt; exits,
+<i class="no-highlight">644</i>&nbsp;			Set&lt;BlockNode&gt; visited) {
+<b class="fc"><i class="no-highlight">645</i>&nbsp;		visited.add(block);</b>
+<b class="fc"><i class="no-highlight">646</i>&nbsp;		for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">647</i>&nbsp;			if (insn.getType() == InsnType.MONITOR_EXIT</b>
+<b class="pc"><i class="no-highlight">648</i>&nbsp;					&amp;&amp; insn.getArgsCount() &gt; 0</b>
+<b class="fc"><i class="no-highlight">649</i>&nbsp;					&amp;&amp; insn.getArg(0).equals(arg)) {</b>
+<b class="fc"><i class="no-highlight">650</i>&nbsp;				exits.add(block);</b>
+<b class="fc"><i class="no-highlight">651</i>&nbsp;				region.getExitInsns().add(insn);</b>
+<i class="no-highlight">652</i>&nbsp;				return;
+<i class="no-highlight">653</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">654</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">655</i>&nbsp;		for (BlockNode node : block.getSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">656</i>&nbsp;			if (!visited.contains(node)) {</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;				traverseMonitorExits(region, arg, node, exits, visited);</b>
+<i class="no-highlight">658</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">659</i>&nbsp;		}</b>
+<i class="no-highlight">660</i>&nbsp;	}
+<i class="no-highlight">661</i>&nbsp;
+<i class="no-highlight">662</i>&nbsp;	/**
+<i class="no-highlight">663</i>&nbsp;	 * Traverse from monitor-enter thru successors and search for exit paths cross
+<i class="no-highlight">664</i>&nbsp;	 */
+<i class="no-highlight">665</i>&nbsp;	private static BlockNode traverseMonitorExitsCross(BlockNode block, Set&lt;BlockNode&gt; exits, Set&lt;BlockNode&gt; visited) {
+<b class="fc"><i class="no-highlight">666</i>&nbsp;		visited.add(block);</b>
+<b class="fc"><i class="no-highlight">667</i>&nbsp;		for (BlockNode node : block.getCleanSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">668</i>&nbsp;			boolean cross = true;</b>
+<b class="fc"><i class="no-highlight">669</i>&nbsp;			for (BlockNode exitBlock : exits) {</b>
+<b class="fc"><i class="no-highlight">670</i>&nbsp;				boolean p = isPathExists(exitBlock, node);</b>
+<b class="fc"><i class="no-highlight">671</i>&nbsp;				if (!p) {</b>
+<b class="fc"><i class="no-highlight">672</i>&nbsp;					cross = false;</b>
+<b class="fc"><i class="no-highlight">673</i>&nbsp;					break;</b>
+<i class="no-highlight">674</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">675</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">676</i>&nbsp;			if (cross) {</b>
+<b class="fc"><i class="no-highlight">677</i>&nbsp;				return node;</b>
+<i class="no-highlight">678</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">679</i>&nbsp;			if (!visited.contains(node)) {</b>
+<b class="fc"><i class="no-highlight">680</i>&nbsp;				BlockNode res = traverseMonitorExitsCross(node, exits, visited);</b>
+<b class="fc"><i class="no-highlight">681</i>&nbsp;				if (res != null) {</b>
+<b class="fc"><i class="no-highlight">682</i>&nbsp;					return res;</b>
+<i class="no-highlight">683</i>&nbsp;				}
+<i class="no-highlight">684</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">685</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">686</i>&nbsp;		return null;</b>
+<i class="no-highlight">687</i>&nbsp;	}
+<i class="no-highlight">688</i>&nbsp;
+<i class="no-highlight">689</i>&nbsp;	private BlockNode processIf(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
+<b class="pc"><i class="no-highlight">690</i>&nbsp;		if (block.contains(AFlag.ADDED_TO_REGION)) {</b>
+<i class="no-highlight">691</i>&nbsp;			// block already included in other &#39;if&#39; region
+<b class="nc"><i class="no-highlight">692</i>&nbsp;			return ifnode.getThenBlock();</b>
+<i class="no-highlight">693</i>&nbsp;		}
+<i class="no-highlight">694</i>&nbsp;
+<b class="fc"><i class="no-highlight">695</i>&nbsp;		IfInfo currentIf = makeIfInfo(mth, block);</b>
+<b class="pc"><i class="no-highlight">696</i>&nbsp;		if (currentIf == null) {</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;			return null;</b>
+<i class="no-highlight">698</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">699</i>&nbsp;		IfInfo mergedIf = mergeNestedIfNodes(currentIf);</b>
+<b class="fc"><i class="no-highlight">700</i>&nbsp;		if (mergedIf != null) {</b>
+<b class="fc"><i class="no-highlight">701</i>&nbsp;			currentIf = mergedIf;</b>
+<i class="no-highlight">702</i>&nbsp;		} else {
+<i class="no-highlight">703</i>&nbsp;			// invert simple condition (compiler often do it)
+<b class="fc"><i class="no-highlight">704</i>&nbsp;			currentIf = IfInfo.invert(currentIf);</b>
+<i class="no-highlight">705</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">706</i>&nbsp;		IfInfo modifiedIf = IfMakerHelper.restructureIf(mth, block, currentIf);</b>
+<b class="pc"><i class="no-highlight">707</i>&nbsp;		if (modifiedIf != null) {</b>
+<b class="fc"><i class="no-highlight">708</i>&nbsp;			currentIf = modifiedIf;</b>
+<i class="no-highlight">709</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">710</i>&nbsp;			if (currentIf.getMergedBlocks().size() &lt;= 1) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;				return null;</b>
+<i class="no-highlight">712</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">713</i>&nbsp;			currentIf = makeIfInfo(mth, block);</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;			currentIf = IfMakerHelper.restructureIf(mth, block, currentIf);</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;			if (currentIf == null) {</b>
+<i class="no-highlight">716</i>&nbsp;				// all attempts failed
+<b class="nc"><i class="no-highlight">717</i>&nbsp;				return null;</b>
+<i class="no-highlight">718</i>&nbsp;			}
+<i class="no-highlight">719</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">720</i>&nbsp;		confirmMerge(currentIf);</b>
+<i class="no-highlight">721</i>&nbsp;
+<b class="fc"><i class="no-highlight">722</i>&nbsp;		IfRegion ifRegion = new IfRegion(currentRegion);</b>
+<b class="fc"><i class="no-highlight">723</i>&nbsp;		ifRegion.updateCondition(currentIf);</b>
+<b class="fc"><i class="no-highlight">724</i>&nbsp;		currentRegion.getSubBlocks().add(ifRegion);</b>
+<i class="no-highlight">725</i>&nbsp;
+<b class="fc"><i class="no-highlight">726</i>&nbsp;		BlockNode outBlock = currentIf.getOutBlock();</b>
+<b class="fc"><i class="no-highlight">727</i>&nbsp;		stack.push(ifRegion);</b>
+<b class="fc"><i class="no-highlight">728</i>&nbsp;		stack.addExit(outBlock);</b>
+<i class="no-highlight">729</i>&nbsp;
+<b class="fc"><i class="no-highlight">730</i>&nbsp;		ifRegion.setThenRegion(makeRegion(currentIf.getThenBlock(), stack));</b>
+<b class="fc"><i class="no-highlight">731</i>&nbsp;		BlockNode elseBlock = currentIf.getElseBlock();</b>
+<b class="fc"><i class="no-highlight">732</i>&nbsp;		if (elseBlock == null || stack.containsExit(elseBlock)) {</b>
+<b class="fc"><i class="no-highlight">733</i>&nbsp;			ifRegion.setElseRegion(null);</b>
+<i class="no-highlight">734</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">735</i>&nbsp;			ifRegion.setElseRegion(makeRegion(elseBlock, stack));</b>
+<i class="no-highlight">736</i>&nbsp;		}
+<i class="no-highlight">737</i>&nbsp;
+<i class="no-highlight">738</i>&nbsp;		// insert edge insns in new &#39;else&#39; branch
+<i class="no-highlight">739</i>&nbsp;		// TODO: make more common algorithm
+<b class="fc"><i class="no-highlight">740</i>&nbsp;		if (ifRegion.getElseRegion() == null &amp;&amp; outBlock != null) {</b>
+<b class="fc"><i class="no-highlight">741</i>&nbsp;			List&lt;EdgeInsnAttr&gt; edgeInsnAttrs = outBlock.getAll(AType.EDGE_INSN);</b>
+<b class="fc"><i class="no-highlight">742</i>&nbsp;			if (!edgeInsnAttrs.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">743</i>&nbsp;				Region elseRegion = new Region(ifRegion);</b>
+<b class="fc"><i class="no-highlight">744</i>&nbsp;				for (EdgeInsnAttr edgeInsnAttr : edgeInsnAttrs) {</b>
+<b class="pc"><i class="no-highlight">745</i>&nbsp;					if (edgeInsnAttr.getEnd().equals(outBlock)) {</b>
+<b class="fc"><i class="no-highlight">746</i>&nbsp;						addEdgeInsn(currentIf, elseRegion, edgeInsnAttr);</b>
+<i class="no-highlight">747</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">748</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">749</i>&nbsp;				ifRegion.setElseRegion(elseRegion);</b>
+<i class="no-highlight">750</i>&nbsp;			}
+<i class="no-highlight">751</i>&nbsp;		}
+<i class="no-highlight">752</i>&nbsp;
+<b class="fc"><i class="no-highlight">753</i>&nbsp;		stack.pop();</b>
+<b class="fc"><i class="no-highlight">754</i>&nbsp;		return outBlock;</b>
+<i class="no-highlight">755</i>&nbsp;	}
+<i class="no-highlight">756</i>&nbsp;
+<i class="no-highlight">757</i>&nbsp;	private void addEdgeInsn(IfInfo ifInfo, Region region, EdgeInsnAttr edgeInsnAttr) {
+<b class="fc"><i class="no-highlight">758</i>&nbsp;		BlockNode start = edgeInsnAttr.getStart();</b>
+<b class="fc"><i class="no-highlight">759</i>&nbsp;		boolean fromThisIf = false;</b>
+<b class="fc"><i class="no-highlight">760</i>&nbsp;		for (BlockNode ifBlock : ifInfo.getMergedBlocks()) {</b>
+<b class="fc"><i class="no-highlight">761</i>&nbsp;			if (ifBlock.getSuccessors().contains(start)) {</b>
+<b class="fc"><i class="no-highlight">762</i>&nbsp;				fromThisIf = true;</b>
+<b class="fc"><i class="no-highlight">763</i>&nbsp;				break;</b>
+<i class="no-highlight">764</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">765</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">766</i>&nbsp;		if (!fromThisIf) {</b>
+<i class="no-highlight">767</i>&nbsp;			return;
+<i class="no-highlight">768</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">769</i>&nbsp;		region.add(start);</b>
+<i class="no-highlight">770</i>&nbsp;	}
+<i class="no-highlight">771</i>&nbsp;
+<i class="no-highlight">772</i>&nbsp;	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchInsn insn, RegionStack stack) {
+<i class="no-highlight">773</i>&nbsp;		// map case blocks to keys
+<b class="fc"><i class="no-highlight">774</i>&nbsp;		int len = insn.getTargets().length;</b>
+<b class="fc"><i class="no-highlight">775</i>&nbsp;		Map&lt;BlockNode, List&lt;Object&gt;&gt; blocksMap = new LinkedHashMap&lt;&gt;(len);</b>
+<b class="fc"><i class="no-highlight">776</i>&nbsp;		BlockNode[] targetBlocksArr = insn.getTargetBlocks();</b>
+<b class="fc"><i class="no-highlight">777</i>&nbsp;		for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">778</i>&nbsp;			List&lt;Object&gt; keys = blocksMap.computeIfAbsent(targetBlocksArr[i], k -&gt; new ArrayList&lt;&gt;(2));</b>
+<b class="fc"><i class="no-highlight">779</i>&nbsp;			keys.add(insn.getKey(i));</b>
+<i class="no-highlight">780</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">781</i>&nbsp;		BlockNode defCase = insn.getDefTargetBlock();</b>
+<b class="pc"><i class="no-highlight">782</i>&nbsp;		if (defCase != null) {</b>
+<b class="fc"><i class="no-highlight">783</i>&nbsp;			List&lt;Object&gt; keys = blocksMap.computeIfAbsent(defCase, k -&gt; new ArrayList&lt;&gt;(1));</b>
+<b class="fc"><i class="no-highlight">784</i>&nbsp;			keys.add(SwitchRegion.DEFAULT_CASE_KEY);</b>
+<i class="no-highlight">785</i>&nbsp;		}
+<i class="no-highlight">786</i>&nbsp;
+<i class="no-highlight">787</i>&nbsp;		// search &#39;out&#39; block - &#39;next&#39; block after whole switch statement
+<i class="no-highlight">788</i>&nbsp;		BlockNode out;
+<b class="fc"><i class="no-highlight">789</i>&nbsp;		LoopInfo loop = mth.getLoopForBlock(block);</b>
+<b class="fc"><i class="no-highlight">790</i>&nbsp;		if (loop == null) {</b>
+<b class="fc"><i class="no-highlight">791</i>&nbsp;			out = calcPostDomOut(mth, block, mth.getPreExitBlocks());</b>
+<i class="no-highlight">792</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">793</i>&nbsp;			BlockNode loopEnd = loop.getEnd();</b>
+<b class="fc"><i class="no-highlight">794</i>&nbsp;			stack.addExit(loop.getStart());</b>
+<b class="fc"><i class="no-highlight">795</i>&nbsp;			if (stack.containsExit(block)</b>
+<i class="no-highlight">796</i>&nbsp;					|| block == loopEnd
+<b class="pc"><i class="no-highlight">797</i>&nbsp;					|| loopEnd.getPredecessors().contains(block)) {</b>
+<i class="no-highlight">798</i>&nbsp;				// in exits or last insn in loop =&gt; no &#39;out&#39; block
+<b class="fc"><i class="no-highlight">799</i>&nbsp;				out = null;</b>
+<i class="no-highlight">800</i>&nbsp;			} else {
+<i class="no-highlight">801</i>&nbsp;				// treat &#39;continue&#39; as exit
+<b class="fc"><i class="no-highlight">802</i>&nbsp;				out = calcPostDomOut(mth, block, loopEnd.getPredecessors());</b>
+<b class="fc"><i class="no-highlight">803</i>&nbsp;				if (out != null) {</b>
+<b class="fc"><i class="no-highlight">804</i>&nbsp;					insertContinueInSwitch(block, out, loopEnd);</b>
+<i class="no-highlight">805</i>&nbsp;				} else {
+<i class="no-highlight">806</i>&nbsp;					// no &#39;continue&#39;
+<b class="fc"><i class="no-highlight">807</i>&nbsp;					out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));</b>
+<i class="no-highlight">808</i>&nbsp;				}
+<i class="no-highlight">809</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">810</i>&nbsp;			if (out == loop.getStart()) {</b>
+<i class="no-highlight">811</i>&nbsp;				// no other outs instead back edge to loop start
+<b class="nc"><i class="no-highlight">812</i>&nbsp;				out = null;</b>
+<i class="no-highlight">813</i>&nbsp;			}
+<i class="no-highlight">814</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">815</i>&nbsp;		if (out != null &amp;&amp; processedBlocks.get(out.getId())) {</b>
+<i class="no-highlight">816</i>&nbsp;			// out block already processed, prevent endless loop
+<b class="nc"><i class="no-highlight">817</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to find switch &#39;out&#39; block&quot;);</b>
+<i class="no-highlight">818</i>&nbsp;		}
+<i class="no-highlight">819</i>&nbsp;
+<b class="fc"><i class="no-highlight">820</i>&nbsp;		SwitchRegion sw = new SwitchRegion(currentRegion, block);</b>
+<b class="fc"><i class="no-highlight">821</i>&nbsp;		currentRegion.getSubBlocks().add(sw);</b>
+<b class="fc"><i class="no-highlight">822</i>&nbsp;		stack.push(sw);</b>
+<b class="fc"><i class="no-highlight">823</i>&nbsp;		stack.addExit(out);</b>
+<i class="no-highlight">824</i>&nbsp;
+<i class="no-highlight">825</i>&nbsp;		// detect fallthrough cases
+<b class="fc"><i class="no-highlight">826</i>&nbsp;		Map&lt;BlockNode, BlockNode&gt; fallThroughCases = new LinkedHashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">827</i>&nbsp;		if (out != null) {</b>
+<b class="fc"><i class="no-highlight">828</i>&nbsp;			BitSet caseBlocks = BlockUtils.blocksToBitSet(mth, blocksMap.keySet());</b>
+<b class="fc"><i class="no-highlight">829</i>&nbsp;			caseBlocks.clear(out.getId());</b>
+<b class="fc"><i class="no-highlight">830</i>&nbsp;			for (BlockNode successor : block.getCleanSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">831</i>&nbsp;				BlockNode fallThroughBlock = searchFallThroughCase(successor, out, caseBlocks);</b>
+<b class="fc"><i class="no-highlight">832</i>&nbsp;				if (fallThroughBlock != null) {</b>
+<b class="fc"><i class="no-highlight">833</i>&nbsp;					fallThroughCases.put(successor, fallThroughBlock);</b>
+<i class="no-highlight">834</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">835</i>&nbsp;			}</b>
+<i class="no-highlight">836</i>&nbsp;			// check fallthrough cases order
+<b class="pc"><i class="no-highlight">837</i>&nbsp;			if (!fallThroughCases.isEmpty() &amp;&amp; isBadCasesOrder(blocksMap, fallThroughCases)) {</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;				Map&lt;BlockNode, List&lt;Object&gt;&gt; newBlocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;				if (isBadCasesOrder(newBlocksMap, fallThroughCases)) {</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;					mth.addWarnComment(&quot;Can&#39;t fix incorrect switch cases order, some code will duplicate&quot;);</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;					fallThroughCases.clear();</b>
+<i class="no-highlight">842</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">843</i>&nbsp;					blocksMap = newBlocksMap;</b>
+<i class="no-highlight">844</i>&nbsp;				}
+<i class="no-highlight">845</i>&nbsp;			}
+<i class="no-highlight">846</i>&nbsp;		}
+<i class="no-highlight">847</i>&nbsp;
+<b class="fc"><i class="no-highlight">848</i>&nbsp;		for (Entry&lt;BlockNode, List&lt;Object&gt;&gt; entry : blocksMap.entrySet()) {</b>
+<b class="fc"><i class="no-highlight">849</i>&nbsp;			List&lt;Object&gt; keysList = entry.getValue();</b>
+<b class="fc"><i class="no-highlight">850</i>&nbsp;			BlockNode caseBlock = entry.getKey();</b>
+<b class="fc"><i class="no-highlight">851</i>&nbsp;			if (stack.containsExit(caseBlock)) {</b>
+<b class="fc"><i class="no-highlight">852</i>&nbsp;				sw.addCase(keysList, new Region(stack.peekRegion()));</b>
+<i class="no-highlight">853</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">854</i>&nbsp;				BlockNode next = fallThroughCases.get(caseBlock);</b>
+<b class="fc"><i class="no-highlight">855</i>&nbsp;				stack.addExit(next);</b>
+<b class="fc"><i class="no-highlight">856</i>&nbsp;				Region caseRegion = makeRegion(caseBlock, stack);</b>
+<b class="fc"><i class="no-highlight">857</i>&nbsp;				stack.removeExit(next);</b>
+<b class="fc"><i class="no-highlight">858</i>&nbsp;				if (next != null) {</b>
+<b class="fc"><i class="no-highlight">859</i>&nbsp;					next.add(AFlag.FALL_THROUGH);</b>
+<b class="fc"><i class="no-highlight">860</i>&nbsp;					caseRegion.add(AFlag.FALL_THROUGH);</b>
+<i class="no-highlight">861</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">862</i>&nbsp;				sw.addCase(keysList, caseRegion);</b>
+<i class="no-highlight">863</i>&nbsp;				// &#39;break&#39; instruction will be inserted in RegionMakerVisitor.PostRegionVisitor
+<i class="no-highlight">864</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">865</i>&nbsp;		}</b>
+<i class="no-highlight">866</i>&nbsp;
+<b class="fc"><i class="no-highlight">867</i>&nbsp;		removeEmptyCases(insn, sw, defCase);</b>
+<i class="no-highlight">868</i>&nbsp;
+<b class="fc"><i class="no-highlight">869</i>&nbsp;		stack.pop();</b>
+<b class="fc"><i class="no-highlight">870</i>&nbsp;		return out;</b>
+<i class="no-highlight">871</i>&nbsp;	}
+<i class="no-highlight">872</i>&nbsp;
+<i class="no-highlight">873</i>&nbsp;	@Nullable
+<i class="no-highlight">874</i>&nbsp;	private BlockNode searchFallThroughCase(BlockNode successor, BlockNode out, BitSet caseBlocks) {
+<b class="fc"><i class="no-highlight">875</i>&nbsp;		BitSet df = successor.getDomFrontier();</b>
+<b class="fc"><i class="no-highlight">876</i>&nbsp;		if (df.intersects(caseBlocks)) {</b>
+<b class="fc"><i class="no-highlight">877</i>&nbsp;			return getOneIntersectionBlock(out, caseBlocks, df);</b>
+<i class="no-highlight">878</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">879</i>&nbsp;		Set&lt;BlockNode&gt; allPathsBlocks = BlockUtils.getAllPathsBlocks(successor, out);</b>
+<b class="fc"><i class="no-highlight">880</i>&nbsp;		Map&lt;BlockNode, BitSet&gt; bitSetMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);</b>
+<b class="fc"><i class="no-highlight">881</i>&nbsp;		BitSet pdoms = bitSetMap.get(successor);</b>
+<b class="pc"><i class="no-highlight">882</i>&nbsp;		if (pdoms != null &amp;&amp; pdoms.intersects(caseBlocks)) {</b>
+<b class="fc"><i class="no-highlight">883</i>&nbsp;			return getOneIntersectionBlock(out, caseBlocks, pdoms);</b>
+<i class="no-highlight">884</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">885</i>&nbsp;		return null;</b>
+<i class="no-highlight">886</i>&nbsp;	}
+<i class="no-highlight">887</i>&nbsp;
+<i class="no-highlight">888</i>&nbsp;	@Nullable
+<i class="no-highlight">889</i>&nbsp;	private BlockNode getOneIntersectionBlock(BlockNode out, BitSet caseBlocks, BitSet fallThroughSet) {
+<b class="fc"><i class="no-highlight">890</i>&nbsp;		BitSet caseExits = BlockUtils.copyBlocksBitSet(mth, fallThroughSet);</b>
+<b class="fc"><i class="no-highlight">891</i>&nbsp;		caseExits.clear(out.getId());</b>
+<b class="fc"><i class="no-highlight">892</i>&nbsp;		caseExits.and(caseBlocks);</b>
+<b class="fc"><i class="no-highlight">893</i>&nbsp;		return BlockUtils.bitSetToOneBlock(mth, caseExits);</b>
+<i class="no-highlight">894</i>&nbsp;	}
+<i class="no-highlight">895</i>&nbsp;
+<i class="no-highlight">896</i>&nbsp;	@Nullable
+<i class="no-highlight">897</i>&nbsp;	private static BlockNode calcPostDomOut(MethodNode mth, BlockNode block, List&lt;BlockNode&gt; exits) {
+<b class="pc"><i class="no-highlight">898</i>&nbsp;		if (exits.size() == 1 &amp;&amp; mth.getExitBlock().equals(exits.get(0))) {</b>
+<i class="no-highlight">899</i>&nbsp;			// simple case: for only one exit which is equal to method exit block
+<b class="nc"><i class="no-highlight">900</i>&nbsp;			return BlockUtils.calcImmediatePostDominator(mth, block);</b>
+<i class="no-highlight">901</i>&nbsp;		}
+<i class="no-highlight">902</i>&nbsp;		// fast search: union of blocks dominance frontier
+<i class="no-highlight">903</i>&nbsp;		// work if no fallthrough cases and no returns inside switch
+<b class="fc"><i class="no-highlight">904</i>&nbsp;		BitSet outs = BlockUtils.copyBlocksBitSet(mth, block.getDomFrontier());</b>
+<b class="fc"><i class="no-highlight">905</i>&nbsp;		for (BlockNode s : block.getCleanSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">906</i>&nbsp;			outs.or(s.getDomFrontier());</b>
+<b class="fc"><i class="no-highlight">907</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">908</i>&nbsp;		outs.clear(block.getId());</b>
+<i class="no-highlight">909</i>&nbsp;
+<b class="fc"><i class="no-highlight">910</i>&nbsp;		if (outs.cardinality() != 1) {</b>
+<i class="no-highlight">911</i>&nbsp;			// slow search: calculate partial post-dominance for every exit node
+<b class="fc"><i class="no-highlight">912</i>&nbsp;			BitSet ipdoms = BlockUtils.newBlocksBitSet(mth);</b>
+<b class="fc"><i class="no-highlight">913</i>&nbsp;			for (BlockNode exitBlock : exits) {</b>
+<b class="fc"><i class="no-highlight">914</i>&nbsp;				if (BlockUtils.isAnyPathExists(block, exitBlock)) {</b>
+<b class="fc"><i class="no-highlight">915</i>&nbsp;					Set&lt;BlockNode&gt; pathBlocks = BlockUtils.getAllPathsBlocks(block, exitBlock);</b>
+<b class="fc"><i class="no-highlight">916</i>&nbsp;					BlockNode ipdom = BlockUtils.calcPartialImmediatePostDominator(mth, block, pathBlocks, exitBlock);</b>
+<b class="pc"><i class="no-highlight">917</i>&nbsp;					if (ipdom != null) {</b>
+<b class="fc"><i class="no-highlight">918</i>&nbsp;						ipdoms.set(ipdom.getId());</b>
+<i class="no-highlight">919</i>&nbsp;					}
+<i class="no-highlight">920</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">921</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">922</i>&nbsp;			outs.and(ipdoms);</b>
+<i class="no-highlight">923</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">924</i>&nbsp;		return BlockUtils.bitSetToOneBlock(mth, outs);</b>
+<i class="no-highlight">925</i>&nbsp;	}
+<i class="no-highlight">926</i>&nbsp;
+<i class="no-highlight">927</i>&nbsp;	/**
+<i class="no-highlight">928</i>&nbsp;	 * Remove empty case blocks:
+<i class="no-highlight">929</i>&nbsp;	 * 1. single &#39;default&#39; case
+<i class="no-highlight">930</i>&nbsp;	 * 2. filler cases if switch is &#39;packed&#39; and &#39;default&#39; case is empty
+<i class="no-highlight">931</i>&nbsp;	 */
+<i class="no-highlight">932</i>&nbsp;	private void removeEmptyCases(SwitchInsn insn, SwitchRegion sw, BlockNode defCase) {
+<i class="no-highlight">933</i>&nbsp;		boolean defaultCaseIsEmpty;
+<b class="pc"><i class="no-highlight">934</i>&nbsp;		if (defCase == null) {</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;			defaultCaseIsEmpty = true;</b>
+<i class="no-highlight">936</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">937</i>&nbsp;			defaultCaseIsEmpty = sw.getCases().stream()</b>
+<b class="fc"><i class="no-highlight">938</i>&nbsp;					.anyMatch(c -&gt; c.getKeys().contains(SwitchRegion.DEFAULT_CASE_KEY)</b>
+<b class="fc"><i class="no-highlight">939</i>&nbsp;							&amp;&amp; RegionUtils.isEmpty(c.getContainer()));</b>
+<i class="no-highlight">940</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">941</i>&nbsp;		if (defaultCaseIsEmpty) {</b>
+<b class="fc"><i class="no-highlight">942</i>&nbsp;			sw.getCases().removeIf(caseInfo -&gt; {</b>
+<b class="fc"><i class="no-highlight">943</i>&nbsp;				if (RegionUtils.isEmpty(caseInfo.getContainer())) {</b>
+<b class="fc"><i class="no-highlight">944</i>&nbsp;					List&lt;Object&gt; keys = caseInfo.getKeys();</b>
+<b class="pc"><i class="no-highlight">945</i>&nbsp;					if (keys.contains(SwitchRegion.DEFAULT_CASE_KEY)) {</b>
+<b class="fc"><i class="no-highlight">946</i>&nbsp;						return true;</b>
+<i class="no-highlight">947</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">948</i>&nbsp;					if (insn.isPacked()) {</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;						return true;</b>
+<i class="no-highlight">950</i>&nbsp;					}
+<i class="no-highlight">951</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">952</i>&nbsp;				return false;</b>
+<i class="no-highlight">953</i>&nbsp;			});
+<i class="no-highlight">954</i>&nbsp;		}
+<i class="no-highlight">955</i>&nbsp;	}
+<i class="no-highlight">956</i>&nbsp;
+<i class="no-highlight">957</i>&nbsp;	private boolean isBadCasesOrder(Map&lt;BlockNode, List&lt;Object&gt;&gt; blocksMap, Map&lt;BlockNode, BlockNode&gt; fallThroughCases) {
+<b class="fc"><i class="no-highlight">958</i>&nbsp;		BlockNode nextCaseBlock = null;</b>
+<b class="fc"><i class="no-highlight">959</i>&nbsp;		for (BlockNode caseBlock : blocksMap.keySet()) {</b>
+<b class="pc"><i class="no-highlight">960</i>&nbsp;			if (nextCaseBlock != null &amp;&amp; !caseBlock.equals(nextCaseBlock)) {</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;				return true;</b>
+<i class="no-highlight">962</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">963</i>&nbsp;			nextCaseBlock = fallThroughCases.get(caseBlock);</b>
+<b class="fc"><i class="no-highlight">964</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">965</i>&nbsp;		return nextCaseBlock != null;</b>
+<i class="no-highlight">966</i>&nbsp;	}
+<i class="no-highlight">967</i>&nbsp;
+<i class="no-highlight">968</i>&nbsp;	private Map&lt;BlockNode, List&lt;Object&gt;&gt; reOrderSwitchCases(Map&lt;BlockNode, List&lt;Object&gt;&gt; blocksMap,
+<i class="no-highlight">969</i>&nbsp;			Map&lt;BlockNode, BlockNode&gt; fallThroughCases) {
+<b class="nc"><i class="no-highlight">970</i>&nbsp;		List&lt;BlockNode&gt; list = new ArrayList&lt;&gt;(blocksMap.size());</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;		list.addAll(blocksMap.keySet());</b>
+<b class="nc"><i class="no-highlight">972</i>&nbsp;		list.sort((a, b) -&gt; {</b>
+<b class="nc"><i class="no-highlight">973</i>&nbsp;			BlockNode nextA = fallThroughCases.get(a);</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;			if (nextA != null) {</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;				if (b.equals(nextA)) {</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;					return -1;</b>
+<i class="no-highlight">977</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">978</i>&nbsp;			} else if (a.equals(fallThroughCases.get(b))) {</b>
+<b class="nc"><i class="no-highlight">979</i>&nbsp;				return 1;</b>
+<i class="no-highlight">980</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">981</i>&nbsp;			return 0;</b>
+<i class="no-highlight">982</i>&nbsp;		});
+<i class="no-highlight">983</i>&nbsp;
+<b class="nc"><i class="no-highlight">984</i>&nbsp;		Map&lt;BlockNode, List&lt;Object&gt;&gt; newBlocksMap = new LinkedHashMap&lt;&gt;(blocksMap.size());</b>
+<b class="nc"><i class="no-highlight">985</i>&nbsp;		for (BlockNode key : list) {</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;			newBlocksMap.put(key, blocksMap.get(key));</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;		return newBlocksMap;</b>
+<i class="no-highlight">989</i>&nbsp;	}
+<i class="no-highlight">990</i>&nbsp;
+<i class="no-highlight">991</i>&nbsp;	private void insertContinueInSwitch(BlockNode block, BlockNode out, BlockNode end) {
+<b class="fc"><i class="no-highlight">992</i>&nbsp;		int endId = end.getId();</b>
+<b class="fc"><i class="no-highlight">993</i>&nbsp;		for (BlockNode s : block.getCleanSuccessors()) {</b>
+<b class="pc"><i class="no-highlight">994</i>&nbsp;			if (s.getDomFrontier().get(endId) &amp;&amp; s != out) {</b>
+<i class="no-highlight">995</i>&nbsp;				// search predecessor of loop end on path from this successor
+<b class="fc"><i class="no-highlight">996</i>&nbsp;				List&lt;BlockNode&gt; list = BlockUtils.collectBlocksDominatedBy(mth, s, s);</b>
+<b class="pc"><i class="no-highlight">997</i>&nbsp;				for (BlockNode p : end.getPredecessors()) {</b>
+<b class="fc"><i class="no-highlight">998</i>&nbsp;					if (list.contains(p)) {</b>
+<b class="pc"><i class="no-highlight">999</i>&nbsp;						if (p.isSynthetic()) {</b>
+<b class="fc"><i class="no-highlight">1000</i>&nbsp;							p.getInstructions().add(new InsnNode(InsnType.CONTINUE, 0));</b>
+<i class="no-highlight">1001</i>&nbsp;						}
+<i class="no-highlight">1002</i>&nbsp;						break;
+<i class="no-highlight">1003</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">1004</i>&nbsp;				}</b>
+<i class="no-highlight">1005</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">1006</i>&nbsp;		}</b>
+<i class="no-highlight">1007</i>&nbsp;	}
+<i class="no-highlight">1008</i>&nbsp;
+<i class="no-highlight">1009</i>&nbsp;	public IRegion processTryCatchBlocks(MethodNode mth) {
+<b class="fc"><i class="no-highlight">1010</i>&nbsp;		List&lt;TryCatchBlockAttr&gt; tcs = mth.getAll(AType.TRY_BLOCKS_LIST);</b>
+<b class="fc"><i class="no-highlight">1011</i>&nbsp;		for (TryCatchBlockAttr tc : tcs) {</b>
+<b class="fc"><i class="no-highlight">1012</i>&nbsp;			List&lt;BlockNode&gt; blocks = new ArrayList&lt;&gt;(tc.getHandlersCount());</b>
+<b class="fc"><i class="no-highlight">1013</i>&nbsp;			Set&lt;BlockNode&gt; splitters = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">1014</i>&nbsp;			for (ExceptionHandler handler : tc.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">1015</i>&nbsp;				BlockNode handlerBlock = handler.getHandlerBlock();</b>
+<b class="pc"><i class="no-highlight">1016</i>&nbsp;				if (handlerBlock != null) {</b>
+<b class="fc"><i class="no-highlight">1017</i>&nbsp;					blocks.add(handlerBlock);</b>
+<b class="fc"><i class="no-highlight">1018</i>&nbsp;					splitters.add(BlockUtils.getTopSplitterForHandler(handlerBlock));</b>
+<i class="no-highlight">1019</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;					mth.addDebugComment(&quot;No exception handler block: &quot; + handler);</b>
+<i class="no-highlight">1021</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">1022</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">1023</i>&nbsp;			Set&lt;BlockNode&gt; exits = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">1024</i>&nbsp;			for (BlockNode splitter : splitters) {</b>
+<b class="fc"><i class="no-highlight">1025</i>&nbsp;				for (BlockNode handler : blocks) {</b>
+<b class="pc"><i class="no-highlight">1026</i>&nbsp;					if (handler.contains(AFlag.REMOVE)) {</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;						continue;</b>
+<i class="no-highlight">1028</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">1029</i>&nbsp;					List&lt;BlockNode&gt; s = splitter.getSuccessors();</b>
+<b class="pc"><i class="no-highlight">1030</i>&nbsp;					if (s.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;						mth.addDebugComment(&quot;No successors for splitter: &quot; + splitter);</b>
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;						continue;</b>
+<i class="no-highlight">1033</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">1034</i>&nbsp;					BlockNode ss = s.get(0);</b>
+<b class="fc"><i class="no-highlight">1035</i>&nbsp;					BlockNode cross = BlockUtils.getPathCross(mth, ss, handler);</b>
+<b class="pc"><i class="no-highlight">1036</i>&nbsp;					if (cross != null &amp;&amp; cross != ss &amp;&amp; cross != handler) {</b>
+<b class="fc"><i class="no-highlight">1037</i>&nbsp;						exits.add(cross);</b>
+<i class="no-highlight">1038</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">1039</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">1040</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">1041</i>&nbsp;			for (ExceptionHandler handler : tc.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">1042</i>&nbsp;				processExcHandler(mth, handler, exits);</b>
+<b class="fc"><i class="no-highlight">1043</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">1044</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">1045</i>&nbsp;		return processHandlersOutBlocks(mth, tcs);</b>
+<i class="no-highlight">1046</i>&nbsp;	}
+<i class="no-highlight">1047</i>&nbsp;
+<i class="no-highlight">1048</i>&nbsp;	/**
+<i class="no-highlight">1049</i>&nbsp;	 * Search handlers successor blocks not included in any region.
+<i class="no-highlight">1050</i>&nbsp;	 */
+<i class="no-highlight">1051</i>&nbsp;	protected IRegion processHandlersOutBlocks(MethodNode mth, List&lt;TryCatchBlockAttr&gt; tcs) {
+<b class="fc"><i class="no-highlight">1052</i>&nbsp;		Set&lt;IBlock&gt; allRegionBlocks = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">1053</i>&nbsp;		RegionUtils.getAllRegionBlocks(mth.getRegion(), allRegionBlocks);</b>
+<i class="no-highlight">1054</i>&nbsp;
+<b class="fc"><i class="no-highlight">1055</i>&nbsp;		Set&lt;IBlock&gt; succBlocks = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">1056</i>&nbsp;		for (TryCatchBlockAttr tc : tcs) {</b>
+<b class="fc"><i class="no-highlight">1057</i>&nbsp;			for (ExceptionHandler handler : tc.getHandlers()) {</b>
+<b class="fc"><i class="no-highlight">1058</i>&nbsp;				IContainer region = handler.getHandlerRegion();</b>
+<b class="pc"><i class="no-highlight">1059</i>&nbsp;				if (region != null) {</b>
+<b class="fc"><i class="no-highlight">1060</i>&nbsp;					IBlock lastBlock = RegionUtils.getLastBlock(region);</b>
+<b class="fc"><i class="no-highlight">1061</i>&nbsp;					if (lastBlock instanceof BlockNode) {</b>
+<b class="fc"><i class="no-highlight">1062</i>&nbsp;						succBlocks.addAll(((BlockNode) lastBlock).getSuccessors());</b>
+<i class="no-highlight">1063</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">1064</i>&nbsp;					RegionUtils.getAllRegionBlocks(region, allRegionBlocks);</b>
+<i class="no-highlight">1065</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">1066</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">1067</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">1068</i>&nbsp;		succBlocks.removeAll(allRegionBlocks);</b>
+<b class="fc"><i class="no-highlight">1069</i>&nbsp;		if (succBlocks.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">1070</i>&nbsp;			return null;</b>
+<i class="no-highlight">1071</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1072</i>&nbsp;		Region excOutRegion = new Region(mth.getRegion());</b>
+<b class="fc"><i class="no-highlight">1073</i>&nbsp;		for (IBlock block : succBlocks) {</b>
+<b class="pc"><i class="no-highlight">1074</i>&nbsp;			if (block instanceof BlockNode) {</b>
+<b class="fc"><i class="no-highlight">1075</i>&nbsp;				excOutRegion.add(makeRegion((BlockNode) block, new RegionStack(mth)));</b>
+<i class="no-highlight">1076</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">1077</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">1078</i>&nbsp;		return excOutRegion;</b>
+<i class="no-highlight">1079</i>&nbsp;	}
+<i class="no-highlight">1080</i>&nbsp;
+<i class="no-highlight">1081</i>&nbsp;	private void processExcHandler(MethodNode mth, ExceptionHandler handler, Set&lt;BlockNode&gt; exits) {
+<b class="fc"><i class="no-highlight">1082</i>&nbsp;		BlockNode start = handler.getHandlerBlock();</b>
+<b class="pc"><i class="no-highlight">1083</i>&nbsp;		if (start == null) {</b>
+<i class="no-highlight">1084</i>&nbsp;			return;
+<i class="no-highlight">1085</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1086</i>&nbsp;		RegionStack stack = new RegionStack(this.mth);</b>
+<i class="no-highlight">1087</i>&nbsp;		BlockNode dom;
+<b class="fc"><i class="no-highlight">1088</i>&nbsp;		if (handler.isFinally()) {</b>
+<b class="fc"><i class="no-highlight">1089</i>&nbsp;			dom = BlockUtils.getTopSplitterForHandler(start);</b>
+<i class="no-highlight">1090</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">1091</i>&nbsp;			dom = start;</b>
+<b class="fc"><i class="no-highlight">1092</i>&nbsp;			stack.addExits(exits);</b>
+<i class="no-highlight">1093</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">1094</i>&nbsp;		if (dom.contains(AFlag.REMOVE)) {</b>
+<i class="no-highlight">1095</i>&nbsp;			return;
+<i class="no-highlight">1096</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1097</i>&nbsp;		BitSet domFrontier = dom.getDomFrontier();</b>
+<b class="fc"><i class="no-highlight">1098</i>&nbsp;		List&lt;BlockNode&gt; handlerExits = BlockUtils.bitSetToBlocks(this.mth, domFrontier);</b>
+<b class="fc"><i class="no-highlight">1099</i>&nbsp;		boolean inLoop = this.mth.getLoopForBlock(start) != null;</b>
+<b class="fc"><i class="no-highlight">1100</i>&nbsp;		for (BlockNode exit : handlerExits) {</b>
+<b class="fc"><i class="no-highlight">1101</i>&nbsp;			if ((!inLoop || BlockUtils.isPathExists(start, exit))</b>
+<b class="fc"><i class="no-highlight">1102</i>&nbsp;					&amp;&amp; RegionUtils.isRegionContainsBlock(this.mth.getRegion(), exit)) {</b>
+<b class="fc"><i class="no-highlight">1103</i>&nbsp;				stack.addExit(exit);</b>
+<i class="no-highlight">1104</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">1105</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">1106</i>&nbsp;		handler.setHandlerRegion(makeRegion(start, stack));</b>
+<i class="no-highlight">1107</i>&nbsp;
+<b class="fc"><i class="no-highlight">1108</i>&nbsp;		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);</b>
+<b class="pc"><i class="no-highlight">1109</i>&nbsp;		if (excHandlerAttr == null) {</b>
+<b class="nc"><i class="no-highlight">1110</i>&nbsp;			mth.addWarn(&quot;Missing exception handler attribute for start block: &quot; + start);</b>
+<i class="no-highlight">1111</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">1112</i>&nbsp;			handler.getHandlerRegion().addAttr(excHandlerAttr);</b>
+<i class="no-highlight">1113</i>&nbsp;		}
+<i class="no-highlight">1114</i>&nbsp;	}
+<i class="no-highlight">1115</i>&nbsp;
+<i class="no-highlight">1116</i>&nbsp;	static boolean isEqualPaths(BlockNode b1, BlockNode b2) {
+<b class="fc"><i class="no-highlight">1117</i>&nbsp;		if (b1 == b2) {</b>
+<b class="fc"><i class="no-highlight">1118</i>&nbsp;			return true;</b>
+<i class="no-highlight">1119</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">1120</i>&nbsp;		if (b1 == null || b2 == null) {</b>
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;			return false;</b>
+<i class="no-highlight">1122</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1123</i>&nbsp;		return isEqualReturnBlocks(b1, b2) || isEmptySyntheticPath(b1, b2);</b>
+<i class="no-highlight">1124</i>&nbsp;	}
+<i class="no-highlight">1125</i>&nbsp;
+<i class="no-highlight">1126</i>&nbsp;	private static boolean isEmptySyntheticPath(BlockNode b1, BlockNode b2) {
+<b class="fc"><i class="no-highlight">1127</i>&nbsp;		BlockNode n1 = followEmptyPath(b1);</b>
+<b class="fc"><i class="no-highlight">1128</i>&nbsp;		BlockNode n2 = followEmptyPath(b2);</b>
+<b class="fc"><i class="no-highlight">1129</i>&nbsp;		return n1 == n2 || isEqualReturnBlocks(n1, n2);</b>
+<i class="no-highlight">1130</i>&nbsp;	}
+<i class="no-highlight">1131</i>&nbsp;
+<i class="no-highlight">1132</i>&nbsp;	public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
+<b class="fc"><i class="no-highlight">1133</i>&nbsp;		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {</b>
+<b class="fc"><i class="no-highlight">1134</i>&nbsp;			return false;</b>
+<i class="no-highlight">1135</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1136</i>&nbsp;		List&lt;InsnNode&gt; b1Insns = b1.getInstructions();</b>
+<b class="fc"><i class="no-highlight">1137</i>&nbsp;		List&lt;InsnNode&gt; b2Insns = b2.getInstructions();</b>
+<b class="pc"><i class="no-highlight">1138</i>&nbsp;		if (b1Insns.size() != 1 || b2Insns.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">1139</i>&nbsp;			return false;</b>
+<i class="no-highlight">1140</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1141</i>&nbsp;		InsnNode i1 = b1Insns.get(0);</b>
+<b class="fc"><i class="no-highlight">1142</i>&nbsp;		InsnNode i2 = b2Insns.get(0);</b>
+<b class="pc"><i class="no-highlight">1143</i>&nbsp;		if (i1.getArgsCount() != i2.getArgsCount()) {</b>
+<b class="nc"><i class="no-highlight">1144</i>&nbsp;			return false;</b>
+<i class="no-highlight">1145</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1146</i>&nbsp;		if (i1.getArgsCount() == 0) {</b>
+<b class="fc"><i class="no-highlight">1147</i>&nbsp;			return true;</b>
+<i class="no-highlight">1148</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1149</i>&nbsp;		InsnArg firstArg = i1.getArg(0);</b>
+<b class="fc"><i class="no-highlight">1150</i>&nbsp;		InsnArg secondArg = i2.getArg(0);</b>
+<b class="fc"><i class="no-highlight">1151</i>&nbsp;		if (firstArg.isSameConst(secondArg)) {</b>
+<b class="fc"><i class="no-highlight">1152</i>&nbsp;			return true;</b>
+<i class="no-highlight">1153</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1154</i>&nbsp;		if (i1.getSourceLine() != i2.getSourceLine()) {</b>
+<b class="fc"><i class="no-highlight">1155</i>&nbsp;			return false;</b>
+<i class="no-highlight">1156</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1157</i>&nbsp;		return firstArg.equals(secondArg);</b>
+<i class="no-highlight">1158</i>&nbsp;	}
+<i class="no-highlight">1159</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

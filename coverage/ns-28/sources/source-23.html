@@ -1,0 +1,102 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxVisitor (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">JadxVisitor</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.lang.annotation.ElementType;
+<i class="no-highlight">4</i>&nbsp;import java.lang.annotation.Retention;
+<i class="no-highlight">5</i>&nbsp;import java.lang.annotation.RetentionPolicy;
+<i class="no-highlight">6</i>&nbsp;import java.lang.annotation.Target;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;/**
+<i class="no-highlight">9</i>&nbsp; * Annotation for describe dependencies of jadx visitors
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;@Retention(RetentionPolicy.RUNTIME)
+<i class="no-highlight">12</i>&nbsp;@Target(ElementType.TYPE)
+<i class="no-highlight">13</i>&nbsp;public @interface JadxVisitor {
+<i class="no-highlight">14</i>&nbsp;	/**
+<i class="no-highlight">15</i>&nbsp;	 * Visitor short name (identifier)
+<i class="no-highlight">16</i>&nbsp;	 */
+<i class="no-highlight">17</i>&nbsp;	String name();
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	/**
+<i class="no-highlight">20</i>&nbsp;	 * Detailed visitor description
+<i class="no-highlight">21</i>&nbsp;	 */
+<i class="no-highlight">22</i>&nbsp;	String desc() default &quot;&quot;;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	/**
+<i class="no-highlight">25</i>&nbsp;	 * This visitor must be run &lt;b&gt;after&lt;/b&gt; listed visitors
+<i class="no-highlight">26</i>&nbsp;	 */
+<i class="no-highlight">27</i>&nbsp;	Class&lt;? extends IDexTreeVisitor&gt;[] runAfter() default {};
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;	/**
+<i class="no-highlight">30</i>&nbsp;	 * This visitor must be run &lt;b&gt;before&lt;/b&gt; listed visitors
+<i class="no-highlight">31</i>&nbsp;	 */
+<i class="no-highlight">32</i>&nbsp;	Class&lt;? extends IDexTreeVisitor&gt;[] runBefore() default {};
+<i class="no-highlight">33</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

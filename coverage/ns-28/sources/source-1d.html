@@ -1,0 +1,520 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ReSugarCode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: ReSugarCode (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ReSugarCode</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    47.6%
+  </span>
+  <span class="absValue">
+    (30/63)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.7%
+  </span>
+  <span class="absValue">
+    (150/171)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ReSugarCode$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">ReSugarCode$EnumMapInfo</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (18/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    47.6%
+  </span>
+  <span class="absValue">
+    (30/63)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.1%
+  </span>
+  <span class="absValue">
+    (156/177)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">4</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">7</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.attributes.nodes.EnumMapAttr;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.info.AccessInfo;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.instructions.FilledNewArrayNode;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.NewArrayNode;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.SwitchInsn;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.utils.InsnList;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">41</i>&nbsp;		name = &quot;ReSugarCode&quot;,
+<i class="no-highlight">42</i>&nbsp;		desc = &quot;Simplify synthetic or verbose code&quot;,
+<i class="no-highlight">43</i>&nbsp;		runAfter = CodeShrinkVisitor.class
+<i class="no-highlight">44</i>&nbsp;)
+<b class="fc"><i class="no-highlight">45</i>&nbsp;public class ReSugarCode extends AbstractVisitor {</b>
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	@Override
+<i class="no-highlight">48</i>&nbsp;	public boolean visit(ClassNode cls) throws JadxException {
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		initClsEnumMap(cls);</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		return true;</b>
+<i class="no-highlight">51</i>&nbsp;	}
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;	@Override
+<i class="no-highlight">54</i>&nbsp;	public void visit(MethodNode mth) throws JadxException {
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">56</i>&nbsp;			return;
+<i class="no-highlight">57</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		int k = 0;</b>
+<i class="no-highlight">59</i>&nbsp;		while (true) {
+<b class="fc"><i class="no-highlight">60</i>&nbsp;			boolean changed = false;</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;			InsnRemover remover = new InsnRemover(mth);</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;			for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;				remover.setBlock(block);</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;				List&lt;InsnNode&gt; instructions = block.getInstructions();</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;				int size = instructions.size();</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;				for (int i = 0; i &lt; size; i++) {</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;					changed |= process(mth, instructions, i, remover);</b>
+<i class="no-highlight">68</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">69</i>&nbsp;				remover.perform();</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;			if (changed) {</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;				CodeShrinkVisitor.shrinkMethod(mth);</b>
+<i class="no-highlight">73</i>&nbsp;			} else {
+<i class="no-highlight">74</i>&nbsp;				break;
+<i class="no-highlight">75</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">76</i>&nbsp;			if (k++ &gt; 100) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;				mth.addWarnComment(&quot;Reached limit for ReSugarCode iterations&quot;);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;				break;</b>
+<i class="no-highlight">79</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		}</b>
+<i class="no-highlight">81</i>&nbsp;	}
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;	private static boolean process(MethodNode mth, List&lt;InsnNode&gt; instructions, int i, InsnRemover remover) {
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		InsnNode insn = instructions.get(i);</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		if (insn.contains(AFlag.REMOVE)) {</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;			return false;</b>
+<i class="no-highlight">87</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		switch (insn.getType()) {</b>
+<i class="no-highlight">89</i>&nbsp;			case NEW_ARRAY:
+<b class="fc"><i class="no-highlight">90</i>&nbsp;				return processNewArray(mth, (NewArrayNode) insn, instructions, i, remover);</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;			case SWITCH:
+<b class="fc"><i class="no-highlight">93</i>&nbsp;				return processEnumSwitch(mth, (SwitchInsn) insn);</b>
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;			default:
+<b class="fc"><i class="no-highlight">96</i>&nbsp;				return false;</b>
+<i class="no-highlight">97</i>&nbsp;		}
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;	/**
+<i class="no-highlight">101</i>&nbsp;	 * Replace new-array and sequence of array-put to new filled-array instruction.
+<i class="no-highlight">102</i>&nbsp;	 */
+<i class="no-highlight">103</i>&nbsp;	private static boolean processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
+<i class="no-highlight">104</i>&nbsp;			List&lt;InsnNode&gt; instructions, int i, InsnRemover remover) {
+<b class="fc"><i class="no-highlight">105</i>&nbsp;		Object arrayLenConst = InsnUtils.getConstValueByArg(mth.root(), newArrayInsn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		if (!(arrayLenConst instanceof LiteralArg)) {</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;			return false;</b>
+<i class="no-highlight">108</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		int len = (int) ((LiteralArg) arrayLenConst).getLiteral();</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		if (len == 0) {</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;			return false;</b>
+<i class="no-highlight">112</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		RegisterArg arrArg = newArrayInsn.getResult();</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		List&lt;RegisterArg&gt; useList = arrArg.getSVar().getUseList();</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		if (useList.size() &lt; len) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			return false;</b>
+<i class="no-highlight">117</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		List&lt;InsnNode&gt; arrPuts = useList.stream()</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;				.map(InsnArg::getParentInsn)</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;				.filter(Objects::nonNull)</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;				.filter(insn -&gt; insn.getType() == InsnType.APUT)</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;				.sorted(Comparator.comparingLong(insn -&gt; {</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;					Object constVal = InsnUtils.getConstValueByArg(mth.root(), insn.getArg(1));</b>
+<b class="pc"><i class="no-highlight">124</i>&nbsp;					if (constVal instanceof LiteralArg) {</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;						return ((LiteralArg) constVal).getLiteral();</b>
+<i class="no-highlight">126</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">127</i>&nbsp;					return -1; // bad value, put at top to fail fast next check</b>
+<i class="no-highlight">128</i>&nbsp;				}))
+<b class="fc"><i class="no-highlight">129</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		if (arrPuts.size() != len) {</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;			return false;</b>
+<i class="no-highlight">132</i>&nbsp;		}
+<i class="no-highlight">133</i>&nbsp;		// expect all puts to be in same block
+<b class="pc"><i class="no-highlight">134</i>&nbsp;		if (!new HashSet&lt;&gt;(instructions).containsAll(arrPuts)) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;			return false;</b>
+<i class="no-highlight">136</i>&nbsp;		}
+<i class="no-highlight">137</i>&nbsp;
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		for (int j = 0; j &lt; len; j++) {</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;			InsnNode insn = arrPuts.get(j);</b>
+<b class="pc"><i class="no-highlight">140</i>&nbsp;			if (!checkPutInsn(mth, insn, arrArg, j)) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;				return false;</b>
+<i class="no-highlight">142</i>&nbsp;			}
+<i class="no-highlight">143</i>&nbsp;		}
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;		// checks complete, apply
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		ArgType arrType = newArrayInsn.getArrayType();</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;		filledArr.setResult(arrArg.duplicate());</b>
+<i class="no-highlight">149</i>&nbsp;
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		for (InsnNode put : arrPuts) {</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;			filledArr.addArg(replaceConstInArg(mth, put.getArg(2)));</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;			remover.addAndUnbind(put);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		remover.addAndUnbind(newArrayInsn);</b>
+<i class="no-highlight">155</i>&nbsp;
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		InsnNode lastPut = Utils.last(arrPuts);</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;		int replaceIndex = InsnList.getIndex(instructions, lastPut);</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		instructions.set(replaceIndex, filledArr);</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;		return true;</b>
+<i class="no-highlight">160</i>&nbsp;	}
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;	private static InsnArg replaceConstInArg(MethodNode mth, InsnArg valueArg) {
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		if (valueArg.isLiteral()) {</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg((LiteralArg) valueArg);</b>
+<b class="pc"><i class="no-highlight">165</i>&nbsp;			if (f != null) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;				InsnArg arg = InsnArg.wrapArg(fGet);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;				f.addUseIn(mth);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;				return arg;</b>
+<i class="no-highlight">170</i>&nbsp;			}
+<i class="no-highlight">171</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		return valueArg.duplicate();</b>
+<i class="no-highlight">173</i>&nbsp;	}
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;	private static boolean checkPutInsn(MethodNode mth, InsnNode insn, RegisterArg arrArg, int putIndex) {
+<b class="pc"><i class="no-highlight">176</i>&nbsp;		if (insn == null || insn.getType() != InsnType.APUT) {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;			return false;</b>
+<i class="no-highlight">178</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">179</i>&nbsp;		if (!arrArg.sameRegAndSVar(insn.getArg(0))) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;			return false;</b>
+<i class="no-highlight">181</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		InsnArg indexArg = insn.getArg(1);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		Object value = InsnUtils.getConstValueByArg(mth.root(), indexArg);</b>
+<b class="pc"><i class="no-highlight">184</i>&nbsp;		if (value instanceof LiteralArg) {</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;			int index = (int) ((LiteralArg) value).getLiteral();</b>
+<b class="pc"><i class="no-highlight">186</i>&nbsp;			return index == putIndex;</b>
+<i class="no-highlight">187</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">188</i>&nbsp;		return false;</b>
+<i class="no-highlight">189</i>&nbsp;	}
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;	private static boolean processEnumSwitch(MethodNode mth, SwitchInsn insn) {
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		InsnArg arg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		if (!arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;			return false;</b>
+<i class="no-highlight">195</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		if (wrapInsn.getType() != InsnType.AGET) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			return false;</b>
+<i class="no-highlight">199</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		EnumMapInfo enumMapInfo = checkEnumMapAccess(mth.root(), wrapInsn);</b>
+<b class="pc"><i class="no-highlight">201</i>&nbsp;		if (enumMapInfo == null) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;			return false;</b>
+<i class="no-highlight">203</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		FieldNode enumMapField = enumMapInfo.getMapField();</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		InsnArg invArg = enumMapInfo.getArg();</b>
+<i class="no-highlight">206</i>&nbsp;
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		EnumMapAttr.KeyValueMap valueMap = getEnumMap(mth, enumMapField);</b>
+<b class="pc"><i class="no-highlight">208</i>&nbsp;		if (valueMap == null) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;			return false;</b>
+<i class="no-highlight">210</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		int caseCount = insn.getKeys().length;</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		for (int i = 0; i &lt; caseCount; i++) {</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			Object key = insn.getKey(i);</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;			Object newKey = valueMap.get(key);</b>
+<b class="pc"><i class="no-highlight">215</i>&nbsp;			if (newKey == null) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;				return false;</b>
+<i class="no-highlight">217</i>&nbsp;			}
+<i class="no-highlight">218</i>&nbsp;		}
+<i class="no-highlight">219</i>&nbsp;		// replace confirmed
+<b class="pc"><i class="no-highlight">220</i>&nbsp;		if (!insn.replaceArg(arg, invArg)) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;			return false;</b>
+<i class="no-highlight">222</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		for (int i = 0; i &lt; caseCount; i++) {</b>
+<b class="fc"><i class="no-highlight">224</i>&nbsp;			insn.modifyKey(i, valueMap.get(insn.getKey(i)));</b>
+<i class="no-highlight">225</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">226</i>&nbsp;		enumMapField.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;		checkAndHideClass(enumMapField.getParentClass());</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;		return true;</b>
+<i class="no-highlight">229</i>&nbsp;	}
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;	private static void initClsEnumMap(ClassNode enumCls) {
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		MethodNode clsInitMth = enumCls.getClassInitMth();</b>
+<b class="pc"><i class="no-highlight">233</i>&nbsp;		if (clsInitMth == null || clsInitMth.isNoCode() || clsInitMth.getBasicBlocks() == null) {</b>
+<i class="no-highlight">234</i>&nbsp;			return;
+<i class="no-highlight">235</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		EnumMapAttr mapAttr = new EnumMapAttr();</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		for (BlockNode block : clsInitMth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;				if (insn.getType() == InsnType.APUT) {</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;					addToEnumMap(enumCls.root(), mapAttr, insn);</b>
+<i class="no-highlight">241</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">242</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		if (!mapAttr.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;			enumCls.addAttr(mapAttr);</b>
+<i class="no-highlight">246</i>&nbsp;		}
+<i class="no-highlight">247</i>&nbsp;	}
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;	@Nullable
+<i class="no-highlight">250</i>&nbsp;	private static EnumMapAttr.KeyValueMap getEnumMap(MethodNode mth, FieldNode field) {
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		ClassNode syntheticClass = field.getParentClass();</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		EnumMapAttr mapAttr = syntheticClass.get(AType.ENUM_MAP);</b>
+<b class="pc"><i class="no-highlight">253</i>&nbsp;		if (mapAttr == null) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;			return null;</b>
+<i class="no-highlight">255</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		return mapAttr.getMap(field);</b>
+<i class="no-highlight">257</i>&nbsp;	}
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;	private static void addToEnumMap(RootNode root, EnumMapAttr mapAttr, InsnNode aputInsn) {
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		InsnArg litArg = aputInsn.getArg(2);</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		if (!litArg.isLiteral()) {</b>
+<i class="no-highlight">262</i>&nbsp;			return;
+<i class="no-highlight">263</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		EnumMapInfo mapInfo = checkEnumMapAccess(root, aputInsn);</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		if (mapInfo == null) {</b>
+<i class="no-highlight">266</i>&nbsp;			return;
+<i class="no-highlight">267</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		InsnArg enumArg = mapInfo.getArg();</b>
+<b class="fc"><i class="no-highlight">269</i>&nbsp;		FieldNode field = mapInfo.getMapField();</b>
+<b class="pc"><i class="no-highlight">270</i>&nbsp;		if (field == null || !enumArg.isInsnWrap()) {</b>
+<i class="no-highlight">271</i>&nbsp;			return;
+<i class="no-highlight">272</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		InsnNode sget = ((InsnWrapArg) enumArg).getWrapInsn();</b>
+<b class="pc"><i class="no-highlight">274</i>&nbsp;		if (!(sget instanceof IndexInsnNode)) {</b>
+<i class="no-highlight">275</i>&nbsp;			return;
+<i class="no-highlight">276</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		Object index = ((IndexInsnNode) sget).getIndex();</b>
+<b class="pc"><i class="no-highlight">278</i>&nbsp;		if (!(index instanceof FieldInfo)) {</b>
+<i class="no-highlight">279</i>&nbsp;			return;
+<i class="no-highlight">280</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		FieldNode fieldNode = root.resolveField((FieldInfo) index);</b>
+<b class="pc"><i class="no-highlight">282</i>&nbsp;		if (fieldNode == null) {</b>
+<i class="no-highlight">283</i>&nbsp;			return;
+<i class="no-highlight">284</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">285</i>&nbsp;		int literal = (int) ((LiteralArg) litArg).getLiteral();</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		mapAttr.add(field, literal, fieldNode);</b>
+<i class="no-highlight">287</i>&nbsp;	}
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;	public static EnumMapInfo checkEnumMapAccess(RootNode root, InsnNode checkInsn) {
+<b class="fc"><i class="no-highlight">290</i>&nbsp;		InsnArg sgetArg = checkInsn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		InsnArg invArg = checkInsn.getArg(1);</b>
+<b class="pc"><i class="no-highlight">292</i>&nbsp;		if (!sgetArg.isInsnWrap() || !invArg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;			return null;</b>
+<i class="no-highlight">294</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">295</i>&nbsp;		InsnNode invInsn = ((InsnWrapArg) invArg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;		InsnNode sgetInsn = ((InsnWrapArg) sgetArg).getWrapInsn();</b>
+<b class="pc"><i class="no-highlight">297</i>&nbsp;		if (invInsn.getType() != InsnType.INVOKE || sgetInsn.getType() != InsnType.SGET) {</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;			return null;</b>
+<i class="no-highlight">299</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">300</i>&nbsp;		InvokeNode inv = (InvokeNode) invInsn;</b>
+<b class="pc"><i class="no-highlight">301</i>&nbsp;		if (!inv.getCallMth().getShortId().equals(&quot;ordinal()I&quot;)) {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;			return null;</b>
+<i class="no-highlight">303</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">304</i>&nbsp;		ClassNode enumCls = root.resolveClass(inv.getCallMth().getDeclClass());</b>
+<b class="pc"><i class="no-highlight">305</i>&nbsp;		if (enumCls == null || !enumCls.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;			return null;</b>
+<i class="no-highlight">307</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">308</i>&nbsp;		Object index = ((IndexInsnNode) sgetInsn).getIndex();</b>
+<b class="pc"><i class="no-highlight">309</i>&nbsp;		if (!(index instanceof FieldInfo)) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;			return null;</b>
+<i class="no-highlight">311</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		FieldNode enumMapField = root.resolveField((FieldInfo) index);</b>
+<b class="pc"><i class="no-highlight">313</i>&nbsp;		if (enumMapField == null || !enumMapField.getAccessFlags().isSynthetic()) {</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;			return null;</b>
+<i class="no-highlight">315</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">316</i>&nbsp;		return new EnumMapInfo(inv.getArg(0), enumMapField);</b>
+<i class="no-highlight">317</i>&nbsp;	}
+<i class="no-highlight">318</i>&nbsp;
+<i class="no-highlight">319</i>&nbsp;	/**
+<i class="no-highlight">320</i>&nbsp;	 * If all static final synthetic fields have DONT_GENERATE =&gt; hide whole class
+<i class="no-highlight">321</i>&nbsp;	 */
+<i class="no-highlight">322</i>&nbsp;	private static void checkAndHideClass(ClassNode cls) {
+<b class="fc"><i class="no-highlight">323</i>&nbsp;		for (FieldNode field : cls.getFields()) {</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;			AccessInfo af = field.getAccessFlags();</b>
+<b class="pc"><i class="no-highlight">325</i>&nbsp;			if (af.isSynthetic() &amp;&amp; af.isStatic() &amp;&amp; af.isFinal()</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;					&amp;&amp; !field.contains(AFlag.DONT_GENERATE)) {</b>
+<i class="no-highlight">327</i>&nbsp;				return;
+<i class="no-highlight">328</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">329</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">330</i>&nbsp;		cls.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">331</i>&nbsp;	}
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;	private static class EnumMapInfo {
+<i class="no-highlight">334</i>&nbsp;		private final InsnArg arg;
+<i class="no-highlight">335</i>&nbsp;		private final FieldNode mapField;
+<i class="no-highlight">336</i>&nbsp;
+<b class="fc"><i class="no-highlight">337</i>&nbsp;		public EnumMapInfo(InsnArg arg, FieldNode mapField) {</b>
+<b class="fc"><i class="no-highlight">338</i>&nbsp;			this.arg = arg;</b>
+<b class="fc"><i class="no-highlight">339</i>&nbsp;			this.mapField = mapField;</b>
+<i class="no-highlight">340</i>&nbsp;		}
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;		public InsnArg getArg() {
+<b class="fc"><i class="no-highlight">343</i>&nbsp;			return arg;</b>
+<i class="no-highlight">344</i>&nbsp;		}
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;		public FieldNode getMapField() {
+<b class="fc"><i class="no-highlight">347</i>&nbsp;			return mapField;</b>
+<i class="no-highlight">348</i>&nbsp;		}
+<i class="no-highlight">349</i>&nbsp;	}
+<i class="no-highlight">350</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

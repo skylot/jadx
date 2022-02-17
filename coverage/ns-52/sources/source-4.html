@@ -1,0 +1,245 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SearchSettings</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils.search</a>
+</div>
+
+<h1>Coverage Summary for Class: SearchSettings (jadx.gui.utils.search)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SearchSettings</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SearchSettings$InvalidSearchTermException</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils.search;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">4</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;public class SearchSettings {
+<i class="no-highlight">13</i>&nbsp;
+<b class="nc"><i class="no-highlight">14</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(SearchSettings.class);</b>
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	private final String searchString;
+<i class="no-highlight">17</i>&nbsp;	private final boolean useRegex;
+<i class="no-highlight">18</i>&nbsp;	private final boolean ignoreCase;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	private JClass activeCls;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	private Pattern regexPattern;
+<b class="nc"><i class="no-highlight">23</i>&nbsp;	private int startPos = 0;</b>
+<i class="no-highlight">24</i>&nbsp;
+<b class="nc"><i class="no-highlight">25</i>&nbsp;	public SearchSettings(String searchString, boolean ignoreCase, boolean useRegex) {</b>
+<b class="nc"><i class="no-highlight">26</i>&nbsp;		this.searchString = searchString;</b>
+<b class="nc"><i class="no-highlight">27</i>&nbsp;		this.useRegex = useRegex;</b>
+<b class="nc"><i class="no-highlight">28</i>&nbsp;		this.ignoreCase = ignoreCase;</b>
+<i class="no-highlight">29</i>&nbsp;	}
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	public boolean isUseRegex() {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		return this.useRegex;</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	public boolean isIgnoreCase() {
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		return this.ignoreCase;</b>
+<i class="no-highlight">37</i>&nbsp;	}
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	public String getSearchString() {
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		return this.searchString;</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public int getStartPos() {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		return this.startPos;</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	public void setStartPos(int startPos) {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;		this.startPos = startPos;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	public Pattern getPattern() {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		return this.regexPattern;</b>
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	public boolean preCompile() throws InvalidSearchTermException {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		if (useRegex) {</b>
+<i class="no-highlight">57</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">58</i>&nbsp;				int flags = ignoreCase ? Pattern.CASE_INSENSITIVE : 0;</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;				this.regexPattern = Pattern.compile(searchString, flags);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;				throw new InvalidSearchTermException(&quot;Invalid Regex: &quot; + this.searchString, e);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;			}</b>
+<i class="no-highlight">63</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		return true;</b>
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	public boolean isMatch(StringRef searchArea) {
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		return find(searchArea) != -1;</b>
+<i class="no-highlight">69</i>&nbsp;	}
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;	public boolean isMatch(String searchArea) {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		return find(searchArea) != -1;</b>
+<i class="no-highlight">73</i>&nbsp;	}
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	public int find(StringRef searchArea) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;		if (useRegex) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			return findWithRegex(searchArea.toString());</b>
+<i class="no-highlight">78</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		return searchArea.indexOf(this.searchString, this.startPos, this.ignoreCase);</b>
+<i class="no-highlight">80</i>&nbsp;	}
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;	public int find(String searchArea) {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		if (useRegex) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			return findWithRegex(searchArea);</b>
+<i class="no-highlight">85</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		if (ignoreCase) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			return StringUtils.indexOfIgnoreCase(searchArea, searchString, startPos);</b>
+<i class="no-highlight">88</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		return searchArea.indexOf(searchString, startPos);</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	private int findWithRegex(String searchArea) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		Matcher matcher = regexPattern.matcher(searchArea);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		if (matcher.find(startPos)) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;			return matcher.start();</b>
+<i class="no-highlight">96</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		return -1;</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;	public JClass getActiveCls() {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		return activeCls;</b>
+<i class="no-highlight">102</i>&nbsp;	}
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;	public void setActiveCls(JClass activeCls) {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		this.activeCls = activeCls;</b>
+<i class="no-highlight">106</i>&nbsp;	}
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;	public static class InvalidSearchTermException extends Exception {
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;		public InvalidSearchTermException(String message, Throwable cause) {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;			super(message, cause);</b>
+<i class="no-highlight">112</i>&nbsp;		}
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

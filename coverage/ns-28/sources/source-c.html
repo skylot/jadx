@@ -1,0 +1,459 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DotGraphVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: DotGraphVisitor (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DotGraphVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DotGraphVisitor$DumpDotGraph</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/156)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/169)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.File;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;import java.util.Set;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.ICodeWriter;
+<i class="no-highlight">10</i>&nbsp;import jadx.api.impl.SimpleCodeWriter;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.codegen.MethodGen;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.attributes.IAttributeNode;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.instructions.IfNode;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.nodes.IBlock;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.nodes.IContainer;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.nodes.IRegion;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.trycatch.ExceptionHandler;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.utils.RegionUtils;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.utils.StringUtils;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
+<i class="no-highlight">29</i>&nbsp;
+<b class="nc"><i class="no-highlight">30</i>&nbsp;public class DotGraphVisitor extends AbstractVisitor {</b>
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	private static final String NL = &quot;\\l&quot;;
+<i class="no-highlight">33</i>&nbsp;	private static final boolean PRINT_DOMINATORS = false;
+<i class="no-highlight">34</i>&nbsp;	private static final boolean PRINT_DOMINATORS_INFO = false;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;	private final boolean useRegions;
+<i class="no-highlight">37</i>&nbsp;	private final boolean rawInsn;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	public static DotGraphVisitor dump() {
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		return new DotGraphVisitor(false, false);</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public static DotGraphVisitor dumpRaw() {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		return new DotGraphVisitor(false, true);</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	public static DotGraphVisitor dumpRegions() {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;		return new DotGraphVisitor(true, false);</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	public static DotGraphVisitor dumpRawRegions() {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		return new DotGraphVisitor(true, true);</b>
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<b class="nc"><i class="no-highlight">55</i>&nbsp;	private DotGraphVisitor(boolean useRegions, boolean rawInsn) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		this.useRegions = useRegions;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		this.rawInsn = rawInsn;</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	@Override
+<i class="no-highlight">61</i>&nbsp;	public void visit(MethodNode mth) {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">63</i>&nbsp;			return;
+<i class="no-highlight">64</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		File outRootDir = mth.root().getArgs().getOutDir();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		new DumpDotGraph(outRootDir).process(mth);</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	public void save(File dir, MethodNode mth) {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">71</i>&nbsp;			return;
+<i class="no-highlight">72</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		new DumpDotGraph(dir).process(mth);</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	private class DumpDotGraph {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		private final ICodeWriter dot = new SimpleCodeWriter();</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		private final ICodeWriter conn = new SimpleCodeWriter();</b>
+<i class="no-highlight">79</i>&nbsp;		private final File dir;
+<i class="no-highlight">80</i>&nbsp;
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		public DumpDotGraph(File dir) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;			this.dir = dir;</b>
+<i class="no-highlight">83</i>&nbsp;		}
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;		public void process(MethodNode mth) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;			dot.startLine(&quot;digraph \&quot;CFG for&quot;);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			dot.add(escape(mth.getParentClass() + &quot;.&quot; + mth.getMethodInfo().getShortId()));</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			dot.add(&quot;\&quot; {&quot;);</b>
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;			BlockNode enterBlock = mth.getEnterBlock();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			if (useRegions) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;				if (mth.getRegion() == null) {</b>
+<i class="no-highlight">93</i>&nbsp;					return;
+<i class="no-highlight">94</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">95</i>&nbsp;				processMethodRegion(mth);</b>
+<i class="no-highlight">96</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;				List&lt;BlockNode&gt; blocks = mth.getBasicBlocks();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;				if (blocks == null) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;					InsnNode[] insnArr = mth.getInstructions();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;					if (insnArr == null) {</b>
+<i class="no-highlight">101</i>&nbsp;						return;
+<i class="no-highlight">102</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">103</i>&nbsp;					BlockNode block = new BlockNode(0, 0);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;					List&lt;InsnNode&gt; insnList = block.getInstructions();</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;					for (InsnNode insn : insnArr) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;						if (insn != null) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;							insnList.add(insn);</b>
+<i class="no-highlight">108</i>&nbsp;						}
+<i class="no-highlight">109</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">110</i>&nbsp;					enterBlock = block;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;					blocks = Collections.singletonList(block);</b>
+<i class="no-highlight">112</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">113</i>&nbsp;				for (BlockNode block : blocks) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;					processBlock(mth, block, false);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;				}</b>
+<i class="no-highlight">116</i>&nbsp;			}
+<i class="no-highlight">117</i>&nbsp;
+<b class="nc"><i class="no-highlight">118</i>&nbsp;			dot.startLine(&quot;MethodNode[shape=record,label=\&quot;{&quot;);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;			dot.add(escape(mth.getAccessFlags().makeString(true)));</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;			dot.add(escape(mth.getReturnType() + &quot; &quot;</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;					+ mth.getParentClass() + &#39;.&#39; + mth.getName()</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;					+ &#39;(&#39; + Utils.listToString(mth.getAllArgRegs()) + &quot;) &quot;));</b>
+<i class="no-highlight">123</i>&nbsp;
+<b class="nc"><i class="no-highlight">124</i>&nbsp;			String attrs = attributesString(mth);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;			if (!attrs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;				dot.add(&quot; | &quot;).add(attrs);</b>
+<i class="no-highlight">127</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">128</i>&nbsp;			dot.add(&quot;}\&quot;];&quot;);</b>
+<i class="no-highlight">129</i>&nbsp;
+<b class="nc"><i class="no-highlight">130</i>&nbsp;			dot.startLine(&quot;MethodNode -&gt; &quot;).add(makeName(enterBlock)).add(&#39;;&#39;);</b>
+<i class="no-highlight">131</i>&nbsp;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;			dot.add(conn.toString());</b>
+<i class="no-highlight">133</i>&nbsp;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;			dot.startLine(&#39;}&#39;);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;			dot.startLine();</b>
+<i class="no-highlight">136</i>&nbsp;
+<b class="nc"><i class="no-highlight">137</i>&nbsp;			String fileName = StringUtils.escape(mth.getMethodInfo().getShortId())</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;					+ (useRegions ? &quot;.regions&quot; : &quot;&quot;)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;					+ (rawInsn ? &quot;.raw&quot; : &quot;&quot;)</b>
+<i class="no-highlight">140</i>&nbsp;					+ &quot;.dot&quot;;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;			File file = dir.toPath()</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;					.resolve(mth.getParentClass().getClassInfo().getAliasFullPath() + &quot;_graphs&quot;)</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;					.resolve(fileName)</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;					.toFile();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;			SaveCode.save(dot.finish(), file);</b>
+<i class="no-highlight">146</i>&nbsp;		}
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;		private void processMethodRegion(MethodNode mth) {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;			processRegion(mth, mth.getRegion());</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;			for (ExceptionHandler h : mth.getExceptionHandlers()) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;				if (h.getHandlerRegion() != null) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;					processRegion(mth, h.getHandlerRegion());</b>
+<i class="no-highlight">153</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">154</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;			Set&lt;IBlock&gt; regionsBlocks = new HashSet&lt;&gt;(mth.getBasicBlocks().size());</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;			RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;			for (ExceptionHandler handler : mth.getExceptionHandlers()) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;				IContainer handlerRegion = handler.getHandlerRegion();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;				if (handlerRegion != null) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;					RegionUtils.getAllRegionBlocks(handlerRegion, regionsBlocks);</b>
+<i class="no-highlight">161</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">162</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;			for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;				if (!regionsBlocks.contains(block)) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;					processBlock(mth, block, true);</b>
+<i class="no-highlight">166</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">167</i>&nbsp;			}</b>
+<i class="no-highlight">168</i>&nbsp;		}
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;		private void processRegion(MethodNode mth, IContainer region) {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;			if (region instanceof IRegion) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;				IRegion r = (IRegion) region;</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;				dot.startLine(&quot;subgraph &quot; + makeName(region) + &quot; {&quot;);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;				dot.startLine(&quot;label = \&quot;&quot;).add(r.toString());</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;				String attrs = attributesString(r);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;				if (!attrs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;					dot.add(&quot; | &quot;).add(attrs);</b>
+<i class="no-highlight">178</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">179</i>&nbsp;				dot.add(&quot;\&quot;;&quot;);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;				dot.startLine(&quot;node [shape=record,color=blue];&quot;);</b>
+<i class="no-highlight">181</i>&nbsp;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;				for (IContainer c : r.getSubBlocks()) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;					processRegion(mth, c);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;				}</b>
+<i class="no-highlight">185</i>&nbsp;
+<b class="nc"><i class="no-highlight">186</i>&nbsp;				dot.startLine(&#39;}&#39;);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;			} else if (region instanceof BlockNode) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;				processBlock(mth, (BlockNode) region, false);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;			} else if (region instanceof IBlock) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;				processIBlock(mth, (IBlock) region, false);</b>
+<i class="no-highlight">191</i>&nbsp;			}
+<i class="no-highlight">192</i>&nbsp;		}
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;		private void processBlock(MethodNode mth, BlockNode block, boolean error) {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;			String attrs = attributesString(block);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;			dot.startLine(makeName(block));</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;			dot.add(&quot; [shape=record,&quot;);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;			if (error) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;				dot.add(&quot;color=red,&quot;);</b>
+<i class="no-highlight">200</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">201</i>&nbsp;			dot.add(&quot;label=\&quot;{&quot;);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;			dot.add(String.valueOf(block.getId())).add(&quot;\\:\\ &quot;);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;			dot.add(InsnUtils.formatOffset(block.getStartOffset()));</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;			if (!attrs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;				dot.add(&#39;|&#39;).add(attrs);</b>
+<i class="no-highlight">206</i>&nbsp;			}
+<i class="no-highlight">207</i>&nbsp;			if (PRINT_DOMINATORS_INFO) {
+<i class="no-highlight">208</i>&nbsp;				dot.add(&#39;|&#39;);
+<i class="no-highlight">209</i>&nbsp;				dot.startLine(&quot;doms: &quot;).add(escape(block.getDoms()));
+<i class="no-highlight">210</i>&nbsp;				dot.startLine(&quot;\\lidom: &quot;).add(escape(block.getIDom()));
+<i class="no-highlight">211</i>&nbsp;				dot.startLine(&quot;\\ldom-f: &quot;).add(escape(block.getDomFrontier()));
+<i class="no-highlight">212</i>&nbsp;				dot.startLine(&quot;\\ldoms-on: &quot;).add(escape(Utils.listToString(block.getDominatesOn())));
+<i class="no-highlight">213</i>&nbsp;				dot.startLine(&quot;\\l&quot;);
+<i class="no-highlight">214</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">215</i>&nbsp;			String insns = insertInsns(mth, block);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;			if (!insns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;				dot.add(&#39;|&#39;).add(insns);</b>
+<i class="no-highlight">218</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">219</i>&nbsp;			dot.add(&quot;}\&quot;];&quot;);</b>
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;			BlockNode falsePath = null;</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;			InsnNode lastInsn = BlockUtils.getLastInsn(block);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;			if (lastInsn != null &amp;&amp; lastInsn.getType() == InsnType.IF) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;				falsePath = ((IfNode) lastInsn).getElseBlock();</b>
+<i class="no-highlight">225</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">226</i>&nbsp;			for (BlockNode next : block.getSuccessors()) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;				String style = next == falsePath ? &quot;[style=dashed]&quot; : &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;				addEdge(block, next, style);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;			}</b>
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;			if (PRINT_DOMINATORS) {
+<i class="no-highlight">232</i>&nbsp;				for (BlockNode c : block.getDominatesOn()) {
+<i class="no-highlight">233</i>&nbsp;					conn.startLine(block.getId() + &quot; -&gt; &quot; + c.getId() + &quot;[color=green];&quot;);
+<i class="no-highlight">234</i>&nbsp;				}
+<i class="no-highlight">235</i>&nbsp;				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
+<i class="no-highlight">236</i>&nbsp;					conn.startLine(&quot;f_&quot; + block.getId() + &quot; -&gt; f_&quot; + dom.getId() + &quot;[color=blue];&quot;);
+<i class="no-highlight">237</i>&nbsp;				}
+<i class="no-highlight">238</i>&nbsp;			}
+<i class="no-highlight">239</i>&nbsp;		}
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;		private void processIBlock(MethodNode mth, IBlock block, boolean error) {
+<b class="nc"><i class="no-highlight">242</i>&nbsp;			String attrs = attributesString(block);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;			dot.startLine(makeName(block));</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;			dot.add(&quot; [shape=record,&quot;);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;			if (error) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;				dot.add(&quot;color=red,&quot;);</b>
+<i class="no-highlight">247</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">248</i>&nbsp;			dot.add(&quot;label=\&quot;{&quot;);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;			if (!attrs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;				dot.add(attrs);</b>
+<i class="no-highlight">251</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">252</i>&nbsp;			String insns = insertInsns(mth, block);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;			if (!insns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;				dot.add(&#39;|&#39;).add(insns);</b>
+<i class="no-highlight">255</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">256</i>&nbsp;			dot.add(&quot;}\&quot;];&quot;);</b>
+<i class="no-highlight">257</i>&nbsp;		}
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;		private void addEdge(BlockNode from, BlockNode to, String style) {
+<b class="nc"><i class="no-highlight">260</i>&nbsp;			conn.startLine(makeName(from)).add(&quot; -&gt; &quot;).add(makeName(to));</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;			conn.add(style);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;			conn.add(&#39;;&#39;);</b>
+<i class="no-highlight">263</i>&nbsp;		}
+<i class="no-highlight">264</i>&nbsp;
+<i class="no-highlight">265</i>&nbsp;		private String attributesString(IAttributeNode block) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;			StringBuilder attrs = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;			for (String attr : block.getAttributesStringsList()) {</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;				attrs.append(escape(attr)).append(NL);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;			return attrs.toString();</b>
+<i class="no-highlight">271</i>&nbsp;		}
+<i class="no-highlight">272</i>&nbsp;
+<i class="no-highlight">273</i>&nbsp;		private String makeName(IContainer c) {
+<i class="no-highlight">274</i>&nbsp;			String name;
+<b class="nc"><i class="no-highlight">275</i>&nbsp;			if (c instanceof BlockNode) {</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;				name = &quot;Node_&quot; + ((BlockNode) c).getId();</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;			} else if (c instanceof IBlock) {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;				name = &quot;Node_&quot; + c.getClass().getSimpleName() + &#39;_&#39; + c.hashCode();</b>
+<i class="no-highlight">279</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;				name = &quot;cluster_&quot; + c.getClass().getSimpleName() + &#39;_&#39; + c.hashCode();</b>
+<i class="no-highlight">281</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">282</i>&nbsp;			return name;</b>
+<i class="no-highlight">283</i>&nbsp;		}
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;		private String insertInsns(MethodNode mth, IBlock block) {
+<b class="nc"><i class="no-highlight">286</i>&nbsp;			if (rawInsn) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;				StringBuilder str = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;				for (InsnNode insn : block.getInstructions()) {</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;					str.append(escape(insn + &quot; &quot; + insn.getAttributesString()));</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;					if (insn.getSourceLine() != 0) {</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;						str.append(&quot; (LINE:&quot;).append(insn.getSourceLine()).append(&#39;)&#39;);</b>
+<i class="no-highlight">292</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">293</i>&nbsp;					str.append(NL);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;				return str.toString();</b>
+<i class="no-highlight">296</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;				ICodeWriter code = new SimpleCodeWriter();</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;				List&lt;InsnNode&gt; instructions = block.getInstructions();</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;				MethodGen.addFallbackInsns(code, mth, instructions.toArray(new InsnNode[0]), BLOCK_DUMP);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;				String str = escape(code.newLine().toString());</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;				if (str.startsWith(NL)) {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;					str = str.substring(NL.length());</b>
+<i class="no-highlight">303</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">304</i>&nbsp;				return str;</b>
+<i class="no-highlight">305</i>&nbsp;			}
+<i class="no-highlight">306</i>&nbsp;		}
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;		private String escape(Object obj) {
+<b class="nc"><i class="no-highlight">309</i>&nbsp;			if (obj == null) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;				return &quot;null&quot;;</b>
+<i class="no-highlight">311</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">312</i>&nbsp;			return escape(obj.toString());</b>
+<i class="no-highlight">313</i>&nbsp;		}
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;		private String escape(String string) {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;			return string</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;					.replace(&quot;\\&quot;, &quot;&quot;) // TODO replace \&quot;</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;					.replace(&quot;/&quot;, &quot;\\/&quot;)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;					.replace(&quot;&gt;&quot;, &quot;\\&gt;&quot;).replace(&quot;&lt;&quot;, &quot;\\&lt;&quot;)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;					.replace(&quot;{&quot;, &quot;\\{&quot;).replace(&quot;}&quot;, &quot;\\}&quot;)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;					.replace(&quot;\&quot;&quot;, &quot;\\\&quot;&quot;)</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;					.replace(&quot;-&quot;, &quot;\\-&quot;)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;					.replace(&quot;|&quot;, &quot;\\|&quot;)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;					.replace(ICodeWriter.NL, NL)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;					.replace(&quot;\n&quot;, NL);</b>
+<i class="no-highlight">326</i>&nbsp;		}
+<i class="no-highlight">327</i>&nbsp;	}
+<i class="no-highlight">328</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxArgsValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxArgsValidator (jadx.api)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxArgsValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53.3%
+  </span>
+  <span class="absValue">
+    (8/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89.1%
+  </span>
+  <span class="absValue">
+    (41/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.File;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.utils.exceptions.JadxArgsValidateException;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;public class JadxArgsValidator {
+<i class="no-highlight">13</i>&nbsp;
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JadxArgsValidator.class);</b>
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	public static void validate(JadxArgs args) {
+<b class="fc"><i class="no-highlight">17</i>&nbsp;		checkInputFiles(args);</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;		validateOutDirs(args);</b>
+<i class="no-highlight">19</i>&nbsp;
+<b class="pc"><i class="no-highlight">20</i>&nbsp;		if (LOG.isDebugEnabled()) {</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;			LOG.debug(&quot;Effective jadx args: {}&quot;, args);</b>
+<i class="no-highlight">22</i>&nbsp;		}
+<i class="no-highlight">23</i>&nbsp;	}
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;	private static void checkInputFiles(JadxArgs args) {
+<b class="fc"><i class="no-highlight">26</i>&nbsp;		List&lt;File&gt; inputFiles = args.getInputFiles();</b>
+<b class="pc"><i class="no-highlight">27</i>&nbsp;		if (inputFiles.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">28</i>&nbsp;			throw new JadxArgsValidateException(&quot;Please specify input file&quot;);</b>
+<i class="no-highlight">29</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		for (File inputFile : inputFiles) {</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;			String fileName = inputFile.getName();</b>
+<b class="pc"><i class="no-highlight">32</i>&nbsp;			if (fileName.startsWith(&quot;--&quot;)) {</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;				throw new JadxArgsValidateException(&quot;Unknown argument: &quot; + fileName);</b>
+<i class="no-highlight">34</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		for (File file : inputFiles) {</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;			checkFile(file);</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		}</b>
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	private static void validateOutDirs(JadxArgs args) {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		File outDir = args.getOutDir();</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		File srcDir = args.getOutDirSrc();</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		File resDir = args.getOutDirRes();</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		if (outDir == null) {</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;			if (srcDir != null) {</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;				outDir = srcDir;</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;			} else if (resDir != null) {</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;				outDir = resDir;</b>
+<i class="no-highlight">50</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">51</i>&nbsp;				outDir = makeDirFromInput(args);</b>
+<i class="no-highlight">52</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">53</i>&nbsp;			args.setOutDir(outDir);</b>
+<i class="no-highlight">54</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		if (srcDir == null) {</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			args.setOutDirSrc(new File(args.getOutDir(), JadxArgs.DEFAULT_SRC_DIR));</b>
+<i class="no-highlight">57</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		if (resDir == null) {</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			args.setOutDirRes(new File(args.getOutDir(), JadxArgs.DEFAULT_RES_DIR));</b>
+<i class="no-highlight">60</i>&nbsp;		}
+<i class="no-highlight">61</i>&nbsp;
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		checkDir(args.getOutDir(), &quot;Output&quot;);</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		checkDir(args.getOutDirSrc(), &quot;Source output&quot;);</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		checkDir(args.getOutDirRes(), &quot;Resources output&quot;);</b>
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	@NotNull
+<i class="no-highlight">68</i>&nbsp;	private static File makeDirFromInput(JadxArgs args) {
+<i class="no-highlight">69</i>&nbsp;		File outDir;
+<i class="no-highlight">70</i>&nbsp;		String outDirName;
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		File file = args.getInputFiles().get(0);</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		String name = file.getName();</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		int pos = name.lastIndexOf(&#39;.&#39;);</b>
+<b class="pc"><i class="no-highlight">74</i>&nbsp;		if (pos != -1) {</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;			outDirName = name.substring(0, pos);</b>
+<i class="no-highlight">76</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			outDirName = name + &#39;-&#39; + JadxArgs.DEFAULT_OUT_DIR;</b>
+<i class="no-highlight">78</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		LOG.info(&quot;output directory: {}&quot;, outDirName);</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		outDir = new File(outDirName);</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		return outDir;</b>
+<i class="no-highlight">82</i>&nbsp;	}
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;	private static void checkFile(File file) {
+<b class="pc"><i class="no-highlight">85</i>&nbsp;		if (!file.exists()) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;			throw new JadxArgsValidateException(&quot;File not found &quot; + file.getAbsolutePath());</b>
+<i class="no-highlight">87</i>&nbsp;		}
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	private static void checkDir(File dir, String desc) {
+<b class="pc"><i class="no-highlight">91</i>&nbsp;		if (dir != null &amp;&amp; dir.exists() &amp;&amp; !dir.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;			throw new JadxArgsValidateException(desc + &quot; directory exists as file &quot; + dir);</b>
+<i class="no-highlight">93</i>&nbsp;		}
+<i class="no-highlight">94</i>&nbsp;	}
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;	private JadxArgsValidator() {
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

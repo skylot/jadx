@@ -1,0 +1,237 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LiveVarAnalysis</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.ssa</a>
+</div>
+
+<h1>Coverage Summary for Class: LiveVarAnalysis (jadx.core.dex.visitors.ssa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LiveVarAnalysis</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.9%
+  </span>
+  <span class="absValue">
+    (8/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    84.6%
+  </span>
+  <span class="absValue">
+    (11/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.7%
+  </span>
+  <span class="absValue">
+    (59/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.ssa;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.BitSet;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;public class LiveVarAnalysis {
+<b class="fc"><i class="no-highlight">17</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(LiveVarAnalysis.class);</b>
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	private final MethodNode mth;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;	private BitSet[] uses;
+<i class="no-highlight">22</i>&nbsp;	private BitSet[] defs;
+<i class="no-highlight">23</i>&nbsp;	private BitSet[] liveIn;
+<i class="no-highlight">24</i>&nbsp;	private BitSet[] assignBlocks;
+<i class="no-highlight">25</i>&nbsp;
+<b class="fc"><i class="no-highlight">26</i>&nbsp;	public LiveVarAnalysis(MethodNode mth) {</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		this.mth = mth;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	public void runAnalysis() {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		int bbCount = mth.getBasicBlocks().size();</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		int regsCount = mth.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		this.uses = initBitSetArray(bbCount, regsCount);</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		this.defs = initBitSetArray(bbCount, regsCount);</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		this.assignBlocks = initBitSetArray(regsCount, bbCount);</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		fillBasicBlockInfo();</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		processLiveInfo();</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	public BitSet getAssignBlocks(int regNum) {
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		return assignBlocks[regNum];</b>
+<i class="no-highlight">42</i>&nbsp;	}
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;	public boolean isLive(int blockId, int regNum) {
+<b class="pc"><i class="no-highlight">45</i>&nbsp;		if (blockId &gt;= liveIn.length) {</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;			LOG.warn(&quot;LiveVarAnalysis: out of bounds block: {}, max: {}&quot;, blockId, liveIn.length);</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;			return false;</b>
+<i class="no-highlight">48</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		return liveIn[blockId].get(regNum);</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	public boolean isLive(BlockNode block, int regNum) {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		return isLive(block.getId(), regNum);</b>
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	private void fillBasicBlockInfo() {
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;			int blockId = block.getId();</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			BitSet gen = uses[blockId];</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;			BitSet kill = defs[blockId];</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;				for (InsnArg arg : insn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;					if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;						int regNum = ((RegisterArg) arg).getRegNum();</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;						if (!kill.get(regNum)) {</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;							gen.set(regNum);</b>
+<i class="no-highlight">67</i>&nbsp;						}
+<i class="no-highlight">68</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">69</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;				RegisterArg result = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;				if (result != null) {</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;					int regNum = result.getRegNum();</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;					kill.set(regNum);</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;					assignBlocks[regNum].set(blockId);</b>
+<i class="no-highlight">75</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">76</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		}</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	private void processLiveInfo() {
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		int bbCount = mth.getBasicBlocks().size();</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		int regsCount = mth.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		BitSet[] liveInBlocks = initBitSetArray(bbCount, regsCount);</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		List&lt;BlockNode&gt; blocks = mth.getBasicBlocks();</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		int blocksCount = blocks.size();</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;		int iterationsLimit = blocksCount * 10;</b>
+<i class="no-highlight">87</i>&nbsp;		boolean changed;
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		int k = 0;</b>
+<i class="no-highlight">89</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">90</i>&nbsp;			changed = false;</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;			for (BlockNode block : blocks) {</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;				int blockId = block.getId();</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;				BitSet prevIn = liveInBlocks[blockId];</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;				BitSet newIn = new BitSet(regsCount);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;				for (BlockNode successor : block.getSuccessors()) {</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;					newIn.or(liveInBlocks[successor.getId()]);</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;				newIn.andNot(defs[blockId]);</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;				newIn.or(uses[blockId]);</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;				if (!prevIn.equals(newIn)) {</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;					changed = true;</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;					liveInBlocks[blockId] = newIn;</b>
+<i class="no-highlight">103</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">104</i>&nbsp;			}</b>
+<b class="pc"><i class="no-highlight">105</i>&nbsp;			if (k++ &gt; iterationsLimit) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;				throw new JadxRuntimeException(&quot;Live variable analysis reach iterations limit, blocks count: &quot; + blocksCount);</b>
+<i class="no-highlight">107</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		} while (changed);</b>
+<i class="no-highlight">109</i>&nbsp;
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		this.liveIn = liveInBlocks;</b>
+<i class="no-highlight">111</i>&nbsp;	}
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;	private static BitSet[] initBitSetArray(int length, int bitsCount) {
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		BitSet[] array = new BitSet[length];</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		for (int i = 0; i &lt; length; i++) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			array[i] = new BitSet(bitsCount);</b>
+<i class="no-highlight">117</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		return array;</b>
+<i class="no-highlight">119</i>&nbsp;	}
+<i class="no-highlight">120</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

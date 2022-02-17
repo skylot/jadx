@@ -1,0 +1,677 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EnumVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: EnumVisitor (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EnumVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    96%
+  </span>
+  <span class="absValue">
+    (24/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.7%
+  </span>
+  <span class="absValue">
+    (42/92)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80.2%
+  </span>
+  <span class="absValue">
+    (223/278)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EnumVisitor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    96.2%
+  </span>
+  <span class="absValue">
+    (25/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.7%
+  </span>
+  <span class="absValue">
+    (42/92)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80.3%
+  </span>
+  <span class="absValue">
+    (224/279)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">8</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">9</i>&nbsp;import java.util.function.Predicate;
+<i class="no-highlight">10</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.AccessFlags;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.codegen.TypeGen;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.deobf.NameMapper;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.attributes.nodes.EnumClassAttr;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.info.AccessInfo;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.utils.BlockInsnPair;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;import static jadx.core.utils.InsnUtils.checkInsnType;
+<i class="no-highlight">49</i>&nbsp;import static jadx.core.utils.InsnUtils.getSingleArg;
+<i class="no-highlight">50</i>&nbsp;import static jadx.core.utils.InsnUtils.getWrappedInsn;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">53</i>&nbsp;		name = &quot;EnumVisitor&quot;,
+<i class="no-highlight">54</i>&nbsp;		desc = &quot;Restore enum classes&quot;,
+<i class="no-highlight">55</i>&nbsp;		runAfter = { CodeShrinkVisitor.class, ModVisitor.class, ReSugarCode.class },
+<i class="no-highlight">56</i>&nbsp;		runBefore = { ExtractFieldInit.class }
+<i class="no-highlight">57</i>&nbsp;)
+<b class="fc"><i class="no-highlight">58</i>&nbsp;public class EnumVisitor extends AbstractVisitor {</b>
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	private MethodInfo enumValueOfMth;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	public void init(RootNode root) {
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		enumValueOfMth = MethodInfo.fromDetails(</b>
+<i class="no-highlight">65</i>&nbsp;				root,
+<b class="fc"><i class="no-highlight">66</i>&nbsp;				ClassInfo.fromType(root, ArgType.ENUM),</b>
+<i class="no-highlight">67</i>&nbsp;				&quot;valueOf&quot;,
+<b class="fc"><i class="no-highlight">68</i>&nbsp;				Arrays.asList(ArgType.CLASS, ArgType.STRING),</b>
+<i class="no-highlight">69</i>&nbsp;				ArgType.ENUM);
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	@Override
+<i class="no-highlight">73</i>&nbsp;	public boolean visit(ClassNode cls) throws JadxException {
+<i class="no-highlight">74</i>&nbsp;		boolean converted;
+<i class="no-highlight">75</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">76</i>&nbsp;			converted = convertToEnum(cls);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;			cls.addWarnComment(&quot;Enum visitor error&quot;, e);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;			converted = false;</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		if (!converted) {</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			AccessInfo accessFlags = cls.getAccessFlags();</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;			if (accessFlags.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;				cls.setAccessFlags(accessFlags.remove(AccessFlags.ENUM));</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;				cls.addWarnComment(&quot;Failed to restore enum class, &#39;enum&#39; modifier removed&quot;);</b>
+<i class="no-highlight">86</i>&nbsp;			}
+<i class="no-highlight">87</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		return true;</b>
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	private boolean convertToEnum(ClassNode cls) {
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		if (!cls.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			return false;</b>
+<i class="no-highlight">94</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		MethodNode classInitMth = cls.getClassInitMth();</b>
+<b class="pc"><i class="no-highlight">96</i>&nbsp;		if (classInitMth == null) {</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;			cls.addWarnComment(&quot;Enum class init method not found&quot;);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;			return false;</b>
+<i class="no-highlight">99</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">100</i>&nbsp;		if (classInitMth.getBasicBlocks().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;			return false;</b>
+<i class="no-highlight">102</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		ArgType clsType = cls.getClassInfo().getType();</b>
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;		// search &quot;$VALUES&quot; field (holds all enum values)
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		List&lt;FieldNode&gt; valuesCandidates = cls.getFields().stream()</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;				.filter(f -&gt; f.getAccessFlags().isStatic())</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;				.filter(f -&gt; f.getType().isArray())</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;				.filter(f -&gt; Objects.equals(f.getType().getArrayRootElement(), clsType))</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;				.collect(Collectors.toList());</b>
+<i class="no-highlight">111</i>&nbsp;
+<b class="pc"><i class="no-highlight">112</i>&nbsp;		if (valuesCandidates.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;			return false;</b>
+<i class="no-highlight">114</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		if (valuesCandidates.size() &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			valuesCandidates.removeIf(f -&gt; !f.getAccessFlags().isSynthetic());</b>
+<i class="no-highlight">117</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">118</i>&nbsp;		if (valuesCandidates.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;			Optional&lt;FieldNode&gt; valuesOpt = valuesCandidates.stream().filter(f -&gt; f.getName().equals(&quot;$VALUES&quot;)).findAny();</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;			if (valuesOpt.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;				valuesCandidates.clear();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;				valuesCandidates.add(valuesOpt.get());</b>
+<i class="no-highlight">123</i>&nbsp;			}
+<i class="no-highlight">124</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">125</i>&nbsp;		if (valuesCandidates.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;			cls.addWarnComment(&quot;Found several \&quot;values\&quot; enum fields: &quot; + valuesCandidates);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;			return false;</b>
+<i class="no-highlight">128</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		FieldNode valuesField = valuesCandidates.get(0);</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		List&lt;InsnNode&gt; toRemove = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;		// search &quot;$VALUES&quot; array init and collect enum fields
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		BlockInsnPair valuesInitPair = getValuesInitInsn(classInitMth, valuesField);</b>
+<b class="pc"><i class="no-highlight">134</i>&nbsp;		if (valuesInitPair == null) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;			return false;</b>
+<i class="no-highlight">136</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">137</i>&nbsp;		BlockNode staticBlock = valuesInitPair.getBlock();</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		InsnNode valuesInitInsn = valuesInitPair.getInsn();</b>
+<i class="no-highlight">139</i>&nbsp;
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		List&lt;EnumField&gt; enumFields = null;</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		InsnArg arrArg = valuesInitInsn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">142</i>&nbsp;		if (arrArg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;			InsnNode wrappedInsn = ((InsnWrapArg) arrArg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;			enumFields = extractEnumFieldsFromInsn(cls, staticBlock, wrappedInsn, toRemove);</b>
+<i class="no-highlight">145</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">146</i>&nbsp;		if (enumFields == null) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;			return false;</b>
+<i class="no-highlight">148</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		toRemove.add(valuesInitInsn);</b>
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;		// all checks complete, perform transform
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		EnumClassAttr attr = new EnumClassAttr(enumFields);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;		attr.setStaticMethod(classInitMth);</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		cls.addAttr(attr);</b>
+<i class="no-highlight">155</i>&nbsp;
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		for (EnumField enumField : attr.getFields()) {</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;			ConstructorInsn co = enumField.getConstrInsn();</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;			FieldNode fieldNode = enumField.getField();</b>
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;			// use string arg from the constructor as enum field name
+<b class="fc"><i class="no-highlight">161</i>&nbsp;			String name = getConstString(cls.root(), co.getArg(0));</b>
+<b class="pc"><i class="no-highlight">162</i>&nbsp;			if (name != null</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;					&amp;&amp; !fieldNode.getAlias().equals(name)</b>
+<b class="pc"><i class="no-highlight">164</i>&nbsp;					&amp;&amp; NameMapper.isValidAndPrintable(name)</b>
+<b class="pc"><i class="no-highlight">165</i>&nbsp;					&amp;&amp; cls.root().getArgs().isRenameValid()) {</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;				fieldNode.getFieldInfo().setAlias(name);</b>
+<i class="no-highlight">167</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">168</i>&nbsp;			fieldNode.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;			processConstructorInsn(cls, enumField, classInitMth, staticBlock, toRemove);</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		valuesField.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		InsnRemover.removeAllAndUnbind(classInitMth, staticBlock, toRemove);</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		if (classInitMth.countInsns() == 0) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			classInitMth.add(AFlag.DONT_GENERATE);</b>
+<b class="pc"><i class="no-highlight">175</i>&nbsp;		} else if (!toRemove.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			CodeShrinkVisitor.shrinkMethod(classInitMth);</b>
+<i class="no-highlight">177</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		removeEnumMethods(cls, clsType, valuesField);</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		return true;</b>
+<i class="no-highlight">180</i>&nbsp;	}
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;	private void processConstructorInsn(ClassNode cls, EnumField enumField, MethodNode classInitMth,
+<i class="no-highlight">183</i>&nbsp;			BlockNode staticBlock, List&lt;InsnNode&gt; toRemove) {
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		ConstructorInsn co = enumField.getConstrInsn();</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		ClassInfo enumClsInfo = co.getClassType();</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		if (!enumClsInfo.equals(cls.getClassInfo())) {</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;			ClassNode enumCls = cls.root().resolveClass(enumClsInfo);</b>
+<b class="pc"><i class="no-highlight">188</i>&nbsp;			if (enumCls != null) {</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;				processEnumCls(cls, enumField, enumCls);</b>
+<i class="no-highlight">190</i>&nbsp;			}
+<i class="no-highlight">191</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		List&lt;RegisterArg&gt; regs = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		co.getRegisterArgs(regs);</b>
+<b class="pc"><i class="no-highlight">194</i>&nbsp;		if (!regs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;			cls.addWarnComment(&quot;Init of enum &quot; + enumField.getField().getName() + &quot; can be incorrect&quot;);</b>
+<i class="no-highlight">196</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		MethodNode ctrMth = cls.root().resolveMethod(co.getCallMth());</b>
+<b class="pc"><i class="no-highlight">198</i>&nbsp;		if (ctrMth != null) {</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;			markArgsForSkip(ctrMth);</b>
+<i class="no-highlight">200</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		RegisterArg coResArg = co.getResult();</b>
+<b class="pc"><i class="no-highlight">202</i>&nbsp;		if (coResArg == null || coResArg.getSVar().getUseList().size() &lt;= 2) {</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;			toRemove.add(co);</b>
+<i class="no-highlight">204</i>&nbsp;		} else {
+<i class="no-highlight">205</i>&nbsp;			// constructor result used in other places -&gt; replace constructor with enum field get (SGET)
+<b class="fc"><i class="no-highlight">206</i>&nbsp;			IndexInsnNode enumGet = new IndexInsnNode(InsnType.SGET, enumField.getField().getFieldInfo(), 0);</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;			enumGet.setResult(coResArg.duplicate());</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;			BlockUtils.replaceInsn(classInitMth, staticBlock, co, enumGet);</b>
+<i class="no-highlight">209</i>&nbsp;		}
+<i class="no-highlight">210</i>&nbsp;	}
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;	@Nullable
+<i class="no-highlight">213</i>&nbsp;	private List&lt;EnumField&gt; extractEnumFieldsFromInsn(ClassNode cls, BlockNode staticBlock,
+<i class="no-highlight">214</i>&nbsp;			InsnNode wrappedInsn, List&lt;InsnNode&gt; toRemove) {
+<b class="pc"><i class="no-highlight">215</i>&nbsp;		switch (wrappedInsn.getType()) {</b>
+<i class="no-highlight">216</i>&nbsp;			case FILLED_NEW_ARRAY:
+<b class="fc"><i class="no-highlight">217</i>&nbsp;				return extractEnumFieldsFromFilledArray(cls, wrappedInsn, staticBlock, toRemove);</b>
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;			case INVOKE:
+<i class="no-highlight">220</i>&nbsp;				// handle redirection of values array fill (added in java 15)
+<b class="nc"><i class="no-highlight">221</i>&nbsp;				return extractEnumFieldsFromInvoke(cls, staticBlock, (InvokeNode) wrappedInsn, toRemove);</b>
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;			case NEW_ARRAY:
+<b class="fc"><i class="no-highlight">224</i>&nbsp;				InsnArg arg = wrappedInsn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">225</i>&nbsp;				if (arg.isZeroLiteral()) {</b>
+<i class="no-highlight">226</i>&nbsp;					// empty enum
+<b class="fc"><i class="no-highlight">227</i>&nbsp;					return Collections.emptyList();</b>
+<i class="no-highlight">228</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">229</i>&nbsp;				return null;</b>
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">232</i>&nbsp;				return null;</b>
+<i class="no-highlight">233</i>&nbsp;		}
+<i class="no-highlight">234</i>&nbsp;	}
+<i class="no-highlight">235</i>&nbsp;
+<i class="no-highlight">236</i>&nbsp;	private List&lt;EnumField&gt; extractEnumFieldsFromInvoke(ClassNode cls, BlockNode staticBlock,
+<i class="no-highlight">237</i>&nbsp;			InvokeNode invokeNode, List&lt;InsnNode&gt; toRemove) {
+<b class="nc"><i class="no-highlight">238</i>&nbsp;		MethodInfo callMth = invokeNode.getCallMth();</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;		MethodNode valuesMth = cls.root().resolveMethod(callMth);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;		if (valuesMth == null || valuesMth.isVoidReturn()) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;			return null;</b>
+<i class="no-highlight">242</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">243</i>&nbsp;		BlockNode returnBlock = Utils.getOne(valuesMth.getPreExitBlocks());</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;		InsnNode returnInsn = BlockUtils.getLastInsn(returnBlock);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;		if (wrappedInsn == null) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;			return null;</b>
+<i class="no-highlight">248</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">249</i>&nbsp;		List&lt;EnumField&gt; enumFields = extractEnumFieldsFromInsn(cls, staticBlock, wrappedInsn, toRemove);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;		if (enumFields != null) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;			valuesMth.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">252</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">253</i>&nbsp;		return enumFields;</b>
+<i class="no-highlight">254</i>&nbsp;	}
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;	private BlockInsnPair getValuesInitInsn(MethodNode classInitMth, FieldNode valuesField) {
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		FieldInfo searchField = valuesField.getFieldInfo();</b>
+<b class="pc"><i class="no-highlight">258</i>&nbsp;		for (BlockNode blockNode : classInitMth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;			for (InsnNode insn : blockNode.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;				if (insn.getType() == InsnType.SPUT) {</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;					IndexInsnNode indexInsnNode = (IndexInsnNode) insn;</b>
+<b class="fc"><i class="no-highlight">262</i>&nbsp;					FieldInfo f = (FieldInfo) indexInsnNode.getIndex();</b>
+<b class="fc"><i class="no-highlight">263</i>&nbsp;					if (f.equals(searchField)) {</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;						return new BlockInsnPair(blockNode, indexInsnNode);</b>
+<i class="no-highlight">265</i>&nbsp;					}
+<i class="no-highlight">266</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">267</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;		return null;</b>
+<i class="no-highlight">270</i>&nbsp;	}
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;	private List&lt;EnumField&gt; extractEnumFieldsFromFilledArray(ClassNode cls, InsnNode arrFillInsn, BlockNode staticBlock,
+<i class="no-highlight">273</i>&nbsp;			List&lt;InsnNode&gt; toRemove) {
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		List&lt;EnumField&gt; enumFields = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">275</i>&nbsp;		for (InsnArg arg : arrFillInsn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;			EnumField field = null;</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;			if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;				InsnNode wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;				field = processEnumFieldByWrappedInsn(cls, wrappedInsn, staticBlock, toRemove);</b>
+<b class="pc"><i class="no-highlight">280</i>&nbsp;			} else if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">281</i>&nbsp;				field = processEnumFieldByRegister(cls, (RegisterArg) arg, staticBlock, toRemove);</b>
+<i class="no-highlight">282</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">283</i>&nbsp;			if (field == null) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;				return null;</b>
+<i class="no-highlight">285</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">286</i>&nbsp;			enumFields.add(field);</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		toRemove.add(arrFillInsn);</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		return enumFields;</b>
+<i class="no-highlight">290</i>&nbsp;	}
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;	private EnumField processEnumFieldByWrappedInsn(ClassNode cls, InsnNode wrappedInsn, BlockNode staticBlock, List&lt;InsnNode&gt; toRemove) {
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		if (wrappedInsn.getType() == InsnType.SGET) {</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;			return processEnumFieldByField(cls, wrappedInsn, staticBlock, toRemove);</b>
+<i class="no-highlight">295</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">296</i>&nbsp;		ConstructorInsn constructorInsn = castConstructorInsn(wrappedInsn);</b>
+<b class="pc"><i class="no-highlight">297</i>&nbsp;		if (constructorInsn != null) {</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;			FieldNode enumFieldNode = createFakeField(cls, &quot;EF&quot; + constructorInsn.getOffset());</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;			cls.addField(enumFieldNode);</b>
+<b class="fc"><i class="no-highlight">300</i>&nbsp;			return createEnumFieldByConstructor(cls, enumFieldNode, constructorInsn);</b>
+<i class="no-highlight">301</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">302</i>&nbsp;		return null;</b>
+<i class="no-highlight">303</i>&nbsp;	}
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;	@Nullable
+<i class="no-highlight">306</i>&nbsp;	private EnumField processEnumFieldByField(ClassNode cls, InsnNode sgetInsn, BlockNode staticBlock, List&lt;InsnNode&gt; toRemove) {
+<b class="pc"><i class="no-highlight">307</i>&nbsp;		if (sgetInsn.getType() != InsnType.SGET) {</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;			return null;</b>
+<i class="no-highlight">309</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) sgetInsn).getIndex();</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		FieldNode enumFieldNode = cls.searchField(fieldInfo);</b>
+<b class="pc"><i class="no-highlight">312</i>&nbsp;		if (enumFieldNode == null) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;			return null;</b>
+<i class="no-highlight">314</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">315</i>&nbsp;		InsnNode sputInsn = searchFieldPutInsn(cls, staticBlock, enumFieldNode);</b>
+<b class="pc"><i class="no-highlight">316</i>&nbsp;		if (sputInsn == null) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;			return null;</b>
+<i class="no-highlight">318</i>&nbsp;		}
+<i class="no-highlight">319</i>&nbsp;
+<b class="fc"><i class="no-highlight">320</i>&nbsp;		ConstructorInsn co = getConstructorInsn(sputInsn);</b>
+<b class="pc"><i class="no-highlight">321</i>&nbsp;		if (co == null) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;			return null;</b>
+<i class="no-highlight">323</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">324</i>&nbsp;		RegisterArg sgetResult = sgetInsn.getResult();</b>
+<b class="pc"><i class="no-highlight">325</i>&nbsp;		if (sgetResult == null || sgetResult.getSVar().getUseCount() == 1) {</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;			toRemove.add(sgetInsn);</b>
+<i class="no-highlight">327</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">328</i>&nbsp;		toRemove.add(sputInsn);</b>
+<b class="fc"><i class="no-highlight">329</i>&nbsp;		return createEnumFieldByConstructor(cls, enumFieldNode, co);</b>
+<i class="no-highlight">330</i>&nbsp;	}
+<i class="no-highlight">331</i>&nbsp;
+<i class="no-highlight">332</i>&nbsp;	@Nullable
+<i class="no-highlight">333</i>&nbsp;	private EnumField processEnumFieldByRegister(ClassNode cls, RegisterArg arg, BlockNode staticBlock, List&lt;InsnNode&gt; toRemove) {
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		InsnNode assignInsn = arg.getAssignInsn();</b>
+<b class="pc"><i class="no-highlight">335</i>&nbsp;		if (assignInsn != null &amp;&amp; assignInsn.getType() == InsnType.SGET) {</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;			return processEnumFieldByField(cls, assignInsn, staticBlock, toRemove);</b>
+<i class="no-highlight">337</i>&nbsp;		}
+<i class="no-highlight">338</i>&nbsp;
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		SSAVar ssaVar = arg.getSVar();</b>
+<b class="pc"><i class="no-highlight">340</i>&nbsp;		if (ssaVar.getUseCount() == 0) {</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;			return null;</b>
+<i class="no-highlight">342</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		InsnNode constrInsn = ssaVar.getAssign().getParentInsn();</b>
+<b class="pc"><i class="no-highlight">344</i>&nbsp;		if (constrInsn == null || constrInsn.getType() != InsnType.CONSTRUCTOR) {</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;			return null;</b>
+<i class="no-highlight">346</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">347</i>&nbsp;		FieldNode enumFieldNode = searchEnumField(cls, ssaVar, toRemove);</b>
+<b class="fc"><i class="no-highlight">348</i>&nbsp;		if (enumFieldNode == null) {</b>
+<b class="fc"><i class="no-highlight">349</i>&nbsp;			enumFieldNode = createFakeField(cls, &quot;EF&quot; + arg.getRegNum());</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;			cls.addField(enumFieldNode);</b>
+<i class="no-highlight">351</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		return createEnumFieldByConstructor(cls, enumFieldNode, (ConstructorInsn) constrInsn);</b>
+<i class="no-highlight">353</i>&nbsp;	}
+<i class="no-highlight">354</i>&nbsp;
+<i class="no-highlight">355</i>&nbsp;	private FieldNode createFakeField(ClassNode cls, String name) {
+<i class="no-highlight">356</i>&nbsp;		FieldNode enumFieldNode;
+<b class="fc"><i class="no-highlight">357</i>&nbsp;		FieldInfo fldInfo = FieldInfo.from(cls.root(), cls.getClassInfo(), name, cls.getType());</b>
+<b class="fc"><i class="no-highlight">358</i>&nbsp;		enumFieldNode = new FieldNode(cls, fldInfo, 0);</b>
+<b class="fc"><i class="no-highlight">359</i>&nbsp;		enumFieldNode.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		enumFieldNode.addInfoComment(&quot;Fake field, exist only in values array&quot;);</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;		return enumFieldNode;</b>
+<i class="no-highlight">362</i>&nbsp;	}
+<i class="no-highlight">363</i>&nbsp;
+<i class="no-highlight">364</i>&nbsp;	@Nullable
+<i class="no-highlight">365</i>&nbsp;	private FieldNode searchEnumField(ClassNode cls, SSAVar ssaVar, List&lt;InsnNode&gt; toRemove) {
+<b class="fc"><i class="no-highlight">366</i>&nbsp;		InsnNode sputInsn = ssaVar.getUseList().get(0).getParentInsn();</b>
+<b class="pc"><i class="no-highlight">367</i>&nbsp;		if (sputInsn == null || sputInsn.getType() != InsnType.SPUT) {</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;			return null;</b>
+<i class="no-highlight">369</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">370</i>&nbsp;		FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) sputInsn).getIndex();</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;		FieldNode enumFieldNode = cls.searchField(fieldInfo);</b>
+<b class="pc"><i class="no-highlight">372</i>&nbsp;		if (enumFieldNode == null) {</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;			return null;</b>
+<i class="no-highlight">374</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">375</i>&nbsp;		toRemove.add(sputInsn);</b>
+<b class="fc"><i class="no-highlight">376</i>&nbsp;		return enumFieldNode;</b>
+<i class="no-highlight">377</i>&nbsp;	}
+<i class="no-highlight">378</i>&nbsp;
+<i class="no-highlight">379</i>&nbsp;	private EnumField createEnumFieldByConstructor(ClassNode cls, FieldNode enumFieldNode, ConstructorInsn co) {
+<i class="no-highlight">380</i>&nbsp;		// usually constructor signature is &#39;&lt;init&gt;(Ljava/lang/String;I)V&#39;.
+<i class="no-highlight">381</i>&nbsp;		// sometimes for one field enum second arg can be omitted
+<b class="pc"><i class="no-highlight">382</i>&nbsp;		if (co.getArgsCount() &lt; 1) {</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;			return null;</b>
+<i class="no-highlight">384</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">385</i>&nbsp;		ClassInfo clsInfo = co.getClassType();</b>
+<b class="fc"><i class="no-highlight">386</i>&nbsp;		ClassNode constrCls = cls.root().resolveClass(clsInfo);</b>
+<b class="pc"><i class="no-highlight">387</i>&nbsp;		if (constrCls == null) {</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;			return null;</b>
+<i class="no-highlight">389</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">390</i>&nbsp;		if (constrCls.equals(cls)) {</b>
+<i class="no-highlight">391</i>&nbsp;			// allow same class
+<b class="pc"><i class="no-highlight">392</i>&nbsp;		} else if (constrCls.contains(AFlag.ANONYMOUS_CLASS)) {</b>
+<i class="no-highlight">393</i>&nbsp;			// allow external class already marked as anonymous
+<i class="no-highlight">394</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">395</i>&nbsp;			return null;</b>
+<i class="no-highlight">396</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">397</i>&nbsp;		MethodNode ctrMth = cls.root().resolveMethod(co.getCallMth());</b>
+<b class="pc"><i class="no-highlight">398</i>&nbsp;		if (ctrMth == null) {</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;			return null;</b>
+<i class="no-highlight">400</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">401</i>&nbsp;		return new EnumField(enumFieldNode, co);</b>
+<i class="no-highlight">402</i>&nbsp;	}
+<i class="no-highlight">403</i>&nbsp;
+<i class="no-highlight">404</i>&nbsp;	@Nullable
+<i class="no-highlight">405</i>&nbsp;	private InsnNode searchFieldPutInsn(ClassNode cls, BlockNode staticBlock, FieldNode enumFieldNode) {
+<b class="pc"><i class="no-highlight">406</i>&nbsp;		for (InsnNode sputInsn : staticBlock.getInstructions()) {</b>
+<b class="pc"><i class="no-highlight">407</i>&nbsp;			if (sputInsn != null &amp;&amp; sputInsn.getType() == InsnType.SPUT) {</b>
+<b class="fc"><i class="no-highlight">408</i>&nbsp;				FieldInfo f = (FieldInfo) ((IndexInsnNode) sputInsn).getIndex();</b>
+<b class="fc"><i class="no-highlight">409</i>&nbsp;				FieldNode fieldNode = cls.searchField(f);</b>
+<b class="fc"><i class="no-highlight">410</i>&nbsp;				if (Objects.equals(fieldNode, enumFieldNode)) {</b>
+<b class="fc"><i class="no-highlight">411</i>&nbsp;					return sputInsn;</b>
+<i class="no-highlight">412</i>&nbsp;				}
+<i class="no-highlight">413</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;		return null;</b>
+<i class="no-highlight">416</i>&nbsp;	}
+<i class="no-highlight">417</i>&nbsp;
+<i class="no-highlight">418</i>&nbsp;	private void removeEnumMethods(ClassNode cls, ArgType clsType, FieldNode valuesField) {
+<b class="fc"><i class="no-highlight">419</i>&nbsp;		String valuesMethod = &quot;values()&quot; + TypeGen.signature(ArgType.array(clsType));</b>
+<b class="fc"><i class="no-highlight">420</i>&nbsp;		FieldInfo valuesFieldInfo = valuesField.getFieldInfo();</b>
+<i class="no-highlight">421</i>&nbsp;
+<i class="no-highlight">422</i>&nbsp;		// remove compiler generated methods
+<b class="fc"><i class="no-highlight">423</i>&nbsp;		for (MethodNode mth : cls.getMethods()) {</b>
+<b class="fc"><i class="no-highlight">424</i>&nbsp;			MethodInfo mi = mth.getMethodInfo();</b>
+<b class="fc"><i class="no-highlight">425</i>&nbsp;			if (mi.isClassInit()) {</b>
+<b class="fc"><i class="no-highlight">426</i>&nbsp;				continue;</b>
+<i class="no-highlight">427</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">428</i>&nbsp;			String shortId = mi.getShortId();</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;			if (mi.isConstructor()) {</b>
+<b class="fc"><i class="no-highlight">430</i>&nbsp;				if (isDefaultConstructor(mth, shortId)) {</b>
+<b class="fc"><i class="no-highlight">431</i>&nbsp;					mth.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">432</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">433</i>&nbsp;				markArgsForSkip(mth);</b>
+<b class="fc"><i class="no-highlight">434</i>&nbsp;			} else if (shortId.equals(valuesMethod)</b>
+<b class="fc"><i class="no-highlight">435</i>&nbsp;					|| usesValuesField(mth, valuesFieldInfo)</b>
+<b class="fc"><i class="no-highlight">436</i>&nbsp;					|| simpleValueOfMth(mth, clsType)) {</b>
+<b class="fc"><i class="no-highlight">437</i>&nbsp;				mth.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">438</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">439</i>&nbsp;		}</b>
+<i class="no-highlight">440</i>&nbsp;	}
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;	private void markArgsForSkip(MethodNode mth) {
+<i class="no-highlight">443</i>&nbsp;		// skip first and second args
+<b class="fc"><i class="no-highlight">444</i>&nbsp;		SkipMethodArgsAttr.skipArg(mth, 0);</b>
+<b class="fc"><i class="no-highlight">445</i>&nbsp;		if (mth.getMethodInfo().getArgsCount() &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">446</i>&nbsp;			SkipMethodArgsAttr.skipArg(mth, 1);</b>
+<i class="no-highlight">447</i>&nbsp;		}
+<i class="no-highlight">448</i>&nbsp;	}
+<i class="no-highlight">449</i>&nbsp;
+<i class="no-highlight">450</i>&nbsp;	private boolean isDefaultConstructor(MethodNode mth, String shortId) {
+<b class="fc"><i class="no-highlight">451</i>&nbsp;		boolean defaultId = shortId.equals(&quot;&lt;init&gt;(Ljava/lang/String;I)V&quot;)</b>
+<b class="fc"><i class="no-highlight">452</i>&nbsp;				|| shortId.equals(&quot;&lt;init&gt;(Ljava/lang/String;)V&quot;);</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;		if (defaultId) {</b>
+<i class="no-highlight">454</i>&nbsp;			// check content
+<b class="fc"><i class="no-highlight">455</i>&nbsp;			return mth.countInsns() == 0;</b>
+<i class="no-highlight">456</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">457</i>&nbsp;		return false;</b>
+<i class="no-highlight">458</i>&nbsp;	}
+<i class="no-highlight">459</i>&nbsp;
+<i class="no-highlight">460</i>&nbsp;	private boolean simpleValueOfMth(MethodNode mth, ArgType clsType) {
+<b class="pc"><i class="no-highlight">461</i>&nbsp;		InsnNode returnInsn = InsnUtils.searchSingleReturnInsn(mth, insn -&gt; insn.getArgsCount() == 1);</b>
+<b class="fc"><i class="no-highlight">462</i>&nbsp;		if (returnInsn == null) {</b>
+<b class="fc"><i class="no-highlight">463</i>&nbsp;			return false;</b>
+<i class="no-highlight">464</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">465</i>&nbsp;		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;		IndexInsnNode castInsn = (IndexInsnNode) checkInsnType(wrappedInsn, InsnType.CHECK_CAST);</b>
+<b class="pc"><i class="no-highlight">467</i>&nbsp;		if (castInsn != null &amp;&amp; Objects.equals(castInsn.getIndex(), clsType)) {</b>
+<b class="fc"><i class="no-highlight">468</i>&nbsp;			InvokeNode invokeInsn = (InvokeNode) checkInsnType(getWrappedInsn(getSingleArg(castInsn)), InsnType.INVOKE);</b>
+<b class="pc"><i class="no-highlight">469</i>&nbsp;			return invokeInsn != null &amp;&amp; invokeInsn.getCallMth().equals(enumValueOfMth);</b>
+<i class="no-highlight">470</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">471</i>&nbsp;		return false;</b>
+<i class="no-highlight">472</i>&nbsp;	}
+<i class="no-highlight">473</i>&nbsp;
+<i class="no-highlight">474</i>&nbsp;	private boolean usesValuesField(MethodNode mth, FieldInfo valuesFieldInfo) {
+<b class="fc"><i class="no-highlight">475</i>&nbsp;		Predicate&lt;InsnNode&gt; insnTest = insn -&gt; Objects.equals(((IndexInsnNode) insn).getIndex(), valuesFieldInfo);</b>
+<b class="fc"><i class="no-highlight">476</i>&nbsp;		return InsnUtils.searchInsn(mth, InsnType.SGET, insnTest) != null;</b>
+<i class="no-highlight">477</i>&nbsp;	}
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;	private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
+<i class="no-highlight">480</i>&nbsp;		// remove constructor, because it is anonymous class
+<b class="fc"><i class="no-highlight">481</i>&nbsp;		for (MethodNode innerMth : innerCls.getMethods()) {</b>
+<b class="fc"><i class="no-highlight">482</i>&nbsp;			if (innerMth.getAccessFlags().isConstructor()) {</b>
+<b class="fc"><i class="no-highlight">483</i>&nbsp;				innerMth.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">484</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">485</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">486</i>&nbsp;		field.setCls(innerCls);</b>
+<b class="pc"><i class="no-highlight">487</i>&nbsp;		if (!innerCls.getParentClass().equals(cls)) {</b>
+<i class="no-highlight">488</i>&nbsp;			// not inner
+<b class="nc"><i class="no-highlight">489</i>&nbsp;			cls.addInlinedClass(innerCls);</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;			innerCls.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">491</i>&nbsp;		}
+<i class="no-highlight">492</i>&nbsp;	}
+<i class="no-highlight">493</i>&nbsp;
+<i class="no-highlight">494</i>&nbsp;	private ConstructorInsn getConstructorInsn(InsnNode insn) {
+<b class="pc"><i class="no-highlight">495</i>&nbsp;		if (insn.getArgsCount() != 1) {</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;			return null;</b>
+<i class="no-highlight">497</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">498</i>&nbsp;		InsnArg arg = insn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">499</i>&nbsp;		if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">500</i>&nbsp;			return castConstructorInsn(((InsnWrapArg) arg).getWrapInsn());</b>
+<i class="no-highlight">501</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">502</i>&nbsp;		if (arg.isRegister()) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;			return castConstructorInsn(((RegisterArg) arg).getAssignInsn());</b>
+<i class="no-highlight">504</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">505</i>&nbsp;		return null;</b>
+<i class="no-highlight">506</i>&nbsp;	}
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;	@Nullable
+<i class="no-highlight">509</i>&nbsp;	private ConstructorInsn castConstructorInsn(InsnNode coCandidate) {
+<b class="pc"><i class="no-highlight">510</i>&nbsp;		if (coCandidate != null &amp;&amp; coCandidate.getType() == InsnType.CONSTRUCTOR) {</b>
+<b class="fc"><i class="no-highlight">511</i>&nbsp;			return (ConstructorInsn) coCandidate;</b>
+<i class="no-highlight">512</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">513</i>&nbsp;		return null;</b>
+<i class="no-highlight">514</i>&nbsp;	}
+<i class="no-highlight">515</i>&nbsp;
+<i class="no-highlight">516</i>&nbsp;	private String getConstString(RootNode root, InsnArg arg) {
+<b class="pc"><i class="no-highlight">517</i>&nbsp;		if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">518</i>&nbsp;			InsnNode constInsn = ((InsnWrapArg) arg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">519</i>&nbsp;			Object constValue = InsnUtils.getConstValueByInsn(root, constInsn);</b>
+<b class="pc"><i class="no-highlight">520</i>&nbsp;			if (constValue instanceof String) {</b>
+<b class="fc"><i class="no-highlight">521</i>&nbsp;				return (String) constValue;</b>
+<i class="no-highlight">522</i>&nbsp;			}
+<i class="no-highlight">523</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">524</i>&nbsp;		return null;</b>
+<i class="no-highlight">525</i>&nbsp;	}
+<i class="no-highlight">526</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

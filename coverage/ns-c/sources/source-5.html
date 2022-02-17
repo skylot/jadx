@@ -1,0 +1,147 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FieldRefHandle</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.data.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: FieldRefHandle (jadx.api.plugins.input.data.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FieldRefHandle</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.data.impl;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.plugins.input.data.IFieldRef;
+<i class="no-highlight">4</i>&nbsp;import jadx.api.plugins.input.data.IMethodHandle;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.data.MethodHandleType;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;public class FieldRefHandle implements IMethodHandle {
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;	private final IFieldRef fieldRef;
+<i class="no-highlight">11</i>&nbsp;	private final MethodHandleType type;
+<i class="no-highlight">12</i>&nbsp;
+<b class="nc"><i class="no-highlight">13</i>&nbsp;	public FieldRefHandle(MethodHandleType type, IFieldRef fieldRef) {</b>
+<b class="nc"><i class="no-highlight">14</i>&nbsp;		this.fieldRef = fieldRef;</b>
+<b class="nc"><i class="no-highlight">15</i>&nbsp;		this.type = type;</b>
+<i class="no-highlight">16</i>&nbsp;	}
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;	@Override
+<i class="no-highlight">19</i>&nbsp;	public MethodHandleType getType() {
+<b class="nc"><i class="no-highlight">20</i>&nbsp;		return type;</b>
+<i class="no-highlight">21</i>&nbsp;	}
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	@Override
+<i class="no-highlight">24</i>&nbsp;	public IFieldRef getFieldRef() {
+<b class="nc"><i class="no-highlight">25</i>&nbsp;		return fieldRef;</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	@Override
+<i class="no-highlight">29</i>&nbsp;	public IMethodRef getMethodRef() {
+<b class="nc"><i class="no-highlight">30</i>&nbsp;		return null;</b>
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	@Override
+<i class="no-highlight">34</i>&nbsp;	public void load() {
+<i class="no-highlight">35</i>&nbsp;		// already loaded
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	@Override
+<i class="no-highlight">39</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		return type + &quot;: &quot; + fieldRef;</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

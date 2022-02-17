@@ -1,0 +1,194 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FontUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: FontUtils (jadx.gui.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FontUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Font;
+<i class="no-highlight">4</i>&nbsp;import java.awt.GraphicsEnvironment;
+<i class="no-highlight">5</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import javax.swing.text.StyleContext;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">10</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">11</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;public class FontUtils {
+<b class="nc"><i class="no-highlight">16</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(FontUtils.class);</b>
+<i class="no-highlight">17</i>&nbsp;
+<b class="nc"><i class="no-highlight">18</i>&nbsp;	public static final Font FONT_HACK = openFontTTF(&quot;Hack-Regular&quot;);</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	public static void registerBundledFonts() {
+<b class="nc"><i class="no-highlight">21</i>&nbsp;		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();</b>
+<b class="nc"><i class="no-highlight">22</i>&nbsp;		if (FontUtils.FONT_HACK != null) {</b>
+<b class="nc"><i class="no-highlight">23</i>&nbsp;			grEnv.registerFont(FontUtils.FONT_HACK);</b>
+<i class="no-highlight">24</i>&nbsp;		}
+<i class="no-highlight">25</i>&nbsp;	}
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	public static Font loadByStr(String fontDesc) {
+<b class="nc"><i class="no-highlight">28</i>&nbsp;		String[] parts = fontDesc.split(&quot;/&quot;);</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;		if (parts.length != 3) {</b>
+<b class="nc"><i class="no-highlight">30</i>&nbsp;			throw new JadxRuntimeException(&quot;Unsupported font description format: &quot; + fontDesc);</b>
+<i class="no-highlight">31</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		String name = parts[0];</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		int style = parseFontStyle(parts[1]);</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		int size = Integer.parseInt(parts[2]);</b>
+<i class="no-highlight">35</i>&nbsp;
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		StyleContext sc = StyleContext.getDefaultStyleContext();</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		Font font = sc.getFont(name, style, size);</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		if (font == null) {</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;			throw new JadxRuntimeException(&quot;Font not found: &quot; + fontDesc);</b>
+<i class="no-highlight">40</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		return font;</b>
+<i class="no-highlight">42</i>&nbsp;	}
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;	public static String convertToStr(Font font) {
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		return font.getFontName()</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;				+ &#39;/&#39; + convertFontStyleToString(font.getStyle())</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;				+ &#39;/&#39; + font.getSize();</b>
+<i class="no-highlight">48</i>&nbsp;	}
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;	public static String convertFontStyleToString(int style) {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		if (style == 0) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			return &quot;plain&quot;;</b>
+<i class="no-highlight">53</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		if ((style &amp; Font.BOLD) != 0) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;			sb.append(&quot;bold&quot;);</b>
+<i class="no-highlight">57</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		if ((style &amp; Font.ITALIC) != 0) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;			sb.append(&quot; italic&quot;);</b>
+<i class="no-highlight">60</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		return sb.toString().trim();</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	private static int parseFontStyle(String str) {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		int style = 0;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		if (str.contains(&quot;bold&quot;)) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;			style |= Font.BOLD;</b>
+<i class="no-highlight">68</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		if (str.contains(&quot;italic&quot;)) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			style |= Font.ITALIC;</b>
+<i class="no-highlight">71</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		return style;</b>
+<i class="no-highlight">73</i>&nbsp;	}
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	@Nullable
+<i class="no-highlight">76</i>&nbsp;	public static Font openFontTTF(String name) {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		String fontPath = &quot;/fonts/&quot; + name + &quot;.ttf&quot;;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		try (InputStream is = UiUtils.class.getResourceAsStream(fontPath)) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;			Font font = Font.createFont(Font.TRUETYPE_FONT, is);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;			return font.deriveFont(12f);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;			LOG.error(&quot;Failed load font by path: {}&quot;, fontPath, e);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;			return null;</b>
+<i class="no-highlight">84</i>&nbsp;		}
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<b class="nc"><i class="no-highlight">87</i>&nbsp;	private FontUtils() {</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,467 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexInsnInfo</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.insns</a>
+</div>
+
+<h1>Coverage Summary for Class: DexInsnInfo (jadx.plugins.input.dex.insns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexInsnInfo</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (9/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    99.2%
+  </span>
+  <span class="absValue">
+    (245/247)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.insns;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Map;
+<i class="no-highlight">4</i>&nbsp;import java.util.concurrent.ConcurrentHashMap;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.insns.InsnIndexType;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.insns.Opcode;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;public class DexInsnInfo {
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;	private static final DexInsnInfo[] INSN_INFO;
+<i class="no-highlight">14</i>&nbsp;	private static final Map&lt;Integer, DexInsnInfo&gt; PAYLOAD_INFO;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	static {
+<b class="fc"><i class="no-highlight">17</i>&nbsp;		DexInsnInfo[] arr = new DexInsnInfo[0x100];</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;		INSN_INFO = arr;</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;		register(arr, DexOpcodes.NOP, Opcode.NOP, DexInsnFormat.FORMAT_10X);</b>
+<i class="no-highlight">20</i>&nbsp;
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		register(arr, DexOpcodes.MOVE, Opcode.MOVE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		register(arr, DexOpcodes.MOVE_FROM16, Opcode.MOVE, DexInsnFormat.FORMAT_22X);</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		register(arr, DexOpcodes.MOVE_16, Opcode.MOVE, DexInsnFormat.FORMAT_32X);</b>
+<i class="no-highlight">24</i>&nbsp;
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		register(arr, DexOpcodes.MOVE_WIDE, Opcode.MOVE_WIDE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">26</i>&nbsp;		register(arr, DexOpcodes.MOVE_WIDE_FROM16, Opcode.MOVE_WIDE, DexInsnFormat.FORMAT_22X);</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		register(arr, DexOpcodes.MOVE_WIDE_16, Opcode.MOVE_WIDE, DexInsnFormat.FORMAT_32X);</b>
+<i class="no-highlight">28</i>&nbsp;
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		register(arr, DexOpcodes.MOVE_OBJECT, Opcode.MOVE_OBJECT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		register(arr, DexOpcodes.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT, DexInsnFormat.FORMAT_22X);</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		register(arr, DexOpcodes.MOVE_OBJECT_16, Opcode.MOVE_OBJECT, DexInsnFormat.FORMAT_32X);</b>
+<i class="no-highlight">32</i>&nbsp;
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		register(arr, DexOpcodes.MOVE_RESULT, Opcode.MOVE_RESULT, DexInsnFormat.FORMAT_11X);</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		register(arr, DexOpcodes.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT, DexInsnFormat.FORMAT_11X);</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		register(arr, DexOpcodes.MOVE_RESULT_OBJECT, Opcode.MOVE_RESULT, DexInsnFormat.FORMAT_11X);</b>
+<i class="no-highlight">36</i>&nbsp;
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		register(arr, DexOpcodes.MOVE_EXCEPTION, Opcode.MOVE_EXCEPTION, DexInsnFormat.FORMAT_11X);</b>
+<i class="no-highlight">38</i>&nbsp;
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		register(arr, DexOpcodes.RETURN_VOID, Opcode.RETURN_VOID, DexInsnFormat.FORMAT_10X);</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		register(arr, DexOpcodes.RETURN, Opcode.RETURN, DexInsnFormat.FORMAT_11X);</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		register(arr, DexOpcodes.RETURN_WIDE, Opcode.RETURN, DexInsnFormat.FORMAT_11X);</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		register(arr, DexOpcodes.RETURN_OBJECT, Opcode.RETURN, DexInsnFormat.FORMAT_11X);</b>
+<i class="no-highlight">43</i>&nbsp;
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		register(arr, DexOpcodes.CONST_4, Opcode.CONST, DexInsnFormat.FORMAT_11N);</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		register(arr, DexOpcodes.CONST_16, Opcode.CONST, DexInsnFormat.FORMAT_21S);</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		register(arr, DexOpcodes.CONST, Opcode.CONST, DexInsnFormat.FORMAT_31I);</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		register(arr, DexOpcodes.CONST_HIGH16, Opcode.CONST, DexInsnFormat.FORMAT_21H);</b>
+<i class="no-highlight">48</i>&nbsp;
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		register(arr, DexOpcodes.CONST_WIDE_16, Opcode.CONST_WIDE, DexInsnFormat.FORMAT_21S);</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		register(arr, DexOpcodes.CONST_WIDE_32, Opcode.CONST_WIDE, DexInsnFormat.FORMAT_31I);</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		register(arr, DexOpcodes.CONST_WIDE, Opcode.CONST_WIDE, DexInsnFormat.FORMAT_51I);</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		register(arr, DexOpcodes.CONST_WIDE_HIGH16, Opcode.CONST_WIDE, DexInsnFormat.FORMAT_21H);</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		register(arr, DexOpcodes.CONST_STRING, Opcode.CONST_STRING, DexInsnFormat.FORMAT_21C, InsnIndexType.STRING_REF);</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		register(arr, DexOpcodes.CONST_STRING_JUMBO, Opcode.CONST_STRING, DexInsnFormat.FORMAT_31C, InsnIndexType.STRING_REF);</b>
+<i class="no-highlight">56</i>&nbsp;
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		register(arr, DexOpcodes.CONST_CLASS, Opcode.CONST_CLASS, DexInsnFormat.FORMAT_21C, InsnIndexType.TYPE_REF);</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		register(arr, DexOpcodes.MONITOR_ENTER, Opcode.MONITOR_ENTER, DexInsnFormat.FORMAT_11X);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		register(arr, DexOpcodes.MONITOR_EXIT, Opcode.MONITOR_EXIT, DexInsnFormat.FORMAT_11X);</b>
+<i class="no-highlight">61</i>&nbsp;
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		register(arr, DexOpcodes.CHECK_CAST, Opcode.CHECK_CAST, DexInsnFormat.FORMAT_21C, InsnIndexType.TYPE_REF);</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		register(arr, DexOpcodes.INSTANCE_OF, Opcode.INSTANCE_OF, DexInsnFormat.FORMAT_22C, InsnIndexType.TYPE_REF);</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		register(arr, DexOpcodes.ARRAY_LENGTH, Opcode.ARRAY_LENGTH, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		register(arr, DexOpcodes.NEW_INSTANCE, Opcode.NEW_INSTANCE, DexInsnFormat.FORMAT_21C, InsnIndexType.TYPE_REF);</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		register(arr, DexOpcodes.NEW_ARRAY, Opcode.NEW_ARRAY, DexInsnFormat.FORMAT_22C, InsnIndexType.TYPE_REF);</b>
+<i class="no-highlight">67</i>&nbsp;
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		register(arr, DexOpcodes.FILLED_NEW_ARRAY, Opcode.FILLED_NEW_ARRAY, DexInsnFormat.FORMAT_35C, InsnIndexType.TYPE_REF);</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		register(arr, DexOpcodes.FILLED_NEW_ARRAY_RANGE, Opcode.FILLED_NEW_ARRAY_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.TYPE_REF);</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		register(arr, DexOpcodes.FILL_ARRAY_DATA, Opcode.FILL_ARRAY_DATA, DexInsnFormat.FORMAT_31T);</b>
+<i class="no-highlight">71</i>&nbsp;
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		register(arr, DexOpcodes.THROW, Opcode.THROW, DexInsnFormat.FORMAT_11X);</b>
+<i class="no-highlight">73</i>&nbsp;
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		register(arr, DexOpcodes.GOTO, Opcode.GOTO, DexInsnFormat.FORMAT_10T);</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		register(arr, DexOpcodes.GOTO_16, Opcode.GOTO, DexInsnFormat.FORMAT_20T);</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		register(arr, DexOpcodes.GOTO_32, Opcode.GOTO, DexInsnFormat.FORMAT_30T);</b>
+<i class="no-highlight">77</i>&nbsp;
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		register(arr, DexOpcodes.PACKED_SWITCH, Opcode.PACKED_SWITCH, DexInsnFormat.FORMAT_31T);</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		register(arr, DexOpcodes.SPARSE_SWITCH, Opcode.SPARSE_SWITCH, DexInsnFormat.FORMAT_31T);</b>
+<i class="no-highlight">80</i>&nbsp;
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		register(arr, DexOpcodes.CMPL_FLOAT, Opcode.CMPL_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		register(arr, DexOpcodes.CMPG_FLOAT, Opcode.CMPG_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		register(arr, DexOpcodes.CMPL_DOUBLE, Opcode.CMPL_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		register(arr, DexOpcodes.CMPG_DOUBLE, Opcode.CMPG_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		register(arr, DexOpcodes.CMP_LONG, Opcode.CMP_LONG, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">86</i>&nbsp;
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		register(arr, DexOpcodes.IF_EQ, Opcode.IF_EQ, DexInsnFormat.FORMAT_22T);</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		register(arr, DexOpcodes.IF_NE, Opcode.IF_NE, DexInsnFormat.FORMAT_22T);</b>
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		register(arr, DexOpcodes.IF_LT, Opcode.IF_LT, DexInsnFormat.FORMAT_22T);</b>
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		register(arr, DexOpcodes.IF_GE, Opcode.IF_GE, DexInsnFormat.FORMAT_22T);</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		register(arr, DexOpcodes.IF_GT, Opcode.IF_GT, DexInsnFormat.FORMAT_22T);</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		register(arr, DexOpcodes.IF_LE, Opcode.IF_LE, DexInsnFormat.FORMAT_22T);</b>
+<i class="no-highlight">93</i>&nbsp;
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		register(arr, DexOpcodes.IF_EQZ, Opcode.IF_EQZ, DexInsnFormat.FORMAT_21T);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		register(arr, DexOpcodes.IF_NEZ, Opcode.IF_NEZ, DexInsnFormat.FORMAT_21T);</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		register(arr, DexOpcodes.IF_LTZ, Opcode.IF_LTZ, DexInsnFormat.FORMAT_21T);</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		register(arr, DexOpcodes.IF_GEZ, Opcode.IF_GEZ, DexInsnFormat.FORMAT_21T);</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		register(arr, DexOpcodes.IF_GTZ, Opcode.IF_GTZ, DexInsnFormat.FORMAT_21T);</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		register(arr, DexOpcodes.IF_LEZ, Opcode.IF_LEZ, DexInsnFormat.FORMAT_21T);</b>
+<i class="no-highlight">100</i>&nbsp;
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		register(arr, DexOpcodes.AGET, Opcode.AGET, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		register(arr, DexOpcodes.AGET_WIDE, Opcode.AGET_WIDE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		register(arr, DexOpcodes.AGET_OBJECT, Opcode.AGET_OBJECT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		register(arr, DexOpcodes.AGET_BOOLEAN, Opcode.AGET_BOOLEAN, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;		register(arr, DexOpcodes.AGET_BYTE, Opcode.AGET_BYTE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		register(arr, DexOpcodes.AGET_CHAR, Opcode.AGET_CHAR, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		register(arr, DexOpcodes.AGET_SHORT, Opcode.AGET_SHORT, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">108</i>&nbsp;
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		register(arr, DexOpcodes.APUT, Opcode.APUT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		register(arr, DexOpcodes.APUT_WIDE, Opcode.APUT_WIDE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		register(arr, DexOpcodes.APUT_OBJECT, Opcode.APUT_OBJECT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		register(arr, DexOpcodes.APUT_BOOLEAN, Opcode.APUT_BOOLEAN, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		register(arr, DexOpcodes.APUT_BYTE, Opcode.APUT_BYTE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		register(arr, DexOpcodes.APUT_CHAR, Opcode.APUT_CHAR, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		register(arr, DexOpcodes.APUT_SHORT, Opcode.APUT_SHORT, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">116</i>&nbsp;
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		register(arr, DexOpcodes.IGET, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		register(arr, DexOpcodes.IGET_WIDE, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		register(arr, DexOpcodes.IGET_OBJECT, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		register(arr, DexOpcodes.IGET_BOOLEAN, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		register(arr, DexOpcodes.IGET_BYTE, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		register(arr, DexOpcodes.IGET_CHAR, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		register(arr, DexOpcodes.IGET_SHORT, Opcode.IGET, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<i class="no-highlight">124</i>&nbsp;
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		register(arr, DexOpcodes.IPUT, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		register(arr, DexOpcodes.IPUT_WIDE, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;		register(arr, DexOpcodes.IPUT_OBJECT, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		register(arr, DexOpcodes.IPUT_BOOLEAN, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		register(arr, DexOpcodes.IPUT_BYTE, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		register(arr, DexOpcodes.IPUT_CHAR, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		register(arr, DexOpcodes.IPUT_SHORT, Opcode.IPUT, DexInsnFormat.FORMAT_22C, InsnIndexType.FIELD_REF);</b>
+<i class="no-highlight">132</i>&nbsp;
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		register(arr, DexOpcodes.SGET, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		register(arr, DexOpcodes.SGET_WIDE, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		register(arr, DexOpcodes.SGET_OBJECT, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		register(arr, DexOpcodes.SGET_BOOLEAN, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;		register(arr, DexOpcodes.SGET_BYTE, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		register(arr, DexOpcodes.SGET_CHAR, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		register(arr, DexOpcodes.SGET_SHORT, Opcode.SGET, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<i class="no-highlight">140</i>&nbsp;
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		register(arr, DexOpcodes.SPUT, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		register(arr, DexOpcodes.SPUT_WIDE, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;		register(arr, DexOpcodes.SPUT_OBJECT, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		register(arr, DexOpcodes.SPUT_BOOLEAN, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		register(arr, DexOpcodes.SPUT_BYTE, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		register(arr, DexOpcodes.SPUT_CHAR, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;		register(arr, DexOpcodes.SPUT_SHORT, Opcode.SPUT, DexInsnFormat.FORMAT_21C, InsnIndexType.FIELD_REF);</b>
+<i class="no-highlight">148</i>&nbsp;
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		register(arr, DexOpcodes.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL, DexInsnFormat.FORMAT_35C, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		register(arr, DexOpcodes.INVOKE_SUPER, Opcode.INVOKE_SUPER, DexInsnFormat.FORMAT_35C, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		register(arr, DexOpcodes.INVOKE_DIRECT, Opcode.INVOKE_DIRECT, DexInsnFormat.FORMAT_35C, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		register(arr, DexOpcodes.INVOKE_STATIC, Opcode.INVOKE_STATIC, DexInsnFormat.FORMAT_35C, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;		register(arr, DexOpcodes.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE, DexInsnFormat.FORMAT_35C, InsnIndexType.METHOD_REF);</b>
+<i class="no-highlight">154</i>&nbsp;
+<b class="fc"><i class="no-highlight">155</i>&nbsp;		register(arr, DexOpcodes.INVOKE_VIRTUAL_RANGE, Opcode.INVOKE_VIRTUAL_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		register(arr, DexOpcodes.INVOKE_SUPER_RANGE, Opcode.INVOKE_SUPER_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;		register(arr, DexOpcodes.INVOKE_DIRECT_RANGE, Opcode.INVOKE_DIRECT_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		register(arr, DexOpcodes.INVOKE_STATIC_RANGE, Opcode.INVOKE_STATIC_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.METHOD_REF);</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;		register(arr, DexOpcodes.INVOKE_INTERFACE_RANGE, Opcode.INVOKE_INTERFACE_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.METHOD_REF);</b>
+<i class="no-highlight">160</i>&nbsp;
+<b class="fc"><i class="no-highlight">161</i>&nbsp;		register(arr, DexOpcodes.NEG_INT, Opcode.NEG_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		register(arr, DexOpcodes.NOT_INT, Opcode.NOT_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		register(arr, DexOpcodes.NEG_LONG, Opcode.NEG_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		register(arr, DexOpcodes.NOT_LONG, Opcode.NOT_LONG, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">165</i>&nbsp;
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		register(arr, DexOpcodes.NEG_FLOAT, Opcode.NEG_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		register(arr, DexOpcodes.NEG_DOUBLE, Opcode.NEG_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">168</i>&nbsp;
+<b class="fc"><i class="no-highlight">169</i>&nbsp;		register(arr, DexOpcodes.INT_TO_LONG, Opcode.INT_TO_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		register(arr, DexOpcodes.INT_TO_FLOAT, Opcode.INT_TO_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		register(arr, DexOpcodes.INT_TO_DOUBLE, Opcode.INT_TO_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">172</i>&nbsp;
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		register(arr, DexOpcodes.LONG_TO_INT, Opcode.LONG_TO_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		register(arr, DexOpcodes.LONG_TO_FLOAT, Opcode.LONG_TO_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		register(arr, DexOpcodes.LONG_TO_DOUBLE, Opcode.LONG_TO_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">176</i>&nbsp;
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		register(arr, DexOpcodes.FLOAT_TO_INT, Opcode.FLOAT_TO_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		register(arr, DexOpcodes.FLOAT_TO_LONG, Opcode.FLOAT_TO_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		register(arr, DexOpcodes.FLOAT_TO_DOUBLE, Opcode.FLOAT_TO_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">180</i>&nbsp;
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		register(arr, DexOpcodes.DOUBLE_TO_INT, Opcode.DOUBLE_TO_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		register(arr, DexOpcodes.DOUBLE_TO_LONG, Opcode.DOUBLE_TO_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		register(arr, DexOpcodes.DOUBLE_TO_FLOAT, Opcode.DOUBLE_TO_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">184</i>&nbsp;
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		register(arr, DexOpcodes.INT_TO_BYTE, Opcode.INT_TO_BYTE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		register(arr, DexOpcodes.INT_TO_CHAR, Opcode.INT_TO_CHAR, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;		register(arr, DexOpcodes.INT_TO_SHORT, Opcode.INT_TO_SHORT, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">188</i>&nbsp;
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		register(arr, DexOpcodes.ADD_INT, Opcode.ADD_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		register(arr, DexOpcodes.SUB_INT, Opcode.SUB_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;		register(arr, DexOpcodes.MUL_INT, Opcode.MUL_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		register(arr, DexOpcodes.DIV_INT, Opcode.DIV_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		register(arr, DexOpcodes.REM_INT, Opcode.REM_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		register(arr, DexOpcodes.AND_INT, Opcode.AND_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		register(arr, DexOpcodes.OR_INT, Opcode.OR_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		register(arr, DexOpcodes.XOR_INT, Opcode.XOR_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		register(arr, DexOpcodes.SHL_INT, Opcode.SHL_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		register(arr, DexOpcodes.SHR_INT, Opcode.SHR_INT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;		register(arr, DexOpcodes.USHR_INT, Opcode.USHR_INT, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">200</i>&nbsp;
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		register(arr, DexOpcodes.ADD_LONG, Opcode.ADD_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		register(arr, DexOpcodes.SUB_LONG, Opcode.SUB_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		register(arr, DexOpcodes.MUL_LONG, Opcode.MUL_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		register(arr, DexOpcodes.DIV_LONG, Opcode.DIV_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		register(arr, DexOpcodes.REM_LONG, Opcode.REM_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		register(arr, DexOpcodes.AND_LONG, Opcode.AND_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		register(arr, DexOpcodes.OR_LONG, Opcode.OR_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		register(arr, DexOpcodes.XOR_LONG, Opcode.XOR_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		register(arr, DexOpcodes.SHL_LONG, Opcode.SHL_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		register(arr, DexOpcodes.SHR_LONG, Opcode.SHR_LONG, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		register(arr, DexOpcodes.USHR_LONG, Opcode.USHR_LONG, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">212</i>&nbsp;
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		register(arr, DexOpcodes.ADD_FLOAT, Opcode.ADD_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		register(arr, DexOpcodes.SUB_FLOAT, Opcode.SUB_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		register(arr, DexOpcodes.MUL_FLOAT, Opcode.MUL_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		register(arr, DexOpcodes.DIV_FLOAT, Opcode.DIV_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		register(arr, DexOpcodes.REM_FLOAT, Opcode.REM_FLOAT, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">218</i>&nbsp;
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		register(arr, DexOpcodes.ADD_DOUBLE, Opcode.ADD_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		register(arr, DexOpcodes.SUB_DOUBLE, Opcode.SUB_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		register(arr, DexOpcodes.MUL_DOUBLE, Opcode.MUL_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		register(arr, DexOpcodes.DIV_DOUBLE, Opcode.DIV_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		register(arr, DexOpcodes.REM_DOUBLE, Opcode.REM_DOUBLE, DexInsnFormat.FORMAT_23X);</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		register(arr, DexOpcodes.ADD_INT_2ADDR, Opcode.ADD_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;		register(arr, DexOpcodes.SUB_INT_2ADDR, Opcode.SUB_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;		register(arr, DexOpcodes.MUL_INT_2ADDR, Opcode.MUL_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;		register(arr, DexOpcodes.DIV_INT_2ADDR, Opcode.DIV_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;		register(arr, DexOpcodes.REM_INT_2ADDR, Opcode.REM_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">230</i>&nbsp;		register(arr, DexOpcodes.AND_INT_2ADDR, Opcode.AND_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">231</i>&nbsp;		register(arr, DexOpcodes.OR_INT_2ADDR, Opcode.OR_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		register(arr, DexOpcodes.XOR_INT_2ADDR, Opcode.XOR_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		register(arr, DexOpcodes.SHL_INT_2ADDR, Opcode.SHL_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		register(arr, DexOpcodes.SHR_INT_2ADDR, Opcode.SHR_INT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		register(arr, DexOpcodes.USHR_INT_2ADDR, Opcode.USHR_INT, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">236</i>&nbsp;
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		register(arr, DexOpcodes.ADD_LONG_2ADDR, Opcode.ADD_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		register(arr, DexOpcodes.SUB_LONG_2ADDR, Opcode.SUB_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;		register(arr, DexOpcodes.MUL_LONG_2ADDR, Opcode.MUL_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		register(arr, DexOpcodes.DIV_LONG_2ADDR, Opcode.DIV_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		register(arr, DexOpcodes.REM_LONG_2ADDR, Opcode.REM_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		register(arr, DexOpcodes.AND_LONG_2ADDR, Opcode.AND_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		register(arr, DexOpcodes.OR_LONG_2ADDR, Opcode.OR_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		register(arr, DexOpcodes.XOR_LONG_2ADDR, Opcode.XOR_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;		register(arr, DexOpcodes.SHL_LONG_2ADDR, Opcode.SHL_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;		register(arr, DexOpcodes.SHR_LONG_2ADDR, Opcode.SHR_LONG, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		register(arr, DexOpcodes.USHR_LONG_2ADDR, Opcode.USHR_LONG, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">248</i>&nbsp;
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		register(arr, DexOpcodes.ADD_FLOAT_2ADDR, Opcode.ADD_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		register(arr, DexOpcodes.SUB_FLOAT_2ADDR, Opcode.SUB_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		register(arr, DexOpcodes.MUL_FLOAT_2ADDR, Opcode.MUL_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		register(arr, DexOpcodes.DIV_FLOAT_2ADDR, Opcode.DIV_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;		register(arr, DexOpcodes.REM_FLOAT_2ADDR, Opcode.REM_FLOAT, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">254</i>&nbsp;
+<b class="fc"><i class="no-highlight">255</i>&nbsp;		register(arr, DexOpcodes.ADD_DOUBLE_2ADDR, Opcode.ADD_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		register(arr, DexOpcodes.SUB_DOUBLE_2ADDR, Opcode.SUB_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		register(arr, DexOpcodes.MUL_DOUBLE_2ADDR, Opcode.MUL_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		register(arr, DexOpcodes.DIV_DOUBLE_2ADDR, Opcode.DIV_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		register(arr, DexOpcodes.REM_DOUBLE_2ADDR, Opcode.REM_DOUBLE, DexInsnFormat.FORMAT_12X);</b>
+<i class="no-highlight">260</i>&nbsp;
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		register(arr, DexOpcodes.ADD_INT_LIT16, Opcode.ADD_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">262</i>&nbsp;		register(arr, DexOpcodes.RSUB_INT, Opcode.RSUB_INT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		register(arr, DexOpcodes.MUL_INT_LIT16, Opcode.MUL_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		register(arr, DexOpcodes.DIV_INT_LIT16, Opcode.DIV_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		register(arr, DexOpcodes.REM_INT_LIT16, Opcode.REM_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		register(arr, DexOpcodes.AND_INT_LIT16, Opcode.AND_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;		register(arr, DexOpcodes.OR_INT_LIT16, Opcode.OR_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		register(arr, DexOpcodes.XOR_INT_LIT16, Opcode.XOR_INT_LIT, DexInsnFormat.FORMAT_22S);</b>
+<i class="no-highlight">269</i>&nbsp;
+<b class="fc"><i class="no-highlight">270</i>&nbsp;		register(arr, DexOpcodes.ADD_INT_LIT8, Opcode.ADD_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		register(arr, DexOpcodes.RSUB_INT_LIT8, Opcode.RSUB_INT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;		register(arr, DexOpcodes.MUL_INT_LIT8, Opcode.MUL_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		register(arr, DexOpcodes.DIV_INT_LIT8, Opcode.DIV_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		register(arr, DexOpcodes.REM_INT_LIT8, Opcode.REM_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">275</i>&nbsp;		register(arr, DexOpcodes.AND_INT_LIT8, Opcode.AND_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;		register(arr, DexOpcodes.OR_INT_LIT8, Opcode.OR_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		register(arr, DexOpcodes.XOR_INT_LIT8, Opcode.XOR_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		register(arr, DexOpcodes.SHL_INT_LIT8, Opcode.SHL_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		register(arr, DexOpcodes.SHR_INT_LIT8, Opcode.SHR_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		register(arr, DexOpcodes.USHR_INT_LIT8, Opcode.USHR_INT_LIT, DexInsnFormat.FORMAT_22B);</b>
+<i class="no-highlight">281</i>&nbsp;
+<b class="fc"><i class="no-highlight">282</i>&nbsp;		register(arr, DexOpcodes.INVOKE_POLYMORPHIC, Opcode.INVOKE_POLYMORPHIC, DexInsnFormat.FORMAT_45CC);</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		register(arr, DexOpcodes.INVOKE_POLYMORPHIC_RANGE, Opcode.INVOKE_POLYMORPHIC_RANGE, DexInsnFormat.FORMAT_4RCC);</b>
+<i class="no-highlight">284</i>&nbsp;
+<b class="fc"><i class="no-highlight">285</i>&nbsp;		register(arr, DexOpcodes.INVOKE_CUSTOM, Opcode.INVOKE_CUSTOM, DexInsnFormat.FORMAT_35C, InsnIndexType.CALL_SITE);</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		register(arr, DexOpcodes.INVOKE_CUSTOM_RANGE, Opcode.INVOKE_CUSTOM_RANGE, DexInsnFormat.FORMAT_3RC, InsnIndexType.CALL_SITE);</b>
+<i class="no-highlight">287</i>&nbsp;
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		register(arr, DexOpcodes.CONST_METHOD_HANDLE, Opcode.CONST_METHOD_HANDLE, DexInsnFormat.FORMAT_21C);</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		register(arr, DexOpcodes.CONST_METHOD_TYPE, Opcode.CONST_METHOD_TYPE, DexInsnFormat.FORMAT_21C);</b>
+<i class="no-highlight">290</i>&nbsp;
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		PAYLOAD_INFO = new ConcurrentHashMap&lt;&gt;(3);</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		registerPayload(DexOpcodes.PACKED_SWITCH_PAYLOAD, Opcode.PACKED_SWITCH_PAYLOAD, DexInsnFormat.FORMAT_PACKED_SWITCH_PAYLOAD);</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		registerPayload(DexOpcodes.SPARSE_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, DexInsnFormat.FORMAT_SPARSE_SWITCH_PAYLOAD);</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;		registerPayload(DexOpcodes.FILL_ARRAY_DATA_PAYLOAD, Opcode.FILL_ARRAY_DATA_PAYLOAD, DexInsnFormat.FORMAT_FILL_ARRAY_DATA_PAYLOAD);</b>
+<i class="no-highlight">295</i>&nbsp;	}
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;	private static void register(DexInsnInfo[] arr, int opcode, Opcode apiOpcode, DexInsnFormat format) {
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		arr[opcode] = new DexInsnInfo(opcode, apiOpcode, format, InsnIndexType.NONE);</b>
+<i class="no-highlight">299</i>&nbsp;	}
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;	private static void register(DexInsnInfo[] arr, int opcode, Opcode apiOpcode, DexInsnFormat format, InsnIndexType indexType) {
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		arr[opcode] = new DexInsnInfo(opcode, apiOpcode, format, indexType);</b>
+<i class="no-highlight">303</i>&nbsp;	}
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;	private static void registerPayload(int opcode, Opcode apiOpcode, DexInsnFormat format) {
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		PAYLOAD_INFO.put(opcode, new DexInsnInfo(opcode, apiOpcode, format, InsnIndexType.NONE));</b>
+<i class="no-highlight">307</i>&nbsp;	}
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;	@Nullable
+<i class="no-highlight">310</i>&nbsp;	public static DexInsnInfo get(int opcodeUnit) {
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		int opcode = opcodeUnit &amp; 0xFF;</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		if (opcode == 0 &amp;&amp; opcodeUnit != 0) {</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			return PAYLOAD_INFO.get(opcodeUnit);</b>
+<i class="no-highlight">314</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">315</i>&nbsp;		return INSN_INFO[opcode];</b>
+<i class="no-highlight">316</i>&nbsp;	}
+<i class="no-highlight">317</i>&nbsp;
+<i class="no-highlight">318</i>&nbsp;	private final int opcode;
+<i class="no-highlight">319</i>&nbsp;	private final Opcode apiOpcode;
+<i class="no-highlight">320</i>&nbsp;	private final DexInsnFormat format;
+<i class="no-highlight">321</i>&nbsp;	private final InsnIndexType indexType;
+<i class="no-highlight">322</i>&nbsp;
+<b class="fc"><i class="no-highlight">323</i>&nbsp;	public DexInsnInfo(int opcode, Opcode apiOpcode, DexInsnFormat format, InsnIndexType indexType) {</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;		this.opcode = opcode;</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;		this.apiOpcode = apiOpcode;</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;		this.format = format;</b>
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		this.indexType = indexType;</b>
+<i class="no-highlight">328</i>&nbsp;	}
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;	public int getOpcode() {
+<b class="nc"><i class="no-highlight">331</i>&nbsp;		return opcode;</b>
+<i class="no-highlight">332</i>&nbsp;	}
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;	public Opcode getApiOpcode() {
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		return apiOpcode;</b>
+<i class="no-highlight">336</i>&nbsp;	}
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;	public DexInsnFormat getFormat() {
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		return format;</b>
+<i class="no-highlight">340</i>&nbsp;	}
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;	public InsnIndexType getIndexType() {
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		return indexType;</b>
+<i class="no-highlight">344</i>&nbsp;	}
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;	@Override
+<i class="no-highlight">347</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;		return String.format(&quot;0x%X :%d%d&quot;, opcode, format.getLength(), format.getRegsCount());</b>
+<i class="no-highlight">349</i>&nbsp;	}
+<i class="no-highlight">350</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

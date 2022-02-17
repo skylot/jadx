@@ -1,0 +1,335 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexClassData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.sections</a>
+</div>
+
+<h1>Coverage Summary for Class: DexClassData (jadx.plugins.input.dex.sections)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexClassData</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.8%
+  </span>
+  <span class="absValue">
+    (23/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.3%
+  </span>
+  <span class="absValue">
+    (12/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.8%
+  </span>
+  <span class="absValue">
+    (91/93)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.sections;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;import java.util.Map;
+<i class="no-highlight">7</i>&nbsp;import java.util.function.Consumer;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">10</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">11</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.IClassData;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.IFieldData;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.IMethodData;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.ISeqConsumer;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
+<i class="no-highlight">21</i>&nbsp;import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
+<i class="no-highlight">22</i>&nbsp;import jadx.plugins.input.dex.utils.SmaliUtils;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;public class DexClassData implements IClassData {
+<b class="fc"><i class="no-highlight">25</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(DexClassData.class);</b>
+<i class="no-highlight">26</i>&nbsp;	public static final int SIZE = 8 * 4;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	private final SectionReader in;
+<i class="no-highlight">29</i>&nbsp;	private final AnnotationsParser annotationsParser;
+<i class="no-highlight">30</i>&nbsp;
+<b class="fc"><i class="no-highlight">31</i>&nbsp;	public DexClassData(SectionReader sectionReader, AnnotationsParser annotationsParser) {</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		this.in = sectionReader;</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		this.annotationsParser = annotationsParser;</b>
+<i class="no-highlight">34</i>&nbsp;	}
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;	@Override
+<i class="no-highlight">37</i>&nbsp;	public IClassData copy() {
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		return new DexClassData(in.copy(), annotationsParser.copy());</b>
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	@Override
+<i class="no-highlight">42</i>&nbsp;	public String getType() {
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		int typeIdx = in.pos(0).readInt();</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		String clsType = in.getType(typeIdx);</b>
+<b class="pc"><i class="no-highlight">45</i>&nbsp;		if (clsType == null) {</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;			throw new NullPointerException(&quot;Unknown class type&quot;);</b>
+<i class="no-highlight">47</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		return clsType;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	@Override
+<i class="no-highlight">52</i>&nbsp;	public int getAccessFlags() {
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		return in.pos(4).readInt();</b>
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	@Nullable
+<i class="no-highlight">57</i>&nbsp;	@Override
+<i class="no-highlight">58</i>&nbsp;	public String getSuperType() {
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		int typeIdx = in.pos(2 * 4).readInt();</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		return in.getType(typeIdx);</b>
+<i class="no-highlight">61</i>&nbsp;	}
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;	@Override
+<i class="no-highlight">64</i>&nbsp;	public List&lt;String&gt; getInterfacesTypes() {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		int offset = in.pos(3 * 4).readInt();</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		if (offset == 0) {</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">68</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return in.absPos(offset).readTypeList();</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	@Nullable
+<i class="no-highlight">73</i>&nbsp;	private String getSourceFile() {
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		int strIdx = in.pos(4 * 4).readInt();</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		return in.getString(strIdx);</b>
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;	@Override
+<i class="no-highlight">79</i>&nbsp;	public String getInputFileName() {
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		return in.getDexReader().getInputFileName();</b>
+<i class="no-highlight">81</i>&nbsp;	}
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;	public int getAnnotationsOff() {
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		return in.pos(5 * 4).readInt();</b>
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	public int getClassDataOff() {
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		return in.pos(6 * 4).readInt();</b>
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	public int getStaticValuesOff() {
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		return in.pos(7 * 4).readInt();</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	@Override
+<i class="no-highlight">96</i>&nbsp;	public void visitFieldsAndMethods(ISeqConsumer&lt;IFieldData&gt; fieldConsumer, ISeqConsumer&lt;IMethodData&gt; mthConsumer) {
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		int classDataOff = getClassDataOff();</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		if (classDataOff == 0) {</b>
+<i class="no-highlight">99</i>&nbsp;			return;
+<i class="no-highlight">100</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		SectionReader data = in.copy(classDataOff);</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		int staticFieldsCount = data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		int instanceFieldsCount = data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		int directMthCount = data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;		int virtualMthCount = data.readUleb128();</b>
+<i class="no-highlight">106</i>&nbsp;
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		fieldConsumer.init(staticFieldsCount + instanceFieldsCount);</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		mthConsumer.init(directMthCount + virtualMthCount);</b>
+<i class="no-highlight">109</i>&nbsp;
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		annotationsParser.setOffset(getAnnotationsOff());</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		visitFields(fieldConsumer, data, staticFieldsCount, instanceFieldsCount);</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		visitMethods(mthConsumer, data, directMthCount, virtualMthCount);</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	private void visitFields(Consumer&lt;IFieldData&gt; fieldConsumer, SectionReader data, int staticFieldsCount, int instanceFieldsCount) {
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		Map&lt;Integer, Integer&gt; annotationOffsetMap = annotationsParser.readFieldsAnnotationOffsetMap();</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		DexFieldData fieldData = new DexFieldData(annotationsParser);</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		fieldData.setParentClassType(getType());</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		readFields(fieldConsumer, data, fieldData, staticFieldsCount, annotationOffsetMap, true);</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		readFields(fieldConsumer, data, fieldData, instanceFieldsCount, annotationOffsetMap, false);</b>
+<i class="no-highlight">121</i>&nbsp;	}
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;	private void readFields(Consumer&lt;IFieldData&gt; fieldConsumer, SectionReader data, DexFieldData fieldData, int count,
+<i class="no-highlight">124</i>&nbsp;			Map&lt;Integer, Integer&gt; annOffsetMap, boolean staticFields) {
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		List&lt;EncodedValue&gt; constValues = staticFields ? getStaticFieldInitValues(data.copy()) : null;</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		int fieldId = 0;</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;		for (int i = 0; i &lt; count; i++) {</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;			fieldId += data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;			int accFlags = data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;			in.fillFieldData(fieldData, fieldId);</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;			fieldData.setAccessFlags(accFlags);</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;			fieldData.setAnnotationsOffset(getOffsetFromMap(fieldId, annOffsetMap));</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;			fieldData.setConstValue(staticFields &amp;&amp; i &lt; constValues.size() ? constValues.get(i) : null);</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;			fieldConsumer.accept(fieldData);</b>
+<i class="no-highlight">135</i>&nbsp;		}
+<i class="no-highlight">136</i>&nbsp;	}
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;	private void visitMethods(Consumer&lt;IMethodData&gt; mthConsumer, SectionReader data, int directMthCount, int virtualMthCount) {
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		DexMethodData methodData = new DexMethodData(annotationsParser);</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		methodData.setMethodRef(new DexMethodRef());</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		Map&lt;Integer, Integer&gt; annotationOffsetMap = annotationsParser.readMethodsAnnotationOffsetMap();</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		Map&lt;Integer, Integer&gt; paramsAnnOffsetMap = annotationsParser.readMethodParamsAnnRefOffsetMap();</b>
+<i class="no-highlight">143</i>&nbsp;
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		readMethods(mthConsumer, data, methodData, directMthCount, annotationOffsetMap, paramsAnnOffsetMap);</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		readMethods(mthConsumer, data, methodData, virtualMthCount, annotationOffsetMap, paramsAnnOffsetMap);</b>
+<i class="no-highlight">146</i>&nbsp;	}
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;	private void readMethods(Consumer&lt;IMethodData&gt; mthConsumer, SectionReader data, DexMethodData methodData, int count,
+<i class="no-highlight">149</i>&nbsp;			Map&lt;Integer, Integer&gt; annotationOffsetMap, Map&lt;Integer, Integer&gt; paramsAnnOffsetMap) {
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		DexCodeReader dexCodeReader = new DexCodeReader(in.copy());</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		int mthIdx = 0;</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		for (int i = 0; i &lt; count; i++) {</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			mthIdx += data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;			int accFlags = data.readUleb128();</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;			int codeOff = data.readUleb128();</b>
+<i class="no-highlight">156</i>&nbsp;
+<b class="fc"><i class="no-highlight">157</i>&nbsp;			DexMethodRef methodRef = methodData.getMethodRef();</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;			methodRef.reset();</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;			in.initMethodRef(mthIdx, methodRef);</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;			methodData.setAccessFlags(accFlags);</b>
+<b class="fc"><i class="no-highlight">161</i>&nbsp;			if (codeOff == 0) {</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;				methodData.setCodeReader(null);</b>
+<i class="no-highlight">163</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">164</i>&nbsp;				dexCodeReader.setMthId(mthIdx);</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;				dexCodeReader.setOffset(codeOff);</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;				methodData.setCodeReader(dexCodeReader);</b>
+<i class="no-highlight">167</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">168</i>&nbsp;			methodData.setAnnotationsOffset(getOffsetFromMap(mthIdx, annotationOffsetMap));</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;			methodData.setParamAnnotationsOffset(getOffsetFromMap(mthIdx, paramsAnnOffsetMap));</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;			mthConsumer.accept(methodData);</b>
+<i class="no-highlight">171</i>&nbsp;		}
+<i class="no-highlight">172</i>&nbsp;	}
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;	private static int getOffsetFromMap(int idx, Map&lt;Integer, Integer&gt; annOffsetMap) {
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		Integer offset = annOffsetMap.get(idx);</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		return offset != null ? offset : 0;</b>
+<i class="no-highlight">177</i>&nbsp;	}
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;	private List&lt;EncodedValue&gt; getStaticFieldInitValues(SectionReader reader) {
+<b class="fc"><i class="no-highlight">180</i>&nbsp;		int staticValuesOff = getStaticValuesOff();</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		if (staticValuesOff == 0) {</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">183</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		reader.absPos(staticValuesOff);</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		return annotationsParser.parseEncodedArray(reader);</b>
+<i class="no-highlight">186</i>&nbsp;	}
+<i class="no-highlight">187</i>&nbsp;
+<i class="no-highlight">188</i>&nbsp;	private List&lt;IAnnotation&gt; getAnnotations() {
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		annotationsParser.setOffset(getAnnotationsOff());</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		return annotationsParser.readClassAnnotations();</b>
+<i class="no-highlight">191</i>&nbsp;	}
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;	@Override
+<i class="no-highlight">194</i>&nbsp;	public List&lt;IJadxAttribute&gt; getAttributes() {
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		List&lt;IJadxAttribute&gt; list = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		String sourceFile = getSourceFile();</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		if (sourceFile != null &amp;&amp; !sourceFile.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			list.add(new SourceFileAttr(sourceFile));</b>
+<i class="no-highlight">199</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		DexAnnotationsConvert.forClass(getType(), list, getAnnotations());</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		return list;</b>
+<i class="no-highlight">202</i>&nbsp;	}
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;	public int getClassDefOffset() {
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		return in.pos(0).getAbsPos();</b>
+<i class="no-highlight">206</i>&nbsp;	}
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;	@Override
+<i class="no-highlight">209</i>&nbsp;	public String getDisassembledCode() {
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		byte[] dexBuf = in.getDexReader().getBuf().array();</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		return SmaliUtils.getSmaliCode(dexBuf, getClassDefOffset());</b>
+<i class="no-highlight">212</i>&nbsp;	}
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;	@Override
+<i class="no-highlight">215</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">216</i>&nbsp;		return getType();</b>
+<i class="no-highlight">217</i>&nbsp;	}
+<i class="no-highlight">218</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,272 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SmaliInsnFormat</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.smali</a>
+</div>
+
+<h1>Coverage Summary for Class: SmaliInsnFormat (jadx.plugins.input.dex.smali)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SmaliInsnFormat</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.2%
+  </span>
+  <span class="absValue">
+    (20/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (5/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.1%
+  </span>
+  <span class="absValue">
+    (64/68)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.smali;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.insns.InsnData;
+<i class="no-highlight">9</i>&nbsp;import jadx.plugins.input.dex.insns.DexOpcodes;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;public class SmaliInsnFormat {
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;	private static SmaliInsnFormat instance;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;	public static synchronized SmaliInsnFormat getInstance() {
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		SmaliInsnFormat instance = SmaliInsnFormat.instance;</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;		if (instance == null) {</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;			instance = new SmaliInsnFormat();</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;			SmaliInsnFormat.instance = instance;</b>
+<i class="no-highlight">20</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		return instance;</b>
+<i class="no-highlight">22</i>&nbsp;	}
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	private final Map&lt;Integer, InsnFormatter&gt; formatters;
+<i class="no-highlight">25</i>&nbsp;
+<b class="fc"><i class="no-highlight">26</i>&nbsp;	public SmaliInsnFormat() {</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		formatters = registerFormatters();</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	private Map&lt;Integer, InsnFormatter&gt; registerFormatters() {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		Map&lt;Integer, InsnFormatter&gt; map = new HashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		map.put(DexOpcodes.NOP, fi -&gt; fi.getCodeWriter().add(&quot;nop&quot;));</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		map.put(DexOpcodes.SGET_OBJECT, staticFieldInsn(&quot;sget-object&quot;));</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		map.put(DexOpcodes.SPUT_BOOLEAN, staticFieldInsn(&quot;sput-boolean&quot;));</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		map.put(DexOpcodes.CONST, constInsn(&quot;const&quot;));</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		map.put(DexOpcodes.CONST_HIGH16, constInsn(&quot;const/high16&quot;));</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		map.put(DexOpcodes.CONST_STRING, stringInsn(&quot;const-string&quot;));</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		map.put(DexOpcodes.INVOKE_VIRTUAL, invokeInsn(&quot;invoke-virtual&quot;));</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		map.put(DexOpcodes.INVOKE_DIRECT, invokeInsn(&quot;invoke-direct&quot;));</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		map.put(DexOpcodes.INVOKE_SUPER, invokeInsn(&quot;invoke-super&quot;));</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		map.put(DexOpcodes.INVOKE_STATIC, invokeInsn(&quot;invoke-static&quot;));</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		map.put(DexOpcodes.MOVE_RESULT, oneArgsInsn(&quot;move-result&quot;));</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		map.put(DexOpcodes.RETURN_VOID, noArgsInsn(&quot;return-void&quot;));</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		map.put(DexOpcodes.GOTO, gotoInsn(&quot;goto&quot;));</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		map.put(DexOpcodes.GOTO_16, gotoInsn(&quot;goto-16&quot;));</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		map.put(DexOpcodes.MOVE, simpleInsn(&quot;move&quot;));</b>
+<i class="no-highlight">47</i>&nbsp;		// TODO: complete list
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		return map;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	private InsnFormatter simpleInsn(String name) {
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		return fi -&gt; {</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;			SmaliCodeWriter code = fi.getCodeWriter();</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;			code.add(name);</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			InsnData insn = fi.getInsn();</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			int regsCount = insn.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;			for (int i = 0; i &lt; regsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;				if (i == 0) {</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;					code.add(&#39; &#39;);</b>
+<i class="no-highlight">60</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">61</i>&nbsp;					code.add(&quot;, &quot;);</b>
+<i class="no-highlight">62</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">63</i>&nbsp;				code.add(regAt(fi, i));</b>
+<i class="no-highlight">64</i>&nbsp;			}
+<i class="no-highlight">65</i>&nbsp;		};
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	private InsnFormatter gotoInsn(String name) {
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return fi -&gt; fi.getCodeWriter().add(name).add(&quot; :goto&quot;).add(Integer.toHexString(fi.getInsn().getTarget()));</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	@NotNull
+<i class="no-highlight">73</i>&nbsp;	private InsnFormatter staticFieldInsn(String name) {
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		return fi -&gt; fi.getCodeWriter().add(name).add(&#39; &#39;).add(regAt(fi, 0)).add(&quot;, &quot;).add(field(fi));</b>
+<i class="no-highlight">75</i>&nbsp;	}
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;	@NotNull
+<i class="no-highlight">78</i>&nbsp;	private InsnFormatter constInsn(String name) {
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		return fi -&gt; fi.getCodeWriter().add(name).add(&#39; &#39;).add(regAt(fi, 0)).add(&quot;, &quot;).add(literal(fi));</b>
+<i class="no-highlight">80</i>&nbsp;	}
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;	@NotNull
+<i class="no-highlight">83</i>&nbsp;	private InsnFormatter stringInsn(String name) {
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		return fi -&gt; fi.getCodeWriter().add(name).add(&#39; &#39;).add(regAt(fi, 0)).add(&quot;, &quot;).add(str(fi));</b>
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	@NotNull
+<i class="no-highlight">88</i>&nbsp;	private InsnFormatter invokeInsn(String name) {
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		return fi -&gt; {</b>
+<b class="fc"><i class="no-highlight">90</i>&nbsp;			SmaliCodeWriter code = fi.getCodeWriter();</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;			code.add(name).add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;			regsList(code, fi.getInsn());</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			code.add(&quot;, &quot;).add(method(fi));</b>
+<i class="no-highlight">94</i>&nbsp;		};
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	private InsnFormatter oneArgsInsn(String name) {
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		return fi -&gt; fi.getCodeWriter().add(name).add(&#39; &#39;).add(regAt(fi, 0));</b>
+<i class="no-highlight">99</i>&nbsp;	}
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;	private InsnFormatter noArgsInsn(String name) {
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		return (fi) -&gt; fi.getCodeWriter().add(name);</b>
+<i class="no-highlight">103</i>&nbsp;	}
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;	private String literal(InsnFormatterInfo fi) {
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		return &quot;0x&quot; + Long.toHexString(fi.getInsn().getLiteral());</b>
+<i class="no-highlight">107</i>&nbsp;	}
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;	private String str(InsnFormatterInfo fi) {
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		return &quot;\&quot;&quot; + fi.getInsn().getIndexAsString() + &quot;\&quot;&quot;;</b>
+<i class="no-highlight">111</i>&nbsp;	}
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;	private String field(InsnFormatterInfo fi) {
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		return fi.getInsn().getIndexAsField().toString();</b>
+<i class="no-highlight">115</i>&nbsp;	}
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;	private String method(InsnFormatterInfo fi) {
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		return fi.getInsn().getIndexAsMethod().toString();</b>
+<i class="no-highlight">119</i>&nbsp;	}
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;	private void regsList(SmaliCodeWriter code, InsnData insn) {
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		int argsCount = insn.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		code.add(&#39;{&#39;);</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		for (int i = 0; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;			if (i != 0) {</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;				code.add(&quot;, &quot;);</b>
+<i class="no-highlight">127</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">128</i>&nbsp;			code.add(&quot;v&quot;).add(insn.getReg(i));</b>
+<i class="no-highlight">129</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		code.add(&#39;}&#39;);</b>
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	private String regAt(InsnFormatterInfo fi, int argNum) {
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		return &quot;v&quot; + fi.getInsn().getReg(argNum);</b>
+<i class="no-highlight">135</i>&nbsp;	}
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;	public void format(InsnFormatterInfo formatInfo) {
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		InsnData insn = formatInfo.getInsn();</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		insn.decode();</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		int rawOpcodeUnit = insn.getRawOpcodeUnit();</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		int opcode = rawOpcodeUnit &amp; 0xFF;</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		InsnFormatter insnFormatter = formatters.get(opcode);</b>
+<b class="pc"><i class="no-highlight">143</i>&nbsp;		if (insnFormatter != null) {</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;			insnFormatter.format(formatInfo);</b>
+<i class="no-highlight">145</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;			formatInfo.getCodeWriter().add(&quot;# &quot;).add(insn.getOpcode()).add(&quot; (?0x&quot;).add(Integer.toHexString(rawOpcodeUnit)).add(&#39;)&#39;);</b>
+<i class="no-highlight">147</i>&nbsp;		}
+<i class="no-highlight">148</i>&nbsp;	}
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;	public String format(InsnData insn) {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;		InsnFormatterInfo formatInfo = new InsnFormatterInfo(new SmaliCodeWriter(), insn);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;		format(formatInfo);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;		return formatInfo.getCodeWriter().getCode();</b>
+<i class="no-highlight">154</i>&nbsp;	}
+<i class="no-highlight">155</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > InsnData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.insns</a>
+</div>
+
+<h1>Coverage Summary for Class: InsnData (jadx.api.plugins.input.insns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">InsnData</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.insns;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.plugins.input.data.ICallSite;
+<i class="no-highlight">4</i>&nbsp;import jadx.api.plugins.input.data.IFieldRef;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.data.IMethodHandle;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.data.IMethodProto;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.insns.custom.ICustomPayload;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;public interface InsnData {
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;	void decode();
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;	int getOffset(); // offset within method
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;	int getFileOffset(); // offset within dex file
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;	Opcode getOpcode();
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	String getOpcodeMnemonic();
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	byte[] getByteCode();
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	InsnIndexType getIndexType();
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	int getRawOpcodeUnit();
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	int getRegsCount();
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	int getReg(int argNum);
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	/**
+<i class="no-highlight">33</i>&nbsp;	 * Workaround to set result reg without additional move-result insn
+<i class="no-highlight">34</i>&nbsp;	 *
+<i class="no-highlight">35</i>&nbsp;	 * @return result reg number or -1 if not needed
+<i class="no-highlight">36</i>&nbsp;	 */
+<i class="no-highlight">37</i>&nbsp;	int getResultReg();
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	long getLiteral();
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	int getTarget();
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	int getIndex();
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	String getIndexAsString();
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	String getIndexAsType();
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	IFieldRef getIndexAsField();
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	IMethodRef getIndexAsMethod();
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;	ICallSite getIndexAsCallSite();
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	IMethodProto getIndexAsProto(int protoIndex);
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	IMethodHandle getIndexAsMethodHandle();
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	ICustomPayload getPayload();
+<i class="no-highlight">60</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

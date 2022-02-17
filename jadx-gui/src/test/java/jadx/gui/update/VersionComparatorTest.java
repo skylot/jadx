@@ -9,38 +9,7 @@ import static org.hamcrest.Matchers.is;
 
 class VersionComparatorTest {
 
-	/*
-	*	SWE 261P Project:
-	*	Part 1 Functional Testing and Partitioning
-	* 	1. Test normal inputs
-	* 	(1) whether input start with “v”:
-	*		We split it into 4 types, like “*, *”, “v*, *”, “*, v*”, “v*, v*”.
-	*	(2) whether numbers start with zero:
-	*		We split it into 4 types, like “*, *”, “0*, *”, “*, 0*”, “0*, 0*”
-	*	(3) whether input has multiple layers:
-	*		We split it into 4 types, like “1, 1”, “1, mutil”, “mutil, 1”, “mutil, mutil”
-	*	(4) different value of two input:
-	*		We split it into 4 types, like “a<b”, “a>b”, “a==b”
-	*
-	*	Pairwise 2-way test suite
-	* 	starts with v	zero+numbers	1, mutil layers		a<b, a>b,a==b	Example
-	*	*, *			*, *			1, 1				a<b				1,2
-	*	v*, *			*, *			1, mutil			a>b				v2.0,1.2
-	*	*, v*			*, *			mutil, 1			a==b			2.0,v2
-	*	v*, v*			*, *			mutil, mutil		a==b			v2.1,v2.1
-	*	*, *			0*, *			mutil, mutil		a==b			02.1,2.1.0
-	*	v*, *			0*, *			mutil, 1			a<b				v02.1,3
-	*	*, v*			0*, *			1, mutil			a>b				03,v2.1
-	*	v*, v*			0*, *			1, 1				a>b				v03,v2
-	*	*, *			*, 0*			mutil, 1			a>b				2.3,02
-	*	v*, *			*, 0*			mutil, mutil		a==b			v2.2,02.2
-	*	*, v*			*, 0*			1, 1				a<b				2,v03
-	*	v*, v*			*, 0*			1, mutil			a==b			v1,v01
-	*	*, *			0*, 0*			1, mutil			a==b			02,02.0
-	*	v*, *			0*, 0*			1, 1				a==b			v02,02
-	*	*, v*			0*, 0*			mutil, mutil		a>b				3.03,v2.3
-	*	v*, v*			0*, 0*			mutil, 1			a<b				v02.3,v03
-	* */
+
 
 	//if project tips not support ParameterizedTest,
 	// need to refresh or reload project by Gradle tool
@@ -67,15 +36,7 @@ class VersionComparatorTest {
 		assertThat(VersionComparator.checkAndCompare(a, b), is(expected));
 	}
 
-	/*
-	 *	SWE 261P Project:
-	 *	Part 1 Functional Testing and Partitioning
-	 * 	2. Test improper inputs:
-	 * (1) negative: -2, -3
-	 * (2) letter: a, A
-	 * (3) whether more than Integer.MAX_VALUE: > 2147483647
-	 * (4) illegal char: %, #
-	 * */
+
 	@ParameterizedTest
 	@CsvSource({
 			"-3, 2, -2"

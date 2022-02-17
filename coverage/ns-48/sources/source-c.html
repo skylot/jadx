@@ -1,0 +1,182 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FindUsageAction</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.codearea</a>
+</div>
+
+<h1>Coverage Summary for Class: FindUsageAction (jadx.gui.ui.codearea)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FindUsageAction</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FindUsageAction$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.codearea;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.event.ActionEvent;
+<i class="no-highlight">4</i>&nbsp;import java.awt.event.KeyEvent;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import javax.swing.AbstractAction;
+<i class="no-highlight">7</i>&nbsp;import javax.swing.KeyStroke;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.gui.treemodel.JNode;
+<i class="no-highlight">12</i>&nbsp;import jadx.gui.ui.dialog.UsageDialog;
+<i class="no-highlight">13</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import static javax.swing.KeyStroke.getKeyStroke;
+<i class="no-highlight">16</i>&nbsp;
+<b class="nc"><i class="no-highlight">17</i>&nbsp;public final class FindUsageAction extends JNodeMenuAction&lt;JNode&gt; {</b>
+<i class="no-highlight">18</i>&nbsp;	private static final long serialVersionUID = 4692546569977976384L;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	public FindUsageAction(CodeArea codeArea) {
+<b class="nc"><i class="no-highlight">21</i>&nbsp;		super(NLS.str(&quot;popup.find_usage&quot;) + &quot; (x)&quot;, codeArea);</b>
+<b class="nc"><i class="no-highlight">22</i>&nbsp;		KeyStroke key = getKeyStroke(KeyEvent.VK_X, 0);</b>
+<b class="nc"><i class="no-highlight">23</i>&nbsp;		codeArea.getInputMap().put(key, &quot;trigger usage&quot;);</b>
+<b class="nc"><i class="no-highlight">24</i>&nbsp;		codeArea.getActionMap().put(&quot;trigger usage&quot;, new AbstractAction() {</b>
+<i class="no-highlight">25</i>&nbsp;			@Override
+<i class="no-highlight">26</i>&nbsp;			public void actionPerformed(ActionEvent e) {
+<b class="nc"><i class="no-highlight">27</i>&nbsp;				node = codeArea.getNodeUnderCaret();</b>
+<b class="nc"><i class="no-highlight">28</i>&nbsp;				showUsageDialog();</b>
+<i class="no-highlight">29</i>&nbsp;			}
+<i class="no-highlight">30</i>&nbsp;		});
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	private void showUsageDialog() {
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		if (node != null) {</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;			UsageDialog usageDialog = new UsageDialog(codeArea.getMainWindow(), node);</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			usageDialog.setVisible(true);</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;			node = null;</b>
+<i class="no-highlight">38</i>&nbsp;		}
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	@Override
+<i class="no-highlight">42</i>&nbsp;	public void actionPerformed(ActionEvent e) {
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		showUsageDialog();</b>
+<i class="no-highlight">44</i>&nbsp;	}
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;	@Nullable
+<i class="no-highlight">47</i>&nbsp;	@Override
+<i class="no-highlight">48</i>&nbsp;	public JNode getNodeByOffset(int offset) {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		return codeArea.getJNodeAtOffset(offset);</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

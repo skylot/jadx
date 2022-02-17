@@ -1,0 +1,182 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MainDropTarget</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui</a>
+</div>
+
+<h1>Coverage Summary for Class: MainDropTarget (jadx.gui.ui)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MainDropTarget</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.datatransfer.DataFlavor;
+<i class="no-highlight">4</i>&nbsp;import java.awt.datatransfer.Transferable;
+<i class="no-highlight">5</i>&nbsp;import java.awt.dnd.DnDConstants;
+<i class="no-highlight">6</i>&nbsp;import java.awt.dnd.DropTargetDragEvent;
+<i class="no-highlight">7</i>&nbsp;import java.awt.dnd.DropTargetDropEvent;
+<i class="no-highlight">8</i>&nbsp;import java.awt.dnd.DropTargetEvent;
+<i class="no-highlight">9</i>&nbsp;import java.awt.dnd.DropTargetListener;
+<i class="no-highlight">10</i>&nbsp;import java.io.File;
+<i class="no-highlight">11</i>&nbsp;import java.util.List;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import static jadx.gui.utils.FileUtils.toPaths;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;/**
+<i class="no-highlight">19</i>&nbsp; * Enables drop support from external applications for the {@link MainWindow} (load dropped APK
+<i class="no-highlight">20</i>&nbsp; * file)
+<i class="no-highlight">21</i>&nbsp; */
+<i class="no-highlight">22</i>&nbsp;public class MainDropTarget implements DropTargetListener {
+<i class="no-highlight">23</i>&nbsp;
+<b class="nc"><i class="no-highlight">24</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(MainDropTarget.class);</b>
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	private final MainWindow mainWindow;
+<i class="no-highlight">27</i>&nbsp;
+<b class="nc"><i class="no-highlight">28</i>&nbsp;	public MainDropTarget(MainWindow mainWindow) {</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	protected void processDrag(DropTargetDragEvent dtde) {
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;			dtde.acceptDrag(DnDConstants.ACTION_COPY);</b>
+<i class="no-highlight">35</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			dtde.rejectDrag();</b>
+<i class="no-highlight">37</i>&nbsp;		}
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	@Override
+<i class="no-highlight">41</i>&nbsp;	public void dragEnter(DropTargetDragEvent dtde) {
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		processDrag(dtde);</b>
+<i class="no-highlight">43</i>&nbsp;	}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	@Override
+<i class="no-highlight">46</i>&nbsp;	public void dragOver(DropTargetDragEvent dtde) {
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		processDrag(dtde);</b>
+<i class="no-highlight">48</i>&nbsp;	}
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;	@Override
+<i class="no-highlight">51</i>&nbsp;	public void dropActionChanged(DropTargetDragEvent dtde) {
+<i class="no-highlight">52</i>&nbsp;	}
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;	@Override
+<i class="no-highlight">55</i>&nbsp;	@SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">56</i>&nbsp;	public void drop(DropTargetDropEvent dtde) {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		if (!dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;			dtde.rejectDrop();</b>
+<i class="no-highlight">59</i>&nbsp;			return;
+<i class="no-highlight">60</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		dtde.acceptDrop(dtde.getDropAction());</b>
+<i class="no-highlight">62</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">63</i>&nbsp;			Transferable transferable = dtde.getTransferable();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;			List&lt;File&gt; transferData = (List&lt;File&gt;) transferable.getTransferData(DataFlavor.javaFileListFlavor);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;			if (!transferData.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;				dtde.dropComplete(true);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;				mainWindow.open(toPaths(transferData));</b>
+<i class="no-highlight">68</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			LOG.error(&quot;File drop operation failed&quot;, e);</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		}</b>
+<i class="no-highlight">72</i>&nbsp;	}
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	@Override
+<i class="no-highlight">75</i>&nbsp;	public void dragExit(DropTargetEvent dte) {
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

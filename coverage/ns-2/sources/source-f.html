@@ -1,0 +1,177 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ResourceType</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api</a>
+</div>
+
+<h1>Coverage Summary for Class: ResourceType (jadx.api)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ResourceType</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (3/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.3%
+  </span>
+  <span class="absValue">
+    (28/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.Locale;
+<i class="no-highlight">5</i>&nbsp;import java.util.Map;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">8</i>&nbsp;
+<b class="fc"><i class="no-highlight">9</i>&nbsp;public enum ResourceType {</b>
+<b class="fc"><i class="no-highlight">10</i>&nbsp;	CODE(&quot;.dex&quot;, &quot;.jar&quot;, &quot;.class&quot;),</b>
+<b class="fc"><i class="no-highlight">11</i>&nbsp;	XML(&quot;.xml&quot;),</b>
+<b class="fc"><i class="no-highlight">12</i>&nbsp;	ARSC(&quot;.arsc&quot;),</b>
+<b class="fc"><i class="no-highlight">13</i>&nbsp;	FONT(&quot;.ttf&quot;, &quot;.otf&quot;),</b>
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	IMG(&quot;.png&quot;, &quot;.gif&quot;, &quot;.jpg&quot;),</b>
+<b class="fc"><i class="no-highlight">15</i>&nbsp;	MEDIA(&quot;.mp3&quot;, &quot;.wav&quot;),</b>
+<b class="fc"><i class="no-highlight">16</i>&nbsp;	LIB(&quot;.so&quot;),</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;	MANIFEST,</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	UNKNOWN;</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	private final String[] exts;
+<i class="no-highlight">21</i>&nbsp;
+<b class="fc"><i class="no-highlight">22</i>&nbsp;	ResourceType(String... exts) {</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		this.exts = exts;</b>
+<i class="no-highlight">24</i>&nbsp;	}
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	public String[] getExts() {
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		return exts;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<b class="fc"><i class="no-highlight">30</i>&nbsp;	private static final Map&lt;String, ResourceType&gt; EXT_MAP = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	static {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		for (ResourceType type : ResourceType.values()) {</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;			for (String ext : type.getExts()) {</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;				ResourceType prev = EXT_MAP.put(ext, type);</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;				if (prev != null) {</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;					throw new JadxRuntimeException(&quot;Duplicate extension in ResourceType: &quot; + ext);</b>
+<i class="no-highlight">38</i>&nbsp;				}
+<i class="no-highlight">39</i>&nbsp;			}
+<i class="no-highlight">40</i>&nbsp;		}
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public static ResourceType getFileType(String fileName) {
+<b class="pc"><i class="no-highlight">44</i>&nbsp;		if (fileName.endsWith(&quot;/resources.pb&quot;)) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;			return ARSC;</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		int dot = fileName.lastIndexOf(&#39;.&#39;);</b>
+<b class="pc"><i class="no-highlight">48</i>&nbsp;		if (dot != -1) {</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;			String ext = fileName.substring(dot).toLowerCase(Locale.ROOT);</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;			ResourceType resType = EXT_MAP.get(ext);</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;			if (resType != null) {</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;				if (resType == XML &amp;&amp; fileName.equals(&quot;AndroidManifest.xml&quot;)) {</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;					return MANIFEST;</b>
+<i class="no-highlight">54</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">55</i>&nbsp;				return resType;</b>
+<i class="no-highlight">56</i>&nbsp;			}
+<i class="no-highlight">57</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		return UNKNOWN;</b>
+<i class="no-highlight">59</i>&nbsp;	}
+<i class="no-highlight">60</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

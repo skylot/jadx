@@ -1,0 +1,518 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IfMakerHelper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.regions</a>
+</div>
+
+<h1>Coverage Summary for Class: IfMakerHelper (jadx.core.dex.visitors.regions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IfMakerHelper</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (18/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    79.1%
+  </span>
+  <span class="absValue">
+    (68/86)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.7%
+  </span>
+  <span class="absValue">
+    (210/229)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.regions;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">6</i>&nbsp;import java.util.Set;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">10</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.attributes.nodes.LoopInfo;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.instructions.IfNode;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition.Mode;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.regions.conditions.IfInfo;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static jadx.core.dex.visitors.regions.RegionMaker.isEqualPaths;
+<i class="no-highlight">29</i>&nbsp;import static jadx.core.dex.visitors.regions.RegionMaker.isEqualReturnBlocks;
+<i class="no-highlight">30</i>&nbsp;import static jadx.core.utils.BlockUtils.isPathExists;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;public class IfMakerHelper {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(IfMakerHelper.class);</b>
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	private IfMakerHelper() {
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	@Nullable
+<i class="no-highlight">39</i>&nbsp;	static IfInfo makeIfInfo(MethodNode mth, BlockNode ifBlock) {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		InsnNode lastInsn = BlockUtils.getLastInsn(ifBlock);</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		if (lastInsn == null || lastInsn.getType() != InsnType.IF) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;			return null;</b>
+<i class="no-highlight">43</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		IfNode ifNode = (IfNode) lastInsn;</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		IfCondition condition = IfCondition.fromIfNode(ifNode);</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		IfInfo info = new IfInfo(mth, condition, ifNode.getThenBlock(), ifNode.getElseBlock());</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		info.getMergedBlocks().add(ifBlock);</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		return info;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	static IfInfo searchNestedIf(IfInfo info) {
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		IfInfo next = mergeNestedIfNodes(info);</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		if (next != null) {</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;			return next;</b>
+<i class="no-highlight">55</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		return info;</b>
+<i class="no-highlight">57</i>&nbsp;	}
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	static IfInfo restructureIf(MethodNode mth, BlockNode block, IfInfo info) {
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		BlockNode thenBlock = info.getThenBlock();</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		BlockNode elseBlock = info.getElseBlock();</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		if (Objects.equals(thenBlock, elseBlock)) {</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;			IfInfo ifInfo = new IfInfo(info, null, null);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			ifInfo.setOutBlock(thenBlock);</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;			return ifInfo;</b>
+<i class="no-highlight">67</i>&nbsp;		}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;		// select &#39;then&#39;, &#39;else&#39; and &#39;exit&#39; blocks
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		if (thenBlock.contains(AFlag.RETURN) &amp;&amp; elseBlock.contains(AFlag.RETURN)) {</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;			info.setOutBlock(null);</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;			return info;</b>
+<i class="no-highlight">73</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		boolean badThen = isBadBranchBlock(info, thenBlock);</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		boolean badElse = isBadBranchBlock(info, elseBlock);</b>
+<b class="pc"><i class="no-highlight">76</i>&nbsp;		if (badThen &amp;&amp; badElse) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			LOG.debug(&quot;Stop processing blocks after &#39;if&#39;: {}, method: {}&quot;, info.getMergedBlocks(), mth);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;			return null;</b>
+<i class="no-highlight">79</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		if (badElse) {</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			info = new IfInfo(info, thenBlock, null);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			info.setOutBlock(elseBlock);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		} else if (badThen) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			info = IfInfo.invert(info);</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;			info = new IfInfo(info, elseBlock, null);</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;			info.setOutBlock(thenBlock);</b>
+<i class="no-highlight">87</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">88</i>&nbsp;			info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;			info.setOutBlock(null);</b>
+<i class="no-highlight">92</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		return info;</b>
+<i class="no-highlight">94</i>&nbsp;	}
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;	private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
+<i class="no-highlight">97</i>&nbsp;		// check if block at end of loop edge
+<b class="pc"><i class="no-highlight">98</i>&nbsp;		if (block.contains(AFlag.LOOP_START) &amp;&amp; block.getPredecessors().size() == 1) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;			BlockNode pred = block.getPredecessors().get(0);</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;			if (pred.contains(AFlag.LOOP_END)) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;				List&lt;LoopInfo&gt; startLoops = block.getAll(AType.LOOP);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;				List&lt;LoopInfo&gt; endLoops = pred.getAll(AType.LOOP);</b>
+<i class="no-highlight">103</i>&nbsp;				// search for same loop
+<b class="nc"><i class="no-highlight">104</i>&nbsp;				for (LoopInfo startLoop : startLoops) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;					for (LoopInfo endLoop : endLoops) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;						if (startLoop == endLoop) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;							return true;</b>
+<i class="no-highlight">108</i>&nbsp;						}
+<b class="nc"><i class="no-highlight">109</i>&nbsp;					}</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;				}</b>
+<i class="no-highlight">111</i>&nbsp;			}
+<i class="no-highlight">112</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		return !allPathsFromIf(block, info);</b>
+<i class="no-highlight">114</i>&nbsp;	}
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		List&lt;BlockNode&gt; preds = block.getPredecessors();</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		List&lt;BlockNode&gt; ifBlocks = info.getMergedBlocks();</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		for (BlockNode pred : preds) {</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;			BlockNode top = BlockUtils.skipSyntheticPredecessor(pred);</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;			if (!ifBlocks.contains(top) &amp;&amp; !top.contains(AFlag.LOOP_END)) {</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;				return false;</b>
+<i class="no-highlight">123</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		return true;</b>
+<i class="no-highlight">126</i>&nbsp;	}
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		BlockNode curThen = currentIf.getThenBlock();</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		BlockNode curElse = currentIf.getElseBlock();</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		if (curThen == curElse) {</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;			return null;</b>
+<i class="no-highlight">133</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">134</i>&nbsp;		if (BlockUtils.isFollowBackEdge(curThen)</b>
+<b class="pc"><i class="no-highlight">135</i>&nbsp;				|| BlockUtils.isFollowBackEdge(curElse)) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			return null;</b>
+<i class="no-highlight">137</i>&nbsp;		}
+<i class="no-highlight">138</i>&nbsp;		boolean followThenBranch;
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		IfInfo nextIf = getNextIf(currentIf, curThen);</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		if (nextIf != null) {</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;			followThenBranch = true;</b>
+<i class="no-highlight">142</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">143</i>&nbsp;			nextIf = getNextIf(currentIf, curElse);</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;			if (nextIf != null) {</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;				followThenBranch = false;</b>
+<i class="no-highlight">146</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">147</i>&nbsp;				return null;</b>
+<i class="no-highlight">148</i>&nbsp;			}
+<i class="no-highlight">149</i>&nbsp;		}
+<i class="no-highlight">150</i>&nbsp;
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		boolean assignInlineNeeded = !nextIf.getForceInlineInsns().isEmpty();</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		if (assignInlineNeeded) {</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			for (BlockNode mergedBlock : currentIf.getMergedBlocks()) {</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;				if (mergedBlock.contains(AFlag.LOOP_START)) {</b>
+<i class="no-highlight">155</i>&nbsp;					// don&#39;t inline assigns into loop condition
+<b class="fc"><i class="no-highlight">156</i>&nbsp;					return currentIf;</b>
+<i class="no-highlight">157</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">158</i>&nbsp;			}</b>
+<i class="no-highlight">159</i>&nbsp;		}
+<i class="no-highlight">160</i>&nbsp;
+<b class="fc"><i class="no-highlight">161</i>&nbsp;		if (isInversionNeeded(currentIf, nextIf)) {</b>
+<i class="no-highlight">162</i>&nbsp;			// invert current node for match pattern
+<b class="fc"><i class="no-highlight">163</i>&nbsp;			nextIf = IfInfo.invert(nextIf);</b>
+<i class="no-highlight">164</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">165</i>&nbsp;		boolean thenPathSame = isEqualPaths(curThen, nextIf.getThenBlock());</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		boolean elsePathSame = isEqualPaths(curElse, nextIf.getElseBlock());</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		if (!thenPathSame &amp;&amp; !elsePathSame) {</b>
+<i class="no-highlight">168</i>&nbsp;			// complex condition, run additional checks
+<b class="pc"><i class="no-highlight">169</i>&nbsp;			if (checkConditionBranches(curThen, curElse)</b>
+<b class="pc"><i class="no-highlight">170</i>&nbsp;					|| checkConditionBranches(curElse, curThen)) {</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;				return null;</b>
+<i class="no-highlight">172</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">173</i>&nbsp;			BlockNode otherBranchBlock = followThenBranch ? curElse : curThen;</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			otherBranchBlock = BlockUtils.followEmptyPath(otherBranchBlock);</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			if (!isPathExists(nextIf.getFirstIfBlock(), otherBranchBlock)) {</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;				return checkForTernaryInCondition(currentIf);</b>
+<i class="no-highlight">177</i>&nbsp;			}
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;			// this is nested conditions with different mode (i.e (a &amp;&amp; b) || c),
+<i class="no-highlight">180</i>&nbsp;			// search next condition for merge, get null if failed
+<b class="fc"><i class="no-highlight">181</i>&nbsp;			IfInfo tmpIf = mergeNestedIfNodes(nextIf);</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;			if (tmpIf != null) {</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;				nextIf = tmpIf;</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;				if (isInversionNeeded(currentIf, nextIf)) {</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;					nextIf = IfInfo.invert(nextIf);</b>
+<i class="no-highlight">186</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">187</i>&nbsp;				if (!canMerge(currentIf, nextIf, followThenBranch)) {</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;					return currentIf;</b>
+<i class="no-highlight">189</i>&nbsp;				}
+<i class="no-highlight">190</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">191</i>&nbsp;				return currentIf;</b>
+<i class="no-highlight">192</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;			if (assignInlineNeeded) {</b>
+<b class="pc"><i class="no-highlight">195</i>&nbsp;				boolean sameOuts = (thenPathSame &amp;&amp; !followThenBranch) || (elsePathSame &amp;&amp; followThenBranch);</b>
+<b class="pc"><i class="no-highlight">196</i>&nbsp;				if (!sameOuts) {</b>
+<i class="no-highlight">197</i>&nbsp;					// don&#39;t inline assigns inside simple condition
+<b class="nc"><i class="no-highlight">198</i>&nbsp;					currentIf.resetForceInlineInsns();</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;					return currentIf;</b>
+<i class="no-highlight">200</i>&nbsp;				}
+<i class="no-highlight">201</i>&nbsp;			}
+<i class="no-highlight">202</i>&nbsp;		}
+<i class="no-highlight">203</i>&nbsp;
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		IfInfo result = mergeIfInfo(currentIf, nextIf, followThenBranch);</b>
+<i class="no-highlight">205</i>&nbsp;		// search next nested if block
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		return searchNestedIf(result);</b>
+<i class="no-highlight">207</i>&nbsp;	}
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;	private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		if (nextThen == null || nextElse == null) {</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			return null;</b>
+<i class="no-highlight">214</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;			return null;</b>
+<i class="no-highlight">217</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		nextThen = searchNestedIf(nextThen);</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		nextElse = searchNestedIf(nextElse);</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		if (nextThen.getThenBlock() == nextElse.getThenBlock()</b>
+<b class="pc"><i class="no-highlight">221</i>&nbsp;				&amp;&amp; nextThen.getElseBlock() == nextElse.getElseBlock()) {</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;			return mergeTernaryConditions(currentIf, nextThen, nextElse);</b>
+<i class="no-highlight">223</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">224</i>&nbsp;		if (nextThen.getThenBlock() == nextElse.getElseBlock()</b>
+<b class="pc"><i class="no-highlight">225</i>&nbsp;				&amp;&amp; nextThen.getElseBlock() == nextElse.getThenBlock()) {</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;			nextElse = IfInfo.invert(nextElse);</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;			return mergeTernaryConditions(currentIf, nextThen, nextElse);</b>
+<i class="no-highlight">228</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">229</i>&nbsp;		return null;</b>
+<i class="no-highlight">230</i>&nbsp;	}
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;	private static IfInfo mergeTernaryConditions(IfInfo currentIf, IfInfo nextThen, IfInfo nextElse) {
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		IfCondition newCondition = IfCondition.ternary(currentIf.getCondition(),</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;				nextThen.getCondition(), nextElse.getCondition());</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		IfInfo result = new IfInfo(currentIf.getMth(), newCondition, nextThen.getThenBlock(), nextThen.getElseBlock());</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		result.merge(currentIf, nextThen, nextElse);</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		confirmMerge(result);</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		return result;</b>
+<i class="no-highlight">239</i>&nbsp;	}
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;	private static boolean isInversionNeeded(IfInfo currentIf, IfInfo nextIf) {
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		return isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;				|| isEqualPaths(currentIf.getThenBlock(), nextIf.getElseBlock());</b>
+<i class="no-highlight">244</i>&nbsp;	}
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;	private static boolean canMerge(IfInfo a, IfInfo b, boolean followThenBranch) {
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		if (followThenBranch) {</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;			return isEqualPaths(a.getElseBlock(), b.getElseBlock());</b>
+<i class="no-highlight">249</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">250</i>&nbsp;			return isEqualPaths(a.getThenBlock(), b.getThenBlock());</b>
+<i class="no-highlight">251</i>&nbsp;		}
+<i class="no-highlight">252</i>&nbsp;	}
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;	private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
+<b class="pc"><i class="no-highlight">255</i>&nbsp;		return from.getCleanSuccessors().size() == 1 &amp;&amp; from.getCleanSuccessors().contains(to);</b>
+<i class="no-highlight">256</i>&nbsp;	}
+<i class="no-highlight">257</i>&nbsp;
+<i class="no-highlight">258</i>&nbsp;	private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		MethodNode mth = first.getMth();</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		Set&lt;BlockNode&gt; skipBlocks = first.getSkipBlocks();</b>
+<i class="no-highlight">261</i>&nbsp;		BlockNode thenBlock;
+<i class="no-highlight">262</i>&nbsp;		BlockNode elseBlock;
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		if (followThenBranch) {</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;			thenBlock = second.getThenBlock();</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;			elseBlock = getBranchBlock(first.getElseBlock(), second.getElseBlock(), skipBlocks, mth);</b>
+<i class="no-highlight">266</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">267</i>&nbsp;			thenBlock = getBranchBlock(first.getThenBlock(), second.getThenBlock(), skipBlocks, mth);</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;			elseBlock = second.getElseBlock();</b>
+<i class="no-highlight">269</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">270</i>&nbsp;		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;		IfInfo result = new IfInfo(mth, condition, thenBlock, elseBlock);</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		result.merge(first, second);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		return result;</b>
+<i class="no-highlight">275</i>&nbsp;	}
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;	private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set&lt;BlockNode&gt; skipBlocks, MethodNode mth) {
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		if (first == second) {</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;			return second;</b>
+<i class="no-highlight">280</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		if (isEqualReturnBlocks(first, second)) {</b>
+<b class="fc"><i class="no-highlight">282</i>&nbsp;			skipBlocks.add(first);</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;			return second;</b>
+<i class="no-highlight">284</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">285</i>&nbsp;		BlockNode cross = BlockUtils.getPathCross(mth, first, second);</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		if (cross != null) {</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;			BlockUtils.visitBlocksOnPath(mth, first, cross, skipBlocks::add);</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;			BlockUtils.visitBlocksOnPath(mth, second, cross, skipBlocks::add);</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;			skipBlocks.remove(cross);</b>
+<b class="fc"><i class="no-highlight">290</i>&nbsp;			return cross;</b>
+<i class="no-highlight">291</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		BlockNode firstSkip = BlockUtils.followEmptyPath(first);</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		BlockNode secondSkip = BlockUtils.followEmptyPath(second);</b>
+<b class="pc"><i class="no-highlight">294</i>&nbsp;		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;			skipBlocks.add(first);</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;			skipBlocks.add(second);</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;			BlockUtils.visitBlocksOnEmptyPath(first, skipBlocks::add);</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;			BlockUtils.visitBlocksOnEmptyPath(second, skipBlocks::add);</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;			return secondSkip;</b>
+<i class="no-highlight">300</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">301</i>&nbsp;		throw new JadxRuntimeException(&quot;Unexpected merge pattern&quot;);</b>
+<i class="no-highlight">302</i>&nbsp;	}
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;	static void confirmMerge(IfInfo info) {
+<b class="fc"><i class="no-highlight">305</i>&nbsp;		if (info.getMergedBlocks().size() &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;			for (BlockNode block : info.getMergedBlocks()) {</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;				if (block != info.getFirstIfBlock()) {</b>
+<b class="fc"><i class="no-highlight">308</i>&nbsp;					block.add(AFlag.ADDED_TO_REGION);</b>
+<i class="no-highlight">309</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">310</i>&nbsp;			}</b>
+<i class="no-highlight">311</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		if (!info.getSkipBlocks().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			for (BlockNode block : info.getSkipBlocks()) {</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;				block.add(AFlag.ADDED_TO_REGION);</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">316</i>&nbsp;			info.getSkipBlocks().clear();</b>
+<i class="no-highlight">317</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">318</i>&nbsp;		for (InsnNode forceInlineInsn : info.getForceInlineInsns()) {</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;			forceInlineInsn.add(AFlag.FORCE_ASSIGN_INLINE);</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;		}</b>
+<i class="no-highlight">321</i>&nbsp;	}
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;	private static IfInfo getNextIf(IfInfo info, BlockNode block) {
+<b class="fc"><i class="no-highlight">324</i>&nbsp;		if (!canSelectNext(info, block)) {</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;			return null;</b>
+<i class="no-highlight">326</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		return getNextIfNodeInfo(info, block);</b>
+<i class="no-highlight">328</i>&nbsp;	}
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;	private static boolean canSelectNext(IfInfo info, BlockNode block) {
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		if (block.getPredecessors().size() == 1) {</b>
+<b class="fc"><i class="no-highlight">332</i>&nbsp;			return true;</b>
+<i class="no-highlight">333</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		return info.getMergedBlocks().containsAll(block.getPredecessors());</b>
+<i class="no-highlight">335</i>&nbsp;	}
+<i class="no-highlight">336</i>&nbsp;
+<i class="no-highlight">337</i>&nbsp;	private static IfInfo getNextIfNodeInfo(IfInfo info, BlockNode block) {
+<b class="pc"><i class="no-highlight">338</i>&nbsp;		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.ADDED_TO_REGION)) {</b>
+<b class="fc"><i class="no-highlight">339</i>&nbsp;			return null;</b>
+<i class="no-highlight">340</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">341</i>&nbsp;		InsnNode lastInsn = BlockUtils.getLastInsn(block);</b>
+<b class="fc"><i class="no-highlight">342</i>&nbsp;		if (lastInsn != null &amp;&amp; lastInsn.getType() == InsnType.IF) {</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;			return makeIfInfo(info.getMth(), block);</b>
+<i class="no-highlight">344</i>&nbsp;		}
+<i class="no-highlight">345</i>&nbsp;		// skip this block and search in successors chain
+<b class="fc"><i class="no-highlight">346</i>&nbsp;		List&lt;BlockNode&gt; successors = block.getSuccessors();</b>
+<b class="fc"><i class="no-highlight">347</i>&nbsp;		if (successors.size() != 1) {</b>
+<b class="fc"><i class="no-highlight">348</i>&nbsp;			return null;</b>
+<i class="no-highlight">349</i>&nbsp;		}
+<i class="no-highlight">350</i>&nbsp;
+<b class="fc"><i class="no-highlight">351</i>&nbsp;		BlockNode next = successors.get(0);</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		if (next.getPredecessors().size() != 1) {</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;			return null;</b>
+<i class="no-highlight">354</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">355</i>&nbsp;		if (next.contains(AFlag.ADDED_TO_REGION)) {</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;			return null;</b>
+<i class="no-highlight">357</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">358</i>&nbsp;		List&lt;InsnNode&gt; insns = block.getInstructions();</b>
+<b class="fc"><i class="no-highlight">359</i>&nbsp;		boolean pass = true;</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		List&lt;InsnNode&gt; forceInlineInsns = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;		if (!insns.isEmpty()) {</b>
+<i class="no-highlight">362</i>&nbsp;			// check that all instructions can be inlined
+<b class="fc"><i class="no-highlight">363</i>&nbsp;			for (InsnNode insn : insns) {</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;				RegisterArg res = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;				if (res == null) {</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;					pass = false;</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;					break;</b>
+<i class="no-highlight">368</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">369</i>&nbsp;				List&lt;RegisterArg&gt; useList = res.getSVar().getUseList();</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;				int useCount = useList.size();</b>
+<b class="pc"><i class="no-highlight">371</i>&nbsp;				if (useCount == 0) {</b>
+<i class="no-highlight">372</i>&nbsp;					// TODO?
+<b class="nc"><i class="no-highlight">373</i>&nbsp;					pass = false;</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;					break;</b>
+<i class="no-highlight">375</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">376</i>&nbsp;				InsnArg arg = useList.get(0);</b>
+<b class="fc"><i class="no-highlight">377</i>&nbsp;				InsnNode usePlace = arg.getParentInsn();</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;				if (!BlockUtils.blockContains(block, usePlace)</b>
+<b class="fc"><i class="no-highlight">379</i>&nbsp;						&amp;&amp; !BlockUtils.blockContains(next, usePlace)) {</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;					pass = false;</b>
+<b class="fc"><i class="no-highlight">381</i>&nbsp;					break;</b>
+<i class="no-highlight">382</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">383</i>&nbsp;				if (useCount &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">384</i>&nbsp;					forceInlineInsns.add(insn);</b>
+<i class="no-highlight">385</i>&nbsp;				} else {
+<i class="no-highlight">386</i>&nbsp;					// allow only forced assign inline
+<b class="fc"><i class="no-highlight">387</i>&nbsp;					pass = false;</b>
+<i class="no-highlight">388</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">389</i>&nbsp;			}</b>
+<i class="no-highlight">390</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">391</i>&nbsp;		if (!pass) {</b>
+<b class="fc"><i class="no-highlight">392</i>&nbsp;			return null;</b>
+<i class="no-highlight">393</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">394</i>&nbsp;		IfInfo nextInfo = makeIfInfo(info.getMth(), next);</b>
+<b class="fc"><i class="no-highlight">395</i>&nbsp;		if (nextInfo == null) {</b>
+<b class="fc"><i class="no-highlight">396</i>&nbsp;			return getNextIfNodeInfo(info, next);</b>
+<i class="no-highlight">397</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">398</i>&nbsp;		nextInfo.addInsnsForForcedInline(forceInlineInsns);</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;		return nextInfo;</b>
+<i class="no-highlight">400</i>&nbsp;	}
+<i class="no-highlight">401</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

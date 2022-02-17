@@ -1,0 +1,117 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IAttributeNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.attributes</a>
+</div>
+
+<h1>Coverage Summary for Class: IAttributeNode (jadx.core.dex.attributes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">IAttributeNode</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.attributes;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.List;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;public interface IAttributeNode {
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;	void add(AFlag flag);
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;	void addAttr(IJadxAttribute attr);
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;	void addAttrs(List&lt;IJadxAttribute&gt; list);
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;	&lt;T&gt; void addAttr(IJadxAttrType&lt;AttrList&lt;T&gt;&gt; type, T obj);
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	void copyAttributesFrom(AttrNode attrNode);
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;	&lt;T extends IJadxAttribute&gt; void copyAttributeFrom(AttrNode attrNode, AType&lt;T&gt; attrType);
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	&lt;T extends IJadxAttribute&gt; void rewriteAttributeFrom(AttrNode attrNode, AType&lt;T&gt; attrType);
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;	boolean contains(AFlag flag);
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	&lt;T extends IJadxAttribute&gt; boolean contains(IJadxAttrType&lt;T&gt; type);
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;	&lt;T extends IJadxAttribute&gt; T get(IJadxAttrType&lt;T&gt; type);
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	IAnnotation getAnnotation(String cls);
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	&lt;T&gt; List&lt;T&gt; getAll(IJadxAttrType&lt;AttrList&lt;T&gt;&gt; type);
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	void remove(AFlag flag);
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	&lt;T extends IJadxAttribute&gt; void remove(IJadxAttrType&lt;T&gt; type);
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	void removeAttr(IJadxAttribute attr);
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	void clearAttributes();
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	List&lt;String&gt; getAttributesStringsList();
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	String getAttributesString();
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	boolean isAttrStorageEmpty();
+<i class="no-highlight">48</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SmaliMethodNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.device.debugger.smali</a>
+</div>
+
+<h1>Coverage Summary for Class: SmaliMethodNode (jadx.gui.device.debugger.smali)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SmaliMethodNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.device.debugger.smali;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;import java.util.Map;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;class SmaliMethodNode {
+<i class="no-highlight">14</i>&nbsp;	private Map&lt;Long, InsnNode&gt; nodes; // codeOffset: InsnNode
+<i class="no-highlight">15</i>&nbsp;	private List&lt;SmaliRegister&gt; regList;
+<i class="no-highlight">16</i>&nbsp;	private int[] insnPos;
+<i class="no-highlight">17</i>&nbsp;	private int defPos;
+<b class="nc"><i class="no-highlight">18</i>&nbsp;	private Map&lt;Integer, Integer&gt; lineMapping = Collections.emptyMap(); // line: codeOffset</b>
+<i class="no-highlight">19</i>&nbsp;	private int paramRegStart;
+<i class="no-highlight">20</i>&nbsp;	private int regCount;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	public int getParamRegStart() {
+<b class="nc"><i class="no-highlight">23</i>&nbsp;		return this.paramRegStart;</b>
+<i class="no-highlight">24</i>&nbsp;	}
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	public int getRegCount() {
+<b class="nc"><i class="no-highlight">27</i>&nbsp;		return this.regCount;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	public Map&lt;Integer, Integer&gt; getLineMapping() {
+<b class="nc"><i class="no-highlight">31</i>&nbsp;		return lineMapping;</b>
+<i class="no-highlight">32</i>&nbsp;	}
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;	public void initRegInfoList(int regCount, int insnCount) {
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		regList = new ArrayList&lt;&gt;(regCount);</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		for (int i = 0; i &lt; regCount; i++) {</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;			regList.add(new SmaliRegister(i, insnCount));</b>
+<i class="no-highlight">38</i>&nbsp;		}
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	public int getInsnPos(long codeOffset) {
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		if (insnPos != null &amp;&amp; codeOffset &lt; insnPos.length) {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;			return insnPos[(int) codeOffset];</b>
+<i class="no-highlight">44</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		return -1;</b>
+<i class="no-highlight">46</i>&nbsp;	}
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;	public int getDefPos() {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		return defPos;</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	public InsnNode getInsnNode(long codeOffset) {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		return nodes.get(codeOffset);</b>
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	public List&lt;SmaliRegister&gt; getRegList() {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		return regList;</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<b class="nc"><i class="no-highlight">60</i>&nbsp;	protected SmaliMethodNode() {</b>
+<i class="no-highlight">61</i>&nbsp;	}
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;	protected void setRegCount(int regCount) {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		this.regCount = regCount;</b>
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	protected void attachLine(int line, int codeOffset) {
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		if (lineMapping.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;			lineMapping = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">70</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		lineMapping.put(line, codeOffset);</b>
+<i class="no-highlight">72</i>&nbsp;	}
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	protected void setInsnInfo(int codeOffset, int pos) {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		if (insnPos != null &amp;&amp; codeOffset &lt; insnPos.length) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;			insnPos[codeOffset] = pos;</b>
+<i class="no-highlight">77</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		InsnNode insn = getInsnNode(codeOffset);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		RegisterArg r = insn.getResult();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		if (r != null) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;			regList.get(r.getRegNum()).setStartOffset(codeOffset);</b>
+<i class="no-highlight">82</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		for (InsnArg arg : insn.getArguments()) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			if (arg instanceof RegisterArg) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;				regList.get(((RegisterArg) arg).getRegNum()).setStartOffset(codeOffset);</b>
+<i class="no-highlight">86</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		}</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	protected void setDefPos(int pos) {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		defPos = pos;</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	protected void setParamReg(int regNum, String name) {
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		SmaliRegister r = regList.get(regNum);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		r.setParam(name);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		r.setStartOffset(-1);</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;	protected void setParamRegStart(int paramRegStart) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		this.paramRegStart = paramRegStart;</b>
+<i class="no-highlight">102</i>&nbsp;	}
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;	protected void setInsnNodes(Map&lt;Long, InsnNode&gt; nodes, int insnCount) {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		this.nodes = nodes;</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;		insnPos = new int[insnCount];</b>
+<i class="no-highlight">107</i>&nbsp;	}
+<i class="no-highlight">108</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

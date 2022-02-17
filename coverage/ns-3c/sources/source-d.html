@@ -1,0 +1,1188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > XMLChar</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.xmlgen</a>
+</div>
+
+<h1>Coverage Summary for Class: XMLChar (jadx.core.xmlgen)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">XMLChar</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    16.7%
+  </span>
+  <span class="absValue">
+    (4/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.5%
+  </span>
+  <span class="absValue">
+    (1/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.1%
+  </span>
+  <span class="absValue">
+    (630/699)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * Licensed to the Apache Software Foundation (ASF) under one or more
+<i class="no-highlight">3</i>&nbsp; * contributor license agreements. See the NOTICE file distributed with
+<i class="no-highlight">4</i>&nbsp; * this work for additional information regarding copyright ownership.
+<i class="no-highlight">5</i>&nbsp; * The ASF licenses this file to You under the Apache License, Version 2.0
+<i class="no-highlight">6</i>&nbsp; * (the &quot;License&quot;); you may not use this file except in compliance with
+<i class="no-highlight">7</i>&nbsp; * the License. You may obtain a copy of the License at
+<i class="no-highlight">8</i>&nbsp; * http://www.apache.org/licenses/LICENSE-2.0
+<i class="no-highlight">9</i>&nbsp; * Unless required by applicable law or agreed to in writing, software
+<i class="no-highlight">10</i>&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+<i class="no-highlight">11</i>&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<i class="no-highlight">12</i>&nbsp; * See the License for the specific language governing permissions and
+<i class="no-highlight">13</i>&nbsp; * limitations under the License.
+<i class="no-highlight">14</i>&nbsp; */
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;package jadx.core.xmlgen;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;/**
+<i class="no-highlight">21</i>&nbsp; * This class defines the basic XML character properties. The data
+<i class="no-highlight">22</i>&nbsp; * in this class can be used to verify that a character is a valid
+<i class="no-highlight">23</i>&nbsp; * XML character or if the character is a space, name start, or name
+<i class="no-highlight">24</i>&nbsp; * character.
+<i class="no-highlight">25</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">26</i>&nbsp; * A series of convenience methods are supplied to ease the burden
+<i class="no-highlight">27</i>&nbsp; * of the developer. Because inlining the checks can improve per
+<i class="no-highlight">28</i>&nbsp; * character performance, the tables of character properties are
+<i class="no-highlight">29</i>&nbsp; * public. Using the character as an index into the &lt;code&gt;CHARS&lt;/code&gt;
+<i class="no-highlight">30</i>&nbsp; * array and applying the appropriate mask flag (e.g.
+<i class="no-highlight">31</i>&nbsp; * &lt;code&gt;MASK_VALID&lt;/code&gt;), yields the same results as calling the
+<i class="no-highlight">32</i>&nbsp; * convenience methods. There is one exception: check the comments
+<i class="no-highlight">33</i>&nbsp; * for the &lt;code&gt;isValid&lt;/code&gt; method for details.
+<i class="no-highlight">34</i>&nbsp; *
+<i class="no-highlight">35</i>&nbsp; * @author Glenn Marcy, IBM
+<i class="no-highlight">36</i>&nbsp; * @author Andy Clark, IBM
+<i class="no-highlight">37</i>&nbsp; * @author Eric Ye, IBM
+<i class="no-highlight">38</i>&nbsp; * @author Arnaud Le Hors, IBM
+<i class="no-highlight">39</i>&nbsp; * @author Michael Glavassevich, IBM
+<i class="no-highlight">40</i>&nbsp; * @author Rahul Srivastava, Sun Microsystems Inc.
+<i class="no-highlight">41</i>&nbsp; * @version $Id: XMLChar.java 674378 2008-07-07 00:52:45Z mrglavas $
+<i class="no-highlight">42</i>&nbsp; */
+<b class="nc"><i class="no-highlight">43</i>&nbsp;public class XMLChar {</b>
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	//
+<i class="no-highlight">46</i>&nbsp;	// Constants
+<i class="no-highlight">47</i>&nbsp;	//
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	/**
+<i class="no-highlight">50</i>&nbsp;	 * Character flags.
+<i class="no-highlight">51</i>&nbsp;	 */
+<b class="fc"><i class="no-highlight">52</i>&nbsp;	private static final byte[] CHARS = new byte[1 &lt;&lt; 16];</b>
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;	/**
+<i class="no-highlight">55</i>&nbsp;	 * Valid character mask.
+<i class="no-highlight">56</i>&nbsp;	 */
+<i class="no-highlight">57</i>&nbsp;	public static final int MASK_VALID = 0x01;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	/**
+<i class="no-highlight">60</i>&nbsp;	 * Space character mask.
+<i class="no-highlight">61</i>&nbsp;	 */
+<i class="no-highlight">62</i>&nbsp;	public static final int MASK_SPACE = 0x02;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	/**
+<i class="no-highlight">65</i>&nbsp;	 * Name start character mask.
+<i class="no-highlight">66</i>&nbsp;	 */
+<i class="no-highlight">67</i>&nbsp;	public static final int MASK_NAME_START = 0x04;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	/**
+<i class="no-highlight">70</i>&nbsp;	 * Name character mask.
+<i class="no-highlight">71</i>&nbsp;	 */
+<i class="no-highlight">72</i>&nbsp;	public static final int MASK_NAME = 0x08;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	/**
+<i class="no-highlight">75</i>&nbsp;	 * Pubid character mask.
+<i class="no-highlight">76</i>&nbsp;	 */
+<i class="no-highlight">77</i>&nbsp;	public static final int MASK_PUBID = 0x10;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;	/**
+<i class="no-highlight">80</i>&nbsp;	 * Content character mask. Special characters are those that can
+<i class="no-highlight">81</i>&nbsp;	 * be considered the start of markup, such as &#39;&amp;lt;&#39; and &#39;&amp;amp;&#39;.
+<i class="no-highlight">82</i>&nbsp;	 * The various newline characters are considered special as well.
+<i class="no-highlight">83</i>&nbsp;	 * All other valid XML characters can be considered content.
+<i class="no-highlight">84</i>&nbsp;	 * &lt;p&gt;
+<i class="no-highlight">85</i>&nbsp;	 * This is an optimization for the inner loop of character scanning.
+<i class="no-highlight">86</i>&nbsp;	 */
+<i class="no-highlight">87</i>&nbsp;	public static final int MASK_CONTENT = 0x20;
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;	/**
+<i class="no-highlight">90</i>&nbsp;	 * NCName start character mask.
+<i class="no-highlight">91</i>&nbsp;	 */
+<i class="no-highlight">92</i>&nbsp;	public static final int MASK_NCNAME_START = 0x40;
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	/**
+<i class="no-highlight">95</i>&nbsp;	 * NCName character mask.
+<i class="no-highlight">96</i>&nbsp;	 */
+<i class="no-highlight">97</i>&nbsp;	public static final int MASK_NCNAME = 0x80;
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	//
+<i class="no-highlight">100</i>&nbsp;	// Static initialization
+<i class="no-highlight">101</i>&nbsp;	//
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;	static {
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;		// Initializing the Character Flag Array
+<i class="no-highlight">106</i>&nbsp;		// Code generated by: XMLCharGenerator.
+<i class="no-highlight">107</i>&nbsp;
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		CHARS[9] = 35;</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		CHARS[10] = 19;</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		CHARS[13] = 19;</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		CHARS[32] = 51;</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		CHARS[33] = 49;</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		CHARS[34] = 33;</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		Arrays.fill(CHARS, 35, 38, (byte) 49); // Fill 3 of value (byte) 49</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		CHARS[38] = 1;</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		Arrays.fill(CHARS, 39, 45, (byte) 49); // Fill 6 of value (byte) 49</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		Arrays.fill(CHARS, 45, 47, (byte) -71); // Fill 2 of value (byte) -71</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		CHARS[47] = 49;</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		Arrays.fill(CHARS, 48, 58, (byte) -71); // Fill 10 of value (byte) -71</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		CHARS[58] = 61;</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		CHARS[59] = 49;</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		CHARS[60] = 1;</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		CHARS[61] = 49;</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		CHARS[62] = 33;</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		Arrays.fill(CHARS, 63, 65, (byte) 49); // Fill 2 of value (byte) 49</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		Arrays.fill(CHARS, 65, 91, (byte) -3); // Fill 26 of value (byte) -3</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;		Arrays.fill(CHARS, 91, 93, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		CHARS[93] = 1;</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		CHARS[94] = 33;</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		CHARS[95] = -3;</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		CHARS[96] = 33;</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		Arrays.fill(CHARS, 97, 123, (byte) -3); // Fill 26 of value (byte) -3</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		Arrays.fill(CHARS, 123, 183, (byte) 33); // Fill 60 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		CHARS[183] = -87;</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		Arrays.fill(CHARS, 184, 192, (byte) 33); // Fill 8 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		Arrays.fill(CHARS, 192, 215, (byte) -19); // Fill 23 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;		CHARS[215] = 33;</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		Arrays.fill(CHARS, 216, 247, (byte) -19); // Fill 31 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		CHARS[247] = 33;</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		Arrays.fill(CHARS, 248, 306, (byte) -19); // Fill 58 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		Arrays.fill(CHARS, 306, 308, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		Arrays.fill(CHARS, 308, 319, (byte) -19); // Fill 11 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;		Arrays.fill(CHARS, 319, 321, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		Arrays.fill(CHARS, 321, 329, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		CHARS[329] = 33;</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		Arrays.fill(CHARS, 330, 383, (byte) -19); // Fill 53 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;		CHARS[383] = 33;</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;		Arrays.fill(CHARS, 384, 452, (byte) -19); // Fill 68 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		Arrays.fill(CHARS, 452, 461, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		Arrays.fill(CHARS, 461, 497, (byte) -19); // Fill 36 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		Arrays.fill(CHARS, 497, 500, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		Arrays.fill(CHARS, 500, 502, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;		Arrays.fill(CHARS, 502, 506, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		Arrays.fill(CHARS, 506, 536, (byte) -19); // Fill 30 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;		Arrays.fill(CHARS, 536, 592, (byte) 33); // Fill 56 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;		Arrays.fill(CHARS, 592, 681, (byte) -19); // Fill 89 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;		Arrays.fill(CHARS, 681, 699, (byte) 33); // Fill 18 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		Arrays.fill(CHARS, 699, 706, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;		Arrays.fill(CHARS, 706, 720, (byte) 33); // Fill 14 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;		Arrays.fill(CHARS, 720, 722, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">161</i>&nbsp;		Arrays.fill(CHARS, 722, 768, (byte) 33); // Fill 46 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		Arrays.fill(CHARS, 768, 838, (byte) -87); // Fill 70 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		Arrays.fill(CHARS, 838, 864, (byte) 33); // Fill 26 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		Arrays.fill(CHARS, 864, 866, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;		Arrays.fill(CHARS, 866, 902, (byte) 33); // Fill 36 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		CHARS[902] = -19;</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		CHARS[903] = -87;</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		Arrays.fill(CHARS, 904, 907, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;		CHARS[907] = 33;</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		CHARS[908] = -19;</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		CHARS[909] = 33;</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		Arrays.fill(CHARS, 910, 930, (byte) -19); // Fill 20 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		CHARS[930] = 33;</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		Arrays.fill(CHARS, 931, 975, (byte) -19); // Fill 44 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		CHARS[975] = 33;</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		Arrays.fill(CHARS, 976, 983, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		Arrays.fill(CHARS, 983, 986, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		CHARS[986] = -19;</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		CHARS[987] = 33;</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;		CHARS[988] = -19;</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		CHARS[989] = 33;</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		CHARS[990] = -19;</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		CHARS[991] = 33;</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		CHARS[992] = -19;</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		CHARS[993] = 33;</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		Arrays.fill(CHARS, 994, 1012, (byte) -19); // Fill 18 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;		Arrays.fill(CHARS, 1012, 1025, (byte) 33); // Fill 13 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;		Arrays.fill(CHARS, 1025, 1037, (byte) -19); // Fill 12 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		CHARS[1037] = 33;</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		Arrays.fill(CHARS, 1038, 1104, (byte) -19); // Fill 66 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;		CHARS[1104] = 33;</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		Arrays.fill(CHARS, 1105, 1117, (byte) -19); // Fill 12 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		CHARS[1117] = 33;</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		Arrays.fill(CHARS, 1118, 1154, (byte) -19); // Fill 36 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		CHARS[1154] = 33;</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		Arrays.fill(CHARS, 1155, 1159, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		Arrays.fill(CHARS, 1159, 1168, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		Arrays.fill(CHARS, 1168, 1221, (byte) -19); // Fill 53 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;		Arrays.fill(CHARS, 1221, 1223, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		Arrays.fill(CHARS, 1223, 1225, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		Arrays.fill(CHARS, 1225, 1227, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		Arrays.fill(CHARS, 1227, 1229, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		Arrays.fill(CHARS, 1229, 1232, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		Arrays.fill(CHARS, 1232, 1260, (byte) -19); // Fill 28 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		Arrays.fill(CHARS, 1260, 1262, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		Arrays.fill(CHARS, 1262, 1270, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		Arrays.fill(CHARS, 1270, 1272, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		Arrays.fill(CHARS, 1272, 1274, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		Arrays.fill(CHARS, 1274, 1329, (byte) 33); // Fill 55 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		Arrays.fill(CHARS, 1329, 1367, (byte) -19); // Fill 38 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		Arrays.fill(CHARS, 1367, 1369, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		CHARS[1369] = -19;</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		Arrays.fill(CHARS, 1370, 1377, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		Arrays.fill(CHARS, 1377, 1415, (byte) -19); // Fill 38 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		Arrays.fill(CHARS, 1415, 1425, (byte) 33); // Fill 10 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		Arrays.fill(CHARS, 1425, 1442, (byte) -87); // Fill 17 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		CHARS[1442] = 33;</b>
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		Arrays.fill(CHARS, 1443, 1466, (byte) -87); // Fill 23 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		CHARS[1466] = 33;</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		Arrays.fill(CHARS, 1467, 1470, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		CHARS[1470] = 33;</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		CHARS[1471] = -87;</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		CHARS[1472] = 33;</b>
+<b class="fc"><i class="no-highlight">224</i>&nbsp;		Arrays.fill(CHARS, 1473, 1475, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		CHARS[1475] = 33;</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;		CHARS[1476] = -87;</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;		Arrays.fill(CHARS, 1477, 1488, (byte) 33); // Fill 11 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;		Arrays.fill(CHARS, 1488, 1515, (byte) -19); // Fill 27 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;		Arrays.fill(CHARS, 1515, 1520, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">230</i>&nbsp;		Arrays.fill(CHARS, 1520, 1523, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">231</i>&nbsp;		Arrays.fill(CHARS, 1523, 1569, (byte) 33); // Fill 46 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		Arrays.fill(CHARS, 1569, 1595, (byte) -19); // Fill 26 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		Arrays.fill(CHARS, 1595, 1600, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		CHARS[1600] = -87;</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		Arrays.fill(CHARS, 1601, 1611, (byte) -19); // Fill 10 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		Arrays.fill(CHARS, 1611, 1619, (byte) -87); // Fill 8 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		Arrays.fill(CHARS, 1619, 1632, (byte) 33); // Fill 13 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		Arrays.fill(CHARS, 1632, 1642, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;		Arrays.fill(CHARS, 1642, 1648, (byte) 33); // Fill 6 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		CHARS[1648] = -87;</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		Arrays.fill(CHARS, 1649, 1720, (byte) -19); // Fill 71 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		Arrays.fill(CHARS, 1720, 1722, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		Arrays.fill(CHARS, 1722, 1727, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		CHARS[1727] = 33;</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;		Arrays.fill(CHARS, 1728, 1743, (byte) -19); // Fill 15 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;		CHARS[1743] = 33;</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		Arrays.fill(CHARS, 1744, 1748, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;		CHARS[1748] = 33;</b>
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		CHARS[1749] = -19;</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		Arrays.fill(CHARS, 1750, 1765, (byte) -87); // Fill 15 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		Arrays.fill(CHARS, 1765, 1767, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		Arrays.fill(CHARS, 1767, 1769, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;		CHARS[1769] = 33;</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;		Arrays.fill(CHARS, 1770, 1774, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">255</i>&nbsp;		Arrays.fill(CHARS, 1774, 1776, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		Arrays.fill(CHARS, 1776, 1786, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		Arrays.fill(CHARS, 1786, 2305, (byte) 33); // Fill 519 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		Arrays.fill(CHARS, 2305, 2308, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		CHARS[2308] = 33;</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		Arrays.fill(CHARS, 2309, 2362, (byte) -19); // Fill 53 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		Arrays.fill(CHARS, 2362, 2364, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">262</i>&nbsp;		CHARS[2364] = -87;</b>
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		CHARS[2365] = -19;</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		Arrays.fill(CHARS, 2366, 2382, (byte) -87); // Fill 16 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		Arrays.fill(CHARS, 2382, 2385, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		Arrays.fill(CHARS, 2385, 2389, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;		Arrays.fill(CHARS, 2389, 2392, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		Arrays.fill(CHARS, 2392, 2402, (byte) -19); // Fill 10 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">269</i>&nbsp;		Arrays.fill(CHARS, 2402, 2404, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;		Arrays.fill(CHARS, 2404, 2406, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		Arrays.fill(CHARS, 2406, 2416, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;		Arrays.fill(CHARS, 2416, 2433, (byte) 33); // Fill 17 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		Arrays.fill(CHARS, 2433, 2436, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		CHARS[2436] = 33;</b>
+<b class="fc"><i class="no-highlight">275</i>&nbsp;		Arrays.fill(CHARS, 2437, 2445, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;		Arrays.fill(CHARS, 2445, 2447, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		Arrays.fill(CHARS, 2447, 2449, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		Arrays.fill(CHARS, 2449, 2451, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		Arrays.fill(CHARS, 2451, 2473, (byte) -19); // Fill 22 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		CHARS[2473] = 33;</b>
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		Arrays.fill(CHARS, 2474, 2481, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">282</i>&nbsp;		CHARS[2481] = 33;</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		CHARS[2482] = -19;</b>
+<b class="fc"><i class="no-highlight">284</i>&nbsp;		Arrays.fill(CHARS, 2483, 2486, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">285</i>&nbsp;		Arrays.fill(CHARS, 2486, 2490, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		Arrays.fill(CHARS, 2490, 2492, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;		CHARS[2492] = -87;</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		CHARS[2493] = 33;</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		Arrays.fill(CHARS, 2494, 2501, (byte) -87); // Fill 7 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">290</i>&nbsp;		Arrays.fill(CHARS, 2501, 2503, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		Arrays.fill(CHARS, 2503, 2505, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		Arrays.fill(CHARS, 2505, 2507, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		Arrays.fill(CHARS, 2507, 2510, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;		Arrays.fill(CHARS, 2510, 2519, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;		CHARS[2519] = -87;</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;		Arrays.fill(CHARS, 2520, 2524, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;		Arrays.fill(CHARS, 2524, 2526, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		CHARS[2526] = 33;</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;		Arrays.fill(CHARS, 2527, 2530, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">300</i>&nbsp;		Arrays.fill(CHARS, 2530, 2532, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">301</i>&nbsp;		Arrays.fill(CHARS, 2532, 2534, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		Arrays.fill(CHARS, 2534, 2544, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;		Arrays.fill(CHARS, 2544, 2546, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">304</i>&nbsp;		Arrays.fill(CHARS, 2546, 2562, (byte) 33); // Fill 16 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">305</i>&nbsp;		CHARS[2562] = -87;</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		Arrays.fill(CHARS, 2563, 2565, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;		Arrays.fill(CHARS, 2565, 2571, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">308</i>&nbsp;		Arrays.fill(CHARS, 2571, 2575, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">309</i>&nbsp;		Arrays.fill(CHARS, 2575, 2577, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		Arrays.fill(CHARS, 2577, 2579, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		Arrays.fill(CHARS, 2579, 2601, (byte) -19); // Fill 22 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		CHARS[2601] = 33;</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;		Arrays.fill(CHARS, 2602, 2609, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;		CHARS[2609] = 33;</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;		Arrays.fill(CHARS, 2610, 2612, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">316</i>&nbsp;		CHARS[2612] = 33;</b>
+<b class="fc"><i class="no-highlight">317</i>&nbsp;		Arrays.fill(CHARS, 2613, 2615, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">318</i>&nbsp;		CHARS[2615] = 33;</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;		Arrays.fill(CHARS, 2616, 2618, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;		Arrays.fill(CHARS, 2618, 2620, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">321</i>&nbsp;		CHARS[2620] = -87;</b>
+<b class="fc"><i class="no-highlight">322</i>&nbsp;		CHARS[2621] = 33;</b>
+<b class="fc"><i class="no-highlight">323</i>&nbsp;		Arrays.fill(CHARS, 2622, 2627, (byte) -87); // Fill 5 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;		Arrays.fill(CHARS, 2627, 2631, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;		Arrays.fill(CHARS, 2631, 2633, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">326</i>&nbsp;		Arrays.fill(CHARS, 2633, 2635, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		Arrays.fill(CHARS, 2635, 2638, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">328</i>&nbsp;		Arrays.fill(CHARS, 2638, 2649, (byte) 33); // Fill 11 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">329</i>&nbsp;		Arrays.fill(CHARS, 2649, 2653, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">330</i>&nbsp;		CHARS[2653] = 33;</b>
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		CHARS[2654] = -19;</b>
+<b class="fc"><i class="no-highlight">332</i>&nbsp;		Arrays.fill(CHARS, 2655, 2662, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">333</i>&nbsp;		Arrays.fill(CHARS, 2662, 2674, (byte) -87); // Fill 12 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		Arrays.fill(CHARS, 2674, 2677, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		Arrays.fill(CHARS, 2677, 2689, (byte) 33); // Fill 12 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;		Arrays.fill(CHARS, 2689, 2692, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">337</i>&nbsp;		CHARS[2692] = 33;</b>
+<b class="fc"><i class="no-highlight">338</i>&nbsp;		Arrays.fill(CHARS, 2693, 2700, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		CHARS[2700] = 33;</b>
+<b class="fc"><i class="no-highlight">340</i>&nbsp;		CHARS[2701] = -19;</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;		CHARS[2702] = 33;</b>
+<b class="fc"><i class="no-highlight">342</i>&nbsp;		Arrays.fill(CHARS, 2703, 2706, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		CHARS[2706] = 33;</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		Arrays.fill(CHARS, 2707, 2729, (byte) -19); // Fill 22 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;		CHARS[2729] = 33;</b>
+<b class="fc"><i class="no-highlight">346</i>&nbsp;		Arrays.fill(CHARS, 2730, 2737, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">347</i>&nbsp;		CHARS[2737] = 33;</b>
+<b class="fc"><i class="no-highlight">348</i>&nbsp;		Arrays.fill(CHARS, 2738, 2740, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">349</i>&nbsp;		CHARS[2740] = 33;</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;		Arrays.fill(CHARS, 2741, 2746, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">351</i>&nbsp;		Arrays.fill(CHARS, 2746, 2748, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		CHARS[2748] = -87;</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;		CHARS[2749] = -19;</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;		Arrays.fill(CHARS, 2750, 2758, (byte) -87); // Fill 8 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">355</i>&nbsp;		CHARS[2758] = 33;</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;		Arrays.fill(CHARS, 2759, 2762, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">357</i>&nbsp;		CHARS[2762] = 33;</b>
+<b class="fc"><i class="no-highlight">358</i>&nbsp;		Arrays.fill(CHARS, 2763, 2766, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">359</i>&nbsp;		Arrays.fill(CHARS, 2766, 2784, (byte) 33); // Fill 18 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		CHARS[2784] = -19;</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;		Arrays.fill(CHARS, 2785, 2790, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">362</i>&nbsp;		Arrays.fill(CHARS, 2790, 2800, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">363</i>&nbsp;		Arrays.fill(CHARS, 2800, 2817, (byte) 33); // Fill 17 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;		Arrays.fill(CHARS, 2817, 2820, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;		CHARS[2820] = 33;</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;		Arrays.fill(CHARS, 2821, 2829, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;		Arrays.fill(CHARS, 2829, 2831, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;		Arrays.fill(CHARS, 2831, 2833, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">369</i>&nbsp;		Arrays.fill(CHARS, 2833, 2835, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;		Arrays.fill(CHARS, 2835, 2857, (byte) -19); // Fill 22 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;		CHARS[2857] = 33;</b>
+<b class="fc"><i class="no-highlight">372</i>&nbsp;		Arrays.fill(CHARS, 2858, 2865, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">373</i>&nbsp;		CHARS[2865] = 33;</b>
+<b class="fc"><i class="no-highlight">374</i>&nbsp;		Arrays.fill(CHARS, 2866, 2868, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">375</i>&nbsp;		Arrays.fill(CHARS, 2868, 2870, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">376</i>&nbsp;		Arrays.fill(CHARS, 2870, 2874, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">377</i>&nbsp;		Arrays.fill(CHARS, 2874, 2876, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;		CHARS[2876] = -87;</b>
+<b class="fc"><i class="no-highlight">379</i>&nbsp;		CHARS[2877] = -19;</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;		Arrays.fill(CHARS, 2878, 2884, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">381</i>&nbsp;		Arrays.fill(CHARS, 2884, 2887, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">382</i>&nbsp;		Arrays.fill(CHARS, 2887, 2889, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">383</i>&nbsp;		Arrays.fill(CHARS, 2889, 2891, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">384</i>&nbsp;		Arrays.fill(CHARS, 2891, 2894, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">385</i>&nbsp;		Arrays.fill(CHARS, 2894, 2902, (byte) 33); // Fill 8 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">386</i>&nbsp;		Arrays.fill(CHARS, 2902, 2904, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">387</i>&nbsp;		Arrays.fill(CHARS, 2904, 2908, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">388</i>&nbsp;		Arrays.fill(CHARS, 2908, 2910, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">389</i>&nbsp;		CHARS[2910] = 33;</b>
+<b class="fc"><i class="no-highlight">390</i>&nbsp;		Arrays.fill(CHARS, 2911, 2914, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">391</i>&nbsp;		Arrays.fill(CHARS, 2914, 2918, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">392</i>&nbsp;		Arrays.fill(CHARS, 2918, 2928, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">393</i>&nbsp;		Arrays.fill(CHARS, 2928, 2946, (byte) 33); // Fill 18 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">394</i>&nbsp;		Arrays.fill(CHARS, 2946, 2948, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">395</i>&nbsp;		CHARS[2948] = 33;</b>
+<b class="fc"><i class="no-highlight">396</i>&nbsp;		Arrays.fill(CHARS, 2949, 2955, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;		Arrays.fill(CHARS, 2955, 2958, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;		Arrays.fill(CHARS, 2958, 2961, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;		CHARS[2961] = 33;</b>
+<b class="fc"><i class="no-highlight">400</i>&nbsp;		Arrays.fill(CHARS, 2962, 2966, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">401</i>&nbsp;		Arrays.fill(CHARS, 2966, 2969, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">402</i>&nbsp;		Arrays.fill(CHARS, 2969, 2971, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">403</i>&nbsp;		CHARS[2971] = 33;</b>
+<b class="fc"><i class="no-highlight">404</i>&nbsp;		CHARS[2972] = -19;</b>
+<b class="fc"><i class="no-highlight">405</i>&nbsp;		CHARS[2973] = 33;</b>
+<b class="fc"><i class="no-highlight">406</i>&nbsp;		Arrays.fill(CHARS, 2974, 2976, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">407</i>&nbsp;		Arrays.fill(CHARS, 2976, 2979, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">408</i>&nbsp;		Arrays.fill(CHARS, 2979, 2981, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">409</i>&nbsp;		Arrays.fill(CHARS, 2981, 2984, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">410</i>&nbsp;		Arrays.fill(CHARS, 2984, 2987, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">411</i>&nbsp;		Arrays.fill(CHARS, 2987, 2990, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">412</i>&nbsp;		Arrays.fill(CHARS, 2990, 2998, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">413</i>&nbsp;		CHARS[2998] = 33;</b>
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		Arrays.fill(CHARS, 2999, 3002, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">415</i>&nbsp;		Arrays.fill(CHARS, 3002, 3006, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">416</i>&nbsp;		Arrays.fill(CHARS, 3006, 3011, (byte) -87); // Fill 5 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">417</i>&nbsp;		Arrays.fill(CHARS, 3011, 3014, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">418</i>&nbsp;		Arrays.fill(CHARS, 3014, 3017, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">419</i>&nbsp;		CHARS[3017] = 33;</b>
+<b class="fc"><i class="no-highlight">420</i>&nbsp;		Arrays.fill(CHARS, 3018, 3022, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">421</i>&nbsp;		Arrays.fill(CHARS, 3022, 3031, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">422</i>&nbsp;		CHARS[3031] = -87;</b>
+<b class="fc"><i class="no-highlight">423</i>&nbsp;		Arrays.fill(CHARS, 3032, 3047, (byte) 33); // Fill 15 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">424</i>&nbsp;		Arrays.fill(CHARS, 3047, 3056, (byte) -87); // Fill 9 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">425</i>&nbsp;		Arrays.fill(CHARS, 3056, 3073, (byte) 33); // Fill 17 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">426</i>&nbsp;		Arrays.fill(CHARS, 3073, 3076, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">427</i>&nbsp;		CHARS[3076] = 33;</b>
+<b class="fc"><i class="no-highlight">428</i>&nbsp;		Arrays.fill(CHARS, 3077, 3085, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;		CHARS[3085] = 33;</b>
+<b class="fc"><i class="no-highlight">430</i>&nbsp;		Arrays.fill(CHARS, 3086, 3089, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">431</i>&nbsp;		CHARS[3089] = 33;</b>
+<b class="fc"><i class="no-highlight">432</i>&nbsp;		Arrays.fill(CHARS, 3090, 3113, (byte) -19); // Fill 23 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">433</i>&nbsp;		CHARS[3113] = 33;</b>
+<b class="fc"><i class="no-highlight">434</i>&nbsp;		Arrays.fill(CHARS, 3114, 3124, (byte) -19); // Fill 10 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">435</i>&nbsp;		CHARS[3124] = 33;</b>
+<b class="fc"><i class="no-highlight">436</i>&nbsp;		Arrays.fill(CHARS, 3125, 3130, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">437</i>&nbsp;		Arrays.fill(CHARS, 3130, 3134, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">438</i>&nbsp;		Arrays.fill(CHARS, 3134, 3141, (byte) -87); // Fill 7 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">439</i>&nbsp;		CHARS[3141] = 33;</b>
+<b class="fc"><i class="no-highlight">440</i>&nbsp;		Arrays.fill(CHARS, 3142, 3145, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">441</i>&nbsp;		CHARS[3145] = 33;</b>
+<b class="fc"><i class="no-highlight">442</i>&nbsp;		Arrays.fill(CHARS, 3146, 3150, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">443</i>&nbsp;		Arrays.fill(CHARS, 3150, 3157, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">444</i>&nbsp;		Arrays.fill(CHARS, 3157, 3159, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">445</i>&nbsp;		Arrays.fill(CHARS, 3159, 3168, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">446</i>&nbsp;		Arrays.fill(CHARS, 3168, 3170, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">447</i>&nbsp;		Arrays.fill(CHARS, 3170, 3174, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">448</i>&nbsp;		Arrays.fill(CHARS, 3174, 3184, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">449</i>&nbsp;		Arrays.fill(CHARS, 3184, 3202, (byte) 33); // Fill 18 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">450</i>&nbsp;		Arrays.fill(CHARS, 3202, 3204, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">451</i>&nbsp;		CHARS[3204] = 33;</b>
+<b class="fc"><i class="no-highlight">452</i>&nbsp;		Arrays.fill(CHARS, 3205, 3213, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;		CHARS[3213] = 33;</b>
+<b class="fc"><i class="no-highlight">454</i>&nbsp;		Arrays.fill(CHARS, 3214, 3217, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">455</i>&nbsp;		CHARS[3217] = 33;</b>
+<b class="fc"><i class="no-highlight">456</i>&nbsp;		Arrays.fill(CHARS, 3218, 3241, (byte) -19); // Fill 23 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">457</i>&nbsp;		CHARS[3241] = 33;</b>
+<b class="fc"><i class="no-highlight">458</i>&nbsp;		Arrays.fill(CHARS, 3242, 3252, (byte) -19); // Fill 10 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">459</i>&nbsp;		CHARS[3252] = 33;</b>
+<b class="fc"><i class="no-highlight">460</i>&nbsp;		Arrays.fill(CHARS, 3253, 3258, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;		Arrays.fill(CHARS, 3258, 3262, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">462</i>&nbsp;		Arrays.fill(CHARS, 3262, 3269, (byte) -87); // Fill 7 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">463</i>&nbsp;		CHARS[3269] = 33;</b>
+<b class="fc"><i class="no-highlight">464</i>&nbsp;		Arrays.fill(CHARS, 3270, 3273, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">465</i>&nbsp;		CHARS[3273] = 33;</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;		Arrays.fill(CHARS, 3274, 3278, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">467</i>&nbsp;		Arrays.fill(CHARS, 3278, 3285, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">468</i>&nbsp;		Arrays.fill(CHARS, 3285, 3287, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">469</i>&nbsp;		Arrays.fill(CHARS, 3287, 3294, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">470</i>&nbsp;		CHARS[3294] = -19;</b>
+<b class="fc"><i class="no-highlight">471</i>&nbsp;		CHARS[3295] = 33;</b>
+<b class="fc"><i class="no-highlight">472</i>&nbsp;		Arrays.fill(CHARS, 3296, 3298, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">473</i>&nbsp;		Arrays.fill(CHARS, 3298, 3302, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">474</i>&nbsp;		Arrays.fill(CHARS, 3302, 3312, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">475</i>&nbsp;		Arrays.fill(CHARS, 3312, 3330, (byte) 33); // Fill 18 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">476</i>&nbsp;		Arrays.fill(CHARS, 3330, 3332, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">477</i>&nbsp;		CHARS[3332] = 33;</b>
+<b class="fc"><i class="no-highlight">478</i>&nbsp;		Arrays.fill(CHARS, 3333, 3341, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">479</i>&nbsp;		CHARS[3341] = 33;</b>
+<b class="fc"><i class="no-highlight">480</i>&nbsp;		Arrays.fill(CHARS, 3342, 3345, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">481</i>&nbsp;		CHARS[3345] = 33;</b>
+<b class="fc"><i class="no-highlight">482</i>&nbsp;		Arrays.fill(CHARS, 3346, 3369, (byte) -19); // Fill 23 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">483</i>&nbsp;		CHARS[3369] = 33;</b>
+<b class="fc"><i class="no-highlight">484</i>&nbsp;		Arrays.fill(CHARS, 3370, 3386, (byte) -19); // Fill 16 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">485</i>&nbsp;		Arrays.fill(CHARS, 3386, 3390, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">486</i>&nbsp;		Arrays.fill(CHARS, 3390, 3396, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">487</i>&nbsp;		Arrays.fill(CHARS, 3396, 3398, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">488</i>&nbsp;		Arrays.fill(CHARS, 3398, 3401, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">489</i>&nbsp;		CHARS[3401] = 33;</b>
+<b class="fc"><i class="no-highlight">490</i>&nbsp;		Arrays.fill(CHARS, 3402, 3406, (byte) -87); // Fill 4 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">491</i>&nbsp;		Arrays.fill(CHARS, 3406, 3415, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">492</i>&nbsp;		CHARS[3415] = -87;</b>
+<b class="fc"><i class="no-highlight">493</i>&nbsp;		Arrays.fill(CHARS, 3416, 3424, (byte) 33); // Fill 8 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">494</i>&nbsp;		Arrays.fill(CHARS, 3424, 3426, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">495</i>&nbsp;		Arrays.fill(CHARS, 3426, 3430, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">496</i>&nbsp;		Arrays.fill(CHARS, 3430, 3440, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">497</i>&nbsp;		Arrays.fill(CHARS, 3440, 3585, (byte) 33); // Fill 145 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">498</i>&nbsp;		Arrays.fill(CHARS, 3585, 3631, (byte) -19); // Fill 46 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">499</i>&nbsp;		CHARS[3631] = 33;</b>
+<b class="fc"><i class="no-highlight">500</i>&nbsp;		CHARS[3632] = -19;</b>
+<b class="fc"><i class="no-highlight">501</i>&nbsp;		CHARS[3633] = -87;</b>
+<b class="fc"><i class="no-highlight">502</i>&nbsp;		Arrays.fill(CHARS, 3634, 3636, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">503</i>&nbsp;		Arrays.fill(CHARS, 3636, 3643, (byte) -87); // Fill 7 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">504</i>&nbsp;		Arrays.fill(CHARS, 3643, 3648, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">505</i>&nbsp;		Arrays.fill(CHARS, 3648, 3654, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">506</i>&nbsp;		Arrays.fill(CHARS, 3654, 3663, (byte) -87); // Fill 9 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">507</i>&nbsp;		CHARS[3663] = 33;</b>
+<b class="fc"><i class="no-highlight">508</i>&nbsp;		Arrays.fill(CHARS, 3664, 3674, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">509</i>&nbsp;		Arrays.fill(CHARS, 3674, 3713, (byte) 33); // Fill 39 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">510</i>&nbsp;		Arrays.fill(CHARS, 3713, 3715, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">511</i>&nbsp;		CHARS[3715] = 33;</b>
+<b class="fc"><i class="no-highlight">512</i>&nbsp;		CHARS[3716] = -19;</b>
+<b class="fc"><i class="no-highlight">513</i>&nbsp;		Arrays.fill(CHARS, 3717, 3719, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">514</i>&nbsp;		Arrays.fill(CHARS, 3719, 3721, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">515</i>&nbsp;		CHARS[3721] = 33;</b>
+<b class="fc"><i class="no-highlight">516</i>&nbsp;		CHARS[3722] = -19;</b>
+<b class="fc"><i class="no-highlight">517</i>&nbsp;		Arrays.fill(CHARS, 3723, 3725, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">518</i>&nbsp;		CHARS[3725] = -19;</b>
+<b class="fc"><i class="no-highlight">519</i>&nbsp;		Arrays.fill(CHARS, 3726, 3732, (byte) 33); // Fill 6 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">520</i>&nbsp;		Arrays.fill(CHARS, 3732, 3736, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">521</i>&nbsp;		CHARS[3736] = 33;</b>
+<b class="fc"><i class="no-highlight">522</i>&nbsp;		Arrays.fill(CHARS, 3737, 3744, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">523</i>&nbsp;		CHARS[3744] = 33;</b>
+<b class="fc"><i class="no-highlight">524</i>&nbsp;		Arrays.fill(CHARS, 3745, 3748, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">525</i>&nbsp;		CHARS[3748] = 33;</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;		CHARS[3749] = -19;</b>
+<b class="fc"><i class="no-highlight">527</i>&nbsp;		CHARS[3750] = 33;</b>
+<b class="fc"><i class="no-highlight">528</i>&nbsp;		CHARS[3751] = -19;</b>
+<b class="fc"><i class="no-highlight">529</i>&nbsp;		Arrays.fill(CHARS, 3752, 3754, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">530</i>&nbsp;		Arrays.fill(CHARS, 3754, 3756, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">531</i>&nbsp;		CHARS[3756] = 33;</b>
+<b class="fc"><i class="no-highlight">532</i>&nbsp;		Arrays.fill(CHARS, 3757, 3759, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">533</i>&nbsp;		CHARS[3759] = 33;</b>
+<b class="fc"><i class="no-highlight">534</i>&nbsp;		CHARS[3760] = -19;</b>
+<b class="fc"><i class="no-highlight">535</i>&nbsp;		CHARS[3761] = -87;</b>
+<b class="fc"><i class="no-highlight">536</i>&nbsp;		Arrays.fill(CHARS, 3762, 3764, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">537</i>&nbsp;		Arrays.fill(CHARS, 3764, 3770, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">538</i>&nbsp;		CHARS[3770] = 33;</b>
+<b class="fc"><i class="no-highlight">539</i>&nbsp;		Arrays.fill(CHARS, 3771, 3773, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">540</i>&nbsp;		CHARS[3773] = -19;</b>
+<b class="fc"><i class="no-highlight">541</i>&nbsp;		Arrays.fill(CHARS, 3774, 3776, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;		Arrays.fill(CHARS, 3776, 3781, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">543</i>&nbsp;		CHARS[3781] = 33;</b>
+<b class="fc"><i class="no-highlight">544</i>&nbsp;		CHARS[3782] = -87;</b>
+<b class="fc"><i class="no-highlight">545</i>&nbsp;		CHARS[3783] = 33;</b>
+<b class="fc"><i class="no-highlight">546</i>&nbsp;		Arrays.fill(CHARS, 3784, 3790, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">547</i>&nbsp;		Arrays.fill(CHARS, 3790, 3792, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">548</i>&nbsp;		Arrays.fill(CHARS, 3792, 3802, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">549</i>&nbsp;		Arrays.fill(CHARS, 3802, 3864, (byte) 33); // Fill 62 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">550</i>&nbsp;		Arrays.fill(CHARS, 3864, 3866, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">551</i>&nbsp;		Arrays.fill(CHARS, 3866, 3872, (byte) 33); // Fill 6 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">552</i>&nbsp;		Arrays.fill(CHARS, 3872, 3882, (byte) -87); // Fill 10 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;		Arrays.fill(CHARS, 3882, 3893, (byte) 33); // Fill 11 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">554</i>&nbsp;		CHARS[3893] = -87;</b>
+<b class="fc"><i class="no-highlight">555</i>&nbsp;		CHARS[3894] = 33;</b>
+<b class="fc"><i class="no-highlight">556</i>&nbsp;		CHARS[3895] = -87;</b>
+<b class="fc"><i class="no-highlight">557</i>&nbsp;		CHARS[3896] = 33;</b>
+<b class="fc"><i class="no-highlight">558</i>&nbsp;		CHARS[3897] = -87;</b>
+<b class="fc"><i class="no-highlight">559</i>&nbsp;		Arrays.fill(CHARS, 3898, 3902, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">560</i>&nbsp;		Arrays.fill(CHARS, 3902, 3904, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">561</i>&nbsp;		Arrays.fill(CHARS, 3904, 3912, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">562</i>&nbsp;		CHARS[3912] = 33;</b>
+<b class="fc"><i class="no-highlight">563</i>&nbsp;		Arrays.fill(CHARS, 3913, 3946, (byte) -19); // Fill 33 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">564</i>&nbsp;		Arrays.fill(CHARS, 3946, 3953, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">565</i>&nbsp;		Arrays.fill(CHARS, 3953, 3973, (byte) -87); // Fill 20 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">566</i>&nbsp;		CHARS[3973] = 33;</b>
+<b class="fc"><i class="no-highlight">567</i>&nbsp;		Arrays.fill(CHARS, 3974, 3980, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">568</i>&nbsp;		Arrays.fill(CHARS, 3980, 3984, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">569</i>&nbsp;		Arrays.fill(CHARS, 3984, 3990, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">570</i>&nbsp;		CHARS[3990] = 33;</b>
+<b class="fc"><i class="no-highlight">571</i>&nbsp;		CHARS[3991] = -87;</b>
+<b class="fc"><i class="no-highlight">572</i>&nbsp;		CHARS[3992] = 33;</b>
+<b class="fc"><i class="no-highlight">573</i>&nbsp;		Arrays.fill(CHARS, 3993, 4014, (byte) -87); // Fill 21 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">574</i>&nbsp;		Arrays.fill(CHARS, 4014, 4017, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">575</i>&nbsp;		Arrays.fill(CHARS, 4017, 4024, (byte) -87); // Fill 7 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">576</i>&nbsp;		CHARS[4024] = 33;</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;		CHARS[4025] = -87;</b>
+<b class="fc"><i class="no-highlight">578</i>&nbsp;		Arrays.fill(CHARS, 4026, 4256, (byte) 33); // Fill 230 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">579</i>&nbsp;		Arrays.fill(CHARS, 4256, 4294, (byte) -19); // Fill 38 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">580</i>&nbsp;		Arrays.fill(CHARS, 4294, 4304, (byte) 33); // Fill 10 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">581</i>&nbsp;		Arrays.fill(CHARS, 4304, 4343, (byte) -19); // Fill 39 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">582</i>&nbsp;		Arrays.fill(CHARS, 4343, 4352, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">583</i>&nbsp;		CHARS[4352] = -19;</b>
+<b class="fc"><i class="no-highlight">584</i>&nbsp;		CHARS[4353] = 33;</b>
+<b class="fc"><i class="no-highlight">585</i>&nbsp;		Arrays.fill(CHARS, 4354, 4356, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">586</i>&nbsp;		CHARS[4356] = 33;</b>
+<b class="fc"><i class="no-highlight">587</i>&nbsp;		Arrays.fill(CHARS, 4357, 4360, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">588</i>&nbsp;		CHARS[4360] = 33;</b>
+<b class="fc"><i class="no-highlight">589</i>&nbsp;		CHARS[4361] = -19;</b>
+<b class="fc"><i class="no-highlight">590</i>&nbsp;		CHARS[4362] = 33;</b>
+<b class="fc"><i class="no-highlight">591</i>&nbsp;		Arrays.fill(CHARS, 4363, 4365, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">592</i>&nbsp;		CHARS[4365] = 33;</b>
+<b class="fc"><i class="no-highlight">593</i>&nbsp;		Arrays.fill(CHARS, 4366, 4371, (byte) -19); // Fill 5 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">594</i>&nbsp;		Arrays.fill(CHARS, 4371, 4412, (byte) 33); // Fill 41 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">595</i>&nbsp;		CHARS[4412] = -19;</b>
+<b class="fc"><i class="no-highlight">596</i>&nbsp;		CHARS[4413] = 33;</b>
+<b class="fc"><i class="no-highlight">597</i>&nbsp;		CHARS[4414] = -19;</b>
+<b class="fc"><i class="no-highlight">598</i>&nbsp;		CHARS[4415] = 33;</b>
+<b class="fc"><i class="no-highlight">599</i>&nbsp;		CHARS[4416] = -19;</b>
+<b class="fc"><i class="no-highlight">600</i>&nbsp;		Arrays.fill(CHARS, 4417, 4428, (byte) 33); // Fill 11 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">601</i>&nbsp;		CHARS[4428] = -19;</b>
+<b class="fc"><i class="no-highlight">602</i>&nbsp;		CHARS[4429] = 33;</b>
+<b class="fc"><i class="no-highlight">603</i>&nbsp;		CHARS[4430] = -19;</b>
+<b class="fc"><i class="no-highlight">604</i>&nbsp;		CHARS[4431] = 33;</b>
+<b class="fc"><i class="no-highlight">605</i>&nbsp;		CHARS[4432] = -19;</b>
+<b class="fc"><i class="no-highlight">606</i>&nbsp;		Arrays.fill(CHARS, 4433, 4436, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">607</i>&nbsp;		Arrays.fill(CHARS, 4436, 4438, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">608</i>&nbsp;		Arrays.fill(CHARS, 4438, 4441, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">609</i>&nbsp;		CHARS[4441] = -19;</b>
+<b class="fc"><i class="no-highlight">610</i>&nbsp;		Arrays.fill(CHARS, 4442, 4447, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">611</i>&nbsp;		Arrays.fill(CHARS, 4447, 4450, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">612</i>&nbsp;		CHARS[4450] = 33;</b>
+<b class="fc"><i class="no-highlight">613</i>&nbsp;		CHARS[4451] = -19;</b>
+<b class="fc"><i class="no-highlight">614</i>&nbsp;		CHARS[4452] = 33;</b>
+<b class="fc"><i class="no-highlight">615</i>&nbsp;		CHARS[4453] = -19;</b>
+<b class="fc"><i class="no-highlight">616</i>&nbsp;		CHARS[4454] = 33;</b>
+<b class="fc"><i class="no-highlight">617</i>&nbsp;		CHARS[4455] = -19;</b>
+<b class="fc"><i class="no-highlight">618</i>&nbsp;		CHARS[4456] = 33;</b>
+<b class="fc"><i class="no-highlight">619</i>&nbsp;		CHARS[4457] = -19;</b>
+<b class="fc"><i class="no-highlight">620</i>&nbsp;		Arrays.fill(CHARS, 4458, 4461, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">621</i>&nbsp;		Arrays.fill(CHARS, 4461, 4463, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">622</i>&nbsp;		Arrays.fill(CHARS, 4463, 4466, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">623</i>&nbsp;		Arrays.fill(CHARS, 4466, 4468, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">624</i>&nbsp;		CHARS[4468] = 33;</b>
+<b class="fc"><i class="no-highlight">625</i>&nbsp;		CHARS[4469] = -19;</b>
+<b class="fc"><i class="no-highlight">626</i>&nbsp;		Arrays.fill(CHARS, 4470, 4510, (byte) 33); // Fill 40 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">627</i>&nbsp;		CHARS[4510] = -19;</b>
+<b class="fc"><i class="no-highlight">628</i>&nbsp;		Arrays.fill(CHARS, 4511, 4520, (byte) 33); // Fill 9 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">629</i>&nbsp;		CHARS[4520] = -19;</b>
+<b class="fc"><i class="no-highlight">630</i>&nbsp;		Arrays.fill(CHARS, 4521, 4523, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">631</i>&nbsp;		CHARS[4523] = -19;</b>
+<b class="fc"><i class="no-highlight">632</i>&nbsp;		Arrays.fill(CHARS, 4524, 4526, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">633</i>&nbsp;		Arrays.fill(CHARS, 4526, 4528, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">634</i>&nbsp;		Arrays.fill(CHARS, 4528, 4535, (byte) 33); // Fill 7 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">635</i>&nbsp;		Arrays.fill(CHARS, 4535, 4537, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">636</i>&nbsp;		CHARS[4537] = 33;</b>
+<b class="fc"><i class="no-highlight">637</i>&nbsp;		CHARS[4538] = -19;</b>
+<b class="fc"><i class="no-highlight">638</i>&nbsp;		CHARS[4539] = 33;</b>
+<b class="fc"><i class="no-highlight">639</i>&nbsp;		Arrays.fill(CHARS, 4540, 4547, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">640</i>&nbsp;		Arrays.fill(CHARS, 4547, 4587, (byte) 33); // Fill 40 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">641</i>&nbsp;		CHARS[4587] = -19;</b>
+<b class="fc"><i class="no-highlight">642</i>&nbsp;		Arrays.fill(CHARS, 4588, 4592, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">643</i>&nbsp;		CHARS[4592] = -19;</b>
+<b class="fc"><i class="no-highlight">644</i>&nbsp;		Arrays.fill(CHARS, 4593, 4601, (byte) 33); // Fill 8 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">645</i>&nbsp;		CHARS[4601] = -19;</b>
+<b class="fc"><i class="no-highlight">646</i>&nbsp;		Arrays.fill(CHARS, 4602, 7680, (byte) 33); // Fill 3078 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">647</i>&nbsp;		Arrays.fill(CHARS, 7680, 7836, (byte) -19); // Fill 156 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">648</i>&nbsp;		Arrays.fill(CHARS, 7836, 7840, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">649</i>&nbsp;		Arrays.fill(CHARS, 7840, 7930, (byte) -19); // Fill 90 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">650</i>&nbsp;		Arrays.fill(CHARS, 7930, 7936, (byte) 33); // Fill 6 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">651</i>&nbsp;		Arrays.fill(CHARS, 7936, 7958, (byte) -19); // Fill 22 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">652</i>&nbsp;		Arrays.fill(CHARS, 7958, 7960, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">653</i>&nbsp;		Arrays.fill(CHARS, 7960, 7966, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">654</i>&nbsp;		Arrays.fill(CHARS, 7966, 7968, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">655</i>&nbsp;		Arrays.fill(CHARS, 7968, 8006, (byte) -19); // Fill 38 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">656</i>&nbsp;		Arrays.fill(CHARS, 8006, 8008, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;		Arrays.fill(CHARS, 8008, 8014, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">658</i>&nbsp;		Arrays.fill(CHARS, 8014, 8016, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">659</i>&nbsp;		Arrays.fill(CHARS, 8016, 8024, (byte) -19); // Fill 8 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">660</i>&nbsp;		CHARS[8024] = 33;</b>
+<b class="fc"><i class="no-highlight">661</i>&nbsp;		CHARS[8025] = -19;</b>
+<b class="fc"><i class="no-highlight">662</i>&nbsp;		CHARS[8026] = 33;</b>
+<b class="fc"><i class="no-highlight">663</i>&nbsp;		CHARS[8027] = -19;</b>
+<b class="fc"><i class="no-highlight">664</i>&nbsp;		CHARS[8028] = 33;</b>
+<b class="fc"><i class="no-highlight">665</i>&nbsp;		CHARS[8029] = -19;</b>
+<b class="fc"><i class="no-highlight">666</i>&nbsp;		CHARS[8030] = 33;</b>
+<b class="fc"><i class="no-highlight">667</i>&nbsp;		Arrays.fill(CHARS, 8031, 8062, (byte) -19); // Fill 31 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">668</i>&nbsp;		Arrays.fill(CHARS, 8062, 8064, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">669</i>&nbsp;		Arrays.fill(CHARS, 8064, 8117, (byte) -19); // Fill 53 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">670</i>&nbsp;		CHARS[8117] = 33;</b>
+<b class="fc"><i class="no-highlight">671</i>&nbsp;		Arrays.fill(CHARS, 8118, 8125, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">672</i>&nbsp;		CHARS[8125] = 33;</b>
+<b class="fc"><i class="no-highlight">673</i>&nbsp;		CHARS[8126] = -19;</b>
+<b class="fc"><i class="no-highlight">674</i>&nbsp;		Arrays.fill(CHARS, 8127, 8130, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">675</i>&nbsp;		Arrays.fill(CHARS, 8130, 8133, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">676</i>&nbsp;		CHARS[8133] = 33;</b>
+<b class="fc"><i class="no-highlight">677</i>&nbsp;		Arrays.fill(CHARS, 8134, 8141, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">678</i>&nbsp;		Arrays.fill(CHARS, 8141, 8144, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">679</i>&nbsp;		Arrays.fill(CHARS, 8144, 8148, (byte) -19); // Fill 4 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">680</i>&nbsp;		Arrays.fill(CHARS, 8148, 8150, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">681</i>&nbsp;		Arrays.fill(CHARS, 8150, 8156, (byte) -19); // Fill 6 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">682</i>&nbsp;		Arrays.fill(CHARS, 8156, 8160, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">683</i>&nbsp;		Arrays.fill(CHARS, 8160, 8173, (byte) -19); // Fill 13 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">684</i>&nbsp;		Arrays.fill(CHARS, 8173, 8178, (byte) 33); // Fill 5 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">685</i>&nbsp;		Arrays.fill(CHARS, 8178, 8181, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">686</i>&nbsp;		CHARS[8181] = 33;</b>
+<b class="fc"><i class="no-highlight">687</i>&nbsp;		Arrays.fill(CHARS, 8182, 8189, (byte) -19); // Fill 7 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">688</i>&nbsp;		Arrays.fill(CHARS, 8189, 8400, (byte) 33); // Fill 211 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">689</i>&nbsp;		Arrays.fill(CHARS, 8400, 8413, (byte) -87); // Fill 13 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">690</i>&nbsp;		Arrays.fill(CHARS, 8413, 8417, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">691</i>&nbsp;		CHARS[8417] = -87;</b>
+<b class="fc"><i class="no-highlight">692</i>&nbsp;		Arrays.fill(CHARS, 8418, 8486, (byte) 33); // Fill 68 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">693</i>&nbsp;		CHARS[8486] = -19;</b>
+<b class="fc"><i class="no-highlight">694</i>&nbsp;		Arrays.fill(CHARS, 8487, 8490, (byte) 33); // Fill 3 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">695</i>&nbsp;		Arrays.fill(CHARS, 8490, 8492, (byte) -19); // Fill 2 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">696</i>&nbsp;		Arrays.fill(CHARS, 8492, 8494, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">697</i>&nbsp;		CHARS[8494] = -19;</b>
+<b class="fc"><i class="no-highlight">698</i>&nbsp;		Arrays.fill(CHARS, 8495, 8576, (byte) 33); // Fill 81 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">699</i>&nbsp;		Arrays.fill(CHARS, 8576, 8579, (byte) -19); // Fill 3 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">700</i>&nbsp;		Arrays.fill(CHARS, 8579, 12293, (byte) 33); // Fill 3714 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">701</i>&nbsp;		CHARS[12293] = -87;</b>
+<b class="fc"><i class="no-highlight">702</i>&nbsp;		CHARS[12294] = 33;</b>
+<b class="fc"><i class="no-highlight">703</i>&nbsp;		CHARS[12295] = -19;</b>
+<b class="fc"><i class="no-highlight">704</i>&nbsp;		Arrays.fill(CHARS, 12296, 12321, (byte) 33); // Fill 25 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">705</i>&nbsp;		Arrays.fill(CHARS, 12321, 12330, (byte) -19); // Fill 9 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">706</i>&nbsp;		Arrays.fill(CHARS, 12330, 12336, (byte) -87); // Fill 6 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">707</i>&nbsp;		CHARS[12336] = 33;</b>
+<b class="fc"><i class="no-highlight">708</i>&nbsp;		Arrays.fill(CHARS, 12337, 12342, (byte) -87); // Fill 5 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">709</i>&nbsp;		Arrays.fill(CHARS, 12342, 12353, (byte) 33); // Fill 11 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">710</i>&nbsp;		Arrays.fill(CHARS, 12353, 12437, (byte) -19); // Fill 84 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">711</i>&nbsp;		Arrays.fill(CHARS, 12437, 12441, (byte) 33); // Fill 4 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">712</i>&nbsp;		Arrays.fill(CHARS, 12441, 12443, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">713</i>&nbsp;		Arrays.fill(CHARS, 12443, 12445, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">714</i>&nbsp;		Arrays.fill(CHARS, 12445, 12447, (byte) -87); // Fill 2 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">715</i>&nbsp;		Arrays.fill(CHARS, 12447, 12449, (byte) 33); // Fill 2 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">716</i>&nbsp;		Arrays.fill(CHARS, 12449, 12539, (byte) -19); // Fill 90 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">717</i>&nbsp;		CHARS[12539] = 33;</b>
+<b class="fc"><i class="no-highlight">718</i>&nbsp;		Arrays.fill(CHARS, 12540, 12543, (byte) -87); // Fill 3 of value (byte) -87</b>
+<b class="fc"><i class="no-highlight">719</i>&nbsp;		Arrays.fill(CHARS, 12543, 12549, (byte) 33); // Fill 6 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">720</i>&nbsp;		Arrays.fill(CHARS, 12549, 12589, (byte) -19); // Fill 40 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">721</i>&nbsp;		Arrays.fill(CHARS, 12589, 19968, (byte) 33); // Fill 7379 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">722</i>&nbsp;		Arrays.fill(CHARS, 19968, 40870, (byte) -19); // Fill 20902 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">723</i>&nbsp;		Arrays.fill(CHARS, 40870, 44032, (byte) 33); // Fill 3162 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">724</i>&nbsp;		Arrays.fill(CHARS, 44032, 55204, (byte) -19); // Fill 11172 of value (byte) -19</b>
+<b class="fc"><i class="no-highlight">725</i>&nbsp;		Arrays.fill(CHARS, 55204, 55296, (byte) 33); // Fill 92 of value (byte) 33</b>
+<b class="fc"><i class="no-highlight">726</i>&nbsp;		Arrays.fill(CHARS, 57344, 65534, (byte) 33); // Fill 8190 of value (byte) 33</b>
+<i class="no-highlight">727</i>&nbsp;	} // &lt;clinit&gt;()
+<i class="no-highlight">728</i>&nbsp;
+<i class="no-highlight">729</i>&nbsp;	//
+<i class="no-highlight">730</i>&nbsp;	// Public static methods
+<i class="no-highlight">731</i>&nbsp;	//
+<i class="no-highlight">732</i>&nbsp;
+<i class="no-highlight">733</i>&nbsp;	/**
+<i class="no-highlight">734</i>&nbsp;	 * Returns true if the specified character is a supplemental character.
+<i class="no-highlight">735</i>&nbsp;	 *
+<i class="no-highlight">736</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">737</i>&nbsp;	 */
+<i class="no-highlight">738</i>&nbsp;	public static boolean isSupplemental(int c) {
+<b class="nc"><i class="no-highlight">739</i>&nbsp;		return (c &gt;= 0x10000 &amp;&amp; c &lt;= 0x10FFFF);</b>
+<i class="no-highlight">740</i>&nbsp;	}
+<i class="no-highlight">741</i>&nbsp;
+<i class="no-highlight">742</i>&nbsp;	/**
+<i class="no-highlight">743</i>&nbsp;	 * Returns true the supplemental character corresponding to the given
+<i class="no-highlight">744</i>&nbsp;	 * surrogates.
+<i class="no-highlight">745</i>&nbsp;	 *
+<i class="no-highlight">746</i>&nbsp;	 * @param h The high surrogate.
+<i class="no-highlight">747</i>&nbsp;	 * @param l The low surrogate.
+<i class="no-highlight">748</i>&nbsp;	 */
+<i class="no-highlight">749</i>&nbsp;	public static int supplemental(char h, char l) {
+<b class="nc"><i class="no-highlight">750</i>&nbsp;		return (h - 0xD800) * 0x400 + (l - 0xDC00) + 0x10000;</b>
+<i class="no-highlight">751</i>&nbsp;	}
+<i class="no-highlight">752</i>&nbsp;
+<i class="no-highlight">753</i>&nbsp;	/**
+<i class="no-highlight">754</i>&nbsp;	 * Returns the high surrogate of a supplemental character
+<i class="no-highlight">755</i>&nbsp;	 *
+<i class="no-highlight">756</i>&nbsp;	 * @param c The supplemental character to &quot;split&quot;.
+<i class="no-highlight">757</i>&nbsp;	 */
+<i class="no-highlight">758</i>&nbsp;	public static char highSurrogate(int c) {
+<b class="nc"><i class="no-highlight">759</i>&nbsp;		return (char) (((c - 0x00010000) &gt;&gt; 10) + 0xD800);</b>
+<i class="no-highlight">760</i>&nbsp;	}
+<i class="no-highlight">761</i>&nbsp;
+<i class="no-highlight">762</i>&nbsp;	/**
+<i class="no-highlight">763</i>&nbsp;	 * Returns the low surrogate of a supplemental character
+<i class="no-highlight">764</i>&nbsp;	 *
+<i class="no-highlight">765</i>&nbsp;	 * @param c The supplemental character to &quot;split&quot;.
+<i class="no-highlight">766</i>&nbsp;	 */
+<i class="no-highlight">767</i>&nbsp;	public static char lowSurrogate(int c) {
+<b class="nc"><i class="no-highlight">768</i>&nbsp;		return (char) (((c - 0x00010000) &amp; 0x3FF) + 0xDC00);</b>
+<i class="no-highlight">769</i>&nbsp;	}
+<i class="no-highlight">770</i>&nbsp;
+<i class="no-highlight">771</i>&nbsp;	/**
+<i class="no-highlight">772</i>&nbsp;	 * Returns whether the given character is a high surrogate
+<i class="no-highlight">773</i>&nbsp;	 *
+<i class="no-highlight">774</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">775</i>&nbsp;	 */
+<i class="no-highlight">776</i>&nbsp;	public static boolean isHighSurrogate(int c) {
+<b class="nc"><i class="no-highlight">777</i>&nbsp;		return (0xD800 &lt;= c &amp;&amp; c &lt;= 0xDBFF);</b>
+<i class="no-highlight">778</i>&nbsp;	}
+<i class="no-highlight">779</i>&nbsp;
+<i class="no-highlight">780</i>&nbsp;	/**
+<i class="no-highlight">781</i>&nbsp;	 * Returns whether the given character is a low surrogate
+<i class="no-highlight">782</i>&nbsp;	 *
+<i class="no-highlight">783</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">784</i>&nbsp;	 */
+<i class="no-highlight">785</i>&nbsp;	public static boolean isLowSurrogate(int c) {
+<b class="nc"><i class="no-highlight">786</i>&nbsp;		return (0xDC00 &lt;= c &amp;&amp; c &lt;= 0xDFFF);</b>
+<i class="no-highlight">787</i>&nbsp;	}
+<i class="no-highlight">788</i>&nbsp;
+<i class="no-highlight">789</i>&nbsp;	/**
+<i class="no-highlight">790</i>&nbsp;	 * Returns true if the specified character is valid. This method
+<i class="no-highlight">791</i>&nbsp;	 * also checks the surrogate character range from 0x10000 to 0x10FFFF.
+<i class="no-highlight">792</i>&nbsp;	 * &lt;p&gt;
+<i class="no-highlight">793</i>&nbsp;	 * If the program chooses to apply the mask directly to the
+<i class="no-highlight">794</i>&nbsp;	 * &lt;code&gt;CHARS&lt;/code&gt; array, then they are responsible for checking
+<i class="no-highlight">795</i>&nbsp;	 * the surrogate character range.
+<i class="no-highlight">796</i>&nbsp;	 *
+<i class="no-highlight">797</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">798</i>&nbsp;	 */
+<i class="no-highlight">799</i>&nbsp;	public static boolean isValid(int c) {
+<b class="nc"><i class="no-highlight">800</i>&nbsp;		return (c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_VALID) != 0)</b>
+<i class="no-highlight">801</i>&nbsp;				|| (0x10000 &lt;= c &amp;&amp; c &lt;= 0x10FFFF);
+<i class="no-highlight">802</i>&nbsp;	} // isValid(int):boolean
+<i class="no-highlight">803</i>&nbsp;
+<i class="no-highlight">804</i>&nbsp;	/**
+<i class="no-highlight">805</i>&nbsp;	 * Returns true if the specified character is invalid.
+<i class="no-highlight">806</i>&nbsp;	 *
+<i class="no-highlight">807</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">808</i>&nbsp;	 */
+<i class="no-highlight">809</i>&nbsp;	public static boolean isInvalid(int c) {
+<b class="nc"><i class="no-highlight">810</i>&nbsp;		return !isValid(c);</b>
+<i class="no-highlight">811</i>&nbsp;	} // isInvalid(int):boolean
+<i class="no-highlight">812</i>&nbsp;
+<i class="no-highlight">813</i>&nbsp;	/**
+<i class="no-highlight">814</i>&nbsp;	 * Returns true if the specified character can be considered content.
+<i class="no-highlight">815</i>&nbsp;	 *
+<i class="no-highlight">816</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">817</i>&nbsp;	 */
+<i class="no-highlight">818</i>&nbsp;	public static boolean isContent(int c) {
+<b class="nc"><i class="no-highlight">819</i>&nbsp;		return (c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_CONTENT) != 0)</b>
+<i class="no-highlight">820</i>&nbsp;				|| (0x10000 &lt;= c &amp;&amp; c &lt;= 0x10FFFF);
+<i class="no-highlight">821</i>&nbsp;	} // isContent(int):boolean
+<i class="no-highlight">822</i>&nbsp;
+<i class="no-highlight">823</i>&nbsp;	/**
+<i class="no-highlight">824</i>&nbsp;	 * Returns true if the specified character can be considered markup.
+<i class="no-highlight">825</i>&nbsp;	 * Markup characters include &#39;&amp;lt;&#39;, &#39;&amp;amp;&#39;, and &#39;%&#39;.
+<i class="no-highlight">826</i>&nbsp;	 *
+<i class="no-highlight">827</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">828</i>&nbsp;	 */
+<i class="no-highlight">829</i>&nbsp;	public static boolean isMarkup(int c) {
+<b class="nc"><i class="no-highlight">830</i>&nbsp;		return c == &#39;&lt;&#39; || c == &#39;&amp;&#39; || c == &#39;%&#39;;</b>
+<i class="no-highlight">831</i>&nbsp;	} // isMarkup(int):boolean
+<i class="no-highlight">832</i>&nbsp;
+<i class="no-highlight">833</i>&nbsp;	/**
+<i class="no-highlight">834</i>&nbsp;	 * Returns true if the specified character is a space character
+<i class="no-highlight">835</i>&nbsp;	 * as defined by production [3] in the XML 1.0 specification.
+<i class="no-highlight">836</i>&nbsp;	 *
+<i class="no-highlight">837</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">838</i>&nbsp;	 */
+<i class="no-highlight">839</i>&nbsp;	public static boolean isSpace(int c) {
+<b class="nc"><i class="no-highlight">840</i>&nbsp;		return c &lt;= 0x20 &amp;&amp; (CHARS[c] &amp; MASK_SPACE) != 0;</b>
+<i class="no-highlight">841</i>&nbsp;	} // isSpace(int):boolean
+<i class="no-highlight">842</i>&nbsp;
+<i class="no-highlight">843</i>&nbsp;	/**
+<i class="no-highlight">844</i>&nbsp;	 * Returns true if the specified character is a valid name start
+<i class="no-highlight">845</i>&nbsp;	 * character as defined by production [5] in the XML 1.0
+<i class="no-highlight">846</i>&nbsp;	 * specification.
+<i class="no-highlight">847</i>&nbsp;	 *
+<i class="no-highlight">848</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">849</i>&nbsp;	 */
+<i class="no-highlight">850</i>&nbsp;	public static boolean isNameStart(int c) {
+<b class="pc"><i class="no-highlight">851</i>&nbsp;		return c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_NAME_START) != 0;</b>
+<i class="no-highlight">852</i>&nbsp;	} // isNameStart(int):boolean
+<i class="no-highlight">853</i>&nbsp;
+<i class="no-highlight">854</i>&nbsp;	/**
+<i class="no-highlight">855</i>&nbsp;	 * Returns true if the specified character is a valid name
+<i class="no-highlight">856</i>&nbsp;	 * character as defined by production [4] in the XML 1.0
+<i class="no-highlight">857</i>&nbsp;	 * specification.
+<i class="no-highlight">858</i>&nbsp;	 *
+<i class="no-highlight">859</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">860</i>&nbsp;	 */
+<i class="no-highlight">861</i>&nbsp;	public static boolean isName(int c) {
+<b class="pc"><i class="no-highlight">862</i>&nbsp;		return c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_NAME) != 0;</b>
+<i class="no-highlight">863</i>&nbsp;	} // isName(int):boolean
+<i class="no-highlight">864</i>&nbsp;
+<i class="no-highlight">865</i>&nbsp;	/**
+<i class="no-highlight">866</i>&nbsp;	 * Returns true if the specified character is a valid NCName start
+<i class="no-highlight">867</i>&nbsp;	 * character as defined by production [4] in Namespaces in XML
+<i class="no-highlight">868</i>&nbsp;	 * recommendation.
+<i class="no-highlight">869</i>&nbsp;	 *
+<i class="no-highlight">870</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">871</i>&nbsp;	 */
+<i class="no-highlight">872</i>&nbsp;	public static boolean isNCNameStart(int c) {
+<b class="nc"><i class="no-highlight">873</i>&nbsp;		return c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_NCNAME_START) != 0;</b>
+<i class="no-highlight">874</i>&nbsp;	} // isNCNameStart(int):boolean
+<i class="no-highlight">875</i>&nbsp;
+<i class="no-highlight">876</i>&nbsp;	/**
+<i class="no-highlight">877</i>&nbsp;	 * Returns true if the specified character is a valid NCName
+<i class="no-highlight">878</i>&nbsp;	 * character as defined by production [5] in Namespaces in XML
+<i class="no-highlight">879</i>&nbsp;	 * recommendation.
+<i class="no-highlight">880</i>&nbsp;	 *
+<i class="no-highlight">881</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">882</i>&nbsp;	 */
+<i class="no-highlight">883</i>&nbsp;	public static boolean isNCName(int c) {
+<b class="nc"><i class="no-highlight">884</i>&nbsp;		return c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_NCNAME) != 0;</b>
+<i class="no-highlight">885</i>&nbsp;	} // isNCName(int):boolean
+<i class="no-highlight">886</i>&nbsp;
+<i class="no-highlight">887</i>&nbsp;	/**
+<i class="no-highlight">888</i>&nbsp;	 * Returns true if the specified character is a valid Pubid
+<i class="no-highlight">889</i>&nbsp;	 * character as defined by production [13] in the XML 1.0
+<i class="no-highlight">890</i>&nbsp;	 * specification.
+<i class="no-highlight">891</i>&nbsp;	 *
+<i class="no-highlight">892</i>&nbsp;	 * @param c The character to check.
+<i class="no-highlight">893</i>&nbsp;	 */
+<i class="no-highlight">894</i>&nbsp;	public static boolean isPubid(int c) {
+<b class="nc"><i class="no-highlight">895</i>&nbsp;		return c &lt; 0x10000 &amp;&amp; (CHARS[c] &amp; MASK_PUBID) != 0;</b>
+<i class="no-highlight">896</i>&nbsp;	} // isPubid(int):boolean
+<i class="no-highlight">897</i>&nbsp;
+<i class="no-highlight">898</i>&nbsp;	/*
+<i class="no-highlight">899</i>&nbsp;	 * [5] Name ::= (Letter | &#39;_&#39; | &#39;:&#39;) (NameChar)*
+<i class="no-highlight">900</i>&nbsp;	 */
+<i class="no-highlight">901</i>&nbsp;
+<i class="no-highlight">902</i>&nbsp;	/**
+<i class="no-highlight">903</i>&nbsp;	 * Check to see if a string is a valid Name according to [5]
+<i class="no-highlight">904</i>&nbsp;	 * in the XML 1.0 Recommendation
+<i class="no-highlight">905</i>&nbsp;	 *
+<i class="no-highlight">906</i>&nbsp;	 * @param name string to check
+<i class="no-highlight">907</i>&nbsp;	 * @return true if name is a valid Name
+<i class="no-highlight">908</i>&nbsp;	 */
+<i class="no-highlight">909</i>&nbsp;	public static boolean isValidName(String name) {
+<b class="fc"><i class="no-highlight">910</i>&nbsp;		final int length = name.length();</b>
+<b class="pc"><i class="no-highlight">911</i>&nbsp;		if (length == 0) {</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;			return false;</b>
+<i class="no-highlight">913</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">914</i>&nbsp;		char ch = name.charAt(0);</b>
+<b class="pc"><i class="no-highlight">915</i>&nbsp;		if (!isNameStart(ch)) {</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;			return false;</b>
+<i class="no-highlight">917</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">918</i>&nbsp;		for (int i = 1; i &lt; length; ++i) {</b>
+<b class="fc"><i class="no-highlight">919</i>&nbsp;			ch = name.charAt(i);</b>
+<b class="pc"><i class="no-highlight">920</i>&nbsp;			if (!isName(ch)) {</b>
+<b class="nc"><i class="no-highlight">921</i>&nbsp;				return false;</b>
+<i class="no-highlight">922</i>&nbsp;			}
+<i class="no-highlight">923</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">924</i>&nbsp;		return true;</b>
+<i class="no-highlight">925</i>&nbsp;	} // isValidName(String):boolean
+<i class="no-highlight">926</i>&nbsp;
+<i class="no-highlight">927</i>&nbsp;	/*
+<i class="no-highlight">928</i>&nbsp;	 * from the namespace rec
+<i class="no-highlight">929</i>&nbsp;	 * [4] NCName ::= (Letter | &#39;_&#39;) (NCNameChar)*
+<i class="no-highlight">930</i>&nbsp;	 */
+<i class="no-highlight">931</i>&nbsp;
+<i class="no-highlight">932</i>&nbsp;	/**
+<i class="no-highlight">933</i>&nbsp;	 * Check to see if a string is a valid NCName according to [4]
+<i class="no-highlight">934</i>&nbsp;	 * from the XML Namespaces 1.0 Recommendation
+<i class="no-highlight">935</i>&nbsp;	 *
+<i class="no-highlight">936</i>&nbsp;	 * @param ncName string to check
+<i class="no-highlight">937</i>&nbsp;	 * @return true if name is a valid NCName
+<i class="no-highlight">938</i>&nbsp;	 */
+<i class="no-highlight">939</i>&nbsp;	public static boolean isValidNCName(String ncName) {
+<b class="nc"><i class="no-highlight">940</i>&nbsp;		final int length = ncName.length();</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;		if (length == 0) {</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;			return false;</b>
+<i class="no-highlight">943</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">944</i>&nbsp;		char ch = ncName.charAt(0);</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;		if (!isNCNameStart(ch)) {</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;			return false;</b>
+<i class="no-highlight">947</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">948</i>&nbsp;		for (int i = 1; i &lt; length; ++i) {</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;			ch = ncName.charAt(i);</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;			if (!isNCName(ch)) {</b>
+<b class="nc"><i class="no-highlight">951</i>&nbsp;				return false;</b>
+<i class="no-highlight">952</i>&nbsp;			}
+<i class="no-highlight">953</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">954</i>&nbsp;		return true;</b>
+<i class="no-highlight">955</i>&nbsp;	} // isValidNCName(String):boolean
+<i class="no-highlight">956</i>&nbsp;
+<i class="no-highlight">957</i>&nbsp;	/*
+<i class="no-highlight">958</i>&nbsp;	 * [7] Nmtoken ::= (NameChar)+
+<i class="no-highlight">959</i>&nbsp;	 */
+<i class="no-highlight">960</i>&nbsp;
+<i class="no-highlight">961</i>&nbsp;	/**
+<i class="no-highlight">962</i>&nbsp;	 * Check to see if a string is a valid Nmtoken according to [7]
+<i class="no-highlight">963</i>&nbsp;	 * in the XML 1.0 Recommendation
+<i class="no-highlight">964</i>&nbsp;	 *
+<i class="no-highlight">965</i>&nbsp;	 * @param nmtoken string to check
+<i class="no-highlight">966</i>&nbsp;	 * @return true if nmtoken is a valid Nmtoken
+<i class="no-highlight">967</i>&nbsp;	 */
+<i class="no-highlight">968</i>&nbsp;	public static boolean isValidNmtoken(String nmtoken) {
+<b class="nc"><i class="no-highlight">969</i>&nbsp;		final int length = nmtoken.length();</b>
+<b class="nc"><i class="no-highlight">970</i>&nbsp;		if (length == 0) {</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;			return false;</b>
+<i class="no-highlight">972</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">973</i>&nbsp;		for (int i = 0; i &lt; length; ++i) {</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;			char ch = nmtoken.charAt(i);</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;			if (!isName(ch)) {</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;				return false;</b>
+<i class="no-highlight">977</i>&nbsp;			}
+<i class="no-highlight">978</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">979</i>&nbsp;		return true;</b>
+<i class="no-highlight">980</i>&nbsp;	} // isValidName(String):boolean
+<i class="no-highlight">981</i>&nbsp;
+<i class="no-highlight">982</i>&nbsp;	// encodings
+<i class="no-highlight">983</i>&nbsp;
+<i class="no-highlight">984</i>&nbsp;	/**
+<i class="no-highlight">985</i>&nbsp;	 * Returns true if the encoding name is a valid IANA encoding.
+<i class="no-highlight">986</i>&nbsp;	 * This method does not verify that there is a decoder available
+<i class="no-highlight">987</i>&nbsp;	 * for this encoding, only that the characters are valid for an
+<i class="no-highlight">988</i>&nbsp;	 * IANA encoding name.
+<i class="no-highlight">989</i>&nbsp;	 *
+<i class="no-highlight">990</i>&nbsp;	 * @param ianaEncoding The IANA encoding name.
+<i class="no-highlight">991</i>&nbsp;	 */
+<i class="no-highlight">992</i>&nbsp;	public static boolean isValidIANAEncoding(String ianaEncoding) {
+<b class="nc"><i class="no-highlight">993</i>&nbsp;		if (ianaEncoding != null) {</b>
+<b class="nc"><i class="no-highlight">994</i>&nbsp;			int length = ianaEncoding.length();</b>
+<b class="nc"><i class="no-highlight">995</i>&nbsp;			if (length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">996</i>&nbsp;				char c = ianaEncoding.charAt(0);</b>
+<b class="nc"><i class="no-highlight">997</i>&nbsp;				if ((c &gt;= &#39;A&#39; &amp;&amp; c &lt;= &#39;Z&#39;) || (c &gt;= &#39;a&#39; &amp;&amp; c &lt;= &#39;z&#39;)) {</b>
+<b class="nc"><i class="no-highlight">998</i>&nbsp;					for (int i = 1; i &lt; length; i++) {</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;						c = ianaEncoding.charAt(i);</b>
+<b class="nc"><i class="no-highlight">1000</i>&nbsp;						if ((c &lt; &#39;A&#39; || c &gt; &#39;Z&#39;) &amp;&amp; (c &lt; &#39;a&#39; || c &gt; &#39;z&#39;)</b>
+<i class="no-highlight">1001</i>&nbsp;								&amp;&amp; (c &lt; &#39;0&#39; || c &gt; &#39;9&#39;) &amp;&amp; c != &#39;.&#39; &amp;&amp; c != &#39;_&#39;
+<i class="no-highlight">1002</i>&nbsp;								&amp;&amp; c != &#39;-&#39;) {
+<b class="nc"><i class="no-highlight">1003</i>&nbsp;							return false;</b>
+<i class="no-highlight">1004</i>&nbsp;						}
+<i class="no-highlight">1005</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">1006</i>&nbsp;					return true;</b>
+<i class="no-highlight">1007</i>&nbsp;				}
+<i class="no-highlight">1008</i>&nbsp;			}
+<i class="no-highlight">1009</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1010</i>&nbsp;		return false;</b>
+<i class="no-highlight">1011</i>&nbsp;	} // isValidIANAEncoding(String):boolean
+<i class="no-highlight">1012</i>&nbsp;
+<i class="no-highlight">1013</i>&nbsp;	/**
+<i class="no-highlight">1014</i>&nbsp;	 * Returns true if the encoding name is a valid Java encoding.
+<i class="no-highlight">1015</i>&nbsp;	 * This method does not verify that there is a decoder available
+<i class="no-highlight">1016</i>&nbsp;	 * for this encoding, only that the characters are valid for an
+<i class="no-highlight">1017</i>&nbsp;	 * Java encoding name.
+<i class="no-highlight">1018</i>&nbsp;	 *
+<i class="no-highlight">1019</i>&nbsp;	 * @param javaEncoding The Java encoding name.
+<i class="no-highlight">1020</i>&nbsp;	 */
+<i class="no-highlight">1021</i>&nbsp;	public static boolean isValidJavaEncoding(String javaEncoding) {
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;		if (javaEncoding != null) {</b>
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;			int length = javaEncoding.length();</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;			if (length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;				for (int i = 1; i &lt; length; i++) {</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;					char c = javaEncoding.charAt(i);</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;					if ((c &lt; &#39;A&#39; || c &gt; &#39;Z&#39;) &amp;&amp; (c &lt; &#39;a&#39; || c &gt; &#39;z&#39;)</b>
+<i class="no-highlight">1028</i>&nbsp;							&amp;&amp; (c &lt; &#39;0&#39; || c &gt; &#39;9&#39;) &amp;&amp; c != &#39;.&#39; &amp;&amp; c != &#39;_&#39;
+<i class="no-highlight">1029</i>&nbsp;							&amp;&amp; c != &#39;-&#39;) {
+<b class="nc"><i class="no-highlight">1030</i>&nbsp;						return false;</b>
+<i class="no-highlight">1031</i>&nbsp;					}
+<i class="no-highlight">1032</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;				return true;</b>
+<i class="no-highlight">1034</i>&nbsp;			}
+<i class="no-highlight">1035</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;		return false;</b>
+<i class="no-highlight">1037</i>&nbsp;	} // isValidIANAEncoding(String):boolean
+<i class="no-highlight">1038</i>&nbsp;
+<i class="no-highlight">1039</i>&nbsp;	// other methods
+<i class="no-highlight">1040</i>&nbsp;
+<i class="no-highlight">1041</i>&nbsp;	/**
+<i class="no-highlight">1042</i>&nbsp;	 * Trims space characters as defined by production [3] in
+<i class="no-highlight">1043</i>&nbsp;	 * the XML 1.0 specification from both ends of the given string.
+<i class="no-highlight">1044</i>&nbsp;	 *
+<i class="no-highlight">1045</i>&nbsp;	 * @param value the string to be trimmed
+<i class="no-highlight">1046</i>&nbsp;	 * @return the given string with the space characters trimmed
+<i class="no-highlight">1047</i>&nbsp;	 *         from both ends
+<i class="no-highlight">1048</i>&nbsp;	 */
+<i class="no-highlight">1049</i>&nbsp;	public static String trim(String value) {
+<i class="no-highlight">1050</i>&nbsp;		int start;
+<i class="no-highlight">1051</i>&nbsp;		int end;
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;		final int lengthMinusOne = value.length() - 1;</b>
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;		for (start = 0; start &lt;= lengthMinusOne; ++start) {</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;			if (!isSpace(value.charAt(start))) {</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;				break;</b>
+<i class="no-highlight">1056</i>&nbsp;			}
+<i class="no-highlight">1057</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;		for (end = lengthMinusOne; end &gt;= start; --end) {</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;			if (!isSpace(value.charAt(end))) {</b>
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;				break;</b>
+<i class="no-highlight">1061</i>&nbsp;			}
+<i class="no-highlight">1062</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1063</i>&nbsp;		if (start == 0 &amp;&amp; end == lengthMinusOne) {</b>
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;			return value;</b>
+<i class="no-highlight">1065</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1066</i>&nbsp;		if (start &gt; lengthMinusOne) {</b>
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;			return &quot;&quot;;</b>
+<i class="no-highlight">1068</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;		return value.substring(start, end + 1);</b>
+<i class="no-highlight">1070</i>&nbsp;	} // trim(String):String
+<i class="no-highlight">1071</i>&nbsp;} // class XMLChar
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

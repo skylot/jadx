@@ -1,0 +1,204 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CacheObject</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: CacheObject (jadx.gui.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CacheObject</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;import java.util.Set;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.gui.jobs.IndexService;
+<i class="no-highlight">10</i>&nbsp;import jadx.gui.settings.JadxSettings;
+<i class="no-highlight">11</i>&nbsp;import jadx.gui.treemodel.JRoot;
+<i class="no-highlight">12</i>&nbsp;import jadx.gui.ui.dialog.SearchDialog;
+<i class="no-highlight">13</i>&nbsp;import jadx.gui.utils.search.CommentsIndex;
+<i class="no-highlight">14</i>&nbsp;import jadx.gui.utils.search.TextSearchIndex;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;public class CacheObject {
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;	private IndexService indexService;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	private TextSearchIndex textIndex;
+<i class="no-highlight">21</i>&nbsp;	private CommentsIndex commentsIndex;
+<i class="no-highlight">22</i>&nbsp;	private String lastSearch;
+<i class="no-highlight">23</i>&nbsp;	private JNodeCache jNodeCache;
+<i class="no-highlight">24</i>&nbsp;	private Map&lt;SearchDialog.SearchPreset, Set&lt;SearchDialog.SearchOptions&gt;&gt; lastSearchOptions;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	private JRoot jRoot;
+<i class="no-highlight">27</i>&nbsp;	private JadxSettings settings;
+<i class="no-highlight">28</i>&nbsp;
+<b class="nc"><i class="no-highlight">29</i>&nbsp;	public CacheObject() {</b>
+<b class="nc"><i class="no-highlight">30</i>&nbsp;		reset();</b>
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	public void reset() {
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		jRoot = null;</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		settings = null;</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		indexService = null;</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		textIndex = null;</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		lastSearch = null;</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		jNodeCache = new JNodeCache();</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		lastSearchOptions = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public TextSearchIndex getTextIndex() {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		return textIndex;</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	public void setTextIndex(TextSearchIndex textIndex) {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;		this.textIndex = textIndex;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	@Nullable
+<i class="no-highlight">52</i>&nbsp;	public String getLastSearch() {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		return lastSearch;</b>
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	public void setLastSearch(String lastSearch) {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		this.lastSearch = lastSearch;</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	public CommentsIndex getCommentsIndex() {
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		return commentsIndex;</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	public void setCommentsIndex(CommentsIndex commentsIndex) {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		this.commentsIndex = commentsIndex;</b>
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	public IndexService getIndexService() {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		return indexService;</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public void setIndexService(IndexService indexService) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		this.indexService = indexService;</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	public JNodeCache getNodeCache() {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		return jNodeCache;</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	public Map&lt;SearchDialog.SearchPreset, Set&lt;SearchDialog.SearchOptions&gt;&gt; getLastSearchOptions() {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		return lastSearchOptions;</b>
+<i class="no-highlight">82</i>&nbsp;	}
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;	public void setJadxSettings(JadxSettings settings) {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		this.settings = settings;</b>
+<i class="no-highlight">86</i>&nbsp;	}
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;	public JadxSettings getJadxSettings() {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		return this.settings;</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	public JRoot getJRoot() {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		return jRoot;</b>
+<i class="no-highlight">94</i>&nbsp;	}
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;	public void setJRoot(JRoot jRoot) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		this.jRoot = jRoot;</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

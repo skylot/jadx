@@ -1,0 +1,810 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > InsnDecoder</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.instructions</a>
+</div>
+
+<h1>Coverage Summary for Class: InsnDecoder (jadx.core.dex.instructions)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InsnDecoder</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.5%
+  </span>
+  <span class="absValue">
+    (21/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.7%
+  </span>
+  <span class="absValue">
+    (118/158)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (242/296)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">InsnDecoder$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    95.7%
+  </span>
+  <span class="absValue">
+    (22/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.7%
+  </span>
+  <span class="absValue">
+    (118/158)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (243/297)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.instructions;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.data.ICodeReader;
+<i class="no-highlight">10</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.insns.InsnData;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.insns.custom.IArrayPayload;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.insns.custom.ICustomPayload;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.insns.custom.ISwitchPayload;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.Consts;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.attributes.nodes.JadxError;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.utils.exceptions.DecodeException;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.utils.input.InsnDataUtils;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;public class InsnDecoder {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(InsnDecoder.class);</b>
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	private final MethodNode method;
+<i class="no-highlight">36</i>&nbsp;	private final RootNode root;
+<i class="no-highlight">37</i>&nbsp;
+<b class="fc"><i class="no-highlight">38</i>&nbsp;	public InsnDecoder(MethodNode mthNode) {</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		this.method = mthNode;</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		this.root = method.root();</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public InsnNode[] process(ICodeReader codeReader) {
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		InsnNode[] instructions = new InsnNode[codeReader.getUnitsCount()];</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		codeReader.visitInstructions(rawInsn -&gt; {</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;			int offset = rawInsn.getOffset();</b>
+<i class="no-highlight">47</i>&nbsp;			InsnNode insn;
+<i class="no-highlight">48</i>&nbsp;			try {
+<b class="fc"><i class="no-highlight">49</i>&nbsp;				rawInsn.decode();</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;				insn = decode(rawInsn);</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;				method.addError(&quot;Failed to decode insn: &quot; + rawInsn + &quot;, method: &quot; + method, e);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;				insn = new InsnNode(InsnType.NOP, 0);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;				insn.addAttr(AType.JADX_ERROR, new JadxError(&quot;decode failed: &quot; + e.getMessage(), e));</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			insn.setOffset(offset);</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;			instructions[offset] = insn;</b>
+<i class="no-highlight">58</i>&nbsp;		});
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		return instructions;</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@NotNull
+<i class="no-highlight">63</i>&nbsp;	protected InsnNode decode(InsnData insn) throws DecodeException {
+<b class="pc"><i class="no-highlight">64</i>&nbsp;		switch (insn.getOpcode()) {</b>
+<i class="no-highlight">65</i>&nbsp;			case NOP:
+<b class="fc"><i class="no-highlight">66</i>&nbsp;				return new InsnNode(InsnType.NOP, 0);</b>
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;			// move-result will be process in invoke and filled-new-array instructions
+<i class="no-highlight">69</i>&nbsp;			case MOVE_RESULT:
+<b class="fc"><i class="no-highlight">70</i>&nbsp;				return insn(InsnType.MOVE_RESULT, InsnArg.reg(insn, 0, ArgType.UNKNOWN));</b>
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;			case CONST:
+<b class="fc"><i class="no-highlight">73</i>&nbsp;				LiteralArg narrowLitArg = InsnArg.lit(insn, ArgType.NARROW);</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;				return insn(InsnType.CONST, InsnArg.reg(insn, 0, narrowLitArg.getType()), narrowLitArg);</b>
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;			case CONST_WIDE:
+<b class="fc"><i class="no-highlight">77</i>&nbsp;				LiteralArg wideLitArg = InsnArg.lit(insn, ArgType.WIDE);</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;				return insn(InsnType.CONST, InsnArg.reg(insn, 0, wideLitArg.getType()), wideLitArg);</b>
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;			case CONST_STRING:
+<b class="fc"><i class="no-highlight">81</i>&nbsp;				InsnNode constStrInsn = new ConstStringNode(insn.getIndexAsString());</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;				constStrInsn.setResult(InsnArg.reg(insn, 0, ArgType.STRING));</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;				return constStrInsn;</b>
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;			case CONST_CLASS: {
+<b class="fc"><i class="no-highlight">86</i>&nbsp;				ArgType clsType = ArgType.parse(insn.getIndexAsType());</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;				InsnNode constClsInsn = new ConstClassNode(clsType);</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));</b>
+<b class="fc"><i class="no-highlight">89</i>&nbsp;				return constClsInsn;</b>
+<i class="no-highlight">90</i>&nbsp;			}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;			case MOVE:
+<b class="fc"><i class="no-highlight">93</i>&nbsp;				return insn(InsnType.MOVE,</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.NARROW),</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;						InsnArg.reg(insn, 1, ArgType.NARROW));</b>
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;			case MOVE_MULTI:
+<b class="fc"><i class="no-highlight">98</i>&nbsp;				int len = insn.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;				InsnNode mmv = new InsnNode(InsnType.MOVE_MULTI, len);</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;				for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;					mmv.addArg(InsnArg.reg(insn, i, ArgType.UNKNOWN));</b>
+<i class="no-highlight">102</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;				return mmv;</b>
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;			case MOVE_WIDE:
+<b class="nc"><i class="no-highlight">106</i>&nbsp;				return insn(InsnType.MOVE,</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.WIDE),</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;						InsnArg.reg(insn, 1, ArgType.WIDE));</b>
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;			case MOVE_OBJECT:
+<b class="fc"><i class="no-highlight">111</i>&nbsp;				return insn(InsnType.MOVE,</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT),</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;						InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));</b>
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;			case ADD_INT:
+<b class="fc"><i class="no-highlight">116</i>&nbsp;				return arith(insn, ArithOp.ADD, ArgType.INT);</b>
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;			case ADD_DOUBLE:
+<b class="fc"><i class="no-highlight">119</i>&nbsp;				return arith(insn, ArithOp.ADD, ArgType.DOUBLE);</b>
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;			case ADD_FLOAT:
+<b class="fc"><i class="no-highlight">122</i>&nbsp;				return arith(insn, ArithOp.ADD, ArgType.FLOAT);</b>
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;			case ADD_LONG:
+<b class="fc"><i class="no-highlight">125</i>&nbsp;				return arith(insn, ArithOp.ADD, ArgType.LONG);</b>
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;			case ADD_INT_LIT:
+<b class="fc"><i class="no-highlight">128</i>&nbsp;				return arithLit(insn, ArithOp.ADD, ArgType.INT);</b>
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;			case SUB_INT:
+<b class="fc"><i class="no-highlight">131</i>&nbsp;				return arith(insn, ArithOp.SUB, ArgType.INT);</b>
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;			case RSUB_INT:
+<b class="fc"><i class="no-highlight">134</i>&nbsp;				return new ArithNode(ArithOp.SUB,</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.INT),</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;						InsnArg.lit(insn, ArgType.INT),</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;						InsnArg.reg(insn, 1, ArgType.INT));</b>
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;			case SUB_LONG:
+<b class="fc"><i class="no-highlight">140</i>&nbsp;				return arith(insn, ArithOp.SUB, ArgType.LONG);</b>
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;			case SUB_FLOAT:
+<b class="fc"><i class="no-highlight">143</i>&nbsp;				return arith(insn, ArithOp.SUB, ArgType.FLOAT);</b>
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;			case SUB_DOUBLE:
+<b class="nc"><i class="no-highlight">146</i>&nbsp;				return arith(insn, ArithOp.SUB, ArgType.DOUBLE);</b>
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;			case MUL_INT:
+<b class="fc"><i class="no-highlight">149</i>&nbsp;				return arith(insn, ArithOp.MUL, ArgType.INT);</b>
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;			case MUL_DOUBLE:
+<b class="fc"><i class="no-highlight">152</i>&nbsp;				return arith(insn, ArithOp.MUL, ArgType.DOUBLE);</b>
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;			case MUL_FLOAT:
+<b class="fc"><i class="no-highlight">155</i>&nbsp;				return arith(insn, ArithOp.MUL, ArgType.FLOAT);</b>
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;			case MUL_LONG:
+<b class="nc"><i class="no-highlight">158</i>&nbsp;				return arith(insn, ArithOp.MUL, ArgType.LONG);</b>
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;			case MUL_INT_LIT:
+<b class="fc"><i class="no-highlight">161</i>&nbsp;				return arithLit(insn, ArithOp.MUL, ArgType.INT);</b>
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;			case DIV_INT:
+<b class="fc"><i class="no-highlight">164</i>&nbsp;				return arith(insn, ArithOp.DIV, ArgType.INT);</b>
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;			case REM_INT:
+<b class="fc"><i class="no-highlight">167</i>&nbsp;				return arith(insn, ArithOp.REM, ArgType.INT);</b>
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;			case REM_LONG:
+<b class="nc"><i class="no-highlight">170</i>&nbsp;				return arith(insn, ArithOp.REM, ArgType.LONG);</b>
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;			case REM_FLOAT:
+<b class="nc"><i class="no-highlight">173</i>&nbsp;				return arith(insn, ArithOp.REM, ArgType.FLOAT);</b>
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;			case REM_DOUBLE:
+<b class="nc"><i class="no-highlight">176</i>&nbsp;				return arith(insn, ArithOp.REM, ArgType.DOUBLE);</b>
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;			case DIV_DOUBLE:
+<b class="fc"><i class="no-highlight">179</i>&nbsp;				return arith(insn, ArithOp.DIV, ArgType.DOUBLE);</b>
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;			case DIV_FLOAT:
+<b class="fc"><i class="no-highlight">182</i>&nbsp;				return arith(insn, ArithOp.DIV, ArgType.FLOAT);</b>
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;			case DIV_LONG:
+<b class="nc"><i class="no-highlight">185</i>&nbsp;				return arith(insn, ArithOp.DIV, ArgType.LONG);</b>
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;			case DIV_INT_LIT:
+<b class="nc"><i class="no-highlight">188</i>&nbsp;				return arithLit(insn, ArithOp.DIV, ArgType.INT);</b>
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;			case REM_INT_LIT:
+<b class="fc"><i class="no-highlight">191</i>&nbsp;				return arithLit(insn, ArithOp.REM, ArgType.INT);</b>
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;			case AND_INT:
+<b class="fc"><i class="no-highlight">194</i>&nbsp;				return arith(insn, ArithOp.AND, ArgType.INT);</b>
+<i class="no-highlight">195</i>&nbsp;
+<i class="no-highlight">196</i>&nbsp;			case AND_INT_LIT:
+<b class="fc"><i class="no-highlight">197</i>&nbsp;				return arithLit(insn, ArithOp.AND, ArgType.INT);</b>
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;			case XOR_INT_LIT:
+<b class="fc"><i class="no-highlight">200</i>&nbsp;				return arithLit(insn, ArithOp.XOR, ArgType.INT);</b>
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;			case AND_LONG:
+<b class="nc"><i class="no-highlight">203</i>&nbsp;				return arith(insn, ArithOp.AND, ArgType.LONG);</b>
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;			case OR_INT:
+<b class="fc"><i class="no-highlight">206</i>&nbsp;				return arith(insn, ArithOp.OR, ArgType.INT);</b>
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;			case OR_INT_LIT:
+<b class="fc"><i class="no-highlight">209</i>&nbsp;				return arithLit(insn, ArithOp.OR, ArgType.INT);</b>
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;			case XOR_INT:
+<b class="fc"><i class="no-highlight">212</i>&nbsp;				return arith(insn, ArithOp.XOR, ArgType.INT);</b>
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;			case OR_LONG:
+<b class="nc"><i class="no-highlight">215</i>&nbsp;				return arith(insn, ArithOp.OR, ArgType.LONG);</b>
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;			case XOR_LONG:
+<b class="nc"><i class="no-highlight">218</i>&nbsp;				return arith(insn, ArithOp.XOR, ArgType.LONG);</b>
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;			case USHR_INT:
+<b class="fc"><i class="no-highlight">221</i>&nbsp;				return arith(insn, ArithOp.USHR, ArgType.INT);</b>
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;			case USHR_LONG:
+<b class="nc"><i class="no-highlight">224</i>&nbsp;				return arith(insn, ArithOp.USHR, ArgType.LONG);</b>
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;			case SHL_INT:
+<b class="fc"><i class="no-highlight">227</i>&nbsp;				return arith(insn, ArithOp.SHL, ArgType.INT);</b>
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;			case SHL_LONG:
+<b class="nc"><i class="no-highlight">230</i>&nbsp;				return arith(insn, ArithOp.SHL, ArgType.LONG);</b>
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;			case SHR_INT:
+<b class="nc"><i class="no-highlight">233</i>&nbsp;				return arith(insn, ArithOp.SHR, ArgType.INT);</b>
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;			case SHR_LONG:
+<b class="nc"><i class="no-highlight">236</i>&nbsp;				return arith(insn, ArithOp.SHR, ArgType.LONG);</b>
+<i class="no-highlight">237</i>&nbsp;
+<i class="no-highlight">238</i>&nbsp;			case SHL_INT_LIT:
+<b class="fc"><i class="no-highlight">239</i>&nbsp;				return arithLit(insn, ArithOp.SHL, ArgType.INT);</b>
+<i class="no-highlight">240</i>&nbsp;			case SHR_INT_LIT:
+<b class="fc"><i class="no-highlight">241</i>&nbsp;				return arithLit(insn, ArithOp.SHR, ArgType.INT);</b>
+<i class="no-highlight">242</i>&nbsp;			case USHR_INT_LIT:
+<b class="fc"><i class="no-highlight">243</i>&nbsp;				return arithLit(insn, ArithOp.USHR, ArgType.INT);</b>
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;			case NEG_INT:
+<b class="nc"><i class="no-highlight">246</i>&nbsp;				return neg(insn, ArgType.INT);</b>
+<i class="no-highlight">247</i>&nbsp;			case NEG_LONG:
+<b class="nc"><i class="no-highlight">248</i>&nbsp;				return neg(insn, ArgType.LONG);</b>
+<i class="no-highlight">249</i>&nbsp;			case NEG_FLOAT:
+<b class="nc"><i class="no-highlight">250</i>&nbsp;				return neg(insn, ArgType.FLOAT);</b>
+<i class="no-highlight">251</i>&nbsp;			case NEG_DOUBLE:
+<b class="nc"><i class="no-highlight">252</i>&nbsp;				return neg(insn, ArgType.DOUBLE);</b>
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;			case NOT_INT:
+<b class="fc"><i class="no-highlight">255</i>&nbsp;				return not(insn, ArgType.INT);</b>
+<i class="no-highlight">256</i>&nbsp;			case NOT_LONG:
+<b class="fc"><i class="no-highlight">257</i>&nbsp;				return not(insn, ArgType.LONG);</b>
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;			case INT_TO_BYTE:
+<b class="fc"><i class="no-highlight">260</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.BYTE);</b>
+<i class="no-highlight">261</i>&nbsp;			case INT_TO_CHAR:
+<b class="fc"><i class="no-highlight">262</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.CHAR);</b>
+<i class="no-highlight">263</i>&nbsp;			case INT_TO_SHORT:
+<b class="fc"><i class="no-highlight">264</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.SHORT);</b>
+<i class="no-highlight">265</i>&nbsp;			case INT_TO_FLOAT:
+<b class="fc"><i class="no-highlight">266</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.FLOAT);</b>
+<i class="no-highlight">267</i>&nbsp;			case INT_TO_DOUBLE:
+<b class="fc"><i class="no-highlight">268</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.DOUBLE);</b>
+<i class="no-highlight">269</i>&nbsp;			case INT_TO_LONG:
+<b class="fc"><i class="no-highlight">270</i>&nbsp;				return cast(insn, ArgType.INT, ArgType.LONG);</b>
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;			case FLOAT_TO_INT:
+<b class="nc"><i class="no-highlight">273</i>&nbsp;				return cast(insn, ArgType.FLOAT, ArgType.INT);</b>
+<i class="no-highlight">274</i>&nbsp;			case FLOAT_TO_DOUBLE:
+<b class="fc"><i class="no-highlight">275</i>&nbsp;				return cast(insn, ArgType.FLOAT, ArgType.DOUBLE);</b>
+<i class="no-highlight">276</i>&nbsp;			case FLOAT_TO_LONG:
+<b class="nc"><i class="no-highlight">277</i>&nbsp;				return cast(insn, ArgType.FLOAT, ArgType.LONG);</b>
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;			case DOUBLE_TO_INT:
+<b class="nc"><i class="no-highlight">280</i>&nbsp;				return cast(insn, ArgType.DOUBLE, ArgType.INT);</b>
+<i class="no-highlight">281</i>&nbsp;			case DOUBLE_TO_FLOAT:
+<b class="fc"><i class="no-highlight">282</i>&nbsp;				return cast(insn, ArgType.DOUBLE, ArgType.FLOAT);</b>
+<i class="no-highlight">283</i>&nbsp;			case DOUBLE_TO_LONG:
+<b class="nc"><i class="no-highlight">284</i>&nbsp;				return cast(insn, ArgType.DOUBLE, ArgType.LONG);</b>
+<i class="no-highlight">285</i>&nbsp;
+<i class="no-highlight">286</i>&nbsp;			case LONG_TO_INT:
+<b class="fc"><i class="no-highlight">287</i>&nbsp;				return cast(insn, ArgType.LONG, ArgType.INT);</b>
+<i class="no-highlight">288</i>&nbsp;			case LONG_TO_FLOAT:
+<b class="nc"><i class="no-highlight">289</i>&nbsp;				return cast(insn, ArgType.LONG, ArgType.FLOAT);</b>
+<i class="no-highlight">290</i>&nbsp;			case LONG_TO_DOUBLE:
+<b class="nc"><i class="no-highlight">291</i>&nbsp;				return cast(insn, ArgType.LONG, ArgType.DOUBLE);</b>
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;			case IF_EQ:
+<i class="no-highlight">294</i>&nbsp;			case IF_EQZ:
+<b class="fc"><i class="no-highlight">295</i>&nbsp;				return new IfNode(insn, IfOp.EQ);</b>
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;			case IF_NE:
+<i class="no-highlight">298</i>&nbsp;			case IF_NEZ:
+<b class="fc"><i class="no-highlight">299</i>&nbsp;				return new IfNode(insn, IfOp.NE);</b>
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;			case IF_GT:
+<i class="no-highlight">302</i>&nbsp;			case IF_GTZ:
+<b class="fc"><i class="no-highlight">303</i>&nbsp;				return new IfNode(insn, IfOp.GT);</b>
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;			case IF_GE:
+<i class="no-highlight">306</i>&nbsp;			case IF_GEZ:
+<b class="fc"><i class="no-highlight">307</i>&nbsp;				return new IfNode(insn, IfOp.GE);</b>
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;			case IF_LT:
+<i class="no-highlight">310</i>&nbsp;			case IF_LTZ:
+<b class="fc"><i class="no-highlight">311</i>&nbsp;				return new IfNode(insn, IfOp.LT);</b>
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;			case IF_LE:
+<i class="no-highlight">314</i>&nbsp;			case IF_LEZ:
+<b class="fc"><i class="no-highlight">315</i>&nbsp;				return new IfNode(insn, IfOp.LE);</b>
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;			case CMP_LONG:
+<b class="fc"><i class="no-highlight">318</i>&nbsp;				return cmp(insn, InsnType.CMP_L, ArgType.LONG);</b>
+<i class="no-highlight">319</i>&nbsp;			case CMPL_FLOAT:
+<b class="fc"><i class="no-highlight">320</i>&nbsp;				return cmp(insn, InsnType.CMP_L, ArgType.FLOAT);</b>
+<i class="no-highlight">321</i>&nbsp;			case CMPL_DOUBLE:
+<b class="nc"><i class="no-highlight">322</i>&nbsp;				return cmp(insn, InsnType.CMP_L, ArgType.DOUBLE);</b>
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;			case CMPG_FLOAT:
+<b class="fc"><i class="no-highlight">325</i>&nbsp;				return cmp(insn, InsnType.CMP_G, ArgType.FLOAT);</b>
+<i class="no-highlight">326</i>&nbsp;			case CMPG_DOUBLE:
+<b class="fc"><i class="no-highlight">327</i>&nbsp;				return cmp(insn, InsnType.CMP_G, ArgType.DOUBLE);</b>
+<i class="no-highlight">328</i>&nbsp;
+<i class="no-highlight">329</i>&nbsp;			case GOTO:
+<b class="fc"><i class="no-highlight">330</i>&nbsp;				return new GotoNode(insn.getTarget());</b>
+<i class="no-highlight">331</i>&nbsp;
+<i class="no-highlight">332</i>&nbsp;			case THROW:
+<b class="fc"><i class="no-highlight">333</i>&nbsp;				return insn(InsnType.THROW, null, InsnArg.reg(insn, 0, ArgType.THROWABLE));</b>
+<i class="no-highlight">334</i>&nbsp;
+<i class="no-highlight">335</i>&nbsp;			case MOVE_EXCEPTION:
+<b class="fc"><i class="no-highlight">336</i>&nbsp;				return insn(InsnType.MOVE_EXCEPTION, InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT_NO_ARRAY));</b>
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;			case RETURN_VOID:
+<b class="fc"><i class="no-highlight">339</i>&nbsp;				return new InsnNode(InsnType.RETURN, 0);</b>
+<i class="no-highlight">340</i>&nbsp;
+<i class="no-highlight">341</i>&nbsp;			case RETURN:
+<b class="fc"><i class="no-highlight">342</i>&nbsp;				return insn(InsnType.RETURN,</b>
+<i class="no-highlight">343</i>&nbsp;						null,
+<b class="fc"><i class="no-highlight">344</i>&nbsp;						InsnArg.reg(insn, 0, method.getReturnType()));</b>
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;			case INSTANCE_OF:
+<b class="fc"><i class="no-highlight">347</i>&nbsp;				InsnNode instInsn = new IndexInsnNode(InsnType.INSTANCE_OF, ArgType.parse(insn.getIndexAsType()), 1);</b>
+<b class="fc"><i class="no-highlight">348</i>&nbsp;				instInsn.setResult(InsnArg.reg(insn, 0, ArgType.BOOLEAN));</b>
+<b class="fc"><i class="no-highlight">349</i>&nbsp;				instInsn.addArg(InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;				return instInsn;</b>
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;			case CHECK_CAST:
+<b class="fc"><i class="no-highlight">353</i>&nbsp;				ArgType castType = ArgType.parse(insn.getIndexAsType());</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);</b>
+<b class="fc"><i class="no-highlight">355</i>&nbsp;				checkCastInsn.setResult(InsnArg.reg(insn, 0, castType));</b>
+<b class="pc"><i class="no-highlight">356</i>&nbsp;				checkCastInsn.addArg(InsnArg.reg(insn, insn.getRegsCount() == 2 ? 1 : 0, ArgType.UNKNOWN_OBJECT));</b>
+<b class="fc"><i class="no-highlight">357</i>&nbsp;				return checkCastInsn;</b>
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;			case IGET:
+<b class="fc"><i class="no-highlight">360</i>&nbsp;				FieldInfo igetFld = FieldInfo.fromRef(root, insn.getIndexAsField());</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;				InsnNode igetInsn = new IndexInsnNode(InsnType.IGET, igetFld, 1);</b>
+<b class="fc"><i class="no-highlight">362</i>&nbsp;				igetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(igetFld)));</b>
+<b class="fc"><i class="no-highlight">363</i>&nbsp;				igetInsn.addArg(InsnArg.reg(insn, 1, igetFld.getDeclClass().getType()));</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;				return igetInsn;</b>
+<i class="no-highlight">365</i>&nbsp;
+<i class="no-highlight">366</i>&nbsp;			case IPUT:
+<b class="fc"><i class="no-highlight">367</i>&nbsp;				FieldInfo iputFld = FieldInfo.fromRef(root, insn.getIndexAsField());</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;				InsnNode iputInsn = new IndexInsnNode(InsnType.IPUT, iputFld, 2);</b>
+<b class="fc"><i class="no-highlight">369</i>&nbsp;				iputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(iputFld)));</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;				iputInsn.addArg(InsnArg.reg(insn, 1, iputFld.getDeclClass().getType()));</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;				return iputInsn;</b>
+<i class="no-highlight">372</i>&nbsp;
+<i class="no-highlight">373</i>&nbsp;			case SGET:
+<b class="fc"><i class="no-highlight">374</i>&nbsp;				FieldInfo sgetFld = FieldInfo.fromRef(root, insn.getIndexAsField());</b>
+<b class="fc"><i class="no-highlight">375</i>&nbsp;				InsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, sgetFld, 0);</b>
+<b class="fc"><i class="no-highlight">376</i>&nbsp;				sgetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(sgetFld)));</b>
+<b class="fc"><i class="no-highlight">377</i>&nbsp;				return sgetInsn;</b>
+<i class="no-highlight">378</i>&nbsp;
+<i class="no-highlight">379</i>&nbsp;			case SPUT:
+<b class="fc"><i class="no-highlight">380</i>&nbsp;				FieldInfo sputFld = FieldInfo.fromRef(root, insn.getIndexAsField());</b>
+<b class="fc"><i class="no-highlight">381</i>&nbsp;				InsnNode sputInsn = new IndexInsnNode(InsnType.SPUT, sputFld, 1);</b>
+<b class="fc"><i class="no-highlight">382</i>&nbsp;				sputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(sputFld)));</b>
+<b class="fc"><i class="no-highlight">383</i>&nbsp;				return sputInsn;</b>
+<i class="no-highlight">384</i>&nbsp;
+<i class="no-highlight">385</i>&nbsp;			case ARRAY_LENGTH:
+<b class="fc"><i class="no-highlight">386</i>&nbsp;				InsnNode arrLenInsn = new InsnNode(InsnType.ARRAY_LENGTH, 1);</b>
+<b class="fc"><i class="no-highlight">387</i>&nbsp;				arrLenInsn.setResult(InsnArg.reg(insn, 0, ArgType.INT));</b>
+<b class="fc"><i class="no-highlight">388</i>&nbsp;				arrLenInsn.addArg(InsnArg.reg(insn, 1, ArgType.array(ArgType.UNKNOWN)));</b>
+<b class="fc"><i class="no-highlight">389</i>&nbsp;				return arrLenInsn;</b>
+<i class="no-highlight">390</i>&nbsp;
+<i class="no-highlight">391</i>&nbsp;			case AGET:
+<b class="fc"><i class="no-highlight">392</i>&nbsp;				return arrayGet(insn, ArgType.INT_FLOAT);</b>
+<i class="no-highlight">393</i>&nbsp;			case AGET_BOOLEAN:
+<b class="fc"><i class="no-highlight">394</i>&nbsp;				return arrayGet(insn, ArgType.BOOLEAN);</b>
+<i class="no-highlight">395</i>&nbsp;			case AGET_BYTE:
+<b class="fc"><i class="no-highlight">396</i>&nbsp;				return arrayGet(insn, ArgType.BYTE);</b>
+<i class="no-highlight">397</i>&nbsp;			case AGET_BYTE_BOOLEAN:
+<b class="nc"><i class="no-highlight">398</i>&nbsp;				return arrayGet(insn, ArgType.BYTE_BOOLEAN);</b>
+<i class="no-highlight">399</i>&nbsp;			case AGET_CHAR:
+<b class="fc"><i class="no-highlight">400</i>&nbsp;				return arrayGet(insn, ArgType.CHAR);</b>
+<i class="no-highlight">401</i>&nbsp;			case AGET_SHORT:
+<b class="nc"><i class="no-highlight">402</i>&nbsp;				return arrayGet(insn, ArgType.SHORT);</b>
+<i class="no-highlight">403</i>&nbsp;			case AGET_WIDE:
+<b class="fc"><i class="no-highlight">404</i>&nbsp;				return arrayGet(insn, ArgType.WIDE);</b>
+<i class="no-highlight">405</i>&nbsp;			case AGET_OBJECT:
+<b class="fc"><i class="no-highlight">406</i>&nbsp;				return arrayGet(insn, ArgType.UNKNOWN_OBJECT);</b>
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;			case APUT:
+<b class="fc"><i class="no-highlight">409</i>&nbsp;				return arrayPut(insn, ArgType.INT_FLOAT);</b>
+<i class="no-highlight">410</i>&nbsp;			case APUT_BOOLEAN:
+<b class="nc"><i class="no-highlight">411</i>&nbsp;				return arrayPut(insn, ArgType.BOOLEAN);</b>
+<i class="no-highlight">412</i>&nbsp;			case APUT_BYTE:
+<b class="fc"><i class="no-highlight">413</i>&nbsp;				return arrayPut(insn, ArgType.BYTE);</b>
+<i class="no-highlight">414</i>&nbsp;			case APUT_BYTE_BOOLEAN:
+<b class="nc"><i class="no-highlight">415</i>&nbsp;				return arrayPut(insn, ArgType.BYTE_BOOLEAN);</b>
+<i class="no-highlight">416</i>&nbsp;			case APUT_CHAR:
+<b class="fc"><i class="no-highlight">417</i>&nbsp;				return arrayPut(insn, ArgType.CHAR);</b>
+<i class="no-highlight">418</i>&nbsp;			case APUT_SHORT:
+<b class="fc"><i class="no-highlight">419</i>&nbsp;				return arrayPut(insn, ArgType.SHORT);</b>
+<i class="no-highlight">420</i>&nbsp;			case APUT_WIDE:
+<b class="fc"><i class="no-highlight">421</i>&nbsp;				return arrayPut(insn, ArgType.WIDE);</b>
+<i class="no-highlight">422</i>&nbsp;			case APUT_OBJECT:
+<b class="fc"><i class="no-highlight">423</i>&nbsp;				return arrayPut(insn, ArgType.UNKNOWN_OBJECT);</b>
+<i class="no-highlight">424</i>&nbsp;
+<i class="no-highlight">425</i>&nbsp;			case INVOKE_STATIC:
+<b class="fc"><i class="no-highlight">426</i>&nbsp;				return invoke(insn, InvokeType.STATIC, false);</b>
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;			case INVOKE_STATIC_RANGE:
+<b class="nc"><i class="no-highlight">429</i>&nbsp;				return invoke(insn, InvokeType.STATIC, true);</b>
+<i class="no-highlight">430</i>&nbsp;
+<i class="no-highlight">431</i>&nbsp;			case INVOKE_DIRECT:
+<b class="fc"><i class="no-highlight">432</i>&nbsp;				return invoke(insn, InvokeType.DIRECT, false);</b>
+<i class="no-highlight">433</i>&nbsp;			case INVOKE_INTERFACE:
+<b class="fc"><i class="no-highlight">434</i>&nbsp;				return invoke(insn, InvokeType.INTERFACE, false);</b>
+<i class="no-highlight">435</i>&nbsp;			case INVOKE_SUPER:
+<b class="fc"><i class="no-highlight">436</i>&nbsp;				return invoke(insn, InvokeType.SUPER, false);</b>
+<i class="no-highlight">437</i>&nbsp;			case INVOKE_VIRTUAL:
+<b class="fc"><i class="no-highlight">438</i>&nbsp;				return invoke(insn, InvokeType.VIRTUAL, false);</b>
+<i class="no-highlight">439</i>&nbsp;			case INVOKE_CUSTOM:
+<b class="fc"><i class="no-highlight">440</i>&nbsp;				return invokeCustom(insn, false);</b>
+<i class="no-highlight">441</i>&nbsp;			case INVOKE_SPECIAL:
+<b class="fc"><i class="no-highlight">442</i>&nbsp;				return invokeSpecial(insn);</b>
+<i class="no-highlight">443</i>&nbsp;
+<i class="no-highlight">444</i>&nbsp;			case INVOKE_DIRECT_RANGE:
+<b class="fc"><i class="no-highlight">445</i>&nbsp;				return invoke(insn, InvokeType.DIRECT, true);</b>
+<i class="no-highlight">446</i>&nbsp;			case INVOKE_INTERFACE_RANGE:
+<b class="nc"><i class="no-highlight">447</i>&nbsp;				return invoke(insn, InvokeType.INTERFACE, true);</b>
+<i class="no-highlight">448</i>&nbsp;			case INVOKE_SUPER_RANGE:
+<b class="nc"><i class="no-highlight">449</i>&nbsp;				return invoke(insn, InvokeType.SUPER, true);</b>
+<i class="no-highlight">450</i>&nbsp;			case INVOKE_VIRTUAL_RANGE:
+<b class="fc"><i class="no-highlight">451</i>&nbsp;				return invoke(insn, InvokeType.VIRTUAL, true);</b>
+<i class="no-highlight">452</i>&nbsp;			case INVOKE_CUSTOM_RANGE:
+<b class="nc"><i class="no-highlight">453</i>&nbsp;				return invokeCustom(insn, true);</b>
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;			case NEW_INSTANCE:
+<b class="fc"><i class="no-highlight">456</i>&nbsp;				ArgType clsType = ArgType.parse(insn.getIndexAsType());</b>
+<b class="fc"><i class="no-highlight">457</i>&nbsp;				IndexInsnNode newInstInsn = new IndexInsnNode(InsnType.NEW_INSTANCE, clsType, 0);</b>
+<b class="fc"><i class="no-highlight">458</i>&nbsp;				newInstInsn.setResult(InsnArg.reg(insn, 0, clsType));</b>
+<b class="fc"><i class="no-highlight">459</i>&nbsp;				return newInstInsn;</b>
+<i class="no-highlight">460</i>&nbsp;
+<i class="no-highlight">461</i>&nbsp;			case NEW_ARRAY:
+<b class="fc"><i class="no-highlight">462</i>&nbsp;				return makeNewArray(insn);</b>
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;			case FILL_ARRAY_DATA:
+<b class="fc"><i class="no-highlight">465</i>&nbsp;				return new FillArrayInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN_ARRAY), insn.getTarget());</b>
+<i class="no-highlight">466</i>&nbsp;			case FILL_ARRAY_DATA_PAYLOAD:
+<b class="fc"><i class="no-highlight">467</i>&nbsp;				return new FillArrayData(((IArrayPayload) Objects.requireNonNull(insn.getPayload())));</b>
+<i class="no-highlight">468</i>&nbsp;
+<i class="no-highlight">469</i>&nbsp;			case FILLED_NEW_ARRAY:
+<b class="fc"><i class="no-highlight">470</i>&nbsp;				return filledNewArray(insn, false);</b>
+<i class="no-highlight">471</i>&nbsp;			case FILLED_NEW_ARRAY_RANGE:
+<b class="nc"><i class="no-highlight">472</i>&nbsp;				return filledNewArray(insn, true);</b>
+<i class="no-highlight">473</i>&nbsp;
+<i class="no-highlight">474</i>&nbsp;			case PACKED_SWITCH:
+<b class="fc"><i class="no-highlight">475</i>&nbsp;				return makeSwitch(insn, true);</b>
+<i class="no-highlight">476</i>&nbsp;			case SPARSE_SWITCH:
+<b class="fc"><i class="no-highlight">477</i>&nbsp;				return makeSwitch(insn, false);</b>
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;			case PACKED_SWITCH_PAYLOAD:
+<i class="no-highlight">480</i>&nbsp;			case SPARSE_SWITCH_PAYLOAD:
+<b class="fc"><i class="no-highlight">481</i>&nbsp;				return new SwitchData(((ISwitchPayload) insn.getPayload()));</b>
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;			case MONITOR_ENTER:
+<b class="fc"><i class="no-highlight">484</i>&nbsp;				return insn(InsnType.MONITOR_ENTER,</b>
+<i class="no-highlight">485</i>&nbsp;						null,
+<b class="fc"><i class="no-highlight">486</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));</b>
+<i class="no-highlight">487</i>&nbsp;
+<i class="no-highlight">488</i>&nbsp;			case MONITOR_EXIT:
+<b class="fc"><i class="no-highlight">489</i>&nbsp;				return insn(InsnType.MONITOR_EXIT,</b>
+<i class="no-highlight">490</i>&nbsp;						null,
+<b class="fc"><i class="no-highlight">491</i>&nbsp;						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));</b>
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">494</i>&nbsp;				throw new DecodeException(&quot;Unknown instruction: &#39;&quot; + insn + &#39;\&#39;&#39;);</b>
+<i class="no-highlight">495</i>&nbsp;		}
+<i class="no-highlight">496</i>&nbsp;	}
+<i class="no-highlight">497</i>&nbsp;
+<i class="no-highlight">498</i>&nbsp;	@NotNull
+<i class="no-highlight">499</i>&nbsp;	private SwitchInsn makeSwitch(InsnData insn, boolean packed) {
+<b class="fc"><i class="no-highlight">500</i>&nbsp;		SwitchInsn swInsn = new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), packed);</b>
+<b class="fc"><i class="no-highlight">501</i>&nbsp;		ICustomPayload payload = insn.getPayload();</b>
+<b class="pc"><i class="no-highlight">502</i>&nbsp;		if (payload != null) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;			swInsn.attachSwitchData(new SwitchData((ISwitchPayload) payload), insn.getTarget());</b>
+<i class="no-highlight">504</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">505</i>&nbsp;		return swInsn;</b>
+<i class="no-highlight">506</i>&nbsp;	}
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;	private InsnNode makeNewArray(InsnData insn) {
+<b class="fc"><i class="no-highlight">509</i>&nbsp;		ArgType indexType = ArgType.parse(insn.getIndexAsType());</b>
+<b class="fc"><i class="no-highlight">510</i>&nbsp;		int dim = (int) insn.getLiteral();</b>
+<i class="no-highlight">511</i>&nbsp;		ArgType arrType;
+<b class="fc"><i class="no-highlight">512</i>&nbsp;		if (dim == 0) {</b>
+<b class="fc"><i class="no-highlight">513</i>&nbsp;			arrType = indexType;</b>
+<i class="no-highlight">514</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">515</i>&nbsp;			if (indexType.isArray()) {</b>
+<i class="no-highlight">516</i>&nbsp;				// java bytecode can pass array as a base type
+<b class="fc"><i class="no-highlight">517</i>&nbsp;				arrType = indexType;</b>
+<i class="no-highlight">518</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">519</i>&nbsp;				arrType = ArgType.array(indexType, dim);</b>
+<i class="no-highlight">520</i>&nbsp;			}
+<i class="no-highlight">521</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">522</i>&nbsp;		int regsCount = insn.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">523</i>&nbsp;		NewArrayNode newArr = new NewArrayNode(arrType, regsCount - 1);</b>
+<b class="fc"><i class="no-highlight">524</i>&nbsp;		newArr.setResult(InsnArg.reg(insn, 0, arrType));</b>
+<b class="fc"><i class="no-highlight">525</i>&nbsp;		for (int i = 1; i &lt; regsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;			newArr.addArg(InsnArg.typeImmutableReg(insn, i, ArgType.INT));</b>
+<i class="no-highlight">527</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">528</i>&nbsp;		return newArr;</b>
+<i class="no-highlight">529</i>&nbsp;	}
+<i class="no-highlight">530</i>&nbsp;
+<i class="no-highlight">531</i>&nbsp;	private ArgType tryResolveFieldType(FieldInfo igetFld) {
+<b class="fc"><i class="no-highlight">532</i>&nbsp;		FieldNode fieldNode = root.resolveField(igetFld);</b>
+<b class="fc"><i class="no-highlight">533</i>&nbsp;		if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">534</i>&nbsp;			return fieldNode.getType();</b>
+<i class="no-highlight">535</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">536</i>&nbsp;		return igetFld.getType();</b>
+<i class="no-highlight">537</i>&nbsp;	}
+<i class="no-highlight">538</i>&nbsp;
+<i class="no-highlight">539</i>&nbsp;	private InsnNode filledNewArray(InsnData insn, boolean isRange) {
+<b class="fc"><i class="no-highlight">540</i>&nbsp;		ArgType arrType = ArgType.parse(insn.getIndexAsType());</b>
+<b class="fc"><i class="no-highlight">541</i>&nbsp;		ArgType elType = arrType.getArrayElement();</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;		boolean typeImmutable = elType.isPrimitive();</b>
+<b class="fc"><i class="no-highlight">543</i>&nbsp;		int regsCount = insn.getRegsCount();</b>
+<b class="fc"><i class="no-highlight">544</i>&nbsp;		InsnArg[] regs = new InsnArg[regsCount];</b>
+<b class="pc"><i class="no-highlight">545</i>&nbsp;		if (isRange) {</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;			int r = insn.getReg(0);</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;			for (int i = 0; i &lt; regsCount; i++) {</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;				regs[i] = InsnArg.reg(r, elType, typeImmutable);</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;				r++;</b>
+<i class="no-highlight">550</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">551</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">552</i>&nbsp;			for (int i = 0; i &lt; regsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;				int regNum = insn.getReg(i);</b>
+<b class="fc"><i class="no-highlight">554</i>&nbsp;				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);</b>
+<i class="no-highlight">555</i>&nbsp;			}
+<i class="no-highlight">556</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">557</i>&nbsp;		InsnNode node = new FilledNewArrayNode(elType, regs.length);</b>
+<i class="no-highlight">558</i>&nbsp;		// node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
+<b class="fc"><i class="no-highlight">559</i>&nbsp;		for (InsnArg arg : regs) {</b>
+<b class="fc"><i class="no-highlight">560</i>&nbsp;			node.addArg(arg);</b>
+<i class="no-highlight">561</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">562</i>&nbsp;		return node;</b>
+<i class="no-highlight">563</i>&nbsp;	}
+<i class="no-highlight">564</i>&nbsp;
+<i class="no-highlight">565</i>&nbsp;	private InsnNode cmp(InsnData insn, InsnType itype, ArgType argType) {
+<b class="fc"><i class="no-highlight">566</i>&nbsp;		InsnNode inode = new InsnNode(itype, 2);</b>
+<b class="fc"><i class="no-highlight">567</i>&nbsp;		inode.setResult(InsnArg.reg(insn, 0, ArgType.INT));</b>
+<b class="fc"><i class="no-highlight">568</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 1, argType));</b>
+<b class="fc"><i class="no-highlight">569</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 2, argType));</b>
+<b class="fc"><i class="no-highlight">570</i>&nbsp;		return inode;</b>
+<i class="no-highlight">571</i>&nbsp;	}
+<i class="no-highlight">572</i>&nbsp;
+<i class="no-highlight">573</i>&nbsp;	private InsnNode cast(InsnData insn, ArgType from, ArgType to) {
+<b class="fc"><i class="no-highlight">574</i>&nbsp;		InsnNode inode = new IndexInsnNode(InsnType.CAST, to, 1);</b>
+<b class="fc"><i class="no-highlight">575</i>&nbsp;		inode.setResult(InsnArg.reg(insn, 0, to));</b>
+<b class="fc"><i class="no-highlight">576</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 1, from));</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;		return inode;</b>
+<i class="no-highlight">578</i>&nbsp;	}
+<i class="no-highlight">579</i>&nbsp;
+<i class="no-highlight">580</i>&nbsp;	private InsnNode invokeCustom(InsnData insn, boolean isRange) {
+<b class="fc"><i class="no-highlight">581</i>&nbsp;		return InvokeCustomBuilder.build(method, insn, isRange);</b>
+<i class="no-highlight">582</i>&nbsp;	}
+<i class="no-highlight">583</i>&nbsp;
+<i class="no-highlight">584</i>&nbsp;	private InsnNode invokeSpecial(InsnData insn) {
+<b class="fc"><i class="no-highlight">585</i>&nbsp;		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);</b>
+<b class="pc"><i class="no-highlight">586</i>&nbsp;		if (mthRef == null) {</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to load method reference for insn: &quot; + insn);</b>
+<i class="no-highlight">588</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">589</i>&nbsp;		MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);</b>
+<i class="no-highlight">590</i>&nbsp;		// convert &#39;special&#39; to &#39;direct/super&#39; same as dx
+<i class="no-highlight">591</i>&nbsp;		InvokeType type;
+<b class="fc"><i class="no-highlight">592</i>&nbsp;		if (mthInfo.isConstructor() || Objects.equals(mthInfo.getDeclClass(), method.getParentClass().getClassInfo())) {</b>
+<b class="fc"><i class="no-highlight">593</i>&nbsp;			type = InvokeType.DIRECT;</b>
+<i class="no-highlight">594</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">595</i>&nbsp;			type = InvokeType.SUPER;</b>
+<i class="no-highlight">596</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">597</i>&nbsp;		return new InvokeNode(mthInfo, insn, type, false);</b>
+<i class="no-highlight">598</i>&nbsp;	}
+<i class="no-highlight">599</i>&nbsp;
+<i class="no-highlight">600</i>&nbsp;	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
+<b class="fc"><i class="no-highlight">601</i>&nbsp;		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);</b>
+<b class="pc"><i class="no-highlight">602</i>&nbsp;		if (mthRef == null) {</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to load method reference for insn: &quot; + insn);</b>
+<i class="no-highlight">604</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">605</i>&nbsp;		MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);</b>
+<b class="fc"><i class="no-highlight">606</i>&nbsp;		return new InvokeNode(mthInfo, insn, type, isRange);</b>
+<i class="no-highlight">607</i>&nbsp;	}
+<i class="no-highlight">608</i>&nbsp;
+<i class="no-highlight">609</i>&nbsp;	private InsnNode arrayGet(InsnData insn, ArgType argType) {
+<b class="fc"><i class="no-highlight">610</i>&nbsp;		InsnNode inode = new InsnNode(InsnType.AGET, 2);</b>
+<b class="fc"><i class="no-highlight">611</i>&nbsp;		inode.setResult(InsnArg.typeImmutableIfKnownReg(insn, 0, argType));</b>
+<b class="fc"><i class="no-highlight">612</i>&nbsp;		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));</b>
+<b class="fc"><i class="no-highlight">613</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 2, ArgType.NARROW_INTEGRAL));</b>
+<b class="fc"><i class="no-highlight">614</i>&nbsp;		return inode;</b>
+<i class="no-highlight">615</i>&nbsp;	}
+<i class="no-highlight">616</i>&nbsp;
+<i class="no-highlight">617</i>&nbsp;	private InsnNode arrayPut(InsnData insn, ArgType argType) {
+<b class="fc"><i class="no-highlight">618</i>&nbsp;		InsnNode inode = new InsnNode(InsnType.APUT, 3);</b>
+<b class="fc"><i class="no-highlight">619</i>&nbsp;		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));</b>
+<b class="fc"><i class="no-highlight">620</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 2, ArgType.NARROW_INTEGRAL));</b>
+<b class="fc"><i class="no-highlight">621</i>&nbsp;		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 0, argType));</b>
+<b class="fc"><i class="no-highlight">622</i>&nbsp;		return inode;</b>
+<i class="no-highlight">623</i>&nbsp;	}
+<i class="no-highlight">624</i>&nbsp;
+<i class="no-highlight">625</i>&nbsp;	private InsnNode arith(InsnData insn, ArithOp op, ArgType type) {
+<b class="fc"><i class="no-highlight">626</i>&nbsp;		return ArithNode.build(insn, op, type);</b>
+<i class="no-highlight">627</i>&nbsp;	}
+<i class="no-highlight">628</i>&nbsp;
+<i class="no-highlight">629</i>&nbsp;	private InsnNode arithLit(InsnData insn, ArithOp op, ArgType type) {
+<b class="fc"><i class="no-highlight">630</i>&nbsp;		return ArithNode.buildLit(insn, op, type);</b>
+<i class="no-highlight">631</i>&nbsp;	}
+<i class="no-highlight">632</i>&nbsp;
+<i class="no-highlight">633</i>&nbsp;	private InsnNode neg(InsnData insn, ArgType type) {
+<b class="nc"><i class="no-highlight">634</i>&nbsp;		InsnNode inode = new InsnNode(InsnType.NEG, 1);</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;		inode.setResult(InsnArg.reg(insn, 0, type));</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 1, type));</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;		return inode;</b>
+<i class="no-highlight">638</i>&nbsp;	}
+<i class="no-highlight">639</i>&nbsp;
+<i class="no-highlight">640</i>&nbsp;	private InsnNode not(InsnData insn, ArgType type) {
+<b class="fc"><i class="no-highlight">641</i>&nbsp;		InsnNode inode = new InsnNode(InsnType.NOT, 1);</b>
+<b class="fc"><i class="no-highlight">642</i>&nbsp;		inode.setResult(InsnArg.reg(insn, 0, type));</b>
+<b class="fc"><i class="no-highlight">643</i>&nbsp;		inode.addArg(InsnArg.reg(insn, 1, type));</b>
+<b class="fc"><i class="no-highlight">644</i>&nbsp;		return inode;</b>
+<i class="no-highlight">645</i>&nbsp;	}
+<i class="no-highlight">646</i>&nbsp;
+<i class="no-highlight">647</i>&nbsp;	private InsnNode insn(InsnType type, RegisterArg res) {
+<b class="fc"><i class="no-highlight">648</i>&nbsp;		InsnNode node = new InsnNode(type, 0);</b>
+<b class="fc"><i class="no-highlight">649</i>&nbsp;		node.setResult(res);</b>
+<b class="fc"><i class="no-highlight">650</i>&nbsp;		return node;</b>
+<i class="no-highlight">651</i>&nbsp;	}
+<i class="no-highlight">652</i>&nbsp;
+<i class="no-highlight">653</i>&nbsp;	private InsnNode insn(InsnType type, RegisterArg res, InsnArg arg) {
+<b class="fc"><i class="no-highlight">654</i>&nbsp;		InsnNode node = new InsnNode(type, 1);</b>
+<b class="fc"><i class="no-highlight">655</i>&nbsp;		node.setResult(res);</b>
+<b class="fc"><i class="no-highlight">656</i>&nbsp;		node.addArg(arg);</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;		return node;</b>
+<i class="no-highlight">658</i>&nbsp;	}
+<i class="no-highlight">659</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

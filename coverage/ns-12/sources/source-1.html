@@ -1,0 +1,203 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConvertArscFile</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.cli.tools</a>
+</div>
+
+<h1>Coverage Summary for Class: ConvertArscFile (jadx.cli.tools)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConvertArscFile</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.cli.tools;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">4</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">5</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">6</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">7</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">8</i>&nbsp;import java.nio.file.Paths;
+<i class="no-highlight">9</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">10</i>&nbsp;import java.util.List;
+<i class="no-highlight">11</i>&nbsp;import java.util.Map;
+<i class="no-highlight">12</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">13</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">14</i>&nbsp;import java.util.zip.ZipEntry;
+<i class="no-highlight">15</i>&nbsp;import java.util.zip.ZipFile;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.JadxArgs;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.utils.android.TextResMapFile;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.xmlgen.ResTableParser;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;/**
+<i class="no-highlight">26</i>&nbsp; * Utility class for convert &#39;.arsc&#39; to simple text file with mapping id to resource name
+<i class="no-highlight">27</i>&nbsp; */
+<b class="nc"><i class="no-highlight">28</i>&nbsp;public class ConvertArscFile {</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ConvertArscFile.class);</b>
+<i class="no-highlight">30</i>&nbsp;	private static int rewritesCount;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	public static void usage() {
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		LOG.info(&quot;&lt;res-map file&gt; &lt;input .arsc files&gt;&quot;);</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		LOG.info(&quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		LOG.info(&quot;Note: If res-map already exists - it will be merged and updated&quot;);</b>
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	public static void main(String[] args) throws IOException {
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		if (args.length &lt; 2) {</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;			usage();</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;			System.exit(1);</b>
+<i class="no-highlight">42</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		List&lt;Path&gt; inputPaths = Stream.of(args).map(Paths::get).collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		Path resMapFile = inputPaths.remove(0);</b>
+<i class="no-highlight">45</i>&nbsp;		Map&lt;Integer, String&gt; resMap;
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		if (Files.isReadable(resMapFile)) {</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;			resMap = TextResMapFile.read(resMapFile);</b>
+<i class="no-highlight">48</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;			resMap = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">50</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		LOG.info(&quot;Input entries count: {}&quot;, resMap.size());</b>
+<i class="no-highlight">52</i>&nbsp;
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		RootNode root = new RootNode(new JadxArgs()); // not really needed</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		rewritesCount = 0;</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		for (Path resFile : inputPaths) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;			LOG.info(&quot;Processing {}&quot;, resFile);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;			ResTableParser resTableParser = new ResTableParser(root, true);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;			if (resFile.getFileName().toString().endsWith(&quot;.jar&quot;)) {</b>
+<i class="no-highlight">59</i>&nbsp;				// Load resources.arsc from android.jar
+<b class="nc"><i class="no-highlight">60</i>&nbsp;				try (ZipFile zip = new ZipFile(resFile.toFile())) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;					ZipEntry entry = zip.getEntry(&quot;resources.arsc&quot;);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;					if (entry == null) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;						LOG.error(&quot;Failed to load \&quot;resources.arsc\&quot; from {}&quot;, resFile);</b>
+<i class="no-highlight">64</i>&nbsp;						continue;
+<i class="no-highlight">65</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">66</i>&nbsp;					try (InputStream inputStream = zip.getInputStream(entry)) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;						resTableParser.decode(inputStream);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;					}</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;				}</b>
+<i class="no-highlight">70</i>&nbsp;			} else {
+<i class="no-highlight">71</i>&nbsp;				// Load resources.arsc from extracted file
+<b class="nc"><i class="no-highlight">72</i>&nbsp;				try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(resFile))) {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;					resTableParser.decode(inputStream);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;				}</b>
+<i class="no-highlight">75</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">76</i>&nbsp;			Map&lt;Integer, String&gt; singleResMap = resTableParser.getResStorage().getResourcesNames();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			mergeResMaps(resMap, singleResMap);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;			LOG.info(&quot;{} entries count: {}, after merge: {}&quot;, resFile.getFileName(), singleResMap.size(), resMap.size());</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		LOG.info(&quot;Output entries count: {}&quot;, resMap.size());</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		LOG.info(&quot;Total rewrites count: {}&quot;, rewritesCount);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		TextResMapFile.write(resMapFile, resMap);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		LOG.info(&quot;Result file size: {} B&quot;, resMapFile.toFile().length());</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		LOG.info(&quot;done&quot;);</b>
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	private static void mergeResMaps(Map&lt;Integer, String&gt; mainResMap, Map&lt;Integer, String&gt; newResMap) {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		for (Map.Entry&lt;Integer, String&gt; entry : newResMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			Integer id = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;			String name = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			String prevName = mainResMap.put(id, name);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;			if (prevName != null &amp;&amp; !name.equals(prevName)) {</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;				LOG.debug(&quot;Rewrite id: {} from: &#39;{}&#39; to: &#39;{}&#39;&quot;, Integer.toHexString(id), prevName, name);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;				rewritesCount++;</b>
+<i class="no-highlight">95</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		}</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

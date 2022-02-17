@@ -1,0 +1,365 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ManifestAttributes</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.xmlgen</a>
+</div>
+
+<h1>Coverage Summary for Class: ManifestAttributes (jadx.core.xmlgen)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ManifestAttributes</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    51.7%
+  </span>
+  <span class="absValue">
+    (15/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    76.4%
+  </span>
+  <span class="absValue">
+    (68/89)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ManifestAttributes$MAttr</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (5/6)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">ManifestAttributes$MAttrType</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    92.9%
+  </span>
+  <span class="absValue">
+    (13/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    51.7%
+  </span>
+  <span class="absValue">
+    (15/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    77.3%
+  </span>
+  <span class="absValue">
+    (75/97)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.xmlgen;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">4</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">6</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">7</i>&nbsp;import java.util.LinkedList;
+<i class="no-highlight">8</i>&nbsp;import java.util.List;
+<i class="no-highlight">9</i>&nbsp;import java.util.Map;
+<i class="no-highlight">10</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import javax.xml.parsers.DocumentBuilder;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">16</i>&nbsp;import org.w3c.dom.Document;
+<i class="no-highlight">17</i>&nbsp;import org.w3c.dom.NamedNodeMap;
+<i class="no-highlight">18</i>&nbsp;import org.w3c.dom.Node;
+<i class="no-highlight">19</i>&nbsp;import org.w3c.dom.NodeList;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;public class ManifestAttributes {
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);</b>
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	private static final String ATTR_XML = &quot;/android/attrs.xml&quot;;
+<i class="no-highlight">27</i>&nbsp;	private static final String MANIFEST_ATTR_XML = &quot;/android/attrs_manifest.xml&quot;;
+<i class="no-highlight">28</i>&nbsp;
+<b class="fc"><i class="no-highlight">29</i>&nbsp;	private enum MAttrType {</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		ENUM, FLAG</b>
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	private static class MAttr {
+<i class="no-highlight">34</i>&nbsp;		private final MAttrType type;
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		private final Map&lt;Long, String&gt; values = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">36</i>&nbsp;
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		public MAttr(MAttrType type) {</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;			this.type = type;</b>
+<i class="no-highlight">39</i>&nbsp;		}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;		public MAttrType getType() {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;			return type;</b>
+<i class="no-highlight">43</i>&nbsp;		}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;		public Map&lt;Long, String&gt; getValues() {
+<b class="fc"><i class="no-highlight">46</i>&nbsp;			return values;</b>
+<i class="no-highlight">47</i>&nbsp;		}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;		@Override
+<i class="no-highlight">50</i>&nbsp;		public String toString() {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			return &quot;[&quot; + type + &quot;, &quot; + values + &#39;]&#39;;</b>
+<i class="no-highlight">52</i>&nbsp;		}
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<b class="fc"><i class="no-highlight">55</i>&nbsp;	private final Map&lt;String, MAttr&gt; attrMap = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	private static ManifestAttributes instance;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	public static ManifestAttributes getInstance() {
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		if (instance == null) {</b>
+<i class="no-highlight">61</i>&nbsp;			try {
+<b class="fc"><i class="no-highlight">62</i>&nbsp;				instance = new ManifestAttributes();</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;				LOG.error(&quot;Failed to create ManifestAttributes&quot;, e);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			}</b>
+<i class="no-highlight">66</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		return instance;</b>
+<i class="no-highlight">68</i>&nbsp;	}
+<i class="no-highlight">69</i>&nbsp;
+<b class="fc"><i class="no-highlight">70</i>&nbsp;	private ManifestAttributes() {</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		parseAll();</b>
+<i class="no-highlight">72</i>&nbsp;	}
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	private void parseAll() {
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		parse(loadXML(ATTR_XML));</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		parse(loadXML(MANIFEST_ATTR_XML));</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		LOG.debug(&quot;Loaded android attributes count: {}&quot;, attrMap.size());</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	private Document loadXML(String xml) {
+<i class="no-highlight">81</i>&nbsp;		Document doc;
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		try (InputStream xmlStream = ManifestAttributes.class.getResourceAsStream(xml)) {</b>
+<b class="pc"><i class="no-highlight">83</i>&nbsp;			if (xmlStream == null) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;				throw new JadxRuntimeException(xml + &quot; not found in classpath&quot;);</b>
+<i class="no-highlight">85</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">86</i>&nbsp;			DocumentBuilder dBuilder = XmlSecurity.getSecureDbf().newDocumentBuilder();</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;			doc = dBuilder.parse(xmlStream);</b>
+<b class="pc"><i class="no-highlight">88</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			throw new JadxRuntimeException(&quot;Xml load error, file: &quot; + xml, e);</b>
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		return doc;</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	private void parse(Document doc) {
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		NodeList nodeList = doc.getChildNodes();</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		for (int count = 0; count &lt; nodeList.getLength(); count++) {</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;			Node node = nodeList.item(count);</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;			if (node.getNodeType() == Node.ELEMENT_NODE</b>
+<b class="pc"><i class="no-highlight">99</i>&nbsp;					&amp;&amp; node.hasChildNodes()) {</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;				parseAttrList(node.getChildNodes());</b>
+<i class="no-highlight">101</i>&nbsp;			}
+<i class="no-highlight">102</i>&nbsp;		}
+<i class="no-highlight">103</i>&nbsp;	}
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;	private void parseAttrList(NodeList nodeList) {
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		for (int count = 0; count &lt; nodeList.getLength(); count++) {</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;			Node tempNode = nodeList.item(count);</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;			if (tempNode.getNodeType() == Node.ELEMENT_NODE</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;					&amp;&amp; tempNode.hasAttributes()</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;					&amp;&amp; tempNode.hasChildNodes()) {</b>
+<b class="fc"><i class="no-highlight">111</i>&nbsp;				String name = null;</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;				NamedNodeMap nodeMap = tempNode.getAttributes();</b>
+<b class="pc"><i class="no-highlight">113</i>&nbsp;				for (int i = 0; i &lt; nodeMap.getLength(); i++) {</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;					Node node = nodeMap.item(i);</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;					if (node.getNodeName().equals(&quot;name&quot;)) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;						name = node.getNodeValue();</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;						break;</b>
+<i class="no-highlight">118</i>&nbsp;					}
+<i class="no-highlight">119</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">120</i>&nbsp;				if (name != null &amp;&amp; tempNode.getNodeName().equals(&quot;attr&quot;)) {</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;					parseValues(name, tempNode.getChildNodes());</b>
+<i class="no-highlight">122</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">123</i>&nbsp;					parseAttrList(tempNode.getChildNodes());</b>
+<i class="no-highlight">124</i>&nbsp;				}
+<i class="no-highlight">125</i>&nbsp;			}
+<i class="no-highlight">126</i>&nbsp;		}
+<i class="no-highlight">127</i>&nbsp;	}
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;	private void parseValues(String name, NodeList nodeList) {
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		MAttr attr = null;</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		for (int count = 0; count &lt; nodeList.getLength(); count++) {</b>
+<b class="fc"><i class="no-highlight">132</i>&nbsp;			Node tempNode = nodeList.item(count);</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;			if (tempNode.getNodeType() == Node.ELEMENT_NODE</b>
+<b class="pc"><i class="no-highlight">134</i>&nbsp;					&amp;&amp; tempNode.hasAttributes()) {</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;				if (attr == null) {</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;					if (tempNode.getNodeName().equals(&quot;enum&quot;)) {</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;						attr = new MAttr(MAttrType.ENUM);</b>
+<b class="pc"><i class="no-highlight">138</i>&nbsp;					} else if (tempNode.getNodeName().equals(&quot;flag&quot;)) {</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;						attr = new MAttr(MAttrType.FLAG);</b>
+<i class="no-highlight">140</i>&nbsp;					}
+<b class="pc"><i class="no-highlight">141</i>&nbsp;					if (attr == null) {</b>
+<i class="no-highlight">142</i>&nbsp;						return;
+<i class="no-highlight">143</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">144</i>&nbsp;					attrMap.put(name, attr);</b>
+<i class="no-highlight">145</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">146</i>&nbsp;				NamedNodeMap attributes = tempNode.getAttributes();</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;				Node nameNode = attributes.getNamedItem(&quot;name&quot;);</b>
+<b class="pc"><i class="no-highlight">148</i>&nbsp;				if (nameNode != null) {</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;					Node valueNode = attributes.getNamedItem(&quot;value&quot;);</b>
+<b class="pc"><i class="no-highlight">150</i>&nbsp;					if (valueNode != null) {</b>
+<i class="no-highlight">151</i>&nbsp;						try {
+<i class="no-highlight">152</i>&nbsp;							long key;
+<b class="fc"><i class="no-highlight">153</i>&nbsp;							String nodeValue = valueNode.getNodeValue();</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;							if (nodeValue.startsWith(&quot;0x&quot;)) {</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;								nodeValue = nodeValue.substring(2);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;								key = Long.parseLong(nodeValue, 16);</b>
+<i class="no-highlight">157</i>&nbsp;							} else {
+<b class="fc"><i class="no-highlight">158</i>&nbsp;								key = Long.parseLong(nodeValue);</b>
+<i class="no-highlight">159</i>&nbsp;							}
+<b class="fc"><i class="no-highlight">160</i>&nbsp;							attr.getValues().put(key, nameNode.getNodeValue());</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;						} catch (NumberFormatException e) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;							LOG.debug(&quot;Failed parse manifest number&quot;, e);</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;						}</b>
+<i class="no-highlight">164</i>&nbsp;					}
+<i class="no-highlight">165</i>&nbsp;				}
+<i class="no-highlight">166</i>&nbsp;			}
+<i class="no-highlight">167</i>&nbsp;		}
+<i class="no-highlight">168</i>&nbsp;	}
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;	public String decode(String attrName, long value) {
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		MAttr attr = attrMap.get(attrName);</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		if (attr == null) {</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;			return null;</b>
+<i class="no-highlight">174</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">175</i>&nbsp;		if (attr.getType() == MAttrType.ENUM) {</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			return attr.getValues().get(value);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;		} else if (attr.getType() == MAttrType.FLAG) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;			List&lt;String&gt; flagList = new LinkedList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;			List&lt;Long&gt; attrKeys = new ArrayList&lt;&gt;(attr.getValues().keySet());</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;			attrKeys.sort((a, b) -&gt; Long.compare(b, a)); // sort descending</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;			for (Long key : attrKeys) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;				String attrValue = attr.getValues().get(key);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;				if (value == key) {</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;					flagList.add(attrValue);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;					break;</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;				} else if ((key != 0) &amp;&amp; ((value &amp; key) == key)) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;					flagList.add(attrValue);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;					value ^= key;</b>
+<i class="no-highlight">189</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;			return flagList.stream().collect(Collectors.joining(&quot;|&quot;));</b>
+<i class="no-highlight">192</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">193</i>&nbsp;		return null;</b>
+<i class="no-highlight">194</i>&nbsp;	}
+<i class="no-highlight">195</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

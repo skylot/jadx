@@ -1,0 +1,332 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > InlineMethods</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: InlineMethods (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InlineMethods</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (20/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89.6%
+  </span>
+  <span class="absValue">
+    (69/77)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">InlineMethods$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (20/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89.7%
+  </span>
+  <span class="absValue">
+    (70/78)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.attributes.nodes.MethodInlineAttr;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.nodes.IMethodDetails;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.utils.ListUtils;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">35</i>&nbsp;		name = &quot;InlineMethods&quot;,
+<i class="no-highlight">36</i>&nbsp;		desc = &quot;Inline methods (previously marked in MarkMethodsForInline)&quot;,
+<i class="no-highlight">37</i>&nbsp;		runAfter = TypeInferenceVisitor.class,
+<i class="no-highlight">38</i>&nbsp;		runBefore = ModVisitor.class
+<i class="no-highlight">39</i>&nbsp;)
+<b class="fc"><i class="no-highlight">40</i>&nbsp;public class InlineMethods extends AbstractVisitor {</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(InlineMethods.class);</b>
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	@Override
+<i class="no-highlight">44</i>&nbsp;	public void visit(MethodNode mth) throws JadxException {
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">46</i>&nbsp;			return;
+<i class="no-highlight">47</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;				if (insn.getType() == InsnType.INVOKE) {</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;					processInvokeInsn(mth, block, ((InvokeNode) insn));</b>
+<i class="no-highlight">52</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">53</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		}</b>
+<i class="no-highlight">55</i>&nbsp;	}
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	private void processInvokeInsn(MethodNode mth, BlockNode block, InvokeNode insn) {
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		IMethodDetails callMthDetails = insn.get(AType.METHOD_DETAILS);</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		if (!(callMthDetails instanceof MethodNode)) {</b>
+<i class="no-highlight">60</i>&nbsp;			return;
+<i class="no-highlight">61</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		MethodNode callMth = (MethodNode) callMthDetails;</b>
+<i class="no-highlight">63</i>&nbsp;		try {
+<i class="no-highlight">64</i>&nbsp;			// TODO: sort inner classes process order by dependencies!
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			MethodInlineAttr mia = MarkMethodsForInline.process(callMth);</b>
+<b class="pc"><i class="no-highlight">66</i>&nbsp;			if (mia == null) {</b>
+<i class="no-highlight">67</i>&nbsp;				// method not yet loaded =&gt; will retry at codegen stage
+<b class="nc"><i class="no-highlight">68</i>&nbsp;				callMth.getParentClass().reloadAtCodegenStage();</b>
+<i class="no-highlight">69</i>&nbsp;				return;
+<i class="no-highlight">70</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">71</i>&nbsp;			if (mia.notNeeded()) {</b>
+<i class="no-highlight">72</i>&nbsp;				return;
+<i class="no-highlight">73</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">74</i>&nbsp;			inlineMethod(mth, callMth, mia, block, insn);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to process method for inline: &quot; + callMth, e);</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		}</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	private void inlineMethod(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, BlockNode block, InvokeNode insn) {
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		InsnNode inlCopy = mia.getInsn().copyWithoutResult();</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		RegisterArg resultArg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		if (resultArg != null) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			inlCopy.setResult(resultArg.duplicate());</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {</b>
+<i class="no-highlight">86</i>&nbsp;			// add fake result to make correct java expression (see test TestGetterInlineNegative)
+<b class="fc"><i class="no-highlight">87</i>&nbsp;			inlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), &quot;unused&quot;));</b>
+<i class="no-highlight">88</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		if (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {</b>
+<i class="no-highlight">90</i>&nbsp;			// remap args
+<b class="fc"><i class="no-highlight">91</i>&nbsp;			InsnArg[] regs = new InsnArg[callMth.getRegsCount()];</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;			int[] regNums = mia.getArgsRegNums();</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			for (int i = 0; i &lt; regNums.length; i++) {</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;				InsnArg arg = insn.getArg(i);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;				regs[regNums[i]] = arg;</b>
+<i class="no-highlight">96</i>&nbsp;			}
+<i class="no-highlight">97</i>&nbsp;			// replace args
+<b class="fc"><i class="no-highlight">98</i>&nbsp;			List&lt;RegisterArg&gt; inlArgs = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;			inlCopy.getRegisterArgs(inlArgs);</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			for (RegisterArg r : inlArgs) {</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;				int regNum = r.getRegNum();</b>
+<b class="pc"><i class="no-highlight">102</i>&nbsp;				if (regNum &gt;= regs.length) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;					LOG.warn(&quot;Unknown register number {} in method call: {} from {}&quot;, r, callMth, mth);</b>
+<i class="no-highlight">104</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">105</i>&nbsp;					InsnArg repl = regs[regNum];</b>
+<b class="pc"><i class="no-highlight">106</i>&nbsp;					if (repl == null) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;						LOG.warn(&quot;Not passed register {} in method call: {} from {}&quot;, r, callMth, mth);</b>
+<i class="no-highlight">108</i>&nbsp;					} else {
+<b class="fc"><i class="no-highlight">109</i>&nbsp;						inlCopy.replaceArg(r, repl);</b>
+<i class="no-highlight">110</i>&nbsp;					}
+<i class="no-highlight">111</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">112</i>&nbsp;			}</b>
+<i class="no-highlight">113</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		IMethodDetails methodDetailsAttr = inlCopy.get(AType.METHOD_DETAILS);</b>
+<b class="pc"><i class="no-highlight">115</i>&nbsp;		if (!BlockUtils.replaceInsn(mth, block, insn, inlCopy)) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;			mth.addWarnComment(&quot;Failed to inline method: &quot; + callMth);</b>
+<i class="no-highlight">117</i>&nbsp;		}
+<i class="no-highlight">118</i>&nbsp;		// replaceInsn replaces the attributes as well, make sure to preserve METHOD_DETAILS
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		if (methodDetailsAttr != null) {</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;			inlCopy.addAttr(methodDetailsAttr);</b>
+<i class="no-highlight">121</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		updateUsageInfo(mth, callMth, mia.getInsn());</b>
+<i class="no-highlight">123</i>&nbsp;	}
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;	private boolean isAssignNeeded(InsnNode inlineInsn, InvokeNode parentInsn, MethodNode callMthNode) {
+<b class="pc"><i class="no-highlight">126</i>&nbsp;		if (parentInsn.getResult() != null) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;			return false;</b>
+<i class="no-highlight">128</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">129</i>&nbsp;		if (parentInsn.contains(AFlag.WRAPPED)) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;			return false;</b>
+<i class="no-highlight">131</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		if (inlineInsn.getType() == InsnType.IPUT) {</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;			return false;</b>
+<i class="no-highlight">134</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		return !callMthNode.isVoidReturn();</b>
+<i class="no-highlight">136</i>&nbsp;	}
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;	private RegisterArg makeFakeArg(MethodNode mth, ArgType varType, String name) {
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		RegisterArg fakeArg = RegisterArg.reg(0, varType);</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		SSAVar ssaVar = mth.makeNewSVar(fakeArg);</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		InitCodeVariables.initCodeVar(ssaVar);</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		fakeArg.setName(name);</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;		ssaVar.setType(varType);</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		return fakeArg;</b>
+<i class="no-highlight">145</i>&nbsp;	}
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;	private void updateUsageInfo(MethodNode mth, MethodNode inlinedMth, InsnNode insn) {
+<b class="fc"><i class="no-highlight">148</i>&nbsp;		inlinedMth.getUseIn().remove(mth);</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		insn.visitInsns(innerInsn -&gt; {</b>
+<i class="no-highlight">150</i>&nbsp;			// TODO: share code with UsageInfoVisitor
+<b class="pc"><i class="no-highlight">151</i>&nbsp;			switch (innerInsn.getType()) {</b>
+<i class="no-highlight">152</i>&nbsp;				case INVOKE:
+<i class="no-highlight">153</i>&nbsp;				case CONSTRUCTOR:
+<b class="fc"><i class="no-highlight">154</i>&nbsp;					MethodInfo callMth = ((BaseInvokeNode) innerInsn).getCallMth();</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;					MethodNode callMthNode = mth.root().resolveMethod(callMth);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;					if (callMthNode != null) {</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;						callMthNode.setUseIn(ListUtils.safeReplace(callMthNode.getUseIn(), inlinedMth, mth));</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;						replaceClsUsage(mth, inlinedMth, callMthNode.getParentClass());</b>
+<i class="no-highlight">159</i>&nbsp;					}
+<i class="no-highlight">160</i>&nbsp;					break;
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;				case IGET:
+<i class="no-highlight">163</i>&nbsp;				case IPUT:
+<i class="no-highlight">164</i>&nbsp;				case SPUT:
+<i class="no-highlight">165</i>&nbsp;				case SGET:
+<b class="fc"><i class="no-highlight">166</i>&nbsp;					FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) innerInsn).getIndex();</b>
+<b class="fc"><i class="no-highlight">167</i>&nbsp;					FieldNode fieldNode = mth.root().resolveField(fieldInfo);</b>
+<b class="pc"><i class="no-highlight">168</i>&nbsp;					if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;						fieldNode.setUseIn(ListUtils.safeReplace(fieldNode.getUseIn(), inlinedMth, mth));</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;						replaceClsUsage(mth, inlinedMth, fieldNode.getParentClass());</b>
+<i class="no-highlight">171</i>&nbsp;					}
+<i class="no-highlight">172</i>&nbsp;					break;
+<i class="no-highlight">173</i>&nbsp;			}
+<i class="no-highlight">174</i>&nbsp;		});
+<i class="no-highlight">175</i>&nbsp;	}
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;	private void replaceClsUsage(MethodNode mth, MethodNode inlinedMth, ClassNode parentClass) {
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		parentClass.setUseInMth(ListUtils.safeReplace(parentClass.getUseInMth(), inlinedMth, mth));</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		parentClass.setUseIn(ListUtils.safeReplace(parentClass.getUseIn(), inlinedMth.getParentClass(), mth.getParentClass()));</b>
+<i class="no-highlight">180</i>&nbsp;	}
+<i class="no-highlight">181</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

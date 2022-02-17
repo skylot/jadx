@@ -1,0 +1,196 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LafManager</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: LafManager (jadx.gui.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LafManager</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import javax.swing.UIManager;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import com.formdev.flatlaf.FlatDarculaLaf;
+<i class="no-highlight">12</i>&nbsp;import com.formdev.flatlaf.FlatDarkLaf;
+<i class="no-highlight">13</i>&nbsp;import com.formdev.flatlaf.FlatIntelliJLaf;
+<i class="no-highlight">14</i>&nbsp;import com.formdev.flatlaf.FlatLaf;
+<i class="no-highlight">15</i>&nbsp;import com.formdev.flatlaf.FlatLightLaf;
+<i class="no-highlight">16</i>&nbsp;import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+<i class="no-highlight">17</i>&nbsp;import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.gui.settings.JadxSettings;
+<i class="no-highlight">20</i>&nbsp;
+<b class="nc"><i class="no-highlight">21</i>&nbsp;public class LafManager {</b>
+<b class="nc"><i class="no-highlight">22</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);</b>
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	public static final String SYSTEM_THEME_NAME = &quot;default&quot;;
+<i class="no-highlight">25</i>&nbsp;	public static final String INITIAL_THEME_NAME = FlatLightLaf.NAME;
+<i class="no-highlight">26</i>&nbsp;
+<b class="nc"><i class="no-highlight">27</i>&nbsp;	private static final Map&lt;String, String&gt; THEMES_MAP = initThemesMap();</b>
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;	public static void init(JadxSettings settings) {
+<b class="nc"><i class="no-highlight">30</i>&nbsp;		if (setupLaf(getThemeClass(settings))) {</b>
+<i class="no-highlight">31</i>&nbsp;			return;
+<i class="no-highlight">32</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		setupLaf(SYSTEM_THEME_NAME);</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		settings.setLafTheme(SYSTEM_THEME_NAME);</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		settings.sync();</b>
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	public static void updateLaf(JadxSettings settings) {
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		if (setupLaf(getThemeClass(settings))) {</b>
+<i class="no-highlight">40</i>&nbsp;			// update all components
+<b class="nc"><i class="no-highlight">41</i>&nbsp;			FlatLaf.updateUI();</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;			FlatAnimatedLafChange.hideSnapshotWithAnimation();</b>
+<i class="no-highlight">43</i>&nbsp;		}
+<i class="no-highlight">44</i>&nbsp;	}
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;	public static String[] getThemes() {
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		return THEMES_MAP.keySet().toArray(new String[0]);</b>
+<i class="no-highlight">48</i>&nbsp;	}
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;	private static String getThemeClass(JadxSettings settings) {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		return THEMES_MAP.get(settings.getLafTheme());</b>
+<i class="no-highlight">52</i>&nbsp;	}
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;	private static boolean setupLaf(String themeClass) {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		if (SYSTEM_THEME_NAME.equals(themeClass)) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;			return applyLaf(UIManager.getSystemLookAndFeelClassName());</b>
+<i class="no-highlight">57</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		if (themeClass != null &amp;&amp; !themeClass.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;			return applyLaf(themeClass);</b>
+<i class="no-highlight">60</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		return false;</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	private static Map&lt;String, String&gt; initThemesMap() {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		Map&lt;String, String&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		map.put(SYSTEM_THEME_NAME, SYSTEM_THEME_NAME);</b>
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;		// default flatlaf themes
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		map.put(FlatLightLaf.NAME, FlatLightLaf.class.getName());</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		map.put(FlatDarkLaf.NAME, FlatDarkLaf.class.getName());</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		map.put(FlatIntelliJLaf.NAME, FlatIntelliJLaf.class.getName());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		map.put(FlatDarculaLaf.NAME, FlatDarculaLaf.class.getName());</b>
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;		// themes from flatlaf-intellij-themes
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		for (FlatAllIJThemes.FlatIJLookAndFeelInfo themeInfo : FlatAllIJThemes.INFOS) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;			map.put(themeInfo.getName(), themeInfo.getClassName());</b>
+<i class="no-highlight">77</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		return map;</b>
+<i class="no-highlight">79</i>&nbsp;	}
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	private static boolean applyLaf(String theme) {
+<i class="no-highlight">82</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;			FlatAnimatedLafChange.showSnapshot();</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			UIManager.setLookAndFeel(theme);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;			return true;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			LOG.error(&quot;Failed to set laf to {}&quot;, theme, e);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			return false;</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

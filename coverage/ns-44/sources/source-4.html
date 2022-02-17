@@ -1,0 +1,975 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxSettingsWindow</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.settings</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxSettingsWindow (jadx.gui.settings)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxSettingsWindow</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/56)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/351)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$3</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$4</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$5</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$JPreferredFontChooser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JadxSettingsWindow$SettingsGroup</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/77)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/430)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.settings;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.BorderLayout;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Component;
+<i class="no-highlight">5</i>&nbsp;import java.awt.Container;
+<i class="no-highlight">6</i>&nbsp;import java.awt.Dimension;
+<i class="no-highlight">7</i>&nbsp;import java.awt.Font;
+<i class="no-highlight">8</i>&nbsp;import java.awt.GraphicsEnvironment;
+<i class="no-highlight">9</i>&nbsp;import java.awt.GridBagConstraints;
+<i class="no-highlight">10</i>&nbsp;import java.awt.GridBagLayout;
+<i class="no-highlight">11</i>&nbsp;import java.awt.Insets;
+<i class="no-highlight">12</i>&nbsp;import java.awt.Toolkit;
+<i class="no-highlight">13</i>&nbsp;import java.awt.datatransfer.Clipboard;
+<i class="no-highlight">14</i>&nbsp;import java.awt.datatransfer.StringSelection;
+<i class="no-highlight">15</i>&nbsp;import java.awt.event.ActionEvent;
+<i class="no-highlight">16</i>&nbsp;import java.awt.event.ItemEvent;
+<i class="no-highlight">17</i>&nbsp;import java.awt.event.MouseAdapter;
+<i class="no-highlight">18</i>&nbsp;import java.awt.event.MouseEvent;
+<i class="no-highlight">19</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">20</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">21</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">22</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">23</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">24</i>&nbsp;import java.util.Set;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import javax.swing.AbstractAction;
+<i class="no-highlight">27</i>&nbsp;import javax.swing.BorderFactory;
+<i class="no-highlight">28</i>&nbsp;import javax.swing.Box;
+<i class="no-highlight">29</i>&nbsp;import javax.swing.BoxLayout;
+<i class="no-highlight">30</i>&nbsp;import javax.swing.InputMap;
+<i class="no-highlight">31</i>&nbsp;import javax.swing.JButton;
+<i class="no-highlight">32</i>&nbsp;import javax.swing.JCheckBox;
+<i class="no-highlight">33</i>&nbsp;import javax.swing.JComboBox;
+<i class="no-highlight">34</i>&nbsp;import javax.swing.JComponent;
+<i class="no-highlight">35</i>&nbsp;import javax.swing.JDialog;
+<i class="no-highlight">36</i>&nbsp;import javax.swing.JLabel;
+<i class="no-highlight">37</i>&nbsp;import javax.swing.JOptionPane;
+<i class="no-highlight">38</i>&nbsp;import javax.swing.JPanel;
+<i class="no-highlight">39</i>&nbsp;import javax.swing.JScrollPane;
+<i class="no-highlight">40</i>&nbsp;import javax.swing.JSpinner;
+<i class="no-highlight">41</i>&nbsp;import javax.swing.JTextField;
+<i class="no-highlight">42</i>&nbsp;import javax.swing.KeyStroke;
+<i class="no-highlight">43</i>&nbsp;import javax.swing.ScrollPaneConstants;
+<i class="no-highlight">44</i>&nbsp;import javax.swing.SpinnerNumberModel;
+<i class="no-highlight">45</i>&nbsp;import javax.swing.SwingConstants;
+<i class="no-highlight">46</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">47</i>&nbsp;import javax.swing.WindowConstants;
+<i class="no-highlight">48</i>&nbsp;import javax.swing.event.ChangeEvent;
+<i class="no-highlight">49</i>&nbsp;import javax.swing.event.ChangeListener;
+<i class="no-highlight">50</i>&nbsp;import javax.swing.event.DocumentEvent;
+<i class="no-highlight">51</i>&nbsp;import javax.swing.event.DocumentListener;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">54</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;import com.google.gson.GsonBuilder;
+<i class="no-highlight">57</i>&nbsp;import com.google.gson.JsonObject;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;import say.swing.JFontChooser;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;import jadx.api.CommentsLevel;
+<i class="no-highlight">62</i>&nbsp;import jadx.api.JadxArgs;
+<i class="no-highlight">63</i>&nbsp;import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
+<i class="no-highlight">64</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">65</i>&nbsp;import jadx.gui.ui.codearea.EditorTheme;
+<i class="no-highlight">66</i>&nbsp;import jadx.gui.utils.FontUtils;
+<i class="no-highlight">67</i>&nbsp;import jadx.gui.utils.LafManager;
+<i class="no-highlight">68</i>&nbsp;import jadx.gui.utils.LangLocale;
+<i class="no-highlight">69</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">70</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">71</i>&nbsp;
+<b class="nc"><i class="no-highlight">72</i>&nbsp;public class JadxSettingsWindow extends JDialog {</b>
+<i class="no-highlight">73</i>&nbsp;	private static final long serialVersionUID = -1804570470377354148L;
+<i class="no-highlight">74</i>&nbsp;
+<b class="nc"><i class="no-highlight">75</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JadxSettingsWindow.class);</b>
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;	private final transient MainWindow mainWindow;
+<i class="no-highlight">78</i>&nbsp;	private final transient JadxSettings settings;
+<i class="no-highlight">79</i>&nbsp;	private final transient String startSettings;
+<i class="no-highlight">80</i>&nbsp;	private final transient LangLocale prevLang;
+<i class="no-highlight">81</i>&nbsp;
+<b class="nc"><i class="no-highlight">82</i>&nbsp;	private transient boolean needReload = false;</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		this.settings = settings;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		this.startSettings = JadxSettingsAdapter.makeString(settings);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		this.prevLang = settings.getLangLocale();</b>
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		initUI();</b>
+<i class="no-highlight">91</i>&nbsp;
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		setTitle(NLS.str(&quot;preferences.title&quot;));</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		setSize(400, 550);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		setModalityType(ModalityType.APPLICATION_MODAL);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		pack();</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		UiUtils.setWindowIcons(this);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;		setLocationRelativeTo(null);</b>
+<i class="no-highlight">99</i>&nbsp;	}
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;	private void initUI() {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		JPanel panel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));</b>
+<i class="no-highlight">105</i>&nbsp;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;		JPanel leftPanel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;		JPanel rightPanel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.PAGE_AXIS));</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;		panel.add(leftPanel);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;		panel.add(rightPanel);</b>
+<i class="no-highlight">112</i>&nbsp;
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		leftPanel.add(makeDeobfuscationGroup());</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;		leftPanel.add(makeRenameGroup());</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;		leftPanel.add(makeProjectGroup());</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;		leftPanel.add(makeAppearanceGroup());</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;		leftPanel.add(makeOtherGroup());</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;		leftPanel.add(makeSearchResGroup());</b>
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;		rightPanel.add(makeDecompilationGroup());</b>
+<i class="no-highlight">121</i>&nbsp;
+<b class="nc"><i class="no-highlight">122</i>&nbsp;		JButton saveBtn = new JButton(NLS.str(&quot;preferences.save&quot;));</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;		saveBtn.addActionListener(event -&gt; {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;			settings.sync();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;			enableComponents(this, false);</b>
+<i class="no-highlight">126</i>&nbsp;
+<b class="nc"><i class="no-highlight">127</i>&nbsp;			SwingUtilities.invokeLater(() -&gt; {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;				if (needReload) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;					mainWindow.reOpenFile();</b>
+<i class="no-highlight">130</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">131</i>&nbsp;				if (!settings.getLangLocale().equals(prevLang)) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;					JOptionPane.showMessageDialog(</b>
+<i class="no-highlight">133</i>&nbsp;							this,
+<b class="nc"><i class="no-highlight">134</i>&nbsp;							NLS.str(&quot;msg.language_changed&quot;, settings.getLangLocale()),</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;							NLS.str(&quot;msg.language_changed_title&quot;, settings.getLangLocale()),</b>
+<i class="no-highlight">136</i>&nbsp;							JOptionPane.INFORMATION_MESSAGE);
+<i class="no-highlight">137</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">138</i>&nbsp;				dispose();</b>
+<i class="no-highlight">139</i>&nbsp;			});
+<i class="no-highlight">140</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">141</i>&nbsp;		JButton cancelButton = new JButton(NLS.str(&quot;preferences.cancel&quot;));</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;		cancelButton.addActionListener(event -&gt; cancel());</b>
+<i class="no-highlight">143</i>&nbsp;
+<b class="nc"><i class="no-highlight">144</i>&nbsp;		JButton resetBtn = new JButton(NLS.str(&quot;preferences.reset&quot;));</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;		resetBtn.addActionListener(event -&gt; {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;			int res = JOptionPane.showConfirmDialog(</b>
+<i class="no-highlight">147</i>&nbsp;					JadxSettingsWindow.this,
+<b class="nc"><i class="no-highlight">148</i>&nbsp;					NLS.str(&quot;preferences.reset_message&quot;),</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;					NLS.str(&quot;preferences.reset_title&quot;),</b>
+<i class="no-highlight">150</i>&nbsp;					JOptionPane.YES_NO_OPTION);
+<b class="nc"><i class="no-highlight">151</i>&nbsp;			if (res == JOptionPane.YES_OPTION) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;				JadxSettingsAdapter.fill(settings, defaults);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;				mainWindow.loadSettings();</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;				needReload();</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;				getContentPane().removeAll();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;				initUI();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;				pack();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;				repaint();</b>
+<i class="no-highlight">160</i>&nbsp;			}
+<i class="no-highlight">161</i>&nbsp;		});
+<i class="no-highlight">162</i>&nbsp;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;		JButton copyBtn = new JButton(NLS.str(&quot;preferences.copy&quot;));</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;		copyBtn.addActionListener(event -&gt; {</b>
+<i class="no-highlight">165</i>&nbsp;
+<b class="nc"><i class="no-highlight">166</i>&nbsp;			JsonObject settingsJson = JadxSettingsAdapter.makeJsonObject(this.settings);</b>
+<i class="no-highlight">167</i>&nbsp;			// remove irrelevant preferences
+<b class="nc"><i class="no-highlight">168</i>&nbsp;			settingsJson.remove(&quot;windowPos&quot;);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;			settingsJson.remove(&quot;mainWindowExtendedState&quot;);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;			settingsJson.remove(&quot;lastSaveProjectPath&quot;);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;			settingsJson.remove(&quot;lastOpenFilePath&quot;);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;			settingsJson.remove(&quot;lastSaveFilePath&quot;);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;			settingsJson.remove(&quot;recentProjects&quot;);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;			String settingsText = new GsonBuilder().setPrettyPrinting().create().toJson(settingsJson);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;			StringSelection selection = new StringSelection(settingsText);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;			clipboard.setContents(selection, selection);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;			JOptionPane.showMessageDialog(</b>
+<i class="no-highlight">179</i>&nbsp;					JadxSettingsWindow.this,
+<b class="nc"><i class="no-highlight">180</i>&nbsp;					NLS.str(&quot;preferences.copy_message&quot;));</b>
+<i class="no-highlight">181</i>&nbsp;		});
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;		JPanel buttonPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;		buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;		buttonPane.add(resetBtn);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;		buttonPane.add(copyBtn);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;		buttonPane.add(Box.createHorizontalGlue());</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		buttonPane.add(saveBtn);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;		buttonPane.add(cancelButton);</b>
+<i class="no-highlight">192</i>&nbsp;
+<b class="nc"><i class="no-highlight">193</i>&nbsp;		Container contentPane = getContentPane();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;		JScrollPane scrollPane = new JScrollPane(panel);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;		scrollPane.getVerticalScrollBar().setUnitIncrement(16);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;		contentPane.add(scrollPane, BorderLayout.CENTER);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;		contentPane.add(buttonPane, BorderLayout.PAGE_END);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		getRootPane().setDefaultButton(saveBtn);</b>
+<i class="no-highlight">200</i>&nbsp;
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		KeyStroke strokeEsc = KeyStroke.getKeyStroke(&quot;ESCAPE&quot;);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;		InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;		inputMap.put(strokeEsc, &quot;ESCAPE&quot;);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;		getRootPane().getActionMap().put(&quot;ESCAPE&quot;, new AbstractAction() {</b>
+<i class="no-highlight">205</i>&nbsp;			@Override
+<i class="no-highlight">206</i>&nbsp;			public void actionPerformed(ActionEvent e) {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;				cancel();</b>
+<i class="no-highlight">208</i>&nbsp;			}
+<i class="no-highlight">209</i>&nbsp;		});
+<i class="no-highlight">210</i>&nbsp;	}
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;	private void cancel() {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;		JadxSettingsAdapter.fill(settings, startSettings);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;		mainWindow.loadSettings();</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;		dispose();</b>
+<i class="no-highlight">216</i>&nbsp;	}
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;	private static void enableComponents(Container container, boolean enable) {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;		for (Component component : container.getComponents()) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;			if (component instanceof Container) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;				enableComponents((Container) component, enable);</b>
+<i class="no-highlight">222</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">223</i>&nbsp;			component.setEnabled(enable);</b>
+<i class="no-highlight">224</i>&nbsp;		}
+<i class="no-highlight">225</i>&nbsp;	}
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;	private SettingsGroup makeDeobfuscationGroup() {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;		JCheckBox deobfOn = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;		deobfOn.setSelected(settings.isDeobfuscationOn());</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;		deobfOn.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;			settings.setDeobfuscationOn(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;			needReload();</b>
+<i class="no-highlight">233</i>&nbsp;		});
+<i class="no-highlight">234</i>&nbsp;
+<b class="nc"><i class="no-highlight">235</i>&nbsp;		JCheckBox deobfForce = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;		deobfForce.setSelected(settings.isDeobfuscationForceSave());</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;		deobfForce.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;			settings.setDeobfuscationForceSave(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;			needReload();</b>
+<i class="no-highlight">240</i>&nbsp;		});
+<i class="no-highlight">241</i>&nbsp;
+<b class="nc"><i class="no-highlight">242</i>&nbsp;		SpinnerNumberModel minLenModel = new SpinnerNumberModel(settings.getDeobfuscationMinLength(), 0, Integer.MAX_VALUE, 1);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;		JSpinner minLenSpinner = new JSpinner(minLenModel);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;		minLenSpinner.addChangeListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;			settings.setDeobfuscationMinLength((Integer) minLenSpinner.getValue());</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;			needReload();</b>
+<i class="no-highlight">247</i>&nbsp;		});
+<i class="no-highlight">248</i>&nbsp;
+<b class="nc"><i class="no-highlight">249</i>&nbsp;		SpinnerNumberModel maxLenModel = new SpinnerNumberModel(settings.getDeobfuscationMaxLength(), 0, Integer.MAX_VALUE, 1);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;		JSpinner maxLenSpinner = new JSpinner(maxLenModel);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;		maxLenSpinner.addChangeListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;			settings.setDeobfuscationMaxLength((Integer) maxLenSpinner.getValue());</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;			needReload();</b>
+<i class="no-highlight">254</i>&nbsp;		});
+<i class="no-highlight">255</i>&nbsp;
+<b class="nc"><i class="no-highlight">256</i>&nbsp;		JCheckBox deobfSourceAlias = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;		deobfSourceAlias.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;			needReload();</b>
+<i class="no-highlight">261</i>&nbsp;		});
+<i class="no-highlight">262</i>&nbsp;
+<b class="nc"><i class="no-highlight">263</i>&nbsp;		JCheckBox deobfKotlinMetadata = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;		deobfKotlinMetadata.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;			needReload();</b>
+<i class="no-highlight">268</i>&nbsp;		});
+<i class="no-highlight">269</i>&nbsp;
+<b class="nc"><i class="no-highlight">270</i>&nbsp;		SettingsGroup deobfGroup = new SettingsGroup(NLS.str(&quot;preferences.deobfuscation&quot;));</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_on&quot;), deobfOn);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_force&quot;), deobfForce);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_min_len&quot;), minLenSpinner);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_max_len&quot;), maxLenSpinner);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_source_alias&quot;), deobfSourceAlias);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;		deobfGroup.addRow(NLS.str(&quot;preferences.deobfuscation_kotlin_metadata&quot;), deobfKotlinMetadata);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;		deobfGroup.end();</b>
+<i class="no-highlight">278</i>&nbsp;
+<b class="nc"><i class="no-highlight">279</i>&nbsp;		Collection&lt;JComponent&gt; connectedComponents =</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;				Arrays.asList(deobfForce, minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;		deobfOn.addItemListener(e -&gt; enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;		enableComponentList(connectedComponents, settings.isDeobfuscationOn());</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;		return deobfGroup;</b>
+<i class="no-highlight">284</i>&nbsp;	}
+<i class="no-highlight">285</i>&nbsp;
+<i class="no-highlight">286</i>&nbsp;	private SettingsGroup makeRenameGroup() {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;		JCheckBox renameCaseSensitive = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;		renameCaseSensitive.setSelected(settings.isRenameCaseSensitive());</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;		renameCaseSensitive.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;			settings.updateRenameFlag(JadxArgs.RenameEnum.CASE, e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;			needReload();</b>
+<i class="no-highlight">292</i>&nbsp;		});
+<i class="no-highlight">293</i>&nbsp;
+<b class="nc"><i class="no-highlight">294</i>&nbsp;		JCheckBox renameValid = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;		renameValid.setSelected(settings.isRenameValid());</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;		renameValid.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;			settings.updateRenameFlag(JadxArgs.RenameEnum.VALID, e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;			needReload();</b>
+<i class="no-highlight">299</i>&nbsp;		});
+<i class="no-highlight">300</i>&nbsp;
+<b class="nc"><i class="no-highlight">301</i>&nbsp;		JCheckBox renamePrintable = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;		renamePrintable.setSelected(settings.isRenamePrintable());</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;		renamePrintable.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;			settings.updateRenameFlag(JadxArgs.RenameEnum.PRINTABLE, e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;			needReload();</b>
+<i class="no-highlight">306</i>&nbsp;		});
+<i class="no-highlight">307</i>&nbsp;
+<b class="nc"><i class="no-highlight">308</i>&nbsp;		SettingsGroup group = new SettingsGroup(NLS.str(&quot;preferences.rename&quot;));</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.rename_case&quot;), renameCaseSensitive);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.rename_valid&quot;), renameValid);</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.rename_printable&quot;), renamePrintable);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;		return group;</b>
+<i class="no-highlight">313</i>&nbsp;	}
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;	private void enableComponentList(Collection&lt;JComponent&gt; connectedComponents, boolean enabled) {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;		connectedComponents.forEach(comp -&gt; comp.setEnabled(enabled));</b>
+<i class="no-highlight">317</i>&nbsp;	}
+<i class="no-highlight">318</i>&nbsp;
+<i class="no-highlight">319</i>&nbsp;	private SettingsGroup makeProjectGroup() {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;		JCheckBox autoSave = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;		autoSave.setSelected(settings.isAutoSaveProject());</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;		autoSave.addItemListener(e -&gt; settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));</b>
+<i class="no-highlight">323</i>&nbsp;
+<b class="nc"><i class="no-highlight">324</i>&nbsp;		SettingsGroup group = new SettingsGroup(NLS.str(&quot;preferences.project&quot;));</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.autoSave&quot;), autoSave);</b>
+<i class="no-highlight">326</i>&nbsp;
+<b class="nc"><i class="no-highlight">327</i>&nbsp;		return group;</b>
+<i class="no-highlight">328</i>&nbsp;	}
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;	private SettingsGroup makeAppearanceGroup() {
+<b class="nc"><i class="no-highlight">331</i>&nbsp;		JButton fontBtn = new JButton(NLS.str(&quot;preferences.select_font&quot;));</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;		JButton smaliFontBtn = new JButton(NLS.str(&quot;preferences.select_smali_font&quot;));</b>
+<i class="no-highlight">333</i>&nbsp;
+<b class="nc"><i class="no-highlight">334</i>&nbsp;		EditorTheme[] editorThemes = EditorTheme.getAllThemes();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;		JComboBox&lt;EditorTheme&gt; themesCbx = new JComboBox&lt;&gt;(editorThemes);</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;		for (EditorTheme theme : editorThemes) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;			if (theme.getPath().equals(settings.getEditorThemePath())) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;				themesCbx.setSelectedItem(theme);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;				break;</b>
+<i class="no-highlight">340</i>&nbsp;			}
+<i class="no-highlight">341</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">342</i>&nbsp;		themesCbx.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;			int i = themesCbx.getSelectedIndex();</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;			EditorTheme editorTheme = editorThemes[i];</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;			settings.setEditorThemePath(editorTheme.getPath());</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;			mainWindow.loadSettings();</b>
+<i class="no-highlight">347</i>&nbsp;		});
+<i class="no-highlight">348</i>&nbsp;
+<b class="nc"><i class="no-highlight">349</i>&nbsp;		JComboBox&lt;String&gt; lafCbx = new JComboBox&lt;&gt;(LafManager.getThemes());</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;		lafCbx.setSelectedItem(settings.getLafTheme());</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;		lafCbx.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;			settings.setLafTheme((String) lafCbx.getSelectedItem());</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;			mainWindow.loadSettings();</b>
+<i class="no-highlight">354</i>&nbsp;		});
+<i class="no-highlight">355</i>&nbsp;
+<b class="nc"><i class="no-highlight">356</i>&nbsp;		SettingsGroup group = new SettingsGroup(NLS.str(&quot;preferences.appearance&quot;));</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.laf_theme&quot;), lafCbx);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.theme&quot;), themesCbx);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;		JLabel smaliFontLabel = group.addRow(getSmaliFontLabelStr(), smaliFontBtn);</b>
+<i class="no-highlight">361</i>&nbsp;
+<b class="nc"><i class="no-highlight">362</i>&nbsp;		fontBtn.addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">363</i>&nbsp;			@Override
+<i class="no-highlight">364</i>&nbsp;			public void mouseClicked(MouseEvent e) {
+<b class="nc"><i class="no-highlight">365</i>&nbsp;				JFontChooser fontChooser = new JFontChooser();</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;				fontChooser.setSelectedFont(settings.getFont());</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;				int result = fontChooser.showDialog(JadxSettingsWindow.this);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;				if (result == JFontChooser.OK_OPTION) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;					Font font = fontChooser.getSelectedFont();</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;					LOG.debug(&quot;Selected Font: {}&quot;, font);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;					settings.setFont(font);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;					mainWindow.loadSettings();</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;					fontLabel.setText(getFontLabelStr());</b>
+<i class="no-highlight">374</i>&nbsp;				}
+<i class="no-highlight">375</i>&nbsp;			}
+<i class="no-highlight">376</i>&nbsp;		});
+<i class="no-highlight">377</i>&nbsp;
+<b class="nc"><i class="no-highlight">378</i>&nbsp;		smaliFontBtn.addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">379</i>&nbsp;			@Override
+<i class="no-highlight">380</i>&nbsp;			public void mouseClicked(MouseEvent e) {
+<b class="nc"><i class="no-highlight">381</i>&nbsp;				JFontChooser fontChooser = new JPreferredFontChooser();</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;				fontChooser.setSelectedFont(settings.getSmaliFont());</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;				int result = fontChooser.showDialog(JadxSettingsWindow.this);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;				if (result == JFontChooser.OK_OPTION) {</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;					Font font = fontChooser.getSelectedFont();</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;					LOG.debug(&quot;Selected Font: {} for smali&quot;, font);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;					settings.setSmaliFont(font);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;					mainWindow.loadSettings();</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;					smaliFontLabel.setText(getSmaliFontLabelStr());</b>
+<i class="no-highlight">390</i>&nbsp;				}
+<i class="no-highlight">391</i>&nbsp;			}
+<i class="no-highlight">392</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">393</i>&nbsp;		return group;</b>
+<i class="no-highlight">394</i>&nbsp;	}
+<i class="no-highlight">395</i>&nbsp;
+<i class="no-highlight">396</i>&nbsp;	private String getFontLabelStr() {
+<b class="nc"><i class="no-highlight">397</i>&nbsp;		Font font = settings.getFont();</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;		return NLS.str(&quot;preferences.font&quot;) + &quot;: &quot; + font.getFontName() + &#39; &#39; + fontStyleName + &#39; &#39; + font.getSize();</b>
+<i class="no-highlight">400</i>&nbsp;	}
+<i class="no-highlight">401</i>&nbsp;
+<i class="no-highlight">402</i>&nbsp;	private String getSmaliFontLabelStr() {
+<b class="nc"><i class="no-highlight">403</i>&nbsp;		Font font = settings.getSmaliFont();</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;		return NLS.str(&quot;preferences.smali_font&quot;) + &quot;: &quot; + font.getFontName() + &#39; &#39; + fontStyleName + &#39; &#39; + font.getSize();</b>
+<i class="no-highlight">406</i>&nbsp;	}
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;	private SettingsGroup makeDecompilationGroup() {
+<b class="nc"><i class="no-highlight">409</i>&nbsp;		JCheckBox fallback = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;		fallback.setSelected(settings.isFallbackMode());</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;		fallback.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;			settings.setFallbackMode(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;			needReload();</b>
+<i class="no-highlight">414</i>&nbsp;		});
+<i class="no-highlight">415</i>&nbsp;
+<b class="nc"><i class="no-highlight">416</i>&nbsp;		JCheckBox useDx = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;		useDx.setSelected(settings.isUseDx());</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;		useDx.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;			settings.setUseDx(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;			needReload();</b>
+<i class="no-highlight">421</i>&nbsp;		});
+<i class="no-highlight">422</i>&nbsp;
+<b class="nc"><i class="no-highlight">423</i>&nbsp;		JCheckBox showInconsistentCode = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;		showInconsistentCode.setSelected(settings.isShowInconsistentCode());</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;		showInconsistentCode.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;			settings.setShowInconsistentCode(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;			needReload();</b>
+<i class="no-highlight">428</i>&nbsp;		});
+<i class="no-highlight">429</i>&nbsp;
+<b class="nc"><i class="no-highlight">430</i>&nbsp;		JCheckBox resourceDecode = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;		resourceDecode.setSelected(settings.isSkipResources());</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;		resourceDecode.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;			settings.setSkipResources(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;			needReload();</b>
+<i class="no-highlight">435</i>&nbsp;		});
+<i class="no-highlight">436</i>&nbsp;
+<i class="no-highlight">437</i>&nbsp;		// fix for #1331
+<b class="nc"><i class="no-highlight">438</i>&nbsp;		int threadsCountValue = settings.getThreadsCount();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;		int threadsCountMax = Math.max(2, Math.max(threadsCountValue, Runtime.getRuntime().availableProcessors() * 2));</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(threadsCountValue, 1, threadsCountMax, 1);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;		JSpinner threadsCount = new JSpinner(spinnerModel);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;		threadsCount.addChangeListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;			settings.setThreadsCount((Integer) threadsCount.getValue());</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;			needReload();</b>
+<i class="no-highlight">445</i>&nbsp;		});
+<i class="no-highlight">446</i>&nbsp;
+<b class="nc"><i class="no-highlight">447</i>&nbsp;		JButton editExcludedPackages = new JButton(NLS.str(&quot;preferences.excludedPackages.button&quot;));</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;		editExcludedPackages.addActionListener(event -&gt; {</b>
+<i class="no-highlight">449</i>&nbsp;
+<b class="nc"><i class="no-highlight">450</i>&nbsp;			String oldExcludedPackages = settings.getExcludedPackages();</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;			String result = JOptionPane.showInputDialog(this, NLS.str(&quot;preferences.excludedPackages.editDialog&quot;),</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;					settings.getExcludedPackages());</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;			if (result != null) {</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;				settings.setExcludedPackages(result);</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;				if (!oldExcludedPackages.equals(result)) {</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;					needReload();</b>
+<i class="no-highlight">457</i>&nbsp;				}
+<i class="no-highlight">458</i>&nbsp;			}
+<i class="no-highlight">459</i>&nbsp;		});
+<i class="no-highlight">460</i>&nbsp;
+<b class="nc"><i class="no-highlight">461</i>&nbsp;		JCheckBox autoStartJobs = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;		autoStartJobs.setSelected(settings.isAutoStartJobs());</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;		autoStartJobs.addItemListener(e -&gt; settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED));</b>
+<i class="no-highlight">464</i>&nbsp;
+<b class="nc"><i class="no-highlight">465</i>&nbsp;		JCheckBox escapeUnicode = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;		escapeUnicode.setSelected(settings.isEscapeUnicode());</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;		escapeUnicode.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;			settings.setEscapeUnicode(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;			needReload();</b>
+<i class="no-highlight">470</i>&nbsp;		});
+<i class="no-highlight">471</i>&nbsp;
+<b class="nc"><i class="no-highlight">472</i>&nbsp;		JCheckBox replaceConsts = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;		replaceConsts.setSelected(settings.isReplaceConsts());</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;		replaceConsts.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;			settings.setReplaceConsts(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;			needReload();</b>
+<i class="no-highlight">477</i>&nbsp;		});
+<i class="no-highlight">478</i>&nbsp;
+<b class="nc"><i class="no-highlight">479</i>&nbsp;		JCheckBox respectBytecodeAccessModifiers = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;		respectBytecodeAccessModifiers.setSelected(settings.isRespectBytecodeAccessModifiers());</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;		respectBytecodeAccessModifiers.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;			settings.setRespectBytecodeAccessModifiers(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;			needReload();</b>
+<i class="no-highlight">484</i>&nbsp;		});
+<i class="no-highlight">485</i>&nbsp;
+<b class="nc"><i class="no-highlight">486</i>&nbsp;		JCheckBox useImports = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;		useImports.setSelected(settings.isUseImports());</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;		useImports.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;			settings.setUseImports(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;			needReload();</b>
+<i class="no-highlight">491</i>&nbsp;		});
+<i class="no-highlight">492</i>&nbsp;
+<b class="nc"><i class="no-highlight">493</i>&nbsp;		JCheckBox inlineAnonymous = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;		inlineAnonymous.setSelected(settings.isInlineAnonymousClasses());</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;		inlineAnonymous.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;			settings.setInlineAnonymousClasses(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;			needReload();</b>
+<i class="no-highlight">498</i>&nbsp;		});
+<i class="no-highlight">499</i>&nbsp;
+<b class="nc"><i class="no-highlight">500</i>&nbsp;		JCheckBox inlineMethods = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;		inlineMethods.setSelected(settings.isInlineMethods());</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;		inlineMethods.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;			settings.setInlineMethods(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;			needReload();</b>
+<i class="no-highlight">505</i>&nbsp;		});
+<i class="no-highlight">506</i>&nbsp;
+<b class="nc"><i class="no-highlight">507</i>&nbsp;		JCheckBox fsCaseSensitive = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;		fsCaseSensitive.setSelected(settings.isFsCaseSensitive());</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;		fsCaseSensitive.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;			settings.setFsCaseSensitive(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;			needReload();</b>
+<i class="no-highlight">512</i>&nbsp;		});
+<i class="no-highlight">513</i>&nbsp;
+<b class="nc"><i class="no-highlight">514</i>&nbsp;		JComboBox&lt;UseKotlinMethodsForVarNames&gt; kotlinRenameVars = new JComboBox&lt;&gt;(UseKotlinMethodsForVarNames.values());</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;		kotlinRenameVars.setSelectedItem(settings.getUseKotlinMethodsForVarNames());</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;		kotlinRenameVars.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;			settings.setUseKotlinMethodsForVarNames((UseKotlinMethodsForVarNames) kotlinRenameVars.getSelectedItem());</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;			needReload();</b>
+<i class="no-highlight">519</i>&nbsp;		});
+<i class="no-highlight">520</i>&nbsp;
+<b class="nc"><i class="no-highlight">521</i>&nbsp;		JComboBox&lt;CommentsLevel&gt; commentsLevel = new JComboBox&lt;&gt;(CommentsLevel.values());</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;		commentsLevel.setSelectedItem(settings.getCommentsLevel());</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;		commentsLevel.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;			settings.setCommentsLevel((CommentsLevel) commentsLevel.getSelectedItem());</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;			needReload();</b>
+<i class="no-highlight">526</i>&nbsp;		});
+<i class="no-highlight">527</i>&nbsp;
+<b class="nc"><i class="no-highlight">528</i>&nbsp;		SettingsGroup other = new SettingsGroup(NLS.str(&quot;preferences.decompile&quot;));</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.threads&quot;), threadsCount);</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.excludedPackages&quot;), NLS.str(&quot;preferences.excludedPackages.tooltip&quot;),</b>
+<i class="no-highlight">531</i>&nbsp;				editExcludedPackages);
+<b class="nc"><i class="no-highlight">532</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.start_jobs&quot;), autoStartJobs);</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.showInconsistentCode&quot;), showInconsistentCode);</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.escapeUnicode&quot;), escapeUnicode);</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.replaceConsts&quot;), replaceConsts);</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.respectBytecodeAccessModifiers&quot;), respectBytecodeAccessModifiers);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.useImports&quot;), useImports);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.inlineAnonymous&quot;), inlineAnonymous);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.inlineMethods&quot;), inlineMethods);</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.fsCaseSensitive&quot;), fsCaseSensitive);</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.fallback&quot;), fallback);</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.useDx&quot;), useDx);</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.skipResourcesDecode&quot;), resourceDecode);</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.useKotlinMethodsForVarNames&quot;), kotlinRenameVars);</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;		other.addRow(NLS.str(&quot;preferences.commentsLevel&quot;), commentsLevel);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;		return other;</b>
+<i class="no-highlight">547</i>&nbsp;	}
+<i class="no-highlight">548</i>&nbsp;
+<i class="no-highlight">549</i>&nbsp;	private SettingsGroup makeOtherGroup() {
+<b class="nc"><i class="no-highlight">550</i>&nbsp;		JComboBox&lt;LangLocale&gt; languageCbx = new JComboBox&lt;&gt;(NLS.getLangLocales());</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;		for (LangLocale locale : NLS.getLangLocales()) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;			if (locale.equals(settings.getLangLocale())) {</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;				languageCbx.setSelectedItem(locale);</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;				break;</b>
+<i class="no-highlight">555</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">556</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;		languageCbx.addActionListener(e -&gt; settings.setLangLocale((LangLocale) languageCbx.getSelectedItem()));</b>
+<i class="no-highlight">558</i>&nbsp;
+<b class="nc"><i class="no-highlight">559</i>&nbsp;		JComboBox&lt;LineNumbersMode&gt; lineNumbersMode = new JComboBox&lt;&gt;(LineNumbersMode.values());</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;		lineNumbersMode.setSelectedItem(settings.getLineNumbersMode());</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;		lineNumbersMode.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;			settings.setLineNumbersMode((LineNumbersMode) lineNumbersMode.getSelectedItem());</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;			mainWindow.loadSettings();</b>
+<i class="no-highlight">564</i>&nbsp;		});
+<i class="no-highlight">565</i>&nbsp;
+<b class="nc"><i class="no-highlight">566</i>&nbsp;		JCheckBox update = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;		update.setSelected(settings.isCheckForUpdates());</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;		update.addItemListener(e -&gt; settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));</b>
+<i class="no-highlight">569</i>&nbsp;
+<b class="nc"><i class="no-highlight">570</i>&nbsp;		JCheckBox cfg = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;		cfg.setSelected(settings.isCfgOutput());</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;		cfg.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;			settings.setCfgOutput(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;			needReload();</b>
+<i class="no-highlight">575</i>&nbsp;		});
+<i class="no-highlight">576</i>&nbsp;
+<b class="nc"><i class="no-highlight">577</i>&nbsp;		JCheckBox rawCfg = new JCheckBox();</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;		rawCfg.setSelected(settings.isRawCfgOutput());</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;		rawCfg.addItemListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;			settings.setRawCfgOutput(e.getStateChange() == ItemEvent.SELECTED);</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;			needReload();</b>
+<i class="no-highlight">582</i>&nbsp;		});
+<i class="no-highlight">583</i>&nbsp;
+<b class="nc"><i class="no-highlight">584</i>&nbsp;		SettingsGroup group = new SettingsGroup(NLS.str(&quot;preferences.other&quot;));</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.language&quot;), languageCbx);</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.lineNumbersMode&quot;), lineNumbersMode);</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.check_for_updates&quot;), update);</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.cfg&quot;), cfg);</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.raw_cfg&quot;), rawCfg);</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;		return group;</b>
+<i class="no-highlight">591</i>&nbsp;	}
+<i class="no-highlight">592</i>&nbsp;
+<i class="no-highlight">593</i>&nbsp;	private SettingsGroup makeSearchResGroup() {
+<b class="nc"><i class="no-highlight">594</i>&nbsp;		SettingsGroup group = new SettingsGroup(NLS.str(&quot;preferences.search_res_title&quot;));</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;		int prevSize = settings.getSrhResourceSkipSize();</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;		String prevExts = settings.getSrhResourceFileExt();</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;		SpinnerNumberModel sizeLimitModel = new SpinnerNumberModel(prevSize,</b>
+<i class="no-highlight">598</i>&nbsp;				0, Integer.MAX_VALUE, 1);
+<b class="nc"><i class="no-highlight">599</i>&nbsp;		JSpinner spinner = new JSpinner(sizeLimitModel);</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;		JTextField fileExtField = new JTextField();</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.res_skip_file&quot;), spinner);</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;		group.addRow(NLS.str(&quot;preferences.res_file_ext&quot;), fileExtField);</b>
+<i class="no-highlight">603</i>&nbsp;
+<b class="nc"><i class="no-highlight">604</i>&nbsp;		spinner.addChangeListener(new ChangeListener() {</b>
+<i class="no-highlight">605</i>&nbsp;			@Override
+<i class="no-highlight">606</i>&nbsp;			public void stateChanged(ChangeEvent e) {
+<b class="nc"><i class="no-highlight">607</i>&nbsp;				int size = (Integer) spinner.getValue();</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;				settings.setSrhResourceSkipSize(size);</b>
+<i class="no-highlight">609</i>&nbsp;			}
+<i class="no-highlight">610</i>&nbsp;		});
+<i class="no-highlight">611</i>&nbsp;
+<b class="nc"><i class="no-highlight">612</i>&nbsp;		fileExtField.getDocument().addDocumentListener(new DocumentListener() {</b>
+<i class="no-highlight">613</i>&nbsp;			private void update() {
+<b class="nc"><i class="no-highlight">614</i>&nbsp;				String ext = fileExtField.getText();</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;				settings.setSrhResourceFileExt(ext);</b>
+<i class="no-highlight">616</i>&nbsp;			}
+<i class="no-highlight">617</i>&nbsp;
+<i class="no-highlight">618</i>&nbsp;			@Override
+<i class="no-highlight">619</i>&nbsp;			public void insertUpdate(DocumentEvent e) {
+<b class="nc"><i class="no-highlight">620</i>&nbsp;				update();</b>
+<i class="no-highlight">621</i>&nbsp;			}
+<i class="no-highlight">622</i>&nbsp;
+<i class="no-highlight">623</i>&nbsp;			@Override
+<i class="no-highlight">624</i>&nbsp;			public void removeUpdate(DocumentEvent e) {
+<b class="nc"><i class="no-highlight">625</i>&nbsp;				update();</b>
+<i class="no-highlight">626</i>&nbsp;			}
+<i class="no-highlight">627</i>&nbsp;
+<i class="no-highlight">628</i>&nbsp;			@Override
+<i class="no-highlight">629</i>&nbsp;			public void changedUpdate(DocumentEvent e) {
+<b class="nc"><i class="no-highlight">630</i>&nbsp;				update();</b>
+<i class="no-highlight">631</i>&nbsp;			}
+<i class="no-highlight">632</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">633</i>&nbsp;		fileExtField.setText(prevExts);</b>
+<i class="no-highlight">634</i>&nbsp;
+<b class="nc"><i class="no-highlight">635</i>&nbsp;		return group;</b>
+<i class="no-highlight">636</i>&nbsp;	}
+<i class="no-highlight">637</i>&nbsp;
+<i class="no-highlight">638</i>&nbsp;	private void needReload() {
+<b class="nc"><i class="no-highlight">639</i>&nbsp;		needReload = true;</b>
+<i class="no-highlight">640</i>&nbsp;	}
+<i class="no-highlight">641</i>&nbsp;
+<i class="no-highlight">642</i>&nbsp;	private static class SettingsGroup extends JPanel {
+<i class="no-highlight">643</i>&nbsp;		private static final long serialVersionUID = -6487309975896192544L;
+<i class="no-highlight">644</i>&nbsp;
+<i class="no-highlight">645</i>&nbsp;		private final GridBagConstraints c;
+<i class="no-highlight">646</i>&nbsp;		private int row;
+<i class="no-highlight">647</i>&nbsp;
+<b class="nc"><i class="no-highlight">648</i>&nbsp;		public SettingsGroup(String title) {</b>
+<b class="nc"><i class="no-highlight">649</i>&nbsp;			setBorder(BorderFactory.createTitledBorder(title));</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;			setLayout(new GridBagLayout());</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;			c = new GridBagConstraints();</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;			c.insets = new Insets(5, 5, 5, 5);</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;			c.weighty = 1.0;</b>
+<i class="no-highlight">654</i>&nbsp;		}
+<i class="no-highlight">655</i>&nbsp;
+<i class="no-highlight">656</i>&nbsp;		public JLabel addRow(String label, JComponent comp) {
+<b class="nc"><i class="no-highlight">657</i>&nbsp;			return addRow(label, null, comp);</b>
+<i class="no-highlight">658</i>&nbsp;		}
+<i class="no-highlight">659</i>&nbsp;
+<i class="no-highlight">660</i>&nbsp;		public JLabel addRow(String label, String tooltip, JComponent comp) {
+<b class="nc"><i class="no-highlight">661</i>&nbsp;			c.gridy = row++;</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;			JLabel jLabel = new JLabel(label);</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;			jLabel.setLabelFor(comp);</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;			jLabel.setHorizontalAlignment(SwingConstants.LEFT);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;			c.gridx = 0;</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;			c.gridwidth = 1;</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;			c.anchor = GridBagConstraints.LINE_START;</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;			c.weightx = 0.8;</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;			c.fill = GridBagConstraints.NONE;</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;			add(jLabel, c);</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;			c.gridx = 1;</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;			c.gridwidth = GridBagConstraints.REMAINDER;</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;			c.anchor = GridBagConstraints.CENTER;</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;			c.weightx = 0.2;</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;			c.fill = GridBagConstraints.HORIZONTAL;</b>
+<i class="no-highlight">676</i>&nbsp;
+<b class="nc"><i class="no-highlight">677</i>&nbsp;			if (tooltip != null) {</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;				jLabel.setToolTipText(tooltip);</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;				comp.setToolTipText(tooltip);</b>
+<i class="no-highlight">680</i>&nbsp;			}
+<i class="no-highlight">681</i>&nbsp;
+<b class="nc"><i class="no-highlight">682</i>&nbsp;			add(comp, c);</b>
+<i class="no-highlight">683</i>&nbsp;
+<b class="nc"><i class="no-highlight">684</i>&nbsp;			comp.addPropertyChangeListener(&quot;enabled&quot;, evt -&gt; jLabel.setEnabled((boolean) evt.getNewValue()));</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;			return jLabel;</b>
+<i class="no-highlight">686</i>&nbsp;		}
+<i class="no-highlight">687</i>&nbsp;
+<i class="no-highlight">688</i>&nbsp;		public void end() {
+<b class="nc"><i class="no-highlight">689</i>&nbsp;			add(Box.createVerticalGlue());</b>
+<i class="no-highlight">690</i>&nbsp;		}
+<i class="no-highlight">691</i>&nbsp;	}
+<i class="no-highlight">692</i>&nbsp;
+<b class="nc"><i class="no-highlight">693</i>&nbsp;	private static class JPreferredFontChooser extends JFontChooser {</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;		private static final String[] PREFERRED_FONTS = new String[] {</b>
+<i class="no-highlight">695</i>&nbsp;				&quot;Monospaced&quot;, &quot;Consolas&quot;, &quot;Courier&quot;, &quot;Courier New&quot;,
+<i class="no-highlight">696</i>&nbsp;				&quot;Lucida Sans Typewriter&quot;, &quot;Lucida Console&quot;,
+<i class="no-highlight">697</i>&nbsp;				&quot;SimSun&quot;, &quot;SimHei&quot;,
+<i class="no-highlight">698</i>&nbsp;		};
+<i class="no-highlight">699</i>&nbsp;
+<i class="no-highlight">700</i>&nbsp;		private String[] filteredFonts;
+<i class="no-highlight">701</i>&nbsp;
+<i class="no-highlight">702</i>&nbsp;		@Override
+<i class="no-highlight">703</i>&nbsp;		protected String[] getFontFamilies() {
+<b class="nc"><i class="no-highlight">704</i>&nbsp;			if (filteredFonts == null) {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;				Set&lt;String&gt; fontSet = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;				Collections.addAll(fontSet, env.getAvailableFontFamilyNames());</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;				ArrayList&lt;String&gt; found = new ArrayList&lt;&gt;(PREFERRED_FONTS.length);</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;				for (String font : PREFERRED_FONTS) {</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;					if (fontSet.contains(font)) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;						found.add(font);</b>
+<i class="no-highlight">712</i>&nbsp;					}
+<i class="no-highlight">713</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">714</i>&nbsp;				if (found.size() == PREFERRED_FONTS.length) {</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;					filteredFonts = PREFERRED_FONTS;</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;				} else if (found.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;					filteredFonts = new String[found.size()];</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;					for (int i = 0; i &lt; found.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">719</i>&nbsp;						filteredFonts[i] = found.get(i);</b>
+<i class="no-highlight">720</i>&nbsp;					}
+<i class="no-highlight">721</i>&nbsp;				} else {
+<i class="no-highlight">722</i>&nbsp;					// this machine is crazy.
+<b class="nc"><i class="no-highlight">723</i>&nbsp;					LOG.warn(&quot;Can&#39;t found any preferred fonts for smali, use all available.&quot;);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;					filteredFonts = env.getAvailableFontFamilyNames();</b>
+<i class="no-highlight">725</i>&nbsp;				}
+<i class="no-highlight">726</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">727</i>&nbsp;			return filteredFonts;</b>
+<i class="no-highlight">728</i>&nbsp;		}
+<i class="no-highlight">729</i>&nbsp;	}
+<i class="no-highlight">730</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

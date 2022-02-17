@@ -1,0 +1,232 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JavaFileLoader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java</a>
+</div>
+
+<h1>Coverage Summary for Class: JavaFileLoader (jadx.plugins.input.java)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavaFileLoader</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    42.9%
+  </span>
+  <span class="absValue">
+    (6/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.1%
+  </span>
+  <span class="absValue">
+    (43/53)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">4</i>&nbsp;import java.io.File;
+<i class="no-highlight">5</i>&nbsp;import java.io.FileInputStream;
+<i class="no-highlight">6</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">7</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">8</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">9</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">10</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">11</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">12</i>&nbsp;import java.util.List;
+<i class="no-highlight">13</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.utils.CommonFileUtils;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.plugins.utils.ZipSecurity;
+<i class="no-highlight">21</i>&nbsp;
+<b class="fc"><i class="no-highlight">22</i>&nbsp;public class JavaFileLoader {</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JavaFileLoader.class);</b>
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;	private static final int MAX_MAGIC_SIZE = 4;
+<b class="fc"><i class="no-highlight">26</i>&nbsp;	private static final byte[] JAVA_CLASS_FILE_MAGIC = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;	private static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };</b>
+<i class="no-highlight">28</i>&nbsp;
+<b class="fc"><i class="no-highlight">29</i>&nbsp;	private int classUniqId = 1;</b>
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	public List&lt;JavaClassReader&gt; collectFiles(List&lt;Path&gt; inputFiles) {
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		return inputFiles.stream()</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;				.map(Path::toFile)</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;				.map(this::loadFromFile)</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;				.filter(list -&gt; !list.isEmpty())</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;				.flatMap(Collection::stream)</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;				.collect(Collectors.toList());</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	private List&lt;JavaClassReader&gt; loadFromFile(File file) {
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;			return loadReader(inputStream, file.getName(), file, null);</b>
+<b class="pc"><i class="no-highlight">43</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;			LOG.error(&quot;File open error: {}&quot;, file.getAbsolutePath(), e);</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	private List&lt;JavaClassReader&gt; loadReader(InputStream in, String name,
+<i class="no-highlight">50</i>&nbsp;			@Nullable File file, @Nullable String parentFileName) throws IOException {
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		byte[] magic = new byte[MAX_MAGIC_SIZE];</b>
+<b class="pc"><i class="no-highlight">52</i>&nbsp;		if (in.read(magic) != magic.length) {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">54</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		if (isStartWithBytes(magic, JAVA_CLASS_FILE_MAGIC)) {</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			byte[] data = CommonFileUtils.loadBytes(magic, in);</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;			String source = concatSource(parentFileName, name);</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;			JavaClassReader reader = new JavaClassReader(getNextUniqId(), source, data);</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			return Collections.singletonList(reader);</b>
+<i class="no-highlight">60</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		if (isStartWithBytes(magic, ZIP_FILE_MAGIC)) {</b>
+<b class="pc"><i class="no-highlight">62</i>&nbsp;			if (file != null) {</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;				return collectFromZip(file, name);</b>
+<i class="no-highlight">64</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">65</i>&nbsp;			File zipFile = CommonFileUtils.saveToTempFile(magic, in, &quot;.zip&quot;).toFile();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;			return collectFromZip(zipFile, concatSource(parentFileName, name));</b>
+<i class="no-highlight">67</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		return Collections.emptyList();</b>
+<i class="no-highlight">69</i>&nbsp;	}
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;	private static String concatSource(@Nullable String parentFileName, String name) {
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		if (parentFileName == null) {</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;			return name;</b>
+<i class="no-highlight">74</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		return parentFileName + &#39;:&#39; + name;</b>
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;	private List&lt;JavaClassReader&gt; collectFromZip(File file, String name) {
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		List&lt;JavaClassReader&gt; result = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">80</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			ZipSecurity.readZipEntries(file, (entry, in) -&gt; {</b>
+<i class="no-highlight">82</i>&nbsp;				try {
+<b class="fc"><i class="no-highlight">83</i>&nbsp;					String entryName = entry.getName();</b>
+<b class="pc"><i class="no-highlight">84</i>&nbsp;					if (entryName.startsWith(&quot;META-INF/versions/&quot;)) {</b>
+<i class="no-highlight">85</i>&nbsp;						// skip classes for different java versions
+<i class="no-highlight">86</i>&nbsp;						return;
+<i class="no-highlight">87</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">88</i>&nbsp;					result.addAll(loadReader(in, entryName, null, name));</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;					LOG.error(&quot;Failed to read zip entry: {}&quot;, entry, e);</b>
+<b class="fc"><i class="no-highlight">91</i>&nbsp;				}</b>
+<i class="no-highlight">92</i>&nbsp;			});
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;			LOG.error(&quot;Failed to process zip file: {}&quot;, file.getAbsolutePath(), e);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		return result;</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	public static boolean isStartWithBytes(byte[] fileMagic, byte[] expectedBytes) {
+<b class="fc"><i class="no-highlight">100</i>&nbsp;		int len = expectedBytes.length;</b>
+<b class="pc"><i class="no-highlight">101</i>&nbsp;		if (fileMagic.length &lt; len) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;			return false;</b>
+<i class="no-highlight">103</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			if (fileMagic[i] != expectedBytes[i]) {</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				return false;</b>
+<i class="no-highlight">107</i>&nbsp;			}
+<i class="no-highlight">108</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		return true;</b>
+<i class="no-highlight">110</i>&nbsp;	}
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;	private int getNextUniqId() {
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		return classUniqId++;</b>
+<i class="no-highlight">114</i>&nbsp;	}
+<i class="no-highlight">115</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

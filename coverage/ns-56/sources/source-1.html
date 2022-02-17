@@ -1,0 +1,220 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexAnnotationsConvert</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.sections</a>
+</div>
+
+<h1>Coverage Summary for Class: DexAnnotationsConvert (jadx.plugins.input.dex.sections)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexAnnotationsConvert</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (7/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    65%
+  </span>
+  <span class="absValue">
+    (13/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93%
+  </span>
+  <span class="absValue">
+    (40/43)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.sections;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;import java.util.Map;
+<i class="no-highlight">6</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedType;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultClassAttr;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
+<i class="no-highlight">22</i>&nbsp;import jadx.api.plugins.utils.Utils;
+<i class="no-highlight">23</i>&nbsp;
+<b class="nc"><i class="no-highlight">24</i>&nbsp;public class DexAnnotationsConvert {</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(DexAnnotationsConvert.class);</b>
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	public static void forClass(String cls, List&lt;IJadxAttribute&gt; list, List&lt;IAnnotation&gt; annotationList) {
+<b class="fc"><i class="no-highlight">28</i>&nbsp;		appendAnnotations(cls, list, annotationList);</b>
+<i class="no-highlight">29</i>&nbsp;	}
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	public static void forMethod(List&lt;IJadxAttribute&gt; list, List&lt;IAnnotation&gt; annotationList) {
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		appendAnnotations(null, list, annotationList);</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	public static void forField(List&lt;IJadxAttribute&gt; list, List&lt;IAnnotation&gt; annotationList) {
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		appendAnnotations(null, list, annotationList);</b>
+<i class="no-highlight">37</i>&nbsp;	}
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	private static void appendAnnotations(String cls, List&lt;IJadxAttribute&gt; attributes, List&lt;IAnnotation&gt; annotations) {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		if (annotations.isEmpty()) {</b>
+<i class="no-highlight">41</i>&nbsp;			return;
+<i class="no-highlight">42</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		for (IAnnotation annotation : annotations) {</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM) {</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;				convertSystemAnnotations(cls, attributes, annotation);</b>
+<i class="no-highlight">46</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		Utils.addToList(attributes, AnnotationsAttr.pack(annotations));</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	@SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">52</i>&nbsp;	private static void convertSystemAnnotations(String cls, List&lt;IJadxAttribute&gt; attributes, IAnnotation annotation) {
+<b class="pc"><i class="no-highlight">53</i>&nbsp;		switch (annotation.getAnnotationClass()) {</b>
+<i class="no-highlight">54</i>&nbsp;			case &quot;Ldalvik/annotation/Signature;&quot;:
+<b class="fc"><i class="no-highlight">55</i>&nbsp;				attributes.add(new SignatureAttr(extractSignature(annotation)));</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;				break;</b>
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;			case &quot;Ldalvik/annotation/InnerClass;&quot;:
+<b class="fc"><i class="no-highlight">59</i>&nbsp;				Map&lt;String, EncodedValue&gt; values = annotation.getValues();</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;				String name = (String) values.get(&quot;name&quot;).getValue();</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;				int accFlags = (Integer) values.get(&quot;accessFlags&quot;).getValue();</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;				Map&lt;String, InnerClsInfo&gt; map = Collections.singletonMap(cls, new InnerClsInfo(cls, null, name, accFlags));</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;				attributes.add(new InnerClassesAttr(map));</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;				break;</b>
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;			case &quot;Ldalvik/annotation/AnnotationDefault;&quot;:
+<b class="fc"><i class="no-highlight">67</i>&nbsp;				EncodedValue annValue = annotation.getDefaultValue();</b>
+<b class="pc"><i class="no-highlight">68</i>&nbsp;				if (annValue != null &amp;&amp; annValue.getType() == EncodedType.ENCODED_ANNOTATION) {</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;					IAnnotation defAnnotation = (IAnnotation) annValue.getValue();</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;					attributes.add(new AnnotationDefaultClassAttr(defAnnotation.getValues()));</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;				}</b>
+<i class="no-highlight">72</i>&nbsp;				break;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;			case &quot;Ldalvik/annotation/Throws;&quot;:
+<i class="no-highlight">75</i>&nbsp;				try {
+<b class="fc"><i class="no-highlight">76</i>&nbsp;					EncodedValue defaultValue = annotation.getDefaultValue();</b>
+<b class="pc"><i class="no-highlight">77</i>&nbsp;					if (defaultValue != null) {</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;						List&lt;String&gt; excs = ((List&lt;EncodedValue&gt;) defaultValue.getValue())</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;								.stream()</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;								.map(ev -&gt; ((String) ev.getValue()))</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;								.collect(Collectors.toList());</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;						attributes.add(new ExceptionsAttr(excs));</b>
+<i class="no-highlight">83</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">84</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;					LOG.warn(&quot;Failed to convert dalvik throws annotation&quot;, e);</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;				}</b>
+<i class="no-highlight">87</i>&nbsp;				break;
+<i class="no-highlight">88</i>&nbsp;		}
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	@SuppressWarnings({ &quot;unchecked&quot;, &quot;ConstantConditions&quot; })
+<i class="no-highlight">92</i>&nbsp;	private static String extractSignature(IAnnotation annotation) {
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		List&lt;EncodedValue&gt; values = (List&lt;EncodedValue&gt;) annotation.getDefaultValue().getValue();</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		if (values.size() == 1) {</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;			return (String) values.get(0).getValue();</b>
+<i class="no-highlight">96</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		StringBuilder sb = new StringBuilder();</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		for (EncodedValue part : values) {</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;			sb.append((String) part.getValue());</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		return sb.toString();</b>
+<i class="no-highlight">102</i>&nbsp;	}
+<i class="no-highlight">103</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

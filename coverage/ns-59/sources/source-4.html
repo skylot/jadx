@@ -1,0 +1,157 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SmaliPrinter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.smali</a>
+</div>
+
+<h1>Coverage Summary for Class: SmaliPrinter (jadx.plugins.input.dex.smali)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SmaliPrinter</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (2/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.5%
+  </span>
+  <span class="absValue">
+    (21/22)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.smali;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.plugins.input.data.AccessFlags;
+<i class="no-highlight">4</i>&nbsp;import jadx.api.plugins.input.data.ICodeReader;
+<i class="no-highlight">5</i>&nbsp;import jadx.plugins.input.dex.sections.DexMethodData;
+<i class="no-highlight">6</i>&nbsp;import jadx.plugins.input.dex.sections.DexMethodRef;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import static jadx.api.plugins.input.data.AccessFlagsScope.METHOD;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;// TODO: not finished
+<b class="nc"><i class="no-highlight">11</i>&nbsp;public class SmaliPrinter {</b>
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;	public static String printMethod(DexMethodData mth) {
+<b class="fc"><i class="no-highlight">14</i>&nbsp;		SmaliCodeWriter codeWriter = new SmaliCodeWriter();</b>
+<b class="fc"><i class="no-highlight">15</i>&nbsp;		codeWriter.startLine(&quot;.method &quot;);</b>
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		codeWriter.add(AccessFlags.format(mth.getAccessFlags(), METHOD));</b>
+<i class="no-highlight">17</i>&nbsp;
+<b class="fc"><i class="no-highlight">18</i>&nbsp;		DexMethodRef methodRef = mth.getMethodRef();</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;		methodRef.load();</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;		codeWriter.add(methodRef.getName());</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		codeWriter.add(&#39;(&#39;).addArgs(methodRef.getArgTypes()).add(&#39;)&#39;);</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		codeWriter.add(methodRef.getReturnType());</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		codeWriter.incIndent();</b>
+<i class="no-highlight">24</i>&nbsp;
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		ICodeReader codeReader = mth.getCodeReader();</b>
+<b class="pc"><i class="no-highlight">26</i>&nbsp;		if (codeReader != null) {</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;			codeWriter.startLine(&quot;.registers &quot;).add(codeReader.getRegistersCount());</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;			SmaliInsnFormat insnFormat = SmaliInsnFormat.getInstance();</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;			InsnFormatterInfo formatterInfo = new InsnFormatterInfo(codeWriter, mth);</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;			codeReader.visitInstructions(insn -&gt; {</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;				codeWriter.startLine();</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;				formatterInfo.setInsn(insn);</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;				insnFormat.format(formatterInfo);</b>
+<i class="no-highlight">34</i>&nbsp;			});
+<b class="fc"><i class="no-highlight">35</i>&nbsp;			codeWriter.decIndent();</b>
+<i class="no-highlight">36</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		codeWriter.startLine(&quot;.end method&quot;);</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		return codeWriter.getCode();</b>
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

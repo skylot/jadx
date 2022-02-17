@@ -1,0 +1,504 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JavaInsnsRegister</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data.code</a>
+</div>
+
+<h1>Coverage Summary for Class: JavaInsnsRegister (jadx.plugins.input.java.data.code)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavaInsnsRegister</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96.8%
+  </span>
+  <span class="absValue">
+    (92/95)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (4/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.4%
+  </span>
+  <span class="absValue">
+    (240/257)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data.code;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.api.plugins.input.insns.InsnIndexType;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.input.insns.Opcode;
+<i class="no-highlight">7</i>&nbsp;import jadx.plugins.input.java.data.code.StackState.SVType;
+<i class="no-highlight">8</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.IJavaInsnDecoder;
+<i class="no-highlight">9</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.InvokeDecoder;
+<i class="no-highlight">10</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.LoadConstDecoder;
+<i class="no-highlight">11</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.LookupSwitchDecoder;
+<i class="no-highlight">12</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.TableSwitchDecoder;
+<i class="no-highlight">13</i>&nbsp;import jadx.plugins.input.java.data.code.decoders.WideDecoder;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import static jadx.plugins.input.java.data.code.StackState.SVType.NARROW;
+<i class="no-highlight">16</i>&nbsp;import static jadx.plugins.input.java.data.code.StackState.SVType.WIDE;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;@SuppressWarnings(&quot;SpellCheckingInspection&quot;)
+<b class="nc"><i class="no-highlight">19</i>&nbsp;public class JavaInsnsRegister {</b>
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;	private static final JavaInsnInfo[] INSN_INFO;
+<i class="no-highlight">22</i>&nbsp;
+<b class="fc"><i class="no-highlight">23</i>&nbsp;	public static final long FLOAT_ZERO = Float.floatToIntBits(0.0f);</b>
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	public static final long FLOAT_ONE = Float.floatToIntBits(1.0f);</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;	public static final long FLOAT_TWO = Float.floatToIntBits(2.0f);</b>
+<i class="no-highlight">26</i>&nbsp;
+<b class="fc"><i class="no-highlight">27</i>&nbsp;	public static final long DOUBLE_ZERO = Double.doubleToLongBits(0.0d);</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;	public static final long DOUBLE_ONE = Double.doubleToLongBits(1.0d);</b>
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	static {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		JavaInsnInfo[] arr = new JavaInsnInfo[0xCA];</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		INSN_INFO = arr;</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		register(arr, 0x00, &quot;nop&quot;, 0, 0, Opcode.NOP, null);</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		constInsn(arr, 0x01, &quot;aconst_null&quot;, Opcode.CONST, 0);</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		constInsn(arr, 0x02, &quot;iconst_m1&quot;, Opcode.CONST, -1);</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		constInsn(arr, 0x03, &quot;iconst_0&quot;, Opcode.CONST, 0);</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		constInsn(arr, 0x04, &quot;iconst_1&quot;, Opcode.CONST, 1);</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		constInsn(arr, 0x05, &quot;iconst_2&quot;, Opcode.CONST, 2);</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		constInsn(arr, 0x06, &quot;iconst_3&quot;, Opcode.CONST, 3);</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		constInsn(arr, 0x07, &quot;iconst_4&quot;, Opcode.CONST, 4);</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		constInsn(arr, 0x08, &quot;iconst_5&quot;, Opcode.CONST, 5);</b>
+<i class="no-highlight">43</i>&nbsp;
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		constInsn(arr, 0x09, &quot;lconst_0&quot;, Opcode.CONST_WIDE, 0L);</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		constInsn(arr, 0x0a, &quot;lconst_1&quot;, Opcode.CONST_WIDE, 1L);</b>
+<i class="no-highlight">46</i>&nbsp;
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		constInsn(arr, 0x0b, &quot;fconst_0&quot;, Opcode.CONST, FLOAT_ZERO);</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		constInsn(arr, 0x0c, &quot;fconst_1&quot;, Opcode.CONST, FLOAT_ONE);</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		constInsn(arr, 0x0d, &quot;fconst_2&quot;, Opcode.CONST, FLOAT_TWO);</b>
+<i class="no-highlight">50</i>&nbsp;
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		constInsn(arr, 0x0e, &quot;dconst_0&quot;, Opcode.CONST_WIDE, DOUBLE_ZERO);</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		constInsn(arr, 0x0f, &quot;dconst_1&quot;, Opcode.CONST_WIDE, DOUBLE_ONE);</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		register(arr, 0x10, &quot;bipush&quot;, 1, 2, Opcode.CONST, s -&gt; s.lit(s.s1()).push(0));</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		register(arr, 0x11, &quot;sipush&quot;, 2, 2, Opcode.CONST, s -&gt; s.lit(s.s2()).push(0));</b>
+<i class="no-highlight">56</i>&nbsp;
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		loadConst(arr, 0x12, &quot;ldc&quot;, false);</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		loadConst(arr, 0x13, &quot;ldc_w&quot;, true);</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		loadConst(arr, 0x14, &quot;ldc2_w&quot;, true);</b>
+<i class="no-highlight">60</i>&nbsp;
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		register(arr, 0x15, &quot;iload&quot;, 1, 2, Opcode.MOVE, s -&gt; s.local(1, s.u1()).push(0));</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		register(arr, 0x16, &quot;lload&quot;, 1, 2, Opcode.MOVE, s -&gt; s.local(1, s.u1()).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		register(arr, 0x17, &quot;fload&quot;, 1, 2, Opcode.MOVE, s -&gt; s.local(1, s.u1()).push(0));</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		register(arr, 0x18, &quot;dload&quot;, 1, 2, Opcode.MOVE, s -&gt; s.local(1, s.u1()).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		register(arr, 0x19, &quot;aload&quot;, 1, 2, Opcode.MOVE, s -&gt; s.local(1, s.u1()).push(0));</b>
+<i class="no-highlight">66</i>&nbsp;
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		register(arr, 0x1a, &quot;iload_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 0).push(0));</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		register(arr, 0x1b, &quot;iload_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 1).push(0));</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		register(arr, 0x1c, &quot;iload_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 2).push(0));</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		register(arr, 0x1d, &quot;iload_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 3).push(0));</b>
+<i class="no-highlight">71</i>&nbsp;
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		register(arr, 0x1e, &quot;lload_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 0).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		register(arr, 0x1f, &quot;lload_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 1).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		register(arr, 0x20, &quot;lload_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 2).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		register(arr, 0x21, &quot;lload_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 3).pushWide(0));</b>
+<i class="no-highlight">76</i>&nbsp;
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		register(arr, 0x22, &quot;fload_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 0).push(0));</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		register(arr, 0x23, &quot;fload_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 1).push(0));</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		register(arr, 0x24, &quot;fload_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 2).push(0));</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		register(arr, 0x25, &quot;fload_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 3).push(0));</b>
+<i class="no-highlight">81</i>&nbsp;
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		register(arr, 0x26, &quot;dload_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 0).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		register(arr, 0x27, &quot;dload_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 1).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		register(arr, 0x28, &quot;dload_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 2).pushWide(0));</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		register(arr, 0x29, &quot;dload_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 3).pushWide(0));</b>
+<i class="no-highlight">86</i>&nbsp;
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		register(arr, 0x2a, &quot;aload_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 0).push(0));</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		register(arr, 0x2b, &quot;aload_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 1).push(0));</b>
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		register(arr, 0x2c, &quot;aload_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 2).push(0));</b>
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		register(arr, 0x2d, &quot;aload_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.local(1, 3).push(0));</b>
+<i class="no-highlight">91</i>&nbsp;
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		register(arr, 0x2e, &quot;iaload&quot;, 0, 3, Opcode.AGET, aget());</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		register(arr, 0x2f, &quot;laload&quot;, 0, 3, Opcode.AGET_WIDE, agetWide());</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		register(arr, 0x30, &quot;faload&quot;, 0, 3, Opcode.AGET, aget());</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;		register(arr, 0x31, &quot;daload&quot;, 0, 3, Opcode.AGET_WIDE, agetWide());</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		register(arr, 0x32, &quot;aaload&quot;, 0, 3, Opcode.AGET_OBJECT, aget());</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		register(arr, 0x33, &quot;baload&quot;, 0, 3, Opcode.AGET_BYTE_BOOLEAN, aget());</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		register(arr, 0x34, &quot;caload&quot;, 0, 3, Opcode.AGET_CHAR, aget());</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		register(arr, 0x35, &quot;saload&quot;, 0, 3, Opcode.AGET_SHORT, aget());</b>
+<i class="no-highlight">100</i>&nbsp;
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		register(arr, 0x36, &quot;istore&quot;, 1, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, s.u1()));</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		register(arr, 0x37, &quot;lstore&quot;, 1, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, s.u1()));</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		register(arr, 0x38, &quot;fstore&quot;, 1, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, s.u1()));</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;		register(arr, 0x39, &quot;dstore&quot;, 1, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, s.u1()));</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;		register(arr, 0x3a, &quot;astore&quot;, 1, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, s.u1()));</b>
+<i class="no-highlight">106</i>&nbsp;
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		register(arr, 0x3b, &quot;istore_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 0));</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		register(arr, 0x3c, &quot;istore_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 1));</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		register(arr, 0x3d, &quot;istore_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 2));</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		register(arr, 0x3e, &quot;istore_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 3));</b>
+<i class="no-highlight">111</i>&nbsp;
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		register(arr, 0x3f, &quot;lstore_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 0));</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		register(arr, 0x40, &quot;lstore_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 1));</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		register(arr, 0x41, &quot;lstore_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 2));</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		register(arr, 0x42, &quot;lstore_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 3));</b>
+<i class="no-highlight">116</i>&nbsp;
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		register(arr, 0x43, &quot;fstore_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 0));</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		register(arr, 0x44, &quot;fstore_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 1));</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		register(arr, 0x45, &quot;fstore_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 2));</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		register(arr, 0x46, &quot;fstore_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 3));</b>
+<i class="no-highlight">121</i>&nbsp;
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		register(arr, 0x47, &quot;dstore_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 0));</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		register(arr, 0x48, &quot;dstore_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 1));</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		register(arr, 0x49, &quot;dstore_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 2));</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		register(arr, 0x4a, &quot;dstore_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 3));</b>
+<i class="no-highlight">126</i>&nbsp;
+<b class="fc"><i class="no-highlight">127</i>&nbsp;		register(arr, 0x4b, &quot;astore_0&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 0));</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		register(arr, 0x4c, &quot;astore_1&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 1));</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		register(arr, 0x4d, &quot;astore_2&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 2));</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		register(arr, 0x4e, &quot;astore_3&quot;, 0, 2, Opcode.MOVE, s -&gt; s.pop(1).local(0, 3));</b>
+<i class="no-highlight">131</i>&nbsp;
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		register(arr, 0x4f, &quot;iastore&quot;, 0, 3, Opcode.APUT, aput());</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;		register(arr, 0x50, &quot;lastore&quot;, 0, 3, Opcode.APUT_WIDE, aput());</b>
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		register(arr, 0x51, &quot;fastore&quot;, 0, 3, Opcode.APUT, aput());</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		register(arr, 0x52, &quot;dastore&quot;, 0, 3, Opcode.APUT_WIDE, aput());</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		register(arr, 0x53, &quot;aastore&quot;, 0, 3, Opcode.APUT_OBJECT, aput());</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;		register(arr, 0x54, &quot;bastore&quot;, 0, 3, Opcode.APUT_BYTE_BOOLEAN, aput());</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		register(arr, 0x55, &quot;castore&quot;, 0, 3, Opcode.APUT_CHAR, aput());</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		register(arr, 0x56, &quot;sastore&quot;, 0, 3, Opcode.APUT_SHORT, aput());</b>
+<i class="no-highlight">140</i>&nbsp;
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		register(arr, 0x57, &quot;pop&quot;, 0, 0, Opcode.NOP, CodeDecodeState::discard);</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		register(arr, 0x58, &quot;pop2&quot;, 0, 0, Opcode.NOP, CodeDecodeState::discardWord);</b>
+<i class="no-highlight">143</i>&nbsp;
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		register(arr, 0x59, &quot;dup&quot;, 0, 2, Opcode.MOVE, s -&gt; s.peek(1).push(0, s.peekType(1)));</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		register(arr, 0x5a, &quot;dup_x1&quot;, 0, 6, Opcode.MOVE_MULTI,</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;				s -&gt; s.push(0, s.peekType(1)).peekFrom(1, 1)</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;						.peekFrom(1, 2).peekFrom(2, 3)</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;						.peekFrom(2, 4).peekFrom(0, 5));</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		register(arr, 0x5b, &quot;dup_x2&quot;, 0, 8, Opcode.MOVE_MULTI,</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;				s -&gt; s.push(0, s.peekType(1)).peekFrom(1, 1)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;						.peekFrom(1, 2).peekFrom(2, 3)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;						.peekFrom(2, 4).peekFrom(3, 5)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;						.peekFrom(3, 6).peekFrom(0, 7));</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		register(arr, 0x5c, &quot;dup2&quot;, 0, 4, Opcode.MOVE_MULTI, s -&gt; {</b>
+<b class="pc"><i class="no-highlight">155</i>&nbsp;			if (s.peekType(0) == NARROW) {</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;				s.peekFrom(0, 3).peekFrom(1, 1).push(0, NARROW).push(2, NARROW);</b>
+<i class="no-highlight">157</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;				s.peek(1).push(0, s.peekType(1));</b>
+<i class="no-highlight">159</i>&nbsp;			}
+<i class="no-highlight">160</i>&nbsp;		});
+<b class="fc"><i class="no-highlight">161</i>&nbsp;		register(arr, 0x5d, &quot;dup2_x1&quot;, 0, 10, Opcode.MOVE_MULTI,</b>
+<i class="no-highlight">162</i>&nbsp;				s -&gt; {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;					if (s.peekType(0) == NARROW) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;						s.push(0, NARROW).peekFrom(2, 1)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;								.push(2, NARROW).peekFrom(2, 3)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;								.peekFrom(2, 4).peekFrom(4, 5)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;								.peekFrom(3, 6).peekFrom(0, 7)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;								.peekFrom(4, 8).peekFrom(1, 9);</b>
+<i class="no-highlight">169</i>&nbsp;					} else {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;						s.insn().setRegsCount(6);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;						s.push(0, WIDE).peekFrom(1, 1)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;								.peekFrom(1, 2).peekFrom(2, 3)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;								.peekFrom(2, 4).peekFrom(0, 5);</b>
+<i class="no-highlight">174</i>&nbsp;					}
+<i class="no-highlight">175</i>&nbsp;				});
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		register(arr, 0x5f, &quot;swap&quot;, 0, 6, Opcode.MOVE_MULTI,</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;				s -&gt; s.peekFrom(-1, 0).peekFrom(1, 1)</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;						.peekFrom(1, 2).peekFrom(0, 3)</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;						.peekFrom(0, 4).peekFrom(-1, 5));</b>
+<i class="no-highlight">180</i>&nbsp;
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		register(arr, 0x60, &quot;iadd&quot;, 0, 3, Opcode.ADD_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		register(arr, 0x61, &quot;ladd&quot;, 0, 3, Opcode.ADD_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		register(arr, 0x62, &quot;fadd&quot;, 0, 3, Opcode.ADD_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		register(arr, 0x63, &quot;dadd&quot;, 0, 3, Opcode.ADD_DOUBLE, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">185</i>&nbsp;
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		register(arr, 0x64, &quot;isub&quot;, 0, 3, Opcode.SUB_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;		register(arr, 0x65, &quot;lsub&quot;, 0, 3, Opcode.SUB_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;		register(arr, 0x66, &quot;fsub&quot;, 0, 3, Opcode.SUB_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		register(arr, 0x67, &quot;dsub&quot;, 0, 3, Opcode.SUB_DOUBLE, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">190</i>&nbsp;
+<b class="fc"><i class="no-highlight">191</i>&nbsp;		register(arr, 0x68, &quot;imul&quot;, 0, 3, Opcode.MUL_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		register(arr, 0x69, &quot;lmul&quot;, 0, 3, Opcode.MUL_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		register(arr, 0x6a, &quot;fmul&quot;, 0, 3, Opcode.MUL_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		register(arr, 0x6b, &quot;dmul&quot;, 0, 3, Opcode.MUL_DOUBLE, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">195</i>&nbsp;
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		register(arr, 0x6c, &quot;idiv&quot;, 0, 3, Opcode.DIV_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		register(arr, 0x6d, &quot;ldiv&quot;, 0, 3, Opcode.DIV_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		register(arr, 0x6e, &quot;fdiv&quot;, 0, 3, Opcode.DIV_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;		register(arr, 0x6f, &quot;ddiv&quot;, 0, 3, Opcode.DIV_DOUBLE, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">200</i>&nbsp;
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		register(arr, 0x70, &quot;irem&quot;, 0, 3, Opcode.REM_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		register(arr, 0x71, &quot;lrem&quot;, 0, 3, Opcode.REM_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		register(arr, 0x72, &quot;frem&quot;, 0, 3, Opcode.REM_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		register(arr, 0x73, &quot;drem&quot;, 0, 3, Opcode.REM_DOUBLE, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">205</i>&nbsp;
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		register(arr, 0x74, &quot;ineg&quot;, 0, 2, Opcode.NEG_INT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		register(arr, 0x75, &quot;lneg&quot;, 0, 2, Opcode.NEG_LONG, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		register(arr, 0x76, &quot;fneg&quot;, 0, 2, Opcode.NEG_FLOAT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		register(arr, 0x77, &quot;dneg&quot;, 0, 2, Opcode.NEG_DOUBLE, oneRegWithResult(WIDE));</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		register(arr, 0x78, &quot;ishl&quot;, 0, 3, Opcode.SHL_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		register(arr, 0x79, &quot;lshl&quot;, 0, 3, Opcode.SHL_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		register(arr, 0x7a, &quot;ishr&quot;, 0, 3, Opcode.SHR_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		register(arr, 0x7b, &quot;lshr&quot;, 0, 3, Opcode.SHR_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		register(arr, 0x7c, &quot;iushr&quot;, 0, 3, Opcode.USHR_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		register(arr, 0x7d, &quot;lushr&quot;, 0, 3, Opcode.USHR_LONG, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">217</i>&nbsp;
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		register(arr, 0x7e, &quot;iand&quot;, 0, 3, Opcode.AND_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		register(arr, 0x7f, &quot;land&quot;, 0, 3, Opcode.AND_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		register(arr, 0x80, &quot;ior&quot;, 0, 3, Opcode.OR_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		register(arr, 0x81, &quot;lor&quot;, 0, 3, Opcode.OR_LONG, twoRegsWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		register(arr, 0x82, &quot;ixor&quot;, 0, 3, Opcode.XOR_INT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		register(arr, 0x83, &quot;lxor&quot;, 0, 3, Opcode.XOR_LONG, twoRegsWithResult(WIDE));</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		register(arr, 0x84, &quot;iinc&quot;, 2, 2, Opcode.ADD_INT_LIT, s -&gt; {</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;			int varNum = s.u1();</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;			s.local(0, varNum).local(1, varNum).lit(s.reader().readS1());</b>
+<i class="no-highlight">228</i>&nbsp;		});
+<i class="no-highlight">229</i>&nbsp;
+<b class="fc"><i class="no-highlight">230</i>&nbsp;		register(arr, 0x85, &quot;i2l&quot;, 0, 2, Opcode.INT_TO_LONG, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">231</i>&nbsp;		register(arr, 0x86, &quot;i2f&quot;, 0, 2, Opcode.INT_TO_FLOAT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		register(arr, 0x87, &quot;i2d&quot;, 0, 2, Opcode.INT_TO_DOUBLE, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		register(arr, 0x88, &quot;l2i&quot;, 0, 2, Opcode.LONG_TO_INT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		register(arr, 0x89, &quot;l2f&quot;, 0, 2, Opcode.LONG_TO_FLOAT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		register(arr, 0x8a, &quot;l2d&quot;, 0, 2, Opcode.LONG_TO_DOUBLE, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		register(arr, 0x8b, &quot;f2i&quot;, 0, 2, Opcode.FLOAT_TO_INT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		register(arr, 0x8c, &quot;f2l&quot;, 0, 2, Opcode.FLOAT_TO_LONG, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		register(arr, 0x8d, &quot;f2d&quot;, 0, 2, Opcode.FLOAT_TO_DOUBLE, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;		register(arr, 0x8e, &quot;d2i&quot;, 0, 2, Opcode.DOUBLE_TO_INT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		register(arr, 0x8f, &quot;d2l&quot;, 0, 2, Opcode.DOUBLE_TO_LONG, oneRegWithResult(WIDE));</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		register(arr, 0x90, &quot;d2f&quot;, 0, 2, Opcode.DOUBLE_TO_FLOAT, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		register(arr, 0x91, &quot;i2b&quot;, 0, 2, Opcode.INT_TO_BYTE, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		register(arr, 0x92, &quot;i2c&quot;, 0, 2, Opcode.INT_TO_CHAR, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		register(arr, 0x93, &quot;i2s&quot;, 0, 2, Opcode.INT_TO_SHORT, oneRegWithResult(NARROW));</b>
+<i class="no-highlight">245</i>&nbsp;
+<b class="fc"><i class="no-highlight">246</i>&nbsp;		register(arr, 0x94, &quot;lcmp&quot;, 0, 3, Opcode.CMP_LONG, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		register(arr, 0x95, &quot;fcmpl&quot;, 0, 3, Opcode.CMPL_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;		register(arr, 0x96, &quot;fcmpg&quot;, 0, 3, Opcode.CMPG_FLOAT, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		register(arr, 0x97, &quot;dcmpl&quot;, 0, 3, Opcode.CMPL_DOUBLE, twoRegsWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		register(arr, 0x98, &quot;dcmpg&quot;, 0, 3, Opcode.CMPG_DOUBLE, twoRegsWithResult(NARROW));</b>
+<i class="no-highlight">251</i>&nbsp;
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		register(arr, 0x99, &quot;ifeq&quot;, 2, 1, Opcode.IF_EQZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;		register(arr, 0x9a, &quot;ifne&quot;, 2, 1, Opcode.IF_NEZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;		register(arr, 0x9b, &quot;iflt&quot;, 2, 1, Opcode.IF_LTZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">255</i>&nbsp;		register(arr, 0x9c, &quot;ifge&quot;, 2, 1, Opcode.IF_GEZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		register(arr, 0x9d, &quot;ifgt&quot;, 2, 1, Opcode.IF_GTZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		register(arr, 0x9e, &quot;ifle&quot;, 2, 1, Opcode.IF_LEZ, zeroCmp());</b>
+<i class="no-highlight">258</i>&nbsp;
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		register(arr, 0x9f, &quot;if_icmpeq&quot;, 2, 2, Opcode.IF_EQ, cmp());</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		register(arr, 0xa0, &quot;if_icmpne&quot;, 2, 2, Opcode.IF_NE, cmp());</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		register(arr, 0xa1, &quot;if_icmplt&quot;, 2, 2, Opcode.IF_LT, cmp());</b>
+<b class="fc"><i class="no-highlight">262</i>&nbsp;		register(arr, 0xa2, &quot;if_icmpge&quot;, 2, 2, Opcode.IF_GE, cmp());</b>
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		register(arr, 0xa3, &quot;if_icmpgt&quot;, 2, 2, Opcode.IF_GT, cmp());</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		register(arr, 0xa4, &quot;if_icmple&quot;, 2, 2, Opcode.IF_LE, cmp());</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		register(arr, 0xa5, &quot;if_acmpeq&quot;, 2, 2, Opcode.IF_EQ, cmp());</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		register(arr, 0xa6, &quot;if_acmpne&quot;, 2, 2, Opcode.IF_NE, cmp());</b>
+<i class="no-highlight">267</i>&nbsp;
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		register(arr, 0xa7, &quot;goto&quot;, 2, 0, Opcode.GOTO, s -&gt; s.jump(s.s2()));</b>
+<i class="no-highlight">269</i>&nbsp;
+<b class="fc"><i class="no-highlight">270</i>&nbsp;		register(arr, 0xaa, &quot;tableswitch&quot;, -1, 1, Opcode.PACKED_SWITCH, new TableSwitchDecoder());</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		register(arr, 0xab, &quot;lookupswitch&quot;, -1, 1, Opcode.SPARSE_SWITCH, new LookupSwitchDecoder());</b>
+<i class="no-highlight">272</i>&nbsp;
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		register(arr, 0xac, &quot;ireturn&quot;, 0, 1, Opcode.RETURN, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		register(arr, 0xad, &quot;lreturn&quot;, 0, 1, Opcode.RETURN, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">275</i>&nbsp;		register(arr, 0xae, &quot;freturn&quot;, 0, 1, Opcode.RETURN, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;		register(arr, 0xaf, &quot;dreturn&quot;, 0, 1, Opcode.RETURN, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		register(arr, 0xb0, &quot;areturn&quot;, 0, 1, Opcode.RETURN, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		register(arr, 0xb1, &quot;return&quot;, 0, 0, Opcode.RETURN_VOID, null);</b>
+<i class="no-highlight">279</i>&nbsp;
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		register(arr, 0xb2, &quot;getstatic&quot;, 2, 1, Opcode.SGET, InsnIndexType.FIELD_REF, s -&gt; s.idx(s.u2()).push(0, s.fieldType()));</b>
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		register(arr, 0xb3, &quot;putstatic&quot;, 2, 1, Opcode.SPUT, InsnIndexType.FIELD_REF, s -&gt; s.idx(s.u2()).pop(0));</b>
+<b class="fc"><i class="no-highlight">282</i>&nbsp;		register(arr, 0xb4, &quot;getfield&quot;, 2, 2, Opcode.IGET, InsnIndexType.FIELD_REF, s -&gt; s.idx(s.u2()).pop(1).push(0, s.fieldType()));</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		register(arr, 0xb5, &quot;putfield&quot;, 2, 2, Opcode.IPUT, InsnIndexType.FIELD_REF, s -&gt; s.idx(s.u2()).pop(0).pop(1));</b>
+<i class="no-highlight">284</i>&nbsp;
+<b class="fc"><i class="no-highlight">285</i>&nbsp;		invoke(arr, 0xb6, &quot;invokevirtual&quot;, 2, Opcode.INVOKE_VIRTUAL);</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		invoke(arr, 0xb7, &quot;invokespecial&quot;, 2, Opcode.INVOKE_SPECIAL);</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;		invoke(arr, 0xb8, &quot;invokestatic&quot;, 2, Opcode.INVOKE_STATIC);</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		invoke(arr, 0xb9, &quot;invokeinterface&quot;, 4, Opcode.INVOKE_INTERFACE);</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		invoke(arr, 0xba, &quot;invokedynamic&quot;, 4, Opcode.INVOKE_CUSTOM);</b>
+<i class="no-highlight">290</i>&nbsp;
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		register(arr, 0xbb, &quot;new&quot;, 2, 1, Opcode.NEW_INSTANCE, InsnIndexType.TYPE_REF, s -&gt; s.idx(s.u2()).push(0));</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		register(arr, 0xbc, &quot;newarray&quot;, 1, 2, Opcode.NEW_ARRAY, InsnIndexType.TYPE_REF, s -&gt; s.idx(s.u1()).pop(1).push(0).lit(1));</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		register(arr, 0xbd, &quot;anewarray&quot;, 2, 2, Opcode.NEW_ARRAY, InsnIndexType.TYPE_REF, s -&gt; s.idx(s.u2()).pop(1).push(0).lit(1));</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;		register(arr, 0xbe, &quot;arraylength&quot;, 0, 2, Opcode.ARRAY_LENGTH, oneRegWithResult(NARROW));</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;		register(arr, 0xbf, &quot;athrow&quot;, 0, 1, Opcode.THROW, s -&gt; s.pop(0).clear());</b>
+<i class="no-highlight">296</i>&nbsp;
+<b class="fc"><i class="no-highlight">297</i>&nbsp;		register(arr, 0xc0, &quot;checkcast&quot;, 2, 2, Opcode.CHECK_CAST, InsnIndexType.TYPE_REF, s -&gt; s.idx(s.u2()).pop(1).push(0));</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		register(arr, 0xc1, &quot;instanceof&quot;, 2, 2, Opcode.INSTANCE_OF, InsnIndexType.TYPE_REF, s -&gt; s.idx(s.u2()).pop(1).push(0));</b>
+<i class="no-highlight">299</i>&nbsp;
+<b class="fc"><i class="no-highlight">300</i>&nbsp;		register(arr, 0xc2, &quot;monitorenter&quot;, 0, 1, Opcode.MONITOR_ENTER, s -&gt; s.pop(0));</b>
+<b class="fc"><i class="no-highlight">301</i>&nbsp;		register(arr, 0xc3, &quot;monitorexit&quot;, 0, 1, Opcode.MONITOR_EXIT, s -&gt; s.pop(0));</b>
+<i class="no-highlight">302</i>&nbsp;
+<b class="fc"><i class="no-highlight">303</i>&nbsp;		register(arr, 0xc4, &quot;wide&quot;, -1, -1, Opcode.NOP, new WideDecoder());</b>
+<i class="no-highlight">304</i>&nbsp;
+<b class="fc"><i class="no-highlight">305</i>&nbsp;		register(arr, 0xc5, &quot;multianewarray&quot;, 3, -1, Opcode.NEW_ARRAY, InsnIndexType.TYPE_REF, newArrayMulti());</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		register(arr, 0xc6, &quot;ifnull&quot;, 2, 1, Opcode.IF_EQZ, zeroCmp());</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;		register(arr, 0xc7, &quot;ifnonnull&quot;, 2, 1, Opcode.IF_NEZ, zeroCmp());</b>
+<i class="no-highlight">308</i>&nbsp;
+<b class="fc"><i class="no-highlight">309</i>&nbsp;		register(arr, 0xc8, &quot;goto_w&quot;, 4, 0, Opcode.GOTO, s -&gt; s.jump(s.reader().readS4()));</b>
+<i class="no-highlight">310</i>&nbsp;	}
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;	private static IJavaInsnDecoder newArrayMulti() {
+<i class="no-highlight">313</i>&nbsp;		return s -&gt; {
+<b class="fc"><i class="no-highlight">314</i>&nbsp;			s.idx(s.u2());</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;			int dim = s.u1();</b>
+<b class="fc"><i class="no-highlight">316</i>&nbsp;			JavaInsnData insn = s.insn();</b>
+<b class="fc"><i class="no-highlight">317</i>&nbsp;			insn.setLiteral(dim);</b>
+<b class="fc"><i class="no-highlight">318</i>&nbsp;			insn.setRegsCount(dim + 1);</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;			for (int i = dim; i &gt; 0; i--) {</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;				s.pop(i);</b>
+<i class="no-highlight">321</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">322</i>&nbsp;			s.push(0);</b>
+<i class="no-highlight">323</i>&nbsp;		};
+<i class="no-highlight">324</i>&nbsp;	}
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;	private static IJavaInsnDecoder oneRegWithResult(SVType type) {
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		return s -&gt; s.pop(1).push(0, type);</b>
+<i class="no-highlight">328</i>&nbsp;	}
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;	private static IJavaInsnDecoder twoRegsWithResult(SVType type) {
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		return s -&gt; s.pop(2).pop(1).push(0, type);</b>
+<i class="no-highlight">332</i>&nbsp;	}
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;	private static IJavaInsnDecoder aget() {
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		return s -&gt; s.pop(2).pop(1).push(0);</b>
+<i class="no-highlight">336</i>&nbsp;	}
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;	private static IJavaInsnDecoder agetWide() {
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		return s -&gt; s.pop(2).pop(1).pushWide(0);</b>
+<i class="no-highlight">340</i>&nbsp;	}
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;	private static IJavaInsnDecoder aput() {
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		return s -&gt; s.pop(0).pop(2).pop(1);</b>
+<i class="no-highlight">344</i>&nbsp;	}
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;	private static IJavaInsnDecoder zeroCmp() {
+<b class="fc"><i class="no-highlight">347</i>&nbsp;		return s -&gt; s.pop(0).jump(s.s2());</b>
+<i class="no-highlight">348</i>&nbsp;	}
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;	private static IJavaInsnDecoder cmp() {
+<b class="fc"><i class="no-highlight">351</i>&nbsp;		return s -&gt; s.pop(1).pop(0).jump(s.s2());</b>
+<i class="no-highlight">352</i>&nbsp;	}
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;	private static void invoke(JavaInsnInfo[] arr, int opcode, String name, int payloadSize, Opcode apiOpcode) {
+<b class="fc"><i class="no-highlight">355</i>&nbsp;		InsnIndexType indexType = apiOpcode == Opcode.INVOKE_CUSTOM ? InsnIndexType.CALL_SITE : InsnIndexType.METHOD_REF;</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;		register(arr, opcode, name, payloadSize, -1, apiOpcode, indexType, new InvokeDecoder(payloadSize, apiOpcode));</b>
+<i class="no-highlight">357</i>&nbsp;	}
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;	private static void constInsn(JavaInsnInfo[] arr, int opcode, String name, Opcode apiOpcode, long literal) {
+<b class="fc"><i class="no-highlight">360</i>&nbsp;		register(arr, opcode, name, 0, 1, apiOpcode, InsnIndexType.NONE, state -&gt; {</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;			state.insn().setLiteral(literal);</b>
+<b class="fc"><i class="no-highlight">362</i>&nbsp;			state.push(0, apiOpcode == Opcode.CONST_WIDE ? SVType.WIDE : NARROW);</b>
+<i class="no-highlight">363</i>&nbsp;		});
+<i class="no-highlight">364</i>&nbsp;	}
+<i class="no-highlight">365</i>&nbsp;
+<i class="no-highlight">366</i>&nbsp;	private static void loadConst(JavaInsnInfo[] arr, int opcode, String name, boolean wide) {
+<b class="fc"><i class="no-highlight">367</i>&nbsp;		register(arr, opcode, name, wide ? 2 : 1, 2, Opcode.CONST, InsnIndexType.NONE, new LoadConstDecoder(wide));</b>
+<i class="no-highlight">368</i>&nbsp;	}
+<i class="no-highlight">369</i>&nbsp;
+<i class="no-highlight">370</i>&nbsp;	private static void register(JavaInsnInfo[] arr, int opcode, String name, int payloadSize, int regsCount,
+<i class="no-highlight">371</i>&nbsp;			Opcode apiOpcode, IJavaInsnDecoder decoder) {
+<b class="fc"><i class="no-highlight">372</i>&nbsp;		register(arr, opcode, name, payloadSize, regsCount, apiOpcode, InsnIndexType.NONE, decoder);</b>
+<i class="no-highlight">373</i>&nbsp;	}
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;	private static void register(JavaInsnInfo[] arr, int opcode, String name, int payloadSize, int regsCount,
+<i class="no-highlight">376</i>&nbsp;			Opcode apiOpcode, InsnIndexType indexType, IJavaInsnDecoder decoder) {
+<b class="pc"><i class="no-highlight">377</i>&nbsp;		if (arr[opcode] != null) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;			throw new IllegalStateException(&quot;Duplicate opcode init: 0x&quot; + Integer.toHexString(opcode));</b>
+<i class="no-highlight">379</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">380</i>&nbsp;		arr[opcode] = new JavaInsnInfo(opcode, name, payloadSize, regsCount, apiOpcode, indexType, decoder);</b>
+<i class="no-highlight">381</i>&nbsp;	}
+<i class="no-highlight">382</i>&nbsp;
+<i class="no-highlight">383</i>&nbsp;	@Nullable
+<i class="no-highlight">384</i>&nbsp;	public static JavaInsnInfo get(int opcode) {
+<b class="fc"><i class="no-highlight">385</i>&nbsp;		return INSN_INFO[opcode];</b>
+<i class="no-highlight">386</i>&nbsp;	}
+<i class="no-highlight">387</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

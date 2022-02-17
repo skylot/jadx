@@ -1,0 +1,435 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ProcessVariables</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.regions.variables</a>
+</div>
+
+<h1>Coverage Summary for Class: ProcessVariables (jadx.core.dex.visitors.regions.variables)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ProcessVariables</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (15/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    76.6%
+  </span>
+  <span class="absValue">
+    (36/47)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.8%
+  </span>
+  <span class="absValue">
+    (119/131)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ProcessVariables$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    78.4%
+  </span>
+  <span class="absValue">
+    (40/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.4%
+  </span>
+  <span class="absValue">
+    (128/140)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.regions.variables;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">5</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;import java.util.Map;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map.Entry;
+<i class="no-highlight">9</i>&nbsp;import java.util.Set;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">12</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.args.CodeVar;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.nodes.IBlock;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.nodes.IContainer;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.nodes.IRegion;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.regions.loops.LoopRegion;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.visitors.AbstractVisitor;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.visitors.regions.DepthRegionTraversal;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.visitors.typeinference.TypeCompare;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.utils.RegionUtils;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">36</i>&nbsp;
+<b class="fc"><i class="no-highlight">37</i>&nbsp;public class ProcessVariables extends AbstractVisitor {</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ProcessVariables.class);</b>
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	@Override
+<i class="no-highlight">41</i>&nbsp;	public void visit(MethodNode mth) throws JadxException {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		if (mth.isNoCode() || mth.getSVars().isEmpty()) {</b>
+<i class="no-highlight">43</i>&nbsp;			return;
+<i class="no-highlight">44</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		removeUnusedResults(mth);</b>
+<i class="no-highlight">46</i>&nbsp;
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		List&lt;CodeVar&gt; codeVars = collectCodeVars(mth);</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		if (codeVars.isEmpty()) {</b>
+<i class="no-highlight">49</i>&nbsp;			return;
+<i class="no-highlight">50</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		checkCodeVars(mth, codeVars);</b>
+<i class="no-highlight">52</i>&nbsp;		// TODO: reduce code vars by name if debug info applied (need checks for variable scopes)
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;		// collect all variables usage
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		CollectUsageRegionVisitor usageCollector = new CollectUsageRegionVisitor();</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		DepthRegionTraversal.traverse(mth, usageCollector);</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		Map&lt;SSAVar, VarUsage&gt; ssaUsageMap = usageCollector.getUsageMap();</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		if (ssaUsageMap.isEmpty()) {</b>
+<i class="no-highlight">59</i>&nbsp;			return;
+<i class="no-highlight">60</i>&nbsp;		}
+<i class="no-highlight">61</i>&nbsp;
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		Map&lt;CodeVar, List&lt;VarUsage&gt;&gt; codeVarUsage = mergeUsageMaps(codeVars, ssaUsageMap);</b>
+<i class="no-highlight">63</i>&nbsp;
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		for (Entry&lt;CodeVar, List&lt;VarUsage&gt;&gt; entry : codeVarUsage.entrySet()) {</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			declareVar(mth, entry.getKey(), entry.getValue());</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		}</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	private static void removeUnusedResults(MethodNode mth) {
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		DepthRegionTraversal.traverse(mth, new AbstractRegionVisitor() {</b>
+<i class="no-highlight">71</i>&nbsp;			@Override
+<i class="no-highlight">72</i>&nbsp;			public void processBlock(MethodNode mth, IBlock container) {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;				for (InsnNode insn : container.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;					RegisterArg resultArg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;					if (resultArg != null) {</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;						SSAVar ssaVar = resultArg.getSVar();</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;						if (ssaVar.getUseList().isEmpty() &amp;&amp; insn.canRemoveResult()) {</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;							insn.setResult(null);</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;							mth.removeSVar(ssaVar);</b>
+<i class="no-highlight">80</i>&nbsp;						}
+<i class="no-highlight">81</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">82</i>&nbsp;				}</b>
+<i class="no-highlight">83</i>&nbsp;			}
+<i class="no-highlight">84</i>&nbsp;		});
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	private void checkCodeVars(MethodNode mth, List&lt;CodeVar&gt; codeVars) {
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		int unknownTypesCount = 0;</b>
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		for (CodeVar codeVar : codeVars) {</b>
+<b class="fc"><i class="no-highlight">90</i>&nbsp;			ArgType codeVarType = codeVar.getType();</b>
+<b class="pc"><i class="no-highlight">91</i>&nbsp;			if (codeVarType == null) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;				codeVar.setType(ArgType.UNKNOWN);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;				unknownTypesCount++;</b>
+<i class="no-highlight">94</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">95</i>&nbsp;				codeVar.getSsaVars()</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;						.forEach(ssaVar -&gt; {</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;							ArgType ssaType = ssaVar.getImmutableType();</b>
+<b class="pc"><i class="no-highlight">98</i>&nbsp;							if (ssaType != null &amp;&amp; ssaType.isTypeKnown()) {</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;								TypeCompare comparator = mth.root().getTypeUpdate().getTypeCompare();</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;								TypeCompareEnum result = comparator.compareTypes(ssaType, codeVarType);</b>
+<b class="pc"><i class="no-highlight">101</i>&nbsp;								if (result == TypeCompareEnum.CONFLICT || result.isNarrow()) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;									mth.addWarn(&quot;Incorrect type for immutable var: ssa=&quot; + ssaType</b>
+<i class="no-highlight">103</i>&nbsp;											+ &quot;, code=&quot; + codeVarType
+<b class="nc"><i class="no-highlight">104</i>&nbsp;											+ &quot;, for &quot; + ssaVar.getDetailedVarInfo(mth));</b>
+<i class="no-highlight">105</i>&nbsp;								}
+<i class="no-highlight">106</i>&nbsp;							}
+<i class="no-highlight">107</i>&nbsp;						});
+<i class="no-highlight">108</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">109</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">110</i>&nbsp;		if (unknownTypesCount != 0) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;			mth.addWarn(&quot;Unknown variable types count: &quot; + unknownTypesCount);</b>
+<i class="no-highlight">112</i>&nbsp;		}
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	private void declareVar(MethodNode mth, CodeVar codeVar, List&lt;VarUsage&gt; usageList) {
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		if (codeVar.isDeclared()) {</b>
+<i class="no-highlight">117</i>&nbsp;			return;
+<i class="no-highlight">118</i>&nbsp;		}
+<i class="no-highlight">119</i>&nbsp;
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		VarUsage mergedUsage = new VarUsage(null);</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		for (VarUsage varUsage : usageList) {</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;			mergedUsage.getAssigns().addAll(varUsage.getAssigns());</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;			mergedUsage.getUses().addAll(varUsage.getUses());</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		if (mergedUsage.getAssigns().isEmpty() &amp;&amp; mergedUsage.getUses().isEmpty()) {</b>
+<i class="no-highlight">126</i>&nbsp;			return;
+<i class="no-highlight">127</i>&nbsp;		}
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;		// check if variable can be declared at one of assigns
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		if (checkDeclareAtAssign(usageList, mergedUsage)) {</b>
+<i class="no-highlight">131</i>&nbsp;			return;
+<i class="no-highlight">132</i>&nbsp;		}
+<i class="no-highlight">133</i>&nbsp;		// TODO: search closest region for declare
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;		// region not found, declare at method start
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		declareVarInRegion(mth.getRegion(), codeVar);</b>
+<i class="no-highlight">137</i>&nbsp;	}
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;	private List&lt;CodeVar&gt; collectCodeVars(MethodNode mth) {
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		Map&lt;CodeVar, List&lt;SSAVar&gt;&gt; codeVars = new LinkedHashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		for (SSAVar ssaVar : mth.getSVars()) {</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;			if (ssaVar.getCodeVar().isThis()) {</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;				continue;</b>
+<i class="no-highlight">144</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">145</i>&nbsp;			CodeVar codeVar = ssaVar.getCodeVar();</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;			List&lt;SSAVar&gt; list = codeVars.computeIfAbsent(codeVar, k -&gt; new ArrayList&lt;&gt;());</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;			list.add(ssaVar);</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;		}</b>
+<i class="no-highlight">149</i>&nbsp;
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		for (Entry&lt;CodeVar, List&lt;SSAVar&gt;&gt; entry : codeVars.entrySet()) {</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;			CodeVar codeVar = entry.getKey();</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;			List&lt;SSAVar&gt; list = entry.getValue();</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;			for (SSAVar ssaVar : list) {</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;				CodeVar localCodeVar = ssaVar.getCodeVar();</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;				codeVar.mergeFlagsFrom(localCodeVar);</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">157</i>&nbsp;			if (list.size() &gt; 1) {</b>
+<b class="fc"><i class="no-highlight">158</i>&nbsp;				for (SSAVar ssaVar : list) {</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;					ssaVar.setCodeVar(codeVar);</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;				}</b>
+<i class="no-highlight">161</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">162</i>&nbsp;			codeVar.setSsaVars(list);</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		return new ArrayList&lt;&gt;(codeVars.keySet());</b>
+<i class="no-highlight">165</i>&nbsp;	}
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;	private Map&lt;CodeVar, List&lt;VarUsage&gt;&gt; mergeUsageMaps(List&lt;CodeVar&gt; codeVars, Map&lt;SSAVar, VarUsage&gt; ssaUsageMap) {
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		Map&lt;CodeVar, List&lt;VarUsage&gt;&gt; codeVarUsage = new LinkedHashMap&lt;&gt;(codeVars.size());</b>
+<b class="fc"><i class="no-highlight">169</i>&nbsp;		for (CodeVar codeVar : codeVars) {</b>
+<b class="fc"><i class="no-highlight">170</i>&nbsp;			List&lt;VarUsage&gt; list = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;			for (SSAVar ssaVar : codeVar.getSsaVars()) {</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;				VarUsage usage = ssaUsageMap.get(ssaVar);</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;				if (usage != null) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;					list.add(usage);</b>
+<i class="no-highlight">175</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;			codeVarUsage.put(codeVar, Utils.lockList(list));</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		return codeVarUsage;</b>
+<i class="no-highlight">180</i>&nbsp;	}
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;	private boolean checkDeclareAtAssign(List&lt;VarUsage&gt; list, VarUsage mergedUsage) {
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		if (mergedUsage.getAssigns().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;			return false;</b>
+<i class="no-highlight">185</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		for (VarUsage u : list) {</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;			for (UsePlace assign : u.getAssigns()) {</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;				if (canDeclareAt(mergedUsage, assign)) {</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;					return checkDeclareAtAssign(u.getVar());</b>
+<i class="no-highlight">190</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">191</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		return false;</b>
+<i class="no-highlight">194</i>&nbsp;	}
+<i class="no-highlight">195</i>&nbsp;
+<i class="no-highlight">196</i>&nbsp;	private static boolean canDeclareAt(VarUsage usage, UsePlace usePlace) {
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		IRegion region = usePlace.getRegion();</b>
+<i class="no-highlight">198</i>&nbsp;		// workaround for declare variables used in several loops
+<b class="pc"><i class="no-highlight">199</i>&nbsp;		if (region instanceof LoopRegion) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;			for (UsePlace use : usage.getAssigns()) {</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;				if (!RegionUtils.isRegionContainsRegion(region, use.getRegion())) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;					return false;</b>
+<i class="no-highlight">203</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">204</i>&nbsp;			}</b>
+<i class="no-highlight">205</i>&nbsp;		}
+<i class="no-highlight">206</i>&nbsp;		// can&#39;t declare in else-if chain between &#39;else&#39; and next &#39;if&#39;
+<b class="pc"><i class="no-highlight">207</i>&nbsp;		if (region.contains(AFlag.ELSE_IF_CHAIN)) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;			return false;</b>
+<i class="no-highlight">209</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		return isAllUseAfter(usePlace, usage.getAssigns())</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;				&amp;&amp; isAllUseAfter(usePlace, usage.getUses());</b>
+<i class="no-highlight">212</i>&nbsp;	}
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;	/**
+<i class="no-highlight">215</i>&nbsp;	 * Check if all {@code usePlaces} are after {@code checkPlace}
+<i class="no-highlight">216</i>&nbsp;	 */
+<i class="no-highlight">217</i>&nbsp;	private static boolean isAllUseAfter(UsePlace checkPlace, List&lt;UsePlace&gt; usePlaces) {
+<i class="no-highlight">218</i>&nbsp;
+<b class="fc"><i class="no-highlight">219</i>&nbsp;		IRegion region = checkPlace.getRegion();</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;		IBlock block = checkPlace.getBlock();</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		Set&lt;UsePlace&gt; toCheck = new HashSet&lt;&gt;(usePlaces);</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		boolean blockFound = false;</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		for (IContainer subBlock : region.getSubBlocks()) {</b>
+<b class="fc"><i class="no-highlight">224</i>&nbsp;			if (!blockFound &amp;&amp; subBlock == block) {</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;				blockFound = true;</b>
+<i class="no-highlight">226</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">227</i>&nbsp;			if (blockFound) {</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;				toCheck.removeIf(usePlace -&gt; isContainerContainsUsePlace(subBlock, usePlace));</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;				if (toCheck.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">230</i>&nbsp;					return true;</b>
+<i class="no-highlight">231</i>&nbsp;				}
+<i class="no-highlight">232</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		return false;</b>
+<i class="no-highlight">235</i>&nbsp;	}
+<i class="no-highlight">236</i>&nbsp;
+<i class="no-highlight">237</i>&nbsp;	private static boolean isContainerContainsUsePlace(IContainer subBlock, UsePlace usePlace) {
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		if (subBlock == usePlace.getBlock()) {</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;			return true;</b>
+<i class="no-highlight">240</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		if (subBlock instanceof IRegion) {</b>
+<i class="no-highlight">242</i>&nbsp;			// TODO: make index for faster check
+<b class="fc"><i class="no-highlight">243</i>&nbsp;			return RegionUtils.isRegionContainsRegion(subBlock, usePlace.getRegion());</b>
+<i class="no-highlight">244</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">245</i>&nbsp;		return false;</b>
+<i class="no-highlight">246</i>&nbsp;	}
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;	private static boolean checkDeclareAtAssign(SSAVar var) {
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		RegisterArg arg = var.getAssign();</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		InsnNode parentInsn = arg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">251</i>&nbsp;		if (parentInsn == null</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;				|| parentInsn.contains(AFlag.WRAPPED)</b>
+<b class="pc"><i class="no-highlight">253</i>&nbsp;				|| parentInsn.getType() == InsnType.PHI) {</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;			return false;</b>
+<i class="no-highlight">255</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">256</i>&nbsp;		if (!arg.equals(parentInsn.getResult())) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;			return false;</b>
+<i class="no-highlight">258</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		parentInsn.add(AFlag.DECLARE_VAR);</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		return true;</b>
+<i class="no-highlight">261</i>&nbsp;	}
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;	private static void declareVarInRegion(IContainer region, CodeVar var) {
+<b class="pc"><i class="no-highlight">264</i>&nbsp;		if (var.isDeclared()) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;			LOG.warn(&quot;Try to declare already declared variable: {}&quot;, var);</b>
+<i class="no-highlight">266</i>&nbsp;			return;
+<i class="no-highlight">267</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">268</i>&nbsp;		DeclareVariablesAttr dv = region.get(AType.DECLARE_VARIABLES);</b>
+<b class="fc"><i class="no-highlight">269</i>&nbsp;		if (dv == null) {</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;			dv = new DeclareVariablesAttr();</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;			region.addAttr(dv);</b>
+<i class="no-highlight">272</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		dv.addVar(var);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;		var.setDeclared(true);</b>
+<i class="no-highlight">275</i>&nbsp;	}
+<i class="no-highlight">276</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

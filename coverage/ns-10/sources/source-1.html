@@ -1,0 +1,265 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JCommanderWrapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.cli</a>
+</div>
+
+<h1>Coverage Summary for Class: JCommanderWrapper (jadx.cli)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JCommanderWrapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    42.9%
+  </span>
+  <span class="absValue">
+    (3/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    17.3%
+  </span>
+  <span class="absValue">
+    (14/81)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.cli;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.PrintStream;
+<i class="no-highlight">4</i>&nbsp;import java.lang.reflect.Field;
+<i class="no-highlight">5</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">6</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">7</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">8</i>&nbsp;import java.util.List;
+<i class="no-highlight">9</i>&nbsp;import java.util.Locale;
+<i class="no-highlight">10</i>&nbsp;import java.util.Map;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.beust.jcommander.JCommander;
+<i class="no-highlight">15</i>&nbsp;import com.beust.jcommander.ParameterDescription;
+<i class="no-highlight">16</i>&nbsp;import com.beust.jcommander.ParameterException;
+<i class="no-highlight">17</i>&nbsp;import com.beust.jcommander.Parameterized;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;public class JCommanderWrapper&lt;T&gt; {
+<i class="no-highlight">22</i>&nbsp;	private final JCommander jc;
+<i class="no-highlight">23</i>&nbsp;
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	public JCommanderWrapper(T obj) {</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		this.jc = JCommander.newBuilder().addObject(obj).build();</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	public boolean parse(String[] args) {
+<i class="no-highlight">29</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">30</i>&nbsp;			jc.parse(args);</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;			return true;</b>
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		} catch (ParameterException e) {</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;			System.err.println(&quot;Arguments parse error: &quot; + e.getMessage());</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;			printUsage();</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;			return false;</b>
+<i class="no-highlight">36</i>&nbsp;		}
+<i class="no-highlight">37</i>&nbsp;	}
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	public void overrideProvided(T obj) {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		List&lt;ParameterDescription&gt; fieldsParams = jc.getParameters();</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		List&lt;ParameterDescription&gt; parameters = new ArrayList&lt;&gt;(1 + fieldsParams.size());</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		parameters.add(jc.getMainParameterValue());</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		parameters.addAll(fieldsParams);</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		for (ParameterDescription parameter : parameters) {</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			if (parameter.isAssigned()) {</b>
+<i class="no-highlight">46</i>&nbsp;				// copy assigned field value to obj
+<b class="fc"><i class="no-highlight">47</i>&nbsp;				Parameterized parameterized = parameter.getParameterized();</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;				Object val = parameterized.get(parameter.getObject());</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;				parameterized.set(obj, val);</b>
+<i class="no-highlight">50</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		}</b>
+<i class="no-highlight">52</i>&nbsp;	}
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;	public void printUsage() {
+<i class="no-highlight">55</i>&nbsp;		// print usage in not sorted fields order (by default its sorted by description)
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		PrintStream out = System.out;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		out.println();</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		out.println(&quot;jadx - dex to java decompiler, version: &quot; + JadxDecompiler.getVersion());</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		out.println();</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		out.println(&quot;usage: jadx [options] &quot; + jc.getMainParameterDescription());</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		out.println(&quot;options:&quot;);</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		List&lt;ParameterDescription&gt; params = jc.getParameters();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		Map&lt;String, ParameterDescription&gt; paramsMap = new LinkedHashMap&lt;&gt;(params.size());</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		int maxNamesLen = 0;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		for (ParameterDescription p : params) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;			paramsMap.put(p.getParameterized().getName(), p);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;			int len = p.getNames().length();</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;			if (len &gt; maxNamesLen) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;				maxNamesLen = len;</b>
+<i class="no-highlight">71</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		}</b>
+<i class="no-highlight">73</i>&nbsp;
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		JadxCLIArgs args = (JadxCLIArgs) jc.getObjects().get(0);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		for (Field f : getFields(args.getClass())) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;			String name = f.getName();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			ParameterDescription p = paramsMap.get(name);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;			if (p == null) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;				continue;</b>
+<i class="no-highlight">80</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">81</i>&nbsp;			StringBuilder opt = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;			opt.append(&quot;  &quot;).append(p.getNames());</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;			String description = p.getDescription();</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			addSpaces(opt, maxNamesLen - opt.length() + 3);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;			if (description.contains(&quot;\n&quot;)) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;				String[] lines = description.split(&quot;\n&quot;);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;				opt.append(&quot;- &quot;).append(lines[0]);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;				for (int i = 1; i &lt; lines.length; i++) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;					opt.append(&#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;					addSpaces(opt, maxNamesLen + 5);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;					opt.append(lines[i]);</b>
+<i class="no-highlight">92</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">93</i>&nbsp;			} else {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;				opt.append(&quot;- &quot;).append(description);</b>
+<i class="no-highlight">95</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">96</i>&nbsp;			String defaultValue = getDefaultValue(args, f, opt);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;			if (defaultValue != null) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;				opt.append(&quot;, default: &quot;).append(defaultValue);</b>
+<i class="no-highlight">99</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">100</i>&nbsp;			out.println(opt);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		out.println(&quot;Examples:&quot;);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		out.println(&quot;  jadx -d out classes.dex&quot;);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;		out.println(&quot;  jadx --rename-flags \&quot;none\&quot; classes.dex&quot;);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		out.println(&quot;  jadx --rename-flags \&quot;valid, printable\&quot; classes.dex&quot;);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;		out.println(&quot;  jadx --log-level ERROR app.apk&quot;);</b>
+<i class="no-highlight">107</i>&nbsp;	}
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;	/**
+<i class="no-highlight">110</i>&nbsp;	 * Get all declared fields of the specified class and all super classes
+<i class="no-highlight">111</i>&nbsp;	 */
+<i class="no-highlight">112</i>&nbsp;	private List&lt;Field&gt; getFields(Class&lt;?&gt; clazz) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		List&lt;Field&gt; fieldList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;		while (clazz != null) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;			fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;			clazz = clazz.getSuperclass();</b>
+<i class="no-highlight">117</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">118</i>&nbsp;		return fieldList;</b>
+<i class="no-highlight">119</i>&nbsp;	}
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;	@Nullable
+<i class="no-highlight">122</i>&nbsp;	private String getDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
+<i class="no-highlight">123</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;			Class&lt;?&gt; fieldType = f.getType();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;			if (fieldType == int.class) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;				return Integer.toString(f.getInt(args));</b>
+<i class="no-highlight">127</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">128</i>&nbsp;			if (fieldType == String.class) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;				return (String) f.get(args);</b>
+<i class="no-highlight">130</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">131</i>&nbsp;			if (Enum.class.isAssignableFrom(fieldType)) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;				Enum&lt;?&gt; val = (Enum&lt;?&gt;) f.get(args);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;				if (val != null) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;					return val.name().toLowerCase(Locale.ROOT);</b>
+<i class="no-highlight">135</i>&nbsp;				}
+<i class="no-highlight">136</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">137</i>&nbsp;		} catch (Exception e) {</b>
+<i class="no-highlight">138</i>&nbsp;			// ignore
+<b class="nc"><i class="no-highlight">139</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;		return null;</b>
+<i class="no-highlight">141</i>&nbsp;	}
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;	private static void addSpaces(StringBuilder str, int count) {
+<b class="nc"><i class="no-highlight">144</i>&nbsp;		for (int i = 0; i &lt; count; i++) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;			str.append(&#39; &#39;);</b>
+<i class="no-highlight">146</i>&nbsp;		}
+<i class="no-highlight">147</i>&nbsp;	}
+<i class="no-highlight">148</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

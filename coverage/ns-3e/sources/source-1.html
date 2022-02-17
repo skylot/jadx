@@ -1,0 +1,153 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JadxGUI</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui</a>
+</div>
+
+<h1>Coverage Summary for Class: JadxGUI (jadx.gui)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JadxGUI</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.cli.LogHelper;
+<i class="no-highlight">9</i>&nbsp;import jadx.gui.settings.JadxSettings;
+<i class="no-highlight">10</i>&nbsp;import jadx.gui.settings.JadxSettingsAdapter;
+<i class="no-highlight">11</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">12</i>&nbsp;import jadx.gui.utils.LafManager;
+<i class="no-highlight">13</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">14</i>&nbsp;import jadx.gui.utils.SystemInfo;
+<i class="no-highlight">15</i>&nbsp;import jadx.gui.utils.logs.LogCollector;
+<i class="no-highlight">16</i>&nbsp;
+<b class="nc"><i class="no-highlight">17</i>&nbsp;public class JadxGUI {</b>
+<b class="nc"><i class="no-highlight">18</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	public static void main(String[] args) {
+<i class="no-highlight">21</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">22</i>&nbsp;			LogCollector.register();</b>
+<b class="nc"><i class="no-highlight">23</i>&nbsp;			JadxSettings settings = JadxSettingsAdapter.load();</b>
+<b class="nc"><i class="no-highlight">24</i>&nbsp;			settings.setLogLevel(LogHelper.LogLevelEnum.INFO);</b>
+<i class="no-highlight">25</i>&nbsp;			// overwrite loaded settings by command line arguments
+<b class="nc"><i class="no-highlight">26</i>&nbsp;			if (!settings.overrideProvided(args)) {</b>
+<i class="no-highlight">27</i>&nbsp;				return;
+<i class="no-highlight">28</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">29</i>&nbsp;			printSystemInfo();</b>
+<b class="nc"><i class="no-highlight">30</i>&nbsp;			LafManager.init(settings);</b>
+<b class="nc"><i class="no-highlight">31</i>&nbsp;			NLS.setLocale(settings.getLangLocale());</b>
+<i class="no-highlight">32</i>&nbsp;
+<b class="nc"><i class="no-highlight">33</i>&nbsp;			SwingUtilities.invokeLater(new MainWindow(settings)::init);</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;			LOG.error(&quot;Error: {}&quot;, e.getMessage(), e);</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			System.exit(1);</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		}</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	private static void printSystemInfo() {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		if (LOG.isDebugEnabled()) {</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;			LOG.debug(&quot;Starting jadx-gui. Version: &#39;{}&#39;. JVM: {} {}. OS: {} {}&quot;,</b>
+<i class="no-highlight">43</i>&nbsp;					SystemInfo.JADX_VERSION,
+<i class="no-highlight">44</i>&nbsp;					SystemInfo.JAVA_VM, SystemInfo.JAVA_VER,
+<i class="no-highlight">45</i>&nbsp;					SystemInfo.OS_NAME, SystemInfo.OS_VERSION);
+<i class="no-highlight">46</i>&nbsp;		}
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+/*
+ * Copyright 2000-2021 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+
+Intellij Idea-like styling (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+
+pre code {
+  display: block; padding: 0.5em;
+  color: #000;
+  background: #fff;
+}
+
+pre .subst,
+pre .title {
+  font-weight: normal;
+  color: #000;
+}
+
+pre .comment,
+pre .template_comment,
+pre .javadoc,
+pre .diff .header {
+  color: #808080;
+  font-style: italic;
+}
+
+pre .annotation,
+pre .decorator,
+pre .preprocessor,
+pre .doctype,
+pre .pi,
+pre .chunk,
+pre .shebang,
+pre .apache .cbracket,
+pre .input_number,
+pre .http .title {
+  color: #808000;
+}
+
+pre .tag,
+pre .pi {
+  background: #efefef;
+}
+
+/* leonid.khachaturov: redefine background as it conflicts with change highlighting we apply on top of source highlighting */
+pre .changeAdded .tag,
+pre .changeRemoved .tag,
+pre .changeAdded .pi,
+pre .changeRemoved .pi {
+  background: transparent;
+}
+
+/* leonid.khachaturov: redefine .comment from main.css */
+pre .comment {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+}
+
+pre .tag .title,
+pre .id,
+pre .attr_selector,
+pre .pseudo,
+pre .literal,
+pre .keyword,
+pre .hexcolor,
+pre .css .function,
+pre .ini .title,
+pre .css .class,
+pre .list .title,
+pre .nginx .title,
+pre .tex .command,
+pre .request,
+pre .status {
+  font-weight: bold;
+  color: #000080;
+}
+
+pre .attribute,
+pre .rules .keyword,
+pre .number,
+pre .date,
+pre .regexp,
+pre .tex .special {
+  font-weight: bold;
+  color: #0000ff;
+}
+
+pre .number,
+pre .regexp {
+  font-weight: normal;
+}
+
+pre .string,
+pre .value,
+pre .filter .argument,
+pre .css .function .params,
+pre .apache .tag {
+  color: #008000;
+  font-weight: bold;
+}
+
+pre .symbol,
+pre .ruby .symbol .string,
+pre .ruby .symbol .keyword,
+pre .ruby .symbol .keymethods,
+pre .char,
+pre .tex .formula {
+  color: #000;
+  background: #d0eded;
+  font-style: italic;
+}
+
+pre .phpdoc,
+pre .yardoctag,
+pre .javadoctag {
+  text-decoration: underline;
+}
+
+pre .variable,
+pre .envvar,
+pre .apache .sqbracket,
+pre .nginx .built_in {
+  color: #660e7a;
+}
+
+pre .addition {
+  background: #baeeba;
+}
+
+pre .deletion {
+  background: #ffc8bd;
+}
+
+pre .diff .change {
+  background: #bccff9;
+}

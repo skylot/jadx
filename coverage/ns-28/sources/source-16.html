@@ -1,0 +1,718 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ModVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: ModVisitor (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ModVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (26/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.3%
+  </span>
+  <span class="absValue">
+    (69/104)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89%
+  </span>
+  <span class="absValue">
+    (251/282)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ModVisitor$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (27/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.3%
+  </span>
+  <span class="absValue">
+    (69/104)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89%
+  </span>
+  <span class="absValue">
+    (252/283)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.List;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedType;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.attributes.AttrNode;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.info.AccessInfo;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.instructions.ConstClassNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.instructions.ConstStringNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.FillArrayInsn;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.FilledNewArrayNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.IfNode;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.IfOp;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.instructions.NewArrayNode;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.instructions.SwitchInsn;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.instructions.args.NamedArg;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.instructions.mods.TernaryInsn;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.dex.nodes.IMethodDetails;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">49</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition;
+<i class="no-highlight">50</i>&nbsp;import jadx.core.dex.trycatch.ExcHandlerAttr;
+<i class="no-highlight">51</i>&nbsp;import jadx.core.dex.trycatch.ExceptionHandler;
+<i class="no-highlight">52</i>&nbsp;import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+<i class="no-highlight">53</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">54</i>&nbsp;import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
+<i class="no-highlight">55</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">56</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">57</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">58</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import static jadx.core.utils.BlockUtils.replaceInsn;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;/**
+<i class="no-highlight">63</i>&nbsp; * Visitor for modify method instructions
+<i class="no-highlight">64</i>&nbsp; * (remove, replace, process exception handlers)
+<i class="no-highlight">65</i>&nbsp; */
+<i class="no-highlight">66</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">67</i>&nbsp;		name = &quot;ModVisitor&quot;,
+<i class="no-highlight">68</i>&nbsp;		desc = &quot;Modify method instructions&quot;,
+<i class="no-highlight">69</i>&nbsp;		runBefore = {
+<i class="no-highlight">70</i>&nbsp;				CodeShrinkVisitor.class,
+<i class="no-highlight">71</i>&nbsp;				ProcessVariables.class
+<i class="no-highlight">72</i>&nbsp;		}
+<i class="no-highlight">73</i>&nbsp;)
+<b class="fc"><i class="no-highlight">74</i>&nbsp;public class ModVisitor extends AbstractVisitor {</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ModVisitor.class);</b>
+<i class="no-highlight">76</i>&nbsp;
+<b class="fc"><i class="no-highlight">77</i>&nbsp;	private static final long DOUBLE_TO_BITS = Double.doubleToLongBits(1);</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;	private static final long FLOAT_TO_BITS = Float.floatToIntBits(1);</b>
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	@Override
+<i class="no-highlight">81</i>&nbsp;	public boolean visit(ClassNode cls) throws JadxException {
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		replaceConstInAnnotations(cls);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		return true;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	@Override
+<i class="no-highlight">87</i>&nbsp;	public void visit(MethodNode mth) {
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">89</i>&nbsp;			return;
+<i class="no-highlight">90</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		InsnRemover remover = new InsnRemover(mth);</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		replaceStep(mth, remover);</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		removeStep(mth, remover);</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		iterativeRemoveStep(mth);</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	private static void replaceStep(MethodNode mth, InsnRemover remover) {
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		ClassNode parentClass = mth.getParentClass();</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			remover.setBlock(block);</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;			List&lt;InsnNode&gt; insnsList = block.getInstructions();</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;			int size = insnsList.size();</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;			for (int i = 0; i &lt; size; i++) {</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;				InsnNode insn = insnsList.get(i);</b>
+<b class="pc"><i class="no-highlight">105</i>&nbsp;				switch (insn.getType()) {</b>
+<i class="no-highlight">106</i>&nbsp;					case CONSTRUCTOR:
+<b class="fc"><i class="no-highlight">107</i>&nbsp;						processAnonymousConstructor(mth, ((ConstructorInsn) insn));</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;						break;</b>
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;					case CONST:
+<i class="no-highlight">111</i>&nbsp;					case CONST_STR:
+<i class="no-highlight">112</i>&nbsp;					case CONST_CLASS:
+<b class="fc"><i class="no-highlight">113</i>&nbsp;						replaceConst(mth, parentClass, block, i, insn);</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;						break;</b>
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;					case SWITCH:
+<b class="fc"><i class="no-highlight">117</i>&nbsp;						replaceConstKeys(mth, parentClass, (SwitchInsn) insn);</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;						break;</b>
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;					case NEW_ARRAY:
+<i class="no-highlight">121</i>&nbsp;						// replace with filled array if &#39;fill-array&#39; is next instruction
+<b class="fc"><i class="no-highlight">122</i>&nbsp;						NewArrayNode newArrInsn = (NewArrayNode) insn;</b>
+<b class="fc"><i class="no-highlight">123</i>&nbsp;						InsnNode nextInsn = getFirstUseSkipMove(insn.getResult());</b>
+<b class="pc"><i class="no-highlight">124</i>&nbsp;						if (nextInsn != null &amp;&amp; nextInsn.getType() == InsnType.FILL_ARRAY) {</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;							FillArrayInsn fillArrInsn = (FillArrayInsn) nextInsn;</b>
+<b class="pc"><i class="no-highlight">126</i>&nbsp;							if (checkArrSizes(mth, newArrInsn, fillArrInsn)) {</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;								InsnNode filledArr = makeFilledArrayInsn(mth, newArrInsn, fillArrInsn);</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;								replaceInsn(mth, block, i, filledArr);</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;								remover.addAndUnbind(nextInsn);</b>
+<i class="no-highlight">130</i>&nbsp;							}
+<b class="fc"><i class="no-highlight">131</i>&nbsp;						}</b>
+<i class="no-highlight">132</i>&nbsp;						break;
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;					case MOVE_EXCEPTION:
+<b class="fc"><i class="no-highlight">135</i>&nbsp;						processMoveException(mth, block, insn, remover);</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;						break;</b>
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;					case ARITH:
+<b class="fc"><i class="no-highlight">139</i>&nbsp;						processArith(mth, parentClass, (ArithNode) insn);</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;						break;</b>
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;					case CHECK_CAST:
+<b class="fc"><i class="no-highlight">143</i>&nbsp;						removeCheckCast(mth, block, i, (IndexInsnNode) insn);</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;						break;</b>
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;					case CAST:
+<b class="fc"><i class="no-highlight">147</i>&nbsp;						fixPrimitiveCast(mth, block, i, insn);</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;						break;</b>
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;					case IPUT:
+<i class="no-highlight">151</i>&nbsp;					case IGET:
+<b class="fc"><i class="no-highlight">152</i>&nbsp;						fixFieldUsage(mth, (IndexInsnNode) insn);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;						break;</b>
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;					default:
+<i class="no-highlight">156</i>&nbsp;						break;
+<i class="no-highlight">157</i>&nbsp;				}
+<i class="no-highlight">158</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">159</i>&nbsp;			remover.perform();</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;		}</b>
+<i class="no-highlight">161</i>&nbsp;	}
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;	/**
+<i class="no-highlight">164</i>&nbsp;	 * If field is not visible from use site =&gt; cast to origin class
+<i class="no-highlight">165</i>&nbsp;	 */
+<i class="no-highlight">166</i>&nbsp;	private static void fixFieldUsage(MethodNode mth, IndexInsnNode insn) {
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		InsnArg instanceArg = insn.getArg(insn.getType() == InsnType.IGET ? 0 : 1);</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		if (instanceArg.contains(AFlag.SUPER)) {</b>
+<i class="no-highlight">169</i>&nbsp;			return;
+<i class="no-highlight">170</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">171</i>&nbsp;		if (instanceArg.isInsnWrap() &amp;&amp; ((InsnWrapArg) instanceArg).getWrapInsn().getType() == InsnType.CAST) {</b>
+<i class="no-highlight">172</i>&nbsp;			return;
+<i class="no-highlight">173</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		FieldInfo fieldInfo = (FieldInfo) insn.getIndex();</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		ArgType clsType = fieldInfo.getDeclClass().getType();</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		ArgType instanceType = instanceArg.getType();</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		if (Objects.equals(clsType, instanceType)) {</b>
+<i class="no-highlight">178</i>&nbsp;			// cast not needed
+<i class="no-highlight">179</i>&nbsp;			return;
+<i class="no-highlight">180</i>&nbsp;		}
+<i class="no-highlight">181</i>&nbsp;
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		FieldNode fieldNode = mth.root().resolveField(fieldInfo);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		if (fieldNode == null) {</b>
+<i class="no-highlight">184</i>&nbsp;			// unknown field
+<b class="fc"><i class="no-highlight">185</i>&nbsp;			TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(instanceType, clsType);</b>
+<b class="pc"><i class="no-highlight">186</i>&nbsp;			if (result.isEqual() || (result == TypeCompareEnum.NARROW_BY_GENERIC &amp;&amp; !instanceType.isGenericType())) {</b>
+<i class="no-highlight">187</i>&nbsp;				return;
+<i class="no-highlight">188</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		} else if (isFieldVisibleInMethod(fieldNode, mth)) {</b>
+<i class="no-highlight">190</i>&nbsp;			return;
+<i class="no-highlight">191</i>&nbsp;		}
+<i class="no-highlight">192</i>&nbsp;		// insert cast
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CAST, clsType, 1);</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		castInsn.addArg(instanceArg.duplicate());</b>
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		castInsn.add(AFlag.SYNTHETIC);</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		castInsn.add(AFlag.EXPLICIT_CAST);</b>
+<i class="no-highlight">197</i>&nbsp;
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		InsnArg castArg = InsnArg.wrapInsnIntoArg(castInsn);</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;		castArg.setType(clsType);</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		insn.replaceArg(instanceArg, castArg);</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		InsnRemover.unbindArgUsage(mth, instanceArg);</b>
+<i class="no-highlight">202</i>&nbsp;	}
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;	private static boolean isFieldVisibleInMethod(FieldNode field, MethodNode mth) {
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		AccessInfo accessFlags = field.getAccessFlags();</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		if (accessFlags.isPublic()) {</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;			return true;</b>
+<i class="no-highlight">208</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		ClassNode useCls = mth.getParentClass();</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		ClassNode fieldCls = field.getParentClass();</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		boolean sameScope = Objects.equals(useCls, fieldCls) &amp;&amp; !mth.getAccessFlags().isStatic();</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		if (sameScope) {</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			return true;</b>
+<i class="no-highlight">214</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		if (accessFlags.isPrivate()) {</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;			return false;</b>
+<i class="no-highlight">217</i>&nbsp;		}
+<i class="no-highlight">218</i>&nbsp;		// package-private or protected
+<b class="pc"><i class="no-highlight">219</i>&nbsp;		if (Objects.equals(useCls.getClassInfo().getPackage(), fieldCls.getClassInfo().getPackage())) {</b>
+<i class="no-highlight">220</i>&nbsp;			// same package
+<b class="fc"><i class="no-highlight">221</i>&nbsp;			return true;</b>
+<i class="no-highlight">222</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">223</i>&nbsp;		if (accessFlags.isPackagePrivate()) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;			return false;</b>
+<i class="no-highlight">225</i>&nbsp;		}
+<i class="no-highlight">226</i>&nbsp;		// protected
+<b class="nc"><i class="no-highlight">227</i>&nbsp;		TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(useCls, fieldCls);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;		return result == TypeCompareEnum.NARROW; // true if use class is subclass of field class</b>
+<i class="no-highlight">229</i>&nbsp;	}
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;	private static void replaceConstKeys(MethodNode mth, ClassNode parentClass, SwitchInsn insn) {
+<b class="fc"><i class="no-highlight">232</i>&nbsp;		int[] keys = insn.getKeys();</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		int len = keys.length;</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		for (int k = 0; k &lt; len; k++) {</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;			FieldNode f = parentClass.getConstField(keys[k]);</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;			if (f != null) {</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;				insn.modifyKey(k, f);</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;				f.addUseIn(mth);</b>
+<i class="no-highlight">239</i>&nbsp;			}
+<i class="no-highlight">240</i>&nbsp;		}
+<i class="no-highlight">241</i>&nbsp;	}
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;	private static void fixPrimitiveCast(MethodNode mth, BlockNode block, int i, InsnNode insn) {
+<i class="no-highlight">244</i>&nbsp;		// replace boolean to (byte/char/short/long/double/float) cast with ternary
+<b class="fc"><i class="no-highlight">245</i>&nbsp;		InsnArg castArg = insn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">246</i>&nbsp;		if (castArg.getType() == ArgType.BOOLEAN) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;			ArgType type = insn.getResult().getType();</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;			if (type.isPrimitive()) {</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;				TernaryInsn ternary = makeBooleanConvertInsn(insn.getResult(), castArg, type);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;				replaceInsn(mth, block, i, ternary);</b>
+<i class="no-highlight">251</i>&nbsp;			}
+<i class="no-highlight">252</i>&nbsp;		}
+<i class="no-highlight">253</i>&nbsp;	}
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;	public static TernaryInsn makeBooleanConvertInsn(RegisterArg result, InsnArg castArg, ArgType type) {
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		InsnArg zero = LiteralArg.make(0, type);</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		long litVal = 1;</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		if (type == ArgType.DOUBLE) {</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;			litVal = DOUBLE_TO_BITS;</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		} else if (type == ArgType.FLOAT) {</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;			litVal = FLOAT_TO_BITS;</b>
+<i class="no-highlight">262</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		InsnArg one = LiteralArg.make(litVal, type);</b>
+<i class="no-highlight">264</i>&nbsp;
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		IfNode ifNode = new IfNode(IfOp.EQ, -1, castArg, LiteralArg.litTrue());</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		IfCondition condition = IfCondition.fromIfNode(ifNode);</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;		return new TernaryInsn(condition, result, one, zero);</b>
+<i class="no-highlight">268</i>&nbsp;	}
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;	private void replaceConstInAnnotations(ClassNode cls) {
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		if (cls.root().getArgs().isReplaceConsts()) {</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;			replaceConstsInAnnotationForAttrNode(cls, cls);</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;			cls.getFields().forEach(f -&gt; replaceConstsInAnnotationForAttrNode(cls, f));</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;			cls.getMethods().forEach(m -&gt; replaceConstsInAnnotationForAttrNode(cls, m));</b>
+<i class="no-highlight">275</i>&nbsp;		}
+<i class="no-highlight">276</i>&nbsp;	}
+<i class="no-highlight">277</i>&nbsp;
+<i class="no-highlight">278</i>&nbsp;	private void replaceConstsInAnnotationForAttrNode(ClassNode parentCls, AttrNode attrNode) {
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		AnnotationsAttr annotationsList = attrNode.get(JadxAttrType.ANNOTATION_LIST);</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		if (annotationsList == null) {</b>
+<i class="no-highlight">281</i>&nbsp;			return;
+<i class="no-highlight">282</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		for (IAnnotation annotation : annotationsList.getAll()) {</b>
+<b class="pc"><i class="no-highlight">284</i>&nbsp;			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;				continue;</b>
+<i class="no-highlight">286</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">287</i>&nbsp;			for (Map.Entry&lt;String, EncodedValue&gt; entry : annotation.getValues().entrySet()) {</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;				entry.setValue(replaceConstValue(parentCls, entry.getValue()));</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">290</i>&nbsp;		}</b>
+<i class="no-highlight">291</i>&nbsp;	}
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;	@SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">294</i>&nbsp;	private EncodedValue replaceConstValue(ClassNode parentCls, EncodedValue encodedValue) {
+<b class="fc"><i class="no-highlight">295</i>&nbsp;		if (encodedValue.getType() == EncodedType.ENCODED_ANNOTATION) {</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;			IAnnotation annotation = (IAnnotation) encodedValue.getValue();</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;			for (Map.Entry&lt;String, EncodedValue&gt; entry : annotation.getValues().entrySet()) {</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;				entry.setValue(replaceConstValue(parentCls, entry.getValue()));</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">300</i>&nbsp;			return encodedValue;</b>
+<i class="no-highlight">301</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		if (encodedValue.getType() == EncodedType.ENCODED_ARRAY) {</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;			List&lt;EncodedValue&gt; listVal = (List&lt;EncodedValue&gt;) encodedValue.getValue();</b>
+<b class="pc"><i class="no-highlight">304</i>&nbsp;			if (!listVal.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">305</i>&nbsp;				listVal.replaceAll(v -&gt; replaceConstValue(parentCls, v));</b>
+<i class="no-highlight">306</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">307</i>&nbsp;			return new EncodedValue(EncodedType.ENCODED_ARRAY, listVal);</b>
+<i class="no-highlight">308</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">309</i>&nbsp;		FieldNode constField = parentCls.getConstField(encodedValue.getValue());</b>
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		if (constField != null) {</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;			return new EncodedValue(EncodedType.ENCODED_FIELD, constField.getFieldInfo());</b>
+<i class="no-highlight">312</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">313</i>&nbsp;		return encodedValue;</b>
+<i class="no-highlight">314</i>&nbsp;	}
+<i class="no-highlight">315</i>&nbsp;
+<i class="no-highlight">316</i>&nbsp;	private static void replaceConst(MethodNode mth, ClassNode parentClass, BlockNode block, int i, InsnNode insn) {
+<i class="no-highlight">317</i>&nbsp;		FieldNode f;
+<b class="fc"><i class="no-highlight">318</i>&nbsp;		if (insn.getType() == InsnType.CONST_STR) {</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;			String s = ((ConstStringNode) insn).getString();</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;			f = parentClass.getConstField(s);</b>
+<b class="pc"><i class="no-highlight">321</i>&nbsp;		} else if (insn.getType() == InsnType.CONST_CLASS) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;			ArgType t = ((ConstClassNode) insn).getClsType();</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;			f = parentClass.getConstField(t);</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;			f = parentClass.getConstFieldByLiteralArg((LiteralArg) insn.getArg(0));</b>
+<i class="no-highlight">326</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">327</i>&nbsp;		if (f != null) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;			InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;			inode.setResult(insn.getResult());</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;			replaceInsn(mth, block, i, inode);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;			f.addUseIn(mth);</b>
+<i class="no-highlight">332</i>&nbsp;		}
+<i class="no-highlight">333</i>&nbsp;	}
+<i class="no-highlight">334</i>&nbsp;
+<i class="no-highlight">335</i>&nbsp;	private static void processArith(MethodNode mth, ClassNode parentClass, ArithNode arithNode) {
+<b class="pc"><i class="no-highlight">336</i>&nbsp;		if (arithNode.getArgsCount() != 2) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;			throw new JadxRuntimeException(&quot;Invalid args count in insn: &quot; + arithNode);</b>
+<i class="no-highlight">338</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		InsnArg litArg = arithNode.getArg(1);</b>
+<b class="fc"><i class="no-highlight">340</i>&nbsp;		if (litArg.isLiteral()) {</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;			FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) litArg);</b>
+<b class="fc"><i class="no-highlight">342</i>&nbsp;			if (f != null) {</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);</b>
+<b class="pc"><i class="no-highlight">344</i>&nbsp;				if (arithNode.replaceArg(litArg, InsnArg.wrapArg(fGet))) {</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;					f.addUseIn(mth);</b>
+<i class="no-highlight">346</i>&nbsp;				}
+<i class="no-highlight">347</i>&nbsp;			}
+<i class="no-highlight">348</i>&nbsp;		}
+<i class="no-highlight">349</i>&nbsp;	}
+<i class="no-highlight">350</i>&nbsp;
+<i class="no-highlight">351</i>&nbsp;	private static boolean checkArrSizes(MethodNode mth, NewArrayNode newArrInsn, FillArrayInsn fillArrInsn) {
+<b class="fc"><i class="no-highlight">352</i>&nbsp;		int dataSize = fillArrInsn.getSize();</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;		InsnArg arrSizeArg = newArrInsn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;		Object value = InsnUtils.getConstValueByArg(mth.root(), arrSizeArg);</b>
+<b class="pc"><i class="no-highlight">355</i>&nbsp;		if (value instanceof LiteralArg) {</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;			long literal = ((LiteralArg) value).getLiteral();</b>
+<b class="pc"><i class="no-highlight">357</i>&nbsp;			return dataSize == (int) literal;</b>
+<i class="no-highlight">358</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">359</i>&nbsp;		return false;</b>
+<i class="no-highlight">360</i>&nbsp;	}
+<i class="no-highlight">361</i>&nbsp;
+<i class="no-highlight">362</i>&nbsp;	private static void removeCheckCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
+<b class="fc"><i class="no-highlight">363</i>&nbsp;		InsnArg castArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;		ArgType castType = (ArgType) insn.getIndex();</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;				|| isCastDuplicate(insn)) {</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;			RegisterArg result = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;			result.setType(castArg.getType());</b>
+<i class="no-highlight">369</i>&nbsp;
+<b class="fc"><i class="no-highlight">370</i>&nbsp;			InsnNode move = new InsnNode(InsnType.MOVE, 1);</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;			move.setResult(result);</b>
+<b class="fc"><i class="no-highlight">372</i>&nbsp;			move.addArg(castArg);</b>
+<b class="fc"><i class="no-highlight">373</i>&nbsp;			replaceInsn(mth, block, i, move);</b>
+<i class="no-highlight">374</i>&nbsp;		}
+<i class="no-highlight">375</i>&nbsp;	}
+<i class="no-highlight">376</i>&nbsp;
+<i class="no-highlight">377</i>&nbsp;	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
+<b class="fc"><i class="no-highlight">378</i>&nbsp;		InsnArg arg = castInsn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">379</i>&nbsp;		if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">380</i>&nbsp;			SSAVar sVar = ((RegisterArg) arg).getSVar();</b>
+<b class="pc"><i class="no-highlight">381</i>&nbsp;			if (sVar != null &amp;&amp; sVar.getUseCount() == 1 &amp;&amp; !sVar.isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">382</i>&nbsp;				InsnNode assignInsn = sVar.getAssign().getParentInsn();</b>
+<b class="fc"><i class="no-highlight">383</i>&nbsp;				if (assignInsn != null &amp;&amp; assignInsn.getType() == InsnType.CHECK_CAST) {</b>
+<b class="fc"><i class="no-highlight">384</i>&nbsp;					ArgType assignCastType = (ArgType) ((IndexInsnNode) assignInsn).getIndex();</b>
+<b class="fc"><i class="no-highlight">385</i>&nbsp;					return assignCastType.equals(castInsn.getIndex());</b>
+<i class="no-highlight">386</i>&nbsp;				}
+<i class="no-highlight">387</i>&nbsp;			}
+<i class="no-highlight">388</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">389</i>&nbsp;		return false;</b>
+<i class="no-highlight">390</i>&nbsp;	}
+<i class="no-highlight">391</i>&nbsp;
+<i class="no-highlight">392</i>&nbsp;	/**
+<i class="no-highlight">393</i>&nbsp;	 * Remove unnecessary instructions
+<i class="no-highlight">394</i>&nbsp;	 */
+<i class="no-highlight">395</i>&nbsp;	private static void removeStep(MethodNode mth, InsnRemover remover) {
+<b class="fc"><i class="no-highlight">396</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;			remover.setBlock(block);</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;				switch (insn.getType()) {</b>
+<i class="no-highlight">400</i>&nbsp;					case NOP:
+<i class="no-highlight">401</i>&nbsp;					case GOTO:
+<i class="no-highlight">402</i>&nbsp;					case NEW_INSTANCE:
+<b class="fc"><i class="no-highlight">403</i>&nbsp;						remover.addAndUnbind(insn);</b>
+<b class="fc"><i class="no-highlight">404</i>&nbsp;						break;</b>
+<i class="no-highlight">405</i>&nbsp;
+<i class="no-highlight">406</i>&nbsp;					default:
+<b class="pc"><i class="no-highlight">407</i>&nbsp;						if (insn.contains(AFlag.REMOVE)) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;							remover.addAndUnbind(insn);</b>
+<i class="no-highlight">409</i>&nbsp;						}
+<i class="no-highlight">410</i>&nbsp;						break;
+<i class="no-highlight">411</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">412</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">413</i>&nbsp;			remover.perform();</b>
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		}</b>
+<i class="no-highlight">415</i>&nbsp;	}
+<i class="no-highlight">416</i>&nbsp;
+<i class="no-highlight">417</i>&nbsp;	private static void iterativeRemoveStep(MethodNode mth) {
+<i class="no-highlight">418</i>&nbsp;		boolean changed;
+<i class="no-highlight">419</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">420</i>&nbsp;			changed = false;</b>
+<b class="fc"><i class="no-highlight">421</i>&nbsp;			for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">422</i>&nbsp;				for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">423</i>&nbsp;					if (insn.getType() == InsnType.MOVE</b>
+<b class="fc"><i class="no-highlight">424</i>&nbsp;							&amp;&amp; insn.isAttrStorageEmpty()</b>
+<b class="pc"><i class="no-highlight">425</i>&nbsp;							&amp;&amp; isResultArgNotUsed(insn)) {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;						InsnRemover.remove(mth, block, insn);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;						changed = true;</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;						break;</b>
+<i class="no-highlight">429</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">430</i>&nbsp;				}</b>
+<b class="fc"><i class="no-highlight">431</i>&nbsp;			}</b>
+<b class="pc"><i class="no-highlight">432</i>&nbsp;		} while (changed);</b>
+<i class="no-highlight">433</i>&nbsp;	}
+<i class="no-highlight">434</i>&nbsp;
+<i class="no-highlight">435</i>&nbsp;	private static boolean isResultArgNotUsed(InsnNode insn) {
+<b class="fc"><i class="no-highlight">436</i>&nbsp;		RegisterArg result = insn.getResult();</b>
+<b class="pc"><i class="no-highlight">437</i>&nbsp;		if (result != null) {</b>
+<b class="fc"><i class="no-highlight">438</i>&nbsp;			SSAVar ssaVar = result.getSVar();</b>
+<b class="pc"><i class="no-highlight">439</i>&nbsp;			return ssaVar.getUseCount() == 0;</b>
+<i class="no-highlight">440</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">441</i>&nbsp;		return false;</b>
+<i class="no-highlight">442</i>&nbsp;	}
+<i class="no-highlight">443</i>&nbsp;
+<i class="no-highlight">444</i>&nbsp;	/**
+<i class="no-highlight">445</i>&nbsp;	 * For args in anonymous constructor invoke apply:
+<i class="no-highlight">446</i>&nbsp;	 * - forbid inline into constructor call
+<i class="no-highlight">447</i>&nbsp;	 * - make variables final (compiler require this implicitly)
+<i class="no-highlight">448</i>&nbsp;	 */
+<i class="no-highlight">449</i>&nbsp;	private static void processAnonymousConstructor(MethodNode mth, ConstructorInsn co) {
+<b class="fc"><i class="no-highlight">450</i>&nbsp;		IMethodDetails callMthDetails = mth.root().getMethodUtils().getMethodDetails(co);</b>
+<b class="fc"><i class="no-highlight">451</i>&nbsp;		if (!(callMthDetails instanceof MethodNode)) {</b>
+<i class="no-highlight">452</i>&nbsp;			return;
+<i class="no-highlight">453</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">454</i>&nbsp;		MethodNode callMth = (MethodNode) callMthDetails;</b>
+<b class="fc"><i class="no-highlight">455</i>&nbsp;		if (!callMth.contains(AFlag.ANONYMOUS_CONSTRUCTOR) || callMth.contains(AFlag.NO_SKIP_ARGS)) {</b>
+<i class="no-highlight">456</i>&nbsp;			return;
+<i class="no-highlight">457</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">458</i>&nbsp;		SkipMethodArgsAttr attr = callMth.get(AType.SKIP_MTH_ARGS);</b>
+<b class="fc"><i class="no-highlight">459</i>&nbsp;		if (attr != null) {</b>
+<b class="fc"><i class="no-highlight">460</i>&nbsp;			int argsCount = Math.min(callMth.getArgRegs().size(), co.getArgsCount());</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;			for (int i = 0; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">462</i>&nbsp;				if (attr.isSkip(i)) {</b>
+<b class="fc"><i class="no-highlight">463</i>&nbsp;					anonymousCallArgMod(co.getArg(i));</b>
+<i class="no-highlight">464</i>&nbsp;				}
+<i class="no-highlight">465</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">466</i>&nbsp;		} else {</b>
+<i class="no-highlight">467</i>&nbsp;			// additional info not available apply mods to all args (the safest solution)
+<b class="fc"><i class="no-highlight">468</i>&nbsp;			co.getArguments().forEach(ModVisitor::anonymousCallArgMod);</b>
+<i class="no-highlight">469</i>&nbsp;		}
+<i class="no-highlight">470</i>&nbsp;	}
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;	private static void anonymousCallArgMod(InsnArg arg) {
+<b class="fc"><i class="no-highlight">473</i>&nbsp;		arg.add(AFlag.DONT_INLINE);</b>
+<b class="pc"><i class="no-highlight">474</i>&nbsp;		if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">475</i>&nbsp;			((RegisterArg) arg).getSVar().getCodeVar().setFinal(true);</b>
+<i class="no-highlight">476</i>&nbsp;		}
+<i class="no-highlight">477</i>&nbsp;	}
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;	/**
+<i class="no-highlight">480</i>&nbsp;	 * Return first usage instruction for arg.
+<i class="no-highlight">481</i>&nbsp;	 * If used only once try to follow move chain
+<i class="no-highlight">482</i>&nbsp;	 */
+<i class="no-highlight">483</i>&nbsp;	@Nullable
+<i class="no-highlight">484</i>&nbsp;	private static InsnNode getFirstUseSkipMove(RegisterArg arg) {
+<b class="fc"><i class="no-highlight">485</i>&nbsp;		SSAVar sVar = arg.getSVar();</b>
+<b class="fc"><i class="no-highlight">486</i>&nbsp;		int useCount = sVar.getUseCount();</b>
+<b class="pc"><i class="no-highlight">487</i>&nbsp;		if (useCount == 0) {</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;			return null;</b>
+<i class="no-highlight">489</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">490</i>&nbsp;		RegisterArg useArg = sVar.getUseList().get(0);</b>
+<b class="fc"><i class="no-highlight">491</i>&nbsp;		InsnNode parentInsn = useArg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">492</i>&nbsp;		if (parentInsn == null) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;			return null;</b>
+<i class="no-highlight">494</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">495</i>&nbsp;		if (useCount == 1 &amp;&amp; parentInsn.getType() == InsnType.MOVE) {</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;			return getFirstUseSkipMove(parentInsn.getResult());</b>
+<i class="no-highlight">497</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">498</i>&nbsp;		return parentInsn;</b>
+<i class="no-highlight">499</i>&nbsp;	}
+<i class="no-highlight">500</i>&nbsp;
+<i class="no-highlight">501</i>&nbsp;	private static InsnNode makeFilledArrayInsn(MethodNode mth, NewArrayNode newArrayNode, FillArrayInsn insn) {
+<b class="fc"><i class="no-highlight">502</i>&nbsp;		ArgType insnArrayType = newArrayNode.getArrayType();</b>
+<b class="fc"><i class="no-highlight">503</i>&nbsp;		ArgType insnElementType = insnArrayType.getArrayElement();</b>
+<b class="fc"><i class="no-highlight">504</i>&nbsp;		ArgType elType = insn.getElementType();</b>
+<b class="pc"><i class="no-highlight">505</i>&nbsp;		if (!elType.isTypeKnown()</b>
+<b class="pc"><i class="no-highlight">506</i>&nbsp;				&amp;&amp; insnElementType.isPrimitive()</b>
+<b class="pc"><i class="no-highlight">507</i>&nbsp;				&amp;&amp; elType.contains(insnElementType.getPrimitiveType())) {</b>
+<b class="fc"><i class="no-highlight">508</i>&nbsp;			elType = insnElementType;</b>
+<i class="no-highlight">509</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">510</i>&nbsp;		if (!elType.equals(insnElementType) &amp;&amp; !insnArrayType.equals(ArgType.OBJECT)) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;			mth.addWarn(&quot;Incorrect type for fill-array insn &quot; + InsnUtils.formatOffset(insn.getOffset())</b>
+<i class="no-highlight">512</i>&nbsp;					+ &quot;, element type: &quot; + elType + &quot;, insn element type: &quot; + insnElementType);
+<i class="no-highlight">513</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">514</i>&nbsp;		if (!elType.isTypeKnown()) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;			LOG.warn(&quot;Unknown array element type: {} in mth: {}&quot;, elType, mth);</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;			if (elType == null) {</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;				throw new JadxRuntimeException(&quot;Null array element type&quot;);</b>
+<i class="no-highlight">519</i>&nbsp;			}
+<i class="no-highlight">520</i>&nbsp;		}
+<i class="no-highlight">521</i>&nbsp;
+<b class="fc"><i class="no-highlight">522</i>&nbsp;		List&lt;LiteralArg&gt; list = insn.getLiteralArgs(elType);</b>
+<b class="fc"><i class="no-highlight">523</i>&nbsp;		InsnNode filledArr = new FilledNewArrayNode(elType, list.size());</b>
+<b class="fc"><i class="no-highlight">524</i>&nbsp;		filledArr.setResult(newArrayNode.getResult());</b>
+<b class="fc"><i class="no-highlight">525</i>&nbsp;		for (LiteralArg arg : list) {</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(arg);</b>
+<b class="fc"><i class="no-highlight">527</i>&nbsp;			if (f != null) {</b>
+<b class="fc"><i class="no-highlight">528</i>&nbsp;				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);</b>
+<b class="fc"><i class="no-highlight">529</i>&nbsp;				filledArr.addArg(InsnArg.wrapArg(fGet));</b>
+<b class="fc"><i class="no-highlight">530</i>&nbsp;				f.addUseIn(mth);</b>
+<b class="fc"><i class="no-highlight">531</i>&nbsp;			} else {</b>
+<b class="fc"><i class="no-highlight">532</i>&nbsp;				filledArr.addArg(arg);</b>
+<i class="no-highlight">533</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">534</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">535</i>&nbsp;		return filledArr;</b>
+<i class="no-highlight">536</i>&nbsp;	}
+<i class="no-highlight">537</i>&nbsp;
+<i class="no-highlight">538</i>&nbsp;	private static void processMoveException(MethodNode mth, BlockNode block, InsnNode insn, InsnRemover remover) {
+<b class="fc"><i class="no-highlight">539</i>&nbsp;		ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);</b>
+<b class="pc"><i class="no-highlight">540</i>&nbsp;		if (excHandlerAttr == null) {</b>
+<i class="no-highlight">541</i>&nbsp;			return;
+<i class="no-highlight">542</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">543</i>&nbsp;		ExceptionHandler excHandler = excHandlerAttr.getHandler();</b>
+<i class="no-highlight">544</i>&nbsp;
+<i class="no-highlight">545</i>&nbsp;		// result arg used both in this insn and exception handler,
+<b class="fc"><i class="no-highlight">546</i>&nbsp;		RegisterArg resArg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">547</i>&nbsp;		ArgType type = excHandler.getArgType();</b>
+<b class="fc"><i class="no-highlight">548</i>&nbsp;		String name = excHandler.isCatchAll() ? &quot;th&quot; : &quot;e&quot;;</b>
+<b class="fc"><i class="no-highlight">549</i>&nbsp;		if (resArg.getName() == null) {</b>
+<b class="fc"><i class="no-highlight">550</i>&nbsp;			resArg.setName(name);</b>
+<i class="no-highlight">551</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">552</i>&nbsp;		SSAVar sVar = insn.getResult().getSVar();</b>
+<b class="fc"><i class="no-highlight">553</i>&nbsp;		if (sVar.getUseCount() == 0) {</b>
+<b class="fc"><i class="no-highlight">554</i>&nbsp;			excHandler.setArg(new NamedArg(name, type));</b>
+<b class="fc"><i class="no-highlight">555</i>&nbsp;			remover.addAndUnbind(insn);</b>
+<b class="fc"><i class="no-highlight">556</i>&nbsp;		} else if (sVar.isUsedInPhi()) {</b>
+<i class="no-highlight">557</i>&nbsp;			// exception var moved to external variable =&gt; replace with &#39;move&#39; insn
+<b class="fc"><i class="no-highlight">558</i>&nbsp;			InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);</b>
+<b class="fc"><i class="no-highlight">559</i>&nbsp;			moveInsn.setResult(insn.getResult());</b>
+<b class="fc"><i class="no-highlight">560</i>&nbsp;			NamedArg namedArg = new NamedArg(name, type);</b>
+<b class="fc"><i class="no-highlight">561</i>&nbsp;			moveInsn.addArg(namedArg);</b>
+<b class="fc"><i class="no-highlight">562</i>&nbsp;			excHandler.setArg(namedArg);</b>
+<b class="fc"><i class="no-highlight">563</i>&nbsp;			replaceInsn(mth, block, 0, moveInsn);</b>
+<i class="no-highlight">564</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">565</i>&nbsp;		block.copyAttributeFrom(insn, AType.CODE_COMMENTS); // save comment</b>
+<i class="no-highlight">566</i>&nbsp;	}
+<i class="no-highlight">567</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

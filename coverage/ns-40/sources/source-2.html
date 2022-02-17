@@ -1,0 +1,1238 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Smali</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.device.debugger.smali</a>
+</div>
+
+<h1>Coverage Summary for Class: Smali (jadx.gui.device.debugger.smali)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Smali</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/474)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Smali$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">Smali$LineInfo</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/87)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">Smali$RawField</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">Smali$SmaliInsnDecoder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/74)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/579)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.device.debugger.smali;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.AbstractMap.SimpleEntry;
+<i class="no-highlight">4</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">6</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">7</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">8</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">9</i>&nbsp;import java.util.List;
+<i class="no-highlight">10</i>&nbsp;import java.util.Locale;
+<i class="no-highlight">11</i>&nbsp;import java.util.Map;
+<i class="no-highlight">12</i>&nbsp;import java.util.Map.Entry;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">15</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.ICodeInfo;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.AccessFlags;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.AccessFlagsScope;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.plugins.input.data.ICatch;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.plugins.input.data.IClassData;
+<i class="no-highlight">22</i>&nbsp;import jadx.api.plugins.input.data.ICodeReader;
+<i class="no-highlight">23</i>&nbsp;import jadx.api.plugins.input.data.IDebugInfo;
+<i class="no-highlight">24</i>&nbsp;import jadx.api.plugins.input.data.IFieldData;
+<i class="no-highlight">25</i>&nbsp;import jadx.api.plugins.input.data.ILocalVar;
+<i class="no-highlight">26</i>&nbsp;import jadx.api.plugins.input.data.IMethodData;
+<i class="no-highlight">27</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">28</i>&nbsp;import jadx.api.plugins.input.data.ITry;
+<i class="no-highlight">29</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">30</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">31</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">32</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">33</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+<i class="no-highlight">34</i>&nbsp;import jadx.api.plugins.input.insns.InsnData;
+<i class="no-highlight">35</i>&nbsp;import jadx.api.plugins.input.insns.InsnIndexType;
+<i class="no-highlight">36</i>&nbsp;import jadx.api.plugins.input.insns.Opcode;
+<i class="no-highlight">37</i>&nbsp;import jadx.api.plugins.input.insns.custom.ISwitchPayload;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.codegen.TypeGen;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.attributes.AttributeStorage;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.instructions.InsnDecoder;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import static jadx.api.plugins.input.data.AccessFlagsScope.FIELD;
+<i class="no-highlight">51</i>&nbsp;import static jadx.api.plugins.input.data.AccessFlagsScope.METHOD;
+<i class="no-highlight">52</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.CONST;
+<i class="no-highlight">53</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.CONST_METHOD_HANDLE;
+<i class="no-highlight">54</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.CONST_METHOD_TYPE;
+<i class="no-highlight">55</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.CONST_WIDE;
+<i class="no-highlight">56</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.FILLED_NEW_ARRAY;
+<i class="no-highlight">57</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.FILLED_NEW_ARRAY_RANGE;
+<i class="no-highlight">58</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.FILL_ARRAY_DATA_PAYLOAD;
+<i class="no-highlight">59</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM;
+<i class="no-highlight">60</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM_RANGE;
+<i class="no-highlight">61</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC;
+<i class="no-highlight">62</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC_RANGE;
+<i class="no-highlight">63</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.PACKED_SWITCH_PAYLOAD;
+<i class="no-highlight">64</i>&nbsp;import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH_PAYLOAD;
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;public class Smali {</b>
+<i class="no-highlight">67</i>&nbsp;
+<b class="nc"><i class="no-highlight">68</i>&nbsp;	private static SmaliInsnDecoder insnDecoder = null;</b>
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;	private ICodeInfo codeInfo;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;	private final Map&lt;String, SmaliMethodNode&gt; insnMap = new HashMap&lt;&gt;(); // fullRawId of method as key</b>
+<i class="no-highlight">72</i>&nbsp;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;	private final boolean printFileOffset = true;</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;	private final boolean printBytecode = true;</b>
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	private boolean isJavaBytecode;
+<i class="no-highlight">77</i>&nbsp;
+<b class="nc"><i class="no-highlight">78</i>&nbsp;	private Smali() {</b>
+<i class="no-highlight">79</i>&nbsp;	}
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	public static Smali disassemble(ClassNode cls) {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		cls = cls.getTopParentClass();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		SmaliWriter code = new SmaliWriter(cls);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		Smali smali = new Smali();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		smali.isJavaBytecode = cls.getInputFileName().endsWith(&quot;.class&quot;); // TODO: add flag to api</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		smali.writeClass(code, cls);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		smali.codeInfo = code.finish();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		return smali;</b>
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	public String getCode() {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		return codeInfo.getCodeStr();</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	public int getMethodDefPos(String mthFullRawID) {
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		SmaliMethodNode info = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		if (info != null) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;			return info.getDefPos();</b>
+<i class="no-highlight">99</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">100</i>&nbsp;		return -1;</b>
+<i class="no-highlight">101</i>&nbsp;	}
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;	public int getRegCount(String mthFullRawID) {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;		SmaliMethodNode info = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		if (info != null) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;			return info.getRegCount();</b>
+<i class="no-highlight">107</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">108</i>&nbsp;		return -1;</b>
+<i class="no-highlight">109</i>&nbsp;	}
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;	public int getParamRegStart(String mthFullRawID) {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;		SmaliMethodNode info = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		if (info != null) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;			return info.getParamRegStart();</b>
+<i class="no-highlight">115</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">116</i>&nbsp;		return -1;</b>
+<i class="no-highlight">117</i>&nbsp;	}
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;	public int getInsnPosByCodeOffset(String mthFullRawID, long codeOffset) {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;		SmaliMethodNode info = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;		if (info != null) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;			return info.getInsnPos(codeOffset);</b>
+<i class="no-highlight">123</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">124</i>&nbsp;		return -1;</b>
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	@Nullable
+<i class="no-highlight">128</i>&nbsp;	public Entry&lt;String, Integer&gt; getMthFullIDAndCodeOffsetByLine(int line) {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;		for (Entry&lt;String, SmaliMethodNode&gt; entry : insnMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;			Integer codeOffset = entry.getValue().getLineMapping().get(line);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;			if (codeOffset != null) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;				return new SimpleEntry&lt;&gt;(entry.getKey(), codeOffset);</b>
+<i class="no-highlight">133</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">134</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;		return null;</b>
+<i class="no-highlight">136</i>&nbsp;	}
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;	public List&lt;SmaliRegister&gt; getRegisterList(String mthFullRawID) {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;		SmaliMethodNode node = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;		if (node != null) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;			return node.getRegList();</b>
+<i class="no-highlight">142</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">143</i>&nbsp;		return Collections.emptyList();</b>
+<i class="no-highlight">144</i>&nbsp;	}
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;	/**
+<i class="no-highlight">147</i>&nbsp;	 * @return null for no result, FieldInfo for field, Integer for register.
+<i class="no-highlight">148</i>&nbsp;	 */
+<i class="no-highlight">149</i>&nbsp;	@Nullable
+<i class="no-highlight">150</i>&nbsp;	public Object getResultRegOrField(String mthFullRawID, long codeOffset) {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;		SmaliMethodNode info = insnMap.get(mthFullRawID);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;		if (info != null) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;			InsnNode insn = info.getInsnNode(codeOffset);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;			if (insn != null) {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;				if (insn.getType() == InsnType.IPUT) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;					return ((IndexInsnNode) insn).getIndex();</b>
+<i class="no-highlight">157</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">158</i>&nbsp;				if (insn.getType() == InsnType.INVOKE) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;					if (insn instanceof InvokeNode) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;						if (insn.getArgsCount() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;							return ((RegisterArg) insn.getArg(0)).getRegNum();</b>
+<i class="no-highlight">162</i>&nbsp;						}
+<i class="no-highlight">163</i>&nbsp;					}
+<i class="no-highlight">164</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">165</i>&nbsp;				RegisterArg regArg = insn.getResult();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;				if (regArg != null) {</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;					return regArg.getRegNum();</b>
+<i class="no-highlight">168</i>&nbsp;				}
+<i class="no-highlight">169</i>&nbsp;			}
+<i class="no-highlight">170</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">171</i>&nbsp;		return null;</b>
+<i class="no-highlight">172</i>&nbsp;	}
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;	private void writeClass(SmaliWriter smali, ClassNode cls) {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;		IClassData clsData = cls.getClsData();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;		if (clsData == null) {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;			smali.startLine(String.format(&quot;###### Class %s is created by jadx&quot;, cls.getFullName()));</b>
+<i class="no-highlight">178</i>&nbsp;			return;
+<i class="no-highlight">179</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">180</i>&nbsp;		AttributeStorage attributes = new AttributeStorage();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;		attributes.add(clsData.getAttributes());</b>
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;		smali.startLine(&quot;Class: &quot; + clsData.getType())</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;				.startLine(&quot;AccessFlags: &quot; + AccessFlags.format(clsData.getAccessFlags(), AccessFlagsScope.CLASS))</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;				.startLine(&quot;SuperType: &quot; + clsData.getSuperType())</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;				.startLine(&quot;Interfaces: &quot; + clsData.getInterfacesTypes())</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;				.startLine(&quot;SourceFile: &quot; + attributes.get(JadxAttrType.SOURCE_FILE));</b>
+<i class="no-highlight">188</i>&nbsp;
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		AnnotationsAttr annotationsAttr = attributes.get(JadxAttrType.ANNOTATION_LIST);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;		if (annotationsAttr != null) {</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;			Collection&lt;IAnnotation&gt; annos = annotationsAttr.getList();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;			if (!annos.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;				smali.startLine(String.format(&quot;# %d annotations&quot;, annos.size()));</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;				writeAnnotations(smali, new ArrayList&lt;&gt;(annos));</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;				smali.startLine();</b>
+<i class="no-highlight">196</i>&nbsp;			}
+<i class="no-highlight">197</i>&nbsp;		}
+<i class="no-highlight">198</i>&nbsp;
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		List&lt;RawField&gt; fields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;		int[] colWidths = new int[] { 0, 0 }; // first is access flag, second is name</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		int[] mthIndex = new int[] { 0 };</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;		LineInfo line = new LineInfo();</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;		clsData.visitFieldsAndMethods(</b>
+<i class="no-highlight">204</i>&nbsp;				f -&gt; {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;					RawField fld = RawField.make(f);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;					fields.add(fld);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;					if (fld.accessFlag.length() &gt; colWidths[0]) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;						colWidths[0] = fld.accessFlag.length();</b>
+<i class="no-highlight">209</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">210</i>&nbsp;					if (fld.name.length() &gt; colWidths[1]) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;						colWidths[1] = fld.name.length();</b>
+<i class="no-highlight">212</i>&nbsp;					}
+<i class="no-highlight">213</i>&nbsp;				},
+<i class="no-highlight">214</i>&nbsp;				m -&gt; {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;					if (!fields.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;						writeFields(smali, clsData, fields, colWidths);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;						fields.clear();</b>
+<i class="no-highlight">218</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">219</i>&nbsp;					writeMethod(smali, cls.getMethods().get(mthIndex[0]++), m, line);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;					line.reset();</b>
+<i class="no-highlight">221</i>&nbsp;				});
+<i class="no-highlight">222</i>&nbsp;
+<b class="nc"><i class="no-highlight">223</i>&nbsp;		if (!fields.isEmpty()) { // in case there&#39;s no methods.</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;			writeFields(smali, clsData, fields, colWidths);</b>
+<i class="no-highlight">225</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">226</i>&nbsp;		for (ClassNode innerClass : cls.getInnerClasses()) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;			writeClass(smali, innerClass);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;		}</b>
+<i class="no-highlight">229</i>&nbsp;	}
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;	private void writeFields(SmaliWriter smali, IClassData classData, List&lt;RawField&gt; fields, int[] colWidths) {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;		int staticIdx = 0;</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;		smali.startLine().startLine(&quot;# fields&quot;);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;		String whites = new String(new byte[Math.max(colWidths[0], colWidths[1])]).replace(&quot;\0&quot;, &quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;		for (RawField fld : fields) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;			smali.startLine();</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;			int pad = colWidths[0] - fld.accessFlag.length();</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;			if (pad &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;				fld.accessFlag += whites.substring(0, pad);</b>
+<i class="no-highlight">240</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">241</i>&nbsp;			smali.add(&quot;.field &quot;).add(fld.accessFlag);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;			pad = colWidths[1] - fld.name.length();</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;			if (pad &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;				fld.name += whites.substring(0, pad);</b>
+<i class="no-highlight">245</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">246</i>&nbsp;			smali.add(fld.name).add(&quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;			smali.add(&quot;: &quot;).add(fld.type);</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;			if (fld.isStatic) {</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;				EncodedValue constVal = fld.attributes.get(JadxAttrType.CONSTANT_VALUE);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;				if (constVal != null) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;					smali.add(&quot; # init val = &quot;);</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;					writeEncodedValue(smali, constVal, false);</b>
+<i class="no-highlight">253</i>&nbsp;				}
+<i class="no-highlight">254</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">255</i>&nbsp;			AnnotationsAttr annotationsAttr = fld.attributes.get(JadxAttrType.ANNOTATION_LIST);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;			if (annotationsAttr != null) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;				smali.incIndent();</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;				writeAnnotations(smali, annotationsAttr.getList());</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;				smali.decIndent();</b>
+<i class="no-highlight">260</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">261</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;		smali.startLine();</b>
+<i class="no-highlight">263</i>&nbsp;	}
+<i class="no-highlight">264</i>&nbsp;
+<i class="no-highlight">265</i>&nbsp;	private void writeMethod(SmaliWriter smali, MethodNode methodNode, IMethodData mth, LineInfo line) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;		if (insnDecoder == null) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;			insnDecoder = new SmaliInsnDecoder(methodNode);</b>
+<i class="no-highlight">268</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">269</i>&nbsp;		smali.startLine().startLine(&quot;.method &quot;);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;		writeMethodDef(smali, mth, line);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;		ICodeReader codeReader = mth.getCodeReader();</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;		if (codeReader != null) {</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;			line.smaliMthNode.setParamRegStart(getParamStartRegNum(mth));</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;			line.smaliMthNode.setRegCount(codeReader.getRegistersCount());</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;			Map&lt;Long, InsnNode&gt; nodes = new HashMap&lt;&gt;(codeReader.getUnitsCount() / 2);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;			line.smaliMthNode.setInsnNodes(nodes, codeReader.getUnitsCount());</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount(), codeReader.getUnitsCount());</b>
+<i class="no-highlight">278</i>&nbsp;
+<b class="nc"><i class="no-highlight">279</i>&nbsp;			smali.incIndent();</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;			smali.startLine(&quot;.registers &quot;)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;					.add(&quot;&quot; + codeReader.getRegistersCount())</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;					.startLine();</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;			writeTries(codeReader, line);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;			if (formatMthParamInfo(mth, smali, codeReader, line)) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;				smali.startLine();</b>
+<i class="no-highlight">286</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">287</i>&nbsp;			smali.startLine();</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;			if (codeReader.getDebugInfo() != null) {</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;				formatDbgInfo(codeReader.getDebugInfo(), line);</b>
+<i class="no-highlight">290</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">291</i>&nbsp;			codeReader.visitInstructions(insn -&gt; {</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;				InsnNode node = decodeInsn(insn, line);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;				nodes.put((long) insn.getOffset(), node);</b>
+<i class="no-highlight">294</i>&nbsp;			});
+<b class="nc"><i class="no-highlight">295</i>&nbsp;			line.write(smali);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;			insnMap.put(methodNode.getMethodInfo().getRawFullId(), line.smaliMthNode);</b>
+<i class="no-highlight">297</i>&nbsp;
+<b class="nc"><i class="no-highlight">298</i>&nbsp;			smali.decIndent();</b>
+<i class="no-highlight">299</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">300</i>&nbsp;		smali.startLine(&quot;.end method&quot;);</b>
+<i class="no-highlight">301</i>&nbsp;	}
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;	private void writeTries(ICodeReader codeReader, LineInfo line) {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;		List&lt;ITry&gt; tries = codeReader.getTries();</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;		for (ITry aTry : tries) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;			int end = aTry.getEndOffset();</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;			String tryEndTip = String.format(FMT_TRY_END_TAG, end);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;			String tryStartTip = String.format(FMT_TRY_TAG, aTry.getStartOffset());</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;			String tryStartTipExtra = &quot; # :&quot; + tryStartTip.substring(0, tryStartTip.length() - 1);</b>
+<i class="no-highlight">310</i>&nbsp;
+<b class="nc"><i class="no-highlight">311</i>&nbsp;			line.addTip(aTry.getStartOffset(), tryStartTip, &quot; # :&quot; + tryEndTip.substring(0, tryEndTip.length() - 1));</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;			line.addTip(end, tryEndTip, tryStartTipExtra);</b>
+<i class="no-highlight">313</i>&nbsp;
+<b class="nc"><i class="no-highlight">314</i>&nbsp;			ICatch iCatch = aTry.getCatch();</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;			int[] addresses = iCatch.getHandlers();</b>
+<i class="no-highlight">316</i>&nbsp;			int addr;
+<b class="nc"><i class="no-highlight">317</i>&nbsp;			for (int i = 0; i &lt; addresses.length; i++) {</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;				addr = addresses[i];</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;				String catchTip = String.format(FMT_CATCH_TAG, addr);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;				line.addTip(addr, catchTip, &quot; # &quot; + iCatch.getTypes()[i]);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;				line.addTip(addr, catchTip, tryStartTipExtra);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;				line.addTip(aTry.getStartOffset(), tryStartTip, &quot; # :&quot; + catchTip.substring(0, catchTip.length() - 1));</b>
+<i class="no-highlight">323</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">324</i>&nbsp;			addr = iCatch.getCatchAllHandler();</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;			if (addr &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;				String catchAllTip = String.format(FMT_CATCH_ALL_TAG, addr);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;				line.addTip(addr, catchAllTip, tryStartTipExtra);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;				line.addTip(aTry.getStartOffset(), tryStartTip, &quot; # :&quot; + catchAllTip.substring(0, catchAllTip.length() - 1));</b>
+<i class="no-highlight">329</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">330</i>&nbsp;		}</b>
+<i class="no-highlight">331</i>&nbsp;	}
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;	private InsnNode decodeInsn(InsnData insn, LineInfo lineInfo) {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;		insn.decode();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;		InsnNode node = insnDecoder.decode(insn);</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;		formatInsn(insn, node, lineInfo);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;		return node;</b>
+<i class="no-highlight">338</i>&nbsp;	}
+<i class="no-highlight">339</i>&nbsp;
+<i class="no-highlight">340</i>&nbsp;	private void formatInsn(InsnData insn, InsnNode node, LineInfo line) {
+<b class="nc"><i class="no-highlight">341</i>&nbsp;		StringBuilder lw = line.getLineWriter();</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;		lw.delete(0, lw.length());</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;		fmtCols(insn, line);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;		if (fmtPayloadInsn(insn, line)) {</b>
+<i class="no-highlight">345</i>&nbsp;			return;
+<i class="no-highlight">346</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">347</i>&nbsp;		lw.append(formatInsnName(insn)).append(&quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;		fmtRegs(insn, node.getType(), line);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;		if (!tryFormatTargetIns(insn, node.getType(), line)) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;			if (hasLiteral(insn)) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;				lw.append(&quot;, &quot;).append(literal(insn));</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;			} else if (node.getType() == InsnType.INVOKE) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;				lw.append(&quot;, &quot;).append(method(insn));</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;			} else if (insn.getIndexType() == InsnIndexType.FIELD_REF) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;				lw.append(&quot;, &quot;).append(field(insn));</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;			} else if (insn.getIndexType() == InsnIndexType.STRING_REF) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;				lw.append(&quot;, &quot;).append(str(insn));</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;			} else if (insn.getIndexType() == InsnIndexType.TYPE_REF) {</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;				lw.append(&quot;, &quot;).append(type(insn));</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;			} else if (insn.getOpcode() == CONST_METHOD_HANDLE) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;				lw.append(&quot;, &quot;).append(methodHandle(insn));</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;			} else if (insn.getOpcode() == CONST_METHOD_TYPE) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;				lw.append(&quot;, &quot;).append(proto(insn, insn.getIndex()));</b>
+<i class="no-highlight">364</i>&nbsp;			}
+<i class="no-highlight">365</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">366</i>&nbsp;		line.addInsnLine(insn.getOffset(), lw.toString());</b>
+<i class="no-highlight">367</i>&nbsp;	}
+<i class="no-highlight">368</i>&nbsp;
+<i class="no-highlight">369</i>&nbsp;	private String formatInsnName(InsnData insn) {
+<b class="nc"><i class="no-highlight">370</i>&nbsp;		if (isJavaBytecode) {</b>
+<i class="no-highlight">371</i>&nbsp;			// add api opcode, because registers not used
+<b class="nc"><i class="no-highlight">372</i>&nbsp;			return String.format(&quot;%-&quot; + INSN_COL_WIDTH + &quot;s | %-15s&quot;,</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;					insn.getOpcodeMnemonic(), insn.getOpcode().name().toLowerCase(Locale.ROOT).replace(&#39;_&#39;, &#39;-&#39;));</b>
+<i class="no-highlight">374</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">375</i>&nbsp;		return String.format(FMT_INSN_COL, insn.getOpcodeMnemonic());</b>
+<i class="no-highlight">376</i>&nbsp;	}
+<i class="no-highlight">377</i>&nbsp;
+<i class="no-highlight">378</i>&nbsp;	private boolean tryFormatTargetIns(InsnData insn, InsnType insnType, LineInfo line) {
+<b class="nc"><i class="no-highlight">379</i>&nbsp;		switch (insnType) {</b>
+<i class="no-highlight">380</i>&nbsp;			case IF: {
+<b class="nc"><i class="no-highlight">381</i>&nbsp;				int target = insn.getTarget();</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;				line.addTip(target, String.format(FMT_COND_TAG, target), &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;				line.getLineWriter().append(&quot;, &quot;).append(String.format(FMT_COND, target));</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;				return true;</b>
+<i class="no-highlight">385</i>&nbsp;			}
+<i class="no-highlight">386</i>&nbsp;			case GOTO: {
+<b class="nc"><i class="no-highlight">387</i>&nbsp;				int target = insn.getTarget();</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;				line.addTip(target, String.format(FMT_GOTO_TAG, target), &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;				line.getLineWriter().append(String.format(FMT_GOTO, target));</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;				return true;</b>
+<i class="no-highlight">391</i>&nbsp;			}
+<i class="no-highlight">392</i>&nbsp;			case FILL_ARRAY: {
+<b class="nc"><i class="no-highlight">393</i>&nbsp;				int target = insn.getTarget();</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;				line.addTip(target, String.format(FMT_DATA_TAG, target), &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;				line.getLineWriter().append(&quot;, &quot;).append(String.format(FMT_DATA, target));</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;				return true;</b>
+<i class="no-highlight">397</i>&nbsp;			}
+<i class="no-highlight">398</i>&nbsp;			case SWITCH: {
+<b class="nc"><i class="no-highlight">399</i>&nbsp;				int target = insn.getTarget();</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;				if (insn.getOpcode() == Opcode.PACKED_SWITCH) {</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;					line.addTip(target, String.format(FMT_P_SWITCH_TAG, target), &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;					line.getLineWriter().append(&quot;, &quot;).append(String.format(FMT_P_SWITCH, target));</b>
+<i class="no-highlight">403</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">404</i>&nbsp;					line.addTip(target, String.format(FMT_S_SWITCH_TAG, target), &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;					line.getLineWriter().append(&quot;, &quot;).append(String.format(FMT_S_SWITCH, target));</b>
+<i class="no-highlight">406</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">407</i>&nbsp;				line.addPayloadOffset(insn.getOffset(), target);</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;				return true;</b>
+<i class="no-highlight">409</i>&nbsp;			}
+<i class="no-highlight">410</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">411</i>&nbsp;		return false;</b>
+<i class="no-highlight">412</i>&nbsp;	}
+<i class="no-highlight">413</i>&nbsp;
+<i class="no-highlight">414</i>&nbsp;	private static boolean hasStaticFlag(int flag) {
+<b class="nc"><i class="no-highlight">415</i>&nbsp;		return (flag &amp; AccessFlags.STATIC) != 0;</b>
+<i class="no-highlight">416</i>&nbsp;	}
+<i class="no-highlight">417</i>&nbsp;
+<i class="no-highlight">418</i>&nbsp;	private void writeMethodDef(SmaliWriter smali, IMethodData mth, LineInfo lineInfo) {
+<b class="nc"><i class="no-highlight">419</i>&nbsp;		smali.add(AccessFlags.format(mth.getAccessFlags(), METHOD));</b>
+<i class="no-highlight">420</i>&nbsp;
+<b class="nc"><i class="no-highlight">421</i>&nbsp;		IMethodRef methodRef = mth.getMethodRef();</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;		methodRef.load();</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;		lineInfo.smaliMthNode.setDefPos(smali.getLength());</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;		smali.add(methodRef.getName())</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;				.add(&#39;(&#39;);</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;		methodRef.getArgTypes().forEach(smali::add);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;		smali.add(&#39;)&#39;);</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;		smali.add(methodRef.getReturnType());</b>
+<i class="no-highlight">429</i>&nbsp;
+<b class="nc"><i class="no-highlight">430</i>&nbsp;		AnnotationsAttr annotationsAttr = new AttributeStorage(mth.getAttributes()).get(JadxAttrType.ANNOTATION_LIST);</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;		if (annotationsAttr != null &amp;&amp; !annotationsAttr.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;			smali.incIndent();</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;			writeAnnotations(smali, annotationsAttr.getList());</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;			smali.decIndent();</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;			smali.startLine();</b>
+<i class="no-highlight">436</i>&nbsp;		}
+<i class="no-highlight">437</i>&nbsp;	}
+<i class="no-highlight">438</i>&nbsp;
+<i class="no-highlight">439</i>&nbsp;	private boolean formatMthParamInfo(IMethodData mth, SmaliWriter smali, ICodeReader codeReader, LineInfo line) {
+<b class="nc"><i class="no-highlight">440</i>&nbsp;		List&lt;String&gt; types = mth.getMethodRef().getArgTypes();</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;		if (types.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;			return false;</b>
+<i class="no-highlight">443</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">444</i>&nbsp;		int paramCount = 0;</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;		int paramStart = 0;</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;		int regNum = line.smaliMthNode.getParamRegStart();</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;		if (!hasStaticFlag(mth.getAccessFlags())) {</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;			line.addRegName(regNum, &quot;p0&quot;);</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;			line.smaliMthNode.setParamReg(regNum, &quot;p0&quot;);</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;			regNum += 1;</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;			paramStart = 1;</b>
+<i class="no-highlight">452</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">453</i>&nbsp;		IDebugInfo dbgInfo = codeReader.getDebugInfo();</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;		if (dbgInfo != null) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;			for (ILocalVar var : dbgInfo.getLocalVars()) {</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;				if (var.getStartOffset() == -1) {</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;					int i = writeParamInfo(smali, line, regNum, paramStart, var.getName(), var.getType());</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;					regNum += i;</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;					paramStart += i;</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;					paramCount++;</b>
+<i class="no-highlight">461</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">462</i>&nbsp;			}</b>
+<i class="no-highlight">463</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">464</i>&nbsp;		for (; paramCount &lt; types.size(); paramCount++) {</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;			int i = writeParamInfo(smali, line, regNum, paramStart, &quot;&quot;, types.get(paramCount));</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;			regNum += i;</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;			paramStart += i;</b>
+<i class="no-highlight">468</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">469</i>&nbsp;		return true;</b>
+<i class="no-highlight">470</i>&nbsp;	}
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;	private static int writeParamInfo(SmaliWriter smali, LineInfo line,
+<i class="no-highlight">473</i>&nbsp;			int regNum, int paramNum, String dbgInfoName, String type) {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;		smali.startLine(String.format(&quot;.param p%d, \&quot;%s\&quot;:%s&quot;, paramNum, dbgInfoName, type));</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;		String pName = &quot;p&quot; + paramNum;</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;		line.addRegName(regNum, pName);</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;		line.smaliMthNode.setParamReg(regNum, pName);</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;		if (isWideType(type)) {</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;			regNum++;</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;			dbgInfoName = &quot;p&quot; + (paramNum + 1);</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;			line.addRegName(regNum, dbgInfoName);</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;			line.smaliMthNode.setParamReg(regNum, dbgInfoName);</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;			return 2;</b>
+<i class="no-highlight">484</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">485</i>&nbsp;		return 1;</b>
+<i class="no-highlight">486</i>&nbsp;	}
+<i class="no-highlight">487</i>&nbsp;
+<i class="no-highlight">488</i>&nbsp;	private static int getParamStartRegNum(IMethodData mth) {
+<b class="nc"><i class="no-highlight">489</i>&nbsp;		ICodeReader codeReader = mth.getCodeReader();</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;		if (codeReader != null) {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;			int startNum = codeReader.getRegistersCount();</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;			if (startNum &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;				for (String argType : mth.getMethodRef().getArgTypes()) {</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;					if (isWideType(argType)) {</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;						startNum -= 2;</b>
+<i class="no-highlight">496</i>&nbsp;					} else {
+<b class="nc"><i class="no-highlight">497</i>&nbsp;						startNum -= 1;</b>
+<i class="no-highlight">498</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">499</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;				if (!hasStaticFlag(mth.getAccessFlags())) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;					startNum--;</b>
+<i class="no-highlight">502</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">503</i>&nbsp;				return startNum;</b>
+<i class="no-highlight">504</i>&nbsp;			}
+<i class="no-highlight">505</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">506</i>&nbsp;		return -1;</b>
+<i class="no-highlight">507</i>&nbsp;	}
+<i class="no-highlight">508</i>&nbsp;
+<i class="no-highlight">509</i>&nbsp;	private static boolean isWideType(String type) {
+<b class="nc"><i class="no-highlight">510</i>&nbsp;		return type.equals(&quot;D&quot;) || type.equals(&quot;J&quot;);</b>
+<i class="no-highlight">511</i>&nbsp;	}
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;	private void writeAnnotations(SmaliWriter smali, List&lt;IAnnotation&gt; annoList) {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;		if (annoList.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;			for (int i = 0; i &lt; annoList.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;				smali.startLine();</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;				writeAnnotation(smali, annoList.get(i));</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;				if (i != annoList.size() - 1) {</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;					smali.startLine();</b>
+<i class="no-highlight">520</i>&nbsp;				}
+<i class="no-highlight">521</i>&nbsp;			}
+<i class="no-highlight">522</i>&nbsp;		}
+<i class="no-highlight">523</i>&nbsp;	}
+<i class="no-highlight">524</i>&nbsp;
+<i class="no-highlight">525</i>&nbsp;	private void writeAnnotation(SmaliWriter smali, IAnnotation anno) {
+<b class="nc"><i class="no-highlight">526</i>&nbsp;		smali.add(&quot;.annotation&quot;)</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;				.add(&quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;		AnnotationVisibility vby = anno.getVisibility();</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;		if (vby != null) {</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;			smali.add(vby.toString().toLowerCase()).add(&quot; &quot;);</b>
+<i class="no-highlight">531</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">532</i>&nbsp;		smali.add(anno.getAnnotationClass());</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;		anno.getValues().forEach((k, v) -&gt; {</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;			smali.incIndent();</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;			smali.startLine(k).add(&quot; = &quot;);</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;			writeEncodedValue(smali, v, true);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;			smali.decIndent();</b>
+<i class="no-highlight">538</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">539</i>&nbsp;		smali.startLine(&quot;.end annotation&quot;);</b>
+<i class="no-highlight">540</i>&nbsp;	}
+<i class="no-highlight">541</i>&nbsp;
+<i class="no-highlight">542</i>&nbsp;	private void formatDbgInfo(IDebugInfo dbgInfo, LineInfo line) {
+<b class="nc"><i class="no-highlight">543</i>&nbsp;		dbgInfo.getSourceLineMapping().forEach((codeOffset, srcLine) -&gt; {</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;			if (codeOffset &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;				line.addDebugLineTip(codeOffset, String.format(&quot;.line %d&quot;, srcLine), &quot;&quot;);</b>
+<i class="no-highlight">546</i>&nbsp;			}
+<i class="no-highlight">547</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">548</i>&nbsp;		for (ILocalVar localVar : dbgInfo.getLocalVars()) {</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;			String type = localVar.getSignature();</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;			if (type == null || type.trim().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;				type = localVar.getType();</b>
+<i class="no-highlight">552</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">553</i>&nbsp;			if (localVar.getStartOffset() &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;				line.addTip(</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;						localVar.getStartOffset(),</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;						String.format(&quot;.local v%d&quot;, localVar.getRegNum()),</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;						String.format(&quot;, \&quot;%s\&quot;:%s&quot;, localVar.getName(), type));</b>
+<i class="no-highlight">558</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">559</i>&nbsp;			if (localVar.getEndOffset() &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;				line.addTip(</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;						localVar.getEndOffset(),</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;						String.format(&quot;.end local v%d&quot;, localVar.getRegNum()),</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;						String.format(&quot; # \&quot;%s\&quot;:%s&quot;, localVar.getName(), type));</b>
+<i class="no-highlight">564</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">565</i>&nbsp;		}</b>
+<i class="no-highlight">566</i>&nbsp;	}
+<i class="no-highlight">567</i>&nbsp;
+<i class="no-highlight">568</i>&nbsp;	private void writeEncodedValue(SmaliWriter smali, EncodedValue value, boolean wrapArray) {
+<b class="nc"><i class="no-highlight">569</i>&nbsp;		switch (value.getType()) {</b>
+<i class="no-highlight">570</i>&nbsp;			case ENCODED_ARRAY:
+<b class="nc"><i class="no-highlight">571</i>&nbsp;				smali.add(&quot;{&quot;);</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;				if (wrapArray) {</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;					smali.incIndent();</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;					smali.startLine();</b>
+<i class="no-highlight">575</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">576</i>&nbsp;				List&lt;EncodedValue&gt; values = (List&lt;EncodedValue&gt;) value.getValue();</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;				for (int i = 0; i &lt; values.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;					writeEncodedValue(smali, values.get(i), wrapArray);</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;					if (i != values.size() - 1) {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;						smali.add(&quot;,&quot;);</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;						if (wrapArray) {</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;							smali.startLine();</b>
+<i class="no-highlight">583</i>&nbsp;						} else {
+<b class="nc"><i class="no-highlight">584</i>&nbsp;							smali.add(&quot; &quot;);</b>
+<i class="no-highlight">585</i>&nbsp;						}
+<i class="no-highlight">586</i>&nbsp;					}
+<i class="no-highlight">587</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">588</i>&nbsp;				if (wrapArray) {</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;					smali.decIndent();</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;					smali.startLine(&quot;}&quot;);</b>
+<i class="no-highlight">591</i>&nbsp;				}
+<i class="no-highlight">592</i>&nbsp;				break;
+<i class="no-highlight">593</i>&nbsp;			case ENCODED_NULL:
+<b class="nc"><i class="no-highlight">594</i>&nbsp;				smali.add(&quot;null&quot;);</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;				break;</b>
+<i class="no-highlight">596</i>&nbsp;			case ENCODED_ANNOTATION:
+<b class="nc"><i class="no-highlight">597</i>&nbsp;				writeAnnotation(smali, (IAnnotation) value.getValue());</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;				break;</b>
+<i class="no-highlight">599</i>&nbsp;			case ENCODED_BYTE:
+<b class="nc"><i class="no-highlight">600</i>&nbsp;				smali.add(TypeGen.formatByte((Byte) value.getValue(), false));</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;				break;</b>
+<i class="no-highlight">602</i>&nbsp;			case ENCODED_SHORT:
+<b class="nc"><i class="no-highlight">603</i>&nbsp;				smali.add(TypeGen.formatShort((Short) value.getValue(), false));</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;				break;</b>
+<i class="no-highlight">605</i>&nbsp;			case ENCODED_CHAR:
+<b class="nc"><i class="no-highlight">606</i>&nbsp;				smali.add(smali.getClassNode().root().getStringUtils().unescapeChar((Character) value.getValue()));</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;				break;</b>
+<i class="no-highlight">608</i>&nbsp;			case ENCODED_INT:
+<b class="nc"><i class="no-highlight">609</i>&nbsp;				smali.add(TypeGen.formatInteger((Integer) value.getValue(), false));</b>
+<b class="nc"><i class="no-highlight">610</i>&nbsp;				break;</b>
+<i class="no-highlight">611</i>&nbsp;			case ENCODED_LONG:
+<b class="nc"><i class="no-highlight">612</i>&nbsp;				smali.add(TypeGen.formatLong((Long) value.getValue(), false));</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;				break;</b>
+<i class="no-highlight">614</i>&nbsp;			case ENCODED_FLOAT:
+<b class="nc"><i class="no-highlight">615</i>&nbsp;				smali.add(TypeGen.formatFloat((Float) value.getValue()));</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;				break;</b>
+<i class="no-highlight">617</i>&nbsp;			case ENCODED_DOUBLE:
+<b class="nc"><i class="no-highlight">618</i>&nbsp;				smali.add(TypeGen.formatDouble((Double) value.getValue()));</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;				break;</b>
+<i class="no-highlight">620</i>&nbsp;			case ENCODED_STRING:
+<b class="nc"><i class="no-highlight">621</i>&nbsp;				smali.add(smali.getClassNode().root().getStringUtils().unescapeString((String) value.getValue()));</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;				break;</b>
+<i class="no-highlight">623</i>&nbsp;			case ENCODED_TYPE:
+<b class="nc"><i class="no-highlight">624</i>&nbsp;				smali.add(ArgType.parse((String) value.getValue()) + &quot;.class&quot;);</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;				break;</b>
+<i class="no-highlight">626</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">627</i>&nbsp;				smali.add(String.valueOf(value.getValue()));</b>
+<i class="no-highlight">628</i>&nbsp;		}
+<i class="no-highlight">629</i>&nbsp;	}
+<i class="no-highlight">630</i>&nbsp;
+<i class="no-highlight">631</i>&nbsp;	private static final int CODE_OFFSET_COLUMN_WIDTH = 4;
+<i class="no-highlight">632</i>&nbsp;	private static final int BYTECODE_COLUMN_WIDTH = 20 + 3; // 3 for ellipses.
+<i class="no-highlight">633</i>&nbsp;	private static final String FMT_BYTECODE_COL = &quot;%-&quot; + (BYTECODE_COLUMN_WIDTH - 3) + &quot;s&quot;;
+<i class="no-highlight">634</i>&nbsp;
+<b class="nc"><i class="no-highlight">635</i>&nbsp;	private static final int INSN_COL_WIDTH = &quot;const-method-handle&quot;.length();</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;	private static final String FMT_INSN_COL = &quot;%-&quot; + INSN_COL_WIDTH + &quot;s&quot;;</b>
+<i class="no-highlight">637</i>&nbsp;	private static final String FMT_FILE_OFFSET = &quot;%08x:&quot;;
+<i class="no-highlight">638</i>&nbsp;	private static final String FMT_CODE_OFFSET = &quot;%04x:&quot;;
+<i class="no-highlight">639</i>&nbsp;	private static final String FMT_TARGET_OFFSET = &quot;%04x&quot;;
+<i class="no-highlight">640</i>&nbsp;	private static final String FMT_GOTO = &quot;:goto_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">641</i>&nbsp;	private static final String FMT_COND = &quot;:cond_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">642</i>&nbsp;	private static final String FMT_DATA = &quot;:array_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">643</i>&nbsp;	private static final String FMT_P_SWITCH = &quot;:p_switch_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">644</i>&nbsp;	private static final String FMT_S_SWITCH = &quot;:s_switch_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">645</i>&nbsp;	private static final String FMT_P_SWITCH_CASE = &quot;:p_case_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">646</i>&nbsp;	private static final String FMT_S_SWITCH_CASE = &quot;:s_case_&quot; + FMT_TARGET_OFFSET;
+<i class="no-highlight">647</i>&nbsp;
+<i class="no-highlight">648</i>&nbsp;	private static final String FMT_TRY_TAG = &quot;try_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">649</i>&nbsp;	private static final String FMT_TRY_END_TAG = &quot;try_end_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">650</i>&nbsp;	private static final String FMT_CATCH_TAG = &quot;catch_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">651</i>&nbsp;	private static final String FMT_CATCH_ALL_TAG = &quot;catch_all_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">652</i>&nbsp;	private static final String FMT_GOTO_TAG = &quot;goto_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">653</i>&nbsp;	private static final String FMT_COND_TAG = &quot;cond_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">654</i>&nbsp;	private static final String FMT_DATA_TAG = &quot;array_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">655</i>&nbsp;	private static final String FMT_P_SWITCH_TAG = &quot;p_switch_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">656</i>&nbsp;	private static final String FMT_S_SWITCH_TAG = &quot;s_switch_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">657</i>&nbsp;	private static final String FMT_P_SWITCH_CASE_TAG = &quot;p_case_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">658</i>&nbsp;	private static final String FMT_S_SWITCH_CASE_TAG = &quot;s_case_&quot; + FMT_TARGET_OFFSET + &quot;:&quot;;
+<i class="no-highlight">659</i>&nbsp;
+<i class="no-highlight">660</i>&nbsp;	private void fmtRegs(InsnData insn, InsnType insnType, LineInfo line) {
+<b class="nc"><i class="no-highlight">661</i>&nbsp;		boolean appendBrace = insnType == InsnType.INVOKE || isRegList(insn);</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;		StringBuilder lw = line.getLineWriter();</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;		if (insnType == InsnType.INVOKE) {</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;			int resultReg = insn.getResultReg();</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;			if (resultReg != -1) {</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;				lw.append(line.getRegName(resultReg)).append(&quot; &lt;= &quot;);</b>
+<i class="no-highlight">667</i>&nbsp;			}
+<i class="no-highlight">668</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">669</i>&nbsp;		if (appendBrace) {</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;			lw.append(&quot;{&quot;);</b>
+<i class="no-highlight">671</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">672</i>&nbsp;		if (isRangeRegIns(insn)) {</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;			lw.append(line.getRegName(insn.getReg(0)))</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;					.append(&quot; .. &quot;)</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;					.append(line.getRegName(insn.getReg(insn.getRegsCount() - 1)));</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;		} else if (insn.getRegsCount() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;			for (int i = 0; i &lt; insn.getRegsCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;				if (i &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;					lw.append(&quot;, &quot;);</b>
+<i class="no-highlight">680</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">681</i>&nbsp;				lw.append(line.getRegName(insn.getReg(i)));</b>
+<i class="no-highlight">682</i>&nbsp;			}
+<i class="no-highlight">683</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">684</i>&nbsp;		if (appendBrace) {</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;			lw.append(&quot;}&quot;);</b>
+<i class="no-highlight">686</i>&nbsp;		}
+<i class="no-highlight">687</i>&nbsp;	}
+<i class="no-highlight">688</i>&nbsp;
+<i class="no-highlight">689</i>&nbsp;	private int getInsnColStart() {
+<b class="nc"><i class="no-highlight">690</i>&nbsp;		int start = 0;</b>
+<i class="no-highlight">691</i>&nbsp;		if (printFileOffset) {
+<b class="nc"><i class="no-highlight">692</i>&nbsp;			start += 8 + 1 + 1; // plus 1s for space and the &#39;:&#39;</b>
+<i class="no-highlight">693</i>&nbsp;		}
+<i class="no-highlight">694</i>&nbsp;		if (printBytecode) {
+<b class="nc"><i class="no-highlight">695</i>&nbsp;			start += BYTECODE_COLUMN_WIDTH + 1; // plus 1 for space</b>
+<i class="no-highlight">696</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">697</i>&nbsp;		return start;</b>
+<i class="no-highlight">698</i>&nbsp;	}
+<i class="no-highlight">699</i>&nbsp;
+<i class="no-highlight">700</i>&nbsp;	private void fmtCols(InsnData insn, LineInfo line) {
+<i class="no-highlight">701</i>&nbsp;		if (printFileOffset) {
+<b class="nc"><i class="no-highlight">702</i>&nbsp;			line.getLineWriter().append(String.format(FMT_FILE_OFFSET + &quot; &quot;, insn.getFileOffset()));</b>
+<i class="no-highlight">703</i>&nbsp;		}
+<i class="no-highlight">704</i>&nbsp;		if (printBytecode) {
+<b class="nc"><i class="no-highlight">705</i>&nbsp;			formatByteCode(line.getLineWriter(), insn.getByteCode());</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;			line.getLineWriter().append(&quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;			line.getLineWriter().append(String.format(FMT_CODE_OFFSET + &quot; &quot;, insn.getOffset()));</b>
+<i class="no-highlight">708</i>&nbsp;		}
+<i class="no-highlight">709</i>&nbsp;	}
+<i class="no-highlight">710</i>&nbsp;
+<i class="no-highlight">711</i>&nbsp;	private void formatByteCode(StringBuilder smali, byte[] bytes) {
+<b class="nc"><i class="no-highlight">712</i>&nbsp;		int maxLen = Math.min(bytes.length, 4 * 2); // limit to 4 units</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;		StringBuilder inHex = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;		for (int i = 0; i &lt; maxLen; i++) {</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;			inHex.append(String.format(&quot;%02x&quot;, bytes[i]));</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;			if (i % 2 == 1) {</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;				inHex.append(&#39; &#39;);</b>
+<i class="no-highlight">718</i>&nbsp;			}
+<i class="no-highlight">719</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">720</i>&nbsp;		smali.append(String.format(FMT_BYTECODE_COL, inHex));</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;		if (maxLen &lt; bytes.length) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;			smali.append(&quot;...&quot;);</b>
+<i class="no-highlight">723</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">724</i>&nbsp;			smali.append(&quot;   &quot;);</b>
+<i class="no-highlight">725</i>&nbsp;		}
+<i class="no-highlight">726</i>&nbsp;	}
+<i class="no-highlight">727</i>&nbsp;
+<i class="no-highlight">728</i>&nbsp;	private boolean fmtPayloadInsn(InsnData insn, LineInfo line) {
+<b class="nc"><i class="no-highlight">729</i>&nbsp;		Opcode opcode = insn.getOpcode();</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;		if (opcode == PACKED_SWITCH_PAYLOAD) {</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;			line.getLineWriter().append(&quot;packed-switch-payload&quot;);</b>
+<b class="nc"><i class="no-highlight">732</i>&nbsp;			line.addInsnLine(insn.getOffset(), line.getLineWriter().toString());</b>
+<i class="no-highlight">733</i>&nbsp;
+<b class="nc"><i class="no-highlight">734</i>&nbsp;			ISwitchPayload payload = (ISwitchPayload) insn.getPayload();</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;			if (payload != null) {</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;				fmtSwitchPayload(insn, FMT_P_SWITCH_CASE, FMT_P_SWITCH_CASE_TAG, line, payload, insn.getOffset());</b>
+<i class="no-highlight">737</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">738</i>&nbsp;			return true;</b>
+<i class="no-highlight">739</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">740</i>&nbsp;		if (opcode == SPARSE_SWITCH_PAYLOAD) {</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;			line.getLineWriter().append(&quot;sparse-switch-payload&quot;);</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;			line.addInsnLine(insn.getOffset(), line.getLineWriter().toString());</b>
+<i class="no-highlight">743</i>&nbsp;
+<b class="nc"><i class="no-highlight">744</i>&nbsp;			ISwitchPayload payload = (ISwitchPayload) insn.getPayload();</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;			if (payload != null) {</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;				fmtSwitchPayload(insn, FMT_S_SWITCH_CASE, FMT_S_SWITCH_CASE_TAG, line, payload, insn.getOffset());</b>
+<i class="no-highlight">747</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">748</i>&nbsp;			return true;</b>
+<i class="no-highlight">749</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">750</i>&nbsp;		if (opcode == FILL_ARRAY_DATA_PAYLOAD) {</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;			line.getLineWriter().append(&quot;fill-array-data-payload&quot;);</b>
+<b class="nc"><i class="no-highlight">752</i>&nbsp;			line.addInsnLine(insn.getOffset(), line.getLineWriter().toString());</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;			return true;</b>
+<i class="no-highlight">754</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">755</i>&nbsp;		return false;</b>
+<i class="no-highlight">756</i>&nbsp;	}
+<i class="no-highlight">757</i>&nbsp;
+<i class="no-highlight">758</i>&nbsp;	private void fmtSwitchPayload(InsnData insn, String fmtTarget, String fmtTag, LineInfo line,
+<i class="no-highlight">759</i>&nbsp;			ISwitchPayload payload, int curOffset) {
+<b class="nc"><i class="no-highlight">760</i>&nbsp;		int lineStart = getInsnColStart();</b>
+<b class="nc"><i class="no-highlight">761</i>&nbsp;		lineStart += CODE_OFFSET_COLUMN_WIDTH + 1 + 1; // plus 1s for space and the &#39;:&#39;</b>
+<b class="nc"><i class="no-highlight">762</i>&nbsp;		String basicIndent = new String(new byte[lineStart]).replace(&quot;\0&quot;, &quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;		String indent = SmaliWriter.INDENT_STR + basicIndent;</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;		int[] keys = payload.getKeys();</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;		int[] targets = payload.getTargets();</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;		int opcodeOffset = line.payloadOffsetMap.get(curOffset);</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;		for (int i = 0; i &lt; keys.length; i++) {</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;			int target = opcodeOffset + targets[i];</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;			line.addInsnLine(insn.getOffset(),</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;					String.format(&quot;%scase %d: -&gt; &quot; + fmtTarget, indent, keys[i], target));</b>
+<b class="nc"><i class="no-highlight">771</i>&nbsp;			line.addTip(target,</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;					String.format(fmtTag, target), String.format(&quot; # case %d&quot;, keys[i]));</b>
+<i class="no-highlight">773</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">774</i>&nbsp;		line.addInsnLine(insn.getOffset(), basicIndent + &quot;.end payload&quot;);</b>
+<i class="no-highlight">775</i>&nbsp;	}
+<i class="no-highlight">776</i>&nbsp;
+<i class="no-highlight">777</i>&nbsp;	private static String literal(InsnData insn) {
+<b class="nc"><i class="no-highlight">778</i>&nbsp;		long it = insn.getLiteral();</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;		String tip = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;		if (it &gt; Integer.MAX_VALUE) {</b>
+<b class="nc"><i class="no-highlight">781</i>&nbsp;			if (isWideIns(insn)) {</b>
+<b class="nc"><i class="no-highlight">782</i>&nbsp;				tip = &quot; # double: &quot; + Double.longBitsToDouble(it);</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;			} else if (getOpenCodeByte(insn) == 0x15) { // CONST_HIGH16 = 0x15;</b>
+<b class="nc"><i class="no-highlight">784</i>&nbsp;				tip = &quot; # float: &quot; + Float.intBitsToFloat((int) it);</b>
+<i class="no-highlight">785</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">786</i>&nbsp;		} else if (it &lt;= 0) {</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;			return &quot;&quot; + it + tip;</b>
+<i class="no-highlight">788</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">789</i>&nbsp;		return &quot;0x&quot; + Long.toHexString(it) + tip;</b>
+<i class="no-highlight">790</i>&nbsp;	}
+<i class="no-highlight">791</i>&nbsp;
+<i class="no-highlight">792</i>&nbsp;	private static String str(InsnData insn) {
+<b class="nc"><i class="no-highlight">793</i>&nbsp;		return String.format(&quot;\&quot;%s\&quot; # string@%04x&quot;,</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;				insn.getIndexAsString()</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;						.replace(&quot;\n&quot;, &quot;\\n&quot;)</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;						.replace(&quot;\t&quot;, &quot;\\t&quot;),</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;				insn.getIndex());</b>
+<i class="no-highlight">798</i>&nbsp;	}
+<i class="no-highlight">799</i>&nbsp;
+<i class="no-highlight">800</i>&nbsp;	private static String type(InsnData insn) {
+<b class="nc"><i class="no-highlight">801</i>&nbsp;		return String.format(&quot;%s # type@%04x&quot;, insn.getIndexAsType(), insn.getIndex());</b>
+<i class="no-highlight">802</i>&nbsp;	}
+<i class="no-highlight">803</i>&nbsp;
+<i class="no-highlight">804</i>&nbsp;	private static String field(InsnData insn) {
+<b class="nc"><i class="no-highlight">805</i>&nbsp;		return String.format(&quot;%s # field@%04x&quot;, insn.getIndexAsField().toString(), insn.getIndex());</b>
+<i class="no-highlight">806</i>&nbsp;	}
+<i class="no-highlight">807</i>&nbsp;
+<i class="no-highlight">808</i>&nbsp;	private static String method(InsnData insn) {
+<b class="nc"><i class="no-highlight">809</i>&nbsp;		Opcode op = insn.getOpcode();</b>
+<b class="nc"><i class="no-highlight">810</i>&nbsp;		if (op == INVOKE_CUSTOM || op == INVOKE_CUSTOM_RANGE) {</b>
+<b class="nc"><i class="no-highlight">811</i>&nbsp;			insn.getIndexAsCallSite().load();</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;			return String.format(&quot;%s # call_site@%04x&quot;, insn.getIndexAsCallSite().toString(), insn.getIndex());</b>
+<i class="no-highlight">813</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">814</i>&nbsp;		IMethodRef mthRef = insn.getIndexAsMethod();</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;		mthRef.load();</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;		if (op == INVOKE_POLYMORPHIC || op == INVOKE_POLYMORPHIC_RANGE) {</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;			return String.format(&quot;%s, %s # method@%04x, proto@%04x&quot;,</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;					mthRef.toString(), insn.getIndexAsProto(insn.getTarget()).toString(),</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;					insn.getIndex(), insn.getTarget());</b>
+<i class="no-highlight">820</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">821</i>&nbsp;		return String.format(&quot;%s # method@%04x&quot;, mthRef.toString(), insn.getIndex());</b>
+<i class="no-highlight">822</i>&nbsp;	}
+<i class="no-highlight">823</i>&nbsp;
+<i class="no-highlight">824</i>&nbsp;	private static String proto(InsnData insn, int protoIndex) {
+<b class="nc"><i class="no-highlight">825</i>&nbsp;		return String.format(&quot;%s # proto@%04x&quot;, insn.getIndexAsProto(protoIndex).toString(), protoIndex);</b>
+<i class="no-highlight">826</i>&nbsp;	}
+<i class="no-highlight">827</i>&nbsp;
+<i class="no-highlight">828</i>&nbsp;	private static String methodHandle(InsnData insn) {
+<b class="nc"><i class="no-highlight">829</i>&nbsp;		return String.format(&quot;%s # method_handle@%04x&quot;,</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;				insn.getIndexAsMethodHandle().toString(), insn.getIndex());</b>
+<i class="no-highlight">831</i>&nbsp;	}
+<i class="no-highlight">832</i>&nbsp;
+<i class="no-highlight">833</i>&nbsp;	protected static boolean isRangeRegIns(InsnData insn) {
+<b class="nc"><i class="no-highlight">834</i>&nbsp;		switch (insn.getOpcode()) {</b>
+<i class="no-highlight">835</i>&nbsp;			case INVOKE_VIRTUAL_RANGE:
+<i class="no-highlight">836</i>&nbsp;			case INVOKE_SUPER_RANGE:
+<i class="no-highlight">837</i>&nbsp;			case INVOKE_DIRECT_RANGE:
+<i class="no-highlight">838</i>&nbsp;			case INVOKE_STATIC_RANGE:
+<i class="no-highlight">839</i>&nbsp;			case INVOKE_INTERFACE_RANGE:
+<i class="no-highlight">840</i>&nbsp;			case FILLED_NEW_ARRAY_RANGE:
+<i class="no-highlight">841</i>&nbsp;			case INVOKE_CUSTOM_RANGE:
+<i class="no-highlight">842</i>&nbsp;			case INVOKE_POLYMORPHIC_RANGE:
+<b class="nc"><i class="no-highlight">843</i>&nbsp;				return true;</b>
+<i class="no-highlight">844</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">845</i>&nbsp;		return false;</b>
+<i class="no-highlight">846</i>&nbsp;	}
+<i class="no-highlight">847</i>&nbsp;
+<i class="no-highlight">848</i>&nbsp;	private static int getOpenCodeByte(InsnData insn) {
+<b class="nc"><i class="no-highlight">849</i>&nbsp;		return insn.getRawOpcodeUnit() &amp; 0xff;</b>
+<i class="no-highlight">850</i>&nbsp;	}
+<i class="no-highlight">851</i>&nbsp;
+<i class="no-highlight">852</i>&nbsp;	private static boolean isWideIns(InsnData insn) {
+<b class="nc"><i class="no-highlight">853</i>&nbsp;		return insn.getOpcode() == CONST_WIDE;</b>
+<i class="no-highlight">854</i>&nbsp;	}
+<i class="no-highlight">855</i>&nbsp;
+<i class="no-highlight">856</i>&nbsp;	private static boolean hasLiteral(InsnData insn) {
+<b class="nc"><i class="no-highlight">857</i>&nbsp;		int opcode = getOpenCodeByte(insn);</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;		return insn.getOpcode() == CONST</b>
+<b class="nc"><i class="no-highlight">859</i>&nbsp;				|| insn.getOpcode() == CONST_WIDE</b>
+<i class="no-highlight">860</i>&nbsp;				|| (opcode &gt;= 0xd0 &amp;&amp; opcode &lt;= 0xe2); // add-int/lit16 to ushr-int/lit8
+<i class="no-highlight">861</i>&nbsp;	}
+<i class="no-highlight">862</i>&nbsp;
+<i class="no-highlight">863</i>&nbsp;	private static boolean isRegList(InsnData insn) {
+<b class="nc"><i class="no-highlight">864</i>&nbsp;		return insn.getOpcode() == FILLED_NEW_ARRAY || insn.getOpcode() == FILLED_NEW_ARRAY_RANGE;</b>
+<i class="no-highlight">865</i>&nbsp;	}
+<i class="no-highlight">866</i>&nbsp;
+<b class="nc"><i class="no-highlight">867</i>&nbsp;	private class LineInfo {</b>
+<b class="nc"><i class="no-highlight">868</i>&nbsp;		private SmaliMethodNode smaliMthNode = new SmaliMethodNode();</b>
+<b class="nc"><i class="no-highlight">869</i>&nbsp;		private final StringBuilder lineWriter = new StringBuilder(50);</b>
+<i class="no-highlight">870</i>&nbsp;
+<b class="nc"><i class="no-highlight">871</i>&nbsp;		private String lastDebugTip = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;		private final Map&lt;Integer, List&lt;String&gt;&gt; insnOffsetMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;		private final Map&lt;Integer, String&gt; regNameMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;		private Map&lt;Integer, Map&lt;String, Object&gt;&gt; tipMap = Collections.emptyMap();</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;		private Map&lt;Integer, Integer&gt; payloadOffsetMap = Collections.emptyMap();</b>
+<i class="no-highlight">876</i>&nbsp;
+<b class="nc"><i class="no-highlight">877</i>&nbsp;		public LineInfo() {</b>
+<i class="no-highlight">878</i>&nbsp;		}
+<i class="no-highlight">879</i>&nbsp;
+<i class="no-highlight">880</i>&nbsp;		public StringBuilder getLineWriter() {
+<b class="nc"><i class="no-highlight">881</i>&nbsp;			return lineWriter;</b>
+<i class="no-highlight">882</i>&nbsp;		}
+<i class="no-highlight">883</i>&nbsp;
+<i class="no-highlight">884</i>&nbsp;		public void reset() {
+<b class="nc"><i class="no-highlight">885</i>&nbsp;			lastDebugTip = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;			payloadOffsetMap = Collections.emptyMap();</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;			tipMap = Collections.emptyMap();</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;			insnOffsetMap.clear();</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;			regNameMap.clear();</b>
+<b class="nc"><i class="no-highlight">890</i>&nbsp;			smaliMthNode = new SmaliMethodNode();</b>
+<i class="no-highlight">891</i>&nbsp;		}
+<i class="no-highlight">892</i>&nbsp;
+<i class="no-highlight">893</i>&nbsp;		public void addRegName(int regNum, String name) {
+<b class="nc"><i class="no-highlight">894</i>&nbsp;			regNameMap.put(regNum, name);</b>
+<i class="no-highlight">895</i>&nbsp;		}
+<i class="no-highlight">896</i>&nbsp;
+<i class="no-highlight">897</i>&nbsp;		public String getRegName(int regNum) {
+<b class="nc"><i class="no-highlight">898</i>&nbsp;			String name = regNameMap.get(regNum);</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;			if (name == null) {</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;				name = &quot;v&quot; + regNum;</b>
+<i class="no-highlight">901</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">902</i>&nbsp;			return name;</b>
+<i class="no-highlight">903</i>&nbsp;		}
+<i class="no-highlight">904</i>&nbsp;
+<i class="no-highlight">905</i>&nbsp;		public void addInsnLine(int codeOffset, String insnLine) {
+<b class="nc"><i class="no-highlight">906</i>&nbsp;			List&lt;String&gt; insnList = insnOffsetMap.computeIfAbsent(codeOffset, k -&gt; new ArrayList&lt;&gt;(1));</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;			insnList.add(insnLine);</b>
+<i class="no-highlight">908</i>&nbsp;		}
+<i class="no-highlight">909</i>&nbsp;
+<i class="no-highlight">910</i>&nbsp;		public void addTip(int offset, String tip, String extra) {
+<b class="nc"><i class="no-highlight">911</i>&nbsp;			if (tipMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;				tipMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">913</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">914</i>&nbsp;			Map&lt;String, Object&gt; innerMap = tipMap.computeIfAbsent(offset, k -&gt; new LinkedHashMap&lt;&gt;());</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;			Object obj = innerMap.get(tip);</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;			if (obj != null) {</b>
+<b class="nc"><i class="no-highlight">917</i>&nbsp;				if (obj instanceof String) {</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;					if (obj.equals(&quot;&quot;)) {</b>
+<b class="nc"><i class="no-highlight">919</i>&nbsp;						innerMap.put(tip, 2);</b>
+<i class="no-highlight">920</i>&nbsp;					} else {
+<b class="nc"><i class="no-highlight">921</i>&nbsp;						List&lt;String&gt; extras = new ArrayList&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">922</i>&nbsp;						extras.add((String) obj);</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;						extras.add(extra);</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;						innerMap.put(tip, extras);</b>
+<b class="nc"><i class="no-highlight">925</i>&nbsp;					}</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;				} else if (obj instanceof Integer) {</b>
+<b class="nc"><i class="no-highlight">927</i>&nbsp;					innerMap.put(tip, ((int) obj) + 1);</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;				} else if (obj instanceof List) {</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;					if (!extra.equals(&quot;&quot;)) {</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;						List&lt;String&gt; extras = (List&lt;String&gt;) obj;</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;						extras.add(extra);</b>
+<b class="nc"><i class="no-highlight">932</i>&nbsp;					}</b>
+<i class="no-highlight">933</i>&nbsp;				}
+<i class="no-highlight">934</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">935</i>&nbsp;				innerMap.put(tip, extra);</b>
+<i class="no-highlight">936</i>&nbsp;			}
+<i class="no-highlight">937</i>&nbsp;		}
+<i class="no-highlight">938</i>&nbsp;
+<i class="no-highlight">939</i>&nbsp;		public void addDebugLineTip(int offset, String tip, String extra) {
+<b class="nc"><i class="no-highlight">940</i>&nbsp;			if (tip.equals(lastDebugTip)) {</b>
+<i class="no-highlight">941</i>&nbsp;				return;
+<i class="no-highlight">942</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">943</i>&nbsp;			lastDebugTip = tip;</b>
+<b class="nc"><i class="no-highlight">944</i>&nbsp;			if (tipMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;				tipMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">946</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">947</i>&nbsp;			Map&lt;String, Object&gt; innerMap = tipMap.computeIfAbsent(offset, k -&gt; new LinkedHashMap&lt;&gt;());</b>
+<b class="nc"><i class="no-highlight">948</i>&nbsp;			innerMap.put(tip, extra);</b>
+<i class="no-highlight">949</i>&nbsp;		}
+<i class="no-highlight">950</i>&nbsp;
+<i class="no-highlight">951</i>&nbsp;		public void addPayloadOffset(int curOffset, int payloadOffset) {
+<b class="nc"><i class="no-highlight">952</i>&nbsp;			if (payloadOffsetMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;				payloadOffsetMap = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">954</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">955</i>&nbsp;			payloadOffsetMap.put(payloadOffset, curOffset);</b>
+<i class="no-highlight">956</i>&nbsp;		}
+<i class="no-highlight">957</i>&nbsp;
+<i class="no-highlight">958</i>&nbsp;		public void write(SmaliWriter smali) {
+<b class="nc"><i class="no-highlight">959</i>&nbsp;			int lineOffset = getInsnColStart();</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;			for (Entry&lt;Integer, List&lt;String&gt;&gt; entry : insnOffsetMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;				writeTip(smali, entry.getKey(), lineOffset);</b>
+<b class="nc"><i class="no-highlight">962</i>&nbsp;				smaliMthNode.setInsnInfo(entry.getKey(), lineOffset + smali.getLength());</b>
+<b class="nc"><i class="no-highlight">963</i>&nbsp;				smaliMthNode.attachLine(smali.getLine(), entry.getKey());</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;				smali.attachSourceLine(entry.getKey());</b>
+<b class="nc"><i class="no-highlight">965</i>&nbsp;				for (String s : entry.getValue()) {</b>
+<b class="nc"><i class="no-highlight">966</i>&nbsp;					smali.add(s).startLine();</b>
+<b class="nc"><i class="no-highlight">967</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;			}</b>
+<i class="no-highlight">969</i>&nbsp;		}
+<i class="no-highlight">970</i>&nbsp;
+<i class="no-highlight">971</i>&nbsp;		private void writeTip(SmaliWriter smali, int codeOffset, int lineOffset) {
+<b class="nc"><i class="no-highlight">972</i>&nbsp;			Map&lt;String, Object&gt; tip = tipMap.get(codeOffset);</b>
+<b class="nc"><i class="no-highlight">973</i>&nbsp;			if (tip != null) {</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;				for (Entry&lt;String, Object&gt; entry : tip.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;					int start = Math.max(0, lineOffset - entry.getKey().length());</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;					if (start &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">977</i>&nbsp;						smali.add(new String(new byte[start]).replace(&quot;\0&quot;, &quot; &quot;));</b>
+<i class="no-highlight">978</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">979</i>&nbsp;					if (entry.getValue() instanceof Integer) {</b>
+<b class="nc"><i class="no-highlight">980</i>&nbsp;						smali.add(String.format(&quot;%s # %d refs&quot;, entry.getKey(), entry.getValue()))</b>
+<b class="nc"><i class="no-highlight">981</i>&nbsp;								.startLine();</b>
+<b class="nc"><i class="no-highlight">982</i>&nbsp;					} else if (entry.getValue() instanceof String) {</b>
+<b class="nc"><i class="no-highlight">983</i>&nbsp;						smali.add(String.format(&quot;%s%s&quot;, entry.getKey(), entry.getValue()))</b>
+<b class="nc"><i class="no-highlight">984</i>&nbsp;								.startLine();</b>
+<b class="nc"><i class="no-highlight">985</i>&nbsp;					} else if (entry.getValue() instanceof List) {</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;						List&lt;String&gt; extras = (List&lt;String&gt;) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;						smali.add(String.format(&quot;%s%s&quot;, entry.getKey(), extras.get(0)))</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;								.startLine();</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;						String pad = new String(new byte[lineOffset]).replace(&quot;\0&quot;, &quot; &quot;);</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;						for (int i = 1; i &lt; extras.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;							smali.add(String.format(&quot;%s%s&quot;, pad, extras.get(i)))</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;									.startLine();</b>
+<i class="no-highlight">993</i>&nbsp;						}
+<b class="nc"><i class="no-highlight">994</i>&nbsp;					} else {</b>
+<b class="nc"><i class="no-highlight">995</i>&nbsp;						smali.add(String.format(&quot;%s%s&quot;, entry.getKey(), entry.getValue()))</b>
+<b class="nc"><i class="no-highlight">996</i>&nbsp;								.startLine();</b>
+<i class="no-highlight">997</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">998</i>&nbsp;				}</b>
+<i class="no-highlight">999</i>&nbsp;			}
+<i class="no-highlight">1000</i>&nbsp;		}
+<i class="no-highlight">1001</i>&nbsp;	}
+<i class="no-highlight">1002</i>&nbsp;
+<i class="no-highlight">1003</i>&nbsp;	private static class SmaliInsnDecoder extends InsnDecoder {
+<i class="no-highlight">1004</i>&nbsp;		@Override
+<i class="no-highlight">1005</i>&nbsp;		protected @NotNull InsnNode decode(InsnData insn) {
+<i class="no-highlight">1006</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">1007</i>&nbsp;				return super.decode(insn);</b>
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;				switch (insn.getOpcode()) {</b>
+<i class="no-highlight">1010</i>&nbsp;					case INVOKE_CUSTOM:
+<i class="no-highlight">1011</i>&nbsp;					case INVOKE_CUSTOM_RANGE:
+<i class="no-highlight">1012</i>&nbsp;					case INVOKE_POLYMORPHIC:
+<i class="no-highlight">1013</i>&nbsp;					case INVOKE_POLYMORPHIC_RANGE:
+<i class="no-highlight">1014</i>&nbsp;					case CONST_METHOD_HANDLE:
+<i class="no-highlight">1015</i>&nbsp;					case CONST_METHOD_TYPE:
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;						return new InsnNode(InsnType.INVOKE, insn.getRegsCount());</b>
+<i class="no-highlight">1017</i>&nbsp;					default:
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;						throw new RuntimeException(e);</b>
+<i class="no-highlight">1019</i>&nbsp;				}
+<i class="no-highlight">1020</i>&nbsp;			}
+<i class="no-highlight">1021</i>&nbsp;		}
+<i class="no-highlight">1022</i>&nbsp;
+<i class="no-highlight">1023</i>&nbsp;		public SmaliInsnDecoder(MethodNode mthNode) {
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;			super(mthNode);</b>
+<i class="no-highlight">1025</i>&nbsp;		}
+<i class="no-highlight">1026</i>&nbsp;
+<i class="no-highlight">1027</i>&nbsp;		@Override
+<i class="no-highlight">1028</i>&nbsp;		public InsnNode[] process(ICodeReader codeReader) {
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;			return null;</b>
+<i class="no-highlight">1030</i>&nbsp;		}
+<i class="no-highlight">1031</i>&nbsp;	}
+<i class="no-highlight">1032</i>&nbsp;
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;	private static class RawField {</b>
+<i class="no-highlight">1034</i>&nbsp;		boolean isStatic;
+<i class="no-highlight">1035</i>&nbsp;		String accessFlag;
+<i class="no-highlight">1036</i>&nbsp;		String name;
+<i class="no-highlight">1037</i>&nbsp;		String type;
+<i class="no-highlight">1038</i>&nbsp;		AttributeStorage attributes;
+<i class="no-highlight">1039</i>&nbsp;
+<i class="no-highlight">1040</i>&nbsp;		private static RawField make(IFieldData f) {
+<b class="nc"><i class="no-highlight">1041</i>&nbsp;			RawField field = new RawField();</b>
+<b class="nc"><i class="no-highlight">1042</i>&nbsp;			field.isStatic = hasStaticFlag(f.getAccessFlags());</b>
+<b class="nc"><i class="no-highlight">1043</i>&nbsp;			field.accessFlag = AccessFlags.format(f.getAccessFlags(), FIELD);</b>
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;			field.name = f.getName();</b>
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;			field.type = f.getType();</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;			field.attributes = new AttributeStorage(f.getAttributes());</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;			return field;</b>
+<i class="no-highlight">1048</i>&nbsp;		}
+<i class="no-highlight">1049</i>&nbsp;	}
+<i class="no-highlight">1050</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

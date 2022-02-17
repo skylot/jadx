@@ -1,0 +1,277 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LogHelper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.cli</a>
+</div>
+
+<h1>Coverage Summary for Class: LogHelper (jadx.cli)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LogHelper</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    40%
+  </span>
+  <span class="absValue">
+    (2/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.2%
+  </span>
+  <span class="absValue">
+    (18/26)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LogHelper$LogLevelConverter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">LogHelper$LogLevelEnum</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    69.2%
+  </span>
+  <span class="absValue">
+    (9/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    40%
+  </span>
+  <span class="absValue">
+    (2/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    68.3%
+  </span>
+  <span class="absValue">
+    (28/41)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.cli;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">4</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import com.beust.jcommander.IStringConverter;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import ch.qos.logback.classic.Level;
+<i class="no-highlight">9</i>&nbsp;import ch.qos.logback.classic.Logger;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.JadxDecompiler;
+<i class="no-highlight">12</i>&nbsp;
+<b class="nc"><i class="no-highlight">13</i>&nbsp;public class LogHelper {</b>
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(LogHelper.class);</b>
+<i class="no-highlight">15</i>&nbsp;
+<b class="fc"><i class="no-highlight">16</i>&nbsp;	public enum LogLevelEnum {</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;		QUIET(Level.OFF),</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;		PROGRESS(Level.OFF),</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;		ERROR(Level.ERROR),</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;		WARN(Level.WARN),</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		INFO(Level.INFO),</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		DEBUG(Level.DEBUG);</b>
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;		private final Level level;
+<i class="no-highlight">25</i>&nbsp;
+<b class="fc"><i class="no-highlight">26</i>&nbsp;		LogLevelEnum(Level level) {</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;			this.level = level;</b>
+<i class="no-highlight">28</i>&nbsp;		}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;		public Level getLevel() {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;			return level;</b>
+<i class="no-highlight">32</i>&nbsp;		}
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	private static LogLevelEnum logLevelValue;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	public static void setLogLevelFromArgs(JadxCLIArgs args) {
+<b class="pc"><i class="no-highlight">38</i>&nbsp;		if (isCustomLogConfig()) {</b>
+<i class="no-highlight">39</i>&nbsp;			return;
+<i class="no-highlight">40</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		LogLevelEnum logLevel = args.logLevel;</b>
+<b class="pc"><i class="no-highlight">42</i>&nbsp;		if (args.quiet) {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;			logLevel = LogLevelEnum.QUIET;</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		} else if (args.verbose) {</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			logLevel = LogLevelEnum.DEBUG;</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<i class="no-highlight">47</i>&nbsp;
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		applyLogLevel(logLevel);</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	public static void applyLogLevel(LogLevelEnum logLevel) {
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		logLevelValue = logLevel;</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		rootLogger.setLevel(logLevel.getLevel());</b>
+<i class="no-highlight">56</i>&nbsp;
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		if (logLevel == LogLevelEnum.PROGRESS) {</b>
+<i class="no-highlight">58</i>&nbsp;			// show progress for all levels except quiet
+<b class="fc"><i class="no-highlight">59</i>&nbsp;			setLevelForClass(JadxCLI.class, Level.INFO);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;			setLevelForClass(JadxDecompiler.class, Level.INFO);</b>
+<i class="no-highlight">61</i>&nbsp;		}
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	@Nullable
+<i class="no-highlight">65</i>&nbsp;	public static LogLevelEnum getLogLevel() {
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		return logLevelValue;</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	public static void setLevelForClass(Class&lt;?&gt; cls, Level level) {
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		((Logger) LoggerFactory.getLogger(cls)).setLevel(level);</b>
+<i class="no-highlight">71</i>&nbsp;	}
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;	public static void setLevelForPackage(String pkgName, Level level) {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		((Logger) LoggerFactory.getLogger(pkgName)).setLevel(level);</b>
+<i class="no-highlight">75</i>&nbsp;	}
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;	/**
+<i class="no-highlight">78</i>&nbsp;	 * Try to detect if user provide custom logback config via -Dlogback.configurationFile=
+<i class="no-highlight">79</i>&nbsp;	 */
+<i class="no-highlight">80</i>&nbsp;	private static boolean isCustomLogConfig() {
+<i class="no-highlight">81</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			String logbackConfig = System.getProperty(&quot;logback.configurationFile&quot;);</b>
+<b class="pc"><i class="no-highlight">83</i>&nbsp;			if (logbackConfig == null) {</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;				return false;</b>
+<i class="no-highlight">85</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">86</i>&nbsp;			LOG.debug(&quot;Use custom log config: {}&quot;, logbackConfig);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			return true;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			LOG.error(&quot;Failed to detect custom log config&quot;, e);</b>
+<i class="no-highlight">90</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		return false;</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<b class="nc"><i class="no-highlight">94</i>&nbsp;	public static class LogLevelConverter implements IStringConverter&lt;LogLevelEnum&gt; {</b>
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;		@Override
+<i class="no-highlight">97</i>&nbsp;		public LogLevelEnum convert(String value) {
+<i class="no-highlight">98</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;				return LogLevelEnum.valueOf(value.toUpperCase());</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;				throw new IllegalArgumentException(</b>
+<i class="no-highlight">102</i>&nbsp;						&#39;\&#39;&#39; + value + &quot;&#39; is unknown log level, possible values are &quot;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;								+ JadxCLIArgs.enumValuesString(LogLevelEnum.values()));</b>
+<i class="no-highlight">104</i>&nbsp;			}
+<i class="no-highlight">105</i>&nbsp;		}
+<i class="no-highlight">106</i>&nbsp;	}
+<i class="no-highlight">107</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

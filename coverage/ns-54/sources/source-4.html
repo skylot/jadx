@@ -1,0 +1,173 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexInsnMnemonics</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.insns</a>
+</div>
+
+<h1>Coverage Summary for Class: DexInsnMnemonics (jadx.plugins.input.dex.insns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexInsnMnemonics</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.insns;
+<i class="no-highlight">2</i>&nbsp;
+<b class="nc"><i class="no-highlight">3</i>&nbsp;public class DexInsnMnemonics {</b>
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;	public static String get(int opcode) {
+<b class="nc"><i class="no-highlight">6</i>&nbsp;		return MNEMONICS[opcode &amp; 0xFF];</b>
+<i class="no-highlight">7</i>&nbsp;	}
+<i class="no-highlight">8</i>&nbsp;
+<b class="nc"><i class="no-highlight">9</i>&nbsp;	private static final String[] MNEMONICS = new String[] {</b>
+<i class="no-highlight">10</i>&nbsp;			&quot;nop&quot;,
+<i class="no-highlight">11</i>&nbsp;			&quot;move&quot;, &quot;move/from16&quot;, &quot;move/16&quot;, &quot;move-wide&quot;,
+<i class="no-highlight">12</i>&nbsp;			&quot;move-wide/from16&quot;, &quot;move-wide/16&quot;, &quot;move-object&quot;, &quot;move-object/from16&quot;, &quot;move-object/16&quot;,
+<i class="no-highlight">13</i>&nbsp;			&quot;move-result&quot;, &quot;move-result-wide&quot;, &quot;move-result-object&quot;, &quot;move-exception&quot;, &quot;return-void&quot;,
+<i class="no-highlight">14</i>&nbsp;			&quot;return&quot;, &quot;return-wide&quot;, &quot;return-object&quot;,
+<i class="no-highlight">15</i>&nbsp;			&quot;const/4&quot;, &quot;const/16&quot;, &quot;const&quot;, &quot;const/high16&quot;, &quot;const-wide/16&quot;, &quot;const-wide/32&quot;, &quot;const-wide&quot;,
+<i class="no-highlight">16</i>&nbsp;			&quot;const-wide/high16&quot;, &quot;const-string&quot;, &quot;const-string/jumbo&quot;, &quot;const-class&quot;, &quot;monitor-enter&quot;,
+<i class="no-highlight">17</i>&nbsp;			&quot;monitor-exit&quot;, &quot;check-cast&quot;, &quot;instance-of&quot;, &quot;array-length&quot;, &quot;new-instance&quot;,
+<i class="no-highlight">18</i>&nbsp;			&quot;new-array&quot;, &quot;filled-new-array&quot;, &quot;filled-new-array/range&quot;, &quot;fill-array-data&quot;, &quot;throw&quot;,
+<i class="no-highlight">19</i>&nbsp;			&quot;goto&quot;, &quot;goto/16&quot;, &quot;goto/32&quot;,
+<i class="no-highlight">20</i>&nbsp;			&quot;packed-switch&quot;, &quot;sparse-switch&quot;,
+<i class="no-highlight">21</i>&nbsp;			&quot;cmpl-float&quot;, &quot;cmpg-float&quot;, &quot;cmpl-double&quot;, &quot;cmpg-double&quot;, &quot;cmp-long&quot;,
+<i class="no-highlight">22</i>&nbsp;			&quot;if-eq&quot;, &quot;if-ne&quot;, &quot;if-lt&quot;, &quot;if-ge&quot;, &quot;if-gt&quot;, &quot;if-le&quot;,
+<i class="no-highlight">23</i>&nbsp;			&quot;if-eqz&quot;, &quot;if-nez&quot;, &quot;if-ltz&quot;, &quot;if-gez&quot;, &quot;if-gtz&quot;, &quot;if-lez&quot;,
+<i class="no-highlight">24</i>&nbsp;			&quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">25</i>&nbsp;			&quot;aget&quot;, &quot;aget-wide&quot;,
+<i class="no-highlight">26</i>&nbsp;			&quot;aget-object&quot;, &quot;aget-boolean&quot;, &quot;aget-byte&quot;, &quot;aget-char&quot;, &quot;aget-short&quot;,
+<i class="no-highlight">27</i>&nbsp;			&quot;aput&quot;, &quot;aput-wide&quot;, &quot;aput-object&quot;, &quot;aput-boolean&quot;, &quot;aput-byte&quot;,
+<i class="no-highlight">28</i>&nbsp;			&quot;aput-char&quot;, &quot;aput-short&quot;, &quot;iget&quot;, &quot;iget-wide&quot;, &quot;iget-object&quot;,
+<i class="no-highlight">29</i>&nbsp;			&quot;iget-boolean&quot;, &quot;iget-byte&quot;, &quot;iget-char&quot;, &quot;iget-short&quot;, &quot;iput&quot;,
+<i class="no-highlight">30</i>&nbsp;			&quot;iput-wide&quot;, &quot;iput-object&quot;, &quot;iput-boolean&quot;, &quot;iput-byte&quot;, &quot;iput-char&quot;,
+<i class="no-highlight">31</i>&nbsp;			&quot;iput-short&quot;, &quot;sget&quot;, &quot;sget-wide&quot;, &quot;sget-object&quot;, &quot;sget-boolean&quot;,
+<i class="no-highlight">32</i>&nbsp;			&quot;sget-byte&quot;, &quot;sget-char&quot;, &quot;sget-short&quot;, &quot;sput&quot;, &quot;sput-wide&quot;,
+<i class="no-highlight">33</i>&nbsp;			&quot;sput-object&quot;, &quot;sput-boolean&quot;, &quot;sput-byte&quot;, &quot;sput-char&quot;, &quot;sput-short&quot;,
+<i class="no-highlight">34</i>&nbsp;			&quot;invoke-virtual&quot;, &quot;invoke-super&quot;, &quot;invoke-direct&quot;, &quot;invoke-static&quot;, &quot;invoke-interface&quot;,
+<i class="no-highlight">35</i>&nbsp;			&quot;(unused)&quot;, &quot;invoke-virtual/range&quot;, &quot;invoke-super/range&quot;, &quot;invoke-direct/range&quot;, &quot;invoke-static/range&quot;,
+<i class="no-highlight">36</i>&nbsp;			&quot;invoke-interface/range&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;neg-int&quot;, &quot;not-int&quot;,
+<i class="no-highlight">37</i>&nbsp;			&quot;neg-long&quot;, &quot;not-long&quot;, &quot;neg-float&quot;, &quot;neg-double&quot;, &quot;int-to-long&quot;,
+<i class="no-highlight">38</i>&nbsp;			&quot;int-to-float&quot;, &quot;int-to-double&quot;, &quot;long-to-int&quot;, &quot;long-to-float&quot;, &quot;long-to-double&quot;,
+<i class="no-highlight">39</i>&nbsp;			&quot;float-to-int&quot;, &quot;float-to-long&quot;, &quot;float-to-double&quot;, &quot;double-to-int&quot;, &quot;double-to-long&quot;,
+<i class="no-highlight">40</i>&nbsp;			&quot;double-to-float&quot;, &quot;int-to-byte&quot;, &quot;int-to-char&quot;, &quot;int-to-short&quot;, &quot;add-int&quot;,
+<i class="no-highlight">41</i>&nbsp;			&quot;sub-int&quot;, &quot;mul-int&quot;, &quot;div-int&quot;, &quot;rem-int&quot;, &quot;and-int&quot;,
+<i class="no-highlight">42</i>&nbsp;			&quot;or-int&quot;, &quot;xor-int&quot;, &quot;shl-int&quot;, &quot;shr-int&quot;, &quot;ushr-int&quot;,
+<i class="no-highlight">43</i>&nbsp;			&quot;add-long&quot;, &quot;sub-long&quot;, &quot;mul-long&quot;, &quot;div-long&quot;, &quot;rem-long&quot;,
+<i class="no-highlight">44</i>&nbsp;			&quot;and-long&quot;, &quot;or-long&quot;, &quot;xor-long&quot;, &quot;shl-long&quot;, &quot;shr-long&quot;,
+<i class="no-highlight">45</i>&nbsp;			&quot;ushr-long&quot;, &quot;add-float&quot;, &quot;sub-float&quot;, &quot;mul-float&quot;, &quot;div-float&quot;,
+<i class="no-highlight">46</i>&nbsp;			&quot;rem-float&quot;, &quot;add-double&quot;, &quot;sub-double&quot;, &quot;mul-double&quot;, &quot;div-double&quot;,
+<i class="no-highlight">47</i>&nbsp;			&quot;rem-double&quot;, &quot;add-int/2addr&quot;, &quot;sub-int/2addr&quot;, &quot;mul-int/2addr&quot;, &quot;div-int/2addr&quot;,
+<i class="no-highlight">48</i>&nbsp;			&quot;rem-int/2addr&quot;, &quot;and-int/2addr&quot;, &quot;or-int/2addr&quot;, &quot;xor-int/2addr&quot;, &quot;shl-int/2addr&quot;,
+<i class="no-highlight">49</i>&nbsp;			&quot;shr-int/2addr&quot;, &quot;ushr-int/2addr&quot;, &quot;add-long/2addr&quot;, &quot;sub-long/2addr&quot;, &quot;mul-long/2addr&quot;,
+<i class="no-highlight">50</i>&nbsp;			&quot;div-long/2addr&quot;, &quot;rem-long/2addr&quot;, &quot;and-long/2addr&quot;, &quot;or-long/2addr&quot;, &quot;xor-long/2addr&quot;,
+<i class="no-highlight">51</i>&nbsp;			&quot;shl-long/2addr&quot;, &quot;shr-long/2addr&quot;, &quot;ushr-long/2addr&quot;, &quot;add-float/2addr&quot;, &quot;sub-float/2addr&quot;,
+<i class="no-highlight">52</i>&nbsp;			&quot;mul-float/2addr&quot;, &quot;div-float/2addr&quot;, &quot;rem-float/2addr&quot;, &quot;add-double/2addr&quot;, &quot;sub-double/2addr&quot;,
+<i class="no-highlight">53</i>&nbsp;			&quot;mul-double/2addr&quot;, &quot;div-double/2addr&quot;, &quot;rem-double/2addr&quot;, &quot;add-int/lit16&quot;, &quot;rsub-int&quot;,
+<i class="no-highlight">54</i>&nbsp;			&quot;mul-int/lit16&quot;, &quot;div-int/lit16&quot;, &quot;rem-int/lit16&quot;, &quot;and-int/lit16&quot;, &quot;or-int/lit16&quot;,
+<i class="no-highlight">55</i>&nbsp;			&quot;xor-int/lit16&quot;, &quot;add-int/lit8&quot;, &quot;rsub-int/lit8&quot;, &quot;mul-int/lit8&quot;, &quot;div-int/lit8&quot;,
+<i class="no-highlight">56</i>&nbsp;			&quot;rem-int/lit8&quot;, &quot;and-int/lit8&quot;, &quot;or-int/lit8&quot;, &quot;xor-int/lit8&quot;, &quot;shl-int/lit8&quot;,
+<i class="no-highlight">57</i>&nbsp;			&quot;shr-int/lit8&quot;, &quot;ushr-int/lit8&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">58</i>&nbsp;			&quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">59</i>&nbsp;			&quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">60</i>&nbsp;			&quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">61</i>&nbsp;			&quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;, &quot;(unused)&quot;,
+<i class="no-highlight">62</i>&nbsp;			&quot;invoke-polymorphic&quot;,
+<i class="no-highlight">63</i>&nbsp;			&quot;invoke-polymorphic/range&quot;,
+<i class="no-highlight">64</i>&nbsp;			&quot;invoke-custom&quot;,
+<i class="no-highlight">65</i>&nbsp;			&quot;invoke-custom/range&quot;,
+<i class="no-highlight">66</i>&nbsp;			&quot;const-method-handle&quot;,
+<i class="no-highlight">67</i>&nbsp;			&quot;const-method-type&quot; };
+<i class="no-highlight">68</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

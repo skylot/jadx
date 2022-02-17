@@ -1,0 +1,162 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MethodParamsAttr</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.data.attributes.types</a>
+</div>
+
+<h1>Coverage Summary for Class: MethodParamsAttr (jadx.api.plugins.input.data.attributes.types)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MethodParamsAttr</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.7%
+  </span>
+  <span class="absValue">
+    (11/12)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.data.attributes.types;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">10</i>&nbsp;import jadx.api.plugins.input.data.attributes.PinnedAttribute;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;public class MethodParamsAttr extends PinnedAttribute {
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;	@Nullable
+<i class="no-highlight">15</i>&nbsp;	public static MethodParamsAttr pack(List&lt;List&lt;IAnnotation&gt;&gt; annotationRefList) {
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		if (annotationRefList.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;			return null;</b>
+<i class="no-highlight">18</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">19</i>&nbsp;		List&lt;AnnotationsAttr&gt; list = new ArrayList&lt;&gt;(annotationRefList.size());</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;		for (List&lt;IAnnotation&gt; annList : annotationRefList) {</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;			list.add(AnnotationsAttr.pack(annList));</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		return new MethodParamsAttr(list);</b>
+<i class="no-highlight">24</i>&nbsp;	}
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	private final List&lt;AnnotationsAttr&gt; paramList;
+<i class="no-highlight">27</i>&nbsp;
+<b class="fc"><i class="no-highlight">28</i>&nbsp;	private MethodParamsAttr(List&lt;AnnotationsAttr&gt; paramsList) {</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.paramList = paramsList;</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	public List&lt;AnnotationsAttr&gt; getParamList() {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		return paramList;</b>
+<i class="no-highlight">34</i>&nbsp;	}
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;	@Override
+<i class="no-highlight">37</i>&nbsp;	public JadxAttrType&lt;MethodParamsAttr&gt; getAttrType() {
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		return JadxAttrType.ANNOTATION_MTH_PARAMETERS;</b>
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	@Override
+<i class="no-highlight">42</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		return paramList.toString();</b>
+<i class="no-highlight">44</i>&nbsp;	}
+<i class="no-highlight">45</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

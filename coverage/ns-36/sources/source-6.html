@@ -1,0 +1,437 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DebugUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: DebugUtils (jadx.core.utils)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DebugUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DebugUtils$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DebugUtils$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DebugUtils$3</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DebugUtils$4</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/105)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.File;
+<i class="no-highlight">4</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">5</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">6</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map;
+<i class="no-highlight">9</i>&nbsp;import java.util.Set;
+<i class="no-highlight">10</i>&nbsp;import java.util.concurrent.ConcurrentHashMap;
+<i class="no-highlight">11</i>&nbsp;import java.util.function.Function;
+<i class="no-highlight">12</i>&nbsp;import java.util.function.Predicate;
+<i class="no-highlight">13</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">14</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.ICodeWriter;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.impl.SimpleCodeWriter;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.codegen.ConditionGen;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.codegen.InsnGen;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.codegen.MethodGen;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.attributes.IAttributeNode;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.nodes.IBlock;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.nodes.IContainer;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.nodes.IRegion;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.regions.Region;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.regions.loops.LoopRegion;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.visitors.AbstractVisitor;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.visitors.DotGraphVisitor;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.visitors.IDexTreeVisitor;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.visitors.regions.DepthRegionTraversal;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.visitors.regions.TracedRegionVisitor;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.utils.exceptions.CodegenException;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * Use these methods only for debug purpose.
+<i class="no-highlight">47</i>&nbsp; * CheckStyle will reject usage of this class.
+<i class="no-highlight">48</i>&nbsp; */
+<i class="no-highlight">49</i>&nbsp;public class DebugUtils {
+<b class="nc"><i class="no-highlight">50</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(DebugUtils.class);</b>
+<i class="no-highlight">51</i>&nbsp;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;	private DebugUtils() {</b>
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	public static void dump(MethodNode mth) {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		dump(mth, &quot;dump&quot;);</b>
+<i class="no-highlight">57</i>&nbsp;	}
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	public static void dumpRaw(MethodNode mth, String desc, Predicate&lt;MethodNode&gt; dumpCondition) {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		if (dumpCondition.test(mth)) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;			dumpRaw(mth, desc);</b>
+<i class="no-highlight">62</i>&nbsp;		}
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	public static void dumpRawTest(MethodNode mth, String desc) {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		dumpRaw(mth, desc, method -&gt; method.getName().equals(&quot;test&quot;));</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	public static void dumpRaw(MethodNode mth, String desc) {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		File out = new File(&quot;test-graph-&quot; + desc + &quot;-tmp&quot;);</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		DotGraphVisitor.dumpRaw().save(out, mth);</b>
+<i class="no-highlight">72</i>&nbsp;	}
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	public static IDexTreeVisitor dumpRawVisitor(String desc) {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		return new AbstractVisitor() {</b>
+<i class="no-highlight">76</i>&nbsp;			@Override
+<i class="no-highlight">77</i>&nbsp;			public void visit(MethodNode mth) throws JadxException {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;				dumpRaw(mth, desc);</b>
+<i class="no-highlight">79</i>&nbsp;			}
+<i class="no-highlight">80</i>&nbsp;		};
+<i class="no-highlight">81</i>&nbsp;	}
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;	public static IDexTreeVisitor dumpRawVisitor(String desc, Predicate&lt;MethodNode&gt; filter) {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		return new AbstractVisitor() {</b>
+<i class="no-highlight">85</i>&nbsp;			@Override
+<i class="no-highlight">86</i>&nbsp;			public void visit(MethodNode mth) {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;				if (filter.test(mth)) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;					dumpRaw(mth, desc);</b>
+<i class="no-highlight">89</i>&nbsp;				}
+<i class="no-highlight">90</i>&nbsp;			}
+<i class="no-highlight">91</i>&nbsp;		};
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;	public static void dump(MethodNode mth, String desc) {
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		File out = new File(&quot;test-graph-&quot; + desc + &quot;-tmp&quot;);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		DotGraphVisitor.dump().save(out, mth);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;		DotGraphVisitor.dumpRaw().save(out, mth);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;		DotGraphVisitor.dumpRegions().save(out, mth);</b>
+<i class="no-highlight">99</i>&nbsp;	}
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;	public static void printRegionsWithBlock(MethodNode mth, BlockNode block) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		Set&lt;IRegion&gt; regions = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		DepthRegionTraversal.traverse(mth, new TracedRegionVisitor() {</b>
+<i class="no-highlight">104</i>&nbsp;			@Override
+<i class="no-highlight">105</i>&nbsp;			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;				if (block.equals(container)) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;					regions.add(currentRegion);</b>
+<i class="no-highlight">108</i>&nbsp;				}
+<i class="no-highlight">109</i>&nbsp;			}
+<i class="no-highlight">110</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">111</i>&nbsp;		LOG.debug(&quot; Found block: {} in regions: {}&quot;, block, regions);</b>
+<i class="no-highlight">112</i>&nbsp;	}
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;	public static IDexTreeVisitor printRegionsVisitor() {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;		return new AbstractVisitor() {</b>
+<i class="no-highlight">116</i>&nbsp;			@Override
+<i class="no-highlight">117</i>&nbsp;			public void visit(MethodNode mth) throws JadxException {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;				printRegions(mth, true);</b>
+<i class="no-highlight">119</i>&nbsp;			}
+<i class="no-highlight">120</i>&nbsp;		};
+<i class="no-highlight">121</i>&nbsp;	}
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;	public static void printRegions(MethodNode mth) {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;		printRegions(mth, false);</b>
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	public static void printRegions(MethodNode mth, boolean printInsns) {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;		Region mthRegion = mth.getRegion();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;		if (mthRegion == null) {</b>
+<i class="no-highlight">130</i>&nbsp;			return;
+<i class="no-highlight">131</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">132</i>&nbsp;		printRegion(mth, mthRegion, printInsns);</b>
+<i class="no-highlight">133</i>&nbsp;	}
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;	public static void printRegion(MethodNode mth, IRegion region, boolean printInsns) {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;		ICodeWriter cw = new SimpleCodeWriter();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;		cw.startLine(&#39;|&#39;).add(mth.toString());</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;		printRegion(mth, region, cw, &quot;|  &quot;, printInsns);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;		LOG.debug(&quot;{}{}&quot;, ICodeWriter.NL, cw.finish().getCodeStr());</b>
+<i class="no-highlight">140</i>&nbsp;	}
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;	private static void printRegion(MethodNode mth, IRegion region, ICodeWriter cw, String indent, boolean printInsns) {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;		printWithAttributes(cw, indent, region.toString(), region);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;		indent += &quot;|  &quot;;</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;		printRegionSpecificInfo(cw, indent, mth, region, printInsns);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;		for (IContainer container : region.getSubBlocks()) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;			if (container instanceof IRegion) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;				printRegion(mth, (IRegion) container, cw, indent, printInsns);</b>
+<i class="no-highlight">149</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;				printWithAttributes(cw, indent, container.toString(), container);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;				if (printInsns &amp;&amp; container instanceof IBlock) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;					IBlock block = (IBlock) container;</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;					printInsns(mth, cw, indent, block);</b>
+<i class="no-highlight">154</i>&nbsp;				}
+<i class="no-highlight">155</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">156</i>&nbsp;		}</b>
+<i class="no-highlight">157</i>&nbsp;	}
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;	private static void printRegionSpecificInfo(ICodeWriter cw, String indent,
+<i class="no-highlight">160</i>&nbsp;			MethodNode mth, IRegion region, boolean printInsns) {
+<b class="nc"><i class="no-highlight">161</i>&nbsp;		if (region instanceof LoopRegion) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;			LoopRegion loop = (LoopRegion) region;</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;			IfCondition condition = loop.getCondition();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;			if (printInsns &amp;&amp; condition != null) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;				ConditionGen conditionGen = new ConditionGen(new InsnGen(MethodGen.getFallbackMethodGen(mth), true));</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;				cw.startLine(indent).add(&quot;|&gt; &quot;);</b>
+<i class="no-highlight">167</i>&nbsp;				try {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;					conditionGen.add(cw, condition);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;					cw.startLine(indent).add(&quot;&gt;!! &quot;).add(condition.toString());</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;				}</b>
+<i class="no-highlight">172</i>&nbsp;			}
+<i class="no-highlight">173</i>&nbsp;		}
+<i class="no-highlight">174</i>&nbsp;	}
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;	private static void printInsns(MethodNode mth, ICodeWriter cw, String indent, IBlock block) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;		for (InsnNode insn : block.getInstructions()) {</b>
+<i class="no-highlight">178</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;				MethodGen mg = MethodGen.getFallbackMethodGen(mth);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;				InsnGen ig = new InsnGen(mg, true);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;				ICodeWriter code = new SimpleCodeWriter();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;				ig.makeInsn(insn, code);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;				String codeStr = code.getCodeStr();</b>
+<i class="no-highlight">184</i>&nbsp;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;				List&lt;String&gt; insnStrings = Stream.of(codeStr.split(ICodeWriter.NL))</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;						.filter(StringUtils::notBlank)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;						.map(s -&gt; &quot;|&gt; &quot; + s)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;						.collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;				Iterator&lt;String&gt; it = insnStrings.iterator();</b>
+<i class="no-highlight">190</i>&nbsp;				while (true) {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;					String insnStr = it.next();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;					if (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;						cw.startLine(indent).add(insnStr);</b>
+<i class="no-highlight">194</i>&nbsp;					} else {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;						printWithAttributes(cw, indent, insnStr, insn);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;						break;</b>
+<i class="no-highlight">197</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">198</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;			} catch (CodegenException e) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;				cw.startLine(indent).add(&quot;&gt;!! &quot;).add(insn.toString());</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;		}</b>
+<i class="no-highlight">203</i>&nbsp;	}
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;	private static void printWithAttributes(ICodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
+<b class="nc"><i class="no-highlight">206</i>&nbsp;		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + &#39; &#39; + attrNode.getAttributesString();</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;		List&lt;String&gt; attrStrings = Stream.of(str.split(ICodeWriter.NL))</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;				.filter(StringUtils::notBlank)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;		Iterator&lt;String&gt; it = attrStrings.iterator();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;		if (!it.hasNext()) {</b>
+<i class="no-highlight">212</i>&nbsp;			return;
+<i class="no-highlight">213</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">214</i>&nbsp;		cw.startLine(indent).add(it.next());</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;		while (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;			cw.startLine(indent).add(&quot;|+  &quot;).add(it.next());</b>
+<i class="no-highlight">217</i>&nbsp;		}
+<i class="no-highlight">218</i>&nbsp;	}
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;	public static void printMap(Map&lt;?, ?&gt; map, String desc) {
+<b class="nc"><i class="no-highlight">221</i>&nbsp;		LOG.debug(&quot;Map {} (size = {}):&quot;, desc, map.size());</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;		for (Map.Entry&lt;?, ?&gt; entry : map.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;			LOG.debug(&quot;  {}: {}&quot;, entry.getKey(), entry.getValue());</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;		}</b>
+<i class="no-highlight">225</i>&nbsp;	}
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;	public static void printStackTrace(String label) {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;		LOG.debug(&quot;StackTrace: {}\n{}&quot;, label, Utils.getStackTrace(new Exception()));</b>
+<i class="no-highlight">229</i>&nbsp;	}
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;	public static void printMethodOverrideTop(RootNode root) {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;		LOG.debug(&quot;Methods override top 10:&quot;);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;		root.getClasses().stream()</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;				.flatMap(c -&gt; c.getMethods().stream())</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;				.filter(m -&gt; m.contains(AType.METHOD_OVERRIDE))</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;				.map(m -&gt; m.get(AType.METHOD_OVERRIDE))</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;				.filter(o -&gt; !o.getOverrideList().isEmpty())</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;				.filter(distinctByKey(methodOverrideAttr -&gt; methodOverrideAttr.getRelatedMthNodes().size()))</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;				.filter(distinctByKey(MethodOverrideAttr::getRelatedMthNodes))</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;				.sorted(Comparator.comparingInt(o -&gt; -o.getRelatedMthNodes().size()))</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;				.limit(10)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;				.forEach(o -&gt; LOG.debug(&quot;  {} : {}&quot;, o.getRelatedMthNodes().size(), Utils.last(o.getOverrideList())));</b>
+<i class="no-highlight">243</i>&nbsp;	}
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;	private static &lt;T&gt; Predicate&lt;T&gt; distinctByKey(Function&lt;? super T, ?&gt; keyExtractor) {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;		Set&lt;Object&gt; seen = ConcurrentHashMap.newKeySet();</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;		return t -&gt; seen.add(keyExtractor.apply(t));</b>
+<i class="no-highlight">248</i>&nbsp;	}
+<i class="no-highlight">249</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,404 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > UiUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: UiUtils (jadx.gui.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UiUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    18.5%
+  </span>
+  <span class="absValue">
+    (5/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    13.8%
+  </span>
+  <span class="absValue">
+    (17/123)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Component;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Image;
+<i class="no-highlight">5</i>&nbsp;import java.awt.MouseInfo;
+<i class="no-highlight">6</i>&nbsp;import java.awt.Point;
+<i class="no-highlight">7</i>&nbsp;import java.awt.Toolkit;
+<i class="no-highlight">8</i>&nbsp;import java.awt.Window;
+<i class="no-highlight">9</i>&nbsp;import java.awt.datatransfer.Clipboard;
+<i class="no-highlight">10</i>&nbsp;import java.awt.datatransfer.StringSelection;
+<i class="no-highlight">11</i>&nbsp;import java.awt.datatransfer.Transferable;
+<i class="no-highlight">12</i>&nbsp;import java.awt.event.InputEvent;
+<i class="no-highlight">13</i>&nbsp;import java.awt.event.KeyEvent;
+<i class="no-highlight">14</i>&nbsp;import java.net.URL;
+<i class="no-highlight">15</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">16</i>&nbsp;import java.util.List;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import javax.swing.Action;
+<i class="no-highlight">19</i>&nbsp;import javax.swing.Icon;
+<i class="no-highlight">20</i>&nbsp;import javax.swing.ImageIcon;
+<i class="no-highlight">21</i>&nbsp;import javax.swing.JComponent;
+<i class="no-highlight">22</i>&nbsp;import javax.swing.JOptionPane;
+<i class="no-highlight">23</i>&nbsp;import javax.swing.KeyStroke;
+<i class="no-highlight">24</i>&nbsp;import javax.swing.RootPaneContainer;
+<i class="no-highlight">25</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.intellij.lang.annotations.MagicConstant;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import com.formdev.flatlaf.extras.FlatSVGIcon;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.info.AccessInfo;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">37</i>&nbsp;import jadx.gui.ui.codearea.AbstractCodeArea;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;public class UiUtils {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);</b>
+<i class="no-highlight">41</i>&nbsp;
+<b class="fc"><i class="no-highlight">42</i>&nbsp;	public static final ImageIcon ICON_STATIC = openSvgIcon(&quot;nodes/staticMark&quot;);</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;	public static final ImageIcon ICON_FINAL = openSvgIcon(&quot;nodes/finalMark&quot;);</b>
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	/**
+<i class="no-highlight">46</i>&nbsp;	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may
+<i class="no-highlight">47</i>&nbsp;	 * run out of heap
+<i class="no-highlight">48</i>&nbsp;	 * which ends up in a Java garbage collector running &quot;amok&quot; (CPU utilization 100% for each core and
+<i class="no-highlight">49</i>&nbsp;	 * the UI is
+<i class="no-highlight">50</i>&nbsp;	 * not responsive).
+<i class="no-highlight">51</i>&nbsp;	 * &lt;p&gt;
+<i class="no-highlight">52</i>&nbsp;	 * We can calculate and store this value here as the maximum heap is fixed for each JVM instance
+<i class="no-highlight">53</i>&nbsp;	 * and can&#39;t be changed at runtime.
+<i class="no-highlight">54</i>&nbsp;	 */
+<b class="fc"><i class="no-highlight">55</i>&nbsp;	public static final long MIN_FREE_MEMORY = calculateMinFreeMemory();</b>
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	private UiUtils() {
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	public static FlatSVGIcon openSvgIcon(String name) {
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		String iconPath = &quot;icons/&quot; + name + &quot;.svg&quot;;</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		FlatSVGIcon icon = new FlatSVGIcon(iconPath);</b>
+<i class="no-highlight">63</i>&nbsp;		boolean found;
+<i class="no-highlight">64</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			found = icon.hasFound();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to load icon: &quot; + iconPath, e);</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		if (!found) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;			throw new JadxRuntimeException(&quot;Icon not found: &quot; + iconPath);</b>
+<i class="no-highlight">71</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		return icon;</b>
+<i class="no-highlight">73</i>&nbsp;	}
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	public static ImageIcon openIcon(String name) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;		String iconPath = &quot;/icons-16/&quot; + name + &quot;.png&quot;;</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		URL resource = UiUtils.class.getResource(iconPath);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		if (resource == null) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;			throw new JadxRuntimeException(&quot;Icon not found: &quot; + iconPath);</b>
+<i class="no-highlight">80</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		return new ImageIcon(resource);</b>
+<i class="no-highlight">82</i>&nbsp;	}
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;	public static Image openImage(String path) {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		URL resource = UiUtils.class.getResource(path);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		if (resource == null) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;			throw new JadxRuntimeException(&quot;Image not found: &quot; + path);</b>
+<i class="no-highlight">88</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		return Toolkit.getDefaultToolkit().createImage(resource);</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		comp.getInputMap().put(key, id);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		comp.getActionMap().put(id, action);</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	public static void removeKeyBinding(JComponent comp, KeyStroke key, String id) {
+<b class="nc"><i class="no-highlight">98</i>&nbsp;		comp.getInputMap().remove(key);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;		comp.getActionMap().remove(id);</b>
+<i class="no-highlight">100</i>&nbsp;	}
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;	public static String typeFormat(String name, ArgType type) {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;		return name + &quot; &quot; + typeStr(type);</b>
+<i class="no-highlight">104</i>&nbsp;	}
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;	public static String typeFormatHtml(String name, ArgType type) {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;		return &quot;&lt;html&gt;&lt;body&gt;&lt;nobr&gt;&quot; + escapeHtml(name)</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;				+ &quot;&lt;span style=&#39;color:#888888;&#39;&gt; &quot; + escapeHtml(typeStr(type)) + &quot;&lt;/span&gt;&quot;</b>
+<i class="no-highlight">109</i>&nbsp;				+ &quot;&lt;/nobr&gt;&lt;/body&gt;&lt;/html&gt;&quot;;
+<i class="no-highlight">110</i>&nbsp;	}
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;	public static String escapeHtml(String str) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;		return str.replace(&quot;&lt;&quot;, &quot;&amp;lt;&quot;).replace(&quot;&gt;&quot;, &quot;&amp;gt;&quot;);</b>
+<i class="no-highlight">114</i>&nbsp;	}
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;	public static String typeStr(ArgType type) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;		if (type == null) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;			return &quot;null&quot;;</b>
+<i class="no-highlight">119</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">120</i>&nbsp;		if (type.isObject()) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;			if (type.isGenericType()) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;				return type.getObject();</b>
+<i class="no-highlight">123</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">124</i>&nbsp;			ArgType wt = type.getWildcardType();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;			if (wt != null) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;				ArgType.WildcardBound bound = type.getWildcardBound();</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;				if (bound == ArgType.WildcardBound.UNBOUND) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;					return bound.getStr();</b>
+<i class="no-highlight">129</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">130</i>&nbsp;				return bound.getStr() + typeStr(wt);</b>
+<i class="no-highlight">131</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">132</i>&nbsp;			String objName = objectShortName(type.getObject());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;			ArgType outerType = type.getOuterType();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;			if (outerType != null) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;				return typeStr(outerType) + &#39;.&#39; + objName;</b>
+<i class="no-highlight">136</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">137</i>&nbsp;			List&lt;ArgType&gt; genericTypes = type.getGenericTypes();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;			if (genericTypes != null) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;				String generics = Utils.listToString(genericTypes, &quot;, &quot;, UiUtils::typeStr);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;				return objName + &#39;&lt;&#39; + generics + &#39;&gt;&#39;;</b>
+<i class="no-highlight">141</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">142</i>&nbsp;			return objName;</b>
+<i class="no-highlight">143</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">144</i>&nbsp;		if (type.isArray()) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;			return typeStr(type.getArrayElement()) + &quot;[]&quot;;</b>
+<i class="no-highlight">146</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">147</i>&nbsp;		return type.toString();</b>
+<i class="no-highlight">148</i>&nbsp;	}
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;	private static String objectShortName(String obj) {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;		int dot = obj.lastIndexOf(&#39;.&#39;);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;		if (dot != -1) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;			return obj.substring(dot + 1);</b>
+<i class="no-highlight">154</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">155</i>&nbsp;		return obj;</b>
+<i class="no-highlight">156</i>&nbsp;	}
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;	public static OverlayIcon makeIcon(AccessInfo af, Icon pub, Icon pri, Icon pro, Icon def) {
+<i class="no-highlight">159</i>&nbsp;		Icon icon;
+<b class="nc"><i class="no-highlight">160</i>&nbsp;		if (af.isPublic()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;			icon = pub;</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;		} else if (af.isPrivate()) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;			icon = pri;</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;		} else if (af.isProtected()) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;			icon = pro;</b>
+<i class="no-highlight">166</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;			icon = def;</b>
+<i class="no-highlight">168</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">169</i>&nbsp;		OverlayIcon overIcon = new OverlayIcon(icon);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;		if (af.isFinal()) {</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;			overIcon.add(ICON_FINAL);</b>
+<i class="no-highlight">172</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">173</i>&nbsp;		if (af.isStatic()) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;			overIcon.add(ICON_STATIC);</b>
+<i class="no-highlight">175</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">176</i>&nbsp;		return overIcon;</b>
+<i class="no-highlight">177</i>&nbsp;	}
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;	/**
+<i class="no-highlight">180</i>&nbsp;	 * @return 20% of the maximum heap size limited to 512 MB (bytes)
+<i class="no-highlight">181</i>&nbsp;	 */
+<i class="no-highlight">182</i>&nbsp;	public static long calculateMinFreeMemory() {
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		Runtime runtime = Runtime.getRuntime();</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		long minFree = (long) (runtime.maxMemory() * 0.2);</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		return Math.min(minFree, 512 * 1024L * 1024L);</b>
+<i class="no-highlight">186</i>&nbsp;	}
+<i class="no-highlight">187</i>&nbsp;
+<i class="no-highlight">188</i>&nbsp;	public static boolean isFreeMemoryAvailable() {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		Runtime runtime = Runtime.getRuntime();</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;		long maxMemory = runtime.maxMemory();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;		long totalFree = runtime.freeMemory() + (maxMemory - runtime.totalMemory());</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;		return totalFree &gt; MIN_FREE_MEMORY;</b>
+<i class="no-highlight">193</i>&nbsp;	}
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;	public static String memoryInfo() {
+<b class="nc"><i class="no-highlight">196</i>&nbsp;		Runtime runtime = Runtime.getRuntime();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;		long maxMemory = runtime.maxMemory();</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;		long allocatedMemory = runtime.totalMemory();</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		long freeMemory = runtime.freeMemory();</b>
+<i class="no-highlight">200</i>&nbsp;
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		return &quot;heap: &quot; + format(allocatedMemory - freeMemory)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;				+ &quot;, allocated: &quot; + format(allocatedMemory)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;				+ &quot;, free: &quot; + format(freeMemory)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;				+ &quot;, total free: &quot; + format(freeMemory + maxMemory - allocatedMemory)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;				+ &quot;, max: &quot; + format(maxMemory);</b>
+<i class="no-highlight">206</i>&nbsp;	}
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;	private static String format(long mem) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;		return (long) (mem / (double) (1024L * 1024L)) + &quot;MB&quot;;</b>
+<i class="no-highlight">210</i>&nbsp;	}
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;	/**
+<i class="no-highlight">213</i>&nbsp;	 * Adapt character case for case insensitive searches
+<i class="no-highlight">214</i>&nbsp;	 */
+<i class="no-highlight">215</i>&nbsp;	public static char caseChar(char ch, boolean toLower) {
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		return toLower ? Character.toLowerCase(ch) : ch;</b>
+<i class="no-highlight">217</i>&nbsp;	}
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;	public static void setClipboardString(String text) {
+<i class="no-highlight">220</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">221</i>&nbsp;			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;			Transferable transferable = new StringSelection(text);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;			clipboard.setContents(transferable, null);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;			LOG.debug(&quot;String &#39;{}&#39; copied to clipboard&quot;, text);</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;			LOG.error(&quot;Failed copy string &#39;{}&#39; to clipboard&quot;, text, e);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;		}</b>
+<i class="no-highlight">228</i>&nbsp;	}
+<i class="no-highlight">229</i>&nbsp;
+<i class="no-highlight">230</i>&nbsp;	public static void setWindowIcons(Window window) {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;		List&lt;Image&gt; icons = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;		icons.add(UiUtils.openImage(&quot;/logos/jadx-logo-16px.png&quot;));</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;		icons.add(UiUtils.openImage(&quot;/logos/jadx-logo-32px.png&quot;));</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;		icons.add(UiUtils.openImage(&quot;/logos/jadx-logo-48px.png&quot;));</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;		icons.add(UiUtils.openImage(&quot;/logos/jadx-logo.png&quot;));</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;		window.setIconImages(icons);</b>
+<i class="no-highlight">237</i>&nbsp;	}
+<i class="no-highlight">238</i>&nbsp;
+<b class="fc"><i class="no-highlight">239</i>&nbsp;	public static final int CTRL_BNT_KEY = getCtrlButton();</b>
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;	@SuppressWarnings(&quot;deprecation&quot;)
+<i class="no-highlight">242</i>&nbsp;	@MagicConstant(flagsFromClass = InputEvent.class)
+<i class="no-highlight">243</i>&nbsp;	private static int getCtrlButton() {
+<b class="fc"><i class="no-highlight">244</i>&nbsp;		if (SystemInfo.IS_MAC) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();</b>
+<i class="no-highlight">246</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">247</i>&nbsp;			return InputEvent.CTRL_DOWN_MASK;</b>
+<i class="no-highlight">248</i>&nbsp;		}
+<i class="no-highlight">249</i>&nbsp;	}
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;	@MagicConstant(flagsFromClass = InputEvent.class)
+<i class="no-highlight">252</i>&nbsp;	public static int ctrlButton() {
+<b class="nc"><i class="no-highlight">253</i>&nbsp;		return CTRL_BNT_KEY;</b>
+<i class="no-highlight">254</i>&nbsp;	}
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;	public static &lt;T extends Window &amp; RootPaneContainer&gt; void addEscapeShortCutToDispose(T window) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;		window.getRootPane().registerKeyboardAction(e -&gt; window.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);</b>
+<i class="no-highlight">259</i>&nbsp;	}
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;	/**
+<i class="no-highlight">262</i>&nbsp;	 * Get closest offset at mouse position
+<i class="no-highlight">263</i>&nbsp;	 *
+<i class="no-highlight">264</i>&nbsp;	 * @return -1 on error
+<i class="no-highlight">265</i>&nbsp;	 */
+<i class="no-highlight">266</i>&nbsp;	@SuppressWarnings(&quot;deprecation&quot;)
+<i class="no-highlight">267</i>&nbsp;	public static int getOffsetAtMousePosition(AbstractCodeArea codeArea) {
+<i class="no-highlight">268</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;			Point mousePos = getMousePosition(codeArea);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;			return codeArea.viewToModel(mousePos);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;			LOG.error(&quot;Failed to get offset at mouse position&quot;, e);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;			return -1;</b>
+<i class="no-highlight">274</i>&nbsp;		}
+<i class="no-highlight">275</i>&nbsp;	}
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;	public static Point getMousePosition(Component comp) {
+<b class="nc"><i class="no-highlight">278</i>&nbsp;		Point pos = MouseInfo.getPointerInfo().getLocation();</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;		SwingUtilities.convertPointFromScreen(pos, comp);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;		return pos;</b>
+<i class="no-highlight">281</i>&nbsp;	}
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;	public static String getEnvVar(String varName, String defValue) {
+<b class="nc"><i class="no-highlight">284</i>&nbsp;		String envVal = System.getenv(varName);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;		if (envVal == null) {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;			return defValue;</b>
+<i class="no-highlight">287</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">288</i>&nbsp;		return envVal;</b>
+<i class="no-highlight">289</i>&nbsp;	}
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;	public static void showMessageBox(Component parent, String msg) {
+<b class="nc"><i class="no-highlight">292</i>&nbsp;		JOptionPane.showMessageDialog(parent, msg);</b>
+<i class="no-highlight">293</i>&nbsp;	}
+<i class="no-highlight">294</i>&nbsp;
+<i class="no-highlight">295</i>&nbsp;	public static void errorMessage(Component parent, String message) {
+<b class="nc"><i class="no-highlight">296</i>&nbsp;		JOptionPane.showMessageDialog(parent, message,</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;				NLS.str(&quot;message.errorTitle&quot;), JOptionPane.ERROR_MESSAGE);</b>
+<i class="no-highlight">298</i>&nbsp;	}
+<i class="no-highlight">299</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,254 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ResourcesSaver</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.xmlgen</a>
+</div>
+
+<h1>Coverage Summary for Class: ResourcesSaver (jadx.core.xmlgen)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ResourcesSaver</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    62.5%
+  </span>
+  <span class="absValue">
+    (5/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (26/39)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ResourcesSaver$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    62.5%
+  </span>
+  <span class="absValue">
+    (5/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    67.5%
+  </span>
+  <span class="absValue">
+    (27/40)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.xmlgen;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.File;
+<i class="no-highlight">4</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">5</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">6</i>&nbsp;import java.nio.file.StandardCopyOption;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.ResourceFile;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.ResourcesLoader;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.utils.ZipSecurity;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.visitors.SaveCode;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.utils.files.FileUtils;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;public class ResourcesSaver implements Runnable {
+<b class="fc"><i class="no-highlight">20</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ResourcesSaver.class);</b>
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	private final ResourceFile resourceFile;
+<i class="no-highlight">23</i>&nbsp;	private final File outDir;
+<i class="no-highlight">24</i>&nbsp;
+<b class="fc"><i class="no-highlight">25</i>&nbsp;	public ResourcesSaver(File outDir, ResourceFile resourceFile) {</b>
+<b class="fc"><i class="no-highlight">26</i>&nbsp;		this.resourceFile = resourceFile;</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		this.outDir = outDir;</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	@Override
+<i class="no-highlight">31</i>&nbsp;	public void run() {
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		saveResources(resourceFile.loadContent());</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	private void saveResources(ResContainer rc) {
+<b class="pc"><i class="no-highlight">36</i>&nbsp;		if (rc == null) {</b>
+<i class="no-highlight">37</i>&nbsp;			return;
+<i class="no-highlight">38</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;			saveToFile(rc, new File(outDir, &quot;res/values/public.xml&quot;));</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;			for (ResContainer subFile : rc.getSubFiles()) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;				saveResources(subFile);</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;			}</b>
+<i class="no-highlight">44</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			save(rc, outDir);</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	private void save(ResContainer rc, File outDir) {
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		File outFile = new File(outDir, rc.getFileName());</b>
+<b class="pc"><i class="no-highlight">51</i>&nbsp;		if (!ZipSecurity.isInSubDirectory(outDir, outFile)) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			LOG.error(&quot;Path traversal attack detected, invalid resource name: {}&quot;, outFile.getPath());</b>
+<i class="no-highlight">53</i>&nbsp;			return;
+<i class="no-highlight">54</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		saveToFile(rc, outFile);</b>
+<i class="no-highlight">56</i>&nbsp;	}
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;	private void saveToFile(ResContainer rc, File outFile) {
+<b class="pc"><i class="no-highlight">59</i>&nbsp;		switch (rc.getDataType()) {</b>
+<i class="no-highlight">60</i>&nbsp;			case TEXT:
+<i class="no-highlight">61</i>&nbsp;			case RES_TABLE:
+<b class="fc"><i class="no-highlight">62</i>&nbsp;				SaveCode.save(rc.getText(), outFile);</b>
+<i class="no-highlight">63</i>&nbsp;				return;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;			case DECODED_DATA:
+<b class="nc"><i class="no-highlight">66</i>&nbsp;				byte[] data = rc.getDecodedData();</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;				FileUtils.makeDirsForFile(outFile);</b>
+<i class="no-highlight">68</i>&nbsp;				try {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;					Files.write(outFile.toPath(), data);</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;					LOG.warn(&quot;Resource &#39;{}&#39; not saved, got exception&quot;, rc.getName(), e);</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;				}</b>
+<i class="no-highlight">73</i>&nbsp;				return;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;			case RES_LINK:
+<b class="fc"><i class="no-highlight">76</i>&nbsp;				ResourceFile resFile = rc.getResLink();</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;				FileUtils.makeDirsForFile(outFile);</b>
+<i class="no-highlight">78</i>&nbsp;				try {
+<b class="fc"><i class="no-highlight">79</i>&nbsp;					saveResourceFile(resFile, outFile);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;				} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;					LOG.warn(&quot;Resource &#39;{}&#39; not saved, got exception&quot;, rc.getName(), e);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;				}</b>
+<i class="no-highlight">83</i>&nbsp;				return;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">86</i>&nbsp;				LOG.warn(&quot;Resource &#39;{}&#39; not saved, unknown type&quot;, rc.getName());</b>
+<i class="no-highlight">87</i>&nbsp;				break;
+<i class="no-highlight">88</i>&nbsp;		}
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	private void saveResourceFile(ResourceFile resFile, File outFile) throws JadxException {
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		ResourcesLoader.decodeStream(resFile, (size, is) -&gt; {</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			Path target = outFile.toPath();</b>
+<i class="no-highlight">94</i>&nbsp;			try {
+<b class="fc"><i class="no-highlight">95</i>&nbsp;				Files.copy(is, target, StandardCopyOption.REPLACE_EXISTING);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;				Files.deleteIfExists(target); // delete partially written file</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;				throw new JadxRuntimeException(&quot;Resource file save error&quot;, e);</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			return null;</b>
+<i class="no-highlight">101</i>&nbsp;		});
+<i class="no-highlight">102</i>&nbsp;	}
+<i class="no-highlight">103</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

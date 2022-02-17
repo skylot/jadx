@@ -1,0 +1,549 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractCodeArea</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.codearea</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractCodeArea (jadx.gui.ui.codearea)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractCodeArea</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/122)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AbstractCodeArea$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AbstractCodeArea$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AbstractCodeArea$3</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AbstractCodeArea$4</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AbstractCodeArea$5</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/153)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.codearea;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Dimension;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Point;
+<i class="no-highlight">5</i>&nbsp;import java.awt.Rectangle;
+<i class="no-highlight">6</i>&nbsp;import java.awt.event.ActionEvent;
+<i class="no-highlight">7</i>&nbsp;import java.awt.event.FocusEvent;
+<i class="no-highlight">8</i>&nbsp;import java.awt.event.FocusListener;
+<i class="no-highlight">9</i>&nbsp;import java.awt.event.MouseAdapter;
+<i class="no-highlight">10</i>&nbsp;import java.awt.event.MouseEvent;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import javax.swing.AbstractAction;
+<i class="no-highlight">13</i>&nbsp;import javax.swing.JCheckBoxMenuItem;
+<i class="no-highlight">14</i>&nbsp;import javax.swing.JPopupMenu;
+<i class="no-highlight">15</i>&nbsp;import javax.swing.JViewport;
+<i class="no-highlight">16</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">17</i>&nbsp;import javax.swing.event.CaretEvent;
+<i class="no-highlight">18</i>&nbsp;import javax.swing.event.CaretListener;
+<i class="no-highlight">19</i>&nbsp;import javax.swing.event.PopupMenuEvent;
+<i class="no-highlight">20</i>&nbsp;import javax.swing.text.BadLocationException;
+<i class="no-highlight">21</i>&nbsp;import javax.swing.text.Caret;
+<i class="no-highlight">22</i>&nbsp;import javax.swing.text.DefaultCaret;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+<i class="no-highlight">25</i>&nbsp;import org.fife.ui.rtextarea.SearchContext;
+<i class="no-highlight">26</i>&nbsp;import org.fife.ui.rtextarea.SearchEngine;
+<i class="no-highlight">27</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.utils.StringUtils;
+<i class="no-highlight">32</i>&nbsp;import jadx.gui.settings.JadxSettings;
+<i class="no-highlight">33</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">34</i>&nbsp;import jadx.gui.treemodel.JNode;
+<i class="no-highlight">35</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">36</i>&nbsp;import jadx.gui.ui.panel.ContentPanel;
+<i class="no-highlight">37</i>&nbsp;import jadx.gui.utils.DefaultPopupMenuListener;
+<i class="no-highlight">38</i>&nbsp;import jadx.gui.utils.JumpPosition;
+<i class="no-highlight">39</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">40</i>&nbsp;
+<b class="nc"><i class="no-highlight">41</i>&nbsp;public abstract class AbstractCodeArea extends RSyntaxTextArea {</b>
+<i class="no-highlight">42</i>&nbsp;	private static final long serialVersionUID = -3980354865216031972L;
+<i class="no-highlight">43</i>&nbsp;
+<b class="nc"><i class="no-highlight">44</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(AbstractCodeArea.class);</b>
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;	protected final ContentPanel contentPanel;
+<i class="no-highlight">47</i>&nbsp;	protected final JNode node;
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;	public AbstractCodeArea(ContentPanel contentPanel) {</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		this.contentPanel = contentPanel;</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		this.node = contentPanel.getNode();</b>
+<i class="no-highlight">52</i>&nbsp;
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		setMarkOccurrences(false);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		setEditable(false);</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		setCodeFoldingEnabled(false);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		setFadeCurrentLineHighlight(true);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		setCloseCurlyBraces(true);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		setAntiAliasingEnabled(true);</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		loadSettings();</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		setLineWrap(settings.isCodeAreaLineWrap());</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		JPopupMenu popupMenu = getPopupMenu();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		popupMenu.addSeparator();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		JCheckBoxMenuItem wrapItem = new JCheckBoxMenuItem(NLS.str(&quot;popup.line_wrap&quot;), getLineWrap());</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		wrapItem.setAction(new AbstractAction(NLS.str(&quot;popup.line_wrap&quot;)) {</b>
+<i class="no-highlight">67</i>&nbsp;			@Override
+<i class="no-highlight">68</i>&nbsp;			public void actionPerformed(ActionEvent e) {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;				boolean wrap = !getLineWrap();</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;				settings.setCodeAreaLineWrap(wrap);</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;				contentPanel.getTabbedPane().getOpenTabs().values().forEach(v -&gt; {</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;					if (v instanceof AbstractCodeContentPanel) {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;						AbstractCodeArea codeArea = ((AbstractCodeContentPanel) v).getCodeArea();</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;						setCodeAreaLineWrap(codeArea, wrap);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;						if (v instanceof ClassCodeContentPanel) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;							codeArea = ((ClassCodeContentPanel) v).getSmaliCodeArea();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;							setCodeAreaLineWrap(codeArea, wrap);</b>
+<i class="no-highlight">78</i>&nbsp;						}
+<i class="no-highlight">79</i>&nbsp;					}
+<i class="no-highlight">80</i>&nbsp;				});
+<b class="nc"><i class="no-highlight">81</i>&nbsp;				settings.sync();</b>
+<i class="no-highlight">82</i>&nbsp;			}
+<i class="no-highlight">83</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		popupMenu.add(wrapItem);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		popupMenu.addPopupMenuListener(new DefaultPopupMenuListener() {</b>
+<i class="no-highlight">86</i>&nbsp;			@Override
+<i class="no-highlight">87</i>&nbsp;			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;				wrapItem.setState(getLineWrap());</b>
+<i class="no-highlight">89</i>&nbsp;			}
+<i class="no-highlight">90</i>&nbsp;		});
+<i class="no-highlight">91</i>&nbsp;
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		Caret caret = getCaret();</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		if (caret instanceof DefaultCaret) {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;			((DefaultCaret) caret).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);</b>
+<i class="no-highlight">95</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		this.addFocusListener(new FocusListener() {</b>
+<i class="no-highlight">97</i>&nbsp;			// fix caret missing bug.
+<i class="no-highlight">98</i>&nbsp;			// when lost focus set visible to false,
+<i class="no-highlight">99</i>&nbsp;			// and when regained set back to true will force
+<i class="no-highlight">100</i>&nbsp;			// the caret to be repainted.
+<i class="no-highlight">101</i>&nbsp;			@Override
+<i class="no-highlight">102</i>&nbsp;			public void focusGained(FocusEvent e) {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;				caret.setVisible(true);</b>
+<i class="no-highlight">104</i>&nbsp;			}
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;			@Override
+<i class="no-highlight">107</i>&nbsp;			public void focusLost(FocusEvent e) {
+<b class="nc"><i class="no-highlight">108</i>&nbsp;				caret.setVisible(false);</b>
+<i class="no-highlight">109</i>&nbsp;			}
+<i class="no-highlight">110</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">111</i>&nbsp;		addCaretListener(new CaretListener() {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;			int lastPos = -1;</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;			String lastText = &quot;&quot;;</b>
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;			@Override
+<i class="no-highlight">116</i>&nbsp;			public void caretUpdate(CaretEvent e) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;				int pos = getCaretPosition();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;				if (lastPos != pos) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;					lastPos = pos;</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;					lastText = highlightCaretWord(lastText, pos);</b>
+<i class="no-highlight">121</i>&nbsp;				}
+<i class="no-highlight">122</i>&nbsp;			}
+<i class="no-highlight">123</i>&nbsp;		});
+<i class="no-highlight">124</i>&nbsp;	}
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;	private void setCodeAreaLineWrap(AbstractCodeArea codeArea, boolean wrap) {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;		codeArea.setLineWrap(wrap);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;		if (codeArea.isVisible()) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;			codeArea.repaint();</b>
+<i class="no-highlight">130</i>&nbsp;		}
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	private String highlightCaretWord(String lastText, int pos) {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;		String text = getWordByPosition(pos);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;		if (StringUtils.isEmpty(text)) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			highlightAllMatches(null);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;			lastText = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;		} else if (!lastText.equals(text)) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;			highlightAllMatches(text);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;			lastText = text;</b>
+<i class="no-highlight">141</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">142</i>&nbsp;		return lastText;</b>
+<i class="no-highlight">143</i>&nbsp;	}
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;	@Nullable
+<i class="no-highlight">146</i>&nbsp;	public String getWordUnderCaret() {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;		return getWordByPosition(getCaretPosition());</b>
+<i class="no-highlight">148</i>&nbsp;	}
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;	public int getWordStart(int pos) {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;		int start = Math.max(0, pos - 1);</b>
+<i class="no-highlight">152</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;			if (!StringUtils.isWordSeparator(getText(start, 1).charAt(0))) {</b>
+<i class="no-highlight">154</i>&nbsp;				do {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;					start--;</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;				} while (start &gt;= 0 &amp;&amp; !StringUtils.isWordSeparator(getText(start, 1).charAt(0)));</b>
+<i class="no-highlight">157</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">158</i>&nbsp;			start++;</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;		} catch (BadLocationException e) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;			LOG.error(&quot;Failed to find word start&quot;, e);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;			start = -1;</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;		return start;</b>
+<i class="no-highlight">164</i>&nbsp;	}
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;	public int getWordEnd(int pos, int max) {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;		int end = pos;</b>
+<i class="no-highlight">168</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;			if (!StringUtils.isWordSeparator(getText(end, 1).charAt(0))) {</b>
+<i class="no-highlight">170</i>&nbsp;				do {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;					end++;</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;				} while (end &lt; max &amp;&amp; !StringUtils.isWordSeparator(getText(end, 1).charAt(0)));</b>
+<i class="no-highlight">173</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">174</i>&nbsp;		} catch (BadLocationException e) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;			LOG.error(&quot;Failed to find word end&quot;, e);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;			end = max;</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;		return end;</b>
+<i class="no-highlight">179</i>&nbsp;	}
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;	@Nullable
+<i class="no-highlight">182</i>&nbsp;	public String getWordByPosition(int pos) {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;		int len = getDocument().getLength();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;		int start = getWordStart(pos);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;		int end = getWordEnd(pos, len);</b>
+<i class="no-highlight">186</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;			if (end &lt;= start) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;				return null;</b>
+<i class="no-highlight">189</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			return getText(start, end - start);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;		} catch (BadLocationException e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;			LOG.error(&quot;Failed to get word at pos: {}, start: {}, end: {}&quot;, pos, start, end, e);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;			return null;</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<i class="no-highlight">195</i>&nbsp;	}
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;	/**
+<i class="no-highlight">198</i>&nbsp;	 * Implement in this method the code that loads and sets the content to be displayed
+<i class="no-highlight">199</i>&nbsp;	 */
+<i class="no-highlight">200</i>&nbsp;	public abstract void load();
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;	/**
+<i class="no-highlight">203</i>&nbsp;	 * Implement in this method the code that reloads node from cache and sets the new content to be
+<i class="no-highlight">204</i>&nbsp;	 * displayed
+<i class="no-highlight">205</i>&nbsp;	 */
+<i class="no-highlight">206</i>&nbsp;	public abstract void refresh();
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;		RSyntaxTextArea area = new RSyntaxTextArea();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;		area.setEditable(false);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;		area.setCodeFoldingEnabled(false);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;		loadCommonSettings(mainWindow, area);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;		return area;</b>
+<i class="no-highlight">214</i>&nbsp;	}
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
+<b class="nc"><i class="no-highlight">217</i>&nbsp;		area.setAntiAliasingEnabled(true);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;		mainWindow.getEditorTheme().apply(area);</b>
+<i class="no-highlight">219</i>&nbsp;
+<b class="nc"><i class="no-highlight">220</i>&nbsp;		JadxSettings settings = mainWindow.getSettings();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;		area.setFont(settings.getFont());</b>
+<i class="no-highlight">222</i>&nbsp;	}
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;	public void loadSettings() {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;		loadCommonSettings(contentPanel.getTabbedPane().getMainWindow(), this);</b>
+<i class="no-highlight">226</i>&nbsp;	}
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;	public void scrollToPos(int pos) {
+<i class="no-highlight">229</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">230</i>&nbsp;			setCaretPosition(pos);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;			LOG.debug(&quot;Can&#39;t scroll to position {}&quot;, pos, e);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;		centerCurrentLine();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;		forceCurrentLineHighlightRepaint();</b>
+<i class="no-highlight">236</i>&nbsp;	}
+<i class="no-highlight">237</i>&nbsp;
+<i class="no-highlight">238</i>&nbsp;	public void scrollToLine(int line) {
+<b class="nc"><i class="no-highlight">239</i>&nbsp;		int lineNum = line - 1;</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;		if (lineNum &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;			lineNum = 0;</b>
+<i class="no-highlight">242</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">243</i>&nbsp;		setCaretAtLine(lineNum);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;		centerCurrentLine();</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;		forceCurrentLineHighlightRepaint();</b>
+<i class="no-highlight">246</i>&nbsp;	}
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;	private void setCaretAtLine(int line) {
+<i class="no-highlight">249</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">250</i>&nbsp;			setCaretPosition(getLineStartOffset(line));</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;		} catch (BadLocationException e) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;			LOG.debug(&quot;Can&#39;t scroll to {}&quot;, line, e);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;		}</b>
+<i class="no-highlight">254</i>&nbsp;	}
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;	@SuppressWarnings(&quot;deprecation&quot;)
+<i class="no-highlight">257</i>&nbsp;	public void centerCurrentLine() {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;		JViewport viewport = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;		if (viewport == null) {</b>
+<i class="no-highlight">260</i>&nbsp;			return;
+<i class="no-highlight">261</i>&nbsp;		}
+<i class="no-highlight">262</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;			Rectangle r = modelToView(getCaretPosition());</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;			if (r == null) {</b>
+<i class="no-highlight">265</i>&nbsp;				return;
+<i class="no-highlight">266</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">267</i>&nbsp;			int extentHeight = viewport.getExtentSize().height;</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;			Dimension viewSize = viewport.getViewSize();</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;			if (viewSize == null) {</b>
+<i class="no-highlight">270</i>&nbsp;				return;
+<i class="no-highlight">271</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">272</i>&nbsp;			int viewHeight = viewSize.height;</b>
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;			int y = Math.max(0, r.y - extentHeight / 2);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;			y = Math.min(y, viewHeight - extentHeight);</b>
+<i class="no-highlight">276</i>&nbsp;
+<b class="nc"><i class="no-highlight">277</i>&nbsp;			viewport.setViewPosition(new Point(0, y));</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;		} catch (BadLocationException e) {</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;			LOG.debug(&quot;Can&#39;t center current line&quot;, e);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;		}</b>
+<i class="no-highlight">281</i>&nbsp;	}
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;	private void registerWordHighlighter() {
+<b class="nc"><i class="no-highlight">284</i>&nbsp;		addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">285</i>&nbsp;			@Override
+<i class="no-highlight">286</i>&nbsp;			public void mouseClicked(MouseEvent evt) {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;				if (evt.getClickCount() % 2 == 0 &amp;&amp; !evt.isConsumed()) {</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;					evt.consume();</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;					String str = getSelectedText();</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;					if (str != null) {</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;						highlightAllMatches(str);</b>
+<i class="no-highlight">292</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">293</i>&nbsp;				} else {</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;					highlightAllMatches(null);</b>
+<i class="no-highlight">295</i>&nbsp;				}
+<i class="no-highlight">296</i>&nbsp;			}
+<i class="no-highlight">297</i>&nbsp;		});
+<i class="no-highlight">298</i>&nbsp;	}
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;	/**
+<i class="no-highlight">301</i>&nbsp;	 * @param str - if null -&gt; reset current highlights
+<i class="no-highlight">302</i>&nbsp;	 */
+<i class="no-highlight">303</i>&nbsp;	private void highlightAllMatches(@Nullable String str) {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;		SearchContext context = new SearchContext(str);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;		context.setMarkAll(true);</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;		context.setMatchCase(true);</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;		context.setWholeWord(true);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;		SearchEngine.markAll(this, context);</b>
+<i class="no-highlight">309</i>&nbsp;	}
+<i class="no-highlight">310</i>&nbsp;
+<i class="no-highlight">311</i>&nbsp;	public JumpPosition getCurrentPosition() {
+<b class="nc"><i class="no-highlight">312</i>&nbsp;		return new JumpPosition(node, getCaretLineNumber() + 1, getCaretPosition());</b>
+<i class="no-highlight">313</i>&nbsp;	}
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;	public String getLineText(int line) throws BadLocationException {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;		int lineNum = line - 1;</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;		int startOffset = getLineStartOffset(lineNum);</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;		int endOffset = getLineEndOffset(lineNum);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;		return getText(startOffset, endOffset - startOffset);</b>
+<i class="no-highlight">320</i>&nbsp;	}
+<i class="no-highlight">321</i>&nbsp;
+<i class="no-highlight">322</i>&nbsp;	@Nullable
+<i class="no-highlight">323</i>&nbsp;	Integer getSourceLine(int line) {
+<b class="nc"><i class="no-highlight">324</i>&nbsp;		return node.getSourceLine(line);</b>
+<i class="no-highlight">325</i>&nbsp;	}
+<i class="no-highlight">326</i>&nbsp;
+<i class="no-highlight">327</i>&nbsp;	public ContentPanel getContentPanel() {
+<b class="nc"><i class="no-highlight">328</i>&nbsp;		return contentPanel;</b>
+<i class="no-highlight">329</i>&nbsp;	}
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;	public JNode getNode() {
+<b class="nc"><i class="no-highlight">332</i>&nbsp;		return node;</b>
+<i class="no-highlight">333</i>&nbsp;	}
+<i class="no-highlight">334</i>&nbsp;
+<i class="no-highlight">335</i>&nbsp;	@Nullable
+<i class="no-highlight">336</i>&nbsp;	public JClass getJClass() {
+<b class="nc"><i class="no-highlight">337</i>&nbsp;		if (node instanceof JClass) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;			return (JClass) node;</b>
+<i class="no-highlight">339</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">340</i>&nbsp;		return null;</b>
+<i class="no-highlight">341</i>&nbsp;	}
+<i class="no-highlight">342</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

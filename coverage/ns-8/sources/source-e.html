@@ -1,0 +1,91 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IMethodRef</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.data</a>
+</div>
+
+<h1>Coverage Summary for Class: IMethodRef (jadx.api.plugins.input.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">IMethodRef</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.data;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.plugins.input.insns.custom.ICustomPayload;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;public interface IMethodRef extends IMethodProto, ICustomPayload {
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;	/**
+<i class="no-highlight">8</i>&nbsp;	 * Method unique id (will be used for caching).
+<i class="no-highlight">9</i>&nbsp;	 *
+<i class="no-highlight">10</i>&nbsp;	 * @return 0 if can&#39;t calculate good unique identifier (disable caching)
+<i class="no-highlight">11</i>&nbsp;	 */
+<i class="no-highlight">12</i>&nbsp;	int getUniqId();
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;	/**
+<i class="no-highlight">15</i>&nbsp;	 * Lazy loading for method info, until load() is called only getUniqId() can be used
+<i class="no-highlight">16</i>&nbsp;	 */
+<i class="no-highlight">17</i>&nbsp;	void load();
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	String getParentClassType();
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;	String getName();
+<i class="no-highlight">22</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

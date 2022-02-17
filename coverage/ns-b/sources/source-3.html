@@ -1,0 +1,188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AnnotationsAttr</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api.plugins.input.data.attributes.types</a>
+</div>
+
+<h1>Coverage Summary for Class: AnnotationsAttr (jadx.api.plugins.input.data.attributes.types)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AnnotationsAttr</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (6/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    84.2%
+  </span>
+  <span class="absValue">
+    (16/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api.plugins.input.data.attributes.types;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.attributes.PinnedAttribute;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;public class AnnotationsAttr extends PinnedAttribute {
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	@Nullable
+<i class="no-highlight">20</i>&nbsp;	public static AnnotationsAttr pack(List&lt;IAnnotation&gt; annotationList) {
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		if (annotationList.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;			return null;</b>
+<i class="no-highlight">23</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">24</i>&nbsp;		Map&lt;String, IAnnotation&gt; annMap = new HashMap&lt;&gt;(annotationList.size());</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		for (IAnnotation ann : annotationList) {</b>
+<b class="fc"><i class="no-highlight">26</i>&nbsp;			if (ann.getVisibility() != AnnotationVisibility.SYSTEM) {</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;				annMap.put(ann.getAnnotationClass(), ann);</b>
+<i class="no-highlight">28</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		if (annMap.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;			return null;</b>
+<i class="no-highlight">32</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		return new AnnotationsAttr(annMap);</b>
+<i class="no-highlight">34</i>&nbsp;	}
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;	private final Map&lt;String, IAnnotation&gt; map;
+<i class="no-highlight">37</i>&nbsp;
+<b class="fc"><i class="no-highlight">38</i>&nbsp;	public AnnotationsAttr(Map&lt;String, IAnnotation&gt; map) {</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		this.map = map;</b>
+<i class="no-highlight">40</i>&nbsp;	}
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;	public IAnnotation get(String className) {
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		return map.get(className);</b>
+<i class="no-highlight">44</i>&nbsp;	}
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;	public Collection&lt;IAnnotation&gt; getAll() {
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		return map.values();</b>
+<i class="no-highlight">48</i>&nbsp;	}
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;	public List&lt;IAnnotation&gt; getList() {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		return map.isEmpty() ? Collections.emptyList() : new ArrayList&lt;&gt;(map.values());</b>
+<i class="no-highlight">52</i>&nbsp;	}
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;	public int size() {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		return map.size();</b>
+<i class="no-highlight">56</i>&nbsp;	}
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;	public boolean isEmpty() {
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		return map.isEmpty();</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	public JadxAttrType&lt;AnnotationsAttr&gt; getAttrType() {
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		return JadxAttrType.ANNOTATION_LIST;</b>
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	@Override
+<i class="no-highlight">68</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		return map.toString();</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

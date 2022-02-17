@@ -1,0 +1,198 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JavaVariable</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.api</a>
+</div>
+
+<h1>Coverage Summary for Class: JavaVariable (jadx.api)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavaVariable</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.api;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.jetbrains.annotations.ApiStatus;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.data.annotations.VarDeclareRef;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.data.annotations.VarRef;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;public class JavaVariable implements JavaNode {
+<i class="no-highlight">12</i>&nbsp;	private final JavaMethod mth;
+<i class="no-highlight">13</i>&nbsp;	private final VarRef varRef;
+<i class="no-highlight">14</i>&nbsp;
+<b class="nc"><i class="no-highlight">15</i>&nbsp;	public JavaVariable(JavaMethod mth, VarRef varRef) {</b>
+<b class="nc"><i class="no-highlight">16</i>&nbsp;		this.mth = mth;</b>
+<b class="nc"><i class="no-highlight">17</i>&nbsp;		this.varRef = varRef;</b>
+<i class="no-highlight">18</i>&nbsp;	}
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	public JavaMethod getMth() {
+<b class="nc"><i class="no-highlight">21</i>&nbsp;		return mth;</b>
+<i class="no-highlight">22</i>&nbsp;	}
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;	public int getReg() {
+<b class="nc"><i class="no-highlight">25</i>&nbsp;		return varRef.getReg();</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	public int getSsa() {
+<b class="nc"><i class="no-highlight">29</i>&nbsp;		return varRef.getSsa();</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	@Override
+<i class="no-highlight">33</i>&nbsp;	public String getName() {
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		return varRef.getName();</b>
+<i class="no-highlight">35</i>&nbsp;	}
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	@ApiStatus.Internal
+<i class="no-highlight">38</i>&nbsp;	public VarRef getVarRef() {
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		return varRef;</b>
+<i class="no-highlight">40</i>&nbsp;	}
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;	@Override
+<i class="no-highlight">43</i>&nbsp;	public String getFullName() {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		return varRef.getType() + &quot; &quot; + varRef.getName() + &quot; (r&quot; + varRef.getReg() + &quot;v&quot; + varRef.getSsa() + &quot;)&quot;;</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	@Override
+<i class="no-highlight">48</i>&nbsp;	public JavaClass getDeclaringClass() {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		return mth.getDeclaringClass();</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	@Override
+<i class="no-highlight">53</i>&nbsp;	public JavaClass getTopParentClass() {
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		return mth.getTopParentClass();</b>
+<i class="no-highlight">55</i>&nbsp;	}
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	@Override
+<i class="no-highlight">58</i>&nbsp;	public int getDecompiledLine() {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		if (varRef instanceof VarDeclareRef) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;			return ((VarDeclareRef) varRef).getDecompiledLine();</b>
+<i class="no-highlight">61</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		return 0;</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	@Override
+<i class="no-highlight">66</i>&nbsp;	public int getDefPos() {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		if (varRef instanceof VarDeclareRef) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;			return ((VarDeclareRef) varRef).getDefPosition();</b>
+<i class="no-highlight">69</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		return 0;</b>
+<i class="no-highlight">71</i>&nbsp;	}
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;	@Override
+<i class="no-highlight">74</i>&nbsp;	public List&lt;JavaNode&gt; getUseIn() {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		return Collections.singletonList(mth);</b>
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;	@Override
+<i class="no-highlight">79</i>&nbsp;	public int hashCode() {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		return varRef.hashCode();</b>
+<i class="no-highlight">81</i>&nbsp;	}
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;	@Override
+<i class="no-highlight">84</i>&nbsp;	public boolean equals(Object o) {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		if (this == o) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;			return true;</b>
+<i class="no-highlight">87</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		if (!(o instanceof JavaVariable)) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			return false;</b>
+<i class="no-highlight">90</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		return varRef.equals(((JavaVariable) o).varRef);</b>
+<i class="no-highlight">92</i>&nbsp;	}
+<i class="no-highlight">93</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,370 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BackgroundExecutor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.jobs</a>
+</div>
+
+<h1>Coverage Summary for Class: BackgroundExecutor (jadx.gui.jobs)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BackgroundExecutor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BackgroundExecutor$SimpleTask</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BackgroundExecutor$TaskWorker</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/64)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.jobs;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">6</i>&nbsp;import java.util.concurrent.Future;
+<i class="no-highlight">7</i>&nbsp;import java.util.concurrent.ThreadPoolExecutor;
+<i class="no-highlight">8</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">9</i>&nbsp;import java.util.function.Consumer;
+<i class="no-highlight">10</i>&nbsp;import java.util.function.Supplier;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import javax.swing.SwingWorker;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">19</i>&nbsp;import jadx.gui.ui.panel.ProgressPanel;
+<i class="no-highlight">20</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;/**
+<i class="no-highlight">23</i>&nbsp; * Class for run tasks in background with progress bar indication.
+<i class="no-highlight">24</i>&nbsp; * Use instance created in {@link MainWindow}.
+<i class="no-highlight">25</i>&nbsp; */
+<b class="nc"><i class="no-highlight">26</i>&nbsp;public class BackgroundExecutor {</b>
+<b class="nc"><i class="no-highlight">27</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(BackgroundExecutor.class);</b>
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;	private final MainWindow mainWindow;
+<i class="no-highlight">30</i>&nbsp;	private final ProgressPanel progressPane;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	private ThreadPoolExecutor taskQueueExecutor;
+<i class="no-highlight">33</i>&nbsp;
+<b class="nc"><i class="no-highlight">34</i>&nbsp;	public BackgroundExecutor(MainWindow mainWindow) {</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		this.progressPane = mainWindow.getProgressPane();</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		this.taskQueueExecutor = makeTaskQueueExecutor();</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	public Future&lt;TaskStatus&gt; execute(IBackgroundTask task) {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		TaskWorker taskWorker = new TaskWorker(task);</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		taskQueueExecutor.execute(() -&gt; {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;			taskWorker.init();</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;			taskWorker.run();</b>
+<i class="no-highlight">45</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		return taskWorker;</b>
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	public void cancelAll() {
+<i class="no-highlight">50</i>&nbsp;		try {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			taskQueueExecutor.shutdownNow();</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			boolean complete = taskQueueExecutor.awaitTermination(2, TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;			LOG.debug(&quot;Background task executor terminated with status: {}&quot;, complete ? &quot;complete&quot; : &quot;interrupted&quot;);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;			LOG.error(&quot;Error terminating task executor&quot;, e);</b>
+<i class="no-highlight">56</i>&nbsp;		} finally {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;			taskQueueExecutor = makeTaskQueueExecutor();</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		}</b>
+<i class="no-highlight">59</i>&nbsp;	}
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;	public void execute(String title, List&lt;Runnable&gt; backgroundJobs, Consumer&lt;TaskStatus&gt; onFinishUiRunnable) {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		execute(new SimpleTask(title, backgroundJobs, onFinishUiRunnable));</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	public void execute(String title, Runnable backgroundRunnable, Consumer&lt;TaskStatus&gt; onFinishUiRunnable) {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable), onFinishUiRunnable));</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	public void execute(String title, Runnable backgroundRunnable) {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable), null));</b>
+<i class="no-highlight">71</i>&nbsp;	}
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;	private ThreadPoolExecutor makeTaskQueueExecutor() {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		return (ThreadPoolExecutor) Executors.newFixedThreadPool(1);</b>
+<i class="no-highlight">75</i>&nbsp;	}
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;	private final class TaskWorker extends SwingWorker&lt;TaskStatus, Void&gt; {
+<i class="no-highlight">78</i>&nbsp;		private final IBackgroundTask task;
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		private TaskStatus status = TaskStatus.WAIT;</b>
+<i class="no-highlight">80</i>&nbsp;		private long jobsCount;
+<i class="no-highlight">81</i>&nbsp;		private long jobsComplete;
+<i class="no-highlight">82</i>&nbsp;
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		public TaskWorker(IBackgroundTask task) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;			this.task = task;</b>
+<i class="no-highlight">85</i>&nbsp;		}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;		public void init() {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			addPropertyChangeListener(progressPane);</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;			progressPane.reset();</b>
+<i class="no-highlight">90</i>&nbsp;		}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;		@Override
+<i class="no-highlight">93</i>&nbsp;		protected TaskStatus doInBackground() throws Exception {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;			progressPane.changeLabel(this, task.getTitle() + &quot;бн &quot;);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;			progressPane.changeCancelBtnVisible(this, task.canBeCanceled());</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;			progressPane.changeVisibility(this, true);</b>
+<i class="no-highlight">97</i>&nbsp;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;			runJobs();</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;			return status;</b>
+<i class="no-highlight">100</i>&nbsp;		}
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;		private void runJobs() throws InterruptedException {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;			List&lt;Runnable&gt; jobs = task.scheduleJobs();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;			jobsCount = jobs.size();</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;			LOG.debug(&quot;Starting background task &#39;{}&#39;, jobs count: {}, time limit: {} ms, memory check: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;					task.getTitle(), jobsCount, task.timeLimit(), task.checkMemoryUsage());</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;			status = TaskStatus.STARTED;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;			int threadsCount = mainWindow.getSettings().getThreadsCount();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;			ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;			for (Runnable job : jobs) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;				executor.execute(job);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;			executor.shutdown();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;			status = waitTermination(executor);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;			jobsComplete = executor.getCompletedTaskCount();</b>
+<i class="no-highlight">116</i>&nbsp;		}
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;		@SuppressWarnings(&quot;BusyWait&quot;)
+<i class="no-highlight">119</i>&nbsp;		private TaskStatus waitTermination(ThreadPoolExecutor executor) throws InterruptedException {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;			Supplier&lt;TaskStatus&gt; cancelCheck = buildCancelCheck();</b>
+<i class="no-highlight">121</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">122</i>&nbsp;				int k = 0;</b>
+<i class="no-highlight">123</i>&nbsp;				while (true) {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;					if (executor.isTerminated()) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;						return TaskStatus.COMPLETE;</b>
+<i class="no-highlight">126</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">127</i>&nbsp;					TaskStatus cancelStatus = cancelCheck.get();</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;					if (cancelStatus != null) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;						performCancel(executor);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;						return cancelStatus;</b>
+<i class="no-highlight">131</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">132</i>&nbsp;					setProgress(calcProgress(executor.getCompletedTaskCount()));</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;					k++;</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;					Thread.sleep(k &lt; 20 ? 100 : 1000); // faster update for short tasks</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			} catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;				LOG.debug(&quot;Task wait interrupted&quot;);</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;				performCancel(executor);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;				return TaskStatus.CANCEL_BY_USER;</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;				LOG.error(&quot;Task wait aborted by exception&quot;, e);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;				performCancel(executor);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;				return TaskStatus.ERROR;</b>
+<i class="no-highlight">144</i>&nbsp;			}
+<i class="no-highlight">145</i>&nbsp;		}
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;		private void performCancel(ThreadPoolExecutor executor) throws InterruptedException {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;			progressPane.changeLabel(this, task.getTitle() + &quot; (Canceling)бн &quot;);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;			progressPane.changeIndeterminate(this, true);</b>
+<i class="no-highlight">150</i>&nbsp;			// force termination
+<b class="nc"><i class="no-highlight">151</i>&nbsp;			executor.shutdownNow();</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;			boolean complete = executor.awaitTermination(5, TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;			LOG.debug(&quot;Task cancel complete: {}&quot;, complete);</b>
+<i class="no-highlight">154</i>&nbsp;		}
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;		private Supplier&lt;TaskStatus&gt; buildCancelCheck() {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;			long waitUntilTime = task.timeLimit() == 0 ? 0 : System.currentTimeMillis() + task.timeLimit();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;			boolean checkMemoryUsage = task.checkMemoryUsage();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;			return () -&gt; {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;				if (waitUntilTime != 0 &amp;&amp; waitUntilTime &lt; System.currentTimeMillis()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;					LOG.error(&quot;Task &#39;{}&#39; execution timeout, force cancel&quot;, task.getTitle());</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;					return TaskStatus.CANCEL_BY_TIMEOUT;</b>
+<i class="no-highlight">163</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">164</i>&nbsp;				if (checkMemoryUsage &amp;&amp; !UiUtils.isFreeMemoryAvailable()) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;					LOG.error(&quot;Task &#39;{}&#39; memory limit reached, force cancel&quot;, task.getTitle());</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;					return TaskStatus.CANCEL_BY_MEMORY;</b>
+<i class="no-highlight">167</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">168</i>&nbsp;				if (isCancelled() || Thread.currentThread().isInterrupted()) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;					LOG.warn(&quot;Task &#39;{}&#39; canceled&quot;, task.getTitle());</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;					return TaskStatus.CANCEL_BY_USER;</b>
+<i class="no-highlight">171</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">172</i>&nbsp;				return null;</b>
+<i class="no-highlight">173</i>&nbsp;			};
+<i class="no-highlight">174</i>&nbsp;		}
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;		private int calcProgress(long done) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;			return Math.round(done * 100 / (float) jobsCount);</b>
+<i class="no-highlight">178</i>&nbsp;		}
+<i class="no-highlight">179</i>&nbsp;
+<i class="no-highlight">180</i>&nbsp;		@Override
+<i class="no-highlight">181</i>&nbsp;		protected void done() {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;			progressPane.setVisible(false);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;			task.onFinish(status, jobsCount - jobsComplete);</b>
+<i class="no-highlight">184</i>&nbsp;		}
+<i class="no-highlight">185</i>&nbsp;	}
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;	private static final class SimpleTask implements IBackgroundTask {
+<i class="no-highlight">188</i>&nbsp;		private final String title;
+<i class="no-highlight">189</i>&nbsp;		private final List&lt;Runnable&gt; jobs;
+<i class="no-highlight">190</i>&nbsp;		private final Consumer&lt;TaskStatus&gt; onFinish;
+<i class="no-highlight">191</i>&nbsp;
+<b class="nc"><i class="no-highlight">192</i>&nbsp;		public SimpleTask(String title, List&lt;Runnable&gt; jobs, @Nullable Consumer&lt;TaskStatus&gt; onFinish) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;			this.title = title;</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;			this.jobs = jobs;</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;			this.onFinish = onFinish;</b>
+<i class="no-highlight">196</i>&nbsp;		}
+<i class="no-highlight">197</i>&nbsp;
+<i class="no-highlight">198</i>&nbsp;		@Override
+<i class="no-highlight">199</i>&nbsp;		public String getTitle() {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;			return title;</b>
+<i class="no-highlight">201</i>&nbsp;		}
+<i class="no-highlight">202</i>&nbsp;
+<i class="no-highlight">203</i>&nbsp;		@Override
+<i class="no-highlight">204</i>&nbsp;		public List&lt;Runnable&gt; scheduleJobs() {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;			return jobs;</b>
+<i class="no-highlight">206</i>&nbsp;		}
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;		@Override
+<i class="no-highlight">209</i>&nbsp;		public void onFinish(TaskStatus status, long l) {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;			if (onFinish != null) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;				onFinish.accept(status);</b>
+<i class="no-highlight">212</i>&nbsp;			}
+<i class="no-highlight">213</i>&nbsp;		}
+<i class="no-highlight">214</i>&nbsp;
+<i class="no-highlight">215</i>&nbsp;		@Override
+<i class="no-highlight">216</i>&nbsp;		public boolean checkMemoryUsage() {
+<b class="nc"><i class="no-highlight">217</i>&nbsp;			return true;</b>
+<i class="no-highlight">218</i>&nbsp;		}
+<i class="no-highlight">219</i>&nbsp;	}
+<i class="no-highlight">220</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

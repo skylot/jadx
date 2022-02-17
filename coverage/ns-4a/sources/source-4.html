@@ -1,0 +1,233 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IssuesPanel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.panel</a>
+</div>
+
+<h1>Coverage Summary for Class: IssuesPanel (jadx.gui.ui.panel)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IssuesPanel</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">IssuesPanel$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">IssuesPanel$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.panel;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.event.MouseAdapter;
+<i class="no-highlight">4</i>&nbsp;import java.awt.event.MouseEvent;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import javax.swing.BorderFactory;
+<i class="no-highlight">7</i>&nbsp;import javax.swing.Box;
+<i class="no-highlight">8</i>&nbsp;import javax.swing.BoxLayout;
+<i class="no-highlight">9</i>&nbsp;import javax.swing.ImageIcon;
+<i class="no-highlight">10</i>&nbsp;import javax.swing.JLabel;
+<i class="no-highlight">11</i>&nbsp;import javax.swing.JPanel;
+<i class="no-highlight">12</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import ch.qos.logback.classic.Level;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">17</i>&nbsp;import jadx.gui.ui.dialog.LogViewerDialog;
+<i class="no-highlight">18</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">19</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">20</i>&nbsp;import jadx.gui.utils.logs.LogCollector;
+<i class="no-highlight">21</i>&nbsp;
+<b class="nc"><i class="no-highlight">22</i>&nbsp;public class IssuesPanel extends JPanel {</b>
+<i class="no-highlight">23</i>&nbsp;	private static final long serialVersionUID = -7720576036668459218L;
+<i class="no-highlight">24</i>&nbsp;
+<b class="nc"><i class="no-highlight">25</i>&nbsp;	private static final ImageIcon ERROR_ICON = UiUtils.openSvgIcon(&quot;ui/error&quot;);</b>
+<b class="nc"><i class="no-highlight">26</i>&nbsp;	private static final ImageIcon WARN_ICON = UiUtils.openSvgIcon(&quot;ui/warning&quot;);</b>
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	private final MainWindow mainWindow;
+<i class="no-highlight">29</i>&nbsp;	private JLabel errorLabel;
+<i class="no-highlight">30</i>&nbsp;	private JLabel warnLabel;
+<i class="no-highlight">31</i>&nbsp;
+<b class="nc"><i class="no-highlight">32</i>&nbsp;	public IssuesPanel(MainWindow mainWindow) {</b>
+<b class="nc"><i class="no-highlight">33</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">34</i>&nbsp;		initUI();</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;		LogCollector.getInstance().registerIssueListener((error, warnings) -&gt; {</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;			SwingUtilities.invokeLater(() -&gt; onUpdate(error, warnings));</b>
+<i class="no-highlight">37</i>&nbsp;		});
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	private void initUI() {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		JLabel label = new JLabel(NLS.str(&quot;issues_panel.label&quot;));</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		errorLabel = new JLabel(ERROR_ICON);</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;		warnLabel = new JLabel(WARN_ICON);</b>
+<i class="no-highlight">44</i>&nbsp;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		String toolTipText = NLS.str(&quot;issues_panel.tooltip&quot;);</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		errorLabel.setToolTipText(toolTipText);</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		warnLabel.setToolTipText(toolTipText);</b>
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		errorLabel.addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">50</i>&nbsp;			@Override
+<i class="no-highlight">51</i>&nbsp;			public void mouseClicked(MouseEvent e) {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;				LogViewerDialog.openWithLevel(mainWindow, Level.ERROR);</b>
+<i class="no-highlight">53</i>&nbsp;			}
+<i class="no-highlight">54</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		warnLabel.addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">56</i>&nbsp;			@Override
+<i class="no-highlight">57</i>&nbsp;			public void mouseClicked(MouseEvent e) {
+<b class="nc"><i class="no-highlight">58</i>&nbsp;				LogViewerDialog.openWithLevel(mainWindow, Level.WARN);</b>
+<i class="no-highlight">59</i>&nbsp;			}
+<i class="no-highlight">60</i>&nbsp;		});
+<i class="no-highlight">61</i>&nbsp;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		setVisible(false);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		add(label);</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;		add(Box.createHorizontalGlue());</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		add(errorLabel);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		add(Box.createHorizontalGlue());</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		add(warnLabel);</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	private void onUpdate(int error, int warnings) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		if (error == 0 &amp;&amp; warnings == 0) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;			setVisible(false);</b>
+<i class="no-highlight">75</i>&nbsp;			return;
+<i class="no-highlight">76</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		setVisible(true);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		errorLabel.setText(NLS.str(&quot;issues_panel.errors&quot;, error));</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		errorLabel.setVisible(error != 0);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		warnLabel.setText(NLS.str(&quot;issues_panel.warnings&quot;, warnings));</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		warnLabel.setVisible(warnings != 0);</b>
+<i class="no-highlight">82</i>&nbsp;	}
+<i class="no-highlight">83</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

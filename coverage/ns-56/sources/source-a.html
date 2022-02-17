@@ -1,0 +1,438 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SectionReader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.sections</a>
+</div>
+
+<h1>Coverage Summary for Class: SectionReader (jadx.plugins.input.dex.sections)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SectionReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.7%
+  </span>
+  <span class="absValue">
+    (38/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    52.9%
+  </span>
+  <span class="absValue">
+    (9/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.7%
+  </span>
+  <span class="absValue">
+    (126/142)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.sections;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.nio.ByteBuffer;
+<i class="no-highlight">4</i>&nbsp;import java.nio.ByteOrder;
+<i class="no-highlight">5</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">6</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">7</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">8</i>&nbsp;import java.util.List;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.ICallSite;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.IFieldRef;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.IMethodHandle;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.MethodHandleType;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.impl.CallSite;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.impl.FieldRefHandle;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.impl.MethodRefHandle;
+<i class="no-highlight">19</i>&nbsp;import jadx.plugins.input.dex.DexReader;
+<i class="no-highlight">20</i>&nbsp;import jadx.plugins.input.dex.sections.annotations.EncodedValueParser;
+<i class="no-highlight">21</i>&nbsp;import jadx.plugins.input.dex.utils.Leb128;
+<i class="no-highlight">22</i>&nbsp;import jadx.plugins.input.dex.utils.MUtf8;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import static jadx.plugins.input.dex.sections.DexConsts.NO_INDEX;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;public class SectionReader {
+<i class="no-highlight">27</i>&nbsp;	private final ByteBuffer buf;
+<i class="no-highlight">28</i>&nbsp;	private final DexReader dexReader;
+<i class="no-highlight">29</i>&nbsp;	private int offset;
+<i class="no-highlight">30</i>&nbsp;
+<b class="fc"><i class="no-highlight">31</i>&nbsp;	public SectionReader(DexReader dexReader, int off) {</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		this.dexReader = dexReader;</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		this.offset = off;</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		this.buf = duplicate(dexReader.getBuf(), off);</b>
+<i class="no-highlight">35</i>&nbsp;	}
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	private SectionReader(SectionReader sectionReader, int off) {
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		this(sectionReader.dexReader, off);</b>
+<i class="no-highlight">39</i>&nbsp;	}
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;	public SectionReader copy() {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		return new SectionReader(this, offset);</b>
+<i class="no-highlight">43</i>&nbsp;	}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	public SectionReader copy(int off) {
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		return new SectionReader(this, off);</b>
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	public byte[] getByteCode(int start, int len) {
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		int pos = buf.position();</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;		buf.position(start);</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		byte[] bytes = readByteArray(len);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;		buf.position(pos);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		return bytes;</b>
+<i class="no-highlight">55</i>&nbsp;	}
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	private static ByteBuffer duplicate(ByteBuffer baseBuffer, int off) {
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		ByteBuffer dupBuf = baseBuffer.duplicate();</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		dupBuf.order(ByteOrder.LITTLE_ENDIAN);</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;		dupBuf.position(off);</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		return dupBuf;</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	public void setOffset(int offset) {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		this.offset = offset;</b>
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	public int getOffset() {
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return offset;</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public void shiftOffset(int shift) {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		this.offset += shift;</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	public SectionReader pos(int pos) {
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		buf.position(offset + pos);</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		return this;</b>
+<i class="no-highlight">79</i>&nbsp;	}
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	public SectionReader absPos(int pos) {
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		buf.position(pos);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		return this;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	public int getAbsPos() {
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		return buf.position();</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	public void skip(int skip) {
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		int pos = buf.position();</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		buf.position(pos + skip);</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	public int readInt() {
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		return buf.getInt();</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	public long readLong() {
+<b class="fc"><i class="no-highlight">100</i>&nbsp;		return buf.getLong();</b>
+<i class="no-highlight">101</i>&nbsp;	}
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;	public byte readByte() {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;		return buf.get();</b>
+<i class="no-highlight">105</i>&nbsp;	}
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;	public int readUByte() {
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		return buf.get() &amp; 0xFF;</b>
+<i class="no-highlight">109</i>&nbsp;	}
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;	public int readUShort() {
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		return buf.getShort() &amp; 0xFFFF;</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	public int readShort() {
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		return buf.getShort();</b>
+<i class="no-highlight">117</i>&nbsp;	}
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;	public byte[] readByteArray(int len) {
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		byte[] arr = new byte[len];</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		buf.get(arr);</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;		return arr;</b>
+<i class="no-highlight">123</i>&nbsp;	}
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;	public int[] readUShortArray(int size) {
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		int[] arr = new int[size];</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;		for (int i = 0; i &lt; size; i++) {</b>
+<b class="fc"><i class="no-highlight">128</i>&nbsp;			arr[i] = readUShort();</b>
+<i class="no-highlight">129</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		return arr;</b>
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	public String readString(int len) {
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		return new String(readByteArray(len), StandardCharsets.US_ASCII);</b>
+<i class="no-highlight">135</i>&nbsp;	}
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;	private List&lt;String&gt; readTypeListAt(int paramsOff) {
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		if (paramsOff == 0) {</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">140</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		return absPos(paramsOff).readTypeList();</b>
+<i class="no-highlight">142</i>&nbsp;	}
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;	public List&lt;String&gt; readTypeList() {
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		int size = readInt();</b>
+<b class="pc"><i class="no-highlight">146</i>&nbsp;		if (size == 0) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">148</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">149</i>&nbsp;		int[] typeIds = readUShortArray(size);</b>
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		List&lt;String&gt; types = new ArrayList&lt;&gt;(size);</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		for (int typeId : typeIds) {</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;			types.add(getType(typeId));</b>
+<i class="no-highlight">153</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		return types;</b>
+<i class="no-highlight">155</i>&nbsp;	}
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;	@Nullable
+<i class="no-highlight">158</i>&nbsp;	public String getType(int idx) {
+<b class="pc"><i class="no-highlight">159</i>&nbsp;		if (idx == NO_INDEX) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;			return null;</b>
+<i class="no-highlight">161</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		int typeIdsOff = dexReader.getHeader().getTypeIdsOff();</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		absPos(typeIdsOff + idx * 4);</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		int strIdx = readInt();</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;		return getString(strIdx);</b>
+<i class="no-highlight">166</i>&nbsp;	}
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;	@Nullable
+<i class="no-highlight">169</i>&nbsp;	public String getString(int idx) {
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		if (idx == NO_INDEX) {</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;			return null;</b>
+<i class="no-highlight">172</i>&nbsp;		}
+<i class="no-highlight">173</i>&nbsp;		// TODO: make string pool cache?
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		int stringIdsOff = dexReader.getHeader().getStringIdsOff();</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		absPos(stringIdsOff + idx * 4);</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		int strOff = readInt();</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		absPos(strOff);</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		return MUtf8.decode(this);</b>
+<i class="no-highlight">179</i>&nbsp;	}
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;	public IFieldRef getFieldRef(int idx) {
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		DexFieldData fieldData = new DexFieldData(null);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		int clsTypeIdx = fillFieldData(fieldData, idx);</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		fieldData.setParentClassType(getType(clsTypeIdx));</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		return fieldData;</b>
+<i class="no-highlight">186</i>&nbsp;	}
+<i class="no-highlight">187</i>&nbsp;
+<i class="no-highlight">188</i>&nbsp;	public int fillFieldData(DexFieldData fieldData, int idx) {
+<b class="fc"><i class="no-highlight">189</i>&nbsp;		int fieldIdsOff = dexReader.getHeader().getFieldIdsOff();</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;		absPos(fieldIdsOff + idx * 8);</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;		int classTypeIdx = readUShort();</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		int typeIdx = readUShort();</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;		int nameIdx = readInt();</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;		fieldData.setType(getType(typeIdx));</b>
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		fieldData.setName(getString(nameIdx));</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		return classTypeIdx;</b>
+<i class="no-highlight">197</i>&nbsp;	}
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;	public DexMethodRef getMethodRef(int idx) {
+<b class="fc"><i class="no-highlight">200</i>&nbsp;		DexMethodRef methodRef = new DexMethodRef();</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;		initMethodRef(idx, methodRef);</b>
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		return methodRef;</b>
+<i class="no-highlight">203</i>&nbsp;	}
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;	public ICallSite getCallSite(int idx, SectionReader ext) {
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		int callSiteOff = dexReader.getHeader().getCallSiteOff();</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;		absPos(callSiteOff + idx * 4);</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		absPos(readInt());</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		return new CallSite(EncodedValueParser.parseEncodedArray(this, ext));</b>
+<i class="no-highlight">210</i>&nbsp;	}
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;	public IMethodHandle getMethodHandle(int idx) {
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		int methodHandleOff = dexReader.getHeader().getMethodHandleOff();</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		absPos(methodHandleOff + idx * 8);</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;		MethodHandleType handleType = getMethodHandleType(readUShort());</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		skip(2);</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		int refId = readUShort();</b>
+<b class="pc"><i class="no-highlight">218</i>&nbsp;		if (handleType.isField()) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;			return new FieldRefHandle(handleType, getFieldRef(refId));</b>
+<i class="no-highlight">220</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		return new MethodRefHandle(handleType, getMethodRef(refId));</b>
+<i class="no-highlight">222</i>&nbsp;	}
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;	private MethodHandleType getMethodHandleType(int type) {
+<b class="pc"><i class="no-highlight">225</i>&nbsp;		switch (type) {</b>
+<i class="no-highlight">226</i>&nbsp;			case 0x00:
+<b class="nc"><i class="no-highlight">227</i>&nbsp;				return MethodHandleType.STATIC_PUT;</b>
+<i class="no-highlight">228</i>&nbsp;			case 0x01:
+<b class="nc"><i class="no-highlight">229</i>&nbsp;				return MethodHandleType.STATIC_GET;</b>
+<i class="no-highlight">230</i>&nbsp;			case 0x02:
+<b class="nc"><i class="no-highlight">231</i>&nbsp;				return MethodHandleType.INSTANCE_PUT;</b>
+<i class="no-highlight">232</i>&nbsp;			case 0x03:
+<b class="nc"><i class="no-highlight">233</i>&nbsp;				return MethodHandleType.INSTANCE_GET;</b>
+<i class="no-highlight">234</i>&nbsp;			case 0x04:
+<b class="fc"><i class="no-highlight">235</i>&nbsp;				return MethodHandleType.INVOKE_STATIC;</b>
+<i class="no-highlight">236</i>&nbsp;			case 0x05:
+<b class="fc"><i class="no-highlight">237</i>&nbsp;				return MethodHandleType.INVOKE_INSTANCE;</b>
+<i class="no-highlight">238</i>&nbsp;			case 0x06:
+<b class="fc"><i class="no-highlight">239</i>&nbsp;				return MethodHandleType.INVOKE_CONSTRUCTOR;</b>
+<i class="no-highlight">240</i>&nbsp;			case 0x07:
+<b class="fc"><i class="no-highlight">241</i>&nbsp;				return MethodHandleType.INVOKE_DIRECT;</b>
+<i class="no-highlight">242</i>&nbsp;			case 0x08:
+<b class="nc"><i class="no-highlight">243</i>&nbsp;				return MethodHandleType.INVOKE_INTERFACE;</b>
+<i class="no-highlight">244</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">245</i>&nbsp;				throw new IllegalArgumentException(&quot;Unknown method handle type: 0x&quot; + Integer.toHexString(type));</b>
+<i class="no-highlight">246</i>&nbsp;		}
+<i class="no-highlight">247</i>&nbsp;	}
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;	public void initMethodRef(int idx, DexMethodRef methodRef) {
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		methodRef.initUniqId(dexReader, idx);</b>
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		methodRef.setDexIdx(idx);</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		methodRef.setSectionReader(this);</b>
+<i class="no-highlight">253</i>&nbsp;	}
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;	public void loadMethodRef(DexMethodRef methodRef, int idx) {
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		DexHeader header = dexReader.getHeader();</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		int methodIdsOff = header.getMethodIdsOff();</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		absPos(methodIdsOff + idx * 8);</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;		int classTypeIdx = readUShort();</b>
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		int protoIdx = readUShort();</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		int nameIdx = readInt();</b>
+<i class="no-highlight">262</i>&nbsp;
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		int protoIdsOff = header.getProtoIdsOff();</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		absPos(protoIdsOff + protoIdx * 12);</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		skip(4); // shortyIdx</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		int returnTypeIdx = readInt();</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;		int paramsOff = readInt();</b>
+<i class="no-highlight">268</i>&nbsp;
+<b class="fc"><i class="no-highlight">269</i>&nbsp;		List&lt;String&gt; argTypes = readTypeListAt(paramsOff);</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;		methodRef.setParentClassType(getType(classTypeIdx));</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		methodRef.setName(getString(nameIdx));</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;		methodRef.setReturnType(getType(returnTypeIdx));</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		methodRef.setArgTypes(argTypes);</b>
+<i class="no-highlight">274</i>&nbsp;	}
+<i class="no-highlight">275</i>&nbsp;
+<i class="no-highlight">276</i>&nbsp;	public DexMethodProto getMethodProto(int idx) {
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		int protoIdsOff = dexReader.getHeader().getProtoIdsOff();</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		absPos(protoIdsOff + idx * 12);</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		skip(4); // shortyIdx</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;		int returnTypeIdx = readInt();</b>
+<b class="fc"><i class="no-highlight">281</i>&nbsp;		int paramsOff = readInt();</b>
+<b class="fc"><i class="no-highlight">282</i>&nbsp;		return new DexMethodProto(readTypeListAt(paramsOff), getType(returnTypeIdx));</b>
+<i class="no-highlight">283</i>&nbsp;	}
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;	public List&lt;String&gt; getMethodParamTypes(int idx) {
+<b class="fc"><i class="no-highlight">286</i>&nbsp;		DexHeader header = dexReader.getHeader();</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;		int methodIdsOff = header.getMethodIdsOff();</b>
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		absPos(methodIdsOff + idx * 8 + 2);</b>
+<b class="fc"><i class="no-highlight">289</i>&nbsp;		int protoIdx = readUShort();</b>
+<i class="no-highlight">290</i>&nbsp;
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		int protoIdsOff = header.getProtoIdsOff();</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		absPos(protoIdsOff + protoIdx * 12 + 8);</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		int paramsOff = readInt();</b>
+<i class="no-highlight">294</i>&nbsp;
+<b class="fc"><i class="no-highlight">295</i>&nbsp;		if (paramsOff == 0) {</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">297</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">298</i>&nbsp;		return absPos(paramsOff).readTypeList();</b>
+<i class="no-highlight">299</i>&nbsp;	}
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;	public DexReader getDexReader() {
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		return dexReader;</b>
+<i class="no-highlight">303</i>&nbsp;	}
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;	public int readUleb128() {
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		return Leb128.readUnsignedLeb128(this);</b>
+<i class="no-highlight">307</i>&nbsp;	}
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;	public int readUleb128p1() {
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		return Leb128.readUnsignedLeb128(this) - 1;</b>
+<i class="no-highlight">311</i>&nbsp;	}
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;	public int readSleb128() {
+<b class="fc"><i class="no-highlight">314</i>&nbsp;		return Leb128.readSignedLeb128(this);</b>
+<i class="no-highlight">315</i>&nbsp;	}
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;	@Override
+<i class="no-highlight">318</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">319</i>&nbsp;		return &quot;SectionReader{buf=&quot; + buf + &quot;, offset=&quot; + offset + &#39;}&#39;;</b>
+<i class="no-highlight">320</i>&nbsp;	}
+<i class="no-highlight">321</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,164 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CodeIndex</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.utils.search</a>
+</div>
+
+<h1>Coverage Summary for Class: CodeIndex (jadx.gui.utils.search)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CodeIndex</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.utils.search;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import io.reactivex.BackpressureStrategy;
+<i class="no-highlight">10</i>&nbsp;import io.reactivex.Flowable;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.JavaClass;
+<i class="no-highlight">13</i>&nbsp;import jadx.gui.treemodel.CodeNode;
+<i class="no-highlight">14</i>&nbsp;import jadx.gui.treemodel.JClass;
+<i class="no-highlight">15</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">16</i>&nbsp;
+<b class="nc"><i class="no-highlight">17</i>&nbsp;public class CodeIndex {</b>
+<i class="no-highlight">18</i>&nbsp;
+<b class="nc"><i class="no-highlight">19</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(CodeIndex.class);</b>
+<i class="no-highlight">20</i>&nbsp;
+<b class="nc"><i class="no-highlight">21</i>&nbsp;	private final List&lt;CodeNode&gt; values = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	public void put(CodeNode value) {
+<b class="nc"><i class="no-highlight">24</i>&nbsp;		values.add(value);</b>
+<i class="no-highlight">25</i>&nbsp;	}
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	public void removeForCls(JavaClass cls) {
+<b class="nc"><i class="no-highlight">28</i>&nbsp;		values.removeIf(v -&gt; v.getJavaNode().getTopParentClass().equals(cls));</b>
+<i class="no-highlight">29</i>&nbsp;	}
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	private boolean isMatched(StringRef key, SearchSettings searchSettings) {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		return searchSettings.isMatch(key);</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	public Flowable&lt;CodeNode&gt; search(final SearchSettings searchSettings) {
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		JClass activeCls = searchSettings.getActiveCls();</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		return Flowable.create(emitter -&gt; {</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;			LOG.debug(&quot;Code search started: {} ...&quot;, searchSettings.getSearchString());</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;			for (CodeNode node : values) {</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;				if (activeCls == null || node.getRootClass().equals(activeCls)) {</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;					int pos = searchSettings.find(node.getLineStr());</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;					if (pos &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;						emitter.onNext(node);</b>
+<i class="no-highlight">44</i>&nbsp;					}
+<i class="no-highlight">45</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">46</i>&nbsp;				if (emitter.isCancelled()) {</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;					LOG.debug(&quot;Code search canceled: {}&quot;, searchSettings.getSearchString());</b>
+<i class="no-highlight">48</i>&nbsp;					return;
+<i class="no-highlight">49</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">50</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;			LOG.debug(&quot;Code search complete: {}, memory usage: {}&quot;, searchSettings.getSearchString(), UiUtils.memoryInfo());</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			emitter.onComplete();</b>
+<i class="no-highlight">53</i>&nbsp;		}, BackpressureStrategy.BUFFER);
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	public int size() {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		return values.size();</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

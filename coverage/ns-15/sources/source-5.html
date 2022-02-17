@@ -1,0 +1,1261 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > InsnGen</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.codegen</a>
+</div>
+
+<h1>Coverage Summary for Class: InsnGen (jadx.core.codegen)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InsnGen</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.5%
+  </span>
+  <span class="absValue">
+    (39/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.8%
+  </span>
+  <span class="absValue">
+    (139/191)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.6%
+  </span>
+  <span class="absValue">
+    (500/613)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">InsnGen$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">InsnGen$Flags</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    97.6%
+  </span>
+  <span class="absValue">
+    (41/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.8%
+  </span>
+  <span class="absValue">
+    (139/191)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (507/620)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.codegen;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.EnumSet;
+<i class="no-highlight">4</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;import java.util.Set;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">10</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.CommentsLevel;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.ICodeWriter;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.data.annotations.InsnCodeOffset;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.data.annotations.VarDeclareRef;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.data.annotations.VarRef;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.MethodHandleType;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.attributes.nodes.GenericInfoAttr;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.ArithOp;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.ConstClassNode;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.ConstStringNode;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.instructions.FillArrayInsn;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.instructions.FilledNewArrayNode;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.instructions.GotoNode;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.instructions.IfNode;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.instructions.IndexInsnNode;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.instructions.InvokeCustomNode;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.instructions.InvokeType;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.instructions.NewArrayNode;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.instructions.SwitchInsn;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.instructions.args.CodeVar;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.dex.instructions.args.Named;
+<i class="no-highlight">49</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">50</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">51</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">52</i>&nbsp;import jadx.core.dex.instructions.mods.TernaryInsn;
+<i class="no-highlight">53</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">54</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">55</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">56</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">57</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">58</i>&nbsp;import jadx.core.utils.CodeGenUtils;
+<i class="no-highlight">59</i>&nbsp;import jadx.core.utils.RegionUtils;
+<i class="no-highlight">60</i>&nbsp;import jadx.core.utils.exceptions.CodegenException;
+<i class="no-highlight">61</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;public class InsnGen {
+<b class="fc"><i class="no-highlight">66</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);</b>
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	protected final MethodGen mgen;
+<i class="no-highlight">69</i>&nbsp;	protected final MethodNode mth;
+<i class="no-highlight">70</i>&nbsp;	protected final RootNode root;
+<i class="no-highlight">71</i>&nbsp;	protected final boolean fallback;
+<i class="no-highlight">72</i>&nbsp;
+<b class="fc"><i class="no-highlight">73</i>&nbsp;	protected enum Flags {</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		BODY_ONLY,</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		BODY_ONLY_NOWRAP,</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		INLINE</b>
+<i class="no-highlight">77</i>&nbsp;	}
+<i class="no-highlight">78</i>&nbsp;
+<b class="fc"><i class="no-highlight">79</i>&nbsp;	public InsnGen(MethodGen mgen, boolean fallback) {</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		this.mgen = mgen;</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		this.mth = mgen.getMethodNode();</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		this.root = mth.root();</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		this.fallback = fallback;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	private boolean isFallback() {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		return fallback;</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	public void addArgDot(ICodeWriter code, InsnArg arg) throws CodegenException {
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		int len = code.getLength();</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		addArg(code, arg, true);</b>
+<b class="pc"><i class="no-highlight">93</i>&nbsp;		if (len != code.getLength()) {</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;			code.add(&#39;.&#39;);</b>
+<i class="no-highlight">95</i>&nbsp;		}
+<i class="no-highlight">96</i>&nbsp;	}
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;	public void addArg(ICodeWriter code, InsnArg arg) throws CodegenException {
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		addArg(code, arg, true);</b>
+<i class="no-highlight">100</i>&nbsp;	}
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;	public void addArg(ICodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
+<b class="fc"><i class="no-highlight">103</i>&nbsp;		addArg(code, arg, wrap ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);</b>
+<i class="no-highlight">104</i>&nbsp;	}
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;	public void addArg(ICodeWriter code, InsnArg arg, Set&lt;Flags&gt; flags) throws CodegenException {
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;			RegisterArg reg = (RegisterArg) arg;</b>
+<b class="pc"><i class="no-highlight">109</i>&nbsp;			if (code.isMetadataSupported()) {</b>
+<b class="fc"><i class="no-highlight">110</i>&nbsp;				code.attachAnnotation(VarRef.get(mth, reg));</b>
+<i class="no-highlight">111</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">112</i>&nbsp;			code.add(mgen.getNameGen().useArg(reg));</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		} else if (arg.isLiteral()) {</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;			addLiteralArg(code, (LiteralArg) arg, flags);</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		} else if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;			addWrappedArg(code, (InsnWrapArg) arg, flags);</b>
+<b class="pc"><i class="no-highlight">117</i>&nbsp;		} else if (arg.isNamed()) {</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;			code.add(((Named) arg).getName());</b>
+<i class="no-highlight">119</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;			throw new CodegenException(&quot;Unknown arg type &quot; + arg);</b>
+<i class="no-highlight">121</i>&nbsp;		}
+<i class="no-highlight">122</i>&nbsp;	}
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;	private void addLiteralArg(ICodeWriter code, LiteralArg litArg, Set&lt;Flags&gt; flags) {
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		String literalStr = lit(litArg);</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		if (!flags.contains(Flags.BODY_ONLY_NOWRAP) &amp;&amp; literalStr.startsWith(&quot;-&quot;)) {</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;			code.add(&#39;(&#39;).add(literalStr).add(&#39;)&#39;);</b>
+<i class="no-highlight">128</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">129</i>&nbsp;			code.add(literalStr);</b>
+<i class="no-highlight">130</i>&nbsp;		}
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	private void addWrappedArg(ICodeWriter code, InsnWrapArg arg, Set&lt;Flags&gt; flags) throws CodegenException {
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		InsnNode wrapInsn = arg.getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		if (wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;			code.add(&#39;(&#39;);</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;			makeInsn(wrapInsn, code, Flags.INLINE);</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;			code.add(&#39;)&#39;);</b>
+<i class="no-highlight">139</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">140</i>&nbsp;			makeInsnBody(code, wrapInsn, flags);</b>
+<i class="no-highlight">141</i>&nbsp;		}
+<i class="no-highlight">142</i>&nbsp;	}
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;	public void assignVar(ICodeWriter code, InsnNode insn) throws CodegenException {
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		RegisterArg arg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		if (insn.contains(AFlag.DECLARE_VAR)) {</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;			declareVar(code, arg);</b>
+<i class="no-highlight">148</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">149</i>&nbsp;			addArg(code, arg, false);</b>
+<i class="no-highlight">150</i>&nbsp;		}
+<i class="no-highlight">151</i>&nbsp;	}
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;	public void declareVar(ICodeWriter code, RegisterArg arg) {
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		declareVar(code, arg.getSVar().getCodeVar());</b>
+<i class="no-highlight">155</i>&nbsp;	}
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;	public void declareVar(ICodeWriter code, CodeVar codeVar) {
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		if (codeVar.isFinal()) {</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;			code.add(&quot;final &quot;);</b>
+<i class="no-highlight">160</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">161</i>&nbsp;		useType(code, codeVar.getType());</b>
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		code.add(&#39; &#39;);</b>
+<b class="pc"><i class="no-highlight">163</i>&nbsp;		if (code.isMetadataSupported()) {</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;			code.attachDefinition(VarDeclareRef.get(mth, codeVar));</b>
+<i class="no-highlight">165</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">166</i>&nbsp;		code.add(mgen.getNameGen().assignArg(codeVar));</b>
+<i class="no-highlight">167</i>&nbsp;	}
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;	private String lit(LiteralArg arg) {
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		return TypeGen.literalToString(arg, mth, fallback);</b>
+<i class="no-highlight">171</i>&nbsp;	}
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;	private void instanceField(ICodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		ClassNode pCls = mth.getParentClass();</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		FieldNode fieldNode = pCls.root().resolveField(field);</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;		if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">177</i>&nbsp;			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;			if (replace != null) {</b>
+<b class="pc"><i class="no-highlight">179</i>&nbsp;				switch (replace.getReplaceType()) {</b>
+<i class="no-highlight">180</i>&nbsp;					case CLASS_INSTANCE:
+<b class="fc"><i class="no-highlight">181</i>&nbsp;						useClass(code, replace.getClsRef());</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;						code.add(&quot;.this&quot;);</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;						break;</b>
+<i class="no-highlight">184</i>&nbsp;					case VAR:
+<b class="fc"><i class="no-highlight">185</i>&nbsp;						addArg(code, replace.getVarRef());</b>
+<i class="no-highlight">186</i>&nbsp;						break;
+<i class="no-highlight">187</i>&nbsp;				}
+<i class="no-highlight">188</i>&nbsp;				return;
+<i class="no-highlight">189</i>&nbsp;			}
+<i class="no-highlight">190</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">191</i>&nbsp;		addArgDot(code, arg);</b>
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;			code.attachAnnotation(fieldNode);</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">195</i>&nbsp;		if (fieldNode == null) {</b>
+<b class="fc"><i class="no-highlight">196</i>&nbsp;			code.add(field.getAlias());</b>
+<i class="no-highlight">197</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			code.add(fieldNode.getAlias());</b>
+<i class="no-highlight">199</i>&nbsp;		}
+<i class="no-highlight">200</i>&nbsp;	}
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;	public static void makeStaticFieldAccess(ICodeWriter code, FieldInfo field, ClassGen clsGen) {
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		ClassInfo declClass = field.getDeclClass();</b>
+<i class="no-highlight">204</i>&nbsp;		// TODO
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		if (!fieldFromThisClass || !clsGen.isBodyGenStarted()) {</b>
+<i class="no-highlight">207</i>&nbsp;			// Android specific resources class handler
+<b class="fc"><i class="no-highlight">208</i>&nbsp;			if (!handleAppResField(code, clsGen, declClass)) {</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;				clsGen.useClass(code, declClass);</b>
+<i class="no-highlight">210</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">211</i>&nbsp;			code.add(&#39;.&#39;);</b>
+<i class="no-highlight">212</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		FieldNode fieldNode = clsGen.getClassNode().root().resolveField(field);</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;		if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;			code.attachAnnotation(fieldNode);</b>
+<i class="no-highlight">216</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">217</i>&nbsp;		if (fieldNode == null) {</b>
+<b class="fc"><i class="no-highlight">218</i>&nbsp;			code.add(field.getAlias());</b>
+<i class="no-highlight">219</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">220</i>&nbsp;			code.add(fieldNode.getAlias());</b>
+<i class="no-highlight">221</i>&nbsp;		}
+<i class="no-highlight">222</i>&nbsp;	}
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;	protected void staticField(ICodeWriter code, FieldInfo field) {
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		makeStaticFieldAccess(code, field, mgen.getClassGen());</b>
+<i class="no-highlight">226</i>&nbsp;	}
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;	public void useClass(ICodeWriter code, ArgType type) {
+<b class="fc"><i class="no-highlight">229</i>&nbsp;		mgen.getClassGen().useClass(code, type);</b>
+<i class="no-highlight">230</i>&nbsp;	}
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;	public void useClass(ICodeWriter code, ClassInfo cls) {
+<b class="fc"><i class="no-highlight">233</i>&nbsp;		mgen.getClassGen().useClass(code, cls);</b>
+<i class="no-highlight">234</i>&nbsp;	}
+<i class="no-highlight">235</i>&nbsp;
+<i class="no-highlight">236</i>&nbsp;	protected void useType(ICodeWriter code, ArgType type) {
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		mgen.getClassGen().useType(code, type);</b>
+<i class="no-highlight">238</i>&nbsp;	}
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;	public void makeInsn(InsnNode insn, ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">241</i>&nbsp;		makeInsn(insn, code, null);</b>
+<i class="no-highlight">242</i>&nbsp;	}
+<i class="no-highlight">243</i>&nbsp;
+<b class="fc"><i class="no-highlight">244</i>&nbsp;	private static final Set&lt;Flags&gt; EMPTY_FLAGS = EnumSet.noneOf(Flags.class);</b>
+<b class="fc"><i class="no-highlight">245</i>&nbsp;	private static final Set&lt;Flags&gt; BODY_ONLY_FLAG = EnumSet.of(Flags.BODY_ONLY);</b>
+<b class="fc"><i class="no-highlight">246</i>&nbsp;	private static final Set&lt;Flags&gt; BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);</b>
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;	protected void makeInsn(InsnNode insn, ICodeWriter code, Flags flag) throws CodegenException {
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		if (insn.getType() == InsnType.REGION_ARG) {</b>
+<i class="no-highlight">250</i>&nbsp;			return;
+<i class="no-highlight">251</i>&nbsp;		}
+<i class="no-highlight">252</i>&nbsp;		try {
+<b class="pc"><i class="no-highlight">253</i>&nbsp;			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {</b>
+<b class="pc"><i class="no-highlight">254</i>&nbsp;				makeInsnBody(code, insn, flag == Flags.BODY_ONLY ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);</b>
+<i class="no-highlight">255</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">256</i>&nbsp;				if (flag != Flags.INLINE) {</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;					code.startLineWithNum(insn.getSourceLine());</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;					InsnCodeOffset.attach(code, insn);</b>
+<b class="pc"><i class="no-highlight">259</i>&nbsp;					if (insn.contains(AFlag.COMMENT_OUT)) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;						code.add(&quot;// &quot;);</b>
+<i class="no-highlight">261</i>&nbsp;					}
+<i class="no-highlight">262</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">263</i>&nbsp;				RegisterArg resArg = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;				if (resArg != null) {</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;					SSAVar var = resArg.getSVar();</b>
+<b class="pc"><i class="no-highlight">266</i>&nbsp;					if (var == null || var.getUseCount() != 0 || insn.getType() != InsnType.CONSTRUCTOR) {</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;						assignVar(code, insn);</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;						code.add(&quot; = &quot;);</b>
+<i class="no-highlight">269</i>&nbsp;					}
+<i class="no-highlight">270</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">271</i>&nbsp;				makeInsnBody(code, insn, EMPTY_FLAGS);</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;				if (flag != Flags.INLINE) {</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;					code.add(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;					CodeGenUtils.addCodeComments(code, mth, insn);</b>
+<i class="no-highlight">275</i>&nbsp;				}
+<i class="no-highlight">276</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">277</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;			throw new CodegenException(mth, &quot;Error generate insn: &quot; + insn, e);</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		}</b>
+<i class="no-highlight">280</i>&nbsp;	}
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;	private void makeInsnBody(ICodeWriter code, InsnNode insn, Set&lt;Flags&gt; state) throws CodegenException {
+<b class="pc"><i class="no-highlight">283</i>&nbsp;		switch (insn.getType()) {</b>
+<i class="no-highlight">284</i>&nbsp;			case CONST_STR:
+<b class="fc"><i class="no-highlight">285</i>&nbsp;				String str = ((ConstStringNode) insn).getString();</b>
+<b class="fc"><i class="no-highlight">286</i>&nbsp;				code.add(mth.root().getStringUtils().unescapeString(str));</b>
+<b class="fc"><i class="no-highlight">287</i>&nbsp;				break;</b>
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;			case CONST_CLASS:
+<b class="fc"><i class="no-highlight">290</i>&nbsp;				ArgType clsType = ((ConstClassNode) insn).getClsType();</b>
+<b class="fc"><i class="no-highlight">291</i>&nbsp;				useType(code, clsType);</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;				code.add(&quot;.class&quot;);</b>
+<b class="fc"><i class="no-highlight">293</i>&nbsp;				break;</b>
+<i class="no-highlight">294</i>&nbsp;
+<i class="no-highlight">295</i>&nbsp;			case CONST:
+<b class="fc"><i class="no-highlight">296</i>&nbsp;				LiteralArg arg = (LiteralArg) insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;				code.add(lit(arg));</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;				break;</b>
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;			case MOVE:
+<b class="fc"><i class="no-highlight">301</i>&nbsp;				addArg(code, insn.getArg(0), false);</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;				break;</b>
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;			case CHECK_CAST:
+<i class="no-highlight">305</i>&nbsp;			case CAST: {
+<b class="fc"><i class="no-highlight">306</i>&nbsp;				boolean wrap = state.contains(Flags.BODY_ONLY);</b>
+<b class="fc"><i class="no-highlight">307</i>&nbsp;				if (wrap) {</b>
+<b class="fc"><i class="no-highlight">308</i>&nbsp;					code.add(&#39;(&#39;);</b>
+<i class="no-highlight">309</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">310</i>&nbsp;				code.add(&#39;(&#39;);</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;				code.add(&quot;) &quot;);</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;				addArg(code, insn.getArg(0), true);</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;				if (wrap) {</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;					code.add(&#39;)&#39;);</b>
+<i class="no-highlight">316</i>&nbsp;				}
+<i class="no-highlight">317</i>&nbsp;				break;
+<i class="no-highlight">318</i>&nbsp;			}
+<i class="no-highlight">319</i>&nbsp;
+<i class="no-highlight">320</i>&nbsp;			case ARITH:
+<b class="fc"><i class="no-highlight">321</i>&nbsp;				makeArith((ArithNode) insn, code, state);</b>
+<b class="fc"><i class="no-highlight">322</i>&nbsp;				break;</b>
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;			case NEG:
+<b class="nc"><i class="no-highlight">325</i>&nbsp;				oneArgInsn(code, insn, state, &#39;-&#39;);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;				break;</b>
+<i class="no-highlight">327</i>&nbsp;
+<i class="no-highlight">328</i>&nbsp;			case NOT:
+<b class="fc"><i class="no-highlight">329</i>&nbsp;				char op = insn.getArg(0).getType() == ArgType.BOOLEAN ? &#39;!&#39; : &#39;~&#39;;</b>
+<b class="fc"><i class="no-highlight">330</i>&nbsp;				oneArgInsn(code, insn, state, op);</b>
+<b class="fc"><i class="no-highlight">331</i>&nbsp;				break;</b>
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;			case RETURN:
+<b class="fc"><i class="no-highlight">334</i>&nbsp;				if (insn.getArgsCount() != 0) {</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;					code.add(&quot;return &quot;);</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;					addArg(code, insn.getArg(0), false);</b>
+<i class="no-highlight">337</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">338</i>&nbsp;					code.add(&quot;return&quot;);</b>
+<i class="no-highlight">339</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">340</i>&nbsp;				break;</b>
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;			case BREAK:
+<b class="fc"><i class="no-highlight">343</i>&nbsp;				code.add(&quot;break&quot;);</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;				LoopLabelAttr labelAttr = insn.get(AType.LOOP_LABEL);</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;				if (labelAttr != null) {</b>
+<b class="fc"><i class="no-highlight">346</i>&nbsp;					code.add(&#39; &#39;).add(mgen.getNameGen().getLoopLabel(labelAttr));</b>
+<i class="no-highlight">347</i>&nbsp;				}
+<i class="no-highlight">348</i>&nbsp;				break;
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;			case CONTINUE:
+<b class="fc"><i class="no-highlight">351</i>&nbsp;				code.add(&quot;continue&quot;);</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;				break;</b>
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;			case THROW:
+<b class="fc"><i class="no-highlight">355</i>&nbsp;				code.add(&quot;throw &quot;);</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;				addArg(code, insn.getArg(0), true);</b>
+<b class="fc"><i class="no-highlight">357</i>&nbsp;				break;</b>
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;			case CMP_L:
+<i class="no-highlight">360</i>&nbsp;			case CMP_G:
+<b class="nc"><i class="no-highlight">361</i>&nbsp;				code.add(&#39;(&#39;);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;				code.add(&quot; &gt; &quot;);</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;				addArg(code, insn.getArg(1));</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;				code.add(&quot; ? 1 : (&quot;);</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;				code.add(&quot; == &quot;);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;				addArg(code, insn.getArg(1));</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;				code.add(&quot; ? 0 : -1))&quot;);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;				break;</b>
+<i class="no-highlight">371</i>&nbsp;
+<i class="no-highlight">372</i>&nbsp;			case INSTANCE_OF: {
+<b class="fc"><i class="no-highlight">373</i>&nbsp;				boolean wrap = state.contains(Flags.BODY_ONLY);</b>
+<b class="pc"><i class="no-highlight">374</i>&nbsp;				if (wrap) {</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;					code.add(&#39;(&#39;);</b>
+<i class="no-highlight">376</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">377</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;				code.add(&quot; instanceof &quot;);</b>
+<b class="fc"><i class="no-highlight">379</i>&nbsp;				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());</b>
+<b class="pc"><i class="no-highlight">380</i>&nbsp;				if (wrap) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;					code.add(&#39;)&#39;);</b>
+<i class="no-highlight">382</i>&nbsp;				}
+<i class="no-highlight">383</i>&nbsp;				break;
+<i class="no-highlight">384</i>&nbsp;			}
+<i class="no-highlight">385</i>&nbsp;			case CONSTRUCTOR:
+<b class="fc"><i class="no-highlight">386</i>&nbsp;				makeConstructor((ConstructorInsn) insn, code);</b>
+<b class="fc"><i class="no-highlight">387</i>&nbsp;				break;</b>
+<i class="no-highlight">388</i>&nbsp;
+<i class="no-highlight">389</i>&nbsp;			case INVOKE:
+<b class="fc"><i class="no-highlight">390</i>&nbsp;				makeInvoke((InvokeNode) insn, code);</b>
+<b class="fc"><i class="no-highlight">391</i>&nbsp;				break;</b>
+<i class="no-highlight">392</i>&nbsp;
+<i class="no-highlight">393</i>&nbsp;			case NEW_ARRAY: {
+<b class="fc"><i class="no-highlight">394</i>&nbsp;				ArgType arrayType = ((NewArrayNode) insn).getArrayType();</b>
+<b class="fc"><i class="no-highlight">395</i>&nbsp;				code.add(&quot;new &quot;);</b>
+<b class="fc"><i class="no-highlight">396</i>&nbsp;				useType(code, arrayType.getArrayRootElement());</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;				int k = 0;</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;				int argsCount = insn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;				for (; k &lt; argsCount; k++) {</b>
+<b class="fc"><i class="no-highlight">400</i>&nbsp;					code.add(&#39;[&#39;);</b>
+<b class="fc"><i class="no-highlight">401</i>&nbsp;					addArg(code, insn.getArg(k), false);</b>
+<b class="fc"><i class="no-highlight">402</i>&nbsp;					code.add(&#39;]&#39;);</b>
+<i class="no-highlight">403</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">404</i>&nbsp;				int dim = arrayType.getArrayDimension();</b>
+<b class="pc"><i class="no-highlight">405</i>&nbsp;				for (; k &lt; dim - 1; k++) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;					code.add(&quot;[]&quot;);</b>
+<i class="no-highlight">407</i>&nbsp;				}
+<i class="no-highlight">408</i>&nbsp;				break;
+<i class="no-highlight">409</i>&nbsp;			}
+<i class="no-highlight">410</i>&nbsp;
+<i class="no-highlight">411</i>&nbsp;			case ARRAY_LENGTH:
+<b class="fc"><i class="no-highlight">412</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">413</i>&nbsp;				code.add(&quot;.length&quot;);</b>
+<b class="fc"><i class="no-highlight">414</i>&nbsp;				break;</b>
+<i class="no-highlight">415</i>&nbsp;
+<i class="no-highlight">416</i>&nbsp;			case FILLED_NEW_ARRAY:
+<b class="fc"><i class="no-highlight">417</i>&nbsp;				filledNewArray((FilledNewArrayNode) insn, code);</b>
+<b class="fc"><i class="no-highlight">418</i>&nbsp;				break;</b>
+<i class="no-highlight">419</i>&nbsp;
+<i class="no-highlight">420</i>&nbsp;			case FILL_ARRAY:
+<b class="fc"><i class="no-highlight">421</i>&nbsp;				FillArrayInsn arrayNode = (FillArrayInsn) insn;</b>
+<b class="pc"><i class="no-highlight">422</i>&nbsp;				if (fallback) {</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;					String arrStr = arrayNode.dataToString();</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;					addArg(code, insn.getArg(0));</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;					code.add(&quot; = {&quot;).add(arrStr.substring(1, arrStr.length() - 1)).add(&quot;} // fill-array&quot;);</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;				} else {</b>
+<b class="fc"><i class="no-highlight">427</i>&nbsp;					fillArray(code, arrayNode);</b>
+<i class="no-highlight">428</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">429</i>&nbsp;				break;</b>
+<i class="no-highlight">430</i>&nbsp;
+<i class="no-highlight">431</i>&nbsp;			case AGET:
+<b class="fc"><i class="no-highlight">432</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">433</i>&nbsp;				code.add(&#39;[&#39;);</b>
+<b class="fc"><i class="no-highlight">434</i>&nbsp;				addArg(code, insn.getArg(1), false);</b>
+<b class="fc"><i class="no-highlight">435</i>&nbsp;				code.add(&#39;]&#39;);</b>
+<b class="fc"><i class="no-highlight">436</i>&nbsp;				break;</b>
+<i class="no-highlight">437</i>&nbsp;
+<i class="no-highlight">438</i>&nbsp;			case APUT:
+<b class="fc"><i class="no-highlight">439</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">440</i>&nbsp;				code.add(&#39;[&#39;);</b>
+<b class="fc"><i class="no-highlight">441</i>&nbsp;				addArg(code, insn.getArg(1), false);</b>
+<b class="fc"><i class="no-highlight">442</i>&nbsp;				code.add(&quot;] = &quot;);</b>
+<b class="fc"><i class="no-highlight">443</i>&nbsp;				addArg(code, insn.getArg(2), false);</b>
+<b class="fc"><i class="no-highlight">444</i>&nbsp;				break;</b>
+<i class="no-highlight">445</i>&nbsp;
+<i class="no-highlight">446</i>&nbsp;			case IGET: {
+<b class="fc"><i class="no-highlight">447</i>&nbsp;				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();</b>
+<b class="fc"><i class="no-highlight">448</i>&nbsp;				instanceField(code, fieldInfo, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">449</i>&nbsp;				break;</b>
+<i class="no-highlight">450</i>&nbsp;			}
+<i class="no-highlight">451</i>&nbsp;			case IPUT: {
+<b class="fc"><i class="no-highlight">452</i>&nbsp;				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;				instanceField(code, fieldInfo, insn.getArg(1));</b>
+<b class="fc"><i class="no-highlight">454</i>&nbsp;				code.add(&quot; = &quot;);</b>
+<b class="fc"><i class="no-highlight">455</i>&nbsp;				addArg(code, insn.getArg(0), false);</b>
+<b class="fc"><i class="no-highlight">456</i>&nbsp;				break;</b>
+<i class="no-highlight">457</i>&nbsp;			}
+<i class="no-highlight">458</i>&nbsp;
+<i class="no-highlight">459</i>&nbsp;			case SGET:
+<b class="fc"><i class="no-highlight">460</i>&nbsp;				staticField(code, (FieldInfo) ((IndexInsnNode) insn).getIndex());</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;				break;</b>
+<i class="no-highlight">462</i>&nbsp;			case SPUT:
+<b class="fc"><i class="no-highlight">463</i>&nbsp;				FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();</b>
+<b class="fc"><i class="no-highlight">464</i>&nbsp;				staticField(code, field);</b>
+<b class="fc"><i class="no-highlight">465</i>&nbsp;				code.add(&quot; = &quot;);</b>
+<b class="fc"><i class="no-highlight">466</i>&nbsp;				addArg(code, insn.getArg(0), false);</b>
+<b class="fc"><i class="no-highlight">467</i>&nbsp;				break;</b>
+<i class="no-highlight">468</i>&nbsp;
+<i class="no-highlight">469</i>&nbsp;			case STR_CONCAT:
+<b class="fc"><i class="no-highlight">470</i>&nbsp;				boolean wrap = state.contains(Flags.BODY_ONLY);</b>
+<b class="pc"><i class="no-highlight">471</i>&nbsp;				if (wrap) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;					code.add(&#39;(&#39;);</b>
+<i class="no-highlight">473</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">474</i>&nbsp;				for (Iterator&lt;InsnArg&gt; it = insn.getArguments().iterator(); it.hasNext();) {</b>
+<b class="fc"><i class="no-highlight">475</i>&nbsp;					addArg(code, it.next());</b>
+<b class="fc"><i class="no-highlight">476</i>&nbsp;					if (it.hasNext()) {</b>
+<b class="fc"><i class="no-highlight">477</i>&nbsp;						code.add(&quot; + &quot;);</b>
+<i class="no-highlight">478</i>&nbsp;					}
+<i class="no-highlight">479</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">480</i>&nbsp;				if (wrap) {</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;					code.add(&#39;)&#39;);</b>
+<i class="no-highlight">482</i>&nbsp;				}
+<i class="no-highlight">483</i>&nbsp;				break;
+<i class="no-highlight">484</i>&nbsp;
+<i class="no-highlight">485</i>&nbsp;			case MONITOR_ENTER:
+<b class="nc"><i class="no-highlight">486</i>&nbsp;				if (isFallback()) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;					code.add(&quot;monitor-enter(&quot;);</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;					addArg(code, insn.getArg(0));</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;					code.add(&#39;)&#39;);</b>
+<i class="no-highlight">490</i>&nbsp;				}
+<i class="no-highlight">491</i>&nbsp;				break;
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;			case MONITOR_EXIT:
+<b class="nc"><i class="no-highlight">494</i>&nbsp;				if (isFallback()) {</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;					code.add(&quot;monitor-exit(&quot;);</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;					if (insn.getArgsCount() == 1) {</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;						addArg(code, insn.getArg(0));</b>
+<i class="no-highlight">498</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">499</i>&nbsp;					code.add(&#39;)&#39;);</b>
+<i class="no-highlight">500</i>&nbsp;				}
+<i class="no-highlight">501</i>&nbsp;				break;
+<i class="no-highlight">502</i>&nbsp;
+<i class="no-highlight">503</i>&nbsp;			case TERNARY:
+<b class="fc"><i class="no-highlight">504</i>&nbsp;				makeTernary((TernaryInsn) insn, code, state);</b>
+<b class="fc"><i class="no-highlight">505</i>&nbsp;				break;</b>
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;			case ONE_ARG:
+<b class="fc"><i class="no-highlight">508</i>&nbsp;				addArg(code, insn.getArg(0), state);</b>
+<b class="fc"><i class="no-highlight">509</i>&nbsp;				break;</b>
+<i class="no-highlight">510</i>&nbsp;
+<i class="no-highlight">511</i>&nbsp;			/* fallback mode instructions */
+<i class="no-highlight">512</i>&nbsp;			case IF:
+<b class="fc"><i class="no-highlight">513</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="fc"><i class="no-highlight">514</i>&nbsp;				IfNode ifInsn = (IfNode) insn;</b>
+<b class="fc"><i class="no-highlight">515</i>&nbsp;				code.add(&quot;if (&quot;);</b>
+<b class="fc"><i class="no-highlight">516</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">517</i>&nbsp;				code.add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">518</i>&nbsp;				code.add(ifInsn.getOp().getSymbol()).add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">519</i>&nbsp;				addArg(code, insn.getArg(1));</b>
+<b class="fc"><i class="no-highlight">520</i>&nbsp;				code.add(&quot;) goto &quot;).add(MethodGen.getLabelName(ifInsn.getTarget()));</b>
+<b class="fc"><i class="no-highlight">521</i>&nbsp;				break;</b>
+<i class="no-highlight">522</i>&nbsp;
+<i class="no-highlight">523</i>&nbsp;			case GOTO:
+<b class="fc"><i class="no-highlight">524</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="fc"><i class="no-highlight">525</i>&nbsp;				code.add(&quot;goto &quot;).add(MethodGen.getLabelName(((GotoNode) insn).getTarget()));</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;				break;</b>
+<i class="no-highlight">527</i>&nbsp;
+<i class="no-highlight">528</i>&nbsp;			case MOVE_EXCEPTION:
+<b class="nc"><i class="no-highlight">529</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;				code.add(&quot;move-exception&quot;);</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;				break;</b>
+<i class="no-highlight">532</i>&nbsp;
+<i class="no-highlight">533</i>&nbsp;			case SWITCH:
+<b class="nc"><i class="no-highlight">534</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;				SwitchInsn sw = (SwitchInsn) insn;</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;				code.add(&quot;switch(&quot;);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;				addArg(code, insn.getArg(0));</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;				code.add(&quot;) {&quot;);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;				code.incIndent();</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;				int[] keys = sw.getKeys();</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;				int[] targets = sw.getTargets();</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;				for (int i = 0; i &lt; keys.length; i++) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;					code.startLine(&quot;case &quot;).add(Integer.toString(keys[i])).add(&quot;: goto &quot;);</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;					code.add(MethodGen.getLabelName(targets[i])).add(&#39;;&#39;);</b>
+<i class="no-highlight">545</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">546</i>&nbsp;				code.startLine(&quot;default: goto &quot;);</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;				code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(&#39;;&#39;);</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;				code.decIndent();</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;				code.startLine(&#39;}&#39;);</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;				break;</b>
+<i class="no-highlight">551</i>&nbsp;
+<i class="no-highlight">552</i>&nbsp;			case NEW_INSTANCE:
+<i class="no-highlight">553</i>&nbsp;				// only fallback - make new instance in constructor invoke
+<b class="fc"><i class="no-highlight">554</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="fc"><i class="no-highlight">555</i>&nbsp;				code.add(&quot;new &quot;).add(insn.getResult().getInitType().toString());</b>
+<b class="fc"><i class="no-highlight">556</i>&nbsp;				break;</b>
+<i class="no-highlight">557</i>&nbsp;
+<i class="no-highlight">558</i>&nbsp;			case PHI:
+<b class="nc"><i class="no-highlight">559</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;				code.add(insn.getType().toString()).add(&#39;(&#39;);</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;				for (InsnArg insnArg : insn.getArguments()) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;					addArg(code, insnArg);</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;					code.add(&#39; &#39;);</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;				code.add(&#39;)&#39;);</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;				break;</b>
+<i class="no-highlight">567</i>&nbsp;
+<i class="no-highlight">568</i>&nbsp;			case MOVE_RESULT:
+<b class="nc"><i class="no-highlight">569</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;				code.add(&quot;move-result&quot;);</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;				break;</b>
+<i class="no-highlight">572</i>&nbsp;
+<i class="no-highlight">573</i>&nbsp;			case FILL_ARRAY_DATA:
+<b class="nc"><i class="no-highlight">574</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;				code.add(&quot;fill-array &quot; + insn);</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;				break;</b>
+<i class="no-highlight">577</i>&nbsp;
+<i class="no-highlight">578</i>&nbsp;			case SWITCH_DATA:
+<b class="nc"><i class="no-highlight">579</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;				code.add(insn.toString());</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;				break;</b>
+<i class="no-highlight">582</i>&nbsp;
+<i class="no-highlight">583</i>&nbsp;			case MOVE_MULTI:
+<b class="nc"><i class="no-highlight">584</i>&nbsp;				fallbackOnlyInsn(insn);</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;				int len = insn.getArgsCount();</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;				for (int i = 0; i &lt; len - 1; i += 2) {</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;					addArg(code, insn.getArg(i));</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;					code.add(&quot; = &quot;);</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;					addArg(code, insn.getArg(i + 1));</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;					code.add(&quot;; &quot;);</b>
+<i class="no-highlight">591</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">592</i>&nbsp;				break;</b>
+<i class="no-highlight">593</i>&nbsp;
+<i class="no-highlight">594</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">595</i>&nbsp;				throw new CodegenException(mth, &quot;Unknown instruction: &quot; + insn.getType());</b>
+<i class="no-highlight">596</i>&nbsp;		}
+<i class="no-highlight">597</i>&nbsp;	}
+<i class="no-highlight">598</i>&nbsp;
+<i class="no-highlight">599</i>&nbsp;	/**
+<i class="no-highlight">600</i>&nbsp;	 * In most cases must be combined with new array instructions.
+<i class="no-highlight">601</i>&nbsp;	 * Use one by one array fill (can be replaced with System.arrayCopy)
+<i class="no-highlight">602</i>&nbsp;	 */
+<i class="no-highlight">603</i>&nbsp;	private void fillArray(ICodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
+<b class="pc"><i class="no-highlight">604</i>&nbsp;		if (mth.checkCommentsLevel(CommentsLevel.INFO)) {</b>
+<b class="fc"><i class="no-highlight">605</i>&nbsp;			code.add(&quot;// fill-array-data instruction&quot;);</b>
+<i class="no-highlight">606</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">607</i>&nbsp;		code.startLine();</b>
+<b class="fc"><i class="no-highlight">608</i>&nbsp;		InsnArg arrArg = arrayNode.getArg(0);</b>
+<b class="fc"><i class="no-highlight">609</i>&nbsp;		ArgType arrayType = arrArg.getType();</b>
+<i class="no-highlight">610</i>&nbsp;		ArgType elemType;
+<b class="pc"><i class="no-highlight">611</i>&nbsp;		if (arrayType.isTypeKnown() &amp;&amp; arrayType.isArray()) {</b>
+<b class="fc"><i class="no-highlight">612</i>&nbsp;			elemType = arrayType.getArrayElement();</b>
+<i class="no-highlight">613</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">614</i>&nbsp;			ArgType elementType = arrayNode.getElementType(); // unknown type</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;			elemType = elementType.selectFirst();</b>
+<i class="no-highlight">616</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">617</i>&nbsp;		List&lt;LiteralArg&gt; args = arrayNode.getLiteralArgs(elemType);</b>
+<b class="fc"><i class="no-highlight">618</i>&nbsp;		int len = args.size();</b>
+<b class="fc"><i class="no-highlight">619</i>&nbsp;		for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">620</i>&nbsp;			if (i != 0) {</b>
+<b class="fc"><i class="no-highlight">621</i>&nbsp;				code.add(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">622</i>&nbsp;				code.startLine();</b>
+<i class="no-highlight">623</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">624</i>&nbsp;			addArg(code, arrArg);</b>
+<b class="fc"><i class="no-highlight">625</i>&nbsp;			code.add(&#39;[&#39;).add(Integer.toString(i)).add(&quot;] = &quot;).add(lit(args.get(i)));</b>
+<i class="no-highlight">626</i>&nbsp;		}
+<i class="no-highlight">627</i>&nbsp;	}
+<i class="no-highlight">628</i>&nbsp;
+<i class="no-highlight">629</i>&nbsp;	private void oneArgInsn(ICodeWriter code, InsnNode insn, Set&lt;Flags&gt; state, char op) throws CodegenException {
+<b class="fc"><i class="no-highlight">630</i>&nbsp;		boolean wrap = state.contains(Flags.BODY_ONLY);</b>
+<b class="pc"><i class="no-highlight">631</i>&nbsp;		if (wrap) {</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;			code.add(&#39;(&#39;);</b>
+<i class="no-highlight">633</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">634</i>&nbsp;		code.add(op);</b>
+<b class="fc"><i class="no-highlight">635</i>&nbsp;		addArg(code, insn.getArg(0));</b>
+<b class="pc"><i class="no-highlight">636</i>&nbsp;		if (wrap) {</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;			code.add(&#39;)&#39;);</b>
+<i class="no-highlight">638</i>&nbsp;		}
+<i class="no-highlight">639</i>&nbsp;	}
+<i class="no-highlight">640</i>&nbsp;
+<i class="no-highlight">641</i>&nbsp;	private void fallbackOnlyInsn(InsnNode insn) throws CodegenException {
+<b class="pc"><i class="no-highlight">642</i>&nbsp;		if (!fallback) {</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;			String msg = insn.getType() + &quot; instruction can be used only in fallback mode&quot;;</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;			CodegenException e = new CodegenException(msg);</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;			mth.addError(msg, e);</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;			mth.getParentClass().getTopParentClass().add(AFlag.RESTART_CODEGEN);</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;			throw e;</b>
+<i class="no-highlight">648</i>&nbsp;		}
+<i class="no-highlight">649</i>&nbsp;	}
+<i class="no-highlight">650</i>&nbsp;
+<i class="no-highlight">651</i>&nbsp;	private void filledNewArray(FilledNewArrayNode insn, ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">652</i>&nbsp;		if (!insn.contains(AFlag.DECLARE_VAR)) {</b>
+<b class="fc"><i class="no-highlight">653</i>&nbsp;			code.add(&quot;new &quot;);</b>
+<b class="fc"><i class="no-highlight">654</i>&nbsp;			useType(code, insn.getArrayType());</b>
+<i class="no-highlight">655</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">656</i>&nbsp;		code.add(&#39;{&#39;);</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;		int c = insn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">658</i>&nbsp;		int wrap = 0;</b>
+<b class="fc"><i class="no-highlight">659</i>&nbsp;		for (int i = 0; i &lt; c; i++) {</b>
+<b class="fc"><i class="no-highlight">660</i>&nbsp;			addArg(code, insn.getArg(i), false);</b>
+<b class="fc"><i class="no-highlight">661</i>&nbsp;			if (i + 1 &lt; c) {</b>
+<b class="fc"><i class="no-highlight">662</i>&nbsp;				code.add(&quot;, &quot;);</b>
+<i class="no-highlight">663</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">664</i>&nbsp;			wrap++;</b>
+<b class="pc"><i class="no-highlight">665</i>&nbsp;			if (wrap == 1000) {</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;				code.startLine();</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;				wrap = 0;</b>
+<i class="no-highlight">668</i>&nbsp;			}
+<i class="no-highlight">669</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">670</i>&nbsp;		code.add(&#39;}&#39;);</b>
+<i class="no-highlight">671</i>&nbsp;	}
+<i class="no-highlight">672</i>&nbsp;
+<i class="no-highlight">673</i>&nbsp;	private void makeConstructor(ConstructorInsn insn, ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">674</i>&nbsp;		ClassNode cls = mth.root().resolveClass(insn.getClassType());</b>
+<b class="pc"><i class="no-highlight">675</i>&nbsp;		if (cls != null &amp;&amp; cls.isAnonymous() &amp;&amp; !fallback) {</b>
+<b class="fc"><i class="no-highlight">676</i>&nbsp;			cls.ensureProcessed();</b>
+<b class="fc"><i class="no-highlight">677</i>&nbsp;			inlineAnonymousConstructor(code, cls, insn);</b>
+<b class="fc"><i class="no-highlight">678</i>&nbsp;			mth.getParentClass().addInlinedClass(cls);</b>
+<i class="no-highlight">679</i>&nbsp;			return;
+<i class="no-highlight">680</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">681</i>&nbsp;		if (insn.isSelf()) {</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;			throw new JadxRuntimeException(&quot;Constructor &#39;self&#39; invoke must be removed!&quot;);</b>
+<i class="no-highlight">683</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">684</i>&nbsp;		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());</b>
+<b class="fc"><i class="no-highlight">685</i>&nbsp;		if (insn.isSuper()) {</b>
+<b class="fc"><i class="no-highlight">686</i>&nbsp;			code.attachAnnotation(callMth);</b>
+<b class="fc"><i class="no-highlight">687</i>&nbsp;			code.add(&quot;super&quot;);</b>
+<b class="fc"><i class="no-highlight">688</i>&nbsp;		} else if (insn.isThis()) {</b>
+<b class="fc"><i class="no-highlight">689</i>&nbsp;			code.attachAnnotation(callMth);</b>
+<b class="fc"><i class="no-highlight">690</i>&nbsp;			code.add(&quot;this&quot;);</b>
+<i class="no-highlight">691</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">692</i>&nbsp;			code.add(&quot;new &quot;);</b>
+<b class="fc"><i class="no-highlight">693</i>&nbsp;			if (callMth == null || callMth.contains(AFlag.DONT_GENERATE)) {</b>
+<i class="no-highlight">694</i>&nbsp;				// use class reference if constructor method is missing (default constructor)
+<b class="fc"><i class="no-highlight">695</i>&nbsp;				code.attachAnnotation(mth.root().resolveClass(insn.getCallMth().getDeclClass()));</b>
+<i class="no-highlight">696</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">697</i>&nbsp;				code.attachAnnotation(callMth);</b>
+<i class="no-highlight">698</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">699</i>&nbsp;			mgen.getClassGen().addClsName(code, insn.getClassType());</b>
+<b class="fc"><i class="no-highlight">700</i>&nbsp;			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);</b>
+<b class="fc"><i class="no-highlight">701</i>&nbsp;			if (genericInfoAttr != null) {</b>
+<b class="fc"><i class="no-highlight">702</i>&nbsp;				code.add(&#39;&lt;&#39;);</b>
+<b class="pc"><i class="no-highlight">703</i>&nbsp;				if (genericInfoAttr.isExplicit()) {</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;					boolean first = true;</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;					for (ArgType type : genericInfoAttr.getGenericTypes()) {</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;						if (!first) {</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;							code.add(&#39;,&#39;);</b>
+<i class="no-highlight">708</i>&nbsp;						} else {
+<b class="nc"><i class="no-highlight">709</i>&nbsp;							first = false;</b>
+<i class="no-highlight">710</i>&nbsp;						}
+<b class="nc"><i class="no-highlight">711</i>&nbsp;						mgen.getClassGen().useType(code, type);</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;					}</b>
+<i class="no-highlight">713</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">714</i>&nbsp;				code.add(&#39;&gt;&#39;);</b>
+<i class="no-highlight">715</i>&nbsp;			}
+<i class="no-highlight">716</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">717</i>&nbsp;		generateMethodArguments(code, insn, 0, callMth);</b>
+<i class="no-highlight">718</i>&nbsp;	}
+<i class="no-highlight">719</i>&nbsp;
+<i class="no-highlight">720</i>&nbsp;	private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+<b class="pc"><i class="no-highlight">721</i>&nbsp;		if (this.mth.getParentClass() == cls) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;			cls.remove(AFlag.ANONYMOUS_CLASS);</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;			cls.remove(AFlag.DONT_GENERATE);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;			mth.getParentClass().getTopParentClass().add(AFlag.RESTART_CODEGEN);</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;			throw new CodegenException(&quot;Anonymous inner class unlimited recursion detected.&quot;</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;					+ &quot; Convert class to inner: &quot; + cls.getClassInfo().getFullName());</b>
+<i class="no-highlight">727</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">728</i>&nbsp;		ArgType parent = cls.get(AType.ANONYMOUS_CLASS_BASE).getBaseType();</b>
+<i class="no-highlight">729</i>&nbsp;		// hide empty anonymous constructors
+<b class="fc"><i class="no-highlight">730</i>&nbsp;		for (MethodNode ctor : cls.getMethods()) {</b>
+<b class="fc"><i class="no-highlight">731</i>&nbsp;			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)</b>
+<b class="fc"><i class="no-highlight">732</i>&nbsp;					&amp;&amp; RegionUtils.isEmpty(ctor.getRegion())) {</b>
+<b class="fc"><i class="no-highlight">733</i>&nbsp;				ctor.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">734</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">735</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">736</i>&nbsp;		code.add(&quot;new &quot;);</b>
+<b class="fc"><i class="no-highlight">737</i>&nbsp;		useClass(code, parent);</b>
+<b class="fc"><i class="no-highlight">738</i>&nbsp;		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());</b>
+<b class="pc"><i class="no-highlight">739</i>&nbsp;		if (callMth != null) {</b>
+<i class="no-highlight">740</i>&nbsp;			// copy var names
+<b class="fc"><i class="no-highlight">741</i>&nbsp;			List&lt;RegisterArg&gt; mthArgs = callMth.getArgRegs();</b>
+<b class="fc"><i class="no-highlight">742</i>&nbsp;			int argsCount = Math.min(insn.getArgsCount(), mthArgs.size());</b>
+<b class="fc"><i class="no-highlight">743</i>&nbsp;			for (int i = 0; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">744</i>&nbsp;				InsnArg arg = insn.getArg(i);</b>
+<b class="fc"><i class="no-highlight">745</i>&nbsp;				if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">746</i>&nbsp;					RegisterArg mthArg = mthArgs.get(i);</b>
+<b class="fc"><i class="no-highlight">747</i>&nbsp;					RegisterArg insnArg = (RegisterArg) arg;</b>
+<b class="fc"><i class="no-highlight">748</i>&nbsp;					mthArg.getSVar().setCodeVar(insnArg.getSVar().getCodeVar());</b>
+<i class="no-highlight">749</i>&nbsp;				}
+<i class="no-highlight">750</i>&nbsp;			}
+<i class="no-highlight">751</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">752</i>&nbsp;		generateMethodArguments(code, insn, 0, callMth);</b>
+<b class="fc"><i class="no-highlight">753</i>&nbsp;		code.add(&#39; &#39;);</b>
+<i class="no-highlight">754</i>&nbsp;
+<b class="fc"><i class="no-highlight">755</i>&nbsp;		ClassGen classGen = new ClassGen(cls, mgen.getClassGen().getParentGen());</b>
+<b class="fc"><i class="no-highlight">756</i>&nbsp;		classGen.setOuterNameGen(mgen.getNameGen());</b>
+<b class="fc"><i class="no-highlight">757</i>&nbsp;		classGen.addClassBody(code, true);</b>
+<i class="no-highlight">758</i>&nbsp;	}
+<i class="no-highlight">759</i>&nbsp;
+<i class="no-highlight">760</i>&nbsp;	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">761</i>&nbsp;		InvokeType type = insn.getInvokeType();</b>
+<b class="fc"><i class="no-highlight">762</i>&nbsp;		if (type == InvokeType.CUSTOM) {</b>
+<b class="fc"><i class="no-highlight">763</i>&nbsp;			makeInvokeLambda(code, (InvokeCustomNode) insn);</b>
+<i class="no-highlight">764</i>&nbsp;			return;
+<i class="no-highlight">765</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">766</i>&nbsp;		MethodInfo callMth = insn.getCallMth();</b>
+<b class="fc"><i class="no-highlight">767</i>&nbsp;		MethodNode callMthNode = mth.root().resolveMethod(callMth);</b>
+<i class="no-highlight">768</i>&nbsp;
+<b class="fc"><i class="no-highlight">769</i>&nbsp;		int k = 0;</b>
+<b class="pc"><i class="no-highlight">770</i>&nbsp;		switch (type) {</b>
+<i class="no-highlight">771</i>&nbsp;			case DIRECT:
+<i class="no-highlight">772</i>&nbsp;			case VIRTUAL:
+<i class="no-highlight">773</i>&nbsp;			case INTERFACE:
+<b class="fc"><i class="no-highlight">774</i>&nbsp;				InsnArg arg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">775</i>&nbsp;				if (needInvokeArg(arg)) {</b>
+<b class="fc"><i class="no-highlight">776</i>&nbsp;					addArgDot(code, arg);</b>
+<i class="no-highlight">777</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">778</i>&nbsp;				k++;</b>
+<b class="fc"><i class="no-highlight">779</i>&nbsp;				break;</b>
+<i class="no-highlight">780</i>&nbsp;
+<i class="no-highlight">781</i>&nbsp;			case SUPER:
+<b class="fc"><i class="no-highlight">782</i>&nbsp;				ClassInfo superCallCls = getClassForSuperCall(code, callMth);</b>
+<b class="fc"><i class="no-highlight">783</i>&nbsp;				if (superCallCls != null) {</b>
+<b class="fc"><i class="no-highlight">784</i>&nbsp;					useClass(code, superCallCls);</b>
+<b class="fc"><i class="no-highlight">785</i>&nbsp;					code.add(&#39;.&#39;);</b>
+<i class="no-highlight">786</i>&nbsp;				}
+<i class="no-highlight">787</i>&nbsp;				// use &#39;super&#39; instead &#39;this&#39; in 0 arg
+<b class="fc"><i class="no-highlight">788</i>&nbsp;				code.add(&quot;super&quot;).add(&#39;.&#39;);</b>
+<b class="fc"><i class="no-highlight">789</i>&nbsp;				k++;</b>
+<b class="fc"><i class="no-highlight">790</i>&nbsp;				break;</b>
+<i class="no-highlight">791</i>&nbsp;
+<i class="no-highlight">792</i>&nbsp;			case STATIC:
+<b class="fc"><i class="no-highlight">793</i>&nbsp;				ClassInfo insnCls = mth.getParentClass().getClassInfo();</b>
+<b class="fc"><i class="no-highlight">794</i>&nbsp;				ClassInfo declClass = callMth.getDeclClass();</b>
+<b class="fc"><i class="no-highlight">795</i>&nbsp;				if (!insnCls.equals(declClass)) {</b>
+<b class="fc"><i class="no-highlight">796</i>&nbsp;					useClass(code, declClass);</b>
+<b class="fc"><i class="no-highlight">797</i>&nbsp;					code.add(&#39;.&#39;);</b>
+<i class="no-highlight">798</i>&nbsp;				}
+<i class="no-highlight">799</i>&nbsp;				break;
+<i class="no-highlight">800</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">801</i>&nbsp;		if (callMthNode != null) {</b>
+<b class="fc"><i class="no-highlight">802</i>&nbsp;			code.attachAnnotation(callMthNode);</b>
+<b class="fc"><i class="no-highlight">803</i>&nbsp;			code.add(callMthNode.getAlias());</b>
+<i class="no-highlight">804</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">805</i>&nbsp;			code.add(callMth.getAlias());</b>
+<i class="no-highlight">806</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">807</i>&nbsp;		generateMethodArguments(code, insn, k, callMthNode);</b>
+<i class="no-highlight">808</i>&nbsp;	}
+<i class="no-highlight">809</i>&nbsp;
+<i class="no-highlight">810</i>&nbsp;	// FIXME: add &#39;this&#39; for equals methods in scope
+<i class="no-highlight">811</i>&nbsp;	private boolean needInvokeArg(InsnArg arg) {
+<b class="fc"><i class="no-highlight">812</i>&nbsp;		if (arg.isAnyThis()) {</b>
+<b class="fc"><i class="no-highlight">813</i>&nbsp;			if (arg.isThis()) {</b>
+<b class="fc"><i class="no-highlight">814</i>&nbsp;				return false;</b>
+<i class="no-highlight">815</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">816</i>&nbsp;			ClassNode clsNode = mth.root().resolveClass(arg.getType());</b>
+<b class="fc"><i class="no-highlight">817</i>&nbsp;			if (clsNode != null &amp;&amp; clsNode.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">818</i>&nbsp;				return false;</b>
+<i class="no-highlight">819</i>&nbsp;			}
+<i class="no-highlight">820</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">821</i>&nbsp;		return true;</b>
+<i class="no-highlight">822</i>&nbsp;	}
+<i class="no-highlight">823</i>&nbsp;
+<i class="no-highlight">824</i>&nbsp;	private void makeInvokeLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+<b class="fc"><i class="no-highlight">825</i>&nbsp;		if (customNode.isUseRef()) {</b>
+<b class="fc"><i class="no-highlight">826</i>&nbsp;			makeRefLambda(code, customNode);</b>
+<i class="no-highlight">827</i>&nbsp;			return;
+<i class="no-highlight">828</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">829</i>&nbsp;		if (fallback || !customNode.isInlineInsn()) {</b>
+<b class="fc"><i class="no-highlight">830</i>&nbsp;			makeSimpleLambda(code, customNode);</b>
+<i class="no-highlight">831</i>&nbsp;			return;
+<i class="no-highlight">832</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">833</i>&nbsp;		MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);</b>
+<b class="fc"><i class="no-highlight">834</i>&nbsp;		makeInlinedLambdaMethod(code, customNode, callMth);</b>
+<i class="no-highlight">835</i>&nbsp;	}
+<i class="no-highlight">836</i>&nbsp;
+<i class="no-highlight">837</i>&nbsp;	private void makeRefLambda(ICodeWriter code, InvokeCustomNode customNode) {
+<b class="fc"><i class="no-highlight">838</i>&nbsp;		InsnNode callInsn = customNode.getCallInsn();</b>
+<b class="fc"><i class="no-highlight">839</i>&nbsp;		if (callInsn instanceof ConstructorInsn) {</b>
+<b class="fc"><i class="no-highlight">840</i>&nbsp;			MethodInfo callMth = ((ConstructorInsn) callInsn).getCallMth();</b>
+<b class="fc"><i class="no-highlight">841</i>&nbsp;			useClass(code, callMth.getDeclClass());</b>
+<b class="fc"><i class="no-highlight">842</i>&nbsp;			code.add(&quot;::new&quot;);</b>
+<i class="no-highlight">843</i>&nbsp;			return;
+<i class="no-highlight">844</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">845</i>&nbsp;		if (callInsn instanceof InvokeNode) {</b>
+<b class="fc"><i class="no-highlight">846</i>&nbsp;			InvokeNode invokeInsn = (InvokeNode) callInsn;</b>
+<b class="fc"><i class="no-highlight">847</i>&nbsp;			MethodInfo callMth = invokeInsn.getCallMth();</b>
+<b class="fc"><i class="no-highlight">848</i>&nbsp;			if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {</b>
+<b class="fc"><i class="no-highlight">849</i>&nbsp;				useClass(code, callMth.getDeclClass());</b>
+<i class="no-highlight">850</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">851</i>&nbsp;				code.add(&quot;this&quot;);</b>
+<i class="no-highlight">852</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">853</i>&nbsp;			code.add(&quot;::&quot;).add(callMth.getAlias());</b>
+<i class="no-highlight">854</i>&nbsp;		}
+<i class="no-highlight">855</i>&nbsp;	}
+<i class="no-highlight">856</i>&nbsp;
+<i class="no-highlight">857</i>&nbsp;	private void makeSimpleLambda(ICodeWriter code, InvokeCustomNode customNode) {
+<i class="no-highlight">858</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">859</i>&nbsp;			InsnNode callInsn = customNode.getCallInsn();</b>
+<b class="fc"><i class="no-highlight">860</i>&nbsp;			MethodInfo implMthInfo = customNode.getImplMthInfo();</b>
+<b class="fc"><i class="no-highlight">861</i>&nbsp;			int implArgsCount = implMthInfo.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">862</i>&nbsp;			if (implArgsCount == 0) {</b>
+<b class="fc"><i class="no-highlight">863</i>&nbsp;				code.add(&quot;()&quot;);</b>
+<i class="no-highlight">864</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">865</i>&nbsp;				code.add(&#39;(&#39;);</b>
+<b class="fc"><i class="no-highlight">866</i>&nbsp;				int callArgsCount = callInsn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">867</i>&nbsp;				int startArg = callArgsCount - implArgsCount;</b>
+<b class="fc"><i class="no-highlight">868</i>&nbsp;				if (customNode.getHandleType() != MethodHandleType.INVOKE_STATIC</b>
+<b class="fc"><i class="no-highlight">869</i>&nbsp;						&amp;&amp; customNode.getArgsCount() &gt; 0</b>
+<b class="pc"><i class="no-highlight">870</i>&nbsp;						&amp;&amp; customNode.getArg(0).isThis()) {</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;					callInsn.getArg(0).add(AFlag.THIS);</b>
+<i class="no-highlight">872</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">873</i>&nbsp;				if (startArg &gt;= 0) {</b>
+<b class="fc"><i class="no-highlight">874</i>&nbsp;					for (int i = startArg; i &lt; callArgsCount; i++) {</b>
+<b class="pc"><i class="no-highlight">875</i>&nbsp;						if (i != startArg) {</b>
+<b class="nc"><i class="no-highlight">876</i>&nbsp;							code.add(&quot;, &quot;);</b>
+<i class="no-highlight">877</i>&nbsp;						}
+<b class="fc"><i class="no-highlight">878</i>&nbsp;						addArg(code, callInsn.getArg(i));</b>
+<i class="no-highlight">879</i>&nbsp;					}
+<i class="no-highlight">880</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">881</i>&nbsp;					code.add(&quot;/* ERROR: &quot; + startArg + &quot; */&quot;);</b>
+<i class="no-highlight">882</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">883</i>&nbsp;				code.add(&#39;)&#39;);</b>
+<i class="no-highlight">884</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">885</i>&nbsp;			code.add(&quot; -&gt; {&quot;);</b>
+<b class="fc"><i class="no-highlight">886</i>&nbsp;			if (fallback) {</b>
+<b class="fc"><i class="no-highlight">887</i>&nbsp;				code.add(&quot; // &quot;).add(implMthInfo.toString());</b>
+<i class="no-highlight">888</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">889</i>&nbsp;			code.incIndent();</b>
+<b class="fc"><i class="no-highlight">890</i>&nbsp;			code.startLine();</b>
+<b class="pc"><i class="no-highlight">891</i>&nbsp;			if (!implMthInfo.getReturnType().isVoid()) {</b>
+<b class="fc"><i class="no-highlight">892</i>&nbsp;				code.add(&quot;return &quot;);</b>
+<i class="no-highlight">893</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">894</i>&nbsp;			makeInsn(callInsn, code, Flags.INLINE);</b>
+<b class="fc"><i class="no-highlight">895</i>&nbsp;			code.add(&quot;;&quot;);</b>
+<i class="no-highlight">896</i>&nbsp;
+<b class="fc"><i class="no-highlight">897</i>&nbsp;			code.decIndent();</b>
+<b class="fc"><i class="no-highlight">898</i>&nbsp;			code.startLine(&#39;}&#39;);</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;			throw new JadxRuntimeException(&quot;Failed to generate &#39;invoke-custom&#39; instruction: &quot; + e.getMessage(), e);</b>
+<b class="fc"><i class="no-highlight">901</i>&nbsp;		}</b>
+<i class="no-highlight">902</i>&nbsp;	}
+<i class="no-highlight">903</i>&nbsp;
+<i class="no-highlight">904</i>&nbsp;	private void makeInlinedLambdaMethod(ICodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
+<b class="fc"><i class="no-highlight">905</i>&nbsp;		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), callMth);</b>
+<b class="fc"><i class="no-highlight">906</i>&nbsp;		NameGen nameGen = callMthGen.getNameGen();</b>
+<b class="fc"><i class="no-highlight">907</i>&nbsp;		nameGen.inheritUsedNames(this.mgen.getNameGen());</b>
+<i class="no-highlight">908</i>&nbsp;
+<b class="fc"><i class="no-highlight">909</i>&nbsp;		List&lt;ArgType&gt; implArgs = customNode.getImplMthInfo().getArgumentsTypes();</b>
+<b class="fc"><i class="no-highlight">910</i>&nbsp;		List&lt;RegisterArg&gt; callArgs = callMth.getArgRegs();</b>
+<b class="fc"><i class="no-highlight">911</i>&nbsp;		if (implArgs.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">912</i>&nbsp;			code.add(&quot;()&quot;);</b>
+<i class="no-highlight">913</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">914</i>&nbsp;			int callArgsCount = callArgs.size();</b>
+<b class="fc"><i class="no-highlight">915</i>&nbsp;			int startArg = callArgsCount - implArgs.size();</b>
+<b class="fc"><i class="no-highlight">916</i>&nbsp;			for (int i = startArg; i &lt; callArgsCount; i++) {</b>
+<b class="pc"><i class="no-highlight">917</i>&nbsp;				if (i != startArg) {</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;					code.add(&quot;, &quot;);</b>
+<i class="no-highlight">919</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">920</i>&nbsp;				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();</b>
+<b class="fc"><i class="no-highlight">921</i>&nbsp;				code.add(nameGen.assignArg(argCodeVar));</b>
+<i class="no-highlight">922</i>&nbsp;			}
+<i class="no-highlight">923</i>&nbsp;		}
+<i class="no-highlight">924</i>&nbsp;		// force set external arg names into call method args
+<b class="fc"><i class="no-highlight">925</i>&nbsp;		int extArgsCount = customNode.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">926</i>&nbsp;		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip &#39;this&#39; arg</b>
+<b class="fc"><i class="no-highlight">927</i>&nbsp;		for (int i = startArg; i &lt; extArgsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">928</i>&nbsp;			RegisterArg extArg = (RegisterArg) customNode.getArg(i);</b>
+<b class="fc"><i class="no-highlight">929</i>&nbsp;			callArgs.get(i).setName(extArg.getName());</b>
+<i class="no-highlight">930</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">931</i>&nbsp;		code.add(&quot; -&gt; {&quot;);</b>
+<b class="fc"><i class="no-highlight">932</i>&nbsp;		code.incIndent();</b>
+<b class="fc"><i class="no-highlight">933</i>&nbsp;		callMthGen.addInstructions(code);</b>
+<i class="no-highlight">934</i>&nbsp;
+<b class="fc"><i class="no-highlight">935</i>&nbsp;		code.decIndent();</b>
+<b class="fc"><i class="no-highlight">936</i>&nbsp;		code.startLine(&#39;}&#39;);</b>
+<i class="no-highlight">937</i>&nbsp;	}
+<i class="no-highlight">938</i>&nbsp;
+<i class="no-highlight">939</i>&nbsp;	@Nullable
+<i class="no-highlight">940</i>&nbsp;	private ClassInfo getClassForSuperCall(ICodeWriter code, MethodInfo callMth) {
+<b class="fc"><i class="no-highlight">941</i>&nbsp;		ClassNode useCls = mth.getParentClass();</b>
+<b class="fc"><i class="no-highlight">942</i>&nbsp;		ClassInfo insnCls = useCls.getClassInfo();</b>
+<b class="fc"><i class="no-highlight">943</i>&nbsp;		ClassInfo declClass = callMth.getDeclClass();</b>
+<b class="pc"><i class="no-highlight">944</i>&nbsp;		if (insnCls.equals(declClass)) {</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;			return null;</b>
+<i class="no-highlight">946</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">947</i>&nbsp;		ClassNode topClass = useCls.getTopParentClass();</b>
+<b class="pc"><i class="no-highlight">948</i>&nbsp;		if (topClass.getClassInfo().equals(declClass)) {</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;			return declClass;</b>
+<i class="no-highlight">950</i>&nbsp;		}
+<i class="no-highlight">951</i>&nbsp;		// search call class
+<b class="fc"><i class="no-highlight">952</i>&nbsp;		ClassNode nextParent = useCls;</b>
+<i class="no-highlight">953</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">954</i>&nbsp;			ClassInfo nextClsInfo = nextParent.getClassInfo();</b>
+<b class="pc"><i class="no-highlight">955</i>&nbsp;			if (nextClsInfo.equals(declClass)</b>
+<b class="fc"><i class="no-highlight">956</i>&nbsp;					|| ArgType.isInstanceOf(mth.root(), nextClsInfo.getType(), declClass.getType())) {</b>
+<b class="fc"><i class="no-highlight">957</i>&nbsp;				if (nextParent == useCls) {</b>
+<b class="fc"><i class="no-highlight">958</i>&nbsp;					return null;</b>
+<i class="no-highlight">959</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">960</i>&nbsp;				return nextClsInfo;</b>
+<i class="no-highlight">961</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">962</i>&nbsp;			nextParent = nextParent.getParentClass();</b>
+<b class="pc"><i class="no-highlight">963</i>&nbsp;		} while (nextParent != null &amp;&amp; nextParent != topClass);</b>
+<i class="no-highlight">964</i>&nbsp;
+<i class="no-highlight">965</i>&nbsp;		// search failed, just return parent class
+<b class="fc"><i class="no-highlight">966</i>&nbsp;		return useCls.getParentClass().getClassInfo();</b>
+<i class="no-highlight">967</i>&nbsp;	}
+<i class="no-highlight">968</i>&nbsp;
+<i class="no-highlight">969</i>&nbsp;	void generateMethodArguments(ICodeWriter code, BaseInvokeNode insn, int startArgNum,
+<i class="no-highlight">970</i>&nbsp;			@Nullable MethodNode mthNode) throws CodegenException {
+<b class="fc"><i class="no-highlight">971</i>&nbsp;		int k = startArgNum;</b>
+<b class="fc"><i class="no-highlight">972</i>&nbsp;		if (mthNode != null &amp;&amp; mthNode.contains(AFlag.SKIP_FIRST_ARG)) {</b>
+<b class="fc"><i class="no-highlight">973</i>&nbsp;			k++;</b>
+<i class="no-highlight">974</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">975</i>&nbsp;		int argsCount = insn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">976</i>&nbsp;		code.add(&#39;(&#39;);</b>
+<b class="fc"><i class="no-highlight">977</i>&nbsp;		boolean firstArg = true;</b>
+<b class="fc"><i class="no-highlight">978</i>&nbsp;		if (k &lt; argsCount) {</b>
+<b class="fc"><i class="no-highlight">979</i>&nbsp;			for (int i = k; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">980</i>&nbsp;				InsnArg arg = insn.getArg(i);</b>
+<b class="pc"><i class="no-highlight">981</i>&nbsp;				if (arg.contains(AFlag.SKIP_ARG)) {</b>
+<b class="nc"><i class="no-highlight">982</i>&nbsp;					continue;</b>
+<i class="no-highlight">983</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">984</i>&nbsp;				int argOrigPos = i - startArgNum;</b>
+<b class="fc"><i class="no-highlight">985</i>&nbsp;				if (SkipMethodArgsAttr.isSkip(mthNode, argOrigPos)) {</b>
+<b class="fc"><i class="no-highlight">986</i>&nbsp;					continue;</b>
+<i class="no-highlight">987</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">988</i>&nbsp;				if (!firstArg) {</b>
+<b class="fc"><i class="no-highlight">989</i>&nbsp;					code.add(&quot;, &quot;);</b>
+<i class="no-highlight">990</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">991</i>&nbsp;					firstArg = false;</b>
+<i class="no-highlight">992</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">993</i>&nbsp;				if (i == argsCount - 1 &amp;&amp; processVarArg(code, insn, arg)) {</b>
+<b class="fc"><i class="no-highlight">994</i>&nbsp;					continue;</b>
+<i class="no-highlight">995</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">996</i>&nbsp;				addArg(code, arg, false);</b>
+<b class="fc"><i class="no-highlight">997</i>&nbsp;				firstArg = false;</b>
+<i class="no-highlight">998</i>&nbsp;			}
+<i class="no-highlight">999</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1000</i>&nbsp;		code.add(&#39;)&#39;);</b>
+<i class="no-highlight">1001</i>&nbsp;	}
+<i class="no-highlight">1002</i>&nbsp;
+<i class="no-highlight">1003</i>&nbsp;	/**
+<i class="no-highlight">1004</i>&nbsp;	 * Expand varArgs from filled array.
+<i class="no-highlight">1005</i>&nbsp;	 */
+<i class="no-highlight">1006</i>&nbsp;	private boolean processVarArg(ICodeWriter code, BaseInvokeNode invokeInsn, InsnArg lastArg) throws CodegenException {
+<b class="fc"><i class="no-highlight">1007</i>&nbsp;		if (!invokeInsn.contains(AFlag.VARARG_CALL)) {</b>
+<b class="fc"><i class="no-highlight">1008</i>&nbsp;			return false;</b>
+<i class="no-highlight">1009</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">1010</i>&nbsp;		if (!lastArg.getType().isArray() || !lastArg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">1011</i>&nbsp;			return false;</b>
+<i class="no-highlight">1012</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1013</i>&nbsp;		InsnNode insn = ((InsnWrapArg) lastArg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">1014</i>&nbsp;		if (insn.getType() != InsnType.FILLED_NEW_ARRAY) {</b>
+<b class="fc"><i class="no-highlight">1015</i>&nbsp;			return false;</b>
+<i class="no-highlight">1016</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1017</i>&nbsp;		int count = insn.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">1018</i>&nbsp;		for (int i = 0; i &lt; count; i++) {</b>
+<b class="fc"><i class="no-highlight">1019</i>&nbsp;			InsnArg elemArg = insn.getArg(i);</b>
+<b class="fc"><i class="no-highlight">1020</i>&nbsp;			addArg(code, elemArg, false);</b>
+<b class="fc"><i class="no-highlight">1021</i>&nbsp;			if (i &lt; count - 1) {</b>
+<b class="fc"><i class="no-highlight">1022</i>&nbsp;				code.add(&quot;, &quot;);</b>
+<i class="no-highlight">1023</i>&nbsp;			}
+<i class="no-highlight">1024</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1025</i>&nbsp;		return true;</b>
+<i class="no-highlight">1026</i>&nbsp;	}
+<i class="no-highlight">1027</i>&nbsp;
+<i class="no-highlight">1028</i>&nbsp;	private void makeTernary(TernaryInsn insn, ICodeWriter code, Set&lt;Flags&gt; state) throws CodegenException {
+<b class="fc"><i class="no-highlight">1029</i>&nbsp;		boolean wrap = state.contains(Flags.BODY_ONLY);</b>
+<b class="fc"><i class="no-highlight">1030</i>&nbsp;		if (wrap) {</b>
+<b class="fc"><i class="no-highlight">1031</i>&nbsp;			code.add(&#39;(&#39;);</b>
+<i class="no-highlight">1032</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1033</i>&nbsp;		InsnArg first = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">1034</i>&nbsp;		InsnArg second = insn.getArg(1);</b>
+<b class="fc"><i class="no-highlight">1035</i>&nbsp;		ConditionGen condGen = new ConditionGen(this);</b>
+<b class="pc"><i class="no-highlight">1036</i>&nbsp;		if (first.isTrue() &amp;&amp; second.isFalse()) {</b>
+<b class="fc"><i class="no-highlight">1037</i>&nbsp;			condGen.add(code, insn.getCondition());</b>
+<i class="no-highlight">1038</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">1039</i>&nbsp;			condGen.wrap(code, insn.getCondition());</b>
+<b class="fc"><i class="no-highlight">1040</i>&nbsp;			code.add(&quot; ? &quot;);</b>
+<b class="fc"><i class="no-highlight">1041</i>&nbsp;			addArg(code, first, false);</b>
+<b class="fc"><i class="no-highlight">1042</i>&nbsp;			code.add(&quot; : &quot;);</b>
+<b class="fc"><i class="no-highlight">1043</i>&nbsp;			addArg(code, second, false);</b>
+<i class="no-highlight">1044</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1045</i>&nbsp;		if (wrap) {</b>
+<b class="fc"><i class="no-highlight">1046</i>&nbsp;			code.add(&#39;)&#39;);</b>
+<i class="no-highlight">1047</i>&nbsp;		}
+<i class="no-highlight">1048</i>&nbsp;	}
+<i class="no-highlight">1049</i>&nbsp;
+<i class="no-highlight">1050</i>&nbsp;	private void makeArith(ArithNode insn, ICodeWriter code, Set&lt;Flags&gt; state) throws CodegenException {
+<b class="fc"><i class="no-highlight">1051</i>&nbsp;		if (insn.contains(AFlag.ARITH_ONEARG)) {</b>
+<b class="fc"><i class="no-highlight">1052</i>&nbsp;			makeArithOneArg(insn, code);</b>
+<i class="no-highlight">1053</i>&nbsp;			return;
+<i class="no-highlight">1054</i>&nbsp;		}
+<i class="no-highlight">1055</i>&nbsp;		// wrap insn in brackets for save correct operation order
+<b class="fc"><i class="no-highlight">1056</i>&nbsp;		boolean wrap = state.contains(Flags.BODY_ONLY) &amp;&amp; !insn.contains(AFlag.DONT_WRAP);</b>
+<b class="fc"><i class="no-highlight">1057</i>&nbsp;		if (wrap) {</b>
+<b class="fc"><i class="no-highlight">1058</i>&nbsp;			code.add(&#39;(&#39;);</b>
+<i class="no-highlight">1059</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">1060</i>&nbsp;		addArg(code, insn.getArg(0));</b>
+<b class="fc"><i class="no-highlight">1061</i>&nbsp;		code.add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">1062</i>&nbsp;		code.add(insn.getOp().getSymbol());</b>
+<b class="fc"><i class="no-highlight">1063</i>&nbsp;		code.add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">1064</i>&nbsp;		addArg(code, insn.getArg(1));</b>
+<b class="fc"><i class="no-highlight">1065</i>&nbsp;		if (wrap) {</b>
+<b class="fc"><i class="no-highlight">1066</i>&nbsp;			code.add(&#39;)&#39;);</b>
+<i class="no-highlight">1067</i>&nbsp;		}
+<i class="no-highlight">1068</i>&nbsp;	}
+<i class="no-highlight">1069</i>&nbsp;
+<i class="no-highlight">1070</i>&nbsp;	private void makeArithOneArg(ArithNode insn, ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">1071</i>&nbsp;		ArithOp op = insn.getOp();</b>
+<b class="fc"><i class="no-highlight">1072</i>&nbsp;		InsnArg resArg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">1073</i>&nbsp;		InsnArg arg = insn.getArg(1);</b>
+<i class="no-highlight">1074</i>&nbsp;
+<i class="no-highlight">1075</i>&nbsp;		// &quot;++&quot; or &quot;--&quot;
+<b class="fc"><i class="no-highlight">1076</i>&nbsp;		if (arg.isLiteral() &amp;&amp; (op == ArithOp.ADD || op == ArithOp.SUB)) {</b>
+<b class="fc"><i class="no-highlight">1077</i>&nbsp;			LiteralArg lit = (LiteralArg) arg;</b>
+<b class="pc"><i class="no-highlight">1078</i>&nbsp;			if (lit.getLiteral() == 1 &amp;&amp; lit.isInteger()) {</b>
+<b class="fc"><i class="no-highlight">1079</i>&nbsp;				addArg(code, resArg, false);</b>
+<b class="fc"><i class="no-highlight">1080</i>&nbsp;				String opSymbol = op.getSymbol();</b>
+<b class="fc"><i class="no-highlight">1081</i>&nbsp;				code.add(opSymbol).add(opSymbol);</b>
+<i class="no-highlight">1082</i>&nbsp;				return;
+<i class="no-highlight">1083</i>&nbsp;			}
+<i class="no-highlight">1084</i>&nbsp;		}
+<i class="no-highlight">1085</i>&nbsp;
+<i class="no-highlight">1086</i>&nbsp;		// +=, -=, ...
+<b class="fc"><i class="no-highlight">1087</i>&nbsp;		addArg(code, resArg, false);</b>
+<b class="fc"><i class="no-highlight">1088</i>&nbsp;		code.add(&#39; &#39;).add(op.getSymbol()).add(&quot;= &quot;);</b>
+<b class="fc"><i class="no-highlight">1089</i>&nbsp;		addArg(code, arg, false);</b>
+<i class="no-highlight">1090</i>&nbsp;	}
+<i class="no-highlight">1091</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

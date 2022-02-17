@@ -1,0 +1,477 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SignatureParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.nodes.parser</a>
+</div>
+
+<h1>Coverage Summary for Class: SignatureParser (jadx.core.dex.nodes.parser)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SignatureParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87%
+  </span>
+  <span class="absValue">
+    (20/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66%
+  </span>
+  <span class="absValue">
+    (35/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.3%
+  </span>
+  <span class="absValue">
+    (151/177)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.nodes.parser;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">8</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">9</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.attributes.IAttributeNode;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;public class SignatureParser {
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(SignatureParser.class);</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	private static final char STOP_CHAR = 0;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	private final String sign;
+<i class="no-highlight">23</i>&nbsp;	private final int end;
+<i class="no-highlight">24</i>&nbsp;	private int pos;
+<i class="no-highlight">25</i>&nbsp;	private int mark;
+<i class="no-highlight">26</i>&nbsp;
+<b class="fc"><i class="no-highlight">27</i>&nbsp;	public SignatureParser(String signature) {</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;		sign = signature;</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		end = sign.length();</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		pos = -1;</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		mark = 0;</b>
+<i class="no-highlight">32</i>&nbsp;	}
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;	@Nullable
+<i class="no-highlight">35</i>&nbsp;	public static SignatureParser fromNode(IAttributeNode node) {
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		String signature = getSignature(node);</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		if (signature == null) {</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;			return null;</b>
+<i class="no-highlight">39</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		return new SignatureParser(signature);</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	@Nullable
+<i class="no-highlight">44</i>&nbsp;	public static String getSignature(IAttributeNode node) {
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		SignatureAttr attr = node.get(JadxAttrType.SIGNATURE);</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		if (attr == null) {</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;			return null;</b>
+<i class="no-highlight">48</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		return attr.getSignature();</b>
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	private char next() {
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		pos++;</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		if (pos &gt;= end) {</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			return STOP_CHAR;</b>
+<i class="no-highlight">56</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		return sign.charAt(pos);</b>
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	private boolean lookAhead(char ch) {
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		int next = pos + 1;</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;		return next &lt; end &amp;&amp; sign.charAt(next) == ch;</b>
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	private void mark() {
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		mark = pos;</b>
+<i class="no-highlight">67</i>&nbsp;	}
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	/**
+<i class="no-highlight">70</i>&nbsp;	 * Exclusive slice.
+<i class="no-highlight">71</i>&nbsp;	 *
+<i class="no-highlight">72</i>&nbsp;	 * @return string from &#39;mark&#39; to current position (not including current character)
+<i class="no-highlight">73</i>&nbsp;	 */
+<i class="no-highlight">74</i>&nbsp;	private String slice() {
+<b class="pc"><i class="no-highlight">75</i>&nbsp;		int start = mark == -1 ? 0 : mark;</b>
+<b class="pc"><i class="no-highlight">76</i>&nbsp;		if (start &gt;= pos) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;			return &quot;&quot;;</b>
+<i class="no-highlight">78</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		return sign.substring(start, pos);</b>
+<i class="no-highlight">80</i>&nbsp;	}
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;	/**
+<i class="no-highlight">83</i>&nbsp;	 * Inclusive slice (includes current character)
+<i class="no-highlight">84</i>&nbsp;	 */
+<i class="no-highlight">85</i>&nbsp;	private String inclusiveSlice() {
+<b class="fc"><i class="no-highlight">86</i>&nbsp;		int start = mark;</b>
+<b class="pc"><i class="no-highlight">87</i>&nbsp;		if (start == -1) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			start = 0;</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">90</i>&nbsp;		int last = pos + 1;</b>
+<b class="pc"><i class="no-highlight">91</i>&nbsp;		if (start &gt;= last) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;			return &quot;&quot;;</b>
+<i class="no-highlight">93</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		return sign.substring(start, last);</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	private boolean skipUntil(char untilChar) {
+<b class="fc"><i class="no-highlight">98</i>&nbsp;		int startPos = pos;</b>
+<i class="no-highlight">99</i>&nbsp;		while (true) {
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			if (lookAhead(untilChar)) {</b>
+<b class="fc"><i class="no-highlight">101</i>&nbsp;				return true;</b>
+<i class="no-highlight">102</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">103</i>&nbsp;			char ch = next();</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;			if (ch == STOP_CHAR) {</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;				pos = startPos;</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				return false;</b>
+<i class="no-highlight">107</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">108</i>&nbsp;		}</b>
+<i class="no-highlight">109</i>&nbsp;	}
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;	private void consume(char exp) {
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		char c = next();</b>
+<b class="pc"><i class="no-highlight">113</i>&nbsp;		if (exp != c) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;			throw new JadxRuntimeException(&quot;Consume wrong char: &#39;&quot; + c + &quot;&#39; != &#39;&quot; + exp</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;					+ &quot;&#39;, sign: &quot; + debugString());</b>
+<i class="no-highlight">116</i>&nbsp;		}
+<i class="no-highlight">117</i>&nbsp;	}
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;	private boolean tryConsume(char exp) {
+<b class="fc"><i class="no-highlight">120</i>&nbsp;		if (lookAhead(exp)) {</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;			next();</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;			return true;</b>
+<i class="no-highlight">123</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		return false;</b>
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	@Nullable
+<i class="no-highlight">128</i>&nbsp;	public String consumeUntil(char lastChar) {
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		mark();</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		return skipUntil(lastChar) ? inclusiveSlice() : null;</b>
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	public ArgType consumeType() {
+<b class="fc"><i class="no-highlight">134</i>&nbsp;		char ch = next();</b>
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		switch (ch) {</b>
+<i class="no-highlight">136</i>&nbsp;			case &#39;L&#39;:
+<b class="fc"><i class="no-highlight">137</i>&nbsp;				ArgType obj = consumeObjectType(false);</b>
+<b class="pc"><i class="no-highlight">138</i>&nbsp;				if (obj != null) {</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;					return obj;</b>
+<i class="no-highlight">140</i>&nbsp;				}
+<i class="no-highlight">141</i>&nbsp;				break;
+<i class="no-highlight">142</i>&nbsp;			case &#39;T&#39;:
+<b class="fc"><i class="no-highlight">143</i>&nbsp;				next();</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;				mark();</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;				String typeVarName = consumeUntil(&#39;;&#39;);</b>
+<b class="pc"><i class="no-highlight">146</i>&nbsp;				if (typeVarName != null) {</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;					consume(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;					if (typeVarName.contains(&quot;)&quot;)) {</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;						throw new JadxRuntimeException(&quot;Bad name for type variable: &quot; + typeVarName);</b>
+<i class="no-highlight">150</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">151</i>&nbsp;					return ArgType.genericType(typeVarName);</b>
+<i class="no-highlight">152</i>&nbsp;				}
+<i class="no-highlight">153</i>&nbsp;				break;
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;			case &#39;[&#39;:
+<b class="fc"><i class="no-highlight">156</i>&nbsp;				return ArgType.array(consumeType());</b>
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;			case STOP_CHAR:
+<b class="fc"><i class="no-highlight">159</i>&nbsp;				return null;</b>
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;			default:
+<i class="no-highlight">162</i>&nbsp;				// primitive type (one char)
+<b class="fc"><i class="no-highlight">163</i>&nbsp;				ArgType type = ArgType.parse(ch);</b>
+<b class="pc"><i class="no-highlight">164</i>&nbsp;				if (type != null) {</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;					return type;</b>
+<i class="no-highlight">166</i>&nbsp;				}
+<i class="no-highlight">167</i>&nbsp;				break;
+<i class="no-highlight">168</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">169</i>&nbsp;		throw new JadxRuntimeException(&quot;Can&#39;t parse type: &quot; + debugString() + &quot;, unexpected: &quot; + ch);</b>
+<i class="no-highlight">170</i>&nbsp;	}
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;	private ArgType consumeObjectType(boolean innerType) {
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		mark();</b>
+<i class="no-highlight">174</i>&nbsp;		int ch;
+<i class="no-highlight">175</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			if (innerType &amp;&amp; lookAhead(&#39;.&#39;)) {</b>
+<i class="no-highlight">177</i>&nbsp;				// stop before next nested inner class
+<b class="fc"><i class="no-highlight">178</i>&nbsp;				return ArgType.object(inclusiveSlice());</b>
+<i class="no-highlight">179</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">180</i>&nbsp;			ch = next();</b>
+<b class="pc"><i class="no-highlight">181</i>&nbsp;			if (ch == STOP_CHAR) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;				return null;</b>
+<i class="no-highlight">183</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">184</i>&nbsp;		} while (ch != &#39;&lt;&#39; &amp;&amp; ch != &#39;;&#39;);</b>
+<i class="no-highlight">185</i>&nbsp;
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		if (ch == &#39;;&#39;) {</b>
+<i class="no-highlight">187</i>&nbsp;			String obj;
+<b class="fc"><i class="no-highlight">188</i>&nbsp;			if (innerType) {</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;				obj = slice().replace(&#39;/&#39;, &#39;.&#39;);</b>
+<i class="no-highlight">190</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">191</i>&nbsp;				obj = inclusiveSlice();</b>
+<i class="no-highlight">192</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">193</i>&nbsp;			return ArgType.object(obj);</b>
+<i class="no-highlight">194</i>&nbsp;		}
+<i class="no-highlight">195</i>&nbsp;		// generic type start (&#39;&lt;&#39;)
+<b class="fc"><i class="no-highlight">196</i>&nbsp;		String obj = slice();</b>
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		if (!innerType) {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			obj += &#39;;&#39;;</b>
+<i class="no-highlight">199</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">200</i>&nbsp;			obj = obj.replace(&#39;/&#39;, &#39;.&#39;);</b>
+<i class="no-highlight">201</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		List&lt;ArgType&gt; typeVars = consumeGenericArgs();</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		consume(&#39;&gt;&#39;);</b>
+<i class="no-highlight">204</i>&nbsp;
+<b class="fc"><i class="no-highlight">205</i>&nbsp;		ArgType genericType = ArgType.generic(obj, typeVars);</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;		if (!lookAhead(&#39;.&#39;)) {</b>
+<b class="fc"><i class="no-highlight">207</i>&nbsp;			consume(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">208</i>&nbsp;			return genericType;</b>
+<i class="no-highlight">209</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		consume(&#39;.&#39;);</b>
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		next();</b>
+<i class="no-highlight">212</i>&nbsp;		// type parsing not completed, proceed to inner class
+<b class="fc"><i class="no-highlight">213</i>&nbsp;		ArgType inner = consumeObjectType(true);</b>
+<b class="pc"><i class="no-highlight">214</i>&nbsp;		if (inner == null) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;			throw new JadxRuntimeException(&quot;No inner type found: &quot; + debugString());</b>
+<i class="no-highlight">216</i>&nbsp;		}
+<i class="no-highlight">217</i>&nbsp;		// for every nested inner type create nested type object
+<b class="fc"><i class="no-highlight">218</i>&nbsp;		while (lookAhead(&#39;.&#39;)) {</b>
+<b class="fc"><i class="no-highlight">219</i>&nbsp;			genericType = ArgType.outerGeneric(genericType, inner);</b>
+<b class="fc"><i class="no-highlight">220</i>&nbsp;			consume(&#39;.&#39;);</b>
+<b class="fc"><i class="no-highlight">221</i>&nbsp;			next();</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;			inner = consumeObjectType(true);</b>
+<b class="pc"><i class="no-highlight">223</i>&nbsp;			if (inner == null) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;				throw new JadxRuntimeException(&quot;Unexpected inner type found: &quot; + debugString());</b>
+<i class="no-highlight">225</i>&nbsp;			}
+<i class="no-highlight">226</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">227</i>&nbsp;		return ArgType.outerGeneric(genericType, inner);</b>
+<i class="no-highlight">228</i>&nbsp;	}
+<i class="no-highlight">229</i>&nbsp;
+<i class="no-highlight">230</i>&nbsp;	private List&lt;ArgType&gt; consumeGenericArgs() {
+<b class="fc"><i class="no-highlight">231</i>&nbsp;		List&lt;ArgType&gt; list = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">232</i>&nbsp;		ArgType type;
+<i class="no-highlight">233</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">234</i>&nbsp;			if (lookAhead(&#39;*&#39;)) {</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;				next();</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;				type = ArgType.wildcard();</b>
+<b class="fc"><i class="no-highlight">237</i>&nbsp;			} else if (lookAhead(&#39;+&#39;)) {</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;				next();</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;				type = ArgType.wildcard(consumeType(), ArgType.WildcardBound.EXTENDS);</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;			} else if (lookAhead(&#39;-&#39;)) {</b>
+<b class="fc"><i class="no-highlight">241</i>&nbsp;				next();</b>
+<b class="fc"><i class="no-highlight">242</i>&nbsp;				type = ArgType.wildcard(consumeType(), ArgType.WildcardBound.SUPER);</b>
+<i class="no-highlight">243</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">244</i>&nbsp;				type = consumeType();</b>
+<i class="no-highlight">245</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">246</i>&nbsp;			if (type != null) {</b>
+<b class="fc"><i class="no-highlight">247</i>&nbsp;				list.add(type);</b>
+<i class="no-highlight">248</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">249</i>&nbsp;		} while (type != null &amp;&amp; !lookAhead(&#39;&gt;&#39;));</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;		return list;</b>
+<i class="no-highlight">251</i>&nbsp;	}
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;	/**
+<i class="no-highlight">254</i>&nbsp;	 * Map of generic types names to extends classes.
+<i class="no-highlight">255</i>&nbsp;	 * &lt;p&gt;
+<i class="no-highlight">256</i>&nbsp;	 * Example: &quot;&amp;lt;T:Ljava/lang/Exception;:Ljava/lang/Object;&amp;gt;&quot;
+<i class="no-highlight">257</i>&nbsp;	 */
+<i class="no-highlight">258</i>&nbsp;	@SuppressWarnings(&quot;ConditionalBreakInInfiniteLoop&quot;)
+<i class="no-highlight">259</i>&nbsp;	public List&lt;ArgType&gt; consumeGenericTypeParameters() {
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		if (!lookAhead(&#39;&lt;&#39;)) {</b>
+<b class="fc"><i class="no-highlight">261</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">262</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">263</i>&nbsp;		List&lt;ArgType&gt; list = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		consume(&#39;&lt;&#39;);</b>
+<i class="no-highlight">265</i>&nbsp;		while (true) {
+<b class="pc"><i class="no-highlight">266</i>&nbsp;			if (lookAhead(&#39;&gt;&#39;) || next() == STOP_CHAR) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;				break;</b>
+<i class="no-highlight">268</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">269</i>&nbsp;			String id = consumeUntil(&#39;:&#39;);</b>
+<b class="fc"><i class="no-highlight">270</i>&nbsp;			if (id == null) {</b>
+<b class="fc"><i class="no-highlight">271</i>&nbsp;				throw new JadxRuntimeException(&quot;Failed to parse generic types map&quot;);</b>
+<i class="no-highlight">272</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">273</i>&nbsp;			consume(&#39;:&#39;);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;			tryConsume(&#39;:&#39;);</b>
+<b class="fc"><i class="no-highlight">275</i>&nbsp;			List&lt;ArgType&gt; types = consumeExtendsTypesList();</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;			list.add(ArgType.genericType(id, types));</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;		consume(&#39;&gt;&#39;);</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;		return list;</b>
+<i class="no-highlight">280</i>&nbsp;	}
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;	/**
+<i class="no-highlight">283</i>&nbsp;	 * List of types separated by &#39;:&#39; last type is &#39;java.lang.Object&#39;.
+<i class="no-highlight">284</i>&nbsp;	 * &lt;p/&gt;
+<i class="no-highlight">285</i>&nbsp;	 * Example: &quot;Ljava/lang/Exception;:Ljava/lang/Object;&quot;
+<i class="no-highlight">286</i>&nbsp;	 */
+<i class="no-highlight">287</i>&nbsp;	private List&lt;ArgType&gt; consumeExtendsTypesList() {
+<b class="fc"><i class="no-highlight">288</i>&nbsp;		List&lt;ArgType&gt; types = Collections.emptyList();</b>
+<i class="no-highlight">289</i>&nbsp;		boolean next;
+<i class="no-highlight">290</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">291</i>&nbsp;			ArgType argType = consumeType();</b>
+<b class="pc"><i class="no-highlight">292</i>&nbsp;			if (argType == null) {</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;				throw new JadxRuntimeException(&quot;Unexpected end of signature&quot;);</b>
+<i class="no-highlight">294</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">295</i>&nbsp;			if (!argType.equals(ArgType.OBJECT)) {</b>
+<b class="pc"><i class="no-highlight">296</i>&nbsp;				if (types.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;					types = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">298</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">299</i>&nbsp;				types.add(argType);</b>
+<i class="no-highlight">300</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">301</i>&nbsp;			next = lookAhead(&#39;:&#39;);</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;			if (next) {</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;				consume(&#39;:&#39;);</b>
+<i class="no-highlight">304</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">305</i>&nbsp;		} while (next);</b>
+<b class="fc"><i class="no-highlight">306</i>&nbsp;		return types;</b>
+<i class="no-highlight">307</i>&nbsp;	}
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;	public List&lt;ArgType&gt; consumeMethodArgs(int argsCount) {
+<b class="fc"><i class="no-highlight">310</i>&nbsp;		consume(&#39;(&#39;);</b>
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		if (lookAhead(&#39;)&#39;)) {</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;			consume(&#39;)&#39;);</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">314</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">315</i>&nbsp;		List&lt;ArgType&gt; args = new ArrayList&lt;&gt;(argsCount);</b>
+<b class="fc"><i class="no-highlight">316</i>&nbsp;		int limit = argsCount + 10; // just prevent endless loop, args count can be different for synthetic methods</b>
+<i class="no-highlight">317</i>&nbsp;		do {
+<b class="fc"><i class="no-highlight">318</i>&nbsp;			ArgType type = consumeType();</b>
+<b class="pc"><i class="no-highlight">319</i>&nbsp;			if (type == null) {</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;				throw new JadxRuntimeException(&quot;Unexpected end of signature&quot;);</b>
+<i class="no-highlight">321</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">322</i>&nbsp;			args.add(type);</b>
+<b class="pc"><i class="no-highlight">323</i>&nbsp;			if (args.size() &gt; limit) {</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;				throw new JadxRuntimeException(&quot;Arguments count limit reached: &quot; + args.size());</b>
+<i class="no-highlight">325</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">326</i>&nbsp;		} while (!lookAhead(&#39;)&#39;));</b>
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		consume(&#39;)&#39;);</b>
+<b class="fc"><i class="no-highlight">328</i>&nbsp;		return args;</b>
+<i class="no-highlight">329</i>&nbsp;	}
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;	private static String mergeSignature(List&lt;String&gt; list) {
+<b class="nc"><i class="no-highlight">332</i>&nbsp;		if (list.size() == 1) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;			return list.get(0);</b>
+<i class="no-highlight">334</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">335</i>&nbsp;		StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;		for (String s : list) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;			sb.append(s);</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;		return sb.toString();</b>
+<i class="no-highlight">340</i>&nbsp;	}
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;	public String getSignature() {
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		return sign;</b>
+<i class="no-highlight">344</i>&nbsp;	}
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;	private String debugString() {
+<b class="nc"><i class="no-highlight">347</i>&nbsp;		if (pos &gt;= sign.length()) {</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;			return sign;</b>
+<i class="no-highlight">349</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">350</i>&nbsp;		return sign + &quot; at position &quot; + pos + &quot; (&#39;&quot; + sign.charAt(pos) + &quot;&#39;)&quot;;</b>
+<i class="no-highlight">351</i>&nbsp;	}
+<i class="no-highlight">352</i>&nbsp;
+<i class="no-highlight">353</i>&nbsp;	@Override
+<i class="no-highlight">354</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">355</i>&nbsp;		if (pos == -1) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;			return sign;</b>
+<i class="no-highlight">357</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">358</i>&nbsp;		return sign.substring(0, mark) + &#39;{&#39; + sign.substring(mark, pos) + &#39;}&#39; + sign.substring(pos);</b>
+<i class="no-highlight">359</i>&nbsp;	}
+<i class="no-highlight">360</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

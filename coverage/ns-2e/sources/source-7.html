@@ -1,0 +1,572 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LoopRegionVisitor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors.regions</a>
+</div>
+
+<h1>Coverage Summary for Class: LoopRegionVisitor (jadx.core.dex.visitors.regions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LoopRegionVisitor</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53.5%
+  </span>
+  <span class="absValue">
+    (53/99)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    86.1%
+  </span>
+  <span class="absValue">
+    (229/266)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors.regions;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.LinkedList;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">7</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.instructions.ArithOp;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.instructions.IfOp;
+<i class="no-highlight">14</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">15</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">16</i>&nbsp;import jadx.core.dex.instructions.InvokeType;
+<i class="no-highlight">17</i>&nbsp;import jadx.core.dex.instructions.PhiInsn;
+<i class="no-highlight">18</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">19</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.instructions.args.SSAVar;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.nodes.IBlock;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.IRegion;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.regions.conditions.Compare;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.regions.loops.ForEachLoop;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.regions.loops.ForLoop;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.regions.loops.LoopRegion;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.regions.loops.LoopType;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.visitors.AbstractVisitor;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.visitors.JadxVisitor;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.utils.InsnRemover;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.utils.InsnUtils;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.utils.RegionUtils;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.utils.exceptions.JadxOverflowException;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">46</i>&nbsp;		name = &quot;LoopRegionVisitor&quot;,
+<i class="no-highlight">47</i>&nbsp;		desc = &quot;Convert &#39;while&#39; loops to &#39;for&#39; loops (indexed or for-each)&quot;,
+<i class="no-highlight">48</i>&nbsp;		runBefore = ProcessVariables.class
+<i class="no-highlight">49</i>&nbsp;)
+<b class="fc"><i class="no-highlight">50</i>&nbsp;public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor {</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(LoopRegionVisitor.class);</b>
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;	@Override
+<i class="no-highlight">54</i>&nbsp;	public void visit(MethodNode mth) {
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		DepthRegionTraversal.traverse(mth, this);</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		if (mth.contains(AFlag.REQUEST_IF_REGION_OPTIMIZE)) {</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;			IfRegionVisitor.process(mth);</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;			mth.remove(AFlag.REQUEST_IF_REGION_OPTIMIZE);</b>
+<i class="no-highlight">59</i>&nbsp;		}
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	public boolean enterRegion(MethodNode mth, IRegion region) {
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		if (region instanceof LoopRegion) {</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			if (processLoopRegion(mth, (LoopRegion) region)) {</b>
+<i class="no-highlight">66</i>&nbsp;				// optimize `if` block after instructions remove
+<b class="fc"><i class="no-highlight">67</i>&nbsp;				mth.add(AFlag.REQUEST_IF_REGION_OPTIMIZE);</b>
+<i class="no-highlight">68</i>&nbsp;			}
+<i class="no-highlight">69</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		return true;</b>
+<i class="no-highlight">71</i>&nbsp;	}
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;	private static boolean processLoopRegion(MethodNode mth, LoopRegion loopRegion) {
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		if (loopRegion.isConditionAtEnd()) {</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;			return false;</b>
+<i class="no-highlight">76</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		IfCondition condition = loopRegion.getCondition();</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		if (condition == null) {</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;			return false;</b>
+<i class="no-highlight">80</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		if (checkForIndexedLoop(mth, loopRegion, condition)) {</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			return true;</b>
+<i class="no-highlight">83</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		return checkIterableForEach(mth, loopRegion, condition);</b>
+<i class="no-highlight">85</i>&nbsp;	}
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;	/**
+<i class="no-highlight">88</i>&nbsp;	 * Check for indexed loop.
+<i class="no-highlight">89</i>&nbsp;	 */
+<i class="no-highlight">90</i>&nbsp;	private static boolean checkForIndexedLoop(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		BlockNode loopEndBlock = loopRegion.getInfo().getEnd();</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		InsnNode incrInsn = BlockUtils.getLastInsn(BlockUtils.skipSyntheticPredecessor(loopEndBlock));</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		if (incrInsn == null) {</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;			return false;</b>
+<i class="no-highlight">95</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		RegisterArg incrArg = incrInsn.getResult();</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		if (incrArg == null</b>
+<b class="pc"><i class="no-highlight">98</i>&nbsp;				|| incrArg.getSVar() == null</b>
+<b class="pc"><i class="no-highlight">99</i>&nbsp;				|| !incrArg.getSVar().isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;			return false;</b>
+<i class="no-highlight">101</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		List&lt;PhiInsn&gt; phiInsnList = incrArg.getSVar().getUsedInPhi();</b>
+<b class="pc"><i class="no-highlight">103</i>&nbsp;		if (phiInsnList.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;			return false;</b>
+<i class="no-highlight">105</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		PhiInsn phiInsn = phiInsnList.get(0);</b>
+<b class="pc"><i class="no-highlight">107</i>&nbsp;		if (phiInsn.getArgsCount() != 2</b>
+<b class="pc"><i class="no-highlight">108</i>&nbsp;				|| !phiInsn.containsVar(incrArg)</b>
+<b class="pc"><i class="no-highlight">109</i>&nbsp;				|| incrArg.getSVar().getUseCount() != 1) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;			return false;</b>
+<i class="no-highlight">111</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		RegisterArg arg = phiInsn.getResult();</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		List&lt;RegisterArg&gt; condArgs = condition.getRegisterArgs();</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		if (!condArgs.contains(arg) || arg.getSVar().isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;			return false;</b>
+<i class="no-highlight">116</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		RegisterArg initArg = phiInsn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		InsnNode initInsn = initArg.getAssignInsn();</b>
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		if (initInsn == null</b>
+<b class="fc"><i class="no-highlight">120</i>&nbsp;				|| initInsn.contains(AFlag.DONT_GENERATE)</b>
+<b class="fc"><i class="no-highlight">121</i>&nbsp;				|| initArg.getSVar().getUseCount() != 1) {</b>
+<b class="fc"><i class="no-highlight">122</i>&nbsp;			return false;</b>
+<i class="no-highlight">123</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		if (!usedOnlyInLoop(mth, loopRegion, arg)) {</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;			return false;</b>
+<i class="no-highlight">126</i>&nbsp;		}
+<i class="no-highlight">127</i>&nbsp;		// can&#39;t make loop if argument from increment instruction is assign in loop
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		List&lt;RegisterArg&gt; args = new LinkedList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		incrInsn.getRegisterArgs(args);</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		for (RegisterArg iArg : args) {</b>
+<i class="no-highlight">131</i>&nbsp;			try {
+<b class="fc"><i class="no-highlight">132</i>&nbsp;				if (assignOnlyInLoop(mth, loopRegion, iArg)) {</b>
+<b class="fc"><i class="no-highlight">133</i>&nbsp;					return false;</b>
+<i class="no-highlight">134</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">135</i>&nbsp;			} catch (StackOverflowError error) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;				throw new JadxOverflowException(&quot;LoopRegionVisitor.assignOnlyInLoop endless recursion&quot;);</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;		}</b>
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;		// all checks passed
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		initInsn.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;		incrInsn.add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">143</i>&nbsp;
+<b class="fc"><i class="no-highlight">144</i>&nbsp;		LoopType arrForEach = checkArrayForEach(mth, loopRegion, initInsn, incrInsn, condition);</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		loopRegion.setType(arrForEach != null ? arrForEach : new ForLoop(initInsn, incrInsn));</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		return true;</b>
+<i class="no-highlight">147</i>&nbsp;	}
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;	private static LoopType checkArrayForEach(MethodNode mth, LoopRegion loopRegion, InsnNode initInsn, InsnNode incrInsn,
+<i class="no-highlight">150</i>&nbsp;			IfCondition condition) {
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		if (!(incrInsn instanceof ArithNode)) {</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;			return null;</b>
+<i class="no-highlight">153</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		ArithNode arithNode = (ArithNode) incrInsn;</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;		if (arithNode.getOp() != ArithOp.ADD) {</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;			return null;</b>
+<i class="no-highlight">157</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		InsnArg lit = incrInsn.getArg(1);</b>
+<b class="pc"><i class="no-highlight">159</i>&nbsp;		if (!lit.isLiteral() || ((LiteralArg) lit).getLiteral() != 1) {</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;			return null;</b>
+<i class="no-highlight">161</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		if (initInsn.getType() != InsnType.CONST</b>
+<b class="pc"><i class="no-highlight">163</i>&nbsp;				|| !initInsn.getArg(0).isLiteral()</b>
+<b class="fc"><i class="no-highlight">164</i>&nbsp;				|| ((LiteralArg) initInsn.getArg(0)).getLiteral() != 0) {</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;			return null;</b>
+<i class="no-highlight">166</i>&nbsp;		}
+<i class="no-highlight">167</i>&nbsp;
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		InsnArg condArg = incrInsn.getArg(0);</b>
+<b class="pc"><i class="no-highlight">169</i>&nbsp;		if (!condArg.isRegister()) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;			return null;</b>
+<i class="no-highlight">171</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		SSAVar sVar = ((RegisterArg) condArg).getSVar();</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		List&lt;RegisterArg&gt; args = sVar.getUseList();</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		if (args.size() != 3) {</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			return null;</b>
+<i class="no-highlight">176</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">177</i>&nbsp;		condArg = InsnUtils.getRegFromInsn(args, InsnType.IF);</b>
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		if (condArg == null) {</b>
+<b class="fc"><i class="no-highlight">179</i>&nbsp;			return null;</b>
+<i class="no-highlight">180</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">181</i>&nbsp;		RegisterArg arrIndex = InsnUtils.getRegFromInsn(args, InsnType.AGET);</b>
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		if (arrIndex == null) {</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;			return null;</b>
+<i class="no-highlight">184</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">185</i>&nbsp;		InsnNode arrGetInsn = arrIndex.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">186</i>&nbsp;		if (arrGetInsn == null || arrGetInsn.containsWrappedInsn()) {</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;			return null;</b>
+<i class="no-highlight">188</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">189</i>&nbsp;		if (!condition.isCompare()) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			return null;</b>
+<i class="no-highlight">191</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">192</i>&nbsp;		Compare compare = condition.getCompare();</b>
+<b class="pc"><i class="no-highlight">193</i>&nbsp;		if (compare.getOp() != IfOp.LT || compare.getA() != condArg) {</b>
+<b class="fc"><i class="no-highlight">194</i>&nbsp;			return null;</b>
+<i class="no-highlight">195</i>&nbsp;		}
+<i class="no-highlight">196</i>&nbsp;		InsnNode len;
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		InsnArg bCondArg = compare.getB();</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;		if (bCondArg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;			len = ((InsnWrapArg) bCondArg).getWrapInsn();</b>
+<b class="pc"><i class="no-highlight">200</i>&nbsp;		} else if (bCondArg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">201</i>&nbsp;			len = ((RegisterArg) bCondArg).getAssignInsn();</b>
+<i class="no-highlight">202</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;			return null;</b>
+<i class="no-highlight">204</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">205</i>&nbsp;		if (len == null || len.getType() != InsnType.ARRAY_LENGTH) {</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;			return null;</b>
+<i class="no-highlight">207</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">208</i>&nbsp;		InsnArg arrayArg = len.getArg(0);</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;		if (!arrayArg.equals(arrGetInsn.getArg(0))) {</b>
+<b class="fc"><i class="no-highlight">210</i>&nbsp;			return null;</b>
+<i class="no-highlight">211</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		RegisterArg iterVar = arrGetInsn.getResult();</b>
+<b class="pc"><i class="no-highlight">213</i>&nbsp;		if (iterVar == null) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;			return null;</b>
+<i class="no-highlight">215</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;			return null;</b>
+<i class="no-highlight">218</i>&nbsp;		}
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;		// array for each loop confirmed
+<b class="fc"><i class="no-highlight">221</i>&nbsp;		incrInsn.getResult().add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;		condArg.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;		bCondArg.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">224</i>&nbsp;		arrGetInsn.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		compare.getInsn().add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">226</i>&nbsp;
+<b class="fc"><i class="no-highlight">227</i>&nbsp;		if (arrGetInsn.contains(AFlag.WRAPPED)) {</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);</b>
+<b class="pc"><i class="no-highlight">229</i>&nbsp;			if (wrapArg != null &amp;&amp; wrapArg.getParentInsn() != null) {</b>
+<b class="fc"><i class="no-highlight">230</i>&nbsp;				InsnNode parentInsn = wrapArg.getParentInsn();</b>
+<b class="fc"><i class="no-highlight">231</i>&nbsp;				parentInsn.replaceArg(wrapArg, iterVar.duplicate());</b>
+<b class="fc"><i class="no-highlight">232</i>&nbsp;				parentInsn.rebindArgs();</b>
+<b class="fc"><i class="no-highlight">233</i>&nbsp;			} else {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;				LOG.debug(&quot; checkArrayForEach: Wrapped insn not found: {}, mth: {}&quot;, arrGetInsn, mth);</b>
+<i class="no-highlight">235</i>&nbsp;			}
+<i class="no-highlight">236</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		ForEachLoop forEachLoop = new ForEachLoop(iterVar, len.getArg(0));</b>
+<b class="fc"><i class="no-highlight">238</i>&nbsp;		forEachLoop.injectFakeInsns(loopRegion);</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;		if (InsnUtils.dontGenerateIfNotUsed(len)) {</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;			InsnRemover.remove(mth, len);</b>
+<i class="no-highlight">241</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">242</i>&nbsp;		CodeShrinkVisitor.shrinkMethod(mth);</b>
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		return forEachLoop;</b>
+<i class="no-highlight">244</i>&nbsp;	}
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;	private static boolean checkIterableForEach(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
+<b class="fc"><i class="no-highlight">247</i>&nbsp;		List&lt;RegisterArg&gt; condArgs = condition.getRegisterArgs();</b>
+<b class="fc"><i class="no-highlight">248</i>&nbsp;		if (condArgs.size() != 1) {</b>
+<b class="fc"><i class="no-highlight">249</i>&nbsp;			return false;</b>
+<i class="no-highlight">250</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		RegisterArg iteratorArg = condArgs.get(0);</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		SSAVar sVar = iteratorArg.getSVar();</b>
+<b class="pc"><i class="no-highlight">253</i>&nbsp;		if (sVar == null || sVar.isUsedInPhi()) {</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;			return false;</b>
+<i class="no-highlight">255</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		List&lt;RegisterArg&gt; itUseList = sVar.getUseList();</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		InsnNode assignInsn = iteratorArg.getAssignInsn();</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		if (itUseList.size() != 2) {</b>
+<b class="fc"><i class="no-highlight">259</i>&nbsp;			return false;</b>
+<i class="no-highlight">260</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">261</i>&nbsp;		if (!checkInvoke(assignInsn, null, &quot;iterator()Ljava/util/Iterator;&quot;)) {</b>
+<b class="fc"><i class="no-highlight">262</i>&nbsp;			return false;</b>
+<i class="no-highlight">263</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">264</i>&nbsp;		InsnArg iterableArg = assignInsn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;		InsnNode hasNextCall = itUseList.get(0).getParentInsn();</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;		InsnNode nextCall = itUseList.get(1).getParentInsn();</b>
+<b class="pc"><i class="no-highlight">267</i>&nbsp;		if (!checkInvoke(hasNextCall, &quot;java.util.Iterator&quot;, &quot;hasNext()Z&quot;)</b>
+<b class="pc"><i class="no-highlight">268</i>&nbsp;				|| !checkInvoke(nextCall, &quot;java.util.Iterator&quot;, &quot;next()Ljava/lang/Object;&quot;)) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;			return false;</b>
+<i class="no-highlight">270</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">271</i>&nbsp;		List&lt;InsnNode&gt; toSkip = new LinkedList&lt;&gt;();</b>
+<i class="no-highlight">272</i>&nbsp;		RegisterArg iterVar;
+<b class="fc"><i class="no-highlight">273</i>&nbsp;		if (nextCall.contains(AFlag.WRAPPED)) {</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);</b>
+<b class="pc"><i class="no-highlight">275</i>&nbsp;			if (wrapArg != null &amp;&amp; wrapArg.getParentInsn() != null) {</b>
+<b class="fc"><i class="no-highlight">276</i>&nbsp;				InsnNode parentInsn = wrapArg.getParentInsn();</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;				BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);</b>
+<b class="pc"><i class="no-highlight">278</i>&nbsp;				if (block == null) {</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;					return false;</b>
+<i class="no-highlight">280</i>&nbsp;				}
+<b class="pc"><i class="no-highlight">281</i>&nbsp;				if (!RegionUtils.isRegionContainsBlock(loopRegion, block)) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;					return false;</b>
+<i class="no-highlight">283</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">284</i>&nbsp;				if (parentInsn.getType() == InsnType.CHECK_CAST) {</b>
+<b class="fc"><i class="no-highlight">285</i>&nbsp;					iterVar = parentInsn.getResult();</b>
+<b class="pc"><i class="no-highlight">286</i>&nbsp;					if (iterVar == null || !fixIterableType(mth, iterableArg, iterVar)) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;						return false;</b>
+<i class="no-highlight">288</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">289</i>&nbsp;					InsnArg castArg = BlockUtils.searchWrappedInsnParent(mth, parentInsn);</b>
+<b class="pc"><i class="no-highlight">290</i>&nbsp;					if (castArg != null &amp;&amp; castArg.getParentInsn() != null) {</b>
+<b class="fc"><i class="no-highlight">291</i>&nbsp;						castArg.getParentInsn().replaceArg(castArg, iterVar);</b>
+<i class="no-highlight">292</i>&nbsp;					} else {
+<i class="no-highlight">293</i>&nbsp;						// cast not inlined
+<b class="fc"><i class="no-highlight">294</i>&nbsp;						toSkip.add(parentInsn);</b>
+<i class="no-highlight">295</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">296</i>&nbsp;				} else {</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;					iterVar = nextCall.getResult();</b>
+<b class="pc"><i class="no-highlight">298</i>&nbsp;					if (iterVar == null) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;						return false;</b>
+<i class="no-highlight">300</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">301</i>&nbsp;					iterVar.remove(AFlag.REMOVE); // restore variable from inlined insn</b>
+<b class="fc"><i class="no-highlight">302</i>&nbsp;					nextCall.add(AFlag.DONT_GENERATE);</b>
+<b class="pc"><i class="no-highlight">303</i>&nbsp;					if (!fixIterableType(mth, iterableArg, iterVar)) {</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;						return false;</b>
+<i class="no-highlight">305</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">306</i>&nbsp;					parentInsn.replaceArg(wrapArg, iterVar);</b>
+<i class="no-highlight">307</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">308</i>&nbsp;			} else {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;				LOG.warn(&quot; checkIterableForEach: Wrapped insn not found: {}, mth: {}&quot;, nextCall, mth);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;				return false;</b>
+<i class="no-highlight">311</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;			iterVar = nextCall.getResult();</b>
+<b class="pc"><i class="no-highlight">314</i>&nbsp;			if (iterVar == null) {</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;				return false;</b>
+<i class="no-highlight">316</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">317</i>&nbsp;			if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {</b>
+<b class="fc"><i class="no-highlight">318</i>&nbsp;				return false;</b>
+<i class="no-highlight">319</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">320</i>&nbsp;			if (!assignOnlyInLoop(mth, loopRegion, iterVar)) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;				return false;</b>
+<i class="no-highlight">322</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">323</i>&nbsp;			toSkip.add(nextCall);</b>
+<i class="no-highlight">324</i>&nbsp;		}
+<i class="no-highlight">325</i>&nbsp;
+<b class="fc"><i class="no-highlight">326</i>&nbsp;		assignInsn.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		assignInsn.getResult().add(AFlag.DONT_GENERATE);</b>
+<i class="no-highlight">328</i>&nbsp;
+<b class="fc"><i class="no-highlight">329</i>&nbsp;		for (InsnNode insnNode : toSkip) {</b>
+<b class="fc"><i class="no-highlight">330</i>&nbsp;			insnNode.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">332</i>&nbsp;		for (RegisterArg itArg : itUseList) {</b>
+<b class="fc"><i class="no-highlight">333</i>&nbsp;			itArg.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		ForEachLoop forEachLoop = new ForEachLoop(iterVar, iterableArg);</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;		forEachLoop.injectFakeInsns(loopRegion);</b>
+<b class="fc"><i class="no-highlight">337</i>&nbsp;		loopRegion.setType(forEachLoop);</b>
+<b class="fc"><i class="no-highlight">338</i>&nbsp;		return true;</b>
+<i class="no-highlight">339</i>&nbsp;	}
+<i class="no-highlight">340</i>&nbsp;
+<i class="no-highlight">341</i>&nbsp;	private static boolean fixIterableType(MethodNode mth, InsnArg iterableArg, RegisterArg iterVar) {
+<b class="fc"><i class="no-highlight">342</i>&nbsp;		ArgType iterableType = iterableArg.getType();</b>
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		ArgType varType = iterVar.getType();</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		if (iterableType.isGeneric()) {</b>
+<b class="fc"><i class="no-highlight">345</i>&nbsp;			List&lt;ArgType&gt; genericTypes = iterableType.getGenericTypes();</b>
+<b class="pc"><i class="no-highlight">346</i>&nbsp;			if (genericTypes == null || genericTypes.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;				return false;</b>
+<i class="no-highlight">348</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">349</i>&nbsp;			ArgType gType = genericTypes.get(0);</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;			if (gType.equals(varType)) {</b>
+<b class="fc"><i class="no-highlight">351</i>&nbsp;				return true;</b>
+<i class="no-highlight">352</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">353</i>&nbsp;			if (gType.isGenericType()) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;				iterVar.setType(gType);</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;				return true;</b>
+<i class="no-highlight">356</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">357</i>&nbsp;			if (ArgType.isInstanceOf(mth.root(), gType, varType)) {</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;				return true;</b>
+<i class="no-highlight">359</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">360</i>&nbsp;			ArgType wildcardType = gType.getWildcardType();</b>
+<b class="pc"><i class="no-highlight">361</i>&nbsp;			if (wildcardType != null</b>
+<b class="pc"><i class="no-highlight">362</i>&nbsp;					&amp;&amp; gType.getWildcardBound() == ArgType.WildcardBound.EXTENDS</b>
+<b class="pc"><i class="no-highlight">363</i>&nbsp;					&amp;&amp; ArgType.isInstanceOf(mth.root(), wildcardType, varType)) {</b>
+<b class="fc"><i class="no-highlight">364</i>&nbsp;				return true;</b>
+<i class="no-highlight">365</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">366</i>&nbsp;			LOG.warn(&quot;Generic type differs: &#39;{}&#39; and &#39;{}&#39; in {}&quot;, gType, varType, mth);</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;			return false;</b>
+<i class="no-highlight">368</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">369</i>&nbsp;		if (!iterableArg.isRegister() || !iterableType.isObject()) {</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;			return true;</b>
+<i class="no-highlight">371</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">372</i>&nbsp;		ArgType genericType = ArgType.generic(iterableType.getObject(), varType);</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;		if (iterableArg.isRegister()) {</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;			ArgType immutableType = ((RegisterArg) iterableArg).getImmutableType();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;			if (immutableType != null &amp;&amp; !immutableType.equals(genericType)) {</b>
+<i class="no-highlight">376</i>&nbsp;				// can&#39;t change type
+<i class="no-highlight">377</i>&nbsp;				// allow to iterate over not generified collection only for Object vars
+<b class="nc"><i class="no-highlight">378</i>&nbsp;				return varType.equals(ArgType.OBJECT);</b>
+<i class="no-highlight">379</i>&nbsp;			}
+<i class="no-highlight">380</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">381</i>&nbsp;		iterableArg.setType(genericType);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;		return true;</b>
+<i class="no-highlight">383</i>&nbsp;	}
+<i class="no-highlight">384</i>&nbsp;
+<i class="no-highlight">385</i>&nbsp;	/**
+<i class="no-highlight">386</i>&nbsp;	 * Check if instruction is a interface invoke with corresponding parameters.
+<i class="no-highlight">387</i>&nbsp;	 */
+<i class="no-highlight">388</i>&nbsp;	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId) {
+<b class="pc"><i class="no-highlight">389</i>&nbsp;		if (insn == null) {</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;			return false;</b>
+<i class="no-highlight">391</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">392</i>&nbsp;		if (insn.getType() == InsnType.INVOKE) {</b>
+<b class="fc"><i class="no-highlight">393</i>&nbsp;			InvokeNode inv = (InvokeNode) insn;</b>
+<b class="fc"><i class="no-highlight">394</i>&nbsp;			MethodInfo callMth = inv.getCallMth();</b>
+<b class="pc"><i class="no-highlight">395</i>&nbsp;			if (inv.getInvokeType() == InvokeType.INTERFACE</b>
+<b class="pc"><i class="no-highlight">396</i>&nbsp;					&amp;&amp; callMth.getShortId().equals(mthId)) {</b>
+<b class="fc"><i class="no-highlight">397</i>&nbsp;				if (declClsFullName == null) {</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;					return true;</b>
+<i class="no-highlight">399</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">400</i>&nbsp;				return callMth.getDeclClass().getFullName().equals(declClsFullName);</b>
+<i class="no-highlight">401</i>&nbsp;			}
+<i class="no-highlight">402</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">403</i>&nbsp;		return false;</b>
+<i class="no-highlight">404</i>&nbsp;	}
+<i class="no-highlight">405</i>&nbsp;
+<i class="no-highlight">406</i>&nbsp;	private static boolean assignOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
+<b class="fc"><i class="no-highlight">407</i>&nbsp;		InsnNode assignInsn = arg.getAssignInsn();</b>
+<b class="pc"><i class="no-highlight">408</i>&nbsp;		if (assignInsn == null) {</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;			return true;</b>
+<i class="no-highlight">410</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">411</i>&nbsp;		if (!argInLoop(mth, loopRegion, assignInsn.getResult())) {</b>
+<b class="fc"><i class="no-highlight">412</i>&nbsp;			return false;</b>
+<i class="no-highlight">413</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">414</i>&nbsp;		if (assignInsn instanceof PhiInsn) {</b>
+<b class="fc"><i class="no-highlight">415</i>&nbsp;			PhiInsn phiInsn = (PhiInsn) assignInsn;</b>
+<b class="fc"><i class="no-highlight">416</i>&nbsp;			for (InsnArg phiArg : phiInsn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">417</i>&nbsp;				if (!assignOnlyInLoop(mth, loopRegion, (RegisterArg) phiArg)) {</b>
+<b class="fc"><i class="no-highlight">418</i>&nbsp;					return false;</b>
+<i class="no-highlight">419</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">420</i>&nbsp;			}</b>
+<i class="no-highlight">421</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">422</i>&nbsp;		return true;</b>
+<i class="no-highlight">423</i>&nbsp;	}
+<i class="no-highlight">424</i>&nbsp;
+<i class="no-highlight">425</i>&nbsp;	private static boolean usedOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
+<b class="fc"><i class="no-highlight">426</i>&nbsp;		List&lt;RegisterArg&gt; useList = arg.getSVar().getUseList();</b>
+<b class="fc"><i class="no-highlight">427</i>&nbsp;		for (RegisterArg useArg : useList) {</b>
+<b class="fc"><i class="no-highlight">428</i>&nbsp;			if (!argInLoop(mth, loopRegion, useArg)) {</b>
+<b class="fc"><i class="no-highlight">429</i>&nbsp;				return false;</b>
+<i class="no-highlight">430</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">431</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">432</i>&nbsp;		return true;</b>
+<i class="no-highlight">433</i>&nbsp;	}
+<i class="no-highlight">434</i>&nbsp;
+<i class="no-highlight">435</i>&nbsp;	private static boolean argInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
+<b class="fc"><i class="no-highlight">436</i>&nbsp;		InsnNode parentInsn = arg.getParentInsn();</b>
+<b class="pc"><i class="no-highlight">437</i>&nbsp;		if (parentInsn == null) {</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;			return false;</b>
+<i class="no-highlight">439</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">440</i>&nbsp;		BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);</b>
+<b class="pc"><i class="no-highlight">441</i>&nbsp;		if (block == null) {</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;			LOG.debug(&quot; LoopRegionVisitor: instruction not found: {}, mth: {}&quot;, parentInsn, mth);</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;			return false;</b>
+<i class="no-highlight">444</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">445</i>&nbsp;		return RegionUtils.isRegionContainsBlock(loopRegion, block);</b>
+<i class="no-highlight">446</i>&nbsp;	}
+<i class="no-highlight">447</i>&nbsp;
+<i class="no-highlight">448</i>&nbsp;	@Override
+<i class="no-highlight">449</i>&nbsp;	public void leaveRegion(MethodNode mth, IRegion region) {
+<i class="no-highlight">450</i>&nbsp;	}
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;	@Override
+<i class="no-highlight">453</i>&nbsp;	public void processBlock(MethodNode mth, IBlock container) {
+<i class="no-highlight">454</i>&nbsp;	}
+<i class="no-highlight">455</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

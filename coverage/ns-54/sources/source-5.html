@@ -1,0 +1,338 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DexOpcodes</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.dex.insns</a>
+</div>
+
+<h1>Coverage Summary for Class: DexOpcodes (jadx.plugins.input.dex.insns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DexOpcodes</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.dex.insns;
+<i class="no-highlight">2</i>&nbsp;
+<b class="nc"><i class="no-highlight">3</i>&nbsp;public class DexOpcodes {</b>
+<i class="no-highlight">4</i>&nbsp;	public static final int NOP = 0x00;
+<i class="no-highlight">5</i>&nbsp;	public static final int MOVE = 0x01;
+<i class="no-highlight">6</i>&nbsp;	public static final int MOVE_FROM16 = 0x02;
+<i class="no-highlight">7</i>&nbsp;	public static final int MOVE_16 = 0x03;
+<i class="no-highlight">8</i>&nbsp;	public static final int MOVE_WIDE = 0x04;
+<i class="no-highlight">9</i>&nbsp;	public static final int MOVE_WIDE_FROM16 = 0x05;
+<i class="no-highlight">10</i>&nbsp;	public static final int MOVE_WIDE_16 = 0x06;
+<i class="no-highlight">11</i>&nbsp;	public static final int MOVE_OBJECT = 0x07;
+<i class="no-highlight">12</i>&nbsp;	public static final int MOVE_OBJECT_FROM16 = 0x08;
+<i class="no-highlight">13</i>&nbsp;	public static final int MOVE_OBJECT_16 = 0x09;
+<i class="no-highlight">14</i>&nbsp;	public static final int MOVE_RESULT = 0x0a;
+<i class="no-highlight">15</i>&nbsp;	public static final int MOVE_RESULT_WIDE = 0x0b;
+<i class="no-highlight">16</i>&nbsp;	public static final int MOVE_RESULT_OBJECT = 0x0c;
+<i class="no-highlight">17</i>&nbsp;	public static final int MOVE_EXCEPTION = 0x0d;
+<i class="no-highlight">18</i>&nbsp;	public static final int RETURN_VOID = 0x0e;
+<i class="no-highlight">19</i>&nbsp;	public static final int RETURN = 0x0f;
+<i class="no-highlight">20</i>&nbsp;	public static final int RETURN_WIDE = 0x10;
+<i class="no-highlight">21</i>&nbsp;	public static final int RETURN_OBJECT = 0x11;
+<i class="no-highlight">22</i>&nbsp;	public static final int CONST_4 = 0x12;
+<i class="no-highlight">23</i>&nbsp;	public static final int CONST_16 = 0x13;
+<i class="no-highlight">24</i>&nbsp;	public static final int CONST = 0x14;
+<i class="no-highlight">25</i>&nbsp;	public static final int CONST_HIGH16 = 0x15;
+<i class="no-highlight">26</i>&nbsp;	public static final int CONST_WIDE_16 = 0x16;
+<i class="no-highlight">27</i>&nbsp;	public static final int CONST_WIDE_32 = 0x17;
+<i class="no-highlight">28</i>&nbsp;	public static final int CONST_WIDE = 0x18;
+<i class="no-highlight">29</i>&nbsp;	public static final int CONST_WIDE_HIGH16 = 0x19;
+<i class="no-highlight">30</i>&nbsp;	public static final int CONST_STRING = 0x1a;
+<i class="no-highlight">31</i>&nbsp;	public static final int CONST_STRING_JUMBO = 0x1b;
+<i class="no-highlight">32</i>&nbsp;	public static final int CONST_CLASS = 0x1c;
+<i class="no-highlight">33</i>&nbsp;	public static final int MONITOR_ENTER = 0x1d;
+<i class="no-highlight">34</i>&nbsp;	public static final int MONITOR_EXIT = 0x1e;
+<i class="no-highlight">35</i>&nbsp;	public static final int CHECK_CAST = 0x1f;
+<i class="no-highlight">36</i>&nbsp;	public static final int INSTANCE_OF = 0x20;
+<i class="no-highlight">37</i>&nbsp;	public static final int ARRAY_LENGTH = 0x21;
+<i class="no-highlight">38</i>&nbsp;	public static final int NEW_INSTANCE = 0x22;
+<i class="no-highlight">39</i>&nbsp;	public static final int NEW_ARRAY = 0x23;
+<i class="no-highlight">40</i>&nbsp;	public static final int FILLED_NEW_ARRAY = 0x24;
+<i class="no-highlight">41</i>&nbsp;	public static final int FILLED_NEW_ARRAY_RANGE = 0x25;
+<i class="no-highlight">42</i>&nbsp;	public static final int FILL_ARRAY_DATA = 0x26;
+<i class="no-highlight">43</i>&nbsp;	public static final int THROW = 0x27;
+<i class="no-highlight">44</i>&nbsp;	public static final int GOTO = 0x28;
+<i class="no-highlight">45</i>&nbsp;	public static final int GOTO_16 = 0x29;
+<i class="no-highlight">46</i>&nbsp;	public static final int GOTO_32 = 0x2a;
+<i class="no-highlight">47</i>&nbsp;	public static final int PACKED_SWITCH = 0x2b;
+<i class="no-highlight">48</i>&nbsp;	public static final int SPARSE_SWITCH = 0x2c;
+<i class="no-highlight">49</i>&nbsp;	public static final int CMPL_FLOAT = 0x2d;
+<i class="no-highlight">50</i>&nbsp;	public static final int CMPG_FLOAT = 0x2e;
+<i class="no-highlight">51</i>&nbsp;	public static final int CMPL_DOUBLE = 0x2f;
+<i class="no-highlight">52</i>&nbsp;	public static final int CMPG_DOUBLE = 0x30;
+<i class="no-highlight">53</i>&nbsp;	public static final int CMP_LONG = 0x31;
+<i class="no-highlight">54</i>&nbsp;	public static final int IF_EQ = 0x32;
+<i class="no-highlight">55</i>&nbsp;	public static final int IF_NE = 0x33;
+<i class="no-highlight">56</i>&nbsp;	public static final int IF_LT = 0x34;
+<i class="no-highlight">57</i>&nbsp;	public static final int IF_GE = 0x35;
+<i class="no-highlight">58</i>&nbsp;	public static final int IF_GT = 0x36;
+<i class="no-highlight">59</i>&nbsp;	public static final int IF_LE = 0x37;
+<i class="no-highlight">60</i>&nbsp;	public static final int IF_EQZ = 0x38;
+<i class="no-highlight">61</i>&nbsp;	public static final int IF_NEZ = 0x39;
+<i class="no-highlight">62</i>&nbsp;	public static final int IF_LTZ = 0x3a;
+<i class="no-highlight">63</i>&nbsp;	public static final int IF_GEZ = 0x3b;
+<i class="no-highlight">64</i>&nbsp;	public static final int IF_GTZ = 0x3c;
+<i class="no-highlight">65</i>&nbsp;	public static final int IF_LEZ = 0x3d;
+<i class="no-highlight">66</i>&nbsp;	public static final int AGET = 0x44;
+<i class="no-highlight">67</i>&nbsp;	public static final int AGET_WIDE = 0x45;
+<i class="no-highlight">68</i>&nbsp;	public static final int AGET_OBJECT = 0x46;
+<i class="no-highlight">69</i>&nbsp;	public static final int AGET_BOOLEAN = 0x47;
+<i class="no-highlight">70</i>&nbsp;	public static final int AGET_BYTE = 0x48;
+<i class="no-highlight">71</i>&nbsp;	public static final int AGET_CHAR = 0x49;
+<i class="no-highlight">72</i>&nbsp;	public static final int AGET_SHORT = 0x4a;
+<i class="no-highlight">73</i>&nbsp;	public static final int APUT = 0x4b;
+<i class="no-highlight">74</i>&nbsp;	public static final int APUT_WIDE = 0x4c;
+<i class="no-highlight">75</i>&nbsp;	public static final int APUT_OBJECT = 0x4d;
+<i class="no-highlight">76</i>&nbsp;	public static final int APUT_BOOLEAN = 0x4e;
+<i class="no-highlight">77</i>&nbsp;	public static final int APUT_BYTE = 0x4f;
+<i class="no-highlight">78</i>&nbsp;	public static final int APUT_CHAR = 0x50;
+<i class="no-highlight">79</i>&nbsp;	public static final int APUT_SHORT = 0x51;
+<i class="no-highlight">80</i>&nbsp;	public static final int IGET = 0x52;
+<i class="no-highlight">81</i>&nbsp;	public static final int IGET_WIDE = 0x53;
+<i class="no-highlight">82</i>&nbsp;	public static final int IGET_OBJECT = 0x54;
+<i class="no-highlight">83</i>&nbsp;	public static final int IGET_BOOLEAN = 0x55;
+<i class="no-highlight">84</i>&nbsp;	public static final int IGET_BYTE = 0x56;
+<i class="no-highlight">85</i>&nbsp;	public static final int IGET_CHAR = 0x57;
+<i class="no-highlight">86</i>&nbsp;	public static final int IGET_SHORT = 0x58;
+<i class="no-highlight">87</i>&nbsp;	public static final int IPUT = 0x59;
+<i class="no-highlight">88</i>&nbsp;	public static final int IPUT_WIDE = 0x5a;
+<i class="no-highlight">89</i>&nbsp;	public static final int IPUT_OBJECT = 0x5b;
+<i class="no-highlight">90</i>&nbsp;	public static final int IPUT_BOOLEAN = 0x5c;
+<i class="no-highlight">91</i>&nbsp;	public static final int IPUT_BYTE = 0x5d;
+<i class="no-highlight">92</i>&nbsp;	public static final int IPUT_CHAR = 0x5e;
+<i class="no-highlight">93</i>&nbsp;	public static final int IPUT_SHORT = 0x5f;
+<i class="no-highlight">94</i>&nbsp;	public static final int SGET = 0x60;
+<i class="no-highlight">95</i>&nbsp;	public static final int SGET_WIDE = 0x61;
+<i class="no-highlight">96</i>&nbsp;	public static final int SGET_OBJECT = 0x62;
+<i class="no-highlight">97</i>&nbsp;	public static final int SGET_BOOLEAN = 0x63;
+<i class="no-highlight">98</i>&nbsp;	public static final int SGET_BYTE = 0x64;
+<i class="no-highlight">99</i>&nbsp;	public static final int SGET_CHAR = 0x65;
+<i class="no-highlight">100</i>&nbsp;	public static final int SGET_SHORT = 0x66;
+<i class="no-highlight">101</i>&nbsp;	public static final int SPUT = 0x67;
+<i class="no-highlight">102</i>&nbsp;	public static final int SPUT_WIDE = 0x68;
+<i class="no-highlight">103</i>&nbsp;	public static final int SPUT_OBJECT = 0x69;
+<i class="no-highlight">104</i>&nbsp;	public static final int SPUT_BOOLEAN = 0x6a;
+<i class="no-highlight">105</i>&nbsp;	public static final int SPUT_BYTE = 0x6b;
+<i class="no-highlight">106</i>&nbsp;	public static final int SPUT_CHAR = 0x6c;
+<i class="no-highlight">107</i>&nbsp;	public static final int SPUT_SHORT = 0x6d;
+<i class="no-highlight">108</i>&nbsp;	public static final int INVOKE_VIRTUAL = 0x6e;
+<i class="no-highlight">109</i>&nbsp;	public static final int INVOKE_SUPER = 0x6f;
+<i class="no-highlight">110</i>&nbsp;	public static final int INVOKE_DIRECT = 0x70;
+<i class="no-highlight">111</i>&nbsp;	public static final int INVOKE_STATIC = 0x71;
+<i class="no-highlight">112</i>&nbsp;	public static final int INVOKE_INTERFACE = 0x72;
+<i class="no-highlight">113</i>&nbsp;	public static final int INVOKE_VIRTUAL_RANGE = 0x74;
+<i class="no-highlight">114</i>&nbsp;	public static final int INVOKE_SUPER_RANGE = 0x75;
+<i class="no-highlight">115</i>&nbsp;	public static final int INVOKE_DIRECT_RANGE = 0x76;
+<i class="no-highlight">116</i>&nbsp;	public static final int INVOKE_STATIC_RANGE = 0x77;
+<i class="no-highlight">117</i>&nbsp;	public static final int INVOKE_INTERFACE_RANGE = 0x78;
+<i class="no-highlight">118</i>&nbsp;	public static final int NEG_INT = 0x7b;
+<i class="no-highlight">119</i>&nbsp;	public static final int NOT_INT = 0x7c;
+<i class="no-highlight">120</i>&nbsp;	public static final int NEG_LONG = 0x7d;
+<i class="no-highlight">121</i>&nbsp;	public static final int NOT_LONG = 0x7e;
+<i class="no-highlight">122</i>&nbsp;	public static final int NEG_FLOAT = 0x7f;
+<i class="no-highlight">123</i>&nbsp;	public static final int NEG_DOUBLE = 0x80;
+<i class="no-highlight">124</i>&nbsp;	public static final int INT_TO_LONG = 0x81;
+<i class="no-highlight">125</i>&nbsp;	public static final int INT_TO_FLOAT = 0x82;
+<i class="no-highlight">126</i>&nbsp;	public static final int INT_TO_DOUBLE = 0x83;
+<i class="no-highlight">127</i>&nbsp;	public static final int LONG_TO_INT = 0x84;
+<i class="no-highlight">128</i>&nbsp;	public static final int LONG_TO_FLOAT = 0x85;
+<i class="no-highlight">129</i>&nbsp;	public static final int LONG_TO_DOUBLE = 0x86;
+<i class="no-highlight">130</i>&nbsp;	public static final int FLOAT_TO_INT = 0x87;
+<i class="no-highlight">131</i>&nbsp;	public static final int FLOAT_TO_LONG = 0x88;
+<i class="no-highlight">132</i>&nbsp;	public static final int FLOAT_TO_DOUBLE = 0x89;
+<i class="no-highlight">133</i>&nbsp;	public static final int DOUBLE_TO_INT = 0x8a;
+<i class="no-highlight">134</i>&nbsp;	public static final int DOUBLE_TO_LONG = 0x8b;
+<i class="no-highlight">135</i>&nbsp;	public static final int DOUBLE_TO_FLOAT = 0x8c;
+<i class="no-highlight">136</i>&nbsp;	public static final int INT_TO_BYTE = 0x8d;
+<i class="no-highlight">137</i>&nbsp;	public static final int INT_TO_CHAR = 0x8e;
+<i class="no-highlight">138</i>&nbsp;	public static final int INT_TO_SHORT = 0x8f;
+<i class="no-highlight">139</i>&nbsp;	public static final int ADD_INT = 0x90;
+<i class="no-highlight">140</i>&nbsp;	public static final int SUB_INT = 0x91;
+<i class="no-highlight">141</i>&nbsp;	public static final int MUL_INT = 0x92;
+<i class="no-highlight">142</i>&nbsp;	public static final int DIV_INT = 0x93;
+<i class="no-highlight">143</i>&nbsp;	public static final int REM_INT = 0x94;
+<i class="no-highlight">144</i>&nbsp;	public static final int AND_INT = 0x95;
+<i class="no-highlight">145</i>&nbsp;	public static final int OR_INT = 0x96;
+<i class="no-highlight">146</i>&nbsp;	public static final int XOR_INT = 0x97;
+<i class="no-highlight">147</i>&nbsp;	public static final int SHL_INT = 0x98;
+<i class="no-highlight">148</i>&nbsp;	public static final int SHR_INT = 0x99;
+<i class="no-highlight">149</i>&nbsp;	public static final int USHR_INT = 0x9a;
+<i class="no-highlight">150</i>&nbsp;	public static final int ADD_LONG = 0x9b;
+<i class="no-highlight">151</i>&nbsp;	public static final int SUB_LONG = 0x9c;
+<i class="no-highlight">152</i>&nbsp;	public static final int MUL_LONG = 0x9d;
+<i class="no-highlight">153</i>&nbsp;	public static final int DIV_LONG = 0x9e;
+<i class="no-highlight">154</i>&nbsp;	public static final int REM_LONG = 0x9f;
+<i class="no-highlight">155</i>&nbsp;	public static final int AND_LONG = 0xa0;
+<i class="no-highlight">156</i>&nbsp;	public static final int OR_LONG = 0xa1;
+<i class="no-highlight">157</i>&nbsp;	public static final int XOR_LONG = 0xa2;
+<i class="no-highlight">158</i>&nbsp;	public static final int SHL_LONG = 0xa3;
+<i class="no-highlight">159</i>&nbsp;	public static final int SHR_LONG = 0xa4;
+<i class="no-highlight">160</i>&nbsp;	public static final int USHR_LONG = 0xa5;
+<i class="no-highlight">161</i>&nbsp;	public static final int ADD_FLOAT = 0xa6;
+<i class="no-highlight">162</i>&nbsp;	public static final int SUB_FLOAT = 0xa7;
+<i class="no-highlight">163</i>&nbsp;	public static final int MUL_FLOAT = 0xa8;
+<i class="no-highlight">164</i>&nbsp;	public static final int DIV_FLOAT = 0xa9;
+<i class="no-highlight">165</i>&nbsp;	public static final int REM_FLOAT = 0xaa;
+<i class="no-highlight">166</i>&nbsp;	public static final int ADD_DOUBLE = 0xab;
+<i class="no-highlight">167</i>&nbsp;	public static final int SUB_DOUBLE = 0xac;
+<i class="no-highlight">168</i>&nbsp;	public static final int MUL_DOUBLE = 0xad;
+<i class="no-highlight">169</i>&nbsp;	public static final int DIV_DOUBLE = 0xae;
+<i class="no-highlight">170</i>&nbsp;	public static final int REM_DOUBLE = 0xaf;
+<i class="no-highlight">171</i>&nbsp;	public static final int ADD_INT_2ADDR = 0xb0;
+<i class="no-highlight">172</i>&nbsp;	public static final int SUB_INT_2ADDR = 0xb1;
+<i class="no-highlight">173</i>&nbsp;	public static final int MUL_INT_2ADDR = 0xb2;
+<i class="no-highlight">174</i>&nbsp;	public static final int DIV_INT_2ADDR = 0xb3;
+<i class="no-highlight">175</i>&nbsp;	public static final int REM_INT_2ADDR = 0xb4;
+<i class="no-highlight">176</i>&nbsp;	public static final int AND_INT_2ADDR = 0xb5;
+<i class="no-highlight">177</i>&nbsp;	public static final int OR_INT_2ADDR = 0xb6;
+<i class="no-highlight">178</i>&nbsp;	public static final int XOR_INT_2ADDR = 0xb7;
+<i class="no-highlight">179</i>&nbsp;	public static final int SHL_INT_2ADDR = 0xb8;
+<i class="no-highlight">180</i>&nbsp;	public static final int SHR_INT_2ADDR = 0xb9;
+<i class="no-highlight">181</i>&nbsp;	public static final int USHR_INT_2ADDR = 0xba;
+<i class="no-highlight">182</i>&nbsp;	public static final int ADD_LONG_2ADDR = 0xbb;
+<i class="no-highlight">183</i>&nbsp;	public static final int SUB_LONG_2ADDR = 0xbc;
+<i class="no-highlight">184</i>&nbsp;	public static final int MUL_LONG_2ADDR = 0xbd;
+<i class="no-highlight">185</i>&nbsp;	public static final int DIV_LONG_2ADDR = 0xbe;
+<i class="no-highlight">186</i>&nbsp;	public static final int REM_LONG_2ADDR = 0xbf;
+<i class="no-highlight">187</i>&nbsp;	public static final int AND_LONG_2ADDR = 0xc0;
+<i class="no-highlight">188</i>&nbsp;	public static final int OR_LONG_2ADDR = 0xc1;
+<i class="no-highlight">189</i>&nbsp;	public static final int XOR_LONG_2ADDR = 0xc2;
+<i class="no-highlight">190</i>&nbsp;	public static final int SHL_LONG_2ADDR = 0xc3;
+<i class="no-highlight">191</i>&nbsp;	public static final int SHR_LONG_2ADDR = 0xc4;
+<i class="no-highlight">192</i>&nbsp;	public static final int USHR_LONG_2ADDR = 0xc5;
+<i class="no-highlight">193</i>&nbsp;	public static final int ADD_FLOAT_2ADDR = 0xc6;
+<i class="no-highlight">194</i>&nbsp;	public static final int SUB_FLOAT_2ADDR = 0xc7;
+<i class="no-highlight">195</i>&nbsp;	public static final int MUL_FLOAT_2ADDR = 0xc8;
+<i class="no-highlight">196</i>&nbsp;	public static final int DIV_FLOAT_2ADDR = 0xc9;
+<i class="no-highlight">197</i>&nbsp;	public static final int REM_FLOAT_2ADDR = 0xca;
+<i class="no-highlight">198</i>&nbsp;	public static final int ADD_DOUBLE_2ADDR = 0xcb;
+<i class="no-highlight">199</i>&nbsp;	public static final int SUB_DOUBLE_2ADDR = 0xcc;
+<i class="no-highlight">200</i>&nbsp;	public static final int MUL_DOUBLE_2ADDR = 0xcd;
+<i class="no-highlight">201</i>&nbsp;	public static final int DIV_DOUBLE_2ADDR = 0xce;
+<i class="no-highlight">202</i>&nbsp;	public static final int REM_DOUBLE_2ADDR = 0xcf;
+<i class="no-highlight">203</i>&nbsp;	public static final int ADD_INT_LIT16 = 0xd0;
+<i class="no-highlight">204</i>&nbsp;	public static final int RSUB_INT = 0xd1;
+<i class="no-highlight">205</i>&nbsp;	public static final int MUL_INT_LIT16 = 0xd2;
+<i class="no-highlight">206</i>&nbsp;	public static final int DIV_INT_LIT16 = 0xd3;
+<i class="no-highlight">207</i>&nbsp;	public static final int REM_INT_LIT16 = 0xd4;
+<i class="no-highlight">208</i>&nbsp;	public static final int AND_INT_LIT16 = 0xd5;
+<i class="no-highlight">209</i>&nbsp;	public static final int OR_INT_LIT16 = 0xd6;
+<i class="no-highlight">210</i>&nbsp;	public static final int XOR_INT_LIT16 = 0xd7;
+<i class="no-highlight">211</i>&nbsp;	public static final int ADD_INT_LIT8 = 0xd8;
+<i class="no-highlight">212</i>&nbsp;	public static final int RSUB_INT_LIT8 = 0xd9;
+<i class="no-highlight">213</i>&nbsp;	public static final int MUL_INT_LIT8 = 0xda;
+<i class="no-highlight">214</i>&nbsp;	public static final int DIV_INT_LIT8 = 0xdb;
+<i class="no-highlight">215</i>&nbsp;	public static final int REM_INT_LIT8 = 0xdc;
+<i class="no-highlight">216</i>&nbsp;	public static final int AND_INT_LIT8 = 0xdd;
+<i class="no-highlight">217</i>&nbsp;	public static final int OR_INT_LIT8 = 0xde;
+<i class="no-highlight">218</i>&nbsp;	public static final int XOR_INT_LIT8 = 0xdf;
+<i class="no-highlight">219</i>&nbsp;	public static final int SHL_INT_LIT8 = 0xe0;
+<i class="no-highlight">220</i>&nbsp;	public static final int SHR_INT_LIT8 = 0xe1;
+<i class="no-highlight">221</i>&nbsp;	public static final int USHR_INT_LIT8 = 0xe2;
+<i class="no-highlight">222</i>&nbsp;	public static final int INVOKE_POLYMORPHIC = 0xfa;
+<i class="no-highlight">223</i>&nbsp;	public static final int INVOKE_POLYMORPHIC_RANGE = 0xfb;
+<i class="no-highlight">224</i>&nbsp;	public static final int INVOKE_CUSTOM = 0xfc;
+<i class="no-highlight">225</i>&nbsp;	public static final int INVOKE_CUSTOM_RANGE = 0xfd;
+<i class="no-highlight">226</i>&nbsp;	public static final int CONST_METHOD_HANDLE = 0xfe;
+<i class="no-highlight">227</i>&nbsp;	public static final int CONST_METHOD_TYPE = 0xff;
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;	// payload pseudo-instructions
+<i class="no-highlight">230</i>&nbsp;	public static final int PACKED_SWITCH_PAYLOAD = 0x0100;
+<i class="no-highlight">231</i>&nbsp;	public static final int SPARSE_SWITCH_PAYLOAD = 0x0200;
+<i class="no-highlight">232</i>&nbsp;	public static final int FILL_ARRAY_DATA_PAYLOAD = 0x0300;
+<i class="no-highlight">233</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

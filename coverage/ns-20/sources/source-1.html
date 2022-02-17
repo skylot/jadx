@@ -1,0 +1,275 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConstructorInsn</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.instructions.mods</a>
+</div>
+
+<h1>Coverage Summary for Class: ConstructorInsn (jadx.core.dex.instructions.mods)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConstructorInsn</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (14/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53.8%
+  </span>
+  <span class="absValue">
+    (7/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.2%
+  </span>
+  <span class="absValue">
+    (30/34)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ConstructorInsn$CallType</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    88.2%
+  </span>
+  <span class="absValue">
+    (15/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53.8%
+  </span>
+  <span class="absValue">
+    (7/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89.7%
+  </span>
+  <span class="absValue">
+    (35/39)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.instructions.mods;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">6</i>&nbsp;import jadx.core.dex.info.MethodInfo;
+<i class="no-highlight">7</i>&nbsp;import jadx.core.dex.instructions.BaseInvokeNode;
+<i class="no-highlight">8</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">9</i>&nbsp;import jadx.core.dex.instructions.InvokeNode;
+<i class="no-highlight">10</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">11</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">12</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">13</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;public final class ConstructorInsn extends BaseInvokeNode {
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;	private final MethodInfo callMth;
+<i class="no-highlight">18</i>&nbsp;	private final CallType callType;
+<i class="no-highlight">19</i>&nbsp;
+<b class="fc"><i class="no-highlight">20</i>&nbsp;	public enum CallType {</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		CONSTRUCTOR, // just new instance</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		SUPER, // super call</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		THIS, // call constructor from other constructor</b>
+<b class="fc"><i class="no-highlight">24</i>&nbsp;		SELF // call itself</b>
+<i class="no-highlight">25</i>&nbsp;	}
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
+<b class="fc"><i class="no-highlight">28</i>&nbsp;		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.callMth = invoke.getCallMth();</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		this.callType = getCallType(mth, callMth.getDeclClass(), invoke.getArg(0));</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		int argsCount = invoke.getArgsCount();</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;		for (int i = 1; i &lt; argsCount; i++) {</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;			addArg(invoke.getArg(i));</b>
+<i class="no-highlight">34</i>&nbsp;		}
+<i class="no-highlight">35</i>&nbsp;	}
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;	private CallType getCallType(MethodNode mth, ClassInfo classType, InsnArg instanceArg) {
+<b class="fc"><i class="no-highlight">38</i>&nbsp;		if (!instanceArg.isThis()) {</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;			return CallType.CONSTRUCTOR;</b>
+<i class="no-highlight">40</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">41</i>&nbsp;		if (!classType.equals(mth.getParentClass().getClassInfo())) {</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;			return CallType.SUPER;</b>
+<i class="no-highlight">43</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">44</i>&nbsp;		if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {</b>
+<i class="no-highlight">45</i>&nbsp;			// self constructor
+<b class="nc"><i class="no-highlight">46</i>&nbsp;			return CallType.SELF;</b>
+<i class="no-highlight">47</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		return CallType.THIS;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	public ConstructorInsn(MethodInfo callMth, CallType callType) {
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		super(InsnType.CONSTRUCTOR, callMth.getArgsCount());</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		this.callMth = callMth;</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		this.callType = callType;</b>
+<i class="no-highlight">55</i>&nbsp;	}
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	@Override
+<i class="no-highlight">58</i>&nbsp;	public MethodInfo getCallMth() {
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		return callMth;</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	@Nullable
+<i class="no-highlight">64</i>&nbsp;	public RegisterArg getInstanceArg() {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		return null;</b>
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	public ClassInfo getClassType() {
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return callMth.getDeclClass();</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public CallType getCallType() {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		return callType;</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	public boolean isNewInstance() {
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		return callType == CallType.CONSTRUCTOR;</b>
+<i class="no-highlight">78</i>&nbsp;	}
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;	public boolean isSuper() {
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		return callType == CallType.SUPER;</b>
+<i class="no-highlight">82</i>&nbsp;	}
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;	public boolean isThis() {
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		return callType == CallType.THIS;</b>
+<i class="no-highlight">86</i>&nbsp;	}
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;	public boolean isSelf() {
+<b class="pc"><i class="no-highlight">89</i>&nbsp;		return callType == CallType.SELF;</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	@Override
+<i class="no-highlight">93</i>&nbsp;	public boolean isStaticCall() {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		return false;</b>
+<i class="no-highlight">95</i>&nbsp;	}
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	@Override
+<i class="no-highlight">98</i>&nbsp;	public int getFirstArgOffset() {
+<b class="fc"><i class="no-highlight">99</i>&nbsp;		return 0;</b>
+<i class="no-highlight">100</i>&nbsp;	}
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;	@Override
+<i class="no-highlight">103</i>&nbsp;	public boolean isSame(InsnNode obj) {
+<b class="pc"><i class="no-highlight">104</i>&nbsp;		if (this == obj) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;			return true;</b>
+<i class="no-highlight">106</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">107</i>&nbsp;		if (!(obj instanceof ConstructorInsn) || !super.isSame(obj)) {</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;			return false;</b>
+<i class="no-highlight">109</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		ConstructorInsn other = (ConstructorInsn) obj;</b>
+<b class="pc"><i class="no-highlight">111</i>&nbsp;		return callMth.equals(other.callMth)</b>
+<i class="no-highlight">112</i>&nbsp;				&amp;&amp; callType == other.callType;
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	@Override
+<i class="no-highlight">116</i>&nbsp;	public InsnNode copy() {
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		return copyCommonParams(new ConstructorInsn(callMth, callType));</b>
+<i class="no-highlight">118</i>&nbsp;	}
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;	@Override
+<i class="no-highlight">121</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">122</i>&nbsp;		return super.toString() + &quot; call: &quot; + callMth + &quot; type: &quot; + callType;</b>
+<i class="no-highlight">123</i>&nbsp;	}
+<i class="no-highlight">124</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

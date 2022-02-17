@@ -1,0 +1,302 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CodeDecodeState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data.code</a>
+</div>
+
+<h1>Coverage Summary for Class: CodeDecodeState (jadx.plugins.input.java.data.code)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CodeDecodeState</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96.7%
+  </span>
+  <span class="absValue">
+    (29/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.7%
+  </span>
+  <span class="absValue">
+    (6/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.7%
+  </span>
+  <span class="absValue">
+    (59/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data.code;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">4</i>&nbsp;import java.util.Map;
+<i class="no-highlight">5</i>&nbsp;import java.util.Set;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.plugins.input.insns.Opcode;
+<i class="no-highlight">8</i>&nbsp;import jadx.plugins.input.java.data.DataReader;
+<i class="no-highlight">9</i>&nbsp;import jadx.plugins.input.java.data.JavaClassData;
+<i class="no-highlight">10</i>&nbsp;import jadx.plugins.input.java.data.code.StackState.SVType;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;public class CodeDecodeState {
+<i class="no-highlight">13</i>&nbsp;	private final JavaClassData clsData;
+<i class="no-highlight">14</i>&nbsp;	private final DataReader reader;
+<i class="no-highlight">15</i>&nbsp;	private final int maxStack;
+<i class="no-highlight">16</i>&nbsp;	private final Set&lt;Integer&gt; excHandlers;
+<i class="no-highlight">17</i>&nbsp;
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	private final Map&lt;Integer, StackState&gt; jumpStack = new HashMap&lt;&gt;(); // save current stack for jump target</b>
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;	private JavaInsnData insn;
+<i class="no-highlight">21</i>&nbsp;	private StackState stack;
+<i class="no-highlight">22</i>&nbsp;	private boolean excHandler;
+<i class="no-highlight">23</i>&nbsp;
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	public CodeDecodeState(JavaClassData clsData, DataReader reader, int maxStack, Set&lt;Integer&gt; excHandlers) {</b>
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		this.clsData = clsData;</b>
+<b class="fc"><i class="no-highlight">26</i>&nbsp;		this.reader = reader;</b>
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		this.maxStack = maxStack;</b>
+<b class="fc"><i class="no-highlight">28</i>&nbsp;		this.excHandlers = excHandlers;</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.stack = new StackState(maxStack);</b>
+<i class="no-highlight">30</i>&nbsp;	}
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;	public void onInsn(int offset) {
+<b class="fc"><i class="no-highlight">33</i>&nbsp;		StackState stackState = jumpStack.get(offset);</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		if (stackState != null) {</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;			this.stack = stackState;</b>
+<i class="no-highlight">36</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		if (excHandlers.contains(offset)) {</b>
+<b class="fc"><i class="no-highlight">38</i>&nbsp;			stack.push(SVType.NARROW); // push exception</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;			excHandler = true;</b>
+<i class="no-highlight">40</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">41</i>&nbsp;			excHandler = false;</b>
+<i class="no-highlight">42</i>&nbsp;		}
+<i class="no-highlight">43</i>&nbsp;	}
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;	public void registerJump(int jumpOffset) {
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		Integer key = jumpOffset;</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		if (!jumpStack.containsKey(key)) {</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;			jumpStack.put(key, stack.copy());</b>
+<i class="no-highlight">49</i>&nbsp;		}
+<i class="no-highlight">50</i>&nbsp;	}
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;	public void decoded() {
+<b class="pc"><i class="no-highlight">53</i>&nbsp;		if (excHandler &amp;&amp; insn.getOpcode() == Opcode.MOVE) {</b>
+<i class="no-highlight">54</i>&nbsp;			// replace first &#39;move&#39; in exception handler with &#39;move-exception&#39;
+<b class="fc"><i class="no-highlight">55</i>&nbsp;			insn.setOpcode(Opcode.MOVE_EXCEPTION);</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			insn.setRegsCount(1);</b>
+<i class="no-highlight">57</i>&nbsp;		}
+<i class="no-highlight">58</i>&nbsp;	}
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;	public JavaInsnData insn() {
+<b class="fc"><i class="no-highlight">61</i>&nbsp;		return insn;</b>
+<i class="no-highlight">62</i>&nbsp;	}
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;	public void setInsn(JavaInsnData insn) {
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		this.insn = insn;</b>
+<i class="no-highlight">66</i>&nbsp;	}
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;	public DataReader reader() {
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return reader;</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public JavaClassData clsData() {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		return clsData;</b>
+<i class="no-highlight">74</i>&nbsp;	}
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;	public CodeDecodeState local(int arg, int local) {
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		insn.setArgReg(arg, localToReg(local));</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		return this;</b>
+<i class="no-highlight">79</i>&nbsp;	}
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	public CodeDecodeState pop(int arg) {
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		insn.setArgReg(arg, stack.pop());</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		return this;</b>
+<i class="no-highlight">84</i>&nbsp;	}
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;	public CodeDecodeState peek(int arg) {
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		insn.setArgReg(arg, stack.peek());</b>
+<b class="fc"><i class="no-highlight">88</i>&nbsp;		return this;</b>
+<i class="no-highlight">89</i>&nbsp;	}
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;	public SVType peekType(int at) {
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		return stack.peekTypeAt(at);</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	public CodeDecodeState peekFrom(int pos, int arg) {
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		insn.setArgReg(arg, stack.peekAt(pos));</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		return this;</b>
+<i class="no-highlight">98</i>&nbsp;	}
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;	public CodeDecodeState push(int arg) {
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		insn.setArgReg(arg, stack.push(SVType.NARROW));</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		return this;</b>
+<i class="no-highlight">103</i>&nbsp;	}
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;	public CodeDecodeState push(int arg, SVType type) {
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		insn.setArgReg(arg, stack.push(type));</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;		return this;</b>
+<i class="no-highlight">108</i>&nbsp;	}
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;	public CodeDecodeState pushWide(int arg) {
+<b class="fc"><i class="no-highlight">111</i>&nbsp;		insn.setArgReg(arg, stack.push(SVType.WIDE));</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		return this;</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	public void discard() {
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		stack.pop();</b>
+<i class="no-highlight">117</i>&nbsp;	}
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;	public void discardWord() {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;		SVType type = stack.peekTypeAt(0);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;		stack.pop();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;		if (type == SVType.NARROW) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;			stack.pop();</b>
+<i class="no-highlight">124</i>&nbsp;		}
+<i class="no-highlight">125</i>&nbsp;	}
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;	public void clear() {
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		stack.clear();</b>
+<i class="no-highlight">129</i>&nbsp;	}
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;	public int push(String type) {
+<b class="fc"><i class="no-highlight">132</i>&nbsp;		return stack.push(getSVType(type));</b>
+<i class="no-highlight">133</i>&nbsp;	}
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;	/**
+<i class="no-highlight">136</i>&nbsp;	 * Must be after all pop and push
+<i class="no-highlight">137</i>&nbsp;	 */
+<i class="no-highlight">138</i>&nbsp;	public void jump(int offset) {
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		int jumpOffset = insn.getOffset() + offset;</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;		insn.setTarget(jumpOffset);</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;		registerJump(jumpOffset);</b>
+<i class="no-highlight">142</i>&nbsp;	}
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;	public CodeDecodeState idx(int idx) {
+<b class="fc"><i class="no-highlight">145</i>&nbsp;		insn.setIndex(idx);</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		return this;</b>
+<i class="no-highlight">147</i>&nbsp;	}
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;	public CodeDecodeState lit(long lit) {
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		insn.setLiteral(lit);</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		return this;</b>
+<i class="no-highlight">152</i>&nbsp;	}
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;	private int localToReg(int local) {
+<b class="fc"><i class="no-highlight">155</i>&nbsp;		return maxStack + local;</b>
+<i class="no-highlight">156</i>&nbsp;	}
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;	public SVType fieldType() {
+<b class="fc"><i class="no-highlight">159</i>&nbsp;		String type = insn.constPoolReader().getFieldType(insn().getIndex());</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;		return getSVType(type);</b>
+<i class="no-highlight">161</i>&nbsp;	}
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;	public SVType getSVType(String type) {
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		if (type.equals(&quot;J&quot;) || type.equals(&quot;D&quot;)) {</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;			return SVType.WIDE;</b>
+<i class="no-highlight">166</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		return SVType.NARROW;</b>
+<i class="no-highlight">168</i>&nbsp;	}
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;	public int u1() {
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		return reader.readU1();</b>
+<i class="no-highlight">172</i>&nbsp;	}
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;	public int u2() {
+<b class="fc"><i class="no-highlight">175</i>&nbsp;		return reader.readU2();</b>
+<i class="no-highlight">176</i>&nbsp;	}
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;	public int s1() {
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		return reader.readS1();</b>
+<i class="no-highlight">180</i>&nbsp;	}
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;	public int s2() {
+<b class="fc"><i class="no-highlight">183</i>&nbsp;		return reader.readS2();</b>
+<i class="no-highlight">184</i>&nbsp;	}
+<i class="no-highlight">185</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

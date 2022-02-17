@@ -1,0 +1,186 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConvertResult</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.javaconvert</a>
+</div>
+
+<h1>Coverage Summary for Class: ConvertResult (jadx.plugins.input.javaconvert)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConvertResult</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.9%
+  </span>
+  <span class="absValue">
+    (8/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    28.6%
+  </span>
+  <span class="absValue">
+    (2/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (21/24)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.javaconvert;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.Closeable;
+<i class="no-highlight">4</i>&nbsp;import java.io.File;
+<i class="no-highlight">5</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">6</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">7</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">8</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">9</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">10</i>&nbsp;import java.util.List;
+<i class="no-highlight">11</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">15</i>&nbsp;
+<b class="fc"><i class="no-highlight">16</i>&nbsp;public class ConvertResult implements Closeable {</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(ConvertResult.class);</b>
+<i class="no-highlight">18</i>&nbsp;
+<b class="fc"><i class="no-highlight">19</i>&nbsp;	private final List&lt;Path&gt; converted = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;	private final List&lt;Path&gt; tmpPaths = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;	public List&lt;Path&gt; getConverted() {
+<b class="fc"><i class="no-highlight">23</i>&nbsp;		return converted;</b>
+<i class="no-highlight">24</i>&nbsp;	}
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	public void addConvertedFiles(List&lt;Path&gt; paths) {
+<b class="fc"><i class="no-highlight">27</i>&nbsp;		converted.addAll(paths);</b>
+<i class="no-highlight">28</i>&nbsp;	}
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	public void addTempPath(Path path) {
+<b class="fc"><i class="no-highlight">31</i>&nbsp;		tmpPaths.add(path);</b>
+<i class="no-highlight">32</i>&nbsp;	}
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;	public boolean isEmpty() {
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		return converted.isEmpty();</b>
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	@Override
+<i class="no-highlight">39</i>&nbsp;	public void close() {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		for (Path tmpPath : tmpPaths) {</b>
+<i class="no-highlight">41</i>&nbsp;			try {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;				delete(tmpPath);</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;				LOG.warn(&quot;Failed to delete temp path: {}&quot;, tmpPath, e);</b>
+<b class="fc"><i class="no-highlight">45</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">46</i>&nbsp;		}</b>
+<i class="no-highlight">47</i>&nbsp;	}
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;	@SuppressWarnings(&quot;ResultOfMethodCallIgnored&quot;)
+<i class="no-highlight">50</i>&nbsp;	private static void delete(Path path) throws IOException {
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		if (Files.isRegularFile(path)) {</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;			Files.delete(path);</b>
+<i class="no-highlight">53</i>&nbsp;			return;
+<i class="no-highlight">54</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">55</i>&nbsp;		if (Files.isDirectory(path)) {</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;			try (Stream&lt;Path&gt; pathStream = Files.walk(path)) {</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;				pathStream</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;						.sorted(Comparator.reverseOrder())</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;						.map(Path::toFile)</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;						.forEach(File::delete);</b>
+<b class="pc"><i class="no-highlight">61</i>&nbsp;			}</b>
+<i class="no-highlight">62</i>&nbsp;		}
+<i class="no-highlight">63</i>&nbsp;	}
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	@Override
+<i class="no-highlight">66</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		return &quot;ConvertResult{converted=&quot; + converted + &quot;, tmpPaths=&quot; + tmpPaths + &#39;}&#39;;</b>
+<i class="no-highlight">68</i>&nbsp;	}
+<i class="no-highlight">69</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JavaMethodData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data</a>
+</div>
+
+<h1>Coverage Summary for Class: JavaMethodData (jadx.plugins.input.java.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavaMethodData</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    82.6%
+  </span>
+  <span class="absValue">
+    (19/23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.data.ICodeReader;
+<i class="no-highlight">10</i>&nbsp;import jadx.api.plugins.input.data.IMethodData;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.utils.Utils;
+<i class="no-highlight">13</i>&nbsp;import jadx.plugins.input.java.data.attributes.JavaAttrStorage;
+<i class="no-highlight">14</i>&nbsp;import jadx.plugins.input.java.data.attributes.JavaAttrType;
+<i class="no-highlight">15</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.CodeAttr;
+<i class="no-highlight">16</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.JavaAnnotationDefaultAttr;
+<i class="no-highlight">17</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.JavaAnnotationsAttr;
+<i class="no-highlight">18</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.JavaParamAnnsAttr;
+<i class="no-highlight">19</i>&nbsp;import jadx.plugins.input.java.data.code.JavaCodeReader;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;public class JavaMethodData implements IMethodData {
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	private final JavaClassData clsData;
+<i class="no-highlight">24</i>&nbsp;	private final JavaMethodRef methodRef;
+<i class="no-highlight">25</i>&nbsp;	private int accessFlags;
+<i class="no-highlight">26</i>&nbsp;	private JavaAttrStorage attributes;
+<i class="no-highlight">27</i>&nbsp;
+<b class="fc"><i class="no-highlight">28</i>&nbsp;	public JavaMethodData(JavaClassData clsData, JavaMethodRef methodRef) {</b>
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		this.clsData = clsData;</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		this.methodRef = methodRef;</b>
+<i class="no-highlight">31</i>&nbsp;	}
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;	public void setData(int accessFlags, JavaAttrStorage attributes) {
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		this.accessFlags = accessFlags;</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		this.attributes = attributes;</b>
+<i class="no-highlight">36</i>&nbsp;	}
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;	@Override
+<i class="no-highlight">39</i>&nbsp;	public JavaMethodRef getMethodRef() {
+<b class="fc"><i class="no-highlight">40</i>&nbsp;		return methodRef;</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	@Override
+<i class="no-highlight">44</i>&nbsp;	public int getAccessFlags() {
+<b class="fc"><i class="no-highlight">45</i>&nbsp;		return accessFlags;</b>
+<i class="no-highlight">46</i>&nbsp;	}
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;	@Override
+<i class="no-highlight">49</i>&nbsp;	public @Nullable ICodeReader getCodeReader() {
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		CodeAttr codeAttr = attributes.get(JavaAttrType.CODE);</b>
+<b class="pc"><i class="no-highlight">51</i>&nbsp;		if (codeAttr == null) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;			return null;</b>
+<i class="no-highlight">53</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		return new JavaCodeReader(clsData, codeAttr.getOffset());</b>
+<i class="no-highlight">55</i>&nbsp;	}
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;	@Override
+<i class="no-highlight">58</i>&nbsp;	public String disassembleMethod() {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		return &quot;&quot;;</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	public List&lt;IJadxAttribute&gt; getAttributes() {
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		int size = attributes.size();</b>
+<b class="pc"><i class="no-highlight">65</i>&nbsp;		if (size == 0) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;			return Collections.emptyList();</b>
+<i class="no-highlight">67</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		List&lt;IJadxAttribute&gt; list = new ArrayList&lt;&gt;(size);</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		Utils.addToList(list, JavaAnnotationsAttr.merge(attributes));</b>
+<b class="fc"><i class="no-highlight">70</i>&nbsp;		Utils.addToList(list, JavaParamAnnsAttr.merge(attributes));</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		Utils.addToList(list, JavaAnnotationDefaultAttr.convert(attributes));</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;		Utils.addToList(list, attributes.get(JavaAttrType.SIGNATURE));</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		Utils.addToList(list, attributes.get(JavaAttrType.EXCEPTIONS));</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		return list;</b>
+<i class="no-highlight">75</i>&nbsp;	}
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;	@Override
+<i class="no-highlight">78</i>&nbsp;	public String toString() {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		return getMethodRef().toString();</b>
+<i class="no-highlight">80</i>&nbsp;	}
+<i class="no-highlight">81</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,915 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ClassGen</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.codegen</a>
+</div>
+
+<h1>Coverage Summary for Class: ClassGen (jadx.core.codegen)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ClassGen</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.3%
+  </span>
+  <span class="absValue">
+    (50/53)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80.5%
+  </span>
+  <span class="absValue">
+    (103/128)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89%
+  </span>
+  <span class="absValue">
+    (387/435)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.codegen;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">7</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">8</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">9</i>&nbsp;import java.util.List;
+<i class="no-highlight">10</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">11</i>&nbsp;import java.util.Set;
+<i class="no-highlight">12</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">13</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">16</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.CommentsLevel;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.ICodeInfo;
+<i class="no-highlight">20</i>&nbsp;import jadx.api.ICodeWriter;
+<i class="no-highlight">21</i>&nbsp;import jadx.api.JadxArgs;
+<i class="no-highlight">22</i>&nbsp;import jadx.api.plugins.input.data.AccessFlags;
+<i class="no-highlight">23</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedType;
+<i class="no-highlight">24</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">25</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.Consts;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.attributes.FieldInitInsnAttr;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.attributes.nodes.EnumClassAttr;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.attributes.nodes.LineAttrNode;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.attributes.nodes.MethodInlineAttr;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.info.AccessInfo;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.info.ClassInfo;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.instructions.args.LiteralArg;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.instructions.args.PrimitiveType;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.utils.CodeGenUtils;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.utils.EncodedValueUtils;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.utils.Utils;
+<i class="no-highlight">49</i>&nbsp;import jadx.core.utils.android.AndroidResourcesUtils;
+<i class="no-highlight">50</i>&nbsp;import jadx.core.utils.exceptions.CodegenException;
+<i class="no-highlight">51</i>&nbsp;import jadx.core.utils.exceptions.JadxRuntimeException;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;public class ClassGen {
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	private final ClassNode cls;
+<i class="no-highlight">56</i>&nbsp;	private final ClassGen parentGen;
+<i class="no-highlight">57</i>&nbsp;	private final AnnotationGen annotationGen;
+<i class="no-highlight">58</i>&nbsp;	private final boolean fallback;
+<i class="no-highlight">59</i>&nbsp;	private final boolean useImports;
+<i class="no-highlight">60</i>&nbsp;	private final boolean showInconsistentCode;
+<i class="no-highlight">61</i>&nbsp;
+<b class="fc"><i class="no-highlight">62</i>&nbsp;	private final Set&lt;ClassInfo&gt; imports = new HashSet&lt;&gt;();</b>
+<i class="no-highlight">63</i>&nbsp;	private int clsDeclOffset;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;	private boolean bodyGenStarted;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	@Nullable
+<i class="no-highlight">68</i>&nbsp;	private NameGen outerNameGen;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;	public ClassGen(ClassNode cls, JadxArgs jadxArgs) {
+<b class="fc"><i class="no-highlight">71</i>&nbsp;		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());</b>
+<i class="no-highlight">72</i>&nbsp;	}
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;	public ClassGen(ClassNode cls, ClassGen parentClsGen) {
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		this(cls, parentClsGen, parentClsGen.useImports, parentClsGen.fallback, parentClsGen.showInconsistentCode);</b>
+<i class="no-highlight">76</i>&nbsp;	}
+<i class="no-highlight">77</i>&nbsp;
+<b class="fc"><i class="no-highlight">78</i>&nbsp;	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean useImports, boolean fallback, boolean showBadCode) {</b>
+<b class="fc"><i class="no-highlight">79</i>&nbsp;		this.cls = cls;</b>
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		this.parentGen = parentClsGen;</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		this.fallback = fallback;</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		this.useImports = useImports;</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		this.showInconsistentCode = showBadCode;</b>
+<i class="no-highlight">84</i>&nbsp;
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		this.annotationGen = new AnnotationGen(cls, this);</b>
+<i class="no-highlight">86</i>&nbsp;	}
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;	public ClassNode getClassNode() {
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		return cls;</b>
+<i class="no-highlight">90</i>&nbsp;	}
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;	public ICodeInfo makeClass() throws CodegenException {
+<b class="fc"><i class="no-highlight">93</i>&nbsp;		ICodeWriter clsBody = cls.root().makeCodeWriter();</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;		addClassCode(clsBody);</b>
+<i class="no-highlight">95</i>&nbsp;
+<b class="fc"><i class="no-highlight">96</i>&nbsp;		ICodeWriter clsCode = cls.root().makeCodeWriter();</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;		if (!&quot;&quot;.equals(cls.getPackage())) {</b>
+<b class="fc"><i class="no-highlight">98</i>&nbsp;			clsCode.add(&quot;package &quot;).add(cls.getPackage()).add(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">99</i>&nbsp;			clsCode.newLine();</b>
+<i class="no-highlight">100</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">101</i>&nbsp;		int importsCount = imports.size();</b>
+<b class="fc"><i class="no-highlight">102</i>&nbsp;		if (importsCount != 0) {</b>
+<b class="fc"><i class="no-highlight">103</i>&nbsp;			List&lt;ClassInfo&gt; sortedImports = new ArrayList&lt;&gt;(imports);</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;			sortedImports.sort(Comparator.comparing(ClassInfo::getAliasFullName));</b>
+<b class="fc"><i class="no-highlight">105</i>&nbsp;			sortedImports.forEach(classInfo -&gt; {</b>
+<b class="fc"><i class="no-highlight">106</i>&nbsp;				clsCode.startLine(&quot;import &quot;);</b>
+<b class="fc"><i class="no-highlight">107</i>&nbsp;				ClassNode classNode = cls.root().resolveClass(classInfo);</b>
+<b class="fc"><i class="no-highlight">108</i>&nbsp;				if (classNode != null) {</b>
+<b class="fc"><i class="no-highlight">109</i>&nbsp;					clsCode.attachAnnotation(classNode);</b>
+<i class="no-highlight">110</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">111</i>&nbsp;				clsCode.add(classInfo.getAliasFullName());</b>
+<b class="fc"><i class="no-highlight">112</i>&nbsp;				clsCode.add(&#39;;&#39;);</b>
+<i class="no-highlight">113</i>&nbsp;			});
+<b class="fc"><i class="no-highlight">114</i>&nbsp;			clsCode.newLine();</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;			imports.clear();</b>
+<i class="no-highlight">116</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">117</i>&nbsp;		clsCode.add(clsBody);</b>
+<b class="fc"><i class="no-highlight">118</i>&nbsp;		return clsCode.finish();</b>
+<i class="no-highlight">119</i>&nbsp;	}
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;	public void addClassCode(ICodeWriter code) throws CodegenException {
+<b class="pc"><i class="no-highlight">122</i>&nbsp;		if (cls.contains(AFlag.DONT_GENERATE)) {</b>
+<i class="no-highlight">123</i>&nbsp;			return;
+<i class="no-highlight">124</i>&nbsp;		}
+<i class="no-highlight">125</i>&nbsp;		if (Consts.DEBUG_USAGE) {
+<i class="no-highlight">126</i>&nbsp;			addClassUsageInfo(code, cls);
+<i class="no-highlight">127</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">128</i>&nbsp;		CodeGenUtils.addErrorsAndComments(code, cls);</b>
+<b class="fc"><i class="no-highlight">129</i>&nbsp;		CodeGenUtils.addSourceFileInfo(code, cls);</b>
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		addClassDeclaration(code);</b>
+<b class="fc"><i class="no-highlight">131</i>&nbsp;		addClassBody(code);</b>
+<i class="no-highlight">132</i>&nbsp;	}
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;	public void addClassDeclaration(ICodeWriter clsCode) {
+<b class="fc"><i class="no-highlight">135</i>&nbsp;		AccessInfo af = cls.getAccessFlags();</b>
+<b class="fc"><i class="no-highlight">136</i>&nbsp;		if (af.isInterface()) {</b>
+<b class="fc"><i class="no-highlight">137</i>&nbsp;			af = af.remove(AccessFlags.ABSTRACT)</b>
+<b class="fc"><i class="no-highlight">138</i>&nbsp;					.remove(AccessFlags.STATIC);</b>
+<b class="fc"><i class="no-highlight">139</i>&nbsp;		} else if (af.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">140</i>&nbsp;			af = af.remove(AccessFlags.FINAL)</b>
+<b class="fc"><i class="no-highlight">141</i>&nbsp;					.remove(AccessFlags.ABSTRACT)</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;					.remove(AccessFlags.STATIC);</b>
+<i class="no-highlight">143</i>&nbsp;		}
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;		// &#39;static&#39; and &#39;private&#39; modifier not allowed for top classes (not inner)
+<b class="fc"><i class="no-highlight">146</i>&nbsp;		if (!cls.getClassInfo().isInner()) {</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;			af = af.remove(AccessFlags.STATIC).remove(AccessFlags.PRIVATE);</b>
+<i class="no-highlight">148</i>&nbsp;		}
+<i class="no-highlight">149</i>&nbsp;
+<b class="fc"><i class="no-highlight">150</i>&nbsp;		annotationGen.addForClass(clsCode);</b>
+<b class="fc"><i class="no-highlight">151</i>&nbsp;		insertRenameInfo(clsCode, cls);</b>
+<b class="fc"><i class="no-highlight">152</i>&nbsp;		CodeGenUtils.addInputFileInfo(clsCode, cls);</b>
+<b class="fc"><i class="no-highlight">153</i>&nbsp;		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString(cls.checkCommentsLevel(CommentsLevel.INFO)));</b>
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		if (af.isInterface()) {</b>
+<b class="fc"><i class="no-highlight">155</i>&nbsp;			if (af.isAnnotation()) {</b>
+<b class="fc"><i class="no-highlight">156</i>&nbsp;				clsCode.add(&#39;@&#39;);</b>
+<i class="no-highlight">157</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">158</i>&nbsp;			clsCode.add(&quot;interface &quot;);</b>
+<b class="fc"><i class="no-highlight">159</i>&nbsp;		} else if (af.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">160</i>&nbsp;			clsCode.add(&quot;enum &quot;);</b>
+<i class="no-highlight">161</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">162</i>&nbsp;			clsCode.add(&quot;class &quot;);</b>
+<i class="no-highlight">163</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">164</i>&nbsp;		clsCode.attachDefinition(cls);</b>
+<b class="fc"><i class="no-highlight">165</i>&nbsp;		clsCode.add(cls.getClassInfo().getAliasShortName());</b>
+<i class="no-highlight">166</i>&nbsp;
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		addGenericTypeParameters(clsCode, cls.getGenericTypeParameters(), true);</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		clsCode.add(&#39; &#39;);</b>
+<i class="no-highlight">169</i>&nbsp;
+<b class="fc"><i class="no-highlight">170</i>&nbsp;		ArgType sup = cls.getSuperClass();</b>
+<b class="fc"><i class="no-highlight">171</i>&nbsp;		if (sup != null</b>
+<b class="fc"><i class="no-highlight">172</i>&nbsp;				&amp;&amp; !sup.equals(ArgType.OBJECT)</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;				&amp;&amp; !cls.isEnum()) {</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;			clsCode.add(&quot;extends &quot;);</b>
+<b class="fc"><i class="no-highlight">175</i>&nbsp;			useClass(clsCode, sup);</b>
+<b class="fc"><i class="no-highlight">176</i>&nbsp;			clsCode.add(&#39; &#39;);</b>
+<i class="no-highlight">177</i>&nbsp;		}
+<i class="no-highlight">178</i>&nbsp;
+<b class="fc"><i class="no-highlight">179</i>&nbsp;		if (!cls.getInterfaces().isEmpty() &amp;&amp; !af.isAnnotation()) {</b>
+<b class="fc"><i class="no-highlight">180</i>&nbsp;			if (cls.getAccessFlags().isInterface()) {</b>
+<b class="fc"><i class="no-highlight">181</i>&nbsp;				clsCode.add(&quot;extends &quot;);</b>
+<i class="no-highlight">182</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">183</i>&nbsp;				clsCode.add(&quot;implements &quot;);</b>
+<i class="no-highlight">184</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">185</i>&nbsp;			for (Iterator&lt;ArgType&gt; it = cls.getInterfaces().iterator(); it.hasNext();) {</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;				ArgType interf = it.next();</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;				useClass(clsCode, interf);</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;				if (it.hasNext()) {</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;					clsCode.add(&quot;, &quot;);</b>
+<i class="no-highlight">190</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">191</i>&nbsp;			}</b>
+<b class="pc"><i class="no-highlight">192</i>&nbsp;			if (!cls.getInterfaces().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">193</i>&nbsp;				clsCode.add(&#39; &#39;);</b>
+<i class="no-highlight">194</i>&nbsp;			}
+<i class="no-highlight">195</i>&nbsp;		}
+<i class="no-highlight">196</i>&nbsp;	}
+<i class="no-highlight">197</i>&nbsp;
+<i class="no-highlight">198</i>&nbsp;	public boolean addGenericTypeParameters(ICodeWriter code, List&lt;ArgType&gt; generics, boolean classDeclaration) {
+<b class="pc"><i class="no-highlight">199</i>&nbsp;		if (generics == null || generics.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">200</i>&nbsp;			return false;</b>
+<i class="no-highlight">201</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">202</i>&nbsp;		code.add(&#39;&lt;&#39;);</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;		int i = 0;</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;		for (ArgType genericInfo : generics) {</b>
+<b class="fc"><i class="no-highlight">205</i>&nbsp;			if (i != 0) {</b>
+<b class="fc"><i class="no-highlight">206</i>&nbsp;				code.add(&quot;, &quot;);</b>
+<i class="no-highlight">207</i>&nbsp;			}
+<b class="pc"><i class="no-highlight">208</i>&nbsp;			if (genericInfo.isGenericType()) {</b>
+<b class="fc"><i class="no-highlight">209</i>&nbsp;				code.add(genericInfo.getObject());</b>
+<i class="no-highlight">210</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;				useClass(code, genericInfo);</b>
+<i class="no-highlight">212</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			List&lt;ArgType&gt; list = genericInfo.getExtendTypes();</b>
+<b class="pc"><i class="no-highlight">214</i>&nbsp;			if (list != null &amp;&amp; !list.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">215</i>&nbsp;				code.add(&quot; extends &quot;);</b>
+<b class="fc"><i class="no-highlight">216</i>&nbsp;				for (Iterator&lt;ArgType&gt; it = list.iterator(); it.hasNext();) {</b>
+<b class="fc"><i class="no-highlight">217</i>&nbsp;					ArgType g = it.next();</b>
+<b class="pc"><i class="no-highlight">218</i>&nbsp;					if (g.isGenericType()) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;						code.add(g.getObject());</b>
+<i class="no-highlight">220</i>&nbsp;					} else {
+<b class="fc"><i class="no-highlight">221</i>&nbsp;						useClass(code, g);</b>
+<b class="fc"><i class="no-highlight">222</i>&nbsp;						if (classDeclaration</b>
+<b class="fc"><i class="no-highlight">223</i>&nbsp;								&amp;&amp; !cls.getClassInfo().isInner()</b>
+<b class="pc"><i class="no-highlight">224</i>&nbsp;								&amp;&amp; cls.root().getArgs().isUseImports()) {</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;							addImport(ClassInfo.fromType(cls.root(), g));</b>
+<i class="no-highlight">226</i>&nbsp;						}
+<i class="no-highlight">227</i>&nbsp;					}
+<b class="pc"><i class="no-highlight">228</i>&nbsp;					if (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;						code.add(&quot; &amp; &quot;);</b>
+<i class="no-highlight">230</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">231</i>&nbsp;				}</b>
+<i class="no-highlight">232</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">233</i>&nbsp;			i++;</b>
+<b class="fc"><i class="no-highlight">234</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;		code.add(&#39;&gt;&#39;);</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;		return true;</b>
+<i class="no-highlight">237</i>&nbsp;	}
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;	public void addClassBody(ICodeWriter clsCode) throws CodegenException {
+<b class="fc"><i class="no-highlight">240</i>&nbsp;		addClassBody(clsCode, false);</b>
+<i class="no-highlight">241</i>&nbsp;	}
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;	/**
+<i class="no-highlight">244</i>&nbsp;	 * @param printClassName allows to print the original class name as comment (e.g. for inlined
+<i class="no-highlight">245</i>&nbsp;	 *                       classes)
+<i class="no-highlight">246</i>&nbsp;	 */
+<i class="no-highlight">247</i>&nbsp;	public void addClassBody(ICodeWriter clsCode, boolean printClassName) throws CodegenException {
+<b class="fc"><i class="no-highlight">248</i>&nbsp;		clsCode.add(&#39;{&#39;);</b>
+<b class="fc"><i class="no-highlight">249</i>&nbsp;		if (printClassName &amp;&amp; cls.checkCommentsLevel(CommentsLevel.INFO)) {</b>
+<b class="fc"><i class="no-highlight">250</i>&nbsp;			clsCode.add(&quot; // from class: &quot; + cls.getClassInfo().getFullName());</b>
+<i class="no-highlight">251</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		setBodyGenStarted(true);</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;		clsDeclOffset = clsCode.getLength();</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;		clsCode.incIndent();</b>
+<b class="fc"><i class="no-highlight">255</i>&nbsp;		addFields(clsCode);</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		addInnerClsAndMethods(clsCode);</b>
+<b class="fc"><i class="no-highlight">257</i>&nbsp;		clsCode.decIndent();</b>
+<b class="fc"><i class="no-highlight">258</i>&nbsp;		clsCode.startLine(&#39;}&#39;);</b>
+<i class="no-highlight">259</i>&nbsp;	}
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;	private void addInnerClsAndMethods(ICodeWriter clsCode) {
+<b class="fc"><i class="no-highlight">262</i>&nbsp;		Stream.of(cls.getInnerClasses(), cls.getMethods())</b>
+<b class="fc"><i class="no-highlight">263</i>&nbsp;				.flatMap(Collection::stream)</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;				.filter(node -&gt; !node.contains(AFlag.DONT_GENERATE) || fallback)</b>
+<b class="fc"><i class="no-highlight">265</i>&nbsp;				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))</b>
+<b class="fc"><i class="no-highlight">266</i>&nbsp;				.forEach(node -&gt; {</b>
+<b class="fc"><i class="no-highlight">267</i>&nbsp;					if (node instanceof ClassNode) {</b>
+<b class="fc"><i class="no-highlight">268</i>&nbsp;						addInnerClass(clsCode, (ClassNode) node);</b>
+<i class="no-highlight">269</i>&nbsp;					} else {
+<b class="fc"><i class="no-highlight">270</i>&nbsp;						addMethod(clsCode, (MethodNode) node);</b>
+<i class="no-highlight">271</i>&nbsp;					}
+<i class="no-highlight">272</i>&nbsp;				});
+<i class="no-highlight">273</i>&nbsp;	}
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;	private void addInnerClass(ICodeWriter code, ClassNode innerCls) {
+<i class="no-highlight">276</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">277</i>&nbsp;			ClassGen inClGen = new ClassGen(innerCls, getParentGen());</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;			code.newLine();</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;			inClGen.addClassCode(code);</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;			imports.addAll(inClGen.getImports());</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;			innerCls.addError(&quot;Inner class code generation error&quot;, e);</b>
+<b class="fc"><i class="no-highlight">283</i>&nbsp;		}</b>
+<i class="no-highlight">284</i>&nbsp;	}
+<i class="no-highlight">285</i>&nbsp;
+<i class="no-highlight">286</i>&nbsp;	private boolean isInnerClassesPresents() {
+<b class="fc"><i class="no-highlight">287</i>&nbsp;		for (ClassNode innerCls : cls.getInnerClasses()) {</b>
+<b class="pc"><i class="no-highlight">288</i>&nbsp;			if (!innerCls.contains(AFlag.ANONYMOUS_CLASS)) {</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;				return true;</b>
+<i class="no-highlight">290</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">291</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">292</i>&nbsp;		return false;</b>
+<i class="no-highlight">293</i>&nbsp;	}
+<i class="no-highlight">294</i>&nbsp;
+<i class="no-highlight">295</i>&nbsp;	private void addMethod(ICodeWriter code, MethodNode mth) {
+<b class="fc"><i class="no-highlight">296</i>&nbsp;		if (skipMethod(mth)) {</b>
+<i class="no-highlight">297</i>&nbsp;			return;
+<i class="no-highlight">298</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">299</i>&nbsp;		if (code.getLength() != clsDeclOffset) {</b>
+<b class="fc"><i class="no-highlight">300</i>&nbsp;			code.newLine();</b>
+<i class="no-highlight">301</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">302</i>&nbsp;		int savedIndent = code.getIndent();</b>
+<i class="no-highlight">303</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">304</i>&nbsp;			addMethodCode(code, mth);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;			if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;				throw new JadxRuntimeException(&quot;Method generation error&quot;, e);</b>
+<i class="no-highlight">308</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">309</i>&nbsp;			mth.addError(&quot;Method generation error&quot;, e);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;			CodeGenUtils.addErrors(code, mth);</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;			code.setIndent(savedIndent);</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;		}</b>
+<i class="no-highlight">313</i>&nbsp;	}
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;	/**
+<i class="no-highlight">316</i>&nbsp;	 * Additional checks for inlined methods
+<i class="no-highlight">317</i>&nbsp;	 */
+<i class="no-highlight">318</i>&nbsp;	private boolean skipMethod(MethodNode mth) {
+<b class="fc"><i class="no-highlight">319</i>&nbsp;		MethodInlineAttr inlineAttr = mth.get(AType.METHOD_INLINE);</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;		if (inlineAttr == null || inlineAttr.notNeeded()) {</b>
+<b class="fc"><i class="no-highlight">321</i>&nbsp;			return false;</b>
+<i class="no-highlight">322</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">323</i>&nbsp;		if (mth.getUseIn().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">324</i>&nbsp;			mth.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">325</i>&nbsp;			return true;</b>
+<i class="no-highlight">326</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		List&lt;MethodNode&gt; useInCompleted = mth.getUseIn().stream()</b>
+<b class="fc"><i class="no-highlight">328</i>&nbsp;				.filter(m -&gt; m.getTopParentClass().getState().isProcessComplete())</b>
+<b class="fc"><i class="no-highlight">329</i>&nbsp;				.collect(Collectors.toList());</b>
+<b class="pc"><i class="no-highlight">330</i>&nbsp;		if (useInCompleted.isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">331</i>&nbsp;			mth.add(AFlag.DONT_GENERATE);</b>
+<b class="fc"><i class="no-highlight">332</i>&nbsp;			return true;</b>
+<i class="no-highlight">333</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">334</i>&nbsp;		mth.addDebugComment(&quot;Method not inlined, still used in: &quot; + useInCompleted);</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;		return false;</b>
+<i class="no-highlight">336</i>&nbsp;	}
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;	private boolean isMethodsPresents() {
+<b class="fc"><i class="no-highlight">339</i>&nbsp;		for (MethodNode mth : cls.getMethods()) {</b>
+<b class="fc"><i class="no-highlight">340</i>&nbsp;			if (!mth.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;				return true;</b>
+<i class="no-highlight">342</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">343</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		return false;</b>
+<i class="no-highlight">345</i>&nbsp;	}
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;	public void addMethodCode(ICodeWriter code, MethodNode mth) throws CodegenException {
+<b class="fc"><i class="no-highlight">348</i>&nbsp;		CodeGenUtils.addErrorsAndComments(code, mth);</b>
+<b class="fc"><i class="no-highlight">349</i>&nbsp;		if (mth.isNoCode()) {</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;			MethodGen mthGen = new MethodGen(this, mth);</b>
+<b class="fc"><i class="no-highlight">351</i>&nbsp;			mthGen.addDefinition(code);</b>
+<b class="fc"><i class="no-highlight">352</i>&nbsp;			code.add(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">353</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">354</i>&nbsp;			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);</b>
+<b class="pc"><i class="no-highlight">355</i>&nbsp;			if (badCode &amp;&amp; showInconsistentCode) {</b>
+<b class="fc"><i class="no-highlight">356</i>&nbsp;				badCode = false;</b>
+<i class="no-highlight">357</i>&nbsp;			}
+<i class="no-highlight">358</i>&nbsp;			MethodGen mthGen;
+<b class="pc"><i class="no-highlight">359</i>&nbsp;			if (badCode || fallback || mth.contains(AType.JADX_ERROR) || mth.getRegion() == null) {</b>
+<b class="fc"><i class="no-highlight">360</i>&nbsp;				mthGen = MethodGen.getFallbackMethodGen(mth);</b>
+<i class="no-highlight">361</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">362</i>&nbsp;				mthGen = new MethodGen(this, mth);</b>
+<i class="no-highlight">363</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">364</i>&nbsp;			if (mthGen.addDefinition(code)) {</b>
+<b class="fc"><i class="no-highlight">365</i>&nbsp;				code.add(&#39; &#39;);</b>
+<i class="no-highlight">366</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">367</i>&nbsp;			code.add(&#39;{&#39;);</b>
+<b class="fc"><i class="no-highlight">368</i>&nbsp;			code.incIndent();</b>
+<b class="fc"><i class="no-highlight">369</i>&nbsp;			mthGen.addInstructions(code);</b>
+<b class="fc"><i class="no-highlight">370</i>&nbsp;			code.decIndent();</b>
+<b class="fc"><i class="no-highlight">371</i>&nbsp;			code.startLine(&#39;}&#39;);</b>
+<i class="no-highlight">372</i>&nbsp;		}
+<i class="no-highlight">373</i>&nbsp;	}
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;	private void addFields(ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">376</i>&nbsp;		addEnumFields(code);</b>
+<b class="fc"><i class="no-highlight">377</i>&nbsp;		for (FieldNode f : cls.getFields()) {</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;			addField(code, f);</b>
+<b class="fc"><i class="no-highlight">379</i>&nbsp;		}</b>
+<i class="no-highlight">380</i>&nbsp;	}
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;	public void addField(ICodeWriter code, FieldNode f) {
+<b class="fc"><i class="no-highlight">383</i>&nbsp;		if (f.contains(AFlag.DONT_GENERATE)) {</b>
+<i class="no-highlight">384</i>&nbsp;			return;
+<i class="no-highlight">385</i>&nbsp;		}
+<i class="no-highlight">386</i>&nbsp;		if (Consts.DEBUG_USAGE) {
+<i class="no-highlight">387</i>&nbsp;			addFieldUsageInfo(code, f);
+<i class="no-highlight">388</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">389</i>&nbsp;		CodeGenUtils.addComments(code, f);</b>
+<b class="fc"><i class="no-highlight">390</i>&nbsp;		annotationGen.addForField(code, f);</b>
+<i class="no-highlight">391</i>&nbsp;
+<b class="fc"><i class="no-highlight">392</i>&nbsp;		boolean addInfoComments = f.checkCommentsLevel(CommentsLevel.INFO);</b>
+<b class="fc"><i class="no-highlight">393</i>&nbsp;		if (f.getFieldInfo().isRenamed() &amp;&amp; addInfoComments) {</b>
+<b class="fc"><i class="no-highlight">394</i>&nbsp;			code.newLine();</b>
+<b class="fc"><i class="no-highlight">395</i>&nbsp;			CodeGenUtils.addRenamedComment(code, f, f.getName());</b>
+<i class="no-highlight">396</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">397</i>&nbsp;		code.startLine(f.getAccessFlags().makeString(addInfoComments));</b>
+<b class="fc"><i class="no-highlight">398</i>&nbsp;		useType(code, f.getType());</b>
+<b class="fc"><i class="no-highlight">399</i>&nbsp;		code.add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">400</i>&nbsp;		code.attachDefinition(f);</b>
+<b class="fc"><i class="no-highlight">401</i>&nbsp;		code.add(f.getAlias());</b>
+<i class="no-highlight">402</i>&nbsp;
+<b class="fc"><i class="no-highlight">403</i>&nbsp;		FieldInitInsnAttr initInsnAttr = f.get(AType.FIELD_INIT_INSN);</b>
+<b class="fc"><i class="no-highlight">404</i>&nbsp;		if (initInsnAttr != null) {</b>
+<b class="fc"><i class="no-highlight">405</i>&nbsp;			InsnGen insnGen = makeInsnGen(initInsnAttr.getInsnMth());</b>
+<b class="fc"><i class="no-highlight">406</i>&nbsp;			code.add(&quot; = &quot;);</b>
+<b class="fc"><i class="no-highlight">407</i>&nbsp;			addInsnBody(insnGen, code, initInsnAttr.getInsn());</b>
+<b class="fc"><i class="no-highlight">408</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">409</i>&nbsp;			EncodedValue constVal = f.get(JadxAttrType.CONSTANT_VALUE);</b>
+<b class="fc"><i class="no-highlight">410</i>&nbsp;			if (constVal != null) {</b>
+<b class="fc"><i class="no-highlight">411</i>&nbsp;				code.add(&quot; = &quot;);</b>
+<b class="fc"><i class="no-highlight">412</i>&nbsp;				if (constVal.getType() == EncodedType.ENCODED_NULL) {</b>
+<b class="fc"><i class="no-highlight">413</i>&nbsp;					code.add(TypeGen.literalToString(0, f.getType(), cls, fallback));</b>
+<i class="no-highlight">414</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">415</i>&nbsp;					Object val = EncodedValueUtils.convertToConstValue(constVal);</b>
+<b class="fc"><i class="no-highlight">416</i>&nbsp;					if (val instanceof LiteralArg) {</b>
+<b class="fc"><i class="no-highlight">417</i>&nbsp;						long lit = ((LiteralArg) val).getLiteral();</b>
+<b class="fc"><i class="no-highlight">418</i>&nbsp;						if (!AndroidResourcesUtils.handleResourceFieldValue(cls, code, lit, f.getType())) {</b>
+<i class="no-highlight">419</i>&nbsp;							// force literal type to be same as field (java bytecode can use different type)
+<b class="fc"><i class="no-highlight">420</i>&nbsp;							code.add(TypeGen.literalToString(lit, f.getType(), cls, fallback));</b>
+<i class="no-highlight">421</i>&nbsp;						}
+<b class="fc"><i class="no-highlight">422</i>&nbsp;					} else {</b>
+<b class="fc"><i class="no-highlight">423</i>&nbsp;						annotationGen.encodeValue(cls.root(), code, constVal);</b>
+<i class="no-highlight">424</i>&nbsp;					}
+<i class="no-highlight">425</i>&nbsp;				}
+<i class="no-highlight">426</i>&nbsp;			}
+<i class="no-highlight">427</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">428</i>&nbsp;		code.add(&#39;;&#39;);</b>
+<i class="no-highlight">429</i>&nbsp;	}
+<i class="no-highlight">430</i>&nbsp;
+<i class="no-highlight">431</i>&nbsp;	private boolean isFieldsPresents() {
+<b class="fc"><i class="no-highlight">432</i>&nbsp;		for (FieldNode field : cls.getFields()) {</b>
+<b class="fc"><i class="no-highlight">433</i>&nbsp;			if (!field.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">434</i>&nbsp;				return true;</b>
+<i class="no-highlight">435</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">436</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">437</i>&nbsp;		return false;</b>
+<i class="no-highlight">438</i>&nbsp;	}
+<i class="no-highlight">439</i>&nbsp;
+<i class="no-highlight">440</i>&nbsp;	private void addEnumFields(ICodeWriter code) throws CodegenException {
+<b class="fc"><i class="no-highlight">441</i>&nbsp;		EnumClassAttr enumFields = cls.get(AType.ENUM_CLASS);</b>
+<b class="fc"><i class="no-highlight">442</i>&nbsp;		if (enumFields == null) {</b>
+<i class="no-highlight">443</i>&nbsp;			return;
+<i class="no-highlight">444</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">445</i>&nbsp;		InsnGen igen = null;</b>
+<b class="fc"><i class="no-highlight">446</i>&nbsp;		for (Iterator&lt;EnumField&gt; it = enumFields.getFields().iterator(); it.hasNext();) {</b>
+<b class="fc"><i class="no-highlight">447</i>&nbsp;			EnumField f = it.next();</b>
+<i class="no-highlight">448</i>&nbsp;
+<b class="fc"><i class="no-highlight">449</i>&nbsp;			CodeGenUtils.addComments(code, f.getField());</b>
+<b class="fc"><i class="no-highlight">450</i>&nbsp;			code.startLine(f.getField().getAlias());</b>
+<b class="fc"><i class="no-highlight">451</i>&nbsp;			ConstructorInsn constrInsn = f.getConstrInsn();</b>
+<b class="fc"><i class="no-highlight">452</i>&nbsp;			MethodNode callMth = cls.root().resolveMethod(constrInsn.getCallMth());</b>
+<b class="fc"><i class="no-highlight">453</i>&nbsp;			int skipCount = getEnumCtrSkipArgsCount(callMth);</b>
+<b class="fc"><i class="no-highlight">454</i>&nbsp;			if (constrInsn.getArgsCount() &gt; skipCount) {</b>
+<b class="fc"><i class="no-highlight">455</i>&nbsp;				if (igen == null) {</b>
+<b class="fc"><i class="no-highlight">456</i>&nbsp;					igen = makeInsnGen(enumFields.getStaticMethod());</b>
+<i class="no-highlight">457</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">458</i>&nbsp;				igen.generateMethodArguments(code, constrInsn, 0, callMth);</b>
+<i class="no-highlight">459</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">460</i>&nbsp;			if (f.getCls() != null) {</b>
+<b class="fc"><i class="no-highlight">461</i>&nbsp;				code.add(&#39; &#39;);</b>
+<b class="fc"><i class="no-highlight">462</i>&nbsp;				new ClassGen(f.getCls(), this).addClassBody(code, true);</b>
+<i class="no-highlight">463</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">464</i>&nbsp;			if (it.hasNext()) {</b>
+<b class="fc"><i class="no-highlight">465</i>&nbsp;				code.add(&#39;,&#39;);</b>
+<i class="no-highlight">466</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">467</i>&nbsp;		}</b>
+<b class="pc"><i class="no-highlight">468</i>&nbsp;		if (isMethodsPresents() || isFieldsPresents() || isInnerClassesPresents()) {</b>
+<b class="fc"><i class="no-highlight">469</i>&nbsp;			if (enumFields.getFields().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">470</i>&nbsp;				code.startLine();</b>
+<i class="no-highlight">471</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">472</i>&nbsp;			code.add(&#39;;&#39;);</b>
+<b class="fc"><i class="no-highlight">473</i>&nbsp;			if (isFieldsPresents()) {</b>
+<b class="fc"><i class="no-highlight">474</i>&nbsp;				code.startLine();</b>
+<i class="no-highlight">475</i>&nbsp;			}
+<i class="no-highlight">476</i>&nbsp;		}
+<i class="no-highlight">477</i>&nbsp;	}
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;	private int getEnumCtrSkipArgsCount(@Nullable MethodNode callMth) {
+<b class="pc"><i class="no-highlight">480</i>&nbsp;		if (callMth != null) {</b>
+<b class="fc"><i class="no-highlight">481</i>&nbsp;			SkipMethodArgsAttr skipArgsAttr = callMth.get(AType.SKIP_MTH_ARGS);</b>
+<b class="pc"><i class="no-highlight">482</i>&nbsp;			if (skipArgsAttr != null) {</b>
+<b class="fc"><i class="no-highlight">483</i>&nbsp;				return skipArgsAttr.getSkipCount();</b>
+<i class="no-highlight">484</i>&nbsp;			}
+<i class="no-highlight">485</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">486</i>&nbsp;		return 0;</b>
+<i class="no-highlight">487</i>&nbsp;	}
+<i class="no-highlight">488</i>&nbsp;
+<i class="no-highlight">489</i>&nbsp;	private InsnGen makeInsnGen(MethodNode mth) {
+<b class="fc"><i class="no-highlight">490</i>&nbsp;		MethodGen mthGen = new MethodGen(this, mth);</b>
+<b class="fc"><i class="no-highlight">491</i>&nbsp;		return new InsnGen(mthGen, false);</b>
+<i class="no-highlight">492</i>&nbsp;	}
+<i class="no-highlight">493</i>&nbsp;
+<i class="no-highlight">494</i>&nbsp;	private void addInsnBody(InsnGen insnGen, ICodeWriter code, InsnNode insn) {
+<i class="no-highlight">495</i>&nbsp;		try {
+<b class="fc"><i class="no-highlight">496</i>&nbsp;			insnGen.makeInsn(insn, code, InsnGen.Flags.BODY_ONLY_NOWRAP);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;		} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;			cls.addError(&quot;Failed to generate init code&quot;, e);</b>
+<b class="fc"><i class="no-highlight">499</i>&nbsp;		}</b>
+<i class="no-highlight">500</i>&nbsp;	}
+<i class="no-highlight">501</i>&nbsp;
+<i class="no-highlight">502</i>&nbsp;	public void useType(ICodeWriter code, ArgType type) {
+<b class="fc"><i class="no-highlight">503</i>&nbsp;		PrimitiveType stype = type.getPrimitiveType();</b>
+<b class="pc"><i class="no-highlight">504</i>&nbsp;		if (stype == null) {</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;			code.add(type.toString());</b>
+<b class="fc"><i class="no-highlight">506</i>&nbsp;		} else if (stype == PrimitiveType.OBJECT) {</b>
+<b class="fc"><i class="no-highlight">507</i>&nbsp;			if (type.isGenericType()) {</b>
+<b class="fc"><i class="no-highlight">508</i>&nbsp;				code.add(type.getObject());</b>
+<i class="no-highlight">509</i>&nbsp;			} else {
+<b class="fc"><i class="no-highlight">510</i>&nbsp;				useClass(code, type);</b>
+<i class="no-highlight">511</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">512</i>&nbsp;		} else if (stype == PrimitiveType.ARRAY) {</b>
+<b class="fc"><i class="no-highlight">513</i>&nbsp;			useType(code, type.getArrayElement());</b>
+<b class="fc"><i class="no-highlight">514</i>&nbsp;			code.add(&quot;[]&quot;);</b>
+<i class="no-highlight">515</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">516</i>&nbsp;			code.add(stype.getLongName());</b>
+<i class="no-highlight">517</i>&nbsp;		}
+<i class="no-highlight">518</i>&nbsp;	}
+<i class="no-highlight">519</i>&nbsp;
+<i class="no-highlight">520</i>&nbsp;	public void useClass(ICodeWriter code, String rawCls) {
+<b class="fc"><i class="no-highlight">521</i>&nbsp;		useClass(code, ArgType.object(rawCls));</b>
+<i class="no-highlight">522</i>&nbsp;	}
+<i class="no-highlight">523</i>&nbsp;
+<i class="no-highlight">524</i>&nbsp;	public void useClass(ICodeWriter code, ArgType type) {
+<b class="fc"><i class="no-highlight">525</i>&nbsp;		ArgType outerType = type.getOuterType();</b>
+<b class="fc"><i class="no-highlight">526</i>&nbsp;		if (outerType != null) {</b>
+<b class="fc"><i class="no-highlight">527</i>&nbsp;			useClass(code, outerType);</b>
+<b class="fc"><i class="no-highlight">528</i>&nbsp;			code.add(&#39;.&#39;);</b>
+<b class="fc"><i class="no-highlight">529</i>&nbsp;			addInnerType(code, type);</b>
+<i class="no-highlight">530</i>&nbsp;			return;
+<i class="no-highlight">531</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">532</i>&nbsp;		useClass(code, ClassInfo.fromType(cls.root(), type));</b>
+<b class="fc"><i class="no-highlight">533</i>&nbsp;		addGenerics(code, type);</b>
+<i class="no-highlight">534</i>&nbsp;	}
+<i class="no-highlight">535</i>&nbsp;
+<i class="no-highlight">536</i>&nbsp;	private void addInnerType(ICodeWriter code, ArgType baseType) {
+<b class="fc"><i class="no-highlight">537</i>&nbsp;		ArgType innerType = baseType.getInnerType();</b>
+<b class="fc"><i class="no-highlight">538</i>&nbsp;		ArgType outerType = innerType.getOuterType();</b>
+<b class="fc"><i class="no-highlight">539</i>&nbsp;		if (outerType != null) {</b>
+<b class="fc"><i class="no-highlight">540</i>&nbsp;			useClassWithShortName(code, baseType, outerType);</b>
+<b class="fc"><i class="no-highlight">541</i>&nbsp;			code.add(&#39;.&#39;);</b>
+<b class="fc"><i class="no-highlight">542</i>&nbsp;			addInnerType(code, innerType);</b>
+<i class="no-highlight">543</i>&nbsp;			return;
+<i class="no-highlight">544</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">545</i>&nbsp;		useClassWithShortName(code, baseType, innerType);</b>
+<i class="no-highlight">546</i>&nbsp;	}
+<i class="no-highlight">547</i>&nbsp;
+<i class="no-highlight">548</i>&nbsp;	private void useClassWithShortName(ICodeWriter code, ArgType baseType, ArgType type) {
+<i class="no-highlight">549</i>&nbsp;		String fullNameObj;
+<b class="fc"><i class="no-highlight">550</i>&nbsp;		if (type.getObject().contains(&quot;.&quot;)) {</b>
+<b class="fc"><i class="no-highlight">551</i>&nbsp;			fullNameObj = type.getObject();</b>
+<i class="no-highlight">552</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">553</i>&nbsp;			fullNameObj = baseType.getObject();</b>
+<i class="no-highlight">554</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">555</i>&nbsp;		ClassInfo classInfo = ClassInfo.fromName(cls.root(), fullNameObj);</b>
+<b class="fc"><i class="no-highlight">556</i>&nbsp;		ClassNode classNode = cls.root().resolveClass(classInfo);</b>
+<b class="pc"><i class="no-highlight">557</i>&nbsp;		if (classNode != null) {</b>
+<b class="fc"><i class="no-highlight">558</i>&nbsp;			code.attachAnnotation(classNode);</b>
+<i class="no-highlight">559</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">560</i>&nbsp;		code.add(classInfo.getAliasShortName());</b>
+<b class="fc"><i class="no-highlight">561</i>&nbsp;		addGenerics(code, type);</b>
+<i class="no-highlight">562</i>&nbsp;	}
+<i class="no-highlight">563</i>&nbsp;
+<i class="no-highlight">564</i>&nbsp;	private void addGenerics(ICodeWriter code, ArgType type) {
+<b class="fc"><i class="no-highlight">565</i>&nbsp;		List&lt;ArgType&gt; generics = type.getGenericTypes();</b>
+<b class="fc"><i class="no-highlight">566</i>&nbsp;		if (generics != null) {</b>
+<b class="fc"><i class="no-highlight">567</i>&nbsp;			code.add(&#39;&lt;&#39;);</b>
+<b class="fc"><i class="no-highlight">568</i>&nbsp;			int len = generics.size();</b>
+<b class="fc"><i class="no-highlight">569</i>&nbsp;			for (int i = 0; i &lt; len; i++) {</b>
+<b class="fc"><i class="no-highlight">570</i>&nbsp;				if (i != 0) {</b>
+<b class="fc"><i class="no-highlight">571</i>&nbsp;					code.add(&quot;, &quot;);</b>
+<i class="no-highlight">572</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">573</i>&nbsp;				ArgType gt = generics.get(i);</b>
+<b class="fc"><i class="no-highlight">574</i>&nbsp;				ArgType wt = gt.getWildcardType();</b>
+<b class="fc"><i class="no-highlight">575</i>&nbsp;				if (wt != null) {</b>
+<b class="fc"><i class="no-highlight">576</i>&nbsp;					ArgType.WildcardBound bound = gt.getWildcardBound();</b>
+<b class="fc"><i class="no-highlight">577</i>&nbsp;					code.add(bound.getStr());</b>
+<b class="fc"><i class="no-highlight">578</i>&nbsp;					if (bound != ArgType.WildcardBound.UNBOUND) {</b>
+<b class="fc"><i class="no-highlight">579</i>&nbsp;						useType(code, wt);</b>
+<i class="no-highlight">580</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">581</i>&nbsp;				} else {</b>
+<b class="fc"><i class="no-highlight">582</i>&nbsp;					useType(code, gt);</b>
+<i class="no-highlight">583</i>&nbsp;				}
+<i class="no-highlight">584</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">585</i>&nbsp;			code.add(&#39;&gt;&#39;);</b>
+<i class="no-highlight">586</i>&nbsp;		}
+<i class="no-highlight">587</i>&nbsp;	}
+<i class="no-highlight">588</i>&nbsp;
+<i class="no-highlight">589</i>&nbsp;	public void useClass(ICodeWriter code, ClassInfo classInfo) {
+<b class="fc"><i class="no-highlight">590</i>&nbsp;		ClassNode classNode = cls.root().resolveClass(classInfo);</b>
+<b class="fc"><i class="no-highlight">591</i>&nbsp;		if (classNode != null) {</b>
+<b class="fc"><i class="no-highlight">592</i>&nbsp;			useClass(code, classNode);</b>
+<i class="no-highlight">593</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">594</i>&nbsp;			addClsName(code, classInfo);</b>
+<i class="no-highlight">595</i>&nbsp;		}
+<i class="no-highlight">596</i>&nbsp;	}
+<i class="no-highlight">597</i>&nbsp;
+<i class="no-highlight">598</i>&nbsp;	public void useClass(ICodeWriter code, ClassNode classNode) {
+<b class="fc"><i class="no-highlight">599</i>&nbsp;		code.attachAnnotation(classNode);</b>
+<b class="fc"><i class="no-highlight">600</i>&nbsp;		addClsName(code, classNode.getClassInfo());</b>
+<i class="no-highlight">601</i>&nbsp;	}
+<i class="no-highlight">602</i>&nbsp;
+<i class="no-highlight">603</i>&nbsp;	public void addClsName(ICodeWriter code, ClassInfo classInfo) {
+<b class="fc"><i class="no-highlight">604</i>&nbsp;		String clsName = useClassInternal(cls.getClassInfo(), classInfo);</b>
+<b class="fc"><i class="no-highlight">605</i>&nbsp;		code.add(clsName);</b>
+<i class="no-highlight">606</i>&nbsp;	}
+<i class="no-highlight">607</i>&nbsp;
+<i class="no-highlight">608</i>&nbsp;	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
+<b class="fc"><i class="no-highlight">609</i>&nbsp;		String fullName = extClsInfo.getAliasFullName();</b>
+<b class="fc"><i class="no-highlight">610</i>&nbsp;		if (fallback || !useImports) {</b>
+<b class="fc"><i class="no-highlight">611</i>&nbsp;			return fullName;</b>
+<i class="no-highlight">612</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">613</i>&nbsp;		String shortName = extClsInfo.getAliasShortName();</b>
+<b class="fc"><i class="no-highlight">614</i>&nbsp;		if (extClsInfo.getPackage().equals(&quot;java.lang&quot;) &amp;&amp; extClsInfo.getParentClass() == null) {</b>
+<b class="fc"><i class="no-highlight">615</i>&nbsp;			return shortName;</b>
+<i class="no-highlight">616</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">617</i>&nbsp;		if (isClassInnerFor(useCls, extClsInfo)) {</b>
+<b class="fc"><i class="no-highlight">618</i>&nbsp;			return shortName;</b>
+<i class="no-highlight">619</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">620</i>&nbsp;		if (extClsInfo.isInner()) {</b>
+<b class="fc"><i class="no-highlight">621</i>&nbsp;			return expandInnerClassName(useCls, extClsInfo);</b>
+<i class="no-highlight">622</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">623</i>&nbsp;		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;			return shortName;</b>
+<i class="no-highlight">625</i>&nbsp;		}
+<i class="no-highlight">626</i>&nbsp;		// don&#39;t add import if this class from same package
+<b class="pc"><i class="no-highlight">627</i>&nbsp;		if (extClsInfo.getPackage().equals(useCls.getPackage()) &amp;&amp; !extClsInfo.isInner()) {</b>
+<b class="fc"><i class="no-highlight">628</i>&nbsp;			return shortName;</b>
+<i class="no-highlight">629</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">630</i>&nbsp;		if (searchCollision(cls.root(), useCls, extClsInfo)) {</b>
+<b class="fc"><i class="no-highlight">631</i>&nbsp;			return fullName;</b>
+<i class="no-highlight">632</i>&nbsp;		}
+<i class="no-highlight">633</i>&nbsp;		// ignore classes from default package
+<b class="fc"><i class="no-highlight">634</i>&nbsp;		if (extClsInfo.isDefaultPackage()) {</b>
+<b class="fc"><i class="no-highlight">635</i>&nbsp;			return shortName;</b>
+<i class="no-highlight">636</i>&nbsp;		}
+<b class="pc"><i class="no-highlight">637</i>&nbsp;		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;			fullName = extClsInfo.getAliasNameWithoutPackage();</b>
+<i class="no-highlight">639</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">640</i>&nbsp;		for (ClassInfo importCls : getImports()) {</b>
+<b class="fc"><i class="no-highlight">641</i>&nbsp;			if (!importCls.equals(extClsInfo)</b>
+<b class="fc"><i class="no-highlight">642</i>&nbsp;					&amp;&amp; importCls.getAliasShortName().equals(shortName)) {</b>
+<b class="pc"><i class="no-highlight">643</i>&nbsp;				if (extClsInfo.isInner()) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;					String parent = useClassInternal(useCls, extClsInfo.getParentClass());</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;					return parent + &#39;.&#39; + shortName;</b>
+<i class="no-highlight">646</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">647</i>&nbsp;					return fullName;</b>
+<i class="no-highlight">648</i>&nbsp;				}
+<i class="no-highlight">649</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">650</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">651</i>&nbsp;		addImport(extClsInfo);</b>
+<b class="fc"><i class="no-highlight">652</i>&nbsp;		return shortName;</b>
+<i class="no-highlight">653</i>&nbsp;	}
+<i class="no-highlight">654</i>&nbsp;
+<i class="no-highlight">655</i>&nbsp;	private String expandInnerClassName(ClassInfo useCls, ClassInfo extClsInfo) {
+<b class="fc"><i class="no-highlight">656</i>&nbsp;		List&lt;ClassInfo&gt; clsList = new ArrayList&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">657</i>&nbsp;		clsList.add(extClsInfo);</b>
+<b class="fc"><i class="no-highlight">658</i>&nbsp;		ClassInfo parentCls = extClsInfo.getParentClass();</b>
+<b class="fc"><i class="no-highlight">659</i>&nbsp;		boolean addImport = true;</b>
+<b class="fc"><i class="no-highlight">660</i>&nbsp;		while (parentCls != null) {</b>
+<b class="fc"><i class="no-highlight">661</i>&nbsp;			if (parentCls == useCls || isClassInnerFor(useCls, parentCls)) {</b>
+<b class="fc"><i class="no-highlight">662</i>&nbsp;				addImport = false;</b>
+<b class="fc"><i class="no-highlight">663</i>&nbsp;				break;</b>
+<i class="no-highlight">664</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">665</i>&nbsp;			clsList.add(parentCls);</b>
+<b class="fc"><i class="no-highlight">666</i>&nbsp;			parentCls = parentCls.getParentClass();</b>
+<i class="no-highlight">667</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">668</i>&nbsp;		Collections.reverse(clsList);</b>
+<b class="fc"><i class="no-highlight">669</i>&nbsp;		if (addImport) {</b>
+<b class="fc"><i class="no-highlight">670</i>&nbsp;			addImport(clsList.get(0));</b>
+<i class="no-highlight">671</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">672</i>&nbsp;		return Utils.listToString(clsList, &quot;.&quot;, ClassInfo::getAliasShortName);</b>
+<i class="no-highlight">673</i>&nbsp;	}
+<i class="no-highlight">674</i>&nbsp;
+<i class="no-highlight">675</i>&nbsp;	private void addImport(ClassInfo classInfo) {
+<b class="fc"><i class="no-highlight">676</i>&nbsp;		if (parentGen != null) {</b>
+<b class="fc"><i class="no-highlight">677</i>&nbsp;			parentGen.addImport(classInfo);</b>
+<i class="no-highlight">678</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">679</i>&nbsp;			imports.add(classInfo);</b>
+<i class="no-highlight">680</i>&nbsp;		}
+<i class="no-highlight">681</i>&nbsp;	}
+<i class="no-highlight">682</i>&nbsp;
+<i class="no-highlight">683</i>&nbsp;	public Set&lt;ClassInfo&gt; getImports() {
+<b class="fc"><i class="no-highlight">684</i>&nbsp;		if (parentGen != null) {</b>
+<b class="fc"><i class="no-highlight">685</i>&nbsp;			return parentGen.getImports();</b>
+<i class="no-highlight">686</i>&nbsp;		} else {
+<b class="fc"><i class="no-highlight">687</i>&nbsp;			return imports;</b>
+<i class="no-highlight">688</i>&nbsp;		}
+<i class="no-highlight">689</i>&nbsp;	}
+<i class="no-highlight">690</i>&nbsp;
+<i class="no-highlight">691</i>&nbsp;	private static boolean isBothClassesInOneTopClass(ClassInfo useCls, ClassInfo extClsInfo) {
+<b class="fc"><i class="no-highlight">692</i>&nbsp;		ClassInfo a = useCls.getTopParentClass();</b>
+<b class="fc"><i class="no-highlight">693</i>&nbsp;		ClassInfo b = extClsInfo.getTopParentClass();</b>
+<b class="fc"><i class="no-highlight">694</i>&nbsp;		if (a != null) {</b>
+<b class="fc"><i class="no-highlight">695</i>&nbsp;			return a.equals(b);</b>
+<i class="no-highlight">696</i>&nbsp;		}
+<i class="no-highlight">697</i>&nbsp;		// useCls - is a top class
+<b class="fc"><i class="no-highlight">698</i>&nbsp;		return useCls.equals(b);</b>
+<i class="no-highlight">699</i>&nbsp;	}
+<i class="no-highlight">700</i>&nbsp;
+<i class="no-highlight">701</i>&nbsp;	private static boolean isClassInnerFor(ClassInfo inner, ClassInfo parent) {
+<b class="fc"><i class="no-highlight">702</i>&nbsp;		if (inner.isInner()) {</b>
+<b class="fc"><i class="no-highlight">703</i>&nbsp;			ClassInfo p = inner.getParentClass();</b>
+<b class="fc"><i class="no-highlight">704</i>&nbsp;			return Objects.equals(p, parent) || isClassInnerFor(p, parent);</b>
+<i class="no-highlight">705</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">706</i>&nbsp;		return false;</b>
+<i class="no-highlight">707</i>&nbsp;	}
+<i class="no-highlight">708</i>&nbsp;
+<i class="no-highlight">709</i>&nbsp;	private static boolean searchCollision(RootNode root, ClassInfo useCls, ClassInfo searchCls) {
+<b class="fc"><i class="no-highlight">710</i>&nbsp;		if (useCls == null) {</b>
+<b class="fc"><i class="no-highlight">711</i>&nbsp;			return false;</b>
+<i class="no-highlight">712</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">713</i>&nbsp;		String shortName = searchCls.getAliasShortName();</b>
+<b class="fc"><i class="no-highlight">714</i>&nbsp;		if (useCls.getAliasShortName().equals(shortName)) {</b>
+<b class="fc"><i class="no-highlight">715</i>&nbsp;			return true;</b>
+<i class="no-highlight">716</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">717</i>&nbsp;		ClassNode classNode = root.resolveClass(useCls);</b>
+<b class="pc"><i class="no-highlight">718</i>&nbsp;		if (classNode != null) {</b>
+<b class="fc"><i class="no-highlight">719</i>&nbsp;			for (ClassNode inner : classNode.getInnerClasses()) {</b>
+<b class="fc"><i class="no-highlight">720</i>&nbsp;				if (inner.getShortName().equals(shortName)</b>
+<b class="pc"><i class="no-highlight">721</i>&nbsp;						&amp;&amp; !inner.getFullName().equals(searchCls.getAliasFullName())) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;					return true;</b>
+<i class="no-highlight">723</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">724</i>&nbsp;			}</b>
+<i class="no-highlight">725</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">726</i>&nbsp;		return searchCollision(root, useCls.getParentClass(), searchCls);</b>
+<i class="no-highlight">727</i>&nbsp;	}
+<i class="no-highlight">728</i>&nbsp;
+<i class="no-highlight">729</i>&nbsp;	private void insertRenameInfo(ICodeWriter code, ClassNode cls) {
+<b class="fc"><i class="no-highlight">730</i>&nbsp;		ClassInfo classInfo = cls.getClassInfo();</b>
+<b class="fc"><i class="no-highlight">731</i>&nbsp;		if (classInfo.hasAlias() &amp;&amp; cls.checkCommentsLevel(CommentsLevel.INFO)) {</b>
+<b class="fc"><i class="no-highlight">732</i>&nbsp;			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());</b>
+<i class="no-highlight">733</i>&nbsp;		}
+<i class="no-highlight">734</i>&nbsp;	}
+<i class="no-highlight">735</i>&nbsp;
+<i class="no-highlight">736</i>&nbsp;	private static void addClassUsageInfo(ICodeWriter code, ClassNode cls) {
+<b class="nc"><i class="no-highlight">737</i>&nbsp;		List&lt;ClassNode&gt; deps = cls.getDependencies();</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;		code.startLine(&quot;// deps - &quot;).add(Integer.toString(deps.size()));</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;		for (ClassNode depCls : deps) {</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;			code.startLine(&quot;//  &quot;).add(depCls.getClassInfo().getFullName());</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;		List&lt;ClassNode&gt; useIn = cls.getUseIn();</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;		code.startLine(&quot;// use in - &quot;).add(Integer.toString(useIn.size()));</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;		for (ClassNode useCls : useIn) {</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;			code.startLine(&quot;//  &quot;).add(useCls.getClassInfo().getFullName());</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;		List&lt;MethodNode&gt; useInMths = cls.getUseInMth();</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;		code.startLine(&quot;// use in methods - &quot;).add(Integer.toString(useInMths.size()));</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;		for (MethodNode useMth : useInMths) {</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;			code.startLine(&quot;//  &quot;).add(useMth.toString());</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;		}</b>
+<i class="no-highlight">752</i>&nbsp;	}
+<i class="no-highlight">753</i>&nbsp;
+<i class="no-highlight">754</i>&nbsp;	static void addMthUsageInfo(ICodeWriter code, MethodNode mth) {
+<b class="nc"><i class="no-highlight">755</i>&nbsp;		List&lt;MethodNode&gt; useInMths = mth.getUseIn();</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;		code.startLine(&quot;// use in methods - &quot;).add(Integer.toString(useInMths.size()));</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;		for (MethodNode useMth : useInMths) {</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;			code.startLine(&quot;//  &quot;).add(useMth.toString());</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;		}</b>
+<i class="no-highlight">760</i>&nbsp;	}
+<i class="no-highlight">761</i>&nbsp;
+<i class="no-highlight">762</i>&nbsp;	private static void addFieldUsageInfo(ICodeWriter code, FieldNode fieldNode) {
+<b class="nc"><i class="no-highlight">763</i>&nbsp;		List&lt;MethodNode&gt; useInMths = fieldNode.getUseIn();</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;		code.startLine(&quot;// use in methods - &quot;).add(Integer.toString(useInMths.size()));</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;		for (MethodNode useMth : useInMths) {</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;			code.startLine(&quot;//  &quot;).add(useMth.toString());</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;		}</b>
+<i class="no-highlight">768</i>&nbsp;	}
+<i class="no-highlight">769</i>&nbsp;
+<i class="no-highlight">770</i>&nbsp;	public ClassGen getParentGen() {
+<b class="fc"><i class="no-highlight">771</i>&nbsp;		return parentGen == null ? this : parentGen;</b>
+<i class="no-highlight">772</i>&nbsp;	}
+<i class="no-highlight">773</i>&nbsp;
+<i class="no-highlight">774</i>&nbsp;	public AnnotationGen getAnnotationGen() {
+<b class="fc"><i class="no-highlight">775</i>&nbsp;		return annotationGen;</b>
+<i class="no-highlight">776</i>&nbsp;	}
+<i class="no-highlight">777</i>&nbsp;
+<i class="no-highlight">778</i>&nbsp;	public boolean isFallbackMode() {
+<b class="fc"><i class="no-highlight">779</i>&nbsp;		return fallback;</b>
+<i class="no-highlight">780</i>&nbsp;	}
+<i class="no-highlight">781</i>&nbsp;
+<i class="no-highlight">782</i>&nbsp;	public boolean isBodyGenStarted() {
+<b class="fc"><i class="no-highlight">783</i>&nbsp;		return bodyGenStarted;</b>
+<i class="no-highlight">784</i>&nbsp;	}
+<i class="no-highlight">785</i>&nbsp;
+<i class="no-highlight">786</i>&nbsp;	public void setBodyGenStarted(boolean bodyGenStarted) {
+<b class="fc"><i class="no-highlight">787</i>&nbsp;		this.bodyGenStarted = bodyGenStarted;</b>
+<i class="no-highlight">788</i>&nbsp;	}
+<i class="no-highlight">789</i>&nbsp;
+<i class="no-highlight">790</i>&nbsp;	@Nullable
+<i class="no-highlight">791</i>&nbsp;	public NameGen getOuterNameGen() {
+<b class="fc"><i class="no-highlight">792</i>&nbsp;		return outerNameGen;</b>
+<i class="no-highlight">793</i>&nbsp;	}
+<i class="no-highlight">794</i>&nbsp;
+<i class="no-highlight">795</i>&nbsp;	public void setOuterNameGen(@NotNull NameGen outerNameGen) {
+<b class="fc"><i class="no-highlight">796</i>&nbsp;		this.outerNameGen = outerNameGen;</b>
+<i class="no-highlight">797</i>&nbsp;	}
+<i class="no-highlight">798</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

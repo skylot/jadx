@@ -1,0 +1,171 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ProjectData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.settings.data</a>
+</div>
+
+<h1>Coverage Summary for Class: ProjectData (jadx.gui.settings.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ProjectData</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.settings.data;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">4</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">5</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.data.impl.JadxCodeData;
+<i class="no-highlight">9</i>&nbsp;
+<b class="nc"><i class="no-highlight">10</i>&nbsp;public class ProjectData {</b>
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;	private int projectVersion;
+<i class="no-highlight">13</i>&nbsp;	private List&lt;Path&gt; files;
+<b class="nc"><i class="no-highlight">14</i>&nbsp;	private List&lt;String[]&gt; treeExpansions = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">15</i>&nbsp;	private JadxCodeData codeData = new JadxCodeData();</b>
+<b class="nc"><i class="no-highlight">16</i>&nbsp;	private List&lt;TabViewState&gt; openTabs = Collections.emptyList();</b>
+<i class="no-highlight">17</i>&nbsp;	private int activeTab;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	public List&lt;Path&gt; getFiles() {
+<b class="nc"><i class="no-highlight">20</i>&nbsp;		return files;</b>
+<i class="no-highlight">21</i>&nbsp;	}
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;	public void setFiles(List&lt;Path&gt; files) {
+<b class="nc"><i class="no-highlight">24</i>&nbsp;		this.files = files;</b>
+<i class="no-highlight">25</i>&nbsp;	}
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;	public List&lt;String[]&gt; getTreeExpansions() {
+<b class="nc"><i class="no-highlight">28</i>&nbsp;		return treeExpansions;</b>
+<i class="no-highlight">29</i>&nbsp;	}
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;	public void setTreeExpansions(List&lt;String[]&gt; treeExpansions) {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;		this.treeExpansions = treeExpansions;</b>
+<i class="no-highlight">33</i>&nbsp;	}
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;	public JadxCodeData getCodeData() {
+<b class="nc"><i class="no-highlight">36</i>&nbsp;		return codeData;</b>
+<i class="no-highlight">37</i>&nbsp;	}
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;	public void setCodeData(JadxCodeData codeData) {
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		this.codeData = codeData;</b>
+<i class="no-highlight">41</i>&nbsp;	}
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;	public int getProjectVersion() {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		return projectVersion;</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	public void setProjectVersion(int projectVersion) {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;		this.projectVersion = projectVersion;</b>
+<i class="no-highlight">49</i>&nbsp;	}
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;	public List&lt;TabViewState&gt; getOpenTabs() {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;		return openTabs;</b>
+<i class="no-highlight">53</i>&nbsp;	}
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;	public void setOpenTabs(List&lt;TabViewState&gt; openTabs) {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		this.openTabs = openTabs;</b>
+<i class="no-highlight">57</i>&nbsp;	}
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	public int getActiveTab() {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		return activeTab;</b>
+<i class="no-highlight">61</i>&nbsp;	}
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;	public void setActiveTab(int activeTab) {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		this.activeTab = activeTab;</b>
+<i class="no-highlight">65</i>&nbsp;	}
+<i class="no-highlight">66</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

@@ -1,9 +1,11 @@
 package jadx.gui.utils.search;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+//import com.android.tools.r8.internal.S;
 import org.junit.jupiter.api.Test;
 
 import static jadx.gui.utils.search.StringRef.fromStr;
@@ -106,4 +108,7 @@ class StringRefTest {
 	private static void checkIndexOf(StringRef ref, String str,int from, boolean caseInsensitive, int pos){
 		assertThat(ref.indexOf(str,from,caseInsensitive),is(pos));
 	}
+
+
+
 }

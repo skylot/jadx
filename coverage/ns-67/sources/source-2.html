@@ -1,0 +1,144 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SmaliInputPlugin</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.smali</a>
+</div>
+
+<h1>Coverage Summary for Class: SmaliInputPlugin (jadx.plugins.input.smali)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SmaliInputPlugin</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.smali;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">4</i>&nbsp;import java.util.List;
+<i class="no-highlight">5</i>&nbsp;
+<i class="no-highlight">6</i>&nbsp;import jadx.api.plugins.JadxPluginInfo;
+<i class="no-highlight">7</i>&nbsp;import jadx.api.plugins.input.JadxInputPlugin;
+<i class="no-highlight">8</i>&nbsp;import jadx.api.plugins.input.data.ILoadResult;
+<i class="no-highlight">9</i>&nbsp;import jadx.api.plugins.input.data.impl.EmptyLoadResult;
+<i class="no-highlight">10</i>&nbsp;import jadx.plugins.input.dex.DexInputPlugin;
+<i class="no-highlight">11</i>&nbsp;
+<b class="fc"><i class="no-highlight">12</i>&nbsp;public class SmaliInputPlugin implements JadxInputPlugin {</b>
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;	@Override
+<i class="no-highlight">15</i>&nbsp;	public JadxPluginInfo getPluginInfo() {
+<b class="fc"><i class="no-highlight">16</i>&nbsp;		return new JadxPluginInfo(&quot;smali-input&quot;, &quot;SmaliInput&quot;, &quot;Load .smali files&quot;);</b>
+<i class="no-highlight">17</i>&nbsp;	}
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;	@Override
+<i class="no-highlight">20</i>&nbsp;	public ILoadResult loadFiles(List&lt;Path&gt; input) {
+<b class="fc"><i class="no-highlight">21</i>&nbsp;		SmaliConvert convert = new SmaliConvert();</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;		if (!convert.execute(input)) {</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;			return EmptyLoadResult.INSTANCE;</b>
+<i class="no-highlight">24</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">25</i>&nbsp;		return DexInputPlugin.loadDexFiles(convert.getDexFiles(), convert);</b>
+<i class="no-highlight">26</i>&nbsp;	}
+<i class="no-highlight">27</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

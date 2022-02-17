@@ -1,0 +1,126 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IContainer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.nodes</a>
+</div>
+
+<h1>Coverage Summary for Class: IContainer (jadx.core.dex.nodes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IContainer</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.nodes;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import jadx.api.ICodeWriter;
+<i class="no-highlight">4</i>&nbsp;import jadx.core.codegen.RegionGen;
+<i class="no-highlight">5</i>&nbsp;import jadx.core.dex.attributes.IAttributeNode;
+<i class="no-highlight">6</i>&nbsp;import jadx.core.utils.exceptions.CodegenException;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;public interface IContainer extends IAttributeNode {
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;	/**
+<i class="no-highlight">11</i>&nbsp;	 * Unique id for use in &#39;toString()&#39; method
+<i class="no-highlight">12</i>&nbsp;	 */
+<i class="no-highlight">13</i>&nbsp;	String baseString();
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;	/**
+<i class="no-highlight">16</i>&nbsp;	 * Dispatch to needed generate method in RegionGen
+<i class="no-highlight">17</i>&nbsp;	 */
+<i class="no-highlight">18</i>&nbsp;	default void generate(RegionGen regionGen, ICodeWriter code) throws CodegenException {
+<b class="nc"><i class="no-highlight">19</i>&nbsp;		throw new CodegenException(&quot;Code generate not implemented for container: &quot; + getClass().getSimpleName());</b>
+<i class="no-highlight">20</i>&nbsp;	}
+<i class="no-highlight">21</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

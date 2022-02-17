@@ -1,0 +1,413 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConstPoolReader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data</a>
+</div>
+
+<h1>Coverage Summary for Class: ConstPoolReader (jadx.plugins.input.java.data)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConstPoolReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    79.2%
+  </span>
+  <span class="absValue">
+    (19/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    23.1%
+  </span>
+  <span class="absValue">
+    (6/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.4%
+  </span>
+  <span class="absValue">
+    (84/116)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ConstPoolReader$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (20/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    23.1%
+  </span>
+  <span class="absValue">
+    (6/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.6%
+  </span>
+  <span class="absValue">
+    (85/117)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">4</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">5</i>&nbsp;import java.util.List;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">8</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">9</i>&nbsp;
+<i class="no-highlight">10</i>&nbsp;import jadx.api.plugins.input.data.ICallSite;
+<i class="no-highlight">11</i>&nbsp;import jadx.api.plugins.input.data.IFieldRef;
+<i class="no-highlight">12</i>&nbsp;import jadx.api.plugins.input.data.IMethodHandle;
+<i class="no-highlight">13</i>&nbsp;import jadx.api.plugins.input.data.IMethodRef;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.MethodHandleType;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedType;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.impl.CallSite;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.impl.FieldRefHandle;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.impl.MethodRefHandle;
+<i class="no-highlight">20</i>&nbsp;import jadx.plugins.input.java.JavaClassReader;
+<i class="no-highlight">21</i>&nbsp;import jadx.plugins.input.java.data.attributes.JavaAttrType;
+<i class="no-highlight">22</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.JavaBootstrapMethodsAttr;
+<i class="no-highlight">23</i>&nbsp;import jadx.plugins.input.java.data.attributes.types.data.RawBootstrapMethod;
+<i class="no-highlight">24</i>&nbsp;import jadx.plugins.input.java.utils.DescriptorParser;
+<i class="no-highlight">25</i>&nbsp;import jadx.plugins.input.java.utils.JavaClassParseException;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;public class ConstPoolReader {
+<i class="no-highlight">28</i>&nbsp;	private final JavaClassReader clsReader;
+<i class="no-highlight">29</i>&nbsp;	private final JavaClassData clsData;
+<i class="no-highlight">30</i>&nbsp;	private final DataReader data;
+<i class="no-highlight">31</i>&nbsp;	private final ClassOffsets offsets;
+<i class="no-highlight">32</i>&nbsp;
+<b class="fc"><i class="no-highlight">33</i>&nbsp;	public ConstPoolReader(JavaClassReader clsReader, JavaClassData javaClassData, DataReader data, ClassOffsets offsets) {</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;		this.clsReader = clsReader;</b>
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		this.clsData = javaClassData;</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		this.data = data;</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;		this.offsets = offsets;</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	@Nullable
+<i class="no-highlight">41</i>&nbsp;	public String getClass(int idx) {
+<b class="fc"><i class="no-highlight">42</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		int nameIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;		return fixType(getUtf8(nameIdx));</b>
+<i class="no-highlight">45</i>&nbsp;	}
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;	public IFieldRef getFieldRef(int idx) {
+<b class="fc"><i class="no-highlight">48</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;		int clsIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;		int nameTypeIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">51</i>&nbsp;		jumpToData(nameTypeIdx);</b>
+<b class="fc"><i class="no-highlight">52</i>&nbsp;		int nameIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">53</i>&nbsp;		int typeIdx = data.readU2();</b>
+<i class="no-highlight">54</i>&nbsp;
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		JavaFieldData fieldData = new JavaFieldData();</b>
+<b class="fc"><i class="no-highlight">56</i>&nbsp;		fieldData.setParentClassType(getClass(clsIdx));</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;		fieldData.setName(getUtf8(nameIdx));</b>
+<b class="fc"><i class="no-highlight">58</i>&nbsp;		fieldData.setType(getUtf8(typeIdx));</b>
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		return fieldData;</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	public String getFieldType(int idx) {
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;		data.skip(2);</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;		int nameTypeIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">66</i>&nbsp;		jumpToData(nameTypeIdx);</b>
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		data.skip(2);</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		int typeIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">69</i>&nbsp;		return getUtf8(typeIdx);</b>
+<i class="no-highlight">70</i>&nbsp;	}
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;	public IMethodRef getMethodRef(int idx) {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">74</i>&nbsp;		int clsIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">75</i>&nbsp;		int nameTypeIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		jumpToData(nameTypeIdx);</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;		int nameIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;		int descIdx = data.readU2();</b>
+<i class="no-highlight">79</i>&nbsp;
+<b class="fc"><i class="no-highlight">80</i>&nbsp;		JavaMethodRef mthRef = new JavaMethodRef();</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;		mthRef.initUniqId(clsReader, idx, true);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;		mthRef.setParentClassType(getClass(clsIdx));</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;		mthRef.setName(getUtf8(nameIdx));</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;		mthRef.setDescr(getUtf8(descIdx));</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		return mthRef;</b>
+<i class="no-highlight">86</i>&nbsp;	}
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;	public ICallSite getCallSite(int idx) {
+<b class="fc"><i class="no-highlight">89</i>&nbsp;		ConstantType constType = jumpToConst(idx);</b>
+<b class="pc"><i class="no-highlight">90</i>&nbsp;		switch (constType) {</b>
+<i class="no-highlight">91</i>&nbsp;			case INVOKE_DYNAMIC:
+<b class="fc"><i class="no-highlight">92</i>&nbsp;				int bootstrapMthIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;				int nameAndTypeIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">94</i>&nbsp;				jumpToData(nameAndTypeIdx);</b>
+<b class="fc"><i class="no-highlight">95</i>&nbsp;				int nameIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">96</i>&nbsp;				int descIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">97</i>&nbsp;				return resolveMethodCallSite(bootstrapMthIdx, nameIdx, descIdx);</b>
+<i class="no-highlight">98</i>&nbsp;			case DYNAMIC:
+<b class="nc"><i class="no-highlight">99</i>&nbsp;				throw new JavaClassParseException(&quot;Field call site not yet implemented&quot;);</b>
+<i class="no-highlight">100</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">101</i>&nbsp;				throw new JavaClassParseException(&quot;Unexpected tag type for call site: &quot; + constType);</b>
+<i class="no-highlight">102</i>&nbsp;		}
+<i class="no-highlight">103</i>&nbsp;	}
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;	private CallSite resolveMethodCallSite(int bootstrapMthIdx, int nameIdx, int descIdx) {
+<b class="fc"><i class="no-highlight">106</i>&nbsp;		JavaBootstrapMethodsAttr bootstrapMethodsAttr = clsData.loadAttribute(data, JavaAttrType.BOOTSTRAP_METHODS);</b>
+<b class="pc"><i class="no-highlight">107</i>&nbsp;		if (bootstrapMethodsAttr == null) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;			throw new JavaClassParseException(&quot;Unexpected missing BootstrapMethods attribute&quot;);</b>
+<i class="no-highlight">109</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">110</i>&nbsp;		RawBootstrapMethod rawBootstrapMethod = bootstrapMethodsAttr.getList().get(bootstrapMthIdx);</b>
+<i class="no-highlight">111</i>&nbsp;
+<b class="fc"><i class="no-highlight">112</i>&nbsp;		List&lt;EncodedValue&gt; values = new ArrayList&lt;&gt;(6);</b>
+<b class="fc"><i class="no-highlight">113</i>&nbsp;		values.add(new EncodedValue(EncodedType.ENCODED_METHOD_HANDLE, getMethodHandle(rawBootstrapMethod.getMethodHandleIdx())));</b>
+<b class="fc"><i class="no-highlight">114</i>&nbsp;		values.add(new EncodedValue(EncodedType.ENCODED_STRING, getUtf8(nameIdx)));</b>
+<b class="fc"><i class="no-highlight">115</i>&nbsp;		values.add(new EncodedValue(EncodedType.ENCODED_METHOD_TYPE, DescriptorParser.parseToMethodProto(getUtf8(descIdx))));</b>
+<b class="fc"><i class="no-highlight">116</i>&nbsp;		for (int argConstIdx : rawBootstrapMethod.getArgs()) {</b>
+<b class="fc"><i class="no-highlight">117</i>&nbsp;			values.add(readAsEncodedValue(argConstIdx));</b>
+<i class="no-highlight">118</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">119</i>&nbsp;		return new CallSite(values);</b>
+<i class="no-highlight">120</i>&nbsp;	}
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;	private IMethodHandle getMethodHandle(int idx) {
+<b class="fc"><i class="no-highlight">123</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">124</i>&nbsp;		int kind = data.readU1();</b>
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		int refIdx = data.readU2();</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		MethodHandleType handleType = convertMethodHandleKind(kind);</b>
+<b class="pc"><i class="no-highlight">127</i>&nbsp;		if (handleType.isField()) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;			return new FieldRefHandle(handleType, getFieldRef(refIdx));</b>
+<i class="no-highlight">129</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">130</i>&nbsp;		return new MethodRefHandle(handleType, getMethodRef(refIdx));</b>
+<i class="no-highlight">131</i>&nbsp;	}
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;	private MethodHandleType convertMethodHandleKind(int kind) {
+<b class="pc"><i class="no-highlight">134</i>&nbsp;		switch (kind) {</b>
+<i class="no-highlight">135</i>&nbsp;			case 1:
+<b class="nc"><i class="no-highlight">136</i>&nbsp;				return MethodHandleType.STATIC_PUT;</b>
+<i class="no-highlight">137</i>&nbsp;			case 2:
+<b class="nc"><i class="no-highlight">138</i>&nbsp;				return MethodHandleType.STATIC_GET;</b>
+<i class="no-highlight">139</i>&nbsp;			case 3:
+<b class="nc"><i class="no-highlight">140</i>&nbsp;				return MethodHandleType.INSTANCE_PUT;</b>
+<i class="no-highlight">141</i>&nbsp;			case 4:
+<b class="nc"><i class="no-highlight">142</i>&nbsp;				return MethodHandleType.INSTANCE_GET;</b>
+<i class="no-highlight">143</i>&nbsp;			case 5:
+<b class="nc"><i class="no-highlight">144</i>&nbsp;				return MethodHandleType.INVOKE_INSTANCE;</b>
+<i class="no-highlight">145</i>&nbsp;			case 6:
+<b class="fc"><i class="no-highlight">146</i>&nbsp;				return MethodHandleType.INVOKE_STATIC;</b>
+<i class="no-highlight">147</i>&nbsp;			case 7:
+<b class="nc"><i class="no-highlight">148</i>&nbsp;				return MethodHandleType.INVOKE_DIRECT;</b>
+<i class="no-highlight">149</i>&nbsp;			case 8:
+<b class="nc"><i class="no-highlight">150</i>&nbsp;				return MethodHandleType.INVOKE_CONSTRUCTOR;</b>
+<i class="no-highlight">151</i>&nbsp;			case 9:
+<b class="nc"><i class="no-highlight">152</i>&nbsp;				return MethodHandleType.INVOKE_INTERFACE;</b>
+<i class="no-highlight">153</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">154</i>&nbsp;				throw new IllegalArgumentException(&quot;Unknown method handle type: &quot; + kind);</b>
+<i class="no-highlight">155</i>&nbsp;		}
+<i class="no-highlight">156</i>&nbsp;	}
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;	public String getUtf8(int idx) {
+<b class="pc"><i class="no-highlight">159</i>&nbsp;		if (idx == 0) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;			return null;</b>
+<i class="no-highlight">161</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">162</i>&nbsp;		jumpToData(idx);</b>
+<b class="fc"><i class="no-highlight">163</i>&nbsp;		return readString();</b>
+<i class="no-highlight">164</i>&nbsp;	}
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;	public ConstantType jumpToConst(int idx) {
+<b class="fc"><i class="no-highlight">167</i>&nbsp;		jumpToTag(idx);</b>
+<b class="fc"><i class="no-highlight">168</i>&nbsp;		return ConstantType.getTypeByTag(data.readU1());</b>
+<i class="no-highlight">169</i>&nbsp;	}
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;	public String readString() {
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		int len = data.readU2();</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;		byte[] bytes = data.readBytes(len);</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		return parseString(bytes);</b>
+<i class="no-highlight">175</i>&nbsp;	}
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;	public int readU2() {
+<b class="fc"><i class="no-highlight">178</i>&nbsp;		return data.readU2();</b>
+<i class="no-highlight">179</i>&nbsp;	}
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;	public int readU4() {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;		return data.readU4();</b>
+<i class="no-highlight">183</i>&nbsp;	}
+<i class="no-highlight">184</i>&nbsp;
+<i class="no-highlight">185</i>&nbsp;	public long readU8() {
+<b class="fc"><i class="no-highlight">186</i>&nbsp;		return data.readU8();</b>
+<i class="no-highlight">187</i>&nbsp;	}
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;	public int getInt(int idx) {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;		jumpToData(idx);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;		return data.readS4();</b>
+<i class="no-highlight">192</i>&nbsp;	}
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;	public long getLong(int idx) {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;		jumpToData(idx);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;		return data.readS8();</b>
+<i class="no-highlight">197</i>&nbsp;	}
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;	public double getDouble(int idx) {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;		jumpToData(idx);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		return Double.longBitsToDouble(data.readU8());</b>
+<i class="no-highlight">202</i>&nbsp;	}
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;	public float getFloat(int idx) {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;		jumpToData(idx);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;		return Float.intBitsToFloat(data.readU4());</b>
+<i class="no-highlight">207</i>&nbsp;	}
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;	public EncodedValue readAsEncodedValue(int idx) {
+<b class="fc"><i class="no-highlight">210</i>&nbsp;		ConstantType constantType = jumpToConst(idx);</b>
+<b class="pc"><i class="no-highlight">211</i>&nbsp;		switch (constantType) {</b>
+<i class="no-highlight">212</i>&nbsp;			case UTF8:
+<b class="nc"><i class="no-highlight">213</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_STRING, readString());</b>
+<i class="no-highlight">214</i>&nbsp;			case STRING:
+<b class="fc"><i class="no-highlight">215</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_STRING, getUtf8(readU2()));</b>
+<i class="no-highlight">216</i>&nbsp;			case INTEGER:
+<b class="fc"><i class="no-highlight">217</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_INT, data.readS4());</b>
+<i class="no-highlight">218</i>&nbsp;			case FLOAT:
+<b class="nc"><i class="no-highlight">219</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_FLOAT, Float.intBitsToFloat(data.readU4()));</b>
+<i class="no-highlight">220</i>&nbsp;			case LONG:
+<b class="nc"><i class="no-highlight">221</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_LONG, data.readS8());</b>
+<i class="no-highlight">222</i>&nbsp;			case DOUBLE:
+<b class="nc"><i class="no-highlight">223</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_DOUBLE, Double.longBitsToDouble(data.readU8()));</b>
+<i class="no-highlight">224</i>&nbsp;			case METHOD_TYPE:
+<b class="nc"><i class="no-highlight">225</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_METHOD_TYPE, DescriptorParser.parseToMethodProto(getUtf8(readU2())));</b>
+<i class="no-highlight">226</i>&nbsp;			case METHOD_HANDLE:
+<b class="nc"><i class="no-highlight">227</i>&nbsp;				return new EncodedValue(EncodedType.ENCODED_METHOD_HANDLE, getMethodHandle(idx));</b>
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">230</i>&nbsp;				throw new JavaClassParseException(&quot;Can&#39;t encode constant &quot; + constantType + &quot; as encoded value&quot;);</b>
+<i class="no-highlight">231</i>&nbsp;		}
+<i class="no-highlight">232</i>&nbsp;	}
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;	@NotNull
+<i class="no-highlight">235</i>&nbsp;	private String parseString(byte[] bytes) {
+<i class="no-highlight">236</i>&nbsp;		// TODO: parse modified UTF-8
+<b class="fc"><i class="no-highlight">237</i>&nbsp;		return new String(bytes, StandardCharsets.UTF_8);</b>
+<i class="no-highlight">238</i>&nbsp;	}
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;	private String fixType(String clsName) {
+<b class="pc"><i class="no-highlight">241</i>&nbsp;		switch (clsName.charAt(0)) {</b>
+<i class="no-highlight">242</i>&nbsp;			case &#39;[&#39;:
+<b class="fc"><i class="no-highlight">243</i>&nbsp;				return clsName;</b>
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;			case &#39;L&#39;:
+<i class="no-highlight">246</i>&nbsp;			case &#39;T&#39;:
+<b class="nc"><i class="no-highlight">247</i>&nbsp;				if (clsName.endsWith(&quot;;&quot;)) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;					return clsName;</b>
+<i class="no-highlight">249</i>&nbsp;				}
+<i class="no-highlight">250</i>&nbsp;				break;
+<i class="no-highlight">251</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">252</i>&nbsp;		return &#39;L&#39; + clsName + &#39;;&#39;;</b>
+<i class="no-highlight">253</i>&nbsp;	}
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;	private void jumpToData(int idx) {
+<b class="fc"><i class="no-highlight">256</i>&nbsp;		data.absPos(offsets.getOffsetOfConstEntry(idx));</b>
+<i class="no-highlight">257</i>&nbsp;	}
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;	private void jumpToTag(int idx) {
+<b class="fc"><i class="no-highlight">260</i>&nbsp;		data.absPos(offsets.getOffsetOfConstEntry(idx) - 1);</b>
+<i class="no-highlight">261</i>&nbsp;	}
+<i class="no-highlight">262</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

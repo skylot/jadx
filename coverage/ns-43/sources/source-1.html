@@ -1,0 +1,219 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > QuarkDialog</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.plugins.quark</a>
+</div>
+
+<h1>Coverage Summary for Class: QuarkDialog (jadx.gui.plugins.quark)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QuarkDialog</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.plugins.quark;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.BorderLayout;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Container;
+<i class="no-highlight">5</i>&nbsp;import java.nio.file.FileSystems;
+<i class="no-highlight">6</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">7</i>&nbsp;import java.nio.file.PathMatcher;
+<i class="no-highlight">8</i>&nbsp;import java.util.List;
+<i class="no-highlight">9</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;import javax.swing.JButton;
+<i class="no-highlight">12</i>&nbsp;import javax.swing.JComboBox;
+<i class="no-highlight">13</i>&nbsp;import javax.swing.JDialog;
+<i class="no-highlight">14</i>&nbsp;import javax.swing.JLabel;
+<i class="no-highlight">15</i>&nbsp;import javax.swing.JPanel;
+<i class="no-highlight">16</i>&nbsp;import javax.swing.WindowConstants;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import jadx.gui.settings.JadxSettings;
+<i class="no-highlight">22</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">23</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;public class QuarkDialog extends JDialog {
+<i class="no-highlight">26</i>&nbsp;	private static final long serialVersionUID = 4855753773520368215L;
+<i class="no-highlight">27</i>&nbsp;
+<b class="nc"><i class="no-highlight">28</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(QuarkDialog.class);</b>
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;	private final transient JadxSettings settings;
+<i class="no-highlight">31</i>&nbsp;	private final transient MainWindow mainWindow;
+<i class="no-highlight">32</i>&nbsp;	private final List&lt;Path&gt; files;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;	private JComboBox&lt;Path&gt; fileSelectCombo;
+<i class="no-highlight">35</i>&nbsp;
+<b class="nc"><i class="no-highlight">36</i>&nbsp;	public QuarkDialog(MainWindow mainWindow) {</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;		this.settings = mainWindow.getSettings();</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;		this.files = filterOpenFiles(mainWindow);</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;		if (files.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;			UiUtils.errorMessage(mainWindow, &quot;Quark is unable to analyze loaded files&quot;);</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;			LOG.error(&quot;Quark: The files cannot be analyzed: {}&quot;, mainWindow.getWrapper().getOpenPaths());</b>
+<i class="no-highlight">43</i>&nbsp;			return;
+<i class="no-highlight">44</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		initUI();</b>
+<i class="no-highlight">46</i>&nbsp;	}
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;	private List&lt;Path&gt; filterOpenFiles(MainWindow mainWindow) {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		PathMatcher matcher = FileSystems.getDefault().getPathMatcher(&quot;glob:**.{apk,dex}&quot;);</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		return mainWindow.getWrapper().getOpenPaths()</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;				.stream()</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;				.filter(matcher::matches)</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;				.collect(Collectors.toList());</b>
+<i class="no-highlight">54</i>&nbsp;	}
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;	private void initUI() {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;		JLabel description = new JLabel(&quot;Analyzing apk using Quark-Engine&quot;);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;		JLabel selectApkText = new JLabel(&quot;Select Apk/Dex&quot;);</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;		description.setAlignmentX(0.5f);</b>
+<i class="no-highlight">60</i>&nbsp;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;		fileSelectCombo = new JComboBox&lt;&gt;(files.toArray(new Path[0]));</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;		fileSelectCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -&gt; new JLabel(value.getFileName().toString()));</b>
+<i class="no-highlight">63</i>&nbsp;
+<b class="nc"><i class="no-highlight">64</i>&nbsp;		JPanel textPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;		textPane.add(description);</b>
+<i class="no-highlight">66</i>&nbsp;
+<b class="nc"><i class="no-highlight">67</i>&nbsp;		JPanel selectApkPanel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;		selectApkPanel.add(selectApkText);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;		selectApkPanel.add(fileSelectCombo);</b>
+<i class="no-highlight">70</i>&nbsp;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;		JPanel buttonPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;		JButton start = new JButton(&quot;Start&quot;);</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;		JButton close = new JButton(&quot;Close&quot;);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;		close.addActionListener(event -&gt; close());</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;		start.addActionListener(event -&gt; startQuarkTasks());</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;		buttonPane.add(start);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;		buttonPane.add(close);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;		getRootPane().setDefaultButton(close);</b>
+<i class="no-highlight">79</i>&nbsp;
+<b class="nc"><i class="no-highlight">80</i>&nbsp;		JPanel centerPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;		centerPane.add(selectApkPanel);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;		Container contentPane = getContentPane();</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		contentPane.add(textPane, BorderLayout.PAGE_START);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		contentPane.add(centerPane);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		contentPane.add(buttonPane, BorderLayout.PAGE_END);</b>
+<i class="no-highlight">87</i>&nbsp;
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		setTitle(&quot;Quark Engine&quot;);</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		pack();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		if (!mainWindow.getSettings().loadWindowPos(this)) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			setSize(300, 140);</b>
+<i class="no-highlight">92</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">93</i>&nbsp;		setLocationRelativeTo(null);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;		setModalityType(ModalityType.APPLICATION_MODAL);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		UiUtils.addEscapeShortCutToDispose(this);</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	private void startQuarkTasks() {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;		Path apkFile = (Path) fileSelectCombo.getSelectedItem();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		new QuarkManager(mainWindow, apkFile).start();</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		close();</b>
+<i class="no-highlight">103</i>&nbsp;	}
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;	private void close() {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;		dispose();</b>
+<i class="no-highlight">107</i>&nbsp;	}
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;	@Override
+<i class="no-highlight">110</i>&nbsp;	public void dispose() {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;		settings.saveWindowPos(this);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;		super.dispose();</b>
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

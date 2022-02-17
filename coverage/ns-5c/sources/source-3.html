@@ -1,0 +1,182 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConstantType</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.plugins.input.java.data</a>
+</div>
+
+<h1>Coverage Summary for Class: ConstantType (jadx.plugins.input.java.data)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConstantType</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.2%
+  </span>
+  <span class="absValue">
+    (35/36)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.plugins.input.java.data;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import jadx.plugins.input.java.utils.JavaClassParseException;
+<i class="no-highlight">6</i>&nbsp;
+<b class="fc"><i class="no-highlight">7</i>&nbsp;public enum ConstantType {</b>
+<b class="fc"><i class="no-highlight">8</i>&nbsp;	UTF8(1, -1),</b>
+<b class="fc"><i class="no-highlight">9</i>&nbsp;	INTEGER(3, 4),</b>
+<b class="fc"><i class="no-highlight">10</i>&nbsp;	FLOAT(4, 4),</b>
+<b class="fc"><i class="no-highlight">11</i>&nbsp;	LONG(5, 8),</b>
+<b class="fc"><i class="no-highlight">12</i>&nbsp;	DOUBLE(6, 8),</b>
+<b class="fc"><i class="no-highlight">13</i>&nbsp;	CLASS(7, 2),</b>
+<b class="fc"><i class="no-highlight">14</i>&nbsp;	STRING(8, 2),</b>
+<b class="fc"><i class="no-highlight">15</i>&nbsp;	FIELD_REF(9, 4),</b>
+<b class="fc"><i class="no-highlight">16</i>&nbsp;	METHOD_REF(10, 4),</b>
+<b class="fc"><i class="no-highlight">17</i>&nbsp;	INTERFACE_METHOD_REF(11, 4),</b>
+<b class="fc"><i class="no-highlight">18</i>&nbsp;	NAME_AND_TYPE(12, 4),</b>
+<b class="fc"><i class="no-highlight">19</i>&nbsp;	METHOD_HANDLE(15, 3),</b>
+<b class="fc"><i class="no-highlight">20</i>&nbsp;	METHOD_TYPE(16, 2),</b>
+<b class="fc"><i class="no-highlight">21</i>&nbsp;	DYNAMIC(17, 4),</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;	INVOKE_DYNAMIC(18, 4),</b>
+<b class="fc"><i class="no-highlight">23</i>&nbsp;	MODULE(19, 2),</b>
+<b class="fc"><i class="no-highlight">24</i>&nbsp;	PACKAGE(20, 2);</b>
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;	private static final ConstantType[] TAG_MAP;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;	static {
+<b class="fc"><i class="no-highlight">29</i>&nbsp;		ConstantType[] values = ConstantType.values();</b>
+<b class="fc"><i class="no-highlight">30</i>&nbsp;		int maxVal = Stream.of(values)</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;				.mapToInt(ConstantType::getTag)</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;				.max()</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;				.orElseThrow(() -&gt; new IllegalArgumentException(&quot;Empty ConstantType enum&quot;));</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="fc"><i class="no-highlight">35</i>&nbsp;		ConstantType[] map = new ConstantType[maxVal + 1];</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;		for (ConstantType value : values) {</b>
+<b class="fc"><i class="no-highlight">37</i>&nbsp;			map[value.getTag()] = value;</b>
+<i class="no-highlight">38</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">39</i>&nbsp;		TAG_MAP = map;</b>
+<i class="no-highlight">40</i>&nbsp;	}
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;	public static ConstantType getTypeByTag(int tag) {
+<b class="fc"><i class="no-highlight">43</i>&nbsp;		ConstantType type = TAG_MAP[tag];</b>
+<b class="pc"><i class="no-highlight">44</i>&nbsp;		if (type == null) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;			throw new JavaClassParseException(&quot;Unknown constant pool tag: &quot; + tag);</b>
+<i class="no-highlight">46</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">47</i>&nbsp;		return type;</b>
+<i class="no-highlight">48</i>&nbsp;	}
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;	private final byte tag;
+<i class="no-highlight">51</i>&nbsp;	private final int dataSize;
+<i class="no-highlight">52</i>&nbsp;
+<b class="fc"><i class="no-highlight">53</i>&nbsp;	ConstantType(int tag, int dataSize) {</b>
+<b class="fc"><i class="no-highlight">54</i>&nbsp;		this.tag = (byte) tag;</b>
+<b class="fc"><i class="no-highlight">55</i>&nbsp;		this.dataSize = dataSize;</b>
+<i class="no-highlight">56</i>&nbsp;	}
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;	public byte getTag() {
+<b class="fc"><i class="no-highlight">59</i>&nbsp;		return tag;</b>
+<i class="no-highlight">60</i>&nbsp;	}
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	public int getDataSize() {
+<b class="fc"><i class="no-highlight">63</i>&nbsp;		return dataSize;</b>
+<i class="no-highlight">64</i>&nbsp;	}
+<i class="no-highlight">65</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

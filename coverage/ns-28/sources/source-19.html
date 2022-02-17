@@ -1,0 +1,533 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > PrepareForCodeGen</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.dex.visitors</a>
+</div>
+
+<h1>Coverage Summary for Class: PrepareForCodeGen (jadx.core.dex.visitors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Block, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PrepareForCodeGen</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (18/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (65/78)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.5%
+  </span>
+  <span class="absValue">
+    (159/170)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">PrepareForCodeGen$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (19/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (65/78)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93.6%
+  </span>
+  <span class="absValue">
+    (161/172)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.dex.visitors;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">4</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">5</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">6</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">7</i>&nbsp;import java.util.List;
+<i class="no-highlight">8</i>&nbsp;import java.util.Map;
+<i class="no-highlight">9</i>&nbsp;import java.util.Set;
+<i class="no-highlight">10</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import jadx.api.plugins.input.data.IFieldRef;
+<i class="no-highlight">15</i>&nbsp;import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+<i class="no-highlight">16</i>&nbsp;import jadx.api.plugins.input.data.annotations.EncodedValue;
+<i class="no-highlight">17</i>&nbsp;import jadx.api.plugins.input.data.annotations.IAnnotation;
+<i class="no-highlight">18</i>&nbsp;import jadx.api.plugins.input.data.attributes.JadxAttrType;
+<i class="no-highlight">19</i>&nbsp;import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+<i class="no-highlight">20</i>&nbsp;import jadx.core.dex.attributes.AFlag;
+<i class="no-highlight">21</i>&nbsp;import jadx.core.dex.attributes.AType;
+<i class="no-highlight">22</i>&nbsp;import jadx.core.dex.attributes.AttrNode;
+<i class="no-highlight">23</i>&nbsp;import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+<i class="no-highlight">24</i>&nbsp;import jadx.core.dex.attributes.nodes.LineAttrNode;
+<i class="no-highlight">25</i>&nbsp;import jadx.core.dex.info.FieldInfo;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.instructions.ArithNode;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.dex.instructions.ArithOp;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.dex.instructions.InsnType;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.dex.instructions.args.ArgType;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.dex.instructions.args.InsnArg;
+<i class="no-highlight">31</i>&nbsp;import jadx.core.dex.instructions.args.InsnWrapArg;
+<i class="no-highlight">32</i>&nbsp;import jadx.core.dex.instructions.args.RegisterArg;
+<i class="no-highlight">33</i>&nbsp;import jadx.core.dex.instructions.mods.ConstructorInsn;
+<i class="no-highlight">34</i>&nbsp;import jadx.core.dex.instructions.mods.TernaryInsn;
+<i class="no-highlight">35</i>&nbsp;import jadx.core.dex.nodes.BlockNode;
+<i class="no-highlight">36</i>&nbsp;import jadx.core.dex.nodes.ClassNode;
+<i class="no-highlight">37</i>&nbsp;import jadx.core.dex.nodes.FieldNode;
+<i class="no-highlight">38</i>&nbsp;import jadx.core.dex.nodes.InsnContainer;
+<i class="no-highlight">39</i>&nbsp;import jadx.core.dex.nodes.InsnNode;
+<i class="no-highlight">40</i>&nbsp;import jadx.core.dex.nodes.MethodNode;
+<i class="no-highlight">41</i>&nbsp;import jadx.core.dex.regions.Region;
+<i class="no-highlight">42</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition;
+<i class="no-highlight">43</i>&nbsp;import jadx.core.dex.regions.conditions.IfCondition.Mode;
+<i class="no-highlight">44</i>&nbsp;import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+<i class="no-highlight">45</i>&nbsp;import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+<i class="no-highlight">46</i>&nbsp;import jadx.core.utils.BlockUtils;
+<i class="no-highlight">47</i>&nbsp;import jadx.core.utils.InsnList;
+<i class="no-highlight">48</i>&nbsp;import jadx.core.utils.exceptions.JadxException;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;/**
+<i class="no-highlight">51</i>&nbsp; * Prepare instructions for code generation pass,
+<i class="no-highlight">52</i>&nbsp; * most of this modification breaks register dependencies,
+<i class="no-highlight">53</i>&nbsp; * so this pass must be just before CodeGen.
+<i class="no-highlight">54</i>&nbsp; */
+<i class="no-highlight">55</i>&nbsp;@JadxVisitor(
+<i class="no-highlight">56</i>&nbsp;		name = &quot;PrepareForCodeGen&quot;,
+<i class="no-highlight">57</i>&nbsp;		desc = &quot;Prepare instructions for code generation pass&quot;,
+<i class="no-highlight">58</i>&nbsp;		runAfter = { CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class }
+<i class="no-highlight">59</i>&nbsp;)
+<b class="fc"><i class="no-highlight">60</i>&nbsp;public class PrepareForCodeGen extends AbstractVisitor {</b>
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;	@Override
+<i class="no-highlight">63</i>&nbsp;	public boolean visit(ClassNode cls) throws JadxException {
+<b class="pc"><i class="no-highlight">64</i>&nbsp;		if (cls.root().getArgs().isDebugInfo()) {</b>
+<b class="fc"><i class="no-highlight">65</i>&nbsp;			setClassSourceLine(cls);</b>
+<i class="no-highlight">66</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">67</i>&nbsp;		collectFieldsUsageInAnnotations(cls);</b>
+<b class="fc"><i class="no-highlight">68</i>&nbsp;		return true;</b>
+<i class="no-highlight">69</i>&nbsp;	}
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;	@Override
+<i class="no-highlight">72</i>&nbsp;	public void visit(MethodNode mth) throws JadxException {
+<b class="fc"><i class="no-highlight">73</i>&nbsp;		if (mth.isNoCode()) {</b>
+<i class="no-highlight">74</i>&nbsp;			return;
+<i class="no-highlight">75</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">76</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">77</i>&nbsp;			if (block.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">78</i>&nbsp;				continue;</b>
+<i class="no-highlight">79</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">80</i>&nbsp;			removeInstructions(block);</b>
+<b class="fc"><i class="no-highlight">81</i>&nbsp;			checkInline(block);</b>
+<b class="fc"><i class="no-highlight">82</i>&nbsp;			removeParenthesis(block);</b>
+<b class="fc"><i class="no-highlight">83</i>&nbsp;			modifyArith(block);</b>
+<b class="fc"><i class="no-highlight">84</i>&nbsp;			checkConstUsage(block);</b>
+<b class="fc"><i class="no-highlight">85</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">86</i>&nbsp;		moveConstructorInConstructor(mth);</b>
+<b class="fc"><i class="no-highlight">87</i>&nbsp;		collectFieldsUsageInAnnotations(mth, mth);</b>
+<i class="no-highlight">88</i>&nbsp;	}
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;	private static void removeInstructions(BlockNode block) {
+<b class="fc"><i class="no-highlight">91</i>&nbsp;		Iterator&lt;InsnNode&gt; it = block.getInstructions().iterator();</b>
+<b class="fc"><i class="no-highlight">92</i>&nbsp;		while (it.hasNext()) {</b>
+<b class="fc"><i class="no-highlight">93</i>&nbsp;			InsnNode insn = it.next();</b>
+<b class="pc"><i class="no-highlight">94</i>&nbsp;			switch (insn.getType()) {</b>
+<i class="no-highlight">95</i>&nbsp;				case NOP:
+<i class="no-highlight">96</i>&nbsp;				case MONITOR_ENTER:
+<i class="no-highlight">97</i>&nbsp;				case MONITOR_EXIT:
+<i class="no-highlight">98</i>&nbsp;				case MOVE_EXCEPTION:
+<b class="fc"><i class="no-highlight">99</i>&nbsp;					it.remove();</b>
+<b class="fc"><i class="no-highlight">100</i>&nbsp;					break;</b>
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;				case CONSTRUCTOR:
+<b class="fc"><i class="no-highlight">103</i>&nbsp;					ConstructorInsn co = (ConstructorInsn) insn;</b>
+<b class="pc"><i class="no-highlight">104</i>&nbsp;					if (co.isSelf()) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;						it.remove();</b>
+<i class="no-highlight">106</i>&nbsp;					}
+<i class="no-highlight">107</i>&nbsp;					break;
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;				case MOVE:
+<i class="no-highlight">110</i>&nbsp;					// remove redundant moves: unused result and same args names (a = a;)
+<b class="fc"><i class="no-highlight">111</i>&nbsp;					RegisterArg result = insn.getResult();</b>
+<b class="pc"><i class="no-highlight">112</i>&nbsp;					if (result.getSVar().getUseCount() == 0</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;							&amp;&amp; result.isNameEquals(insn.getArg(0))) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;						it.remove();</b>
+<i class="no-highlight">115</i>&nbsp;					}
+<i class="no-highlight">116</i>&nbsp;					break;
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;				default:
+<i class="no-highlight">119</i>&nbsp;					break;
+<i class="no-highlight">120</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">121</i>&nbsp;		}</b>
+<i class="no-highlight">122</i>&nbsp;	}
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;	private static void checkInline(BlockNode block) {
+<b class="fc"><i class="no-highlight">125</i>&nbsp;		List&lt;InsnNode&gt; list = block.getInstructions();</b>
+<b class="fc"><i class="no-highlight">126</i>&nbsp;		for (int i = 0; i &lt; list.size(); i++) {</b>
+<b class="fc"><i class="no-highlight">127</i>&nbsp;			InsnNode insn = list.get(i);</b>
+<i class="no-highlight">128</i>&nbsp;			// replace &#39;move&#39; with inner wrapped instruction
+<b class="fc"><i class="no-highlight">129</i>&nbsp;			if (insn.getType() == InsnType.MOVE</b>
+<b class="pc"><i class="no-highlight">130</i>&nbsp;					&amp;&amp; insn.getArg(0).isInsnWrap()) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;				InsnNode wrapInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;				wrapInsn.setResult(insn.getResult());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;				wrapInsn.copyAttributesFrom(insn);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;				list.set(i, wrapInsn);</b>
+<i class="no-highlight">135</i>&nbsp;			}
+<i class="no-highlight">136</i>&nbsp;		}
+<i class="no-highlight">137</i>&nbsp;	}
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;	/**
+<i class="no-highlight">140</i>&nbsp;	 * Add explicit type for non int constants
+<i class="no-highlight">141</i>&nbsp;	 */
+<i class="no-highlight">142</i>&nbsp;	private static void checkConstUsage(BlockNode block) {
+<b class="fc"><i class="no-highlight">143</i>&nbsp;		for (InsnNode blockInsn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;			blockInsn.visitInsns(insn -&gt; {</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;				if (forbidExplicitType(insn.getType())) {</b>
+<i class="no-highlight">146</i>&nbsp;					return;
+<i class="no-highlight">147</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">148</i>&nbsp;				for (InsnArg arg : insn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;					if (arg.isLiteral() &amp;&amp; arg.getType() != ArgType.INT) {</b>
+<b class="fc"><i class="no-highlight">150</i>&nbsp;						arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);</b>
+<i class="no-highlight">151</i>&nbsp;					}
+<b class="fc"><i class="no-highlight">152</i>&nbsp;				}</b>
+<i class="no-highlight">153</i>&nbsp;			});
+<b class="fc"><i class="no-highlight">154</i>&nbsp;		}</b>
+<i class="no-highlight">155</i>&nbsp;	}
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;	private static boolean forbidExplicitType(InsnType type) {
+<b class="fc"><i class="no-highlight">158</i>&nbsp;		switch (type) {</b>
+<i class="no-highlight">159</i>&nbsp;			case CONST:
+<i class="no-highlight">160</i>&nbsp;			case CAST:
+<i class="no-highlight">161</i>&nbsp;			case IF:
+<i class="no-highlight">162</i>&nbsp;			case FILLED_NEW_ARRAY:
+<i class="no-highlight">163</i>&nbsp;			case APUT:
+<i class="no-highlight">164</i>&nbsp;			case ARITH:
+<b class="fc"><i class="no-highlight">165</i>&nbsp;				return true;</b>
+<i class="no-highlight">166</i>&nbsp;			default:
+<b class="fc"><i class="no-highlight">167</i>&nbsp;				return false;</b>
+<i class="no-highlight">168</i>&nbsp;		}
+<i class="no-highlight">169</i>&nbsp;	}
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;	private static void removeParenthesis(BlockNode block) {
+<b class="fc"><i class="no-highlight">172</i>&nbsp;		for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">173</i>&nbsp;			removeParenthesis(insn);</b>
+<b class="fc"><i class="no-highlight">174</i>&nbsp;		}</b>
+<i class="no-highlight">175</i>&nbsp;	}
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;	/**
+<i class="no-highlight">178</i>&nbsp;	 * Remove parenthesis for wrapped insn in arith &#39;+&#39; or &#39;-&#39;
+<i class="no-highlight">179</i>&nbsp;	 * (&#39;(a + b) +c&#39; =&gt; &#39;a + b + c&#39;)
+<i class="no-highlight">180</i>&nbsp;	 */
+<i class="no-highlight">181</i>&nbsp;	private static void removeParenthesis(InsnNode insn) {
+<b class="fc"><i class="no-highlight">182</i>&nbsp;		if (insn.getType() == InsnType.ARITH) {</b>
+<b class="fc"><i class="no-highlight">183</i>&nbsp;			ArithNode arith = (ArithNode) insn;</b>
+<b class="fc"><i class="no-highlight">184</i>&nbsp;			ArithOp op = arith.getOp();</b>
+<b class="fc"><i class="no-highlight">185</i>&nbsp;			if (op == ArithOp.ADD || op == ArithOp.MUL || op == ArithOp.AND || op == ArithOp.OR) {</b>
+<b class="fc"><i class="no-highlight">186</i>&nbsp;				for (int i = 0; i &lt; 2; i++) {</b>
+<b class="fc"><i class="no-highlight">187</i>&nbsp;					InsnArg arg = arith.getArg(i);</b>
+<b class="fc"><i class="no-highlight">188</i>&nbsp;					if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">189</i>&nbsp;						InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">190</i>&nbsp;						if (wrapInsn.getType() == InsnType.ARITH &amp;&amp; ((ArithNode) wrapInsn).getOp() == op) {</b>
+<b class="fc"><i class="no-highlight">191</i>&nbsp;							wrapInsn.add(AFlag.DONT_WRAP);</b>
+<i class="no-highlight">192</i>&nbsp;						}
+<b class="fc"><i class="no-highlight">193</i>&nbsp;						removeParenthesis(wrapInsn);</b>
+<i class="no-highlight">194</i>&nbsp;					}
+<i class="no-highlight">195</i>&nbsp;				}
+<i class="no-highlight">196</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">197</i>&nbsp;		} else {</b>
+<b class="fc"><i class="no-highlight">198</i>&nbsp;			if (insn.getType() == InsnType.TERNARY) {</b>
+<b class="fc"><i class="no-highlight">199</i>&nbsp;				removeParenthesis(((TernaryInsn) insn).getCondition());</b>
+<i class="no-highlight">200</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">201</i>&nbsp;			for (InsnArg arg : insn.getArguments()) {</b>
+<b class="fc"><i class="no-highlight">202</i>&nbsp;				if (arg.isInsnWrap()) {</b>
+<b class="fc"><i class="no-highlight">203</i>&nbsp;					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();</b>
+<b class="fc"><i class="no-highlight">204</i>&nbsp;					removeParenthesis(wrapInsn);</b>
+<i class="no-highlight">205</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">206</i>&nbsp;			}</b>
+<i class="no-highlight">207</i>&nbsp;		}
+<i class="no-highlight">208</i>&nbsp;	}
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;	private static void removeParenthesis(IfCondition cond) {
+<b class="fc"><i class="no-highlight">211</i>&nbsp;		Mode mode = cond.getMode();</b>
+<b class="fc"><i class="no-highlight">212</i>&nbsp;		for (IfCondition c : cond.getArgs()) {</b>
+<b class="fc"><i class="no-highlight">213</i>&nbsp;			if (c.getMode() == mode) {</b>
+<b class="fc"><i class="no-highlight">214</i>&nbsp;				c.add(AFlag.DONT_WRAP);</b>
+<i class="no-highlight">215</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">216</i>&nbsp;		}</b>
+<i class="no-highlight">217</i>&nbsp;	}
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;	/**
+<i class="no-highlight">220</i>&nbsp;	 * Replace arithmetic operation with short form
+<i class="no-highlight">221</i>&nbsp;	 * (&#39;a = a + 2&#39; =&gt; &#39;a += 2&#39;)
+<i class="no-highlight">222</i>&nbsp;	 */
+<i class="no-highlight">223</i>&nbsp;	private static void modifyArith(BlockNode block) {
+<b class="fc"><i class="no-highlight">224</i>&nbsp;		List&lt;InsnNode&gt; list = block.getInstructions();</b>
+<b class="fc"><i class="no-highlight">225</i>&nbsp;		for (InsnNode insn : list) {</b>
+<b class="fc"><i class="no-highlight">226</i>&nbsp;			if (insn.getType() == InsnType.ARITH</b>
+<b class="fc"><i class="no-highlight">227</i>&nbsp;					&amp;&amp; !insn.contains(AFlag.ARITH_ONEARG)</b>
+<b class="fc"><i class="no-highlight">228</i>&nbsp;					&amp;&amp; !insn.contains(AFlag.DECLARE_VAR)) {</b>
+<b class="fc"><i class="no-highlight">229</i>&nbsp;				RegisterArg res = insn.getResult();</b>
+<b class="fc"><i class="no-highlight">230</i>&nbsp;				InsnArg arg = insn.getArg(0);</b>
+<b class="fc"><i class="no-highlight">231</i>&nbsp;				boolean replace = false;</b>
+<b class="pc"><i class="no-highlight">232</i>&nbsp;				if (res.equals(arg)) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;					replace = true;</b>
+<b class="pc"><i class="no-highlight">234</i>&nbsp;				} else if (arg.isRegister()) {</b>
+<b class="fc"><i class="no-highlight">235</i>&nbsp;					RegisterArg regArg = (RegisterArg) arg;</b>
+<b class="fc"><i class="no-highlight">236</i>&nbsp;					replace = res.sameCodeVar(regArg);</b>
+<i class="no-highlight">237</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">238</i>&nbsp;				if (replace) {</b>
+<b class="fc"><i class="no-highlight">239</i>&nbsp;					insn.setResult(null);</b>
+<b class="fc"><i class="no-highlight">240</i>&nbsp;					insn.add(AFlag.ARITH_ONEARG);</b>
+<i class="no-highlight">241</i>&nbsp;				}
+<i class="no-highlight">242</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">243</i>&nbsp;		}</b>
+<i class="no-highlight">244</i>&nbsp;	}
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;	/**
+<i class="no-highlight">247</i>&nbsp;	 * Check that &#39;super&#39; or &#39;this&#39; call in constructor is a first instruction.
+<i class="no-highlight">248</i>&nbsp;	 * Otherwise move to top and add a warning if code breaks.
+<i class="no-highlight">249</i>&nbsp;	 */
+<i class="no-highlight">250</i>&nbsp;	private void moveConstructorInConstructor(MethodNode mth) {
+<b class="fc"><i class="no-highlight">251</i>&nbsp;		if (mth.isConstructor()) {</b>
+<b class="fc"><i class="no-highlight">252</i>&nbsp;			ConstructorInsn constrInsn = searchConstructorCall(mth);</b>
+<b class="fc"><i class="no-highlight">253</i>&nbsp;			if (constrInsn != null &amp;&amp; !constrInsn.contains(AFlag.DONT_GENERATE)) {</b>
+<b class="fc"><i class="no-highlight">254</i>&nbsp;				Region oldRootRegion = mth.getRegion();</b>
+<b class="fc"><i class="no-highlight">255</i>&nbsp;				boolean firstInsn = BlockUtils.isFirstInsn(mth, constrInsn);</b>
+<b class="fc"><i class="no-highlight">256</i>&nbsp;				DeclareVariablesAttr declVarsAttr = oldRootRegion.get(AType.DECLARE_VARIABLES);</b>
+<b class="pc"><i class="no-highlight">257</i>&nbsp;				if (firstInsn &amp;&amp; declVarsAttr == null) {</b>
+<i class="no-highlight">258</i>&nbsp;					// move not needed
+<i class="no-highlight">259</i>&nbsp;					return;
+<i class="no-highlight">260</i>&nbsp;				}
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;				// move constructor instruction to new root region
+<b class="fc"><i class="no-highlight">263</i>&nbsp;				String callType = constrInsn.getCallType().toString().toLowerCase();</b>
+<b class="fc"><i class="no-highlight">264</i>&nbsp;				BlockNode blockByInsn = BlockUtils.getBlockByInsn(mth, constrInsn);</b>
+<b class="pc"><i class="no-highlight">265</i>&nbsp;				if (blockByInsn == null) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;					mth.addWarn(&quot;Failed to move &quot; + callType + &quot; instruction to top&quot;);</b>
+<i class="no-highlight">267</i>&nbsp;					return;
+<i class="no-highlight">268</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">269</i>&nbsp;				InsnList.remove(blockByInsn, constrInsn);</b>
+<i class="no-highlight">270</i>&nbsp;
+<b class="fc"><i class="no-highlight">271</i>&nbsp;				Region region = new Region(null);</b>
+<b class="fc"><i class="no-highlight">272</i>&nbsp;				region.add(new InsnContainer(Collections.singletonList(constrInsn)));</b>
+<b class="fc"><i class="no-highlight">273</i>&nbsp;				region.add(oldRootRegion);</b>
+<b class="fc"><i class="no-highlight">274</i>&nbsp;				mth.setRegion(region);</b>
+<i class="no-highlight">275</i>&nbsp;
+<b class="pc"><i class="no-highlight">276</i>&nbsp;				if (!firstInsn) {</b>
+<b class="fc"><i class="no-highlight">277</i>&nbsp;					Set&lt;RegisterArg&gt; regArgs = new HashSet&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">278</i>&nbsp;					constrInsn.getRegisterArgs(regArgs);</b>
+<b class="fc"><i class="no-highlight">279</i>&nbsp;					regArgs.remove(mth.getThisArg());</b>
+<b class="fc"><i class="no-highlight">280</i>&nbsp;					mth.getArgRegs().forEach(regArgs::remove);</b>
+<b class="pc"><i class="no-highlight">281</i>&nbsp;					if (!regArgs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;						mth.addWarn(&quot;Illegal instructions before constructor call&quot;);</b>
+<i class="no-highlight">283</i>&nbsp;					} else {
+<b class="fc"><i class="no-highlight">284</i>&nbsp;						mth.addWarnComment(&quot;&#39;&quot; + callType + &quot;&#39; call moved to the top of the method (can break code semantics)&quot;);</b>
+<i class="no-highlight">285</i>&nbsp;					}
+<i class="no-highlight">286</i>&nbsp;				}
+<i class="no-highlight">287</i>&nbsp;			}
+<i class="no-highlight">288</i>&nbsp;		}
+<i class="no-highlight">289</i>&nbsp;	}
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;	@Nullable
+<i class="no-highlight">292</i>&nbsp;	private ConstructorInsn searchConstructorCall(MethodNode mth) {
+<b class="fc"><i class="no-highlight">293</i>&nbsp;		for (BlockNode block : mth.getBasicBlocks()) {</b>
+<b class="fc"><i class="no-highlight">294</i>&nbsp;			for (InsnNode insn : block.getInstructions()) {</b>
+<b class="fc"><i class="no-highlight">295</i>&nbsp;				InsnType insnType = insn.getType();</b>
+<b class="fc"><i class="no-highlight">296</i>&nbsp;				if (insnType == InsnType.CONSTRUCTOR) {</b>
+<b class="fc"><i class="no-highlight">297</i>&nbsp;					ConstructorInsn constrInsn = (ConstructorInsn) insn;</b>
+<b class="fc"><i class="no-highlight">298</i>&nbsp;					if (constrInsn.isSuper() || constrInsn.isThis()) {</b>
+<b class="fc"><i class="no-highlight">299</i>&nbsp;						return constrInsn;</b>
+<i class="no-highlight">300</i>&nbsp;					}
+<i class="no-highlight">301</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">302</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">303</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">304</i>&nbsp;		return null;</b>
+<i class="no-highlight">305</i>&nbsp;	}
+<i class="no-highlight">306</i>&nbsp;
+<i class="no-highlight">307</i>&nbsp;	/**
+<i class="no-highlight">308</i>&nbsp;	 * Use source line from top method
+<i class="no-highlight">309</i>&nbsp;	 */
+<i class="no-highlight">310</i>&nbsp;	private void setClassSourceLine(ClassNode cls) {
+<b class="fc"><i class="no-highlight">311</i>&nbsp;		for (ClassNode innerClass : cls.getInnerClasses()) {</b>
+<b class="fc"><i class="no-highlight">312</i>&nbsp;			setClassSourceLine(innerClass);</b>
+<b class="fc"><i class="no-highlight">313</i>&nbsp;		}</b>
+<b class="fc"><i class="no-highlight">314</i>&nbsp;		int minLine = Stream.of(cls.getMethods(), cls.getInnerClasses(), cls.getFields())</b>
+<b class="fc"><i class="no-highlight">315</i>&nbsp;				.flatMap(Collection::stream)</b>
+<b class="fc"><i class="no-highlight">316</i>&nbsp;				.filter(mth -&gt; !mth.contains(AFlag.DONT_GENERATE))</b>
+<b class="fc"><i class="no-highlight">317</i>&nbsp;				.filter(mth -&gt; mth.getSourceLine() != 0)</b>
+<b class="fc"><i class="no-highlight">318</i>&nbsp;				.mapToInt(LineAttrNode::getSourceLine)</b>
+<b class="fc"><i class="no-highlight">319</i>&nbsp;				.min()</b>
+<b class="fc"><i class="no-highlight">320</i>&nbsp;				.orElse(0);</b>
+<b class="fc"><i class="no-highlight">321</i>&nbsp;		if (minLine != 0) {</b>
+<b class="fc"><i class="no-highlight">322</i>&nbsp;			cls.setSourceLine(minLine - 1);</b>
+<i class="no-highlight">323</i>&nbsp;		}
+<i class="no-highlight">324</i>&nbsp;	}
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;	private void collectFieldsUsageInAnnotations(ClassNode cls) {
+<b class="fc"><i class="no-highlight">327</i>&nbsp;		MethodNode useMth = cls.getDefaultConstructor();</b>
+<b class="fc"><i class="no-highlight">328</i>&nbsp;		if (useMth == null &amp;&amp; !cls.getMethods().isEmpty()) {</b>
+<b class="fc"><i class="no-highlight">329</i>&nbsp;			useMth = cls.getMethods().get(0);</b>
+<i class="no-highlight">330</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">331</i>&nbsp;		if (useMth == null) {</b>
+<i class="no-highlight">332</i>&nbsp;			return;
+<i class="no-highlight">333</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">334</i>&nbsp;		collectFieldsUsageInAnnotations(useMth, cls);</b>
+<b class="fc"><i class="no-highlight">335</i>&nbsp;		MethodNode finalUseMth = useMth;</b>
+<b class="fc"><i class="no-highlight">336</i>&nbsp;		cls.getFields().forEach(f -&gt; collectFieldsUsageInAnnotations(finalUseMth, f));</b>
+<i class="no-highlight">337</i>&nbsp;	}
+<i class="no-highlight">338</i>&nbsp;
+<i class="no-highlight">339</i>&nbsp;	private void collectFieldsUsageInAnnotations(MethodNode mth, AttrNode attrNode) {
+<b class="fc"><i class="no-highlight">340</i>&nbsp;		AnnotationsAttr annotationsList = attrNode.get(JadxAttrType.ANNOTATION_LIST);</b>
+<b class="fc"><i class="no-highlight">341</i>&nbsp;		if (annotationsList == null) {</b>
+<i class="no-highlight">342</i>&nbsp;			return;
+<i class="no-highlight">343</i>&nbsp;		}
+<b class="fc"><i class="no-highlight">344</i>&nbsp;		for (IAnnotation annotation : annotationsList.getAll()) {</b>
+<b class="pc"><i class="no-highlight">345</i>&nbsp;			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM) {</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;				continue;</b>
+<i class="no-highlight">347</i>&nbsp;			}
+<b class="fc"><i class="no-highlight">348</i>&nbsp;			for (Map.Entry&lt;String, EncodedValue&gt; entry : annotation.getValues().entrySet()) {</b>
+<b class="fc"><i class="no-highlight">349</i>&nbsp;				checkEncodedValue(mth, entry.getValue());</b>
+<b class="fc"><i class="no-highlight">350</i>&nbsp;			}</b>
+<b class="fc"><i class="no-highlight">351</i>&nbsp;		}</b>
+<i class="no-highlight">352</i>&nbsp;	}
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;	@SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">355</i>&nbsp;	private void checkEncodedValue(MethodNode mth, EncodedValue encodedValue) {
+<b class="fc"><i class="no-highlight">356</i>&nbsp;		switch (encodedValue.getType()) {</b>
+<i class="no-highlight">357</i>&nbsp;			case ENCODED_FIELD:
+<b class="fc"><i class="no-highlight">358</i>&nbsp;				Object fieldData = encodedValue.getValue();</b>
+<i class="no-highlight">359</i>&nbsp;				FieldInfo fieldInfo;
+<b class="fc"><i class="no-highlight">360</i>&nbsp;				if (fieldData instanceof IFieldRef) {</b>
+<b class="fc"><i class="no-highlight">361</i>&nbsp;					fieldInfo = FieldInfo.fromRef(mth.root(), (IFieldRef) fieldData);</b>
+<i class="no-highlight">362</i>&nbsp;				} else {
+<b class="fc"><i class="no-highlight">363</i>&nbsp;					fieldInfo = (FieldInfo) fieldData;</b>
+<i class="no-highlight">364</i>&nbsp;				}
+<b class="fc"><i class="no-highlight">365</i>&nbsp;				FieldNode fieldNode = mth.root().resolveField(fieldInfo);</b>
+<b class="fc"><i class="no-highlight">366</i>&nbsp;				if (fieldNode != null) {</b>
+<b class="fc"><i class="no-highlight">367</i>&nbsp;					fieldNode.addUseIn(mth);</b>
+<i class="no-highlight">368</i>&nbsp;				}
+<i class="no-highlight">369</i>&nbsp;				break;
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;			case ENCODED_ANNOTATION:
+<b class="fc"><i class="no-highlight">372</i>&nbsp;				IAnnotation annotation = (IAnnotation) encodedValue.getValue();</b>
+<b class="fc"><i class="no-highlight">373</i>&nbsp;				annotation.getValues().forEach((k, v) -&gt; checkEncodedValue(mth, v));</b>
+<b class="fc"><i class="no-highlight">374</i>&nbsp;				break;</b>
+<i class="no-highlight">375</i>&nbsp;
+<i class="no-highlight">376</i>&nbsp;			case ENCODED_ARRAY:
+<b class="fc"><i class="no-highlight">377</i>&nbsp;				List&lt;EncodedValue&gt; valueList = (List&lt;EncodedValue&gt;) encodedValue.getValue();</b>
+<b class="fc"><i class="no-highlight">378</i>&nbsp;				valueList.forEach(v -&gt; checkEncodedValue(mth, v));</b>
+<i class="no-highlight">379</i>&nbsp;				break;
+<i class="no-highlight">380</i>&nbsp;		}
+<i class="no-highlight">381</i>&nbsp;	}
+<i class="no-highlight">382</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

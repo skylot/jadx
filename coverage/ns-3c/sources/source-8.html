@@ -1,0 +1,379 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ResProtoParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.core.xmlgen</a>
+</div>
+
+<h1>Coverage Summary for Class: ResProtoParser (jadx.core.xmlgen)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ResProtoParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/130)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ResProtoParser$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/132)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.core.xmlgen;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">4</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">5</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">6</i>&nbsp;import java.util.List;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import com.android.aapt.ConfigurationOuterClass.Configuration;
+<i class="no-highlight">9</i>&nbsp;import com.android.aapt.Resources.Array;
+<i class="no-highlight">10</i>&nbsp;import com.android.aapt.Resources.Attribute;
+<i class="no-highlight">11</i>&nbsp;import com.android.aapt.Resources.CompoundValue;
+<i class="no-highlight">12</i>&nbsp;import com.android.aapt.Resources.ConfigValue;
+<i class="no-highlight">13</i>&nbsp;import com.android.aapt.Resources.Entry;
+<i class="no-highlight">14</i>&nbsp;import com.android.aapt.Resources.Item;
+<i class="no-highlight">15</i>&nbsp;import com.android.aapt.Resources.Package;
+<i class="no-highlight">16</i>&nbsp;import com.android.aapt.Resources.Plural;
+<i class="no-highlight">17</i>&nbsp;import com.android.aapt.Resources.Primitive;
+<i class="no-highlight">18</i>&nbsp;import com.android.aapt.Resources.ResourceTable;
+<i class="no-highlight">19</i>&nbsp;import com.android.aapt.Resources.Style;
+<i class="no-highlight">20</i>&nbsp;import com.android.aapt.Resources.Styleable;
+<i class="no-highlight">21</i>&nbsp;import com.android.aapt.Resources.Type;
+<i class="no-highlight">22</i>&nbsp;import com.android.aapt.Resources.Value;
+<i class="no-highlight">23</i>&nbsp;import com.google.protobuf.InvalidProtocolBufferException;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import jadx.api.ICodeInfo;
+<i class="no-highlight">26</i>&nbsp;import jadx.core.dex.nodes.RootNode;
+<i class="no-highlight">27</i>&nbsp;import jadx.core.xmlgen.entry.EntryConfig;
+<i class="no-highlight">28</i>&nbsp;import jadx.core.xmlgen.entry.ProtoValue;
+<i class="no-highlight">29</i>&nbsp;import jadx.core.xmlgen.entry.ResourceEntry;
+<i class="no-highlight">30</i>&nbsp;import jadx.core.xmlgen.entry.ValuesParser;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;public class ResProtoParser {
+<i class="no-highlight">33</i>&nbsp;	private final RootNode root;
+<b class="nc"><i class="no-highlight">34</i>&nbsp;	private final ResourceStorage resStorage = new ResourceStorage();</b>
+<i class="no-highlight">35</i>&nbsp;
+<b class="nc"><i class="no-highlight">36</i>&nbsp;	public ResProtoParser(RootNode root) {</b>
+<b class="nc"><i class="no-highlight">37</i>&nbsp;		this.root = root;</b>
+<i class="no-highlight">38</i>&nbsp;	}
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;		ResourceTable table = decodeProto(inputStream);</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;		for (Package p : table.getPackageList()) {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;			parse(p);</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;		}</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;		resStorage.finish();</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;		ValuesParser vp = new ValuesParser(new String[0], resStorage.getResourcesNames());</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;		ResXmlGen resGen = new ResXmlGen(resStorage, vp);</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;		List&lt;ResContainer&gt; xmlFiles = resGen.makeResourcesXml();</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;		return ResContainer.resourceTable(&quot;res&quot;, xmlFiles, content);</b>
+<i class="no-highlight">51</i>&nbsp;	}
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;	private void parse(Package p) {
+<b class="nc"><i class="no-highlight">54</i>&nbsp;		String name = p.getPackageName();</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;		resStorage.setAppPackage(name);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;		parse(name, p.getTypeList());</b>
+<i class="no-highlight">57</i>&nbsp;	}
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;	private void parse(String packageName, List&lt;Type&gt; types) {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;		for (Type type : types) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;			String typeName = type.getName();</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;			for (Entry entry : type.getEntryList()) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;				int id = entry.getEntryId().getId();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;				String entryName = entry.getName();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;				for (ConfigValue configValue : entry.getConfigValueList()) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;					String config = parse(configValue.getConfig());</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;					ResourceEntry resEntry = new ResourceEntry(id, packageName, typeName, entryName, config);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;					resStorage.add(resEntry);</b>
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;					ProtoValue protoValue;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;					if (configValue.getValue().getValueCase() == Value.ValueCase.ITEM) {</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;						protoValue = new ProtoValue(parse(configValue.getValue().getItem()));</b>
+<i class="no-highlight">73</i>&nbsp;					} else {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;						protoValue = parse(configValue.getValue().getCompoundValue());</b>
+<i class="no-highlight">75</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">76</i>&nbsp;					resEntry.setProtoValue(protoValue);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;				}</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;		}</b>
+<i class="no-highlight">80</i>&nbsp;	}
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;	private ProtoValue parse(Style s) {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;		List&lt;ProtoValue&gt; namedValues = new ArrayList&lt;&gt;(s.getEntryCount());</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;		String parent = s.getParent().getName();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;		if (parent.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;			parent = null;</b>
+<i class="no-highlight">87</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;			parent = &#39;@&#39; + parent;</b>
+<i class="no-highlight">89</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		for (int i = 0; i &lt; s.getEntryCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;			Style.Entry entry = s.getEntry(i);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;			String name = entry.getKey().getName();</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;			String value = parse(entry.getItem());</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;			namedValues.add(new ProtoValue(value).setName(name));</b>
+<i class="no-highlight">95</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">96</i>&nbsp;		return new ProtoValue().setNamedValues(namedValues).setParent(parent);</b>
+<i class="no-highlight">97</i>&nbsp;	}
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	private ProtoValue parse(Styleable s) {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;		List&lt;ProtoValue&gt; namedValues = new ArrayList&lt;&gt;(s.getEntryCount());</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;		for (int i = 0; i &lt; s.getEntryCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;			Styleable.Entry e = s.getEntry(i);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;			namedValues.add(new ProtoValue(&#39;@&#39; + e.getAttr().getName()));</b>
+<i class="no-highlight">104</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">105</i>&nbsp;		return new ProtoValue().setNamedValues(namedValues);</b>
+<i class="no-highlight">106</i>&nbsp;	}
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;	private ProtoValue parse(Array a) {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;		List&lt;ProtoValue&gt; namedValues = new ArrayList&lt;&gt;(a.getElementCount());</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;		for (int i = 0; i &lt; a.getElementCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;			Array.Element e = a.getElement(i);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;			String value = parse(e.getItem());</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;			namedValues.add(new ProtoValue(value));</b>
+<i class="no-highlight">114</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">115</i>&nbsp;		return new ProtoValue().setNamedValues(namedValues);</b>
+<i class="no-highlight">116</i>&nbsp;	}
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;	private ProtoValue parse(Attribute a) {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;		String format = XmlGenUtils.getAttrTypeAsString(a.getFormatFlags());</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;		List&lt;ProtoValue&gt; namedValues = new ArrayList&lt;&gt;(a.getSymbolCount());</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;		for (int i = 0; i &lt; a.getSymbolCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;			Attribute.Symbol s = a.getSymbol(i);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;			int type = s.getType();</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;			String name = s.getName().getName();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;			String value = String.valueOf(s.getValue());</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;			namedValues.add(new ProtoValue(value).setName(name).setType(type));</b>
+<i class="no-highlight">127</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">128</i>&nbsp;		return new ProtoValue(format).setNamedValues(namedValues);</b>
+<i class="no-highlight">129</i>&nbsp;	}
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;	private ProtoValue parse(Plural p) {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;		List&lt;ProtoValue&gt; namedValues = new ArrayList&lt;&gt;(p.getEntryCount());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;		for (int i = 0; i &lt; p.getEntryCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;			Plural.Entry e = p.getEntry(i);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;			String name = e.getArity().name();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;			String value = parse(e.getItem());</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;			namedValues.add(new ProtoValue(value).setName(name));</b>
+<i class="no-highlight">138</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">139</i>&nbsp;		return new ProtoValue().setNamedValues(namedValues);</b>
+<i class="no-highlight">140</i>&nbsp;	}
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;	private ProtoValue parse(CompoundValue c) {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;		switch (c.getValueCase()) {</b>
+<i class="no-highlight">144</i>&nbsp;			case STYLE:
+<b class="nc"><i class="no-highlight">145</i>&nbsp;				return parse(c.getStyle());</b>
+<i class="no-highlight">146</i>&nbsp;			case STYLEABLE:
+<b class="nc"><i class="no-highlight">147</i>&nbsp;				return parse(c.getStyleable());</b>
+<i class="no-highlight">148</i>&nbsp;			case ARRAY:
+<b class="nc"><i class="no-highlight">149</i>&nbsp;				return parse(c.getArray());</b>
+<i class="no-highlight">150</i>&nbsp;			case ATTR:
+<b class="nc"><i class="no-highlight">151</i>&nbsp;				return parse(c.getAttr());</b>
+<i class="no-highlight">152</i>&nbsp;			case PLURAL:
+<b class="nc"><i class="no-highlight">153</i>&nbsp;				return parse(c.getPlural());</b>
+<i class="no-highlight">154</i>&nbsp;			default:
+<b class="nc"><i class="no-highlight">155</i>&nbsp;				return new ProtoValue(&quot;Unresolved value&quot;);</b>
+<i class="no-highlight">156</i>&nbsp;		}
+<i class="no-highlight">157</i>&nbsp;	}
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;	private String parse(Configuration c) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;		char[] language = c.getLocale().toCharArray();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;		if (language.length == 0) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;			language = new char[] { &#39;\00&#39; };</b>
+<i class="no-highlight">163</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">164</i>&nbsp;		short mcc = (short) c.getMcc();</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;		short mnc = (short) c.getMnc();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;		byte orientation = (byte) c.getOrientationValue();</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;		short screenWidth = (short) c.getScreenWidth();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;		short screenHeight = (short) c.getScreenHeight();</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;		short screenWidthDp = (short) c.getScreenWidthDp();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;		short screenHeightDp = (short) c.getScreenHeightDp();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;		short smallestScreenWidthDp = (short) c.getSmallestScreenWidthDp();</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;		short sdkVersion = (short) c.getSdkVersion();</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;		byte keyboard = (byte) c.getKeyboardValue();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;		byte touchscreen = (byte) c.getTouchscreenValue();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;		int density = c.getDensity();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;		byte screenLayout = (byte) c.getScreenLayoutLongValue();</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;		byte colorMode = (byte) (c.getHdrValue() | c.getWideColorGamutValue());</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;		byte screenLayout2 = (byte) (c.getLayoutDirectionValue() | c.getScreenRoundValue());</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;		byte navigation = (byte) c.getNavigationValue();</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;		byte inputFlags = (byte) (c.getKeysHiddenValue() | c.getNavHiddenValue());</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;		int size = c.getSerializedSize();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;		byte uiMode = (byte) (c.getUiModeNightValue() | c.getUiModeTypeValue());</b>
+<i class="no-highlight">183</i>&nbsp;
+<b class="nc"><i class="no-highlight">184</i>&nbsp;		c.getScreenLayoutSize(); // unknown field</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;		c.getProduct(); // unknown field</b>
+<i class="no-highlight">186</i>&nbsp;
+<b class="nc"><i class="no-highlight">187</i>&nbsp;		return new EntryConfig(mcc, mnc, language, new char[] { &#39;\00&#39; },</b>
+<i class="no-highlight">188</i>&nbsp;				orientation, touchscreen, density, keyboard, navigation,
+<i class="no-highlight">189</i>&nbsp;				inputFlags, screenWidth, screenHeight, sdkVersion,
+<i class="no-highlight">190</i>&nbsp;				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
+<i class="no-highlight">191</i>&nbsp;				screenHeightDp, new char[] { &#39;\00&#39; }, new char[] { &#39;\00&#39; }, screenLayout2,
+<b class="nc"><i class="no-highlight">192</i>&nbsp;				colorMode, false, size).getQualifiers();</b>
+<i class="no-highlight">193</i>&nbsp;	}
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;	private String parse(Item i) {
+<b class="nc"><i class="no-highlight">196</i>&nbsp;		if (i.hasRawStr()) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;			return i.getRawStr().getValue();</b>
+<i class="no-highlight">198</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		if (i.hasStr()) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;			return i.getStr().getValue();</b>
+<i class="no-highlight">201</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">202</i>&nbsp;		if (i.hasStyledStr()) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;			return i.getStyledStr().getValue();</b>
+<i class="no-highlight">204</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">205</i>&nbsp;		if (i.hasPrim()) {</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;			Primitive prim = i.getPrim();</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;			switch (prim.getOneofValueCase()) {</b>
+<i class="no-highlight">208</i>&nbsp;				case NULL_VALUE:
+<b class="nc"><i class="no-highlight">209</i>&nbsp;					return null;</b>
+<i class="no-highlight">210</i>&nbsp;				case INT_DECIMAL_VALUE:
+<b class="nc"><i class="no-highlight">211</i>&nbsp;					return String.valueOf(prim.getIntDecimalValue());</b>
+<i class="no-highlight">212</i>&nbsp;				case INT_HEXADECIMAL_VALUE:
+<b class="nc"><i class="no-highlight">213</i>&nbsp;					return Integer.toHexString(prim.getIntHexadecimalValue());</b>
+<i class="no-highlight">214</i>&nbsp;				case BOOLEAN_VALUE:
+<b class="nc"><i class="no-highlight">215</i>&nbsp;					return String.valueOf(prim.getBooleanValue());</b>
+<i class="no-highlight">216</i>&nbsp;				case FLOAT_VALUE:
+<b class="nc"><i class="no-highlight">217</i>&nbsp;					return String.valueOf(prim.getFloatValue());</b>
+<i class="no-highlight">218</i>&nbsp;				case COLOR_ARGB4_VALUE:
+<b class="nc"><i class="no-highlight">219</i>&nbsp;					return String.format(&quot;#%04x&quot;, prim.getColorArgb4Value());</b>
+<i class="no-highlight">220</i>&nbsp;				case COLOR_ARGB8_VALUE:
+<b class="nc"><i class="no-highlight">221</i>&nbsp;					return String.format(&quot;#%08x&quot;, prim.getColorArgb8Value());</b>
+<i class="no-highlight">222</i>&nbsp;				case COLOR_RGB4_VALUE:
+<b class="nc"><i class="no-highlight">223</i>&nbsp;					return String.format(&quot;#%03x&quot;, prim.getColorRgb4Value());</b>
+<i class="no-highlight">224</i>&nbsp;				case COLOR_RGB8_VALUE:
+<b class="nc"><i class="no-highlight">225</i>&nbsp;					return String.format(&quot;#%06x&quot;, prim.getColorRgb8Value());</b>
+<i class="no-highlight">226</i>&nbsp;				case DIMENSION_VALUE:
+<b class="nc"><i class="no-highlight">227</i>&nbsp;					return XmlGenUtils.decodeComplex(prim.getDimensionValue(), false);</b>
+<i class="no-highlight">228</i>&nbsp;				case FRACTION_VALUE:
+<b class="nc"><i class="no-highlight">229</i>&nbsp;					return XmlGenUtils.decodeComplex(prim.getDimensionValue(), true);</b>
+<i class="no-highlight">230</i>&nbsp;				case EMPTY_VALUE:
+<i class="no-highlight">231</i>&nbsp;				default:
+<b class="nc"><i class="no-highlight">232</i>&nbsp;					return &quot;&quot;;</b>
+<i class="no-highlight">233</i>&nbsp;			}
+<i class="no-highlight">234</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">235</i>&nbsp;		if (i.hasRef()) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;			return &#39;@&#39; + i.getRef().getName();</b>
+<i class="no-highlight">237</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">238</i>&nbsp;		if (i.hasFile()) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;			return i.getFile().getPath();</b>
+<i class="no-highlight">240</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">241</i>&nbsp;		return &quot;&quot;;</b>
+<i class="no-highlight">242</i>&nbsp;	}
+<i class="no-highlight">243</i>&nbsp;
+<i class="no-highlight">244</i>&nbsp;	private ResourceTable decodeProto(InputStream inputStream)
+<i class="no-highlight">245</i>&nbsp;			throws InvalidProtocolBufferException, IOException {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;		return ResourceTable.parseFrom(XmlGenUtils.readData(inputStream));</b>
+<i class="no-highlight">247</i>&nbsp;	}
+<i class="no-highlight">248</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>

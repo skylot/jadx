@@ -1,0 +1,833 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CommonSearchDialog</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">jadx.gui.ui.dialog</a>
+</div>
+
+<h1>Coverage Summary for Class: CommonSearchDialog (jadx.gui.ui.dialog)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CommonSearchDialog</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/129)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CommonSearchDialog$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$3</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$LoadTask</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$ResultsModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$ResultsTable</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CommonSearchDialog$ResultsTableCellRenderer</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/269)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package jadx.gui.ui.dialog;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import java.awt.Color;
+<i class="no-highlight">4</i>&nbsp;import java.awt.Component;
+<i class="no-highlight">5</i>&nbsp;import java.awt.Cursor;
+<i class="no-highlight">6</i>&nbsp;import java.awt.Dimension;
+<i class="no-highlight">7</i>&nbsp;import java.awt.Font;
+<i class="no-highlight">8</i>&nbsp;import java.awt.Rectangle;
+<i class="no-highlight">9</i>&nbsp;import java.awt.event.KeyAdapter;
+<i class="no-highlight">10</i>&nbsp;import java.awt.event.KeyEvent;
+<i class="no-highlight">11</i>&nbsp;import java.awt.event.MouseAdapter;
+<i class="no-highlight">12</i>&nbsp;import java.awt.event.MouseEvent;
+<i class="no-highlight">13</i>&nbsp;import java.awt.event.WindowAdapter;
+<i class="no-highlight">14</i>&nbsp;import java.awt.event.WindowEvent;
+<i class="no-highlight">15</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">16</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">17</i>&nbsp;import java.util.Enumeration;
+<i class="no-highlight">18</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">19</i>&nbsp;import java.util.Map;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import javax.swing.BorderFactory;
+<i class="no-highlight">22</i>&nbsp;import javax.swing.Box;
+<i class="no-highlight">23</i>&nbsp;import javax.swing.BoxLayout;
+<i class="no-highlight">24</i>&nbsp;import javax.swing.JButton;
+<i class="no-highlight">25</i>&nbsp;import javax.swing.JCheckBox;
+<i class="no-highlight">26</i>&nbsp;import javax.swing.JFrame;
+<i class="no-highlight">27</i>&nbsp;import javax.swing.JLabel;
+<i class="no-highlight">28</i>&nbsp;import javax.swing.JPanel;
+<i class="no-highlight">29</i>&nbsp;import javax.swing.JScrollPane;
+<i class="no-highlight">30</i>&nbsp;import javax.swing.JTable;
+<i class="no-highlight">31</i>&nbsp;import javax.swing.ListSelectionModel;
+<i class="no-highlight">32</i>&nbsp;import javax.swing.ScrollPaneConstants;
+<i class="no-highlight">33</i>&nbsp;import javax.swing.SwingConstants;
+<i class="no-highlight">34</i>&nbsp;import javax.swing.SwingUtilities;
+<i class="no-highlight">35</i>&nbsp;import javax.swing.SwingWorker;
+<i class="no-highlight">36</i>&nbsp;import javax.swing.table.AbstractTableModel;
+<i class="no-highlight">37</i>&nbsp;import javax.swing.table.TableCellRenderer;
+<i class="no-highlight">38</i>&nbsp;import javax.swing.table.TableColumn;
+<i class="no-highlight">39</i>&nbsp;import javax.swing.table.TableColumnModel;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+<i class="no-highlight">42</i>&nbsp;import org.fife.ui.rtextarea.SearchContext;
+<i class="no-highlight">43</i>&nbsp;import org.fife.ui.rtextarea.SearchEngine;
+<i class="no-highlight">44</i>&nbsp;import org.jetbrains.annotations.NotNull;
+<i class="no-highlight">45</i>&nbsp;import org.jetbrains.annotations.Nullable;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">47</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import jadx.gui.treemodel.JNode;
+<i class="no-highlight">50</i>&nbsp;import jadx.gui.treemodel.JResSearchNode;
+<i class="no-highlight">51</i>&nbsp;import jadx.gui.ui.MainWindow;
+<i class="no-highlight">52</i>&nbsp;import jadx.gui.ui.TabbedPane;
+<i class="no-highlight">53</i>&nbsp;import jadx.gui.ui.codearea.AbstractCodeArea;
+<i class="no-highlight">54</i>&nbsp;import jadx.gui.ui.panel.ProgressPanel;
+<i class="no-highlight">55</i>&nbsp;import jadx.gui.utils.CacheObject;
+<i class="no-highlight">56</i>&nbsp;import jadx.gui.utils.JNodeCache;
+<i class="no-highlight">57</i>&nbsp;import jadx.gui.utils.JumpPosition;
+<i class="no-highlight">58</i>&nbsp;import jadx.gui.utils.NLS;
+<i class="no-highlight">59</i>&nbsp;import jadx.gui.utils.UiUtils;
+<i class="no-highlight">60</i>&nbsp;import jadx.gui.utils.search.TextSearchIndex;
+<i class="no-highlight">61</i>&nbsp;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;public abstract class CommonSearchDialog extends JFrame {</b>
+<i class="no-highlight">63</i>&nbsp;	private static final long serialVersionUID = 8939332306115370276L;
+<i class="no-highlight">64</i>&nbsp;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);</b>
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;	public static final int RESULTS_PER_PAGE = 100;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;	protected final transient TabbedPane tabbedPane;
+<i class="no-highlight">70</i>&nbsp;	protected final transient CacheObject cache;
+<i class="no-highlight">71</i>&nbsp;	protected final transient MainWindow mainWindow;
+<i class="no-highlight">72</i>&nbsp;	protected final transient Font codeFont;
+<i class="no-highlight">73</i>&nbsp;	protected final transient String windowTitle;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;	protected ResultsModel resultsModel;
+<i class="no-highlight">76</i>&nbsp;	protected ResultsTable resultsTable;
+<i class="no-highlight">77</i>&nbsp;	protected JLabel resultsInfoLabel;
+<i class="no-highlight">78</i>&nbsp;	protected JLabel warnLabel;
+<i class="no-highlight">79</i>&nbsp;	protected ProgressPanel progressPane;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;	private String highlightText;
+<b class="nc"><i class="no-highlight">82</i>&nbsp;	protected boolean highlightTextCaseInsensitive = false;</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;	protected boolean highlightTextUseRegex = false;</b>
+<i class="no-highlight">84</i>&nbsp;
+<b class="nc"><i class="no-highlight">85</i>&nbsp;	public CommonSearchDialog(MainWindow mainWindow, String title) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;		this.mainWindow = mainWindow;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;		this.tabbedPane = mainWindow.getTabbedPane();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;		this.cache = mainWindow.getCacheObject();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;		this.codeFont = mainWindow.getSettings().getFont();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;		this.windowTitle = title;</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;		UiUtils.setWindowIcons(this);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;		updateTitle();</b>
+<i class="no-highlight">93</i>&nbsp;	}
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;	protected abstract void openInit();
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;	protected abstract void loadFinished();
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;	protected abstract void loadStart();
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;	public void loadWindowPos() {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;		if (!mainWindow.getSettings().loadWindowPos(this)) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;			setSize(800, 500);</b>
+<i class="no-highlight">104</i>&nbsp;		}
+<i class="no-highlight">105</i>&nbsp;	}
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;	private void updateTitle() {
+<b class="nc"><i class="no-highlight">108</i>&nbsp;		if (highlightText == null || highlightText.trim().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;			setTitle(windowTitle);</b>
+<i class="no-highlight">110</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;			setTitle(windowTitle + &quot;: &quot; + highlightText);</b>
+<i class="no-highlight">112</i>&nbsp;		}
+<i class="no-highlight">113</i>&nbsp;	}
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;	public void setHighlightText(String highlightText) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;		this.highlightText = highlightText;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;		updateTitle();</b>
+<i class="no-highlight">118</i>&nbsp;	}
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;	public void prepare() {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;		if (cache.getIndexService().isComplete()) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;			loadFinishedCommon();</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;			loadFinished();</b>
+<i class="no-highlight">124</i>&nbsp;			return;
+<i class="no-highlight">125</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">126</i>&nbsp;		LoadTask task = new LoadTask();</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;		task.addPropertyChangeListener(progressPane);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;		task.execute();</b>
+<i class="no-highlight">129</i>&nbsp;	}
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;	protected void registerInitOnOpen() {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;		addWindowListener(new WindowAdapter() {</b>
+<i class="no-highlight">133</i>&nbsp;			@Override
+<i class="no-highlight">134</i>&nbsp;			public void windowOpened(WindowEvent e) {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;				SwingUtilities.invokeLater(CommonSearchDialog.this::openInit);</b>
+<i class="no-highlight">136</i>&nbsp;			}
+<i class="no-highlight">137</i>&nbsp;		});
+<i class="no-highlight">138</i>&nbsp;	}
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;	protected synchronized void performSearch() {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;		resultsTable.updateTable();</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;		updateProgressLabel();</b>
+<i class="no-highlight">143</i>&nbsp;	}
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;	protected void openSelectedItem() {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;		int selectedId = resultsTable.getSelectedRow();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;		if (selectedId == -1) {</b>
+<i class="no-highlight">148</i>&nbsp;			return;
+<i class="no-highlight">149</i>&nbsp;		}
+<i class="no-highlight">150</i>&nbsp;		JumpPosition jmpPos;
+<b class="nc"><i class="no-highlight">151</i>&nbsp;		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;		if (node instanceof JResSearchNode) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getLine(), node.getPos());</b>
+<i class="no-highlight">154</i>&nbsp;		} else {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;			jmpPos = new JumpPosition(node.getRootClass(), node.getLine(), node.getPos());</b>
+<i class="no-highlight">156</i>&nbsp;		}
+<b class="nc"><i class="no-highlight">157</i>&nbsp;		tabbedPane.codeJump(jmpPos);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;			dispose();</b>
+<i class="no-highlight">160</i>&nbsp;		}
+<i class="no-highlight">161</i>&nbsp;	}
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;	@Override
+<i class="no-highlight">164</i>&nbsp;	public void dispose() {
+<b class="nc"><i class="no-highlight">165</i>&nbsp;		mainWindow.getSettings().saveWindowPos(this);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;		super.dispose();</b>
+<i class="no-highlight">167</i>&nbsp;	}
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;	protected void initCommon() {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;		UiUtils.addEscapeShortCutToDispose(this);</b>
+<i class="no-highlight">171</i>&nbsp;	}
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;	@NotNull
+<i class="no-highlight">174</i>&nbsp;	protected JPanel initButtonsPanel() {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;		progressPane = new ProgressPanel(mainWindow, false);</b>
+<i class="no-highlight">176</i>&nbsp;
+<b class="nc"><i class="no-highlight">177</i>&nbsp;		JButton cancelButton = new JButton(NLS.str(&quot;search_dialog.cancel&quot;));</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;		cancelButton.addActionListener(event -&gt; dispose());</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;		JButton openBtn = new JButton(NLS.str(&quot;search_dialog.open&quot;));</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;		openBtn.addActionListener(event -&gt; openSelectedItem());</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;		getRootPane().setDefaultButton(openBtn);</b>
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;		JPanel buttonPane = new JPanel();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));</b>
+<i class="no-highlight">186</i>&nbsp;
+<b class="nc"><i class="no-highlight">187</i>&nbsp;		JCheckBox cbKeepOpen = new JCheckBox(NLS.str(&quot;search_dialog.keep_open&quot;));</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;		cbKeepOpen.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;			mainWindow.getSettings().setKeepCommonDialogOpen(cbKeepOpen.isSelected());</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;			mainWindow.getSettings().sync();</b>
+<i class="no-highlight">192</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">193</i>&nbsp;		buttonPane.add(cbKeepOpen);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;		buttonPane.add(Box.createRigidArea(new Dimension(15, 0)));</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;		buttonPane.add(progressPane);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;		buttonPane.add(Box.createHorizontalGlue());</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;		buttonPane.add(openBtn);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;		buttonPane.add(cancelButton);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;		return buttonPane;</b>
+<i class="no-highlight">202</i>&nbsp;	}
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;	protected JPanel initResultsTable() {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;		resultsModel = new ResultsModel(renderer);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;		resultsModel.addTableModelListener(e -&gt; updateProgressLabel());</b>
+<i class="no-highlight">208</i>&nbsp;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;		resultsTable = new ResultsTable(resultsModel, renderer);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;		resultsTable.setShowHorizontalLines(false);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;		resultsTable.setDragEnabled(false);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);</b>
+<i class="no-highlight">213</i>&nbsp;		// resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
+<b class="nc"><i class="no-highlight">214</i>&nbsp;		resultsTable.setColumnSelectionAllowed(false);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;		resultsTable.setAutoscrolls(false);</b>
+<i class="no-highlight">217</i>&nbsp;
+<b class="nc"><i class="no-highlight">218</i>&nbsp;		resultsTable.setDefaultRenderer(Object.class, renderer);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;		Enumeration&lt;TableColumn&gt; columns = resultsTable.getColumnModel().getColumns();</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;		while (columns.hasMoreElements()) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;			TableColumn column = columns.nextElement();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;			column.setCellRenderer(renderer);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;		}</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;		resultsTable.addMouseListener(new MouseAdapter() {</b>
+<i class="no-highlight">226</i>&nbsp;			@Override
+<i class="no-highlight">227</i>&nbsp;			public void mouseClicked(MouseEvent evt) {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;				if (evt.getClickCount() == 2) {</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;					openSelectedItem();</b>
+<i class="no-highlight">230</i>&nbsp;				}
+<i class="no-highlight">231</i>&nbsp;			}
+<i class="no-highlight">232</i>&nbsp;		});
+<b class="nc"><i class="no-highlight">233</i>&nbsp;		resultsTable.addKeyListener(new KeyAdapter() {</b>
+<i class="no-highlight">234</i>&nbsp;			@Override
+<i class="no-highlight">235</i>&nbsp;			public void keyPressed(KeyEvent e) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;				if (e.getKeyCode() == KeyEvent.VK_ENTER) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;					openSelectedItem();</b>
+<i class="no-highlight">238</i>&nbsp;				}
+<i class="no-highlight">239</i>&nbsp;			}
+<i class="no-highlight">240</i>&nbsp;		});
+<i class="no-highlight">241</i>&nbsp;
+<b class="nc"><i class="no-highlight">242</i>&nbsp;		warnLabel = new JLabel();</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;		warnLabel.setForeground(Color.RED);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;		warnLabel.setVisible(false);</b>
+<i class="no-highlight">245</i>&nbsp;
+<b class="nc"><i class="no-highlight">246</i>&nbsp;		JPanel resultsPanel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;		resultsPanel.add(warnLabel);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;		resultsPanel.add(new JScrollPane(resultsTable,</b>
+<i class="no-highlight">250</i>&nbsp;				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+<i class="no-highlight">251</i>&nbsp;				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+<i class="no-highlight">252</i>&nbsp;
+<b class="nc"><i class="no-highlight">253</i>&nbsp;		JPanel paginationPanel = new JPanel();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;		paginationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;		paginationPanel.setLayout(new BoxLayout(paginationPanel, BoxLayout.X_AXIS));</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;		resultsInfoLabel = new JLabel(&quot;&quot;);</b>
+<i class="no-highlight">257</i>&nbsp;
+<b class="nc"><i class="no-highlight">258</i>&nbsp;		JButton nextPageButton = new JButton(&quot;-&gt;&quot;);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;		nextPageButton.setToolTipText(NLS.str(&quot;search_dialog.next_page&quot;));</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;		nextPageButton.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;			if (resultsModel.nextPage()) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;				switchPage(renderer);</b>
+<i class="no-highlight">263</i>&nbsp;			}
+<i class="no-highlight">264</i>&nbsp;		});
+<i class="no-highlight">265</i>&nbsp;
+<b class="nc"><i class="no-highlight">266</i>&nbsp;		JButton prevPageButton = new JButton(&quot;&lt;-&quot;);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;		prevPageButton.setToolTipText(NLS.str(&quot;search_dialog.prev_page&quot;));</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;		prevPageButton.addActionListener(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;			if (resultsModel.prevPage()) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;				switchPage(renderer);</b>
+<i class="no-highlight">271</i>&nbsp;			}
+<i class="no-highlight">272</i>&nbsp;		});
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;		paginationPanel.add(prevPageButton);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;		paginationPanel.add(nextPageButton);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;		paginationPanel.add(resultsInfoLabel);</b>
+<i class="no-highlight">277</i>&nbsp;
+<b class="nc"><i class="no-highlight">278</i>&nbsp;		resultsPanel.add(paginationPanel);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;		resultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;		return resultsPanel;</b>
+<i class="no-highlight">281</i>&nbsp;	}
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;	private void switchPage(ResultsTableCellRenderer renderer) {
+<b class="nc"><i class="no-highlight">284</i>&nbsp;		renderer.clear();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;		resultsTable.updateTable();</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;		updateProgressLabel();</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;		resultsTable.scrollRectToVisible(new Rectangle(0, 0, 1, 1));</b>
+<i class="no-highlight">288</i>&nbsp;	}
+<i class="no-highlight">289</i>&nbsp;
+<i class="no-highlight">290</i>&nbsp;	protected void updateProgressLabel() {
+<b class="nc"><i class="no-highlight">291</i>&nbsp;		String statusText = NLS.str(&quot;search_dialog.info_label&quot;,</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;				resultsModel.getDisplayedResultsStart(),</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;				resultsModel.getDisplayedResultsEnd(),</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;				resultsModel.getResultCount());</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;		resultsInfoLabel.setText(statusText);</b>
+<i class="no-highlight">296</i>&nbsp;	}
+<i class="no-highlight">297</i>&nbsp;
+<i class="no-highlight">298</i>&nbsp;	protected void showSearchState() {
+<b class="nc"><i class="no-highlight">299</i>&nbsp;		resultsInfoLabel.setText(NLS.str(&quot;search_dialog.tip_searching&quot;));</b>
+<i class="no-highlight">300</i>&nbsp;	}
+<i class="no-highlight">301</i>&nbsp;
+<i class="no-highlight">302</i>&nbsp;	protected static class ResultsTable extends JTable {
+<i class="no-highlight">303</i>&nbsp;		private static final long serialVersionUID = 3901184054736618969L;
+<i class="no-highlight">304</i>&nbsp;		private final transient ResultsTableCellRenderer renderer;
+<i class="no-highlight">305</i>&nbsp;
+<i class="no-highlight">306</i>&nbsp;		public ResultsTable(ResultsModel resultsModel, ResultsTableCellRenderer renderer) {
+<b class="nc"><i class="no-highlight">307</i>&nbsp;			super(resultsModel);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;			this.renderer = renderer;</b>
+<i class="no-highlight">309</i>&nbsp;		}
+<i class="no-highlight">310</i>&nbsp;
+<i class="no-highlight">311</i>&nbsp;		public void updateTable() {
+<b class="nc"><i class="no-highlight">312</i>&nbsp;			ResultsModel model = (ResultsModel) getModel();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;			TableColumnModel columnModel = getColumnModel();</b>
+<i class="no-highlight">314</i>&nbsp;
+<b class="nc"><i class="no-highlight">315</i>&nbsp;			int width = getParent().getWidth();</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;			int firstColMaxWidth = (int) (width * 0.5);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;			int rowCount = getRowCount();</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;			int columnCount = getColumnCount();</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;			boolean addDescColumn = model.isAddDescColumn();</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;			if (!addDescColumn) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;				firstColMaxWidth = width;</b>
+<i class="no-highlight">322</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">323</i>&nbsp;			setRowHeight(10); // reset all rows height</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;			for (int col = 0; col &lt; columnCount; col++) {</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;				int colWidth = 50;</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;				for (int row = 0; row &lt; rowCount; row++) {</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;					Component comp = prepareRenderer(renderer, row, col);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;					if (comp == null) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;						continue;</b>
+<i class="no-highlight">330</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">331</i>&nbsp;					colWidth = Math.max(comp.getPreferredSize().width, colWidth);</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;					int h = Math.max(getRowHeight(row), getHeight(comp));</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;					if (h &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;						setRowHeight(row, h);</b>
+<i class="no-highlight">335</i>&nbsp;					}
+<i class="no-highlight">336</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">337</i>&nbsp;				colWidth += 10;</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;				if (col == 0) {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;					colWidth = Math.min(colWidth, firstColMaxWidth);</b>
+<i class="no-highlight">340</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">341</i>&nbsp;					colWidth = Math.max(colWidth, width - columnModel.getColumn(0).getPreferredWidth());</b>
+<i class="no-highlight">342</i>&nbsp;				}
+<b class="nc"><i class="no-highlight">343</i>&nbsp;				TableColumn column = columnModel.getColumn(col);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;				column.setPreferredWidth(colWidth);</b>
+<i class="no-highlight">345</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">346</i>&nbsp;			updateUI();</b>
+<i class="no-highlight">347</i>&nbsp;		}
+<i class="no-highlight">348</i>&nbsp;
+<i class="no-highlight">349</i>&nbsp;		private int getHeight(@Nullable Component nodeComp) {
+<b class="nc"><i class="no-highlight">350</i>&nbsp;			if (nodeComp != null) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;				return Math.max(nodeComp.getHeight(), nodeComp.getPreferredSize().height);</b>
+<i class="no-highlight">352</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">353</i>&nbsp;			return 0;</b>
+<i class="no-highlight">354</i>&nbsp;		}
+<i class="no-highlight">355</i>&nbsp;	}
+<i class="no-highlight">356</i>&nbsp;
+<i class="no-highlight">357</i>&nbsp;	protected static class ResultsModel extends AbstractTableModel {
+<i class="no-highlight">358</i>&nbsp;		private static final long serialVersionUID = -7821286846923903208L;
+<i class="no-highlight">359</i>&nbsp;		private static final String[] COLUMN_NAMES = {
+<b class="nc"><i class="no-highlight">360</i>&nbsp;				NLS.str(&quot;search_dialog.col_node&quot;),</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;				NLS.str(&quot;search_dialog.col_code&quot;)</b>
+<i class="no-highlight">362</i>&nbsp;		};
+<i class="no-highlight">363</i>&nbsp;
+<b class="nc"><i class="no-highlight">364</i>&nbsp;		private final transient ArrayList&lt;JNode&gt; rows = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">365</i>&nbsp;		private final transient ResultsTableCellRenderer renderer;
+<i class="no-highlight">366</i>&nbsp;		private transient boolean addDescColumn;
+<b class="nc"><i class="no-highlight">367</i>&nbsp;		private transient int start = 0;</b>
+<i class="no-highlight">368</i>&nbsp;
+<b class="nc"><i class="no-highlight">369</i>&nbsp;		public ResultsModel(ResultsTableCellRenderer renderer) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;			this.renderer = renderer;</b>
+<i class="no-highlight">371</i>&nbsp;		}
+<i class="no-highlight">372</i>&nbsp;
+<i class="no-highlight">373</i>&nbsp;		protected void addAll(Collection&lt;? extends JNode&gt; nodes) {
+<b class="nc"><i class="no-highlight">374</i>&nbsp;			rows.ensureCapacity(rows.size() + nodes.size());</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;			rows.addAll(nodes);</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;			if (!addDescColumn) {</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;				for (JNode row : rows) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;					if (row.hasDescString()) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;						addDescColumn = true;</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;						break;</b>
+<i class="no-highlight">381</i>&nbsp;					}
+<b class="nc"><i class="no-highlight">382</i>&nbsp;				}</b>
+<i class="no-highlight">383</i>&nbsp;			}
+<i class="no-highlight">384</i>&nbsp;		}
+<i class="no-highlight">385</i>&nbsp;
+<i class="no-highlight">386</i>&nbsp;		public void clear() {
+<b class="nc"><i class="no-highlight">387</i>&nbsp;			start = 0;</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;			addDescColumn = false;</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;			rows.clear();</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;			renderer.clear();</b>
+<i class="no-highlight">391</i>&nbsp;		}
+<i class="no-highlight">392</i>&nbsp;
+<i class="no-highlight">393</i>&nbsp;		public boolean isAddDescColumn() {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;			return addDescColumn;</b>
+<i class="no-highlight">395</i>&nbsp;		}
+<i class="no-highlight">396</i>&nbsp;
+<i class="no-highlight">397</i>&nbsp;		public int getResultCount() {
+<b class="nc"><i class="no-highlight">398</i>&nbsp;			return rows.size();</b>
+<i class="no-highlight">399</i>&nbsp;		}
+<i class="no-highlight">400</i>&nbsp;
+<i class="no-highlight">401</i>&nbsp;		public int getDisplayedResultsStart() {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;			if (rows.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;				return 0;</b>
+<i class="no-highlight">404</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">405</i>&nbsp;			return start + 1;</b>
+<i class="no-highlight">406</i>&nbsp;		}
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;		public int getDisplayedResultsEnd() {
+<b class="nc"><i class="no-highlight">409</i>&nbsp;			return Math.min(rows.size(), start + RESULTS_PER_PAGE);</b>
+<i class="no-highlight">410</i>&nbsp;		}
+<i class="no-highlight">411</i>&nbsp;
+<i class="no-highlight">412</i>&nbsp;		public boolean nextPage() {
+<b class="nc"><i class="no-highlight">413</i>&nbsp;			if (start + RESULTS_PER_PAGE &lt; rows.size()) {</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;				start += RESULTS_PER_PAGE;</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;				return true;</b>
+<i class="no-highlight">416</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">417</i>&nbsp;			return false;</b>
+<i class="no-highlight">418</i>&nbsp;		}
+<i class="no-highlight">419</i>&nbsp;
+<i class="no-highlight">420</i>&nbsp;		public boolean prevPage() {
+<b class="nc"><i class="no-highlight">421</i>&nbsp;			if (start - RESULTS_PER_PAGE &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;				start -= RESULTS_PER_PAGE;</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;				return true;</b>
+<i class="no-highlight">424</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">425</i>&nbsp;			return false;</b>
+<i class="no-highlight">426</i>&nbsp;		}
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;		@Override
+<i class="no-highlight">429</i>&nbsp;		public int getRowCount() {
+<b class="nc"><i class="no-highlight">430</i>&nbsp;			if (rows.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;				return 0;</b>
+<i class="no-highlight">432</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">433</i>&nbsp;			return getDisplayedResultsEnd() - start;</b>
+<i class="no-highlight">434</i>&nbsp;		}
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;		@Override
+<i class="no-highlight">437</i>&nbsp;		public int getColumnCount() {
+<b class="nc"><i class="no-highlight">438</i>&nbsp;			return 2;</b>
+<i class="no-highlight">439</i>&nbsp;		}
+<i class="no-highlight">440</i>&nbsp;
+<i class="no-highlight">441</i>&nbsp;		@Override
+<i class="no-highlight">442</i>&nbsp;		public String getColumnName(int index) {
+<b class="nc"><i class="no-highlight">443</i>&nbsp;			return COLUMN_NAMES[index];</b>
+<i class="no-highlight">444</i>&nbsp;		}
+<i class="no-highlight">445</i>&nbsp;
+<i class="no-highlight">446</i>&nbsp;		@Override
+<i class="no-highlight">447</i>&nbsp;		public Object getValueAt(int rowIndex, int columnIndex) {
+<b class="nc"><i class="no-highlight">448</i>&nbsp;			return rows.get(rowIndex + start);</b>
+<i class="no-highlight">449</i>&nbsp;		}
+<i class="no-highlight">450</i>&nbsp;	}
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;	protected class ResultsTableCellRenderer implements TableCellRenderer {
+<b class="nc"><i class="no-highlight">453</i>&nbsp;		private final JLabel emptyLabel = new JLabel();</b>
+<i class="no-highlight">454</i>&nbsp;		private final Font font;
+<i class="no-highlight">455</i>&nbsp;		private final Color codeSelectedColor;
+<i class="no-highlight">456</i>&nbsp;		private final Color codeBackground;
+<b class="nc"><i class="no-highlight">457</i>&nbsp;		private final Map&lt;Integer, Component&gt; componentCache = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">458</i>&nbsp;
+<b class="nc"><i class="no-highlight">459</i>&nbsp;		public ResultsTableCellRenderer() {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;			RSyntaxTextArea area = AbstractCodeArea.getDefaultArea(mainWindow);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;			this.font = area.getFont();</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;			this.codeSelectedColor = area.getSelectionColor();</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;			this.codeBackground = area.getBackground();</b>
+<i class="no-highlight">464</i>&nbsp;		}
+<i class="no-highlight">465</i>&nbsp;
+<i class="no-highlight">466</i>&nbsp;		@Override
+<i class="no-highlight">467</i>&nbsp;		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
+<i class="no-highlight">468</i>&nbsp;				boolean hasFocus, int row, int column) {
+<b class="nc"><i class="no-highlight">469</i>&nbsp;			int id = makeID(row, column);</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;			Component comp = componentCache.get(id);</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;			if (comp == null) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;				if (obj instanceof JNode) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;					comp = makeCell((JNode) obj, column);</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;					componentCache.put(id, comp);</b>
+<i class="no-highlight">475</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">476</i>&nbsp;					comp = emptyLabel;</b>
+<i class="no-highlight">477</i>&nbsp;				}
+<i class="no-highlight">478</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">479</i>&nbsp;			updateSelection(table, comp, isSelected);</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;			return comp;</b>
+<i class="no-highlight">481</i>&nbsp;		}
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;		private int makeID(int row, int col) {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;			return row &lt;&lt; 2 | col;</b>
+<i class="no-highlight">485</i>&nbsp;		}
+<i class="no-highlight">486</i>&nbsp;
+<i class="no-highlight">487</i>&nbsp;		private void updateSelection(JTable table, Component comp, boolean isSelected) {
+<b class="nc"><i class="no-highlight">488</i>&nbsp;			if (comp instanceof RSyntaxTextArea) {</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;				if (isSelected) {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;					comp.setBackground(codeSelectedColor);</b>
+<i class="no-highlight">491</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">492</i>&nbsp;					comp.setBackground(codeBackground);</b>
+<i class="no-highlight">493</i>&nbsp;				}
+<i class="no-highlight">494</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">495</i>&nbsp;				if (isSelected) {</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;					comp.setBackground(table.getSelectionBackground());</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;					comp.setForeground(table.getSelectionForeground());</b>
+<i class="no-highlight">498</i>&nbsp;				} else {
+<b class="nc"><i class="no-highlight">499</i>&nbsp;					comp.setBackground(table.getBackground());</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;					comp.setForeground(table.getForeground());</b>
+<i class="no-highlight">501</i>&nbsp;				}
+<i class="no-highlight">502</i>&nbsp;			}
+<i class="no-highlight">503</i>&nbsp;		}
+<i class="no-highlight">504</i>&nbsp;
+<i class="no-highlight">505</i>&nbsp;		private Component makeCell(JNode node, int column) {
+<b class="nc"><i class="no-highlight">506</i>&nbsp;			if (column == 0) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;				JLabel label = new JLabel(node.makeLongStringHtml() + &quot;  &quot;, node.getIcon(), SwingConstants.LEFT);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;				label.setFont(font);</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;				label.setOpaque(true);</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;				label.setToolTipText(label.getText());</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;				return label;</b>
+<i class="no-highlight">512</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">513</i>&nbsp;			if (!node.hasDescString()) {</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;				return emptyLabel;</b>
+<i class="no-highlight">515</i>&nbsp;			}
+<i class="no-highlight">516</i>&nbsp;
+<b class="nc"><i class="no-highlight">517</i>&nbsp;			RSyntaxTextArea textArea = AbstractCodeArea.getDefaultArea(mainWindow);</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;			textArea.setSyntaxEditingStyle(node.getSyntaxName());</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;			String descStr = node.makeDescString();</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;			textArea.setText(descStr);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;			if (descStr.contains(&quot;\n&quot;)) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;				textArea.setRows(textArea.getLineCount());</b>
+<i class="no-highlight">523</i>&nbsp;			} else {
+<b class="nc"><i class="no-highlight">524</i>&nbsp;				textArea.setRows(1);</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;				textArea.setColumns(descStr.length() + 1);</b>
+<i class="no-highlight">526</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">527</i>&nbsp;			if (highlightText != null) {</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;				SearchContext searchContext = new SearchContext(highlightText);</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;				searchContext.setMatchCase(!highlightTextCaseInsensitive);</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;				searchContext.setRegularExpression(highlightTextUseRegex);</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;				searchContext.setMarkAll(true);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;				SearchEngine.markAll(textArea, searchContext);</b>
+<i class="no-highlight">533</i>&nbsp;			}
+<b class="nc"><i class="no-highlight">534</i>&nbsp;			textArea.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;			return textArea;</b>
+<i class="no-highlight">536</i>&nbsp;		}
+<i class="no-highlight">537</i>&nbsp;
+<i class="no-highlight">538</i>&nbsp;		public void clear() {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;			componentCache.clear();</b>
+<i class="no-highlight">540</i>&nbsp;		}
+<i class="no-highlight">541</i>&nbsp;	}
+<i class="no-highlight">542</i>&nbsp;
+<i class="no-highlight">543</i>&nbsp;	private class LoadTask extends SwingWorker&lt;Void, Void&gt; {
+<b class="nc"><i class="no-highlight">544</i>&nbsp;		public LoadTask() {</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;			loadStartCommon();</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;			loadStart();</b>
+<i class="no-highlight">547</i>&nbsp;		}
+<i class="no-highlight">548</i>&nbsp;
+<i class="no-highlight">549</i>&nbsp;		@Override
+<i class="no-highlight">550</i>&nbsp;		public Void doInBackground() {
+<i class="no-highlight">551</i>&nbsp;			try {
+<b class="nc"><i class="no-highlight">552</i>&nbsp;				progressPane.changeLabel(this, NLS.str(&quot;progress.decompile&quot;) + &quot;: &quot;);</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;				mainWindow.waitDecompileTask();</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;			} catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;				LOG.error(&quot;Waiting background tasks failed&quot;, e);</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;			}</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;			return null;</b>
+<i class="no-highlight">558</i>&nbsp;		}
+<i class="no-highlight">559</i>&nbsp;
+<i class="no-highlight">560</i>&nbsp;		@Override
+<i class="no-highlight">561</i>&nbsp;		public void done() {
+<b class="nc"><i class="no-highlight">562</i>&nbsp;			loadFinishedCommon();</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;			loadFinished();</b>
+<i class="no-highlight">564</i>&nbsp;		}
+<i class="no-highlight">565</i>&nbsp;	}
+<i class="no-highlight">566</i>&nbsp;
+<i class="no-highlight">567</i>&nbsp;	void loadStartCommon() {
+<b class="nc"><i class="no-highlight">568</i>&nbsp;		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;		progressPane.setIndeterminate(true);</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;		progressPane.setVisible(true);</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;		warnLabel.setVisible(false);</b>
+<i class="no-highlight">572</i>&nbsp;	}
+<i class="no-highlight">573</i>&nbsp;
+<i class="no-highlight">574</i>&nbsp;	void loadFinishedCommon() {
+<b class="nc"><i class="no-highlight">575</i>&nbsp;		setCursor(null);</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;		progressPane.setVisible(false);</b>
+<i class="no-highlight">577</i>&nbsp;
+<b class="nc"><i class="no-highlight">578</i>&nbsp;		TextSearchIndex textIndex = cache.getTextIndex();</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;		if (textIndex == null) {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;			warnLabel.setText(NLS.str(&quot;msg.index_not_initialized&quot;));</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;			warnLabel.setVisible(true);</b>
+<i class="no-highlight">582</i>&nbsp;		}
+<i class="no-highlight">583</i>&nbsp;	}
+<i class="no-highlight">584</i>&nbsp;
+<i class="no-highlight">585</i>&nbsp;	protected JNodeCache getNodeCache() {
+<b class="nc"><i class="no-highlight">586</i>&nbsp;		return mainWindow.getCacheObject().getNodeCache();</b>
+<i class="no-highlight">587</i>&nbsp;	}
+<i class="no-highlight">588</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-02-16 23:24</div>
+</div>
+</body>
+</html>
