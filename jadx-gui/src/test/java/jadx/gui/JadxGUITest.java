@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * @program: jadx
  * @description:
@@ -60,7 +62,10 @@ public class JadxGUITest {
 			wrapper.openFile(paths);
 			RootNode root = wrapper.getDecompiler().getRoot();
 
-			ArgType.tryToResolveClassAlias(root, ArgType.OBJECT);
+			ArgType argType = ArgType.tryToResolveClassAlias(root, ArgType.OBJECT);
+			ArgType argTypeCls = ArgType.tryToResolveClassAlias(root, ArgType.CLASS);
+			assertEquals(ArgType.OBJECT, argType);
+			assertEquals(ArgType.CLASS, argTypeCls);
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);
