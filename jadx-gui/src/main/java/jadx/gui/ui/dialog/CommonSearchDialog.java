@@ -6,6 +6,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -18,6 +19,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -143,12 +145,11 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	protected void openSelectedItem() {
-		int selectedId = resultsTable.getSelectedRow();
-		if (selectedId == -1) {
+		JNode node = getSelectedNode();
+		if (node == null) {
 			return;
 		}
 		JumpPosition jmpPos;
-		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);
 		if (node instanceof JResSearchNode) {
 			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getLine(), node.getPos());
 		} else {
@@ -158,6 +159,15 @@ public abstract class CommonSearchDialog extends JFrame {
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
 			dispose();
 		}
+	}
+
+	@Nullable
+	private JNode getSelectedNode() {
+		int selectedId = resultsTable.getSelectedRow();
+		if (selectedId == -1) {
+			return null;
+		}
+		return (JNode) resultsModel.getValueAt(selectedId, 0);
 	}
 
 	@Override
@@ -210,7 +220,6 @@ public abstract class CommonSearchDialog extends JFrame {
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		// resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
@@ -235,6 +244,16 @@ public abstract class CommonSearchDialog extends JFrame {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					openSelectedItem();
+				}
+			}
+		});
+		// override copy action to copy long string of node column
+		resultsTable.getActionMap().put("copy", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JNode selectedNode = getSelectedNode();
+				if (selectedNode != null) {
+					UiUtils.copyToClipboard(selectedNode.makeLongString());
 				}
 			}
 		});
