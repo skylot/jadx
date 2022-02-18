@@ -32,6 +32,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -253,6 +254,10 @@ public class UiUtils {
 		return CTRL_BNT_KEY;
 	}
 
+	public static boolean isCtrlDown(KeyEvent keyEvent) {
+		return keyEvent.getModifiersEx() == CTRL_BNT_KEY;
+	}
+
 	public static <T extends Window & RootPaneContainer> void addEscapeShortCutToDispose(T window) {
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 		window.getRootPane().registerKeyboardAction(e -> window.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -295,5 +300,18 @@ public class UiUtils {
 	public static void errorMessage(Component parent, String message) {
 		JOptionPane.showMessageDialog(parent, message,
 				NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+	}
+
+	public static void copyToClipboard(String text) {
+		if (StringUtils.isEmpty(text)) {
+			return;
+		}
+		try {
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			StringSelection selection = new StringSelection(text);
+			clipboard.setContents(selection, selection);
+		} catch (Exception e) {
+			LOG.error("Failed copy text to clipboard", e);
+		}
 	}
 }

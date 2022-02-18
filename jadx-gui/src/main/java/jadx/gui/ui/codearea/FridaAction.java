@@ -1,8 +1,5 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.*;
@@ -29,6 +26,7 @@ import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
 
@@ -62,9 +60,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		try {
 			String fridaSnippet = generateFridaSnippet();
 			LOG.info("Frida snippet:\n{}", fridaSnippet);
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			StringSelection selection = new StringSelection(fridaSnippet);
-			clipboard.setContents(selection, selection);
+			UiUtils.copyToClipboard(fridaSnippet);
 		} catch (Exception e) {
 			LOG.error("Failed to generate Frida code snippet", e);
 			JOptionPane.showMessageDialog(codeArea.getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),

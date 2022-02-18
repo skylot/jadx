@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -37,6 +39,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	private static final long serialVersionUID = -3980354865216031972L;
@@ -57,9 +60,16 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		setCloseCurlyBraces(true);
 		setAntiAliasingEnabled(true);
 		loadSettings();
+
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
 		setLineWrap(settings.isCodeAreaLineWrap());
+		addWrapLineMenuAction(settings);
 
+		addCaretActions();
+		addFastCopyAction();
+	}
+
+	private void addWrapLineMenuAction(JadxSettings settings) {
 		JPopupMenu popupMenu = getPopupMenu();
 		popupMenu.addSeparator();
 		JCheckBoxMenuItem wrapItem = new JCheckBoxMenuItem(NLS.str("popup.line_wrap"), getLineWrap());
@@ -88,7 +98,16 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				wrapItem.setState(getLineWrap());
 			}
 		});
+	}
 
+	private void setCodeAreaLineWrap(AbstractCodeArea codeArea, boolean wrap) {
+		codeArea.setLineWrap(wrap);
+		if (codeArea.isVisible()) {
+			codeArea.repaint();
+		}
+	}
+
+	private void addCaretActions() {
 		Caret caret = getCaret();
 		if (caret instanceof DefaultCaret) {
 			((DefaultCaret) caret).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -123,11 +142,20 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		});
 	}
 
-	private void setCodeAreaLineWrap(AbstractCodeArea codeArea, boolean wrap) {
-		codeArea.setLineWrap(wrap);
-		if (codeArea.isVisible()) {
-			codeArea.repaint();
-		}
+	/**
+	 * Ctrl+C will copy highlighted word
+	 */
+	private void addFastCopyAction() {
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_C && UiUtils.isCtrlDown(e)) {
+					if (StringUtils.isEmpty(getSelectedText())) {
+						UiUtils.copyToClipboard(getWordUnderCaret());
+					}
+				}
+			}
+		});
 	}
 
 	private String highlightCaretWord(String lastText, int pos) {

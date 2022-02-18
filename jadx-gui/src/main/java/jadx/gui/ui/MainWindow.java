@@ -110,6 +110,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
@@ -936,7 +937,11 @@ public class MainWindow extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				ContentPanel panel = tabbedPane.getSelectedCodePanel();
 				if (panel instanceof AbstractCodeContentPanel) {
-					String preferText = ((AbstractCodeContentPanel) panel).getCodeArea().getSelectedText();
+					AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
+					String preferText = codeArea.getSelectedText();
+					if (StringUtils.isEmpty(preferText)) {
+						preferText = codeArea.getWordUnderCaret();
+					}
 					if (!StringUtils.isEmpty(preferText)) {
 						SearchDialog.searchText(MainWindow.this, preferText);
 						return;
