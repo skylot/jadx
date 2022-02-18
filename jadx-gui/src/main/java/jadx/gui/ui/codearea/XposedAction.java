@@ -102,7 +102,7 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 				+ "    }\n"
 				+ "});";
 
-		List<ArgType> mthArgs = javaMethod.getMethodNode().getArgTypes();
+		List<ArgType> mthArgs = mth.getArgTypes();
 		if (mthArgs.isEmpty()) {
 			return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName);
 		}
