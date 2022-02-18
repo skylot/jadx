@@ -34,7 +34,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class FridaAction extends JNodeMenuAction<JNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(FridaAction.class);
-	private static final long serialVersionUID = 4692546569977976384L;
+	private static final long serialVersionUID = -3084073927621269039L;
 	private final Map<String, Boolean> isInitial = new HashMap<>();
 
 	public FridaAction(CodeArea codeArea) {

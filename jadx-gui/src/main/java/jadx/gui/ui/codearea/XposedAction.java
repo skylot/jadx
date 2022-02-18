@@ -103,7 +103,7 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 		if (mthArgs.isEmpty()) {
 			return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName);
 		}
-		String params = mthArgs.stream().map((type) -> type + ".class, ").collect(Collectors.joining());
+		String params = mthArgs.stream().map(type -> type + ".class, ").collect(Collectors.joining());
 		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + params);
 	}
 
