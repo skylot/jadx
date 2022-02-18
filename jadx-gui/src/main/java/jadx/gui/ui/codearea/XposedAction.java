@@ -5,9 +5,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -20,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
-import jadx.api.data.annotations.VarDeclareRef;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -110,13 +107,12 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + params);
 	}
 
-
 	private String generateClassSnippet(JClass jc) {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
-		return String.format("ClassLoader classLoader=lpparam.classLoader;\n" +
-						"Class %sClass=classLoader.loadClass(\"%s\");",
+		return String.format("ClassLoader classLoader=lpparam.classLoader;\n"
+				+ "Class %sClass=classLoader.loadClass(\"%s\");",
 				shortClassName, rawClassName);
 	}
 

@@ -9,9 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
 
-import jadx.core.codegen.TypeGen;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +18,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.data.annotations.VarDeclareRef;
+import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -111,12 +110,12 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(
-				"%s = function(%s){\n" +
-						"    console.log('%s is called');\n" +
-						"    let ret = this.%s(%s);\n" +
-						"    console.log('%s ret value is ' + ret);\n" +
-						"    return ret;\n" +
-						"};",
+				"%s = function(%s){\n"
+						+ "    console.log('%s is called');\n"
+						+ "    let ret = this.%s(%s);\n"
+						+ "    console.log('%s ret value is ' + ret);\n"
+						+ "    return ret;\n"
+						+ "};",
 				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
 
 		String finalFridaCode;
@@ -173,7 +172,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		}
 		return parsedArgType.append("'").toString();
 	}
-
 
 	@Nullable
 	@Override
