@@ -95,20 +95,25 @@ public final class CodeArea extends AbstractCodeArea {
 		RenameAction rename = new RenameAction(this);
 		CommentAction comment = new CommentAction(this);
 		FridaAction frida = new FridaAction(this);
+		XposedAction xposed = new XposedAction(this);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
-		popup.add(frida);
 		popup.add(goToDeclaration);
 		popup.add(comment);
 		popup.add(new CommentSearchAction(this));
 		popup.add(rename);
+		popup.addSeparator();
+		popup.add(frida);
+		popup.add(xposed);
+
 		popup.addPopupMenuListener(findUsage);
-		popup.addPopupMenuListener(frida);
 		popup.addPopupMenuListener(goToDeclaration);
 		popup.addPopupMenuListener(comment);
 		popup.addPopupMenuListener(rename);
+		popup.addPopupMenuListener(frida);
+		popup.addPopupMenuListener(xposed);
 
 		// move caret on mouse right button click
 		popup.addPopupMenuListener(new DefaultPopupMenuListener() {

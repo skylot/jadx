@@ -18,6 +18,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.data.annotations.VarDeclareRef;
+import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -33,7 +34,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class FridaAction extends JNodeMenuAction<JNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(FridaAction.class);
-	private static final long serialVersionUID = 4692546569977976384L;
+	private static final long serialVersionUID = -3084073927621269039L;
 	private final Map<String, Boolean> isInitial = new HashMap<>();
 
 	public FridaAction(CodeArea codeArea) {
@@ -51,9 +52,16 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		});
 	}
 
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		node = codeArea.getNodeUnderCaret();
+		copyFridaSnippet();
+	}
+
 	private void copyFridaSnippet() {
 		try {
 			String fridaSnippet = generateFridaSnippet();
+			LOG.info("Frida snippet:\n{}", fridaSnippet);
 			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			StringSelection selection = new StringSelection(fridaSnippet);
 			clipboard.setContents(selection, selection);
@@ -66,23 +74,20 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 	private String generateFridaSnippet() {
 		if (node instanceof JMethod) {
-			LOG.debug("node is jmethod");
 			return generateMethodSnippet((JMethod) node);
 		} else if (node instanceof JClass) {
-			LOG.debug("node is jclass");
 			return generateClassSnippet((JClass) node);
 		} else if (node instanceof JField) {
-			LOG.debug("node is jfield");
 			return generateFieldSnippet((JField) node);
 		}
-		throw new JadxRuntimeException("Unsupported node type: " + node.getClass());
+		throw new JadxRuntimeException("Unsupported node type: " + (node != null ? node.getClass() : "null"));
 	}
 
 	private String generateMethodSnippet(JMethod jMth) {
 		JavaMethod javaMethod = jMth.getJavaMethod();
 		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
 		String methodName = methodInfo.getName();
-		if (methodName.equals("<init>") || methodName.equals("onCreate")) {
+		if (methodInfo.isConstructor()) {
 			methodName = "$init";
 		}
 		String rawClassName = javaMethod.getDeclaringClass().getRawName();
@@ -105,8 +110,12 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(
-				"%s = function(%s){\n\tconsole.log('%s is called');\n\tlet ret = this.%s(%s);\n"
-						+ "\tconsole.log('%s ret value is ' + ret);\n\treturn ret;\n};",
+				"%s = function(%s){\n"
+						+ "    console.log('%s is called');\n"
+						+ "    let ret = this.%s(%s);\n"
+						+ "    console.log('%s ret value is ' + ret);\n"
+						+ "    return ret;\n"
+						+ "};",
 				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
 
 		String finalFridaCode;
@@ -116,7 +125,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		} else {
 			finalFridaCode = functionParameterAndBody;
 		}
-		LOG.debug("Frida code : {}", finalFridaCode);
 		return finalFridaCode;
 	}
 
@@ -125,7 +133,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
 		String finalFridaCode = String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
-		LOG.debug("Frida code : {}", finalFridaCode);
 		isInitial.put(rawClassName, false);
 		return finalFridaCode;
 	}
@@ -145,9 +152,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 		JClass jc = jf.getRootClass();
 		String classSnippet = generateClassSnippet(jc);
-		String finalFridaCode = String.format("%s\n%s = %s.%s.value;", classSnippet, fieldName, jc.getName(), rawFieldName);
-		LOG.debug("Frida code : {}", finalFridaCode);
-		return finalFridaCode;
+		return String.format("%s\n%s = %s.%s.value;", classSnippet, fieldName, jc.getName(), rawFieldName);
 	}
 
 	public Boolean isOverloaded(MethodNode methodNode) {
@@ -161,22 +166,11 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	private String parseArgType(ArgType x) {
 		StringBuilder parsedArgType = new StringBuilder("'");
 		if (x.isArray()) {
-			parsedArgType.append(x.getPrimitiveType().getShortName());
-			parsedArgType.append(x.getArrayElement().getPrimitiveType().getShortName());
-			if (!x.getArrayElement().isPrimitive()) {
-				parsedArgType.append(x.getArrayElement().toString()).append(";");
-			}
-
+			parsedArgType.append(TypeGen.signature(x).replace("/", "."));
 		} else {
 			parsedArgType.append(x);
 		}
 		return parsedArgType.append("'").toString();
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		node = codeArea.getNodeUnderCaret();
-		copyFridaSnippet();
 	}
 
 	@Nullable
