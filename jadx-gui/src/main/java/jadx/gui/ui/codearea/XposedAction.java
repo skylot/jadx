@@ -88,10 +88,10 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 			methodName = "";
 		} else {
 			xposedMethod = "findAndHookMethod";
-			methodName = "\"" + mth.getMethodInfo().getName() + "\",";
+			methodName = "\"" + mth.getMethodInfo().getName() + "\", ";
 		}
 		String rawClassName = javaMethod.getDeclaringClass().getRawName();
-		String xposedFormatStr = "XposedHelpers.%s(\"%s\", classLoader, %s new XC_MethodHook() {\n"
+		String xposedFormatStr = "XposedHelpers.%s(\"%s\", classLoader, %snew XC_MethodHook() {\n"
 				+ "    @Override\n"
 				+ "    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {\n"
 				+ "        super.beforeHookedMethod(param);\n"
@@ -101,32 +101,22 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 				+ "        super.afterHookedMethod(param);\n"
 				+ "    }\n"
 				+ "});";
-		List<ArgType> mthArgs = Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo())
-				.getAnnotations().entrySet().stream()
-				.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
-				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-				.map(e -> ((VarDeclareRef) e.getValue()).getType())
-				.collect(Collectors.toList());
+
+		List<ArgType> mthArgs = mth.getArgTypes();
 		if (mthArgs.isEmpty()) {
 			return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName);
 		}
-		String params = mthArgs.stream().map(this::typeToClsStr).collect(Collectors.joining(", "));
-		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + ' ' + params + ',');
+		String params = mthArgs.stream().map((type) -> type + ".class, ").collect(Collectors.joining());
+		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + params);
 	}
 
-	private String typeToClsStr(ArgType type) {
-		if (type.isPrimitive()) {
-			return type.getPrimitiveType().getLongName() + ".class";
-		}
-		return type + ".class";
-	}
 
 	private String generateClassSnippet(JClass jc) {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
-		return String.format("ClassLoader classLoader=lpparam.classLoader;\n"
-				+ "Class %sClass=classLoader.loadClass(\"%s\");",
+		return String.format("ClassLoader classLoader=lpparam.classLoader;\n" +
+						"Class %sClass=classLoader.loadClass(\"%s\");",
 				shortClassName, rawClassName);
 	}
 
