@@ -28,6 +28,7 @@ import com.beust.jcommander.Parameter;
 
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -43,7 +44,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 15;
+	private static final int CURRENT_SETTINGS_VERSION = 16;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -326,8 +327,8 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
-		this.deobfuscationForceSave = deobfuscationForceSave;
+	public void setDeobfuscationMapFileMode(DeobfuscationMapFileMode mode) {
+		this.deobfuscationMapFileMode = mode;
 	}
 
 	public void setDeobfuscationUseSourceNameAsAlias(boolean deobfuscationUseSourceNameAsAlias) {
@@ -588,7 +589,7 @@ public class JadxSettings extends JadxCLIArgs {
 			setDeobfuscationMaxLength(64);
 			setDeobfuscationUseSourceNameAsAlias(true);
 			setDeobfuscationParseKotlinMetadata(true);
-			setDeobfuscationForceSave(false);
+			setDeobfuscationMapFileMode(DeobfuscationMapFileMode.READ);
 			setThreadsCount(JadxArgs.DEFAULT_THREADS_COUNT);
 			setReplaceConsts(true);
 			setSkipResources(false);
@@ -657,6 +658,14 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 14) {
 			useKotlinMethodsForVarNames = JadxArgs.UseKotlinMethodsForVarNames.APPLY;
+			fromVersion++;
+		}
+		if (fromVersion == 15) {
+			if (deobfuscationForceSave) {
+				deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
+			} else {
+				deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+			}
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

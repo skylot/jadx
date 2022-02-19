@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
@@ -54,10 +55,11 @@ public class JadxArgs {
 	private Predicate<String> classFilter = null;
 
 	private boolean deobfuscationOn = false;
-	private boolean deobfuscationForceSave = false;
 	private boolean useSourceNameAsClassAlias = false;
 	private boolean parseKotlinMetadata = false;
 	private File deobfuscationMapFile = null;
+
+	private DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -264,12 +266,24 @@ public class JadxArgs {
 		this.deobfuscationOn = deobfuscationOn;
 	}
 
+	@Deprecated
 	public boolean isDeobfuscationForceSave() {
-		return deobfuscationForceSave;
+		return deobfuscationMapFileMode == DeobfuscationMapFileMode.OVERWRITE;
 	}
 
+	@Deprecated
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
-		this.deobfuscationForceSave = deobfuscationForceSave;
+		if (deobfuscationForceSave) {
+			this.deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
+		}
+	}
+
+	public DeobfuscationMapFileMode getDeobfuscationMapFileMode() {
+		return deobfuscationMapFileMode;
+	}
+
+	public void setDeobfuscationMapFileMode(DeobfuscationMapFileMode deobfuscationMapFileMode) {
+		this.deobfuscationMapFileMode = deobfuscationMapFileMode;
 	}
 
 	public boolean isUseSourceNameAsClassAlias() {
@@ -476,7 +490,7 @@ public class JadxArgs {
 				+ ", skipSources=" + skipSources
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", deobfuscationMapFile=" + deobfuscationMapFile
-				+ ", deobfuscationForceSave=" + deobfuscationForceSave
+				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames

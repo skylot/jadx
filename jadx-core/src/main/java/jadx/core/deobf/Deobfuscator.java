@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AFlag;
@@ -76,22 +77,25 @@ public class Deobfuscator {
 	}
 
 	public void execute() {
-		if (!args.isDeobfuscationForceSave()) {
-			deobfPresets.load();
-			for (Map.Entry<String, String> pkgEntry : deobfPresets.getPkgPresetMap().entrySet()) {
-				addPackagePreset(pkgEntry.getKey(), pkgEntry.getValue());
+		if (args.getDeobfuscationMapFileMode().shouldRead()) {
+			if (deobfPresets.load()) {
+				for (Map.Entry<String, String> pkgEntry : deobfPresets.getPkgPresetMap().entrySet()) {
+					addPackagePreset(pkgEntry.getKey(), pkgEntry.getValue());
+				}
+				deobfPresets.getPkgPresetMap().clear(); // not needed anymore
+				initIndexes();
 			}
-			deobfPresets.getPkgPresetMap().clear(); // not needed anymore
-			initIndexes();
 		}
 		process();
 	}
 
 	public void savePresets() {
+		DeobfuscationMapFileMode mode = args.getDeobfuscationMapFileMode();
+		if (!mode.shouldWrite()) {
+			return;
+		}
 		Path deobfMapFile = deobfPresets.getDeobfMapFile();
-		if (Files.exists(deobfMapFile) && !args.isDeobfuscationForceSave()) {
-			LOG.info("Deobfuscation map file '{}' exists. Use command line option '--deobf-rewrite-cfg' to rewrite it",
-					deobfMapFile.toAbsolutePath());
+		if (mode == DeobfuscationMapFileMode.READ_OR_SAVE && Files.exists(deobfMapFile)) {
 			return;
 		}
 		try {

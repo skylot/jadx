@@ -94,7 +94,7 @@ public class JCommanderWrapper<T> {
 				opt.append("- ").append(description);
 			}
 			String defaultValue = getDefaultValue(args, f, opt);
-			if (defaultValue != null) {
+			if (defaultValue != null && !description.contains("(default)")) {
 				opt.append(", default: ").append(defaultValue);
 			}
 			out.println(opt);

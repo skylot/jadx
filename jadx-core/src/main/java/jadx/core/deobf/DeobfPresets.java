@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -50,6 +51,9 @@ public class DeobfPresets {
 	@Nullable
 	private static Path getPathDeobfMapPath(RootNode root) {
 		JadxArgs jadxArgs = root.getArgs();
+		if (jadxArgs.getDeobfuscationMapFileMode() == DeobfuscationMapFileMode.IGNORE) {
+			return null;
+		}
 		File deobfMapFile = jadxArgs.getDeobfuscationMapFile();
 		if (deobfMapFile != null) {
 			return deobfMapFile.toPath();
@@ -70,9 +74,9 @@ public class DeobfPresets {
 	/**
 	 * Loads deobfuscator presets
 	 */
-	public void load() {
+	public boolean load() {
 		if (!Files.exists(deobfMapFile)) {
-			return;
+			return false;
 		}
 		LOG.info("Loading obfuscation map from: {}", deobfMapFile.toAbsolutePath());
 		try {
@@ -106,8 +110,10 @@ public class DeobfPresets {
 						break;
 				}
 			}
+			return true;
 		} catch (Exception e) {
 			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
+			return false;
 		}
 	}
 
@@ -142,9 +148,7 @@ public class DeobfPresets {
 		}
 		Files.write(deobfMapFile, list, MAP_FILE_CHARSET,
 				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Deobfuscation map file saved as: {}", deobfMapFile);
-		}
+		LOG.info("Deobfuscation map file saved as: {}", deobfMapFile);
 	}
 
 	public String getForCls(ClassInfo cls) {

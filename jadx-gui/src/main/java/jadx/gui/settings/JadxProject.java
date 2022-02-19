@@ -210,7 +210,10 @@ public class JadxProject {
 
 	private void upgrade() {
 		int fromVersion = data.getProjectVersion();
-		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
+		if (fromVersion == CURRENT_PROJECT_VERSION) {
+			return;
+		}
+		LOG.debug("upgrade project settings from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
 		if (fromVersion == 0) {
 			fromVersion++;
 		}

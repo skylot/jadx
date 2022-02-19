@@ -96,7 +96,12 @@ options:
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
   --deobf-cfg-file                    - deobfuscation map file, default: same dir and name as input file with '.jobf' extension
-  --deobf-rewrite-cfg                 - force to ignore and overwrite deobfuscation map file
+  --deobf-cfg-file-mode               - set mode for handle deobfuscation map file:
+                                         'read' - read if found, don't save (default)
+                                         'read-or-save' - read if found, save otherwise (don't overwrite)
+                                         'overwrite' - don't read, always save
+                                         'ignore' - don't read and don't save
+  --deobf-rewrite-cfg                 - set '--deobf-cfg-file-mode' to 'overwrite' (deprecated)
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply

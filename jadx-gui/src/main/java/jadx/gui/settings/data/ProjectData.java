@@ -9,7 +9,7 @@ import jadx.api.data.impl.JadxCodeData;
 
 public class ProjectData {
 
-	private int projectVersion;
+	private int projectVersion = 1;
 	private List<Path> files;
 	private List<String[]> treeExpansions = new ArrayList<>();
 	private JadxCodeData codeData = new JadxCodeData();

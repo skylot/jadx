@@ -61,6 +61,7 @@ import say.swing.JFontChooser;
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -232,13 +233,6 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JCheckBox deobfForce = new JCheckBox();
-		deobfForce.setSelected(settings.isDeobfuscationForceSave());
-		deobfForce.addItemListener(e -> {
-			settings.setDeobfuscationForceSave(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
 		SpinnerNumberModel minLenModel = new SpinnerNumberModel(settings.getDeobfuscationMinLength(), 0, Integer.MAX_VALUE, 1);
 		JSpinner minLenSpinner = new JSpinner(minLenModel);
 		minLenSpinner.addChangeListener(e -> {
@@ -267,17 +261,27 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<DeobfuscationMapFileMode> deobfMapFileModeCB = new JComboBox<>(DeobfuscationMapFileMode.values());
+		deobfMapFileModeCB.setSelectedItem(settings.getDeobfuscationMapFileMode());
+		deobfMapFileModeCB.addActionListener(e -> {
+			DeobfuscationMapFileMode newValue = (DeobfuscationMapFileMode) deobfMapFileModeCB.getSelectedItem();
+			if (newValue != settings.getDeobfuscationMapFileMode()) {
+				settings.setDeobfuscationMapFileMode(newValue);
+				needReload();
+			}
+		});
+
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_force"), deobfForce);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_map_file_mode"), deobfMapFileModeCB);
 		deobfGroup.end();
 
 		Collection<JComponent> connectedComponents =
-				Arrays.asList(deobfForce, minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);
+				Arrays.asList(minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
