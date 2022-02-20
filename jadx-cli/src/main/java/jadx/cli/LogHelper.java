@@ -58,6 +58,7 @@ public class LogHelper {
 			// show progress for all levels except quiet
 			setLevelForClass(JadxCLI.class, Level.INFO);
 			setLevelForClass(JadxDecompiler.class, Level.INFO);
+			setLevelForClass(SingleClassMode.class, Level.INFO);
 		}
 	}
 

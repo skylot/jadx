@@ -40,8 +40,11 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
-	@Parameter(names = { "--single-class" }, description = "decompile a single class")
+	@Parameter(names = { "--single-class" }, description = "decompile a single class, can raw name or an alias")
 	protected String singleClass = null;
+
+	@Parameter(names = { "--single-class-output" }, description = "file or dir for write if decompile a single class")
+	protected String singleClassOutput = null;
 
 	@Parameter(names = { "--output-format" }, description = "can be 'java' or 'json'")
 	protected String outputFormat = "java";
@@ -227,9 +230,6 @@ public class JadxCLIArgs {
 		args.setOutputFormat(JadxArgs.OutputFormatEnum.valueOf(outputFormat.toUpperCase()));
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
-		if (singleClass != null) {
-			args.setClassFilter(className -> singleClass.equals(className));
-		}
 		args.setSkipResources(skipResources);
 		args.setFallbackMode(fallbackMode);
 		args.setShowInconsistentCode(showInconsistentCode);
@@ -277,6 +277,14 @@ public class JadxCLIArgs {
 
 	public String getOutDirRes() {
 		return outDirRes;
+	}
+
+	public String getSingleClass() {
+		return singleClass;
+	}
+
+	public String getSingleClassOutput() {
+		return singleClassOutput;
 	}
 
 	public boolean isSkipResources() {

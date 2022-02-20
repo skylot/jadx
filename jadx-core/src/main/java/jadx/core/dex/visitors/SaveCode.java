@@ -11,6 +11,7 @@ import jadx.api.JadxArgs;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
@@ -37,7 +38,7 @@ public class SaveCode {
 		if (cls.root().getArgs().isSkipFilesSave()) {
 			return;
 		}
-		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls);
+		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls.root());
 		save(codeStr, dir, fileName);
 	}
 
@@ -61,8 +62,8 @@ public class SaveCode {
 		}
 	}
 
-	private static String getFileExtension(ClassNode cls) {
-		JadxArgs.OutputFormatEnum outputFormat = cls.root().getArgs().getOutputFormat();
+	public static String getFileExtension(RootNode root) {
+		JadxArgs.OutputFormatEnum outputFormat = root.getArgs().getOutputFormat();
 		switch (outputFormat) {
 			case JAVA:
 				return ".java";

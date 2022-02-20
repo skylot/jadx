@@ -32,23 +32,19 @@ public class JadxCLI {
 	public static int execute(String[] args) {
 		JadxCLIArgs jadxArgs = new JadxCLIArgs();
 		if (jadxArgs.processArgs(args)) {
-			return processAndSave(jadxArgs.toJadxArgs());
+			return processAndSave(jadxArgs);
 		}
 		return 0;
 	}
 
-	private static int processAndSave(JadxArgs jadxArgs) {
+	private static int processAndSave(JadxCLIArgs cliArgs) {
+		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
-			if (LogHelper.getLogLevel() == LogHelper.LogLevelEnum.QUIET) {
-				jadx.save();
-			} else {
-				jadx.save(500, (done, total) -> {
-					int progress = (int) (done * 100.0 / total);
-					System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);
-				});
+			if (!SingleClassMode.process(jadx, cliArgs)) {
+				save(jadx);
 			}
 			int errorsCount = jadx.getErrorsCount();
 			if (errorsCount != 0) {
@@ -59,5 +55,16 @@ public class JadxCLI {
 			}
 		}
 		return 0;
+	}
+
+	private static void save(JadxDecompiler jadx) {
+		if (LogHelper.getLogLevel() == LogHelper.LogLevelEnum.QUIET) {
+			jadx.save();
+		} else {
+			jadx.save(500, (done, total) -> {
+				int progress = (int) (done * 100.0 / total);
+				System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);
+			});
+		}
 	}
 }
