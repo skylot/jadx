@@ -40,7 +40,7 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
-	@Parameter(names = { "--single-class" }, description = "decompile a single class, can raw name or an alias")
+	@Parameter(names = { "--single-class" }, description = "decompile a single class, full name, raw or alias")
 	protected String singleClass = null;
 
 	@Parameter(names = { "--single-class-output" }, description = "file or dir for write if decompile a single class")
