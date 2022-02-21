@@ -30,6 +30,7 @@ import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.input.JadxInputPlugin;
 import jadx.api.plugins.input.data.ILoadResult;
+import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -167,6 +168,18 @@ public final class JadxDecompiler implements Closeable {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Resolved plugins: {}", Utils.collectionMap(pluginManager.getResolvedPlugins(),
 					p -> p.getPluginInfo().getPluginId()));
+		}
+		Map<String, String> pluginOptions = args.getPluginOptions();
+		if (!pluginOptions.isEmpty()) {
+			LOG.debug("Applying plugin options: {}", pluginOptions);
+			for (JadxPluginOptions plugin : pluginManager.getPluginsWithOptions()) {
+				try {
+					plugin.setOptions(pluginOptions);
+				} catch (Exception e) {
+					String pluginId = plugin.getPluginInfo().getPluginId();
+					throw new JadxRuntimeException("Failed to apply options for plugin: " + pluginId, e);
+				}
+			}
 		}
 	}
 

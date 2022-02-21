@@ -11,6 +11,8 @@ import jadx.plugins.input.dex.DexInputPlugin;
 
 public class JavaConvertPlugin implements JadxInputPlugin {
 
+	private final DexInputPlugin dexInput = new DexInputPlugin();
+
 	@Override
 	public JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(
@@ -27,6 +29,6 @@ public class JavaConvertPlugin implements JadxInputPlugin {
 			result.close();
 			return EmptyLoadResult.INSTANCE;
 		}
-		return DexInputPlugin.loadDexFiles(result.getConverted(), result);
+		return dexInput.loadFiles(result.getConverted(), result);
 	}
 }

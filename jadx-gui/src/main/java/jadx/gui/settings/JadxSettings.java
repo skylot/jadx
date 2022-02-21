@@ -582,6 +582,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.lineNumbersMode = lineNumbersMode;
 	}
 
+	public void setPluginOptions(Map<String, String> pluginOptions) {
+		this.pluginOptions = pluginOptions;
+	}
+
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {

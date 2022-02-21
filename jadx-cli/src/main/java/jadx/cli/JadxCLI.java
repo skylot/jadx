@@ -7,6 +7,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
+import jadx.cli.LogHelper.LogLevelEnum;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 
@@ -21,7 +22,7 @@ public class JadxCLI {
 			LOG.error("Incorrect arguments: {}", e.getMessage());
 			result = 1;
 		} catch (Exception e) {
-			LOG.error("jadx error: {}", e.getMessage(), e);
+			LOG.error("Process error:", e);
 			result = 1;
 		} finally {
 			FileUtils.deleteTempRootDir();
@@ -38,11 +39,16 @@ public class JadxCLI {
 	}
 
 	private static int processAndSave(JadxCLIArgs cliArgs) {
+		setLogLevelsForLoadingStage(cliArgs);
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
+			if (checkForErrors(jadx)) {
+				return 1;
+			}
+			LogHelper.setLogLevelFromArgs(cliArgs);
 			if (!SingleClassMode.process(jadx, cliArgs)) {
 				save(jadx);
 			}
@@ -57,8 +63,34 @@ public class JadxCLI {
 		return 0;
 	}
 
+	private static void setLogLevelsForLoadingStage(JadxCLIArgs cliArgs) {
+		switch (cliArgs.getLogLevel()) {
+			case QUIET:
+				LogHelper.setLogLevelFromArgs(cliArgs);
+				break;
+
+			case PROGRESS:
+				// show load errors
+				LogHelper.applyLogLevel(LogLevelEnum.ERROR);
+				break;
+		}
+	}
+
+	private static boolean checkForErrors(JadxDecompiler jadx) {
+		if (jadx.getRoot().getClasses().isEmpty()) {
+			LOG.error("Load failed! No classes for decompile!");
+			return true;
+		}
+		if (jadx.getErrorsCount() > 0) {
+			LOG.error("Load with errors! Check log for details");
+			// continue processing
+			return false;
+		}
+		return false;
+	}
+
 	private static void save(JadxDecompiler jadx) {
-		if (LogHelper.getLogLevel() == LogHelper.LogLevelEnum.QUIET) {
+		if (LogHelper.getLogLevel() == LogLevelEnum.QUIET) {
 			jadx.save();
 		} else {
 			jadx.save(500, (done, total) -> {

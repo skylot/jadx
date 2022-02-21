@@ -2,12 +2,15 @@ package jadx.cli;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
@@ -177,6 +180,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
+	@DynamicParameter(names = "-P", description = "Plugin options", hidden = true)
+	protected Map<String, String> pluginOptions = new HashMap<>();
+
 	public boolean processArgs(String[] args) {
 		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(this);
 		return jcw.parse(args) && process(jcw);
@@ -212,7 +218,6 @@ public class JadxCLIArgs {
 			if (threadsCount <= 0) {
 				throw new JadxException("Threads count must be positive, got: " + threadsCount);
 			}
-			LogHelper.setLogLevelFromArgs(this);
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());
 			jcw.printUsage();
@@ -260,6 +265,7 @@ public class JadxCLIArgs {
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
 		args.setUseDxInput(useDx);
+		args.setPluginOptions(pluginOptions);
 		return args;
 	}
 
@@ -409,6 +415,14 @@ public class JadxCLIArgs {
 
 	public CommentsLevel getCommentsLevel() {
 		return commentsLevel;
+	}
+
+	public LogHelper.LogLevelEnum getLogLevel() {
+		return logLevel;
+	}
+
+	public Map<String, String> getPluginOptions() {
+		return pluginOptions;
 	}
 
 	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {

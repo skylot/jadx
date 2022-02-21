@@ -123,11 +123,17 @@ options:
   -q, --quiet                         - turn off output (set --log-level to QUIET)
   --version                           - print jadx version
   -h, --help                          - print this help
+
+Plugin options (-P<name>=<value>):
+  1) dex-input (Load .dex and .apk files)
+    -Pdex-input.verify-checksum       - Verify dex file checksum before load, values: [yes, no], default: yes
+
 Examples:
   jadx -d out classes.dex
   jadx --rename-flags "none" classes.dex
   jadx --rename-flags "valid, printable" classes.dex
   jadx --log-level ERROR app.apk
+  jadx -Pdex-input.verify-checksum=no app.apk
 ```
 These options also worked on jadx-gui running from command line and override options from preferences dialog
 

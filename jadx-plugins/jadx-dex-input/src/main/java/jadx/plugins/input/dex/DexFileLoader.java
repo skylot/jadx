@@ -23,19 +23,27 @@ import jadx.plugins.input.dex.utils.DexCheckSum;
 public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
 
+	// sharing between all instances (can be used in other plugins) // TODO:
 	private static int dexUniqId = 1;
 
-	public static List<DexReader> collectDexFiles(List<Path> pathsList) {
+	private final DexInputOptions options;
+
+	public DexFileLoader(DexInputOptions options) {
+		this.options = options;
+		resetDexUniqId();
+	}
+
+	public List<DexReader> collectDexFiles(List<Path> pathsList) {
 		return pathsList.stream()
 				.map(Path::toFile)
-				.map(DexFileLoader::loadDexFromFile)
+				.map(this::loadDexFromFile)
 				.filter(list -> !list.isEmpty())
 				.flatMap(Collection::stream)
 				.peek(dr -> LOG.debug("Loading dex: {}", dr))
 				.collect(Collectors.toList());
 	}
 
-	private static List<DexReader> loadDexFromFile(File file) {
+	private List<DexReader> loadDexFromFile(File file) {
 		try (InputStream inputStream = new FileInputStream(file)) {
 			return checkFileMagic(file, inputStream, file.getAbsolutePath());
 		} catch (Exception e) {
@@ -44,7 +52,7 @@ public class DexFileLoader {
 		}
 	}
 
-	private static List<DexReader> checkFileMagic(File file, InputStream inputStream, String inputFileName) throws IOException {
+	private List<DexReader> checkFileMagic(File file, InputStream inputStream, String inputFileName) throws IOException {
 		try (InputStream in = inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream)) {
 			byte[] magic = new byte[DexConsts.MAX_MAGIC_SIZE];
 			in.mark(magic.length);
@@ -54,7 +62,9 @@ public class DexFileLoader {
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
 				in.reset();
 				byte[] content = readAllBytes(in);
-				DexCheckSum.verify(content);
+				if (options.isVerifyChecksum()) {
+					DexCheckSum.verify(content);
+				}
 				DexReader dexReader = new DexReader(getNextUniqId(), inputFileName, content);
 				return Collections.singletonList(dexReader);
 			}
@@ -65,7 +75,7 @@ public class DexFileLoader {
 		}
 	}
 
-	private static List<DexReader> collectDexFromZip(File file) {
+	private List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
 		try {
 			ZipSecurity.readZipEntries(file, (entry, in) -> {
@@ -107,15 +117,15 @@ public class DexFileLoader {
 		return buf.toByteArray();
 	}
 
-	private static int getNextUniqId() {
+	private static synchronized int getNextUniqId() {
 		dexUniqId++;
 		if (dexUniqId >= 0xFFFF) {
-			resetDexUniqId();
+			dexUniqId = 1;
 		}
 		return dexUniqId;
 	}
 
-	public static void resetDexUniqId() {
+	private static synchronized void resetDexUniqId() {
 		dexUniqId = 1;
 	}
 }

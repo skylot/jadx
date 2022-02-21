@@ -17,6 +17,11 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameterized;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.JadxPluginManager;
+import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.OptionDescription;
 
 public class JCommanderWrapper<T> {
 	private final JCommander jc;
@@ -70,24 +75,25 @@ public class JCommanderWrapper<T> {
 				maxNamesLen = len;
 			}
 		}
+		maxNamesLen += 3;
 
 		JadxCLIArgs args = (JadxCLIArgs) jc.getObjects().get(0);
 		for (Field f : getFields(args.getClass())) {
 			String name = f.getName();
 			ParameterDescription p = paramsMap.get(name);
-			if (p == null) {
+			if (p == null || p.getParameter().hidden()) {
 				continue;
 			}
 			StringBuilder opt = new StringBuilder();
 			opt.append("  ").append(p.getNames());
 			String description = p.getDescription();
-			addSpaces(opt, maxNamesLen - opt.length() + 3);
+			addSpaces(opt, maxNamesLen - opt.length());
 			if (description.contains("\n")) {
 				String[] lines = description.split("\n");
 				opt.append("- ").append(lines[0]);
 				for (int i = 1; i < lines.length; i++) {
 					opt.append('\n');
-					addSpaces(opt, maxNamesLen + 5);
+					addSpaces(opt, maxNamesLen + 2);
 					opt.append(lines[i]);
 				}
 			} else {
@@ -99,11 +105,14 @@ public class JCommanderWrapper<T> {
 			}
 			out.println(opt);
 		}
+		out.println(appendPluginOptions(maxNamesLen));
+		out.println();
 		out.println("Examples:");
 		out.println("  jadx -d out classes.dex");
 		out.println("  jadx --rename-flags \"none\" classes.dex");
 		out.println("  jadx --rename-flags \"valid, printable\" classes.dex");
 		out.println("  jadx --log-level ERROR app.apk");
+		out.println("  jadx -Pdex-input.verify-checksum=no app.apk");
 	}
 
 	/**
@@ -144,5 +153,47 @@ public class JCommanderWrapper<T> {
 		for (int i = 0; i < count; i++) {
 			str.append(' ');
 		}
+	}
+
+	private String appendPluginOptions(int maxNamesLen) {
+		StringBuilder sb = new StringBuilder();
+		JadxPluginManager pluginManager = new JadxPluginManager();
+		pluginManager.load();
+		int k = 1;
+		for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
+			if (plugin instanceof JadxPluginOptions) {
+				if (appendPlugin(((JadxPluginOptions) plugin), sb, maxNamesLen, k)) {
+					k++;
+				}
+			}
+		}
+		if (sb.length() == 0) {
+			return "";
+		}
+		return "\nPlugin options (-P<name>=<value>):" + sb;
+	}
+
+	private boolean appendPlugin(JadxPluginOptions plugin, StringBuilder out, int maxNamesLen, int k) {
+		List<OptionDescription> descs = plugin.getOptionsDescriptions();
+		if (descs.isEmpty()) {
+			return false;
+		}
+		JadxPluginInfo pluginInfo = plugin.getPluginInfo();
+		out.append("\n  ").append(k).append(") ");
+		out.append(pluginInfo.getPluginId()).append(" (").append(pluginInfo.getDescription()).append(") ");
+		for (OptionDescription desc : descs) {
+			StringBuilder opt = new StringBuilder();
+			opt.append("    -P").append(desc.name());
+			addSpaces(opt, maxNamesLen - opt.length());
+			opt.append("- ").append(desc.description());
+			if (!desc.values().isEmpty()) {
+				opt.append(", values: ").append(desc.values());
+			}
+			if (desc.defaultValue() != null) {
+				opt.append(", default: ").append(desc.defaultValue());
+			}
+			out.append("\n").append(opt);
+		}
+		return true;
 	}
 }

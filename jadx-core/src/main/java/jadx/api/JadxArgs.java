@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -99,6 +101,8 @@ public class JadxArgs {
 	 * Don't save files (can be using for performance testing)
 	 */
 	private boolean skipFilesSave = false;
+
+	private Map<String, String> pluginOptions = new HashMap<>();
 
 	public JadxArgs() {
 		// use default options
@@ -474,6 +478,14 @@ public class JadxArgs {
 		this.skipFilesSave = skipFilesSave;
 	}
 
+	public Map<String, String> getPluginOptions() {
+		return pluginOptions;
+	}
+
+	public void setPluginOptions(Map<String, String> pluginOptions) {
+		this.pluginOptions = pluginOptions;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -507,6 +519,7 @@ public class JadxArgs {
 				+ ", codeCache=" + codeCache
 				+ ", codeWriter=" + codeWriterProvider.apply(this).getClass().getSimpleName()
 				+ ", useDxInput=" + useDxInput
+				+ ", pluginOptions=" + pluginOptions
 				+ '}';
 	}
 }

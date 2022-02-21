@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.JadxInputPlugin;
+import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.OptionDescription;
 
 public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
@@ -56,7 +58,32 @@ public class JadxPluginManager {
 		if (!allPlugins.add(pluginData)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginData + ", class " + plugin.getClass());
 		}
+		if (plugin instanceof JadxPluginOptions) {
+			verifyOptions(((JadxPluginOptions) plugin), pluginData.getPluginId());
+		}
 		return pluginData;
+	}
+
+	private void verifyOptions(JadxPluginOptions plugin, String pluginId) {
+		List<OptionDescription> descriptions = plugin.getOptionsDescriptions();
+		if (descriptions == null) {
+			throw new IllegalArgumentException("Null option descriptions in plugin id: " + pluginId);
+		}
+		String prefix = pluginId + '.';
+		descriptions.forEach(descObj -> {
+			String optName = descObj.name();
+			if (optName == null || !optName.startsWith(prefix)) {
+				throw new IllegalArgumentException("Plugin option name should start with plugin id: '" + prefix + "', option: " + optName);
+			}
+			String desc = descObj.description();
+			if (desc == null || desc.isEmpty()) {
+				throw new IllegalArgumentException("Plugin option description not set, plugin: " + pluginId);
+			}
+			List<String> values = descObj.values();
+			if (values == null) {
+				throw new IllegalArgumentException("Plugin option values is null, option: " + optName + ", plugin: " + pluginId);
+			}
+		});
 	}
 
 	public boolean unload(String pluginId) {
@@ -84,6 +111,13 @@ public class JadxPluginManager {
 		return resolvedPlugins.stream()
 				.filter(JadxInputPlugin.class::isInstance)
 				.map(JadxInputPlugin.class::cast)
+				.collect(Collectors.toList());
+	}
+
+	public List<JadxPluginOptions> getPluginsWithOptions() {
+		return resolvedPlugins.stream()
+				.filter(JadxPluginOptions.class::isInstance)
+				.map(JadxPluginOptions.class::cast)
 				.collect(Collectors.toList());
 	}
 

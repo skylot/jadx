@@ -62,6 +62,11 @@ import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.JadxPluginManager;
+import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.OptionDescription;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -69,6 +74,7 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -117,8 +123,11 @@ public class JadxSettingsWindow extends JDialog {
 		leftPanel.add(makeAppearanceGroup());
 		leftPanel.add(makeOtherGroup());
 		leftPanel.add(makeSearchResGroup());
+		leftPanel.add(makePluginOptionsGroup());
+		leftPanel.add(Box.createVerticalGlue());
 
 		rightPanel.add(makeDecompilationGroup());
+		rightPanel.add(Box.createVerticalGlue());
 
 		JButton saveBtn = new JButton(NLS.str("preferences.save"));
 		saveBtn.addActionListener(event -> {
@@ -548,6 +557,39 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useKotlinMethodsForVarNames"), kotlinRenameVars);
 		other.addRow(NLS.str("preferences.commentsLevel"), commentsLevel);
 		return other;
+	}
+
+	private SettingsGroup makePluginOptionsGroup() {
+		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
+		JadxPluginManager pluginManager = mainWindow.getWrapper().getDecompiler().getPluginManager();
+		for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
+			if (!(plugin instanceof JadxPluginOptions)) {
+				continue;
+			}
+			JadxPluginInfo pluginInfo = plugin.getPluginInfo();
+			JadxPluginOptions optPlugin = (JadxPluginOptions) plugin;
+			for (OptionDescription opt : optPlugin.getOptionsDescriptions()) {
+				String title = "[" + pluginInfo.getPluginId() + "]  " + opt.description();
+				if (opt.values().isEmpty()) {
+					JTextField textField = new JTextField();
+					textField.getDocument().addDocumentListener(new DocumentUpdateListener(event -> {
+						settings.getPluginOptions().put(opt.name(), textField.getText());
+						needReload();
+					}));
+					pluginsGroup.addRow(title, textField);
+				} else {
+					String curValue = settings.getPluginOptions().get(opt.name());
+					JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
+					combo.setSelectedItem(curValue != null ? curValue : opt.defaultValue());
+					combo.addActionListener(e -> {
+						settings.getPluginOptions().put(opt.name(), ((String) combo.getSelectedItem()));
+						needReload();
+					});
+					pluginsGroup.addRow(title, combo);
+				}
+			}
+		}
+		return pluginsGroup;
 	}
 
 	private SettingsGroup makeOtherGroup() {
