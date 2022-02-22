@@ -12,12 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
-import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -38,31 +36,19 @@ public class DeobfPresets {
 	private final Map<String, String> fldPresetMap = new HashMap<>();
 	private final Map<String, String> mthPresetMap = new HashMap<>();
 
-	@Nullable
 	public static DeobfPresets build(RootNode root) {
 		Path deobfMapPath = getPathDeobfMapPath(root);
-		if (deobfMapPath == null) {
-			return null;
-		}
 		LOG.debug("Deobfuscation map file set to: {}", deobfMapPath);
 		return new DeobfPresets(deobfMapPath);
 	}
 
-	@Nullable
 	private static Path getPathDeobfMapPath(RootNode root) {
 		JadxArgs jadxArgs = root.getArgs();
-		if (jadxArgs.getDeobfuscationMapFileMode() == DeobfuscationMapFileMode.IGNORE) {
-			return null;
-		}
 		File deobfMapFile = jadxArgs.getDeobfuscationMapFile();
 		if (deobfMapFile != null) {
 			return deobfMapFile.toPath();
 		}
-		List<File> inputFiles = jadxArgs.getInputFiles();
-		if (inputFiles.isEmpty()) {
-			return null;
-		}
-		Path inputFilePath = inputFiles.get(0).toPath().toAbsolutePath();
+		Path inputFilePath = jadxArgs.getInputFiles().get(0).toPath().toAbsolutePath();
 		String baseName = FileUtils.getPathBaseName(inputFilePath);
 		return inputFilePath.getParent().resolve(baseName + ".jobf");
 	}
