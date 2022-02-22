@@ -26,11 +26,12 @@ public class JadxWrapper {
 
 	private final JadxSettings settings;
 	private JadxDecompiler decompiler;
-	private JadxProject project;
+	private @Nullable JadxProject project;
 	private List<Path> openPaths = Collections.emptyList();
 
 	public JadxWrapper(JadxSettings settings) {
 		this.settings = settings;
+		this.decompiler = new JadxDecompiler(settings.toJadxArgs());
 	}
 
 	public void openFile(List<Path> paths) {
@@ -39,8 +40,9 @@ public class JadxWrapper {
 		try {
 			JadxArgs jadxArgs = settings.toJadxArgs();
 			jadxArgs.setInputFiles(toFiles(paths));
-			jadxArgs.setCodeData(project.getCodeData());
-
+			if (project != null) {
+				jadxArgs.setCodeData(project.getCodeData());
+			}
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
 		} catch (Exception e) {
@@ -50,12 +52,10 @@ public class JadxWrapper {
 	}
 
 	public void close() {
-		if (decompiler != null) {
-			try {
-				decompiler.close();
-			} catch (Exception e) {
-				LOG.error("jadx decompiler close error", e);
-			}
+		try {
+			decompiler.close();
+		} catch (Exception e) {
+			LOG.error("jadx decompiler close error", e);
 		}
 		this.openPaths = Collections.emptyList();
 	}
