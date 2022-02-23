@@ -5,12 +5,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 public class RelativePathTypeAdapter extends TypeAdapter<Path> {
+
+	private static final Logger LOG = LoggerFactory.getLogger(RelativePathTypeAdapter.class);
+
 	private final Path basePath;
 
 	public RelativePathTypeAdapter(Path basePath) {
@@ -23,8 +29,14 @@ public class RelativePathTypeAdapter extends TypeAdapter<Path> {
 			out.nullValue();
 		} else {
 			value = value.toAbsolutePath().normalize();
-			String relativePath = basePath.relativize(value).toString();
-			out.value(relativePath);
+			Path resultPath;
+			try {
+				resultPath = basePath.relativize(value);
+			} catch (IllegalArgumentException e) {
+				LOG.warn("Unable to build a relative path to {} - using absolute path", value);
+				resultPath = value;
+			}
+			out.value(resultPath.toString());
 		}
 	}
 
