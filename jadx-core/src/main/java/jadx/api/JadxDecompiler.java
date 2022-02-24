@@ -123,13 +123,16 @@ public final class JadxDecompiler implements Closeable {
 		loadedInputs.clear();
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
+		long start = System.currentTimeMillis();
 		for (JadxInputPlugin inputPlugin : pluginManager.getInputPlugins()) {
 			ILoadResult loadResult = inputPlugin.loadFiles(inputFiles);
 			if (loadResult != null && !loadResult.isEmpty()) {
 				loadedInputs.add(loadResult);
 			}
 		}
-		LOG.debug("Loaded using {} inputs plugin", loadedInputs.size());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Loaded using {} inputs plugin in {} ms", loadedInputs.size(), System.currentTimeMillis() - start);
+		}
 	}
 
 	private void reset() {

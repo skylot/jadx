@@ -53,6 +53,7 @@ public class JavaConvertLoader {
 			return;
 		}
 		try {
+			LOG.debug("Converting class files ...");
 			Path jarFile = Files.createTempFile("jadx-", ".jar");
 			try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(jarFile))) {
 				for (Path file : clsFiles) {
@@ -64,7 +65,7 @@ public class JavaConvertLoader {
 				}
 			}
 			result.addTempPath(jarFile);
-			LOG.debug("Packed class files {} into jar {}", clsFiles, jarFile);
+			LOG.debug("Packed class files {} into jar {}", clsFiles.size(), jarFile);
 			convertJar(result, jarFile);
 		} catch (Exception e) {
 			LOG.error("Error process class files", e);
@@ -120,7 +121,7 @@ public class JavaConvertLoader {
 		if (!Objects.equals(repackNeeded, Boolean.TRUE)) {
 			return false;
 		}
-
+		LOG.debug("Repacking jar file: {} ...", path.toAbsolutePath());
 		Path jarFile = Files.createTempFile("jadx-classes-", ".jar");
 		result.addTempPath(jarFile);
 		try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(jarFile))) {
@@ -130,6 +131,7 @@ public class JavaConvertLoader {
 					if (entryName.endsWith(".class")) {
 						if (entryName.endsWith("module-info.class")
 								|| entryName.startsWith("META-INF/versions/")) {
+							LOG.debug(" exclude: {}", entryName);
 							return;
 						}
 						byte[] clsFileContent = CommonFileUtils.loadBytes(in);
@@ -155,7 +157,7 @@ public class JavaConvertLoader {
 	private static void convertSimpleJar(ConvertResult result, Path path) throws Exception {
 		Path tempDirectory = Files.createTempDirectory("jadx-");
 		result.addTempPath(tempDirectory);
-
+		LOG.debug("Converting to dex ...");
 		try {
 			DxConverter.run(path, tempDirectory);
 		} catch (Throwable e) {
@@ -166,9 +168,9 @@ public class JavaConvertLoader {
 				LOG.error("D8 convert failed: {}", ex.getMessage());
 			}
 		}
-
-		LOG.debug("Converted to dex: {}", path.toAbsolutePath());
-		result.addConvertedFiles(collectFilesInDir(tempDirectory));
+		List<Path> dexFiles = collectFilesInDir(tempDirectory);
+		LOG.debug("Converted {} to dex files: {}", path.toAbsolutePath(), dexFiles.size());
+		result.addConvertedFiles(dexFiles);
 	}
 
 	private static List<Path> collectFilesInDir(Path tempDirectory) throws IOException {
