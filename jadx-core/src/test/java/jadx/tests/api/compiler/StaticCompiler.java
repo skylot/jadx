@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -23,15 +25,15 @@ import jadx.core.utils.files.FileUtils;
 
 public class StaticCompiler {
 
-	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo,
-			boolean useEclipseCompiler, int javaVersion) throws IOException {
+	public static List<File> compile(List<File> files, File outDir, CompilerOptions options) throws IOException {
+		int javaVersion = options.getJavaVersion();
 		if (!JavaUtils.checkJavaVersion(javaVersion)) {
 			throw new IllegalArgumentException("Current java version not meet requirement: "
 					+ "current: " + JavaUtils.JAVA_VERSION_INT + ", required: " + javaVersion);
 		}
 
 		JavaCompiler compiler;
-		if (useEclipseCompiler) {
+		if (options.isUseEclipseCompiler()) {
 			compiler = new EclipseCompiler();
 		} else {
 			compiler = ToolProvider.getSystemJavaCompiler();
@@ -44,15 +46,22 @@ public class StaticCompiler {
 
 		StaticFileManager staticFileManager = new StaticFileManager(fileManager, outDir);
 
-		List<String> options = new ArrayList<>();
-		options.add(includeDebugInfo ? "-g" : "-g:none");
+		List<String> arguments = new ArrayList<>();
+		arguments.add(options.isIncludeDebugInfo() ? "-g" : "-g:none");
 		String javaVerStr = javaVersion <= 8 ? "1." + javaVersion : Integer.toString(javaVersion);
-		options.add("-source");
-		options.add(javaVerStr);
-		options.add("-target");
-		options.add(javaVerStr);
+		arguments.add("-source");
+		arguments.add(javaVerStr);
+		arguments.add("-target");
+		arguments.add(javaVerStr);
+		arguments.addAll(options.getArguments());
 
-		CompilationTask task = compiler.getTask(null, staticFileManager, null, options, null, compilationUnits);
+		DiagnosticListener<? super JavaFileObject> diag = new DiagnosticListener<JavaFileObject>() {
+			@Override
+			public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+				System.out.println(diagnostic);
+			}
+		};
+		CompilationTask task = compiler.getTask(null, staticFileManager, diag, arguments, null, compilationUnits);
 		Boolean result = task.call();
 		fileManager.close();
 		if (Boolean.TRUE.equals(result)) {

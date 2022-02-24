@@ -31,7 +31,7 @@ public class DynamicCompiler {
 		this.clsNodeList = clsNodeList;
 	}
 
-	public boolean compile() {
+	public boolean compile(CompilerOptions compilerOptions) {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null) {
 			LOG.error("Can not find compiler, please use JDK instead");
@@ -44,7 +44,7 @@ public class DynamicCompiler {
 			jFiles.add(new CharSequenceJavaFileObject(clsNode.getFullName(), clsNode.getCode().toString()));
 		}
 
-		CompilationTask compilerTask = compiler.getTask(null, fileManager, null, null, null, jFiles);
+		CompilationTask compilerTask = compiler.getTask(null, fileManager, null, compilerOptions.getArguments(), null, jFiles);
 		return Boolean.TRUE.equals(compilerTask.call());
 	}
 

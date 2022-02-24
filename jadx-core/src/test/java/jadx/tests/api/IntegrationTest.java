@@ -48,6 +48,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.tests.api.compiler.CompilerOptions;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.JavaUtils;
 import jadx.tests.api.compiler.StaticCompiler;
@@ -93,9 +94,7 @@ public abstract class IntegrationTest extends TestUtils {
 	protected JadxArgs args;
 
 	protected boolean compile;
-	protected boolean withDebugInfo;
-	protected boolean useEclipseCompiler;
-	private int targetJavaVersion = 8;
+	private CompilerOptions compilerOptions;
 
 	private boolean saveTestJar = false;
 
@@ -118,9 +117,8 @@ public abstract class IntegrationTest extends TestUtils {
 
 	@BeforeEach
 	public void init() {
-		this.withDebugInfo = true;
 		this.compile = true;
-		this.useEclipseCompiler = false;
+		this.compilerOptions = new CompilerOptions();
 		this.resMap = Collections.emptyMap();
 
 		args = new JadxArgs();
@@ -424,7 +422,7 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		try {
 			dynamicCompiler = new DynamicCompiler(clsList);
-			boolean result = dynamicCompiler.compile();
+			boolean result = dynamicCompiler.compile(compilerOptions);
 			assertTrue(result, "Compilation failed");
 			System.out.println("Compilation: PASSED");
 		} catch (Exception e) {
@@ -459,7 +457,7 @@ public abstract class IntegrationTest extends TestUtils {
 		List<File> compileFileList = Collections.singletonList(file);
 
 		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
-		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), withDebugInfo, useEclipseCompiler, targetJavaVersion);
+		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), compilerOptions);
 		files.forEach(File::deleteOnExit);
 		if (saveTestJar) {
 			saveToJar(files, outTmp);
@@ -489,6 +487,10 @@ public abstract class IntegrationTest extends TestUtils {
 		return args;
 	}
 
+	public CompilerOptions getCompilerOptions() {
+		return compilerOptions;
+	}
+
 	public void setArgs(JadxArgs args) {
 		this.args = args;
 	}
@@ -498,16 +500,16 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void noDebugInfo() {
-		this.withDebugInfo = false;
+		this.compilerOptions.setIncludeDebugInfo(false);
 	}
 
 	protected void useEclipseCompiler() {
-		this.useEclipseCompiler = true;
+		this.compilerOptions.setUseEclipseCompiler(true);
 	}
 
 	public void useTargetJavaVersion(int version) {
 		Assumptions.assumeTrue(JavaUtils.checkJavaVersion(version), "skip test for higher java version");
-		this.targetJavaVersion = version;
+		this.compilerOptions.setJavaVersion(version);
 	}
 
 	protected void setFallback() {
