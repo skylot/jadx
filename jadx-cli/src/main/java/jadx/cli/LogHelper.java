@@ -1,5 +1,6 @@
 package jadx.cli;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
@@ -32,34 +33,61 @@ public class LogHelper {
 		}
 	}
 
+	@Nullable("For disable log level control")
 	private static LogLevelEnum logLevelValue;
 
-	public static void setLogLevelFromArgs(JadxCLIArgs args) {
-		if (isCustomLogConfig()) {
-			return;
-		}
-		LogLevelEnum logLevel = args.logLevel;
-		if (args.quiet) {
-			logLevel = LogLevelEnum.QUIET;
-		} else if (args.verbose) {
-			logLevel = LogLevelEnum.DEBUG;
-		}
-
-		applyLogLevel(logLevel);
+	public static void initLogLevel(JadxCLIArgs args) {
+		logLevelValue = getLogLevelFromArgs(args);
 	}
 
-	public static void applyLogLevel(LogLevelEnum logLevel) {
-		logLevelValue = logLevel;
+	private static LogLevelEnum getLogLevelFromArgs(JadxCLIArgs args) {
+		if (isCustomLogConfig()) {
+			return null;
+		}
+		if (args.quiet) {
+			return LogLevelEnum.QUIET;
+		}
+		if (args.verbose) {
+			return LogLevelEnum.DEBUG;
+		}
+		return args.logLevel;
+	}
 
+	public static void setLogLevelsForLoadingStage() {
+		if (logLevelValue == null) {
+			return;
+		}
+		if (logLevelValue == LogLevelEnum.PROGRESS) {
+			// show load errors
+			LogHelper.applyLogLevel(LogLevelEnum.ERROR);
+			fixForShowProgress();
+			return;
+		}
+		applyLogLevel(logLevelValue);
+	}
+
+	public static void setLogLevelsForDecompileStage() {
+		if (logLevelValue == null) {
+			return;
+		}
+		applyLogLevel(logLevelValue);
+		if (logLevelValue == LogLevelEnum.PROGRESS) {
+			fixForShowProgress();
+		}
+	}
+
+	/**
+	 * Show progress: change to 'INFO' for control classes
+	 */
+	private static void fixForShowProgress() {
+		setLevelForClass(JadxCLI.class, Level.INFO);
+		setLevelForClass(JadxDecompiler.class, Level.INFO);
+		setLevelForClass(SingleClassMode.class, Level.INFO);
+	}
+
+	private static void applyLogLevel(@NotNull LogLevelEnum logLevel) {
 		Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		rootLogger.setLevel(logLevel.getLevel());
-
-		if (logLevel == LogLevelEnum.PROGRESS) {
-			// show progress for all levels except quiet
-			setLevelForClass(JadxCLI.class, Level.INFO);
-			setLevelForClass(JadxDecompiler.class, Level.INFO);
-			setLevelForClass(SingleClassMode.class, Level.INFO);
-		}
 	}
 
 	@Nullable

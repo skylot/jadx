@@ -39,7 +39,8 @@ public class JadxCLI {
 	}
 
 	private static int processAndSave(JadxCLIArgs cliArgs) {
-		setLogLevelsForLoadingStage(cliArgs);
+		LogHelper.initLogLevel(cliArgs);
+		LogHelper.setLogLevelsForLoadingStage();
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
@@ -48,7 +49,7 @@ public class JadxCLI {
 			if (checkForErrors(jadx)) {
 				return 1;
 			}
-			LogHelper.setLogLevelFromArgs(cliArgs);
+			LogHelper.setLogLevelsForDecompileStage();
 			if (!SingleClassMode.process(jadx, cliArgs)) {
 				save(jadx);
 			}
@@ -61,19 +62,6 @@ public class JadxCLI {
 			}
 		}
 		return 0;
-	}
-
-	private static void setLogLevelsForLoadingStage(JadxCLIArgs cliArgs) {
-		switch (cliArgs.getLogLevel()) {
-			case QUIET:
-				LogHelper.setLogLevelFromArgs(cliArgs);
-				break;
-
-			case PROGRESS:
-				// show load errors
-				LogHelper.applyLogLevel(LogLevelEnum.ERROR);
-				break;
-		}
 	}
 
 	private static boolean checkForErrors(JadxDecompiler jadx) {
@@ -97,6 +85,8 @@ public class JadxCLI {
 				int progress = (int) (done * 100.0 / total);
 				System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);
 			});
+			// dumb line clear :)
+			System.out.print("                                                             \r");
 		}
 	}
 }
