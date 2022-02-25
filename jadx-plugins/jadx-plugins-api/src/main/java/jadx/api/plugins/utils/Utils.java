@@ -1,8 +1,10 @@
 package jadx.api.plugins.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -86,5 +88,10 @@ public class Utils {
 
 	public static String formatOffset(int offset) {
 		return String.format("0x%04x", offset);
+	}
+
+	@SafeVarargs
+	public static <T> Set<T> constSet(T... arr) {
+		return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(arr)));
 	}
 }

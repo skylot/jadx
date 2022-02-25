@@ -13,9 +13,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
 import jadx.plugins.input.dex.utils.DexCheckSum;
@@ -45,31 +47,34 @@ public class DexFileLoader {
 
 	private List<DexReader> loadDexFromFile(File file) {
 		try (InputStream inputStream = new FileInputStream(file)) {
-			return checkFileMagic(file, inputStream, file.getAbsolutePath());
+			return load(file, inputStream, file.getAbsolutePath());
 		} catch (Exception e) {
 			LOG.error("File open error: {}", file.getAbsolutePath(), e);
 			return Collections.emptyList();
 		}
 	}
 
-	private List<DexReader> checkFileMagic(File file, InputStream inputStream, String inputFileName) throws IOException {
+	private List<DexReader> load(@Nullable File file, InputStream inputStream, String fileName) throws IOException {
 		try (InputStream in = inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream)) {
 			byte[] magic = new byte[DexConsts.MAX_MAGIC_SIZE];
 			in.mark(magic.length);
 			if (in.read(magic) != magic.length) {
 				return Collections.emptyList();
 			}
-			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
+			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC) || fileName.endsWith(".dex")) {
 				in.reset();
 				byte[] content = readAllBytes(in);
 				if (options.isVerifyChecksum()) {
 					DexCheckSum.verify(content);
 				}
-				DexReader dexReader = new DexReader(getNextUniqId(), inputFileName, content);
+				DexReader dexReader = new DexReader(getNextUniqId(), fileName, content);
 				return Collections.singletonList(dexReader);
 			}
-			if (file != null && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
-				return collectDexFromZip(file);
+			if (file != null) {
+				// allow only top level zip files
+				if (isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC) || CommonFileUtils.isZipFileExt(fileName)) {
+					return collectDexFromZip(file);
+				}
 			}
 			return Collections.emptyList();
 		}
@@ -80,7 +85,7 @@ public class DexFileLoader {
 		try {
 			ZipSecurity.readZipEntries(file, (entry, in) -> {
 				try {
-					result.addAll(checkFileMagic(null, in, entry.getName()));
+					result.addAll(load(null, in, entry.getName()));
 				} catch (Exception e) {
 					LOG.error("Failed to read zip entry: {}", entry, e);
 				}

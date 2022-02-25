@@ -52,18 +52,20 @@ public class JavaFileLoader {
 		if (in.read(magic) != magic.length) {
 			return Collections.emptyList();
 		}
-		if (isStartWithBytes(magic, JAVA_CLASS_FILE_MAGIC)) {
+		if (isStartWithBytes(magic, JAVA_CLASS_FILE_MAGIC) || name.endsWith(".class")) {
 			byte[] data = CommonFileUtils.loadBytes(magic, in);
 			String source = concatSource(parentFileName, name);
 			JavaClassReader reader = new JavaClassReader(getNextUniqId(), source, data);
 			return Collections.singletonList(reader);
 		}
-		if (isStartWithBytes(magic, ZIP_FILE_MAGIC)) {
+		if (isStartWithBytes(magic, ZIP_FILE_MAGIC) || CommonFileUtils.isZipFileExt(name)) {
 			if (file != null) {
 				return collectFromZip(file, name);
 			}
 			File zipFile = CommonFileUtils.saveToTempFile(magic, in, ".zip").toFile();
-			return collectFromZip(zipFile, concatSource(parentFileName, name));
+			List<JavaClassReader> readers = collectFromZip(zipFile, concatSource(parentFileName, name));
+			CommonFileUtils.safeDeleteFile(zipFile);
+			return readers;
 		}
 		return Collections.emptyList();
 	}

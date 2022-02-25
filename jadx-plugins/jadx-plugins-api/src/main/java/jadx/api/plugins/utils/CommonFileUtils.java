@@ -7,9 +7,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommonFileUtils {
 
+	private static final Logger LOG = LoggerFactory.getLogger(CommonFileUtils.class);
 	public static final File CWD = getCWD();
 	public static final Path CWD_PATH = CWD.toPath();
 
@@ -38,6 +44,15 @@ public class CommonFileUtils {
 		return tempFile;
 	}
 
+	public static boolean safeDeleteFile(File file) {
+		try {
+			return file.delete();
+		} catch (Exception e) {
+			LOG.warn("Failed to delete file: {}", file, e);
+			return false;
+		}
+	}
+
 	public static byte[] loadBytes(InputStream input) throws IOException {
 		return loadBytes(null, input);
 	}
@@ -56,7 +71,7 @@ public class CommonFileUtils {
 	}
 
 	public static void copyStream(InputStream input, OutputStream output) throws IOException {
-		byte[] buffer = new byte[8 * 1024];
+		byte[] buffer = new byte[8192];
 		while (true) {
 			int count = input.read(buffer);
 			if (count == -1) {
@@ -64,5 +79,24 @@ public class CommonFileUtils {
 			}
 			output.write(buffer, 0, count);
 		}
+	}
+
+	@Nullable
+	public static String getFileExtension(String fileName) {
+		int dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex == -1) {
+			return null;
+		}
+		return fileName.substring(dotIndex + 1);
+	}
+
+	private static final Set<String> ZIP_FILE_EXTS = Utils.constSet("zip", "jar", "apk");
+
+	public static boolean isZipFileExt(String fileName) {
+		String ext = getFileExtension(fileName);
+		if (ext == null) {
+			return false;
+		}
+		return ZIP_FILE_EXTS.contains(ext);
 	}
 }
