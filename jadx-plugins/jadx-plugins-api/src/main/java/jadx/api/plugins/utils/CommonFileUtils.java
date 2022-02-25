@@ -90,6 +90,14 @@ public class CommonFileUtils {
 		return fileName.substring(dotIndex + 1);
 	}
 
+	public static String removeFileExtension(String fileName) {
+		int dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex == -1) {
+			return fileName;
+		}
+		return fileName.substring(0, dotIndex);
+	}
+
 	private static final Set<String> ZIP_FILE_EXTS = Utils.constSet("zip", "jar", "apk");
 
 	public static boolean isZipFileExt(String fileName) {
