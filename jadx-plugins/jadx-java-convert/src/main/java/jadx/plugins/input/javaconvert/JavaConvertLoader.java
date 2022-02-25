@@ -65,7 +65,7 @@ public class JavaConvertLoader {
 				}
 			}
 			result.addTempPath(jarFile);
-			LOG.debug("Packed class files {} into jar {}", clsFiles.size(), jarFile);
+			LOG.debug("Packed {} class files into jar: {}", clsFiles.size(), jarFile);
 			convertJar(result, jarFile);
 		} catch (Exception e) {
 			LOG.error("Error process class files", e);
@@ -169,7 +169,7 @@ public class JavaConvertLoader {
 			}
 		}
 		List<Path> dexFiles = collectFilesInDir(tempDirectory);
-		LOG.debug("Converted {} to dex files: {}", path.toAbsolutePath(), dexFiles.size());
+		LOG.debug("Converted {} to {} dex", path.toAbsolutePath(), dexFiles.size());
 		result.addConvertedFiles(dexFiles);
 	}
 

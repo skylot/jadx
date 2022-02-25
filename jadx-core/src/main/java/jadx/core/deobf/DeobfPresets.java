@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -38,7 +39,9 @@ public class DeobfPresets {
 
 	public static DeobfPresets build(RootNode root) {
 		Path deobfMapPath = getPathDeobfMapPath(root);
-		LOG.debug("Deobfuscation map file set to: {}", deobfMapPath);
+		if (root.getArgs().getDeobfuscationMapFileMode() != DeobfuscationMapFileMode.IGNORE) {
+			LOG.debug("Deobfuscation map file set to: {}", deobfMapPath);
+		}
 		return new DeobfPresets(deobfMapPath);
 	}
 

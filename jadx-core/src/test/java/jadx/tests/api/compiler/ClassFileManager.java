@@ -1,8 +1,9 @@
 package jadx.tests.api.compiler;
 
-import java.security.SecureClassLoader;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.Closeable;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -11,19 +12,27 @@ import javax.tools.StandardJavaFileManager;
 
 import static javax.tools.JavaFileObject.Kind;
 
-public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
+public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> implements Closeable {
 
-	private DynamicClassLoader classLoader;
+	private final DynamicClassLoader classLoader;
 
 	public ClassFileManager(StandardJavaFileManager standardManager) {
 		super(standardManager);
 		classLoader = new DynamicClassLoader();
 	}
 
+	public List<JavaFileObject> getJavaFileObjectsFromFiles(List<File> sourceFiles) {
+		List<JavaFileObject> list = new ArrayList<>();
+		for (JavaFileObject javaFileObject : fileManager.getJavaFileObjectsFromFiles(sourceFiles)) {
+			list.add(javaFileObject);
+		}
+		return list;
+	}
+
 	@Override
 	public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject sibling) {
 		JavaClassObject clsObject = new JavaClassObject(className, kind);
-		classLoader.getClsMap().put(className, clsObject);
+		classLoader.add(className, clsObject);
 		return clsObject;
 	}
 
@@ -32,44 +41,7 @@ public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFile
 		return classLoader;
 	}
 
-	private class DynamicClassLoader extends SecureClassLoader {
-		private final Map<String, JavaClassObject> clsMap = new ConcurrentHashMap<>();
-		private final Map<String, Class<?>> clsCache = new ConcurrentHashMap<>();
-
-		@Override
-		protected Class<?> findClass(String name) throws ClassNotFoundException {
-			Class<?> cls = replaceClass(name);
-			if (cls != null) {
-				return cls;
-			}
-			return super.findClass(name);
-		}
-
-		public Class<?> loadClass(String name) throws ClassNotFoundException {
-			Class<?> cls = replaceClass(name);
-			if (cls != null) {
-				return cls;
-			}
-			return super.loadClass(name);
-		}
-
-		public Class<?> replaceClass(String name) throws ClassNotFoundException {
-			Class<?> cacheCls = clsCache.get(name);
-			if (cacheCls != null) {
-				return cacheCls;
-			}
-			JavaClassObject clsObject = clsMap.get(name);
-			if (clsObject == null) {
-				return null;
-			}
-			byte[] clsBytes = clsObject.getBytes();
-			Class<?> cls = super.defineClass(name, clsBytes, 0, clsBytes.length);
-			clsCache.put(name, cls);
-			return cls;
-		}
-
-		public Map<String, JavaClassObject> getClsMap() {
-			return clsMap;
-		}
+	public DynamicClassLoader getClassLoader() {
+		return classLoader;
 	}
 }

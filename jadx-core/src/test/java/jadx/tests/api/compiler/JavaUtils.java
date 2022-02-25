@@ -10,6 +10,10 @@ public class JavaUtils {
 
 	public static final int JAVA_VERSION_INT = getJavaVersionInt();
 
+	public static boolean checkJavaVersion(int requiredVersion) {
+		return JAVA_VERSION_INT >= requiredVersion;
+	}
+
 	private static int getJavaVersionInt() {
 		String javaSpecVerStr = SystemUtils.JAVA_SPECIFICATION_VERSION;
 		if (javaSpecVerStr == null) {
@@ -20,9 +24,5 @@ public class JavaUtils {
 			return Integer.parseInt(javaSpecVerStr.substring(2));
 		}
 		return Integer.parseInt(javaSpecVerStr);
-	}
-
-	public static boolean checkJavaVersion(int requiredVersion) {
-		return JAVA_VERSION_INT >= requiredVersion;
 	}
 }

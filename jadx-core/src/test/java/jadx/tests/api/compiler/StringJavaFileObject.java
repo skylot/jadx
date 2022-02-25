@@ -4,11 +4,11 @@ import java.net.URI;
 
 import javax.tools.SimpleJavaFileObject;
 
-public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
+public class StringJavaFileObject extends SimpleJavaFileObject {
 
-	private CharSequence content;
+	private final String content;
 
-	public CharSequenceJavaFileObject(String className, CharSequence content) {
+	public StringJavaFileObject(String className, String content) {
 		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
 		this.content = content;
 	}
