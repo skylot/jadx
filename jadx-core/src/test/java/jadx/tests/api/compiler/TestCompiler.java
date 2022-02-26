@@ -3,20 +3,22 @@ package jadx.tests.api.compiler;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
-import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -38,7 +40,7 @@ public class TestCompiler implements Closeable {
 					+ "current: " + JavaUtils.JAVA_VERSION_INT + ", required: " + javaVersion);
 		}
 		if (options.isUseEclipseCompiler()) {
-			compiler = new EclipseCompiler();
+			compiler = EclipseCompilerUtils.newInstance();
 		} else {
 			compiler = ToolProvider.getSystemJavaCompiler();
 			if (compiler == null) {
@@ -49,11 +51,7 @@ public class TestCompiler implements Closeable {
 	}
 
 	public List<File> compileFiles(List<File> sourceFiles, Path outTmp) throws IOException {
-		List<JavaFileObject> jfObjects = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
-		boolean success = compile(jfObjects);
-		if (!success) {
-			return Collections.emptyList();
-		}
+		compile(fileManager.getJavaFileObjectsFromFiles(sourceFiles));
 		List<File> files = new ArrayList<>();
 		for (JavaClassObject classObject : fileManager.getClassLoader().getClassObjects()) {
 			Path path = outTmp.resolve(classObject.getName().replace('.', '/') + ".class");
@@ -64,15 +62,15 @@ public class TestCompiler implements Closeable {
 		return files;
 	}
 
-	public boolean compileNodes(List<ClassNode> clsNodeList) {
+	public void compileNodes(List<ClassNode> clsNodeList) {
 		List<JavaFileObject> jfObjects = new ArrayList<>(clsNodeList.size());
 		for (ClassNode clsNode : clsNodeList) {
 			jfObjects.add(new StringJavaFileObject(clsNode.getFullName(), clsNode.getCode().getCodeStr()));
 		}
-		return compile(jfObjects);
+		compile(jfObjects);
 	}
 
-	private boolean compile(List<JavaFileObject> jfObjects) {
+	private void compile(List<JavaFileObject> jfObjects) {
 		List<String> arguments = new ArrayList<>();
 		arguments.add(options.isIncludeDebugInfo() ? "-g" : "-g:none");
 		int javaVersion = options.getJavaVersion();
@@ -83,8 +81,13 @@ public class TestCompiler implements Closeable {
 		arguments.add(javaVerStr);
 		arguments.addAll(options.getArguments());
 
-		CompilationTask compilerTask = compiler.getTask(null, fileManager, null, arguments, null, jfObjects);
-		return Boolean.TRUE.equals(compilerTask.call());
+		DiagnosticListener<? super JavaFileObject> diagnostic =
+				diagObj -> System.out.println("Compiler diagnostic: " + diagObj.getMessage(Locale.ROOT));
+		Writer out = new PrintWriter(System.out);
+		CompilationTask compilerTask = compiler.getTask(out, fileManager, diagnostic, arguments, null, jfObjects);
+		if (Boolean.FALSE.equals(compilerTask.call())) {
+			throw new RuntimeException("Compilation failed");
+		}
 	}
 
 	private ClassLoader getClassLoader() {

@@ -20,7 +20,8 @@ dependencies {
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-raung-input'))
 
-	testImplementation('tools.profiler:async-profiler:1.8.3')
+	testImplementation 'org.eclipse.jdt:ecj:3.28.0'
+	testImplementation 'tools.profiler:async-profiler:1.8.3'
 }
 
 test {

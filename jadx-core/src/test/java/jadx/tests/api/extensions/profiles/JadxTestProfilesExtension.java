@@ -2,6 +2,7 @@ package jadx.tests.api.extensions.profiles;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -35,7 +36,13 @@ public class JadxTestProfilesExtension implements TestTemplateInvocationContextP
 		Preconditions.condition(!testAnnAdded, "@Test annotation should be removed");
 
 		TestWithProfiles profilesAnn = AnnotationUtils.findAnnotation(testMethod, TestWithProfiles.class).get();
-		return Stream.of(profilesAnn.value())
+		EnumSet<TestProfile> profilesSet = EnumSet.noneOf(TestProfile.class);
+		Collections.addAll(profilesSet, profilesAnn.value());
+		if (profilesSet.contains(TestProfile.ALL)) {
+			Collections.addAll(profilesSet, TestProfile.values());
+		}
+		profilesSet.remove(TestProfile.ALL);
+		return profilesSet.stream()
 				.sorted()
 				.map(RunWithProfile::new);
 	}
