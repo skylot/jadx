@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.data.ProjectData;
@@ -64,11 +66,7 @@ public class JadxProject {
 
 	private void setProjectPath(Path projectPath) {
 		this.projectPath = projectPath;
-		this.name = projectPath.getFileName().toString();
-		int dotPos = name.lastIndexOf('.');
-		if (dotPos != -1) {
-			name = name.substring(0, dotPos);
-		}
+		this.name = CommonFileUtils.removeFileExtension(projectPath.getFileName().toString());
 		changed();
 	}
 
@@ -79,6 +77,9 @@ public class JadxProject {
 	public void setFilePath(List<Path> files) {
 		if (!files.equals(getFilePaths())) {
 			data.setFiles(files);
+			String joinedName = files.stream().map(p -> CommonFileUtils.removeFileExtension(p.getFileName().toString()))
+					.collect(Collectors.joining("_"));
+			this.name = StringUtils.abbreviate(joinedName, 100);
 			changed();
 		}
 	}
