@@ -3,10 +3,11 @@ package jadx.api.plugins.input.data.attributes;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultClassAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
-import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
+import jadx.api.plugins.input.data.attributes.types.MethodParametersAttr;
 import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 
@@ -25,9 +26,10 @@ public final class JadxAttrType<T extends IJadxAttribute> implements IJadxAttrTy
 	public static final JadxAttrType<EncodedValue> CONSTANT_VALUE = bind();
 
 	// method
-	public static final JadxAttrType<MethodParamsAttr> ANNOTATION_MTH_PARAMETERS = bind();
+	public static final JadxAttrType<AnnotationMethodParamsAttr> ANNOTATION_MTH_PARAMETERS = bind();
 	public static final JadxAttrType<AnnotationDefaultAttr> ANNOTATION_DEFAULT = bind();
 	public static final JadxAttrType<ExceptionsAttr> EXCEPTIONS = bind();
+	public static final JadxAttrType<MethodParametersAttr> METHOD_PARAMETERS = bind();
 
 	private static <T extends IJadxAttribute> JadxAttrType<T> bind() {
 		return new JadxAttrType<>();

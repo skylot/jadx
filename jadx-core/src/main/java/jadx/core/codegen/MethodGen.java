@@ -16,7 +16,7 @@ import jadx.api.data.annotations.VarDeclareRef;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
-import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
 import jadx.core.Consts;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
@@ -195,7 +195,7 @@ public class MethodGen {
 	}
 
 	private void addMethodArguments(ICodeWriter code, List<RegisterArg> args) {
-		MethodParamsAttr paramsAnnotation = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
+		AnnotationMethodParamsAttr paramsAnnotation = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
 		Iterator<RegisterArg> it = args.iterator();
 		while (it.hasNext()) {

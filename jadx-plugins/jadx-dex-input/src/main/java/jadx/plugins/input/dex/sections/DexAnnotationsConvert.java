@@ -1,9 +1,11 @@
 package jadx.plugins.input.dex.sections;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +19,7 @@ import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
+import jadx.api.plugins.input.data.attributes.types.MethodParametersAttr;
 import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
 import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsUtils;
@@ -36,7 +39,7 @@ public class DexAnnotationsConvert {
 		appendAnnotations(null, list, annotationList);
 	}
 
-	private static void appendAnnotations(String cls, List<IJadxAttribute> attributes, List<IAnnotation> annotations) {
+	private static void appendAnnotations(@Nullable String cls, List<IJadxAttribute> attributes, List<IAnnotation> annotations) {
 		if (annotations.isEmpty()) {
 			return;
 		}
@@ -49,7 +52,7 @@ public class DexAnnotationsConvert {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void convertSystemAnnotations(String cls, List<IJadxAttribute> attributes, IAnnotation annotation) {
+	private static void convertSystemAnnotations(@Nullable String cls, List<IJadxAttribute> attributes, IAnnotation annotation) {
 		switch (annotation.getAnnotationClass()) {
 			case "Ldalvik/annotation/Signature;":
 				attributes.add(new SignatureAttr(extractSignature(annotation)));
@@ -88,6 +91,25 @@ public class DexAnnotationsConvert {
 					}
 				} catch (Exception e) {
 					LOG.warn("Failed to convert dalvik throws annotation", e);
+				}
+				break;
+
+			case "Ldalvik/annotation/MethodParameters;":
+				try {
+					List<EncodedValue> names = AnnotationsUtils.getArray(annotation, "names");
+					List<EncodedValue> accFlags = AnnotationsUtils.getArray(annotation, "accessFlags");
+					if (!names.isEmpty() && names.size() == accFlags.size()) {
+						int size = names.size();
+						List<MethodParametersAttr.Info> list = new ArrayList<>(size);
+						for (int i = 0; i < size; i++) {
+							String name = (String) names.get(i).getValue();
+							int accFlag = (int) accFlags.get(i).getValue();
+							list.add(new MethodParametersAttr.Info(accFlag, name));
+						}
+						attributes.add(new MethodParametersAttr(list));
+					}
+				} catch (Exception e) {
+					LOG.warn("Failed to parse annotation: " + annotation, e);
 				}
 				break;
 		}

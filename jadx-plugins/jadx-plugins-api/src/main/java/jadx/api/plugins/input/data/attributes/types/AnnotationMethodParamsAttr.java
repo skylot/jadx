@@ -9,10 +9,10 @@ import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 
-public class MethodParamsAttr extends PinnedAttribute {
+public class AnnotationMethodParamsAttr extends PinnedAttribute {
 
 	@Nullable
-	public static MethodParamsAttr pack(List<List<IAnnotation>> annotationRefList) {
+	public static AnnotationMethodParamsAttr pack(List<List<IAnnotation>> annotationRefList) {
 		if (annotationRefList.isEmpty()) {
 			return null;
 		}
@@ -20,12 +20,12 @@ public class MethodParamsAttr extends PinnedAttribute {
 		for (List<IAnnotation> annList : annotationRefList) {
 			list.add(AnnotationsAttr.pack(annList));
 		}
-		return new MethodParamsAttr(list);
+		return new AnnotationMethodParamsAttr(list);
 	}
 
 	private final List<AnnotationsAttr> paramList;
 
-	private MethodParamsAttr(List<AnnotationsAttr> paramsList) {
+	private AnnotationMethodParamsAttr(List<AnnotationsAttr> paramsList) {
 		this.paramList = paramsList;
 	}
 
@@ -34,7 +34,7 @@ public class MethodParamsAttr extends PinnedAttribute {
 	}
 
 	@Override
-	public JadxAttrType<MethodParamsAttr> getAttrType() {
+	public JadxAttrType<AnnotationMethodParamsAttr> getAttrType() {
 		return JadxAttrType.ANNOTATION_MTH_PARAMETERS;
 	}
 

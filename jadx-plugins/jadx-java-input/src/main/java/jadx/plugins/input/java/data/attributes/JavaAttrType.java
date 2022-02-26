@@ -17,6 +17,7 @@ import jadx.plugins.input.java.data.attributes.types.JavaAnnotationsAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaBootstrapMethodsAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaExceptionsAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaInnerClsAttr;
+import jadx.plugins.input.java.data.attributes.types.JavaMethodParametersAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaParamAnnsAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaSignatureAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaSourceFileAttr;
@@ -46,6 +47,7 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 	public static final JavaAttrType<JavaSourceFileAttr> SOURCE_FILE;
 	public static final JavaAttrType<JavaSignatureAttr> SIGNATURE;
 	public static final JavaAttrType<JavaExceptionsAttr> EXCEPTIONS;
+	public static final JavaAttrType<JavaMethodParametersAttr> METHOD_PARAMETERS;
 
 	public static final JavaAttrType<IgnoredAttr> DEPRECATED;
 	public static final JavaAttrType<IgnoredAttr> SYNTHETIC;
@@ -76,6 +78,7 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 		SOURCE_FILE = bind("SourceFile", JavaSourceFileAttr.reader());
 		SIGNATURE = bind("Signature", JavaSignatureAttr.reader());
 		EXCEPTIONS = bind("Exceptions", JavaExceptionsAttr.reader());
+		METHOD_PARAMETERS = bind("MethodParameters", JavaMethodParametersAttr.reader());
 
 		// ignored
 		DEPRECATED = bind("Deprecated", null); // duplicated by annotation

@@ -71,6 +71,7 @@ public class JavaMethodData implements IMethodData {
 		Utils.addToList(list, JavaAnnotationDefaultAttr.convert(attributes));
 		Utils.addToList(list, attributes.get(JavaAttrType.SIGNATURE));
 		Utils.addToList(list, attributes.get(JavaAttrType.EXCEPTIONS));
+		Utils.addToList(list, attributes.get(JavaAttrType.METHOD_PARAMETERS));
 		return list;
 	}
 

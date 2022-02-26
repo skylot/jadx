@@ -9,7 +9,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.ILocalVar;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.MethodParametersAttr;
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -18,6 +21,7 @@ import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -51,6 +55,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				applyDebugInfo(mth);
 				mth.remove(AType.LOCAL_VARS_DEBUG_INFO);
 			}
+			processMethodParametersAttribute(mth);
 			checkTypes(mth);
 		} catch (Exception e) {
 			mth.addWarnComment("Failed to apply debug info", e);
@@ -220,5 +225,32 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				((Named) arg).setName(name);
 			}
 		});
+	}
+
+	private void processMethodParametersAttribute(MethodNode mth) {
+		MethodParametersAttr parametersAttr = mth.get(JadxAttrType.METHOD_PARAMETERS);
+		if (parametersAttr == null) {
+			return;
+		}
+		try {
+			List<MethodParametersAttr.Info> params = parametersAttr.getList();
+			if (params.size() != mth.getMethodInfo().getArgsCount()) {
+				return;
+			}
+			int i = 0;
+			for (RegisterArg mthArg : mth.getArgRegs()) {
+				MethodParametersAttr.Info paramInfo = params.get(i++);
+				String name = paramInfo.getName();
+				if (NameMapper.isValidAndPrintable(name)) {
+					CodeVar codeVar = mthArg.getSVar().getCodeVar();
+					codeVar.setName(name);
+					if (AccessFlags.hasFlag(paramInfo.getAccFlags(), AccessFlags.FINAL)) {
+						codeVar.setFinal(true);
+					}
+				}
+			}
+		} catch (Exception e) {
+			mth.addWarnComment("Failed to process method parameters attribute: " + parametersAttr.getList(), e);
+		}
 	}
 }

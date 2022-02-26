@@ -6,7 +6,7 @@ import java.util.List;
 
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
-import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
 import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.java.data.attributes.IJavaAttribute;
 import jadx.plugins.input.java.data.attributes.IJavaAttributeReader;
@@ -35,19 +35,19 @@ public class JavaParamAnnsAttr implements IJavaAttribute {
 		};
 	}
 
-	public static MethodParamsAttr merge(JavaAttrStorage storage) {
+	public static AnnotationMethodParamsAttr merge(JavaAttrStorage storage) {
 		JavaParamAnnsAttr runtimeAnnAttr = storage.get(JavaAttrType.RUNTIME_PARAMETER_ANNOTATIONS);
 		JavaParamAnnsAttr buildAnnAttr = storage.get(JavaAttrType.BUILD_PARAMETER_ANNOTATIONS);
 		if (runtimeAnnAttr == null && buildAnnAttr == null) {
 			return null;
 		}
 		if (buildAnnAttr == null) {
-			return MethodParamsAttr.pack(runtimeAnnAttr.getList());
+			return AnnotationMethodParamsAttr.pack(runtimeAnnAttr.getList());
 		}
 		if (runtimeAnnAttr == null) {
-			return MethodParamsAttr.pack(buildAnnAttr.getList());
+			return AnnotationMethodParamsAttr.pack(buildAnnAttr.getList());
 		}
-		return MethodParamsAttr.pack(mergeParamLists(runtimeAnnAttr.getList(), buildAnnAttr.getList()));
+		return AnnotationMethodParamsAttr.pack(mergeParamLists(runtimeAnnAttr.getList(), buildAnnAttr.getList()));
 	}
 
 	private static List<List<IAnnotation>> mergeParamLists(List<List<IAnnotation>> first, List<List<IAnnotation>> second) {

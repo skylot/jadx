@@ -13,8 +13,8 @@ import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
-import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.info.FieldInfo;
@@ -48,7 +48,7 @@ public class AnnotationGen {
 		add(field, code);
 	}
 
-	public void addForParameter(ICodeWriter code, MethodParamsAttr paramsAnnotations, int n) {
+	public void addForParameter(ICodeWriter code, AnnotationMethodParamsAttr paramsAnnotations, int n) {
 		List<AnnotationsAttr> paramList = paramsAnnotations.getParamList();
 		if (n >= paramList.size()) {
 			return;
