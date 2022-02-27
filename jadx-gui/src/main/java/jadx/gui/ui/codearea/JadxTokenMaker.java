@@ -1,5 +1,7 @@
 package jadx.gui.ui.codearea;
 
+import java.util.Set;
+
 import javax.swing.text.Segment;
 
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -13,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
+
+import static jadx.api.plugins.utils.Utils.constSet;
 
 public final class JadxTokenMaker extends JavaTokenMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxTokenMaker.class);
@@ -42,6 +46,10 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 		while (current != null) {
 			if (prev != null) {
 				switch (current.getType()) {
+					case TokenTypes.RESERVED_WORD:
+						fixContextualKeyword(current);
+						break;
+
 					case TokenTypes.IDENTIFIER:
 						current = mergeLongClassNames(prev, current, false);
 						break;
@@ -53,6 +61,17 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 			}
 			prev = current;
 			current = current.getNextToken();
+		}
+	}
+
+	private static final Set<String> CONTEXTUAL_KEYWORDS = constSet(
+			"exports", "module", "non-sealed", "open", "opens", "permits", "provides", "record",
+			"requires", "sealed", "to", "transitive", "uses", "var", "with", "yield");
+
+	private static void fixContextualKeyword(Token token) {
+		String lexeme = token.getLexeme(); // TODO: create new string every call, better to avoid
+		if (lexeme != null && CONTEXTUAL_KEYWORDS.contains(lexeme)) {
+			token.setType(TokenTypes.IDENTIFIER);
 		}
 	}
 
