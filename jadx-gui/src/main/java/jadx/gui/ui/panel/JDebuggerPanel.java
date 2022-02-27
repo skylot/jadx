@@ -28,6 +28,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
@@ -67,6 +68,7 @@ public class JDebuggerPanel extends JPanel {
 	private final transient JList<IListElement> stackFrameList;
 	private final transient JComboBox<IListElement> threadBox;
 	private final transient JTextArea logger;
+	private final transient JTextArea logcatOutput;
 	private final transient JTree variableTree;
 	private final transient DefaultTreeModel variableTreeModel;
 	private final transient DefaultMutableTreeNode rootTreeNode;
@@ -131,11 +133,17 @@ public class JDebuggerPanel extends JPanel {
 
 		varTreeMenu = new VarTreePopupMenu(mainWindow);
 
-		JPanel loggerPanel = new JPanel(new CardLayout());
+		JTabbedPane loggerPanel = new JTabbedPane();
 		logger = new JTextArea();
 		logger.setEditable(false);
 		logger.setLineWrap(true);
-		loggerPanel.add(new JScrollPane(logger));
+		new JScrollPane(logger);
+		loggerPanel.addTab("Debugger Log", null, logger, null);
+		logcatOutput = new JTextArea();
+		logcatOutput.setEditable(false);
+		logcatOutput.setLineWrap(true);
+		new JScrollPane(logcatOutput);
+		loggerPanel.addTab("Logcat", null, logcatOutput, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
@@ -499,6 +507,16 @@ public class JDebuggerPanel extends JPanel {
 				.append("\n");
 		SwingUtilities.invokeLater(() -> {
 			logger.append(sb.toString());
+		});
+	}
+
+	public void logcatUpdate(String msg) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(" > ")
+				.append(msg)
+				.append("\n");
+		SwingUtilities.invokeLater(() -> {
+			logcatOutput.append(sb.toString());
 		});
 	}
 

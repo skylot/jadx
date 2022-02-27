@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
+import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.device.protocol.ADBDeviceInfo;
@@ -60,6 +61,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	private static final ImageIcon ICON_DEVICE = UiUtils.openSvgIcon("adb/androidDevice");
 	private static final ImageIcon ICON_PROCESS = UiUtils.openSvgIcon("adb/addToWatch");
 	private static DebugSetting debugSetter = null;
+	private static LogcatController logcatController = null;
 
 	private final transient MainWindow mainWindow;
 	private transient Label tipLabel;
@@ -362,6 +364,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					debugSetter.device.getDeviceInfo().adbHost,
 					debugSetter.forwardTcpPort,
 					debugSetter.ver);
+			logcatController = new LogcatController(mainWindow.getDebuggerPanel(), debugSetter.device);
 		} catch (Exception e) {
 			LOG.error("Failed to attach to process", e);
 			return false;
