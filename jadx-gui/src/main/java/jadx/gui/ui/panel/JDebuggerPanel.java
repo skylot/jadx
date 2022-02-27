@@ -31,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -137,13 +138,13 @@ public class JDebuggerPanel extends JPanel {
 		logger = new JTextArea();
 		logger.setEditable(false);
 		logger.setLineWrap(true);
-		new JScrollPane(logger);
-		loggerPanel.addTab("Debugger Log", null, logger, null);
+		JScrollPane loggerScroll = new JScrollPane(logger);
+		loggerPanel.addTab("Debugger Log", null, loggerScroll, null);
 		logcatOutput = new JTextArea();
 		logcatOutput.setEditable(false);
 		logcatOutput.setLineWrap(true);
-		new JScrollPane(logcatOutput);
-		loggerPanel.addTab("Logcat", null, logcatOutput, null);
+		JScrollPane logcatScroll = new JScrollPane(logcatOutput);
+		loggerPanel.addTab("Logcat", null, logcatScroll, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
