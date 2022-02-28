@@ -6,22 +6,23 @@ public class VersionComparator {
 	}
 
 	public static int checkAndCompare(String str1, String str2) {
-		try {
-			return compare(clean(str1), clean(str2));
-		} catch (NumberFormatException e) {
-			return -2;
-		}
+		return compare(clean(str1), clean(str2));
 	}
 
 	private static String clean(String str) {
+		if (str == null || str.isEmpty()) {
+			return "";
+		}
 		String result = str.trim().toLowerCase();
 		if (result.charAt(0) == 'v') {
 			result = result.substring(1);
 		}
+		// treat package version as part of version
+		result = result.replace('-', '.');
 		return result;
 	}
 
-	public static int compare(String str1, String str2) {
+	private static int compare(String str1, String str2) {
 		String[] s1 = str1.split("\\.");
 		int l1 = s1.length;
 		String[] s2 = str2.split("\\.");

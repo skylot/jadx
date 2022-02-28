@@ -2,8 +2,7 @@ package jadx.gui.update;
 
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class VersionComparatorTest {
 
@@ -24,10 +23,17 @@ class VersionComparatorTest {
 		checkCompare("0.4.8", "0.5", -1);
 		checkCompare("0.4.8", "0.5.0", -1);
 		checkCompare("0.4.8", "0.6", -1);
+		checkCompare("1.3.3.1", "1.3.3", 1);
+		checkCompare("1.3.3-1", "1.3.3", 1);
+		checkCompare("1.3.3.1-1", "1.3.3", 1);
 	}
 
 	private static void checkCompare(String a, String b, int result) {
-		assertThat(VersionComparator.compare(a, b), is(result));
-		assertThat(VersionComparator.compare(b, a), is(-result));
+		assertThat(VersionComparator.checkAndCompare(a, b))
+				.as("Compare %s and %s expect %d", a, b, result)
+				.isEqualTo(result);
+		assertThat(VersionComparator.checkAndCompare(b, a))
+				.as("Compare %s and %s expect %d", b, a, -result)
+				.isEqualTo(-result);
 	}
 }
