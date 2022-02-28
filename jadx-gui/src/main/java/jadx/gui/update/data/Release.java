@@ -2,15 +2,9 @@ package jadx.gui.update.data;
 
 import java.util.List;
 
-import com.google.gson.annotations.SerializedName;
-
 public class Release {
 	private int id;
 	private String name;
-
-	@SerializedName("prerelease")
-	private boolean preRelease;
-
 	private List<Asset> assets;
 
 	public String getName() {
@@ -27,14 +21,6 @@ public class Release {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public boolean isPreRelease() {
-		return preRelease;
-	}
-
-	public void setPreRelease(boolean preRelease) {
-		this.preRelease = preRelease;
 	}
 
 	public List<Asset> getAssets() {
