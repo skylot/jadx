@@ -529,8 +529,6 @@ public class JDebuggerPanel extends JPanel {
 		Highlighter logcatHilight = logcatOutput.getHighlighter();
 		StringBuilder sb = new StringBuilder();
 		sb.append(" > ")
-				.append(String.valueOf(logcatInfo.getSec()))
-				.append(" ")
 				.append(logcatInfo.getTimestamp())
 				.append(" ")
 				.append(String.valueOf(logcatInfo.getPid()))
@@ -541,8 +539,6 @@ public class JDebuggerPanel extends JPanel {
 				.append("\n");
 		logcatOutput.append(sb.toString());
 		try {
-			log(String.valueOf(logcatInfo.getMsgType()) + " : " + String.valueOf(lines) + " : " + String.valueOf(logcatOutput.getLineStartOffset(lines-1)) + " , " + String.valueOf(logcatOutput.getLineEndOffset(lines-1)));
-
 			switch(logcatInfo.getMsgType()) {
 				case 0: //Unknown
 					break;

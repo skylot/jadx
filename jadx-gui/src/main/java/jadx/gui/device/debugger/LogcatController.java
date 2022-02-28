@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
@@ -19,7 +20,7 @@ public class LogcatController {
 	private ADB.Device adbDevice;
 	private JDebuggerPanel debugPanel;
 	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
-	private int recent = 0;
+	private logcatInfo recent = null;
 	private Timer timer;
 	private String timezone;
 
@@ -54,7 +55,12 @@ public class LogcatController {
 
 	private void getLog() {
 		try {
-			byte[] buf = adbDevice.getBinaryLogcat();
+			byte[] buf;
+			if(recent == null) {
+				buf = adbDevice.getBinaryLogcat();
+			} else {
+				buf = adbDevice.getBinaryLogcat(recent.getAfterTimestamp());
+			}
 			if(buf == null) {
 				return;
 			}
@@ -95,10 +101,10 @@ public class LogcatController {
 				if(eInfo == null) {
 					return;
 				}
-				if(recent < eInfo.getSec()) {
-					recent = eInfo.getSec();
-				} else {
-					continue;
+				if(recent == null) {
+					recent = eInfo;
+				} else if(recent.getInstant().isBefore(eInfo.getInstant())) {
+					recent = eInfo;
 				}
 				events.add(eInfo);
 				debugPanel.logcatUpdate(eInfo);
@@ -203,13 +209,17 @@ public class LogcatController {
 		}
 
 		public Instant getInstant() {
-			return Instant.ofEpochSecond(getSec());
+			return Instant.ofEpochSecond(getSec(), getNSec());
 		}
 
 		public String getTimestamp() {
-			debugPanel.log(timezone);
-			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd hh:mm:ss.SSS").withZone( ZoneId.of(timezone) );
+			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone( ZoneId.of(timezone) );
 			return dtFormat.format(getInstant());
+		}
+
+		public String getAfterTimestamp() {
+			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone( ZoneId.of(timezone) );
+			return dtFormat.format(getInstant().plusMillis(1));
 		}
 
 		public byte getMsgType() {
