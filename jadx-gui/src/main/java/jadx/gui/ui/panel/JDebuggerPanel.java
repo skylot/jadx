@@ -1,3 +1,4 @@
+
 package jadx.gui.ui.panel;
 
 import java.awt.BorderLayout;
@@ -15,6 +16,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -31,10 +33,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -45,6 +48,7 @@ import io.reactivex.annotations.Nullable;
 
 import jadx.core.utils.StringUtils;
 import jadx.gui.device.debugger.DebugController;
+import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.SmaliArea;
@@ -82,6 +86,15 @@ public class JDebuggerPanel extends JPanel {
 
 	private final transient VarTreePopupMenu varTreeMenu;
 	private transient KeyEventDispatcher controllerShortCutDispatcher;
+
+	private final Highlighter.HighlightPainter defaultPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.PINK);
+	private final Highlighter.HighlightPainter verbosePainter = new DefaultHighlighter.DefaultHighlightPainter(Color.CYAN);
+	private final Highlighter.HighlightPainter debugPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+	private final Highlighter.HighlightPainter infoPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY);
+	private final Highlighter.HighlightPainter warningPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+	private final Highlighter.HighlightPainter errorPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
+	private final Highlighter.HighlightPainter fatalPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.MAGENTA);
+	private final Highlighter.HighlightPainter silentPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
 
 	public JDebuggerPanel(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -511,14 +524,58 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-	public void logcatUpdate(String msg) {
+	public void logcatUpdate(LogcatController.logcatInfo logcatInfo) {
+		int lines = logcatOutput.getLineCount();
+		Highlighter logcatHilight = logcatOutput.getHighlighter();
 		StringBuilder sb = new StringBuilder();
 		sb.append(" > ")
-				.append(msg)
+				.append(String.valueOf(logcatInfo.getSec()))
+				.append(" ")
+				.append(logcatInfo.getTimestamp())
+				.append(" ")
+				.append(String.valueOf(logcatInfo.getPid()))
+				.append(" ")
+				.append(String.valueOf(logcatInfo.getMsgType()))
+				.append(" ")
+				.append(logcatInfo.getMsg())
 				.append("\n");
-		SwingUtilities.invokeLater(() -> {
-			logcatOutput.append(sb.toString());
-		});
+		logcatOutput.append(sb.toString());
+		try {
+			log(String.valueOf(logcatInfo.getMsgType()) + " : " + String.valueOf(lines) + " : " + String.valueOf(logcatOutput.getLineStartOffset(lines-1)) + " , " + String.valueOf(logcatOutput.getLineEndOffset(lines-1)));
+
+			switch(logcatInfo.getMsgType()) {
+				case 0: //Unknown
+					break;
+				case 1: //Default
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, defaultPainter);
+					break;
+				case 2: //Verbose
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, verbosePainter);
+					break;
+				case 3: //Debug
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, debugPainter);
+					break;
+				case 4: //Info
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, infoPainter);
+					break;
+				case 5: //Warn
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, warningPainter);
+					break;
+				case 6: //Error
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, errorPainter);
+					break;
+				case 7: //Fatal
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, fatalPainter);
+					break;
+				case 8: //Silent
+					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, silentPainter);
+					break;
+				default:
+					break;
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void updateRegTree(ValueTreeNode node) {

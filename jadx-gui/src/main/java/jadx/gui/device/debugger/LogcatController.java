@@ -6,28 +6,63 @@ import jadx.gui.ui.panel.JDebuggerPanel;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LogcatController {
 	private ADB.Device adbDevice;
 	private JDebuggerPanel debugPanel;
-	private ArrayList<info> events = new ArrayList<info>();
+	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
 	private int recent = 0;
+	private Timer timer;
+	private String timezone;
 
 	public LogcatController(JDebuggerPanel debugPanel, ADB.Device adbDevice) throws IOException, InterruptedException {
 		this.adbDevice = adbDevice;
 		this.debugPanel = debugPanel;
-		this.getLog();
+		this.getTimezone();
+		this.startLogcat();
 	}
 
-	public void getLog() {
+	public void startLogcat() {
+		timer = new Timer();
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				getLog();
+			}
+		}, 0, 1000);
+	}
+
+	public void stopLogcat() {
+		timer.cancel();
+	}
+
+	private void getTimezone() {
+		try {
+			this.timezone = adbDevice.getTimezone();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void getLog() {
 		try {
 			byte[] buf = adbDevice.getBinaryLogcat();
+			if(buf == null) {
+				return;
+			}
 			ByteBuffer in = ByteBuffer.wrap(buf);
 			in.order(ByteOrder.LITTLE_ENDIAN);
 			while(in.remaining() > 20) {
 
-				info eInfo = null;
+				logcatInfo eInfo = null;
 				byte[] msgBuf;
 				short eLen = in.getShort();
 				short eHdrLen = in.getShort();
@@ -36,34 +71,37 @@ public class LogcatController {
 				}
 				switch(eHdrLen) {
 					case 20: //header length 20 == version 1
-						eInfo = new info(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
 						msgBuf = new byte[eLen];
 						in.get(msgBuf,0,eLen-1);
 						eInfo.setMsg(msgBuf);
 						break;
 					case 24: //header length 24 == version 2 / 3
-						eInfo = new info(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
 						msgBuf = new byte[eLen];
 						in.get(msgBuf,0,eLen-1);
 						eInfo.setMsg(msgBuf);
 						break;
 					case 28: //header length 28 == version 4
-						eInfo = new info(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
 						msgBuf = new byte[eLen];
 						in.get(msgBuf,0,eLen-1);
 						eInfo.setMsg(msgBuf);
 						break;
 					default:
-						debugPanel.logcatUpdate("Unknown Logcat Version");
+						debugPanel.log("Unknown Logcat Version");
 						break;
 				}
 				if(eInfo == null) {
 					return;
 				}
-				if(recent < eInfo.getNSec()) {
-					recent = eInfo.getNSec();
+				if(recent < eInfo.getSec()) {
+					recent = eInfo.getSec();
+				} else {
+					continue;
 				}
 				events.add(eInfo);
+				debugPanel.logcatUpdate(eInfo);
 			}
 
 		} catch (Exception except) {
@@ -72,7 +110,7 @@ public class LogcatController {
 		}
 	}
 
-	private class info {
+	public class logcatInfo {
 		private short version;
 		private short len;
 		private short hdr_size;
@@ -83,8 +121,11 @@ public class LogcatController {
 		private int lid;
 		private int uid;
 		private byte msgType;
+
+
+
 		String msg;
-		public info(short len, short hdr_size, int pid, int tid, int sec, int nsec, byte msgType) {
+		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, byte msgType) {
 			this.version = 1;
 			this.len = len;
 			this.hdr_size = hdr_size;
@@ -96,7 +137,7 @@ public class LogcatController {
 		}
 
 		//Version 2 and 3 both have the same arguments
-		public info(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, byte msgType) {
+		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, byte msgType) {
 			this.version = 3;
 			this.len = len;
 			this.hdr_size = hdr_size;
@@ -108,7 +149,7 @@ public class LogcatController {
 			this.msgType = msgType;
 		}
 
-		public info(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, int uid, byte msgType) {
+		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, int uid, byte msgType) {
 			this.version = 4;
 			this.len = len;
 			this.hdr_size = hdr_size;
@@ -161,8 +202,43 @@ public class LogcatController {
 			return this.uid;
 		}
 
+		public Instant getInstant() {
+			return Instant.ofEpochSecond(getSec());
+		}
+
+		public String getTimestamp() {
+			debugPanel.log(timezone);
+			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd hh:mm:ss.SSS").withZone( ZoneId.of(timezone) );
+			return dtFormat.format(getInstant());
+		}
+
 		public byte getMsgType() {
 			return this.msgType;
+		}
+
+		public String getMsgTypeString() {
+			switch (getMsgType()) {
+				case 0:
+					return "Unknown";
+				case 1:
+					return "Default";
+				case 2:
+					return "Verbose";
+				case 3:
+					return "Debug";
+				case 4:
+					return "Info";
+				case 5:
+					return "Warn";
+				case 6:
+					return "Error";
+				case 7:
+					return "Fatal";
+				case 8:
+					return "Silent";
+				default:
+					return "Unknown";
+			}
 		}
 
 		public String getMsg() {
