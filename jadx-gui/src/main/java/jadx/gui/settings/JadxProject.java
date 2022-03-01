@@ -178,7 +178,7 @@ public class JadxProject {
 				buildGson(basePath).toJson(data, writer);
 				saved = true;
 			} catch (Exception e) {
-				LOG.error("Error saving project", e);
+				throw new RuntimeException("Error saving project", e);
 			}
 		}
 	}

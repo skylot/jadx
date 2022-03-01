@@ -85,6 +85,7 @@ import ch.qos.logback.classic.Level;
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.core.Jadx;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
@@ -824,6 +825,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initMenuAndToolbar() {
+		final boolean devVersion = (Jadx.VERSION_DEV.equals(Jadx.getVersion()));
 		Action openAction = new AbstractAction(NLS.str("file.open_action"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1085,6 +1087,14 @@ public class MainWindow extends JFrame {
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(logAction);
+		if (devVersion) {
+			help.add(new AbstractAction("Show sample error report") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					ExceptionDialog.throwTestException();
+				}
+			});
+		}
 		help.add(aboutAction);
 
 		JMenuBar menuBar = new JMenuBar();
