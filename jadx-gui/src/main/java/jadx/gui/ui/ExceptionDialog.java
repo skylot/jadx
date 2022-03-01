@@ -66,7 +66,7 @@ public class ExceptionDialog extends JDialog {
 
 		Map<String, String> details = new LinkedHashMap<>();
 		details.put("Jadx version", JadxDecompiler.getVersion());
-		details.put("Java Version", System.getProperty("java.version", "?"));
+		details.put("Java version", System.getProperty("java.version", "?"));
 		details.put("Java VM", String.format("%s %s", System.getProperty("java.vm.vendor", "?"),
 				System.getProperty("java.vm.name", "?")));
 		details.put("Platform", String.format("%s (%s %s)", System.getProperty("os.name", "?"),
