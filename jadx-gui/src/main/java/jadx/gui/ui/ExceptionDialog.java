@@ -158,13 +158,17 @@ public class ExceptionDialog extends JDialog {
 		this.setVisible(true);
 	}
 
+	public static void throwTestException() {
+		try {
+			throw new RuntimeException("Inner exception message");
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Outer exception message", e);
+		}
+	}
+
 	public static void showTestExceptionDialog() {
 		try {
-			try {
-				throw new RuntimeException("Inner exception message");
-			} catch (Exception e) {
-				throw new JadxRuntimeException("Outer exception message", e);
-			}
+			throwTestException();
 		} catch (Exception e) {
 			showExceptionDialog(Thread.currentThread(), e);
 		}

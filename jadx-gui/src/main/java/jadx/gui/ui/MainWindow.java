@@ -1091,7 +1091,7 @@ public class MainWindow extends JFrame {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					ExceptionDialog.showTestExceptionDialog();
+					ExceptionDialog.throwTestException();
 				}
 			});
 		}
