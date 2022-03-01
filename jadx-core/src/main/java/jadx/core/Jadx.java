@@ -178,7 +178,14 @@ public class Jadx {
 		return passes;
 	}
 
+	public static final String VERSION_DEV = "dev";
+
+	private static String version;
+
 	public static String getVersion() {
+		if (version != null) {
+			return version;
+		}
 		try {
 			ClassLoader classLoader = Jadx.class.getClassLoader();
 			if (classLoader != null) {
@@ -188,6 +195,7 @@ public class Jadx {
 						Manifest manifest = new Manifest(is);
 						String ver = manifest.getMainAttributes().getValue("jadx-version");
 						if (ver != null) {
+							version = ver;
 							return ver;
 						}
 					}
@@ -196,6 +204,6 @@ public class Jadx {
 		} catch (Exception e) {
 			LOG.error("Can't get manifest file", e);
 		}
-		return "dev";
+		return VERSION_DEV;
 	}
 }

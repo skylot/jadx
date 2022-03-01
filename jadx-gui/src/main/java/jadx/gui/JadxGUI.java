@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import jadx.cli.LogHelper;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
+import jadx.gui.ui.ExceptionDialog;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.NLS;
@@ -29,7 +30,7 @@ public class JadxGUI {
 			printSystemInfo();
 			LafManager.init(settings);
 			NLS.setLocale(settings.getLangLocale());
-
+			ExceptionDialog.registerUncaughtExceptionHandler();
 			SwingUtilities.invokeLater(new MainWindow(settings)::init);
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
