@@ -46,10 +46,11 @@ public class ExceptionDialog extends JDialog {
 	private static final String FMT_DETAIL_LENGTH = "-13";
 
 	public static void registerUncaughtExceptionHandler() {
-		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> new ExceptionDialog(thread, ex));
+		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> showExceptionDialog(thread, ex));
 	}
 
 	public static void showExceptionDialog(Thread thread, Throwable ex) {
+		LOG.error("Exception was thrown", ex);
 		new ExceptionDialog(thread, ex);
 	}
 
