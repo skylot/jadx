@@ -17,6 +17,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.JButton;
@@ -63,7 +64,7 @@ public class ExceptionDialog extends JDialog {
 		c.insets = new Insets(2, 5, 5, 5);
 		JLabel titleLabel = new JLabel("<html><h1>An error occurred</h1><p>Jadx encountered an unexpected error.</p></html>");
 
-		LinkedHashMap<String, String> details = new LinkedHashMap<>();
+		Map<String, String> details = new LinkedHashMap<>();
 		details.put("Jadx version", JadxDecompiler.getVersion());
 		details.put("Java Version", System.getProperty("java.version", "?"));
 		details.put("Java VM", String.format("%s %s", System.getProperty("java.vm.vendor", "?"),
