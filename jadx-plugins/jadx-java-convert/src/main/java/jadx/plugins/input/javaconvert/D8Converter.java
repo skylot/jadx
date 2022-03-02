@@ -16,14 +16,14 @@ import com.android.tools.r8.OutputMode;
 public class D8Converter {
 	private static final Logger LOG = LoggerFactory.getLogger(D8Converter.class);
 
-	public static void run(Path path, Path tempDirectory) throws CompilationFailedException {
+	public static void run(Path path, Path tempDirectory, JavaConvertOptions options) throws CompilationFailedException {
 		D8Command d8Command = D8Command.builder(new LogHandler())
 				.addProgramFiles(path)
 				.setOutput(tempDirectory, OutputMode.DexIndexed)
 				.setMode(CompilationMode.DEBUG)
 				.setMinApiLevel(30)
 				.setIntermediate(true)
-				.setDisableDesugaring(true)
+				.setDisableDesugaring(!options.isD8Desugar())
 				.build();
 		D8.run(d8Command);
 	}

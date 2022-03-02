@@ -104,7 +104,8 @@ public abstract class IntegrationTest extends TestUtils {
 	private boolean printLineNumbers;
 	private boolean printOffsets;
 	private boolean printDisassemble;
-	private Boolean useJavaInput = null;
+	private @Nullable Boolean useJavaInput;
+	private boolean removeParentClassOnInput;
 
 	private @Nullable TestCompiler sourceCompiler;
 	private @Nullable TestCompiler decompiledCompiler;
@@ -121,6 +122,8 @@ public abstract class IntegrationTest extends TestUtils {
 		this.compile = true;
 		this.compilerOptions = new CompilerOptions();
 		this.resMap = Collections.emptyMap();
+		this.removeParentClassOnInput = true;
+		this.useJavaInput = null;
 
 		args = new JadxArgs();
 		args.setOutDir(new File(OUT_DIR));
@@ -173,8 +176,14 @@ public abstract class IntegrationTest extends TestUtils {
 
 		ClassNode cls = root.resolveClass(clsName);
 		assertThat("Class not found: " + clsName, cls, notNullValue());
-		assertThat(clsName, is(cls.getClassInfo().getFullName()));
-
+		if (removeParentClassOnInput) {
+			assertThat(clsName, is(cls.getClassInfo().getFullName()));
+		} else {
+			LOG.info("Convert back to top level: {}", cls);
+			cls.getTopParentClass().decompile(); // keep correct process order
+			cls.getClassInfo().notInner(root);
+			cls.updateParentClass();
+		}
 		decompileAndCheck(cls);
 		return cls;
 	}
@@ -332,7 +341,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private void runAutoCheck(ClassNode cls) {
-		String clsName = cls.getClassInfo().getFullName();
+		String clsName = cls.getClassInfo().getRawName().replace('/', '.');
 		try {
 			// run 'check' method from original class
 			if (runSourceAutoCheck(clsName)) {
@@ -473,9 +482,11 @@ public abstract class IntegrationTest extends TestUtils {
 		if (saveTestJar) {
 			saveToJar(files, outTmp);
 		}
-		// remove classes which are parents for test class
-		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
-		files.removeIf(next -> !next.getName().contains(clsName));
+		if (removeParentClassOnInput) {
+			// remove classes which are parents for test class
+			String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
+			files.removeIf(next -> !next.getName().contains(clsName));
+		}
 		return files;
 	}
 
@@ -561,8 +572,17 @@ public abstract class IntegrationTest extends TestUtils {
 		this.useJavaInput = false;
 	}
 
+	public void useDexInput(String mode) {
+		useDexInput();
+		this.getArgs().getPluginOptions().put("java-convert.mode", mode);
+	}
+
 	protected boolean isJavaInput() {
 		return Utils.getOrElse(useJavaInput, USE_JAVA_INPUT);
+	}
+
+	public void keepParentClassOnInput() {
+		this.removeParentClassOnInput = false;
 	}
 
 	// Use only for debug purpose

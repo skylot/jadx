@@ -23,7 +23,13 @@ import jadx.api.plugins.utils.ZipSecurity;
 public class JavaConvertLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaConvertLoader.class);
 
-	public static ConvertResult process(List<Path> input) {
+	private final JavaConvertOptions options;
+
+	public JavaConvertLoader(JavaConvertOptions options) {
+		this.options = options;
+	}
+
+	public ConvertResult process(List<Path> input) {
 		ConvertResult result = new ConvertResult();
 		processJars(input, result);
 		processAars(input, result);
@@ -31,7 +37,7 @@ public class JavaConvertLoader {
 		return result;
 	}
 
-	private static void processJars(List<Path> input, ConvertResult result) {
+	private void processJars(List<Path> input, ConvertResult result) {
 		PathMatcher jarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.jar");
 		input.stream()
 				.filter(jarMatcher::matches)
@@ -44,7 +50,7 @@ public class JavaConvertLoader {
 				});
 	}
 
-	private static void processClassFiles(List<Path> input, ConvertResult result) {
+	private void processClassFiles(List<Path> input, ConvertResult result) {
 		PathMatcher jarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.class");
 		List<Path> clsFiles = input.stream()
 				.filter(jarMatcher::matches)
@@ -72,7 +78,7 @@ public class JavaConvertLoader {
 		}
 	}
 
-	private static void processAars(List<Path> input, ConvertResult result) {
+	private void processAars(List<Path> input, ConvertResult result) {
 		PathMatcher aarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.aar");
 		input.stream()
 				.filter(aarMatcher::matches)
@@ -91,14 +97,14 @@ public class JavaConvertLoader {
 				}));
 	}
 
-	private static void convertJar(ConvertResult result, Path path) throws Exception {
+	private void convertJar(ConvertResult result, Path path) throws Exception {
 		if (repackAndConvertJar(result, path)) {
 			return;
 		}
 		convertSimpleJar(result, path);
 	}
 
-	private static boolean repackAndConvertJar(ConvertResult result, Path path) throws Exception {
+	private boolean repackAndConvertJar(ConvertResult result, Path path) throws Exception {
 		// check if jar need a full repackage
 		Boolean repackNeeded = ZipSecurity.visitZipEntries(path.toFile(), (zipFile, zipEntry) -> {
 			String entryName = zipEntry.getName();
@@ -154,23 +160,48 @@ public class JavaConvertLoader {
 		return true;
 	}
 
-	private static void convertSimpleJar(ConvertResult result, Path path) throws Exception {
+	private void convertSimpleJar(ConvertResult result, Path path) throws Exception {
 		Path tempDirectory = Files.createTempDirectory("jadx-");
 		result.addTempPath(tempDirectory);
 		LOG.debug("Converting to dex ...");
-		try {
-			DxConverter.run(path, tempDirectory);
-		} catch (Throwable e) {
-			LOG.warn("DX convert failed, trying D8, path: {}", path);
-			try {
-				D8Converter.run(path, tempDirectory);
-			} catch (Throwable ex) {
-				LOG.error("D8 convert failed: {}", ex.getMessage());
-			}
-		}
+		convert(path, tempDirectory);
 		List<Path> dexFiles = collectFilesInDir(tempDirectory);
 		LOG.debug("Converted {} to {} dex", path.toAbsolutePath(), dexFiles.size());
 		result.addConvertedFiles(dexFiles);
+	}
+
+	private void convert(Path path, Path tempDirectory) {
+		JavaConvertOptions.Mode mode = options.getMode();
+		switch (mode) {
+			case DX:
+				try {
+					DxConverter.run(path, tempDirectory);
+				} catch (Throwable e) {
+					LOG.error("DX convert failed, path: {}", path, e);
+				}
+				break;
+
+			case D8:
+				try {
+					D8Converter.run(path, tempDirectory, options);
+				} catch (Throwable e) {
+					LOG.error("D8 convert failed, path: {}", path, e);
+				}
+				break;
+
+			case BOTH:
+				try {
+					DxConverter.run(path, tempDirectory);
+				} catch (Throwable e) {
+					LOG.warn("DX convert failed, trying D8, path: {}", path);
+					try {
+						D8Converter.run(path, tempDirectory, options);
+					} catch (Throwable ex) {
+						LOG.error("D8 convert failed: {}", ex.getMessage());
+					}
+				}
+				break;
+		}
 	}
 
 	private static List<Path> collectFilesInDir(Path tempDirectory) throws IOException {

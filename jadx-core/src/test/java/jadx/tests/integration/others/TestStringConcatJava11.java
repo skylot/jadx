@@ -52,9 +52,8 @@ public class TestStringConcatJava11 extends RaungTest {
 						"return str + \"test\" + str + \"7\";"); // dynamic concat add const to string recipe
 	}
 
-	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
+	@TestWithProfiles({ TestProfile.D8_J11, TestProfile.JAVA11 })
 	public void testJava11() {
-		useTargetJavaVersion(11);
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
 				.code()

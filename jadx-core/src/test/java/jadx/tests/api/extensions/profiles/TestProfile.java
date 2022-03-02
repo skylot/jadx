@@ -5,13 +5,23 @@ import java.util.function.Consumer;
 import jadx.tests.api.IntegrationTest;
 
 public enum TestProfile implements Consumer<IntegrationTest> {
-	DX_J8("dx-java-8", test -> {
+	DX_J8("dx-j8", test -> {
 		test.useTargetJavaVersion(8);
-		test.useDexInput();
+		test.useDexInput("dx");
 	}),
-	D8_J11("d8-java-11", test -> {
+	D8_J8("d8-j8", test -> {
+		test.useTargetJavaVersion(8);
+		test.useDexInput("d8");
+	}),
+	D8_J11("d8-j11", test -> {
 		test.useTargetJavaVersion(11);
-		test.useDexInput();
+		test.useDexInput("d8");
+	}),
+	D8_J11_DESUGAR("d8-j11-desugar", test -> {
+		test.useTargetJavaVersion(11);
+		test.useDexInput("d8");
+		test.keepParentClassOnInput();
+		test.getArgs().getPluginOptions().put("java-convert.d8-desugar", "yes");
 	}),
 	JAVA8("java-8", test -> {
 		test.useTargetJavaVersion(8);
