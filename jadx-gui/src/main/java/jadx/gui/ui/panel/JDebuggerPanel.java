@@ -36,8 +36,6 @@ import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -49,6 +47,9 @@ import io.reactivex.annotations.Nullable;
 import jadx.core.utils.StringUtils;
 import jadx.gui.device.debugger.DebugController;
 import jadx.gui.device.debugger.LogcatController;
+import jadx.gui.device.protocol.ADB;
+import jadx.gui.device.protocol.ADBDevice;
+import jadx.gui.ui.panel.LogcatPanel;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.SmaliArea;
@@ -73,7 +74,6 @@ public class JDebuggerPanel extends JPanel {
 	private final transient JList<IListElement> stackFrameList;
 	private final transient JComboBox<IListElement> threadBox;
 	private final transient JTextArea logger;
-	private final transient JTextArea logcatOutput;
 	private final transient JTree variableTree;
 	private final transient DefaultTreeModel variableTreeModel;
 	private final transient DefaultMutableTreeNode rootTreeNode;
@@ -84,17 +84,10 @@ public class JDebuggerPanel extends JPanel {
 	private final transient JSplitPane leftSplitter;
 	private final transient IDebugController controller;
 
+	private LogcatPanel logcatPanel;
+
 	private final transient VarTreePopupMenu varTreeMenu;
 	private transient KeyEventDispatcher controllerShortCutDispatcher;
-
-	private final Highlighter.HighlightPainter defaultPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.PINK);
-	private final Highlighter.HighlightPainter verbosePainter = new DefaultHighlighter.DefaultHighlightPainter(Color.CYAN);
-	private final Highlighter.HighlightPainter debugPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-	private final Highlighter.HighlightPainter infoPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY);
-	private final Highlighter.HighlightPainter warningPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-	private final Highlighter.HighlightPainter errorPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
-	private final Highlighter.HighlightPainter fatalPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.MAGENTA);
-	private final Highlighter.HighlightPainter silentPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
 
 	public JDebuggerPanel(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -153,11 +146,8 @@ public class JDebuggerPanel extends JPanel {
 		logger.setLineWrap(true);
 		JScrollPane loggerScroll = new JScrollPane(logger);
 		loggerPanel.addTab("Debugger Log", null, loggerScroll, null);
-		logcatOutput = new JTextArea();
-		logcatOutput.setEditable(false);
-		logcatOutput.setLineWrap(true);
-		JScrollPane logcatScroll = new JScrollPane(logcatOutput);
-		loggerPanel.addTab("Logcat", null, logcatScroll, null);
+		this.logcatPanel = new LogcatPanel(this);
+		loggerPanel.addTab("Logcat", null, logcatPanel, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
@@ -395,10 +385,16 @@ public class JDebuggerPanel extends JPanel {
 		}
 	}
 
-	public boolean showDebugger(String procName, String host, int port, int androidVer) {
+	public boolean showDebugger(String procName, String host, int port, int androidVer, ADBDevice device) {
 		boolean ok = controller.startDebugger(this, host, port, androidVer);
 		if (ok) {
 			log(String.format("Attached %s %s:%d", procName, host, port));
+			try {
+				logcatPanel.init(device);
+			} catch (Exception e) {
+				log("Unable to start Logcat");
+				e.printStackTrace();
+			}
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());
 			rightSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerVarTreeSplitterLoc());
 			mainWindow.showDebuggerPanel();
@@ -524,55 +520,6 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-	public void logcatUpdate(LogcatController.logcatInfo logcatInfo) {
-		int lines = logcatOutput.getLineCount();
-		Highlighter logcatHilight = logcatOutput.getHighlighter();
-		StringBuilder sb = new StringBuilder();
-		sb.append(" > ")
-				.append(logcatInfo.getTimestamp())
-				.append(" ")
-				.append(String.valueOf(logcatInfo.getPid()))
-				.append(" ")
-				.append(String.valueOf(logcatInfo.getMsgType()))
-				.append(" ")
-				.append(logcatInfo.getMsg())
-				.append("\n");
-		logcatOutput.append(sb.toString());
-		try {
-			switch(logcatInfo.getMsgType()) {
-				case 0: //Unknown
-					break;
-				case 1: //Default
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, defaultPainter);
-					break;
-				case 2: //Verbose
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, verbosePainter);
-					break;
-				case 3: //Debug
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, debugPainter);
-					break;
-				case 4: //Info
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, infoPainter);
-					break;
-				case 5: //Warn
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, warningPainter);
-					break;
-				case 6: //Error
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, errorPainter);
-					break;
-				case 7: //Fatal
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, fatalPainter);
-					break;
-				case 8: //Silent
-					logcatHilight.addHighlight(logcatOutput.getLineStartOffset(lines-1), logcatOutput.getLineEndOffset(lines-1) - 1, silentPainter);
-					break;
-				default:
-					break;
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	public void updateRegTree(ValueTreeNode node) {
 		SwingUtilities.invokeLater(() -> {
@@ -593,6 +540,10 @@ public class JDebuggerPanel extends JPanel {
 			TreeNode[] path = node.getPath();
 			variableTree.scrollPathToVisible(new TreePath(path));
 		});
+	}
+
+	public LogcatPanel getLogcatPanel() {
+		return this.logcatPanel;
 	}
 
 	public abstract static class ValueTreeNode extends DefaultMutableTreeNode {
