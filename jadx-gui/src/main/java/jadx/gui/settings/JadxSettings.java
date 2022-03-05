@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.Parameter;
 
 import jadx.api.CommentsLevel;
+import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.cli.JadxCLIArgs;
@@ -44,7 +45,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 16;
+	private static final int CURRENT_SETTINGS_VERSION = 17;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -289,6 +290,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setSkipSources(boolean skipSources) {
 		this.skipSources = skipSources;
+	}
+
+	public void setDecompilationMode(DecompilationMode decompilationMode) {
+		this.decompilationMode = decompilationMode;
 	}
 
 	public void setShowInconsistentCode(boolean showInconsistentCode) {
@@ -669,6 +674,14 @@ public class JadxSettings extends JadxCLIArgs {
 				deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
 			} else {
 				deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+			}
+			fromVersion++;
+		}
+		if (fromVersion == 16) {
+			if (fallbackMode) {
+				decompilationMode = DecompilationMode.FALLBACK;
+			} else {
+				decompilationMode = DecompilationMode.AUTO;
 			}
 			fromVersion++;
 		}

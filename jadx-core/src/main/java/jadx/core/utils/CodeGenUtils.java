@@ -35,16 +35,19 @@ public class CodeGenUtils {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
 		if (!errors.isEmpty()) {
 			errors.stream().distinct().sorted().forEach(err -> {
-				code.startLine("/*  JADX ERROR: ").add(err.getError());
-				Throwable cause = err.getCause();
-				if (cause != null) {
-					code.incIndent();
-					Utils.appendStackTrace(code, cause);
-					code.decIndent();
-				}
-				code.add("*/");
+				addError(code, err.getError(), err.getCause());
 			});
 		}
+	}
+
+	public static void addError(ICodeWriter code, String errMsg, Throwable cause) {
+		code.startLine("/*  JADX ERROR: ").add(errMsg);
+		if (cause != null) {
+			code.incIndent();
+			Utils.appendStackTrace(code, cause);
+			code.decIndent();
+		}
+		code.add("*/");
 	}
 
 	public static void addComments(ICodeWriter code, NotificationAttrNode node) {

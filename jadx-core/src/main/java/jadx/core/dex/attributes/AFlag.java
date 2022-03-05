@@ -81,6 +81,8 @@ public enum AFlag {
 
 	METHOD_CANDIDATE_FOR_INLINE,
 
+	DISABLE_BLOCKS_LOCK,
+
 	// Class processing flags
 	RESTART_CODEGEN, // codegen must be executed again
 	RELOAD_AT_CODEGEN_STAGE, // class can't be analyzed at 'process' stage => unload before 'codegen' stage

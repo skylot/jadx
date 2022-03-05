@@ -142,7 +142,7 @@ public class BlockSplitter extends AbstractVisitor {
 		return block;
 	}
 
-	static void connect(BlockNode from, BlockNode to) {
+	public static void connect(BlockNode from, BlockNode to) {
 		if (!from.getSuccessors().contains(to)) {
 			from.getSuccessors().add(to);
 		}
@@ -151,19 +151,19 @@ public class BlockSplitter extends AbstractVisitor {
 		}
 	}
 
-	static void removeConnection(BlockNode from, BlockNode to) {
+	public static void removeConnection(BlockNode from, BlockNode to) {
 		from.getSuccessors().remove(to);
 		to.getPredecessors().remove(from);
 	}
 
-	static void removePredecessors(BlockNode block) {
+	public static void removePredecessors(BlockNode block) {
 		for (BlockNode pred : block.getPredecessors()) {
 			pred.getSuccessors().remove(block);
 		}
 		block.getPredecessors().clear();
 	}
 
-	static void replaceConnection(BlockNode source, BlockNode oldDest, BlockNode newDest) {
+	public static void replaceConnection(BlockNode source, BlockNode oldDest, BlockNode newDest) {
 		removeConnection(source, oldDest);
 		connect(source, newDest);
 		replaceTarget(source, oldDest, newDest);

@@ -336,6 +336,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return exitBlock.getPredecessors();
 	}
 
+	public boolean isPreExitBlocks(BlockNode block) {
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.size() == 1) {
+			return successors.get(0).equals(exitBlock);
+		}
+		return exitBlock.getPredecessors().contains(block);
+	}
+
 	public void registerLoop(LoopInfo loop) {
 		if (loops.isEmpty()) {
 			loops = new ArrayList<>(5);

@@ -77,7 +77,9 @@ public class BlockProcessor extends AbstractVisitor {
 		processNestedLoops(mth);
 
 		updateCleanSuccessors(mth);
-		mth.finishBasicBlocks();
+		if (!mth.contains(AFlag.DISABLE_BLOCKS_LOCK)) {
+			mth.finishBasicBlocks();
+		}
 	}
 
 	static void updateCleanSuccessors(MethodNode mth) {
@@ -686,7 +688,7 @@ public class BlockProcessor extends AbstractVisitor {
 		return false;
 	}
 
-	static void removeMarkedBlocks(MethodNode mth) {
+	public static void removeMarkedBlocks(MethodNode mth) {
 		mth.getBasicBlocks().removeIf(block -> {
 			if (block.contains(AFlag.REMOVE)) {
 				if (!block.getPredecessors().isEmpty() || !block.getSuccessors().isEmpty()) {

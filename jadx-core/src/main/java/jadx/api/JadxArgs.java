@@ -38,7 +38,6 @@ public class JadxArgs {
 	private boolean cfgOutput = false;
 	private boolean rawCFGOutput = false;
 
-	private boolean fallbackMode = false;
 	private boolean showInconsistentCode = false;
 
 	private boolean useImports = true;
@@ -84,6 +83,8 @@ public class JadxArgs {
 	}
 
 	private OutputFormatEnum outputFormat = OutputFormatEnum.JAVA;
+
+	private DecompilationMode decompilationMode = DecompilationMode.AUTO;
 
 	private ICodeData codeData;
 
@@ -175,11 +176,17 @@ public class JadxArgs {
 	}
 
 	public boolean isFallbackMode() {
-		return fallbackMode;
+		return decompilationMode == DecompilationMode.FALLBACK;
 	}
 
+	/**
+	 * Deprecated: use 'decompilation mode' property
+	 */
+	@Deprecated
 	public void setFallbackMode(boolean fallbackMode) {
-		this.fallbackMode = fallbackMode;
+		if (fallbackMode) {
+			this.decompilationMode = DecompilationMode.FALLBACK;
+		}
 	}
 
 	public boolean isShowInconsistentCode() {
@@ -422,6 +429,14 @@ public class JadxArgs {
 		this.outputFormat = outputFormat;
 	}
 
+	public DecompilationMode getDecompilationMode() {
+		return decompilationMode;
+	}
+
+	public void setDecompilationMode(DecompilationMode decompilationMode) {
+		this.decompilationMode = decompilationMode;
+	}
+
 	public ICodeCache getCodeCache() {
 		return codeCache;
 	}
@@ -493,9 +508,7 @@ public class JadxArgs {
 				+ ", outDirSrc=" + outDirSrc
 				+ ", outDirRes=" + outDirRes
 				+ ", threadsCount=" + threadsCount
-				+ ", cfgOutput=" + cfgOutput
-				+ ", rawCFGOutput=" + rawCFGOutput
-				+ ", fallbackMode=" + fallbackMode
+				+ ", decompilationMode=" + decompilationMode
 				+ ", showInconsistentCode=" + showInconsistentCode
 				+ ", useImports=" + useImports
 				+ ", skipResources=" + skipResources
@@ -520,6 +533,8 @@ public class JadxArgs {
 				+ ", codeWriter=" + codeWriterProvider.apply(this).getClass().getSimpleName()
 				+ ", useDxInput=" + useDxInput
 				+ ", pluginOptions=" + pluginOptions
+				+ ", cfgOutput=" + cfgOutput
+				+ ", rawCFGOutput=" + rawCFGOutput
 				+ '}';
 	}
 }

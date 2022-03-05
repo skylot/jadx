@@ -22,6 +22,7 @@ import jadx.api.data.ICodeData;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
+import jadx.core.ProcessClass;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
@@ -51,9 +52,9 @@ public class RootNode {
 
 	private final JadxArgs args;
 	private final List<IDexTreeVisitor> preDecompilePasses;
-	private final List<IDexTreeVisitor> passes;
 	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
 
+	private final ProcessClass processClasses;
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
@@ -76,7 +77,7 @@ public class RootNode {
 	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
-		this.passes = Jadx.getPassesList(args);
+		this.processClasses = new ProcessClass(this.getArgs());
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
@@ -460,18 +461,16 @@ public class RootNode {
 		return null;
 	}
 
+	public ProcessClass getProcessClasses() {
+		return processClasses;
+	}
+
 	public List<IDexTreeVisitor> getPasses() {
-		return passes;
+		return processClasses.getPasses();
 	}
 
 	public void initPasses() {
-		for (IDexTreeVisitor pass : passes) {
-			try {
-				pass.init(this);
-			} catch (Exception e) {
-				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
-			}
-		}
+		processClasses.initPasses(this);
 	}
 
 	public ICodeWriter makeCodeWriter() {

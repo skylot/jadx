@@ -84,6 +84,11 @@ options:
   --output-format                     - can be 'java' or 'json', default: java
   -e, --export-gradle                 - save as android gradle project
   -j, --threads-count                 - processing threads count, default: 4
+  -m, --decompilation-mode            - code output mode:
+                                         'auto' - trying best options (default)
+                                         'restructure' - restore code structure (normal java code)
+                                         'simple' - simplified instructions (linear, with goto's)
+                                         'fallback' - raw instructions without modifications
   --show-bad-code                     - show inconsistent code (incorrectly decompiled)
   --no-imports                        - disable use of imports, always write entire package name
   --no-debug-info                     - disable debug info
@@ -115,7 +120,7 @@ options:
   --fs-case-sensitive                 - treat filesystem as case sensitive, false by default
   --cfg                               - save methods control flow graph to dot file
   --raw-cfg                           - save methods control flow graph (use raw instructions)
-  -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
+  -f, --fallback                      - set '--decompilation-mode' to 'fallback' (deprecated)
   --use-dx                            - use dx/d8 to convert java bytecode
   --comments-level                    - set code comments level, values: error, warn, info, debug, user-only, none, default: info
   --log-level                         - set log level, values: quiet, progress, error, warn, info, debug, default: progress

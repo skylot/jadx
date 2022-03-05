@@ -1,13 +1,19 @@
 package jadx.core;
 
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.JadxArgs;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.LoadStage;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -18,13 +24,17 @@ import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_STARTED;
 
-public final class ProcessClass {
+public class ProcessClass {
+	private static final Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
 
-	private ProcessClass() {
+	private final List<IDexTreeVisitor> passes;
+
+	public ProcessClass(JadxArgs args) {
+		this.passes = Jadx.getPassesList(args);
 	}
 
 	@Nullable
-	private static ICodeInfo process(ClassNode cls, boolean codegen) {
+	private ICodeInfo process(ClassNode cls, boolean codegen) {
 		if (!codegen && cls.getState() == PROCESS_COMPLETE) {
 			// nothing to do
 			return null;
@@ -58,7 +68,7 @@ public final class ProcessClass {
 				}
 				if (cls.getState() == LOADED) {
 					cls.setState(PROCESS_STARTED);
-					for (IDexTreeVisitor visitor : cls.root().getPasses()) {
+					for (IDexTreeVisitor visitor : passes) {
 						DepthTraversal.visit(visitor, cls);
 					}
 					cls.setState(PROCESS_COMPLETE);
@@ -83,7 +93,7 @@ public final class ProcessClass {
 	}
 
 	@NotNull
-	public static ICodeInfo generateCode(ClassNode cls) {
+	public ICodeInfo generateCode(ClassNode cls) {
 		ClassNode topParentClass = cls.getTopParentClass();
 		if (topParentClass != cls) {
 			return generateCode(topParentClass);
@@ -106,5 +116,20 @@ public final class ProcessClass {
 		} catch (Throwable e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}
+	}
+
+	public void initPasses(RootNode root) {
+		for (IDexTreeVisitor pass : passes) {
+			try {
+				pass.init(root);
+			} catch (Exception e) {
+				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
+			}
+		}
+	}
+
+	// TODO: make passes list private and not visible
+	public List<IDexTreeVisitor> getPasses() {
+		return passes;
 	}
 }

@@ -50,11 +50,7 @@ public class JadxError implements Comparable<JadxError> {
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
-		str.append("JadxError: ");
-		if (error != null) {
-			str.append(error);
-			str.append(' ');
-		}
+		str.append("JadxError: ").append(error).append(' ');
 		if (cause != null) {
 			str.append(cause.getClass());
 			str.append(':');

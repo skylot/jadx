@@ -356,7 +356,7 @@ public class ClassGen {
 				badCode = false;
 			}
 			MethodGen mthGen;
-			if (badCode || fallback || mth.contains(AType.JADX_ERROR) || mth.getRegion() == null) {
+			if (badCode || fallback || mth.contains(AType.JADX_ERROR)) {
 				mthGen = MethodGen.getFallbackMethodGen(mth);
 			} else {
 				mthGen = new MethodGen(this, mth);

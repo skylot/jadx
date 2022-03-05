@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
+import jadx.api.JadxArgs;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.data.annotations.VarDeclareRef;
 import jadx.api.plugins.input.data.AccessFlags;
@@ -32,13 +34,14 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
+import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.CodeGenUtils;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -252,12 +255,28 @@ public class MethodGen {
 	}
 
 	public void addInstructions(ICodeWriter code) throws CodegenException {
-		if (mth.root().getArgs().isFallbackMode()) {
-			addFallbackMethodCode(code, FALLBACK_MODE);
-		} else if (classGen.isFallbackMode()) {
-			dumpInstructions(code);
-		} else {
-			addRegionInsns(code);
+		JadxArgs args = mth.root().getArgs();
+		switch (args.getDecompilationMode()) {
+			case AUTO:
+				if (classGen.isFallbackMode()) {
+					// TODO: try simple mode first
+					dumpInstructions(code);
+				} else {
+					addRegionInsns(code);
+				}
+				break;
+
+			case RESTRUCTURE:
+				addRegionInsns(code);
+				break;
+
+			case SIMPLE:
+				addSimpleMethodCode(code);
+				break;
+
+			case FALLBACK:
+				addFallbackMethodCode(code, FALLBACK_MODE);
+				break;
 		}
 	}
 
@@ -276,6 +295,59 @@ public class MethodGen {
 			mth.addError("Method code generation error", e);
 			CodeGenUtils.addErrors(code, mth);
 			dumpInstructions(code);
+		}
+	}
+
+	private void addSimpleMethodCode(ICodeWriter code) {
+		if (mth.getBasicBlocks() == null) {
+			code.startLine("// Blocks not ready for simple mode, using fallback");
+			addFallbackMethodCode(code, FALLBACK_MODE);
+			return;
+		}
+		JadxArgs args = mth.root().getArgs();
+		ICodeWriter tmpCode = args.getCodeWriterProvider().apply(args);
+		try {
+			tmpCode.setIndent(code.getIndent());
+			generateSimpleCode(tmpCode);
+			code.add(tmpCode);
+		} catch (Exception e) {
+			mth.addError("Simple mode code generation failed", e);
+			CodeGenUtils.addError(code, "Simple mode code generation failed", e);
+			dumpInstructions(code);
+		}
+	}
+
+	private void generateSimpleCode(ICodeWriter code) throws CodegenException {
+		SimpleModeHelper helper = new SimpleModeHelper(mth);
+		List<BlockNode> blocks = helper.prepareBlocks();
+		InsnGen insnGen = new InsnGen(this, true);
+		for (BlockNode block : blocks) {
+			if (block.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			if (helper.isNeedStartLabel(block)) {
+				code.decIndent();
+				code.startLine(getLabelName(block)).add(':');
+				code.incIndent();
+			}
+			for (InsnNode insn : block.getInstructions()) {
+				if (!insn.contains(AFlag.DONT_GENERATE)) {
+					if (insn.getResult() != null) {
+						CodeVar codeVar = insn.getResult().getSVar().getCodeVar();
+						if (!codeVar.isDeclared()) {
+							insn.add(AFlag.DECLARE_VAR);
+							codeVar.setDeclared(true);
+						}
+					}
+					InsnCodeOffset.attach(code, insn);
+					insnGen.makeInsn(insn, code);
+					addCatchComment(code, insn, false);
+					CodeGenUtils.addCodeComments(code, mth, insn);
+				}
+			}
+			if (helper.isNeedEndGoto(block)) {
+				code.startLine("goto ").add(getLabelName(block.getSuccessors().get(0)));
+			}
 		}
 	}
 
@@ -353,60 +425,81 @@ public class MethodGen {
 
 	public static void addFallbackInsns(ICodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
 		int startIndent = code.getIndent();
-		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
+		MethodGen methodGen = getFallbackMethodGen(mth);
+		InsnGen insnGen = new InsnGen(methodGen, true);
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null) {
 				continue;
 			}
-			if (insn.contains(AType.JADX_ERROR)) {
-				for (JadxError error : insn.getAll(AType.JADX_ERROR)) {
-					code.startLine("// ").add(error.getError());
-				}
-				continue;
+			methodGen.dumpInsn(code, insnGen, option, startIndent, prevInsn, insn);
+			prevInsn = insn;
+		}
+	}
+
+	private boolean dumpInsn(ICodeWriter code, InsnGen insnGen, FallbackOption option, int startIndent,
+			@Nullable InsnNode prevInsn, InsnNode insn) {
+		if (insn.contains(AType.JADX_ERROR)) {
+			for (JadxError error : insn.getAll(AType.JADX_ERROR)) {
+				code.startLine("// ").add(error.getError());
 			}
-			if (option != BLOCK_DUMP && needLabel(insn, prevInsn)) {
+			return true;
+		}
+		if (option != BLOCK_DUMP && needLabel(insn, prevInsn)) {
+			code.decIndent();
+			code.startLine(getLabelName(insn.getOffset()) + ':');
+			code.incIndent();
+		}
+		if (insn.getType() == InsnType.NOP) {
+			return true;
+		}
+		try {
+			boolean escapeComment = isCommentEscapeNeeded(insn, option);
+			if (escapeComment) {
 				code.decIndent();
-				code.startLine(getLabelName(insn.getOffset()) + ':');
+				code.startLine("*/");
+				code.startLine("//  ");
+			} else {
+				code.startLineWithNum(insn.getSourceLine());
+			}
+			InsnCodeOffset.attach(code, insn);
+			RegisterArg resArg = insn.getResult();
+			if (resArg != null) {
+				ArgType varType = resArg.getInitType();
+				if (varType.isTypeKnown()) {
+					code.add(varType.toString()).add(' ');
+				}
+			}
+			insnGen.makeInsn(insn, code, InsnGen.Flags.INLINE);
+			if (escapeComment) {
+				code.startLine("/*");
 				code.incIndent();
 			}
-			if (insn.getType() == InsnType.NOP) {
-				continue;
-			}
-			try {
-				boolean escapeComment = isCommentEscapeNeeded(insn, option);
-				if (escapeComment) {
-					code.decIndent();
-					code.startLine("*/");
-					code.startLine("//  ");
-				} else {
-					code.startLineWithNum(insn.getSourceLine());
-				}
-				InsnCodeOffset.attach(code, insn);
-				RegisterArg resArg = insn.getResult();
-				if (resArg != null) {
-					ArgType varType = resArg.getInitType();
-					if (varType.isTypeKnown()) {
-						code.add(varType.toString()).add(' ');
-					}
-				}
-				insnGen.makeInsn(insn, code, InsnGen.Flags.INLINE);
-				if (escapeComment) {
-					code.startLine("/*");
-					code.incIndent();
-				}
+			addCatchComment(code, insn, true);
+			CodeGenUtils.addCodeComments(code, mth, insn);
+		} catch (Exception e) {
+			LOG.debug("Error generate fallback instruction: ", e.getCause());
+			code.setIndent(startIndent);
+			code.startLine("// error: " + insn);
+		}
+		return false;
+	}
 
-				CatchAttr catchAttr = insn.get(AType.EXC_CATCH);
-				if (catchAttr != null) {
-					code.add("     // " + catchAttr);
-				}
-				CodeGenUtils.addCodeComments(code, mth, insn);
-			} catch (Exception e) {
-				LOG.debug("Error generate fallback instruction: ", e.getCause());
-				code.setIndent(startIndent);
-				code.startLine("// error: " + insn);
+	private void addCatchComment(ICodeWriter code, InsnNode insn, boolean raw) {
+		CatchAttr catchAttr = insn.get(AType.EXC_CATCH);
+		if (catchAttr == null) {
+			return;
+		}
+		code.add("     // Catch:");
+		for (ExceptionHandler handler : catchAttr.getHandlers()) {
+			code.add(' ');
+			classGen.useClass(code, handler.getArgType());
+			code.add(" -> ");
+			if (raw) {
+				code.add(getLabelName(handler.getHandlerOffset()));
+			} else {
+				code.add(getLabelName(handler.getHandlerBlock()));
 			}
-			prevInsn = insn;
 		}
 	}
 
@@ -449,7 +542,22 @@ public class MethodGen {
 		return new MethodGen(clsGen, mth);
 	}
 
+	public static String getLabelName(BlockNode block) {
+		return String.format("L%d", block.getId());
+	}
+
+	public static String getLabelName(IfNode insn) {
+		BlockNode thenBlock = insn.getThenBlock();
+		if (thenBlock != null) {
+			return getLabelName(thenBlock);
+		}
+		return getLabelName(insn.getTarget());
+	}
+
 	public static String getLabelName(int offset) {
-		return "L_" + InsnUtils.formatOffset(offset);
+		if (offset < 0) {
+			return String.format("LB_%x", -offset);
+		}
+		return String.format("L%x", offset);
 	}
 }

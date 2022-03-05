@@ -50,6 +50,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -517,7 +518,7 @@ public class InsnGen {
 				code.add(' ');
 				code.add(ifInsn.getOp().getSymbol()).add(' ');
 				addArg(code, insn.getArg(1));
-				code.add(") goto ").add(MethodGen.getLabelName(ifInsn.getTarget()));
+				code.add(") goto ").add(MethodGen.getLabelName(ifInsn));
 				break;
 
 			case GOTO:
@@ -538,13 +539,24 @@ public class InsnGen {
 				code.add(") {");
 				code.incIndent();
 				int[] keys = sw.getKeys();
-				int[] targets = sw.getTargets();
-				for (int i = 0; i < keys.length; i++) {
-					code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
-					code.add(MethodGen.getLabelName(targets[i])).add(';');
+				int size = keys.length;
+				BlockNode[] targetBlocks = sw.getTargetBlocks();
+				if (targetBlocks != null) {
+					for (int i = 0; i < size; i++) {
+						code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
+						code.add(MethodGen.getLabelName(targetBlocks[i])).add(';');
+					}
+					code.startLine("default: goto ");
+					code.add(MethodGen.getLabelName(sw.getDefTargetBlock())).add(';');
+				} else {
+					int[] targets = sw.getTargets();
+					for (int i = 0; i < size; i++) {
+						code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
+						code.add(MethodGen.getLabelName(targets[i])).add(';');
+					}
+					code.startLine("default: goto ");
+					code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
 				}
-				code.startLine("default: goto ");
-				code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
 				code.decIndent();
 				code.startLine('}');
 				break;

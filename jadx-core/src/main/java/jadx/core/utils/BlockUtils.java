@@ -453,6 +453,31 @@ public class BlockUtils {
 		}
 	}
 
+	public static void dfsVisit(MethodNode mth, Consumer<BlockNode> visitor) {
+		BitSet visited = newBlocksBitSet(mth);
+		Deque<BlockNode> queue = new ArrayDeque<>();
+		BlockNode enterBlock = mth.getEnterBlock();
+		queue.addLast(enterBlock);
+		visited.set(mth.getEnterBlock().getId());
+		while (true) {
+			BlockNode current = queue.pollLast();
+			if (current == null) {
+				return;
+			}
+			visitor.accept(current);
+			List<BlockNode> successors = current.getSuccessors();
+			int count = successors.size();
+			for (int i = count - 1; i >= 0; i--) { // to preserve order in queue
+				BlockNode next = successors.get(i);
+				int nextId = next.getId();
+				if (!visited.get(nextId)) {
+					queue.addLast(next);
+					visited.set(nextId);
+				}
+			}
+		}
+	}
+
 	public static List<BlockNode> collectPredecessors(MethodNode mth, BlockNode start, Collection<BlockNode> stopBlocks) {
 		BitSet bs = newBlocksBitSet(mth);
 		if (!stopBlocks.isEmpty()) {

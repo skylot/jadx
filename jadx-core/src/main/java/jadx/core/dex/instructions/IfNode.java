@@ -5,6 +5,7 @@ import java.util.List;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -68,6 +69,15 @@ public class IfNode extends GotoNode {
 		BlockNode tmp = thenBlock;
 		thenBlock = elseBlock;
 		elseBlock = tmp;
+	}
+
+	/**
+	 * Change 'a != false' to 'a == true'
+	 */
+	public void normalize() {
+		if (getOp() == IfOp.NE && getArg(1).isFalse()) {
+			changeCondition(IfOp.EQ, getArg(0), LiteralArg.litTrue());
+		}
 	}
 
 	public void changeCondition(IfOp op, InsnArg arg1, InsnArg arg2) {

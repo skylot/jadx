@@ -59,6 +59,7 @@ import com.google.gson.JsonObject;
 import say.swing.JFontChooser;
 
 import jadx.api.CommentsLevel;
+import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.DeobfuscationMapFileMode;
@@ -419,17 +420,17 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeDecompilationGroup() {
-		JCheckBox fallback = new JCheckBox();
-		fallback.setSelected(settings.isFallbackMode());
-		fallback.addItemListener(e -> {
-			settings.setFallbackMode(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
 		JCheckBox useDx = new JCheckBox();
 		useDx.setSelected(settings.isUseDx());
 		useDx.addItemListener(e -> {
 			settings.setUseDx(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JComboBox<DecompilationMode> decompilationModeComboBox = new JComboBox<>(DecompilationMode.values());
+		decompilationModeComboBox.setSelectedItem(settings.getDecompilationMode());
+		decompilationModeComboBox.addActionListener(e -> {
+			settings.setDecompilationMode((DecompilationMode) decompilationModeComboBox.getSelectedItem());
 			needReload();
 		});
 
@@ -543,6 +544,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
 				editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
+		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
@@ -551,7 +553,6 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
-		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		other.addRow(NLS.str("preferences.useKotlinMethodsForVarNames"), kotlinRenameVars);

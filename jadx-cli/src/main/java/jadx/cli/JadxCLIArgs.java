@@ -15,6 +15,7 @@ import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 import jadx.api.CommentsLevel;
+import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
@@ -57,6 +58,17 @@ public class JadxCLIArgs {
 
 	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
+
+	@Parameter(
+			names = { "-m", "--decompilation-mode" },
+			description = "code output mode:"
+					+ "\n 'auto' - trying best options (default)"
+					+ "\n 'restructure' - restore code structure (normal java code)"
+					+ "\n 'simple' - simplified instructions (linear, with goto's)"
+					+ "\n 'fallback' - raw instructions without modifications",
+			converter = RenameConverter.class
+	)
+	protected DecompilationMode decompilationMode = DecompilationMode.AUTO;
 
 	@Parameter(names = { "--show-bad-code" }, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
@@ -148,7 +160,7 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--raw-cfg" }, description = "save methods control flow graph (use raw instructions)")
 	protected boolean rawCfgOutput = false;
 
-	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)")
+	@Parameter(names = { "-f", "--fallback" }, description = "set '--decompilation-mode' to 'fallback' (deprecated)")
 	protected boolean fallbackMode = false;
 
 	@Parameter(names = { "--use-dx" }, description = "use dx/d8 to convert java bytecode")
@@ -236,7 +248,11 @@ public class JadxCLIArgs {
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
 		args.setSkipResources(skipResources);
-		args.setFallbackMode(fallbackMode);
+		if (fallbackMode) {
+			args.setDecompilationMode(DecompilationMode.FALLBACK);
+		} else {
+			args.setDecompilationMode(decompilationMode);
+		}
 		args.setShowInconsistentCode(showInconsistentCode);
 		args.setCfgOutput(cfgOutput);
 		args.setRawCFGOutput(rawCfgOutput);
@@ -311,6 +327,10 @@ public class JadxCLIArgs {
 
 	public boolean isUseDx() {
 		return useDx;
+	}
+
+	public DecompilationMode getDecompilationMode() {
+		return decompilationMode;
 	}
 
 	public boolean isShowInconsistentCode() {
@@ -489,6 +509,19 @@ public class JadxCLIArgs {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
 								+ JadxCLIArgs.enumValuesString(DeobfuscationMapFileMode.values()));
+			}
+		}
+	}
+
+	public static class DecompilationModeConverter implements IStringConverter<DecompilationMode> {
+		@Override
+		public DecompilationMode convert(String value) {
+			try {
+				return DecompilationMode.valueOf(value.toUpperCase());
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						'\'' + value + "' is unknown, possible values are: "
+								+ JadxCLIArgs.enumValuesString(DecompilationMode.values()));
 			}
 		}
 	}

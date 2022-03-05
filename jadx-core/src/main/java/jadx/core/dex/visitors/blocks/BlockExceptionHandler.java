@@ -149,12 +149,7 @@ public class BlockExceptionHandler {
 				continue;
 			}
 			firstInsn.remove(AType.EXC_HANDLER);
-			TmpEdgeAttr tmpEdgeAttr = block.get(AType.TMP_EDGE);
-			if (tmpEdgeAttr != null) {
-				// remove temp connection
-				BlockSplitter.removeConnection(tmpEdgeAttr.getBlock(), block);
-				block.remove(AType.TMP_EDGE);
-			}
+			removeTmpConnection(block);
 
 			ExceptionHandler excHandler = excHandlerAttr.getHandler();
 			if (block.getPredecessors().isEmpty()) {
@@ -173,6 +168,19 @@ public class BlockExceptionHandler {
 				excHandler.addBlock(emptyHandlerBlock);
 			}
 			fixMoveExceptionInsn(block, excHandlerAttr);
+		}
+	}
+
+	protected static void removeTmpConnections(MethodNode mth) {
+		mth.getBasicBlocks().forEach(BlockExceptionHandler::removeTmpConnection);
+	}
+
+	private static void removeTmpConnection(BlockNode block) {
+		TmpEdgeAttr tmpEdgeAttr = block.get(AType.TMP_EDGE);
+		if (tmpEdgeAttr != null) {
+			// remove temp connection
+			BlockSplitter.removeConnection(tmpEdgeAttr.getBlock(), block);
+			block.remove(AType.TMP_EDGE);
 		}
 	}
 

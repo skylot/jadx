@@ -33,8 +33,8 @@ public class TestFallbackMode extends IntegrationTest {
 
 		assertThat(code, containsString("public int test(int r2) {"));
 		assertThat(code, containsOne("r1 = this;"));
-		assertThat(code, containsOne("L_0x0000:"));
-		assertThat(code, containsOne("L_0x0007:"));
+		assertThat(code, containsOne("L0:"));
+		assertThat(code, containsOne("L7:"));
 		assertThat(code, containsOne("int r2 = r2 + 1"));
 		assertThat(code, not(containsString("throw new UnsupportedOperationException")));
 	}
