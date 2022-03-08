@@ -169,7 +169,10 @@ public class LogcatController {
 		}
 
 		public void removePid(int pid) {
-			this.pid.remove(this.pid.indexOf(pid));
+			int pidPos = this.pid.indexOf(pid);
+			if(pidPos >= 0) {
+				this.pid.remove(pidPos);
+			}
 		}
 
 		public void togglePid(int pid, boolean state) {
@@ -187,7 +190,10 @@ public class LogcatController {
 		}
 
 		public void removeMsgType(byte msgType) {
-			this.msgType.remove(this.msgType.indexOf(msgType));
+			int typePos = this.msgType.indexOf(msgType);
+			if(typePos >= 0) {
+				this.msgType.remove(typePos);
+			}
 		}
 
 		public void toggleMsgType(byte msgType, boolean state) {

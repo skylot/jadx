@@ -4,6 +4,8 @@ import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import java.awt.*;
@@ -33,6 +35,7 @@ public class LogcatPanel extends JPanel{
 	public LogcatPanel(JDebuggerPanel debugPanel){
 		this.debugPanel = debugPanel;
 	}
+	private JScrollPane logcatScroll;
 
 	public boolean showLogcat() {
 		ArrayList<String> pkgs = new ArrayList<String>();
@@ -52,7 +55,7 @@ public class LogcatPanel extends JPanel{
 		logcatArea = new JTextArea();
 		logcatArea.setEditable(false);
 		logcatArea.setLineWrap(true);
-		JScrollPane logcatScroll = new JScrollPane(logcatArea);
+		logcatScroll = new JScrollPane(logcatArea);
 		menuPanel = new JPanel();
 		menuPanel.setLayout(new BorderLayout());
 
@@ -105,6 +108,8 @@ public class LogcatPanel extends JPanel{
 				.append(logcatInfo.getMsg())
 				.append("\n");
 		logcatArea.append(sb.toString());
+
+
 		try {
 			switch(logcatInfo.getMsgType()) {
 				case 0: //Unknown
@@ -185,15 +190,15 @@ public class LogcatPanel extends JPanel{
 			return panel;
 		}
 
-		public void checkAll() {
-			ListModel model = combo.getModel();
-			for(int i = 0; i < model.getSize(); i++) {
-				CheckComboStore ccs = (CheckComboStore) model.getElementAt(i);
+		public void toggleAll(boolean checked) {
+			for(int i = 0; i < combo.getItemCount(); i++) {
+				CheckComboStore ccs = (CheckComboStore) combo.getItemAt(i);
+				ccs.state = checked;
 				switch (type) {
 					case "Process":
-						logcatController.getFilter().togglePid(ccs.index, true);
+						logcatController.getFilter().togglePid(ccs.index, checked);
 					case "Level":
-						logcatController.getFilter().toggleMsgType((byte) ccs.index, true);
+						logcatController.getFilter().toggleMsgType((byte) ccs.index, checked);
 				}
 			}
 			logcatController.reload();
@@ -202,6 +207,7 @@ public class LogcatPanel extends JPanel{
 
 	class CheckComboRenderer implements ListCellRenderer {
 		JCheckBox checkBox;
+		ArrayList<JCheckBox> boxes = new ArrayList<JCheckBox>();
 
 		public CheckComboRenderer() {
 			checkBox = new JCheckBox();
@@ -212,7 +218,14 @@ public class LogcatPanel extends JPanel{
 			CheckComboStore store = (CheckComboStore) value;
 			checkBox.setText(store.id);
 			checkBox.setSelected(((Boolean) store.state).booleanValue());
+			boxes.add(checkBox);
 			return checkBox;
+		}
+
+		public JCheckBox getCheckBoxAt(int i) {
+			debugPanel.log(String.valueOf(boxes.size()));
+			return boxes.get(i);
+
 		}
 	}
 
@@ -262,7 +275,7 @@ public class LogcatPanel extends JPanel{
 			selectAll.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent actionEvent) {
-					test();
+					combo.toggleAll(true);
 				}
 			});
 
@@ -270,17 +283,13 @@ public class LogcatPanel extends JPanel{
 			unselectAll.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent actionEvent) {
-					test();
+					combo.toggleAll(false);
 				}
 			});
 
 
 			add(selectAll);
 			add(unselectAll);
-		}
-
-		public void test() {
-			combo.checkAll();
 		}
 	}
 
