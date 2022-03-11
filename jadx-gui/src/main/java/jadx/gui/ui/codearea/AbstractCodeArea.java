@@ -40,6 +40,7 @@ import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.ZoomActions;
 
 public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	private static final long serialVersionUID = -3980354865216031972L;
@@ -67,6 +68,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 		addCaretActions();
 		addFastCopyAction();
+
+		ZoomActions.register(this, settings, this::loadSettings);
 	}
 
 	private void addWrapLineMenuAction(JadxSettings settings) {

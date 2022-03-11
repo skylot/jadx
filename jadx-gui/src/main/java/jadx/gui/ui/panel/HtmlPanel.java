@@ -11,6 +11,7 @@ import javax.swing.JScrollPane;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.utils.ui.ZoomActions;
 
 public final class HtmlPanel extends ContentPanel {
 	private static final long serialVersionUID = -6251262855835426245L;
@@ -27,6 +28,8 @@ public final class HtmlPanel extends ContentPanel {
 		textArea.setEditable(false);
 		JScrollPane sp = new JScrollPane(textArea);
 		add(sp);
+
+		ZoomActions.register(textArea, panel.getMainWindow().getSettings(), this::loadSettings);
 	}
 
 	@Override

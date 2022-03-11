@@ -42,6 +42,9 @@ public class FontUtils {
 	}
 
 	public static String convertToStr(Font font) {
+		if (font.getSize() < 1) {
+			throw new JadxRuntimeException("Bad font size: " + font.getSize());
+		}
 		return font.getFontName()
 				+ '/' + convertFontStyleToString(font.getStyle())
 				+ '/' + font.getSize();
