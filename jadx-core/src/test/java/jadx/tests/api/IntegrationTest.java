@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +38,7 @@ import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
+import jadx.api.JavaClass;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
@@ -60,6 +64,7 @@ import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -166,8 +171,22 @@ public abstract class IntegrationTest extends TestUtils {
 		} catch (Exception e) {
 			LOG.error("Failed to get class node", e);
 			fail(e.getMessage());
+			return null;
 		}
-		return null;
+	}
+
+	public List<ClassNode> getClassNodes(Class<?>... classes) {
+		try {
+			assertThat("Class list is empty", classes, not(emptyArray()));
+			List<File> srcFiles = Stream.of(classes).map(this::getSourceFileForClass).collect(Collectors.toList());
+			List<File> clsFiles = compileSourceFiles(srcFiles);
+			assertThat("Class files list is empty", clsFiles, not(empty()));
+			return decompileFiles(clsFiles);
+		} catch (Exception e) {
+			LOG.error("Failed to get class node", e);
+			fail(e.getMessage());
+			return null;
+		}
 	}
 
 	public ClassNode getClassNodeFromFiles(List<File> files, String clsName) {
@@ -186,6 +205,18 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		decompileAndCheck(cls);
 		return cls;
+	}
+
+	public List<ClassNode> decompileFiles(List<File> files) {
+		jadxDecompiler = loadFiles(files);
+		List<ClassNode> sortedClsNodes = jadxDecompiler.getDecompileScheduler()
+				.buildBatches(jadxDecompiler.getClasses())
+				.stream()
+				.flatMap(Collection::stream)
+				.map(JavaClass::getClassNode)
+				.collect(Collectors.toList());
+		decompileAndCheck(sortedClsNodes);
+		return sortedClsNodes;
 	}
 
 	@Nullable
@@ -256,7 +287,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void runChecks(List<ClassNode> clsList) {
 		clsList.forEach(this::checkCode);
-		compile(clsList);
+		compileClassNode(clsList);
 		clsList.forEach(this::runAutoCheck);
 	}
 
@@ -439,7 +470,7 @@ public abstract class IntegrationTest extends TestUtils {
 		return null;
 	}
 
-	void compile(List<ClassNode> clsList) {
+	void compileClassNode(List<ClassNode> clsList) {
 		if (!compile) {
 			return;
 		}
@@ -460,32 +491,39 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private List<File> compileClass(Class<?> cls) throws IOException {
-		String clsFullName = cls.getName();
-		String rootClsName;
-		int end = clsFullName.indexOf('$');
-		if (end != -1) {
-			rootClsName = clsFullName.substring(0, end);
-		} else {
-			rootClsName = clsFullName;
+		File sourceFile = getSourceFileForClass(cls);
+		List<File> clsFiles = compileSourceFiles(Collections.singletonList(sourceFile));
+		if (removeParentClassOnInput) {
+			// remove classes which are parents for test class
+			String clsFullName = cls.getName();
+			String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
+			clsFiles.removeIf(next -> !next.getName().contains(clsName));
 		}
+		return clsFiles;
+	}
+
+	private File getSourceFileForClass(Class<?> cls) {
+		String clsFullName = cls.getName();
+		int innerEnd = clsFullName.indexOf('$');
+		String rootClsName = innerEnd == -1 ? clsFullName : clsFullName.substring(0, innerEnd);
 		String javaFileName = rootClsName.replace('.', '/') + ".java";
 		File file = new File(TEST_DIRECTORY, javaFileName);
-		if (!file.exists()) {
-			file = new File(TEST_DIRECTORY2, javaFileName);
+		if (file.exists()) {
+			return file;
 		}
-		assertThat("Test source file not found: " + javaFileName, file.exists(), is(true));
-		List<File> compileFileList = Collections.singletonList(file);
+		File file2 = new File(TEST_DIRECTORY2, javaFileName);
+		if (file2.exists()) {
+			return file2;
+		}
+		throw new JadxRuntimeException("Test source not found for class: " + clsFullName);
+	}
 
+	private List<File> compileSourceFiles(List<File> compileFileList) throws IOException {
 		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
 		sourceCompiler = new TestCompiler(compilerOptions);
 		List<File> files = sourceCompiler.compileFiles(compileFileList, outTmp);
 		if (saveTestJar) {
 			saveToJar(files, outTmp);
-		}
-		if (removeParentClassOnInput) {
-			// remove classes which are parents for test class
-			String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
-			files.removeIf(next -> !next.getName().contains(clsName));
 		}
 		return files;
 	}

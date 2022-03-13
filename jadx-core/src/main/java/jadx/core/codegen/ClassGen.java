@@ -611,6 +611,9 @@ public class ClassGen {
 			return fullName;
 		}
 		String shortName = extClsInfo.getAliasShortName();
+		if (useCls.equals(extClsInfo)) {
+			return shortName;
+		}
 		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
@@ -620,15 +623,15 @@ public class ClassGen {
 		if (extClsInfo.isInner()) {
 			return expandInnerClassName(useCls, extClsInfo);
 		}
+		if (searchCollision(cls.root(), useCls, extClsInfo)) {
+			return fullName;
+		}
 		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
 			return shortName;
 		}
 		// don't add import if this class from same package
 		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
 			return shortName;
-		}
-		if (searchCollision(cls.root(), useCls, extClsInfo)) {
-			return fullName;
 		}
 		// ignore classes from default package
 		if (extClsInfo.isDefaultPackage()) {
