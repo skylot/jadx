@@ -389,11 +389,11 @@ public class InsnDecoder {
 				return arrLenInsn;
 
 			case AGET:
-				return arrayGet(insn, ArgType.INT_FLOAT);
+				return arrayGet(insn, ArgType.INT_FLOAT, ArgType.NARROW_NUMBERS_NO_BOOL);
 			case AGET_BOOLEAN:
 				return arrayGet(insn, ArgType.BOOLEAN);
 			case AGET_BYTE:
-				return arrayGet(insn, ArgType.BYTE);
+				return arrayGet(insn, ArgType.BYTE, ArgType.NARROW_INTEGRAL);
 			case AGET_BYTE_BOOLEAN:
 				return arrayGet(insn, ArgType.BYTE_BOOLEAN);
 			case AGET_CHAR:
@@ -406,7 +406,7 @@ public class InsnDecoder {
 				return arrayGet(insn, ArgType.UNKNOWN_OBJECT);
 
 			case APUT:
-				return arrayPut(insn, ArgType.INT_FLOAT);
+				return arrayPut(insn, ArgType.INT_FLOAT, ArgType.NARROW_NUMBERS_NO_BOOL);
 			case APUT_BOOLEAN:
 				return arrayPut(insn, ArgType.BOOLEAN);
 			case APUT_BYTE:
@@ -607,16 +607,24 @@ public class InsnDecoder {
 	}
 
 	private InsnNode arrayGet(InsnData insn, ArgType argType) {
+		return arrayGet(insn, argType, argType);
+	}
+
+	private InsnNode arrayGet(InsnData insn, ArgType arrElemType, ArgType resType) {
 		InsnNode inode = new InsnNode(InsnType.AGET, 2);
-		inode.setResult(InsnArg.typeImmutableIfKnownReg(insn, 0, argType));
-		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));
+		inode.setResult(InsnArg.typeImmutableIfKnownReg(insn, 0, resType));
+		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(arrElemType)));
 		inode.addArg(InsnArg.reg(insn, 2, ArgType.NARROW_INTEGRAL));
 		return inode;
 	}
 
 	private InsnNode arrayPut(InsnData insn, ArgType argType) {
+		return arrayPut(insn, argType, argType);
+	}
+
+	private InsnNode arrayPut(InsnData insn, ArgType arrElemType, ArgType argType) {
 		InsnNode inode = new InsnNode(InsnType.APUT, 3);
-		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));
+		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(arrElemType)));
 		inode.addArg(InsnArg.reg(insn, 2, ArgType.NARROW_INTEGRAL));
 		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 0, argType));
 		return inode;

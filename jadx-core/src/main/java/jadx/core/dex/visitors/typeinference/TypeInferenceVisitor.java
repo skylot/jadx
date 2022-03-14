@@ -87,6 +87,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				this::tryDeduceTypes,
 				this::trySplitConstInsns,
 				this::tryToFixIncompatiblePrimitives,
+				this::tryToForceImmutableTypes,
 				this::tryInsertAdditionalMove,
 				this::runMultiVariableSearch,
 				this::tryRemoveGenerics);
@@ -835,6 +836,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (typeInfo.getType().isTypeKnown()) {
 			return false;
 		}
+		boolean assigned = false;
 		for (ITypeBound bound : typeInfo.getBounds()) {
 			ArgType boundType = bound.getType();
 			switch (bound.getBound()) {
@@ -842,6 +844,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 					if (!boundType.contains(PrimitiveType.BOOLEAN)) {
 						return false;
 					}
+					assigned = true;
 					break;
 				case USE:
 					if (!boundType.canBeAnyNumber()) {
@@ -849,6 +852,9 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 					}
 					break;
 			}
+		}
+		if (!assigned) {
+			return false;
 		}
 
 		boolean fixed = false;
@@ -930,6 +936,36 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		TernaryInsn convertInsn = ModVisitor.makeBooleanConvertInsn(resultArg, useArg, useType);
 		convertInsn.add(AFlag.SYNTHETIC);
 		return convertInsn;
+	}
+
+	private boolean tryToForceImmutableTypes(MethodNode mth) {
+		boolean fixed = false;
+		for (SSAVar ssaVar : mth.getSVars()) {
+			ArgType type = ssaVar.getTypeInfo().getType();
+			if (!type.isTypeKnown() && ssaVar.isTypeImmutable()) {
+				if (forceImmutableType(ssaVar)) {
+					fixed = true;
+				}
+			}
+		}
+		if (!fixed) {
+			return false;
+		}
+		return runTypePropagation(mth);
+	}
+
+	private boolean forceImmutableType(SSAVar ssaVar) {
+		for (RegisterArg useArg : ssaVar.getUseList()) {
+			InsnNode parentInsn = useArg.getParentInsn();
+			if (parentInsn != null) {
+				InsnType insnType = parentInsn.getType();
+				if (insnType == InsnType.AGET || insnType == InsnType.APUT) {
+					ssaVar.setType(ssaVar.getImmutableType());
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static void assignImmutableTypes(MethodNode mth) {
