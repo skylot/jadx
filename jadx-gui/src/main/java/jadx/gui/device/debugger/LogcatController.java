@@ -53,6 +53,9 @@ public class LogcatController {
 	}
 
 	private void getLog() {
+		if(logcatPanel.isReady() == false) {
+			return;
+		}
 		try {
 			byte[] buf;
 			if(recent == null) {
@@ -130,6 +133,12 @@ public class LogcatController {
 			startLogcat();
 		}
 		return true;
+	}
+
+	public void exit() {
+		stopLogcat();
+		filter = new LogcatFilter(null, null);
+		recent = null;
 	}
 
 	public LogcatFilter getFilter() {

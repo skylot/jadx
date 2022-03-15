@@ -6,8 +6,7 @@ import jadx.gui.device.protocol.ADB;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,16 +16,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogcatPanel extends JPanel{
-	private final Highlighter.HighlightPainter defaultPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.PINK);
-	private final Highlighter.HighlightPainter verbosePainter = new DefaultHighlighter.DefaultHighlightPainter(Color.CYAN);
-	private final Highlighter.HighlightPainter debugPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-	private final Highlighter.HighlightPainter infoPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.LIGHT_GRAY);
-	private final Highlighter.HighlightPainter warningPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-	private final Highlighter.HighlightPainter errorPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
-	private final Highlighter.HighlightPainter fatalPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.MAGENTA);
-	private final Highlighter.HighlightPainter silentPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
+	StyleContext sc = StyleContext.getDefaultStyleContext();
+	private final AttributeSet defaultAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#6c71c4"));
+	private final AttributeSet verboseAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#2aa198"));
+	private final AttributeSet debugAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#859900"));
+	private final AttributeSet infoAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#586e75"));
+	private final AttributeSet warningAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#b58900"));
+	private final AttributeSet errorAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#dc322f"));
+	private final AttributeSet fatalAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#d33682"));
+	private final AttributeSet silentAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#002b36"));
 
-	private transient JTextArea logcatArea;
+	private transient JTextPane logcatPane;
 	private final transient JDebuggerPanel debugPanel;
 	private LogcatController logcatController;
 	private boolean ready = false;
@@ -52,10 +52,10 @@ public class LogcatPanel extends JPanel{
 		JPanel msgTypeBox = new CheckCombo("Level", msgIndex,msgTypes).getContent();
 
 		this.setLayout(new BorderLayout());
-		logcatArea = new JTextArea();
-		logcatArea.setEditable(false);
-		logcatArea.setLineWrap(true);
-		logcatScroll = new JScrollPane(logcatArea);
+		logcatPane = new JTextPane();
+		logcatPane.setEditable(false);
+		//logcatPane.setLineWrap(true);
+		logcatScroll = new JScrollPane(logcatPane);
 		menuPanel = new JPanel();
 		menuPanel.setLayout(new BorderLayout());
 
@@ -71,8 +71,7 @@ public class LogcatPanel extends JPanel{
 	}
 
 	public boolean clearLogcatArea() {
-		logcatArea.getHighlighter().removeAllHighlights();
-		logcatArea.setText("");
+		logcatPane.setText("");
 		return true;
 	}
 
@@ -93,10 +92,24 @@ public class LogcatPanel extends JPanel{
 		return true;
 	}
 
+	public boolean isReady() {
+		return this.ready;
+	}
+
+	private boolean isAtBottom(JScrollBar scrollbar) {
+		BoundedRangeModel model = scrollbar.getModel();
+		return (model.getExtent() + model.getValue()) == model.getMaximum();
+	}
 
 	public void log(LogcatController.logcatInfo logcatInfo) {
-		int lines = logcatArea.getLineCount();
-		Highlighter logcatHilight = logcatArea.getHighlighter();
+		boolean atBottom = false;
+
+		int len = logcatPane.getDocument().getLength();
+		JScrollBar scrollbar = logcatScroll.getVerticalScrollBar();
+		if(isAtBottom(scrollbar)) {
+			atBottom = true;
+		}
+
 		StringBuilder sb = new StringBuilder();
 		sb.append(" > ")
 				.append(logcatInfo.getTimestamp())
@@ -107,43 +120,56 @@ public class LogcatPanel extends JPanel{
 				.append(" ")
 				.append(logcatInfo.getMsg())
 				.append("\n");
-		logcatArea.append(sb.toString());
-
 
 		try {
 			switch(logcatInfo.getMsgType()) {
 				case 0: //Unknown
 					break;
 				case 1: //Default
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, defaultPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), defaultAset);
 					break;
 				case 2: //Verbose
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, verbosePainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), verboseAset);
 					break;
 				case 3: //Debug
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, debugPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), debugAset);
 					break;
 				case 4: //Info
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, infoPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), infoAset);
 					break;
 				case 5: //Warn
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, warningPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), warningAset);
 					break;
 				case 6: //Error
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, errorPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), errorAset);
 					break;
 				case 7: //Fatal
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, fatalPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), fatalAset);
 					break;
 				case 8: //Silent
-					logcatHilight.addHighlight(logcatArea.getLineStartOffset(lines-1), logcatArea.getLineEndOffset(lines-1) - 1, silentPainter);
+					logcatPane.getDocument().insertString(len, sb.toString(), silentAset);
 					break;
 				default:
+					logcatPane.getDocument().insertString(len, sb.toString(), null);
 					break;
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+
+		if(atBottom) {
+			EventQueue.invokeLater(new Runnable()
+			{
+				public void run() {
+					scrollbar.setValue(scrollbar.getMaximum());
+				}
+			});
+		}
+	}
+
+	public void exit() {
+		logcatController.exit();
+		clearLogcatArea();
 	}
 
 	class CheckCombo implements ActionListener {

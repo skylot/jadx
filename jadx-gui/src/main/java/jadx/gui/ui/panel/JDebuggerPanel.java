@@ -171,6 +171,7 @@ public class JDebuggerPanel extends JPanel {
 							JOptionPane.OK_CANCEL_OPTION);
 					if (what == JOptionPane.OK_OPTION) {
 						controller.exit();
+						logcatPanel.exit();
 					} else {
 						return;
 					}
