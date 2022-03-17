@@ -85,6 +85,7 @@ import ch.qos.logback.classic.Level;
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
@@ -342,9 +343,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		cancelBackgroundJobs();
-		clearTree();
-		wrapper.close();
+		closeAll();
 		updateProject(new JadxProject());
 	}
 
@@ -406,16 +405,14 @@ public class MainWindow extends JFrame {
 	void open(List<Path> paths, Runnable onFinish) {
 		if (paths.size() == 1) {
 			Path singleFile = paths.get(0);
-			if (singleFile.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(JadxProject.PROJECT_EXTENSION)) {
-				openProject(singleFile);
-				onFinish.run();
+			String fileExtension = CommonFileUtils.getFileExtension(singleFile.getFileName().toString());
+			if (fileExtension != null && fileExtension.equalsIgnoreCase(JadxProject.PROJECT_EXTENSION)) {
+				openProject(singleFile, onFinish);
 				return;
 			}
 		}
+		closeAll();
 		project.setFilePath(paths);
-		clearTree();
-		BreakpointManager.saveAndExit();
-		LogCollector.getInstance().reset();
 		if (paths.isEmpty()) {
 			return;
 		}
@@ -431,6 +428,17 @@ public class MainWindow extends JFrame {
 					onOpen(paths);
 					onFinish.run();
 				});
+	}
+
+	private void closeAll() {
+		cancelBackgroundJobs();
+		saveOpenTabs();
+		clearTree();
+		BreakpointManager.saveAndExit();
+		LogCollector.getInstance().reset();
+		wrapper.close();
+		tabbedPane.closeAllTabs();
+		System.gc();
 	}
 
 	private void checkLoadedStatus() {
@@ -483,7 +491,7 @@ public class MainWindow extends JFrame {
 		return true;
 	}
 
-	private void openProject(Path path) {
+	private void openProject(Path path, Runnable onFinish) {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
@@ -500,9 +508,9 @@ public class MainWindow extends JFrame {
 		settings.addRecentProject(path);
 		List<Path> filePaths = jadxProject.getFilePaths();
 		if (filePaths == null) {
-			clearTree();
+			closeAll();
 		} else {
-			open(filePaths);
+			open(filePaths, onFinish);
 		}
 	}
 
@@ -561,10 +569,14 @@ public class MainWindow extends JFrame {
 				DecompileTask decompileTask = new DecompileTask(this, wrapper);
 				backgroundExecutor.executeAndWait(decompileTask);
 
+				backgroundExecutor.execute(decompileTask.getTitle(), wrapper::unloadClasses).get();
+				System.gc();
+
 				IndexTask indexTask = new IndexTask(this, wrapper);
 				backgroundExecutor.executeAndWait(indexTask);
 
 				processDecompilationResults(decompileTask.getResult(), indexTask.getResult());
+				System.gc();
 			} catch (Exception e) {
 				LOG.error("Decompile task execution failed", e);
 			}
@@ -1395,7 +1407,9 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveOpenTabs() {
-		project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
+		if (project != null) {
+			project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
+		}
 	}
 
 	private void restoreOpenTabs() {

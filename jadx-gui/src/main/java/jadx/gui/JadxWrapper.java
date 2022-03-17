@@ -16,9 +16,14 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.ProcessState;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 
+import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
+import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
+import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 import static jadx.gui.utils.FileUtils.toFiles;
 
 public class JadxWrapper {
@@ -48,6 +53,15 @@ public class JadxWrapper {
 		} catch (Exception e) {
 			LOG.error("Jadx init error", e);
 			close();
+		}
+	}
+
+	// TODO: check and move into core package
+	public void unloadClasses() {
+		for (ClassNode cls : decompiler.getRoot().getClasses()) {
+			ProcessState clsState = cls.getState();
+			cls.unload();
+			cls.setState(clsState == PROCESS_COMPLETE ? GENERATED_AND_UNLOADED : NOT_LOADED);
 		}
 	}
 
