@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,6 @@ import io.github.hqktech.JDWP.VirtualMachine.AllThreads.AllThreadsReplyData;
 import io.github.hqktech.JDWP.VirtualMachine.AllThreads.AllThreadsReplyDataThreads;
 import io.github.hqktech.JDWP.VirtualMachine.CreateString.CreateStringReplyData;
 import io.reactivex.annotations.NonNull;
-import io.reactivex.annotations.Nullable;
 
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.gui.device.debugger.smali.RegisterInfo;
@@ -152,7 +152,7 @@ public class SmaliDebugger {
 			debugger.initPools();
 			return debugger;
 		} catch (IOException e) {
-			throw new SmaliDebuggerException(e);
+			throw new SmaliDebuggerException("Attach failed", e);
 		}
 	}
 
@@ -617,8 +617,8 @@ public class SmaliDebugger {
 			Packet res = readPacket(inputStream);
 			tryThrowError(res);
 			if (res.isReplyPacket() && res.getID() == 1) {
-				outputStream.write(JDWP.IDSizes.encode().setPacketID(1).getBytes()); // get id sizes for decoding & encoding of jdwp
-				// packets.
+				// get id sizes for decoding & encoding of jdwp packets.
+				outputStream.write(JDWP.IDSizes.encode().setPacketID(1).getBytes());
 				res = readPacket(inputStream);
 				tryThrowError(res);
 				if (res.isReplyPacket() && res.getID() == 1) {
@@ -632,13 +632,14 @@ public class SmaliDebugger {
 		throw new SmaliDebuggerException("Failed to init JDWP.");
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private static void handShake(OutputStream outputStream, InputStream inputStream) throws SmaliDebuggerException {
 		byte[] buf = new byte[14];
 		try {
 			outputStream.write(JDWP.encodeHandShakePacket());
-			inputStream.read(buf, 0, 14);
+			inputStream.read(buf);
 		} catch (Exception e) {
-			throw new SmaliDebuggerException("jdwp handshake failed, " + e.getMessage());
+			throw new SmaliDebuggerException("jdwp handshake failed", e);
 		}
 		if (!JDWP.decodeHandShakePacket(buf)) {
 			throw new SmaliDebuggerException("jdwp handshake failed.");
@@ -661,23 +662,19 @@ public class SmaliDebugger {
 		return idGenerator.getAndAdd(1);
 	}
 
-	private static byte[] appendBytes(byte[] buf1, byte[] buf2) {
-		byte[] tempBuf = new byte[buf1.length + buf2.length];
-		System.arraycopy(buf1, 0, tempBuf, 0, buf1.length);
-		System.arraycopy(buf2, 0, tempBuf, buf1.length, buf2.length);
-		return tempBuf;
-	}
-
 	/**
 	 * Read & decode packets from Socket connection
 	 */
 	private void decodingLoop() {
 		Executors.newSingleThreadExecutor().execute(() -> {
 			boolean errFromCallback;
-			for (;;) {
+			while (true) {
 				errFromCallback = false;
 				try {
 					Packet res = readPacket(inputStream);
+					if (res == null) {
+						break;
+					}
 					suspendInfo.nextRound();
 					ICommandResult callback = callbackMap.remove(res.getID());
 					if (callback != null) {
@@ -1129,28 +1126,48 @@ public class SmaliDebugger {
 	/**
 	 * Reads a JDWP packet.
 	 */
+	@Nullable
 	private static Packet readPacket(InputStream inputStream) throws SmaliDebuggerException {
-		byte[] bytes = new byte[JDWP.PACKET_HEADER_SIZE];
 		try {
-			if (inputStream.read(bytes, 0, bytes.length) == bytes.length) {
-				int len = JDWP.getPacketLength(bytes, 0) - JDWP.PACKET_HEADER_SIZE;
-				if (len > 0) {
-					byte[] payload = new byte[len];
-					int readSize = 0;
-					do {
-						readSize += inputStream.read(payload, readSize, len - readSize);
-						if (readSize == len) {
-							bytes = appendBytes(bytes, payload);
-							break;
-						}
-					} while (true);
-				}
-				return Packet.make(bytes);
+			byte[] header = readBytes(inputStream, JDWP.PACKET_HEADER_SIZE);
+			if (header == null) {
+				// stream ended
+				return null;
 			}
+			int bodyLength = JDWP.getPacketLength(header, 0) - JDWP.PACKET_HEADER_SIZE;
+			if (bodyLength <= 0) {
+				return Packet.make(header);
+			}
+			byte[] body = readBytes(inputStream, bodyLength);
+			if (body == null) {
+				throw new SmaliDebuggerException("Stream truncated");
+			}
+			return Packet.make(concatBytes(header, body));
 		} catch (IOException e) {
-			throw new SmaliDebuggerException(e);
+			throw new SmaliDebuggerException("Read packer error", e);
 		}
-		throw new SmaliDebuggerException("read packet failed.");
+	}
+
+	private static byte[] readBytes(InputStream inputStream, int len) throws IOException {
+		byte[] payload = new byte[len];
+		int readSize = 0;
+		while (true) {
+			int read = inputStream.read(payload, readSize, len - readSize);
+			if (read == -1) {
+				return null;
+			}
+			readSize += read;
+			if (readSize == len) {
+				return payload;
+			}
+		}
+	}
+
+	private static byte[] concatBytes(byte[] buf1, byte[] buf2) {
+		byte[] tempBuf = new byte[buf1.length + buf2.length];
+		System.arraycopy(buf1, 0, tempBuf, 0, buf1.length);
+		System.arraycopy(buf2, 0, tempBuf, buf1.length, buf2.length);
+		return tempBuf;
 	}
 
 	private static void tryThrowError(Packet res) throws SmaliDebuggerException {
@@ -1495,6 +1512,11 @@ public class SmaliDebugger {
 
 		public SmaliDebuggerException(String msg) {
 			super(msg);
+			this.errCode = -1;
+		}
+
+		public SmaliDebuggerException(String message, Throwable cause) {
+			super(message, cause);
 			this.errCode = -1;
 		}
 
