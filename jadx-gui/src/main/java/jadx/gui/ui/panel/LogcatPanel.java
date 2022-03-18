@@ -2,6 +2,7 @@ package jadx.gui.ui.panel;
 
 import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
+import jadx.gui.utils.NLS;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -47,9 +48,17 @@ public class LogcatPanel extends JPanel{
 			logcatController.getFilter().addPid(Integer.valueOf(proc.pid));
 		});
 
-		String msgTypes[] = {"Default", "Verbose", "Debug", "Info", "Warn", "Error", "Fatal", "Silent"};
+		String msgTypes[] = {
+				NLS.str( "logcat.default" ),
+				NLS.str( "logcat.verbose" ),
+				NLS.str( "logcat.debug" ),
+				NLS.str( "logcat.info" ),
+				NLS.str( "logcat.warn" ),
+				NLS.str( "logcat.error" ),
+				NLS.str( "logcat.fatal" ),
+				NLS.str( "logcat.silent" )};
 		Integer msgIndex[] = {1,2,3,4,5,6,7,8};
-		JPanel msgTypeBox = new CheckCombo("Level", msgIndex,msgTypes).getContent();
+		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), msgIndex,msgTypes).getContent();
 
 		this.setLayout(new BorderLayout());
 		logcatPane = new JTextPane();
@@ -59,7 +68,7 @@ public class LogcatPanel extends JPanel{
 		menuPanel = new JPanel();
 		menuPanel.setLayout(new BorderLayout());
 
-		procBox = new CheckCombo("Process", pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
+		procBox = new CheckCombo(NLS.str( "logcat.process" ) , pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
 
 		menuPanel.add(procBox,BorderLayout.WEST);
 		menuPanel.add(msgTypeBox,BorderLayout.CENTER);
@@ -80,7 +89,7 @@ public class LogcatPanel extends JPanel{
 			this.logcatController = new LogcatController(this, device);
 			this.procs = device.getProcessList();
 			if(this.showLogcat() == false) {
-				debugPanel.log("Failed To Start Logcat");
+				debugPanel.log(NLS.str( "logcat.error_fail_start" ));
 			}
 
 		} catch (Exception e) {

@@ -147,7 +147,7 @@ public class JDebuggerPanel extends JPanel {
 		JScrollPane loggerScroll = new JScrollPane(logger);
 		loggerPanel.addTab("Debugger Log", null, loggerScroll, null);
 		this.logcatPanel = new LogcatPanel(this);
-		loggerPanel.addTab("Logcat", null, logcatPanel, null);
+		loggerPanel.addTab(NLS.str( "logcat.logcat" ), null, logcatPanel, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
@@ -393,7 +393,7 @@ public class JDebuggerPanel extends JPanel {
 			try {
 				logcatPanel.init(device);
 			} catch (Exception e) {
-				log("Unable to start Logcat");
+				log(NLS.str( "logcat.error_fail_start" ));
 				e.printStackTrace();
 			}
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());
