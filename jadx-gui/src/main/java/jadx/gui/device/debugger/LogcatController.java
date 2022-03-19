@@ -1,8 +1,11 @@
 package jadx.gui.device.debugger;
 
 import jadx.gui.device.protocol.ADB;
-import jadx.gui.ui.panel.JDebuggerPanel;
+import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.panel.LogcatPanel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -13,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class LogcatController {
+	private static final Logger LOG = LoggerFactory.getLogger(LogcatController.class);
+
 	private ADB.Device adbDevice;
 	private LogcatPanel logcatPanel;
 	private logcatInfo recent = null;
@@ -48,7 +53,7 @@ public class LogcatController {
 		try {
 			this.timezone = adbDevice.getTimezone();
 		} catch(IOException e) {
-			e.printStackTrace();
+			LOG.error("Failed to get adb timezone", e);
 		}
 	}
 
@@ -116,8 +121,8 @@ public class LogcatController {
 
 			}
 
-		} catch (Exception except) {
-			except.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to get logcat message",e);
 		}
 	}
 

@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
-import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.device.protocol.ADBDeviceInfo;
@@ -363,13 +362,11 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					debugSetter.device.getDeviceInfo().adbHost,
 					debugSetter.forwardTcpPort,
 					debugSetter.ver,
-					debugSetter.device);
-			logcatController = new LogcatController(mainWindow.getDebuggerPanel(), debugSetter.device);
+					debugSetter.device,
+					debugSetter.pid);
 		} catch (Exception e) {
 			LOG.error("Failed to attach to process", e);
 			return false;
-		} catch (Exception except) {
-			except.printStackTrace();
 		}
 	}
 

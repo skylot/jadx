@@ -386,12 +386,12 @@ public class JDebuggerPanel extends JPanel {
 		}
 	}
 
-	public boolean showDebugger(String procName, String host, int port, int androidVer, ADBDevice device) {
+	public boolean showDebugger(String procName, String host, int port, int androidVer, ADBDevice device, String pid) {
 		boolean ok = controller.startDebugger(this, host, port, androidVer);
 		if (ok) {
 			log(String.format("Attached %s %s:%d", procName, host, port));
 			try {
-				logcatPanel.init(device);
+				logcatPanel.init(device, pid);
 			} catch (Exception e) {
 				log(NLS.str( "logcat.error_fail_start" ));
 				e.printStackTrace();

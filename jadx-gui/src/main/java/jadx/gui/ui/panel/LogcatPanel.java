@@ -4,9 +4,10 @@ import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.utils.NLS;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogcatPanel extends JPanel{
+	private static final Logger LOG = LoggerFactory.getLogger(LogcatPanel.class);
+
+
 	StyleContext sc = StyleContext.getDefaultStyleContext();
 	private final AttributeSet defaultAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#6c71c4"));
 	private final AttributeSet verboseAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#2aa198"));
@@ -37,10 +41,12 @@ public class LogcatPanel extends JPanel{
 		this.debugPanel = debugPanel;
 	}
 	private JScrollPane logcatScroll;
-
+	private int pid;
+	private ArrayList<String> pkgs;
+	private ArrayList<Integer> pids;
 	public boolean showLogcat() {
-		ArrayList<String> pkgs = new ArrayList<String>();
-		ArrayList<Integer> pids = new ArrayList<Integer>();
+		pkgs = new ArrayList<String>();
+		pids = new ArrayList<Integer>();
 		JPanel procBox;
 		procs.forEach((proc) -> {
 			pkgs.add(String.format("[pid: %-6s] %s", proc.pid, proc.name));
@@ -58,17 +64,16 @@ public class LogcatPanel extends JPanel{
 				NLS.str( "logcat.fatal" ),
 				NLS.str( "logcat.silent" )};
 		Integer msgIndex[] = {1,2,3,4,5,6,7,8};
-		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), msgIndex,msgTypes).getContent();
+		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), 2, msgIndex,msgTypes).getContent();
 
 		this.setLayout(new BorderLayout());
 		logcatPane = new JTextPane();
 		logcatPane.setEditable(false);
-		//logcatPane.setLineWrap(true);
 		logcatScroll = new JScrollPane(logcatPane);
 		menuPanel = new JPanel();
 		menuPanel.setLayout(new BorderLayout());
 
-		procBox = new CheckCombo(NLS.str( "logcat.process" ) , pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
+		procBox = new CheckCombo(NLS.str( "logcat.process" ) , 1, pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
 
 		menuPanel.add(procBox,BorderLayout.WEST);
 		menuPanel.add(msgTypeBox,BorderLayout.CENTER);
@@ -84,7 +89,8 @@ public class LogcatPanel extends JPanel{
 		return true;
 	}
 
-	public boolean init(ADB.Device device) {
+	public boolean init(ADB.Device device, String pid) {
+		this.pid = Integer.valueOf(pid);
 		try {
 			this.logcatController = new LogcatController(this, device);
 			this.procs = device.getProcessList();
@@ -94,7 +100,7 @@ public class LogcatPanel extends JPanel{
 
 		} catch (Exception e) {
 			this.ready = false;
-			e.printStackTrace();
+			LOG.error("Failed to start logcat", e);
 			return false;
 		}
 		this.ready = true;
@@ -122,11 +128,11 @@ public class LogcatPanel extends JPanel{
 		StringBuilder sb = new StringBuilder();
 		sb.append(" > ")
 				.append(logcatInfo.getTimestamp())
-				.append(" ")
+				.append(" [pid: ")
 				.append(String.valueOf(logcatInfo.getPid()))
-				.append(" ")
-				.append(String.valueOf(logcatInfo.getMsgType()))
-				.append(" ")
+				.append("] ")
+				.append(logcatInfo.getMsgTypeString())
+				.append(": ")
 				.append(logcatInfo.getMsg())
 				.append("\n");
 
@@ -163,7 +169,7 @@ public class LogcatPanel extends JPanel{
 					break;
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			LOG.error("Failed to write logcat message", e);
 		}
 
 		if(atBottom) {
@@ -183,12 +189,14 @@ public class LogcatPanel extends JPanel{
 
 	class CheckCombo implements ActionListener {
 		private String[] ids;
-		private String type;
+		private int type;
+		private String label;
 		private Integer[] index;
 		private JComboBox combo;
-		public CheckCombo(String type, Integer[] index, String[] ids) {
+		public CheckCombo(String label, int type, Integer[] index, String[] ids) {
 			this.ids = ids;
 			this.type = type;
+			this.label = label;
 			this.index = index;
 
 		}
@@ -200,18 +208,19 @@ public class LogcatPanel extends JPanel{
 			ccr.checkBox.setSelected((store.state = !store.state));
 
 			switch(this.type) {
-				case "Level":
-					logcatController.getFilter().toggleMsgType((byte)store.index, store.state);
-					logcatController.reload();
-				case "Process":
+				case 1: //process
 					logcatController.getFilter().togglePid(store.index, store.state);
 					logcatController.reload();
+				case 2: //label
+					logcatController.getFilter().toggleMsgType((byte)store.index, store.state);
+					logcatController.reload();
+
 			}
 
 		}
 
 		public JPanel getContent() {
-			JLabel label = new JLabel(this.type + ": ");
+			JLabel label = new JLabel(this.label + ": ");
 			CheckComboStore[] stores = new CheckComboStore[ids.length];
 			for (int j = 0; j < ids.length; j++)
 				stores[j] = new CheckComboStore(index[j], ids[j], Boolean.TRUE);
@@ -230,10 +239,28 @@ public class LogcatPanel extends JPanel{
 				CheckComboStore ccs = (CheckComboStore) combo.getItemAt(i);
 				ccs.state = checked;
 				switch (type) {
-					case "Process":
+					case 1: //process
 						logcatController.getFilter().togglePid(ccs.index, checked);
-					case "Level":
+					case 2: //level
 						logcatController.getFilter().toggleMsgType((byte) ccs.index, checked);
+				}
+			}
+			logcatController.reload();
+		}
+
+		public void selectAllBut(int ind) {
+			for(int i = 0; i < combo.getItemCount(); i++) {
+				CheckComboStore ccs = (CheckComboStore) combo.getItemAt(i);
+				if(i != ind) {
+					ccs.state = false;
+				} else {
+					ccs.state = true;
+				}
+				switch (type) {
+					case 1: //process
+						logcatController.getFilter().togglePid(ccs.index, ccs.state);
+					case 2: //level
+						logcatController.getFilter().toggleMsgType((byte) ccs.index, ccs.state);
 				}
 			}
 			logcatController.reload();
@@ -304,9 +331,10 @@ public class LogcatPanel extends JPanel{
 		CheckCombo combo;
 		JMenuItem selectAll;
 		JMenuItem unselectAll;
+		JMenuItem selectAttached;
 		public FilterPopup(CheckCombo combo) {
 			this.combo = combo;
-			selectAll = new JMenuItem("Select All");
+			selectAll = new JMenuItem(NLS.str( "logcat.select_all" ));
 			selectAll.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent actionEvent) {
@@ -314,13 +342,24 @@ public class LogcatPanel extends JPanel{
 				}
 			});
 
-			unselectAll = new JMenuItem("Unselect All");
+			unselectAll = new JMenuItem(NLS.str( "logcat.unselect_all" ));
 			unselectAll.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent actionEvent) {
 					combo.toggleAll(false);
 				}
 			});
+
+			if(combo.type == 1) {
+				selectAttached = new JMenuItem(NLS.str( "logcat.select_attached") );
+				selectAttached.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent actionEvent) {
+						combo.selectAllBut(pids.indexOf(pid));
+					}
+				});
+				add(selectAttached);
+			}
 
 
 			add(selectAll);
