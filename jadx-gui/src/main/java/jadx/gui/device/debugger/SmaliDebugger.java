@@ -632,17 +632,16 @@ public class SmaliDebugger {
 		throw new SmaliDebuggerException("Failed to init JDWP.");
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private static void handShake(OutputStream outputStream, InputStream inputStream) throws SmaliDebuggerException {
-		byte[] buf = new byte[14];
+		byte[] buf;
 		try {
 			outputStream.write(JDWP.encodeHandShakePacket());
-			inputStream.read(buf);
+			buf = readBytes(inputStream, 14);
 		} catch (Exception e) {
 			throw new SmaliDebuggerException("jdwp handshake failed", e);
 		}
-		if (!JDWP.decodeHandShakePacket(buf)) {
-			throw new SmaliDebuggerException("jdwp handshake failed.");
+		if (buf == null || !JDWP.decodeHandShakePacket(buf)) {
+			throw new SmaliDebuggerException("jdwp handshake bad reply");
 		}
 	}
 
@@ -1170,7 +1169,10 @@ public class SmaliDebugger {
 		return tempBuf;
 	}
 
-	private static void tryThrowError(Packet res) throws SmaliDebuggerException {
+	private static void tryThrowError(@Nullable Packet res) throws SmaliDebuggerException {
+		if (res == null) {
+			throw new SmaliDebuggerException("Stream ended");
+		}
 		if (res.isError()) {
 			throw new SmaliDebuggerException("(JDWP Error Code:" + res.getErrorCode() + ") "
 					+ res.getErrorText(), res.getErrorCode());
