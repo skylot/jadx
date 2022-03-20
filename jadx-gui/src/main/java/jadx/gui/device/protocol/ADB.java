@@ -140,6 +140,7 @@ public class ADB {
 			int read;
 			byte[] buf = new byte[1024];
 			while ((read = in.read(buf)) >= 0) {
+				out.write(buf, 0, read);
 			}
 		}
 		return new String(out.toByteArray()).contains(tcpPort);
