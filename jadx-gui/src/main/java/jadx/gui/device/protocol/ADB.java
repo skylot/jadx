@@ -80,7 +80,7 @@ public class ADB {
 			return IOUtils.readNBytes(stream, len);
 		} catch (IOException e) {
 			LOG.error("Failed to read readServiceProtocol: {}", e.toString());
-			return new byte[0];
+			return null;
 		}
 	}
 
