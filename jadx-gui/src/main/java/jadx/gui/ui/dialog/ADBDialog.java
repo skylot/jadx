@@ -42,6 +42,8 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.device.protocol.ADB;
+import jadx.gui.device.protocol.ADBDevice;
+import jadx.gui.device.protocol.ADBDeviceInfo;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.IDebugController;
@@ -49,7 +51,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.gui.device.protocol.ADB.Device.ForwardResult;
+import static jadx.gui.device.protocol.ADBDevice.ForwardResult;
 
 public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.JDWPProcessListener {
 	private static final Logger LOG = LoggerFactory.getLogger(ADBDialog.class);
@@ -273,9 +275,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	@Override
-	public void onDeviceStatusChange(List<ADB.DeviceInfo> deviceInfoList) {
+	public void onDeviceStatusChange(List<ADBDeviceInfo> deviceInfoList) {
 		List<DeviceNode> nodes = new ArrayList<>(deviceInfoList.size());
-		info_loop: for (ADB.DeviceInfo info : deviceInfoList) {
+		info_loop: for (ADBDeviceInfo info : deviceInfoList) {
 			for (DeviceNode deviceNode : deviceNodes) {
 				if (deviceNode.device.updateDeviceInfo(info)) {
 					deviceNode.refresh();
@@ -283,7 +285,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					continue info_loop;
 				}
 			}
-			ADB.Device device = new ADB.Device(info);
+			ADBDevice device = new ADBDevice(info);
 			device.getAndroidReleaseVersion();
 			nodes.add(new DeviceNode(device));
 			listenJDWP(device);
@@ -402,7 +404,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		return null;
 	}
 
-	private DeviceNode getDeviceNode(ADB.Device device) {
+	private DeviceNode getDeviceNode(ADBDevice device) {
 		for (DeviceNode deviceNode : deviceNodes) {
 			if (deviceNode.device.equals(device)) {
 				return deviceNode;
@@ -411,7 +413,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		throw new JadxRuntimeException("Unexpected device: " + device);
 	}
 
-	private void listenJDWP(ADB.Device device) {
+	private void listenJDWP(ADBDevice device) {
 		try {
 			device.listenForJDWP(this);
 		} catch (Exception e) {
@@ -441,7 +443,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	@Override
-	public void jdwpProcessOccurred(ADB.Device device, Set<String> id) {
+	public void jdwpProcessOccurred(ADBDevice device, Set<String> id) {
 		List<ADB.Process> procs;
 		try {
 			Thread.sleep(40); /*
@@ -514,7 +516,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			return;
 		}
 		String fullName = pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
-		ADB.Device device = deviceNodes.get(0).device; // TODO: if multiple devices presented should let user select the one they desire.
+		ADBDevice device = deviceNodes.get(0).device; // TODO: if multiple devices presented should let user select the one they desire.
 		if (device != null) {
 			try {
 				device.launchApp(fullName);
@@ -547,7 +549,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	@Override
-	public void jdwpListenerClosed(ADB.Device device) {
+	public void jdwpListenerClosed(ADBDevice device) {
 
 	}
 
@@ -556,27 +558,29 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private static class DeviceNode {
-		ADB.Device device;
+		ADBDevice device;
 		DeviceTreeNode tNode;
 
-		DeviceNode(ADB.Device adbDevice) {
+		DeviceNode(ADBDevice adbDevice) {
 			this.device = adbDevice;
 			tNode = new DeviceTreeNode();
 			refresh();
 		}
 
 		void refresh() {
-			ADB.DeviceInfo info = device.getDeviceInfo();
+			ADBDeviceInfo info = device.getDeviceInfo();
 			String text = info.model;
-			if (!text.equals(info.serial)) {
-				text += String.format(" [serial: %s]", info.serial);
+			if (text != null) {
+				if (!text.equals(info.serial)) {
+					text += String.format(" [serial: %s]", info.serial);
+				}
+				text += String.format(" [state: %s]", info.isOnline() ? "online" : "offline");
+				tNode.setUserObject(text);
 			}
-			text += String.format(" [state: %s]", info.isOnline() ? "online" : "offline");
-			tNode.setUserObject(text);
 		}
 	}
 
-	private boolean setupArgs(ADB.Device device, String pid, String name) {
+	private boolean setupArgs(ADBDevice device, String pid, String name) {
 		String ver = device.getAndroidReleaseVersion();
 		if (StringUtils.isEmpty(ver)) {
 			if (JOptionPane.showConfirmDialog(mainWindow,
@@ -605,12 +609,12 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		private String ver;
 		private String pid;
 		private String name;
-		private ADB.Device device;
+		private ADBDevice device;
 		private int forwardTcpPort = FORWARD_TCP_PORT;
 		private String expectPkg = "";
 		private boolean autoAttachPkg = false;
 
-		private void set(ADB.Device device, String ver, String pid, String name) {
+		private void set(ADBDevice device, String ver, String pid, String name) {
 			this.ver = ver;
 			this.pid = pid;
 			this.name = name;

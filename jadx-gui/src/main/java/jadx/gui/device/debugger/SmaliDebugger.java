@@ -75,6 +75,7 @@ import io.reactivex.annotations.NonNull;
 
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.gui.device.debugger.smali.RegisterInfo;
+import jadx.gui.utils.IOUtils;
 import jadx.gui.utils.ObjectPool;
 
 // TODO: Finish error notification, inner errors should be logged let user notice.
@@ -83,9 +84,9 @@ public class SmaliDebugger {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliDebugger.class);
 	private final JDWP jdwp;
-	private int localTcpPort;
-	private InputStream inputStream;
-	private OutputStream outputStream;
+	private final int localTcpPort;
+	private final InputStream inputStream;
+	private final OutputStream outputStream;
 
 	// All event callbacks will be called in this queue, e.g. class prepare/unload
 	private static final Executor EVENT_LISTENER_QUEUE = Executors.newSingleThreadExecutor();
@@ -118,10 +119,13 @@ public class SmaliDebugger {
 	private static final ICommandResult SKIP_RESULT = res -> {
 	};
 
-	private SmaliDebugger(SuspendListener suspendListener, int localTcpPort, JDWP jdwp) {
+	private SmaliDebugger(SuspendListener suspendListener, int localTcpPort, JDWP jdwp, InputStream inputStream,
+			OutputStream outputStream) {
 		this.jdwp = jdwp;
 		this.localTcpPort = localTcpPort;
 		this.suspendListener = suspendListener;
+		this.inputStream = inputStream;
+		this.outputStream = outputStream;
 
 		oneOffEventReq = jdwp.eventRequest().cmdSet().newCountRequest();
 		oneOffEventReq.count = 1;
@@ -135,6 +139,7 @@ public class SmaliDebugger {
 		try {
 			byte[] bytes = JDWP.IDSizes.encode().getBytes();
 			JDWP.setPacketID(bytes, 1);
+			LOG.debug("Connecting to ADB {}:{}", host, port);
 			Socket socket = new Socket(host, port);
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
@@ -143,9 +148,7 @@ public class SmaliDebugger {
 			JDWP jdwp = initJDWP(outputStream, inputStream);
 			socket.setSoTimeout(0); // set back to 0 so the decodingLoop won't break for timeout.
 
-			SmaliDebugger debugger = new SmaliDebugger(suspendListener, port, jdwp);
-			debugger.inputStream = inputStream;
-			debugger.outputStream = outputStream;
+			SmaliDebugger debugger = new SmaliDebugger(suspendListener, port, jdwp, inputStream, outputStream);
 
 			debugger.decodingLoop();
 			debugger.listenClassUnloadEvent();
@@ -262,7 +265,7 @@ public class SmaliDebugger {
 		for (int i = 0; i < values.size(); i++) {
 			ObjectReference.GetValues.GetValuesReplyDataValues value = values.get(i);
 			flds.get(i).setValue(value.value.idOrValue)
-					.setType(getType(value.value.tag));
+					.setType(RuntimeType.fromJdwpTag(value.value.tag));
 		}
 	}
 
@@ -502,7 +505,7 @@ public class SmaliDebugger {
 		ObjectReference.GetValues.GetValuesReplyData data =
 				jdwp.objectReference().cmdGetValues().decode(res.getBuf(), JDWP.PACKET_HEADER_SIZE);
 		fld.setValue(data.values.get(0).value.idOrValue)
-				.setType(getType(data.values.get(0).value.tag));
+				.setType(RuntimeType.fromJdwpTag(data.values.get(0).value.tag));
 	}
 
 	private long createString(String localStr) throws SmaliDebuggerException {
@@ -636,7 +639,7 @@ public class SmaliDebugger {
 		byte[] buf;
 		try {
 			outputStream.write(JDWP.encodeHandShakePacket());
-			buf = readBytes(inputStream, 14);
+			buf = IOUtils.readNBytes(inputStream, 14);
 		} catch (Exception e) {
 			throw new SmaliDebuggerException("jdwp handshake failed", e);
 		}
@@ -1128,7 +1131,7 @@ public class SmaliDebugger {
 	@Nullable
 	private static Packet readPacket(InputStream inputStream) throws SmaliDebuggerException {
 		try {
-			byte[] header = readBytes(inputStream, JDWP.PACKET_HEADER_SIZE);
+			byte[] header = IOUtils.readNBytes(inputStream, JDWP.PACKET_HEADER_SIZE);
 			if (header == null) {
 				// stream ended
 				return null;
@@ -1137,28 +1140,13 @@ public class SmaliDebugger {
 			if (bodyLength <= 0) {
 				return Packet.make(header);
 			}
-			byte[] body = readBytes(inputStream, bodyLength);
+			byte[] body = IOUtils.readNBytes(inputStream, bodyLength);
 			if (body == null) {
 				throw new SmaliDebuggerException("Stream truncated");
 			}
 			return Packet.make(concatBytes(header, body));
 		} catch (IOException e) {
 			throw new SmaliDebuggerException("Read packer error", e);
-		}
-	}
-
-	private static byte[] readBytes(InputStream inputStream, int len) throws IOException {
-		byte[] payload = new byte[len];
-		int readSize = 0;
-		while (true) {
-			int read = inputStream.read(payload, readSize, len - readSize);
-			if (read == -1) {
-				return null;
-			}
-			readSize += read;
-			if (readSize == len) {
-				return payload;
-			}
 		}
 	}
 
@@ -1181,62 +1169,6 @@ public class SmaliDebugger {
 
 	private interface ICommandResult {
 		void onCommandReply(Packet res) throws SmaliDebuggerException;
-	}
-
-	private abstract class EventListenerAdapter {
-		void onVMStart(VMStartEvent event) {
-		}
-
-		void onVMDeath(VMDeathEvent event) {
-		}
-
-		void onSingleStep(SingleStepEvent event) {
-		}
-
-		void onBreakpoint(BreakpointEvent event) {
-		}
-
-		void onMethodEntry(MethodEntryEvent event) {
-		}
-
-		void onMethodExit(MethodExitEvent event) {
-		}
-
-		void onMethodExitWithReturnValue(MethodExitWithReturnValueEvent event) {
-		}
-
-		void onMonitorContendedEnter(MonitorContendedEnterEvent event) {
-		}
-
-		void onMonitorContendedEntered(MonitorContendedEnteredEvent event) {
-		}
-
-		void onMonitorWait(MonitorWaitEvent event) {
-		}
-
-		void onMonitorWaited(MonitorWaitedEvent event) {
-		}
-
-		void onException(ExceptionEvent event) {
-		}
-
-		void onThreadStart(ThreadStartEvent event) {
-		}
-
-		void onThreadDeath(ThreadDeathEvent event) {
-		}
-
-		void onClassPrepare(ClassPrepareEvent event) {
-		}
-
-		void onClassUnload(ClassUnloadEvent event) {
-		}
-
-		void onFieldAccess(FieldAccessEvent event) {
-		}
-
-		void onFieldModification(FieldModificationEvent event) {
-		}
 	}
 
 	public static class RuntimeField extends RuntimeValue {
@@ -1296,46 +1228,7 @@ public class SmaliDebugger {
 	}
 
 	private RuntimeRegister buildRegister(int num, int tag, ByteBuffer buf) throws SmaliDebuggerException {
-		return new RuntimeRegister(num, getType(tag), buf);
-	}
-
-	private RuntimeType getType(int tag) throws SmaliDebuggerException {
-		switch (tag) {
-			case JDWP.Tag.ARRAY:
-				return RuntimeType.ARRAY;
-			case JDWP.Tag.BYTE:
-				return RuntimeType.BYTE;
-			case JDWP.Tag.CHAR:
-				return RuntimeType.CHAR;
-			case JDWP.Tag.OBJECT:
-				return RuntimeType.OBJECT;
-			case JDWP.Tag.FLOAT:
-				return RuntimeType.FLOAT;
-			case JDWP.Tag.DOUBLE:
-				return RuntimeType.DOUBLE;
-			case JDWP.Tag.INT:
-				return RuntimeType.INT;
-			case JDWP.Tag.LONG:
-				return RuntimeType.LONG;
-			case JDWP.Tag.SHORT:
-				return RuntimeType.SHORT;
-			case JDWP.Tag.VOID:
-				return RuntimeType.VOID;
-			case JDWP.Tag.BOOLEAN:
-				return RuntimeType.BOOLEAN;
-			case JDWP.Tag.STRING:
-				return RuntimeType.STRING;
-			case JDWP.Tag.THREAD:
-				return RuntimeType.THREAD;
-			case JDWP.Tag.THREAD_GROUP:
-				return RuntimeType.THREAD_GROUP;
-			case JDWP.Tag.CLASS_LOADER:
-				return RuntimeType.CLASS_LOADER;
-			case JDWP.Tag.CLASS_OBJECT:
-				return RuntimeType.CLASS_OBJECT;
-			default:
-				throw new SmaliDebuggerException("Unexpected value: " + tag);
-		}
+		return new RuntimeRegister(num, RuntimeType.fromJdwpTag(tag), buf);
 	}
 
 	public static class RuntimeValue {
@@ -1428,41 +1321,6 @@ public class SmaliDebugger {
 		}
 	}
 
-	public enum RuntimeType {
-		ARRAY(91, "[]"),
-		BYTE(66, "byte"),
-		CHAR(67, "char"),
-		OBJECT(76, "object"),
-		FLOAT(70, "float"),
-		DOUBLE(68, "double"),
-		INT(73, "int"),
-		LONG(74, "long"),
-		SHORT(83, "short"),
-		VOID(86, "void"),
-		BOOLEAN(90, "boolean"),
-		STRING(115, "string"),
-		THREAD(116, "thread"),
-		THREAD_GROUP(103, "thread_group"),
-		CLASS_LOADER(108, "class_loader"),
-		CLASS_OBJECT(99, "class_object");
-
-		private final int jdwpTag;
-		private final String desc;
-
-		RuntimeType(int tag, String desc) {
-			this.jdwpTag = tag;
-			this.desc = desc;
-		}
-
-		private int getTag() {
-			return jdwpTag;
-		}
-
-		public String getDesc() {
-			return this.desc;
-		}
-	}
-
 	public static class Frame {
 		private final long id;
 		private final long clsID;
@@ -1503,35 +1361,6 @@ public class SmaliDebugger {
 		void onUnloaded(String cls);
 	}
 
-	public static class SmaliDebuggerException extends Exception {
-		private final int errCode;
-		private static final long serialVersionUID = -1111111202102191403L;
-
-		public SmaliDebuggerException(Exception e) {
-			super(e);
-			errCode = -1;
-		}
-
-		public SmaliDebuggerException(String msg) {
-			super(msg);
-			this.errCode = -1;
-		}
-
-		public SmaliDebuggerException(String message, Throwable cause) {
-			super(message, cause);
-			this.errCode = -1;
-		}
-
-		public SmaliDebuggerException(String msg, int errCode) {
-			super(msg);
-			this.errCode = errCode;
-		}
-
-		public int getErrCode() {
-			return errCode;
-		}
-	}
-
 	/**
 	 * Listener for breakpoint, watch, step, etc.
 	 */
@@ -1543,99 +1372,4 @@ public class SmaliDebugger {
 		void onSuspendEvent(SuspendInfo current);
 	}
 
-	public static class SuspendInfo {
-		private boolean terminated;
-		private boolean newRound;
-		private final InfoSetter updater = new InfoSetter();
-
-		public long getThreadID() {
-			return updater.thread;
-		}
-
-		public long getClassID() {
-			return updater.clazz;
-		}
-
-		public long getMethodID() {
-			return updater.method;
-		}
-
-		public long getOffset() {
-			return updater.offset;
-		}
-
-		private InfoSetter update() {
-			updater.changed = false;
-			updater.nextRound(newRound);
-			this.newRound = false;
-			return updater;
-		}
-
-		// called by decodingLoop, to tell the updater even though the values are the same,
-		// they are decoded from another packet, they should be treated as new.
-		private void nextRound() {
-			newRound = true;
-		}
-
-		// according to JDWP document it's legal to fire two or more events on a same location,
-		// e.g. one for single step and the other for breakpoint, so when this happened we only
-		// want one of them.
-		private boolean isAnythingChanged() {
-			return updater.changed;
-		}
-
-		public boolean isTerminated() {
-			return terminated;
-		}
-
-		private void setTerminated() {
-			terminated = true;
-		}
-
-		private static class InfoSetter {
-			private long thread;
-			private long clazz;
-			private long method;
-			private long offset; // code offset;
-			private boolean changed;
-
-			private void nextRound(boolean newRound) {
-				if (!changed) {
-					changed = newRound;
-				}
-			}
-
-			private InfoSetter updateThread(long thread) {
-				if (!changed) {
-					changed = this.thread != thread;
-				}
-				this.thread = thread;
-				return this;
-			}
-
-			private InfoSetter updateClass(long clazz) {
-				if (!changed) {
-					changed = this.clazz != clazz;
-				}
-				this.clazz = clazz;
-				return this;
-			}
-
-			private InfoSetter updateMethod(long method) {
-				if (!changed) {
-					changed = this.method != method;
-				}
-				this.method = method;
-				return this;
-			}
-
-			private InfoSetter updateOffset(long offset) {
-				if (!changed) {
-					changed = this.offset != offset;
-				}
-				this.offset = offset;
-				return this;
-			}
-		}
-	}
 }

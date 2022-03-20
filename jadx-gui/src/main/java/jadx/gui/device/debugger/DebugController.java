@@ -33,7 +33,6 @@ import jadx.gui.device.debugger.SmaliDebugger.RuntimeField;
 import jadx.gui.device.debugger.SmaliDebugger.RuntimeRegister;
 import jadx.gui.device.debugger.SmaliDebugger.RuntimeValue;
 import jadx.gui.device.debugger.SmaliDebugger.RuntimeVarInfo;
-import jadx.gui.device.debugger.SmaliDebugger.SmaliDebuggerException;
 import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.device.debugger.smali.SmaliRegister;
 import jadx.gui.treemodel.JClass;
@@ -41,8 +40,6 @@ import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.JDebuggerPanel.IListElement;
 import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
-
-import static jadx.gui.device.debugger.SmaliDebugger.RuntimeType;
 
 public final class DebugController implements SmaliDebugger.SuspendListener, IDebugController {
 	private static final Logger LOG = LoggerFactory.getLogger(DebugController.class);
@@ -359,7 +356,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	}
 
 	@Override
-	public void onSuspendEvent(SmaliDebugger.SuspendInfo info) {
+	public void onSuspendEvent(SuspendInfo info) {
 		if (!isDebugging()) {
 			return;
 		}
