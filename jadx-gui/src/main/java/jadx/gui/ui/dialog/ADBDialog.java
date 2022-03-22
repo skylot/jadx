@@ -256,8 +256,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	private void connectToADB() {
 		String tip;
 		try {
-			String host = hostTextField.getText();
-			String port = portTextField.getText();
+			String host = hostTextField.getText().trim();
+			String port = portTextField.getText().trim();
 			tipLabel.setText(NLS.str("adb_dialog.connecting", host, port));
 			deviceSocket = ADB.listenForDeviceState(this, host, Integer.parseInt(port));
 			if (deviceSocket != null) {
@@ -592,7 +592,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			ver = "8";
 		}
 		ver = getMajorVer(ver);
-		debugSetter.set(device, ver, pid, name);
+		debugSetter.set(device, Integer.parseInt(ver), pid, name);
 		return true;
 	}
 
@@ -606,7 +606,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 
 	private class DebugSetting {
 		private static final int FORWARD_TCP_PORT = 33233;
-		private String ver;
+		private int ver;
 		private String pid;
 		private String name;
 		private ADBDevice device;
@@ -614,7 +614,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		private String expectPkg = "";
 		private boolean autoAttachPkg = false;
 
-		private void set(ADBDevice device, String ver, String pid, String name) {
+		private void set(ADBDevice device, int ver, String pid, String name) {
 			this.ver = ver;
 			this.pid = pid;
 			this.name = name;

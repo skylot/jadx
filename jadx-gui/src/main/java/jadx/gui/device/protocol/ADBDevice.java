@@ -144,7 +144,7 @@ public class ADBDevice {
 				for (String line : lines) {
 					line = line.trim();
 					if (!line.isEmpty()) {
-						props.add(line.trim());
+						props.add(line);
 					}
 				}
 			}
@@ -169,10 +169,16 @@ public class ADBDevice {
 			if (payload != null) {
 				String ps = new String(payload);
 				String[] psLines = ps.split("\n");
-				for (int i = index; i < psLines.length; i++) {
-					Process proc = Process.make(psLines[i]);
+				for (String line : psLines) {
+					line = line.trim();
+					if (line.isEmpty()) {
+						continue;
+					}
+					Process proc = Process.make(line);
 					if (proc != null) {
 						procs.add(proc);
+					} else {
+						LOG.error("Unexpected process info data received: \"{}\"", line);
 					}
 				}
 			}

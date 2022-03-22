@@ -4,7 +4,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 
 public interface IDebugController {
-	boolean startDebugger(JDebuggerPanel panel, String[] args);
+	boolean startDebugger(JDebuggerPanel debuggerPanel, String adbHost, int adbPort, int androidVer);
 
 	boolean run();
 
