@@ -32,7 +32,6 @@ import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -686,7 +685,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {
-			throw new JadxRuntimeException("Incorrect settings upgrade");
+			LOG.warn("Incorrect settings upgrade. Expected version: {}, got: {}", CURRENT_SETTINGS_VERSION, fromVersion);
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

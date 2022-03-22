@@ -105,7 +105,6 @@ public class BackgroundExecutor {
 		protected TaskStatus doInBackground() throws Exception {
 			progressPane.changeLabel(this, task.getTitle() + "… ");
 			progressPane.changeCancelBtnVisible(this, task.canBeCanceled());
-			progressPane.changeVisibility(this, true);
 
 			runJobs();
 			return status;
@@ -116,6 +115,9 @@ public class BackgroundExecutor {
 			jobsCount = jobs.size();
 			LOG.debug("Starting background task '{}', jobs count: {}, time limit: {} ms, memory check: {}",
 					task.getTitle(), jobsCount, task.timeLimit(), task.checkMemoryUsage());
+			if (jobsCount != 1) {
+				progressPane.changeVisibility(this, true);
+			}
 			status = TaskStatus.STARTED;
 			int threadsCount = mainWindow.getSettings().getThreadsCount();
 			executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
@@ -146,6 +148,10 @@ public class BackgroundExecutor {
 					setProgress(calcProgress(executor.getCompletedTaskCount()));
 					k++;
 					Thread.sleep(k < 20 ? 100 : 1000); // faster update for short tasks
+					if (jobsCount == 1 && k == 3) {
+						// small delay before show progress to reduce blinking on short tasks
+						progressPane.changeVisibility(this, true);
+					}
 				}
 			} catch (InterruptedException e) {
 				LOG.debug("Task wait interrupted");

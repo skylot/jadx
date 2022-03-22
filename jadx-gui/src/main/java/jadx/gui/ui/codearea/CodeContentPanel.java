@@ -15,7 +15,7 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 	public CodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 		setLayout(new BorderLayout());
-		codePanel = new CodePanel(new CodeArea(this));
+		codePanel = new CodePanel(new CodeArea(this, jnode));
 		add(codePanel, BorderLayout.CENTER);
 		codePanel.load();
 	}

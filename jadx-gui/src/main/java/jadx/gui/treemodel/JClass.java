@@ -63,7 +63,7 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		return !cls.getClassNode().contains(AFlag.DONT_RENAME);
 	}
 
-	public synchronized void load() {
+	private synchronized void load() {
 		if (loaded) {
 			return;
 		}
@@ -122,7 +122,6 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		return new ClassCodeContentPanel(tabbedPane, this);
 	}
 
-	@Override
 	public String getSmali() {
 		return cls.getSmali();
 	}

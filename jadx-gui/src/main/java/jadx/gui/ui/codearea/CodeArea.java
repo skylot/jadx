@@ -39,10 +39,9 @@ public final class CodeArea extends AbstractCodeArea {
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
-	CodeArea(ContentPanel contentPanel) {
-		super(contentPanel);
+	CodeArea(ContentPanel contentPanel, JNode node) {
+		super(contentPanel, node);
 		setSyntaxEditingStyle(node.getSyntaxName());
-
 		boolean isJavaCode = node instanceof JClass;
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));

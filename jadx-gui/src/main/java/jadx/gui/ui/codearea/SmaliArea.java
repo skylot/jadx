@@ -60,8 +60,8 @@ public final class SmaliArea extends AbstractCodeArea {
 	private boolean curVersion = false;
 	private SmaliModel model;
 
-	SmaliArea(ContentPanel contentPanel) {
-		super(contentPanel);
+	SmaliArea(ContentPanel contentPanel, JClass node) {
+		super(contentPanel, node);
 		this.textNode = new TextNode(node.getName());
 
 		cbUseSmaliV2 = new JCheckBoxMenuItem(NLS.str("popup.bytecode_col"),
@@ -104,6 +104,10 @@ public final class SmaliArea extends AbstractCodeArea {
 	public JNode getNode() {
 		// this area contains only smali without other node attributes
 		return textNode;
+	}
+
+	public JClass getJClass() {
+		return ((JClass) node);
 	}
 
 	private void switchModel() {
@@ -166,12 +170,12 @@ public final class SmaliArea extends AbstractCodeArea {
 		public NormalModel() {
 			Theme theme = getContentPanel().getTabbedPane().getMainWindow().getEditorTheme();
 			setSyntaxScheme(theme.scheme);
-			setSyntaxEditingStyle("text/smali");
+			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
 
 		@Override
 		public void load() {
-			setText(node.getSmali());
+			setText(getJClass().getSmali());
 		}
 
 		@Override
