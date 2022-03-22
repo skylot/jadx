@@ -125,9 +125,12 @@ public class JadxProject {
 				.map(TabStateViewAdapter::build)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		data.setOpenTabs(tabStateList);
-		data.setActiveTab(activeTab);
-		changed();
+		boolean dataChanged;
+		dataChanged = data.setOpenTabs(tabStateList);
+		dataChanged |= data.setActiveTab(activeTab);
+		if (dataChanged) {
+			changed();
+		}
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
