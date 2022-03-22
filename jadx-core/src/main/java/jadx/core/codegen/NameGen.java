@@ -268,13 +268,17 @@ public class NameGen {
 
 	private String makeNameFromInvoke(MethodInfo callMth) {
 		String name = callMth.getName();
+		ArgType declType = callMth.getDeclClass().getType();
+		if ("getInstance".equals(name)) {
+			// e.g. Cipher.getInstance
+			return makeNameForType(declType);
+		}
 		if (name.startsWith("get") || name.startsWith("set")) {
 			return fromName(name.substring(3));
 		}
 		if ("iterator".equals(name)) {
 			return "it";
 		}
-		ArgType declType = callMth.getDeclClass().getType();
 		if ("toString".equals(name)) {
 			return makeNameForType(declType);
 		}
