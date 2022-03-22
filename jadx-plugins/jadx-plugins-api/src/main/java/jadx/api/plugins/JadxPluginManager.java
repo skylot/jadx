@@ -101,6 +101,9 @@ public class JadxPluginManager {
 	}
 
 	public List<JadxPlugin> getAllPlugins() {
+		if (allPlugins.isEmpty()) {
+			load();
+		}
 		return allPlugins.stream().map(PluginData::getPlugin).collect(Collectors.toList());
 	}
 
