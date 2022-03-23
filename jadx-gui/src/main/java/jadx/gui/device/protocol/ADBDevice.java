@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.annotations.NonNull;
 
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.log.LogUtils;
 import jadx.gui.device.protocol.ADB.JDWPProcessListener;
 import jadx.gui.device.protocol.ADB.Process;
 
@@ -178,7 +179,7 @@ public class ADBDevice {
 					if (proc != null) {
 						procs.add(proc);
 					} else {
-						LOG.error("Unexpected process info data received: \"{}\"", line);
+						LOG.error("Unexpected process info data received: \"{}\"", LogUtils.escape(line));
 					}
 				}
 			}

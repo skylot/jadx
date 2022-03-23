@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.log.LogUtils;
 import jadx.gui.utils.IOUtils;
 
 public class ADB {
@@ -91,7 +92,7 @@ public class ADB {
 				result = IOUtils.readNBytes(stream, len);
 			}
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("readServiceProtocol result: {}", new String(result));
+				LOG.trace("readServiceProtocol result: {}", LogUtils.escape(result));
 			}
 			return result;
 		} catch (SocketException e) {
@@ -111,7 +112,7 @@ public class ADB {
 			// skip the shell-state-id returned by ADB server, it's not important for the following actions.
 			IOUtils.readNBytes(inputStream, 8);
 		} else {
-			LOG.error("setSerial command {} failed", setSerialCmd);
+			LOG.error("setSerial command {} failed", LogUtils.escape(setSerialCmd));
 		}
 		return ok;
 	}
