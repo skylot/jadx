@@ -3,16 +3,14 @@ package jadx.gui.utils;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.jetbrains.annotations.Nullable;
+
 public class IOUtils {
 
 	/**
 	 * This method can be deleted once Jadx is Java11+
-	 *
-	 * @param inputStream
-	 * @param len
-	 * @return
-	 * @throws IOException
 	 */
+	@Nullable
 	public static byte[] readNBytes(InputStream inputStream, int len) throws IOException {
 		byte[] payload = new byte[len];
 		int readSize = 0;

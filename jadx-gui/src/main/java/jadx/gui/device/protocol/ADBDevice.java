@@ -102,6 +102,9 @@ public class ADBDevice {
 		try (Socket socket = ADB.connect(info.adbHost, info.adbPort)) {
 			String cmd = "am start -D -n " + fullAppName;
 			res = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+			if (res == null) {
+				return -1;
+			}
 		}
 		String rst = new String(res).trim();
 		if (rst.startsWith("Starting: Intent {") && rst.endsWith(fullAppName + " }")) {

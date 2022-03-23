@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,9 @@ public class ADB {
 			// LOG.error("isOkay failed: received error message: {}", new String(errorMsg));
 			LOG.error("isOkay failed");
 			return false;
+		}
+		if (buf == null) {
+			throw new IOException("isOkay failed - steam ended");
 		}
 		throw new IOException("isOkay failed - unexpected response " + new String(buf));
 	}
@@ -84,6 +88,9 @@ public class ADB {
 	static byte[] readServiceProtocol(InputStream stream) {
 		try {
 			byte[] buf = IOUtils.readNBytes(stream, 4);
+			if (buf == null) {
+				return null;
+			}
 			int len = unhex(buf);
 			byte[] result;
 			if (len == 0) {
@@ -153,7 +160,7 @@ public class ADB {
 			proc.waitFor(10, TimeUnit.SECONDS);
 			proc.exitValue();
 		} catch (Exception e) {
-			LOG.error("ADB start server failed with command: {}", command.stream().collect(Collectors.joining(" ")), e);
+			LOG.error("ADB start server failed with command: {}", String.join(" ", command), e);
 			proc.destroyForcibly();
 			return false;
 		}
@@ -165,7 +172,7 @@ public class ADB {
 				out.write(buf, 0, read);
 			}
 		}
-		return new String(out.toByteArray()).contains(tcpPort);
+		return out.toString().contains(tcpPort);
 	}
 
 	public static boolean isServerRunning(String host, int port) {
@@ -223,8 +230,7 @@ public class ADB {
 				byte[] bytes = readServiceProtocol(inputStream);
 				if (bytes != null) {
 					String[] forwards = new String(bytes).split("\n");
-					List<String> forwardList = Arrays.stream(forwards).map(s -> s.trim()).collect(Collectors.toList());
-					return forwardList;
+					return Stream.of(forwards).map(String::trim).collect(Collectors.toList());
 				}
 			}
 		}
@@ -247,8 +253,7 @@ public class ADB {
 
 	// Little endian
 	private static int readInt(byte[] bytes, int start) {
-		int result = 0;
-		result = (bytes[start] & 0xff);
+		int result = (bytes[start] & 0xff);
 		result += ((bytes[start + 1] & 0xff) << 8);
 		result += ((bytes[start + 2] & 0xff) << 16);
 		result += (bytes[start + 3] & 0xff) << 24;
