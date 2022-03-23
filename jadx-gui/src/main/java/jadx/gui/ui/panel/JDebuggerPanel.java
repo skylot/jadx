@@ -373,8 +373,8 @@ public class JDebuggerPanel extends JPanel {
 		}
 	}
 
-	public boolean showDebugger(String procName, String host, int port, String androidVer) {
-		boolean ok = controller.startDebugger(this, new String[] { host, String.valueOf(port), androidVer });
+	public boolean showDebugger(String procName, String host, int port, int androidVer) {
+		boolean ok = controller.startDebugger(this, host, port, androidVer);
 		if (ok) {
 			log(String.format("Attached %s %s:%d", procName, host, port));
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());

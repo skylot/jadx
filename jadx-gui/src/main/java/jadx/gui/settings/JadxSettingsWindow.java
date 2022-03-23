@@ -123,10 +123,10 @@ public class JadxSettingsWindow extends JDialog {
 		leftPanel.add(makeAppearanceGroup());
 		leftPanel.add(makeOtherGroup());
 		leftPanel.add(makeSearchResGroup());
-		leftPanel.add(makePluginOptionsGroup());
 		leftPanel.add(Box.createVerticalGlue());
 
 		rightPanel.add(makeDecompilationGroup());
+		rightPanel.add(makePluginOptionsGroup());
 		rightPanel.add(Box.createVerticalGlue());
 
 		JButton saveBtn = new JButton(NLS.str("preferences.save"));

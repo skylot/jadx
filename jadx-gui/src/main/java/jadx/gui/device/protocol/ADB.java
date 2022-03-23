@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,10 +15,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.log.LogUtils;
 import jadx.gui.utils.IOUtils;
 
 public class ADB {
@@ -29,10 +32,26 @@ public class ADB {
 	private static final String CMD_FEATURES = "000dhost:features";
 	private static final String CMD_TRACK_DEVICES = "0014host:track-devices-l";
 	private static final byte[] OKAY = "OKAY".getBytes();
+	private static final byte[] FAIL = "FAIL".getBytes();
 
 	static boolean isOkay(InputStream stream) throws IOException {
 		byte[] buf = IOUtils.readNBytes(stream, 4);
-		return Arrays.equals(buf, OKAY);
+		if (Arrays.equals(buf, OKAY)) {
+			return true;
+		}
+		if (Arrays.equals(buf, FAIL)) {
+			// Observed that after FAIL the length in hex follows and afterwards an error message,
+			// but it is unclear if this is true for all cases where isOkay is used.
+			// int msgLen = Integer.parseInt(new String(IOUtils.readNBytes(stream, 4)), 16);
+			// byte[] errorMsg = IOUtils.readNBytes(stream, msgLen);
+			// LOG.error("isOkay failed: received error message: {}", new String(errorMsg));
+			LOG.error("isOkay failed");
+			return false;
+		}
+		if (buf == null) {
+			throw new IOException("isOkay failed - steam ended");
+		}
+		throw new IOException("isOkay failed - unexpected response " + new String(buf));
 	}
 
 	public static byte[] exec(String cmd, OutputStream outputStream, InputStream inputStream) throws IOException {
@@ -40,11 +59,9 @@ public class ADB {
 	}
 
 	public static byte[] exec(String cmd) throws IOException {
-		byte[] res;
 		try (Socket socket = connect()) {
-			res = exec(cmd, socket.getOutputStream(), socket.getInputStream());
+			return exec(cmd, socket.getOutputStream(), socket.getInputStream());
 		}
-		return res;
 	}
 
 	public static Socket connect() throws IOException {
@@ -55,14 +72,12 @@ public class ADB {
 		return new Socket(host, port);
 	}
 
-	static boolean execCommandAsync(OutputStream outputStream,
-			InputStream inputStream, String cmd) throws IOException {
+	static boolean execCommandAsync(OutputStream outputStream, InputStream inputStream, String cmd) throws IOException {
 		outputStream.write(cmd.getBytes());
 		return isOkay(inputStream);
 	}
 
-	private static byte[] execCommandSync(OutputStream outputStream,
-			InputStream inputStream, String cmd) throws IOException {
+	private static byte[] execCommandSync(OutputStream outputStream, InputStream inputStream, String cmd) throws IOException {
 		outputStream.write(cmd.getBytes());
 		if (isOkay(inputStream)) {
 			return readServiceProtocol(inputStream);
@@ -73,15 +88,26 @@ public class ADB {
 	static byte[] readServiceProtocol(InputStream stream) {
 		try {
 			byte[] buf = IOUtils.readNBytes(stream, 4);
-			int len = unhex(buf);
-			if (len == 0) {
-				return new byte[0];
+			if (buf == null) {
+				return null;
 			}
-			return IOUtils.readNBytes(stream, len);
+			int len = unhex(buf);
+			byte[] result;
+			if (len == 0) {
+				result = new byte[0];
+			} else {
+				result = IOUtils.readNBytes(stream, len);
+			}
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("readServiceProtocol result: {}", LogUtils.escape(result));
+			}
+			return result;
+		} catch (SocketException e) {
+			LOG.error("Aborting readServiceProtocol: socket closed");
 		} catch (IOException e) {
-			LOG.error("Failed to read readServiceProtocol: {}", e.toString());
-			return null;
+			LOG.error("Failed to read readServiceProtocol", e);
 		}
+		return null;
 	}
 
 	static boolean setSerial(String serial, OutputStream outputStream, InputStream inputStream) throws IOException {
@@ -91,7 +117,9 @@ public class ADB {
 		boolean ok = isOkay(inputStream);
 		if (ok) {
 			// skip the shell-state-id returned by ADB server, it's not important for the following actions.
-			ok = inputStream.skip(8) == 8;
+			IOUtils.readNBytes(inputStream, 8);
+		} else {
+			LOG.error("setSerial command {} failed", LogUtils.escape(setSerialCmd));
 		}
 		return ok;
 	}
@@ -106,8 +134,7 @@ public class ADB {
 		return null;
 	}
 
-	static byte[] execShellCommandRaw(String serial, String cmd,
-			OutputStream outputStream, InputStream inputStream) throws IOException {
+	static byte[] execShellCommandRaw(String serial, String cmd, OutputStream outputStream, InputStream inputStream) throws IOException {
 		if (setSerial(serial, outputStream, inputStream)) {
 			return execShellCommandRaw(cmd, outputStream, inputStream);
 		}
@@ -124,14 +151,16 @@ public class ADB {
 
 	public static boolean startServer(String adbPath, int port) throws IOException {
 		String tcpPort = String.format("tcp:%d", port);
-		java.lang.Process proc = new ProcessBuilder(adbPath, "-L", tcpPort, "start-server")
+		List<String> command = Arrays.asList(adbPath, "-L", tcpPort, "start-server");
+		java.lang.Process proc = new ProcessBuilder(command)
 				.redirectErrorStream(true)
 				.start();
 		try {
-			proc.waitFor(3, TimeUnit.SECONDS); // for listening to a port, 3 sec should be more than enough.
+			// Wait for the adb server to start. On Windows even on a fast system 6 seconds are not unusual.
+			proc.waitFor(10, TimeUnit.SECONDS);
 			proc.exitValue();
 		} catch (Exception e) {
-			LOG.error("Start server error", e);
+			LOG.error("ADB start server failed with command: {}", String.join(" ", command), e);
 			proc.destroyForcibly();
 			return false;
 		}
@@ -143,7 +172,7 @@ public class ADB {
 				out.write(buf, 0, read);
 			}
 		}
-		return new String(out.toByteArray()).contains(tcpPort);
+		return out.toString().contains(tcpPort);
 	}
 
 	public static boolean isServerRunning(String host, int port) {
@@ -167,22 +196,21 @@ public class ADB {
 		}
 		ExecutorService listenThread = Executors.newFixedThreadPool(1);
 		listenThread.execute(() -> {
-			for (;;) {
+			while (true) {
 				byte[] res = readServiceProtocol(inputStream);
-				if (res != null) {
-					if (listener != null) {
-						String payload = new String(res);
-						String[] deviceLines = payload.split("\n");
-						List<ADBDeviceInfo> deviceInfoList = new ArrayList<>(deviceLines.length);
-						for (String deviceLine : deviceLines) {
-							if (!deviceLine.trim().isEmpty()) {
-								deviceInfoList.add(ADBDeviceInfo.make(deviceLine, host, port));
-							}
+				if (res == null) {
+					break; // socket disconnected
+				}
+				if (listener != null) {
+					String payload = new String(res);
+					String[] deviceLines = payload.split("\n");
+					List<ADBDeviceInfo> deviceInfoList = new ArrayList<>(deviceLines.length);
+					for (String deviceLine : deviceLines) {
+						if (!deviceLine.trim().isEmpty()) {
+							deviceInfoList.add(ADBDeviceInfo.make(deviceLine, host, port));
 						}
-						listener.onDeviceStatusChange(deviceInfoList);
 					}
-				} else { // socket disconnected
-					break;
+					listener.onDeviceStatusChange(deviceInfoList);
 				}
 			}
 			if (listener != null) {
@@ -193,43 +221,39 @@ public class ADB {
 	}
 
 	public static List<String> listForward(String host, int port) throws IOException {
-		Socket socket = connect(host, port);
-		String cmd = "0011host:list-forward";
-		InputStream inputStream = socket.getInputStream();
-		OutputStream outputStream = socket.getOutputStream();
-		outputStream.write(cmd.getBytes());
-		if (isOkay(inputStream)) {
-			byte[] bytes = readServiceProtocol(inputStream);
-			if (bytes != null) {
-				String[] forwards = new String(bytes).split("\n");
-				List<String> forwardList = Arrays.stream(forwards).map(s -> s.trim()).collect(Collectors.toList());
-				socket.close();
-				return forwardList;
+		try (Socket socket = connect(host, port)) {
+			String cmd = "0011host:list-forward";
+			InputStream inputStream = socket.getInputStream();
+			OutputStream outputStream = socket.getOutputStream();
+			outputStream.write(cmd.getBytes());
+			if (isOkay(inputStream)) {
+				byte[] bytes = readServiceProtocol(inputStream);
+				if (bytes != null) {
+					String[] forwards = new String(bytes).split("\n");
+					return Stream.of(forwards).map(String::trim).collect(Collectors.toList());
+				}
 			}
 		}
-		socket.close();
 		return Collections.emptyList();
 	}
 
 	public static boolean removeForward(String host, int port, String serial, String localPort) throws IOException {
-		Socket socket = connect(host, port);
-		String cmd = String.format("host:killforward:tcp:%s", localPort);
-		cmd = String.format("%04x%s", cmd.length(), cmd);
-		InputStream inputStream = socket.getInputStream();
-		OutputStream outputStream = socket.getOutputStream();
-		boolean ok = false;
-		if (setSerial(serial, outputStream, inputStream)) {
-			outputStream.write(cmd.getBytes());
-			ok = isOkay(inputStream) && isOkay(inputStream);
+		try (Socket socket = connect(host, port)) {
+			String cmd = String.format("host:killforward:tcp:%s", localPort);
+			cmd = String.format("%04x%s", cmd.length(), cmd);
+			InputStream inputStream = socket.getInputStream();
+			OutputStream outputStream = socket.getOutputStream();
+			if (setSerial(serial, outputStream, inputStream)) {
+				outputStream.write(cmd.getBytes());
+				return isOkay(inputStream) && isOkay(inputStream);
+			}
 		}
-		socket.close();
-		return ok;
+		return false;
 	}
 
 	// Little endian
 	private static int readInt(byte[] bytes, int start) {
-		int result = 0;
-		result = (bytes[start] & 0xff);
+		int result = (bytes[start] & 0xff);
 		result += ((bytes[start + 1] & 0xff) << 8);
 		result += ((bytes[start + 2] & 0xff) << 16);
 		result += (bytes[start + 3] & 0xff) << 24;
