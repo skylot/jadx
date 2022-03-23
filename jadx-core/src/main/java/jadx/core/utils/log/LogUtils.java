@@ -18,7 +18,7 @@ public class LogUtils {
 		if (ALFA_NUMERIC.matcher(input).matches()) {
 			return input;
 		}
-		return "'vulnerable input ignored'";
+		return input.replaceAll("\\W", ".");
 	}
 
 	public static String escape(byte[] input) {
