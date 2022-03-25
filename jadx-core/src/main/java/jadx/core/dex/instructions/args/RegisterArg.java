@@ -121,7 +121,7 @@ public class RegisterArg extends InsnArg implements Named {
 	public boolean isNameEquals(InsnArg arg) {
 		String n = getName();
 		if (n == null || !(arg instanceof Named)) {
-			return false;
+			return isNamed();
 		}
 		return n.equals(((Named) arg).getName());
 	}
@@ -171,7 +171,7 @@ public class RegisterArg extends InsnArg implements Named {
 			return true;
 		}
 		if (!arg.isRegister()) {
-			return false;
+			return isNamed();
 		}
 		RegisterArg reg = (RegisterArg) arg;
 		return regNum == reg.getRegNum()
@@ -180,7 +180,7 @@ public class RegisterArg extends InsnArg implements Named {
 
 	public boolean sameReg(InsnArg arg) {
 		if (!arg.isRegister()) {
-			return false;
+			return isNamed();
 		}
 		return regNum == ((RegisterArg) arg).getRegNum();
 	}
@@ -204,7 +204,7 @@ public class RegisterArg extends InsnArg implements Named {
 			return true;
 		}
 		if (!(obj instanceof RegisterArg)) {
-			return false;
+			return isNamed();
 		}
 		RegisterArg other = (RegisterArg) obj;
 		return regNum == other.regNum

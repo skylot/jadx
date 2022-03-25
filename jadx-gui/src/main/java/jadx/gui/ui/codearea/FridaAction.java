@@ -28,6 +28,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
+import static jadx.gui.ui.codearea.RenameAction.codeArea;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class FridaAction extends JNodeMenuAction<JNode> {
@@ -90,13 +91,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		String shortClassName = javaMethod.getDeclaringClass().getName();
 
 		String functionUntilImplementation;
-		if (isOverloaded(javaMethod.getMethodNode())) {
-			List<ArgType> methodArgs = methodInfo.getArgumentsTypes();
-			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
-			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", shortClassName, methodName, overloadStr);
-		} else {
-			functionUntilImplementation = String.format("%s.%s.implementation", shortClassName, methodName);
-		}
+		functionUntilImplementation = getString(javaMethod, methodInfo, methodName, shortClassName);
 
 		String functionParametersString =
 				Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
@@ -122,6 +117,18 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			finalFridaCode = functionParameterAndBody;
 		}
 		return finalFridaCode;
+	}
+
+	private String getString(JavaMethod javaMethod, MethodInfo methodInfo, String methodName, String shortClassName) {
+		String functionUntilImplementation;
+		if (isOverloaded(javaMethod.getMethodNode())) {
+			List<ArgType> methodArgs = methodInfo.getArgumentsTypes();
+			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
+			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", shortClassName, methodName, overloadStr);
+		} else {
+			functionUntilImplementation = String.format("%s.%s.implementation", shortClassName, methodName);
+		}
+		return functionUntilImplementation;
 	}
 
 	private String generateClassSnippet(JClass jc) {

@@ -172,7 +172,7 @@ public class ReSugarCode extends AbstractVisitor {
 			if (index != prevIndex) {
 				// use zero for missing keys
 				for (long i = prevIndex + 1; i < index; i++) {
-					filledArr.addArg(InsnArg.lit(0, elemType));
+					filledArr.addArg(InsnArg.literal(0, elemType));
 				}
 			}
 			InsnNode put = entry.getValue();

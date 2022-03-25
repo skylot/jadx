@@ -12,16 +12,17 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.utils.UiUtils;
 
+import static jadx.gui.ui.codearea.RenameAction.codeArea;
+
 public abstract class JNodeMenuAction<T> extends AbstractAction implements PopupMenuListener {
 	private static final long serialVersionUID = -2600154727884853550L;
 
-	protected final transient CodeArea codeArea;
 	@Nullable
 	protected transient T node;
 
 	public JNodeMenuAction(String name, CodeArea codeArea) {
 		super(name);
-		this.codeArea = codeArea;
+		codeArea = codeArea; //Can be moved to
 	}
 
 	@Override

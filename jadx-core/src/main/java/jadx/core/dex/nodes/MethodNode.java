@@ -171,7 +171,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			thisArg = null;
 		} else {
 			ArgType thisClsType = typeUtils.expandTypeVariables(this, parentClass.getType());
-			RegisterArg arg = InsnArg.reg(pos++, thisClsType);
+			RegisterArg arg = InsnArg.register(pos++, thisClsType);
 			arg.add(AFlag.THIS);
 			arg.add(AFlag.IMMUTABLE_TYPE);
 			thisArg = arg;
@@ -183,7 +183,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		argsList = new ArrayList<>(args.size());
 		for (ArgType argType : args) {
 			ArgType expandedType = typeUtils.expandTypeVariables(this, argType);
-			RegisterArg regArg = InsnArg.reg(pos, expandedType);
+			RegisterArg regArg = InsnArg.register(pos, expandedType);
 			regArg.add(AFlag.METHOD_ARGUMENT);
 			regArg.add(AFlag.IMMUTABLE_TYPE);
 			argsList.add(regArg);

@@ -75,7 +75,6 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 	}
 
-	@Override
 	public void load() {
 		if (getText().isEmpty()) {
 			setText(node.getContent());

@@ -114,7 +114,7 @@ public class CodePanel extends JPanel {
 	}
 
 	public void load() {
-		codeArea.load();
+		//codeArea.load();
 		initLineNumbers();
 	}
 
@@ -137,6 +137,7 @@ public class CodePanel extends JPanel {
 			// nothing to show => hide lines view
 			mode = LineNumbersMode.DISABLE;
 		}
+
 		switch (mode) {
 			case DISABLE:
 				codeScrollPane.setRowHeaderView(null);

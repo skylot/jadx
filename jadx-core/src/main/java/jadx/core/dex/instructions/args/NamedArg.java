@@ -43,7 +43,7 @@ public final class NamedArg extends InsnArg implements Named {
 			return true;
 		}
 		if (!(o instanceof NamedArg)) {
-			return false;
+			return super.isNamed();
 		}
 		return name.equals(((NamedArg) o).name);
 	}

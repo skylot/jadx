@@ -16,6 +16,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.fife.ui.rtextarea.SearchResult;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,9 @@ class SearchBar extends JToolBar {
 	private RSyntaxTextArea rTextArea;
 
 	private final JTextField searchField;
-	private final JToggleButton markAllCB;
-	private final JToggleButton regexCB;
-	private final JToggleButton wholeWordCB;
+	private JToggleButton markAllCB;
+	private JToggleButton regexCB;
+	private JToggleButton wholeWordCB;
 	private final JToggleButton matchCaseCB;
 	private boolean notFound;
 
@@ -78,6 +79,15 @@ class SearchBar extends JToolBar {
 
 		ActionListener forwardListener = e -> search(1);
 
+		matchCaseCB = getjToggleButton(forwardListener);
+
+		setFloatable(false);
+		setVisible(false);
+	}
+
+	@NotNull
+	private JToggleButton getjToggleButton(ActionListener forwardListener) {
+		final JToggleButton matchCaseCB;
 		matchCaseCB = new JToggleButton();
 		matchCaseCB.setIcon(ICON_MATCH);
 		matchCaseCB.setSelectedIcon(ICON_MATCH_SELECTED);
@@ -125,9 +135,7 @@ class SearchBar extends JToolBar {
 		closeButton.addActionListener(e -> toggle());
 		closeButton.setBorderPainted(false);
 		add(closeButton);
-
-		setFloatable(false);
-		setVisible(false);
+		return matchCaseCB;
 	}
 
 	public void toggle() {

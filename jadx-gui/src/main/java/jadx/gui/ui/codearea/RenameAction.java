@@ -21,6 +21,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 public final class RenameAction extends JNodeMenuAction<JNode> {
 	private static final long serialVersionUID = -4680872086148463289L;
 
+	public static transient CodeArea codeArea;
 	private static final Logger LOG = LoggerFactory.getLogger(RenameAction.class);
 
 	public RenameAction(CodeArea codeArea) {

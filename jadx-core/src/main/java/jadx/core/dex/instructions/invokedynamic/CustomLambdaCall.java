@@ -56,7 +56,7 @@ public class CustomLambdaCall {
 		InvokeCustomNode resNode = buildMethodCall(mth, insn, isRange, values, callMthHandle);
 		int resReg = insn.getResultReg();
 		if (resReg != -1) {
-			resNode.setResult(InsnArg.reg(resReg, mth.getReturnType()));
+			resNode.setResult(InsnArg.register(resReg, mth.getReturnType()));
 		}
 		return resNode;
 	}

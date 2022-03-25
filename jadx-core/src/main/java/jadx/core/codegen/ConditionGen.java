@@ -3,6 +3,7 @@ package jadx.core.codegen;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
@@ -13,6 +14,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.conditions.Compare;
 import jadx.core.dex.regions.conditions.IfCondition;

@@ -130,6 +130,7 @@ public class DbgUtils {
 		int actionPos = 0; // last found action's index
 		String actionTag = "<action android:name=\"android.intent.action.MAIN\"";
 		int actionTagLen = 0; // beginning offset. suggested length set after first iteration
+
 		while (actionPos > -1) {
 			pos = content.indexOf(actionTag, actionPos + actionTagLen);
 			actionPos = pos;

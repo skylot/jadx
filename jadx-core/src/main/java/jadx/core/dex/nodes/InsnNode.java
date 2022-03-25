@@ -169,19 +169,19 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected void addReg(InsnData insn, int i, ArgType type) {
-		addArg(InsnArg.reg(insn, i, type));
+		addArg(InsnArg.register(insn, i, type));
 	}
 
 	protected void addReg(int regNum, ArgType type) {
-		addArg(InsnArg.reg(regNum, type));
+		addArg(InsnArg.register(regNum, type));
 	}
 
 	protected void addLit(long literal, ArgType type) {
-		addArg(InsnArg.lit(literal, type));
+		addArg(InsnArg.literal(literal, type));
 	}
 
 	protected void addLit(InsnData insn, ArgType type) {
-		addArg(InsnArg.lit(insn, type));
+		addArg(InsnArg.literal(insn, type));
 	}
 
 	public int getOffset() {

@@ -24,7 +24,7 @@ public final class PhiInsn extends InsnNode {
 
 	public PhiInsn(int regNum, int predecessors) {
 		this(predecessors);
-		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
+		setResult(InsnArg.register(regNum, ArgType.UNKNOWN));
 		add(AFlag.DONT_INLINE);
 		add(AFlag.DONT_GENERATE);
 	}
@@ -35,7 +35,7 @@ public final class PhiInsn extends InsnNode {
 	}
 
 	public RegisterArg bindArg(BlockNode pred) {
-		RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
+		RegisterArg arg = InsnArg.register(getResult().getRegNum(), getResult().getInitType());
 		bindArg(arg, pred);
 		return arg;
 	}

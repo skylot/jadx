@@ -26,19 +26,19 @@ public abstract class InsnArg extends Typed {
 	@Nullable("Null for method arguments")
 	protected InsnNode parentInsn;
 
-	public static RegisterArg reg(int regNum, ArgType type) {
+	public static RegisterArg register(int regNum, ArgType type) {
 		return new RegisterArg(regNum, type);
 	}
 
-	public static RegisterArg reg(InsnData insn, int argNum, ArgType type) {
-		return reg(insn.getReg(argNum), type);
+	public static RegisterArg register(InsnData insn, int argNum, ArgType type) {
+		return register(insn.getReg(argNum), type);
 	}
 
 	public static RegisterArg typeImmutableIfKnownReg(InsnData insn, int argNum, ArgType type) {
 		if (type.isTypeKnown()) {
 			return typeImmutableReg(insn.getReg(argNum), type);
 		}
-		return reg(insn.getReg(argNum), type);
+		return register(insn.getReg(argNum), type);
 	}
 
 	public static RegisterArg typeImmutableReg(InsnData insn, int argNum, ArgType type) {
@@ -46,10 +46,10 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public static RegisterArg typeImmutableReg(int regNum, ArgType type) {
-		return reg(regNum, type, true);
+		return register(regNum, type, true);
 	}
 
-	public static RegisterArg reg(int regNum, ArgType type, boolean typeImmutable) {
+	public static RegisterArg register(int regNum, ArgType type, boolean typeImmutable) {
 		RegisterArg reg = new RegisterArg(regNum, type);
 		if (typeImmutable) {
 			reg.add(AFlag.IMMUTABLE_TYPE);
@@ -57,33 +57,17 @@ public abstract class InsnArg extends Typed {
 		return reg;
 	}
 
-	public static LiteralArg lit(long literal, ArgType type) {
+	public static LiteralArg literal(long literal, ArgType type) {
 		return LiteralArg.makeWithFixedType(literal, type);
 	}
 
-	public static LiteralArg lit(InsnData insn, ArgType type) {
-		return lit(insn.getLiteral(), type);
+	public static LiteralArg literal(InsnData insn, ArgType type) {
+		return literal(insn.getLiteral(), type);
 	}
 
 	private static InsnWrapArg wrap(InsnNode insn) {
 		insn.add(AFlag.WRAPPED);
 		return new InsnWrapArg(insn);
-	}
-
-	public boolean isRegister() {
-		return false;
-	}
-
-	public boolean isLiteral() {
-		return false;
-	}
-
-	public boolean isInsnWrap() {
-		return false;
-	}
-
-	public boolean isNamed() {
-		return false;
 	}
 
 	@Nullable
@@ -217,7 +201,7 @@ public abstract class InsnArg extends Typed {
 			LiteralArg litArg = (LiteralArg) this;
 			return litArg.getLiteral() == 0 && Objects.equals(litArg.getType(), ArgType.BOOLEAN);
 		}
-		return false;
+		return isNamed();
 	}
 
 	public boolean isTrue() {
@@ -225,7 +209,7 @@ public abstract class InsnArg extends Typed {
 			LiteralArg litArg = (LiteralArg) this;
 			return litArg.getLiteral() == 1 && Objects.equals(litArg.getType(), ArgType.BOOLEAN);
 		}
-		return false;
+		return isNamed();
 	}
 
 	public boolean isThis() {
@@ -243,7 +227,7 @@ public abstract class InsnArg extends Typed {
 		if (wrappedInsn != null && wrappedInsn.getType() == InsnType.IGET) {
 			return wrappedInsn.getArg(0).isAnyThis();
 		}
-		return false;
+		return isNamed();
 	}
 
 	public InsnNode unwrap() {
@@ -261,7 +245,7 @@ public abstract class InsnArg extends Typed {
 		if (isConst() && other.isConst()) {
 			return this.equals(other);
 		}
-		return false;
+		return isNamed();
 	}
 
 	protected final <T extends InsnArg> T copyCommonParams(T copy) {

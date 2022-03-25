@@ -226,7 +226,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			if (argType.isObject() && literal != 0) {
 				argType = ArgType.NARROW_NUMBERS;
 			}
-			LiteralArg litArg = InsnArg.lit(literal, argType);
+			LiteralArg litArg = InsnArg.literal(literal, argType);
 			litArg.copyAttributesFrom(constArg);
 			if (!useInsn.replaceArg(arg, litArg)) {
 				return false;

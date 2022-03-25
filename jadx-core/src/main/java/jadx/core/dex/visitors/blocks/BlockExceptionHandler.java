@@ -468,7 +468,7 @@ public class BlockExceptionHandler {
 		InsnNode me = BlockUtils.getLastInsn(block);
 		if (me != null && me.getType() == InsnType.MOVE_EXCEPTION) {
 			// set correct type for 'move-exception' operation
-			RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
+			RegisterArg resArg = InsnArg.register(me.getResult().getRegNum(), argType);
 			resArg.copyAttributesFrom(me);
 			me.setResult(resArg);
 			me.add(AFlag.DONT_INLINE);

@@ -243,7 +243,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed
 	 */
-	public abstract void load();
+	//public abstract void load();
 
 	/**
 	 * Implement in this method the code that reloads node from cache and sets the new content to be

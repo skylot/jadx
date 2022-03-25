@@ -70,22 +70,22 @@ public final class FillArrayData extends InsnNode {
 		switch (elemSize) {
 			case 1:
 				for (byte b : (byte[]) array) {
-					list.add(InsnArg.lit(b, type));
+					list.add(InsnArg.literal(b, type));
 				}
 				break;
 			case 2:
 				for (short b : (short[]) array) {
-					list.add(InsnArg.lit(b, type));
+					list.add(InsnArg.literal(b, type));
 				}
 				break;
 			case 4:
 				for (int b : (int[]) array) {
-					list.add(InsnArg.lit(b, type));
+					list.add(InsnArg.literal(b, type));
 				}
 				break;
 			case 8:
 				for (long b : (long[]) array) {
-					list.add(InsnArg.lit(b, type));
+					list.add(InsnArg.literal(b, type));
 				}
 				break;
 			default:

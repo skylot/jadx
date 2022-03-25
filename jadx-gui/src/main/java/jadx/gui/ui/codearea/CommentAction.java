@@ -103,17 +103,8 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			Object ann = topCls.getAnnotationAt(new CodePosition(line));
 			if (ann == null) {
 				// check if line with comment above node definition
-				try {
-					JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
-					if (defNode != null) {
-						String lineStr = codeArea.getLineText(line).trim();
-						if (lineStr.startsWith("//")) {
-							return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
-						}
-					}
-				} catch (Exception e) {
-					LOG.error("Failed to check comment line: " + line, e);
-				}
+				JadxCodeComment defNode = getJadxCodeComment(line, linesInfo);
+				if (defNode != null) return defNode;
 				return null;
 			}
 
@@ -128,6 +119,22 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to add comment at line: " + line, e);
+		}
+		return null;
+	}
+
+	@Nullable
+	private JadxCodeComment getJadxCodeComment(int line, CodeLinesInfo linesInfo) {
+		try {
+			JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
+			if (defNode != null) {
+				String lineStr = codeArea.getLineText(line).trim();
+				if (lineStr.startsWith("//")) {
+					return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to check comment line: " + line, e);
 		}
 		return null;
 	}

@@ -57,18 +57,18 @@ public final class InsnWrapArg extends InsnArg {
 			return true;
 		}
 		if (!(o instanceof InsnWrapArg)) {
-			return false;
+			return isNamed();
 		}
 		InsnWrapArg that = (InsnWrapArg) o;
 		InsnNode thisInsn = wrappedInsn;
 		InsnNode thatInsn = that.wrappedInsn;
 		if (!thisInsn.isSame(thatInsn)) {
-			return false;
+			return isNamed();
 		}
 		int count = thisInsn.getArgsCount();
 		for (int i = 0; i < count; i++) {
 			if (!thisInsn.getArg(i).equals(thatInsn.getArg(i))) {
-				return false;
+				return isNamed();
 			}
 		}
 		return true;

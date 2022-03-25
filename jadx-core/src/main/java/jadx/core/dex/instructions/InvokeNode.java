@@ -34,7 +34,7 @@ public class InvokeNode extends BaseInvokeNode {
 		}
 		int resReg = insn.getResultReg();
 		if (resReg != -1) {
-			setResult(InsnArg.reg(resReg, mth.getReturnType()));
+			setResult(InsnArg.register(resReg, mth.getReturnType()));
 		}
 	}
 

@@ -25,11 +25,11 @@ public class IfNode extends GotoNode {
 		super(InsnType.IF, insn.getTarget(), 2);
 		this.op = op;
 		ArgType argType = narrowTypeByOp(op);
-		addArg(InsnArg.reg(insn, 0, argType));
+		addArg(InsnArg.register(insn, 0, argType));
 		if (insn.getRegsCount() == 1) {
-			addArg(InsnArg.lit(0, argType));
+			addArg(InsnArg.literal(0, argType));
 		} else {
-			addArg(InsnArg.reg(insn, 1, argType));
+			addArg(InsnArg.register(insn, 1, argType));
 		}
 	}
 

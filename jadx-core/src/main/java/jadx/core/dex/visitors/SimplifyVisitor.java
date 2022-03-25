@@ -488,7 +488,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 	/* String concat without assign to variable will cause compilation error */
 	private static void checkResult(MethodNode mth, InsnNode concatInsn) {
 		if (concatInsn.getResult() == null) {
-			RegisterArg resArg = InsnArg.reg(0, ArgType.STRING);
+			RegisterArg resArg = InsnArg.register(0, ArgType.STRING);
 			SSAVar ssaVar = mth.makeNewSVar(resArg);
 			InitCodeVariables.initCodeVar(ssaVar);
 			ssaVar.setType(ArgType.STRING);

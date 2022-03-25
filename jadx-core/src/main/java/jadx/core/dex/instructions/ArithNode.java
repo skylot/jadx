@@ -15,27 +15,27 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class ArithNode extends InsnNode {
 
 	public static ArithNode build(InsnData insn, ArithOp op, ArgType type) {
-		RegisterArg resArg = InsnArg.reg(insn, 0, fixResultType(op, type));
+		RegisterArg resArg = InsnArg.register(insn, 0, fixResultType(op, type));
 		ArgType argType = fixArgType(op, type);
 		switch (insn.getRegsCount()) {
 			case 2:
-				return new ArithNode(op, resArg, InsnArg.reg(insn, 0, argType), InsnArg.reg(insn, 1, argType));
+				return new ArithNode(op, resArg, InsnArg.register(insn, 0, argType), InsnArg.register(insn, 1, argType));
 			case 3:
-				return new ArithNode(op, resArg, InsnArg.reg(insn, 1, argType), InsnArg.reg(insn, 2, argType));
+				return new ArithNode(op, resArg, InsnArg.register(insn, 1, argType), InsnArg.register(insn, 2, argType));
 			default:
 				throw new JadxRuntimeException("Unexpected registers count in " + insn);
 		}
 	}
 
 	public static ArithNode buildLit(InsnData insn, ArithOp op, ArgType type) {
-		RegisterArg resArg = InsnArg.reg(insn, 0, fixResultType(op, type));
+		RegisterArg resArg = InsnArg.register(insn, 0, fixResultType(op, type));
 		ArgType argType = fixArgType(op, type);
-		LiteralArg litArg = InsnArg.lit(insn, argType);
+		LiteralArg litArg = InsnArg.literal(insn, argType);
 		switch (insn.getRegsCount()) {
 			case 1:
-				return new ArithNode(op, resArg, InsnArg.reg(insn, 0, argType), litArg);
+				return new ArithNode(op, resArg, InsnArg.register(insn, 0, argType), litArg);
 			case 2:
-				return new ArithNode(op, resArg, InsnArg.reg(insn, 1, argType), litArg);
+				return new ArithNode(op, resArg, InsnArg.register(insn, 1, argType), litArg);
 			default:
 				throw new JadxRuntimeException("Unexpected registers count in " + insn);
 		}

@@ -67,7 +67,7 @@ public final class LiteralArg extends InsnArg {
 			case LONG:
 				return true;
 			default:
-				return false;
+				return isNamed();
 		}
 	}
 
@@ -83,7 +83,7 @@ public final class LiteralArg extends InsnArg {
 			double val = Double.longBitsToDouble(literal);
 			return val < 0 && Double.isFinite(val);
 		}
-		return false;
+		return isNamed();
 	}
 
 	@Nullable
@@ -119,7 +119,7 @@ public final class LiteralArg extends InsnArg {
 			return true;
 		}
 		if (o == null || getClass() != o.getClass()) {
-			return false;
+			return isNamed();
 		}
 		LiteralArg that = (LiteralArg) o;
 		return literal == that.literal && getType().equals(that.getType());
@@ -128,7 +128,7 @@ public final class LiteralArg extends InsnArg {
 	@Override
 	public String toString() {
 		try {
-			String value = TypeGen.literalToString(literal, getType(), StringUtils.getInstance(), true, false);
+			String value = TypeGen.literalToString(literal, getType(), StringUtils.getInstance(), true, isNamed());
 			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
 				return value;
 			}

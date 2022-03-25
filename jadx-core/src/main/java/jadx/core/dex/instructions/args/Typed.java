@@ -17,4 +17,20 @@ public abstract class Typed extends AttrNode {
 	public boolean isTypeImmutable() {
 		return false;
 	}
+
+	public boolean isRegister() {
+		return false;
+	}
+
+	public boolean isLiteral() {
+		return false;
+	}
+
+	public boolean isInsnWrap() {
+		return false;
+	}
+
+	public boolean isNamed() {
+		return false;
+	}
 }

@@ -36,7 +36,7 @@ public class TestIfCondition {
 	}
 
 	private static InsnArg mockArg() {
-		return InsnArg.reg(0, ArgType.INT);
+		return InsnArg.register(0, ArgType.INT);
 	}
 
 	@Test

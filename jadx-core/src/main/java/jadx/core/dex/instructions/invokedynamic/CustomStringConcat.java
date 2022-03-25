@@ -56,7 +56,7 @@ public class CustomStringConcat {
 			processRecipe(recipe, concat, values, insn);
 			int resReg = insn.getResultReg();
 			if (resReg != -1) {
-				concat.setResult(InsnArg.reg(resReg, ArgType.STRING));
+				concat.setResult(InsnArg.register(resReg, ArgType.STRING));
 			}
 			return concat;
 		} catch (Exception e) {
@@ -84,7 +84,7 @@ public class CustomStringConcat {
 					sb.setLength(0);
 				}
 				if (argTag) {
-					concat.addArg(InsnArg.reg(insn, argNum++, ArgType.UNKNOWN));
+					concat.addArg(InsnArg.register(insn, argNum++, ArgType.UNKNOWN));
 				} else {
 					InsnArg constArg = buildInsnArgFromEncodedValue(values.get(constNum++));
 					concat.addArg(constArg);
@@ -101,7 +101,7 @@ public class CustomStringConcat {
 	private static InsnArg buildInsnArgFromEncodedValue(EncodedValue encodedValue) {
 		Object value = EncodedValueUtils.convertToConstValue(encodedValue);
 		if (value == null) {
-			return InsnArg.lit(0, ArgType.UNKNOWN);
+			return InsnArg.literal(0, ArgType.UNKNOWN);
 		}
 		if (value instanceof LiteralArg) {
 			return ((LiteralArg) value);

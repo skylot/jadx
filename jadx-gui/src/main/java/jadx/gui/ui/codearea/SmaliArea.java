@@ -86,7 +86,6 @@ public final class SmaliArea extends AbstractCodeArea {
 		switchModel();
 	}
 
-	@Override
 	public void load() {
 		if (getText().isEmpty() || curVersion != shouldUseSmaliPrinterV2()) {
 			curVersion = shouldUseSmaliPrinterV2();

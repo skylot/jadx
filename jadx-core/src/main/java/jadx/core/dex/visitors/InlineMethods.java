@@ -136,7 +136,7 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private RegisterArg makeFakeArg(MethodNode mth, ArgType varType, String name) {
-		RegisterArg fakeArg = RegisterArg.reg(0, varType);
+		RegisterArg fakeArg = RegisterArg.register(0, varType);
 		SSAVar ssaVar = mth.makeNewSVar(fakeArg);
 		InitCodeVariables.initCodeVar(ssaVar);
 		fakeArg.setName(name);
