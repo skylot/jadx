@@ -73,6 +73,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 			return;
 		}
 		ClassNode outerCls = anonymousConstructor.getUseIn().get(0).getParentClass();
+		outerCls.addInlinedClass(cls);
 		cls.addAttr(new AnonymousClassAttr(outerCls, baseType));
 		cls.add(AFlag.DONT_GENERATE);
 		anonymousConstructor.add(AFlag.ANONYMOUS_CONSTRUCTOR);

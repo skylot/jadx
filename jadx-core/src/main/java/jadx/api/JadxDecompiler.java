@@ -33,6 +33,8 @@ import jadx.api.plugins.input.data.ILoadResult;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -483,12 +485,12 @@ public final class JadxDecompiler implements Closeable {
 		if (parentClass.contains(AFlag.DONT_GENERATE)) {
 			return null;
 		}
-		if (parentClass != cls) {
-			JavaClass parentJavaClass = classesMap.get(parentClass);
-			if (parentJavaClass == null) {
-				getClasses();
-				parentJavaClass = classesMap.get(parentClass);
-			}
+		JavaClass parentJavaClass = classesMap.get(parentClass);
+		if (parentJavaClass == null) {
+			getClasses();
+			parentJavaClass = classesMap.get(parentClass);
+		}
+		if (parentJavaClass != null) {
 			loadJavaClass(parentJavaClass);
 			javaClass = classesMap.get(cls);
 			if (javaClass != null) {
@@ -512,7 +514,9 @@ public final class JadxDecompiler implements Closeable {
 			return null;
 		}
 		// parent class not loaded yet
-		JavaClass javaClass = getJavaClassByNode(mth.getParentClass().getTopParentClass());
+		ClassNode parentClass = mth.getParentClass();
+		ClassNode codeCls = getCodeParentClass(parentClass);
+		JavaClass javaClass = getJavaClassByNode(codeCls);
 		if (javaClass == null) {
 			return null;
 		}
@@ -521,10 +525,24 @@ public final class JadxDecompiler implements Closeable {
 		if (javaMethod != null) {
 			return javaMethod;
 		}
-		if (mth.getParentClass().hasNotGeneratedParent()) {
+		if (parentClass.hasNotGeneratedParent()) {
 			return null;
 		}
 		throw new JadxRuntimeException("JavaMethod not found by MethodNode: " + mth);
+	}
+
+	private ClassNode getCodeParentClass(ClassNode cls) {
+		ClassNode codeCls;
+		InlinedAttr inlinedAttr = cls.get(AType.INLINED);
+		if (inlinedAttr != null) {
+			codeCls = inlinedAttr.getInlineCls().getTopParentClass();
+		} else {
+			codeCls = cls.getTopParentClass();
+		}
+		if (codeCls == cls) {
+			return codeCls;
+		}
+		return getCodeParentClass(codeCls);
 	}
 
 	@Nullable

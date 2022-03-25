@@ -11,6 +11,7 @@ import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
+import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
@@ -55,6 +56,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<EnumMapAttr> ENUM_MAP = new AType<>();
 	public static final AType<ClassTypeVarsAttr> CLASS_TYPE_VARS = new AType<>();
 	public static final AType<AnonymousClassAttr> ANONYMOUS_CLASS = new AType<>();
+	public static final AType<InlinedAttr> INLINED = new AType<>();
 
 	// field
 	public static final AType<FieldInitInsnAttr> FIELD_INIT_INSN = new AType<>();

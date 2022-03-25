@@ -36,6 +36,7 @@ import jadx.core.Consts;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
@@ -633,6 +634,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		if (inlinedClasses.isEmpty()) {
 			inlinedClasses = new ArrayList<>(5);
 		}
+		cls.addAttr(new InlinedAttr(this));
 		inlinedClasses.add(cls);
 	}
 

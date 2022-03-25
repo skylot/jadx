@@ -74,8 +74,11 @@ public class UsageDialog extends CommonSearchDialog {
 	private List<JavaNode> getMethodUseIn() {
 		if (node instanceof JMethod) {
 			JavaMethod method = ((JMethod) node).getJavaMethod();
-			if (null != method.getMethodNode().get(AType.METHOD_OVERRIDE)) {
-				return method.getOverrideRelatedMethods().stream().flatMap(m -> m.getUseIn().stream()).collect(Collectors.toList());
+			if (method.getMethodNode().contains(AType.METHOD_OVERRIDE)) {
+				return method.getOverrideRelatedMethods()
+						.stream()
+						.flatMap(m -> m.getUseIn().stream())
+						.collect(Collectors.toList());
 			}
 		}
 		return node.getJavaNode().getUseIn();
