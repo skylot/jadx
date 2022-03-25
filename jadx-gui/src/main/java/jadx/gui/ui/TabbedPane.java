@@ -35,6 +35,7 @@ import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.NLS;
 
 public class TabbedPane extends JTabbedPane {
 	private static final long serialVersionUID = -8833600618794570904L;
@@ -165,42 +166,49 @@ public class TabbedPane extends JTabbedPane {
 		JNode jumpNode = jumpPos.getNode();
 		Objects.requireNonNull(jumpNode, "Null node in JumpPosition");
 
-		final AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(jumpNode);
-		if (contentPanel == null) {
-			return;
-		}
-		SwingUtilities.invokeLater(() -> {
-			selectTab(contentPanel);
-			AbstractCodeArea codeArea = contentPanel.getCodeArea();
-			int pos = jumpPos.getPos();
-			if (pos > 0) {
-				codeArea.scrollToPos(pos);
-			} else {
-				int line = jumpPos.getLine();
-				if (line < 0) {
-					try {
-						line = 1 + codeArea.getLineOfOffset(-line);
-					} catch (BadLocationException e) {
-						LOG.error("Can't get line for: {}", jumpPos, e);
-						line = jumpNode.getLine();
+		mainWindow.getBackgroundExecutor().execute(
+				NLS.str("progress.load"),
+				jumpNode::getContent, // run heavy loading in background
+				status -> {
+					// show the code in UI thread
+					AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(jumpNode);
+					if (contentPanel != null) {
+						scrollToPos(contentPanel, jumpPos);
+						selectTab(contentPanel);
 					}
-				}
-				int lineNum = Math.max(0, line - 1);
+				});
+	}
+
+	private void scrollToPos(AbstractCodeContentPanel contentPanel, JumpPosition jumpPos) {
+		AbstractCodeArea codeArea = contentPanel.getCodeArea();
+		int pos = jumpPos.getPos();
+		if (pos > 0) {
+			codeArea.scrollToPos(pos);
+		} else {
+			int line = jumpPos.getLine();
+			if (line < 0) {
 				try {
-					int offs = codeArea.getLineStartOffset(lineNum);
-					while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
-						offs += 1;
-					}
-					offs += pos;
-					jumpPos.setPos(offs);
-					codeArea.scrollToPos(offs);
+					line = 1 + codeArea.getLineOfOffset(-line);
 				} catch (BadLocationException e) {
-					LOG.error("Failed to jump to position: {}", pos, e);
-					codeArea.scrollToLine(line);
+					LOG.error("Can't get line for: {}", jumpPos, e);
+					line = jumpPos.getNode().getLine();
 				}
 			}
-			codeArea.requestFocus();
-		});
+			int lineNum = Math.max(0, line - 1);
+			try {
+				int offs = codeArea.getLineStartOffset(lineNum);
+				while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
+					offs += 1;
+				}
+				offs += pos;
+				jumpPos.setPos(offs);
+				codeArea.scrollToPos(offs);
+			} catch (BadLocationException e) {
+				LOG.error("Failed to jump to position: {}", pos, e);
+				codeArea.scrollToLine(line);
+			}
+		}
+		codeArea.requestFocus();
 	}
 
 	public boolean showNode(JNode node) {

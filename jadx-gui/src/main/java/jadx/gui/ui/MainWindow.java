@@ -403,15 +403,22 @@ public class MainWindow extends JFrame {
 	}
 
 	void open(List<Path> paths, Runnable onFinish) {
+		closeAll();
 		if (paths.size() == 1) {
 			Path singleFile = paths.get(0);
 			String fileExtension = CommonFileUtils.getFileExtension(singleFile.getFileName().toString());
 			if (fileExtension != null && fileExtension.equalsIgnoreCase(JadxProject.PROJECT_EXTENSION)) {
-				openProject(singleFile, onFinish);
+				List<Path> projectFiles = openProject(singleFile);
+				if (!Utils.isEmpty(projectFiles)) {
+					openFiles(projectFiles, onFinish);
+				}
 				return;
 			}
 		}
-		closeAll();
+		openFiles(paths, onFinish);
+	}
+
+	private void openFiles(List<Path> paths, Runnable onFinish) {
 		project.setFilePath(paths);
 		if (paths.isEmpty()) {
 			return;
@@ -491,9 +498,9 @@ public class MainWindow extends JFrame {
 		return true;
 	}
 
-	private void openProject(Path path, Runnable onFinish) {
+	private List<Path> openProject(Path path) {
 		if (!ensureProjectIsSaved()) {
-			return;
+			return Collections.emptyList();
 		}
 		JadxProject jadxProject = JadxProject.from(path);
 		if (jadxProject == null) {
@@ -506,12 +513,7 @@ public class MainWindow extends JFrame {
 		}
 		updateProject(jadxProject);
 		settings.addRecentProject(path);
-		List<Path> filePaths = jadxProject.getFilePaths();
-		if (filePaths == null) {
-			closeAll();
-		} else {
-			open(filePaths, onFinish);
-		}
+		return jadxProject.getFilePaths();
 	}
 
 	public void updateProject(JadxProject jadxProject) {
