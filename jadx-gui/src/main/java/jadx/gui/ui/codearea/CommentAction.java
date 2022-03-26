@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 
 import org.jetbrains.annotations.Nullable;
@@ -48,16 +47,9 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 		} else {
 			this.topCls = null;
 		}
-
-		KeyStroke key = getKeyStroke(KeyEvent.VK_SEMICOLON, 0);
-		codeArea.getInputMap().put(key, "popup.add_comment");
-		codeArea.getActionMap().put("popup.add_comment", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int line = codeArea.getCaretLineNumber() + 1;
-				ICodeComment codeComment = getCommentRef(line);
-				showCommentDialog(codeComment);
-			}
+		UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment", () -> {
+			int line = codeArea.getCaretLineNumber() + 1;
+			showCommentDialog(getCommentRef(line));
 		});
 	}
 

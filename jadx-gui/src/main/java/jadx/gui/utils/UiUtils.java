@@ -9,12 +9,14 @@ import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -88,6 +90,15 @@ public class UiUtils {
 			throw new JadxRuntimeException("Image not found: " + path);
 		}
 		return Toolkit.getDefaultToolkit().createImage(resource);
+	}
+
+	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Runnable action) {
+		addKeyBinding(comp, key, id, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				action.run();
+			}
+		});
 	}
 
 	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {

@@ -5,9 +5,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -89,33 +87,19 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	private void addMenuItems() {
-		FindUsageAction findUsage = new FindUsageAction(this);
-		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);
-		RenameAction rename = new RenameAction(this);
-		CommentAction comment = new CommentAction(this);
-		FridaAction frida = new FridaAction(this);
-		XposedAction xposed = new XposedAction(this);
-
-		JPopupMenu popup = getPopupMenu();
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
 		popup.addSeparator();
-		popup.add(findUsage);
-		popup.add(goToDeclaration);
-		popup.add(comment);
+		popup.add(new FindUsageAction(this));
+		popup.add(new GoToDeclarationAction(this));
+		popup.add(new CommentAction(this));
 		popup.add(new CommentSearchAction(this));
-		popup.add(rename);
+		popup.add(new RenameAction(this));
 		popup.addSeparator();
-		popup.add(frida);
-		popup.add(xposed);
-
-		popup.addPopupMenuListener(findUsage);
-		popup.addPopupMenuListener(goToDeclaration);
-		popup.addPopupMenuListener(comment);
-		popup.addPopupMenuListener(rename);
-		popup.addPopupMenuListener(frida);
-		popup.addPopupMenuListener(xposed);
+		popup.add(new FridaAction(this));
+		popup.add(new XposedAction(this));
 
 		// move caret on mouse right button click
-		popup.addPopupMenuListener(new DefaultPopupMenuListener() {
+		popup.getMenu().addPopupMenuListener(new DefaultPopupMenuListener() {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				CodeArea codeArea = CodeArea.this;
@@ -186,43 +170,25 @@ public final class CodeArea extends AbstractCodeArea {
 		return nodeCache.makeFrom(javaNode);
 	}
 
-	@SuppressWarnings("deprecation")
-	public CodePosition getMouseCodePos() {
-		try {
-			Point mousePos = UiUtils.getMousePosition(this);
-			return buildCodePosFromOffset(this.viewToModel(mousePos));
-		} catch (Exception e) {
-			LOG.error("Failed to get offset at mouse position", e);
+	@Nullable
+	public JNode getNodeUnderCaret() {
+		int caretPos = getCaretPosition();
+		Token token = modelToToken(caretPos);
+		if (token == null) {
 			return null;
 		}
+		int start = adjustOffsetForToken(token);
+		if (start == -1) {
+			start = caretPos;
+		}
+		return getJNodeAtOffset(start);
 	}
 
 	@Nullable
-	public CodePosition getCaretCodePos() {
-		try {
-			return buildCodePosFromOffset(getCaretPosition());
-		} catch (Exception e) {
-			LOG.warn("Failed to get caret position", e);
-			return null;
-		}
-	}
-
-	private CodePosition buildCodePosFromOffset(int offset) throws BadLocationException {
-		int start = getWordStart(offset);
-		if (start == -1) {
-			start = offset;
-		}
-		int line = getLineOfOffset(start);
-		int lineOffset = start - getLineStartOffset(line);
-		return new CodePosition(line + 1, lineOffset + 1, start);
-	}
-
-	public JNode getNodeUnderCaret() {
-		int start = getWordStart(getCaretPosition());
-		if (start == -1) {
-			start = getCaretPosition();
-		}
-		return getJNodeAtOffset(start);
+	public JNode getNodeUnderMouse() {
+		Point pos = UiUtils.getMousePosition(this);
+		int offset = adjustOffsetForToken(viewToToken(pos));
+		return getJNodeAtOffset(offset);
 	}
 
 	@Nullable

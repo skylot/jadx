@@ -8,8 +8,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBoxMenuItem;
@@ -25,6 +23,7 @@ import javax.swing.text.DefaultCaret;
 
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -193,51 +192,17 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		return getWordByPosition(getCaretPosition());
 	}
 
-	public int getWordStart(int pos) {
-		int start = Math.max(0, pos - 1);
-		try {
-			if (!StringUtils.isWordSeparator(getText(start, 1).charAt(0))) {
-				do {
-					start--;
-				} while (start >= 0 && !StringUtils.isWordSeparator(getText(start, 1).charAt(0)));
-			}
-			start++;
-		} catch (BadLocationException e) {
-			LOG.error("Failed to find word start", e);
-			start = -1;
-		}
-		return start;
-	}
-
-	public int getWordEnd(int pos, int max) {
-		int end = pos;
-		try {
-			if (!StringUtils.isWordSeparator(getText(end, 1).charAt(0))) {
-				do {
-					end++;
-				} while (end < max && !StringUtils.isWordSeparator(getText(end, 1).charAt(0)));
-			}
-		} catch (BadLocationException e) {
-			LOG.error("Failed to find word end", e);
-			end = max;
-		}
-		return end;
-	}
-
 	@Nullable
 	public String getWordByPosition(int pos) {
-		int len = getDocument().getLength();
-		int start = getWordStart(pos);
-		int end = getWordEnd(pos, len);
 		try {
-			if (end <= start) {
-				return null;
+			Token token = modelToToken(pos);
+			if (token != null) {
+				return token.getLexeme();
 			}
-			return getText(start, end - start);
-		} catch (BadLocationException e) {
-			LOG.error("Failed to get word at pos: {}, start: {}, end: {}", pos, start, end, e);
-			return null;
+		} catch (Exception e) {
+			LOG.error("Failed to get word at pos: {}", pos, e);
 		}
+		return null;
 	}
 
 	/**
@@ -324,23 +289,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		} catch (BadLocationException e) {
 			LOG.debug("Can't center current line", e);
 		}
-	}
-
-	private void registerWordHighlighter() {
-		addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent evt) {
-				if (evt.getClickCount() % 2 == 0 && !evt.isConsumed()) {
-					evt.consume();
-					String str = getSelectedText();
-					if (str != null) {
-						highlightAllMatches(str);
-					}
-				} else {
-					highlightAllMatches(null);
-				}
-			}
-		});
 	}
 
 	/**

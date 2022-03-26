@@ -1,49 +1,44 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.CodePosition;
+import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 
 import static javax.swing.KeyStroke.getKeyStroke;
 
-public final class GoToDeclarationAction extends JNodeMenuAction<JumpPosition> {
+public final class GoToDeclarationAction extends JNodeAction {
 	private static final long serialVersionUID = -1186470538894941301L;
+
+	private transient @Nullable JumpPosition declPos;
 
 	public GoToDeclarationAction(CodeArea codeArea) {
 		super(NLS.str("popup.go_to_declaration") + " (d)", codeArea);
-		KeyStroke key = getKeyStroke(KeyEvent.VK_D, 0);
-		codeArea.getInputMap().put(key, "trigger goto decl");
-		codeArea.getActionMap().put("trigger goto decl", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				node = getNodeByOffset(codeArea.getWordStart(codeArea.getCaretPosition()));
-				doJump();
-			}
-		});
+		addKeyBinding(getKeyStroke(KeyEvent.VK_D, 0), "trigger goto decl");
 	}
 
-	private void doJump() {
-		if (node != null) {
-			codeArea.getContentPanel().getTabbedPane().codeJump(node);
-			node = null;
+	@Override
+	public boolean isActionEnabled(JNode node) {
+		declPos = null;
+		if (node == null) {
+			return false;
 		}
+		CodePosition defPos = getCodeArea().getDecompiler().getDefinitionPosition(node.getJavaNode());
+		if (defPos == null) {
+			return false;
+		}
+		declPos = new JumpPosition(node.getRootClass(), defPos);
+		return true;
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		doJump();
-	}
-
-	@Nullable
-	@Override
-	public JumpPosition getNodeByOffset(int offset) {
-		return codeArea.getDefPosForNodeAtOffset(offset);
+	public void runAction(JNode node) {
+		if (declPos != null) {
+			getCodeArea().getContentPanel().getTabbedPane().codeJump(declPos);
+		}
 	}
 }

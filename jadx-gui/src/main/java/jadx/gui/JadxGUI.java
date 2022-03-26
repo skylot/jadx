@@ -27,7 +27,10 @@ public class JadxGUI {
 			if (!settings.overrideProvided(args)) {
 				return;
 			}
+			LogHelper.initLogLevel(settings);
+			LogHelper.setLogLevelsForDecompileStage();
 			printSystemInfo();
+
 			LafManager.init(settings);
 			NLS.setLocale(settings.getLangLocale());
 			ExceptionDialog.registerUncaughtExceptionHandler();

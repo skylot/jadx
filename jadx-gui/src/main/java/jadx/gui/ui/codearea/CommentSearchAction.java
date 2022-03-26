@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.KeyStroke;
 
 import jadx.gui.ui.dialog.SearchDialog;
@@ -19,18 +18,11 @@ public class CommentSearchAction extends AbstractAction {
 	private final CodeArea codeArea;
 
 	public CommentSearchAction(CodeArea codeArea) {
+		super(NLS.str("popup.search_comment") + " (Ctrl + ;)");
 		this.codeArea = codeArea;
 
 		KeyStroke key = getKeyStroke(KeyEvent.VK_SEMICOLON, UiUtils.ctrlButton());
-		putValue(Action.NAME, NLS.str("popup.search_comment") + " (Ctrl + ;)");
-
-		codeArea.getInputMap().put(key, "popup.search_comment");
-		codeArea.getActionMap().put("popup.search_comment", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				startSearch();
-			}
-		});
+		UiUtils.addKeyBinding(codeArea, key, "popup.search_comment", this::startSearch);
 	}
 
 	@Override

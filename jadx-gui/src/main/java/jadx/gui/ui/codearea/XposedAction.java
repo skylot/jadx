@@ -1,15 +1,11 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,42 +22,34 @@ import jadx.gui.utils.UiUtils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
 
-public class XposedAction extends JNodeMenuAction<JNode> {
+public class XposedAction extends JNodeAction {
 	private static final Logger LOG = LoggerFactory.getLogger(XposedAction.class);
 	private static final long serialVersionUID = 2641585141624592578L;
 
 	public XposedAction(CodeArea codeArea) {
 		super(NLS.str("popup.xposed") + " (y)", codeArea);
-		KeyStroke key = getKeyStroke(KeyEvent.VK_Y, 0);
-		codeArea.getInputMap().put(key, "trigger xposed");
-		codeArea.getActionMap().put("trigger xposed", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				node = getNodeByOffset(codeArea.getWordStart(codeArea.getCaretPosition()));
-				copyXposedSnippet();
-			}
-		});
+		addKeyBinding(getKeyStroke(KeyEvent.VK_Y, 0), "trigger xposed");
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		node = codeArea.getNodeUnderCaret();
-		copyXposedSnippet();
-	}
-
-	private void copyXposedSnippet() {
+	public void runAction(JNode node) {
 		try {
-			String xposedSnippet = generateXposedSnippet();
+			String xposedSnippet = generateXposedSnippet(node);
 			LOG.info("Xposed snippet:\n{}", xposedSnippet);
 			UiUtils.copyToClipboard(xposedSnippet);
 		} catch (Exception e) {
 			LOG.error("Failed to generate Xposed code snippet", e);
-			JOptionPane.showMessageDialog(codeArea.getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),
+			JOptionPane.showMessageDialog(getCodeArea().getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
-	private String generateXposedSnippet() {
+	@Override
+	public boolean isActionEnabled(JNode node) {
+		return node instanceof JMethod || node instanceof JClass;
+	}
+
+	private String generateXposedSnippet(JNode node) {
 		if (node instanceof JMethod) {
 			return generateMethodSnippet((JMethod) node);
 		}
@@ -110,11 +98,5 @@ public class XposedAction extends JNodeMenuAction<JNode> {
 		return String.format("ClassLoader classLoader=lpparam.classLoader;\n"
 				+ "Class %sClass=classLoader.loadClass(\"%s\");",
 				shortClassName, rawClassName);
-	}
-
-	@Nullable
-	@Override
-	public JNode getNodeByOffset(int offset) {
-		return codeArea.getJNodeAtOffset(offset);
 	}
 }
