@@ -11,7 +11,7 @@
             <strong>Main features:</strong>
             <ul>
                 <li>decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files</li>
-                <li>decode <code>AndroidManifest.xml</code> and other resources from <code>resources.arsc</code></li>
+                <li>decode AndroidManifest.xml and other resources from resources.arsc</li>
                 <li>deobfuscator included</li>
             </ul>
         </p>
@@ -22,7 +22,7 @@
                 <li>jump to declaration</li>
                 <li>find usage</li>
                 <li>full text search</li>
-                <li>smali debugger, check <a href="https://github.com/skylot/jadx/wiki/Smali-debugger">wiki page</a> for setup and usage</li>
+                <li>smali debugger, check https://github.com/skylot/jadx/wiki/Smali-debugger for setup and usage</li>
             </ul>
         </p>
     </description>
