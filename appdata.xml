@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+    <id>com.github.skylot.jadx</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>Apache-2.0</project_license>
+    <name>JADX</name>
+    <summary>Dex to Java decompiler</summary>
+    <description>
+        <p>Command line and GUI tools for producing Java source code from Android Dex and Apk files</p>
+        <p>
+            <strong>Main features:</strong>
+            <ul>
+                <li>decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files</li>
+                <li>decode <code>AndroidManifest.xml</code> and other resources from <code>resources.arsc</code></li>
+                <li>deobfuscator included</li>
+            </ul>
+        </p>
+        <p>
+            <strong>jadx-gui features:</strong>
+            <ul>
+                <li>view decompiled code with highlighted syntax</li>
+                <li>jump to declaration</li>
+                <li>find usage</li>
+                <li>full text search</li>
+                <li>smali debugger, check <a href="https://github.com/skylot/jadx/wiki/Smali-debugger">wiki page</a> for setup and usage</li>
+            </ul>
+        </p>
+    </description>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://user-images.githubusercontent.com/118523/142730720-839f017e-38db-423e-b53f-39f5f0a0316f.png</image>
+        </screenshot>
+    </screenshots>
+    <content_rating type="oars-1.1" />
+    <launchable type="desktop-id">com.github.skylot.jadx.desktop</launchable>
+    <url type="homepage">https://github.com/skylot/jadx</url>
+    <url type="bugtracker">https://github.com/skylot/jadx/issues</url>
+    <releases>
+        <release version="1.3.4" date="2022-03-20" />
+    </releases>
+</component>
