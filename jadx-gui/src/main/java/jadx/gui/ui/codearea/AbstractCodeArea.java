@@ -25,6 +25,7 @@ import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.Nullable;
@@ -196,13 +197,37 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	public String getWordByPosition(int pos) {
 		try {
 			Token token = modelToToken(pos);
-			if (token != null) {
-				return token.getLexeme();
-			}
+			return getWordFromToken(token);
 		} catch (Exception e) {
 			LOG.error("Failed to get word at pos: {}", pos, e);
+			return null;
 		}
-		return null;
+	}
+
+	@Nullable
+	private static String getWordFromToken(@Nullable Token token) {
+		if (token == null) {
+			return null;
+		}
+		switch (token.getType()) {
+			case TokenTypes.NULL:
+			case TokenTypes.WHITESPACE:
+			case TokenTypes.SEPARATOR:
+			case TokenTypes.OPERATOR:
+				return null;
+
+			case TokenTypes.IDENTIFIER:
+				if (token.length() == 1) {
+					char ch = token.charAt(0);
+					if (ch == ';' || ch == '.') {
+						return null;
+					}
+				}
+				return token.getLexeme();
+
+			default:
+				return token.getLexeme();
+		}
 	}
 
 	/**
