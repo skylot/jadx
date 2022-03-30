@@ -7,24 +7,16 @@
     <summary>Dex to Java decompiler</summary>
     <description>
         <p>Command line and GUI tools for producing Java source code from Android Dex and Apk files</p>
-        <p>
-            <strong>Main features:</strong>
-            <ul>
-                <li>decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files</li>
-                <li>decode AndroidManifest.xml and other resources from resources.arsc</li>
-                <li>deobfuscator included</li>
-            </ul>
-        </p>
-        <p>
-            <strong>jadx-gui features:</strong>
-            <ul>
-                <li>view decompiled code with highlighted syntax</li>
-                <li>jump to declaration</li>
-                <li>find usage</li>
-                <li>full text search</li>
-                <li>smali debugger, check https://github.com/skylot/jadx/wiki/Smali-debugger for setup and usage</li>
-            </ul>
-        </p>
+        <ul>
+            <li>decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files</li>
+            <li>decode AndroidManifest.xml and other resources from resources.arsc</li>
+            <li>deobfuscator included</li>
+            <li>view decompiled code with highlighted syntax</li>
+            <li>jump to declaration</li>
+            <li>find usage</li>
+            <li>full text search</li>
+            <li>smali debugger</li>
+        </ul>
     </description>
     <screenshots>
         <screenshot type="default">
