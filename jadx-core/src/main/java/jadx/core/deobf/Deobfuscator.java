@@ -132,7 +132,7 @@ public class Deobfuscator {
 			for (MethodNode mth : cls.getMethods()) {
 				MethodInfo methodInfo = mth.getMethodInfo();
 				if (methodInfo.hasAlias()) {
-					deobfPresets.getFldPresetMap().put(methodInfo.getRawFullId(), methodInfo.getAlias());
+					deobfPresets.getMthPresetMap().put(methodInfo.getRawFullId(), methodInfo.getAlias());
 				}
 			}
 		}
