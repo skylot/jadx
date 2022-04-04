@@ -66,7 +66,7 @@ public class JadxCLIArgs {
 					+ "\n 'restructure' - restore code structure (normal java code)"
 					+ "\n 'simple' - simplified instructions (linear, with goto's)"
 					+ "\n 'fallback' - raw instructions without modifications",
-			converter = RenameConverter.class
+			converter = DecompilationModeConverter.class
 	)
 	protected DecompilationMode decompilationMode = DecompilationMode.AUTO;
 
