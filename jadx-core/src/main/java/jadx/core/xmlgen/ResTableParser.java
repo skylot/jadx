@@ -212,7 +212,8 @@ public class ResTableParser extends CommonBinaryParser {
 		/* int headerSize = */
 		is.readInt16();
 		/* int size = */
-		is.readInt32();
+		long chunkSize = is.readUInt32();
+		long chunkEnd = start + chunkSize;
 
 		int id = is.readInt8();
 		is.checkInt8(0, "type chunk, res0");
@@ -231,10 +232,15 @@ public class ResTableParser extends CommonBinaryParser {
 		for (int i = 0; i < entryCount; i++) {
 			entryIndexes[i] = is.readInt32();
 		}
-
 		is.checkPos(entriesStart, "Expected entry start");
 		for (int i = 0; i < entryCount; i++) {
 			if (entryIndexes[i] != NO_ENTRY) {
+				if (is.getPos() >= chunkEnd) {
+					// Certain resource obfuscated apps like com.facebook.orca have more entries defined
+					// than actually fit into the chunk size -> ignore the remaining entries
+					LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - i);
+					break;
+				}
 				parseEntry(pkg, id, i, config.getQualifiers());
 			}
 		}
