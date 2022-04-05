@@ -195,7 +195,11 @@ public class BackgroundExecutor {
 					// reduce thread count and continue
 					executor.setCorePoolSize(1);
 					System.gc();
-					UiUtils.sleep(500); // wait GC
+					UiUtils.sleep(1000); // wait GC
+					if (!UiUtils.isFreeMemoryAvailable()) {
+						LOG.error("Task '{}' memory limit reached (after GC), force cancel", task.getTitle());
+						return TaskStatus.CANCEL_BY_MEMORY;
+					}
 				}
 				return null;
 			};
