@@ -17,7 +17,7 @@ dependencies {
 application {
 	applicationName = 'jadx'
 	mainClass.set('jadx.cli.JadxCLI')
-	applicationDefaultJvmArgs = ['-Xms128M', '-Xmx4g', '-XX:+UseG1GC']
+	applicationDefaultJvmArgs = ['-Xms128M', '-XX:MaxRAMPercentage=70.0', '-XX:+UseG1GC']
 }
 
 applicationDistribution.with {
