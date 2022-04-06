@@ -1,0 +1,5 @@
+jdk:
+  - openjdk11
+install:
+  - echo "Jitpack is not supported. Use artifacts from Maven Central (https://search.maven.org/search?q=jadx), check usage help at https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library"
+  - ./gradlew intentional-fail
