@@ -103,6 +103,9 @@ public class JMethod extends JNode {
 
 	@Override
 	public boolean canRename() {
+		if (mth.isClassInit()) {
+			return false;
+		}
 		return !mth.getMethodNode().contains(AFlag.DONT_RENAME);
 	}
 

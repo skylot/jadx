@@ -87,8 +87,22 @@ public class RenameDialog extends JDialog {
 		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
 		this.source = source;
-		this.node = node;
+		this.node = replaceNode(node);
 		initUI();
+	}
+
+	private JNode replaceNode(JNode node) {
+		if (node instanceof JMethod) {
+			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
+			if (javaMethod.isClassInit()) {
+				throw new JadxRuntimeException("Can't rename class init method: " + node);
+			}
+			if (javaMethod.isConstructor()) {
+				// rename class instead constructor
+				return node.getJParent();
+			}
+		}
+		return node;
 	}
 
 	private void rename() {
