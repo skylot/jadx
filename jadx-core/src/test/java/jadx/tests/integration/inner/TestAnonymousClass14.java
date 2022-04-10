@@ -2,12 +2,13 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.CommentsLevel;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.ListUtils;
 import jadx.tests.api.SmaliTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestAnonymousClass14 extends SmaliTest {
 	// @formatter:off
@@ -44,11 +45,23 @@ public class TestAnonymousClass14 extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode clsNode = getClassNodeFromSmaliFiles("inner", "TestAnonymousClass14", "OuterCls");
-		String code = clsNode.getCode().toString();
-		code = code.replaceAll("/\\*.*?\\*/", ""); // remove block comments
+		getArgs().setCommentsLevel(CommentsLevel.WARN);
+		ClassNode outerCls = getClassNodeFromSmaliFiles("OuterCls");
+		assertThat(outerCls).code()
+				.doesNotContain("synthetic", "AnonymousClass1")
+				.describedAs("only one constructor").containsOne("private TestCls(")
+				.describedAs("constructor without args").containsOne("private TestCls() {");
 
-		assertThat(code, not(containsString("AnonymousClass1")));
-		assertThat(code, not(containsString("synthetic")));
+		MethodNode makeTestClsMth = outerCls.searchMethodByShortName("makeTestCls");
+		assertThat(makeTestClsMth).isNotNull();
+
+		ClassNode testCls = searchCls(outerCls.getInnerClasses(), "TestCls");
+		MethodNode ctrMth = ListUtils.filterOnlyOne(testCls.getMethods(),
+				m -> m.isConstructor() && !m.getAccessFlags().isSynthetic());
+		assertThat(ctrMth).isNotNull();
+		assertThat(ctrMth.getUseIn()).hasSize(1);
+		assertThat(ctrMth.getUseIn().get(0)).isEqualTo(makeTestClsMth);
+
+		assertThat(outerCls).checkCodeAnnotationFor("new TestCls();", 4, ctrMth);
 	}
 }

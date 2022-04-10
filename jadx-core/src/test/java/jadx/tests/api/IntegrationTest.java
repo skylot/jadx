@@ -24,6 +24,7 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -219,7 +220,7 @@ public abstract class IntegrationTest extends TestUtils {
 		return sortedClsNodes;
 	}
 
-	@Nullable
+	@NotNull
 	public ClassNode searchCls(List<ClassNode> list, String clsName) {
 		for (ClassNode cls : list) {
 			if (cls.getClassInfo().getFullName().equals(clsName)) {

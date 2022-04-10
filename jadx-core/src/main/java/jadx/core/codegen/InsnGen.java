@@ -20,6 +20,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -694,19 +695,27 @@ public class InsnGen {
 			throw new JadxRuntimeException("Constructor 'self' invoke must be removed!");
 		}
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
+		MethodNode refMth = callMth;
+		if (callMth != null) {
+			MethodReplaceAttr replaceAttr = callMth.get(AType.METHOD_REPLACE);
+			if (replaceAttr != null) {
+				refMth = replaceAttr.getReplaceMth();
+			}
+		}
+
 		if (insn.isSuper()) {
-			code.attachAnnotation(callMth);
+			code.attachAnnotation(refMth);
 			code.add("super");
 		} else if (insn.isThis()) {
-			code.attachAnnotation(callMth);
+			code.attachAnnotation(refMth);
 			code.add("this");
 		} else {
 			code.add("new ");
-			if (callMth == null || callMth.contains(AFlag.DONT_GENERATE)) {
+			if (refMth == null || refMth.contains(AFlag.DONT_GENERATE)) {
 				// use class reference if constructor method is missing (default constructor)
 				code.attachAnnotation(mth.root().resolveClass(insn.getCallMth().getDeclClass()));
 			} else {
-				code.attachAnnotation(callMth);
+				code.attachAnnotation(refMth);
 			}
 			mgen.getClassGen().addClsName(code, insn.getClassType());
 			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);

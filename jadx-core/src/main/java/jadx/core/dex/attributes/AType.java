@@ -21,6 +21,7 @@ import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
@@ -65,11 +66,12 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	// method
 	public static final AType<LocalVarsDebugInfoAttr> LOCAL_VARS_DEBUG_INFO = new AType<>();
 	public static final AType<MethodInlineAttr> METHOD_INLINE = new AType<>();
+	public static final AType<MethodReplaceAttr> METHOD_REPLACE = new AType<>();
+	public static final AType<MethodBridgeAttr> BRIDGED_BY = new AType<>();
 	public static final AType<SkipMethodArgsAttr> SKIP_MTH_ARGS = new AType<>();
 	public static final AType<MethodOverrideAttr> METHOD_OVERRIDE = new AType<>();
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
 	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
-	public static final AType<MethodBridgeAttr> BRIDGED_BY = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();

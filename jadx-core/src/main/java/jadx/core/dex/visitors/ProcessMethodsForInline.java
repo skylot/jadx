@@ -45,16 +45,17 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 		}
 		AccessInfo accessFlags = mth.getAccessFlags();
 		boolean isSynthetic = accessFlags.isSynthetic() || mth.getName().contains("$");
-		return isSynthetic && accessFlags.isStatic();
+		return isSynthetic && (accessFlags.isStatic() || mth.isConstructor());
 	}
 
 	private static void fixClassDependencies(MethodNode mth) {
 		ClassNode parentClass = mth.getTopParentClass();
 		for (MethodNode useInMth : mth.getUseIn()) {
-			// remove possible cross dependency to force class with inline method to be processed before its
-			// usage
+			// remove possible cross dependency
+			// to force class with inline method to be processed before its usage
 			ClassNode useTopCls = useInMth.getTopParentClass();
 			parentClass.setDependencies(ListUtils.safeRemoveAndTrim(parentClass.getDependencies(), useTopCls));
+			useTopCls.addCodegenDep(parentClass);
 		}
 	}
 }

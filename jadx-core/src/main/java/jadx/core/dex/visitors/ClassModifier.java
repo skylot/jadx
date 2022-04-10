@@ -11,6 +11,7 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -31,6 +32,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -155,7 +157,7 @@ public class ClassModifier extends AbstractVisitor {
 			return;
 		}
 		// remove synthetic constructor for inner classes
-		if (af.isConstructor()) {
+		if (mth.isConstructor() && mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
 			InsnNode insn = BlockUtils.getOnlyOneInsnFromMth(mth);
 			if (insn != null) {
 				List<RegisterArg> args = mth.getArgRegs();
@@ -210,7 +212,14 @@ public class ClassModifier extends AbstractVisitor {
 						SkipMethodArgsAttr.skipArg(mth, i);
 					}
 				}
-				mth.add(AFlag.DONT_GENERATE);
+				MethodInfo callMth = constr.getCallMth();
+				MethodNode callMthNode = cls.root().resolveMethod(callMth);
+				if (callMthNode != null) {
+					mth.addAttr(new MethodReplaceAttr(callMthNode));
+					mth.add(AFlag.DONT_GENERATE);
+					// code generation order should be already fixed for marked methods
+					UsageInfoVisitor.replaceMethodUsage(callMthNode, mth);
+				}
 			}
 		}
 	}
