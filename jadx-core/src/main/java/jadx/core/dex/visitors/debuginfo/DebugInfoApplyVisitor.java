@@ -56,22 +56,9 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				mth.remove(AType.LOCAL_VARS_DEBUG_INFO);
 			}
 			processMethodParametersAttribute(mth);
-			checkTypes(mth);
 		} catch (Exception e) {
 			mth.addWarnComment("Failed to apply debug info", e);
 		}
-	}
-
-	private static void checkTypes(MethodNode mth) {
-		if (mth.isNoCode() || mth.getSVars().isEmpty()) {
-			return;
-		}
-		mth.getSVars().forEach(var -> {
-			ArgType type = var.getTypeInfo().getType();
-			if (!type.isTypeKnown()) {
-				mth.addWarnComment("Type inference failed for: " + var.getDetailedVarInfo(mth));
-			}
-		});
 	}
 
 	private static void applyDebugInfo(MethodNode mth) {
