@@ -43,6 +43,7 @@ allprojects {
 
 	test {
 		useJUnitPlatform()
+		maxParallelForks = Runtime.runtime.availableProcessors()
 	}
 
 	repositories {
