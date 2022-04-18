@@ -192,6 +192,11 @@ public class SSAVar {
 		return usedInPhi;
 	}
 
+	public boolean isAssignInPhi() {
+		InsnNode assignInsn = getAssignInsn();
+		return assignInsn != null && assignInsn.getType() == InsnType.PHI;
+	}
+
 	public boolean isUsedInPhi() {
 		return usedInPhi != null && !usedInPhi.isEmpty();
 	}

@@ -46,6 +46,10 @@ public final class TypeBoundCheckCastAssign implements ITypeBoundDynamic {
 		return insn.getResult();
 	}
 
+	public IndexInsnNode getInsn() {
+		return insn;
+	}
+
 	@Override
 	public String toString() {
 		return "CHECK_CAST_ASSIGN{(" + insn.getIndex() + ") " + insn.getArg(0).getType() + "}";

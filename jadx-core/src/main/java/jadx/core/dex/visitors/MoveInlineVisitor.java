@@ -52,6 +52,13 @@ public class MoveInlineVisitor extends AbstractVisitor {
 		if (resultArg.sameRegAndSVar(moveArg)) {
 			return true;
 		}
+		if (moveArg.isRegister()) {
+			RegisterArg moveReg = (RegisterArg) moveArg;
+			if (moveReg.getSVar().isAssignInPhi()) {
+				// don't mix already merged variables
+				return false;
+			}
+		}
 		SSAVar ssaVar = resultArg.getSVar();
 		if (ssaVar.isUsedInPhi()) {
 			return deleteMove(mth, move);

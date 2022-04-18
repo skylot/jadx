@@ -112,7 +112,7 @@ public class ListUtils {
 		return list;
 	}
 
-	public static <T> List<T> filter(List<T> list, Predicate<T> filter) {
+	public static <T> List<T> filter(Collection<T> list, Predicate<T> filter) {
 		if (list == null || list.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -148,7 +148,7 @@ public class ListUtils {
 		return found;
 	}
 
-	public static <T> boolean allMatch(List<T> list, Predicate<T> test) {
+	public static <T> boolean allMatch(Collection<T> list, Predicate<T> test) {
 		if (list == null || list.isEmpty()) {
 			return false;
 		}
@@ -160,7 +160,7 @@ public class ListUtils {
 		return true;
 	}
 
-	public static <T> boolean anyMatch(List<T> list, Predicate<T> test) {
+	public static <T> boolean anyMatch(Collection<T> list, Predicate<T> test) {
 		if (list == null || list.isEmpty()) {
 			return false;
 		}

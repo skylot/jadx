@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -48,10 +50,22 @@ public final class TypeBoundInvokeAssign implements ITypeBoundDynamic {
 			mthDeclType = instanceType;
 		}
 		ArgType resultGeneric = root.getTypeUtils().replaceClassGenerics(instanceType, mthDeclType, genericReturnType);
-		if (resultGeneric != null && !resultGeneric.isWildcard()) {
-			return resultGeneric;
+		ArgType result = processResultType(resultGeneric);
+		if (result != null) {
+			return result;
 		}
 		return invokeNode.getCallMth().getReturnType();
+	}
+
+	@Nullable
+	private ArgType processResultType(@Nullable ArgType resultGeneric) {
+		if (resultGeneric == null) {
+			return null;
+		}
+		if (!resultGeneric.isWildcard()) {
+			return resultGeneric;
+		}
+		return resultGeneric.getWildcardType();
 	}
 
 	private InsnArg getInstanceArg() {
