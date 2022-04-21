@@ -34,7 +34,6 @@ public class DexLoadResult implements ILoadResult {
 
 	@Override
 	public void close() throws IOException {
-		dexReaders.clear();
 		if (closeable != null) {
 			closeable.close();
 		}

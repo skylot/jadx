@@ -1,7 +1,9 @@
 package jadx.plugins.input.dex;
 
 import java.io.Closeable;
+import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ import jadx.api.plugins.input.data.ILoadResult;
 import jadx.api.plugins.input.data.impl.EmptyLoadResult;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.utils.CommonFileUtils;
 
 public class DexInputPlugin implements JadxInputPlugin, JadxPluginOptions {
 	public static final String PLUGIN_ID = "dex-input";
@@ -36,6 +39,20 @@ public class DexInputPlugin implements JadxInputPlugin, JadxPluginOptions {
 			return EmptyLoadResult.INSTANCE;
 		}
 		return new DexLoadResult(dexReaders, closeable);
+	}
+
+	public ILoadResult loadDex(byte[] content, @Nullable String fileName) {
+		String fileLabel = fileName == null ? "input.dex" : fileName;
+		DexReader dexReader = loader.loadDexReader(fileLabel, content);
+		return new DexLoadResult(Collections.singletonList(dexReader), null);
+	}
+
+	public ILoadResult loadDexFromInputStream(InputStream in, @Nullable String fileLabel) {
+		try {
+			return loadDex(CommonFileUtils.loadBytes(in), fileLabel);
+		} catch (Exception e) {
+			throw new DexException("Failed to read input stream", e);
+		}
 	}
 
 	@Override

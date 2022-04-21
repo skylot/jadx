@@ -13,8 +13,9 @@ public class JadxArgsValidator {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JadxArgsValidator.class);
 
-	public static void validate(JadxArgs args) {
-		checkInputFiles(args);
+	public static void validate(JadxDecompiler jadx) {
+		JadxArgs args = jadx.getArgs();
+		checkInputFiles(jadx, args);
 		validateOutDirs(args);
 
 		if (LOG.isDebugEnabled()) {
@@ -22,9 +23,9 @@ public class JadxArgsValidator {
 		}
 	}
 
-	private static void checkInputFiles(JadxArgs args) {
+	private static void checkInputFiles(JadxDecompiler jadx, JadxArgs args) {
 		List<File> inputFiles = args.getInputFiles();
-		if (inputFiles.isEmpty()) {
+		if (inputFiles.isEmpty() && jadx.getCustomLoads().isEmpty()) {
 			throw new JadxArgsValidateException("Please specify input file");
 		}
 		for (File inputFile : inputFiles) {
@@ -66,19 +67,22 @@ public class JadxArgsValidator {
 
 	@NotNull
 	private static File makeDirFromInput(JadxArgs args) {
-		File outDir;
 		String outDirName;
-		File file = args.getInputFiles().get(0);
-		String name = file.getName();
-		int pos = name.lastIndexOf('.');
-		if (pos != -1) {
-			outDirName = name.substring(0, pos);
+		List<File> inputFiles = args.getInputFiles();
+		if (inputFiles.isEmpty()) {
+			outDirName = JadxArgs.DEFAULT_OUT_DIR;
 		} else {
-			outDirName = name + '-' + JadxArgs.DEFAULT_OUT_DIR;
+			File file = inputFiles.get(0);
+			String name = file.getName();
+			int pos = name.lastIndexOf('.');
+			if (pos != -1) {
+				outDirName = name.substring(0, pos);
+			} else {
+				outDirName = name + '-' + JadxArgs.DEFAULT_OUT_DIR;
+			}
 		}
 		LOG.info("output directory: {}", outDirName);
-		outDir = new File(outDirName);
-		return outDir;
+		return new File(outDirName);
 	}
 
 	private static void checkFile(File file) {

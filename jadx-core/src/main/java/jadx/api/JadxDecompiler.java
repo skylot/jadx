@@ -98,6 +98,8 @@ public final class JadxDecompiler implements Closeable {
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler(this);
 
+	private final List<ILoadResult> customLoads = new ArrayList<>();
+
 	public JadxDecompiler() {
 		this(new JadxArgs());
 	}
@@ -108,7 +110,7 @@ public final class JadxDecompiler implements Closeable {
 
 	public void load() {
 		reset();
-		JadxArgsValidator.validate(args);
+		JadxArgsValidator.validate(this);
 		LOG.info("loading ...");
 		loadPlugins(args);
 		loadInputFiles();
@@ -132,9 +134,18 @@ public final class JadxDecompiler implements Closeable {
 				loadedInputs.add(loadResult);
 			}
 		}
+		loadedInputs.addAll(customLoads);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Loaded using {} inputs plugin in {} ms", loadedInputs.size(), System.currentTimeMillis() - start);
 		}
+	}
+
+	public void addCustomLoad(ILoadResult customLoad) {
+		customLoads.add(customLoad);
+	}
+
+	public List<ILoadResult> getCustomLoads() {
+		return customLoads;
 	}
 
 	private void reset() {

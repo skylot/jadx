@@ -57,7 +57,7 @@ public class JadxArgsValidatorOutDirsTest {
 	}
 
 	private void checkOutDirs(String outDir, String srcDir, String resDir) {
-		JadxArgsValidator.validate(args);
+		JadxArgsValidator.validate(new JadxDecompiler(args));
 		LOG.debug("Got dirs: out={}, src={}, res={}", args.getOutDir(), args.getOutDirSrc(), args.getOutDirRes());
 		assertThat(args.getOutDir(), is(toFile(outDir)));
 		assertThat(args.getOutDirSrc(), is(toFile(srcDir)));

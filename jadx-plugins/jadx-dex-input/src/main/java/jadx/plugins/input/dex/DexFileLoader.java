@@ -64,10 +64,7 @@ public class DexFileLoader {
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC) || fileName.endsWith(".dex")) {
 				in.reset();
 				byte[] content = readAllBytes(in);
-				if (options.isVerifyChecksum()) {
-					DexCheckSum.verify(content);
-				}
-				DexReader dexReader = new DexReader(getNextUniqId(), fileName, content);
+				DexReader dexReader = loadDexReader(fileName, content);
 				return Collections.singletonList(dexReader);
 			}
 			if (file != null) {
@@ -78,6 +75,13 @@ public class DexFileLoader {
 			}
 			return Collections.emptyList();
 		}
+	}
+
+	public DexReader loadDexReader(String fileName, byte[] content) {
+		if (options.isVerifyChecksum()) {
+			DexCheckSum.verify(content);
+		}
+		return new DexReader(getNextUniqId(), fileName, content);
 	}
 
 	private List<DexReader> collectDexFromZip(File file) {
