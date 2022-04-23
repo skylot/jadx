@@ -4,13 +4,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import jadx.api.data.impl.JadxCodeData;
 
 public class ProjectData {
 
 	private int projectVersion = 1;
-	private List<Path> files;
+	private List<Path> files = new ArrayList<>();
 	private List<String[]> treeExpansions = new ArrayList<>();
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
@@ -21,7 +22,7 @@ public class ProjectData {
 	}
 
 	public void setFiles(List<Path> files) {
-		this.files = files;
+		this.files = Objects.requireNonNull(files);
 	}
 
 	public List<String[]> getTreeExpansions() {
