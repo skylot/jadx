@@ -76,6 +76,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +179,8 @@ public class MainWindow extends JFrame {
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
 	private final transient BackgroundExecutor backgroundExecutor;
-	private transient JadxProject project;
+	@NotNull
+	private transient JadxProject project = new JadxProject();
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
 
@@ -367,7 +369,7 @@ public class MainWindow extends JFrame {
 		if (currentDirectory != null) {
 			fileChooser.setCurrentDirectory(currentDirectory.toFile());
 		}
-		if (this.project != null && this.project.getFilePaths() != null && this.project.getFilePaths().size() == 1) {
+		if (this.project.getFilePaths() != null && this.project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
 			Path loadedFile = this.project.getFilePaths().get(0);
 			String fileName = loadedFile.getFileName() + "." + JadxProject.PROJECT_EXTENSION;
@@ -516,7 +518,7 @@ public class MainWindow extends JFrame {
 		return jadxProject.getFilePaths();
 	}
 
-	public void updateProject(JadxProject jadxProject) {
+	public void updateProject(@NotNull JadxProject jadxProject) {
 		jadxProject.setSettings(settings);
 		jadxProject.setMainWindow(this);
 		this.project = jadxProject;
