@@ -76,6 +76,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +179,8 @@ public class MainWindow extends JFrame {
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
 	private final transient BackgroundExecutor backgroundExecutor;
-	private transient JadxProject project;
+	@NotNull
+	private transient JadxProject project = new JadxProject();
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
 
@@ -516,7 +518,7 @@ public class MainWindow extends JFrame {
 		return jadxProject.getFilePaths();
 	}
 
-	public void updateProject(JadxProject jadxProject) {
+	public void updateProject(@NotNull JadxProject jadxProject) {
 		jadxProject.setSettings(settings);
 		jadxProject.setMainWindow(this);
 		this.project = jadxProject;
