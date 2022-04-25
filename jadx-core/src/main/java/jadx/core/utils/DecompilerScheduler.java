@@ -65,7 +65,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				continue;
 			}
 			int depsSize = cls.getTotalDepsCount();
-			if (depsSize == 0) {
+			if (depsSize == 0 || !decompiler.getArgs().isIncludeDependencies()) {
 				// add classes without dependencies in merged batch
 				mergedBatch.add(cls);
 				if (mergedBatch.size() >= MERGED_BATCH_SIZE) {

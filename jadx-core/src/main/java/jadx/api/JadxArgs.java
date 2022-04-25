@@ -49,6 +49,7 @@ public class JadxArgs {
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
+	private boolean includeDependencies = false;
 
 	/**
 	 * Predicate that allows to filter the classes to be process based on their full name
@@ -259,6 +260,14 @@ public class JadxArgs {
 
 	public void setSkipSources(boolean skipSources) {
 		this.skipSources = skipSources;
+	}
+
+	public void setIncludeDependencies(boolean includeDependencies) {
+		this.includeDependencies = includeDependencies;
+	}
+
+	public boolean isIncludeDependencies() {
+		return includeDependencies;
 	}
 
 	public Predicate<String> getClassFilter() {
@@ -513,6 +522,7 @@ public class JadxArgs {
 				+ ", useImports=" + useImports
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
+				+ ", includeDependencies=" + includeDependencies
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", deobfuscationMapFile=" + deobfuscationMapFile
 				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
