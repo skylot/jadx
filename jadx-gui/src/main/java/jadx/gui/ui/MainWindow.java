@@ -8,7 +8,6 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
@@ -46,8 +45,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -67,7 +64,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -88,6 +84,7 @@ import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
@@ -118,6 +115,7 @@ import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
+import jadx.gui.ui.dialog.FileDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.dialog.SearchDialog;
@@ -144,7 +142,6 @@ import jadx.gui.utils.search.TextSearchIndex;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static jadx.gui.utils.FileUtils.fileNamesToPaths;
-import static jadx.gui.utils.FileUtils.toPaths;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public class MainWindow extends JFrame {
@@ -284,61 +281,20 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFileOrProject() {
-		String title = NLS.str("file.open_title");
-		JFileChooser fileChooser = buildFileChooser(false, title);
-		int ret = fileChooser.showDialog(this, title);
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			settings.setLastOpenFilePath(fileChooser.getCurrentDirectory().toPath());
-			open(toPaths(fileChooser.getSelectedFiles()));
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.OPEN);
+		List<Path> openPaths = fileDialog.show();
+		if (!openPaths.isEmpty()) {
+			settings.setLastOpenFilePath(fileDialog.getCurrentDir());
+			open(openPaths);
 		}
 	}
 
 	public void addFiles() {
-		String title = NLS.str("file.add_files_action");
-		JFileChooser fileChooser = buildFileChooser(true, title);
-		int ret = fileChooser.showDialog(this, title);
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			List<Path> paths = new ArrayList<>(wrapper.getOpenPaths());
-			paths.addAll(toPaths(fileChooser.getSelectedFiles()));
-			open(paths);
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.ADD);
+		List<Path> addPaths = fileDialog.show();
+		if (!addPaths.isEmpty()) {
+			open(ListUtils.distinctMergeSortedLists(addPaths, wrapper.getOpenPaths()));
 		}
-	}
-
-	private JFileChooser buildFileChooser(boolean addFiles, String toolTipText) {
-		String[] exts;
-		if (addFiles) {
-			exts = new String[] { "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
-		} else {
-			exts = new String[] { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "aab" };
-		}
-		String description = "Supported files: (" + Utils.arrayToStr(exts) + ')';
-
-		JFileChooser fileChooser = new JFileChooser() {
-			@Override
-			protected JDialog createDialog(Component parent) throws HeadlessException {
-				JDialog dialog = super.createDialog(parent);
-				dialog.setLocationRelativeTo(null);
-				settings.loadWindowPos(dialog);
-				dialog.addWindowListener(new WindowAdapter() {
-					@Override
-					public void windowClosed(WindowEvent e) {
-						settings.saveWindowPos(dialog);
-						super.windowClosed(e);
-					}
-				});
-				return dialog;
-			}
-		};
-		fileChooser.setAcceptAllFileFilterUsed(true);
-		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
-		fileChooser.setMultiSelectionEnabled(true);
-		fileChooser.setToolTipText(toolTipText);
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		Path currentDirectory = settings.getLastOpenFilePath();
-		if (currentDirectory != null) {
-			fileChooser.setCurrentDirectory(currentDirectory.toFile());
-		}
-		return fileChooser;
 	}
 
 	private void newProject() {
@@ -359,45 +315,35 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveProjectAs() {
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = { JadxProject.PROJECT_EXTENSION };
-		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
-		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
-		fileChooser.setToolTipText(NLS.str("file.save_project"));
-		Path currentDirectory = settings.getLastSaveProjectPath();
-		if (currentDirectory != null) {
-			fileChooser.setCurrentDirectory(currentDirectory.toFile());
-		}
-		if (this.project.getFilePaths().size() == 1) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.SAVE_PROJECT);
+		if (project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
 			Path loadedFile = this.project.getFilePaths().get(0);
 			String fileName = loadedFile.getFileName() + "." + JadxProject.PROJECT_EXTENSION;
-			fileChooser.setSelectedFile(loadedFile.resolveSibling(fileName).toFile());
+			fileDialog.setSelectedFile(loadedFile.resolveSibling(fileName));
 		}
-		int ret = fileChooser.showSaveDialog(mainPanel);
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			settings.setLastSaveProjectPath(fileChooser.getCurrentDirectory().toPath());
-
-			Path path = fileChooser.getSelectedFile().toPath();
-			if (!path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(JadxProject.PROJECT_EXTENSION)) {
-				path = path.resolveSibling(path.getFileName() + "." + JadxProject.PROJECT_EXTENSION);
-			}
-
-			if (Files.exists(path)) {
-				int res = JOptionPane.showConfirmDialog(
-						this,
-						NLS.str("confirm.save_as_message", path.getFileName()),
-						NLS.str("confirm.save_as_title"),
-						JOptionPane.YES_NO_OPTION);
-				if (res == JOptionPane.NO_OPTION) {
-					return;
-				}
-			}
-			project.saveAs(path);
-			settings.addRecentProject(path);
-			update();
+		List<Path> saveFiles = fileDialog.show();
+		if (saveFiles.isEmpty()) {
+			return;
 		}
+		settings.setLastSaveProjectPath(fileDialog.getCurrentDir());
+		Path savePath = saveFiles.get(0);
+		if (!savePath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(JadxProject.PROJECT_EXTENSION)) {
+			savePath = savePath.resolveSibling(savePath.getFileName() + "." + JadxProject.PROJECT_EXTENSION);
+		}
+		if (Files.exists(savePath)) {
+			int res = JOptionPane.showConfirmDialog(
+					this,
+					NLS.str("confirm.save_as_message", savePath.getFileName()),
+					NLS.str("confirm.save_as_title"),
+					JOptionPane.YES_NO_OPTION);
+			if (res == JOptionPane.NO_OPTION) {
+				return;
+			}
+		}
+		project.saveAs(savePath);
+		settings.addRecentProject(savePath);
+		update();
 	}
 
 	void open(List<Path> paths) {
@@ -646,29 +592,22 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
-
-		Path currentDirectory = settings.getLastSaveFilePath();
-		if (currentDirectory != null) {
-			fileChooser.setCurrentDirectory(currentDirectory.toFile());
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.EXPORT);
+		List<Path> saveDirs = fileDialog.show();
+		if (saveDirs.isEmpty()) {
+			return;
 		}
-
-		int ret = fileChooser.showSaveDialog(mainPanel);
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			JadxArgs decompilerArgs = wrapper.getArgs();
-			decompilerArgs.setExportAsGradleProject(export);
-			if (export) {
-				decompilerArgs.setSkipSources(false);
-				decompilerArgs.setSkipResources(false);
-			} else {
-				decompilerArgs.setSkipSources(settings.isSkipSources());
-				decompilerArgs.setSkipResources(settings.isSkipResources());
-			}
-			settings.setLastSaveFilePath(fileChooser.getCurrentDirectory().toPath());
-			backgroundExecutor.execute(new ExportTask(this, wrapper, fileChooser.getSelectedFile()));
+		JadxArgs decompilerArgs = wrapper.getArgs();
+		decompilerArgs.setExportAsGradleProject(export);
+		if (export) {
+			decompilerArgs.setSkipSources(false);
+			decompilerArgs.setSkipResources(false);
+		} else {
+			decompilerArgs.setSkipSources(settings.isSkipSources());
+			decompilerArgs.setSkipResources(settings.isSkipResources());
 		}
+		settings.setLastSaveFilePath(fileDialog.getCurrentDir());
+		backgroundExecutor.execute(new ExportTask(this, wrapper, saveDirs.get(0).toFile()));
 	}
 
 	public void initTree() {
