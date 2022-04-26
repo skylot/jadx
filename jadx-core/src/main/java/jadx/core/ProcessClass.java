@@ -99,6 +99,10 @@ public class ProcessClass {
 			return generateCode(topParentClass);
 		}
 		try {
+			if (cls.contains(AFlag.DONT_GENERATE)) {
+				process(cls, false);
+				return ICodeInfo.EMPTY;
+			}
 			for (ClassNode depCls : cls.getDependencies()) {
 				process(depCls, false);
 			}

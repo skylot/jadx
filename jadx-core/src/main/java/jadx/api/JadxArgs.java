@@ -55,6 +55,11 @@ public class JadxArgs {
 	 */
 	private Predicate<String> classFilter = null;
 
+	/**
+	 * Save dependencies for classes accepted by {@code classFilter}
+	 */
+	private boolean includeDependencies = false;
+
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
 	private boolean parseKotlinMetadata = false;
@@ -259,6 +264,14 @@ public class JadxArgs {
 
 	public void setSkipSources(boolean skipSources) {
 		this.skipSources = skipSources;
+	}
+
+	public void setIncludeDependencies(boolean includeDependencies) {
+		this.includeDependencies = includeDependencies;
+	}
+
+	public boolean isIncludeDependencies() {
+		return includeDependencies;
 	}
 
 	public Predicate<String> getClassFilter() {
@@ -513,6 +526,7 @@ public class JadxArgs {
 				+ ", useImports=" + useImports
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
+				+ ", includeDependencies=" + includeDependencies
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", deobfuscationMapFile=" + deobfuscationMapFile
 				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
