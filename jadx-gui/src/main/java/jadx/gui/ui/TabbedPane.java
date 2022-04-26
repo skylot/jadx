@@ -54,20 +54,26 @@ public class TabbedPane extends JTabbedPane {
 
 		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-		addMouseWheelListener(e -> {
-			if (openTabs.isEmpty()) {
+		addMouseWheelListener(event -> {
+			int direction = event.getWheelRotation();
+			if (openTabs.isEmpty() || direction == 0) {
 				return;
 			}
-			int direction = e.getWheelRotation();
+			direction = (direction < 0) ? -1 : 1; // normalize direction
 			int index = getSelectedIndex();
 			int maxIndex = getTabCount() - 1;
-			if ((index == 0 && direction < 0)
-					|| (index == maxIndex && direction > 0)) {
-				index = maxIndex - index;
-			} else {
-				index += direction;
+			index += direction;
+			// switch between first tab <-> last tab
+			if (index < 0) {
+				index = maxIndex;
+			} else if (index > maxIndex) {
+				index = 0;
 			}
-			setSelectedIndex(index);
+			try {
+				setSelectedIndex(index);
+			} catch (IndexOutOfBoundsException e) {
+				// ignore error
+			}
 		});
 		interceptTabKey();
 		enableSwitchingTabs();
