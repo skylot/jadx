@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.42.0'
-	id 'com.diffplug.spotless' version '6.4.2'
+	id 'com.diffplug.spotless' version '6.5.0'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -32,7 +32,7 @@ allprojects {
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.11'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:4.4.0'
+		testImplementation 'org.mockito:mockito-core:4.5.1'
 		testImplementation 'org.assertj:assertj-core:3.22.0'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
