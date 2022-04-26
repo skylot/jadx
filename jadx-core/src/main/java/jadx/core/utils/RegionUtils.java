@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IBranchRegion;
+import jadx.core.dex.nodes.IConditionRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -52,6 +53,7 @@ public class RegionUtils {
 		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
+	@Nullable
 	public static InsnNode getFirstInsn(IContainer container) {
 		if (container instanceof IBlock) {
 			IBlock block = (IBlock) container;
@@ -72,6 +74,37 @@ public class RegionUtils {
 		} else {
 			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+	}
+
+	public static int getFirstSourceLine(IContainer container) {
+		if (container instanceof IBlock) {
+			return BlockUtils.getFirstSourceLine((IBlock) container);
+		}
+		if (container instanceof IConditionRegion) {
+			return ((IConditionRegion) container).getConditionSourceLine();
+		}
+		if (container instanceof IBranchRegion) {
+			IBranchRegion branchRegion = (IBranchRegion) container;
+			return getFirstSourceLine(branchRegion.getBranches());
+		}
+		if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			return getFirstSourceLine(region.getSubBlocks());
+		}
+		return 0;
+	}
+
+	private static int getFirstSourceLine(List<IContainer> containers) {
+		if (containers.isEmpty()) {
+			return 0;
+		}
+		for (IContainer container : containers) {
+			int line = getFirstSourceLine(container);
+			if (line != 0) {
+				return line;
+			}
+		}
+		return 0;
 	}
 
 	public static InsnNode getLastInsn(IContainer container) {
@@ -112,31 +145,58 @@ public class RegionUtils {
 		}
 	}
 
+	@Nullable
+	public static IContainer getLastRegion(@Nullable IContainer container) {
+		if (container == null) {
+			return null;
+		}
+		if (container instanceof IBlock || container instanceof IBranchRegion) {
+			return container;
+		}
+		if (container instanceof IRegion) {
+			return getLastRegion(Utils.last(((IRegion) container).getSubBlocks()));
+		}
+		throw new JadxRuntimeException(unknownContainerType(container));
+	}
+
+	public static boolean isExitBlock(MethodNode mth, IContainer container) {
+		if (container instanceof BlockNode) {
+			return BlockUtils.isExitBlock(mth, (BlockNode) container);
+		}
+		return false;
+	}
+
 	/**
 	 * Return true if last block in region has no successors or jump out insn (return or break)
 	 */
 	public static boolean hasExitBlock(IContainer container) {
+		if (container == null) {
+			return false;
+		}
 		return hasExitBlock(container, container);
 	}
 
 	private static boolean hasExitBlock(IContainer rootContainer, IContainer container) {
 		if (container instanceof BlockNode) {
 			BlockNode blockNode = (BlockNode) container;
-			if (blockNode.getSuccessors().isEmpty()) {
+			if (BlockUtils.isExitBlock(blockNode)) {
 				return true;
 			}
 			return isInsnExitContainer(rootContainer, (IBlock) container);
-		} else if (container instanceof IBranchRegion) {
-			return false;
-		} else if (container instanceof IBlock) {
+		}
+		if (container instanceof IBranchRegion) {
+			IBranchRegion branchRegion = (IBranchRegion) container;
+			return ListUtils.allMatch(branchRegion.getBranches(), RegionUtils::hasExitBlock);
+		}
+		if (container instanceof IBlock) {
 			return isInsnExitContainer(rootContainer, (IBlock) container);
-		} else if (container instanceof IRegion) {
+		}
+		if (container instanceof IRegion) {
 			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
 			return !blocks.isEmpty()
 					&& hasExitBlock(rootContainer, blocks.get(blocks.size() - 1));
-		} else {
-			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	private static boolean isInsnExitContainer(IContainer rootContainer, IBlock block) {
@@ -192,17 +252,25 @@ public class RegionUtils {
 
 	public static int insnsCount(IContainer container) {
 		if (container instanceof IBlock) {
-			return ((IBlock) container).getInstructions().size();
-		} else if (container instanceof IRegion) {
+			List<InsnNode> insnList = ((IBlock) container).getInstructions();
+			int count = 0;
+			for (InsnNode insn : insnList) {
+				if (insn.contains(AFlag.DONT_GENERATE)) {
+					continue;
+				}
+				count++;
+			}
+			return count;
+		}
+		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			int count = 0;
 			for (IContainer block : region.getSubBlocks()) {
 				count += insnsCount(block);
 			}
 			return count;
-		} else {
-			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	public static boolean isEmpty(IContainer container) {

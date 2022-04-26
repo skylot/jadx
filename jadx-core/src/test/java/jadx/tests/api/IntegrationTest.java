@@ -150,9 +150,9 @@ public abstract class IntegrationTest extends TestUtils {
 		close(decompiledCompiler);
 	}
 
-	private void close(Closeable cloaseble) throws IOException {
-		if (cloaseble != null) {
-			cloaseble.close();
+	private void close(Closeable closeable) throws IOException {
+		if (closeable != null) {
+			closeable.close();
 		}
 	}
 

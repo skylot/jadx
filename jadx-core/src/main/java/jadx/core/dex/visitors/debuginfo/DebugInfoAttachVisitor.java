@@ -1,12 +1,15 @@
 package jadx.core.dex.visitors.debuginfo;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -17,6 +20,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -52,16 +56,29 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		if (lineMapping.isEmpty()) {
 			return;
 		}
+		Map<Integer, Integer> linesStat = new HashMap<>(); // count repeating lines
 		for (Map.Entry<Integer, Integer> entry : lineMapping.entrySet()) {
 			try {
 				Integer offset = entry.getKey();
 				InsnNode insn = insnArr[offset];
 				if (insn != null) {
-					insn.setSourceLine(entry.getValue());
+					int line = entry.getValue();
+					insn.setSourceLine(line);
+					if (insn.getType() != InsnType.NOP) {
+						linesStat.merge(line, 1, (v, one) -> v + 1);
+					}
 				}
 			} catch (Exception e) {
 				mth.addWarnComment("Error attach source line", e);
 			}
+		}
+		// 3 here is allowed maximum for lines repeat,
+		// can occur in indexed 'for' loops (3 instructions with same line)
+		List<Map.Entry<Integer, Integer>> repeatingLines = ListUtils.filter(linesStat.entrySet(), p -> p.getValue() > 3);
+		if (repeatingLines.isEmpty()) {
+			mth.add(AFlag.USE_LINES_HINTS);
+		} else {
+			mth.addDebugComment("Don't trust debug lines info. Repeating lines: " + repeatingLines);
 		}
 	}
 

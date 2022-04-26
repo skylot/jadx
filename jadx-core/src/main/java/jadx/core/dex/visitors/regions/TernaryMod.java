@@ -93,7 +93,8 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		InsnNode thenInsn = tb.getInstructions().get(0);
 		InsnNode elseInsn = eb.getInstructions().get(0);
 
-		if (thenInsn.getSourceLine() != elseInsn.getSourceLine()) {
+		if (mth.contains(AFlag.USE_LINES_HINTS)
+				&& thenInsn.getSourceLine() != elseInsn.getSourceLine()) {
 			if (thenInsn.getSourceLine() != 0 && elseInsn.getSourceLine() != 0) {
 				// sometimes source lines incorrect
 				if (!checkLineStats(thenInsn, elseInsn)) {
@@ -134,6 +135,8 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
 			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
+			int branchLine = Math.max(thenInsn.getSourceLine(), elseInsn.getSourceLine());
+			ternInsn.setSourceLine(Math.max(ifRegion.getSourceLine(), branchLine));
 
 			InsnRemover.unbindResult(mth, elseInsn);
 

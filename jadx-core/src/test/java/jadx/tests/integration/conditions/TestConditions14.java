@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestConditions14 extends IntegrationTest {
 
+	@SuppressWarnings({ "EqualsReplaceableByObjectsCall", "ConstantConditions" })
 	public static class TestCls {
 
 		public static boolean test(Object a, Object b) {

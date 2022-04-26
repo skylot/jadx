@@ -80,6 +80,7 @@ public enum AFlag {
 	RERUN_SSA_TRANSFORM,
 
 	METHOD_CANDIDATE_FOR_INLINE,
+	USE_LINES_HINTS, // source lines info in methods can be trusted
 
 	DISABLE_BLOCKS_LOCK,
 

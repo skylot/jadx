@@ -8,6 +8,7 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings({ "PointlessBooleanExpression", "unused" })
 public class TestBitwiseAnd extends IntegrationTest {
 
 	public static class TestCls {

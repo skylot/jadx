@@ -23,7 +23,8 @@ public class TestLoopInTryCatch extends SmaliTest {
 						"        break;",
 						"    }",
 						"}",
-						"if (i == 1) {",
+						"if (i != 1) {",
+						"    getI();",
 						"}"),
 						c -> c.containsLines(2,
 								"int i;",
@@ -37,7 +38,8 @@ public class TestLoopInTryCatch extends SmaliTest {
 								"        return;",
 								"    }",
 								"}",
-								"if (i == 1) {",
+								"if (i != 1) {",
+								"    getI();",
 								"}"));
 	}
 }

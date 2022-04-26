@@ -101,25 +101,21 @@ public class DebugInfoParser {
 				varsInfoFound = true;
 			}
 		}
-
-		// process '0' instruction
-		addrChange(-1, 1, line);
-		setLine(addr, line);
-
-		int c = in.readUByte();
-		while (c != DBG_END_SEQUENCE) {
+		while (true) {
+			int c = in.readUByte();
+			if (c == DBG_END_SEQUENCE) {
+				break;
+			}
 			switch (c) {
 				case DBG_ADVANCE_PC: {
 					int addrInc = in.readUleb128();
-					addr = addrChange(addr, addrInc, line);
-					setLine(addr, line);
+					addr = addrChange(addr, addrInc);
 					break;
 				}
 				case DBG_ADVANCE_LINE: {
 					line += in.readSleb128();
 					break;
 				}
-
 				case DBG_START_LOCAL: {
 					int regNum = in.readUleb128();
 					int nameId = in.readUleb128() - 1;
@@ -154,30 +150,26 @@ public class DebugInfoParser {
 					varsInfoFound = true;
 					break;
 				}
-
 				case DBG_SET_PROLOGUE_END:
-				case DBG_SET_EPILOGUE_BEGIN:
+				case DBG_SET_EPILOGUE_BEGIN: {
 					// do nothing
 					break;
-
+				}
 				case DBG_SET_FILE: {
 					int idx = in.readUleb128() - 1;
 					this.sourceFile = ext.getString(idx);
 					break;
 				}
-
 				default: {
 					int adjustedOpCode = c - DBG_FIRST_SPECIAL;
 					int addrInc = adjustedOpCode / DBG_LINE_RANGE;
-					addr = addrChange(addr, addrInc, line);
+					addr = addrChange(addr, addrInc);
 					line += DBG_LINE_BASE + adjustedOpCode % DBG_LINE_RANGE;
 					setLine(addr, line);
 					break;
 				}
 			}
-			c = in.readUByte();
 		}
-
 		if (varsInfoFound) {
 			for (DexLocalVar var : locals) {
 				if (var != null && !var.isEnd()) {
@@ -185,14 +177,11 @@ public class DebugInfoParser {
 				}
 			}
 		}
-
 		return new DebugInfo(linesMap, resultList);
 	}
 
-	private int addrChange(int addr, int addrInc, int line) {
-		int newAddr = Math.min(addr + addrInc, codeSize - 1);
-		setLine(newAddr, line);
-		return newAddr;
+	private int addrChange(int addr, int addrInc) {
+		return Math.min(addr + addrInc, codeSize - 1);
 	}
 
 	private void setLine(int offset, int line) {

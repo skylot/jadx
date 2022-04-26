@@ -24,7 +24,7 @@
 
     :cond
     if-eq v1, v2, :end
-
+	invoke-static {}, Ltrycatch/TestLoopInTryCatch;->getI()I
     return-void
 
     :try_end

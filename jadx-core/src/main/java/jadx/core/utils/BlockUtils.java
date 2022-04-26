@@ -182,6 +182,16 @@ public class BlockUtils {
 		return null;
 	}
 
+	public static int getFirstSourceLine(IBlock block) {
+		for (InsnNode insn : block.getInstructions()) {
+			int line = insn.getSourceLine();
+			if (line != 0) {
+				return line;
+			}
+		}
+		return 0;
+	}
+
 	@Nullable
 	public static InsnNode getFirstInsn(@Nullable IBlock block) {
 		if (block == null) {
@@ -207,11 +217,22 @@ public class BlockUtils {
 	}
 
 	public static boolean isExitBlock(MethodNode mth, BlockNode block) {
-		BlockNode exitBlock = mth.getExitBlock();
-		if (block == exitBlock) {
+		if (block == mth.getExitBlock()) {
 			return true;
 		}
-		return exitBlock.getPredecessors().contains(block);
+		return isExitBlock(block);
+	}
+
+	public static boolean isExitBlock(BlockNode block) {
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.isEmpty()) {
+			return true;
+		}
+		if (successors.size() == 1) {
+			BlockNode next = successors.get(0);
+			return next.getSuccessors().isEmpty();
+		}
+		return false;
 	}
 
 	public static boolean containsExitInsn(IBlock block) {

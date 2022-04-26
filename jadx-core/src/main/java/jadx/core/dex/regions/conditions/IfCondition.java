@@ -278,6 +278,16 @@ public final class IfCondition extends AttrNode {
 		return list;
 	}
 
+	public int getSourceLine() {
+		for (InsnNode insn : collectInsns()) {
+			int line = insn.getSourceLine();
+			if (line != 0) {
+				return line;
+			}
+		}
+		return 0;
+	}
+
 	@Nullable
 	public InsnNode getFirstInsn() {
 		if (mode == Mode.COMPARE) {

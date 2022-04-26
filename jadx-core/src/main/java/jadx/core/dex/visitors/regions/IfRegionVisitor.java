@@ -38,12 +38,102 @@ public class IfRegionVisitor extends AbstractVisitor {
 		public boolean enterRegion(MethodNode mth, IRegion region) {
 			if (region instanceof IfRegion) {
 				IfRegion ifRegion = (IfRegion) region;
-				simplifyIfCondition(ifRegion);
-				moveReturnToThenBlock(mth, ifRegion);
-				moveBreakToThenBlock(ifRegion);
-				markElseIfChains(ifRegion);
+				orderBranches(mth, ifRegion);
+				markElseIfChains(mth, ifRegion);
 			}
 			return true;
+		}
+	}
+
+	@SuppressWarnings("UnnecessaryReturnStatement")
+	private static void orderBranches(MethodNode mth, IfRegion ifRegion) {
+		if (RegionUtils.isEmpty(ifRegion.getElseRegion())) {
+			return;
+		}
+		if (RegionUtils.isEmpty(ifRegion.getThenRegion())) {
+			invertIfRegion(ifRegion);
+			return;
+		}
+		if (mth.contains(AFlag.USE_LINES_HINTS)) {
+			int thenLine = RegionUtils.getFirstSourceLine(ifRegion.getThenRegion());
+			int elseLine = RegionUtils.getFirstSourceLine(ifRegion.getElseRegion());
+			if (thenLine != 0 && elseLine != 0) {
+				if (thenLine > elseLine) {
+					invertIfRegion(ifRegion);
+				}
+				return;
+			}
+		}
+		if (ifRegion.simplifyCondition()) {
+			IfCondition condition = ifRegion.getCondition();
+			if (condition != null && condition.getMode() == Mode.NOT) {
+				invertIfRegion(ifRegion);
+			}
+		}
+		int thenSize = insnsCount(ifRegion.getThenRegion());
+		int elseSize = insnsCount(ifRegion.getElseRegion());
+		if (isSimpleExitBlock(mth, ifRegion.getElseRegion())) {
+			if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
+				if (elseSize < thenSize) {
+					invertIfRegion(ifRegion);
+					return;
+				}
+			}
+			boolean lastRegion = ifRegion == RegionUtils.getLastRegion(mth.getRegion());
+			if (elseSize == 1 && lastRegion && mth.isVoidReturn()) {
+				// single return at method end will be removed later
+				return;
+			}
+			if (!lastRegion) {
+				invertIfRegion(ifRegion);
+			}
+			return;
+		}
+		boolean thenExit = RegionUtils.hasExitBlock(ifRegion.getThenRegion());
+		boolean elseExit = RegionUtils.hasExitBlock(ifRegion.getElseRegion());
+		if (elseExit && (!thenExit || elseSize < thenSize)) {
+			invertIfRegion(ifRegion);
+			return;
+		}
+		// move 'if' from 'then' branch to make 'else if' chain
+		if (isIfRegion(ifRegion.getThenRegion())
+				&& !isIfRegion(ifRegion.getElseRegion())
+				&& !thenExit) {
+			invertIfRegion(ifRegion);
+			return;
+		}
+		// move 'break' into 'then' branch
+		if (RegionUtils.hasBreakInsn(ifRegion.getElseRegion())) {
+			invertIfRegion(ifRegion);
+			return;
+		}
+	}
+
+	private static boolean isIfRegion(IContainer container) {
+		if (container instanceof IfRegion) {
+			return true;
+		}
+		if (container instanceof IRegion) {
+			List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();
+			return subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion;
+		}
+		return false;
+	}
+
+	/**
+	 * Mark if-else-if chains
+	 */
+	private static void markElseIfChains(MethodNode mth, IfRegion ifRegion) {
+		if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
+			return;
+		}
+		IContainer elsRegion = ifRegion.getElseRegion();
+		if (elsRegion instanceof Region) {
+			List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
+			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
+				subBlocks.get(0).add(AFlag.ELSE_IF_CHAIN);
+				elsRegion.add(AFlag.ELSE_IF_CHAIN);
+			}
 		}
 	}
 
@@ -54,76 +144,6 @@ public class IfRegionVisitor extends AbstractVisitor {
 				return removeRedundantElseBlock(mth, (IfRegion) region);
 			}
 			return false;
-		}
-	}
-
-	private static void simplifyIfCondition(IfRegion ifRegion) {
-		if (ifRegion.simplifyCondition()) {
-			IfCondition condition = ifRegion.getCondition();
-			if (condition.getMode() == Mode.NOT) {
-				invertIfRegion(ifRegion);
-			}
-		}
-		IContainer elseRegion = ifRegion.getElseRegion();
-		if (elseRegion == null || RegionUtils.isEmpty(elseRegion)) {
-			return;
-		}
-		boolean thenIsEmpty = RegionUtils.isEmpty(ifRegion.getThenRegion());
-		if (thenIsEmpty || hasSimpleReturnBlock(ifRegion.getThenRegion())) {
-			invertIfRegion(ifRegion);
-		}
-
-		if (!thenIsEmpty) {
-			// move 'if' from then to make 'else if' chain
-			if (isIfRegion(ifRegion.getThenRegion())
-					&& !isIfRegion(elseRegion)) {
-				invertIfRegion(ifRegion);
-			}
-		}
-	}
-
-	private static boolean isIfRegion(IContainer container) {
-		if (container instanceof IfRegion) {
-			return true;
-		}
-		if (container instanceof IRegion) {
-			List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();
-			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {
-		if (!mth.isVoidReturn()
-				&& hasSimpleReturnBlock(ifRegion.getElseRegion())
-		/* && insnsCount(ifRegion.getThenRegion()) < 2 */) {
-			invertIfRegion(ifRegion);
-		}
-	}
-
-	private static void moveBreakToThenBlock(IfRegion ifRegion) {
-		if (ifRegion.getElseRegion() != null
-				&& RegionUtils.hasBreakInsn(ifRegion.getElseRegion())) {
-			invertIfRegion(ifRegion);
-		}
-	}
-
-	/**
-	 * Mark if-else-if chains
-	 */
-	private static void markElseIfChains(IfRegion ifRegion) {
-		if (hasSimpleReturnBlock(ifRegion.getThenRegion())) {
-			return;
-		}
-		IContainer elsRegion = ifRegion.getElseRegion();
-		if (elsRegion instanceof Region) {
-			List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
-			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-				subBlocks.get(0).add(AFlag.ELSE_IF_CHAIN);
-				elsRegion.add(AFlag.ELSE_IF_CHAIN);
-			}
 		}
 	}
 
@@ -162,16 +182,16 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean hasSimpleReturnBlock(IContainer region) {
-		if (region == null) {
+	private static boolean isSimpleExitBlock(MethodNode mth, IContainer container) {
+		if (container == null) {
 			return false;
 		}
-		if (region.contains(AFlag.RETURN)) {
+		if (container.contains(AFlag.RETURN) || RegionUtils.isExitBlock(mth, container)) {
 			return true;
 		}
-		if (region instanceof IRegion) {
-			List<IContainer> subBlocks = ((IRegion) region).getSubBlocks();
-			return subBlocks.size() == 1 && subBlocks.get(0).contains(AFlag.RETURN);
+		if (container instanceof IRegion) {
+			List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();
+			return subBlocks.size() == 1 && RegionUtils.isExitBlock(mth, subBlocks.get(0));
 		}
 		return false;
 	}
