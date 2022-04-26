@@ -331,10 +331,14 @@ public final class JadxDecompiler implements Closeable {
 		List<JavaClass> classes = getClasses();
 		List<JavaClass> processQueue = new ArrayList<>(classes.size());
 		for (JavaClass cls : classes) {
-			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
+			ClassNode clsNode = cls.getClassNode();
+			if (clsNode.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
-			if (classFilter != null && !classFilter.test(cls.getFullName())) {
+			if (classFilter != null && !classFilter.test(clsNode.getClassInfo().getFullName())) {
+				if (!args.isIncludeDependencies()) {
+					clsNode.add(AFlag.DONT_GENERATE);
+				}
 				continue;
 			}
 			processQueue.add(cls);

@@ -49,12 +49,16 @@ public class JadxArgs {
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
-	private boolean includeDependencies = false;
 
 	/**
 	 * Predicate that allows to filter the classes to be process based on their full name
 	 */
 	private Predicate<String> classFilter = null;
+
+	/**
+	 * Save dependencies for classes accepted by {@code classFilter}
+	 */
+	private boolean includeDependencies = false;
 
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
