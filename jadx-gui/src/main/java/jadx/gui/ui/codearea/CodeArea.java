@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 
 import javax.swing.event.PopupMenuEvent;
 
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
+import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 import jadx.gui.settings.JadxProject;
@@ -36,6 +38,8 @@ public final class CodeArea extends AbstractCodeArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
+
+	private @Nullable ICodeInfo cachedCodeInfo;
 
 	CodeArea(ContentPanel contentPanel, JNode node) {
 		super(contentPanel, node);
@@ -74,16 +78,25 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	@Override
+	public ICodeInfo getCodeInfo() {
+		if (cachedCodeInfo == null) {
+			cachedCodeInfo = Objects.requireNonNull(node.getCodeInfo());
+		}
+		return cachedCodeInfo;
+	}
+
+	@Override
 	public void load() {
 		if (getText().isEmpty()) {
-			setText(node.getContent());
+			setText(getCodeInfo().getCodeStr());
 			setCaretPosition(0);
 		}
 	}
 
 	@Override
 	public void refresh() {
-		setText(node.getContent());
+		cachedCodeInfo = null;
+		setText(getCodeInfo().getCodeStr());
 	}
 
 	private void addMenuItems() {
@@ -157,6 +170,11 @@ public final class CodeArea extends AbstractCodeArea {
 		if (foundNode == null) {
 			return null;
 		}
+		if (foundNode == node.getJavaNode()) {
+			// current node
+			CodePosition defPos = new CodePosition(node.getLine(), 0, node.getPos());
+			return new JumpPosition(node.getRootClass(), defPos);
+		}
 		CodePosition pos = getDecompiler().getDefinitionPosition(foundNode);
 		if (pos == null) {
 			return null;
@@ -211,7 +229,7 @@ public final class CodeArea extends AbstractCodeArea {
 			// TODO: add direct mapping for code offset to CodeWriter (instead of line and line offset pair)
 			int line = this.getLineOfOffset(offset);
 			int lineOffset = offset - this.getLineStartOffset(line);
-			return node.getJavaNodeAtPosition(getDecompiler(), line + 1, lineOffset + 1);
+			return getDecompiler().getJavaNodeAtPosition(getCodeInfo(), line + 1, lineOffset + 1);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
 		}

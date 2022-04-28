@@ -1,4 +1,6 @@
-package jadx.gui.utils;
+package jadx.gui.utils.codecache;
+
+import java.io.IOException;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -6,7 +8,7 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 
 /**
- * Code cache with fixed size of wrapper code cache ('remove' and 'add' methods will do nothing).
+ * Code cache with fixed size of wrapped code cache ('remove' and 'add' methods will do nothing).
  */
 public class FixedCodeCache implements ICodeCache {
 
@@ -29,5 +31,10 @@ public class FixedCodeCache implements ICodeCache {
 	@Override
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		// no op
+	}
+
+	@Override
+	public void close() throws IOException {
+		this.codeCache.close();
 	}
 }

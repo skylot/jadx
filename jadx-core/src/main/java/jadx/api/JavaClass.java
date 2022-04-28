@@ -58,6 +58,9 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public void decompile() {
+		if (listsLoaded) {
+			return;
+		}
 		cls.decompile();
 	}
 

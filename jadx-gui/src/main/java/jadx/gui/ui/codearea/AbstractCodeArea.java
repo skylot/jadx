@@ -28,10 +28,12 @@ import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
@@ -229,6 +231,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				return token.getLexeme();
 		}
 	}
+
+	public abstract @NotNull ICodeInfo getCodeInfo();
 
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed

@@ -54,7 +54,7 @@ public class ResourceIndex {
 		int searchStrLen = searchSettings.getSearchString().length();
 		String content;
 		try {
-			content = resNode.getContent();
+			content = resNode.getCodeInfo().getCodeStr();
 		} catch (Exception e) {
 			LOG.error("Error load resource node content", e);
 			return;
@@ -186,7 +186,7 @@ public class ResourceIndex {
 			}
 			if (size == -1) { // resource from ARSC is unknown size
 				try {
-					size = resNode.getContent().length();
+					size = resNode.getCodeInfo().getCodeStr().length();
 				} catch (Exception ignore) {
 					return;
 				}

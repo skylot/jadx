@@ -4,10 +4,10 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
@@ -29,10 +29,6 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return null;
 	}
 
-	public String getContent() {
-		return null;
-	}
-
 	@Nullable
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return null;
@@ -46,26 +42,13 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return 0;
 	}
 
-	@Nullable
+	@NotNull
 	public ICodeInfo getCodeInfo() {
-		return null;
+		return ICodeInfo.EMPTY;
 	}
 
 	public final Integer getSourceLine(int line) {
-		ICodeInfo codeInfo = getCodeInfo();
-		if (codeInfo == null) {
-			return null;
-		}
-		return codeInfo.getLineMapping().get(line);
-	}
-
-	@Nullable
-	public JavaNode getJavaNodeAtPosition(JadxDecompiler decompiler, int line, int offset) {
-		ICodeInfo codeInfo = getCodeInfo();
-		if (codeInfo == null) {
-			return null;
-		}
-		return decompiler.getJavaNodeAtPosition(codeInfo, line, offset);
+		return getCodeInfo().getLineMapping().get(line);
 	}
 
 	public abstract Icon getIcon();

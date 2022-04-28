@@ -15,6 +15,8 @@ import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -332,5 +334,22 @@ public class UiUtils {
 		} catch (InterruptedException e) {
 			// ignore
 		}
+	}
+
+	public static void debugTimer(int periodInSeconds, Runnable action) {
+		if (!LOG.isDebugEnabled()) {
+			return;
+		}
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				action.run();
+			}
+		}, 0, periodInSeconds * 1000L);
+	}
+
+	public static void printStackTrace(String label) {
+		LOG.debug("StackTrace: {}\n", label, new Exception());
 	}
 }

@@ -2,13 +2,14 @@ package jadx.api.data.annotations;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 
-public class VarRef {
+public class VarRef implements ICodeAnnotation {
 
 	@Nullable
 	public static VarRef get(MethodNode mth, RegisterArg reg) {
@@ -33,14 +34,14 @@ public class VarRef {
 	private final int reg;
 	private final int ssa;
 	private final ArgType type;
-	private String name;
+	private @Nullable String name;
 
 	protected VarRef(MethodNode mth, SSAVar ssaVar) {
 		this(mth, ssaVar.getRegNum(), ssaVar.getVersion(),
 				ssaVar.getCodeVar().getType(), ssaVar.getCodeVar().getName());
 	}
 
-	private VarRef(MethodNode mth, int reg, int ssa, ArgType type, String name) {
+	public VarRef(MethodNode mth, int reg, int ssa, ArgType type, String name) {
 		this.mth = mth;
 		this.reg = reg;
 		this.ssa = ssa;
@@ -64,6 +65,7 @@ public class VarRef {
 		return type;
 	}
 
+	@Nullable
 	public String getName() {
 		return name;
 	}

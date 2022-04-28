@@ -1,6 +1,9 @@
 package jadx.api;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -512,6 +515,25 @@ public class JadxArgs {
 
 	public void setPluginOptions(Map<String, String> pluginOptions) {
 		this.pluginOptions = pluginOptions;
+	}
+
+	/**
+	 * Hash of all options that can change result code
+	 */
+	public String makeCodeArgsHash() {
+		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
+				+ inlineAnonymousClasses + inlineMethods
+				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
+				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
+				+ commentsLevel + useDxInput + pluginOptions;
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(argStr.getBytes(StandardCharsets.US_ASCII));
+			return new BigInteger(1, md.digest()).toString(16);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

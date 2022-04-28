@@ -10,7 +10,8 @@ import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
-import jadx.core.dex.attributes.ILineAttributeNode;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeDefinition;
 import jadx.core.utils.Utils;
 
 /**
@@ -193,17 +194,17 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	@Override
-	public void attachDefinition(ILineAttributeNode obj) {
+	public void attachDefinition(ICodeDefinition obj) {
 		// no op
 	}
 
 	@Override
-	public void attachAnnotation(Object obj) {
+	public void attachAnnotation(ICodeAnnotation obj) {
 		// no op
 	}
 
 	@Override
-	public void attachLineAnnotation(Object obj) {
+	public void attachLineAnnotation(ICodeAnnotation obj) {
 		// no op
 	}
 
@@ -238,7 +239,7 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	@Override
-	public Map<CodePosition, Object> getRawAnnotations() {
+	public Map<CodePosition, ICodeAnnotation> getRawAnnotations() {
 		return Collections.emptyMap();
 	}
 

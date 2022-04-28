@@ -155,8 +155,8 @@ public class CodePanel extends JPanel {
 	}
 
 	private boolean canShowDebugLines() {
-		ICodeInfo codeInfo = codeArea.getNode().getCodeInfo();
-		if (codeInfo == null) {
+		ICodeInfo codeInfo = codeArea.getCodeInfo();
+		if (codeInfo == ICodeInfo.EMPTY) {
 			return false;
 		}
 		Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();

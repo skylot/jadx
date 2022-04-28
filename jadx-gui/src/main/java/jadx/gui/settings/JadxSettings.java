@@ -38,6 +38,7 @@ import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.codecache.CodeCacheMode;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -88,6 +89,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPath = "";
 	private String adbDialogHost = "localhost";
 	private String adbDialogPort = "5037";
+
+	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -588,6 +591,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setPluginOptions(Map<String, String> pluginOptions) {
 		this.pluginOptions = pluginOptions;
+	}
+
+	public CodeCacheMode getCodeCacheMode() {
+		return codeCacheMode;
+	}
+
+	public void setCodeCacheMode(CodeCacheMode codeCacheMode) {
+		this.codeCacheMode = codeCacheMode;
 	}
 
 	private void upgradeSettings(int fromVersion) {

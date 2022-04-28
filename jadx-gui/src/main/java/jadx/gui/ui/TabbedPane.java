@@ -172,21 +172,30 @@ public class TabbedPane extends JTabbedPane {
 		JNode jumpNode = jumpPos.getNode();
 		Objects.requireNonNull(jumpNode, "Null node in JumpPosition");
 
+		ContentPanel panel = openTabs.get(jumpNode);
+		if (panel != null) {
+			showCode(panel, jumpPos);
+			return;
+		}
+		// node need loading
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("progress.load"),
-				jumpNode::getContent, // run heavy loading in background
-				status -> {
-					// show the code in UI thread
-					AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(jumpNode);
-					if (contentPanel != null) {
-						scrollToPos(contentPanel, jumpPos);
-						selectTab(contentPanel);
-					}
-				});
+				jumpNode::getCodeInfo, // run heavy loading in background
+				status -> showCode(getContentPanel(jumpNode), jumpPos));
 	}
 
-	private void scrollToPos(AbstractCodeContentPanel contentPanel, JumpPosition jumpPos) {
-		AbstractCodeArea codeArea = contentPanel.getCodeArea();
+	private void showCode(@Nullable ContentPanel contentPanel, JumpPosition jumpPos) {
+		if (contentPanel != null) {
+			scrollToPos(contentPanel, jumpPos);
+			selectTab(contentPanel);
+		}
+	}
+
+	private void scrollToPos(ContentPanel contentPanel, JumpPosition jumpPos) {
+		if (!(contentPanel instanceof AbstractCodeContentPanel)) {
+			return;
+		}
+		AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
 		int pos = jumpPos.getPos();
 		if (pos > 0) {
 			codeArea.scrollToPos(pos);
@@ -440,21 +449,15 @@ public class TabbedPane extends JTabbedPane {
 
 		static void focusOnCodePanel(ContentPanel pane) {
 			if (pane instanceof ClassCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((ClassCodeContentPanel) pane).getCurrentCodeArea().requestFocus();
-				});
+				SwingUtilities.invokeLater(() -> ((ClassCodeContentPanel) pane).getCurrentCodeArea().requestFocus());
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((AbstractCodeContentPanel) pane).getCodeArea().requestFocus();
-				});
+				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getCodeArea().requestFocus());
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((HtmlPanel) pane).getHtmlArea().requestFocusInWindow();
-				});
+				SwingUtilities.invokeLater(() -> ((HtmlPanel) pane).getHtmlArea().requestFocusInWindow());
 				return;
 			}
 			if (pane instanceof ImagePanel) {

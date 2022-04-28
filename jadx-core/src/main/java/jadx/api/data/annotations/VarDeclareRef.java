@@ -1,10 +1,10 @@
 package jadx.api.data.annotations;
 
-import jadx.core.dex.attributes.ILineAttributeNode;
+import jadx.api.metadata.ICodeDefinition;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.nodes.MethodNode;
 
-public class VarDeclareRef extends VarRef implements ILineAttributeNode {
+public class VarDeclareRef extends VarRef implements ICodeDefinition {
 
 	public static VarDeclareRef get(MethodNode mth, CodeVar codeVar) {
 		VarDeclareRef ref = new VarDeclareRef(mth, codeVar);
@@ -18,6 +18,10 @@ public class VarDeclareRef extends VarRef implements ILineAttributeNode {
 
 	private VarDeclareRef(MethodNode mth, CodeVar codeVar) {
 		super(mth, codeVar.getAnySsaVar());
+	}
+
+	public VarDeclareRef(VarRef varRef) {
+		super(varRef.getMth(), varRef.getReg(), varRef.getSsa(), varRef.getType(), varRef.getName());
 	}
 
 	@Override

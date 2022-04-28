@@ -13,7 +13,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static jadx.gui.utils.FileUtils.toPaths;
+import jadx.core.utils.files.FileUtils;
 
 /**
  * Enables drop support from external applications for the {@link MainWindow} (load dropped APK
@@ -64,7 +64,7 @@ public class MainDropTarget implements DropTargetListener {
 			List<File> transferData = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
 			if (!transferData.isEmpty()) {
 				dtde.dropComplete(true);
-				mainWindow.open(toPaths(transferData));
+				mainWindow.open(FileUtils.toPaths(transferData));
 			}
 		} catch (Exception e) {
 			LOG.error("File drop operation failed", e);

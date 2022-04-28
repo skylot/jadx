@@ -2,7 +2,8 @@ package jadx.api;
 
 import java.util.Map;
 
-import jadx.core.dex.attributes.ILineAttributeNode;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeDefinition;
 
 public interface ICodeWriter {
 	String NL = System.getProperty("line.separator");
@@ -40,11 +41,11 @@ public interface ICodeWriter {
 
 	int getLine();
 
-	void attachDefinition(ILineAttributeNode obj);
+	void attachDefinition(ICodeDefinition obj);
 
-	void attachAnnotation(Object obj);
+	void attachAnnotation(ICodeAnnotation obj);
 
-	void attachLineAnnotation(Object obj);
+	void attachLineAnnotation(ICodeAnnotation obj);
 
 	void attachSourceLine(int sourceLine);
 
@@ -56,5 +57,5 @@ public interface ICodeWriter {
 
 	StringBuilder getRawBuf();
 
-	Map<CodePosition, Object> getRawAnnotations();
+	Map<CodePosition, ICodeAnnotation> getRawAnnotations();
 }

@@ -12,7 +12,9 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -39,7 +41,7 @@ public class SummaryNode extends JNode {
 	}
 
 	@Override
-	public String getContent() {
+	public ICodeInfo getCodeInfo() {
 		StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 		try {
 			builder.append("<html>");
@@ -53,7 +55,7 @@ public class SummaryNode extends JNode {
 			builder.append(Utils.getStackTrace(e));
 			builder.append("</pre>");
 		}
-		return builder.toString();
+		return new SimpleCodeInfo(builder.toString());
 	}
 
 	private void writeInputSummary(StringEscapeUtils.Builder builder) throws IOException {

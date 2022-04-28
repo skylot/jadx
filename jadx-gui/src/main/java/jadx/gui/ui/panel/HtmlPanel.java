@@ -23,7 +23,7 @@ public final class HtmlPanel extends ContentPanel {
 		setLayout(new BorderLayout());
 		textArea = new JHtmlPane();
 		loadSettings();
-		textArea.setText(jnode.getContent());
+		textArea.setText(jnode.getCodeInfo().getCodeStr());
 		textArea.setCaretPosition(0); // otherwise the start view will be the last line
 		textArea.setEditable(false);
 		JScrollPane sp = new JScrollPane(textArea);

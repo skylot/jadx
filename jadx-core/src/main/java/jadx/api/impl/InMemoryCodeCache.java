@@ -3,12 +3,11 @@ package jadx.api.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 
-public class InMemoryCodeCache implements ICodeCache {
+public class InMemoryCodeCache extends NoOpCodeCache {
 
 	private final Map<String, ICodeInfo> storage = new ConcurrentHashMap<>();
 
@@ -22,9 +21,14 @@ public class InMemoryCodeCache implements ICodeCache {
 		storage.remove(clsFullName);
 	}
 
+	@NotNull
 	@Override
-	public @Nullable ICodeInfo get(String clsFullName) {
-		return storage.get(clsFullName);
+	public ICodeInfo get(String clsFullName) {
+		ICodeInfo codeInfo = storage.get(clsFullName);
+		if (codeInfo == null) {
+			return ICodeInfo.EMPTY;
+		}
+		return codeInfo;
 	}
 
 	@Override

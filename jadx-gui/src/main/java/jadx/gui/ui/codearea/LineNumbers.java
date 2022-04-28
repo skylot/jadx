@@ -59,7 +59,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	public LineNumbers(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
-		this.codeInfo = codeArea.getNode().getCodeInfo();
+		this.codeInfo = codeArea.getCodeInfo();
 
 		setFont(codeArea.getFont());
 		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();

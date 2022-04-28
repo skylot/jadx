@@ -374,7 +374,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		String clsRawName = getRawName();
 		if (searchInCache) {
 			ICodeInfo code = codeCache.get(clsRawName);
-			if (code != null && code != ICodeInfo.EMPTY) {
+			if (code != ICodeInfo.EMPTY) {
 				return code;
 			}
 		}

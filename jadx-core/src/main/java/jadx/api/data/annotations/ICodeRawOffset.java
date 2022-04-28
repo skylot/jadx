@@ -1,5 +1,7 @@
 package jadx.api.data.annotations;
 
-public interface ICodeRawOffset {
+import jadx.api.metadata.ICodeAnnotation;
+
+public interface ICodeRawOffset extends ICodeAnnotation {
 	int getOffset();
 }

@@ -9,6 +9,8 @@ import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeDefinition;
 import jadx.core.dex.attributes.ILineAttributeNode;
 import jadx.core.utils.StringUtils;
 
@@ -16,7 +18,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	private int line = 1;
 	private int offset;
-	private Map<CodePosition, Object> annotations = Collections.emptyMap();
+	private Map<CodePosition, ICodeAnnotation> annotations = Collections.emptyMap();
 	private Map<Integer, Integer> lineMap = Collections.emptyMap();
 
 	public AnnotatedCodeWriter() {
@@ -67,7 +69,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 		line--;
 		int startLine = line;
 		int startPos = getLength();
-		for (Map.Entry<CodePosition, Object> entry : code.annotations.entrySet()) {
+		for (Map.Entry<CodePosition, ICodeAnnotation> entry : code.annotations.entrySet()) {
 			CodePosition codePos = entry.getKey();
 			int newLine = startLine + codePos.getLine();
 			int newPos = startPos + codePos.getPos();
@@ -101,7 +103,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 		return line;
 	}
 
-	private static final class DefinitionWrapper {
+	private static final class DefinitionWrapper implements ICodeAnnotation {
 		private final ILineAttributeNode node;
 
 		private DefinitionWrapper(ILineAttributeNode node) {
@@ -114,7 +116,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	}
 
 	@Override
-	public void attachDefinition(ILineAttributeNode obj) {
+	public void attachDefinition(ICodeDefinition obj) {
 		if (obj == null) {
 			return;
 		}
@@ -123,7 +125,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	}
 
 	@Override
-	public void attachAnnotation(Object obj) {
+	public void attachAnnotation(ICodeAnnotation obj) {
 		if (obj == null) {
 			return;
 		}
@@ -131,14 +133,14 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	}
 
 	@Override
-	public void attachLineAnnotation(Object obj) {
+	public void attachLineAnnotation(ICodeAnnotation obj) {
 		if (obj == null) {
 			return;
 		}
 		attachAnnotation(obj, new CodePosition(line, 0, getLength() - offset));
 	}
 
-	private void attachAnnotation(Object obj, CodePosition pos) {
+	private void attachAnnotation(ICodeAnnotation obj, CodePosition pos) {
 		if (annotations.isEmpty()) {
 			annotations = new HashMap<>();
 		}
@@ -170,7 +172,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	}
 
 	@Override
-	public Map<CodePosition, Object> getRawAnnotations() {
+	public Map<CodePosition, ICodeAnnotation> getRawAnnotations() {
 		return annotations;
 	}
 

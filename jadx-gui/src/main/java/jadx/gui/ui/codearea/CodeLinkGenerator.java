@@ -30,7 +30,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 
 	public JavaNode getNodeAtOffset(RSyntaxTextArea textArea, int offset) {
 		try {
-			if (jNode.getCodeInfo() == null) {
+			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
 			int sourceOffset = getLinkSourceOffset(textArea, offset);
@@ -47,7 +47,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 	@Nullable
 	public JumpPosition getJumpLinkAtOffset(RSyntaxTextArea textArea, int offset) {
 		try {
-			if (jNode.getCodeInfo() == null) {
+			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
 			int sourceOffset = getLinkSourceOffset(textArea, offset);
@@ -64,7 +64,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 	@Override
 	public LinkGeneratorResult isLinkAtOffset(RSyntaxTextArea textArea, int offset) {
 		try {
-			if (jNode.getCodeInfo() == null) {
+			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
 			int sourceOffset = getLinkSourceOffset(textArea, offset);

@@ -9,8 +9,8 @@ import jadx.api.ICodeCache;
 import jadx.api.JadxDecompiler;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.FixedCodeCache;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.codecache.FixedCodeCache;
 
 public class ExportTask implements IBackgroundTask {
 

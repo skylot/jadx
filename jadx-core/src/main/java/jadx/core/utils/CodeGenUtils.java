@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.CodePosition;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AType;
@@ -95,7 +96,7 @@ public class CodeGenUtils {
 	private static void addMultiLineComment(ICodeWriter code, List<String> comments) {
 		boolean first = true;
 		String indent = "";
-		Object lineAnn = null;
+		ICodeAnnotation lineAnn = null;
 		for (String comment : comments) {
 			for (String line : comment.split("\n")) {
 				if (first) {

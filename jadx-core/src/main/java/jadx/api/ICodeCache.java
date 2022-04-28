@@ -1,13 +1,15 @@
 package jadx.api;
 
-import org.jetbrains.annotations.Nullable;
+import java.io.Closeable;
 
-public interface ICodeCache {
+import org.jetbrains.annotations.NotNull;
+
+public interface ICodeCache extends Closeable {
 
 	void add(String clsFullName, ICodeInfo codeInfo);
 
 	void remove(String clsFullName);
 
-	@Nullable
+	@NotNull
 	ICodeInfo get(String clsFullName);
 }

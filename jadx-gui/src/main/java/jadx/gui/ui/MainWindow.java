@@ -144,7 +144,6 @@ import jadx.gui.utils.search.CommentsIndex;
 import jadx.gui.utils.search.TextSearchIndex;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
-import static jadx.gui.utils.FileUtils.fileNamesToPaths;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public class MainWindow extends JFrame {
@@ -209,9 +208,9 @@ public class MainWindow extends JFrame {
 	private JSplitPane verticalSplitter;
 
 	public MainWindow(JadxSettings settings) {
-		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
+		this.wrapper = new JadxWrapper(settings);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
@@ -248,7 +247,7 @@ public class MainWindow extends JFrame {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
-			open(fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
+			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
 	}
 

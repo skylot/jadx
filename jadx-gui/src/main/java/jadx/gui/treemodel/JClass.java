@@ -5,7 +5,6 @@ import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
@@ -108,13 +107,8 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 	}
 
 	@Override
-	public @Nullable ICodeInfo getCodeInfo() {
+	public ICodeInfo getCodeInfo() {
 		return cls.getCodeInfo();
-	}
-
-	@Override
-	public String getContent() {
-		return cls.getCode();
 	}
 
 	@Override
