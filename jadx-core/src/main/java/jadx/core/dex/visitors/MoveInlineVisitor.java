@@ -61,7 +61,9 @@ public class MoveInlineVisitor extends AbstractVisitor {
 		}
 		SSAVar ssaVar = resultArg.getSVar();
 		if (ssaVar.isUsedInPhi()) {
-			return deleteMove(mth, move);
+			return false;
+			// TODO: review conditions of 'up' move inline (test TestMoveInline)
+			// return deleteMove(mth, move);
 		}
 		RegDebugInfoAttr debugInfo = moveArg.get(AType.REG_DEBUG_INFO);
 		for (RegisterArg useArg : ssaVar.getUseList()) {
