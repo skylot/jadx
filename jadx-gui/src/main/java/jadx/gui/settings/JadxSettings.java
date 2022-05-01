@@ -90,7 +90,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogHost = "localhost";
 	private String adbDialogPort = "5037";
 
-	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK;
+	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_INDEX;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...

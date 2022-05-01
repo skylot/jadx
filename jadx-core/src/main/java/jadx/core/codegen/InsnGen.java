@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -163,7 +162,7 @@ public class InsnGen {
 		useType(code, codeVar.getType());
 		code.add(' ');
 		if (code.isMetadataSupported()) {
-			code.attachDefinition(VarDeclareRef.get(mth, codeVar));
+			code.attachDefinition(VarRef.get(mth, codeVar));
 		}
 		code.add(mgen.getNameGen().assignArg(codeVar));
 	}

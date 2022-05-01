@@ -5,10 +5,6 @@ public interface ILineAttributeNode {
 
 	void setSourceLine(int sourceLine);
 
-	int getDecompiledLine();
-
-	void setDecompiledLine(int line);
-
 	int getDefPosition();
 
 	void setDefPosition(int pos);

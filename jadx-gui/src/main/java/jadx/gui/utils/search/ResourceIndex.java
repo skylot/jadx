@@ -71,7 +71,7 @@ public class ResourceIndex {
 					if (lastNode != null) {
 						emitter.onNext(lastNode);
 					}
-					lastNode = new JResSearchNode(resNode, lineText.trim(), line + 1, pos);
+					lastNode = new JResSearchNode(resNode, lineText.trim(), pos);
 				}
 			} else {
 				if (lastNode != null) { // commit the final result node.

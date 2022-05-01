@@ -151,9 +151,9 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 		JumpPosition jmpPos;
 		if (node instanceof JResSearchNode) {
-			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getLine(), node.getPos());
+			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
 		} else {
-			jmpPos = new JumpPosition(node.getRootClass(), node.getLine(), node.getPos());
+			jmpPos = new JumpPosition(node.getRootClass(), node.getPos());
 		}
 		tabbedPane.codeJump(jmpPos);
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {

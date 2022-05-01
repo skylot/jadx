@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
@@ -172,15 +171,10 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 		if (foundNode == node.getJavaNode()) {
 			// current node
-			CodePosition defPos = new CodePosition(node.getLine(), 0, node.getPos());
-			return new JumpPosition(node.getRootClass(), defPos);
-		}
-		CodePosition pos = getDecompiler().getDefinitionPosition(foundNode);
-		if (pos == null) {
-			return null;
+			return new JumpPosition(node, node.getPos());
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		return new JumpPosition(jNode.getRootClass(), pos);
+		return new JumpPosition(jNode, foundNode.getDefPos());
 	}
 
 	private JNode convertJavaNode(JavaNode javaNode) {
@@ -226,10 +220,7 @@ public final class CodeArea extends AbstractCodeArea {
 			return null;
 		}
 		try {
-			// TODO: add direct mapping for code offset to CodeWriter (instead of line and line offset pair)
-			int line = this.getLineOfOffset(offset);
-			int lineOffset = offset - this.getLineStartOffset(line);
-			return getDecompiler().getJavaNodeAtPosition(getCodeInfo(), line + 1, lineOffset + 1);
+			return getDecompiler().getJavaNodeAtPosition(getCodeInfo(), offset);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
 		}

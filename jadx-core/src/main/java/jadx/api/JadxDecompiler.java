@@ -25,7 +25,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarRef;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.input.JadxInputPlugin;
@@ -519,8 +522,9 @@ public final class JadxDecompiler implements Closeable {
 		throw new JadxRuntimeException("JavaClass not found by ClassNode: " + cls);
 	}
 
+	@ApiStatus.Internal
 	@Nullable
-	private JavaMethod getJavaMethodByNode(MethodNode mth) {
+	public JavaMethod getJavaMethodByNode(MethodNode mth) {
 		JavaMethod javaMethod = methodsMap.get(mth);
 		if (javaMethod != null && javaMethod.getMethodNode() == mth) {
 			return javaMethod;
@@ -560,8 +564,9 @@ public final class JadxDecompiler implements Closeable {
 		return getCodeParentClass(codeCls);
 	}
 
+	@ApiStatus.Internal
 	@Nullable
-	private JavaField getJavaFieldByNode(FieldNode fld) {
+	public JavaField getJavaFieldByNode(FieldNode fld) {
 		JavaField javaField = fieldsMap.get(fld);
 		if (javaField != null && javaField.getFieldNode() == fld) {
 			return javaField;
@@ -626,7 +631,18 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
+	public JavaNode getJavaNodeByRef(ICodeNodeRef ann) {
+		return convertNode(ann);
+	}
+
+	@Nullable
 	JavaNode convertNode(Object obj) {
+		if (obj == null) {
+			return null;
+		}
+		if (obj instanceof NodeDeclareRef) {
+			return convertNode(((NodeDeclareRef) obj).getNode());
+		}
 		if (obj instanceof VarRef) {
 			VarRef varRef = (VarRef) obj;
 			MethodNode mthNode = varRef.getMth();
@@ -680,12 +696,8 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
-	public JavaNode getJavaNodeAtPosition(ICodeInfo codeInfo, int line, int offset) {
-		Map<CodePosition, Object> map = codeInfo.getAnnotations();
-		if (map.isEmpty()) {
-			return null;
-		}
-		Object obj = map.get(new CodePosition(line, offset));
+	public JavaNode getJavaNodeAtPosition(ICodeInfo codeInfo, int pos) {
+		ICodeAnnotation obj = codeInfo.getCodeMetadata().getAt(pos);
 		if (obj == null) {
 			return null;
 		}
@@ -693,14 +705,12 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
-	public CodePosition getDefinitionPosition(JavaNode javaNode) {
-		JavaClass jCls = javaNode.getTopParentClass();
-		jCls.decompile();
-		int defLine = javaNode.getDecompiledLine();
-		if (defLine == 0) {
+	public JavaNode getEnclosingNode(ICodeInfo codeInfo, int pos) {
+		ICodeNodeRef obj = codeInfo.getCodeMetadata().getNodeAt(pos);
+		if (obj == null) {
 			return null;
 		}
-		return new CodePosition(defLine, 0, javaNode.getDefPos());
+		return getJavaNodeByRef(obj);
 	}
 
 	public void reloadCodeData() {

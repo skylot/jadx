@@ -52,11 +52,6 @@ public class JField extends JNode {
 	}
 
 	@Override
-	public int getLine() {
-		return field.getDecompiledLine();
-	}
-
-	@Override
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
 		OverlayIcon icon = UiUtils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);

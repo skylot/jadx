@@ -15,8 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import jadx.api.CodePosition;
-import jadx.api.ICodeWriter;
+import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
@@ -26,7 +26,6 @@ import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
@@ -86,23 +85,23 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void processUsageClass(JavaNode usageNode) {
 		JavaClass cls = usageNode.getTopParentClass();
-		String code = cls.getCodeInfo().getCodeStr();
-		CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
+		ICodeInfo codeInfo = cls.getCodeInfo();
+		String code = codeInfo.getCodeStr();
+		JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
 		List<? extends JavaNode> targetNodes = getMethodWithOverride();
 		for (JavaNode javaNode : targetNodes) {
-			List<CodePosition> usage = cls.getUsageFor(javaNode);
-			for (CodePosition pos : usage) {
-				if (javaNode.getTopParentClass().equals(cls) && pos.getPos() == javaNode.getDefPos()) {
+			for (int pos : cls.getUsePlacesFor(javaNode)) {
+				if (javaNode.getTopParentClass().equals(cls) && pos == javaNode.getDefPos()) {
 					// skip declaration
 					continue;
 				}
-				StringRef line = getLineStrAt(code, pos.getPos());
+				StringRef line = StringRef.getLineAt(code, pos);
 				if (line.startsWith("import ")) {
 					continue;
 				}
-				JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(pos.getLine());
-				JNode useAtNode = javaNodeByLine == null ? node : getNodeCache().makeFrom(javaNodeByLine);
-				usageList.add(new CodeNode(useAtNode, line, pos.getLine(), pos.getPos()));
+				JavaNode enclosingNode = decompiler.getEnclosingNode(codeInfo, pos);
+				JNode useAtNode = enclosingNode == null ? node : getNodeCache().makeFrom(enclosingNode);
+				usageList.add(new CodeNode(useAtNode, line, pos));
 			}
 		}
 	}
@@ -115,16 +114,6 @@ public class UsageDialog extends CommonSearchDialog {
 			}
 		}
 		return Collections.singletonList(node.getJavaNode());
-	}
-
-	private StringRef getLineStrAt(String code, int pos) {
-		String newLine = ICodeWriter.NL;
-		int start = code.lastIndexOf(newLine, pos);
-		int end = code.indexOf(newLine, pos);
-		if (start == -1 || end == -1) {
-			return StringRef.fromStr("line not found");
-		}
-		return StringRef.subString(code, start + newLine.length(), end).trim();
 	}
 
 	@Override

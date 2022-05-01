@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.VarRef;
 
 public class CodeVar {
 	private String name;

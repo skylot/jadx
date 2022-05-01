@@ -16,15 +16,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.impl.AnnotatedCodeInfo;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.utils.codecache.disk.adapters.CodeAnnotationAdapter;
-import jadx.gui.utils.codecache.disk.adapters.CodePositionAdapter;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -39,14 +38,13 @@ public class CodeMetadataAdapter {
 		codeAnnotationAdapter = new CodeAnnotationAdapter(root);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void write(Path metadataFile, ICodeInfo codeInfo) {
+	public void write(Path metadataFile, ICodeMetadata metadata) {
 		FileUtils.makeDirsForFile(metadataFile);
 		try (OutputStream fileOutput = Files.newOutputStream(metadataFile, WRITE, CREATE, TRUNCATE_EXISTING);
 				DataOutputStream out = new DataOutputStream(new BufferedOutputStream(fileOutput))) {
 			out.write(JADX_METADATA_HEADER);
-			writeLines(out, codeInfo.getLineMapping());
-			writeAnnotations(out, (Map) codeInfo.getAnnotations());
+			writeLines(out, metadata.getLineMapping());
+			writeAnnotations(out, metadata.getAsMap());
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to write metadata file", e);
 		}
@@ -60,7 +58,7 @@ public class CodeMetadataAdapter {
 				DataInputStream in = new DataInputStream(new BufferedInputStream(fileInput))) {
 			in.skipBytes(JADX_METADATA_HEADER.length);
 			Map<Integer, Integer> lines = readLines(in);
-			Map<CodePosition, ICodeAnnotation> annotations = readAnnotations(in);
+			Map<Integer, ICodeAnnotation> annotations = readAnnotations(in);
 			return new AnnotatedCodeInfo(code, lines, annotations);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to parse code annotations", e);
@@ -89,24 +87,22 @@ public class CodeMetadataAdapter {
 		return lines;
 	}
 
-	private void writeAnnotations(DataOutputStream out, Map<CodePosition, ICodeAnnotation> annotations) throws IOException {
+	private void writeAnnotations(DataOutputStream out, Map<Integer, ICodeAnnotation> annotations) throws IOException {
 		out.writeInt(annotations.size());
-		CodePositionAdapter codePos = CodePositionAdapter.INSTANCE;
-		for (Map.Entry<CodePosition, ICodeAnnotation> entry : annotations.entrySet()) {
-			codePos.write(out, entry.getKey());
+		for (Map.Entry<Integer, ICodeAnnotation> entry : annotations.entrySet()) {
+			out.writeInt(entry.getKey());
 			codeAnnotationAdapter.write(out, entry.getValue());
 		}
 	}
 
-	private Map<CodePosition, ICodeAnnotation> readAnnotations(DataInputStream in) throws IOException {
+	private Map<Integer, ICodeAnnotation> readAnnotations(DataInputStream in) throws IOException {
 		int size = in.readInt();
 		if (size == 0) {
 			return Collections.emptyMap();
 		}
-		CodePositionAdapter codePos = CodePositionAdapter.INSTANCE;
-		Map<CodePosition, ICodeAnnotation> map = new HashMap<>(size);
+		Map<Integer, ICodeAnnotation> map = new HashMap<>(size);
 		for (int i = 0; i < size; i++) {
-			CodePosition pos = codePos.read(in);
+			int pos = in.readInt();
 			ICodeAnnotation ann = codeAnnotationAdapter.read(in);
 			map.put(pos, ann);
 		}

@@ -1,4 +1,4 @@
-package jadx.api.data.annotations;
+package jadx.api.metadata.annotations;
 
 import org.jetbrains.annotations.Nullable;
 

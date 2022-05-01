@@ -15,14 +15,12 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 	private final transient JNode jNode;
 	private final transient JClass jParent;
 	private final transient StringRef line;
-	private final transient int lineNum;
 	private final transient int pos;
 
-	public CodeNode(JNode jNode, StringRef lineStr, int lineNum, int pos) {
+	public CodeNode(JNode jNode, StringRef lineStr, int pos) {
 		this.jNode = jNode;
 		this.jParent = this.jNode.getJParent();
 		this.line = lineStr;
-		this.lineNum = lineNum;
 		this.pos = pos;
 	}
 
@@ -55,11 +53,6 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 
 	public StringRef getLineStr() {
 		return line;
-	}
-
-	@Override
-	public int getLine() {
-		return lineNum;
 	}
 
 	@Override

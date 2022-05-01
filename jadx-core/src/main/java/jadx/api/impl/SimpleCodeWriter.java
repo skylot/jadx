@@ -6,12 +6,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.ICodeDefinition;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.utils.Utils;
 
 /**
@@ -194,7 +193,12 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	@Override
-	public void attachDefinition(ICodeDefinition obj) {
+	public int getLineStartPos() {
+		return 0;
+	}
+
+	@Override
+	public void attachDefinition(ICodeNodeRef obj) {
 		// no op
 	}
 
@@ -239,7 +243,7 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	@Override
-	public Map<CodePosition, ICodeAnnotation> getRawAnnotations() {
+	public Map<Integer, ICodeAnnotation> getRawAnnotations() {
 		return Collections.emptyMap();
 	}
 

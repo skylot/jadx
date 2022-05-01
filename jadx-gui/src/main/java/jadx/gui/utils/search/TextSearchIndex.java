@@ -11,6 +11,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 
+import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
@@ -21,7 +22,6 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
@@ -78,26 +78,6 @@ public class TextSearchIndex {
 		}
 	}
 
-	public void indexCode(JavaClass cls, CodeLinesInfo linesInfo, List<StringRef> lines) {
-		try {
-			int count = lines.size();
-			for (int i = 0; i < count; i++) {
-				StringRef line = lines.get(i);
-				int lineLength = line.length();
-				if (lineLength == 0 || (lineLength == 1 && line.charAt(0) == '}')) {
-					continue;
-				}
-				int lineNum = i + 1;
-				JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
-				JavaNode javaNode = node == null ? cls : node;
-				JNode nodeAtLine = nodeCache.makeFrom(javaNode);
-				codeIndex.put(new CodeNode(nodeAtLine, line, lineNum, line.getOffset()));
-			}
-		} catch (Exception e) {
-			LOG.warn("Failed to index class: {}", cls, e);
-		}
-	}
-
 	public void indexResource() {
 		resIndex.index();
 	}
@@ -151,12 +131,12 @@ public class TextSearchIndex {
 			result = Flowable.concat(result, fldSignaturesIndex.search(searchSettings));
 		}
 		if (options.contains(CODE)) {
-			if (codeIndex.size() > 0) {
-				result = Flowable.concat(result, codeIndex.search(searchSettings));
-			}
-			if (!skippedClasses.isEmpty()) {
-				result = Flowable.concat(result, searchInSkippedClasses(searchSettings));
-			}
+			// if (codeIndex.size() > 0) {
+			// result = Flowable.concat(result, codeIndex.search(searchSettings));
+			// }
+			// if (!skippedClasses.isEmpty()) {
+			result = Flowable.concat(result, searchInCode(searchSettings));
+			// }
 		}
 		if (options.contains(RESOURCE)) {
 			result = Flowable.concat(result, resIndex.search(searchSettings));
@@ -164,15 +144,18 @@ public class TextSearchIndex {
 		return result;
 	}
 
-	public Flowable<CodeNode> searchInSkippedClasses(final SearchSettings searchSettings) {
+	public Flowable<CodeNode> searchInCode(final SearchSettings searchSettings) {
+		ICodeCache codeCache = mainWindow.getWrapper().getArgs().getCodeCache();
 		return Flowable.create(emitter -> {
-			LOG.debug("Skipped code search started: {} ...", searchSettings.getSearchString());
-			for (JavaClass javaClass : skippedClasses) {
-				String code = javaClass.getCode();
-				int pos = 0;
-				while (pos != -1) {
+			LOG.debug("Code search started: {} ...", searchSettings.getSearchString());
+			for (JavaClass javaClass : mainWindow.getWrapper().getClasses()) {
+				String code = getClassCode(javaClass, codeCache);
+				while (true) {
+					int pos = searchNext(emitter, javaClass, code, searchSettings);
+					if (pos == -1) {
+						break;
+					}
 					searchSettings.setStartPos(pos);
-					pos = searchNext(emitter, javaClass, code, searchSettings);
 					if (emitter.isCancelled()) {
 						LOG.debug("Skipped Code search canceled: {}", searchSettings.getSearchString());
 						return;
@@ -184,9 +167,20 @@ public class TextSearchIndex {
 					return;
 				}
 			}
-			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchSettings.getSearchString(), UiUtils.memoryInfo());
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Code search complete: {}, memory usage: {}", searchSettings.getSearchString(), UiUtils.memoryInfo());
+			}
 			emitter.onComplete();
 		}, BackpressureStrategy.BUFFER);
+	}
+
+	private String getClassCode(JavaClass javaClass, ICodeCache codeCache) {
+		// quick check for if code already in cache
+		String code = codeCache.getCode(javaClass.getRawName());
+		if (code != null) {
+			return code;
+		}
+		return javaClass.getCode();
 	}
 
 	private int searchNext(FlowableEmitter<CodeNode> emitter, JavaNode javaClass, String code, final SearchSettings searchSettings) {
@@ -197,7 +191,7 @@ public class TextSearchIndex {
 		int lineStart = 1 + code.lastIndexOf(ICodeWriter.NL, pos);
 		int lineEnd = code.indexOf(ICodeWriter.NL, pos + searchSettings.getSearchString().length());
 		StringRef line = StringRef.subString(code, lineStart, lineEnd == -1 ? code.length() : lineEnd);
-		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), line.trim(), -1, pos));
+		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), line.trim(), pos));
 		return lineEnd;
 	}
 

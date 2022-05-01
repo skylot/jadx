@@ -37,7 +37,7 @@ public class TestLineNumbers2 extends IntegrationTest {
 		printLineNumbers();
 
 		ClassNode cls = getClassNode(TestCls.class);
-		String linesMapStr = cls.getCode().getLineMapping().toString();
+		String linesMapStr = cls.getCode().getCodeMetadata().getLineMapping().toString();
 		if (isJavaInput()) {
 			assertEquals("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 18=27, 21=30, 22=31}", linesMapStr);
 		} else {

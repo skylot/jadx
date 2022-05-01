@@ -51,11 +51,6 @@ public final class JavaField implements JavaNode {
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		return field.getDecompiledLine();
-	}
-
-	@Override
 	public int getDefPos() {
 		return field.getDefPosition();
 	}

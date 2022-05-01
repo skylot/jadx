@@ -1,15 +1,24 @@
 package jadx.gui.utils.codecache.disk;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +32,7 @@ import jadx.core.utils.files.FileUtils;
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 2;
+	private static final int DATA_FORMAT_VERSION = 3;
 
 	private final Path srcDir;
 	private final Path metaDir;
@@ -32,6 +41,7 @@ public class DiskCodeCache implements ICodeCache {
 	private final CodeMetadataAdapter codeMetadataAdapter;
 	private final ExecutorService writePool;
 	private final Map<String, ICodeInfo> writeOps = new ConcurrentHashMap<>();
+	private final Set<String> cachedKeys = Collections.synchronizedSet(new HashSet<>());
 
 	public DiskCodeCache(RootNode root, Path baseDir) {
 		srcDir = baseDir.resolve("sources");
@@ -41,39 +51,64 @@ public class DiskCodeCache implements ICodeCache {
 		codeVersion = buildCodeVersion(args);
 		writePool = Executors.newFixedThreadPool(args.getThreadsCount());
 		codeMetadataAdapter = new CodeMetadataAdapter(root);
-		checkCodeVersion();
+		if (checkCodeVersion()) {
+			collectCachedItems();
+		} else {
+			reset();
+		}
 	}
 
 	private String buildCodeVersion(JadxArgs args) {
 		return String.format("%d:%s", DATA_FORMAT_VERSION, args.makeCodeArgsHash());
 	}
 
-	private void checkCodeVersion() {
-		if (!Files.exists(codeVersionFile)) {
-			reset();
-			return;
-		}
+	private boolean checkCodeVersion() {
 		try {
-			String currentCodeVer = readFileToString(codeVersionFile);
-			if (!currentCodeVer.equals(codeVersion)) {
-				reset();
+			if (!Files.exists(codeVersionFile)) {
+				return false;
 			}
+			String currentCodeVer = readFileToString(codeVersionFile);
+			return currentCodeVer.equals(codeVersion);
 		} catch (Exception e) {
 			LOG.warn("Failed to load code version file", e);
-			reset();
+			return false;
 		}
 	}
 
 	private void reset() {
 		try {
-			LOG.debug("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());
+			LOG.info("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());
 			FileUtils.deleteDirIfExists(srcDir);
 			FileUtils.deleteDirIfExists(metaDir);
 			FileUtils.makeDirs(srcDir);
 			FileUtils.makeDirs(metaDir);
 			writeFile(codeVersionFile, codeVersion);
+			cachedKeys.clear();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to reset code cache", e);
+		}
+	}
+
+	private void collectCachedItems() {
+		cachedKeys.clear();
+		try {
+			long start = System.currentTimeMillis();
+			PathMatcher matcher = metaDir.getFileSystem().getPathMatcher("glob:**.jadxmd");
+			Files.walkFileTree(metaDir, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+					if (matcher.matches(file)) {
+						Path relPath = metaDir.relativize(file);
+						String filePath = relPath.toString();
+						String clsName = filePath.substring(0, filePath.length() - 7).replace(File.separatorChar, '.');
+						cachedKeys.add(clsName);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+			LOG.info("Found {} classes in disk cache in {} ms", cachedKeys.size(), System.currentTimeMillis() - start);
+		} catch (Exception e) {
+			LOG.error("Failed to collect cached items", e);
 		}
 	}
 
@@ -83,12 +118,14 @@ public class DiskCodeCache implements ICodeCache {
 	@Override
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		writeOps.put(clsFullName, codeInfo);
+		cachedKeys.add(clsFullName);
+		LOG.debug("Saving class info to disk: {}", clsFullName);
 		writePool.execute(() -> {
 			try {
-				LOG.debug("Saving class info to disk: {}", clsFullName);
 				writeFile(getJavaFile(clsFullName), codeInfo.getCodeStr());
-				codeMetadataAdapter.write(getMetadataFile(clsFullName), codeInfo);
+				codeMetadataAdapter.write(getMetadataFile(clsFullName), codeInfo.getCodeMetadata());
 				writeOps.remove(clsFullName);
+				LOG.debug("Class saved: {}", clsFullName);
 			} catch (Exception e) {
 				LOG.error("Failed to write code cache for " + clsFullName, e);
 				remove(clsFullName);
@@ -97,8 +134,33 @@ public class DiskCodeCache implements ICodeCache {
 	}
 
 	@Override
+	public @Nullable String getCode(String clsFullName) {
+		try {
+			if (!contains(clsFullName)) {
+				return null;
+			}
+			ICodeInfo wrtCodeInfo = writeOps.get(clsFullName);
+			if (wrtCodeInfo != null) {
+				return wrtCodeInfo.getCodeStr();
+			}
+			Path javaFile = getJavaFile(clsFullName);
+			if (!Files.exists(javaFile)) {
+				return null;
+			}
+			LOG.debug("Loading class code from disk: {}", clsFullName);
+			return readFileToString(javaFile);
+		} catch (Exception e) {
+			LOG.error("Failed to read class code for {}", clsFullName, e);
+			return null;
+		}
+	}
+
+	@Override
 	public ICodeInfo get(String clsFullName) {
 		try {
+			if (!contains(clsFullName)) {
+				return ICodeInfo.EMPTY;
+			}
 			ICodeInfo wrtCodeInfo = writeOps.get(clsFullName);
 			if (wrtCodeInfo != null) {
 				return wrtCodeInfo;
@@ -117,9 +179,15 @@ public class DiskCodeCache implements ICodeCache {
 	}
 
 	@Override
+	public boolean contains(String clsFullName) {
+		return cachedKeys.contains(clsFullName);
+	}
+
+	@Override
 	public void remove(String clsFullName) {
 		try {
-			LOG.debug("Remove class info from disk: {}", clsFullName);
+			LOG.debug("Removing class info from disk: {}", clsFullName);
+			cachedKeys.remove(clsFullName);
 			Files.deleteIfExists(getJavaFile(clsFullName));
 			Files.deleteIfExists(getMetadataFile(clsFullName));
 		} catch (Exception e) {
@@ -141,11 +209,11 @@ public class DiskCodeCache implements ICodeCache {
 	}
 
 	private Path getJavaFile(String clsFullName) {
-		return srcDir.resolve(clsFullName.replace('.', '/') + ".java");
+		return srcDir.resolve(clsFullName.replace('.', File.separatorChar) + ".java");
 	}
 
 	private Path getMetadataFile(String clsFullName) {
-		return metaDir.resolve(clsFullName.replace('.', '/') + ".jadxmd");
+		return metaDir.resolve(clsFullName.replace('.', File.separatorChar) + ".jadxmd");
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")

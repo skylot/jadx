@@ -1,15 +1,15 @@
-package jadx.api.data.annotations;
+package jadx.api.metadata.annotations;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 
-public class VarRef implements ICodeAnnotation {
+public class VarRef implements ICodeNodeRef {
 
 	@Nullable
 	public static VarRef get(MethodNode mth, RegisterArg reg) {
@@ -17,6 +17,14 @@ public class VarRef implements ICodeAnnotation {
 		if (ssaVar == null) {
 			return null;
 		}
+		return get(mth, ssaVar);
+	}
+
+	public static VarRef get(MethodNode mth, CodeVar codeVar) {
+		return get(mth, codeVar.getAnySsaVar());
+	}
+
+	public static VarRef get(MethodNode mth, SSAVar ssaVar) {
 		CodeVar codeVar = ssaVar.getCodeVar();
 		VarRef cachedVarRef = codeVar.getCachedVarRef();
 		if (cachedVarRef != null) {
@@ -35,6 +43,7 @@ public class VarRef implements ICodeAnnotation {
 	private final int ssa;
 	private final ArgType type;
 	private @Nullable String name;
+	private int defPos;
 
 	protected VarRef(MethodNode mth, SSAVar ssaVar) {
 		this(mth, ssaVar.getRegNum(), ssaVar.getVersion(),
@@ -72,6 +81,16 @@ public class VarRef implements ICodeAnnotation {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public int getDefPosition() {
+		return defPos;
+	}
+
+	@Override
+	public void setDefPosition(int pos) {
+		this.defPos = pos;
 	}
 
 	@Override

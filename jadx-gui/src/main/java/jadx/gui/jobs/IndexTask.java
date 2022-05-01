@@ -45,22 +45,8 @@ public class IndexTask implements IBackgroundTask {
 		indexService.setComplete(false);
 		complete.set(0);
 
-		List<Runnable> jobs = new ArrayList<>(2);
+		List<Runnable> jobs = new ArrayList<>(1);
 		jobs.add(indexService::indexResources);
-		jobs.add(() -> {
-			for (JavaClass cls : classesForIndex) {
-				try {
-					// TODO: a lot of synchronizations to index object, not efficient for parallel usage
-					if (indexService.indexCls(cls)) {
-						complete.incrementAndGet();
-					} else {
-						LOG.debug("Index skipped for {}", cls);
-					}
-				} catch (Throwable e) {
-					LOG.error("Failed to index class: {}", cls, e);
-				}
-			}
-		});
 		return jobs;
 	}
 

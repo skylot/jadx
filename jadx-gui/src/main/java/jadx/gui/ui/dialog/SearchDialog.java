@@ -151,10 +151,7 @@ public class SearchDialog extends CommonSearchDialog {
 		}
 		searchField.requestFocus();
 
-		if (searchField.getText().isEmpty()) {
-			checkIndex();
-		}
-		searchEmitter.emitSearch();
+		checkIndex();
 	}
 
 	private TextSearchIndex checkIndex() {

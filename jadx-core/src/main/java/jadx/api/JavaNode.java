@@ -12,8 +12,6 @@ public interface JavaNode {
 
 	JavaClass getTopParentClass();
 
-	int getDecompiledLine();
-
 	int getDefPos();
 
 	List<JavaNode> getUseIn();

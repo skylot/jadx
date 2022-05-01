@@ -121,11 +121,6 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	}
 
 	@Override
-	public int getLine() {
-		return 0;
-	}
-
-	@Override
 	public int compareTo(@NotNull JPackage o) {
 		return name.compareTo(o.name);
 	}

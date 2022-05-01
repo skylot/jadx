@@ -3,7 +3,7 @@ package jadx.api.data.impl;
 import jadx.api.JavaVariable;
 import jadx.api.data.CodeRefType;
 import jadx.api.data.IJavaCodeRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.VarRef;
 
 public class JadxCodeRef implements IJavaCodeRef {
 

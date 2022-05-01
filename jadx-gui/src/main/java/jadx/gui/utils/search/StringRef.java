@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.api.ICodeWriter;
+
 import static jadx.gui.utils.UiUtils.caseChar;
 
 public class StringRef implements CharSequence {
@@ -151,6 +153,16 @@ public class StringRef implements CharSequence {
 			}
 		}
 		return list;
+	}
+
+	public static StringRef getLineAt(String code, int pos) {
+		String newLine = ICodeWriter.NL;
+		int start = code.lastIndexOf(newLine, pos);
+		int end = code.indexOf(newLine, pos);
+		if (start == -1 || end == -1) {
+			return StringRef.fromStr("line not found");
+		}
+		return StringRef.subString(code, start + newLine.length(), end).trim();
 	}
 
 	public int getOffset() {

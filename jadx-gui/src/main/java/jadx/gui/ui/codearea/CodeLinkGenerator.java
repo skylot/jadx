@@ -105,7 +105,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 			return null;
 		}
 		if (Objects.equals(defPos.getNode().getRootClass(), jNode)
-				&& defPos.getLine() == textArea.getLineOfOffset(sourceOffset) + 1) {
+				&& defPos.getPos() == sourceOffset) {
 			// ignore self jump
 			return null;
 		}

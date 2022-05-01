@@ -25,6 +25,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.utils.codecache.CodeStringCache;
 import jadx.gui.utils.codecache.disk.BufferCodeCache;
 import jadx.gui.utils.codecache.disk.DiskCodeCache;
 
@@ -85,14 +86,21 @@ public class JadxWrapper {
 
 	private void initCodeCache(JadxArgs jadxArgs) {
 		switch (settings.getCodeCacheMode()) {
-			case MEMORY:
+			case MEMORY: {
 				jadxArgs.setCodeCache(new InMemoryCodeCache());
 				break;
-
-			case DISK:
+			}
+			case DISK_WITH_INDEX: {
+				DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
+				BufferCodeCache buffer = new BufferCodeCache(diskCache);
+				jadxArgs.setCodeCache(new CodeStringCache(buffer));
+				break;
+			}
+			case DISK: {
 				DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
 				jadxArgs.setCodeCache(new BufferCodeCache(diskCache));
 				break;
+			}
 		}
 	}
 

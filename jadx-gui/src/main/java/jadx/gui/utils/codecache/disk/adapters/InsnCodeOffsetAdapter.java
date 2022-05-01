@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 
 public class InsnCodeOffsetAdapter implements DataAdapter<InsnCodeOffset> {
 

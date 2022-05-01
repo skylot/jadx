@@ -32,7 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -41,7 +40,8 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.api.args.DeobfuscationMapFileMode;
-import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -300,7 +300,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private void printCodeWithLineNumbers(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
-		Map<Integer, Integer> lineMapping = code.getLineMapping();
+		Map<Integer, Integer> lineMapping = code.getCodeMetadata().getLineMapping();
 		String[] lines = codeStr.split(ICodeWriter.NL);
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
@@ -316,18 +316,18 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private void printCodeWithOffsets(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
-		Map<CodePosition, Object> annotations = code.getAnnotations();
-		String[] lines = codeStr.split(ICodeWriter.NL);
-		for (int i = 0; i < lines.length; i++) {
-			String line = lines[i];
-			int curLine = i + 1;
-			Object ann = annotations.get(new CodePosition(curLine, 0));
+		ICodeMetadata metadata = code.getCodeMetadata();
+		int lineStartPos = 0;
+		int newLineLen = ICodeWriter.NL.length();
+		for (String line : codeStr.split(ICodeWriter.NL)) {
+			Object ann = metadata.getAt(lineStartPos);
 			String offsetStr = "";
 			if (ann instanceof InsnCodeOffset) {
 				int offset = ((InsnCodeOffset) ann).getOffset();
 				offsetStr = "/* " + leftPad(String.valueOf(offset), 5) + " */";
 			}
 			System.out.println(rightPad(offsetStr, 12) + line);
+			lineStartPos += line.length() + newLineLen;
 		}
 	}
 

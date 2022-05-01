@@ -4,7 +4,6 @@ import java.awt.event.KeyEvent;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.CodePosition;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -23,15 +22,11 @@ public final class GoToDeclarationAction extends JNodeAction {
 
 	@Override
 	public boolean isActionEnabled(JNode node) {
-		declPos = null;
 		if (node == null) {
+			declPos = null;
 			return false;
 		}
-		CodePosition defPos = getCodeArea().getDecompiler().getDefinitionPosition(node.getJavaNode());
-		if (defPos == null) {
-			return false;
-		}
-		declPos = new JumpPosition(node.getRootClass(), defPos);
+		declPos = new JumpPosition(node);
 		return true;
 	}
 

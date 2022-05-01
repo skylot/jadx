@@ -5,15 +5,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -38,14 +35,6 @@ public class IndexService {
 			if (index == null) {
 				return false;
 			}
-			// get code from cache to avoid decompilation here
-			String code = getCodeFromCache(cls);
-			if (code == null) {
-				return cls.isNoCode();
-			}
-			List<StringRef> lines = splitLines(code);
-			CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
-			index.indexCode(cls, linesInfo, lines);
 			index.indexNames(cls);
 			indexSet.add(cls);
 			return true;
@@ -53,13 +42,6 @@ public class IndexService {
 			LOG.error("Index error in class: {}", cls.getFullName(), e);
 			return false;
 		}
-	}
-
-	// TODO: add to API
-	@Nullable
-	private String getCodeFromCache(JavaClass cls) {
-		ICodeInfo codeInfo = cls.getClassNode().getCodeFromCache();
-		return codeInfo != null ? codeInfo.getCodeStr() : null;
 	}
 
 	public void indexResources() {
@@ -74,6 +56,7 @@ public class IndexService {
 		}
 		indexSet.remove(cls);
 		index.remove(cls);
+		cls.decompile();
 		indexCls(cls);
 	}
 

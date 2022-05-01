@@ -3,6 +3,7 @@ package jadx.gui.ui.codearea;
 import java.awt.event.KeyEvent;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -15,7 +16,10 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
-import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -90,10 +94,21 @@ public final class FridaAction extends JNodeAction {
 		}
 
 		String functionParametersString =
-				Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
-						.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
-						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-						.map(e -> ((VarDeclareRef) e.getValue()).getName())
+				Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo())
+						.getCodeMetadata().getAsMap().entrySet().stream()
+						.filter(e -> e.getKey() > javaMethod.getDefPos())
+						.filter(e -> {
+							ICodeAnnotation value = e.getValue();
+							if (value instanceof NodeDeclareRef) {
+								ICodeNodeRef declRef = ((NodeDeclareRef) value).getNode();
+								if (declRef instanceof VarRef) {
+									return ((VarRef) declRef).getMth().equals(javaMethod.getMethodNode());
+								}
+							}
+							return false;
+						})
+						.sorted(Comparator.comparingInt(Map.Entry::getKey))
+						.map(e -> ((VarRef) ((NodeDeclareRef) e.getValue()).getNode()).getName())
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(

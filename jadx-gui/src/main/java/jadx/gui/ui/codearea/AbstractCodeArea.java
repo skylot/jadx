@@ -332,7 +332,11 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public JumpPosition getCurrentPosition() {
-		return new JumpPosition(node, getCaretLineNumber() + 1, getCaretPosition());
+		return new JumpPosition(node, getCaretPosition());
+	}
+
+	public String getLineAt(int pos) throws BadLocationException {
+		return getLineText(getLineOfOffset(pos) + 1);
 	}
 
 	public String getLineText(int line) throws BadLocationException {
@@ -340,11 +344,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		int startOffset = getLineStartOffset(lineNum);
 		int endOffset = getLineEndOffset(lineNum);
 		return getText(startOffset, endOffset - startOffset);
-	}
-
-	@Nullable
-	Integer getSourceLine(int line) {
-		return node.getSourceLine(line);
 	}
 
 	public ContentPanel getContentPanel() {

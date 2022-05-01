@@ -97,11 +97,6 @@ public final class JavaMethod implements JavaNode {
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		return mth.getDecompiledLine();
-	}
-
-	@Override
 	public int getDefPos() {
 		return mth.getDefPosition();
 	}

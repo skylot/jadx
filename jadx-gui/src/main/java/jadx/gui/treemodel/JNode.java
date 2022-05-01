@@ -38,17 +38,9 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return SyntaxConstants.SYNTAX_STYLE_NONE;
 	}
 
-	public int getLine() {
-		return 0;
-	}
-
 	@NotNull
 	public ICodeInfo getCodeInfo() {
 		return ICodeInfo.EMPTY;
-	}
-
-	public final Integer getSourceLine(int line) {
-		return getCodeInfo().getLineMapping().get(line);
 	}
 
 	public abstract Icon getIcon();

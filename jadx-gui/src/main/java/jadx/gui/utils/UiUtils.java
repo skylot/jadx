@@ -350,6 +350,6 @@ public class UiUtils {
 	}
 
 	public static void printStackTrace(String label) {
-		LOG.debug("StackTrace: {}\n", label, new Exception());
+		LOG.debug("StackTrace: {}", label, new Exception(label));
 	}
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,6 @@ import com.google.common.cache.LoadingCache;
 
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
-import jadx.gui.utils.UiUtils;
 
 /**
  * Allow fast access to recent items
@@ -32,8 +32,6 @@ public class BufferCodeCache implements ICodeCache {
 				.expireAfterAccess(5, TimeUnit.MINUTES)
 				.recordStats()
 				.build(new CodeInfoCacheLoader());
-
-		UiUtils.debugTimer(30, () -> LOG.debug("Buffer cache size: {}, stats: {}", memCache.size(), memCache.stats()));
 	}
 
 	private final class CodeInfoCacheLoader extends CacheLoader<String, ICodeInfo> {
@@ -64,6 +62,16 @@ public class BufferCodeCache implements ICodeCache {
 	public void remove(String clsFullName) {
 		this.memCache.invalidate(clsFullName);
 		this.backCache.remove(clsFullName);
+	}
+
+	@Override
+	public @Nullable String getCode(String clsFullName) {
+		return get(clsFullName).getCodeStr();
+	}
+
+	@Override
+	public boolean contains(String clsFullName) {
+		return this.backCache.contains(clsFullName);
 	}
 
 	@Override

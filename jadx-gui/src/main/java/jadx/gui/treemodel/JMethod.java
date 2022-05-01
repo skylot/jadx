@@ -58,11 +58,6 @@ public class JMethod extends JNode {
 	}
 
 	@Override
-	public int getLine() {
-		return mth.getDecompiledLine();
-	}
-
-	@Override
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
 		Icon icon = ICON_METHOD;

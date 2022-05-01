@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.CodePosition;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.ICodeAnnotation;
@@ -105,7 +104,7 @@ public class CodeGenUtils {
 					int startLinePos = buf.lastIndexOf(ICodeWriter.NL) + 1;
 					indent = Utils.strRepeat(" ", buf.length() - startLinePos);
 					if (code.isMetadataSupported()) {
-						lineAnn = code.getRawAnnotations().get(new CodePosition(code.getLine()));
+						lineAnn = code.getRawAnnotations().get(startLinePos);
 					}
 				} else {
 					code.newLine().add(indent);

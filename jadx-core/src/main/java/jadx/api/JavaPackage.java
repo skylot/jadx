@@ -40,11 +40,6 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		return 0;
-	}
-
-	@Override
 	public int getDefPos() {
 		return 0;
 	}

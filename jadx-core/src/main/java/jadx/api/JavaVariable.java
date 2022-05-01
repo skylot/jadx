@@ -5,8 +5,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.VarRef;
 
 public class JavaVariable implements JavaNode {
 	private final JavaMethod mth;
@@ -55,18 +54,7 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		if (varRef instanceof VarDeclareRef) {
-			return ((VarDeclareRef) varRef).getDecompiledLine();
-		}
-		return 0;
-	}
-
-	@Override
 	public int getDefPos() {
-		if (varRef instanceof VarDeclareRef) {
-			return ((VarDeclareRef) varRef).getDefPosition();
-		}
 		return 0;
 	}
 

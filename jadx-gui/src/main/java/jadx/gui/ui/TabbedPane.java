@@ -14,13 +14,11 @@ import java.util.Objects;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -192,38 +190,11 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private void scrollToPos(ContentPanel contentPanel, JumpPosition jumpPos) {
-		if (!(contentPanel instanceof AbstractCodeContentPanel)) {
-			return;
+		if (contentPanel instanceof AbstractCodeContentPanel) {
+			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
+			codeArea.scrollToPos(jumpPos.getPos());
+			codeArea.requestFocus();
 		}
-		AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
-		int pos = jumpPos.getPos();
-		if (pos > 0) {
-			codeArea.scrollToPos(pos);
-		} else {
-			int line = jumpPos.getLine();
-			if (line < 0) {
-				try {
-					line = 1 + codeArea.getLineOfOffset(-line);
-				} catch (BadLocationException e) {
-					LOG.error("Can't get line for: {}", jumpPos, e);
-					line = jumpPos.getNode().getLine();
-				}
-			}
-			int lineNum = Math.max(0, line - 1);
-			try {
-				int offs = codeArea.getLineStartOffset(lineNum);
-				while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
-					offs += 1;
-				}
-				offs += pos;
-				jumpPos.setPos(offs);
-				codeArea.scrollToPos(offs);
-			} catch (BadLocationException e) {
-				LOG.error("Failed to jump to position: {}", pos, e);
-				codeArea.scrollToLine(line);
-			}
-		}
-		codeArea.requestFocus();
 	}
 
 	public boolean showNode(JNode node) {
@@ -261,7 +232,7 @@ public class TabbedPane extends JTabbedPane {
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {
 		ContentPanel panel = getOpenTabs().get(cls);
 		if (panel == null) {
-			showCode(new JumpPosition(cls, 0, 1));
+			showCode(new JumpPosition(cls, 1));
 			panel = getOpenTabs().get(cls);
 			if (panel == null) {
 				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);

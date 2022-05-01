@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -26,7 +26,7 @@ public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
 		register(FieldNode.class, 2, new FieldNodeAdapter(root));
 		register(MethodNode.class, 3, mthAdapter);
 		register(VarRef.class, 4, varRefAdapter);
-		register(VarDeclareRef.class, 5, new VarDeclareRefAdapter(varRefAdapter));
+		register(NodeDeclareRef.class, 5, new NodeDeclareRefAdapter(this));
 		register(InsnCodeOffset.class, 6, InsnCodeOffsetAdapter.INSTANCE);
 	}
 

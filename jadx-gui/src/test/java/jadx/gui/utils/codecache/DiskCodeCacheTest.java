@@ -39,9 +39,9 @@ class DiskCodeCacheTest extends IntegrationTest {
 
 		assertThat(readCodeInfo).isNotNull();
 		assertThat(readCodeInfo.getCodeStr()).isEqualTo(codeInfo.getCodeStr());
-		assertThat(readCodeInfo.getLineMapping()).isEqualTo(codeInfo.getLineMapping());
-		LOG.info("Disk code annotations: {}", readCodeInfo.getAnnotations());
-		assertThat(readCodeInfo.getAnnotations()).hasSameSizeAs(codeInfo.getAnnotations());
+		assertThat(readCodeInfo.getCodeMetadata().getLineMapping()).isEqualTo(codeInfo.getCodeMetadata().getLineMapping());
+		LOG.info("Disk code annotations: {}", readCodeInfo.getCodeMetadata().getAsMap());
+		assertThat(readCodeInfo.getCodeMetadata().getAsMap()).hasSameSizeAs(codeInfo.getCodeMetadata().getAsMap());
 
 		cache.close();
 	}

@@ -74,7 +74,7 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 	public synchronized void reload(CacheObject cache) {
 		cache.getNodeCache().removeWholeClass(cls);
 		cache.getIndexService().remove(cls);
-		cls.reload();
+		ICodeInfo codeInfo = cls.reload();
 		loaded = true;
 		update();
 		cache.getIndexService().indexCls(cls);
@@ -177,11 +177,6 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 
 	public String getFullName() {
 		return cls.getFullName();
-	}
-
-	@Override
-	public int getLine() {
-		return cls.getDecompiledLine();
 	}
 
 	@Override

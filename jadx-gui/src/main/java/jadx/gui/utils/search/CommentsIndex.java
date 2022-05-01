@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
@@ -23,7 +22,8 @@ import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
-import jadx.api.data.annotations.ICodeRawOffset;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.annotations.ICodeRawOffset;
 import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
@@ -135,11 +135,6 @@ public class CommentsIndex {
 		}
 
 		@Override
-		public int getLine() {
-			return getCachedPos().getLine();
-		}
-
-		@Override
 		public int getPos() {
 			return getCachedPos().getPos();
 		}
@@ -156,12 +151,12 @@ public class CommentsIndex {
 		 */
 		private JumpPosition getJumpPos() {
 			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-			int methodLine = javaMethod.getDecompiledLine();
+			int methodDefPos = javaMethod.getDefPos();
 			ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
-			for (Map.Entry<CodePosition, Object> entry : codeInfo.getAnnotations().entrySet()) {
-				CodePosition codePos = entry.getKey();
-				if (codePos.getOffset() == 0 && codePos.getLine() > methodLine) {
-					Object ann = entry.getValue();
+			for (Map.Entry<Integer, ICodeAnnotation> entry : codeInfo.getCodeMetadata().getAsMap().entrySet()) {
+				int codePos = entry.getKey();
+				if (codePos > methodDefPos) {
+					ICodeAnnotation ann = entry.getValue();
 					if (ann instanceof ICodeRawOffset) {
 						if (((ICodeRawOffset) ann).getOffset() == offset) {
 							return new JumpPosition(node, codePos);
@@ -212,11 +207,6 @@ public class CommentsIndex {
 		@Override
 		public String makeString() {
 			return node.makeString();
-		}
-
-		@Override
-		public int getLine() {
-			return node.getLine();
 		}
 
 		@Override

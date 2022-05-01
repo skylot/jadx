@@ -156,10 +156,10 @@ public class CodePanel extends JPanel {
 
 	private boolean canShowDebugLines() {
 		ICodeInfo codeInfo = codeArea.getCodeInfo();
-		if (codeInfo == ICodeInfo.EMPTY) {
+		if (!codeInfo.hasMetadata()) {
 			return false;
 		}
-		Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
+		Map<Integer, Integer> lineMapping = codeInfo.getCodeMetadata().getLineMapping();
 		if (lineMapping.isEmpty()) {
 			return false;
 		}

@@ -1,26 +1,16 @@
 package jadx.gui.utils.codecache;
 
-import java.io.IOException;
-
-import org.jetbrains.annotations.Nullable;
-
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
+import jadx.api.impl.DelegateCodeCache;
 
 /**
  * Code cache with fixed size of wrapped code cache ('remove' and 'add' methods will do nothing).
  */
-public class FixedCodeCache implements ICodeCache {
-
-	private final ICodeCache codeCache;
+public class FixedCodeCache extends DelegateCodeCache {
 
 	public FixedCodeCache(ICodeCache codeCache) {
-		this.codeCache = codeCache;
-	}
-
-	@Override
-	public @Nullable ICodeInfo get(String clsFullName) {
-		return this.codeCache.get(clsFullName);
+		super(codeCache);
 	}
 
 	@Override
@@ -31,10 +21,5 @@ public class FixedCodeCache implements ICodeCache {
 	@Override
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		// no op
-	}
-
-	@Override
-	public void close() throws IOException {
-		this.codeCache.close();
 	}
 }
