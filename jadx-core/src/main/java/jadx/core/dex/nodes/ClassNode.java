@@ -818,6 +818,11 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	@Override
+	public String getTagName() {
+		return "cls";
+	}
+
+	@Override
 	public int hashCode() {
 		return clsInfo.hashCode();
 	}

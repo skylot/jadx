@@ -26,6 +26,11 @@ public class NodeDeclareRef implements ICodeAnnotation {
 	}
 
 	@Override
+	public String getTagName() {
+		return "def";
+	}
+
+	@Override
 	public String toString() {
 		return "NodeDeclareRef{" + node + '}';
 	}

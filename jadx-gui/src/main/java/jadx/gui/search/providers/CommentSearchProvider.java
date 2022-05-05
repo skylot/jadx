@@ -1,4 +1,4 @@
-package jadx.gui.utils.search;
+package jadx.gui.search.providers;
 
 import java.util.List;
 import java.util.Map;
@@ -11,9 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-
 import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
@@ -25,25 +22,50 @@ import jadx.api.data.IJavaNodeRef;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.ICodeRawOffset;
 import jadx.gui.JadxWrapper;
+import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.ISearchProvider;
+import jadx.gui.search.SearchSettings;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 
-public class CommentsIndex {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CommentsIndex.class);
+public class CommentSearchProvider implements ISearchProvider {
+	private static final Logger LOG = LoggerFactory.getLogger(CommentSearchProvider.class);
 	private final JadxWrapper wrapper;
 	private final CacheObject cacheObject;
 	private final JadxProject project;
+	private final SearchSettings searchSettings;
 
-	public CommentsIndex(JadxWrapper wrapper, CacheObject cacheObject, JadxProject project) {
-		this.wrapper = wrapper;
-		this.cacheObject = cacheObject;
-		this.project = project;
+	private int progress = 0;
+
+	public CommentSearchProvider(MainWindow mw, SearchSettings searchSettings) {
+		this.wrapper = mw.getWrapper();
+		this.cacheObject = mw.getCacheObject();
+		this.project = mw.getProject();
+		this.searchSettings = searchSettings;
+	}
+
+	@Override
+	public @Nullable JNode next(Cancelable cancelable) {
+		while (true) {
+			if (cancelable.isCanceled()) {
+				return null;
+			}
+			List<ICodeComment> comments = project.getCodeData().getComments();
+			if (progress >= comments.size()) {
+				return null;
+			}
+			ICodeComment comment = comments.get(progress++);
+			JNode result = isMatch(searchSettings, comment);
+			if (result != null) {
+				return result;
+			}
+		}
 	}
 
 	@Nullable
@@ -61,26 +83,6 @@ public class CommentsIndex {
 			}
 		}
 		return null;
-	}
-
-	public Flowable<JNode> search(SearchSettings searchSettings) {
-		List<ICodeComment> comments = project.getCodeData().getComments();
-		if (comments == null || comments.isEmpty()) {
-			return Flowable.empty();
-		}
-		LOG.debug("Total comments count: {}", comments.size());
-		return Flowable.create(emitter -> {
-			for (ICodeComment comment : comments) {
-				JNode foundNode = isMatch(searchSettings, comment);
-				if (foundNode != null) {
-					emitter.onNext(foundNode);
-				}
-				if (emitter.isCancelled()) {
-					return;
-				}
-			}
-			emitter.onComplete();
-		}, BackpressureStrategy.BUFFER);
 	}
 
 	private @NotNull RefCommentNode getCommentNode(ICodeComment comment, JNode refNode) {
@@ -218,5 +220,15 @@ public class CommentsIndex {
 		public boolean hasDescString() {
 			return true;
 		}
+	}
+
+	@Override
+	public int progress() {
+		return progress;
+	}
+
+	@Override
+	public int total() {
+		return project.getCodeData().getComments().size();
 	}
 }

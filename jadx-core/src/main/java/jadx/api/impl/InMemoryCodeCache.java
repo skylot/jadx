@@ -1,13 +1,16 @@
 package jadx.api.impl;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 
-public class InMemoryCodeCache extends NoOpCodeCache {
+public class InMemoryCodeCache implements ICodeCache {
 
 	private final Map<String, ICodeInfo> storage = new ConcurrentHashMap<>();
 
@@ -29,6 +32,25 @@ public class InMemoryCodeCache extends NoOpCodeCache {
 			return ICodeInfo.EMPTY;
 		}
 		return codeInfo;
+	}
+
+	@Override
+	public @Nullable String getCode(String clsFullName) {
+		ICodeInfo codeInfo = storage.get(clsFullName);
+		if (codeInfo == null) {
+			return null;
+		}
+		return codeInfo.getCodeStr();
+	}
+
+	@Override
+	public boolean contains(String clsFullName) {
+		return storage.containsKey(clsFullName);
+	}
+
+	@Override
+	public void close() throws IOException {
+		storage.clear();
 	}
 
 	@Override

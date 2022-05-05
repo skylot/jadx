@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
 import jadx.api.JavaNode;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -70,9 +73,9 @@ public final class CodeArea extends AbstractCodeArea {
 	@SuppressWarnings("deprecation")
 	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
 		int offs = viewToModel(point);
-		JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(CodeArea.this, offs);
-		if (jump != null) {
-			contentPanel.getTabbedPane().codeJump(jump);
+		JNode node = getJNodeAtOffset(codeLinkGenerator.getLinkSourceOffset(this, offs));
+		if (node != null) {
+			contentPanel.getTabbedPane().codeJump(node);
 		}
 	}
 
@@ -171,10 +174,13 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 		if (foundNode == node.getJavaNode()) {
 			// current node
-			return new JumpPosition(node, node.getPos());
+			return new JumpPosition(node);
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		return new JumpPosition(jNode, foundNode.getDefPos());
+		if (jNode.getPos() == 0) {
+			LOG.warn("Node not yet loaded", new Exception());
+		}
+		return new JumpPosition(jNode);
 	}
 
 	private JNode convertJavaNode(JavaNode javaNode) {
@@ -223,6 +229,21 @@ public final class CodeArea extends AbstractCodeArea {
 			return getDecompiler().getJavaNodeAtPosition(getCodeInfo(), offset);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
+		}
+		return null;
+	}
+
+	public JavaClass getJavaClassIfAtPos(int pos) {
+		try {
+			ICodeInfo codeInfo = getCodeInfo();
+			if (codeInfo.hasMetadata()) {
+				ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
+				if (ann instanceof ClassNode) {
+					return getDecompiler().getJavaClassByNode(((ClassNode) ann));
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Can't get java node by offset: {}", pos, e);
 		}
 		return null;
 	}

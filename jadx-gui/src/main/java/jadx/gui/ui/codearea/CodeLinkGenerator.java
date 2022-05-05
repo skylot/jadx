@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea;
 import java.util.Objects;
 
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
@@ -44,23 +43,6 @@ public class CodeLinkGenerator implements LinkGenerator {
 		}
 	}
 
-	@Nullable
-	public JumpPosition getJumpLinkAtOffset(RSyntaxTextArea textArea, int offset) {
-		try {
-			if (!codeArea.getCodeInfo().hasMetadata()) {
-				return null;
-			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
-			if (sourceOffset == -1) {
-				return null;
-			}
-			return getJumpBySourceOffset(textArea, sourceOffset);
-		} catch (Exception e) {
-			LOG.error("getJumpLinkAtOffset error", e);
-			return null;
-		}
-	}
-
 	@Override
 	public LinkGeneratorResult isLinkAtOffset(RSyntaxTextArea textArea, int offset) {
 		try {
@@ -71,7 +53,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 			if (sourceOffset == -1) {
 				return null;
 			}
-			JumpPosition defPos = getJumpBySourceOffset(textArea, sourceOffset);
+			JumpPosition defPos = getJumpBySourceOffset(sourceOffset);
 			if (defPos == null) {
 				return null;
 			}
@@ -93,13 +75,13 @@ public class CodeLinkGenerator implements LinkGenerator {
 		}
 	}
 
-	private int getLinkSourceOffset(RSyntaxTextArea textArea, int offset) {
+	public int getLinkSourceOffset(RSyntaxTextArea textArea, int offset) {
 		Token token = textArea.modelToToken(offset);
 		return codeArea.adjustOffsetForToken(token);
 	}
 
 	@Nullable
-	private JumpPosition getJumpBySourceOffset(RSyntaxTextArea textArea, int sourceOffset) throws BadLocationException {
+	private JumpPosition getJumpBySourceOffset(int sourceOffset) {
 		final JumpPosition defPos = codeArea.getDefPosForNodeAtOffset(sourceOffset);
 		if (defPos == null) {
 			return null;

@@ -7,17 +7,16 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaNode;
-import jadx.gui.utils.search.StringRef;
 
 public class CodeNode extends JNode implements Comparable<CodeNode> {
 	private static final long serialVersionUID = 1658650786734966545L;
 
 	private final transient JNode jNode;
 	private final transient JClass jParent;
-	private final transient StringRef line;
+	private final transient String line;
 	private final transient int pos;
 
-	public CodeNode(JNode jNode, StringRef lineStr, int pos) {
+	public CodeNode(JNode jNode, String lineStr, int pos) {
 		this.jNode = jNode;
 		this.jParent = this.jNode.getJParent();
 		this.line = lineStr;
@@ -51,13 +50,9 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 		return null;
 	}
 
-	public StringRef getLineStr() {
-		return line;
-	}
-
 	@Override
 	public String makeDescString() {
-		return line.toString();
+		return line;
 	}
 
 	@Override

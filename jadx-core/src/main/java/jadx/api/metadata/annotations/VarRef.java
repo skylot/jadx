@@ -1,119 +1,63 @@
 package jadx.api.metadata.annotations;
 
-import org.jetbrains.annotations.Nullable;
+import jadx.api.metadata.ICodeAnnotation;
 
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.CodeVar;
-import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.nodes.MethodNode;
+/**
+ * Variable reference by position of VarNode in code metadata.
+ * <br>
+ * Because on creation def pos not yet known,
+ * VarRef created using VarNode as a source of ref pos during serialization.
+ * <br>
+ * On metadata deserialization created with ref pos directly.
+ */
+public abstract class VarRef implements ICodeAnnotation {
 
-public class VarRef implements ICodeNodeRef {
-
-	@Nullable
-	public static VarRef get(MethodNode mth, RegisterArg reg) {
-		SSAVar ssaVar = reg.getSVar();
-		if (ssaVar == null) {
-			return null;
+	public static VarRef fromPos(int refPos) {
+		if (refPos == 0) {
+			throw new IllegalArgumentException("Zero refPos");
 		}
-		return get(mth, ssaVar);
+		return new FixedVarRef(refPos);
 	}
 
-	public static VarRef get(MethodNode mth, CodeVar codeVar) {
-		return get(mth, codeVar.getAnySsaVar());
+	public static VarRef fromVarNode(VarNode varNode) {
+		return new RelatedVarRef(varNode);
 	}
 
-	public static VarRef get(MethodNode mth, SSAVar ssaVar) {
-		CodeVar codeVar = ssaVar.getCodeVar();
-		VarRef cachedVarRef = codeVar.getCachedVarRef();
-		if (cachedVarRef != null) {
-			if (cachedVarRef.getName() == null) {
-				cachedVarRef.setName(codeVar.getName());
-			}
-			return cachedVarRef;
-		}
-		VarRef newVarRef = new VarRef(mth, ssaVar);
-		codeVar.setCachedVarRef(newVarRef);
-		return newVarRef;
-	}
-
-	private final MethodNode mth;
-	private final int reg;
-	private final int ssa;
-	private final ArgType type;
-	private @Nullable String name;
-	private int defPos;
-
-	protected VarRef(MethodNode mth, SSAVar ssaVar) {
-		this(mth, ssaVar.getRegNum(), ssaVar.getVersion(),
-				ssaVar.getCodeVar().getType(), ssaVar.getCodeVar().getName());
-	}
-
-	public VarRef(MethodNode mth, int reg, int ssa, ArgType type, String name) {
-		this.mth = mth;
-		this.reg = reg;
-		this.ssa = ssa;
-		this.type = type;
-		this.name = name;
-	}
-
-	public MethodNode getMth() {
-		return mth;
-	}
-
-	public int getReg() {
-		return reg;
-	}
-
-	public int getSsa() {
-		return ssa;
-	}
-
-	public ArgType getType() {
-		return type;
-	}
-
-	@Nullable
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
+	public abstract int getRefPos();
 
 	@Override
-	public int getDefPosition() {
-		return defPos;
+	public String getTagName() {
+		return "vrf";
 	}
 
-	@Override
-	public void setDefPosition(int pos) {
-		this.defPos = pos;
-	}
+	public static final class FixedVarRef extends VarRef {
+		private final int refPos;
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
+		public FixedVarRef(int refPos) {
+			this.refPos = refPos;
 		}
-		if (!(o instanceof VarRef)) {
-			return false;
+
+		@Override
+		public int getRefPos() {
+			return refPos;
 		}
-		VarRef other = (VarRef) o;
-		return getReg() == other.getReg()
-				&& getSsa() == other.getSsa()
-				&& getMth().equals(other.getMth());
 	}
 
-	@Override
-	public int hashCode() {
-		return 31 * getReg() + getSsa();
+	public static final class RelatedVarRef extends VarRef {
+		private final VarNode varNode;
+
+		public RelatedVarRef(VarNode varNode) {
+			this.varNode = varNode;
+		}
+
+		@Override
+		public int getRefPos() {
+			return varNode.getDefPosition();
+		}
 	}
 
 	@Override
 	public String toString() {
-		return "VarUseRef{r" + reg + 'v' + ssa + '}';
+		return "VarRef{" + getRefPos() + '}';
 	}
 }

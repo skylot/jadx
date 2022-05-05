@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.api.metadata.annotations.VarRef;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
@@ -50,14 +50,14 @@ public class TestVariablesDeclAnnotation extends IntegrationTest {
 					ICodeAnnotation value = e.getValue();
 					if (value instanceof NodeDeclareRef) {
 						ICodeNodeRef declRef = ((NodeDeclareRef) value).getNode();
-						if (declRef instanceof VarRef) {
-							return ((VarRef) declRef).getMth().equals(testMth);
+						if (declRef instanceof VarNode) {
+							return ((VarNode) declRef).getMth().equals(testMth);
 						}
 					}
 					return false;
 				})
 				.sorted(Comparator.comparingInt(Map.Entry::getKey))
-				.map(e -> ((VarRef) ((NodeDeclareRef) e.getValue()).getNode()).getName())
+				.map(e -> ((VarNode) ((NodeDeclareRef) e.getValue()).getNode()).getName())
 				.collect(Collectors.toList());
 
 		assertThat(argNames).doesNotContainNull();

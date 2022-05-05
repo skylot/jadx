@@ -593,6 +593,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
+	public String getTagName() {
+		return "mth";
+	}
+
+	@Override
 	public int hashCode() {
 		return mthInfo.hashCode();
 	}

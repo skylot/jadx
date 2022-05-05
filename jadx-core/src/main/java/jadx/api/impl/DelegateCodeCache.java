@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 
-public class DelegateCodeCache implements ICodeCache {
+public abstract class DelegateCodeCache implements ICodeCache {
 
 	protected final ICodeCache backCache;
 

@@ -33,7 +33,6 @@ class DiskCodeCacheTest extends IntegrationTest {
 
 		String clsKey = clsNode.getFullName();
 		cache.add(clsKey, codeInfo);
-		cache.close(); // wait for writes
 
 		ICodeInfo readCodeInfo = cache.get(clsKey);
 

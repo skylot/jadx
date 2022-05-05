@@ -78,7 +78,7 @@ public final class JavaMethod implements JavaNode {
 		JadxDecompiler decompiler = getDeclaringClass().getRootDecompiler();
 		return ovrdAttr.getRelatedMthNodes().stream()
 				.map(m -> {
-					JavaMethod javaMth = (JavaMethod) decompiler.convertNode(m);
+					JavaMethod javaMth = decompiler.getJavaMethodByNode(m);
 					if (javaMth == null) {
 						LOG.warn("Failed convert to java method: {}", m);
 					}

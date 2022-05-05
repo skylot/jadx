@@ -134,10 +134,10 @@ public final class JavaClass implements JavaNode {
 		if (fieldsCount != 0) {
 			List<JavaField> flds = new ArrayList<>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
-				if (!f.contains(AFlag.DONT_GENERATE)) {
-					JavaField javaField = new JavaField(this, f);
-					flds.add(javaField);
-				}
+				// if (!f.contains(AFlag.DONT_GENERATE)) {
+				JavaField javaField = new JavaField(this, f);
+				flds.add(javaField);
+				// }
 			}
 			this.fields = Collections.unmodifiableList(flds);
 		}
@@ -177,7 +177,7 @@ public final class JavaClass implements JavaNode {
 			int codePosition = entry.getKey();
 			ICodeAnnotation obj = entry.getValue();
 			if (obj instanceof ICodeNodeRef) {
-				JavaNode node = getRootDecompiler().convertNode(obj);
+				JavaNode node = getRootDecompiler().getJavaNodeByRef((ICodeNodeRef) obj);
 				if (node != null) {
 					resultMap.put(codePosition, node);
 				}

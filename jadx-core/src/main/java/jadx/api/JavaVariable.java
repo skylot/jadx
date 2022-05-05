@@ -5,15 +5,15 @@ import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import jadx.api.metadata.annotations.VarRef;
+import jadx.api.metadata.annotations.VarNode;
 
 public class JavaVariable implements JavaNode {
 	private final JavaMethod mth;
-	private final VarRef varRef;
+	private final VarNode varNode;
 
-	public JavaVariable(JavaMethod mth, VarRef varRef) {
+	public JavaVariable(JavaMethod mth, VarNode varNode) {
 		this.mth = mth;
-		this.varRef = varRef;
+		this.varNode = varNode;
 	}
 
 	public JavaMethod getMth() {
@@ -21,26 +21,26 @@ public class JavaVariable implements JavaNode {
 	}
 
 	public int getReg() {
-		return varRef.getReg();
+		return varNode.getReg();
 	}
 
 	public int getSsa() {
-		return varRef.getSsa();
+		return varNode.getSsa();
 	}
 
 	@Override
 	public String getName() {
-		return varRef.getName();
+		return varNode.getName();
 	}
 
 	@ApiStatus.Internal
-	public VarRef getVarRef() {
-		return varRef;
+	public VarNode getVarNode() {
+		return varNode;
 	}
 
 	@Override
 	public String getFullName() {
-		return varRef.getType() + " " + varRef.getName() + " (r" + varRef.getReg() + "v" + varRef.getSsa() + ")";
+		return varNode.getType() + " " + varNode.getName() + " (r" + varNode.getReg() + "v" + varNode.getSsa() + ")";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class JavaVariable implements JavaNode {
 
 	@Override
 	public int hashCode() {
-		return varRef.hashCode();
+		return varNode.hashCode();
 	}
 
 	@Override
@@ -76,6 +76,6 @@ public class JavaVariable implements JavaNode {
 		if (!(o instanceof JavaVariable)) {
 			return false;
 		}
-		return varRef.equals(((JavaVariable) o).varRef);
+		return varNode.equals(((JavaVariable) o).varNode);
 	}
 }

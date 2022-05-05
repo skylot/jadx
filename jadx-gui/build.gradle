@@ -30,8 +30,6 @@ dependencies {
 	implementation 'com.android.tools.build:apksig:4.2.1'
 	implementation 'io.github.hqktech:jdwp:1.0'
 
-	implementation 'com.google.guava:guava:31.1-jre'
-
 	testImplementation project(":jadx-core").sourceSets.test.output
 }
 

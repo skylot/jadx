@@ -101,6 +101,11 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 	}
 
 	@Override
+	public String getTagName() {
+		return "fld";
+	}
+
+	@Override
 	public int hashCode() {
 		return fieldInfo.hashCode();
 	}

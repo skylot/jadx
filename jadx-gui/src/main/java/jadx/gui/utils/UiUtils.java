@@ -29,6 +29,7 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class UiUtils {
@@ -223,13 +225,6 @@ public class UiUtils {
 		return (long) (mem / (double) (1024L * 1024L)) + "MB";
 	}
 
-	/**
-	 * Adapt character case for case insensitive searches
-	 */
-	public static char caseChar(char ch, boolean toLower) {
-		return toLower ? Character.toLowerCase(ch) : ch;
-	}
-
 	public static void setClipboardString(String text) {
 		try {
 			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -328,6 +323,18 @@ public class UiUtils {
 		}
 	}
 
+	public static int calcProgress(ITaskProgress taskProgress) {
+		return calcProgress(taskProgress.progress(), taskProgress.total());
+	}
+
+	public static int calcProgress(long done, long total) {
+		if (done > total) {
+			LOG.debug("Task progress has invalid values: done={}, total={}", done, total);
+			return 100;
+		}
+		return Math.round(done * 100 / (float) total);
+	}
+
 	public static void sleep(int ms) {
 		try {
 			Thread.sleep(ms);
@@ -336,6 +343,23 @@ public class UiUtils {
 		}
 	}
 
+	public static void uiRun(Runnable runnable) {
+		SwingUtilities.invokeLater(runnable);
+	}
+
+	public static void uiRunAndWait(Runnable runnable) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			runnable.run();
+			return;
+		}
+		try {
+			SwingUtilities.invokeAndWait(runnable);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@TestOnly
 	public static void debugTimer(int periodInSeconds, Runnable action) {
 		if (!LOG.isDebugEnabled()) {
 			return;
@@ -349,6 +373,7 @@ public class UiUtils {
 		}, 0, periodInSeconds * 1000L);
 	}
 
+	@TestOnly
 	public static void printStackTrace(String label) {
 		LOG.debug("StackTrace: {}", label, new Exception(label));
 	}

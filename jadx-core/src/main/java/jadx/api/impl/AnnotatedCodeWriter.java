@@ -60,7 +60,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public ICodeWriter add(ICodeWriter cw) {
-		if ((!(cw instanceof AnnotatedCodeWriter))) {
+		if (!cw.isMetadataSupported()) {
 			buf.append(cw.getCodeStr());
 			return this;
 		}

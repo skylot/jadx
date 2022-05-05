@@ -32,7 +32,7 @@ import jadx.core.utils.files.FileUtils;
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 3;
+	private static final int DATA_FORMAT_VERSION = 4;
 
 	private final Path srcDir;
 	private final Path metaDir;
@@ -119,7 +119,9 @@ public class DiskCodeCache implements ICodeCache {
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		writeOps.put(clsFullName, codeInfo);
 		cachedKeys.add(clsFullName);
-		LOG.debug("Saving class info to disk: {}", clsFullName);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Saving class info to disk: {}, in queue: {}", clsFullName, writeOps.size());
+		}
 		writePool.execute(() -> {
 			try {
 				writeFile(getJavaFile(clsFullName), codeInfo.getCodeStr());

@@ -19,7 +19,7 @@ import jadx.api.JavaMethod;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.api.metadata.annotations.VarRef;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -101,14 +101,14 @@ public final class FridaAction extends JNodeAction {
 							ICodeAnnotation value = e.getValue();
 							if (value instanceof NodeDeclareRef) {
 								ICodeNodeRef declRef = ((NodeDeclareRef) value).getNode();
-								if (declRef instanceof VarRef) {
-									return ((VarRef) declRef).getMth().equals(javaMethod.getMethodNode());
+								if (declRef instanceof VarNode) {
+									return ((VarNode) declRef).getMth().equals(javaMethod.getMethodNode());
 								}
 							}
 							return false;
 						})
 						.sorted(Comparator.comparingInt(Map.Entry::getKey))
-						.map(e -> ((VarRef) ((NodeDeclareRef) e.getValue()).getNode()).getName())
+						.map(e -> ((VarNode) ((NodeDeclareRef) e.getValue()).getNode()).getName())
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(

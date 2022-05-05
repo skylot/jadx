@@ -10,12 +10,14 @@ import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +27,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,21 +36,42 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Emitter;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
+import jadx.api.JavaClass;
+import jadx.gui.jobs.ITaskProgress;
+import jadx.gui.search.SearchSettings;
+import jadx.gui.search.SearchTask;
+import jadx.gui.search.providers.ClassSearchProvider;
+import jadx.gui.search.providers.CodeSearchProvider;
+import jadx.gui.search.providers.CommentSearchProvider;
+import jadx.gui.search.providers.FieldSearchProvider;
+import jadx.gui.search.providers.MergedSearchProvider;
+import jadx.gui.search.providers.MethodSearchProvider;
+import jadx.gui.search.providers.ResourceSearchProvider;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
-import jadx.gui.utils.search.SearchSettings;
-import jadx.gui.utils.search.TextSearchIndex;
+
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CODE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.COMMENT;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.FIELD;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.IGNORE_CASE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.METHOD;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.RESOURCE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.USE_REGEX;
 
 public class SearchDialog extends CommonSearchDialog {
-	private static final long serialVersionUID = -5105405456969134105L;
-	private static final Color SEARCHFIELD_ERROR_COLOR = new Color(255, 150, 150);
-
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
+	private static final long serialVersionUID = -5105405456969134105L;
+
+	private static final Color SEARCH_FIELD_ERROR_COLOR = new Color(255, 150, 150);
 
 	public static void search(MainWindow window, SearchPreset preset) {
 		SearchDialog searchDialog = new SearchDialog(window, preset, Collections.emptySet());
@@ -85,9 +109,13 @@ public class SearchDialog extends CommonSearchDialog {
 	private final transient SearchPreset searchPreset;
 	private final transient Set<SearchOptions> options;
 
-	private Color searchFieldDefaultBgColor;
+	private transient Color searchFieldDefaultBgColor;
 
 	private transient JTextField searchField;
+
+	private transient SearchTask searchTask;
+	private transient JButton loadAllButton;
+	private transient JButton loadMoreButton;
 
 	private transient Disposable searchDisposable;
 	private transient SearchEventEmitter searchEmitter;
@@ -110,6 +138,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	public void dispose() {
+		stopSearchTask();
 		if (searchDisposable != null && !searchDisposable.isDisposed()) {
 			searchDisposable.dispose();
 		}
@@ -150,38 +179,6 @@ public class SearchDialog extends CommonSearchDialog {
 			searchField.selectAll();
 		}
 		searchField.requestFocus();
-
-		checkIndex();
-	}
-
-	private TextSearchIndex checkIndex() {
-		if (!cache.getIndexService().isComplete()) {
-			if (isFullIndexNeeded()) {
-				prepare();
-			}
-		}
-		return cache.getTextIndex();
-	}
-
-	private boolean isFullIndexNeeded() {
-		for (SearchOptions option : options) {
-			switch (option) {
-				case CLASS:
-				case METHOD:
-				case FIELD:
-					// TODO: split indexes so full decompilation not needed for these
-					return true;
-
-				case CODE:
-					return true;
-
-				case RESOURCE:
-				case COMMENT:
-					// full index not needed
-					break;
-			}
-		}
-		return false;
 	}
 
 	private void initUI() {
@@ -252,6 +249,20 @@ public class SearchDialog extends CommonSearchDialog {
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
+	protected void addCustomResultsActions(JPanel resultsActionsPanel) {
+		loadAllButton = new JButton(NLS.str("search_dialog.load_all"));
+		loadAllButton.addActionListener(e -> loadAll());
+		loadAllButton.setEnabled(false);
+
+		loadMoreButton = new JButton(NLS.str("search_dialog.load_more"));
+		loadMoreButton.addActionListener(e -> loadMore());
+		loadMoreButton.setEnabled(false);
+
+		resultsActionsPanel.add(loadAllButton);
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		resultsActionsPanel.add(loadMoreButton);
+	}
+
 	private class SearchEventEmitter {
 		private final Flowable<String> flowable;
 		private Emitter<String> emitter;
@@ -275,50 +286,160 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void searchFieldSubscribe() {
 		searchEmitter = new SearchEventEmitter();
-
 		Flowable<String> textChanges = onTextFieldChanges(searchField);
 		Flowable<String> searchEvents = Flowable.merge(textChanges, searchEmitter.getFlowable());
 		searchDisposable = searchEvents
-				.subscribeOn(Schedulers.single())
-				.switchMap(text -> prepareSearch(text)
-						.doOnError(e -> LOG.error("Error prepare search: {}", e.getMessage(), e))
-						.subscribeOn(Schedulers.single())
-						.toList()
-						.toFlowable(), 1)
-				.observeOn(SwingSchedulers.edt())
-				.doOnError(e -> LOG.error("Error while searching: {}", e.getMessage(), e))
-				.subscribe(this::processSearchResults);
+				.debounce(100, TimeUnit.MILLISECONDS)
+				.subscribeOn(SwingSchedulers.edt())
+				.subscribe(this::search);
 	}
 
-	private Flowable<JNode> prepareSearch(String text) {
+	@Nullable
+	private synchronized void search(String text) {
+		resetSearch();
 		if (text == null || options.isEmpty()) {
-			return Flowable.empty();
+			return;
 		}
 		// allow empty text for comments search
 		if (text.isEmpty() && !options.contains(SearchOptions.COMMENT)) {
-			return Flowable.empty();
-		}
-
-		TextSearchIndex index = checkIndex();
-		if (index == null) {
-			return Flowable.empty();
+			return;
 		}
 		LOG.debug("search event: {}", text);
-		showSearchState();
-		try {
-			Flowable<JNode> result = index.buildSearch(text, options);
-			if (searchField.getBackground() == SEARCHFIELD_ERROR_COLOR) {
+		boolean ignoreCase = options.contains(IGNORE_CASE);
+		boolean useRegex = options.contains(USE_REGEX);
+		LOG.debug("Building search, ignoreCase: {}, useRegex: {}", ignoreCase, useRegex);
+		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex);
+		String error = searchSettings.prepare();
+		if (error == null) {
+			if (searchField.getBackground() == SEARCH_FIELD_ERROR_COLOR) {
 				searchField.setBackground(searchFieldDefaultBgColor);
 			}
-			return result;
-		} catch (SearchSettings.InvalidSearchTermException e) {
-			searchField.setBackground(SEARCHFIELD_ERROR_COLOR);
-			return Flowable.empty();
+		} else {
+			searchField.setBackground(SEARCH_FIELD_ERROR_COLOR);
+			resultsInfoLabel.setText(error);
+			return;
 		}
+		searchTask = new SearchTask(mainWindow, this::addSearchResult, s -> searchComplete());
+		if (!buildSearch(text, searchSettings)) {
+			return;
+		}
+		startSearch();
+		searchTask.setResultsLimit(100);
+		searchTask.setProgressListener(this::updateProgress);
+		searchTask.fetchResults();
 	}
 
-	private void processSearchResults(java.util.List<JNode> results) {
-		LOG.debug("search result size: {}", results.size());
+	private boolean buildSearch(String text, SearchSettings searchSettings) {
+		List<JavaClass> allClasses;
+		if (options.contains(ACTIVE_TAB)) {
+			JumpPosition currentPos = mainWindow.getTabbedPane().getCurrentPosition();
+			if (currentPos == null) {
+				resultsInfoLabel.setText("Can't search in current tab");
+				return false;
+			}
+			JClass activeCls = currentPos.getNode().getRootClass();
+			searchSettings.setActiveCls(activeCls);
+			allClasses = Collections.singletonList(activeCls.getCls());
+		} else {
+			allClasses = mainWindow.getWrapper().getDecompiler().getClassesWithInners();
+		}
+		// allow empty text for comments search
+		if (text.isEmpty() && options.contains(SearchOptions.COMMENT)) {
+			searchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
+			return true;
+		}
+		// forcing ordered execution
+		MergedSearchProvider merged = new MergedSearchProvider();
+		if (options.contains(CLASS)) {
+			merged.add(new ClassSearchProvider(mainWindow, searchSettings, allClasses));
+		}
+		if (options.contains(METHOD)) {
+			merged.add(new MethodSearchProvider(mainWindow, searchSettings, allClasses));
+		}
+		if (options.contains(FIELD)) {
+			merged.add(new FieldSearchProvider(mainWindow, searchSettings, allClasses));
+		}
+		if (options.contains(CODE)) {
+			// TODO: split classes list and run several search jobs in parallel (also sort results)
+			merged.add(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
+		}
+		if (options.contains(RESOURCE)) {
+			merged.add(new ResourceSearchProvider(mainWindow, searchSettings));
+		}
+		if (options.contains(COMMENT)) {
+			merged.add(new CommentSearchProvider(mainWindow, searchSettings));
+		}
+		merged.prepare();
+		searchTask.addProviderJob(merged);
+		return true;
+	}
+
+	private synchronized void stopSearchTask() {
+		if (searchTask == null) {
+			return;
+		}
+		searchTask.cancel();
+		searchTask.waitTask();
+	}
+
+	private synchronized void loadMore() {
+		if (searchTask == null) {
+			return;
+		}
+		startSearch();
+		searchTask.fetchResults();
+	}
+
+	private synchronized void loadAll() {
+		if (searchTask == null) {
+			return;
+		}
+		startSearch();
+		searchTask.setResultsLimit(0);
+		searchTask.fetchResults();
+	}
+
+	private void updateProgress(ITaskProgress progress) {
+		UiUtils.uiRun(() -> progressPane.setProgress(progress));
+	}
+
+	private synchronized void resetSearch() {
+		resultsModel.clear();
+		resultsTable.updateTable();
+		progressPane.setVisible(false);
+		warnLabel.setVisible(false);
+		loadAllButton.setEnabled(false);
+		loadMoreButton.setEnabled(false);
+		stopSearchTask();
+	}
+
+	private void startSearch() {
+		showSearchState();
+		progressStartCommon();
+	}
+
+	private long lastResultsUpdate;
+
+	private void addSearchResult(JNode node) {
+		UiUtils.uiRun(() -> {
+			resultsModel.add(node);
+			long now = System.currentTimeMillis();
+			if (now - lastResultsUpdate > 1000) {
+				resultsTable.updateTable();
+				lastResultsUpdate = now;
+			}
+		});
+	}
+
+	private synchronized void searchComplete() {
+		LOG.debug("Search complete");
+		progressFinishedCommon();
+
+		boolean complete = searchTask.isSearchComplete();
+		loadAllButton.setEnabled(!complete);
+		loadMoreButton.setEnabled(!complete);
+		updateProgressLabel(complete);
+
 		String text = searchField.getText();
 		setHighlightText(text);
 		highlightTextCaseInsensitive = options.contains(SearchOptions.IGNORE_CASE);
@@ -327,9 +448,7 @@ public class SearchDialog extends CommonSearchDialog {
 		cache.setLastSearch(text);
 		cache.getLastSearchOptions().put(searchPreset, options);
 
-		resultsModel.clear();
-		resultsModel.addAll(results);
-		super.performSearch();
+		resultsTable.updateTable();
 	}
 
 	private static Flowable<String> onTextFieldChanges(final JTextField textField) {
@@ -371,7 +490,6 @@ public class SearchDialog extends CommonSearchDialog {
 				}
 			});
 		}, BackpressureStrategy.LATEST)
-				.debounce(300, TimeUnit.MILLISECONDS)
 				.distinctUntilChanged();
 	}
 

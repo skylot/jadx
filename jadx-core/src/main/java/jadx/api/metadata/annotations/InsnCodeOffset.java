@@ -46,6 +46,11 @@ public class InsnCodeOffset implements ICodeRawOffset {
 	}
 
 	@Override
+	public String getTagName() {
+		return "off";
+	}
+
+	@Override
 	public String toString() {
 		return "offset=" + offset;
 	}

@@ -20,6 +20,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.api.impl.CodeUtils;
 import jadx.core.dex.attributes.AType;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
@@ -28,7 +29,6 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.search.StringRef;
 
 public class UsageDialog extends CommonSearchDialog {
 	private static final long serialVersionUID = -5105405789969134105L;
@@ -48,6 +48,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void openInit() {
+		progressStartCommon();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
 				this::collectUsageData,
 				(status) -> {
@@ -55,7 +56,7 @@ public class UsageDialog extends CommonSearchDialog {
 						mainWindow.showHeapUsageBar();
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 					}
-					loadFinishedCommon();
+					progressFinishedCommon();
 					loadFinished();
 				});
 	}
@@ -95,13 +96,13 @@ public class UsageDialog extends CommonSearchDialog {
 					// skip declaration
 					continue;
 				}
-				StringRef line = StringRef.getLineAt(code, pos);
+				String line = CodeUtils.getLineForPos(code, pos);
 				if (line.startsWith("import ")) {
 					continue;
 				}
 				JavaNode enclosingNode = decompiler.getEnclosingNode(codeInfo, pos);
 				JNode useAtNode = enclosingNode == null ? node : getNodeCache().makeFrom(enclosingNode);
-				usageList.add(new CodeNode(useAtNode, line, pos));
+				usageList.add(new CodeNode(useAtNode, line.trim(), pos));
 			}
 		}
 	}

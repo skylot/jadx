@@ -1,11 +1,10 @@
 package jadx.gui.ui.dialog;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -31,10 +31,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -45,8 +43,6 @@ import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
@@ -59,14 +55,12 @@ import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.search.TextSearchIndex;
+
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class CommonSearchDialog extends JFrame {
 	private static final long serialVersionUID = 8939332306115370276L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
-
-	public static final int RESULTS_PER_PAGE = 100;
 
 	protected final transient TabbedPane tabbedPane;
 	protected final transient CacheObject cache;
@@ -119,17 +113,6 @@ public abstract class CommonSearchDialog extends JFrame {
 		updateTitle();
 	}
 
-	public void prepare() {
-		if (cache.getIndexService().isComplete()) {
-			loadFinishedCommon();
-			loadFinished();
-			return;
-		}
-		LoadTask task = new LoadTask();
-		task.addPropertyChangeListener(progressPane);
-		task.execute();
-	}
-
 	protected void registerInitOnOpen() {
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -141,7 +124,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	protected synchronized void performSearch() {
 		resultsTable.updateTable();
-		updateProgressLabel();
+		updateProgressLabel(true);
 	}
 
 	protected void openSelectedItem() {
@@ -149,13 +132,16 @@ public abstract class CommonSearchDialog extends JFrame {
 		if (node == null) {
 			return;
 		}
-		JumpPosition jmpPos;
+		openItem(node);
+	}
+
+	protected void openItem(JNode node) {
 		if (node instanceof JResSearchNode) {
-			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
+			JumpPosition jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
+			tabbedPane.codeJump(jmpPos);
 		} else {
-			jmpPos = new JumpPosition(node.getRootClass(), node.getPos());
+			tabbedPane.codeJump(node);
 		}
-		tabbedPane.codeJump(jmpPos);
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
 			dispose();
 		}
@@ -214,7 +200,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected JPanel initResultsTable() {
 		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
 		resultsModel = new ResultsModel(renderer);
-		resultsModel.addTableModelListener(e -> updateProgressLabel());
+		resultsModel.addTableModelListener(e -> updateProgressLabel(false));
 
 		resultsTable = new ResultsTable(resultsModel, renderer);
 		resultsTable.setShowHorizontalLines(false);
@@ -262,60 +248,44 @@ public abstract class CommonSearchDialog extends JFrame {
 		warnLabel.setForeground(Color.RED);
 		warnLabel.setVisible(false);
 
+		JScrollPane scroll = new JScrollPane(resultsTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		// scroll.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+
+		JPanel resultsActionsPanel = new JPanel();
+		resultsActionsPanel.setLayout(new BoxLayout(resultsActionsPanel, BoxLayout.LINE_AXIS));
+		resultsActionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+		addCustomResultsActions(resultsActionsPanel);
+		resultsInfoLabel = new JLabel("");
+		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		resultsActionsPanel.add(resultsInfoLabel);
+		resultsActionsPanel.add(Box.createHorizontalGlue());
+
 		JPanel resultsPanel = new JPanel();
 		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
-		resultsPanel.add(warnLabel);
-		resultsPanel.add(new JScrollPane(resultsTable,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-
-		JPanel paginationPanel = new JPanel();
-		paginationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		paginationPanel.setLayout(new BoxLayout(paginationPanel, BoxLayout.X_AXIS));
-		resultsInfoLabel = new JLabel("");
-
-		JButton nextPageButton = new JButton("->");
-		nextPageButton.setToolTipText(NLS.str("search_dialog.next_page"));
-		nextPageButton.addActionListener(e -> {
-			if (resultsModel.nextPage()) {
-				switchPage(renderer);
-			}
-		});
-
-		JButton prevPageButton = new JButton("<-");
-		prevPageButton.setToolTipText(NLS.str("search_dialog.prev_page"));
-		prevPageButton.addActionListener(e -> {
-			if (resultsModel.prevPage()) {
-				switchPage(renderer);
-			}
-		});
-
-		paginationPanel.add(prevPageButton);
-		paginationPanel.add(nextPageButton);
-		paginationPanel.add(resultsInfoLabel);
-
-		resultsPanel.add(paginationPanel);
 		resultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		resultsPanel.add(warnLabel, BorderLayout.PAGE_START);
+		resultsPanel.add(scroll, BorderLayout.CENTER);
+		resultsPanel.add(resultsActionsPanel, BorderLayout.PAGE_END);
 		return resultsPanel;
 	}
 
-	private void switchPage(ResultsTableCellRenderer renderer) {
-		renderer.clear();
-		resultsTable.updateTable();
-		updateProgressLabel();
-		resultsTable.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
+	protected void addCustomResultsActions(JPanel actionsPanel) {
 	}
 
-	protected void updateProgressLabel() {
-		String statusText = NLS.str("search_dialog.info_label",
-				resultsModel.getDisplayedResultsStart(),
-				resultsModel.getDisplayedResultsEnd(),
-				resultsModel.getResultCount());
+	protected void updateProgressLabel(boolean complete) {
+		int count = resultsModel.getRowCount();
+		String statusText;
+		if (complete) {
+			statusText = NLS.str("search_dialog.results_complete", count);
+		} else {
+			statusText = NLS.str("search_dialog.results_incomplete", count);
+		}
 		resultsInfoLabel.setText(statusText);
 	}
 
 	protected void showSearchState() {
-		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
+		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching") + "...");
 	}
 
 	protected static class ResultsTable extends JTable {
@@ -375,22 +345,17 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	protected static class ResultsModel extends AbstractTableModel {
 		private static final long serialVersionUID = -7821286846923903208L;
-		private static final String[] COLUMN_NAMES = {
-				NLS.str("search_dialog.col_node"),
-				NLS.str("search_dialog.col_code")
-		};
+		private static final String[] COLUMN_NAMES = { NLS.str("search_dialog.col_node"), NLS.str("search_dialog.col_code") };
 
-		private final transient ArrayList<JNode> rows = new ArrayList<>();
+		private final transient List<JNode> rows = new ArrayList<>();
 		private final transient ResultsTableCellRenderer renderer;
 		private transient boolean addDescColumn;
-		private transient int start = 0;
 
 		public ResultsModel(ResultsTableCellRenderer renderer) {
 			this.renderer = renderer;
 		}
 
 		protected void addAll(Collection<? extends JNode> nodes) {
-			rows.ensureCapacity(rows.size() + nodes.size());
 			rows.addAll(nodes);
 			if (!addDescColumn) {
 				for (JNode row : rows) {
@@ -402,8 +367,18 @@ public abstract class CommonSearchDialog extends JFrame {
 			}
 		}
 
+		protected void add(JNode node) {
+			rows.add(node);
+			if (!addDescColumn && node.hasDescString()) {
+				addDescColumn = true;
+			}
+		}
+
+		public void removeLast() {
+			rows.remove(rows.size() - 1);
+		}
+
 		public void clear() {
-			start = 0;
 			addDescColumn = false;
 			rows.clear();
 			renderer.clear();
@@ -413,43 +388,9 @@ public abstract class CommonSearchDialog extends JFrame {
 			return addDescColumn;
 		}
 
-		public int getResultCount() {
-			return rows.size();
-		}
-
-		public int getDisplayedResultsStart() {
-			if (rows.isEmpty()) {
-				return 0;
-			}
-			return start + 1;
-		}
-
-		public int getDisplayedResultsEnd() {
-			return Math.min(rows.size(), start + RESULTS_PER_PAGE);
-		}
-
-		public boolean nextPage() {
-			if (start + RESULTS_PER_PAGE < rows.size()) {
-				start += RESULTS_PER_PAGE;
-				return true;
-			}
-			return false;
-		}
-
-		public boolean prevPage() {
-			if (start - RESULTS_PER_PAGE >= 0) {
-				start -= RESULTS_PER_PAGE;
-				return true;
-			}
-			return false;
-		}
-
 		@Override
 		public int getRowCount() {
-			if (rows.isEmpty()) {
-				return 0;
-			}
-			return getDisplayedResultsEnd() - start;
+			return rows.size();
 		}
 
 		@Override
@@ -464,7 +405,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			return rows.get(rowIndex + start);
+			return rows.get(rowIndex);
 		}
 	}
 
@@ -483,8 +424,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row,
+				int column) {
 			int id = makeID(row, column);
 			Component comp = componentCache.get(id);
 			if (comp == null) {
@@ -559,46 +500,16 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	private class LoadTask extends SwingWorker<Void, Void> {
-		public LoadTask() {
-			loadStartCommon();
-			loadStart();
-		}
-
-		@Override
-		public Void doInBackground() {
-			try {
-				progressPane.changeLabel(this, NLS.str("progress.decompile") + ": ");
-				mainWindow.waitDecompileTask();
-			} catch (Exception e) {
-				LOG.error("Waiting background tasks failed", e);
-			}
-			return null;
-		}
-
-		@Override
-		public void done() {
-			loadFinishedCommon();
-			loadFinished();
-		}
-	}
-
-	void loadStartCommon() {
-		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	void progressStartCommon() {
+		// setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progressPane.setIndeterminate(true);
 		progressPane.setVisible(true);
 		warnLabel.setVisible(false);
 	}
 
-	void loadFinishedCommon() {
-		setCursor(null);
+	void progressFinishedCommon() {
+		// setCursor(null);
 		progressPane.setVisible(false);
-
-		TextSearchIndex textIndex = cache.getTextIndex();
-		if (textIndex == null) {
-			warnLabel.setText(NLS.str("msg.index_not_initialized"));
-			warnLabel.setVisible(true);
-		}
 	}
 
 	protected JNodeCache getNodeCache() {

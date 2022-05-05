@@ -1,4 +1,4 @@
-package jadx.gui.utils.search;
+package jadx.gui.search.providers;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,98 +15,104 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableEmitter;
-
+import jadx.api.ICodeWriter;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.ISearchProvider;
+import jadx.gui.search.SearchSettings;
+import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
 
-import static jadx.core.utils.StringUtils.countLinesByPos;
-import static jadx.core.utils.StringUtils.getLine;
+public class ResourceSearchProvider implements ISearchProvider {
+	private static final Logger LOG = LoggerFactory.getLogger(ResourceSearchProvider.class);
 
-public class ResourceIndex {
-	private static final Logger LOG = LoggerFactory.getLogger(ResourceIndex.class);
-
-	private final List<JResource> resNodes = new ArrayList<>();
-	private final Set<String> extSet = new HashSet<>();
 	private final CacheObject cache;
+	private final SearchSettings searchSettings;
+	private final Set<String> extSet = new HashSet<>();
 
+	private List<JResource> resNodes;
 	private String fileExts;
 	private boolean anyExt;
 	private int sizeLimit;
 
-	public ResourceIndex(CacheObject cache) {
-		this.cache = cache;
+	private int progress;
+	private int pos;
+
+	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings) {
+		this.cache = mw.getCacheObject();
+		this.searchSettings = searchSettings;
 	}
 
-	private void search(final JResource resNode,
-			FlowableEmitter<JResSearchNode> emitter,
-			SearchSettings searchSettings) {
-		int line = 0;
-		int lastPos = 0;
-		int lastLineOccurred = -1;
-		JResSearchNode lastNode = null;
-		int searchStrLen = searchSettings.getSearchString().length();
+	@Override
+	public @Nullable JNode next(Cancelable cancelable) {
+		if (resNodes == null) {
+			load();
+		}
+		if (resNodes.isEmpty()) {
+			return null;
+		}
+		while (true) {
+			if (cancelable.isCanceled()) {
+				return null;
+			}
+			JResource resNode = resNodes.get(progress);
+			JNode newResult = search(resNode);
+			if (newResult != null) {
+				return newResult;
+			}
+			progress++;
+			pos = 0;
+			if (progress >= resNodes.size()) {
+				return null;
+			}
+		}
+	}
+
+	private JNode search(JResource resNode) {
 		String content;
 		try {
 			content = resNode.getCodeInfo().getCodeStr();
 		} catch (Exception e) {
-			LOG.error("Error load resource node content", e);
-			return;
+			LOG.error("Failed to load resource node content", e);
+			return null;
 		}
-		do {
-			searchSettings.setStartPos(lastPos);
-			int pos = searchSettings.find(content);
-			if (pos > -1) {
-				line += countLinesByPos(content, pos, lastPos);
-				lastPos = pos + searchStrLen;
-				String lineText = getLine(content, pos, lastPos);
-				if (lastLineOccurred != line) {
-					lastLineOccurred = line;
-					if (lastNode != null) {
-						emitter.onNext(lastNode);
-					}
-					lastNode = new JResSearchNode(resNode, lineText.trim(), pos);
-				}
-			} else {
-				if (lastNode != null) { // commit the final result node.
-					emitter.onNext(lastNode);
-				}
-				break;
-			}
-		} while (!emitter.isCancelled() && lastPos < content.length());
-	}
-
-	public Flowable<JResSearchNode> search(SearchSettings settings) {
-		refreshSettings();
-		if (resNodes.size() == 0) {
-			return Flowable.empty();
+		String searchString = searchSettings.getSearchString();
+		int newPos = searchSettings.getSearchMethod().find(content, searchString, pos);
+		if (newPos == -1) {
+			return null;
 		}
-		return Flowable.create(emitter -> {
-			for (JResource resNode : resNodes) {
-				if (!emitter.isCancelled()) {
-					search(resNode, emitter, settings);
+		int lineStart = content.lastIndexOf(ICodeWriter.NL, newPos) + ICodeWriter.NL.length();
+		int lineEnd = content.indexOf(ICodeWriter.NL, newPos + searchString.length());
+		int end = lineEnd == -1 ? content.length() : lineEnd;
+		String line = content.substring(lineStart, end);
+		this.pos = end;
+		return new JResSearchNode(resNode, line.trim(), newPos);
+	}
+
+	private synchronized void load() {
+		resNodes = new ArrayList<>();
+		sizeLimit = cache.getJadxSettings().getSrhResourceSkipSize() * 1048576;
+		fileExts = cache.getJadxSettings().getSrhResourceFileExt();
+		for (String extStr : fileExts.split("\\|")) {
+			String ext = extStr.trim();
+			if (!ext.isEmpty()) {
+				anyExt = ext.equals("*");
+				if (anyExt) {
+					break;
 				}
+				extSet.add(ext);
 			}
-			emitter.onComplete();
-		}, BackpressureStrategy.BUFFER);
-	}
-
-	public void index() {
-		refreshSettings();
-	}
-
-	private void clear() {
-		anyExt = false;
-		sizeLimit = -1;
-		fileExts = "";
-		extSet.clear();
-		resNodes.clear();
+		}
+		try (ZipFile zipFile = getZipFile(cache.getJRoot())) {
+			traverseTree(cache.getJRoot(), zipFile); // reindex
+		} catch (Exception e) {
+			LOG.error("Failed to apply settings to resource index", e);
+		}
 	}
 
 	private void traverseTree(TreeNode root, @Nullable ZipFile zip) {
@@ -208,29 +214,13 @@ public class ResourceIndex {
 		}
 	}
 
-	private void refreshSettings() {
-		int size = cache.getJadxSettings().getSrhResourceSkipSize() * 1048576;
-		if (size != sizeLimit
-				|| !cache.getJadxSettings().getSrhResourceFileExt().equals(fileExts)) {
-			clear();
-			sizeLimit = size;
-			fileExts = cache.getJadxSettings().getSrhResourceFileExt();
-			String[] exts = fileExts.split("\\|");
-			for (String ext : exts) {
-				ext = ext.trim();
-				if (!ext.isEmpty()) {
-					anyExt = ext.equals("*");
-					if (anyExt) {
-						break;
-					}
-					extSet.add(ext);
-				}
-			}
-			try (ZipFile zipFile = getZipFile(cache.getJRoot())) {
-				traverseTree(cache.getJRoot(), zipFile); // reindex
-			} catch (Exception e) {
-				LOG.error("Failed to apply settings to resource index", e);
-			}
-		}
+	@Override
+	public int progress() {
+		return progress;
+	}
+
+	@Override
+	public int total() {
+		return resNodes == null ? 0 : resNodes.size();
 	}
 }

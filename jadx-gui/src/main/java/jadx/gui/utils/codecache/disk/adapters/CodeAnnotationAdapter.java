@@ -7,38 +7,37 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.annotations.InsnCodeOffset;
-import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.api.metadata.annotations.VarRef;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
 public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
-	private final Map<Class<?>, TypeInfo> adaptersByCls = new HashMap<>();
-	private final TypeInfo[] adaptersByTag = new TypeInfo[7];
+	private final Map<String, TypeInfo> adaptersByCls;
+	private final TypeInfo[] adaptersByTag;
 
 	public CodeAnnotationAdapter(RootNode root) {
-		MethodNodeAdapter mthAdapter = new MethodNodeAdapter(root);
-		VarRefAdapter varRefAdapter = new VarRefAdapter(mthAdapter);
-		register(ClassNode.class, 1, new ClassNodeAdapter(root));
-		register(FieldNode.class, 2, new FieldNodeAdapter(root));
-		register(MethodNode.class, 3, mthAdapter);
-		register(VarRef.class, 4, varRefAdapter);
-		register(NodeDeclareRef.class, 5, new NodeDeclareRefAdapter(this));
-		register(InsnCodeOffset.class, 6, InsnCodeOffsetAdapter.INSTANCE);
+		Map<String, DataAdapter<?>> map = registerAdapters(root);
+		int size = map.size();
+		adaptersByCls = new HashMap<>(size);
+		adaptersByTag = new TypeInfo[size + 1];
+		int tag = 1;
+		for (Map.Entry<String, DataAdapter<?>> entry : map.entrySet()) {
+			TypeInfo typeInfo = new TypeInfo(tag, entry.getValue());
+			adaptersByCls.put(entry.getKey(), typeInfo);
+			adaptersByTag[tag] = typeInfo;
+			tag++;
+		}
 	}
 
-	private <T> void register(Class<T> cls, int tag, DataAdapter<T> adapter) {
-		TypeInfo typeInfo = new TypeInfo(tag, adapter);
-		if (adaptersByCls.put(cls, typeInfo) != null) {
-			throw new RuntimeException("Duplicate class: " + cls);
-		}
-		if (adaptersByTag[tag] != null) {
-			throw new RuntimeException("Duplicate tag: " + tag);
-		}
-		adaptersByTag[tag] = typeInfo;
+	private Map<String, DataAdapter<?>> registerAdapters(RootNode root) {
+		Map<String, DataAdapter<?>> map = new HashMap<>();
+		MethodNodeAdapter mthAdapter = new MethodNodeAdapter(root);
+		map.put("cls", new ClassNodeAdapter(root));
+		map.put("fld", new FieldNodeAdapter(root));
+		map.put("mth", mthAdapter);
+		map.put("def", new NodeDeclareRefAdapter(this));
+		map.put("var", new VarNodeAdapter(mthAdapter));
+		map.put("vrf", VarRefAdapter.INSTANCE);
+		map.put("off", InsnCodeOffsetAdapter.INSTANCE);
+		return map;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -48,7 +47,7 @@ public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
 			out.writeByte(0);
 			return;
 		}
-		TypeInfo typeInfo = adaptersByCls.get(value.getClass());
+		TypeInfo typeInfo = adaptersByCls.get(value.getTagName());
 		if (typeInfo == null) {
 			throw new RuntimeException("Unexpected code annotation type: " + value.getClass().getSimpleName());
 		}

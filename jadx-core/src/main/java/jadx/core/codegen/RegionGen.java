@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
-import jadx.api.metadata.annotations.VarRef;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
@@ -349,7 +349,7 @@ public class RegionGen extends InsnGen {
 		} else if (arg instanceof RegisterArg) {
 			SSAVar ssaVar = ((RegisterArg) arg).getSVar();
 			if (code.isMetadataSupported()) {
-				code.attachDefinition(VarRef.get(mth, ssaVar));
+				code.attachDefinition(VarNode.get(mth, ssaVar));
 			}
 			code.add(mgen.getNameGen().assignArg(ssaVar.getCodeVar()));
 		} else if (arg instanceof NamedArg) {

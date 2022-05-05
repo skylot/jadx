@@ -13,6 +13,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.Utils;
 
 public class CodeMetadataStorage implements ICodeMetadata {
 
@@ -85,5 +86,11 @@ public class CodeMetadataStorage implements ICodeMetadata {
 	@Override
 	public Map<Integer, Integer> getLineMapping() {
 		return lines;
+	}
+
+	@Override
+	public String toString() {
+		return "CodeMetadata{lines=" + lines
+				+ ", annotations=\n" + Utils.listToString(navMap.entrySet(), "\n") + "\n}";
 	}
 }

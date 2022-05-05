@@ -73,16 +73,12 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 
 	public synchronized void reload(CacheObject cache) {
 		cache.getNodeCache().removeWholeClass(cls);
-		cache.getIndexService().remove(cls);
-		ICodeInfo codeInfo = cls.reload();
 		loaded = true;
 		update();
-		cache.getIndexService().indexCls(cls);
 	}
 
 	public synchronized void unload(CacheObject cache) {
 		cache.getNodeCache().removeWholeClass(cls);
-		cache.getIndexService().remove(cls);
 		cls.unload();
 		loaded = false;
 	}
