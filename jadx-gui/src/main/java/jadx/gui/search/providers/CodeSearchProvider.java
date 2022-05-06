@@ -3,6 +3,8 @@ package jadx.gui.search.providers;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
@@ -18,6 +20,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 
 public final class CodeSearchProvider extends BaseSearchProvider {
+	private static final Logger LOG = LoggerFactory.getLogger(CodeSearchProvider.class);
 
 	private final ICodeCache codeCache;
 	private final JadxDecompiler decompiler;
@@ -79,12 +82,17 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 	}
 
 	private String getClassCode(JavaClass javaClass, ICodeCache codeCache) {
-		// quick check for if code already in cache
-		String code = codeCache.getCode(javaClass.getRawName());
-		if (code != null) {
-			return code;
+		try {
+			// quick check for if code already in cache
+			String code = codeCache.getCode(javaClass.getRawName());
+			if (code != null) {
+				return code;
+			}
+			return javaClass.getCode();
+		} catch (Exception e) {
+			LOG.warn("Failed to get class code: " + javaClass, e);
+			return "";
 		}
-		return javaClass.getCode();
 	}
 
 	private boolean nextClass() {

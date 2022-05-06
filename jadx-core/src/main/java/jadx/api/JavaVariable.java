@@ -55,7 +55,7 @@ public class JavaVariable implements JavaNode {
 
 	@Override
 	public int getDefPos() {
-		return 0;
+		return varNode.getDefPosition();
 	}
 
 	@Override

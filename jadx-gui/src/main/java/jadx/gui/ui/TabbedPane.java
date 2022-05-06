@@ -180,6 +180,9 @@ public class TabbedPane extends JTabbedPane {
 				status -> codeJump(new JumpPosition(node)));
 	}
 
+	/**
+	 * Prefer {@link TabbedPane#codeJump(JNode)} method
+	 */
 	public void codeJump(JumpPosition pos) {
 		saveJump(pos);
 		showCode(pos);
@@ -212,7 +215,7 @@ public class TabbedPane extends JTabbedPane {
 
 	private void scrollToPos(ContentPanel contentPanel, int pos) {
 		if (pos == 0) {
-			LOG.warn("Ignore zero jump!");
+			LOG.warn("Ignore zero jump!", new JadxRuntimeException());
 			return;
 		}
 		if (contentPanel instanceof AbstractCodeContentPanel) {

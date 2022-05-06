@@ -5,7 +5,7 @@ import jadx.api.metadata.ICodeAnnotation;
 /**
  * Variable reference by position of VarNode in code metadata.
  * <br>
- * Because on creation def pos not yet known,
+ * Because on creation position not yet known,
  * VarRef created using VarNode as a source of ref pos during serialization.
  * <br>
  * On metadata deserialization created with ref pos directly.
@@ -26,8 +26,8 @@ public abstract class VarRef implements ICodeAnnotation {
 	public abstract int getRefPos();
 
 	@Override
-	public String getTagName() {
-		return "vrf";
+	public AnnType getAnnType() {
+		return AnnType.VAR_REF;
 	}
 
 	public static final class FixedVarRef extends VarRef {
@@ -53,6 +53,11 @@ public abstract class VarRef implements ICodeAnnotation {
 		@Override
 		public int getRefPos() {
 			return varNode.getDefPosition();
+		}
+
+		@Override
+		public String toString() {
+			return "VarRef{" + varNode + ", name=" + varNode.getName() + ", mth=" + varNode.getMth() + '}';
 		}
 	}
 

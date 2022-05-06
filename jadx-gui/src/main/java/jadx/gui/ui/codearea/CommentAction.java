@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
@@ -19,11 +20,11 @@ import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.api.metadata.annotations.VarRef;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.dialog.CommentDialog;
@@ -87,40 +88,48 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 		}
 		try {
 			JadxDecompiler decompiler = codeArea.getDecompiler();
-			ICodeMetadata metadata = codeArea.getCodeInfo().getCodeMetadata();
-			// add comment if node definition at this line
-			ICodeAnnotation ann = metadata.getAt(pos);
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
-				if (!(node instanceof VarRef)) {
-					// at node definition -> add comment for it
-					JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(decompiler.getJavaNodeByRef(node));
-					return new JadxCodeComment(nodeRef, "");
+			ICodeInfo codeInfo = codeArea.getCodeInfo();
+			ICodeMetadata metadata = codeInfo.getCodeMetadata();
+			int lineStartPos = codeArea.getLineStartFor(pos);
+
+			// add method line comment by instruction offset
+			ICodeAnnotation offsetAnn = metadata.searchUp(pos, lineStartPos, AnnType.OFFSET);
+			if (offsetAnn instanceof InsnCodeOffset) {
+				JavaNode node = decompiler.getJavaNodeByRef(metadata.getNodeAt(pos));
+				if (node instanceof JavaMethod) {
+					int rawOffset = ((InsnCodeOffset) offsetAnn).getOffset();
+					JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
+					return new JadxCodeComment(nodeRef, JadxCodeRef.forInsn(rawOffset), "");
 				}
-			}
-			if (ann == null) {
-				// check if line with comment above node definition
-				try {
-					JavaNode defNode = decompiler.getJavaNodeByRef(metadata.getNodeBelow(pos));
-					if (defNode != null) {
-						String lineStr = codeArea.getLineAt(pos).trim();
-						if (lineStr.startsWith("//")) {
-							return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
-						}
-					}
-				} catch (Exception e) {
-					LOG.error("Failed to check comment at: " + pos, e);
-				}
-				return null;
 			}
 
-			// try to add method line comment
-			JavaNode node = decompiler.getJavaNodeByRef(metadata.getNodeAt(pos));
-			if (node instanceof JavaMethod) {
-				JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
-				if (ann instanceof InsnCodeOffset) {
-					int rawOffset = ((InsnCodeOffset) ann).getOffset();
-					return new JadxCodeComment(nodeRef, JadxCodeRef.forInsn(rawOffset), "");
+			// check for definition at this line
+			ICodeNodeRef nodeDef = metadata.searchUp(pos, (off, ann) -> {
+				if (lineStartPos <= off && ann.getAnnType() == AnnType.DECLARATION) {
+					ICodeNodeRef defRef = ((NodeDeclareRef) ann).getNode();
+					if (defRef.getAnnType() != AnnType.VAR) {
+						return defRef;
+					}
+				}
+				return null;
+			});
+			if (nodeDef != null) {
+				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(decompiler.getJavaNodeByRef(nodeDef));
+				return new JadxCodeComment(nodeRef, "");
+			}
+
+			// check if at comment above node definition
+			String lineStr = codeArea.getLineAt(pos).trim();
+			if (lineStr.startsWith("//") || lineStr.startsWith("/*")) {
+				ICodeNodeRef nodeRef = metadata.searchDown(pos, (off, ann) -> {
+					if (off > pos && ann.getAnnType() == AnnType.DECLARATION) {
+						return ((NodeDeclareRef) ann).getNode();
+					}
+					return null;
+				});
+				if (nodeRef != null) {
+					JavaNode defNode = decompiler.getJavaNodeByRef(nodeRef);
+					return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
 				}
 			}
 		} catch (Exception e) {

@@ -186,18 +186,22 @@ public final class JavaClass implements JavaNode {
 		return resultMap;
 	}
 
-	public List<Integer> getUsePlacesFor(JavaNode javaNode) {
-		Map<Integer, ICodeAnnotation> map = getCodeInfo().getCodeMetadata().getAsMap();
+	public List<Integer> getUsePlacesFor(ICodeInfo codeInfo, JavaNode javaNode) {
+		Map<Integer, ICodeAnnotation> map = codeInfo.getCodeMetadata().getAsMap();
 		if (map.isEmpty() || decompiler == null) {
 			return Collections.emptyList();
 		}
-		Object internalNode = getRootDecompiler().getInternalNode(javaNode);
+		JadxDecompiler rootDec = getRootDecompiler();
 		List<Integer> result = new ArrayList<>();
 		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
-			int codePosition = entry.getKey();
-			Object obj = entry.getValue();
-			if (internalNode.equals(obj)) {
-				result.add(codePosition);
+			ICodeAnnotation ann = entry.getValue();
+			if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+				// ignore declarations
+				continue;
+			}
+			JavaNode annNode = rootDec.getJavaNodeByCodeAnnotation(codeInfo, ann);
+			if (javaNode.equals(annNode)) {
+				result.add(entry.getKey());
 			}
 		}
 		return result;

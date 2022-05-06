@@ -37,6 +37,7 @@ public class CodeStringCache extends DelegateCodeCache {
 
 	@Override
 	public void add(String clsFullName, ICodeInfo codeInfo) {
+		// TODO: check if free memory is available before add
 		codeCache.put(clsFullName, codeInfo.getCodeStr());
 		backCache.add(clsFullName, codeInfo);
 	}

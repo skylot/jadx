@@ -2,7 +2,7 @@ package jadx.tests.integration.debuginfo;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.api.impl.CodeUtils;
+import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;

@@ -27,12 +27,12 @@ public class CodeLinkGenerator implements LinkGenerator {
 		this.jNode = codeArea.getNode();
 	}
 
-	public JavaNode getNodeAtOffset(RSyntaxTextArea textArea, int offset) {
+	public JavaNode getNodeAtOffset(int offset) {
 		try {
 			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
+			int sourceOffset = getLinkSourceOffset(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
@@ -49,7 +49,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
+			int sourceOffset = getLinkSourceOffset(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
@@ -75,8 +75,8 @@ public class CodeLinkGenerator implements LinkGenerator {
 		}
 	}
 
-	public int getLinkSourceOffset(RSyntaxTextArea textArea, int offset) {
-		Token token = textArea.modelToToken(offset);
+	public int getLinkSourceOffset(int offset) {
+		Token token = codeArea.modelToToken(offset);
 		return codeArea.adjustOffsetForToken(token);
 	}
 

@@ -16,16 +16,15 @@ public class MergedSearchProvider implements ISearchProvider {
 
 	private final List<ISearchProvider> list = new ArrayList<>();
 	private int current;
-	private int progress;
-	private int size;
+	private int total;
 
 	public void add(ISearchProvider provider) {
 		list.add(provider);
 	}
 
 	public void prepare() {
-		size = list.stream().mapToInt(ISearchProvider::total).sum();
 		current = list.isEmpty() ? -1 : 0;
+		total = list.stream().mapToInt(ISearchProvider::total).sum();
 	}
 
 	@Override
@@ -54,6 +53,6 @@ public class MergedSearchProvider implements ISearchProvider {
 
 	@Override
 	public int total() {
-		return size;
+		return total;
 	}
 }

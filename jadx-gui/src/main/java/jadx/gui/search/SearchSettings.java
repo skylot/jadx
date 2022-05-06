@@ -34,7 +34,7 @@ public class SearchSettings {
 	}
 
 	public boolean isMatch(String searchArea) {
-		return searchMethod.find(this.searchString, searchArea, 0) != -1;
+		return searchMethod.find(searchArea, this.searchString, 0) != -1;
 	}
 
 	public boolean isUseRegex() {

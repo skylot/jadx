@@ -57,9 +57,10 @@ public class SearchTask extends CancelableBackgroundTask {
 			cancel();
 			waitTask();
 		}
-		reset();
-		resultsCount.set(0);
+		resetCancel();
 		complete.set(false);
+		resultsCount.set(0);
+		taskProgress.updateTotal(jobs.stream().mapToInt(s -> s.getProvider().total()).sum());
 		future = backgroundExecutor.execute(this);
 	}
 
@@ -99,10 +100,6 @@ public class SearchTask extends CancelableBackgroundTask {
 		return complete.get() && !isCanceled();
 	}
 
-	public int getResultsCount() {
-		return resultsCount.get();
-	}
-
 	@Override
 	public void onDone(ITaskInfo taskInfo) {
 		this.complete.set(true);
@@ -121,7 +118,6 @@ public class SearchTask extends CancelableBackgroundTask {
 	@Override
 	public @NotNull ITaskProgress getTaskProgress() {
 		taskProgress.updateProgress(jobs.stream().mapToInt(s -> s.getProvider().progress()).sum());
-		taskProgress.updateTotal(jobs.stream().mapToInt(s -> s.getProvider().total()).sum());
 		return taskProgress;
 	}
 

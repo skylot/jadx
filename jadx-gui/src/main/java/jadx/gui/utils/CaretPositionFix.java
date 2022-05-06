@@ -12,7 +12,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.ICodeRawOffset;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 
@@ -54,8 +54,8 @@ public class CaretPositionFix {
 			if (codeInfo.hasMetadata()) {
 				ICodeMetadata metadata = codeInfo.getCodeMetadata();
 				ICodeAnnotation ann = metadata.getAt(pos);
-				if (ann instanceof ICodeRawOffset) {
-					codeRawOffset = ((ICodeRawOffset) ann).getOffset();
+				if (ann instanceof InsnCodeOffset) {
+					codeRawOffset = ((InsnCodeOffset) ann).getOffset();
 					ICodeNodeRef javaNode = metadata.getNodeAt(pos);
 					if (javaNode != null) {
 						javaNodePos = javaNode.getDefPosition();
@@ -117,7 +117,8 @@ public class CaretPositionFix {
 					int annPos = entry.getKey();
 					if (annPos >= javaNodePos) {
 						ICodeAnnotation ann = entry.getValue();
-						if (ann instanceof ICodeRawOffset && ((ICodeRawOffset) ann).getOffset() == codeRawOffset) {
+						if (ann instanceof InsnCodeOffset
+								&& ((InsnCodeOffset) ann).getOffset() == codeRawOffset) {
 							return annPos;
 						}
 					}

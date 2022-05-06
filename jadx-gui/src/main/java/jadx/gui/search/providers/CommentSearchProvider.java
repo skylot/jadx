@@ -1,7 +1,6 @@
 package jadx.gui.search.providers;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Icon;
@@ -19,8 +18,7 @@ import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
-import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.annotations.ICodeRawOffset;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.ISearchProvider;
@@ -153,18 +151,14 @@ public class CommentSearchProvider implements ISearchProvider {
 		 */
 		private JumpPosition getJumpPos() {
 			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-			int methodDefPos = javaMethod.getDefPos();
 			ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
-			for (Map.Entry<Integer, ICodeAnnotation> entry : codeInfo.getCodeMetadata().getAsMap().entrySet()) {
-				int codePos = entry.getKey();
-				if (codePos > methodDefPos) {
-					ICodeAnnotation ann = entry.getValue();
-					if (ann instanceof ICodeRawOffset) {
-						if (((ICodeRawOffset) ann).getOffset() == offset) {
-							return new JumpPosition(node, codePos);
-						}
-					}
-				}
+			int methodDefPos = javaMethod.getDefPos();
+			JumpPosition jump = codeInfo.getCodeMetadata().searchDown(methodDefPos,
+					(pos, ann) -> ann instanceof InsnCodeOffset && ((InsnCodeOffset) ann).getOffset() == offset
+							? new JumpPosition(node, pos)
+							: null);
+			if (jump != null) {
+				return jump;
 			}
 			return new JumpPosition(node);
 		}
@@ -209,6 +203,31 @@ public class CommentSearchProvider implements ISearchProvider {
 		@Override
 		public String makeString() {
 			return node.makeString();
+		}
+
+		@Override
+		public String makeLongString() {
+			return node.makeLongString();
+		}
+
+		@Override
+		public String makeStringHtml() {
+			return node.makeStringHtml();
+		}
+
+		@Override
+		public String makeLongStringHtml() {
+			return node.makeLongStringHtml();
+		}
+
+		@Override
+		public int getPos() {
+			return node.getPos();
+		}
+
+		@Override
+		public String getTooltip() {
+			return node.getTooltip();
 		}
 
 		@Override

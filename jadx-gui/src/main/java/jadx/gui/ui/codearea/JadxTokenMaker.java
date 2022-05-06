@@ -29,15 +29,16 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 
 	@Override
 	public Token getTokenList(Segment text, int initialTokenType, int startOffset) {
-		Token tokens = super.getTokenList(text, initialTokenType, startOffset);
-		if (tokens.getType() != TokenTypes.NULL) {
-			try {
+		try {
+			Token tokens = super.getTokenList(text, initialTokenType, startOffset);
+			if (tokens.getType() != TokenTypes.NULL) {
 				processTokens(tokens);
-			} catch (Exception e) {
-				LOG.error("Process tokens failed for text: {}", text, e);
 			}
+			return tokens;
+		} catch (Exception e) {
+			LOG.error("Process tokens failed for text: {}", text, e);
+			return new TokenImpl();
 		}
-		return tokens;
 	}
 
 	private void processTokens(Token tokens) {

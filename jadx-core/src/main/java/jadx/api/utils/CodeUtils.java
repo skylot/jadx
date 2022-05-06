@@ -1,16 +1,24 @@
-package jadx.api.impl;
+package jadx.api.utils;
 
 import jadx.api.ICodeWriter;
 
 public class CodeUtils {
 
 	public static String getLineForPos(String code, int pos) {
+		int start = getLineStartForPos(code, pos);
+		int end = getLineEndForPos(code, pos);
+		return code.substring(start, end);
+	}
+
+	public static int getLineStartForPos(String code, int pos) {
 		String newLine = ICodeWriter.NL;
 		int start = code.lastIndexOf(newLine, pos);
-		int end = code.indexOf(newLine, pos);
-		int from = start == -1 ? 0 : start + newLine.length();
-		int to = end == -1 ? code.length() : end;
-		return code.substring(from, to);
+		return start == -1 ? 0 : start + newLine.length();
+	}
+
+	public static int getLineEndForPos(String code, int pos) {
+		int end = code.indexOf(ICodeWriter.NL, pos);
+		return end == -1 ? code.length() : end;
 	}
 
 	public static int getLineNumForPos(String code, int pos) {

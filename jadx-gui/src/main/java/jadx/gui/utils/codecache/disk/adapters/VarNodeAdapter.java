@@ -18,8 +18,8 @@ public class VarNodeAdapter extends BaseDataAdapter<VarNode> {
 	@Override
 	public void write(DataOutput out, VarNode value) throws IOException {
 		mthAdapter.write(out, value.getMth());
-		out.writeInt(value.getReg());
-		out.writeInt(value.getSsa());
+		out.writeShort(value.getReg());
+		out.writeShort(value.getSsa());
 		ArgTypeAdapter.INSTANCE.write(out, value.getType());
 		writeNullableUTF(out, value.getName());
 	}
@@ -27,8 +27,8 @@ public class VarNodeAdapter extends BaseDataAdapter<VarNode> {
 	@Override
 	public VarNode read(DataInput in) throws IOException {
 		MethodNode mth = mthAdapter.read(in);
-		int reg = in.readInt();
-		int ssa = in.readInt();
+		int reg = in.readShort();
+		int ssa = in.readShort();
 		ArgType type = ArgTypeAdapter.INSTANCE.read(in);
 		String name = readNullableUTF(in);
 		return new VarNode(mth, reg, ssa, type, name);

@@ -12,11 +12,11 @@ public class InsnCodeOffsetAdapter implements DataAdapter<InsnCodeOffset> {
 
 	@Override
 	public void write(DataOutput out, InsnCodeOffset value) throws IOException {
-		out.writeInt(value.getOffset());
+		out.writeShort(value.getOffset());
 	}
 
 	@Override
 	public InsnCodeOffset read(DataInput in) throws IOException {
-		return new InsnCodeOffset(in.readInt());
+		return new InsnCodeOffset(in.readShort());
 	}
 }

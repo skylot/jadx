@@ -104,7 +104,9 @@ public class CodeMetadataAdapter {
 		for (int i = 0; i < size; i++) {
 			int pos = in.readInt();
 			ICodeAnnotation ann = codeAnnotationAdapter.read(in);
-			map.put(pos, ann);
+			if (ann != null) {
+				map.put(pos, ann);
+			}
 		}
 		return map;
 	}

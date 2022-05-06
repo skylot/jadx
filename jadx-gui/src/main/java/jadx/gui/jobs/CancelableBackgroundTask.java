@@ -16,7 +16,7 @@ public abstract class CancelableBackgroundTask implements IBackgroundTask {
 		cancel.set(true);
 	}
 
-	public void reset() {
+	public void resetCancel() {
 		cancel.set(false);
 	}
 

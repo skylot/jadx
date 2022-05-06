@@ -1,5 +1,7 @@
 package jadx.api.metadata.annotations;
 
+import java.util.Objects;
+
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 
@@ -10,7 +12,7 @@ public class NodeDeclareRef implements ICodeAnnotation {
 	private int defPos;
 
 	public NodeDeclareRef(ICodeNodeRef node) {
-		this.node = node;
+		this.node = Objects.requireNonNull(node);
 	}
 
 	public ICodeNodeRef getNode() {
@@ -26,8 +28,8 @@ public class NodeDeclareRef implements ICodeAnnotation {
 	}
 
 	@Override
-	public String getTagName() {
-		return "def";
+	public AnnType getAnnType() {
+		return AnnType.DECLARATION;
 	}
 
 	@Override

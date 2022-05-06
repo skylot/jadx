@@ -505,12 +505,9 @@ public class MainWindow extends JFrame {
 	public void waitDecompileTask() {
 		synchronized (DECOMPILER_TASK_SYNC) {
 			try {
-				DecompileTask decompileTask = new DecompileTask(this, wrapper);
+				DecompileTask decompileTask = new DecompileTask(wrapper);
 				backgroundExecutor.executeAndWait(decompileTask);
-
 				backgroundExecutor.execute(decompileTask.getTitle(), wrapper::unloadClasses).get();
-				System.gc();
-
 				processDecompilationResults(decompileTask.getResult());
 				System.gc();
 			} catch (Exception e) {

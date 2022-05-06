@@ -14,7 +14,7 @@ public class VarRefAdapter extends BaseDataAdapter<VarRef> {
 	public void write(DataOutput out, VarRef value) throws IOException {
 		int refPos = value.getRefPos();
 		if (refPos == 0) {
-			throw new RuntimeException("Zero refPos of write");
+			throw new RuntimeException("Variable refPos is zero: " + value);
 		}
 		out.writeShort(refPos);
 	}

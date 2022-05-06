@@ -359,6 +359,12 @@ public class UiUtils {
 		}
 	}
 
+	public static void uiThreadGuard() {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			LOG.warn("Expect UI thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
+		}
+	}
+
 	@TestOnly
 	public static void debugTimer(int periodInSeconds, Runnable action) {
 		if (!LOG.isDebugEnabled()) {

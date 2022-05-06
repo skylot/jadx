@@ -90,7 +90,7 @@ public class JadxWrapper {
 				jadxArgs.setCodeCache(new InMemoryCodeCache());
 				break;
 			}
-			case DISK_WITH_INDEX: {
+			case DISK_WITH_CACHE: {
 				DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
 				BufferCodeCache buffer = new BufferCodeCache(diskCache);
 				jadxArgs.setCodeCache(new CodeStringCache(buffer));

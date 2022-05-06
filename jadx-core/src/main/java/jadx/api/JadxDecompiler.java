@@ -644,24 +644,24 @@ public final class JadxDecompiler implements Closeable {
 		if (ann == null) {
 			return null;
 		}
-		switch (ann.getTagName()) {
-			case "cls":
+		switch (ann.getAnnType()) {
+			case CLASS:
 				return convertClassNode((ClassNode) ann);
-			case "mth":
+			case METHOD:
 				return getJavaMethodByNode((MethodNode) ann);
-			case "fld":
+			case FIELD:
 				return getJavaFieldByNode((FieldNode) ann);
-			case "def":
+			case DECLARATION:
 				return getJavaNodeByCodeAnnotation(codeInfo, ((NodeDeclareRef) ann).getNode());
-			case "var":
+			case VAR:
 				return resolveVarNode((VarNode) ann);
-			case "vrf":
+			case VAR_REF:
 				return resolveVarRef(codeInfo, (VarRef) ann);
-			case "off":
+			case OFFSET:
 				// offset annotation don't have java node object
 				return null;
 			default:
-				throw new JadxRuntimeException("Unknown tag name: " + ann.getTagName() + ", type: " + ann.getClass());
+				throw new JadxRuntimeException("Unknown annotation type: " + ann.getAnnType() + ", class: " + ann.getClass());
 		}
 	}
 
@@ -714,9 +714,12 @@ public final class JadxDecompiler implements Closeable {
 	@Nullable
 	public JavaNode getJavaNodeAtPosition(ICodeInfo codeInfo, int pos) {
 		ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
-		if (ann == null) {
-			return null;
-		}
+		return getJavaNodeByCodeAnnotation(codeInfo, ann);
+	}
+
+	@Nullable
+	public JavaNode getClosestJavaNode(ICodeInfo codeInfo, int pos) {
+		ICodeAnnotation ann = codeInfo.getCodeMetadata().getClosestUp(pos);
 		return getJavaNodeByCodeAnnotation(codeInfo, ann);
 	}
 

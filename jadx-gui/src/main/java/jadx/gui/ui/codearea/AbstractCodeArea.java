@@ -268,28 +268,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	public void scrollToPos(int pos) {
 		try {
 			setCaretPosition(pos);
+			centerCurrentLine();
+			forceCurrentLineHighlightRepaint();
 		} catch (Exception e) {
-			LOG.debug("Can't scroll to position {}", pos, e);
-		}
-		centerCurrentLine();
-		forceCurrentLineHighlightRepaint();
-	}
-
-	public void scrollToLine(int line) {
-		int lineNum = line - 1;
-		if (lineNum < 0) {
-			lineNum = 0;
-		}
-		setCaretAtLine(lineNum);
-		centerCurrentLine();
-		forceCurrentLineHighlightRepaint();
-	}
-
-	private void setCaretAtLine(int line) {
-		try {
-			setCaretPosition(getLineStartOffset(line));
-		} catch (BadLocationException e) {
-			LOG.debug("Can't scroll to {}", line, e);
+			LOG.warn("Can't scroll to position {}", pos, e);
 		}
 	}
 
@@ -321,7 +303,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	/**
-	 * @param str - if null -> reset current highlights
+	 * @param str
+	 *            - if null -> reset current highlights
 	 */
 	private void highlightAllMatches(@Nullable String str) {
 		SearchContext context = new SearchContext(str);
@@ -333,6 +316,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public JumpPosition getCurrentPosition() {
 		return new JumpPosition(node, getCaretPosition());
+	}
+
+	public int getLineStartFor(int pos) throws BadLocationException {
+		return getLineStartOffset(getLineOfOffset(pos));
 	}
 
 	public String getLineAt(int pos) throws BadLocationException {

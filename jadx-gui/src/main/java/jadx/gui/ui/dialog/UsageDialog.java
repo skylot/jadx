@@ -5,9 +5,9 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -20,8 +20,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.api.impl.CodeUtils;
-import jadx.core.dex.attributes.AType;
+import jadx.api.utils.CodeUtils;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JMethod;
@@ -63,79 +62,74 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void collectUsageData() {
 		usageList = new ArrayList<>();
-		getMethodUseIn()
-				.stream()
+		Map<JavaNode, List<JavaNode>> usageQuery = buildUsageQuery();
+		usageQuery.forEach((searchNode, useNodes) -> useNodes.stream()
 				.map(JavaNode::getTopParentClass)
 				.distinct()
-				.sorted(Comparator.comparing(JavaClass::getFullName))
-				.forEach(this::processUsageClass);
+				.forEach(u -> processUsage(searchNode, u)));
 	}
 
-	private List<JavaNode> getMethodUseIn() {
+	/**
+	 * Return mapping of 'node to search' to 'use places'
+	 */
+	private Map<JavaNode, List<JavaNode>> buildUsageQuery() {
+		Map<JavaNode, List<JavaNode>> map = new HashMap<>();
 		if (node instanceof JMethod) {
-			JavaMethod method = ((JMethod) node).getJavaMethod();
-			if (method.getMethodNode().contains(AType.METHOD_OVERRIDE)) {
-				return method.getOverrideRelatedMethods()
-						.stream()
-						.flatMap(m -> m.getUseIn().stream())
-						.collect(Collectors.toList());
+			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
+			for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
+				map.put(mth, mth.getUseIn());
 			}
+		} else {
+			JavaNode javaNode = node.getJavaNode();
+			map.put(javaNode, javaNode.getUseIn());
 		}
-		return node.getJavaNode().getUseIn();
+		return map;
 	}
 
-	private void processUsageClass(JavaNode usageNode) {
-		JavaClass cls = usageNode.getTopParentClass();
-		ICodeInfo codeInfo = cls.getCodeInfo();
+	private List<JavaMethod> getMethodWithOverrides(JavaMethod javaMethod) {
+		List<JavaMethod> relatedMethods = javaMethod.getOverrideRelatedMethods();
+		if (!relatedMethods.isEmpty()) {
+			return relatedMethods;
+		}
+		return Collections.singletonList(javaMethod);
+	}
+
+	private void processUsage(JavaNode searchNode, JavaClass topUseClass) {
+		ICodeInfo codeInfo = topUseClass.getCodeInfo();
 		String code = codeInfo.getCodeStr();
 		JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
-		List<? extends JavaNode> targetNodes = getMethodWithOverride();
-		for (JavaNode javaNode : targetNodes) {
-			for (int pos : cls.getUsePlacesFor(javaNode)) {
-				if (javaNode.getTopParentClass().equals(cls) && pos == javaNode.getDefPos()) {
-					// skip declaration
-					continue;
-				}
-				String line = CodeUtils.getLineForPos(code, pos);
-				if (line.startsWith("import ")) {
-					continue;
-				}
-				JavaNode enclosingNode = decompiler.getEnclosingNode(codeInfo, pos);
-				JNode useAtNode = enclosingNode == null ? node : getNodeCache().makeFrom(enclosingNode);
-				usageList.add(new CodeNode(useAtNode, line.trim(), pos));
+		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
+		for (int pos : usePositions) {
+			if (searchNode.getTopParentClass().equals(topUseClass) && pos == searchNode.getDefPos()) {
+				// skip declaration
+				continue;
 			}
-		}
-	}
-
-	private List<? extends JavaNode> getMethodWithOverride() {
-		if (node instanceof JMethod) {
-			JavaMethod method = ((JMethod) node).getJavaMethod();
-			if (null != method.getMethodNode().get(AType.METHOD_OVERRIDE)) {
-				return method.getOverrideRelatedMethods();
+			String line = CodeUtils.getLineForPos(code, pos);
+			if (line.startsWith("import ")) {
+				continue;
 			}
+			JavaNode enclosingNode = decompiler.getEnclosingNode(codeInfo, pos);
+			JavaNode usageNode = enclosingNode == null ? topUseClass : enclosingNode;
+			usageList.add(new CodeNode(getNodeCache().makeFrom(usageNode), line.trim(), pos));
 		}
-		return Collections.singletonList(node.getJavaNode());
 	}
 
 	@Override
 	protected void loadFinished() {
 		resultsTable.setEnabled(true);
-		performSearch();
+		resultsModel.clear();
+
+		Collections.sort(usageList);
+		resultsModel.addAll(usageList);
+		// TODO: highlight only needed node usage
+		setHighlightText(null);
+		resultsTable.updateTable();
+		updateProgressLabel(true);
 	}
 
 	@Override
 	protected void loadStart() {
 		resultsTable.setEnabled(false);
-	}
-
-	@Override
-	protected synchronized void performSearch() {
-		resultsModel.clear();
-		Collections.sort(usageList);
-		resultsModel.addAll(usageList);
-		// TODO: highlight only needed node usage
-		setHighlightText(null);
-		super.performSearch();
 	}
 
 	private void initUI() {

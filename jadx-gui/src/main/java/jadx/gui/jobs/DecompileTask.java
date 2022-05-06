@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeCache;
 import jadx.api.JavaClass;
 import jadx.gui.JadxWrapper;
-import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -24,15 +23,13 @@ public class DecompileTask extends CancelableBackgroundTask {
 		return classCount * CLS_LIMIT + 5000;
 	}
 
-	private final MainWindow mainWindow;
 	private final JadxWrapper wrapper;
 	private final AtomicInteger complete = new AtomicInteger(0);
 	private int expectedCompleteCount;
 
 	private ProcessResult result;
 
-	public DecompileTask(MainWindow mainWindow, JadxWrapper wrapper) {
-		this.mainWindow = mainWindow;
+	public DecompileTask(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
 	}
 

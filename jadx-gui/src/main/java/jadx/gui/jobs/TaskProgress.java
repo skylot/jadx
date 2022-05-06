@@ -1,22 +1,22 @@
 package jadx.gui.jobs;
 
-public class TaskProgress implements ITaskProgress {
+import jadx.gui.utils.UiUtils;
 
+public class TaskProgress implements ITaskProgress {
 	private int progress;
 	private int total;
 
 	public TaskProgress() {
+		this(0, 100);
+	}
+
+	public TaskProgress(long progress, long total) {
+		this(UiUtils.calcProgress(progress, total), 100);
 	}
 
 	public TaskProgress(int progress, int total) {
 		this.progress = progress;
 		this.total = total;
-	}
-
-	public TaskProgress(long progress, long total) {
-		// TODO: apply normalization to fit into int
-		this.progress = (int) progress;
-		this.total = (int) total;
 	}
 
 	@Override

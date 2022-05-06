@@ -3,23 +3,24 @@ package jadx.gui.utils.codecache.disk.adapters;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.core.dex.nodes.RootNode;
 
 public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
-	private final Map<String, TypeInfo> adaptersByCls;
+	private final Map<AnnType, TypeInfo> adaptersByCls;
 	private final TypeInfo[] adaptersByTag;
 
 	public CodeAnnotationAdapter(RootNode root) {
-		Map<String, DataAdapter<?>> map = registerAdapters(root);
+		Map<AnnType, DataAdapter<?>> map = registerAdapters(root);
 		int size = map.size();
-		adaptersByCls = new HashMap<>(size);
+		adaptersByCls = new EnumMap<>(AnnType.class);
 		adaptersByTag = new TypeInfo[size + 1];
 		int tag = 1;
-		for (Map.Entry<String, DataAdapter<?>> entry : map.entrySet()) {
+		for (Map.Entry<AnnType, DataAdapter<?>> entry : map.entrySet()) {
 			TypeInfo typeInfo = new TypeInfo(tag, entry.getValue());
 			adaptersByCls.put(entry.getKey(), typeInfo);
 			adaptersByTag[tag] = typeInfo;
@@ -27,16 +28,16 @@ public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
 		}
 	}
 
-	private Map<String, DataAdapter<?>> registerAdapters(RootNode root) {
-		Map<String, DataAdapter<?>> map = new HashMap<>();
+	private Map<AnnType, DataAdapter<?>> registerAdapters(RootNode root) {
+		Map<AnnType, DataAdapter<?>> map = new EnumMap<>(AnnType.class);
 		MethodNodeAdapter mthAdapter = new MethodNodeAdapter(root);
-		map.put("cls", new ClassNodeAdapter(root));
-		map.put("fld", new FieldNodeAdapter(root));
-		map.put("mth", mthAdapter);
-		map.put("def", new NodeDeclareRefAdapter(this));
-		map.put("var", new VarNodeAdapter(mthAdapter));
-		map.put("vrf", VarRefAdapter.INSTANCE);
-		map.put("off", InsnCodeOffsetAdapter.INSTANCE);
+		map.put(AnnType.CLASS, new ClassNodeAdapter(root));
+		map.put(AnnType.FIELD, new FieldNodeAdapter(root));
+		map.put(AnnType.METHOD, mthAdapter);
+		map.put(AnnType.DECLARATION, new NodeDeclareRefAdapter(this));
+		map.put(AnnType.VAR, new VarNodeAdapter(mthAdapter));
+		map.put(AnnType.VAR_REF, VarRefAdapter.INSTANCE);
+		map.put(AnnType.OFFSET, InsnCodeOffsetAdapter.INSTANCE);
 		return map;
 	}
 
@@ -47,7 +48,7 @@ public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
 			out.writeByte(0);
 			return;
 		}
-		TypeInfo typeInfo = adaptersByCls.get(value.getTagName());
+		TypeInfo typeInfo = adaptersByCls.get(value.getAnnType());
 		if (typeInfo == null) {
 			throw new RuntimeException("Unexpected code annotation type: " + value.getClass().getSimpleName());
 		}

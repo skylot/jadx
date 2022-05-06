@@ -374,10 +374,6 @@ public abstract class CommonSearchDialog extends JFrame {
 			}
 		}
 
-		public void removeLast() {
-			rows.remove(rows.size() - 1);
-		}
-
 		public void clear() {
 			addDescColumn = false;
 			rows.clear();

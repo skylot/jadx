@@ -116,8 +116,8 @@ public class VarNode implements ICodeNodeRef {
 	}
 
 	@Override
-	public String getTagName() {
-		return "var";
+	public AnnType getAnnType() {
+		return AnnType.VAR;
 	}
 
 	@Override

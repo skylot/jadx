@@ -5,7 +5,10 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeMetadata;
@@ -46,24 +49,66 @@ public class CodeMetadataStorage implements ICodeMetadata {
 	}
 
 	@Override
-	public ICodeAnnotation getClosestUp(int position) {
+	public @Nullable ICodeAnnotation getClosestUp(int position) {
 		Map.Entry<Integer, ICodeAnnotation> entryBefore = navMap.higherEntry(position);
 		return entryBefore != null ? entryBefore.getValue() : null;
 	}
 
 	@Override
+	public @Nullable ICodeAnnotation searchUp(int position, ICodeAnnotation.AnnType annType) {
+		for (ICodeAnnotation v : navMap.tailMap(position, true).values()) {
+			if (v.getAnnType() == annType) {
+				return v;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public @Nullable ICodeAnnotation searchUp(int position, int limitPos, ICodeAnnotation.AnnType annType) {
+		for (ICodeAnnotation v : navMap.subMap(position, true, limitPos, true).values()) {
+			if (v.getAnnType() == annType) {
+				return v;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public <T> @Nullable T searchUp(int startPos, BiFunction<Integer, ICodeAnnotation, T> visitor) {
+		for (Map.Entry<Integer, ICodeAnnotation> entry : navMap.tailMap(startPos, true).entrySet()) {
+			T value = visitor.apply(entry.getKey(), entry.getValue());
+			if (value != null) {
+				return value;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public <T> @Nullable T searchDown(int startPos, BiFunction<Integer, ICodeAnnotation, T> visitor) {
+		NavigableMap<Integer, ICodeAnnotation> map = navMap.headMap(startPos, true).descendingMap();
+		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
+			T value = visitor.apply(entry.getKey(), entry.getValue());
+			if (value != null) {
+				return value;
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public ICodeNodeRef getNodeAt(int position) {
-		return navMap.tailMap(position, true).values().stream()
+		return navMap.tailMap(position, true)
+				.values().stream()
 				.flatMap(CodeMetadataStorage::mapEnclosingNode)
 				.findFirst().orElse(null);
 	}
 
 	@Override
 	public ICodeNodeRef getNodeBelow(int position) {
-		return navMap.headMap(position)
-				.entrySet().stream()
-				.sorted(Comparator.comparingInt(Map.Entry::getKey)) // reverse order to normal
-				.map(Map.Entry::getValue)
+		return navMap.headMap(position, true).descendingMap()
+				.values().stream()
 				.flatMap(CodeMetadataStorage::mapEnclosingNode)
 				.findFirst().orElse(null);
 	}
@@ -79,7 +124,7 @@ public class CodeMetadataStorage implements ICodeMetadata {
 	}
 
 	@Override
-	public Map<Integer, ICodeAnnotation> getAsMap() {
+	public NavigableMap<Integer, ICodeAnnotation> getAsMap() {
 		return navMap;
 	}
 

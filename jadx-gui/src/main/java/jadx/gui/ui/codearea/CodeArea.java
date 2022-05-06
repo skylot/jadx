@@ -73,7 +73,7 @@ public final class CodeArea extends AbstractCodeArea {
 	@SuppressWarnings("deprecation")
 	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
 		int offs = viewToModel(point);
-		JNode node = getJNodeAtOffset(codeLinkGenerator.getLinkSourceOffset(this, offs));
+		JNode node = getJNodeAtOffset(codeLinkGenerator.getLinkSourceOffset(offs));
 		if (node != null) {
 			contentPanel.getTabbedPane().codeJump(node);
 		}
@@ -177,9 +177,6 @@ public final class CodeArea extends AbstractCodeArea {
 			return new JumpPosition(node);
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		if (jNode.getPos() == 0) {
-			LOG.warn("Node not yet loaded", new Exception());
-		}
 		return new JumpPosition(jNode);
 	}
 
@@ -233,6 +230,15 @@ public final class CodeArea extends AbstractCodeArea {
 		return null;
 	}
 
+	public JavaNode getClosestJavaNode(int offset) {
+		try {
+			return getDecompiler().getClosestJavaNode(getCodeInfo(), offset);
+		} catch (Exception e) {
+			LOG.error("Can't get java node by offset: {}", offset, e);
+			return null;
+		}
+	}
+
 	public JavaClass getJavaClassIfAtPos(int pos) {
 		try {
 			ICodeInfo codeInfo = getCodeInfo();
@@ -250,12 +256,12 @@ public final class CodeArea extends AbstractCodeArea {
 
 	public void refreshClass() {
 		if (node instanceof JClass) {
-			JClass cls = (JClass) node;
+			JClass cls = node.getRootClass();
 			try {
 				CaretPositionFix caretFix = new CaretPositionFix(this);
 				caretFix.save();
 
-				cls.reload(getMainWindow().getCacheObject());
+				cachedCodeInfo = cls.reload(getMainWindow().getCacheObject());
 
 				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
 				codeContentPanel.getTabbedPane().refresh(cls);

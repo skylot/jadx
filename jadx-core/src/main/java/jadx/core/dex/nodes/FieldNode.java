@@ -101,8 +101,8 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 	}
 
 	@Override
-	public String getTagName() {
-		return "fld";
+	public AnnType getAnnType() {
+		return AnnType.FIELD;
 	}
 
 	@Override

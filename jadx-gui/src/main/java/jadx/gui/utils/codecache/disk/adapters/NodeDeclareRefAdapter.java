@@ -16,14 +16,18 @@ public class NodeDeclareRefAdapter implements DataAdapter<NodeDeclareRef> {
 
 	@Override
 	public void write(DataOutput out, NodeDeclareRef value) throws IOException {
-		refAdapter.write(out, value.getNode());
-		out.writeInt(value.getDefPos());
+		ICodeNodeRef node = value.getNode();
+		if (node == null) {
+			throw new RuntimeException("Null node in NodeDeclareRef");
+		}
+		refAdapter.write(out, node);
+		out.writeShort(value.getDefPos());
 	}
 
 	@Override
 	public NodeDeclareRef read(DataInput in) throws IOException {
 		ICodeNodeRef ref = (ICodeNodeRef) refAdapter.read(in);
-		int defPos = in.readInt();
+		int defPos = in.readShort();
 		NodeDeclareRef nodeDeclareRef = new NodeDeclareRef(ref);
 		nodeDeclareRef.setDefPos(defPos);
 		// restore def position if loading metadata without actual decompilation

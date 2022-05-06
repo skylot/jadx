@@ -3,9 +3,10 @@ package jadx.api.metadata.annotations;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.core.dex.nodes.InsnNode;
 
-public class InsnCodeOffset implements ICodeRawOffset {
+public class InsnCodeOffset implements ICodeAnnotation {
 
 	public static void attach(ICodeWriter code, InsnNode insn) {
 		if (insn == null) {
@@ -40,14 +41,13 @@ public class InsnCodeOffset implements ICodeRawOffset {
 		this.offset = offset;
 	}
 
-	@Override
 	public int getOffset() {
 		return offset;
 	}
 
 	@Override
-	public String getTagName() {
-		return "off";
+	public AnnType getAnnType() {
+		return AnnType.OFFSET;
 	}
 
 	@Override

@@ -593,8 +593,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
-	public String getTagName() {
-		return "mth";
+	public AnnType getAnnType() {
+		return AnnType.METHOD;
 	}
 
 	@Override

@@ -131,8 +131,8 @@ public class BackgroundExecutor {
 			try {
 				runJobs();
 			} finally {
-				task.onDone(this);
 				taskComplete(id);
+				task.onDone(this);
 			}
 			return status;
 		}
@@ -194,11 +194,15 @@ public class BackgroundExecutor {
 			Consumer<ITaskProgress> onProgressListener = task.getOnProgressListener();
 			ITaskProgress taskProgress = task.getTaskProgress();
 			if (taskProgress == null) {
-				taskProgress = new TaskProgress(executor.getCompletedTaskCount(), jobsCount);
-			}
-			setProgress(calcProgress(taskProgress));
-			if (onProgressListener != null) {
-				onProgressListener.accept(taskProgress);
+				setProgress(calcProgress(executor.getCompletedTaskCount(), jobsCount));
+				if (onProgressListener != null) {
+					onProgressListener.accept(new TaskProgress(executor.getCompletedTaskCount(), jobsCount));
+				}
+			} else {
+				setProgress(calcProgress(taskProgress));
+				if (onProgressListener != null) {
+					onProgressListener.accept(taskProgress);
+				}
 			}
 		}
 

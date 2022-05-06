@@ -52,6 +52,8 @@ public class JNodeCache {
 		remove(javaCls);
 		javaCls.getMethods().forEach(this::remove);
 		javaCls.getFields().forEach(this::remove);
+		javaCls.getInnerClasses().forEach(this::remove);
+		javaCls.getInlinedClasses().forEach(this::remove);
 	}
 
 	private JClass convert(JavaClass cls) {

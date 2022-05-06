@@ -29,7 +29,6 @@ public class MethodNodeAdapter implements DataAdapter<MethodNode> {
 		String sign = in.readUTF();
 		ClassNode clsNode = root.resolveClass(cls);
 		if (clsNode == null) {
-			root.resolveClass(cls);
 			throw new RuntimeException("Class not found: " + cls);
 		}
 		MethodNode methodNode = clsNode.searchMethodByShortId(sign);

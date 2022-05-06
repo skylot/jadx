@@ -1,16 +1,15 @@
 package jadx.tests.integration.variables;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.ICodeInfo;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
+import jadx.api.utils.CodeUtils;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
@@ -43,24 +42,27 @@ public class TestVariablesDeclAnnotation extends IntegrationTest {
 		MethodNode testMth = cls.searchMethodByShortName(mthName);
 		assertThat(testMth).isNotNull();
 
-		List<String> argNames = cls.getCode()
-				.getCodeMetadata().getAsMap().entrySet().stream()
-				.filter(e -> e.getKey() > testMth.getDefPosition())
-				.filter(e -> {
-					ICodeAnnotation value = e.getValue();
-					if (value instanceof NodeDeclareRef) {
-						ICodeNodeRef declRef = ((NodeDeclareRef) value).getNode();
-						if (declRef instanceof VarNode) {
-							return ((VarNode) declRef).getMth().equals(testMth);
-						}
+		ICodeInfo codeInfo = cls.getCode();
+		int mthDefPos = testMth.getDefPosition();
+		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		List<String> argNames2 = new ArrayList<>();
+		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
+			if (pos > lineEndPos) {
+				return Boolean.TRUE; // stop at line end
+			}
+			if (ann instanceof NodeDeclareRef) {
+				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
+				if (declRef instanceof VarNode) {
+					VarNode varNode = (VarNode) declRef;
+					if (varNode.getMth().equals(testMth)) {
+						argNames2.add(varNode.getName());
 					}
-					return false;
-				})
-				.sorted(Comparator.comparingInt(Map.Entry::getKey))
-				.map(e -> ((VarNode) ((NodeDeclareRef) e.getValue()).getNode()).getName())
-				.collect(Collectors.toList());
+				}
+			}
+			return null;
+		});
 
-		assertThat(argNames).doesNotContainNull();
-		assertThat(argNames.toString()).isEqualTo(expectedVars);
+		assertThat(argNames2).doesNotContainNull();
+		assertThat(argNames2.toString()).isEqualTo(expectedVars);
 	}
 }

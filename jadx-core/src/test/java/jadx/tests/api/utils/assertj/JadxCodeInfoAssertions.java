@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import jadx.api.ICodeInfo;
-import jadx.api.metadata.annotations.ICodeRawOffset;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
@@ -23,8 +23,8 @@ public class JadxCodeInfoAssertions extends AbstractObjectAssert<JadxCodeInfoAss
 
 	public JadxCodeInfoAssertions checkCodeOffsets() {
 		long dupOffsetCount = actual.getCodeMetadata().getAsMap().values().stream()
-				.filter(ICodeRawOffset.class::isInstance)
-				.collect(Collectors.groupingBy(o -> ((ICodeRawOffset) o).getOffset(), Collectors.toList()))
+				.filter(InsnCodeOffset.class::isInstance)
+				.collect(Collectors.groupingBy(o -> ((InsnCodeOffset) o).getOffset(), Collectors.toList()))
 				.values().stream()
 				.filter(list -> list.size() > 1)
 				.count();

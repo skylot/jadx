@@ -179,6 +179,11 @@ public class SearchDialog extends CommonSearchDialog {
 			searchField.selectAll();
 		}
 		searchField.requestFocus();
+
+		if (options.contains(COMMENT)) {
+			// show all comments on empty input
+			searchEmitter.emitSearch();
+		}
 	}
 
 	private void initUI() {
@@ -290,12 +295,13 @@ public class SearchDialog extends CommonSearchDialog {
 		Flowable<String> searchEvents = Flowable.merge(textChanges, searchEmitter.getFlowable());
 		searchDisposable = searchEvents
 				.debounce(100, TimeUnit.MILLISECONDS)
-				.subscribeOn(SwingSchedulers.edt())
+				.observeOn(SwingSchedulers.edt())
 				.subscribe(this::search);
 	}
 
 	@Nullable
 	private synchronized void search(String text) {
+		UiUtils.uiThreadGuard();
 		resetSearch();
 		if (text == null || options.isEmpty()) {
 			return;
@@ -323,10 +329,12 @@ public class SearchDialog extends CommonSearchDialog {
 		if (!buildSearch(text, searchSettings)) {
 			return;
 		}
+
 		startSearch();
 		searchTask.setResultsLimit(100);
 		searchTask.setProgressListener(this::updateProgress);
 		searchTask.fetchResults();
+		LOG.debug("Total search items count estimation: {}", searchTask.getTaskProgress().total());
 	}
 
 	private boolean buildSearch(String text, SearchSettings searchSettings) {
@@ -360,7 +368,7 @@ public class SearchDialog extends CommonSearchDialog {
 			merged.add(new FieldSearchProvider(mainWindow, searchSettings, allClasses));
 		}
 		if (options.contains(CODE)) {
-			// TODO: split classes list and run several search jobs in parallel (also sort results)
+			// TODO: use decompilation batches and run several search jobs in parallel, sort results
 			merged.add(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
 		}
 		if (options.contains(RESOURCE)) {
@@ -432,6 +440,7 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private synchronized void searchComplete() {
+		UiUtils.uiThreadGuard();
 		LOG.debug("Search complete");
 		progressFinishedCommon();
 

@@ -818,8 +818,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	@Override
-	public String getTagName() {
-		return "cls";
+	public AnnType getAnnType() {
+		return AnnType.CLASS;
 	}
 
 	@Override

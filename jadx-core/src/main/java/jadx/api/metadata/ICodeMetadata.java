@@ -1,6 +1,7 @@
 package jadx.api.metadata;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +16,30 @@ public interface ICodeMetadata {
 
 	@Nullable
 	ICodeAnnotation getClosestUp(int position);
+
+	@Nullable
+	ICodeAnnotation searchUp(int position, ICodeAnnotation.AnnType annType);
+
+	@Nullable
+	ICodeAnnotation searchUp(int position, int limitPos, ICodeAnnotation.AnnType annType);
+
+	/**
+	 * Iterate code annotations from {@code startPos} to smaller positions.
+	 *
+	 * @param visitor
+	 *                return not null value to stop iterations
+	 */
+	@Nullable
+	<T> T searchUp(int startPos, BiFunction<Integer, ICodeAnnotation, T> visitor);
+
+	/**
+	 * Iterate code annotations from {@code startPos} to higher positions.
+	 *
+	 * @param visitor
+	 *                return not null value to stop iterations
+	 */
+	@Nullable
+	<T> T searchDown(int startPos, BiFunction<Integer, ICodeAnnotation, T> visitor);
 
 	/**
 	 * Get current node at position (can be enclosing class or method)

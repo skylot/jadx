@@ -48,7 +48,7 @@ public class TestCodeMetadata extends IntegrationTest {
 
 		JavaClass javaClass = Objects.requireNonNull(jadxDecompiler.getJavaClassByNode(cls));
 		JavaMethod callJavaMethod = Objects.requireNonNull(jadxDecompiler.getJavaMethodByNode(callMth));
-		List<Integer> callUsePlaces = javaClass.getUsePlacesFor(callJavaMethod);
+		List<Integer> callUsePlaces = javaClass.getUsePlacesFor(javaClass.getCodeInfo(), callJavaMethod);
 		assertThat(callUsePlaces).hasSize(1);
 		int callUse = callUsePlaces.get(0);
 
