@@ -1,5 +1,7 @@
 package jadx.gui.treemodel;
 
+import java.util.Comparator;
+
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -12,7 +14,7 @@ import jadx.api.JavaNode;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
 
-public abstract class JNode extends DefaultMutableTreeNode {
+public abstract class JNode extends DefaultMutableTreeNode implements Comparable<JNode> {
 
 	private static final long serialVersionUID = -5154479091781041008L;
 
@@ -89,6 +91,15 @@ public abstract class JNode extends DefaultMutableTreeNode {
 
 	public String getTooltip() {
 		return null;
+	}
+
+	private static final Comparator<JNode> COMPARATOR = Comparator
+			.comparing(JNode::makeLongString)
+			.thenComparingInt(JNode::getPos);
+
+	@Override
+	public int compareTo(@NotNull JNode other) {
+		return COMPARATOR.compare(this, other);
 	}
 
 	@Override

@@ -415,12 +415,20 @@ public class JadxSettings extends JadxCLIArgs {
 		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
 	}
 
+	@JadxSettingsAdapter.GsonExclude
+	private Font cachedFont = null;
+
 	public Font getFont() {
+		if (cachedFont != null) {
+			return cachedFont;
+		}
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
 		}
 		try {
-			return FontUtils.loadByStr(fontStr);
+			Font font = FontUtils.loadByStr(fontStr);
+			this.cachedFont = font;
+			return font;
 		} catch (Exception e) {
 			LOG.warn("Failed to load font: {}, reset to default", fontStr, e);
 			setFont(DEFAULT_FONT);
@@ -430,10 +438,20 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFont(@Nullable Font font) {
 		if (font == null) {
-			this.fontStr = "";
+			setFontStr("");
 		} else {
-			this.fontStr = FontUtils.convertToStr(font);
+			setFontStr(FontUtils.convertToStr(font));
+			this.cachedFont = font;
 		}
+	}
+
+	public String getFontStr() {
+		return fontStr;
+	}
+
+	public void setFontStr(String fontStr) {
+		this.fontStr = fontStr;
+		this.cachedFont = null;
 	}
 
 	public Font getSmaliFont() {

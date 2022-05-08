@@ -69,7 +69,7 @@ public class BackgroundExecutor {
 		try {
 			taskRunning.values().forEach(Cancelable::cancel);
 			taskQueueExecutor.shutdown();
-			boolean complete = taskQueueExecutor.awaitTermination(5, TimeUnit.SECONDS);
+			boolean complete = taskQueueExecutor.awaitTermination(30, TimeUnit.SECONDS);
 			LOG.debug("Background task executor terminated with status: {}", complete ? "complete" : "interrupted");
 		} catch (Exception e) {
 			LOG.error("Error terminating task executor", e);
@@ -173,7 +173,7 @@ public class BackgroundExecutor {
 					}
 					updateProgress(executor);
 					k++;
-					Thread.sleep(k < 20 ? 100 : 1000); // faster update for short tasks
+					Thread.sleep(k < 10 ? 200 : 1000); // faster update for short tasks
 					if (jobsCount == 1 && k == 3) {
 						// small delay before show progress to reduce blinking on short tasks
 						progressPane.changeVisibility(this, true);
@@ -211,9 +211,9 @@ public class BackgroundExecutor {
 			progressPane.changeIndeterminate(this, true);
 			// force termination
 			task.cancel();
-			executor.shutdownNow();
+			executor.shutdown();
 			boolean complete = executor.awaitTermination(5, TimeUnit.SECONDS);
-			LOG.debug("Task cancel complete: {}", complete);
+			LOG.debug("Task cancel complete: {}", complete ? "success" : "aborted");
 		}
 
 		private Supplier<TaskStatus> buildCancelCheck(long startTime) {

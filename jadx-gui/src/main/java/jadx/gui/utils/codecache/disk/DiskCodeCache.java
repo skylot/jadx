@@ -77,6 +77,7 @@ public class DiskCodeCache implements ICodeCache {
 
 	private void reset() {
 		try {
+			long start = System.currentTimeMillis();
 			LOG.info("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());
 			FileUtils.deleteDirIfExists(srcDir);
 			FileUtils.deleteDirIfExists(metaDir);
@@ -84,6 +85,9 @@ public class DiskCodeCache implements ICodeCache {
 			FileUtils.makeDirs(metaDir);
 			writeFile(codeVersionFile, codeVersion);
 			cachedKeys.clear();
+			if (LOG.isDebugEnabled()) {
+				LOG.info("Reset done in: {}ms", System.currentTimeMillis() - start);
+			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to reset code cache", e);
 		}
@@ -119,14 +123,10 @@ public class DiskCodeCache implements ICodeCache {
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		writeOps.put(clsFullName, codeInfo);
 		cachedKeys.add(clsFullName);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Saving class info to disk: {}, in queue: {}", clsFullName, writeOps.size());
-		}
 		writePool.execute(() -> {
 			try {
 				writeFile(getJavaFile(clsFullName), codeInfo.getCodeStr());
 				codeMetadataAdapter.write(getMetadataFile(clsFullName), codeInfo.getCodeMetadata());
-				LOG.debug("Class saved: {}", clsFullName);
 			} catch (Exception e) {
 				LOG.error("Failed to write code cache for " + clsFullName, e);
 				remove(clsFullName);
@@ -150,7 +150,6 @@ public class DiskCodeCache implements ICodeCache {
 			if (!Files.exists(javaFile)) {
 				return null;
 			}
-			LOG.debug("Loading class code from disk: {}", clsFullName);
 			return readFileToString(javaFile);
 		} catch (Exception e) {
 			LOG.error("Failed to read class code for {}", clsFullName, e);
@@ -172,7 +171,6 @@ public class DiskCodeCache implements ICodeCache {
 			if (!Files.exists(javaFile)) {
 				return ICodeInfo.EMPTY;
 			}
-			LOG.debug("Loading class from disk: {}", clsFullName);
 			String code = readFileToString(javaFile);
 			return codeMetadataAdapter.readAndBuild(getMetadataFile(clsFullName), code);
 		} catch (Exception e) {

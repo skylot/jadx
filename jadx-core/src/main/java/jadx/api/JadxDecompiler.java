@@ -243,6 +243,7 @@ public final class JadxDecompiler implements Closeable {
 		save(false, true);
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private void save(boolean saveSources, boolean saveResources) {
 		ExecutorService ex = getSaveExecutor(saveSources, saveResources);
 		ex.shutdown();
@@ -447,6 +448,7 @@ public final class JadxDecompiler implements Closeable {
 	/**
 	 * Internal API. Not Stable!
 	 */
+	@ApiStatus.Internal
 	public RootNode getRoot() {
 		return root;
 	}
@@ -672,7 +674,7 @@ public final class JadxDecompiler implements Closeable {
 		if (mth == null) {
 			return null;
 		}
-		return new JavaVariable(mth, varNode); // TODO: is cache needed?
+		return new JavaVariable(mth, varNode);
 	}
 
 	@Nullable
@@ -685,23 +687,6 @@ public final class JadxDecompiler implements Closeable {
 			return null;
 		}
 		return (JavaVariable) getJavaNodeByCodeAnnotation(codeInfo, varNodeAnn);
-	}
-
-	// TODO: make interface for all nodes in code annotations and add common method instead this
-	Object getInternalNode(JavaNode javaNode) {
-		if (javaNode instanceof JavaClass) {
-			return ((JavaClass) javaNode).getClassNode();
-		}
-		if (javaNode instanceof JavaMethod) {
-			return ((JavaMethod) javaNode).getMethodNode();
-		}
-		if (javaNode instanceof JavaField) {
-			return ((JavaField) javaNode).getFieldNode();
-		}
-		if (javaNode instanceof JavaVariable) {
-			return ((JavaVariable) javaNode).getVarNode();
-		}
-		throw new JadxRuntimeException("Unexpected node type: " + javaNode);
 	}
 
 	List<JavaNode> convertNodes(Collection<? extends ICodeNodeRef> nodesList) {

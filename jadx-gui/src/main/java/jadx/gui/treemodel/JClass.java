@@ -20,7 +20,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class JClass extends JLoadableNode implements Comparable<JClass> {
+public class JClass extends JLoadableNode {
 	private static final long serialVersionUID = -1239986875244097177L;
 
 	private static final ImageIcon ICON_CLASS = UiUtils.openSvgIcon("nodes/class");
@@ -197,8 +197,22 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		return cls.getFullName();
 	}
 
+	public int compareToCls(@NotNull JClass otherCls) {
+		return this.getCls().getRawName().compareTo(otherCls.getCls().getRawName());
+	}
+
 	@Override
-	public int compareTo(@NotNull JClass o) {
-		return this.getFullName().compareTo(o.getFullName());
+	public int compareTo(@NotNull JNode other) {
+		if (other instanceof JClass) {
+			return compareToCls((JClass) other);
+		}
+		if (other instanceof JMethod) {
+			int cmp = compareToCls(other.getJParent());
+			if (cmp != 0) {
+				return cmp;
+			}
+			return -1;
+		}
+		return super.compareTo(other);
 	}
 }

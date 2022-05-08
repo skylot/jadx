@@ -75,6 +75,10 @@ public final class JavaClass implements JavaNode {
 		return cls.contains(AFlag.DONT_GENERATE);
 	}
 
+	public boolean isInner() {
+		return cls.isInner();
+	}
+
 	public synchronized String getSmali() {
 		return cls.getDisassembledCode();
 	}
@@ -99,9 +103,6 @@ public final class JavaClass implements JavaNode {
 		}
 		listsLoaded = true;
 		JadxDecompiler rootDecompiler = getRootDecompiler();
-
-		// TODO: Blocking issue!!!
-		// load inner and inlined classes from cache without actual decompilation (add to metadata?)
 		ICodeCache codeCache = rootDecompiler.getArgs().getCodeCache();
 		if (!codeCache.contains(cls.getRawName())) {
 			cls.decompile();

@@ -9,7 +9,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
@@ -28,7 +27,7 @@ import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class JResource extends JLoadableNode implements Comparable<JResource> {
+public class JResource extends JLoadableNode {
 	private static final long serialVersionUID = -201018424302612434L;
 
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/resourcesRoot");
@@ -321,13 +320,13 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	@Override
-	public int compareTo(@NotNull JResource o) {
-		return name.compareTo(o.name);
+	public String makeString() {
+		return shortName;
 	}
 
 	@Override
-	public String makeString() {
-		return shortName;
+	public String makeLongString() {
+		return name;
 	}
 
 	@Override

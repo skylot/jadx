@@ -143,16 +143,34 @@ public class JadxWrapper {
 		if (excludedPackages.isEmpty()) {
 			return classList;
 		}
+		return classList.stream()
+				.filter(cls -> isClassIncluded(excludedPackages, cls))
+				.collect(Collectors.toList());
+	}
 
-		return classList.stream().filter(cls -> {
-			for (String exclude : excludedPackages) {
-				if (cls.getFullName().equals(exclude)
-						|| cls.getFullName().startsWith(exclude + '.')) {
-					return false;
-				}
+	/**
+	 * Get all classes that are not excluded by the excluded packages settings including inner classes
+	 */
+	public List<JavaClass> getIncludedClassesWithInners() {
+		List<JavaClass> classes = decompiler.getClassesWithInners();
+		List<String> excludedPackages = getExcludedPackages();
+		if (excludedPackages.isEmpty()) {
+			return classes;
+		}
+		return classes.stream()
+				.filter(cls -> isClassIncluded(excludedPackages, cls))
+				.collect(Collectors.toList());
+	}
+
+	private static boolean isClassIncluded(List<String> excludedPackages, JavaClass cls) {
+		for (String exclude : excludedPackages) {
+			String clsFullName = cls.getFullName();
+			if (clsFullName.equals(exclude)
+					|| clsFullName.startsWith(exclude + '.')) {
+				return false;
 			}
-			return true;
-		}).collect(Collectors.toList());
+		}
+		return true;
 	}
 
 	public List<List<JavaClass>> buildDecompileBatches(List<JavaClass> classes) {

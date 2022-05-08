@@ -7,9 +7,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +38,7 @@ import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 
 import jadx.api.JavaClass;
+import jadx.core.utils.ListUtils;
 import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.search.SearchTask;
@@ -123,6 +124,9 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private transient String initSearchText = null;
 
+	// temporal list for pending results
+	private final List<JNode> pendingResults = new ArrayList<>();
+
 	private SearchDialog(MainWindow mainWindow, SearchPreset preset, Set<SearchOptions> additionalOptions) {
 		super(mainWindow, NLS.str("menu.text_search"));
 		this.searchPreset = preset;
@@ -149,7 +153,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private Set<SearchOptions> buildOptions(SearchPreset preset) {
 		Set<SearchOptions> searchOptions = cache.getLastSearchOptions().get(preset);
 		if (searchOptions == null) {
-			searchOptions = new HashSet<>();
+			searchOptions = EnumSet.noneOf(SearchOptions.class);
 		}
 		switch (preset) {
 			case TEXT:
@@ -179,6 +183,7 @@ public class SearchDialog extends CommonSearchDialog {
 			searchField.selectAll();
 		}
 		searchField.requestFocus();
+		resultsTable.initColumnWidth();
 
 		if (options.contains(COMMENT)) {
 			// show all comments on empty input
@@ -349,14 +354,14 @@ public class SearchDialog extends CommonSearchDialog {
 			searchSettings.setActiveCls(activeCls);
 			allClasses = Collections.singletonList(activeCls.getCls());
 		} else {
-			allClasses = mainWindow.getWrapper().getDecompiler().getClassesWithInners();
+			allClasses = mainWindow.getWrapper().getIncludedClassesWithInners();
 		}
 		// allow empty text for comments search
 		if (text.isEmpty() && options.contains(SearchOptions.COMMENT)) {
 			searchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
 			return true;
 		}
-		// forcing ordered execution
+		// using ordered execution for fast tasks
 		MergedSearchProvider merged = new MergedSearchProvider();
 		if (options.contains(CLASS)) {
 			merged.add(new ClassSearchProvider(mainWindow, searchSettings, allClasses));
@@ -368,14 +373,20 @@ public class SearchDialog extends CommonSearchDialog {
 			merged.add(new FieldSearchProvider(mainWindow, searchSettings, allClasses));
 		}
 		if (options.contains(CODE)) {
-			// TODO: use decompilation batches and run several search jobs in parallel, sort results
-			merged.add(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
+			if (allClasses.size() == 1) {
+				searchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
+			} else {
+				List<JavaClass> topClasses = ListUtils.filter(allClasses, c -> !c.isInner());
+				for (List<JavaClass> batch : mainWindow.getWrapper().buildDecompileBatches(topClasses)) {
+					searchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, batch));
+				}
+			}
 		}
 		if (options.contains(RESOURCE)) {
-			merged.add(new ResourceSearchProvider(mainWindow, searchSettings));
+			searchTask.addProviderJob(new ResourceSearchProvider(mainWindow, searchSettings));
 		}
 		if (options.contains(COMMENT)) {
-			merged.add(new CommentSearchProvider(mainWindow, searchSettings));
+			searchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
 		}
 		merged.prepare();
 		searchTask.addProviderJob(merged);
@@ -407,13 +418,9 @@ public class SearchDialog extends CommonSearchDialog {
 		searchTask.fetchResults();
 	}
 
-	private void updateProgress(ITaskProgress progress) {
-		UiUtils.uiRun(() -> progressPane.setProgress(progress));
-	}
-
 	private synchronized void resetSearch() {
 		resultsModel.clear();
-		resultsTable.updateTable();
+		updateTable();
 		progressPane.setVisible(false);
 		warnLabel.setVisible(false);
 		loadAllButton.setEnabled(false);
@@ -426,38 +433,48 @@ public class SearchDialog extends CommonSearchDialog {
 		progressStartCommon();
 	}
 
-	private long lastResultsUpdate;
-
 	private void addSearchResult(JNode node) {
+		synchronized (pendingResults) {
+			pendingResults.add(node);
+		}
+	}
+
+	private void updateTable() {
+		synchronized (pendingResults) {
+			Collections.sort(pendingResults);
+			resultsModel.addAll(pendingResults);
+			pendingResults.clear();
+		}
+		resultsTable.updateTable();
+	}
+
+	private void updateTableHighlight() {
+		String text = searchField.getText();
+		setHighlightText(text);
+		highlightTextCaseInsensitive = options.contains(SearchOptions.IGNORE_CASE);
+		highlightTextUseRegex = options.contains(SearchOptions.USE_REGEX);
+		cache.setLastSearch(text);
+		cache.getLastSearchOptions().put(searchPreset, options);
+	}
+
+	private void updateProgress(ITaskProgress progress) {
 		UiUtils.uiRun(() -> {
-			resultsModel.add(node);
-			long now = System.currentTimeMillis();
-			if (now - lastResultsUpdate > 1000) {
-				resultsTable.updateTable();
-				lastResultsUpdate = now;
-			}
+			progressPane.setProgress(progress);
+			updateTable();
 		});
 	}
 
 	private synchronized void searchComplete() {
 		UiUtils.uiThreadGuard();
 		LOG.debug("Search complete");
-		progressFinishedCommon();
+		updateTableHighlight();
+		updateTable();
 
 		boolean complete = searchTask.isSearchComplete();
 		loadAllButton.setEnabled(!complete);
 		loadMoreButton.setEnabled(!complete);
 		updateProgressLabel(complete);
-
-		String text = searchField.getText();
-		setHighlightText(text);
-		highlightTextCaseInsensitive = options.contains(SearchOptions.IGNORE_CASE);
-		highlightTextUseRegex = options.contains(SearchOptions.USE_REGEX);
-
-		cache.setLastSearch(text);
-		cache.getLastSearchOptions().put(searchPreset, options);
-
-		resultsTable.updateTable();
+		progressFinishedCommon();
 	}
 
 	private static Flowable<String> onTextFieldChanges(final JTextField textField) {

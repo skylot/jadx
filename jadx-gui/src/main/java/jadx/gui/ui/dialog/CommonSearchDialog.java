@@ -14,6 +14,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -36,13 +37,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
@@ -60,6 +62,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class CommonSearchDialog extends JFrame {
+	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
 	private static final long serialVersionUID = 8939332306115370276L;
 
 	protected final transient TabbedPane tabbedPane;
@@ -120,11 +123,6 @@ public abstract class CommonSearchDialog extends JFrame {
 				SwingUtilities.invokeLater(CommonSearchDialog.this::openInit);
 			}
 		});
-	}
-
-	protected synchronized void performSearch() {
-		resultsTable.updateTable();
-		updateProgressLabel(true);
 	}
 
 	protected void openSelectedItem() {
@@ -288,66 +286,86 @@ public abstract class CommonSearchDialog extends JFrame {
 		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching") + "...");
 	}
 
-	protected static class ResultsTable extends JTable {
+	protected static final class ResultsTable extends JTable {
 		private static final long serialVersionUID = 3901184054736618969L;
 		private final transient ResultsTableCellRenderer renderer;
+		private final transient ResultsModel model;
 
 		public ResultsTable(ResultsModel resultsModel, ResultsTableCellRenderer renderer) {
 			super(resultsModel);
+			this.model = resultsModel;
 			this.renderer = renderer;
 		}
 
-		public void updateTable() {
-			ResultsModel model = (ResultsModel) getModel();
-			TableColumnModel columnModel = getColumnModel();
-
-			int width = getParent().getWidth();
-			int firstColMaxWidth = (int) (width * 0.5);
-			int rowCount = getRowCount();
+		public void initColumnWidth() {
 			int columnCount = getColumnCount();
-			boolean addDescColumn = model.isAddDescColumn();
-			if (!addDescColumn) {
-				firstColMaxWidth = width;
+			int width = getParent().getWidth();
+			int colWidth = model.isAddDescColumn() ? width / 2 : width;
+			columnModel.getColumn(0).setPreferredWidth(colWidth);
+			for (int col = 1; col < columnCount; col++) {
+				columnModel.getColumn(col).setPreferredWidth(width);
 			}
-			setRowHeight(10); // reset all rows height
-			for (int col = 0; col < columnCount; col++) {
-				int colWidth = 50;
-				for (int row = 0; row < rowCount; row++) {
-					Component comp = prepareRenderer(renderer, row, col);
-					if (comp == null) {
-						continue;
-					}
-					colWidth = Math.max(comp.getPreferredSize().width, colWidth);
-					int h = Math.max(getRowHeight(row), getHeight(comp));
-					if (h > 1) {
-						setRowHeight(row, h);
-					}
-				}
-				colWidth += 10;
-				if (col == 0) {
-					colWidth = Math.min(colWidth, firstColMaxWidth);
-				} else {
-					colWidth = Math.max(colWidth, width - columnModel.getColumn(0).getPreferredWidth());
-				}
-				TableColumn column = columnModel.getColumn(col);
-				column.setPreferredWidth(colWidth);
-			}
-			updateUI();
 		}
 
-		private int getHeight(@Nullable Component nodeComp) {
-			if (nodeComp != null) {
-				return Math.max(nodeComp.getHeight(), nodeComp.getPreferredSize().height);
+		public void updateTable() {
+			UiUtils.uiThreadGuard();
+			long start = System.currentTimeMillis();
+			int width = getParent().getWidth();
+			TableColumn firstColumn = columnModel.getColumn(0);
+			if (model.isAddDescColumn()) {
+				if (firstColumn.getWidth() > width * 0.8) {
+					// first column too big and hide second column, resize it
+					firstColumn.setPreferredWidth(width / 2);
+				}
+				TableColumn secondColumn = columnModel.getColumn(1);
+				int columnMaxWidth = width * 2; // set big enough size to skip per row check
+				if (secondColumn.getWidth() < columnMaxWidth) {
+					secondColumn.setPreferredWidth(columnMaxWidth);
+				}
+			} else {
+				firstColumn.setPreferredWidth(width);
 			}
-			return 0;
+			int rowCount = getRowCount();
+			int columnCount = getColumnCount();
+			Map<Class<?>, Integer> heightByType = new HashMap<>();
+			for (int row = 0; row < rowCount; row++) {
+				Object value = model.getValueAt(row, 0);
+				Class<?> valueType = value.getClass();
+				Integer cachedHeight = heightByType.get(valueType);
+				if (cachedHeight != null) {
+					setRowHeight(row, cachedHeight);
+				} else {
+					int height = 0;
+					for (int col = 0; col < columnCount; col++) {
+						Component comp = prepareRenderer(renderer, row, col);
+						if (comp == null) {
+							continue;
+						}
+						Dimension preferredSize = comp.getPreferredSize();
+						int h = Math.max(comp.getHeight(), preferredSize.height);
+						height = Math.max(height, h);
+					}
+					heightByType.put(valueType, height);
+					setRowHeight(row, height);
+				}
+			}
+			updateUI();
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Update results table in {}ms, count: {}", System.currentTimeMillis() - start, rowCount);
+			}
+		}
+
+		@Override
+		public Object getValueAt(int row, int column) {
+			return model.getValueAt(row, column);
 		}
 	}
 
-	protected static class ResultsModel extends AbstractTableModel {
+	protected static final class ResultsModel extends AbstractTableModel {
 		private static final long serialVersionUID = -7821286846923903208L;
 		private static final String[] COLUMN_NAMES = { NLS.str("search_dialog.col_node"), NLS.str("search_dialog.col_code") };
 
-		private final transient List<JNode> rows = new ArrayList<>();
+		private final transient List<JNode> rows = Collections.synchronizedList(new ArrayList<>());
 		private final transient ResultsTableCellRenderer renderer;
 		private transient boolean addDescColumn;
 
@@ -355,7 +373,7 @@ public abstract class CommonSearchDialog extends JFrame {
 			this.renderer = renderer;
 		}
 
-		protected void addAll(Collection<? extends JNode> nodes) {
+		public void addAll(Collection<? extends JNode> nodes) {
 			rows.addAll(nodes);
 			if (!addDescColumn) {
 				for (JNode row : rows) {
@@ -364,13 +382,6 @@ public abstract class CommonSearchDialog extends JFrame {
 						break;
 					}
 				}
-			}
-		}
-
-		protected void add(JNode node) {
-			rows.add(node);
-			if (!addDescColumn && node.hasDescString()) {
-				addDescColumn = true;
 			}
 		}
 
@@ -405,7 +416,7 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	protected class ResultsTableCellRenderer implements TableCellRenderer {
+	protected final class ResultsTableCellRenderer implements TableCellRenderer {
 		private final JLabel emptyLabel = new JLabel();
 		private final Font font;
 		private final Color codeSelectedColor;
@@ -420,24 +431,20 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row,
-				int column) {
-			int id = makeID(row, column);
-			Component comp = componentCache.get(id);
-			if (comp == null) {
+		public Component getTableCellRendererComponent(JTable table, Object obj,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			Component comp = componentCache.computeIfAbsent(makeID(row, column), id -> {
 				if (obj instanceof JNode) {
-					comp = makeCell((JNode) obj, column);
-					componentCache.put(id, comp);
-				} else {
-					comp = emptyLabel;
+					return makeCell((JNode) obj, column);
 				}
-			}
+				return emptyLabel;
+			});
 			updateSelection(table, comp, isSelected);
 			return comp;
 		}
 
 		private int makeID(int row, int col) {
-			return row << 2 | col;
+			return row << 2 | (col & 0b11);
 		}
 
 		private void updateSelection(JTable table, Component comp, boolean isSelected) {
@@ -460,7 +467,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
-				JLabel label = new JLabel(node.makeLongStringHtml() + "  ", node.getIcon(), SwingConstants.LEFT);
+				JLabel label = new JLabel(node.makeLongStringHtml(), node.getIcon(), SwingConstants.LEFT);
 				label.setFont(font);
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());
@@ -497,14 +504,12 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	void progressStartCommon() {
-		// setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progressPane.setIndeterminate(true);
 		progressPane.setVisible(true);
 		warnLabel.setVisible(false);
 	}
 
 	void progressFinishedCommon() {
-		// setCursor(null);
 		progressPane.setVisible(false);
 	}
 

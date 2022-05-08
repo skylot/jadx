@@ -35,7 +35,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 				processTokens(tokens);
 			}
 			return tokens;
-		} catch (Exception e) {
+		} catch (Throwable e) { // JavaTokenMaker throws 'java.lang.Error' if failed to parse input string
 			LOG.error("Process tokens failed for text: {}", text, e);
 			return new TokenImpl();
 		}

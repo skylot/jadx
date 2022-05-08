@@ -123,6 +123,7 @@ public class UsageDialog extends CommonSearchDialog {
 		resultsModel.addAll(usageList);
 		// TODO: highlight only needed node usage
 		setHighlightText(null);
+		resultsTable.initColumnWidth();
 		resultsTable.updateTable();
 		updateProgressLabel(true);
 	}

@@ -38,7 +38,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
 		while (true) {
-			if (cancelable.isCanceled()) {
+			if (cancelable.isCanceled() || clsNum >= classes.size()) {
 				return null;
 			}
 			JavaClass cls = classes.get(clsNum);
@@ -51,9 +51,9 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 					return newResult;
 				}
 			}
-			if (nextClass()) {
-				return null;
-			}
+			clsNum++;
+			pos = 0;
+			code = null;
 		}
 	}
 
@@ -72,13 +72,17 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 	}
 
 	private JNode getEnclosingNode(JavaClass javaCls, int pos) {
-		ICodeMetadata metadata = javaCls.getCodeInfo().getCodeMetadata();
-		ICodeNodeRef nodeRef = metadata.getNodeAt(pos);
-		JavaNode encNode = decompiler.getJavaNodeByRef(nodeRef);
-		if (encNode == null) {
-			return convert(javaCls);
+		try {
+			ICodeMetadata metadata = javaCls.getCodeInfo().getCodeMetadata();
+			ICodeNodeRef nodeRef = metadata.getNodeAt(pos);
+			JavaNode encNode = decompiler.getJavaNodeByRef(nodeRef);
+			if (encNode != null) {
+				return convert(encNode);
+			}
+		} catch (Exception e) {
+			LOG.debug("Failed to resolve enclosing node", e);
 		}
-		return convert(encNode);
+		return convert(javaCls);
 	}
 
 	private String getClassCode(JavaClass javaClass, ICodeCache codeCache) {
