@@ -22,10 +22,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +72,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,6 +114,7 @@ import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
@@ -1298,15 +1301,32 @@ public class MainWindow extends JFrame {
 	}
 
 	private void setEditorTheme(String editorThemePath) {
+		try {
+			URL themeUrl = getClass().getResource(editorThemePath);
+			if (themeUrl != null) {
+				try (InputStream is = themeUrl.openStream()) {
+					editorTheme = Theme.load(is);
+					return;
+				}
+			}
+			Path themePath = Paths.get(editorThemePath);
+			if (Files.isRegularFile(themePath)) {
+				try (InputStream is = Files.newInputStream(themePath)) {
+					editorTheme = Theme.load(is);
+					return;
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to load editor theme: {}", editorThemePath, e);
+		}
+		LOG.warn("Falling back to default editor theme: {}", editorThemePath);
+		editorThemePath = EditorTheme.getDefaultTheme().getPath();
 		try (InputStream is = getClass().getResourceAsStream(editorThemePath)) {
 			editorTheme = Theme.load(is);
+			return;
 		} catch (Exception e) {
-			LOG.error("Can't load editor theme from classpath: {}", editorThemePath);
-			try (InputStream is = new FileInputStream(editorThemePath)) {
-				editorTheme = Theme.load(is);
-			} catch (Exception ex) {
-				LOG.error("Can't load editor theme from file: {}", editorThemePath);
-			}
+			LOG.error("Failed to load default editor theme: {}", editorThemePath, e);
+			editorTheme = new Theme(new RSyntaxTextArea());
 		}
 	}
 
