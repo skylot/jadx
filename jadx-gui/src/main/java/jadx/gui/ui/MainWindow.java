@@ -1319,7 +1319,7 @@ public class MainWindow extends JFrame {
 		} catch (Exception e) {
 			LOG.error("Failed to load editor theme: {}", editorThemePath, e);
 		}
-		LOG.warn("Falling back to default editor theme", editorThemePath);
+		LOG.warn("Falling back to default editor theme: {}", editorThemePath);
 		editorThemePath = EditorTheme.getDefaultTheme().getPath();
 		try (InputStream is = getClass().getResourceAsStream(editorThemePath)) {
 			editorTheme = Theme.load(is);
