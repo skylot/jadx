@@ -443,7 +443,7 @@ public class MainWindow extends JFrame {
 				return false;
 			}
 			if (res == JOptionPane.YES_OPTION) {
-				project.save();
+				saveProject();
 			}
 		}
 		return true;
