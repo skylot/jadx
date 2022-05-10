@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public final class FridaAction extends JNodeAction {
 	private String generateMethodSnippet(JMethod jMth) {
 		JavaMethod javaMethod = jMth.getJavaMethod();
 		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
-		String methodName = methodInfo.getName();
+		String methodName = StringEscapeUtils.escapeEcmaScript(methodInfo.getName());
 		if (methodInfo.isConstructor()) {
 			methodName = "$init";
 		}
@@ -83,9 +84,9 @@ public final class FridaAction extends JNodeAction {
 		if (isOverloaded(javaMethod.getMethodNode())) {
 			List<ArgType> methodArgs = methodInfo.getArgumentsTypes();
 			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
-			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", shortClassName, methodName, overloadStr);
+			functionUntilImplementation = String.format("%s[\"%s\"].overload(%s).implementation", shortClassName, methodName, overloadStr);
 		} else {
-			functionUntilImplementation = String.format("%s.%s.implementation", shortClassName, methodName);
+			functionUntilImplementation = String.format("%s[\"%s\"].implementation", shortClassName, methodName);
 		}
 
 		String functionParametersString =
@@ -109,14 +110,14 @@ public final class FridaAction extends JNodeAction {
 
 	private String generateClassSnippet(JClass jc) {
 		JavaClass javaClass = jc.getCls();
-		String rawClassName = javaClass.getRawName();
+		String rawClassName = StringEscapeUtils.escapeEcmaScript(javaClass.getRawName());
 		String shortClassName = javaClass.getName();
 		return String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
 	}
 
 	private String generateFieldSnippet(JField jf) {
 		JavaField javaField = jf.getJavaField();
-		String rawFieldName = javaField.getRawName();
+		String rawFieldName = StringEscapeUtils.escapeEcmaScript(javaField.getRawName());
 		String fieldName = javaField.getName();
 
 		List<MethodNode> methodNodes = javaField.getFieldNode().getParentClass().getMethods();
