@@ -99,13 +99,6 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 		}
 	}
 
-	private boolean nextClass() {
-		clsNum++;
-		pos = 0;
-		code = null;
-		return clsNum >= classes.size();
-	}
-
 	@Override
 	public int progress() {
 		return clsNum;

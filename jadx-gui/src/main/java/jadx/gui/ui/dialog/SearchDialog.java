@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -114,7 +115,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private transient JTextField searchField;
 
-	private transient SearchTask searchTask;
+	private transient @Nullable SearchTask searchTask;
 	private transient JButton loadAllButton;
 	private transient JButton loadMoreButton;
 
@@ -315,14 +316,13 @@ public class SearchDialog extends CommonSearchDialog {
 		if (text.isEmpty() && !options.contains(SearchOptions.COMMENT)) {
 			return;
 		}
-		LOG.debug("search event: {}", text);
+		LOG.debug("Building search for '{}', options: {}", text, options);
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
-		LOG.debug("Building search, ignoreCase: {}, useRegex: {}", ignoreCase, useRegex);
 		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex);
 		String error = searchSettings.prepare();
 		if (error == null) {
-			if (searchField.getBackground() == SEARCH_FIELD_ERROR_COLOR) {
+			if (Objects.equals(searchField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
 				searchField.setBackground(searchFieldDefaultBgColor);
 			}
 		} else {
@@ -343,6 +343,8 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private boolean buildSearch(String text, SearchSettings searchSettings) {
+		Objects.requireNonNull(searchTask);
+
 		List<JavaClass> allClasses;
 		if (options.contains(ACTIVE_TAB)) {
 			JumpPosition currentPos = mainWindow.getTabbedPane().getCurrentPosition();
@@ -394,11 +396,10 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private synchronized void stopSearchTask() {
-		if (searchTask == null) {
-			return;
+		if (searchTask != null) {
+			searchTask.cancel();
+			searchTask.waitTask();
 		}
-		searchTask.cancel();
-		searchTask.waitTask();
 	}
 
 	private synchronized void loadMore() {
@@ -470,7 +471,7 @@ public class SearchDialog extends CommonSearchDialog {
 		updateTableHighlight();
 		updateTable();
 
-		boolean complete = searchTask.isSearchComplete();
+		boolean complete = searchTask == null || searchTask.isSearchComplete();
 		loadAllButton.setEnabled(!complete);
 		loadMoreButton.setEnabled(!complete);
 		updateProgressLabel(complete);

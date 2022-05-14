@@ -2,6 +2,8 @@ package jadx.gui.search;
 
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.gui.treemodel.JClass;
 
 public class SearchSettings {
@@ -20,6 +22,7 @@ public class SearchSettings {
 		this.ignoreCase = ignoreCase;
 	}
 
+	@Nullable
 	public String prepare() {
 		if (useRegex) {
 			try {

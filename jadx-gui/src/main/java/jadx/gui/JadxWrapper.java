@@ -1,6 +1,5 @@
 package jadx.gui;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,22 +85,21 @@ public class JadxWrapper {
 
 	private void initCodeCache(JadxArgs jadxArgs) {
 		switch (settings.getCodeCacheMode()) {
-			case MEMORY: {
+			case MEMORY:
 				jadxArgs.setCodeCache(new InMemoryCodeCache());
 				break;
-			}
-			case DISK_WITH_CACHE: {
-				DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
-				BufferCodeCache buffer = new BufferCodeCache(diskCache);
-				jadxArgs.setCodeCache(new CodeStringCache(buffer));
+			case DISK_WITH_CACHE:
+				jadxArgs.setCodeCache(new CodeStringCache(buildBufferedDiskCache()));
 				break;
-			}
-			case DISK: {
-				DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
-				jadxArgs.setCodeCache(new BufferCodeCache(diskCache));
+			case DISK:
+				jadxArgs.setCodeCache(buildBufferedDiskCache());
 				break;
-			}
 		}
+	}
+
+	private BufferCodeCache buildBufferedDiskCache() {
+		DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
+		return new BufferCodeCache(diskCache);
 	}
 
 	private Path getCacheDir() {
@@ -121,8 +119,8 @@ public class JadxWrapper {
 		if (codeCache != null) {
 			try {
 				codeCache.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Error on cache close", e);
 			}
 		}
 	}
