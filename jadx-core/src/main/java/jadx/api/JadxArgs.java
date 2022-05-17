@@ -1,9 +1,7 @@
 package jadx.api;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -18,6 +16,7 @@ import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxArgs {
 
@@ -524,16 +523,12 @@ public class JadxArgs {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ parseKotlinMetadata + useKotlinMethodsForVarNames
+				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
 				+ commentsLevel + useDxInput + pluginOptions;
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(argStr.getBytes(StandardCharsets.US_ASCII));
-			return new BigInteger(1, md.digest()).toString(16);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		return FileUtils.md5Sum(argStr.getBytes(StandardCharsets.US_ASCII));
 	}
 
 	@Override
@@ -555,6 +550,8 @@ public class JadxArgs {
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
+				+ ", insertDebugLines=" + insertDebugLines
+				+ ", extractFinally=" + extractFinally
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
 				+ ", escapeUnicode=" + escapeUnicode

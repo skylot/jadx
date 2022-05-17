@@ -1,5 +1,7 @@
 package jadx.gui.utils.codecache.disk;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,8 +11,10 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,13 +30,14 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 6;
+	private static final int DATA_FORMAT_VERSION = 7;
 
 	private final Path srcDir;
 	private final Path metaDir;
@@ -56,10 +61,6 @@ public class DiskCodeCache implements ICodeCache {
 		} else {
 			reset();
 		}
-	}
-
-	private String buildCodeVersion(JadxArgs args) {
-		return String.format("%d:%s", DATA_FORMAT_VERSION, args.makeCodeArgsHash());
 	}
 
 	private boolean checkCodeVersion() {
@@ -206,6 +207,33 @@ public class DiskCodeCache implements ICodeCache {
 			Files.write(file, data.getBytes(StandardCharsets.UTF_8));
 		} catch (Exception e) {
 			LOG.error("Failed to write file: {}", file.toAbsolutePath(), e);
+		}
+	}
+
+	private String buildCodeVersion(JadxArgs args) {
+		return DATA_FORMAT_VERSION
+				+ ":" + args.makeCodeArgsHash()
+				+ ":" + buildInputsHash(args.getInputFiles());
+	}
+
+	/**
+	 * Hash timestamps of all input files
+	 */
+	private String buildInputsHash(List<File> inputs) {
+		try (ByteArrayOutputStream bout = new ByteArrayOutputStream();
+				DataOutputStream data = new DataOutputStream(bout)) {
+			List<Path> inputPaths = Utils.collectionMap(inputs, File::toPath);
+			List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
+			Collections.sort(inputFiles);
+			data.write(inputs.size());
+			data.write(inputFiles.size());
+			for (Path inputFile : inputFiles) {
+				FileTime modifiedTime = Files.getLastModifiedTime(inputFile);
+				data.writeLong(modifiedTime.toMillis());
+			}
+			return FileUtils.md5Sum(bout.toByteArray());
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to build hash for inputs", e);
 		}
 	}
 
