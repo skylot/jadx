@@ -7,5 +7,5 @@ public enum TaskStatus {
 	CANCEL_BY_USER,
 	CANCEL_BY_TIMEOUT,
 	CANCEL_BY_MEMORY,
-	ERROR
+	ERROR;
 }

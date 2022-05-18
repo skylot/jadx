@@ -38,6 +38,7 @@ import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.codecache.CodeCacheMode;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -88,6 +89,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPath = "";
 	private String adbDialogHost = "localhost";
 	private String adbDialogPort = "5037";
+
+	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_CACHE;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -412,12 +415,20 @@ public class JadxSettings extends JadxCLIArgs {
 		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
 	}
 
+	@JadxSettingsAdapter.GsonExclude
+	private Font cachedFont = null;
+
 	public Font getFont() {
+		if (cachedFont != null) {
+			return cachedFont;
+		}
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
 		}
 		try {
-			return FontUtils.loadByStr(fontStr);
+			Font font = FontUtils.loadByStr(fontStr);
+			this.cachedFont = font;
+			return font;
 		} catch (Exception e) {
 			LOG.warn("Failed to load font: {}, reset to default", fontStr, e);
 			setFont(DEFAULT_FONT);
@@ -427,10 +438,20 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFont(@Nullable Font font) {
 		if (font == null) {
-			this.fontStr = "";
+			setFontStr("");
 		} else {
-			this.fontStr = FontUtils.convertToStr(font);
+			setFontStr(FontUtils.convertToStr(font));
+			this.cachedFont = font;
 		}
+	}
+
+	public String getFontStr() {
+		return fontStr;
+	}
+
+	public void setFontStr(String fontStr) {
+		this.fontStr = fontStr;
+		this.cachedFont = null;
 	}
 
 	public Font getSmaliFont() {
@@ -588,6 +609,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setPluginOptions(Map<String, String> pluginOptions) {
 		this.pluginOptions = pluginOptions;
+	}
+
+	public CodeCacheMode getCodeCacheMode() {
+		return codeCacheMode;
+	}
+
+	public void setCodeCacheMode(CodeCacheMode codeCacheMode) {
+		this.codeCacheMode = codeCacheMode;
 	}
 
 	private void upgradeSettings(int fromVersion) {

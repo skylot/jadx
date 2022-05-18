@@ -1,9 +1,12 @@
 package jadx.gui.treemodel;
 
+import java.util.Comparator;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaField;
 import jadx.api.JavaNode;
@@ -52,11 +55,6 @@ public class JField extends JNode {
 	}
 
 	@Override
-	public int getLine() {
-		return field.getDecompiledLine();
-	}
-
-	@Override
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
 		OverlayIcon icon = UiUtils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);
@@ -95,7 +93,7 @@ public class JField extends JNode {
 
 	@Override
 	public boolean hasDescString() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -106,5 +104,22 @@ public class JField extends JNode {
 	@Override
 	public boolean equals(Object o) {
 		return this == o || o instanceof JField && field.equals(((JField) o).field);
+	}
+
+	private static final Comparator<JField> COMPARATOR = Comparator
+			.comparing(JField::getJParent)
+			.thenComparing(JNode::getName)
+			.thenComparingInt(JField::getPos);
+
+	public int compareToFld(@NotNull JField other) {
+		return COMPARATOR.compare(this, other);
+	}
+
+	@Override
+	public int compareTo(@NotNull JNode other) {
+		if (other instanceof JField) {
+			return compareToFld(((JField) other));
+		}
+		return super.compareTo(other);
 	}
 }

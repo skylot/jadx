@@ -1,7 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.event.KeyEvent;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -12,10 +12,14 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
-import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarNode;
+import jadx.api.utils.CodeUtils;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -88,14 +92,7 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			functionUntilImplementation = String.format("%s[\"%s\"].implementation", shortClassName, methodName);
 		}
-
-		String functionParametersString =
-				Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
-						.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
-						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-						.map(e -> ((VarDeclareRef) e.getValue()).getName())
-						.collect(Collectors.joining(", "));
-
+		String functionParametersString = String.join(", ", collectMethodArgNames(javaMethod));
 		String functionParameterAndBody = String.format(
 				"%s = function(%s){\n"
 						+ "    console.log('%s is called');\n"
@@ -106,6 +103,29 @@ public final class FridaAction extends JNodeAction {
 				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
 
 		return generateClassSnippet(jMth.getJParent()) + "\n" + functionParameterAndBody;
+	}
+
+	private List<String> collectMethodArgNames(JavaMethod javaMethod) {
+		ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
+		int mthDefPos = javaMethod.getDefPos();
+		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		List<String> argNames = new ArrayList<>();
+		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
+			if (pos > lineEndPos) {
+				return Boolean.TRUE; // stop at line end
+			}
+			if (ann instanceof NodeDeclareRef) {
+				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
+				if (declRef instanceof VarNode) {
+					VarNode varNode = (VarNode) declRef;
+					if (varNode.getMth().equals(javaMethod.getMethodNode())) {
+						argNames.add(varNode.getName());
+					}
+				}
+			}
+			return null;
+		});
+		return argNames;
 	}
 
 	private String generateClassSnippet(JClass jc) {

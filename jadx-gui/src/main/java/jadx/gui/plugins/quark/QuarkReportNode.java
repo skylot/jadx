@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jadx.api.ICodeInfo;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -33,7 +35,7 @@ public class QuarkReportNode extends JNode {
 
 	private final Path apkFile;
 
-	private String errorContent;
+	private ICodeInfo errorContent;
 
 	public QuarkReportNode(Path apkFile) {
 		this.apkFile = apkFile;
@@ -71,13 +73,13 @@ public class QuarkReportNode extends JNode {
 			builder.append("<pre>");
 			builder.escape(ExceptionUtils.getStackTrace(e));
 			builder.append("</pre>");
-			errorContent = builder.toString();
+			errorContent = new SimpleCodeInfo(builder.toString());
 			return new HtmlPanel(tabbedPane, this);
 		}
 	}
 
 	@Override
-	public String getContent() {
-		return this.errorContent;
+	public ICodeInfo getCodeInfo() {
+		return errorContent;
 	}
 }

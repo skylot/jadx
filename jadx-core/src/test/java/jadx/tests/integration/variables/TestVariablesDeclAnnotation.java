@@ -1,12 +1,15 @@
 package jadx.tests.integration.variables;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.ICodeInfo;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarNode;
+import jadx.api.utils.CodeUtils;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
@@ -39,14 +42,27 @@ public class TestVariablesDeclAnnotation extends IntegrationTest {
 		MethodNode testMth = cls.searchMethodByShortName(mthName);
 		assertThat(testMth).isNotNull();
 
-		int mthLine = testMth.getDecompiledLine();
-		List<String> argNames = cls.getCode().getAnnotations().entrySet().stream()
-				.filter(e -> e.getKey().getLine() == mthLine && e.getValue() instanceof VarDeclareRef)
-				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-				.map(e -> ((VarDeclareRef) e.getValue()).getName())
-				.collect(Collectors.toList());
+		ICodeInfo codeInfo = cls.getCode();
+		int mthDefPos = testMth.getDefPosition();
+		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		List<String> argNames2 = new ArrayList<>();
+		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
+			if (pos > lineEndPos) {
+				return Boolean.TRUE; // stop at line end
+			}
+			if (ann instanceof NodeDeclareRef) {
+				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
+				if (declRef instanceof VarNode) {
+					VarNode varNode = (VarNode) declRef;
+					if (varNode.getMth().equals(testMth)) {
+						argNames2.add(varNode.getName());
+					}
+				}
+			}
+			return null;
+		});
 
-		assertThat(argNames).doesNotContainNull();
-		assertThat(argNames.toString()).isEqualTo(expectedVars);
+		assertThat(argNames2).doesNotContainNull();
+		assertThat(argNames2.toString()).isEqualTo(expectedVars);
 	}
 }

@@ -2,7 +2,7 @@ package jadx.tests.integration.debuginfo;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.api.ICodeWriter;
+import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -42,6 +42,7 @@ public class TestLineNumbers extends IntegrationTest {
 
 	@Test
 	public void test() {
+		printLineNumbers();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
@@ -61,19 +62,17 @@ public class TestLineNumbers extends IntegrationTest {
 		assertEquals(testClassLine + 20, innerFunc3.getSourceLine());
 
 		// check decompiled lines
-		String[] lines = code.split(ICodeWriter.NL);
-		checkLine(lines, field, "int field;");
-		checkLine(lines, func, "public void func() {");
-		checkLine(lines, inner, "public static class Inner {");
-		checkLine(lines, innerField, "int innerField;");
-		checkLine(lines, innerFunc, "public void innerFunc() {");
-		checkLine(lines, innerFunc2, "public void innerFunc2() {");
-		checkLine(lines, innerFunc3, "public void innerFunc3() {");
+		checkLine(code, field, "int field;");
+		checkLine(code, func, "public void func() {");
+		checkLine(code, inner, "public static class Inner {");
+		checkLine(code, innerField, "int innerField;");
+		checkLine(code, innerFunc, "public void innerFunc() {");
+		checkLine(code, innerFunc2, "public void innerFunc2() {");
+		checkLine(code, innerFunc3, "public void innerFunc3() {");
 	}
 
-	private static void checkLine(String[] lines, LineAttrNode node, String str) {
-		int lineNumber = node.getDecompiledLine();
-		String line = lines[lineNumber - 1];
+	private static void checkLine(String code, LineAttrNode node, String str) {
+		String line = CodeUtils.getLineForPos(code, node.getDefPosition());
 		assertThat(line, containsString(str));
 	}
 }

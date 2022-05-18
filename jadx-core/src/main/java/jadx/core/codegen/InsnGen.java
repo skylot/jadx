@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -109,7 +108,7 @@ public class InsnGen {
 		if (arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
 			if (code.isMetadataSupported()) {
-				code.attachAnnotation(VarRef.get(mth, reg));
+				code.attachAnnotation(VarNode.getRef(mth, reg));
 			}
 			code.add(mgen.getNameGen().useArg(reg));
 		} else if (arg.isLiteral()) {
@@ -162,8 +161,15 @@ public class InsnGen {
 		}
 		useType(code, codeVar.getType());
 		code.add(' ');
+		defVar(code, codeVar);
+	}
+
+	/**
+	 * Variable definition without type, only var name
+	 */
+	private void defVar(ICodeWriter code, CodeVar codeVar) {
 		if (code.isMetadataSupported()) {
-			code.attachDefinition(VarDeclareRef.get(mth, codeVar));
+			code.attachDefinition(VarNode.get(mth, codeVar));
 		}
 		code.add(mgen.getNameGen().assignArg(codeVar));
 	}
@@ -939,7 +945,7 @@ public class InsnGen {
 					code.add(", ");
 				}
 				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();
-				code.add(nameGen.assignArg(argCodeVar));
+				defVar(code, argCodeVar);
 			}
 		}
 		// force set external arg names into call method args
@@ -947,7 +953,8 @@ public class InsnGen {
 		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip 'this' arg
 		for (int i = startArg; i < extArgsCount; i++) {
 			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
-			callArgs.get(i).setName(extArg.getName());
+			RegisterArg callRegArg = callArgs.get(i);
+			callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
 		}
 		code.add(" -> {");
 		code.incIndent();

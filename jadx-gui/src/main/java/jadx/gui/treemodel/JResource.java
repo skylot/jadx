@@ -9,7 +9,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
@@ -28,7 +27,7 @@ import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class JResource extends JLoadableNode implements Comparable<JResource> {
+public class JResource extends JLoadableNode {
 	private static final long serialVersionUID = -201018424302612434L;
 
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/resourcesRoot");
@@ -94,7 +93,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	@Override
 	public void loadNode() {
-		getContent();
+		getCodeInfo();
 		update();
 	}
 
@@ -105,12 +104,6 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	public List<JResource> getFiles() {
 		return files;
-	}
-
-	@Override
-	public @Nullable ICodeInfo getCodeInfo() {
-		getContent();
-		return content;
 	}
 
 	@Override
@@ -125,35 +118,36 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	@Override
-	public synchronized String getContent() {
+	public synchronized ICodeInfo getCodeInfo() {
 		if (loaded) {
-			if (content == null) {
-				return null;
-			}
-			return content.getCodeStr();
+			return content;
 		}
+		ICodeInfo codeInfo = loadContent();
+		content = codeInfo;
+		loaded = true;
+		return codeInfo;
+	}
+
+	private ICodeInfo loadContent() {
 		if (resFile == null || type != JResType.FILE) {
-			return null;
+			return ICodeInfo.EMPTY;
 		}
 		if (!isSupportedForView(resFile.getType())) {
-			return null;
+			return ICodeInfo.EMPTY;
 		}
 		ResContainer rc = resFile.loadContent();
 		if (rc == null) {
-			loaded = true;
-			return null;
+			return ICodeInfo.EMPTY;
 		}
 		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
-			content = loadCurrentSingleRes(rc);
+			ICodeInfo codeInfo = loadCurrentSingleRes(rc);
 			for (ResContainer subFile : rc.getSubFiles()) {
 				loadSubNodes(this, subFile, 1);
 			}
-		} else {
-			// single node
-			content = loadCurrentSingleRes(rc);
+			return codeInfo;
 		}
-		loaded = true;
-		return content.getCodeStr();
+		// single node
+		return loadCurrentSingleRes(rc);
 	}
 
 	private ICodeInfo loadCurrentSingleRes(ResContainer rc) {
@@ -326,13 +320,13 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	@Override
-	public int compareTo(@NotNull JResource o) {
-		return name.compareTo(o.name);
+	public String makeString() {
+		return shortName;
 	}
 
 	@Override
-	public String makeString() {
-		return shortName;
+	public String makeLongString() {
+		return name;
 	}
 
 	@Override

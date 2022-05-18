@@ -33,7 +33,7 @@ public class TestLineNumbers3 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		assertThat(cls).code().containsOne("super(message == null ? \"\" : message.toString());");
-		String linesMapStr = cls.getCode().getLineMapping().toString();
+		String linesMapStr = cls.getCode().getCodeMetadata().getLineMapping().toString();
 		assertThat(linesMapStr).isEqualTo("{4=13, 5=14, 6=15}");
 	}
 }

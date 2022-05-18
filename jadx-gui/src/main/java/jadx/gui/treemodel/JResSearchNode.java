@@ -8,13 +8,11 @@ public class JResSearchNode extends JNode {
 	private static final long serialVersionUID = -2222084945157778639L;
 	private final transient JResource resNode;
 	private final transient String text;
-	private final transient int line;
 	private final transient int pos;
 
-	public JResSearchNode(JResource resNode, String text, int line, int pos) {
+	public JResSearchNode(JResource resNode, String text, int pos) {
 		this.pos = pos;
 		this.text = text;
-		this.line = line;
 		this.resNode = resNode;
 	}
 
@@ -34,11 +32,6 @@ public class JResSearchNode extends JNode {
 	@Override
 	public JClass getJParent() {
 		return resNode.getJParent();
-	}
-
-	@Override
-	public int getLine() {
-		return line;
 	}
 
 	@Override

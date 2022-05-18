@@ -1,8 +1,7 @@
 package jadx.api;
 
-import java.util.Map;
-
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.api.metadata.ICodeMetadata;
 
 public interface ICodeInfo {
 
@@ -10,7 +9,7 @@ public interface ICodeInfo {
 
 	String getCodeStr();
 
-	Map<Integer, Integer> getLineMapping();
+	ICodeMetadata getCodeMetadata();
 
-	Map<CodePosition, Object> getAnnotations();
+	boolean hasMetadata();
 }

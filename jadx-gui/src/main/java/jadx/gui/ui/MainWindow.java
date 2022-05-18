@@ -30,15 +30,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -95,8 +92,6 @@ import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
-import jadx.gui.jobs.IndexService;
-import jadx.gui.jobs.IndexTask;
 import jadx.gui.jobs.ProcessResult;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.plugins.quark.QuarkDialog;
@@ -133,18 +128,14 @@ import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
-import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.logs.LogCollector;
-import jadx.gui.utils.search.CommentsIndex;
-import jadx.gui.utils.search.TextSearchIndex;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
-import static jadx.gui.utils.FileUtils.fileNamesToPaths;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public class MainWindow extends JFrame {
@@ -209,9 +200,9 @@ public class MainWindow extends JFrame {
 	private JSplitPane verticalSplitter;
 
 	public MainWindow(JadxSettings settings) {
-		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
+		this.wrapper = new JadxWrapper(settings);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
@@ -248,7 +239,7 @@ public class MainWindow extends JFrame {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
-			open(fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
+			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
 	}
 
@@ -422,9 +413,11 @@ public class MainWindow extends JFrame {
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
 		update();
-		restoreOpenTabs();
-		runInitialBackgroundJobs();
 		BreakpointManager.init(paths.get(0).toAbsolutePath().getParent());
+
+		backgroundExecutor.execute(NLS.str("progress.load"),
+				this::restoreOpenTabs,
+				status -> runInitialBackgroundJobs());
 	}
 
 	private void addTreeCustomNodes() {
@@ -472,7 +465,6 @@ public class MainWindow extends JFrame {
 		jadxProject.setMainWindow(this);
 		this.project = jadxProject;
 		this.wrapper.setProject(jadxProject);
-		this.cacheObject.setCommentsIndex(new CommentsIndex(wrapper, cacheObject, jadxProject));
 		update();
 	}
 
@@ -495,9 +487,6 @@ public class MainWindow extends JFrame {
 		cacheObject.reset();
 		cacheObject.setJRoot(treeRoot);
 		cacheObject.setJadxSettings(settings);
-
-		cacheObject.setIndexService(new IndexService(cacheObject));
-		cacheObject.setTextIndex(new TextSearchIndex(this));
 	}
 
 	synchronized void runInitialBackgroundJobs() {
@@ -515,20 +504,11 @@ public class MainWindow extends JFrame {
 
 	public void waitDecompileTask() {
 		synchronized (DECOMPILER_TASK_SYNC) {
-			if (cacheObject.getIndexService().isComplete()) {
-				return;
-			}
 			try {
-				DecompileTask decompileTask = new DecompileTask(this, wrapper);
+				DecompileTask decompileTask = new DecompileTask(wrapper);
 				backgroundExecutor.executeAndWait(decompileTask);
-
 				backgroundExecutor.execute(decompileTask.getTitle(), wrapper::unloadClasses).get();
-				System.gc();
-
-				IndexTask indexTask = new IndexTask(this, wrapper);
-				backgroundExecutor.executeAndWait(indexTask);
-
-				processDecompilationResults(decompileTask.getResult(), indexTask.getResult());
+				processDecompilationResults(decompileTask.getResult());
 				System.gc();
 			} catch (Exception e) {
 				LOG.error("Decompile task execution failed", e);
@@ -536,12 +516,12 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void processDecompilationResults(ProcessResult decompile, ProcessResult index) {
-		int skippedCls = Math.max(decompile.getSkipped(), index.getSkipped());
+	private void processDecompilationResults(ProcessResult decompile) {
+		int skippedCls = decompile.getSkipped();
 		if (skippedCls == 0) {
 			return;
 		}
-		TaskStatus status = mergeStatus(EnumSet.of(decompile.getStatus(), index.getStatus()));
+		TaskStatus status = decompile.getStatus();
 		LOG.warn("Decompile and indexing of some classes skipped: {}, status: {}", skippedCls, status);
 		switch (status) {
 			case CANCEL_BY_USER: {
@@ -564,26 +544,8 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private TaskStatus mergeStatus(Set<TaskStatus> statuses) {
-		if (statuses.size() == 1) {
-			return statuses.iterator().next();
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_MEMORY)) {
-			return TaskStatus.CANCEL_BY_MEMORY;
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_TIMEOUT)) {
-			return TaskStatus.CANCEL_BY_TIMEOUT;
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_USER)) {
-			return TaskStatus.CANCEL_BY_USER;
-		}
-		return TaskStatus.COMPLETE;
-	}
-
 	public void cancelBackgroundJobs() {
-		ExecutorService worker = Executors.newSingleThreadExecutor();
-		worker.execute(backgroundExecutor::cancelAll);
-		worker.shutdown();
+		backgroundExecutor.cancelAll();
 	}
 
 	public void reOpenFile() {
@@ -706,7 +668,7 @@ public class MainWindow extends JFrame {
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				if (node.getRootClass() != null) {
-					tabbedPane.codeJump(new JumpPosition(node));
+					tabbedPane.codeJump(node);
 					return true;
 				}
 				return tabbedPane.showNode(node);

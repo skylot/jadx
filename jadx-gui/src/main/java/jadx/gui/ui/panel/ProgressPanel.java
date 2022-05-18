@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
+import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 
@@ -61,15 +62,31 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 		progressBar.setStringPainted(true);
 	}
 
+	public void setProgress(ITaskProgress taskProgress) {
+		int progress = taskProgress.progress();
+		int total = taskProgress.total();
+		if (progress == 0 || total == 0) {
+			progressBar.setIndeterminate(true);
+		} else {
+			if (progressBar.isIndeterminate()) {
+				progressBar.setIndeterminate(false);
+			}
+			setProgress(UiUtils.calcProgress(progress, total));
+		}
+	}
+
+	private void setProgress(int progress) {
+		progressBar.setIndeterminate(false);
+		progressBar.setValue(progress);
+		progressBar.setString(progress + "%");
+		progressBar.setStringPainted(true);
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		switch (evt.getPropertyName()) {
 			case "progress":
-				int progress = (Integer) evt.getNewValue();
-				progressBar.setIndeterminate(false);
-				progressBar.setValue(progress);
-				progressBar.setString(progress + "%");
-				progressBar.setStringPainted(true);
+				setProgress((Integer) evt.getNewValue());
 				break;
 
 			case "label":

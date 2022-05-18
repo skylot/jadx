@@ -10,17 +10,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -168,53 +165,43 @@ public class TabbedPane extends JTabbedPane {
 		return mainWindow;
 	}
 
-	private void showCode(final JumpPosition jumpPos) {
-		JNode jumpNode = jumpPos.getNode();
-		Objects.requireNonNull(jumpNode, "Null node in JumpPosition");
-
+	/**
+	 * Jump to node definition
+	 */
+	public void codeJump(JNode node) {
+		if (node.getPos() != 0 || node.getRootClass() == null) {
+			codeJump(new JumpPosition(node));
+			return;
+		}
+		// node need loading
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("progress.load"),
-				jumpNode::getContent, // run heavy loading in background
-				status -> {
-					// show the code in UI thread
-					AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(jumpNode);
-					if (contentPanel != null) {
-						scrollToPos(contentPanel, jumpPos);
-						selectTab(contentPanel);
-					}
-				});
+				() -> node.getRootClass().getCodeInfo(), // run heavy loading in background
+				status -> codeJump(new JumpPosition(node)));
 	}
 
-	private void scrollToPos(AbstractCodeContentPanel contentPanel, JumpPosition jumpPos) {
-		AbstractCodeArea codeArea = contentPanel.getCodeArea();
-		int pos = jumpPos.getPos();
-		if (pos > 0) {
-			codeArea.scrollToPos(pos);
-		} else {
-			int line = jumpPos.getLine();
-			if (line < 0) {
-				try {
-					line = 1 + codeArea.getLineOfOffset(-line);
-				} catch (BadLocationException e) {
-					LOG.error("Can't get line for: {}", jumpPos, e);
-					line = jumpPos.getNode().getLine();
-				}
-			}
-			int lineNum = Math.max(0, line - 1);
-			try {
-				int offs = codeArea.getLineStartOffset(lineNum);
-				while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
-					offs += 1;
-				}
-				offs += pos;
-				jumpPos.setPos(offs);
-				codeArea.scrollToPos(offs);
-			} catch (BadLocationException e) {
-				LOG.error("Failed to jump to position: {}", pos, e);
-				codeArea.scrollToLine(line);
-			}
+	/**
+	 * Prefer {@link TabbedPane#codeJump(JNode)} method
+	 */
+	public void codeJump(JumpPosition pos) {
+		saveJump(pos);
+		showCode(pos);
+	}
+
+	private void saveJump(JumpPosition pos) {
+		JumpPosition curPos = getCurrentPosition();
+		if (curPos != null) {
+			jumps.addPosition(curPos);
+			jumps.addPosition(pos);
 		}
-		codeArea.requestFocus();
+	}
+
+	private void showCode(JumpPosition jumpPos) {
+		ContentPanel contentPanel = getContentPanel(jumpPos.getNode());
+		if (contentPanel != null) {
+			scrollToPos(contentPanel, jumpPos.getPos());
+			selectTab(contentPanel);
+		}
 	}
 
 	public boolean showNode(JNode node) {
@@ -226,6 +213,18 @@ public class TabbedPane extends JTabbedPane {
 		return true;
 	}
 
+	private void scrollToPos(ContentPanel contentPanel, int pos) {
+		if (pos == 0) {
+			LOG.warn("Ignore zero jump!", new JadxRuntimeException());
+			return;
+		}
+		if (contentPanel instanceof AbstractCodeContentPanel) {
+			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
+			codeArea.scrollToPos(pos);
+			codeArea.requestFocus();
+		}
+	}
+
 	public void selectTab(ContentPanel contentPanel) {
 		setSelectedComponent(contentPanel);
 		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
@@ -233,26 +232,10 @@ public class TabbedPane extends JTabbedPane {
 		}
 	}
 
-	/**
-	 * Jump to node definition
-	 */
-	public void codeJump(JNode node) {
-		codeJump(new JumpPosition(Objects.requireNonNull(node)));
-	}
-
-	public void codeJump(JumpPosition pos) {
-		JumpPosition curPos = getCurrentPosition();
-		if (curPos != null) {
-			jumps.addPosition(curPos);
-			jumps.addPosition(pos);
-		}
-		showCode(pos);
-	}
-
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {
 		ContentPanel panel = getOpenTabs().get(cls);
 		if (panel == null) {
-			showCode(new JumpPosition(cls, 0, 1));
+			showCode(new JumpPosition(cls, 1));
 			panel = getOpenTabs().get(cls);
 			if (panel == null) {
 				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);
@@ -440,21 +423,15 @@ public class TabbedPane extends JTabbedPane {
 
 		static void focusOnCodePanel(ContentPanel pane) {
 			if (pane instanceof ClassCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((ClassCodeContentPanel) pane).getCurrentCodeArea().requestFocus();
-				});
+				SwingUtilities.invokeLater(() -> ((ClassCodeContentPanel) pane).getCurrentCodeArea().requestFocus());
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((AbstractCodeContentPanel) pane).getCodeArea().requestFocus();
-				});
+				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getCodeArea().requestFocus());
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
-				SwingUtilities.invokeLater(() -> {
-					((HtmlPanel) pane).getHtmlArea().requestFocusInWindow();
-				});
+				SwingUtilities.invokeLater(() -> ((HtmlPanel) pane).getHtmlArea().requestFocusInWindow());
 				return;
 			}
 			if (pane instanceof ImagePanel) {

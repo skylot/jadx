@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
@@ -46,24 +49,21 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public String getCode() {
-		ICodeInfo code = getCodeInfo();
-		if (code == null) {
-			return "";
-		}
-		return code.getCodeStr();
+		return getCodeInfo().getCodeStr();
 	}
 
-	public ICodeInfo getCodeInfo() {
+	public @NotNull ICodeInfo getCodeInfo() {
+		load();
 		return cls.decompile();
 	}
 
 	public void decompile() {
-		cls.decompile();
+		load();
 	}
 
-	public synchronized void reload() {
+	public synchronized ICodeInfo reload() {
 		listsLoaded = false;
-		cls.reloadCode();
+		return cls.reloadCode();
 	}
 
 	public void unload() {
@@ -73,6 +73,10 @@ public final class JavaClass implements JavaNode {
 
 	public boolean isNoCode() {
 		return cls.contains(AFlag.DONT_GENERATE);
+	}
+
+	public boolean isInner() {
+		return cls.isInner();
 	}
 
 	public synchronized String getSmali() {
@@ -87,13 +91,22 @@ public final class JavaClass implements JavaNode {
 		return cls;
 	}
 
-	private synchronized void loadLists() {
+	/**
+	 * Decompile class and loads internal lists of fields, methods, etc.
+	 * Do nothing if already loaded.
+	 * Return not null on first call only (for actual loading)
+	 */
+	@Nullable
+	private synchronized void load() {
 		if (listsLoaded) {
 			return;
 		}
 		listsLoaded = true;
-		decompile();
 		JadxDecompiler rootDecompiler = getRootDecompiler();
+		ICodeCache codeCache = rootDecompiler.getArgs().getCodeCache();
+		if (!codeCache.contains(cls.getRawName())) {
+			cls.decompile();
+		}
 
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
@@ -101,7 +114,7 @@ public final class JavaClass implements JavaNode {
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.contains(AFlag.DONT_GENERATE)) {
 					JavaClass javaClass = rootDecompiler.convertClassNode(inner);
-					javaClass.loadLists();
+					javaClass.load();
 					list.add(javaClass);
 				}
 			}
@@ -112,7 +125,7 @@ public final class JavaClass implements JavaNode {
 			List<JavaClass> list = new ArrayList<>(inlinedClsCount);
 			for (ClassNode inner : cls.getInlinedClasses()) {
 				JavaClass javaClass = rootDecompiler.convertClassNode(inner);
-				javaClass.loadLists();
+				javaClass.load();
 				list.add(javaClass);
 			}
 			this.inlinedClasses = Collections.unmodifiableList(list);
@@ -122,10 +135,10 @@ public final class JavaClass implements JavaNode {
 		if (fieldsCount != 0) {
 			List<JavaField> flds = new ArrayList<>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
-				if (!f.contains(AFlag.DONT_GENERATE)) {
-					JavaField javaField = new JavaField(this, f);
-					flds.add(javaField);
-				}
+				// if (!f.contains(AFlag.DONT_GENERATE)) {
+				JavaField javaField = new JavaField(this, f);
+				flds.add(javaField);
+				// }
 			}
 			this.fields = Collections.unmodifiableList(flds);
 		}
@@ -151,47 +164,45 @@ public final class JavaClass implements JavaNode {
 		return decompiler;
 	}
 
-	public Map<CodePosition, Object> getCodeAnnotations() {
-		ICodeInfo code = getCodeInfo();
-		if (code == null) {
-			return Collections.emptyMap();
-		}
-		return code.getAnnotations();
+	public ICodeAnnotation getAnnotationAt(int pos) {
+		return getCodeInfo().getCodeMetadata().getAt(pos);
 	}
 
-	public Object getAnnotationAt(CodePosition pos) {
-		return getCodeAnnotations().get(pos);
-	}
-
-	public Map<CodePosition, JavaNode> getUsageMap() {
-		Map<CodePosition, Object> map = getCodeAnnotations();
+	public Map<Integer, JavaNode> getUsageMap() {
+		Map<Integer, ICodeAnnotation> map = getCodeInfo().getCodeMetadata().getAsMap();
 		if (map.isEmpty() || decompiler == null) {
 			return Collections.emptyMap();
 		}
-		Map<CodePosition, JavaNode> resultMap = new HashMap<>(map.size());
-		for (Map.Entry<CodePosition, Object> entry : map.entrySet()) {
-			CodePosition codePosition = entry.getKey();
-			Object obj = entry.getValue();
-			JavaNode node = getRootDecompiler().convertNode(obj);
-			if (node != null) {
-				resultMap.put(codePosition, node);
+		Map<Integer, JavaNode> resultMap = new HashMap<>(map.size());
+		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
+			int codePosition = entry.getKey();
+			ICodeAnnotation obj = entry.getValue();
+			if (obj instanceof ICodeNodeRef) {
+				JavaNode node = getRootDecompiler().getJavaNodeByRef((ICodeNodeRef) obj);
+				if (node != null) {
+					resultMap.put(codePosition, node);
+				}
 			}
 		}
 		return resultMap;
 	}
 
-	public List<CodePosition> getUsageFor(JavaNode javaNode) {
-		Map<CodePosition, Object> map = getCodeAnnotations();
+	public List<Integer> getUsePlacesFor(ICodeInfo codeInfo, JavaNode javaNode) {
+		Map<Integer, ICodeAnnotation> map = codeInfo.getCodeMetadata().getAsMap();
 		if (map.isEmpty() || decompiler == null) {
 			return Collections.emptyList();
 		}
-		Object internalNode = getRootDecompiler().getInternalNode(javaNode);
-		List<CodePosition> result = new ArrayList<>();
-		for (Map.Entry<CodePosition, Object> entry : map.entrySet()) {
-			CodePosition codePosition = entry.getKey();
-			Object obj = entry.getValue();
-			if (internalNode.equals(obj)) {
-				result.add(codePosition);
+		JadxDecompiler rootDec = getRootDecompiler();
+		List<Integer> result = new ArrayList<>();
+		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
+			ICodeAnnotation ann = entry.getValue();
+			if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+				// ignore declarations
+				continue;
+			}
+			JavaNode annNode = rootDec.getJavaNodeByCodeAnnotation(codeInfo, ann);
+			if (javaNode.equals(annNode)) {
+				result.add(entry.getKey());
 			}
 		}
 		return result;
@@ -202,20 +213,8 @@ public final class JavaClass implements JavaNode {
 		return getRootDecompiler().convertNodes(cls.getUseIn());
 	}
 
-	@Nullable
-	@Deprecated
-	public JavaNode getJavaNodeAtPosition(int line, int offset) {
-		return getRootDecompiler().getJavaNodeAtPosition(getCodeInfo(), line, offset);
-	}
-
-	@Nullable
-	@Deprecated
-	public CodePosition getDefinitionPosition() {
-		return getRootDecompiler().getDefinitionPosition(this);
-	}
-
 	public Integer getSourceLine(int decompiledLine) {
-		return getCodeInfo().getLineMapping().get(decompiledLine);
+		return getCodeInfo().getCodeMetadata().getLineMapping().get(decompiledLine);
 	}
 
 	@Override
@@ -261,22 +260,22 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public List<JavaClass> getInnerClasses() {
-		loadLists();
+		load();
 		return innerClasses;
 	}
 
 	public List<JavaClass> getInlinedClasses() {
-		loadLists();
+		load();
 		return inlinedClasses;
 	}
 
 	public List<JavaField> getFields() {
-		loadLists();
+		load();
 		return fields;
 	}
 
 	public List<JavaMethod> getMethods() {
-		loadLists();
+		load();
 		return methods;
 	}
 
@@ -292,11 +291,6 @@ public final class JavaClass implements JavaNode {
 	@Override
 	public void removeAlias() {
 		this.cls.getClassInfo().removeAlias();
-	}
-
-	@Override
-	public int getDecompiledLine() {
-		return cls.getDecompiledLine();
 	}
 
 	@Override

@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea;
 import java.util.Objects;
 
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
@@ -28,12 +27,12 @@ public class CodeLinkGenerator implements LinkGenerator {
 		this.jNode = codeArea.getNode();
 	}
 
-	public JavaNode getNodeAtOffset(RSyntaxTextArea textArea, int offset) {
+	public JavaNode getNodeAtOffset(int offset) {
 		try {
-			if (jNode.getCodeInfo() == null) {
+			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
+			int sourceOffset = getLinkSourceOffset(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
@@ -44,34 +43,17 @@ public class CodeLinkGenerator implements LinkGenerator {
 		}
 	}
 
-	@Nullable
-	public JumpPosition getJumpLinkAtOffset(RSyntaxTextArea textArea, int offset) {
-		try {
-			if (jNode.getCodeInfo() == null) {
-				return null;
-			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
-			if (sourceOffset == -1) {
-				return null;
-			}
-			return getJumpBySourceOffset(textArea, sourceOffset);
-		} catch (Exception e) {
-			LOG.error("getJumpLinkAtOffset error", e);
-			return null;
-		}
-	}
-
 	@Override
 	public LinkGeneratorResult isLinkAtOffset(RSyntaxTextArea textArea, int offset) {
 		try {
-			if (jNode.getCodeInfo() == null) {
+			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(textArea, offset);
+			int sourceOffset = getLinkSourceOffset(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
-			JumpPosition defPos = getJumpBySourceOffset(textArea, sourceOffset);
+			JumpPosition defPos = getJumpBySourceOffset(sourceOffset);
 			if (defPos == null) {
 				return null;
 			}
@@ -93,19 +75,19 @@ public class CodeLinkGenerator implements LinkGenerator {
 		}
 	}
 
-	private int getLinkSourceOffset(RSyntaxTextArea textArea, int offset) {
-		Token token = textArea.modelToToken(offset);
+	public int getLinkSourceOffset(int offset) {
+		Token token = codeArea.modelToToken(offset);
 		return codeArea.adjustOffsetForToken(token);
 	}
 
 	@Nullable
-	private JumpPosition getJumpBySourceOffset(RSyntaxTextArea textArea, int sourceOffset) throws BadLocationException {
+	private JumpPosition getJumpBySourceOffset(int sourceOffset) {
 		final JumpPosition defPos = codeArea.getDefPosForNodeAtOffset(sourceOffset);
 		if (defPos == null) {
 			return null;
 		}
 		if (Objects.equals(defPos.getNode().getRootClass(), jNode)
-				&& defPos.getLine() == textArea.getLineOfOffset(sourceOffset) + 1) {
+				&& defPos.getPos() == sourceOffset) {
 			// ignore self jump
 			return null;
 		}

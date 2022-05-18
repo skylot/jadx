@@ -10,19 +10,24 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
+import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
-import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.dialog.CommentDialog;
-import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -47,15 +52,13 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 		} else {
 			this.topCls = null;
 		}
-		UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment", () -> {
-			int line = codeArea.getCaretLineNumber() + 1;
-			showCommentDialog(getCommentRef(line));
-		});
+		UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment",
+				() -> showCommentDialog(getCommentRef(codeArea.getCaretPosition())));
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-		ICodeComment codeComment = getCommentRef(getMouseLine());
+		ICodeComment codeComment = getCommentRef(UiUtils.getOffsetAtMousePosition(codeArea));
 		setEnabled(codeComment != null);
 		this.actionComment = codeComment;
 	}
@@ -79,61 +82,59 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 	 * @return blank code comment object (comment string empty)
 	 */
 	@Nullable
-	private ICodeComment getCommentRef(int line) {
-		if (line == -1 || this.topCls == null) {
+	private ICodeComment getCommentRef(int pos) {
+		if (pos == -1 || this.topCls == null) {
 			return null;
 		}
 		try {
-			CodeLinesInfo linesInfo = new CodeLinesInfo(topCls, true); // TODO: cache and update on class refresh
-			// add comment if node definition at this line
-			JavaNode nodeAtLine = linesInfo.getDefAtLine(line);
-			if (nodeAtLine != null) {
-				// at node definition -> add comment for it
-				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(nodeAtLine);
-				return new JadxCodeComment(nodeRef, "");
-			}
-			Object ann = topCls.getAnnotationAt(new CodePosition(line));
-			if (ann == null) {
-				// check if line with comment above node definition
-				try {
-					JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
-					if (defNode != null) {
-						String lineStr = codeArea.getLineText(line).trim();
-						if (lineStr.startsWith("//")) {
-							return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
-						}
-					}
-				} catch (Exception e) {
-					LOG.error("Failed to check comment line: " + line, e);
-				}
-				return null;
-			}
+			JadxDecompiler decompiler = codeArea.getDecompiler();
+			ICodeInfo codeInfo = codeArea.getCodeInfo();
+			ICodeMetadata metadata = codeInfo.getCodeMetadata();
+			int lineStartPos = codeArea.getLineStartFor(pos);
 
-			// try to add method line comment
-			JavaNode node = linesInfo.getJavaNodeByLine(line);
-			if (node instanceof JavaMethod) {
-				JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
-				if (ann instanceof InsnCodeOffset) {
-					int rawOffset = ((InsnCodeOffset) ann).getOffset();
+			// add method line comment by instruction offset
+			ICodeAnnotation offsetAnn = metadata.searchUp(pos, lineStartPos, AnnType.OFFSET);
+			if (offsetAnn instanceof InsnCodeOffset) {
+				JavaNode node = decompiler.getJavaNodeByRef(metadata.getNodeAt(pos));
+				if (node instanceof JavaMethod) {
+					int rawOffset = ((InsnCodeOffset) offsetAnn).getOffset();
+					JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
 					return new JadxCodeComment(nodeRef, JadxCodeRef.forInsn(rawOffset), "");
 				}
 			}
+
+			// check for definition at this line
+			ICodeNodeRef nodeDef = metadata.searchUp(pos, (off, ann) -> {
+				if (lineStartPos <= off && ann.getAnnType() == AnnType.DECLARATION) {
+					ICodeNodeRef defRef = ((NodeDeclareRef) ann).getNode();
+					if (defRef.getAnnType() != AnnType.VAR) {
+						return defRef;
+					}
+				}
+				return null;
+			});
+			if (nodeDef != null) {
+				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(decompiler.getJavaNodeByRef(nodeDef));
+				return new JadxCodeComment(nodeRef, "");
+			}
+
+			// check if at comment above node definition
+			String lineStr = codeArea.getLineAt(pos).trim();
+			if (lineStr.startsWith("//") || lineStr.startsWith("/*")) {
+				ICodeNodeRef nodeRef = metadata.searchDown(pos, (off, ann) -> {
+					if (off > pos && ann.getAnnType() == AnnType.DECLARATION) {
+						return ((NodeDeclareRef) ann).getNode();
+					}
+					return null;
+				});
+				if (nodeRef != null) {
+					JavaNode defNode = decompiler.getJavaNodeByRef(nodeRef);
+					return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
+				}
+			}
 		} catch (Exception e) {
-			LOG.error("Failed to add comment at line: " + line, e);
+			LOG.error("Failed to add comment at: " + pos, e);
 		}
 		return null;
-	}
-
-	private int getMouseLine() {
-		int closestOffset = UiUtils.getOffsetAtMousePosition(codeArea);
-		if (closestOffset == -1) {
-			return -1;
-		}
-		try {
-			return codeArea.getLineOfOffset(closestOffset) + 1;
-		} catch (Exception e) {
-			LOG.debug("Failed to get line by offset: {}", closestOffset);
-			return -1;
-		}
 	}
 }

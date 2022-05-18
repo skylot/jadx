@@ -29,6 +29,8 @@ dependencies {
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
 	implementation 'com.android.tools.build:apksig:4.2.1'
 	implementation 'io.github.hqktech:jdwp:1.0'
+
+	testImplementation project(":jadx-core").sourceSets.test.output
 }
 
 application {
@@ -98,7 +100,7 @@ runtime {
 	addModules(
 			'java.desktop',
 			'java.naming',
-			'java.sql', // TODO: GSON register adapter for java.sql.Time
+			//'java.sql', // TODO: GSON register adapter for java.sql.Time
 			'java.xml',
 	)
 	jpackage {

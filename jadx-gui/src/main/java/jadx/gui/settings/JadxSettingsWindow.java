@@ -75,6 +75,7 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.codecache.CodeCacheMode;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
@@ -434,6 +435,14 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<CodeCacheMode> codeCacheModeComboBox = new JComboBox<>(CodeCacheMode.values());
+		codeCacheModeComboBox.setSelectedItem(settings.getCodeCacheMode());
+		codeCacheModeComboBox.addActionListener(e -> {
+			settings.setCodeCacheMode((CodeCacheMode) codeCacheModeComboBox.getSelectedItem());
+			needReload();
+		});
+		String codeCacheModeToolTip = CodeCacheMode.buildToolTip();
+
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
 		showInconsistentCode.addItemListener(e -> {
@@ -541,10 +550,11 @@ public class JadxSettingsWindow extends JDialog {
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
-		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
-				editExcludedPackages);
+		other.addRow(NLS.str("preferences.excludedPackages"),
+				NLS.str("preferences.excludedPackages.tooltip"), editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
+		other.addRow(NLS.str("preferences.codeCacheMode"), codeCacheModeToolTip, codeCacheModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);

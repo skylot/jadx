@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea.mode;
 import javax.swing.Icon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.DecompilationMode;
@@ -40,18 +39,13 @@ public class JCodeMode extends JNode {
 	}
 
 	@Override
-	public @NotNull ICodeInfo getCodeInfo() {
+	public ICodeInfo getCodeInfo() {
 		if (codeInfo != null) {
 			return codeInfo;
 		}
 		ClassNode cls = jCls.getCls().getClassNode();
 		codeInfo = cls.decompileWithMode(mode);
 		return codeInfo;
-	}
-
-	@Override
-	public String getContent() {
-		return getCodeInfo().getCodeStr();
 	}
 
 	@Override

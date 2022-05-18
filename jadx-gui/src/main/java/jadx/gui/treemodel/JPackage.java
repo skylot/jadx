@@ -7,14 +7,12 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import org.jetbrains.annotations.NotNull;
-
 import jadx.api.JavaPackage;
 import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.utils.UiUtils;
 
-public class JPackage extends JNode implements Comparable<JPackage> {
+public class JPackage extends JNode {
 	private static final long serialVersionUID = -4120718634156839804L;
 
 	private static final ImageIcon PACKAGE_ICON = UiUtils.openSvgIcon("nodes/package");
@@ -118,16 +116,6 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	@Override
 	public JClass getJParent() {
 		return null;
-	}
-
-	@Override
-	public int getLine() {
-		return 0;
-	}
-
-	@Override
-	public int compareTo(@NotNull JPackage o) {
-		return name.compareTo(o.name);
 	}
 
 	@Override

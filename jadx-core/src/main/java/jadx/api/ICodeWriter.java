@@ -2,7 +2,10 @@ package jadx.api;
 
 import java.util.Map;
 
-import jadx.core.dex.attributes.ILineAttributeNode;
+import org.jetbrains.annotations.ApiStatus;
+
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 
 public interface ICodeWriter {
 	String NL = System.getProperty("line.separator");
@@ -38,13 +41,21 @@ public interface ICodeWriter {
 
 	void setIndent(int indent);
 
+	/**
+	 * Return current line (only if metadata is supported)
+	 */
 	int getLine();
 
-	void attachDefinition(ILineAttributeNode obj);
+	/**
+	 * Return start line position (only if metadata is supported)
+	 */
+	int getLineStartPos();
 
-	void attachAnnotation(Object obj);
+	void attachDefinition(ICodeNodeRef obj);
 
-	void attachLineAnnotation(Object obj);
+	void attachAnnotation(ICodeAnnotation obj);
+
+	void attachLineAnnotation(ICodeAnnotation obj);
 
 	void attachSourceLine(int sourceLine);
 
@@ -56,5 +67,6 @@ public interface ICodeWriter {
 
 	StringBuilder getRawBuf();
 
-	Map<CodePosition, Object> getRawAnnotations();
+	@ApiStatus.Internal
+	Map<Integer, ICodeAnnotation> getRawAnnotations();
 }

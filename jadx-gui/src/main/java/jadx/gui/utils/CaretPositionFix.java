@@ -2,14 +2,17 @@ package jadx.gui.utils;
 
 import java.util.Map;
 
+import javax.swing.text.BadLocationException;
+
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
-import jadx.api.JavaClass;
-import jadx.api.JavaNode;
-import jadx.api.data.annotations.ICodeRawOffset;
+import jadx.api.ICodeInfo;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 
@@ -24,10 +27,11 @@ public class CaretPositionFix {
 
 	private int linesCount;
 	private int line;
+	private int pos;
 	private int lineOffset;
 	private TokenInfo tokenInfo;
 
-	private int javaNodeLine = -1;
+	private int javaNodePos = -1;
 	private int codeRawOffset = -1;
 
 	public CaretPositionFix(AbstractCodeArea codeArea) {
@@ -40,27 +44,26 @@ public class CaretPositionFix {
 	public void save() {
 		try {
 			linesCount = codeArea.getLineCount();
-			int pos = codeArea.getCaretPosition();
+			pos = codeArea.getCaretPosition();
 			line = codeArea.getLineOfOffset(pos);
 			lineOffset = pos - codeArea.getLineStartOffset(line);
 
 			tokenInfo = getTokenInfoByOffset(codeArea.getTokenListForLine(line), pos);
 
-			JClass cls = codeArea.getJClass();
-			if (cls != null) {
-				JavaClass topParentClass = cls.getJavaNode().getTopParentClass();
-				Object ann = topParentClass.getAnnotationAt(new CodePosition(line));
-				if (ann instanceof ICodeRawOffset) {
-					codeRawOffset = ((ICodeRawOffset) ann).getOffset();
-					CodeLinesInfo codeLinesInfo = new CodeLinesInfo(topParentClass);
-					JavaNode javaNodeAtLine = codeLinesInfo.getJavaNodeByLine(line);
-					if (javaNodeAtLine != null) {
-						javaNodeLine = javaNodeAtLine.getDecompiledLine();
+			ICodeInfo codeInfo = codeArea.getCodeInfo();
+			if (codeInfo.hasMetadata()) {
+				ICodeMetadata metadata = codeInfo.getCodeMetadata();
+				ICodeAnnotation ann = metadata.getAt(pos);
+				if (ann instanceof InsnCodeOffset) {
+					codeRawOffset = ((InsnCodeOffset) ann).getOffset();
+					ICodeNodeRef javaNode = metadata.getNodeAt(pos);
+					if (javaNode != null) {
+						javaNodePos = javaNode.getDefPosition();
 					}
 				}
 			}
 			LOG.debug("Saved position data: line={}, lineOffset={}, token={}, codeRawOffset={}, javaNodeLine={}",
-					line, lineOffset, tokenInfo, codeRawOffset, javaNodeLine);
+					line, lineOffset, tokenInfo, codeRawOffset, javaNodePos);
 		} catch (Exception e) {
 			LOG.error("Failed to save caret position before refresh", e);
 			line = -1;
@@ -76,51 +79,55 @@ public class CaretPositionFix {
 			return;
 		}
 		try {
-			int newLine = getNewLine();
-			int lineStartOffset = codeArea.getLineStartOffset(newLine);
-			int lineEndOffset = codeArea.getLineEndOffset(newLine) - 1;
-			int lineLength = lineEndOffset - lineStartOffset;
+			int newPos = getNewPos();
+			int newLine = codeArea.getLineOfOffset(newPos);
 			Token token = codeArea.getTokenListForLine(newLine);
-			int newPos = getOffsetFromTokenInfo(tokenInfo, token);
-			if (newPos == -1) {
+			int tokenPos = getOffsetFromTokenInfo(tokenInfo, token);
+			if (tokenPos == -1) {
+				int lineStartOffset = codeArea.getLineStartOffset(newLine);
+				int lineEndOffset = codeArea.getLineEndOffset(newLine) - 1;
+				int lineLength = lineEndOffset - lineStartOffset;
 				// can't restore using token -> just restore by line offset
 				if (lineOffset < lineLength) {
-					newPos = lineStartOffset + lineOffset;
+					tokenPos = lineStartOffset + lineOffset;
 				} else {
 					// line truncated -> set caret at line end
-					newPos = lineEndOffset;
+					tokenPos = lineEndOffset;
 				}
 			}
-			codeArea.setCaretPosition(newPos);
-			LOG.debug("Restored caret position: {}, line: {}", newPos, newLine);
+			codeArea.setCaretPosition(tokenPos);
+			LOG.debug("Restored caret position: {}", tokenPos);
 		} catch (Exception e) {
 			LOG.warn("Failed to restore caret position", e);
 		}
 	}
 
-	private int getNewLine() {
+	private int getNewPos() throws BadLocationException {
 		int newLinesCount = codeArea.getLineCount();
 		if (linesCount == newLinesCount) {
-			return line;
+			return pos;
 		}
 		// lines count changes, try find line by raw offset
-		if (javaNodeLine != -1) {
+		ICodeInfo codeInfo = codeArea.getCodeInfo();
+		if (javaNodePos != -1 && codeInfo.hasMetadata()) {
 			JClass cls = codeArea.getJClass();
 			if (cls != null) {
-				JavaClass topParentClass = cls.getJavaNode().getTopParentClass();
-				for (Map.Entry<CodePosition, Object> entry : topParentClass.getCodeAnnotations().entrySet()) {
-					CodePosition pos = entry.getKey();
-					if (pos.getOffset() == 0 && pos.getLine() >= javaNodeLine) {
-						Object ann = entry.getValue();
-						if (ann instanceof ICodeRawOffset && ((ICodeRawOffset) ann).getOffset() == codeRawOffset) {
-							return pos.getLine() - 1;
+				ICodeMetadata codeMetadata = codeInfo.getCodeMetadata();
+				for (Map.Entry<Integer, ICodeAnnotation> entry : codeMetadata.getAsMap().entrySet()) {
+					int annPos = entry.getKey();
+					if (annPos >= javaNodePos) {
+						ICodeAnnotation ann = entry.getValue();
+						if (ann instanceof InsnCodeOffset
+								&& ((InsnCodeOffset) ann).getOffset() == codeRawOffset) {
+							return annPos;
 						}
 					}
 				}
 			}
 		}
 		// fallback: assume lines added/removed before caret
-		return line - (linesCount - newLinesCount);
+		int newLine = line - (linesCount - newLinesCount);
+		return codeArea.getLineStartOffset(newLine);
 	}
 
 	private TokenInfo getTokenInfoByOffset(Token token, int offset) {

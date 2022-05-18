@@ -28,10 +28,12 @@ import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
@@ -230,6 +232,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		}
 	}
 
+	public abstract @NotNull ICodeInfo getCodeInfo();
+
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed
 	 */
@@ -264,28 +268,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	public void scrollToPos(int pos) {
 		try {
 			setCaretPosition(pos);
+			centerCurrentLine();
+			forceCurrentLineHighlightRepaint();
 		} catch (Exception e) {
-			LOG.debug("Can't scroll to position {}", pos, e);
-		}
-		centerCurrentLine();
-		forceCurrentLineHighlightRepaint();
-	}
-
-	public void scrollToLine(int line) {
-		int lineNum = line - 1;
-		if (lineNum < 0) {
-			lineNum = 0;
-		}
-		setCaretAtLine(lineNum);
-		centerCurrentLine();
-		forceCurrentLineHighlightRepaint();
-	}
-
-	private void setCaretAtLine(int line) {
-		try {
-			setCaretPosition(getLineStartOffset(line));
-		} catch (BadLocationException e) {
-			LOG.debug("Can't scroll to {}", line, e);
+			LOG.warn("Can't scroll to position {}", pos, e);
 		}
 	}
 
@@ -317,7 +303,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	/**
-	 * @param str - if null -> reset current highlights
+	 * @param str
+	 *            - if null -> reset current highlights
 	 */
 	private void highlightAllMatches(@Nullable String str) {
 		SearchContext context = new SearchContext(str);
@@ -328,7 +315,15 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public JumpPosition getCurrentPosition() {
-		return new JumpPosition(node, getCaretLineNumber() + 1, getCaretPosition());
+		return new JumpPosition(node, getCaretPosition());
+	}
+
+	public int getLineStartFor(int pos) throws BadLocationException {
+		return getLineStartOffset(getLineOfOffset(pos));
+	}
+
+	public String getLineAt(int pos) throws BadLocationException {
+		return getLineText(getLineOfOffset(pos) + 1);
 	}
 
 	public String getLineText(int line) throws BadLocationException {
@@ -336,11 +331,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		int startOffset = getLineStartOffset(lineNum);
 		int endOffset = getLineEndOffset(lineNum);
 		return getText(startOffset, endOffset - startOffset);
-	}
-
-	@Nullable
-	Integer getSourceLine(int line) {
-		return node.getSourceLine(line);
 	}
 
 	public ContentPanel getContentPanel() {

@@ -52,7 +52,7 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 				// don't repaint highlight
 				return true;
 			}
-			JavaNode nodeAtOffset = codeLinkGenerator.getNodeAtOffset(codeArea, tokenOffset);
+			JavaNode nodeAtOffset = codeLinkGenerator.getNodeAtOffset(tokenOffset);
 			if (nodeAtOffset == null) {
 				return false;
 			}

@@ -36,6 +36,11 @@ public class JVariable extends JNode {
 	}
 
 	@Override
+	public int getPos() {
+		return var.getDefPos();
+	}
+
+	@Override
 	public Icon getIcon() {
 		return null;
 	}

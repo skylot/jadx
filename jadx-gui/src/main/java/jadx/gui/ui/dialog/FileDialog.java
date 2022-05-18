@@ -19,9 +19,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.utils.Utils;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.FileUtils;
 import jadx.gui.utils.NLS;
 
 public class FileDialog {

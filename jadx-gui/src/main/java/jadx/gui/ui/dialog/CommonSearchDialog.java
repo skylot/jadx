@@ -1,11 +1,10 @@
 package jadx.gui.ui.dialog;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -15,8 +14,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -31,14 +32,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
@@ -59,14 +57,13 @@ import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.search.TextSearchIndex;
+
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class CommonSearchDialog extends JFrame {
-	private static final long serialVersionUID = 8939332306115370276L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
-
-	public static final int RESULTS_PER_PAGE = 100;
+	private static final long serialVersionUID = 8939332306115370276L;
 
 	protected final transient TabbedPane tabbedPane;
 	protected final transient CacheObject cache;
@@ -119,17 +116,6 @@ public abstract class CommonSearchDialog extends JFrame {
 		updateTitle();
 	}
 
-	public void prepare() {
-		if (cache.getIndexService().isComplete()) {
-			loadFinishedCommon();
-			loadFinished();
-			return;
-		}
-		LoadTask task = new LoadTask();
-		task.addPropertyChangeListener(progressPane);
-		task.execute();
-	}
-
 	protected void registerInitOnOpen() {
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -139,23 +125,21 @@ public abstract class CommonSearchDialog extends JFrame {
 		});
 	}
 
-	protected synchronized void performSearch() {
-		resultsTable.updateTable();
-		updateProgressLabel();
-	}
-
 	protected void openSelectedItem() {
 		JNode node = getSelectedNode();
 		if (node == null) {
 			return;
 		}
-		JumpPosition jmpPos;
+		openItem(node);
+	}
+
+	protected void openItem(JNode node) {
 		if (node instanceof JResSearchNode) {
-			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getLine(), node.getPos());
+			JumpPosition jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
+			tabbedPane.codeJump(jmpPos);
 		} else {
-			jmpPos = new JumpPosition(node.getRootClass(), node.getLine(), node.getPos());
+			tabbedPane.codeJump(node);
 		}
-		tabbedPane.codeJump(jmpPos);
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
 			dispose();
 		}
@@ -214,7 +198,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected JPanel initResultsTable() {
 		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
 		resultsModel = new ResultsModel(renderer);
-		resultsModel.addTableModelListener(e -> updateProgressLabel());
+		resultsModel.addTableModelListener(e -> updateProgressLabel(false));
 
 		resultsTable = new ResultsTable(resultsModel, renderer);
 		resultsTable.setShowHorizontalLines(false);
@@ -262,135 +246,134 @@ public abstract class CommonSearchDialog extends JFrame {
 		warnLabel.setForeground(Color.RED);
 		warnLabel.setVisible(false);
 
+		JScrollPane scroll = new JScrollPane(resultsTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		// scroll.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+
+		JPanel resultsActionsPanel = new JPanel();
+		resultsActionsPanel.setLayout(new BoxLayout(resultsActionsPanel, BoxLayout.LINE_AXIS));
+		resultsActionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+		addCustomResultsActions(resultsActionsPanel);
+		resultsInfoLabel = new JLabel("");
+		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		resultsActionsPanel.add(resultsInfoLabel);
+		resultsActionsPanel.add(Box.createHorizontalGlue());
+
 		JPanel resultsPanel = new JPanel();
 		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
-		resultsPanel.add(warnLabel);
-		resultsPanel.add(new JScrollPane(resultsTable,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-
-		JPanel paginationPanel = new JPanel();
-		paginationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		paginationPanel.setLayout(new BoxLayout(paginationPanel, BoxLayout.X_AXIS));
-		resultsInfoLabel = new JLabel("");
-
-		JButton nextPageButton = new JButton("->");
-		nextPageButton.setToolTipText(NLS.str("search_dialog.next_page"));
-		nextPageButton.addActionListener(e -> {
-			if (resultsModel.nextPage()) {
-				switchPage(renderer);
-			}
-		});
-
-		JButton prevPageButton = new JButton("<-");
-		prevPageButton.setToolTipText(NLS.str("search_dialog.prev_page"));
-		prevPageButton.addActionListener(e -> {
-			if (resultsModel.prevPage()) {
-				switchPage(renderer);
-			}
-		});
-
-		paginationPanel.add(prevPageButton);
-		paginationPanel.add(nextPageButton);
-		paginationPanel.add(resultsInfoLabel);
-
-		resultsPanel.add(paginationPanel);
 		resultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		resultsPanel.add(warnLabel, BorderLayout.PAGE_START);
+		resultsPanel.add(scroll, BorderLayout.CENTER);
+		resultsPanel.add(resultsActionsPanel, BorderLayout.PAGE_END);
 		return resultsPanel;
 	}
 
-	private void switchPage(ResultsTableCellRenderer renderer) {
-		renderer.clear();
-		resultsTable.updateTable();
-		updateProgressLabel();
-		resultsTable.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
+	protected void addCustomResultsActions(JPanel actionsPanel) {
 	}
 
-	protected void updateProgressLabel() {
-		String statusText = NLS.str("search_dialog.info_label",
-				resultsModel.getDisplayedResultsStart(),
-				resultsModel.getDisplayedResultsEnd(),
-				resultsModel.getResultCount());
+	protected void updateProgressLabel(boolean complete) {
+		int count = resultsModel.getRowCount();
+		String statusText;
+		if (complete) {
+			statusText = NLS.str("search_dialog.results_complete", count);
+		} else {
+			statusText = NLS.str("search_dialog.results_incomplete", count);
+		}
 		resultsInfoLabel.setText(statusText);
 	}
 
 	protected void showSearchState() {
-		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
+		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching") + "...");
 	}
 
-	protected static class ResultsTable extends JTable {
+	protected static final class ResultsTable extends JTable {
 		private static final long serialVersionUID = 3901184054736618969L;
 		private final transient ResultsTableCellRenderer renderer;
+		private final transient ResultsModel model;
 
 		public ResultsTable(ResultsModel resultsModel, ResultsTableCellRenderer renderer) {
 			super(resultsModel);
+			this.model = resultsModel;
 			this.renderer = renderer;
 		}
 
-		public void updateTable() {
-			ResultsModel model = (ResultsModel) getModel();
-			TableColumnModel columnModel = getColumnModel();
-
-			int width = getParent().getWidth();
-			int firstColMaxWidth = (int) (width * 0.5);
-			int rowCount = getRowCount();
+		public void initColumnWidth() {
 			int columnCount = getColumnCount();
-			boolean addDescColumn = model.isAddDescColumn();
-			if (!addDescColumn) {
-				firstColMaxWidth = width;
+			int width = getParent().getWidth();
+			int colWidth = model.isAddDescColumn() ? width / 2 : width;
+			columnModel.getColumn(0).setPreferredWidth(colWidth);
+			for (int col = 1; col < columnCount; col++) {
+				columnModel.getColumn(col).setPreferredWidth(width);
 			}
-			setRowHeight(10); // reset all rows height
-			for (int col = 0; col < columnCount; col++) {
-				int colWidth = 50;
-				for (int row = 0; row < rowCount; row++) {
-					Component comp = prepareRenderer(renderer, row, col);
-					if (comp == null) {
-						continue;
-					}
-					colWidth = Math.max(comp.getPreferredSize().width, colWidth);
-					int h = Math.max(getRowHeight(row), getHeight(comp));
-					if (h > 1) {
-						setRowHeight(row, h);
-					}
-				}
-				colWidth += 10;
-				if (col == 0) {
-					colWidth = Math.min(colWidth, firstColMaxWidth);
-				} else {
-					colWidth = Math.max(colWidth, width - columnModel.getColumn(0).getPreferredWidth());
-				}
-				TableColumn column = columnModel.getColumn(col);
-				column.setPreferredWidth(colWidth);
-			}
-			updateUI();
 		}
 
-		private int getHeight(@Nullable Component nodeComp) {
-			if (nodeComp != null) {
-				return Math.max(nodeComp.getHeight(), nodeComp.getPreferredSize().height);
+		public void updateTable() {
+			UiUtils.uiThreadGuard();
+			long start = System.currentTimeMillis();
+			int width = getParent().getWidth();
+			TableColumn firstColumn = columnModel.getColumn(0);
+			if (model.isAddDescColumn()) {
+				if (firstColumn.getWidth() > width * 0.8) {
+					// first column too big and hide second column, resize it
+					firstColumn.setPreferredWidth(width / 2);
+				}
+				TableColumn secondColumn = columnModel.getColumn(1);
+				int columnMaxWidth = width * 2; // set big enough size to skip per row check
+				if (secondColumn.getWidth() < columnMaxWidth) {
+					secondColumn.setPreferredWidth(columnMaxWidth);
+				}
+			} else {
+				firstColumn.setPreferredWidth(width);
 			}
-			return 0;
+			int rowCount = getRowCount();
+			int columnCount = getColumnCount();
+			Map<Class<?>, Integer> heightByType = new HashMap<>();
+			for (int row = 0; row < rowCount; row++) {
+				Object value = model.getValueAt(row, 0);
+				Class<?> valueType = value.getClass();
+				Integer cachedHeight = heightByType.get(valueType);
+				if (cachedHeight != null) {
+					setRowHeight(row, cachedHeight);
+				} else {
+					int height = 0;
+					for (int col = 0; col < columnCount; col++) {
+						Component comp = prepareRenderer(renderer, row, col);
+						if (comp == null) {
+							continue;
+						}
+						Dimension preferredSize = comp.getPreferredSize();
+						int h = Math.max(comp.getHeight(), preferredSize.height);
+						height = Math.max(height, h);
+					}
+					heightByType.put(valueType, height);
+					setRowHeight(row, height);
+				}
+			}
+			updateUI();
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Update results table in {}ms, count: {}", System.currentTimeMillis() - start, rowCount);
+			}
+		}
+
+		@Override
+		public Object getValueAt(int row, int column) {
+			return model.getValueAt(row, column);
 		}
 	}
 
-	protected static class ResultsModel extends AbstractTableModel {
+	protected static final class ResultsModel extends AbstractTableModel {
 		private static final long serialVersionUID = -7821286846923903208L;
-		private static final String[] COLUMN_NAMES = {
-				NLS.str("search_dialog.col_node"),
-				NLS.str("search_dialog.col_code")
-		};
+		private static final String[] COLUMN_NAMES = { NLS.str("search_dialog.col_node"), NLS.str("search_dialog.col_code") };
 
-		private final transient ArrayList<JNode> rows = new ArrayList<>();
+		private final transient List<JNode> rows = Collections.synchronizedList(new ArrayList<>());
 		private final transient ResultsTableCellRenderer renderer;
 		private transient boolean addDescColumn;
-		private transient int start = 0;
 
 		public ResultsModel(ResultsTableCellRenderer renderer) {
 			this.renderer = renderer;
 		}
 
-		protected void addAll(Collection<? extends JNode> nodes) {
-			rows.ensureCapacity(rows.size() + nodes.size());
+		public void addAll(Collection<? extends JNode> nodes) {
 			rows.addAll(nodes);
 			if (!addDescColumn) {
 				for (JNode row : rows) {
@@ -403,7 +386,6 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 
 		public void clear() {
-			start = 0;
 			addDescColumn = false;
 			rows.clear();
 			renderer.clear();
@@ -413,43 +395,9 @@ public abstract class CommonSearchDialog extends JFrame {
 			return addDescColumn;
 		}
 
-		public int getResultCount() {
-			return rows.size();
-		}
-
-		public int getDisplayedResultsStart() {
-			if (rows.isEmpty()) {
-				return 0;
-			}
-			return start + 1;
-		}
-
-		public int getDisplayedResultsEnd() {
-			return Math.min(rows.size(), start + RESULTS_PER_PAGE);
-		}
-
-		public boolean nextPage() {
-			if (start + RESULTS_PER_PAGE < rows.size()) {
-				start += RESULTS_PER_PAGE;
-				return true;
-			}
-			return false;
-		}
-
-		public boolean prevPage() {
-			if (start - RESULTS_PER_PAGE >= 0) {
-				start -= RESULTS_PER_PAGE;
-				return true;
-			}
-			return false;
-		}
-
 		@Override
 		public int getRowCount() {
-			if (rows.isEmpty()) {
-				return 0;
-			}
-			return getDisplayedResultsEnd() - start;
+			return rows.size();
 		}
 
 		@Override
@@ -464,11 +412,11 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			return rows.get(rowIndex + start);
+			return rows.get(rowIndex);
 		}
 	}
 
-	protected class ResultsTableCellRenderer implements TableCellRenderer {
+	protected final class ResultsTableCellRenderer implements TableCellRenderer {
 		private final JLabel emptyLabel = new JLabel();
 		private final Font font;
 		private final Color codeSelectedColor;
@@ -483,24 +431,20 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
-				boolean hasFocus, int row, int column) {
-			int id = makeID(row, column);
-			Component comp = componentCache.get(id);
-			if (comp == null) {
+		public Component getTableCellRendererComponent(JTable table, Object obj,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			Component comp = componentCache.computeIfAbsent(makeID(row, column), id -> {
 				if (obj instanceof JNode) {
-					comp = makeCell((JNode) obj, column);
-					componentCache.put(id, comp);
-				} else {
-					comp = emptyLabel;
+					return makeCell((JNode) obj, column);
 				}
-			}
+				return emptyLabel;
+			});
 			updateSelection(table, comp, isSelected);
 			return comp;
 		}
 
 		private int makeID(int row, int col) {
-			return row << 2 | col;
+			return row << 2 | (col & 0b11);
 		}
 
 		private void updateSelection(JTable table, Component comp, boolean isSelected) {
@@ -523,7 +467,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
-				JLabel label = new JLabel(node.makeLongStringHtml() + "  ", node.getIcon(), SwingConstants.LEFT);
+				JLabel label = new JLabel(node.makeLongStringHtml(), node.getIcon(), SwingConstants.LEFT);
 				label.setFont(font);
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());
@@ -559,46 +503,14 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	private class LoadTask extends SwingWorker<Void, Void> {
-		public LoadTask() {
-			loadStartCommon();
-			loadStart();
-		}
-
-		@Override
-		public Void doInBackground() {
-			try {
-				progressPane.changeLabel(this, NLS.str("progress.decompile") + ": ");
-				mainWindow.waitDecompileTask();
-			} catch (Exception e) {
-				LOG.error("Waiting background tasks failed", e);
-			}
-			return null;
-		}
-
-		@Override
-		public void done() {
-			loadFinishedCommon();
-			loadFinished();
-		}
-	}
-
-	void loadStartCommon() {
-		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	void progressStartCommon() {
 		progressPane.setIndeterminate(true);
 		progressPane.setVisible(true);
 		warnLabel.setVisible(false);
 	}
 
-	void loadFinishedCommon() {
-		setCursor(null);
+	void progressFinishedCommon() {
 		progressPane.setVisible(false);
-
-		TextSearchIndex textIndex = cache.getTextIndex();
-		if (textIndex == null) {
-			warnLabel.setText(NLS.str("msg.index_not_initialized"));
-			warnLabel.setVisible(true);
-		}
 	}
 
 	protected JNodeCache getNodeCache() {

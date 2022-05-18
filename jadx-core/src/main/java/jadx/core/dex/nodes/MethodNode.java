@@ -593,6 +593,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
+	public AnnType getAnnType() {
+		return AnnType.METHOD;
+	}
+
+	@Override
 	public int hashCode() {
 		return mthInfo.hashCode();
 	}

@@ -248,7 +248,6 @@ public class RenameDialog extends JDialog {
 		} else {
 			// big batch => unload
 			LOG.debug("Classes to unload: {}", updatedTopClasses.size());
-			cache.getIndexService().setComplete(false);
 			for (JClass cls : updatedTopClasses) {
 				try {
 					cls.unload(cache);

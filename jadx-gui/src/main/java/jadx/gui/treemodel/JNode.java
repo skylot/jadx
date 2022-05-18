@@ -1,18 +1,20 @@
 package jadx.gui.treemodel;
 
+import java.util.Comparator;
+
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
 
-public abstract class JNode extends DefaultMutableTreeNode {
+public abstract class JNode extends DefaultMutableTreeNode implements Comparable<JNode> {
 
 	private static final long serialVersionUID = -5154479091781041008L;
 
@@ -29,10 +31,6 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return null;
 	}
 
-	public String getContent() {
-		return null;
-	}
-
 	@Nullable
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return null;
@@ -42,30 +40,9 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return SyntaxConstants.SYNTAX_STYLE_NONE;
 	}
 
-	public int getLine() {
-		return 0;
-	}
-
-	@Nullable
+	@NotNull
 	public ICodeInfo getCodeInfo() {
-		return null;
-	}
-
-	public final Integer getSourceLine(int line) {
-		ICodeInfo codeInfo = getCodeInfo();
-		if (codeInfo == null) {
-			return null;
-		}
-		return codeInfo.getLineMapping().get(line);
-	}
-
-	@Nullable
-	public JavaNode getJavaNodeAtPosition(JadxDecompiler decompiler, int line, int offset) {
-		ICodeInfo codeInfo = getCodeInfo();
-		if (codeInfo == null) {
-			return null;
-		}
-		return decompiler.getJavaNodeAtPosition(codeInfo, line, offset);
+		return ICodeInfo.EMPTY;
 	}
 
 	public abstract Icon getIcon();
@@ -114,6 +91,15 @@ public abstract class JNode extends DefaultMutableTreeNode {
 
 	public String getTooltip() {
 		return null;
+	}
+
+	private static final Comparator<JNode> COMPARATOR = Comparator
+			.comparing(JNode::makeLongString)
+			.thenComparingInt(JNode::getPos);
+
+	@Override
+	public int compareTo(@NotNull JNode other) {
+		return COMPARATOR.compare(this, other);
 	}
 
 	@Override

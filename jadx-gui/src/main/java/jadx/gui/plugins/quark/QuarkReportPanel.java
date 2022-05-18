@@ -39,7 +39,6 @@ import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
-import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
@@ -117,11 +116,7 @@ public class QuarkReportPanel extends ContentPanel {
 					Object node = getNodeUnderMouse(tree, event);
 					if (node instanceof MethodTreeNode) {
 						JMethod method = ((MethodTreeNode) node).getJMethod();
-						BackgroundExecutor executor = tabbedPane.getMainWindow().getBackgroundExecutor();
-						executor.execute("Decompiling class",
-								() -> tabbedPane.codeJump(method),
-								status -> tabbedPane.codeJump(method) // TODO: fix bug with incorrect jump on just decompiled code
-						);
+						tabbedPane.codeJump(method);
 					}
 				}
 			}

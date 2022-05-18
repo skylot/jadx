@@ -1,28 +1,21 @@
 package jadx.gui.treemodel;
 
-import java.util.Comparator;
-
 import javax.swing.Icon;
 
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaNode;
-import jadx.gui.utils.search.StringRef;
 
-public class CodeNode extends JNode implements Comparable<CodeNode> {
+public class CodeNode extends JNode {
 	private static final long serialVersionUID = 1658650786734966545L;
 
 	private final transient JNode jNode;
-	private final transient JClass jParent;
-	private final transient StringRef line;
-	private final transient int lineNum;
+	private final transient String line;
 	private final transient int pos;
 
-	public CodeNode(JNode jNode, StringRef lineStr, int lineNum, int pos) {
+	public CodeNode(JNode jNode, String lineStr, int pos) {
 		this.jNode = jNode;
-		this.jParent = this.jNode.getJParent();
 		this.line = lineStr;
-		this.lineNum = lineNum;
 		this.pos = pos;
 	}
 
@@ -43,7 +36,7 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 
 	@Override
 	public JClass getRootClass() {
-		JClass parent = jParent;
+		JClass parent = jNode.getJParent();
 		if (parent != null) {
 			return parent.getRootClass();
 		}
@@ -53,18 +46,9 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 		return null;
 	}
 
-	public StringRef getLineStr() {
-		return line;
-	}
-
-	@Override
-	public int getLine() {
-		return lineNum;
-	}
-
 	@Override
 	public String makeDescString() {
-		return line.toString();
+		return line;
 	}
 
 	@Override
@@ -119,12 +103,11 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 		return jNode.hashCode();
 	}
 
-	public static final Comparator<CodeNode> COMPARATOR = Comparator
-			.comparing(CodeNode::makeLongString)
-			.thenComparingInt(CodeNode::getPos);
-
 	@Override
-	public int compareTo(@NotNull CodeNode other) {
-		return COMPARATOR.compare(this, other);
+	public int compareTo(@NotNull JNode other) {
+		if (other instanceof CodeNode) {
+			return jNode.compareTo(((CodeNode) other).jNode);
+		}
+		return super.compareTo(other);
 	}
 }

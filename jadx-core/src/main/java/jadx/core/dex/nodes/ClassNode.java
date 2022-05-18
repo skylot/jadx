@@ -374,7 +374,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		String clsRawName = getRawName();
 		if (searchInCache) {
 			ICodeInfo code = codeCache.get(clsRawName);
-			if (code != null && code != ICodeInfo.EMPTY) {
+			if (code != ICodeInfo.EMPTY) {
 				return code;
 			}
 		}
@@ -815,6 +815,11 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	@Override
 	public String getInputFileName() {
 		return clsData == null ? "synthetic" : clsData.getInputFileName();
+	}
+
+	@Override
+	public AnnType getAnnType() {
+		return AnnType.CLASS;
 	}
 
 	@Override
