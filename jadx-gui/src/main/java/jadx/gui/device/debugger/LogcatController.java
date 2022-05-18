@@ -1,6 +1,7 @@
 package jadx.gui.device.debugger;
 
 import jadx.gui.device.protocol.ADB;
+import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.panel.LogcatPanel;
 
@@ -18,20 +19,25 @@ import java.util.*;
 public class LogcatController {
 	private static final Logger LOG = LoggerFactory.getLogger(LogcatController.class);
 
-	private ADB.Device adbDevice;
+	private ADBDevice adbDevice;
 	private LogcatPanel logcatPanel;
 	private logcatInfo recent = null;
 	private Timer timer;
 	private String timezone;
+	private String host;
+	private int port;
 	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
 	private List<ADB.Process> procs;
 	private LogcatFilter filter = new LogcatFilter(null, null);
 
-	public LogcatController(LogcatPanel logcatPanel, ADB.Device adbDevice) throws IOException, InterruptedException {
+	public LogcatController(LogcatPanel logcatPanel, ADBDevice adbDevice) throws IOException, InterruptedException {
 		this.adbDevice = adbDevice;
+		this.host = host;
+		this.port = port;
 		this.logcatPanel = logcatPanel;
 		this.procs = adbDevice.getProcessList();
-		this.getTimezone();
+		this.timezone = adbDevice.getTimezone();
+
 		this.startLogcat();
 	}
 

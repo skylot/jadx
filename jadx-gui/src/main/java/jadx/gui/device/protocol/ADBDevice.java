@@ -117,6 +117,37 @@ public class ADBDevice {
 		return -1;
 	}
 
+	/**
+	 * @Return binary output of logcat
+	 */
+	public byte[] getBinaryLogcat() throws IOException{
+
+		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		String cmd = "logcat -dB";
+		byte[] bRes = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		return bRes;
+	}
+
+	/**
+	 * @Return binary output of logcat after provided timestamp
+	 */
+	public byte[] getBinaryLogcat(String timestamp) throws IOException{
+		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		String cmd = "logcat -dB -t \"" + timestamp + "\"";
+		byte[] bRes = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		return bRes;
+	}
+
+	/**
+	 * @return Timezone for the attached android device
+	 */
+	public String getTimezone() throws IOException{
+		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		String cmd = "getprop persist.sys.timezone";
+		byte[] tz = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		return new String(tz).trim();
+	}
+
 	public String getAndroidReleaseVersion() {
 		if (!StringUtils.isEmpty(androidReleaseVer)) {
 			return androidReleaseVer;

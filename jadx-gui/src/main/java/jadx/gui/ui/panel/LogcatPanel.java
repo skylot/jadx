@@ -2,6 +2,7 @@ package jadx.gui.ui.panel;
 
 import jadx.gui.device.debugger.LogcatController;
 import jadx.gui.device.protocol.ADB;
+import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.utils.NLS;
 
 import org.slf4j.Logger;
@@ -48,11 +49,11 @@ public class LogcatPanel extends JPanel{
 		pkgs = new ArrayList<String>();
 		pids = new ArrayList<Integer>();
 		JPanel procBox;
-		procs.forEach((proc) -> {
+		for( ADB.Process proc : procs.subList(1, procs.size() )) {  //skipping first element because it contains the column label
 			pkgs.add(String.format("[pid: %-6s] %s", proc.pid, proc.name));
 			pids.add(Integer.valueOf(proc.pid));
 			logcatController.getFilter().addPid(Integer.valueOf(proc.pid));
-		});
+		};
 
 		String msgTypes[] = {
 				NLS.str( "logcat.default" ),
@@ -89,7 +90,7 @@ public class LogcatPanel extends JPanel{
 		return true;
 	}
 
-	public boolean init(ADB.Device device, String pid) {
+	public boolean init(ADBDevice device, String pid) {
 		this.pid = Integer.valueOf(pid);
 		try {
 			this.logcatController = new LogcatController(this, device);
@@ -105,6 +106,10 @@ public class LogcatPanel extends JPanel{
 		}
 		this.ready = true;
 		return true;
+	}
+
+	public JDebuggerPanel getDebugPanel() {
+		return debugPanel;
 	}
 
 	public boolean isReady() {
