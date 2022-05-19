@@ -21,7 +21,7 @@ public class JadxCLI {
 		} catch (JadxArgsValidateException e) {
 			LOG.error("Incorrect arguments: {}", e.getMessage());
 			result = 1;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOG.error("Process error:", e);
 			result = 1;
 		} finally {
