@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -173,16 +174,12 @@ public class NameGen {
 
 	private String makeNameForType(ArgType type) {
 		if (type.isPrimitive()) {
-			return makeNameForPrimitive(type);
+			return type.getPrimitiveType().getShortName().toLowerCase();
 		}
 		if (type.isArray()) {
 			return makeNameForType(type.getArrayRootElement()) + "Arr";
 		}
 		return makeNameForObject(type);
-	}
-
-	private static String makeNameForPrimitive(ArgType type) {
-		return type.getPrimitiveType().getShortName().toLowerCase();
 	}
 
 	private String makeNameForObject(ArgType type) {
@@ -194,21 +191,30 @@ public class NameGen {
 			if (alias != null) {
 				return alias;
 			}
-			ClassInfo extClsInfo = ClassInfo.fromType(mth.root(), type);
-			String shortName = extClsInfo.getShortName();
-			String vName = fromName(shortName);
-			if (vName != null) {
-				return vName;
-			}
-			if (shortName != null) {
-				String lower = StringUtils.escape(shortName.toLowerCase());
-				if (shortName.equals(lower)) {
-					return lower + "Var";
-				}
-				return lower;
-			}
+			return makeNameForCheckedClass(ClassInfo.fromType(mth.root(), type));
 		}
 		return StringUtils.escape(type.toString());
+	}
+
+	private String makeNameForCheckedClass(ClassInfo classInfo) {
+		String shortName = classInfo.getAliasShortName();
+		String vName = fromName(shortName);
+		if (vName != null) {
+			return vName;
+		}
+		String lower = StringUtils.escape(shortName.toLowerCase());
+		if (shortName.equals(lower)) {
+			return lower + "Var";
+		}
+		return lower;
+	}
+
+	private String makeNameForClass(ClassInfo classInfo) {
+		String alias = getAliasForObject(classInfo.getFullName());
+		if (alias != null) {
+			return alias;
+		}
+		return makeNameForCheckedClass(classInfo);
 	}
 
 	private static String fromName(String name) {
@@ -241,7 +247,12 @@ public class NameGen {
 
 			case CONSTRUCTOR:
 				ConstructorInsn co = (ConstructorInsn) insn;
-				return makeNameForObject(co.getClassType().getType());
+				MethodNode callMth = mth.root().getMethodUtils().resolveMethod(co);
+				if (callMth != null && callMth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
+					// don't use name of anonymous class
+					return null;
+				}
+				return makeNameForClass(co.getClassType());
 
 			case ARRAY_LENGTH:
 				return "length";
@@ -267,11 +278,11 @@ public class NameGen {
 	}
 
 	private String makeNameFromInvoke(MethodInfo callMth) {
-		String name = callMth.getName();
-		ArgType declType = callMth.getDeclClass().getType();
+		String name = callMth.getAlias();
+		ClassInfo declClass = callMth.getDeclClass();
 		if ("getInstance".equals(name)) {
 			// e.g. Cipher.getInstance
-			return makeNameForType(declType);
+			return makeNameForClass(declClass);
 		}
 		if (name.startsWith("get") || name.startsWith("set")) {
 			return fromName(name.substring(3));
@@ -280,9 +291,9 @@ public class NameGen {
 			return "it";
 		}
 		if ("toString".equals(name)) {
-			return makeNameForType(declType);
+			return makeNameForClass(declClass);
 		}
-		if ("forName".equals(name) && declType.equals(ArgType.CLASS)) {
+		if ("forName".equals(name) && declClass.getType().equals(ArgType.CLASS)) {
 			return OBJ_ALIAS.get(Consts.CLASS_CLASS);
 		}
 		if (name.startsWith("to")) {
