@@ -90,7 +90,7 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 	}
 
 	public String getTooltip() {
-		return null;
+		return makeLongStringHtml();
 	}
 
 	private static final Comparator<JNode> COMPARATOR = Comparator

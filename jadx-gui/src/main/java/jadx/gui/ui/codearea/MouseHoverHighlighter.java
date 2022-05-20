@@ -83,6 +83,6 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 		}
 		JNodeCache nodeCache = codeArea.getMainWindow().getCacheObject().getNodeCache();
 		JNode jNode = nodeCache.makeFrom(node);
-		codeArea.setToolTipText(jNode.makeLongString());
+		codeArea.setToolTipText(jNode.getTooltip());
 	}
 }
