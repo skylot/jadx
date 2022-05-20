@@ -322,6 +322,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.verbose = verbose;
 	}
 
+	public void setDebugInfo(boolean useDebugInfo) {
+		this.debugInfo = useDebugInfo;
+	}
+
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
 		this.deobfuscationOn = deobfuscationOn;
 	}

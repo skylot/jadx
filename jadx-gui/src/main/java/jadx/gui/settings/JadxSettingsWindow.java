@@ -513,6 +513,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useDebugInfo = new JCheckBox();
+		useDebugInfo.setSelected(settings.isDebugInfo());
+		useDebugInfo.addItemListener(e -> {
+			settings.setDebugInfo(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox inlineAnonymous = new JCheckBox();
 		inlineAnonymous.setSelected(settings.isInlineAnonymousClasses());
 		inlineAnonymous.addItemListener(e -> {
@@ -560,6 +567,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
+		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
