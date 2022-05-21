@@ -51,7 +51,15 @@ public class FileDialog {
 			return Collections.emptyList();
 		}
 		currentDir = fileChooser.getCurrentDirectory().toPath();
-		return FileUtils.toPaths(fileChooser.getSelectedFiles());
+		File[] selectedFiles = fileChooser.getSelectedFiles();
+		if (selectedFiles.length != 0) {
+			return FileUtils.toPaths(selectedFiles);
+		}
+		File chosenFile = fileChooser.getSelectedFile();
+		if (chosenFile != null) {
+			return Collections.singletonList(chosenFile.toPath());
+		}
+		return Collections.emptyList();
 	}
 
 	public Path getCurrentDir() {
