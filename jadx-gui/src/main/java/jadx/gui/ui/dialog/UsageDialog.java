@@ -100,10 +100,6 @@ public class UsageDialog extends CommonSearchDialog {
 		JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
 		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
 		for (int pos : usePositions) {
-			if (searchNode.getTopParentClass().equals(topUseClass) && pos == searchNode.getDefPos()) {
-				// skip declaration
-				continue;
-			}
 			String line = CodeUtils.getLineForPos(code, pos);
 			if (line.startsWith("import ")) {
 				continue;

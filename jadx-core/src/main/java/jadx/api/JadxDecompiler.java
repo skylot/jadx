@@ -683,10 +683,13 @@ public final class JadxDecompiler implements Closeable {
 			throw new JadxRuntimeException("Missing code info for resolve VarRef: " + varRef);
 		}
 		ICodeAnnotation varNodeAnn = codeInfo.getCodeMetadata().getAt(varRef.getRefPos());
-		if (varNodeAnn == null) {
-			return null;
+		if (varNodeAnn != null && varNodeAnn.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+			ICodeNodeRef nodeRef = ((NodeDeclareRef) varNodeAnn).getNode();
+			if (nodeRef.getAnnType() == ICodeAnnotation.AnnType.VAR) {
+				return resolveVarNode((VarNode) nodeRef);
+			}
 		}
-		return (JavaVariable) getJavaNodeByCodeAnnotation(codeInfo, varNodeAnn);
+		return null;
 	}
 
 	List<JavaNode> convertNodes(Collection<? extends ICodeNodeRef> nodesList) {

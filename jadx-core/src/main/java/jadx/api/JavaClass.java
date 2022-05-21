@@ -6,12 +6,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -22,6 +26,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 
 public final class JavaClass implements JavaNode {
+	private static final Logger LOG = LoggerFactory.getLogger(JavaClass.class);
 
 	private final JadxDecompiler decompiler;
 	private final ClassNode cls;
@@ -196,12 +201,17 @@ public final class JavaClass implements JavaNode {
 		List<Integer> result = new ArrayList<>();
 		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
 			ICodeAnnotation ann = entry.getValue();
-			if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
-				// ignore declarations
+			AnnType annType = ann.getAnnType();
+			if (annType == AnnType.DECLARATION || annType == AnnType.OFFSET) {
+				// ignore declarations and offset annotations
 				continue;
 			}
+			// ignore declarations
 			JavaNode annNode = rootDec.getJavaNodeByCodeAnnotation(codeInfo, ann);
-			if (javaNode.equals(annNode)) {
+			if (annNode == null && LOG.isDebugEnabled()) {
+				LOG.debug("Failed to resolve code annotation, cls: {}, pos: {}, ann: {}", this, entry.getKey(), ann);
+			}
+			if (Objects.equals(annNode, javaNode)) {
 				result.add(entry.getKey());
 			}
 		}

@@ -13,14 +13,14 @@ public class VarRefAdapter extends BaseDataAdapter<VarRef> {
 	@Override
 	public void write(DataOutput out, VarRef value) throws IOException {
 		int refPos = value.getRefPos();
-		if (refPos == 0) {
-			throw new RuntimeException("Variable refPos is zero: " + value);
+		if (refPos <= 0) {
+			throw new RuntimeException("Variable refPos is invalid: " + value);
 		}
-		out.writeShort(refPos);
+		out.writeInt(refPos);
 	}
 
 	@Override
 	public VarRef read(DataInput in) throws IOException {
-		return VarRef.fromPos(in.readShort());
+		return VarRef.fromPos(in.readInt());
 	}
 }
