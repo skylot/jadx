@@ -6,6 +6,7 @@ import java.util.List;
 import org.jetbrains.annotations.ApiStatus;
 
 import jadx.api.metadata.annotations.VarNode;
+import jadx.core.dex.instructions.args.ArgType;
 
 public class JavaVariable implements JavaNode {
 	private final JavaMethod mth;
@@ -41,6 +42,10 @@ public class JavaVariable implements JavaNode {
 	@Override
 	public String getFullName() {
 		return varNode.getType() + " " + varNode.getName() + " (r" + varNode.getReg() + "v" + varNode.getSsa() + ")";
+	}
+
+	public ArgType getType() {
+		return ArgType.tryToResolveClassAlias(mth.getMethodNode().root(), varNode.getType());
 	}
 
 	@Override

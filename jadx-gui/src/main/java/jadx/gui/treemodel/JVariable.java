@@ -4,6 +4,7 @@ import javax.swing.Icon;
 
 import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
+import jadx.gui.utils.UiUtils;
 
 public class JVariable extends JNode {
 	private static final long serialVersionUID = -3002100457834453783L;
@@ -53,6 +54,18 @@ public class JVariable extends JNode {
 	@Override
 	public String makeLongString() {
 		return var.getFullName();
+	}
+
+	@Override
+	public String makeLongStringHtml() {
+		return UiUtils.typeFormatHtml(var.getName(), var.getType());
+	}
+
+	@Override
+	public String getTooltip() {
+		String name = var.getName() + " (r" + var.getReg() + "v" + var.getSsa() + ")";
+		String fullType = UiUtils.escapeHtml(var.getType().toString());
+		return UiUtils.wrapHtml(fullType + ' ' + UiUtils.escapeHtml(name));
 	}
 
 	@Override

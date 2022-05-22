@@ -120,9 +120,15 @@ public class UiUtils {
 	}
 
 	public static String typeFormatHtml(String name, ArgType type) {
-		return "<html><body><nobr>" + escapeHtml(name)
-				+ "<span style='color:#888888;'> " + escapeHtml(typeStr(type)) + "</span>"
-				+ "</nobr></body></html>";
+		return wrapHtml(escapeHtml(name) + ' ' + fadeHtml(escapeHtml(typeStr(type))));
+	}
+
+	public static String fadeHtml(String htmlStr) {
+		return "<span style='color:#888888;'>" + htmlStr + "</span>"; // TODO: get color from theme
+	}
+
+	public static String wrapHtml(String htmlStr) {
+		return "<html><body><nobr>" + htmlStr + "</nobr></body></html>";
 	}
 
 	public static String escapeHtml(String str) {

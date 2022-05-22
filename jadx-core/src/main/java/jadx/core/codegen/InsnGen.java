@@ -168,10 +168,11 @@ public class InsnGen {
 	 * Variable definition without type, only var name
 	 */
 	private void defVar(ICodeWriter code, CodeVar codeVar) {
+		String varName = mgen.getNameGen().assignArg(codeVar);
 		if (code.isMetadataSupported()) {
 			code.attachDefinition(VarNode.get(mth, codeVar));
 		}
-		code.add(mgen.getNameGen().assignArg(codeVar));
+		code.add(varName);
 	}
 
 	private String lit(LiteralArg arg) {

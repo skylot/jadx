@@ -87,6 +87,12 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public String getTooltip() {
+		String fullType = UiUtils.escapeHtml(field.getType().toString());
+		return UiUtils.wrapHtml(fullType + ' ' + UiUtils.escapeHtml(field.getName()));
+	}
+
+	@Override
 	public String makeDescString() {
 		return UiUtils.typeStr(field.getType()) + " " + field.getName();
 	}
