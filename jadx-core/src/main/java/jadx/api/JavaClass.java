@@ -206,7 +206,6 @@ public final class JavaClass implements JavaNode {
 				// ignore declarations and offset annotations
 				continue;
 			}
-			// ignore declarations
 			JavaNode annNode = rootDec.getJavaNodeByCodeAnnotation(codeInfo, ann);
 			if (annNode == null && LOG.isDebugEnabled()) {
 				LOG.debug("Failed to resolve code annotation, cls: {}, pos: {}, ann: {}", this, entry.getKey(), ann);

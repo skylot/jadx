@@ -37,7 +37,7 @@ import jadx.core.utils.files.FileUtils;
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 8;
+	private static final int DATA_FORMAT_VERSION = 9;
 
 	private final Path srcDir;
 	private final Path metaDir;

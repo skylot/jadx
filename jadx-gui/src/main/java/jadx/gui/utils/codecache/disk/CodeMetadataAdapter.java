@@ -25,6 +25,8 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.utils.codecache.disk.adapters.CodeAnnotationAdapter;
 
+import static jadx.gui.utils.codecache.disk.adapters.DataAdapterHelper.readUVInt;
+import static jadx.gui.utils.codecache.disk.adapters.DataAdapterHelper.writeUVInt;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -68,8 +70,8 @@ public class CodeMetadataAdapter {
 	private void writeLines(DataOutput out, Map<Integer, Integer> lines) throws IOException {
 		out.writeInt(lines.size());
 		for (Map.Entry<Integer, Integer> entry : lines.entrySet()) {
-			out.writeShort(entry.getKey());
-			out.writeShort(entry.getValue());
+			writeUVInt(out, entry.getKey());
+			writeUVInt(out, entry.getValue());
 		}
 	}
 
@@ -80,8 +82,8 @@ public class CodeMetadataAdapter {
 		}
 		Map<Integer, Integer> lines = new HashMap<>(size);
 		for (int i = 0; i < size; i++) {
-			int key = in.readShort();
-			int value = in.readShort();
+			int key = readUVInt(in);
+			int value = readUVInt(in);
 			lines.put(key, value);
 		}
 		return lines;
@@ -90,7 +92,7 @@ public class CodeMetadataAdapter {
 	private void writeAnnotations(DataOutputStream out, Map<Integer, ICodeAnnotation> annotations) throws IOException {
 		out.writeInt(annotations.size());
 		for (Map.Entry<Integer, ICodeAnnotation> entry : annotations.entrySet()) {
-			out.writeInt(entry.getKey());
+			writeUVInt(out, entry.getKey());
 			codeAnnotationAdapter.write(out, entry.getValue());
 		}
 	}
@@ -102,7 +104,7 @@ public class CodeMetadataAdapter {
 		}
 		Map<Integer, ICodeAnnotation> map = new HashMap<>(size);
 		for (int i = 0; i < size; i++) {
-			int pos = in.readInt();
+			int pos = readUVInt(in);
 			ICodeAnnotation ann = codeAnnotationAdapter.read(in);
 			if (ann != null) {
 				map.put(pos, ann);
