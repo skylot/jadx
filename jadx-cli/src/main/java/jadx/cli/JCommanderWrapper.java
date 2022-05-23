@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.core.utils.Utils;
 
 public class JCommanderWrapper<T> {
 	private final JCommander jc;
@@ -50,10 +52,22 @@ public class JCommanderWrapper<T> {
 			if (parameter.isAssigned()) {
 				// copy assigned field value to obj
 				Parameterized parameterized = parameter.getParameterized();
-				Object val = parameterized.get(parameter.getObject());
-				parameterized.set(obj, val);
+				Object providedValue = parameterized.get(parameter.getObject());
+				Object newValue = mergeValues(parameterized.getType(), providedValue, () -> parameterized.get(obj));
+				parameterized.set(obj, newValue);
 			}
 		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Object mergeValues(Class<?> type, Object value, Supplier<Object> prevValueProvider) {
+		if (type.isAssignableFrom(Map.class)) {
+			// merge maps instead replacing whole map
+			Map prevMap = (Map) prevValueProvider.get();
+			return Utils.mergeMaps(prevMap, (Map) value); // value map will override keys in prevMap
+		}
+		// simple override
+		return value;
 	}
 
 	public void printUsage() {
