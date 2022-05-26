@@ -115,17 +115,22 @@ public class FileUtils {
 
 	public static void deleteDirIfExists(Path dir) {
 		if (Files.exists(dir)) {
-			deleteDir(dir);
+			try {
+				deleteDir(dir);
+			} catch (Exception e) {
+				LOG.error("Failed to delete dir: " + dir.toAbsolutePath(), e);
+			}
 		}
 	}
 
-	public static void deleteDir(Path dir) {
+	private static void deleteDir(Path dir) {
 		try (Stream<Path> pathStream = Files.walk(dir)) {
 			pathStream.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(file -> {
-						if (!file.delete()) {
-							LOG.warn("Failed to remove file: {}", file.getAbsolutePath());
+					.forEach(path -> {
+						try {
+							Files.delete(path);
+						} catch (Exception e) {
+							throw new JadxRuntimeException("Failed to delete path: " + path.toAbsolutePath(), e);
 						}
 					});
 		} catch (Exception e) {
@@ -152,11 +157,11 @@ public class FileUtils {
 	}
 
 	public static void deleteTempRootDir() {
-		deleteDir(TEMP_ROOT_DIR);
+		deleteDirIfExists(TEMP_ROOT_DIR);
 	}
 
 	public static void clearTempRootDir() {
-		deleteDir(TEMP_ROOT_DIR);
+		deleteDirIfExists(TEMP_ROOT_DIR);
 		makeDirs(TEMP_ROOT_DIR);
 	}
 
