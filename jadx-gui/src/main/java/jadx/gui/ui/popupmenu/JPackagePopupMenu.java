@@ -120,7 +120,7 @@ public class JPackagePopupMenu extends JPopupMenu {
 			} else {
 				wrapper.removeExcludedPackage(fullName);
 			}
-			mainWindow.reOpenFile();
+			mainWindow.reopen();
 		});
 		return excludeItem;
 	}

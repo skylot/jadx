@@ -111,7 +111,8 @@ public class DiskCodeCache implements ICodeCache {
 					return FileVisitResult.CONTINUE;
 				}
 			});
-			LOG.info("Found {} classes in disk cache in {} ms", cachedKeys.size(), System.currentTimeMillis() - start);
+			LOG.info("Found {} classes metadata in disk cache in {} ms, dir: {}", cachedKeys.size(),
+					System.currentTimeMillis() - start, metaDir);
 		} catch (Exception e) {
 			LOG.error("Failed to collect cached items", e);
 		}

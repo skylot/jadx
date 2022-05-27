@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,30 +43,26 @@ public class JadxProject {
 	private static final int CURRENT_PROJECT_VERSION = 1;
 	public static final String PROJECT_EXTENSION = "jadx";
 
-	private transient MainWindow mainWindow;
-	private transient JadxSettings settings;
+	private final transient MainWindow mainWindow;
 
 	private transient String name = "New Project";
-	private transient Path projectPath;
+	private transient @Nullable Path projectPath;
 
 	private transient boolean initial = true;
 	private transient boolean saved;
 
 	private ProjectData data = new ProjectData();
 
-	public void setSettings(JadxSettings settings) {
-		this.settings = settings;
-	}
-
-	public void setMainWindow(MainWindow mainWindow) {
+	public JadxProject(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 	}
 
+	@Nullable
 	public Path getProjectPath() {
 		return projectPath;
 	}
 
-	private void setProjectPath(Path projectPath) {
+	private void setProjectPath(@NotNull Path projectPath) {
 		this.projectPath = projectPath;
 		this.name = CommonFileUtils.removeFileExtension(projectPath.getFileName().toString());
 		changed();
@@ -74,7 +72,7 @@ public class JadxProject {
 		return data.getFiles();
 	}
 
-	public void setFilePath(List<Path> files) {
+	public void setFilePaths(List<Path> files) {
 		if (!files.equals(getFilePaths())) {
 			data.setFiles(files);
 			String joinedName = files.stream().map(p -> CommonFileUtils.removeFileExtension(p.getFileName().toString()))
@@ -144,20 +142,50 @@ public class JadxProject {
 		return data.getActiveTab();
 	}
 
+	public @NotNull Path getCacheDir() {
+		Path cacheDir = data.getCacheDir();
+		if (cacheDir != null) {
+			return cacheDir;
+		}
+		Path newCacheDir = buildCacheDir();
+		setCacheDir(newCacheDir);
+		return newCacheDir;
+	}
+
+	public void setCacheDir(Path cacheDir) {
+		data.setCacheDir(cacheDir);
+		changed();
+	}
+
+	private Path buildCacheDir() {
+		if (projectPath != null) {
+			return projectPath.resolveSibling(projectPath.getFileName() + ".cache");
+		}
+		List<Path> files = data.getFiles();
+		if (!files.isEmpty()) {
+			Path path = files.get(0);
+			return path.resolveSibling(path.getFileName() + ".cache");
+		}
+		throw new JadxRuntimeException("Can't get working dir");
+	}
+
 	private void changed() {
+		JadxSettings settings = mainWindow.getSettings();
 		if (settings != null && settings.isAutoSaveProject()) {
 			save();
 		} else {
 			saved = false;
 		}
 		initial = false;
-		if (mainWindow != null) {
-			mainWindow.updateProject(this);
-		}
+		mainWindow.updateProject(this);
 	}
 
 	public String getName() {
 		return name;
+	}
+
+	public boolean isSaveFileSelected() {
+		return projectPath != null;
 	}
 
 	public boolean isSaved() {
@@ -186,10 +214,10 @@ public class JadxProject {
 		}
 	}
 
-	public static JadxProject from(Path path) {
+	public static JadxProject load(MainWindow mainWindow, Path path) {
 		Path basePath = path.toAbsolutePath().getParent();
 		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-			JadxProject project = new JadxProject();
+			JadxProject project = new JadxProject(mainWindow);
 			project.data = buildGson(basePath).fromJson(reader, ProjectData.class);
 			project.saved = true;
 			project.setProjectPath(path);

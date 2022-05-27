@@ -138,7 +138,7 @@ public class JadxSettingsWindow extends JDialog {
 
 			SwingUtilities.invokeLater(() -> {
 				if (needReload) {
-					mainWindow.reOpenFile();
+					mainWindow.reopen();
 				}
 				if (!settings.getLangLocale().equals(prevLang)) {
 					JOptionPane.showMessageDialog(

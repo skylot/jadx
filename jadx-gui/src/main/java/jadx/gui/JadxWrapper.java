@@ -1,6 +1,5 @@
 package jadx.gui;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +23,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.codecache.CodeStringCache;
 import jadx.gui.utils.codecache.disk.BufferCodeCache;
 import jadx.gui.utils.codecache.disk.DiskCodeCache;
@@ -35,26 +35,22 @@ import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
-	private final JadxSettings settings;
+	private final MainWindow mainWindow;
 	private JadxDecompiler decompiler;
-	private @Nullable JadxProject project;
-	private List<Path> openPaths = Collections.emptyList();
 
-	public JadxWrapper(JadxSettings settings) {
-		this.settings = settings;
-		this.decompiler = new JadxDecompiler(settings.toJadxArgs());
+	public JadxWrapper(MainWindow mainWindow) {
+		this.mainWindow = mainWindow;
+		this.decompiler = new JadxDecompiler(new JadxArgs());
 	}
 
-	public void openFile(List<Path> paths) {
+	public void open() {
 		close();
-		this.openPaths = paths;
 		try {
-			JadxArgs jadxArgs = settings.toJadxArgs();
-			jadxArgs.setInputFiles(FileUtils.toFiles(paths));
-			if (project != null) {
-				jadxArgs.setCodeData(project.getCodeData());
-			}
-			closeCodeCache();
+			JadxProject project = getProject();
+			JadxArgs jadxArgs = getSettings().toJadxArgs();
+			jadxArgs.setInputFiles(FileUtils.toFiles(project.getFilePaths()));
+			jadxArgs.setCodeData(project.getCodeData());
+
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
 			initCodeCache(jadxArgs);
@@ -80,11 +76,10 @@ public class JadxWrapper {
 		} catch (Exception e) {
 			LOG.error("jadx decompiler close error", e);
 		}
-		this.openPaths = Collections.emptyList();
 	}
 
 	private void initCodeCache(JadxArgs jadxArgs) {
-		switch (settings.getCodeCacheMode()) {
+		switch (getSettings().getCodeCacheMode()) {
 			case MEMORY:
 				jadxArgs.setCodeCache(new InMemoryCodeCache());
 				break;
@@ -98,20 +93,8 @@ public class JadxWrapper {
 	}
 
 	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getCacheDir());
+		DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
-	}
-
-	private Path getCacheDir() {
-		if (project != null && project.getProjectPath() != null) {
-			Path projectPath = project.getProjectPath();
-			return projectPath.resolveSibling(projectPath.getFileName() + ".cache");
-		}
-		if (!openPaths.isEmpty()) {
-			Path path = openPaths.get(0);
-			return path.resolveSibling(path.getFileName() + ".cache");
-		}
-		throw new JadxRuntimeException("Can't get working dir");
 	}
 
 	public void closeCodeCache() {
@@ -177,29 +160,29 @@ public class JadxWrapper {
 
 	// TODO: move to CLI and filter classes in JadxDecompiler
 	public List<String> getExcludedPackages() {
-		String excludedPackages = settings.getExcludedPackages().trim();
+		String excludedPackages = getSettings().getExcludedPackages().trim();
 		if (excludedPackages.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return Arrays.asList(excludedPackages.split("[ ]+"));
+		return Arrays.asList(excludedPackages.split(" +"));
 	}
 
 	public void setExcludedPackages(List<String> packagesToExclude) {
-		settings.setExcludedPackages(String.join(" ", packagesToExclude).trim());
-		settings.sync();
+		getSettings().setExcludedPackages(String.join(" ", packagesToExclude).trim());
+		getSettings().sync();
 	}
 
 	public void addExcludedPackage(String packageToExclude) {
-		String newExclusion = settings.getExcludedPackages() + ' ' + packageToExclude;
-		settings.setExcludedPackages(newExclusion.trim());
-		settings.sync();
+		String newExclusion = getSettings().getExcludedPackages() + ' ' + packageToExclude;
+		getSettings().setExcludedPackages(newExclusion.trim());
+		getSettings().sync();
 	}
 
 	public void removeExcludedPackage(String packageToRemoveFromExclusion) {
 		List<String> list = new ArrayList<>(getExcludedPackages());
 		list.remove(packageToRemoveFromExclusion);
-		settings.setExcludedPackages(String.join(" ", list));
-		settings.sync();
+		getSettings().setExcludedPackages(String.join(" ", list));
+		getSettings().sync();
 	}
 
 	public List<JavaPackage> getPackages() {
@@ -210,10 +193,6 @@ public class JadxWrapper {
 		return decompiler.getResources();
 	}
 
-	public List<Path> getOpenPaths() {
-		return openPaths;
-	}
-
 	public JadxDecompiler getDecompiler() {
 		return decompiler;
 	}
@@ -222,8 +201,12 @@ public class JadxWrapper {
 		return decompiler.getArgs();
 	}
 
-	public void setProject(JadxProject project) {
-		this.project = project;
+	public JadxProject getProject() {
+		return mainWindow.getProject();
+	}
+
+	public JadxSettings getSettings() {
+		return mainWindow.getSettings();
 	}
 
 	/**
