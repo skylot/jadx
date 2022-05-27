@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.api.metadata.ICodeAnnotation;
+
 public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	private final String name;
 	private final List<JavaClass> classes;
@@ -47,6 +49,11 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	@Override
 	public List<JavaNode> getUseIn() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isOwnCodeAnnotation(ICodeAnnotation ann) {
+		return false;
 	}
 
 	@Override

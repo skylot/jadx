@@ -2,6 +2,8 @@ package jadx.api;
 
 import java.util.List;
 
+import jadx.api.metadata.ICodeAnnotation;
+
 public interface JavaNode {
 
 	String getName();
@@ -18,4 +20,6 @@ public interface JavaNode {
 
 	default void removeAlias() {
 	}
+
+	boolean isOwnCodeAnnotation(ICodeAnnotation ann);
 }

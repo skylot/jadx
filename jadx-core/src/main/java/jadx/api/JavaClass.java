@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -24,6 +22,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.ListUtils;
 
 public final class JavaClass implements JavaNode {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaClass.class);
@@ -88,6 +87,14 @@ public final class JavaClass implements JavaNode {
 		return cls.getDisassembledCode();
 	}
 
+	@Override
+	public boolean isOwnCodeAnnotation(ICodeAnnotation ann) {
+		if (ann.getAnnType() == ICodeAnnotation.AnnType.CLASS) {
+			return ann.equals(cls);
+		}
+		return false;
+	}
+
 	/**
 	 * Internal API. Not Stable!
 	 */
@@ -99,7 +106,6 @@ public final class JavaClass implements JavaNode {
 	/**
 	 * Decompile class and loads internal lists of fields, methods, etc.
 	 * Do nothing if already loaded.
-	 * Return not null on first call only (for actual loading)
 	 */
 	@Nullable
 	private synchronized void load() {
@@ -140,10 +146,9 @@ public final class JavaClass implements JavaNode {
 		if (fieldsCount != 0) {
 			List<JavaField> flds = new ArrayList<>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
-				// if (!f.contains(AFlag.DONT_GENERATE)) {
-				JavaField javaField = new JavaField(this, f);
-				flds.add(javaField);
-				// }
+				if (!f.contains(AFlag.DONT_GENERATE)) {
+					flds.add(rootDecompiler.convertFieldNode(f));
+				}
 			}
 			this.fields = Collections.unmodifiableList(flds);
 		}
@@ -153,8 +158,7 @@ public final class JavaClass implements JavaNode {
 			List<JavaMethod> mths = new ArrayList<>(methodsCount);
 			for (MethodNode m : cls.getMethods()) {
 				if (!m.contains(AFlag.DONT_GENERATE)) {
-					JavaMethod javaMethod = new JavaMethod(this, m);
-					mths.add(javaMethod);
+					mths.add(rootDecompiler.convertMethodNode(m));
 				}
 			}
 			mths.sort(Comparator.comparing(JavaMethod::getName));
@@ -162,7 +166,7 @@ public final class JavaClass implements JavaNode {
 		}
 	}
 
-	protected JadxDecompiler getRootDecompiler() {
+	JadxDecompiler getRootDecompiler() {
 		if (parent != null) {
 			return parent.getRootDecompiler();
 		}
@@ -193,27 +197,16 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public List<Integer> getUsePlacesFor(ICodeInfo codeInfo, JavaNode javaNode) {
-		Map<Integer, ICodeAnnotation> map = codeInfo.getCodeMetadata().getAsMap();
-		if (map.isEmpty() || decompiler == null) {
+		if (!codeInfo.hasMetadata()) {
 			return Collections.emptyList();
 		}
-		JadxDecompiler rootDec = getRootDecompiler();
 		List<Integer> result = new ArrayList<>();
-		for (Map.Entry<Integer, ICodeAnnotation> entry : map.entrySet()) {
-			ICodeAnnotation ann = entry.getValue();
-			AnnType annType = ann.getAnnType();
-			if (annType == AnnType.DECLARATION || annType == AnnType.OFFSET) {
-				// ignore declarations and offset annotations
-				continue;
+		codeInfo.getCodeMetadata().searchDown(0, (pos, ann) -> {
+			if (javaNode.isOwnCodeAnnotation(ann)) {
+				result.add(pos);
 			}
-			JavaNode annNode = rootDec.getJavaNodeByCodeAnnotation(codeInfo, ann);
-			if (annNode == null && LOG.isDebugEnabled()) {
-				LOG.debug("Failed to resolve code annotation, cls: {}, pos: {}, ann: {}", this, entry.getKey(), ann);
-			}
-			if (Objects.equals(annNode, javaNode)) {
-				result.add(entry.getKey());
-			}
-		}
+			return null;
+		});
 		return result;
 	}
 
@@ -294,7 +287,16 @@ public final class JavaClass implements JavaNode {
 		if (methodNode == null) {
 			return null;
 		}
-		return new JavaMethod(this, methodNode);
+		return getRootDecompiler().convertMethodNode(methodNode);
+	}
+
+	public List<JavaClass> getDependencies() {
+		JadxDecompiler d = getRootDecompiler();
+		return ListUtils.map(cls.getDependencies(), d::convertClassNode);
+	}
+
+	public int getTotalDepsCount() {
+		return cls.getTotalDepsCount();
 	}
 
 	@Override

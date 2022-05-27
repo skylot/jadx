@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.VarNode;
+import jadx.api.metadata.annotations.VarRef;
 import jadx.core.dex.instructions.args.ArgType;
 
 public class JavaVariable implements JavaNode {
@@ -66,6 +68,15 @@ public class JavaVariable implements JavaNode {
 	@Override
 	public List<JavaNode> getUseIn() {
 		return Collections.singletonList(mth);
+	}
+
+	@Override
+	public boolean isOwnCodeAnnotation(ICodeAnnotation ann) {
+		if (ann.getAnnType() == ICodeAnnotation.AnnType.VAR_REF) {
+			VarRef varRef = (VarRef) ann;
+			return varRef.getRefPos() == getDefPos();
+		}
+		return false;
 	}
 
 	@Override

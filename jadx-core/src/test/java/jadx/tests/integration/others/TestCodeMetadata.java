@@ -1,10 +1,10 @@
 package jadx.tests.integration.others;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.metadata.ICodeAnnotation;
@@ -46,8 +46,8 @@ public class TestCodeMetadata extends IntegrationTest {
 		int callDefPos = callMth.getDefPosition();
 		assertThat(callDefPos).isNotZero();
 
-		JavaClass javaClass = Objects.requireNonNull(jadxDecompiler.getJavaClassByNode(cls));
-		JavaMethod callJavaMethod = Objects.requireNonNull(jadxDecompiler.getJavaMethodByNode(callMth));
+		JavaClass javaClass = JadxInternalAccess.convertClassNode(jadxDecompiler, cls);
+		JavaMethod callJavaMethod = JadxInternalAccess.convertMethodNode(jadxDecompiler, callMth);
 		List<Integer> callUsePlaces = javaClass.getUsePlacesFor(javaClass.getCodeInfo(), callJavaMethod);
 		assertThat(callUsePlaces).hasSize(1);
 		int callUse = callUsePlaces.get(0);

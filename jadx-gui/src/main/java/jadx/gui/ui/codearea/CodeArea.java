@@ -20,7 +20,6 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeAnnotation;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -244,8 +243,8 @@ public final class CodeArea extends AbstractCodeArea {
 			ICodeInfo codeInfo = getCodeInfo();
 			if (codeInfo.hasMetadata()) {
 				ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
-				if (ann instanceof ClassNode) {
-					return getDecompiler().getJavaClassByNode(((ClassNode) ann));
+				if (ann != null && ann.getAnnType() == ICodeAnnotation.AnnType.CLASS) {
+					return (JavaClass) getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
 				}
 			}
 		} catch (Exception e) {

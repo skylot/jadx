@@ -99,7 +99,7 @@ public final class JadxDecompiler implements Closeable {
 	private final Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
 	private final Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
 
-	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler(this);
+	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 
 	private final List<ILoadResult> customLoads = new ArrayList<>();
 
@@ -202,6 +202,7 @@ public final class JadxDecompiler implements Closeable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void registerPlugin(JadxPlugin plugin) {
 		pluginManager.register(plugin);
 	}
@@ -467,23 +468,10 @@ public final class JadxDecompiler implements Closeable {
 		return protoXmlParser;
 	}
 
-	private void loadJavaClass(JavaClass javaClass) {
-		javaClass.getMethods().forEach(mth -> methodsMap.put(mth.getMethodNode(), mth));
-		javaClass.getFields().forEach(fld -> fieldsMap.put(fld.getFieldNode(), fld));
-
-		for (JavaClass innerCls : javaClass.getInnerClasses()) {
-			classesMap.put(innerCls.getClassNode(), innerCls);
-			loadJavaClass(innerCls);
-		}
-		for (JavaClass inlinedCls : javaClass.getInlinedClasses()) {
-			classesMap.put(inlinedCls.getClassNode(), inlinedCls);
-			loadJavaClass(inlinedCls);
-		}
-	}
-
 	/**
 	 * Get JavaClass by ClassNode without loading and decompilation
 	 */
+	@ApiStatus.Internal
 	JavaClass convertClassNode(ClassNode cls) {
 		return classesMap.compute(cls, (node, prevJavaCls) -> {
 			if (prevJavaCls != null && prevJavaCls.getClassNode() == cls) {
@@ -497,66 +485,23 @@ public final class JadxDecompiler implements Closeable {
 		});
 	}
 
-	@Nullable("For not generated classes")
 	@ApiStatus.Internal
-	public JavaClass getJavaClassByNode(ClassNode cls) {
-		JavaClass javaClass = classesMap.get(cls);
-		if (javaClass != null && javaClass.getClassNode() == cls) {
-			return javaClass;
-		}
-		// load parent class if inner
-		ClassNode parentClass = cls.getTopParentClass();
-		if (parentClass.contains(AFlag.DONT_GENERATE)) {
-			return null;
-		}
-		JavaClass parentJavaClass = classesMap.get(parentClass);
-		if (parentJavaClass == null) {
-			getClasses();
-			parentJavaClass = classesMap.get(parentClass);
-		}
-		if (parentJavaClass != null) {
-			loadJavaClass(parentJavaClass);
-			javaClass = classesMap.get(cls);
-			if (javaClass != null) {
-				return javaClass;
-			}
-		}
-		// class or parent classes can be excluded from generation
-		if (cls.hasNotGeneratedParent()) {
-			return null;
-		}
-		throw new JadxRuntimeException("JavaClass not found by ClassNode: " + cls);
+	JavaField convertFieldNode(FieldNode field) {
+		return fieldsMap.computeIfAbsent(field, fldNode -> {
+			JavaClass parentCls = convertClassNode(fldNode.getParentClass());
+			return new JavaField(parentCls, fldNode);
+		});
 	}
 
 	@ApiStatus.Internal
-	@Nullable
-	public JavaMethod getJavaMethodByNode(MethodNode mth) {
-		JavaMethod javaMethod = methodsMap.get(mth);
-		if (javaMethod != null && javaMethod.getMethodNode() == mth) {
-			return javaMethod;
-		}
-		if (mth.contains(AFlag.DONT_GENERATE)) {
-			return null;
-		}
-		// parent class not loaded yet
-		ClassNode parentClass = mth.getParentClass();
-		ClassNode codeCls = getCodeParentClass(parentClass);
-		JavaClass javaClass = getJavaClassByNode(codeCls);
-		if (javaClass == null) {
-			return null;
-		}
-		loadJavaClass(javaClass);
-		javaMethod = methodsMap.get(mth);
-		if (javaMethod != null) {
-			return javaMethod;
-		}
-		if (parentClass.hasNotGeneratedParent()) {
-			return null;
-		}
-		throw new JadxRuntimeException("JavaMethod not found by MethodNode: " + mth);
+	JavaMethod convertMethodNode(MethodNode method) {
+		return methodsMap.computeIfAbsent(method, mthNode -> {
+			ClassNode codeCls = getCodeParentClass(mthNode.getParentClass());
+			return new JavaMethod(convertClassNode(codeCls), mthNode);
+		});
 	}
 
-	private ClassNode getCodeParentClass(ClassNode cls) {
+	private static ClassNode getCodeParentClass(ClassNode cls) {
 		ClassNode codeCls;
 		InlinedAttr inlinedAttr = cls.get(AType.INLINED);
 		if (inlinedAttr != null) {
@@ -570,35 +515,12 @@ public final class JadxDecompiler implements Closeable {
 		return getCodeParentClass(codeCls);
 	}
 
-	@ApiStatus.Internal
-	@Nullable
-	public JavaField getJavaFieldByNode(FieldNode fld) {
-		JavaField javaField = fieldsMap.get(fld);
-		if (javaField != null && javaField.getFieldNode() == fld) {
-			return javaField;
-		}
-		// parent class not loaded yet
-		JavaClass javaClass = getJavaClassByNode(fld.getParentClass().getTopParentClass());
-		if (javaClass == null) {
-			return null;
-		}
-		loadJavaClass(javaClass);
-		javaField = fieldsMap.get(fld);
-		if (javaField != null) {
-			return javaField;
-		}
-		if (fld.getParentClass().hasNotGeneratedParent()) {
-			return null;
-		}
-		throw new JadxRuntimeException("JavaField not found by FieldNode: " + fld);
-	}
-
 	@Nullable
 	public JavaClass searchJavaClassByOrigFullName(String fullName) {
 		return getRoot().getClasses().stream()
 				.filter(cls -> cls.getClassInfo().getFullName().equals(fullName))
 				.findFirst()
-				.map(this::getJavaClassByNode)
+				.map(this::convertClassNode)
 				.orElse(null);
 	}
 
@@ -619,9 +541,9 @@ public final class JadxDecompiler implements Closeable {
 				.orElse(null);
 		if (node != null) {
 			if (node.contains(AFlag.DONT_GENERATE)) {
-				return getJavaClassByNode(node.getTopParentClass());
+				return convertClassNode(node.getTopParentClass());
 			} else {
-				return getJavaClassByNode(node);
+				return convertClassNode(node);
 			}
 		}
 		return null;
@@ -632,7 +554,7 @@ public final class JadxDecompiler implements Closeable {
 		return getRoot().getClasses().stream()
 				.filter(cls -> cls.getClassInfo().getAliasFullName().equals(fullName))
 				.findFirst()
-				.map(this::getJavaClassByNode)
+				.map(this::convertClassNode)
 				.orElse(null);
 	}
 
@@ -650,9 +572,9 @@ public final class JadxDecompiler implements Closeable {
 			case CLASS:
 				return convertClassNode((ClassNode) ann);
 			case METHOD:
-				return getJavaMethodByNode((MethodNode) ann);
+				return convertMethodNode((MethodNode) ann);
 			case FIELD:
-				return getJavaFieldByNode((FieldNode) ann);
+				return convertFieldNode((FieldNode) ann);
 			case DECLARATION:
 				return getJavaNodeByCodeAnnotation(codeInfo, ((NodeDeclareRef) ann).getNode());
 			case VAR:
@@ -670,7 +592,7 @@ public final class JadxDecompiler implements Closeable {
 	@Nullable
 	private JavaVariable resolveVarNode(VarNode varNode) {
 		MethodNode mthNode = varNode.getMth();
-		JavaMethod mth = getJavaMethodByNode(mthNode);
+		JavaMethod mth = convertMethodNode(mthNode);
 		if (mth == null) {
 			return null;
 		}
