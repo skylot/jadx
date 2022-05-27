@@ -64,13 +64,7 @@ spotless {
 
 		importOrderFile 'config/code-formatter/eclipse.importorder'
 		eclipse().configFile 'config/code-formatter/eclipse.xml'
-		if (JavaVersion.current() < JavaVersion.VERSION_16) {
-			removeUnusedImports()
-		} else {
-			// google-format on Java 16+ issue: https://github.com/diffplug/spotless/issues/834
-			println('Warning! Unused imports remove is disabled for Java 16+'
-					+ ' (use workaround from https://github.com/diffplug/spotless/tree/main/plugin-gradle#google-java-format)')
-		}
+		removeUnusedImports()
 
 		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
