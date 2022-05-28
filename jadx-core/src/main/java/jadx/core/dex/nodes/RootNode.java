@@ -115,21 +115,25 @@ public class RootNode {
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {
-		String typeStr = classData.getType();
-		String name = null;
 		try {
-			ClassInfo clsInfo = ClassInfo.fromName(this, typeStr);
-			if (clsInfo != null) {
-				name = clsInfo.getShortName();
+			String typeStr = classData.getType();
+			String name = null;
+			try {
+				ClassInfo clsInfo = ClassInfo.fromName(this, typeStr);
+				if (clsInfo != null) {
+					name = clsInfo.getShortName();
+				}
+			} catch (Exception e) {
+				LOG.error("Failed to get name for class with type {}", typeStr, e);
 			}
-		} catch (Exception e) {
-			LOG.error("Failed to get name for class with type {}", typeStr, e);
+			if (name == null || name.isEmpty()) {
+				name = "CLASS_" + typeStr;
+			}
+			ClassNode clsNode = ClassNode.addSyntheticClass(this, name, classData.getAccessFlags());
+			ErrorsCounter.error(clsNode, "Load error", exc);
+		} catch (Exception innerExc) {
+			LOG.error("Failed to load class from file: {}", classData.getInputFileName(), exc);
 		}
-		if (name == null || name.isEmpty()) {
-			name = "CLASS_" + typeStr;
-		}
-		ClassNode clsNode = ClassNode.addSyntheticClass(this, name, classData.getAccessFlags());
-		ErrorsCounter.error(clsNode, "Load error", exc);
 	}
 
 	private static void markDuplicatedClasses(List<ClassNode> classes) {
