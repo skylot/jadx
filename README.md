@@ -33,8 +33,9 @@ See these features in action here: [jadx-gui features overview](https://github.c
 <img src="https://user-images.githubusercontent.com/118523/142730720-839f017e-38db-423e-b53f-39f5f0a0316f.png" width="700"/>
 
 ### Download
-- release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
-- latest [unstable build](https://nightly.link/skylot/jadx/workflows/build/master)
+- release
+  from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
+- latest [unstable build](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version

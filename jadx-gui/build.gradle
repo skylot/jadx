@@ -100,7 +100,6 @@ runtime {
 	addModules(
 			'java.desktop',
 			'java.naming',
-			//'java.sql', // TODO: GSON register adapter for java.sql.Time
 			'java.xml',
 	)
 	jpackage {
@@ -113,16 +112,25 @@ runtime {
 	}
 }
 
-task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe']) {
+task copyDistWinWithJre(type: Copy, dependsOn: ['runtime', 'createExe']) {
 	group 'jadx'
-	destinationDirectory = buildDir
-	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
+	destinationDir = new File(buildDir, "jadx-gui-${jadxVersion}-with-jre-win")
 	from(runtime.jreDir) {
 		include '**/*'
 		into 'jre'
 	}
 	from(createExe.outputs) {
 		include '*.exe'
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+task distWinWithJre(type: Zip, dependsOn: ['copyDistWinWithJre']) {
+	group 'jadx'
+	destinationDirectory = buildDir
+	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
+	from(copyDistWinWithJre.outputs) {
+		include '**/*'
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
