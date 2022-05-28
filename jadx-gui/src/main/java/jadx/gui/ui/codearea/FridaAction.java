@@ -92,15 +92,24 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			functionUntilImplementation = String.format("%s[\"%s\"].implementation", shortClassName, methodName);
 		}
-		String functionParametersString = String.join(", ", collectMethodArgNames(javaMethod));
+
+		List<String> methodArgNames = collectMethodArgNames(javaMethod);
+
+		String functionParametersString = String.join(", ", methodArgNames);
+		String logParametersString =
+				methodArgNames.stream().map(e -> String.format("'%s: ' + %s", e, e)).collect(Collectors.joining(" + ', ' + "));
+		if (logParametersString.length() > 0) {
+			logParametersString = " + ', ' + " + logParametersString;
+		}
 		String functionParameterAndBody = String.format(
-				"%s = function(%s){\n"
-						+ "    console.log('%s is called');\n"
+				"%s = function (%s) {\n"
+						+ "    console.log('%s is called'%s);\n"
 						+ "    let ret = this.%s(%s);\n"
 						+ "    console.log('%s ret value is ' + ret);\n"
 						+ "    return ret;\n"
 						+ "};",
-				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
+				functionUntilImplementation, functionParametersString, methodName, logParametersString, methodName,
+				functionParametersString, methodName);
 
 		return generateClassSnippet(jMth.getJParent()) + "\n" + functionParameterAndBody;
 	}
