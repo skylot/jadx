@@ -161,8 +161,13 @@ public final class JadxDecompiler implements Closeable {
 		classesMap.clear();
 		methodsMap.clear();
 		fieldsMap.clear();
+	}
 
+	@Override
+	public void close() {
+		reset();
 		closeInputs();
+		args.close();
 	}
 
 	private void closeInputs() {
@@ -174,11 +179,6 @@ public final class JadxDecompiler implements Closeable {
 			}
 		});
 		loadedInputs.clear();
-	}
-
-	@Override
-	public void close() {
-		reset();
 	}
 
 	private void loadPlugins(JadxArgs args) {

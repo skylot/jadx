@@ -12,6 +12,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
@@ -19,6 +22,7 @@ import jadx.api.impl.InMemoryCodeCache;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxArgs {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
 
 	public static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
@@ -120,6 +124,19 @@ public class JadxArgs {
 		setOutDir(rootDir);
 		setOutDirSrc(new File(rootDir, DEFAULT_SRC_DIR));
 		setOutDirRes(new File(rootDir, DEFAULT_RES_DIR));
+	}
+
+	public void close() {
+		try {
+			inputFiles.clear();
+			if (codeCache != null) {
+				codeCache.close();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to close JadxArgs", e);
+		} finally {
+			codeCache = null;
+		}
 	}
 
 	public List<File> getInputFiles() {

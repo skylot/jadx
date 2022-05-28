@@ -387,6 +387,8 @@ public class MainWindow extends JFrame {
 	}
 
 	public void reopen() {
+		saveAll();
+		closeAll();
 		loadFiles(EMPTY_RUNNABLE);
 	}
 
@@ -431,6 +433,7 @@ public class MainWindow extends JFrame {
 	private void closeAll() {
 		cancelBackgroundJobs();
 		clearTree();
+		resetCache();
 		LogCollector.getInstance().reset();
 		wrapper.close();
 		tabbedPane.closeAllTabs();
@@ -606,7 +609,6 @@ public class MainWindow extends JFrame {
 
 	private void clearTree() {
 		tabbedPane.reset();
-		resetCache();
 		treeRoot = null;
 		treeModel.setRoot(null);
 		treeModel.reload();
@@ -1329,7 +1331,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void closeWindow() {
-		saveOpenTabs();
+		saveAll();
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
@@ -1339,13 +1341,11 @@ public class MainWindow extends JFrame {
 		if (debuggerPanel != null) {
 			saveSplittersInfo();
 		}
-		cancelBackgroundJobs();
-		wrapper.close();
 		heapUsageBar.reset();
-		dispose();
+		closeAll();
 
-		BreakpointManager.saveAndExit();
 		FileUtils.deleteTempRootDir();
+		dispose();
 		System.exit(0);
 	}
 

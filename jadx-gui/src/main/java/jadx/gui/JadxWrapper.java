@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeCache;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
@@ -19,7 +18,6 @@ import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -40,7 +38,6 @@ public class JadxWrapper {
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
-		this.decompiler = new JadxDecompiler(new JadxArgs());
 	}
 
 	public void open() {
@@ -53,7 +50,7 @@ public class JadxWrapper {
 
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
-			initCodeCache(jadxArgs);
+			initCodeCache();
 		} catch (Exception e) {
 			LOG.error("Jadx init error", e);
 			close();
@@ -71,23 +68,27 @@ public class JadxWrapper {
 
 	public void close() {
 		try {
-			decompiler.close();
-			closeCodeCache();
+			if (decompiler != null) {
+				decompiler.close();
+				mainWindow.getCacheObject().reset();
+			}
 		} catch (Exception e) {
-			LOG.error("jadx decompiler close error", e);
+			LOG.error("Jadx decompiler close error", e);
+		} finally {
+			decompiler = null;
 		}
 	}
 
-	private void initCodeCache(JadxArgs jadxArgs) {
+	private void initCodeCache() {
 		switch (getSettings().getCodeCacheMode()) {
 			case MEMORY:
-				jadxArgs.setCodeCache(new InMemoryCodeCache());
+				getArgs().setCodeCache(new InMemoryCodeCache());
 				break;
 			case DISK_WITH_CACHE:
-				jadxArgs.setCodeCache(new CodeStringCache(buildBufferedDiskCache()));
+				getArgs().setCodeCache(new CodeStringCache(buildBufferedDiskCache()));
 				break;
 			case DISK:
-				jadxArgs.setCodeCache(buildBufferedDiskCache());
+				getArgs().setCodeCache(buildBufferedDiskCache());
 				break;
 		}
 	}
@@ -95,17 +96,6 @@ public class JadxWrapper {
 	private BufferCodeCache buildBufferedDiskCache() {
 		DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
-	}
-
-	public void closeCodeCache() {
-		ICodeCache codeCache = getArgs().getCodeCache();
-		if (codeCache != null) {
-			try {
-				codeCache.close();
-			} catch (Exception e) {
-				throw new JadxRuntimeException("Error on cache close", e);
-			}
-		}
 	}
 
 	/**
