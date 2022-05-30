@@ -89,7 +89,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		is.mark(4);
 		int v = is.readInt16(); // version
 		int h = is.readInt16(); // header size
-		if (v == 0x0003 && h == 0x0008) {
+		// Some APK Manifest.xml the version is 0
+		if (h == 0x0008) {
 			return true;
 		}
 		is.reset();
