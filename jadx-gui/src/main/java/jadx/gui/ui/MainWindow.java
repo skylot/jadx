@@ -77,6 +77,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
@@ -135,7 +136,6 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.logs.LogCollector;
-import net.fabricmc.mappingio.format.MappingFormat;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;

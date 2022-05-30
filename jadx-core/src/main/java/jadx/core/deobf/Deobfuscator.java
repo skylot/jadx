@@ -17,6 +17,11 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeRename;
@@ -38,10 +43,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.kotlin.KotlinMetadataUtils;
-import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.MappingWriter;
-import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
