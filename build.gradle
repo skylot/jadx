@@ -49,6 +49,10 @@ allprojects {
 		mavenLocal()
 		mavenCentral()
 		google()
+        maven {
+			name 'FabricMC'
+			url 'https://maven.fabricmc.net/'
+		}
 	}
 }
 

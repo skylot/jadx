@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
 	implementation(project(':jadx-core'))
+	implementation 'net.fabricmc:mapping-io:0.3.0'
 
 	implementation(project(":jadx-cli"))
 	implementation 'com.beust:jcommander:1.82'

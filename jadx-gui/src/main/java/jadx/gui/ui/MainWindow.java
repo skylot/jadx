@@ -83,6 +83,8 @@ import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.deobf.Deobfuscator;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
@@ -133,6 +135,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.logs.LogCollector;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -346,6 +349,16 @@ public class MainWindow extends JFrame {
 		}
 		project.saveAs(savePath);
 		settings.addRecentProject(savePath);
+		update();
+	}
+
+	private void exportMappings(MappingFormat mappingFormat) {
+		RootNode rootNode = wrapper.getDecompiler().getRoot();
+		Deobfuscator deobfuscator = new Deobfuscator(rootNode);
+		deobfuscator.exportMappings(
+				Path.of(project.getProjectPath().getParent().toString(), "mappings." + mappingFormat.fileExt),
+				project.getCodeData(),
+				mappingFormat);
 		update();
 	}
 
@@ -807,6 +820,17 @@ public class MainWindow extends JFrame {
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
 
+		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.TINY_2);
+			}
+		};
+		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2");
+
+		JMenu exportMappingsAs = new JMenu(NLS.str("file.export_mappings_as"));
+		exportMappingsAs.add(exportMappingsAsTiny2);
+
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -992,6 +1016,8 @@ public class MainWindow extends JFrame {
 		file.add(newProjectAction);
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
+		file.addSeparator();
+		file.add(exportMappingsAs);
 		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);

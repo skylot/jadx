@@ -1,11 +1,13 @@
 package jadx.core.deobf;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -17,8 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.IJavaNodeRef.RefType;
+import jadx.api.data.impl.JadxCodeData;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
+import jadx.core.Consts;
+import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
@@ -31,6 +38,10 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.kotlin.KotlinMetadataUtils;
+import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -104,6 +115,90 @@ public class Deobfuscator {
 			deobfPresets.save();
 		} catch (Exception e) {
 			LOG.error("Failed to save deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
+		}
+	}
+
+	public void exportMappings(Path path, JadxCodeData codeData, MappingFormat mappingFormat) {
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+		// Map < SrcName >
+		Set<String> mappedClasses = new HashSet<>();
+		// Map < DeclClass + ShortId >
+		Set<String> mappedFields = new HashSet<>();
+		Set<String> mappedMethods = new HashSet<>();
+		// Map < DeclClass + ShortId + NewName >
+		Set<String> mappedMethodArgsAndVars = new HashSet<>();
+
+		// We have to do this so we know for sure which elements are *manually* renamed
+		for (ICodeRename codeRename : codeData.getRenames()) {
+			if (codeRename.getNodeRef().getType().equals(RefType.CLASS)) {
+				mappedClasses.add(codeRename.getNodeRef().getDeclaringClass());
+			} else if (codeRename.getNodeRef().getType().equals(RefType.FIELD)) {
+				mappedFields.add(codeRename.getNodeRef().getDeclaringClass()
+						+ codeRename.getNodeRef().getShortId());
+			} else if (codeRename.getNodeRef().getType().equals(RefType.METHOD)) {
+				if (codeRename.getCodeRef() == null) {
+					mappedMethods.add(codeRename.getNodeRef().getDeclaringClass()
+							+ codeRename.getNodeRef().getShortId());
+				} else {
+					mappedMethodArgsAndVars.add(codeRename.getNodeRef().getDeclaringClass()
+							+ codeRename.getNodeRef().getShortId()
+							+ codeRename.getNewName());
+				}
+			}
+		}
+
+		try {
+			if (path.toFile().exists()) {
+				path.toFile().delete();
+			}
+			path.toFile().createNewFile();
+
+			mappingTree.visitHeader();
+			mappingTree.visitNamespaces("official", List.of("named"));
+			mappingTree.visitContent();
+
+			for (ClassNode cls : root.getClasses()) {
+				ClassInfo classInfo = cls.getClassInfo();
+
+				if (classInfo.hasAlias()
+						&& !classInfo.getAliasShortName().equals(classInfo.getShortName())
+						&& mappedClasses.contains(classInfo.getRawName())) {
+					mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
+					String alias = classInfo.getAliasFullName().replace('.', '/');
+
+					if (alias.substring(0, Consts.DEFAULT_PACKAGE_NAME.length()).equals(Consts.DEFAULT_PACKAGE_NAME)) {
+						alias = alias.substring(Consts.DEFAULT_PACKAGE_NAME.length() + 1);
+					}
+					mappingTree.visitDstName(MappedElementKind.CLASS, 0, alias);
+				}
+
+				for (FieldNode fld : cls.getFields()) {
+					FieldInfo fieldInfo = fld.getFieldInfo();
+					if (fieldInfo.hasAlias() && mappedFields.contains(fieldInfo.getDeclClass() + fieldInfo.getShortId())) {
+						mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
+						mappingTree.visitField(fieldInfo.getName(), TypeGen.signature(fieldInfo.getType()));
+						mappingTree.visitDstName(MappedElementKind.FIELD, 0, fieldInfo.getAlias());
+					}
+				}
+
+				for (MethodNode mth : cls.getMethods()) {
+					MethodInfo methodInfo = mth.getMethodInfo();
+					if (methodInfo.hasAlias() && mappedMethods.contains(methodInfo.getDeclClass() + methodInfo.getShortId())) {
+						mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
+						String methodName = methodInfo.getName();
+						String shortId = methodInfo.getShortId();
+						mappingTree.visitMethod(methodName, shortId.substring(methodName.length()));
+						mappingTree.visitDstName(MappedElementKind.METHOD, 0, methodInfo.getAlias());
+					}
+				}
+			}
+
+			MappingWriter writer = MappingWriter.create(path, mappingFormat);
+			mappingTree.accept(writer);
+			mappingTree.visitEnd();
+			writer.close();
+		} catch (IOException e) {
+			LOG.error("Failed to save deobfuscation map file '{}'", path.toAbsolutePath(), e);
 		}
 	}
 
