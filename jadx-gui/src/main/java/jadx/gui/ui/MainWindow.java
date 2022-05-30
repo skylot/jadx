@@ -356,7 +356,7 @@ public class MainWindow extends JFrame {
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
 		Deobfuscator deobfuscator = new Deobfuscator(rootNode);
 		deobfuscator.exportMappings(
-				Path.of(project.getProjectPath().getParent().toString(), "mappings." + mappingFormat.fileExt),
+				Paths.get(project.getProjectPath().getParent().toString(), "mappings." + mappingFormat.fileExt),
 				project.getCodeData(),
 				mappingFormat);
 		update();
