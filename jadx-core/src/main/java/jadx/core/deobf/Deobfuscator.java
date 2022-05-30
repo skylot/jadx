@@ -24,6 +24,7 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaNodeRef.RefType;
 import jadx.api.data.impl.JadxCodeData;
@@ -128,24 +129,29 @@ public class Deobfuscator {
 		Set<String> mappedMethods = new HashSet<>();
 		// Map < DeclClass + ShortId + NewName >
 		Set<String> mappedMethodArgsAndVars = new HashSet<>();
+		// Map < DeclClass + *ShortId + *Index, Comment >
+		Map<String, String> comments = new HashMap<>();
 
 		// We have to do this so we know for sure which elements are *manually* renamed
 		for (ICodeRename codeRename : codeData.getRenames()) {
 			if (codeRename.getNodeRef().getType().equals(RefType.CLASS)) {
 				mappedClasses.add(codeRename.getNodeRef().getDeclaringClass());
 			} else if (codeRename.getNodeRef().getType().equals(RefType.FIELD)) {
-				mappedFields.add(codeRename.getNodeRef().getDeclaringClass()
-						+ codeRename.getNodeRef().getShortId());
+				mappedFields.add(codeRename.getNodeRef().getDeclaringClass() + codeRename.getNodeRef().getShortId());
 			} else if (codeRename.getNodeRef().getType().equals(RefType.METHOD)) {
 				if (codeRename.getCodeRef() == null) {
-					mappedMethods.add(codeRename.getNodeRef().getDeclaringClass()
-							+ codeRename.getNodeRef().getShortId());
+					mappedMethods.add(codeRename.getNodeRef().getDeclaringClass() + codeRename.getNodeRef().getShortId());
 				} else {
 					mappedMethodArgsAndVars.add(codeRename.getNodeRef().getDeclaringClass()
-							+ codeRename.getNodeRef().getShortId()
-							+ codeRename.getNewName());
+							+ codeRename.getNodeRef().getShortId());
 				}
 			}
+		}
+		for (ICodeComment codeComment : codeData.getComments()) {
+			comments.put(codeComment.getNodeRef().getDeclaringClass()
+					+ (codeComment.getNodeRef().getShortId() == null ? "" : codeComment.getNodeRef().getShortId())
+					+ (codeComment.getCodeRef() == null ? "" : codeComment.getCodeRef().getIndex()),
+					codeComment.getComment());
 		}
 
 		try {
@@ -160,11 +166,12 @@ public class Deobfuscator {
 
 			for (ClassNode cls : root.getClasses()) {
 				ClassInfo classInfo = cls.getClassInfo();
+				String classPath = classInfo.makeRawFullName().replace('.', '/');
 
 				if (classInfo.hasAlias()
 						&& !classInfo.getAliasShortName().equals(classInfo.getShortName())
 						&& mappedClasses.contains(classInfo.getRawName())) {
-					mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
+					mappingTree.visitClass(classPath);
 					String alias = classInfo.getAliasFullName().replace('.', '/');
 
 					if (alias.substring(0, Consts.DEFAULT_PACKAGE_NAME.length()).equals(Consts.DEFAULT_PACKAGE_NAME)) {
@@ -172,24 +179,37 @@ public class Deobfuscator {
 					}
 					mappingTree.visitDstName(MappedElementKind.CLASS, 0, alias);
 				}
+				if (comments.containsKey(classInfo.getRawName())) {
+					mappingTree.visitClass(classPath);
+					mappingTree.visitComment(MappedElementKind.CLASS, comments.get(classInfo.getRawName()));
+				}
 
 				for (FieldNode fld : cls.getFields()) {
 					FieldInfo fieldInfo = fld.getFieldInfo();
 					if (fieldInfo.hasAlias() && mappedFields.contains(fieldInfo.getDeclClass() + fieldInfo.getShortId())) {
-						mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
+						mappingTree.visitClass(classPath);
 						mappingTree.visitField(fieldInfo.getName(), TypeGen.signature(fieldInfo.getType()));
 						mappingTree.visitDstName(MappedElementKind.FIELD, 0, fieldInfo.getAlias());
+					}
+					if (comments.containsKey(classInfo.getRawName() + fieldInfo.getShortId())) {
+						mappingTree.visitClass(classPath);
+						mappingTree.visitField(fieldInfo.getName(), TypeGen.signature(fieldInfo.getType()));
+						mappingTree.visitComment(MappedElementKind.FIELD, comments.get(classInfo.getRawName() + fieldInfo.getShortId()));
 					}
 				}
 
 				for (MethodNode mth : cls.getMethods()) {
 					MethodInfo methodInfo = mth.getMethodInfo();
+					String methodName = methodInfo.getName();
 					if (methodInfo.hasAlias() && mappedMethods.contains(methodInfo.getDeclClass() + methodInfo.getShortId())) {
-						mappingTree.visitClass(classInfo.makeRawFullName().replace('.', '/'));
-						String methodName = methodInfo.getName();
-						String shortId = methodInfo.getShortId();
-						mappingTree.visitMethod(methodName, shortId.substring(methodName.length()));
+						mappingTree.visitClass(classPath);
+						mappingTree.visitMethod(methodName, methodInfo.getShortId().substring(methodName.length()));
 						mappingTree.visitDstName(MappedElementKind.METHOD, 0, methodInfo.getAlias());
+					}
+					if (comments.containsKey(classInfo.getRawName() + methodInfo.getShortId())) {
+						mappingTree.visitClass(classPath);
+						mappingTree.visitMethod(methodName, methodInfo.getShortId().substring(methodName.length()));
+						mappingTree.visitComment(MappedElementKind.METHOD, comments.get(classInfo.getRawName() + methodInfo.getShortId()));
 					}
 				}
 			}
