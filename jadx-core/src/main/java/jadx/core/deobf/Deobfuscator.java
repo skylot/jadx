@@ -28,6 +28,7 @@ import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaNodeRef.RefType;
 import jadx.api.data.impl.JadxCodeData;
+import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.Consts;
@@ -39,10 +40,13 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.kotlin.KotlinMetadataUtils;
 
 public class Deobfuscator {
@@ -127,8 +131,8 @@ public class Deobfuscator {
 		// Map < DeclClass + ShortId >
 		Set<String> mappedFields = new HashSet<>();
 		Set<String> mappedMethods = new HashSet<>();
-		// Map < DeclClass + ShortId + NewName >
-		Set<String> mappedMethodArgsAndVars = new HashSet<>();
+		// Map < DeclClass + MethodShortId + CodeRef, NewName >
+		Map<String, String> mappedMethodArgsAndVars = new HashMap<>();
 		// Map < DeclClass + *ShortId + *Index, Comment >
 		Map<String, String> comments = new HashMap<>();
 
@@ -142,8 +146,10 @@ public class Deobfuscator {
 				if (codeRename.getCodeRef() == null) {
 					mappedMethods.add(codeRename.getNodeRef().getDeclaringClass() + codeRename.getNodeRef().getShortId());
 				} else {
-					mappedMethodArgsAndVars.add(codeRename.getNodeRef().getDeclaringClass()
-							+ codeRename.getNodeRef().getShortId());
+					mappedMethodArgsAndVars.put(codeRename.getNodeRef().getDeclaringClass()
+							+ codeRename.getNodeRef().getShortId()
+							+ codeRename.getCodeRef(),
+							codeRename.getNewName());
 				}
 			}
 		}
@@ -201,15 +207,42 @@ public class Deobfuscator {
 				for (MethodNode mth : cls.getMethods()) {
 					MethodInfo methodInfo = mth.getMethodInfo();
 					String methodName = methodInfo.getName();
+					String methodDesc = methodInfo.getShortId().substring(methodName.length());
 					if (methodInfo.hasAlias() && mappedMethods.contains(methodInfo.getDeclClass() + methodInfo.getShortId())) {
 						mappingTree.visitClass(classPath);
-						mappingTree.visitMethod(methodName, methodInfo.getShortId().substring(methodName.length()));
+						mappingTree.visitMethod(methodName, methodDesc);
 						mappingTree.visitDstName(MappedElementKind.METHOD, 0, methodInfo.getAlias());
 					}
 					if (comments.containsKey(classInfo.getRawName() + methodInfo.getShortId())) {
 						mappingTree.visitClass(classPath);
-						mappingTree.visitMethod(methodName, methodInfo.getShortId().substring(methodName.length()));
+						mappingTree.visitMethod(methodName, methodDesc);
 						mappingTree.visitComment(MappedElementKind.METHOD, comments.get(classInfo.getRawName() + methodInfo.getShortId()));
+					}
+
+					boolean wasLoaded = mth.isLoaded();
+					try {
+						mth.load();
+						int lvIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
+						for (RegisterArg arg : mth.getArgRegs()) {
+							SSAVar ssaVar = arg.getSVar();
+							if (ssaVar == null) {
+								continue;
+							}
+							String key = methodInfo.getDeclClass() + methodInfo.getShortId()
+									+ JadxCodeRef.forVar(arg.getRegNum(), ssaVar.getVersion());
+							if (mappedMethodArgsAndVars.containsKey(key)) {
+								mappingTree.visitClass(classPath);
+								mappingTree.visitMethod(methodName, methodDesc);
+								mappingTree.visitMethodArg(arg.getRegNum(), lvIndex, null);
+								mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
+							}
+							lvIndex += Math.max(arg.getType().getRegCount(), 1);
+						}
+					} catch (DecodeException e) {
+						LOG.error("Error while decompiling method " + methodInfo.getShortId());
+					}
+					if (!wasLoaded) {
+						mth.unload();
 					}
 				}
 			}
