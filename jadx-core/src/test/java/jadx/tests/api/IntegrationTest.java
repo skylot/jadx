@@ -79,8 +79,6 @@ public abstract class IntegrationTest extends TestUtils {
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
 
-	private static final String OUT_DIR = "test-out-tmp";
-
 	private static final String DEFAULT_INPUT_PLUGIN = "dx";
 	/**
 	 * Set 'TEST_INPUT_PLUGIN' env variable to use 'java' or 'dx' input in tests
@@ -132,7 +130,7 @@ public abstract class IntegrationTest extends TestUtils {
 		this.useJavaInput = null;
 
 		args = new JadxArgs();
-		args.setOutDir(new File(OUT_DIR));
+		args.setOutDir(new File("test-out-tmp"));
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
@@ -154,6 +152,10 @@ public abstract class IntegrationTest extends TestUtils {
 		if (closeable != null) {
 			closeable.close();
 		}
+	}
+
+	public void setOutDirSuffix(String suffix) {
+		args.setOutDir(new File("test-out-" + suffix + "-tmp"));
 	}
 
 	public String getTestName() {

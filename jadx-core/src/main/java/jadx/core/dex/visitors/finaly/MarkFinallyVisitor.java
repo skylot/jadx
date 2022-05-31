@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
@@ -38,6 +39,7 @@ import jadx.core.utils.Utils;
 )
 public class MarkFinallyVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(MarkFinallyVisitor.class);
+	// private static final Logger LOG = LoggerFactory.getLogger(MarkFinallyVisitor.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -60,7 +62,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				}
 			}
 		} catch (Exception e) {
-			LOG.warn("Undo finally extract visitor, mth: {}", mth, e);
+			mth.addWarnComment("Undo finally extract visitor", e);
 			undoFinallyVisitor(mth);
 		}
 	}
@@ -100,20 +102,23 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		List<BlockNode> handlerBlocks =
 				new ArrayList<>(BlockUtils.collectBlocksDominatedByWithExcHandlers(mth, handlerBlock, handlerBlock));
 		handlerBlocks.remove(handlerBlock); // exclude block with 'move-exception'
-		handlerBlocks.removeIf(b -> BlockUtils.checkLastInsnType(b, InsnType.THROW));
+		cutPathEnds(mth, handlerBlocks);
 		if (handlerBlocks.isEmpty() || BlockUtils.isAllBlocksEmpty(handlerBlocks)) {
 			// remove empty catch
 			allHandler.getTryBlock().removeHandler(allHandler);
 			return true;
 		}
 		BlockNode startBlock = Utils.getOne(handlerBlock.getCleanSuccessors());
-		FinallyExtractInfo extractInfo = new FinallyExtractInfo(allHandler, startBlock, handlerBlocks);
+		FinallyExtractInfo extractInfo = new FinallyExtractInfo(mth, allHandler, startBlock, handlerBlocks);
+		if (Consts.DEBUG_FINALLY) {
+			LOG.debug("Finally info: handler=({}), start={}, blocks={}", allHandler, startBlock, handlerBlocks);
+		}
 
 		boolean hasInnerBlocks = !tryBlock.getInnerTryBlocks().isEmpty();
 		List<ExceptionHandler> handlers;
 		if (hasInnerBlocks) {
-			// collect handlers from this and all inner blocks (intentionally not using recursive collect for
-			// now)
+			// collect handlers from this and all inner blocks
+			// (intentionally not using recursive collect for now)
 			handlers = new ArrayList<>(tryBlock.getHandlers());
 			for (TryCatchBlockAttr innerTryBlock : tryBlock.getInnerTryBlocks()) {
 				handlers.addAll(innerTryBlock.getHandlers());
@@ -137,10 +142,12 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				}
 			}
 		}
+		if (Consts.DEBUG_FINALLY) {
+			LOG.debug("Handlers slices:\n{}", extractInfo);
+		}
 		boolean mergeInnerTryBlocks;
 		int duplicatesCount = extractInfo.getDuplicateSlices().size();
-		boolean fullTryBlock = duplicatesCount == (handlers.size() - 1);
-		if (fullTryBlock) {
+		if (duplicatesCount == (handlers.size() - 1)) {
 			// all collected handlers have duplicate block
 			mergeInnerTryBlocks = hasInnerBlocks;
 		} else {
@@ -170,14 +177,23 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			if (upPath.size() < handlerBlocks.size()) {
 				continue;
 			}
+			if (Consts.DEBUG_FINALLY) {
+				LOG.debug("Checking dup path starts: {} from {}", upPath, pred);
+			}
 			for (BlockNode block : upPath) {
 				if (searchDuplicateInsns(block, extractInfo)) {
 					found = true;
+					if (Consts.DEBUG_FINALLY) {
+						LOG.debug("Found dup in: {} from {}", block, pred);
+					}
 					break;
 				} else {
 					extractInfo.getFinallyInsnsSlice().resetIncomplete();
 				}
 			}
+		}
+		if (Consts.DEBUG_FINALLY) {
+			LOG.debug("Result slices:\n{}", extractInfo);
 		}
 		if (!found) {
 			return false;
@@ -204,6 +220,28 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		return true;
 	}
 
+	private static void cutPathEnds(MethodNode mth, List<BlockNode> handlerBlocks) {
+		List<BlockNode> throwBlocks = ListUtils.filter(handlerBlocks,
+				b -> BlockUtils.checkLastInsnType(b, InsnType.THROW));
+		if (throwBlocks.size() != 1) {
+			mth.addDebugComment("Finally have unexpected throw blocks count: " + throwBlocks.size() + ", expect 1");
+			return;
+		}
+		BlockNode throwBlock = throwBlocks.get(0);
+		handlerBlocks.remove(throwBlock);
+		removeEmptyUpPath(handlerBlocks, throwBlock);
+	}
+
+	private static void removeEmptyUpPath(List<BlockNode> handlerBlocks, BlockNode startBlock) {
+		for (BlockNode pred : startBlock.getPredecessors()) {
+			if (pred.isEmpty()) {
+				if (handlerBlocks.remove(pred) && !BlockUtils.isBackEdge(pred, startBlock)) {
+					removeEmptyUpPath(handlerBlocks, pred);
+				}
+			}
+		}
+	}
+
 	private static List<BlockNode> getPathStarts(MethodNode mth, BlockNode bottom, BlockNode bottomFinallyBlock) {
 		Stream<BlockNode> preds = bottom.getPredecessors().stream().filter(b -> b != bottomFinallyBlock);
 		if (bottom == mth.getExitBlock()) {
@@ -219,9 +257,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		for (InsnsSlice dupSlice : extractInfo.getDuplicateSlices()) {
 			List<InsnNode> dupInsnsList = dupSlice.getInsnsList();
 			if (dupInsnsList.size() != finallyInsnsList.size()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Incorrect finally slice size: {}, expected: {}", dupSlice, finallySlice);
-				}
+				extractInfo.getMth().addDebugComment(
+						"Incorrect finally slice size: " + dupSlice + ", expected: " + finallySlice);
 				return false;
 			}
 		}
@@ -231,9 +268,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				List<InsnNode> insnsList = dupSlice.getInsnsList();
 				InsnNode dupInsn = insnsList.get(i);
 				if (finallyInsn.getType() != dupInsn.getType()) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("Incorrect finally slice insn: {}, expected: {}", dupInsn, finallyInsn);
-					}
+					extractInfo.getMth().addDebugComment(
+							"Incorrect finally slice insn: " + dupInsn + ", expected: " + finallyInsn);
 					return false;
 				}
 			}
@@ -342,24 +378,29 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	private static InsnsSlice isStartBlock(BlockNode dupBlock, BlockNode finallyBlock, FinallyExtractInfo extractInfo) {
 		List<InsnNode> dupInsns = dupBlock.getInstructions();
 		List<InsnNode> finallyInsns = finallyBlock.getInstructions();
-		if (dupInsns.size() < finallyInsns.size()) {
+		int dupSize = dupInsns.size();
+		int finSize = finallyInsns.size();
+		if (dupSize < finSize) {
 			return null;
 		}
-		int startPos = dupInsns.size() - finallyInsns.size();
+		int startPos;
 		int endPos = 0;
-		// fast check from end of block
-		if (!checkInsns(dupInsns, finallyInsns, startPos)) {
-			// check from block start
-			if (checkInsns(dupInsns, finallyInsns, 0)) {
-				startPos = 0;
-				endPos = finallyInsns.size();
-			} else {
+		if (dupSize == finSize) {
+			if (!checkInsns(dupInsns, finallyInsns, 0)) {
+				return null;
+			}
+			startPos = 0;
+		} else {
+			// dupSize > finSize
+			startPos = dupSize - finSize;
+			// fast check from end of block
+			if (!checkInsns(dupInsns, finallyInsns, startPos)) {
 				// search start insn
 				boolean found = false;
 				for (int i = 1; i < startPos; i++) {
 					if (checkInsns(dupInsns, finallyInsns, i)) {
 						startPos = i;
-						endPos = finallyInsns.size() + i;
+						endPos = finSize + i;
 						found = true;
 						break;
 					}
@@ -379,7 +420,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			// both slices completed
 			complete = true;
 		} else {
-			endIndex = dupInsns.size();
+			endIndex = dupSize;
 			complete = false;
 		}
 
@@ -393,9 +434,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		if (finallySlice.isComplete()) {
 			// compare slices
 			if (finallySlice.getInsnsList().size() != slice.getInsnsList().size()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Another duplicated slice has different insns count: {}, finally: {}", slice, finallySlice);
-				}
+				extractInfo.getMth().addDebugComment(
+						"Another duplicated slice has different insns count: " + slice + ", finally: " + finallySlice);
 				return null;
 			}
 			// TODO: add additional slices checks
@@ -522,7 +562,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				DepthTraversal.visit(visitor, mth);
 			}
 		} catch (Exception e) {
-			LOG.error("Undo finally extract failed, mth: {}", mth, e);
+			mth.addError("Undo finally extract failed", e);
 		}
 	}
 }
