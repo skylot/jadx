@@ -437,6 +437,7 @@ public class MainWindow extends JFrame {
 		LogCollector.getInstance().reset();
 		wrapper.close();
 		tabbedPane.closeAllTabs();
+		UiUtils.resetClipboardOwner();
 		System.gc();
 	}
 

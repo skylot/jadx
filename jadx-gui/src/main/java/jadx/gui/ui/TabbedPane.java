@@ -373,49 +373,56 @@ public class TabbedPane extends JTabbedPane {
 		jumps.reset();
 		curTab = null;
 		lastTab = null;
+		FocusManager.reset();
 	}
 
 	@Nullable
 	public Component getFocusedComp() {
-		return FocusManager.isActive() ? FocusManager.focusedComp : null;
+		return FocusManager.getFocusedComp();
 	}
 
 	private static class FocusManager implements FocusListener {
-		static boolean active = false;
-		static FocusManager listener = new FocusManager();
-		static Component focusedComp;
+		private static final FocusManager INSTANCE = new FocusManager();
+		private static @Nullable Component focusedComp;
 
 		static boolean isActive() {
-			return active;
+			return focusedComp != null;
+		}
+
+		static void reset() {
+			focusedComp = null;
+		}
+
+		static Component getFocusedComp() {
+			return focusedComp;
 		}
 
 		@Override
 		public void focusGained(FocusEvent e) {
-			active = true;
 			focusedComp = (Component) e.getSource();
 		}
 
 		@Override
 		public void focusLost(FocusEvent e) {
-			active = false;
+			focusedComp = null;
 		}
 
 		static void listen(ContentPanel pane) {
 			if (pane instanceof ClassCodeContentPanel) {
-				((ClassCodeContentPanel) pane).getCodeArea().addFocusListener(listener);
-				((ClassCodeContentPanel) pane).getSmaliCodeArea().addFocusListener(listener);
+				((ClassCodeContentPanel) pane).getCodeArea().addFocusListener(INSTANCE);
+				((ClassCodeContentPanel) pane).getSmaliCodeArea().addFocusListener(INSTANCE);
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				((AbstractCodeContentPanel) pane).getCodeArea().addFocusListener(listener);
+				((AbstractCodeContentPanel) pane).getCodeArea().addFocusListener(INSTANCE);
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
-				((HtmlPanel) pane).getHtmlArea().addFocusListener(listener);
+				((HtmlPanel) pane).getHtmlArea().addFocusListener(INSTANCE);
 				return;
 			}
 			if (pane instanceof ImagePanel) {
-				pane.addFocusListener(listener);
+				pane.addFocusListener(INSTANCE);
 				return;
 			}
 			// throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);

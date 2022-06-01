@@ -147,6 +147,7 @@ public class SearchDialog extends CommonSearchDialog {
 		if (searchDisposable != null && !searchDisposable.isDisposed()) {
 			searchDisposable.dispose();
 		}
+		resultsModel.clear();
 		removeActiveTabListener();
 		super.dispose();
 	}
@@ -399,6 +400,7 @@ public class SearchDialog extends CommonSearchDialog {
 		if (searchTask != null) {
 			searchTask.cancel();
 			searchTask.waitTask();
+			searchTask = null;
 		}
 	}
 
