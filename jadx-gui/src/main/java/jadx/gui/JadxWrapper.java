@@ -6,18 +6,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
+import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginManager;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.rename.RenameVisitor;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -34,7 +43,7 @@ public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
 	private final MainWindow mainWindow;
-	private JadxDecompiler decompiler;
+	private @Nullable JadxDecompiler decompiler;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -52,14 +61,14 @@ public class JadxWrapper {
 			this.decompiler.load();
 			initCodeCache();
 		} catch (Exception e) {
-			LOG.error("Jadx init error", e);
+			LOG.error("Jadx decompiler wrapper init error", e);
 			close();
 		}
 	}
 
 	// TODO: check and move into core package
 	public void unloadClasses() {
-		for (ClassNode cls : decompiler.getRoot().getClasses()) {
+		for (ClassNode cls : getDecompiler().getRoot().getClasses()) {
 			ProcessState clsState = cls.getState();
 			cls.unload();
 			cls.setState(clsState == PROCESS_COMPLETE ? GENERATED_AND_UNLOADED : NOT_LOADED);
@@ -70,12 +79,12 @@ public class JadxWrapper {
 		try {
 			if (decompiler != null) {
 				decompiler.close();
-				mainWindow.getCacheObject().reset();
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler close error", e);
 		} finally {
 			decompiler = null;
+			mainWindow.getCacheObject().reset();
 		}
 	}
 
@@ -94,7 +103,7 @@ public class JadxWrapper {
 	}
 
 	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(decompiler.getRoot(), getProject().getCacheDir());
+		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
 	}
 
@@ -102,14 +111,14 @@ public class JadxWrapper {
 	 * Get the complete list of classes
 	 */
 	public List<JavaClass> getClasses() {
-		return decompiler.getClasses();
+		return getDecompiler().getClasses();
 	}
 
 	/**
 	 * Get all classes that are not excluded by the excluded packages settings
 	 */
 	public List<JavaClass> getIncludedClasses() {
-		List<JavaClass> classList = decompiler.getClasses();
+		List<JavaClass> classList = getDecompiler().getClasses();
 		List<String> excludedPackages = getExcludedPackages();
 		if (excludedPackages.isEmpty()) {
 			return classList;
@@ -123,7 +132,7 @@ public class JadxWrapper {
 	 * Get all classes that are not excluded by the excluded packages settings including inner classes
 	 */
 	public List<JavaClass> getIncludedClassesWithInners() {
-		List<JavaClass> classes = decompiler.getClassesWithInners();
+		List<JavaClass> classes = getDecompiler().getClassesWithInners();
 		List<String> excludedPackages = getExcludedPackages();
 		if (excludedPackages.isEmpty()) {
 			return classes;
@@ -145,7 +154,7 @@ public class JadxWrapper {
 	}
 
 	public List<List<JavaClass>> buildDecompileBatches(List<JavaClass> classes) {
-		return decompiler.getDecompileScheduler().buildBatches(classes);
+		return getDecompiler().getDecompileScheduler().buildBatches(classes);
 	}
 
 	// TODO: move to CLI and filter classes in JadxDecompiler
@@ -175,20 +184,61 @@ public class JadxWrapper {
 		getSettings().sync();
 	}
 
-	public List<JavaPackage> getPackages() {
-		return decompiler.getPackages();
+	public List<JadxPlugin> getAllPlugins() {
+		if (decompiler != null) {
+			return decompiler.getPluginManager().getAllPlugins();
+		}
+		JadxPluginManager pluginManager = new JadxPluginManager();
+		pluginManager.load();
+		return pluginManager.getAllPlugins();
 	}
 
-	public List<ResourceFile> getResources() {
-		return decompiler.getResources();
-	}
-
-	public JadxDecompiler getDecompiler() {
+	/**
+	 * TODO: make method private
+	 * Do not store JadxDecompiler in fields to not leak old instances
+	 */
+	public @NotNull JadxDecompiler getDecompiler() {
+		if (decompiler == null || decompiler.getRoot() == null) {
+			throw new JadxRuntimeException("Decompiler not yet loaded");
+		}
 		return decompiler;
 	}
 
+	// TODO: forbid usage of this method
+	public RootNode getRootNode() {
+		return getDecompiler().getRoot();
+	}
+
+	public void reInitRenameVisitor() {
+		new RenameVisitor().init(getRootNode());
+	}
+
+	public void reloadCodeData() {
+		getDecompiler().reloadCodeData();
+	}
+
+	public JavaNode getJavaNodeByRef(ICodeNodeRef nodeRef) {
+		return getDecompiler().getJavaNodeByRef(nodeRef);
+	}
+
+	public JavaNode getEnclosingNode(ICodeInfo codeInfo, int pos) {
+		return getDecompiler().getEnclosingNode(codeInfo, pos);
+	}
+
+	public List<Runnable> getSaveTasks() {
+		return getDecompiler().getSaveTasks();
+	}
+
+	public List<JavaPackage> getPackages() {
+		return getDecompiler().getPackages();
+	}
+
+	public List<ResourceFile> getResources() {
+		return getDecompiler().getResources();
+	}
+
 	public JadxArgs getArgs() {
-		return decompiler.getArgs();
+		return getDecompiler().getArgs();
 	}
 
 	public JadxProject getProject() {
@@ -204,14 +254,14 @@ public class JadxWrapper {
 	 *                 Full name of an outer class. Inner classes are not supported.
 	 */
 	public @Nullable JavaClass searchJavaClassByFullAlias(String fullName) {
-		return decompiler.getClasses().stream()
+		return getDecompiler().getClasses().stream()
 				.filter(cls -> cls.getFullName().equals(fullName))
 				.findFirst()
 				.orElse(null);
 	}
 
 	public @Nullable JavaClass searchJavaClassByOrigClassName(String fullName) {
-		return decompiler.searchJavaClassByOrigFullName(fullName);
+		return getDecompiler().searchJavaClassByOrigFullName(fullName);
 	}
 
 	/**
@@ -219,7 +269,7 @@ public class JadxWrapper {
 	 *                Full raw name of an outer class. Inner classes are not supported.
 	 */
 	public @Nullable JavaClass searchJavaClassByRawName(String rawName) {
-		return decompiler.getClasses().stream()
+		return getDecompiler().getClasses().stream()
 				.filter(cls -> cls.getRawName().equals(rawName))
 				.findFirst()
 				.orElse(null);

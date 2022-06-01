@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
@@ -25,6 +24,7 @@ import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.dialog.CommentDialog;
@@ -87,7 +87,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			return null;
 		}
 		try {
-			JadxDecompiler decompiler = codeArea.getDecompiler();
+			JadxWrapper wrapper = codeArea.getJadxWrapper();
 			ICodeInfo codeInfo = codeArea.getCodeInfo();
 			ICodeMetadata metadata = codeInfo.getCodeMetadata();
 			int lineStartPos = codeArea.getLineStartFor(pos);
@@ -95,7 +95,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			// add method line comment by instruction offset
 			ICodeAnnotation offsetAnn = metadata.searchUp(pos, lineStartPos, AnnType.OFFSET);
 			if (offsetAnn instanceof InsnCodeOffset) {
-				JavaNode node = decompiler.getJavaNodeByRef(metadata.getNodeAt(pos));
+				JavaNode node = wrapper.getJavaNodeByRef(metadata.getNodeAt(pos));
 				if (node instanceof JavaMethod) {
 					int rawOffset = ((InsnCodeOffset) offsetAnn).getOffset();
 					JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
@@ -114,7 +114,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				return null;
 			});
 			if (nodeDef != null) {
-				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(decompiler.getJavaNodeByRef(nodeDef));
+				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(wrapper.getJavaNodeByRef(nodeDef));
 				return new JadxCodeComment(nodeRef, "");
 			}
 
@@ -128,7 +128,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 					return null;
 				});
 				if (nodeRef != null) {
-					JavaNode defNode = decompiler.getJavaNodeByRef(nodeRef);
+					JavaNode defNode = wrapper.getJavaNodeByRef(nodeRef);
 					return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
 				}
 			}

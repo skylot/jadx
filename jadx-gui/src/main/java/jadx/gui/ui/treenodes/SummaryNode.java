@@ -13,7 +13,6 @@ import javax.swing.ImageIcon;
 import org.apache.commons.text.StringEscapeUtils;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -21,6 +20,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -35,9 +35,11 @@ public class SummaryNode extends JNode {
 	private static final ImageIcon ICON = UiUtils.openSvgIcon("nodes/detailView");
 
 	private final MainWindow mainWindow;
+	private final JadxWrapper wrapper;
 
 	public SummaryNode(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
+		this.wrapper = mainWindow.getWrapper();
 	}
 
 	@Override
@@ -60,17 +62,16 @@ public class SummaryNode extends JNode {
 
 	private void writeInputSummary(StringEscapeUtils.Builder builder) throws IOException {
 		builder.append("<h2>Input</h2>");
-		JadxDecompiler jadx = mainWindow.getWrapper().getDecompiler();
 		builder.append("<h3>Files</h3>");
 		builder.append("<ul>");
-		for (File inputFile : jadx.getArgs().getInputFiles()) {
+		for (File inputFile : wrapper.getArgs().getInputFiles()) {
 			builder.append("<li>");
 			builder.escape(inputFile.getCanonicalFile().getAbsolutePath());
 			builder.append("</li>");
 		}
 		builder.append("</ul>");
 
-		List<ClassNode> classes = jadx.getRoot().getClasses(true);
+		List<ClassNode> classes = wrapper.getRootNode().getClasses(true);
 		List<String> codeSources = classes.stream()
 				.map(ClassNode::getInputFileName)
 				.distinct()
@@ -108,8 +109,7 @@ public class SummaryNode extends JNode {
 
 	private void writeDecompilationSummary(StringEscapeUtils.Builder builder) {
 		builder.append("<h2>Decompilation</h2>");
-		JadxDecompiler jadx = mainWindow.getWrapper().getDecompiler();
-		List<ClassNode> classes = jadx.getRoot().getClasses(false);
+		List<ClassNode> classes = wrapper.getRootNode().getClasses(false);
 		int classesCount = classes.size();
 		long processedClasses = classes.stream().filter(c -> c.getState() == ProcessState.PROCESS_COMPLETE).count();
 		long generatedClasses = classes.stream().filter(c -> c.getState() == ProcessState.GENERATED_AND_UNLOADED).count();
@@ -119,7 +119,7 @@ public class SummaryNode extends JNode {
 		builder.append("<li>Code generated: " + valueAndPercent(generatedClasses, classesCount) + "</li>");
 		builder.append("</ul>");
 
-		ErrorsCounter counter = jadx.getRoot().getErrorsCounter();
+		ErrorsCounter counter = wrapper.getRootNode().getErrorsCounter();
 		Set<IAttributeNode> problemNodes = new HashSet<>();
 		problemNodes.addAll(counter.getErrorNodes());
 		problemNodes.addAll(counter.getWarnNodes());

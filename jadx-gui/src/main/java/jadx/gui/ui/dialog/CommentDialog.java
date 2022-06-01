@@ -65,7 +65,7 @@ public class CommentDialog extends JDialog {
 			Collections.sort(list);
 			codeData.setComments(list);
 			project.setCodeData(codeData);
-			codeArea.getMainWindow().getWrapper().getDecompiler().reloadCodeData();
+			codeArea.getMainWindow().getWrapper().reloadCodeData();
 		} catch (Exception e) {
 			LOG.error("Comment action failed", e);
 		}

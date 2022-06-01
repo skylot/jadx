@@ -121,7 +121,7 @@ public class ExcludePkgDialog extends JDialog {
 	}
 
 	private void initPackageList() {
-		List<String> pkgs = mainWindow.getWrapper().getDecompiler().getPackages()
+		List<String> pkgs = mainWindow.getWrapper().getPackages()
 				.stream()
 				.map(JavaPackage::getFullName)
 				.collect(Collectors.toList());

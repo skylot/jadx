@@ -16,10 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -222,7 +222,7 @@ public final class CodeArea extends AbstractCodeArea {
 			return null;
 		}
 		try {
-			return getDecompiler().getJavaNodeAtPosition(getCodeInfo(), offset);
+			return getJadxWrapper().getDecompiler().getJavaNodeAtPosition(getCodeInfo(), offset);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
 		}
@@ -231,7 +231,7 @@ public final class CodeArea extends AbstractCodeArea {
 
 	public JavaNode getClosestJavaNode(int offset) {
 		try {
-			return getDecompiler().getClosestJavaNode(getCodeInfo(), offset);
+			return getJadxWrapper().getDecompiler().getClosestJavaNode(getCodeInfo(), offset);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
 			return null;
@@ -244,7 +244,7 @@ public final class CodeArea extends AbstractCodeArea {
 			if (codeInfo.hasMetadata()) {
 				ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
 				if (ann != null && ann.getAnnType() == ICodeAnnotation.AnnType.CLASS) {
-					return (JavaClass) getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
+					return (JavaClass) getJadxWrapper().getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
 				}
 			}
 		} catch (Exception e) {
@@ -275,8 +275,8 @@ public final class CodeArea extends AbstractCodeArea {
 		return contentPanel.getTabbedPane().getMainWindow();
 	}
 
-	public JadxDecompiler getDecompiler() {
-		return getMainWindow().getWrapper().getDecompiler();
+	public JadxWrapper getJadxWrapper() {
+		return getMainWindow().getWrapper();
 	}
 
 	public JadxProject getProject() {
