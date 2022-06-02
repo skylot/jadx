@@ -3,11 +3,13 @@ package jadx.core.deobf;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -22,6 +24,7 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeComment;
@@ -29,8 +32,12 @@ import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaNodeRef.RefType;
 import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
+import jadx.api.utils.CodeUtils;
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AFlag;
@@ -40,8 +47,6 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -124,6 +129,29 @@ public class Deobfuscator {
 		}
 	}
 
+	private List<VarNode> collectMethodArgs(MethodNode methodNode) {
+		ICodeInfo codeInfo = methodNode.getParentClass().getCode();
+		int mthDefPos = methodNode.getDefPosition();
+		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		List<VarNode> args = new ArrayList<>();
+		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
+			if (pos > lineEndPos) {
+				return Boolean.TRUE; // stop at line end
+			}
+			if (ann instanceof NodeDeclareRef) {
+				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
+				if (declRef instanceof VarNode) {
+					VarNode varNode = (VarNode) declRef;
+					if (varNode.getMth().equals(methodNode)) {
+						args.add(varNode);
+					}
+				}
+			}
+			return null;
+		});
+		return args;
+	}
+
 	public void exportMappings(Path path, JadxCodeData codeData, MappingFormat mappingFormat) {
 		MemoryMappingTree mappingTree = new MemoryMappingTree();
 		// Map < SrcName >
@@ -131,6 +159,7 @@ public class Deobfuscator {
 		// Map < DeclClass + ShortId >
 		Set<String> mappedFields = new HashSet<>();
 		Set<String> mappedMethods = new HashSet<>();
+		Set<String> methodsWithMappedElements = new HashSet<>();
 		// Map < DeclClass + MethodShortId + CodeRef, NewName >
 		Map<String, String> mappedMethodArgsAndVars = new HashMap<>();
 		// Map < DeclClass + *ShortId + *Index, Comment >
@@ -146,6 +175,7 @@ public class Deobfuscator {
 				if (codeRename.getCodeRef() == null) {
 					mappedMethods.add(codeRename.getNodeRef().getDeclaringClass() + codeRename.getNodeRef().getShortId());
 				} else {
+					methodsWithMappedElements.add(codeRename.getNodeRef().getDeclaringClass() + codeRename.getNodeRef().getShortId());
 					mappedMethodArgsAndVars.put(codeRename.getNodeRef().getDeclaringClass()
 							+ codeRename.getNodeRef().getShortId()
 							+ codeRename.getCodeRef(),
@@ -219,21 +249,21 @@ public class Deobfuscator {
 						mappingTree.visitComment(MappedElementKind.METHOD, comments.get(classInfo.getRawName() + methodInfo.getShortId()));
 					}
 
+					if (!methodsWithMappedElements.contains(methodInfo.getDeclClass() + methodInfo.getShortId())) {
+						continue;
+					}
 					boolean wasLoaded = mth.isLoaded();
 					try {
 						mth.load();
 						int lvIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-						for (RegisterArg arg : mth.getArgRegs()) {
-							SSAVar ssaVar = arg.getSVar();
-							if (ssaVar == null) {
-								continue;
-							}
+						for (VarNode arg : collectMethodArgs(mth)) {
+							int ssaVersion = arg.getSsa();
 							String key = methodInfo.getDeclClass() + methodInfo.getShortId()
-									+ JadxCodeRef.forVar(arg.getRegNum(), ssaVar.getVersion());
+									+ JadxCodeRef.forVar(arg.getReg(), ssaVersion);
 							if (mappedMethodArgsAndVars.containsKey(key)) {
 								mappingTree.visitClass(classPath);
 								mappingTree.visitMethod(methodName, methodDesc);
-								mappingTree.visitMethodArg(arg.getRegNum(), lvIndex, null);
+								mappingTree.visitMethodArg(arg.getReg(), lvIndex, null);
 								mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
 							}
 							lvIndex += Math.max(arg.getType().getRegCount(), 1);
