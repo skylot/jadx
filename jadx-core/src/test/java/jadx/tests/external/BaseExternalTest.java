@@ -13,20 +13,23 @@ import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.DebugChecks;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.TestUtils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
-public abstract class BaseExternalTest extends IntegrationTest {
+public abstract class BaseExternalTest extends TestUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);
+
+	protected JadxDecompiler decompiler;
 
 	protected abstract String getSamplesDir();
 
@@ -55,16 +58,16 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	}
 
 	protected JadxDecompiler decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
-		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
-		jadx.load();
+		decompiler = new JadxDecompiler(jadxArgs);
+		decompiler.load();
 
 		if (clsPatternStr == null) {
-			jadx.save();
+			decompiler.save();
 		} else {
-			processByPatterns(jadx, clsPatternStr, mthPatternStr);
+			processByPatterns(decompiler, clsPatternStr, mthPatternStr);
 		}
-		printErrorReport(jadx);
-		return jadx;
+		printErrorReport(decompiler);
+		return decompiler;
 	}
 
 	private void processByPatterns(JadxDecompiler jadx, String clsPattern, @Nullable String mthPattern) {
@@ -109,7 +112,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		} else {
 			LOG.info("Code: \n{}", classNode.getCode());
 		}
-		checkCode(classNode);
+		checkCode(classNode, false);
 		return true;
 	}
 
@@ -134,7 +137,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		String dashLine = "======================================================================================";
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
-				String mthCode = cutMethodCode(codeInfo, code, mth);
+				String mthCode = cutMethodCode(codeInfo, mth);
 				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
 						dashLine,
 						mthCode,
@@ -143,36 +146,33 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		}
 	}
 
-	@NotNull
-	private String cutMethodCode(ICodeInfo codeInfo, String code, MethodNode mth) {
-		int defPos = mth.getDefPosition();
-		int startPos = getCommentStartPos(code, defPos);
-		ICodeNodeRef nodeBelow = codeInfo.getCodeMetadata().getNodeBelow(defPos);
-		int stopPos = nodeBelow == null ? code.length() : nodeBelow.getDefPosition();
-		int brackets = 0;
-		StringBuilder mthCode = new StringBuilder();
-		for (int i = startPos; i > 0 && i < stopPos;) {
-			int codePoint = code.codePointAt(i);
-			mthCode.appendCodePoint(codePoint);
-			if (i >= defPos) {
-				// also count brackets for detect method end
-				if (codePoint == '{') {
-					brackets++;
-				} else if (codePoint == '}') {
-					brackets--;
-					if (brackets <= 0) {
-						break;
-					}
-				}
-			}
-			i += Character.charCount(codePoint);
-		}
-		return mthCode.toString();
+	private String cutMethodCode(ICodeInfo codeInfo, MethodNode mth) {
+		int startPos = getCommentStartPos(codeInfo, mth.getDefPosition());
+		int stopPos = getNextNodePos(mth, codeInfo);
+		return codeInfo.getCodeStr().substring(startPos, stopPos);
 	}
 
-	protected int getCommentStartPos(String code, int pos) {
+	private int getNextNodePos(MethodNode mth, ICodeInfo codeInfo) {
+		int pos = mth.getDefPosition() + 1;
+		while (true) {
+			ICodeNodeRef nodeBelow = codeInfo.getCodeMetadata().getNodeBelow(pos);
+			if (nodeBelow == null) {
+				return codeInfo.getCodeStr().length();
+			}
+			if (nodeBelow.getAnnType() != ICodeAnnotation.AnnType.METHOD) {
+				return nodeBelow.getDefPosition();
+			}
+			MethodNode nodeMth = (MethodNode) nodeBelow;
+			if (nodeMth.getParentClass().equals(mth.getParentClass())) { // skip methods from anonymous classes
+				return getCommentStartPos(codeInfo, nodeMth.getDefPosition());
+			}
+			pos = nodeMth.getDefPosition() + 1;
+		}
+	}
+
+	protected int getCommentStartPos(ICodeInfo codeInfo, int pos) {
 		String emptyLine = ICodeWriter.NL + ICodeWriter.NL;
-		int emptyLinePos = code.lastIndexOf(emptyLine, pos);
+		int emptyLinePos = codeInfo.getCodeStr().lastIndexOf(emptyLine, pos);
 		return emptyLinePos == -1 ? pos : emptyLinePos + emptyLine.length();
 	}
 
