@@ -51,7 +51,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.kotlin.KotlinMetadataUtils;
 
 public class Deobfuscator {
@@ -252,27 +251,18 @@ public class Deobfuscator {
 					if (!methodsWithMappedElements.contains(methodInfo.getDeclClass() + methodInfo.getShortId())) {
 						continue;
 					}
-					boolean wasLoaded = mth.isLoaded();
-					try {
-						mth.load();
-						int lvIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-						for (VarNode arg : collectMethodArgs(mth)) {
-							int ssaVersion = arg.getSsa();
-							String key = methodInfo.getDeclClass() + methodInfo.getShortId()
-									+ JadxCodeRef.forVar(arg.getReg(), ssaVersion);
-							if (mappedMethodArgsAndVars.containsKey(key)) {
-								mappingTree.visitClass(classPath);
-								mappingTree.visitMethod(methodName, methodDesc);
-								mappingTree.visitMethodArg(arg.getReg(), lvIndex, null);
-								mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
-							}
-							lvIndex += Math.max(arg.getType().getRegCount(), 1);
+					int lvIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
+					for (VarNode arg : collectMethodArgs(mth)) {
+						int ssaVersion = arg.getSsa();
+						String key = methodInfo.getDeclClass() + methodInfo.getShortId()
+								+ JadxCodeRef.forVar(arg.getReg(), ssaVersion);
+						if (mappedMethodArgsAndVars.containsKey(key)) {
+							mappingTree.visitClass(classPath);
+							mappingTree.visitMethod(methodName, methodDesc);
+							mappingTree.visitMethodArg(arg.getReg(), lvIndex, null);
+							mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
 						}
-					} catch (DecodeException e) {
-						LOG.error("Error while decompiling method " + methodInfo.getShortId());
-					}
-					if (!wasLoaded) {
-						mth.unload();
+						lvIndex += Math.max(arg.getType().getRegCount(), 1);
 					}
 				}
 			}
