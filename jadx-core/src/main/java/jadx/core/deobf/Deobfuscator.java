@@ -130,7 +130,7 @@ public class Deobfuscator {
 	}
 
 	private List<VarNode> collectMethodArgs(MethodNode methodNode) {
-		ICodeInfo codeInfo = methodNode.getParentClass().getCode();
+		ICodeInfo codeInfo = methodNode.getTopParentClass().getCode();
 		int mthDefPos = methodNode.getDefPosition();
 		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
 		List<VarNode> args = new ArrayList<>();
