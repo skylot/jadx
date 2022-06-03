@@ -38,8 +38,6 @@ import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
-import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.TaskStatus;
@@ -168,12 +166,11 @@ public class RenameDialog extends JDialog {
 		Collections.sort(list);
 		codeData.setRenames(list);
 		project.setCodeData(codeData);
-		mainWindow.getWrapper().getDecompiler().reloadCodeData();
+		mainWindow.getWrapper().reloadCodeData();
 	}
 
 	private void refreshState() {
-		RootNode rootNode = mainWindow.getWrapper().getDecompiler().getRoot();
-		new RenameVisitor().init(rootNode);
+		mainWindow.getWrapper().reInitRenameVisitor();
 
 		JNodeCache nodeCache = cache.getNodeCache();
 		JavaNode javaNode = node.getJavaNode();

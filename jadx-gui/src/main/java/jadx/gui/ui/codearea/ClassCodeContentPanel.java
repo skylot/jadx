@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -169,5 +170,17 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		} catch (Exception e) {
 			LOG.debug("Failed to restore caret position: {}", viewState.getCaretPos(), e);
 		}
+	}
+
+	@Override
+	public void dispose() {
+		javaCodePanel.dispose();
+		smaliCodePanel.dispose();
+		for (Component component : areaTabbedPane.getComponents()) {
+			if (component instanceof CodePanel) {
+				((CodePanel) component).dispose();
+			}
+		}
+		super.dispose();
 	}
 }

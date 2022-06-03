@@ -1,22 +1,22 @@
 package jadx.gui.utils.codecache.disk;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,30 +34,38 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 10;
+	private static final int DATA_FORMAT_VERSION = 11;
+
+	private static final byte[] JADX_NAMES_MAP_HEADER = "jadxnm".getBytes(StandardCharsets.US_ASCII);
 
 	private final Path srcDir;
 	private final Path metaDir;
 	private final Path codeVersionFile;
+	private final Path namesMapFile;
 	private final String codeVersion;
 	private final CodeMetadataAdapter codeMetadataAdapter;
 	private final ExecutorService writePool;
 	private final Map<String, ICodeInfo> writeOps = new ConcurrentHashMap<>();
-	private final Set<String> cachedKeys = Collections.synchronizedSet(new HashSet<>());
+	private final Map<String, Integer> namesMap = new ConcurrentHashMap<>();
 
 	public DiskCodeCache(RootNode root, Path baseDir) {
 		srcDir = baseDir.resolve("sources");
 		metaDir = baseDir.resolve("metadata");
 		codeVersionFile = baseDir.resolve("code-version");
+		namesMapFile = baseDir.resolve("names-map");
 		JadxArgs args = root.getArgs();
 		codeVersion = buildCodeVersion(args);
 		writePool = Executors.newFixedThreadPool(args.getThreadsCount());
 		codeMetadataAdapter = new CodeMetadataAdapter(root);
 		if (checkCodeVersion()) {
-			collectCachedItems();
+			loadNamesMap();
 		} else {
 			reset();
 		}
@@ -68,7 +76,7 @@ public class DiskCodeCache implements ICodeCache {
 			if (!Files.exists(codeVersionFile)) {
 				return false;
 			}
-			String currentCodeVer = readFileToString(codeVersionFile);
+			String currentCodeVer = FileUtils.readFile(codeVersionFile);
 			return currentCodeVer.equals(codeVersion);
 		} catch (Exception e) {
 			LOG.warn("Failed to load code version file", e);
@@ -82,39 +90,17 @@ public class DiskCodeCache implements ICodeCache {
 			LOG.info("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());
 			FileUtils.deleteDirIfExists(srcDir);
 			FileUtils.deleteDirIfExists(metaDir);
+			FileUtils.deleteFileIfExists(namesMapFile);
 			FileUtils.makeDirs(srcDir);
 			FileUtils.makeDirs(metaDir);
-			writeFile(codeVersionFile, codeVersion);
-			cachedKeys.clear();
+			FileUtils.writeFile(codeVersionFile, codeVersion);
 			if (LOG.isDebugEnabled()) {
 				LOG.info("Reset done in: {}ms", System.currentTimeMillis() - start);
 			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to reset code cache", e);
-		}
-	}
-
-	private void collectCachedItems() {
-		cachedKeys.clear();
-		try {
-			long start = System.currentTimeMillis();
-			PathMatcher matcher = metaDir.getFileSystem().getPathMatcher("glob:**.jadxmd");
-			Files.walkFileTree(metaDir, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-					if (matcher.matches(file)) {
-						Path relPath = metaDir.relativize(file);
-						String filePath = relPath.toString();
-						String clsName = filePath.substring(0, filePath.length() - 7).replace(File.separatorChar, '.');
-						cachedKeys.add(clsName);
-					}
-					return FileVisitResult.CONTINUE;
-				}
-			});
-			LOG.info("Found {} classes metadata in disk cache in {} ms, dir: {}", cachedKeys.size(),
-					System.currentTimeMillis() - start, metaDir);
-		} catch (Exception e) {
-			LOG.error("Failed to collect cached items", e);
+		} finally {
+			namesMap.clear();
 		}
 	}
 
@@ -124,11 +110,11 @@ public class DiskCodeCache implements ICodeCache {
 	@Override
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		writeOps.put(clsFullName, codeInfo);
-		cachedKeys.add(clsFullName);
+		int clsId = getClsId(clsFullName);
 		writePool.execute(() -> {
 			try {
-				writeFile(getJavaFile(clsFullName), codeInfo.getCodeStr());
-				codeMetadataAdapter.write(getMetadataFile(clsFullName), codeInfo.getCodeMetadata());
+				FileUtils.writeFile(getJavaFile(clsId), codeInfo.getCodeStr());
+				codeMetadataAdapter.write(getMetadataFile(clsId), codeInfo.getCodeMetadata());
 			} catch (Exception e) {
 				LOG.error("Failed to write code cache for " + clsFullName, e);
 				remove(clsFullName);
@@ -148,11 +134,12 @@ public class DiskCodeCache implements ICodeCache {
 			if (wrtCodeInfo != null) {
 				return wrtCodeInfo.getCodeStr();
 			}
-			Path javaFile = getJavaFile(clsFullName);
+			int clsId = getClsId(clsFullName);
+			Path javaFile = getJavaFile(clsId);
 			if (!Files.exists(javaFile)) {
 				return null;
 			}
-			return readFileToString(javaFile);
+			return FileUtils.readFile(javaFile);
 		} catch (Exception e) {
 			LOG.error("Failed to read class code for {}", clsFullName, e);
 			return null;
@@ -169,12 +156,13 @@ public class DiskCodeCache implements ICodeCache {
 			if (wrtCodeInfo != null) {
 				return wrtCodeInfo;
 			}
-			Path javaFile = getJavaFile(clsFullName);
+			int clsId = getClsId(clsFullName);
+			Path javaFile = getJavaFile(clsId);
 			if (!Files.exists(javaFile)) {
 				return ICodeInfo.EMPTY;
 			}
-			String code = readFileToString(javaFile);
-			return codeMetadataAdapter.readAndBuild(getMetadataFile(clsFullName), code);
+			String code = FileUtils.readFile(javaFile);
+			return codeMetadataAdapter.readAndBuild(getMetadataFile(clsId), code);
 		} catch (Exception e) {
 			LOG.error("Failed to read code cache for {}", clsFullName, e);
 			return ICodeInfo.EMPTY;
@@ -183,31 +171,20 @@ public class DiskCodeCache implements ICodeCache {
 
 	@Override
 	public boolean contains(String clsFullName) {
-		return cachedKeys.contains(clsFullName);
+		return namesMap.containsKey(clsFullName);
 	}
 
 	@Override
 	public void remove(String clsFullName) {
 		try {
 			LOG.debug("Removing class info from disk: {}", clsFullName);
-			cachedKeys.remove(clsFullName);
-			Files.deleteIfExists(getJavaFile(clsFullName));
-			Files.deleteIfExists(getMetadataFile(clsFullName));
+			Integer clsId = namesMap.remove(clsFullName);
+			if (clsId != null) {
+				Files.deleteIfExists(getJavaFile(clsId));
+				Files.deleteIfExists(getMetadataFile(clsId));
+			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to remove code cache for " + clsFullName, e);
-		}
-	}
-
-	private static String readFileToString(Path textFile) throws IOException {
-		return new String(Files.readAllBytes(textFile), StandardCharsets.UTF_8);
-	}
-
-	private void writeFile(Path file, String data) {
-		try {
-			FileUtils.makeDirsForFile(file);
-			Files.write(file, data.getBytes(StandardCharsets.UTF_8));
-		} catch (Exception e) {
-			LOG.error("Failed to write file: {}", file.toAbsolutePath(), e);
 		}
 	}
 
@@ -238,18 +215,65 @@ public class DiskCodeCache implements ICodeCache {
 		}
 	}
 
-	private Path getJavaFile(String clsFullName) {
-		return srcDir.resolve(clsFullName.replace('.', File.separatorChar) + ".java");
+	private int getClsId(String clsFullName) {
+		return namesMap.computeIfAbsent(clsFullName, n -> namesMap.size());
 	}
 
-	private Path getMetadataFile(String clsFullName) {
-		return metaDir.resolve(clsFullName.replace('.', File.separatorChar) + ".jadxmd");
+	private void saveNamesMap() {
+		LOG.debug("Saving names map for disk cache...");
+		try (OutputStream fileOutput = Files.newOutputStream(namesMapFile, WRITE, CREATE, TRUNCATE_EXISTING);
+				DataOutputStream out = new DataOutputStream(new BufferedOutputStream(fileOutput))) {
+			out.write(JADX_NAMES_MAP_HEADER);
+			out.writeInt(namesMap.size());
+			for (Map.Entry<String, Integer> entry : namesMap.entrySet()) {
+				out.writeUTF(entry.getKey());
+				out.writeInt(entry.getValue());
+			}
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to save names map file", e);
+		}
+	}
+
+	private void loadNamesMap() {
+		if (!Files.exists(namesMapFile)) {
+			reset();
+			return;
+		}
+		namesMap.clear();
+		try (InputStream fileInput = Files.newInputStream(namesMapFile);
+				DataInputStream in = new DataInputStream(new BufferedInputStream(fileInput))) {
+			in.skipBytes(JADX_NAMES_MAP_HEADER.length);
+			int count = in.readInt();
+			for (int i = 0; i < count; i++) {
+				String clsName = in.readUTF();
+				int clsId = in.readInt();
+				namesMap.put(clsName, clsId);
+			}
+			LOG.info("Found {} classes in disk cache, dir: {}", count, metaDir.getParent());
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to load names map file", e);
+		}
+	}
+
+	private Path getJavaFile(int clsId) {
+		return srcDir.resolve(getPathForClsId(clsId, ".java"));
+	}
+
+	private Path getMetadataFile(int clsId) {
+		return metaDir.resolve(getPathForClsId(clsId, ".jadxmd"));
+	}
+
+	private Path getPathForClsId(int clsId, String ext) {
+		// all classes divided between 256 top level folders
+		String firstByte = FileUtils.byteToHex(clsId);
+		return Paths.get(firstByte, FileUtils.intToHex(clsId) + ext);
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	@Override
 	public void close() throws IOException {
 		try {
+			saveNamesMap();
 			writePool.shutdown();
 			writePool.awaitTermination(2, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {

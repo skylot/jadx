@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
-import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
@@ -25,8 +23,8 @@ import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.dialog.CommentDialog;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
@@ -39,28 +37,29 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
 	private final CodeArea codeArea;
-	private final JavaClass topCls;
+	private final boolean enabled;
 
 	private ICodeComment actionComment;
 
 	public CommentAction(CodeArea codeArea) {
 		super(NLS.str("popup.add_comment") + " (;)");
 		this.codeArea = codeArea;
-		JNode topNode = codeArea.getNode();
-		if (topNode instanceof JClass) {
-			this.topCls = ((JClass) topNode).getCls();
-		} else {
-			this.topCls = null;
+		this.enabled = codeArea.getNode() instanceof JClass;
+		if (enabled) {
+			UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment",
+					() -> showCommentDialog(getCommentRef(codeArea.getCaretPosition())));
 		}
-		UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment",
-				() -> showCommentDialog(getCommentRef(codeArea.getCaretPosition())));
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-		ICodeComment codeComment = getCommentRef(UiUtils.getOffsetAtMousePosition(codeArea));
-		setEnabled(codeComment != null);
-		this.actionComment = codeComment;
+		if (enabled) {
+			ICodeComment codeComment = getCommentRef(UiUtils.getOffsetAtMousePosition(codeArea));
+			setEnabled(codeComment != null);
+			this.actionComment = codeComment;
+		} else {
+			setEnabled(false);
+		}
 	}
 
 	@Override
@@ -83,11 +82,11 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 	 */
 	@Nullable
 	private ICodeComment getCommentRef(int pos) {
-		if (pos == -1 || this.topCls == null) {
+		if (pos == -1) {
 			return null;
 		}
 		try {
-			JadxDecompiler decompiler = codeArea.getDecompiler();
+			JadxWrapper wrapper = codeArea.getJadxWrapper();
 			ICodeInfo codeInfo = codeArea.getCodeInfo();
 			ICodeMetadata metadata = codeInfo.getCodeMetadata();
 			int lineStartPos = codeArea.getLineStartFor(pos);
@@ -95,7 +94,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			// add method line comment by instruction offset
 			ICodeAnnotation offsetAnn = metadata.searchUp(pos, lineStartPos, AnnType.OFFSET);
 			if (offsetAnn instanceof InsnCodeOffset) {
-				JavaNode node = decompiler.getJavaNodeByRef(metadata.getNodeAt(pos));
+				JavaNode node = wrapper.getJavaNodeByRef(metadata.getNodeAt(pos));
 				if (node instanceof JavaMethod) {
 					int rawOffset = ((InsnCodeOffset) offsetAnn).getOffset();
 					JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
@@ -114,7 +113,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				return null;
 			});
 			if (nodeDef != null) {
-				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(decompiler.getJavaNodeByRef(nodeDef));
+				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(wrapper.getJavaNodeByRef(nodeDef));
 				return new JadxCodeComment(nodeRef, "");
 			}
 
@@ -128,7 +127,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 					return null;
 				});
 				if (nodeRef != null) {
-					JavaNode defNode = decompiler.getJavaNodeByRef(nodeRef);
+					JavaNode defNode = wrapper.getJavaNodeByRef(nodeRef);
 					return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
 				}
 			}

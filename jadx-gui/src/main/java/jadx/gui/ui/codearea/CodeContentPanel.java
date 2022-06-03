@@ -62,4 +62,9 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 		codePanel.getCodeScrollPane().getViewport().setViewPosition(viewState.getViewPoint());
 		codePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
 	}
+
+	@Override
+	public void dispose() {
+		codePanel.dispose();
+	}
 }

@@ -65,7 +65,6 @@ import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.gui.ui.MainWindow;
@@ -580,8 +579,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makePluginOptionsGroup() {
 		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
-		JadxPluginManager pluginManager = mainWindow.getWrapper().getDecompiler().getPluginManager();
-		for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
+		for (JadxPlugin plugin : mainWindow.getWrapper().getAllPlugins()) {
 			if (!(plugin instanceof JadxPluginOptions)) {
 				continue;
 			}

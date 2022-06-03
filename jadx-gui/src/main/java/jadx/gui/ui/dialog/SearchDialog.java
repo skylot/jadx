@@ -143,11 +143,18 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	public void dispose() {
-		stopSearchTask();
 		if (searchDisposable != null && !searchDisposable.isDisposed()) {
 			searchDisposable.dispose();
 		}
+		resultsModel.clear();
 		removeActiveTabListener();
+		if (searchTask != null) {
+			searchTask.cancel();
+			mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"), () -> {
+				stopSearchTask();
+				unloadTempData();
+			});
+		}
 		super.dispose();
 	}
 
@@ -399,6 +406,7 @@ public class SearchDialog extends CommonSearchDialog {
 		if (searchTask != null) {
 			searchTask.cancel();
 			searchTask.waitTask();
+			searchTask = null;
 		}
 	}
 
@@ -475,7 +483,13 @@ public class SearchDialog extends CommonSearchDialog {
 		loadAllButton.setEnabled(!complete);
 		loadMoreButton.setEnabled(!complete);
 		updateProgressLabel(complete);
+		unloadTempData();
 		progressFinishedCommon();
+	}
+
+	private void unloadTempData() {
+		mainWindow.getWrapper().unloadClasses();
+		System.gc();
 	}
 
 	private static Flowable<String> onTextFieldChanges(final JTextField textField) {

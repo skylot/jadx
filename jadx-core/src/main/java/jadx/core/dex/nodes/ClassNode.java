@@ -379,7 +379,9 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			}
 		}
 		ICodeInfo codeInfo = root.getProcessClasses().generateCode(this);
-		codeCache.add(clsRawName, codeInfo);
+		if (codeInfo != ICodeInfo.EMPTY) {
+			codeCache.add(clsRawName, codeInfo);
+		}
 		return codeInfo;
 	}
 

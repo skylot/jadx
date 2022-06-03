@@ -329,6 +329,23 @@ public class UiUtils {
 		}
 	}
 
+	/**
+	 * Owner field in Clipboard class can store reference to CodeArea.
+	 * This prevents from garbage collection whole jadx object tree and cause memory leak.
+	 * Trying to lost ownership by new empty selection.
+	 */
+	public static void resetClipboardOwner() {
+		try {
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemSelection();
+			if (clipboard != null) {
+				StringSelection selection = new StringSelection("");
+				clipboard.setContents(selection, selection);
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to reset clipboard owner", e);
+		}
+	}
+
 	public static int calcProgress(ITaskProgress taskProgress) {
 		return calcProgress(taskProgress.progress(), taskProgress.total());
 	}

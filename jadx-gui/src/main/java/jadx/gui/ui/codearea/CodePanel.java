@@ -195,4 +195,8 @@ public class CodePanel extends JPanel {
 		return this.codeArea.getContentPanel().getTabbedPane()
 				.getMainWindow().getSettings();
 	}
+
+	public void dispose() {
+		codeArea.dispose();
+	}
 }

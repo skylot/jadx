@@ -212,8 +212,15 @@ public class BackgroundExecutor {
 			// force termination
 			task.cancel();
 			executor.shutdown();
-			boolean complete = executor.awaitTermination(5, TimeUnit.SECONDS);
-			LOG.debug("Task cancel complete: {}", complete ? "success" : "aborted");
+			if (executor.awaitTermination(5, TimeUnit.SECONDS)) {
+				LOG.debug("Task cancel complete");
+				return;
+			}
+			LOG.debug("Forcing tasks cancel");
+			executor.shutdownNow();
+			boolean complete = executor.awaitTermination(30, TimeUnit.SECONDS);
+			LOG.debug("Forced task cancel status: {}",
+					complete ? "success" : "fail, still active: " + executor.getActiveCount());
 		}
 
 		private Supplier<TaskStatus> buildCancelCheck(long startTime) {

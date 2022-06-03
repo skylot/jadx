@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.CodeNode;
@@ -23,7 +23,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeSearchProvider.class);
 
 	private final ICodeCache codeCache;
-	private final JadxDecompiler decompiler;
+	private final JadxWrapper wrapper;
 
 	private @Nullable String code;
 	private int clsNum = 0;
@@ -32,7 +32,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 	public CodeSearchProvider(MainWindow mw, SearchSettings searchSettings, List<JavaClass> classes) {
 		super(mw, searchSettings, classes);
 		this.codeCache = mw.getWrapper().getArgs().getCodeCache();
-		this.decompiler = mw.getWrapper().getDecompiler();
+		this.wrapper = mw.getWrapper();
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 		try {
 			ICodeMetadata metadata = javaCls.getCodeInfo().getCodeMetadata();
 			ICodeNodeRef nodeRef = metadata.getNodeAt(pos);
-			JavaNode encNode = decompiler.getJavaNodeByRef(nodeRef);
+			JavaNode encNode = wrapper.getJavaNodeByRef(nodeRef);
 			if (encNode != null) {
 				return convert(encNode);
 			}

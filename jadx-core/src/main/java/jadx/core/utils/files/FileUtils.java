@@ -103,6 +103,10 @@ public class FileUtils {
 		}
 	}
 
+	public static void deleteFileIfExists(Path filePath) throws IOException {
+		Files.deleteIfExists(filePath);
+	}
+
 	public static boolean deleteDir(File dir) {
 		File[] content = dir.listFiles();
 		if (content != null) {
@@ -222,6 +226,15 @@ public class FileUtils {
 		}
 	}
 
+	public static void writeFile(Path file, String data) throws IOException {
+		FileUtils.makeDirsForFile(file);
+		Files.write(file, data.getBytes(StandardCharsets.UTF_8));
+	}
+
+	public static String readFile(Path textFile) throws IOException {
+		return new String(Files.readAllBytes(textFile), StandardCharsets.UTF_8);
+	}
+
 	@NotNull
 	public static File prepareFile(File file) {
 		File saveFile = cutFileName(file);
@@ -257,6 +270,28 @@ public class FileUtils {
 			hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
 		}
 		return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Zero padded hex string for first byte
+	 */
+	public static String byteToHex(int value) {
+		int v = value & 0xFF;
+		byte[] hexChars = new byte[] { HEX_ARRAY[v >>> 4], HEX_ARRAY[v & 0x0F] };
+		return new String(hexChars, StandardCharsets.US_ASCII);
+	}
+
+	/**
+	 * Zero padded hex string for int value
+	 */
+	public static String intToHex(int value) {
+		byte[] hexChars = new byte[8];
+		int v = value;
+		for (int i = 7; i >= 0; i--) {
+			hexChars[i] = HEX_ARRAY[v & 0x0F];
+			v >>>= 4;
+		}
+		return new String(hexChars, StandardCharsets.US_ASCII);
 	}
 
 	public static boolean isZipFile(File file) {

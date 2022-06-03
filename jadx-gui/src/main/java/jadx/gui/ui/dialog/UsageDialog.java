@@ -16,11 +16,11 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.utils.CodeUtils;
+import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JMethod;
@@ -97,14 +97,14 @@ public class UsageDialog extends CommonSearchDialog {
 	private void processUsage(JavaNode searchNode, JavaClass topUseClass) {
 		ICodeInfo codeInfo = topUseClass.getCodeInfo();
 		String code = codeInfo.getCodeStr();
-		JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
+		JadxWrapper wrapper = mainWindow.getWrapper();
 		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
 		for (int pos : usePositions) {
 			String line = CodeUtils.getLineForPos(code, pos);
 			if (line.startsWith("import ")) {
 				continue;
 			}
-			JavaNode enclosingNode = decompiler.getEnclosingNode(codeInfo, pos);
+			JavaNode enclosingNode = wrapper.getEnclosingNode(codeInfo, pos);
 			JavaNode usageNode = enclosingNode == null ? topUseClass : enclosingNode;
 			usageList.add(new CodeNode(getNodeCache().makeFrom(usageNode), line.trim(), pos));
 		}
