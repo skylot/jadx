@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -16,7 +17,7 @@ import jadx.gui.utils.UiUtils;
 public abstract class JNodeAction extends AbstractAction {
 	private static final long serialVersionUID = -2600154727884853550L;
 
-	private final transient CodeArea codeArea;
+	private transient CodeArea codeArea;
 	private transient @Nullable JNode node;
 
 	public JNodeAction(String name, CodeArea codeArea) {
@@ -26,7 +27,7 @@ public abstract class JNodeAction extends AbstractAction {
 
 	public abstract void runAction(JNode node);
 
-	public boolean isActionEnabled(JNode node) {
+	public boolean isActionEnabled(@Nullable JNode node) {
 		return node != null;
 	}
 
@@ -47,12 +48,20 @@ public abstract class JNodeAction extends AbstractAction {
 		runAction(node);
 	}
 
-	public void changeNode(JNode node) {
+	public void changeNode(@Nullable JNode node) {
 		this.node = node;
 		setEnabled(isActionEnabled(node));
 	}
 
 	public CodeArea getCodeArea() {
 		return codeArea;
+	}
+
+	public void dispose() {
+		node = null;
+		codeArea = null;
+		for (PropertyChangeListener changeListener : getPropertyChangeListeners()) {
+			removePropertyChangeListener(changeListener);
+		}
 	}
 }

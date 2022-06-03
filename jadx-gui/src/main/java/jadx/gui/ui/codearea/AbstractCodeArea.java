@@ -1,5 +1,6 @@
 package jadx.gui.ui.codearea;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -8,15 +9,20 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
@@ -64,8 +70,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		}
 	}
 
-	protected final ContentPanel contentPanel;
-	protected final JNode node;
+	protected ContentPanel contentPanel;
+	protected JNode node;
 
 	public AbstractCodeArea(ContentPanel contentPanel, JNode node) {
 		this.contentPanel = contentPanel;
@@ -347,5 +353,34 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			return (JClass) node;
 		}
 		return null;
+	}
+
+	public void dispose() {
+		// code area reference can still be used somewhere in UI objects,
+		// reset node reference to allow to GC jadx objects tree
+		node = null;
+		contentPanel = null;
+
+		// also clear internals
+		setLinkGenerator(null);
+		for (MouseListener mouseListener : getMouseListeners()) {
+			removeMouseListener(mouseListener);
+		}
+		for (MouseMotionListener mouseMotionListener : getMouseMotionListeners()) {
+			removeMouseMotionListener(mouseMotionListener);
+		}
+		JPopupMenu popupMenu = getPopupMenu();
+		for (PopupMenuListener popupMenuListener : popupMenu.getPopupMenuListeners()) {
+			popupMenu.removePopupMenuListener(popupMenuListener);
+		}
+		for (Component component : popupMenu.getComponents()) {
+			if (component instanceof JMenuItem) {
+				Action action = ((JMenuItem) component).getAction();
+				if (action instanceof JNodeAction) {
+					((JNodeAction) action).dispose();
+				}
+			}
+		}
+		popupMenu.removeAll();
 	}
 }

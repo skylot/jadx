@@ -309,6 +309,7 @@ public class TabbedPane extends JTabbedPane {
 	public void closeCodePanel(ContentPanel contentPanel) {
 		openTabs.remove(contentPanel.getNode());
 		remove(contentPanel);
+		contentPanel.dispose();
 	}
 
 	@Nullable

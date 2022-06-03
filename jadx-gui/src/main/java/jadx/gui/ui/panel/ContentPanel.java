@@ -12,8 +12,8 @@ public abstract class ContentPanel extends JPanel {
 
 	private static final long serialVersionUID = 3237031760631677822L;
 
-	protected final TabbedPane tabbedPane;
-	protected final JNode node;
+	protected TabbedPane tabbedPane;
+	protected JNode node;
 
 	protected ContentPanel(TabbedPane panel, JNode jnode) {
 		tabbedPane = panel;
@@ -43,5 +43,10 @@ public abstract class ContentPanel extends JPanel {
 			return jClass.getFullName();
 		}
 		return node.getName();
+	}
+
+	public void dispose() {
+		tabbedPane = null;
+		node = null;
 	}
 }

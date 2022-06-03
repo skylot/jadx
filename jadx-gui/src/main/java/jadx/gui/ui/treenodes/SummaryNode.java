@@ -109,13 +109,17 @@ public class SummaryNode extends JNode {
 
 	private void writeDecompilationSummary(StringEscapeUtils.Builder builder) {
 		builder.append("<h2>Decompilation</h2>");
-		List<ClassNode> classes = wrapper.getRootNode().getClasses(false);
+		List<ClassNode> classes = wrapper.getRootNode().getClassesWithoutInner();
 		int classesCount = classes.size();
+		long notLoadedClasses = classes.stream().filter(c -> c.getState() == ProcessState.NOT_LOADED).count();
+		long loadedClasses = classes.stream().filter(c -> c.getState() == ProcessState.LOADED).count();
 		long processedClasses = classes.stream().filter(c -> c.getState() == ProcessState.PROCESS_COMPLETE).count();
 		long generatedClasses = classes.stream().filter(c -> c.getState() == ProcessState.GENERATED_AND_UNLOADED).count();
 		builder.append("<ul>");
 		builder.append("<li>Top level classes: " + classesCount + "</li>");
-		builder.append("<li>At process stage: " + valueAndPercent(processedClasses, classesCount) + "</li>");
+		builder.append("<li>Not loaded: " + valueAndPercent(notLoadedClasses, classesCount) + "</li>");
+		builder.append("<li>Loaded: " + valueAndPercent(loadedClasses, classesCount) + "</li>");
+		builder.append("<li>Processed: " + valueAndPercent(processedClasses, classesCount) + "</li>");
 		builder.append("<li>Code generated: " + valueAndPercent(generatedClasses, classesCount) + "</li>");
 		builder.append("</ul>");
 

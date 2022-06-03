@@ -282,4 +282,10 @@ public final class CodeArea extends AbstractCodeArea {
 	public JadxProject getProject() {
 		return getMainWindow().getProject();
 	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		cachedCodeInfo = null;
+	}
 }
