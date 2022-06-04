@@ -219,29 +219,22 @@ public class JadxSettings extends JadxCLIArgs {
 		if (pos == null || pos.getBounds() == null) {
 			return false;
 		}
-		if (window instanceof MainWindow) {
-			int extendedState = getMainWindowExtendedState();
-			if (extendedState != JFrame.NORMAL) {
-				((JFrame) window).setExtendedState(extendedState);
-				return true;
-			}
-		}
-
-		if (!isContainedInAnyScreen(pos)) {
+		if (!isAccessibleInAnyScreen(pos)) {
 			return false;
 		}
-
 		window.setBounds(pos.getBounds());
+		if (window instanceof MainWindow) {
+			((JFrame) window).setExtendedState(getMainWindowExtendedState());
+		}
 		return true;
 	}
 
-	private static boolean isContainedInAnyScreen(WindowLocation pos) {
-		Rectangle bounds = pos.getBounds();
-		if (bounds.getX() > 0 && bounds.getY() > 0) {
-			for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-				if (gd.getDefaultConfiguration().getBounds().contains(bounds)) {
-					return true;
-				}
+	private static boolean isAccessibleInAnyScreen(WindowLocation pos) {
+		Rectangle windowBounds = pos.getBounds();
+		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+			Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
+			if (screenBounds.intersects(windowBounds)) {
+				return true;
 			}
 		}
 		LOG.debug("Window saved position was ignored: {}", pos);
