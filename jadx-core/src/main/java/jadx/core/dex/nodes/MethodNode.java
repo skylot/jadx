@@ -461,6 +461,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return regsCount;
 	}
 
+	public int getArgsStartReg() {
+		return argsStartReg;
+	}
+
 	public SSAVar makeNewSVar(@NotNull RegisterArg assignArg) {
 		int regNum = assignArg.getRegNum();
 		return makeNewSVar(regNum, getNextSVarVersion(regNum), assignArg);
