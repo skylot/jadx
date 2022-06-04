@@ -1,6 +1,9 @@
 package jadx.gui.settings;
 
 import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -216,11 +219,26 @@ public class JadxSettings extends JadxCLIArgs {
 		if (pos == null || pos.getBounds() == null) {
 			return false;
 		}
+		if (!isAccessibleInAnyScreen(pos)) {
+			return false;
+		}
+		window.setBounds(pos.getBounds());
 		if (window instanceof MainWindow) {
 			((JFrame) window).setExtendedState(getMainWindowExtendedState());
 		}
-		window.setBounds(pos.getBounds());
 		return true;
+	}
+
+	private static boolean isAccessibleInAnyScreen(WindowLocation pos) {
+		Rectangle windowBounds = pos.getBounds();
+		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+			Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
+			if (screenBounds.intersects(windowBounds)) {
+				return true;
+			}
+		}
+		LOG.debug("Window saved position was ignored: {}", pos);
+		return false;
 	}
 
 	public boolean isShowHeapUsageBar() {
