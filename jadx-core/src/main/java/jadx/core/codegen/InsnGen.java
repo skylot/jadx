@@ -807,14 +807,9 @@ public class InsnGen {
 				break;
 
 			case SUPER:
-				ClassInfo superCallCls = getClassForSuperCall(code, callMth);
-				if (superCallCls != null) {
-					useClass(code, superCallCls);
-					code.add('.');
-				}
-				// use 'super' instead 'this' in 0 arg
-				code.add("super").add('.');
-				k++;
+				callSuper(code, callMth);
+				k++; // use 'super' instead 'this' in 0 arg
+				code.add('.');
 				break;
 
 			case STATIC:
@@ -965,34 +960,43 @@ public class InsnGen {
 		code.startLine('}');
 	}
 
-	@Nullable
-	private ClassInfo getClassForSuperCall(ICodeWriter code, MethodInfo callMth) {
-		ClassNode useCls = mth.getParentClass();
-		ClassInfo insnCls = useCls.getClassInfo();
-		ClassInfo declClass = callMth.getDeclClass();
-		if (insnCls.equals(declClass)) {
-			return null;
+	private void callSuper(ICodeWriter code, MethodInfo callMth) {
+		ClassInfo superCallCls = getClassForSuperCall(callMth);
+		if (superCallCls == null) {
+			// unknown class, add comment to keep that info
+			code.add("super/*").add(callMth.getDeclClass().getFullName()).add("*/");
+			return;
 		}
-		ClassNode topClass = useCls.getTopParentClass();
-		if (topClass.getClassInfo().equals(declClass)) {
-			return declClass;
+		ClassInfo curClass = mth.getParentClass().getClassInfo();
+		if (superCallCls.equals(curClass)) {
+			code.add("super");
+			return;
 		}
-		// search call class
-		ClassNode nextParent = useCls;
-		do {
-			ClassInfo nextClsInfo = nextParent.getClassInfo();
-			if (nextClsInfo.equals(declClass)
-					|| ArgType.isInstanceOf(mth.root(), nextClsInfo.getType(), declClass.getType())) {
-				if (nextParent == useCls) {
-					return null;
-				}
-				return nextClsInfo;
-			}
-			nextParent = nextParent.getParentClass();
-		} while (nextParent != null && nextParent != topClass);
+		// use custom class
+		useClass(code, superCallCls);
+		code.add(".super");
+	}
 
-		// search failed, just return parent class
-		return useCls.getParentClass().getClassInfo();
+	/**
+	 * Search call class in super types of this
+	 * and all parent classes (needed for inlined synthetic calls)
+	 */
+	@Nullable
+	private ClassInfo getClassForSuperCall(MethodInfo callMth) {
+		ArgType declClsType = callMth.getDeclClass().getType();
+		ClassNode parentNode = mth.getParentClass();
+		while (true) {
+			ClassInfo parentCls = parentNode.getClassInfo();
+			if (ArgType.isInstanceOf(root, parentCls.getType(), declClsType)) {
+				return parentCls;
+			}
+			ClassNode nextParent = parentNode.getParentClass();
+			if (nextParent == parentNode) {
+				// no parent, class not found
+				return null;
+			}
+			parentNode = nextParent;
+		}
 	}
 
 	void generateMethodArguments(ICodeWriter code, BaseInvokeNode insn, int startArgNum,
