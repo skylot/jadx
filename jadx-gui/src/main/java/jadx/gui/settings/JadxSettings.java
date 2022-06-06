@@ -695,11 +695,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 15) {
-			if (deobfuscationForceSave) {
-				deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
-			} else {
-				deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
-			}
+			deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
 			fromVersion++;
 		}
 		if (fromVersion == 16) {

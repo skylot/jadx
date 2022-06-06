@@ -115,7 +115,6 @@ options:
                                          'read-or-save' - read if found, save otherwise (don't overwrite)
                                          'overwrite' - don't read, always save
                                          'ignore' - don't read and don't save
-  --deobf-rewrite-cfg                 - set '--deobf-cfg-file-mode' to 'overwrite' (deprecated)
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
