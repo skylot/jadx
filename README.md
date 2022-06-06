@@ -136,11 +136,11 @@ options:
   -h, --help                          - print this help
 
 Plugin options (-P<name>=<value>):
-  1) dex-input (Load .dex and .apk files)
-    -Pdex-input.verify-checksum       - Verify dex file checksum before load, values: [yes, no], default: yes
-  2) java-convert (Convert .jar and .class files to dex)
-    -Pjava-convert.mode               - Convert mode, values: [dx, d8, both], default: both
-    -Pjava-convert.d8-desugar         - Use desugar in d8, values: [yes, no], default: no
+ 1) dex-input: Load .dex and .apk files
+    - dex-input.verify-checksum       - verify dex file checksum before load, values: [yes, no], default: yes
+ 2) java-convert: Convert .class, .jar and .aar files to dex
+    - java-convert.mode               - convert mode, values: [dx, d8, both], default: both
+    - java-convert.d8-desugar         - use desugar in d8, values: [yes, no], default: no
 
 Examples:
   jadx -d out classes.dex

@@ -25,7 +25,7 @@ public class JavaConvertPlugin implements JadxInputPlugin, JadxPluginOptions {
 		return new JadxPluginInfo(
 				PLUGIN_ID,
 				"JavaConvert",
-				"Convert .jar and .class files to dex",
+				"Convert .class, .jar and .aar files to dex",
 				"java-input");
 	}
 
