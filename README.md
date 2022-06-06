@@ -3,7 +3,6 @@
 ## JADX
 
 [![Build status](https://github.com/skylot/jadx/workflows/Build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3ABuild)
-![Lines of code](https://tokei.rs/b1/github/skylot/jadx?category=code)
 ![GitHub contributors](https://img.shields.io/github/contributors/skylot/jadx)
 ![GitHub all releases](https://img.shields.io/github/downloads/skylot/jadx/total)
 ![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
