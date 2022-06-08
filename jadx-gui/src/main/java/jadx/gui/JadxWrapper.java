@@ -39,11 +39,14 @@ import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 
+@SuppressWarnings("ConstantConditions")
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
+	private static final Object DECOMPILER_UPDATE_SYNC = new Object();
+
 	private final MainWindow mainWindow;
-	private @Nullable JadxDecompiler decompiler;
+	private volatile @Nullable JadxDecompiler decompiler;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -52,14 +55,16 @@ public class JadxWrapper {
 	public void open() {
 		close();
 		try {
-			JadxProject project = getProject();
-			JadxArgs jadxArgs = getSettings().toJadxArgs();
-			jadxArgs.setInputFiles(FileUtils.toFiles(project.getFilePaths()));
-			jadxArgs.setCodeData(project.getCodeData());
+			synchronized (DECOMPILER_UPDATE_SYNC) {
+				JadxProject project = getProject();
+				JadxArgs jadxArgs = getSettings().toJadxArgs();
+				jadxArgs.setInputFiles(FileUtils.toFiles(project.getFilePaths()));
+				jadxArgs.setCodeData(project.getCodeData());
 
-			this.decompiler = new JadxDecompiler(jadxArgs);
-			this.decompiler.load();
-			initCodeCache();
+				this.decompiler = new JadxDecompiler(jadxArgs);
+				this.decompiler.load();
+				initCodeCache();
+			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler wrapper init error", e);
 			close();
@@ -77,13 +82,15 @@ public class JadxWrapper {
 
 	public void close() {
 		try {
-			if (decompiler != null) {
-				decompiler.close();
+			synchronized (DECOMPILER_UPDATE_SYNC) {
+				if (decompiler != null) {
+					decompiler.close();
+					decompiler = null;
+				}
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler close error", e);
 		} finally {
-			decompiler = null;
 			mainWindow.getCacheObject().reset();
 		}
 	}
