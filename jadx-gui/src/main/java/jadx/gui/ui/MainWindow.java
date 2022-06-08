@@ -356,7 +356,8 @@ public class MainWindow extends JFrame {
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
 		Deobfuscator deobfuscator = new Deobfuscator(rootNode);
 		deobfuscator.exportMappings(
-				Paths.get(project.getProjectPath().getParent().toString(), "mappings." + mappingFormat.fileExt),
+				Paths.get(project.getProjectPath().getParent().toString(),
+						"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
 				project.getCodeData(),
 				mappingFormat);
 		update();
@@ -821,16 +822,25 @@ public class MainWindow extends JFrame {
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
 
-		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2") {
+		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				exportMappings(MappingFormat.TINY_2);
 			}
 		};
-		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2");
+		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
+
+		Action exportMappingsAsEnigma = new AbstractAction("Enigma directory") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA);
+			}
+		};
+		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
 		JMenu exportMappingsAs = new JMenu(NLS.str("file.export_mappings_as"));
 		exportMappingsAs.add(exportMappingsAsTiny2);
+		exportMappingsAs.add(exportMappingsAsEnigma);
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override

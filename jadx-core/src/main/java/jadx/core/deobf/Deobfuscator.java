@@ -54,6 +54,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.kotlin.KotlinMetadataUtils;
 
 public class Deobfuscator {
@@ -232,10 +233,14 @@ public class Deobfuscator {
 		}
 
 		try {
-			if (path.toFile().exists()) {
-				path.toFile().delete();
+			if (mappingFormat.hasSingleFile()) {
+				if (path.toFile().exists()) {
+					path.toFile().delete();
+				}
+				path.toFile().createNewFile();
+			} else {
+				FileUtils.makeDirs(path);
 			}
-			path.toFile().createNewFile();
 
 			mappingTree.visitHeader();
 			mappingTree.visitNamespaces("official", Arrays.asList("named"));
