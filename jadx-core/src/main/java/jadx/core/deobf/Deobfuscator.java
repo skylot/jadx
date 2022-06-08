@@ -250,9 +250,10 @@ public class Deobfuscator {
 						&& !classInfo.getAliasShortName().equals(classInfo.getShortName())
 						&& mappedClasses.contains(rawClassName)) {
 					mappingTree.visitClass(classPath);
-					String alias = classInfo.getAliasFullName().replace('.', '/');
+					String alias = classInfo.makeAliasRawFullName().replace('.', '/');
 
-					if (alias.substring(0, Consts.DEFAULT_PACKAGE_NAME.length()).equals(Consts.DEFAULT_PACKAGE_NAME)) {
+					if (alias.length() >= Consts.DEFAULT_PACKAGE_NAME.length()
+							&& alias.substring(0, Consts.DEFAULT_PACKAGE_NAME.length()).equals(Consts.DEFAULT_PACKAGE_NAME)) {
 						alias = alias.substring(Consts.DEFAULT_PACKAGE_NAME.length() + 1);
 					}
 					mappingTree.visitDstName(MappedElementKind.CLASS, 0, alias);
@@ -293,7 +294,7 @@ public class Deobfuscator {
 					// Method args
 					List<VarNode> args = collectMethodArgs(mth);
 					for (VarNode arg : args) {
-						int lvIndex = arg.getReg() - (args.get(0).getReg()) + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						int lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(arg.getReg(), arg.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -308,7 +309,7 @@ public class Deobfuscator {
 					for (SimpleEntry<VarNode, Integer> entry : vars) {
 						VarNode var = entry.getKey();
 						int offset = entry.getValue();
-						int lvIndex = var.getReg() - (vars.get(0).getKey().getReg()) + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						int lvIndex = var.getReg() - vars.get(0).getKey().getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -321,7 +322,6 @@ public class Deobfuscator {
 							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, var.getDefPosition());
 							mappingTree.visitComment(MappedElementKind.METHOD_VAR, comments.get(key));
 						}
-
 					}
 				}
 			}
