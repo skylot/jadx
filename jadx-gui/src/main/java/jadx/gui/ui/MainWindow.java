@@ -830,17 +830,26 @@ public class MainWindow extends JFrame {
 		};
 		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
 
-		Action exportMappingsAsEnigma = new AbstractAction("Enigma directory") {
+		Action exportMappingsAsEnigma = new AbstractAction("Enigma file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				exportMappings(MappingFormat.ENIGMA);
 			}
 		};
-		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
+
+		Action exportMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA_DIR);
+			}
+		};
+		exportMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
 		JMenu exportMappingsAs = new JMenu(NLS.str("file.export_mappings_as"));
 		exportMappingsAs.add(exportMappingsAsTiny2);
 		exportMappingsAs.add(exportMappingsAsEnigma);
+		exportMappingsAs.add(exportMappingsAsEnigmaDir);
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
