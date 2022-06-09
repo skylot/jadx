@@ -203,6 +203,9 @@ public class ClspGraph {
 				if (isNew) {
 					addSuperTypes(parentCls, result);
 				}
+			} else {
+				// parent type is unknown
+				result.add(parentType.getObject());
 			}
 		}
 	}

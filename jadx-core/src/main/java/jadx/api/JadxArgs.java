@@ -128,7 +128,7 @@ public class JadxArgs {
 
 	public void close() {
 		try {
-			inputFiles.clear();
+			inputFiles = null;
 			if (codeCache != null) {
 				codeCache.close();
 			}

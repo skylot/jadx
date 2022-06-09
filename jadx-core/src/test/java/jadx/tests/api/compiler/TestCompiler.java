@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
@@ -82,7 +81,7 @@ public class TestCompiler implements Closeable {
 		arguments.addAll(options.getArguments());
 
 		DiagnosticListener<? super JavaFileObject> diagnostic =
-				diagObj -> System.out.println("Compiler diagnostic: " + diagObj.getMessage(Locale.ROOT));
+				diagObj -> System.out.println("Compiler diagnostic: " + diagObj);
 		Writer out = new PrintWriter(System.out);
 		CompilationTask compilerTask = compiler.getTask(out, fileManager, diagnostic, arguments, null, jfObjects);
 		if (Boolean.FALSE.equals(compilerTask.call())) {

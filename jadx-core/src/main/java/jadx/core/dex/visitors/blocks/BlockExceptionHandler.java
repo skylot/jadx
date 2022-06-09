@@ -549,7 +549,7 @@ public class BlockExceptionHandler {
 			if (handler == resultHandler) {
 				return false;
 			}
-			resultHandler.addCatchTypes(handler.getCatchTypes());
+			resultHandler.addCatchTypes(mth, handler.getCatchTypes());
 			handler.markForRemove();
 			return true;
 		});

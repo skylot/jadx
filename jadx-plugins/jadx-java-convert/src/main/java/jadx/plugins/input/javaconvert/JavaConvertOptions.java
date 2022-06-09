@@ -30,12 +30,12 @@ public class JavaConvertOptions extends BaseOptionsParser {
 		return Arrays.asList(
 				new JadxOptionDescription(
 						MODE_OPT,
-						"Convert mode",
+						"convert mode",
 						"both",
 						Arrays.asList("dx", "d8", "both")),
 				new JadxOptionDescription(
 						D8_DESUGAR_OPT,
-						"Use desugar in d8",
+						"use desugar in d8",
 						"no",
 						Arrays.asList("yes", "no")));
 	}

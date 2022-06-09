@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
+import jadx.core.Jadx;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -190,6 +191,7 @@ public class DiskCodeCache implements ICodeCache {
 
 	private String buildCodeVersion(JadxArgs args) {
 		return DATA_FORMAT_VERSION
+				+ ":" + Jadx.getVersion()
 				+ ":" + args.makeCodeArgsHash()
 				+ ":" + buildInputsHash(args.getInputFiles());
 	}

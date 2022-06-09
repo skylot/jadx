@@ -193,11 +193,11 @@ public class JCommanderWrapper<T> {
 			return false;
 		}
 		JadxPluginInfo pluginInfo = plugin.getPluginInfo();
-		out.append("\n  ").append(k).append(") ");
-		out.append(pluginInfo.getPluginId()).append(" (").append(pluginInfo.getDescription()).append(") ");
+		out.append("\n ").append(k).append(") ");
+		out.append(pluginInfo.getPluginId()).append(": ").append(pluginInfo.getDescription());
 		for (OptionDescription desc : descs) {
 			StringBuilder opt = new StringBuilder();
-			opt.append("    -P").append(desc.name());
+			opt.append("    - ").append(desc.name());
 			addSpaces(opt, maxNamesLen - opt.length());
 			opt.append("- ").append(desc.description());
 			if (!desc.values().isEmpty()) {

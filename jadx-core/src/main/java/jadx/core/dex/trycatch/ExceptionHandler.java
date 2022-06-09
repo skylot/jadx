@@ -14,9 +14,9 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ExceptionHandler {
 
@@ -33,9 +33,14 @@ public class ExceptionHandler {
 
 	private boolean removed = false;
 
-	public ExceptionHandler(int addr, @Nullable ClassInfo type) {
+	public static ExceptionHandler build(MethodNode mth, int addr, @Nullable ClassInfo type) {
+		ExceptionHandler eh = new ExceptionHandler(addr);
+		eh.addCatchType(mth, type);
+		return eh;
+	}
+
+	private ExceptionHandler(int addr) {
 		this.handlerOffset = addr;
-		addCatchType(type);
 	}
 
 	/**
@@ -43,7 +48,7 @@ public class ExceptionHandler {
 	 *
 	 * @param type - null for 'all' or 'Throwable' handler
 	 */
-	public boolean addCatchType(@Nullable ClassInfo type) {
+	public boolean addCatchType(MethodNode mth, @Nullable ClassInfo type) {
 		if (type != null) {
 			if (catchTypes.contains(type)) {
 				return false;
@@ -51,14 +56,16 @@ public class ExceptionHandler {
 			return catchTypes.add(type);
 		}
 		if (!this.catchTypes.isEmpty()) {
-			throw new JadxRuntimeException("Null type added to not empty exception handler: " + this);
+			mth.addDebugComment("Throwable added to exception handler: '" + catchTypeStr() + "', keep only Throwable");
+			catchTypes.clear();
+			return true;
 		}
 		return false;
 	}
 
-	public void addCatchTypes(Collection<ClassInfo> types) {
+	public void addCatchTypes(MethodNode mth, Collection<ClassInfo> types) {
 		for (ClassInfo type : types) {
-			addCatchType(type);
+			addCatchType(mth, type);
 		}
 	}
 

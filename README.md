@@ -3,8 +3,10 @@
 ## JADX
 
 [![Build status](https://github.com/skylot/jadx/workflows/Build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3ABuild)
-[![Alerts from lgtm.com](https://img.shields.io/lgtm/alerts/g/skylot/jadx.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/skylot/jadx/alerts/)
-[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+![GitHub contributors](https://img.shields.io/github/contributors/skylot/jadx)
+![GitHub all releases](https://img.shields.io/github/downloads/skylot/jadx/total)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
+![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://search.maven.org/search?q=g:io.github.skylot%20AND%20jadx)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
@@ -35,7 +37,7 @@ See these features in action here: [jadx-gui features overview](https://github.c
 ### Download
 - release
   from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
-- latest [unstable build](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
+- latest [unstable build ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/skylot/jadx/latest/master)](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version
@@ -46,14 +48,18 @@ On Windows run `.bat` files with double-click\
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
 ### Install
-1. Arch linux
+1. Arch linux ![Arch Linux package](https://img.shields.io/archlinux/v/community/any/jadx?label=)
     ```bash
-        sudo pacman -S jadx
+    sudo pacman -S jadx
     ```
-2. macOS
+2. macOS ![homebrew version](https://img.shields.io/homebrew/v/jadx?label=)
     ```bash
-        brew install jadx
+    brew install jadx
     ```
+3. [Flathub ![Flathub](https://img.shields.io/flathub/v/com.github.skylot.jadx?label=)](https://flathub.org/apps/details/com.github.skylot.jadx)
+   ```bash
+   flatpak install flathub com.github.skylot.jadx
+   ```
 
 ### Use jadx as a library
 You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
@@ -108,7 +114,6 @@ options:
                                          'read-or-save' - read if found, save otherwise (don't overwrite)
                                          'overwrite' - don't read, always save
                                          'ignore' - don't read and don't save
-  --deobf-rewrite-cfg                 - set '--deobf-cfg-file-mode' to 'overwrite' (deprecated)
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
@@ -131,11 +136,11 @@ options:
   -h, --help                          - print this help
 
 Plugin options (-P<name>=<value>):
-  1) dex-input (Load .dex and .apk files)
-    -Pdex-input.verify-checksum       - Verify dex file checksum before load, values: [yes, no], default: yes
-  2) java-convert (Convert .jar and .class files to dex)
-    -Pjava-convert.mode               - Convert mode, values: [dx, d8, both], default: both
-    -Pjava-convert.d8-desugar         - Use desugar in d8, values: [yes, no], default: no
+ 1) dex-input: Load .dex and .apk files
+    - dex-input.verify-checksum       - verify dex file checksum before load, values: [yes, no], default: yes
+ 2) java-convert: Convert .class, .jar and .aar files to dex
+    - java-convert.mode               - convert mode, values: [dx, d8, both], default: both
+    - java-convert.d8-desugar         - use desugar in d8, values: [yes, no], default: no
 
 Examples:
   jadx -d out classes.dex
