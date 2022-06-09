@@ -297,6 +297,7 @@ public class Deobfuscator {
 						continue;
 					}
 					// Method args
+					int lastArgLvIndex = (mth.getAccessFlags().isStatic() ? 0 : 1) - 1;
 					List<VarNode> args = collectMethodArgs(mth);
 					for (VarNode arg : args) {
 						int lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
@@ -307,6 +308,7 @@ public class Deobfuscator {
 							mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
 							mappedMethodArgsAndVars.remove(key);
 						}
+						lastArgLvIndex = lvIndex;
 						// Not checking for comments since method args can't have any
 					}
 					// Method vars
@@ -314,15 +316,14 @@ public class Deobfuscator {
 					for (SimpleEntry<VarNode, Integer> entry : vars) {
 						VarNode var = entry.getKey();
 						int offset = entry.getValue();
-						int lvIndex = var.getReg() - vars.get(0).getKey().getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						int lvIndex = lastArgLvIndex + var.getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
 							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, var.getDefPosition());
 							mappingTree.visitDstName(MappedElementKind.METHOD_VAR, 0, mappedMethodArgsAndVars.get(key));
 						}
-						key = rawClassName + methodInfo.getShortId()
-								+ JadxCodeRef.forInsn(offset);
+						key = rawClassName + methodInfo.getShortId() + JadxCodeRef.forInsn(offset);
 						if (comments.containsKey(key)) {
 							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, var.getDefPosition());
 							mappingTree.visitComment(MappedElementKind.METHOD_VAR, comments.get(key));
