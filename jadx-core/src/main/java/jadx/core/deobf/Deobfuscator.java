@@ -181,7 +181,7 @@ public class Deobfuscator {
 						vars.add(new SimpleEntry<VarNode, Integer>(varNode, lastOffset.get()));
 					} else {
 						LOG.warn("Local variable not present in bytecode, skipping: "
-								+ methodNode.getMethodInfo().getRawFullId() + "." + varNode.getName());
+								+ methodNode.getMethodInfo().getRawFullId() + "#" + varNode.getName());
 					}
 					lastOffset.set(-1);
 				}
@@ -320,12 +320,12 @@ public class Deobfuscator {
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, var.getDefPosition());
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, offset);
 							mappingTree.visitDstName(MappedElementKind.METHOD_VAR, 0, mappedMethodArgsAndVars.get(key));
 						}
 						key = rawClassName + methodInfo.getShortId() + JadxCodeRef.forInsn(offset);
 						if (comments.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, var.getDefPosition());
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, offset);
 							mappingTree.visitComment(MappedElementKind.METHOD_VAR, comments.get(key));
 						}
 					}
