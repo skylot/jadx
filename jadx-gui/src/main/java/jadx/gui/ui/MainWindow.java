@@ -177,6 +177,7 @@ public class MainWindow extends JFrame {
 
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
+	private transient JMenu exportMappingsMenu;
 
 	private JPanel mainPanel;
 	private JSplitPane splitPane;
@@ -185,7 +186,6 @@ public class MainWindow extends JFrame {
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
-	private JMenu exportMappingsMenu;
 	private HeapUsageBar heapUsageBar;
 	private transient boolean treeReloading;
 
