@@ -257,8 +257,7 @@ public class Deobfuscator {
 					mappingTree.visitClass(classPath);
 					String alias = classInfo.makeAliasRawFullName().replace('.', '/');
 
-					if (alias.length() >= Consts.DEFAULT_PACKAGE_NAME.length()
-							&& alias.substring(0, Consts.DEFAULT_PACKAGE_NAME.length()).equals(Consts.DEFAULT_PACKAGE_NAME)) {
+					if (alias.startsWith(Consts.DEFAULT_PACKAGE_NAME)) {
 						alias = alias.substring(Consts.DEFAULT_PACKAGE_NAME.length() + 1);
 					}
 					mappingTree.visitDstName(MappedElementKind.CLASS, 0, alias);
