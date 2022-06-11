@@ -33,7 +33,7 @@ public final class JNodePopupListener implements PopupMenuListener {
 
 	@Override
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-		updateNode(null);
+		// this event can be called just before running action, so can't reset node here
 	}
 
 	@Override
