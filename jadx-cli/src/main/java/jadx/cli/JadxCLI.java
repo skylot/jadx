@@ -66,7 +66,7 @@ public class JadxCLI {
 
 	private static boolean checkForErrors(JadxDecompiler jadx) {
 		if (jadx.getRoot().getClasses().isEmpty()) {
-			if (!jadx.getArgs().isSkipResources()) {
+			if (jadx.getArgs().isSkipResources()) {
 				LOG.error("Load failed! No classes for decompile!");
 				return true;
 			}
