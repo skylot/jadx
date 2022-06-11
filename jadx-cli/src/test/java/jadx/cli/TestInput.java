@@ -44,6 +44,33 @@ public class TestInput {
 		decompile("multi", "samples/hello.dex", "samples/HelloWorld.smali");
 	}
 
+	@Test
+	public void testResourceOnly() throws Exception {
+		decode("resourceOnly", "samples/resources-only.apk");
+	}
+
+	private void decode(String tmpDirName, String apkSample) throws URISyntaxException, IOException {
+		List<String> args = new ArrayList<>();
+		Path tempDir = FileUtils.createTempDir(tmpDirName);
+		args.add("-v");
+		args.add("-d");
+		args.add(tempDir.toAbsolutePath().toString());
+
+		URL resource = getClass().getClassLoader().getResource(apkSample);
+		assertThat(resource).isNotNull();
+		String sampleFile = resource.toURI().getRawPath();
+		args.add(sampleFile);
+
+		int result = JadxCLI.execute(args.toArray(new String[0]));
+		assertThat(result).isEqualTo(0);
+		List<Path> files = Files.find(
+				tempDir,
+				3,
+				(file, attr) -> file.getFileName().toString().equalsIgnoreCase("AndroidManifest.xml"))
+				.collect(Collectors.toList());
+		assertThat(files.isEmpty()).isFalse();
+	}
+
 	private void decompile(String tmpDirName, String... inputSamples) throws URISyntaxException, IOException {
 		List<String> args = new ArrayList<>();
 		Path tempDir = FileUtils.createTempDir(tmpDirName);
