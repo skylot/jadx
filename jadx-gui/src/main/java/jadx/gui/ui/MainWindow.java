@@ -185,6 +185,7 @@ public class MainWindow extends JFrame {
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
+	private JMenu exportMappingsMenu;
 	private HeapUsageBar heapUsageBar;
 	private transient boolean treeReloading;
 
@@ -309,6 +310,7 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		closeAll();
+		exportMappingsMenu.setEnabled(false);
 		updateProject(new JadxProject(this));
 	}
 
@@ -354,10 +356,15 @@ public class MainWindow extends JFrame {
 
 	private void exportMappings(MappingFormat mappingFormat) {
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
-		new MappingExporter(rootNode).exportMappings(
-				Paths.get(project.getProjectPath().getParent().toString(),
-						"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
-				project.getCodeData(), mappingFormat);
+
+		Thread exportThread = new Thread(() -> {
+			new MappingExporter(rootNode).exportMappings(
+					Paths.get(project.getProjectPath().getParent().toString(),
+							"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
+					project.getCodeData(), mappingFormat);
+		});
+
+		backgroundExecutor.execute(NLS.str("progress.export_mappings"), exportThread);
 		update();
 	}
 
@@ -420,6 +427,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void loadFiles(Runnable onFinish) {
+		exportMappingsMenu.setEnabled(false);
 		if (project.getFilePaths().isEmpty()) {
 			return;
 		}
@@ -433,6 +441,7 @@ public class MainWindow extends JFrame {
 					}
 					checkLoadedStatus();
 					onOpen();
+					exportMappingsMenu.setEnabled(true);
 					onFinish.run();
 				});
 	}
@@ -844,10 +853,11 @@ public class MainWindow extends JFrame {
 		};
 		exportMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
-		JMenu exportMappingsAs = new JMenu(NLS.str("file.export_mappings_as"));
-		exportMappingsAs.add(exportMappingsAsTiny2);
-		exportMappingsAs.add(exportMappingsAsEnigma);
-		exportMappingsAs.add(exportMappingsAsEnigmaDir);
+		exportMappingsMenu = new JMenu(NLS.str("file.export_mappings_as"));
+		exportMappingsMenu.add(exportMappingsAsTiny2);
+		exportMappingsMenu.add(exportMappingsAsEnigma);
+		exportMappingsMenu.add(exportMappingsAsEnigmaDir);
+		exportMappingsMenu.setEnabled(false);
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
@@ -1035,7 +1045,7 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
-		file.add(exportMappingsAs);
+		file.add(exportMappingsMenu);
 		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);
