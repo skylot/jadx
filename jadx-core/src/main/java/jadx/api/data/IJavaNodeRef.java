@@ -2,7 +2,7 @@ package jadx.api.data;
 
 public interface IJavaNodeRef extends Comparable<IJavaNodeRef> {
 
-	public enum RefType {
+	enum RefType {
 		CLASS, FIELD, METHOD, PKG
 	}
 
