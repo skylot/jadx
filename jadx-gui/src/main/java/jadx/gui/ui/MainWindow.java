@@ -84,7 +84,6 @@ import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
-import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
@@ -96,6 +95,7 @@ import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.ProcessResult;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.plugins.mappings.MappingExporter;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -354,12 +354,10 @@ public class MainWindow extends JFrame {
 
 	private void exportMappings(MappingFormat mappingFormat) {
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
-		Deobfuscator deobfuscator = new Deobfuscator(rootNode);
-		deobfuscator.exportMappings(
+		new MappingExporter(rootNode).exportMappings(
 				Paths.get(project.getProjectPath().getParent().toString(),
 						"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
-				project.getCodeData(),
-				mappingFormat);
+				project.getCodeData(), mappingFormat);
 		update();
 	}
 
