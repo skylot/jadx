@@ -297,7 +297,8 @@ public class Deobfuscator {
 						continue;
 					}
 					// Method args
-					int lastArgLvIndex = (mth.getAccessFlags().isStatic() ? 0 : 1) - 1;
+					int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
+					int lastArgLvIndex = lvtIndex - 1;
 					List<VarNode> args = collectMethodArgs(mth);
 					for (VarNode arg : args) {
 						int lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
@@ -309,6 +310,7 @@ public class Deobfuscator {
 							mappedMethodArgsAndVars.remove(key);
 						}
 						lastArgLvIndex = lvIndex;
+						lvtIndex++;
 						// Not checking for comments since method args can't have any
 					}
 					// Method vars
@@ -320,14 +322,15 @@ public class Deobfuscator {
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, offset);
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, offset);
 							mappingTree.visitDstName(MappedElementKind.METHOD_VAR, 0, mappedMethodArgsAndVars.get(key));
 						}
 						key = rawClassName + methodInfo.getShortId() + JadxCodeRef.forInsn(offset);
 						if (comments.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvIndex, offset);
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, offset);
 							mappingTree.visitComment(MappedElementKind.METHOD_VAR, comments.get(key));
 						}
+						lvtIndex++;
 					}
 				}
 			}
@@ -357,10 +360,10 @@ public class Deobfuscator {
 		tree.visitMethodArg(argPosition, lvIndex, null);
 	}
 
-	private void visitMethodVar(MemoryMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int lvIndex,
-			int startOpIdx) {
+	private void visitMethodVar(MemoryMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int lvtIndex,
+			int lvIndex, int startOpIdx) {
 		visitMethod(tree, classPath, methodSrcName, methodSrcDesc);
-		tree.visitMethodVar(-1, lvIndex, startOpIdx, null);
+		tree.visitMethodVar(lvtIndex, lvIndex, startOpIdx, null);
 	}
 
 	private void fillDeobfPresets() {
