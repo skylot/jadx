@@ -77,12 +77,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
@@ -93,6 +95,7 @@ import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.ProcessResult;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.plugins.mappings.MappingExporter;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -174,6 +177,7 @@ public class MainWindow extends JFrame {
 
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
+	private transient JMenu exportMappingsMenu;
 
 	private JPanel mainPanel;
 	private JSplitPane splitPane;
@@ -306,6 +310,7 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		closeAll();
+		exportMappingsMenu.setEnabled(false);
 		updateProject(new JadxProject(this));
 	}
 
@@ -346,6 +351,20 @@ public class MainWindow extends JFrame {
 		}
 		project.saveAs(savePath);
 		settings.addRecentProject(savePath);
+		update();
+	}
+
+	private void exportMappings(MappingFormat mappingFormat) {
+		RootNode rootNode = wrapper.getDecompiler().getRoot();
+
+		Thread exportThread = new Thread(() -> {
+			new MappingExporter(rootNode).exportMappings(
+					Paths.get(project.getProjectPath().getParent().toString(),
+							"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
+					project.getCodeData(), mappingFormat);
+		});
+
+		backgroundExecutor.execute(NLS.str("progress.export_mappings"), exportThread);
 		update();
 	}
 
@@ -408,6 +427,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void loadFiles(Runnable onFinish) {
+		exportMappingsMenu.setEnabled(false);
 		if (project.getFilePaths().isEmpty()) {
 			return;
 		}
@@ -421,6 +441,7 @@ public class MainWindow extends JFrame {
 					}
 					checkLoadedStatus();
 					onOpen();
+					exportMappingsMenu.setEnabled(true);
 					onFinish.run();
 				});
 	}
@@ -808,6 +829,36 @@ public class MainWindow extends JFrame {
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
 
+		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.TINY_2);
+			}
+		};
+		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
+
+		Action exportMappingsAsEnigma = new AbstractAction("Enigma file") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA);
+			}
+		};
+		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
+
+		Action exportMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA_DIR);
+			}
+		};
+		exportMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+
+		exportMappingsMenu = new JMenu(NLS.str("file.export_mappings_as"));
+		exportMappingsMenu.add(exportMappingsAsTiny2);
+		exportMappingsMenu.add(exportMappingsAsEnigma);
+		exportMappingsMenu.add(exportMappingsAsEnigmaDir);
+		exportMappingsMenu.setEnabled(false);
+
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -993,6 +1044,8 @@ public class MainWindow extends JFrame {
 		file.add(newProjectAction);
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
+		file.addSeparator();
+		file.add(exportMappingsMenu);
 		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);
