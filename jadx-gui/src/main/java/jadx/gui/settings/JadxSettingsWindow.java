@@ -62,7 +62,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -271,12 +271,15 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JComboBox<DeobfuscationMapFileMode> deobfMapFileModeCB = new JComboBox<>(DeobfuscationMapFileMode.values());
-		deobfMapFileModeCB.setSelectedItem(settings.getDeobfuscationMapFileMode());
-		deobfMapFileModeCB.addActionListener(e -> {
-			DeobfuscationMapFileMode newValue = (DeobfuscationMapFileMode) deobfMapFileModeCB.getSelectedItem();
-			if (newValue != settings.getDeobfuscationMapFileMode()) {
-				settings.setDeobfuscationMapFileMode(newValue);
+		@Deprecated
+		JComboBox<GeneratedRenamesMappingFileMode> generatedRenamesMappingFileModeCB =
+				new JComboBox<>(GeneratedRenamesMappingFileMode.values());
+		generatedRenamesMappingFileModeCB.setSelectedItem(settings.getGeneratedRenamesMappingFileMode());
+		generatedRenamesMappingFileModeCB.addActionListener(e -> {
+			GeneratedRenamesMappingFileMode newValue =
+					(GeneratedRenamesMappingFileMode) generatedRenamesMappingFileModeCB.getSelectedItem();
+			if (newValue != settings.getGeneratedRenamesMappingFileMode()) {
+				settings.setGeneratedRenamesMappingFileMode(newValue);
 				needReload();
 			}
 		});
@@ -287,7 +290,7 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_map_file_mode"), deobfMapFileModeCB);
+		deobfGroup.addRow(NLS.str("preferences.generated_renames_mapping_file_mode"), generatedRenamesMappingFileModeCB);
 		deobfGroup.end();
 
 		Collection<JComponent> connectedComponents =

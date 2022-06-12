@@ -15,7 +15,8 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.UserRenamesMappingFileMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
@@ -66,12 +67,15 @@ public class JadxArgs {
 	 */
 	private boolean includeDependencies = false;
 
+	private File userRenamesMappingFile = null;
+	private UserRenamesMappingFileMode userRenamesMappingFileMode = UserRenamesMappingFileMode.getDefault();
+
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
 	private boolean parseKotlinMetadata = false;
-	private File deobfuscationMapFile = null;
 
-	private DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+	private File generatedRenamesMappingFile = null;
+	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -301,6 +305,22 @@ public class JadxArgs {
 		this.classFilter = classFilter;
 	}
 
+	public File getUserRenamesMappingFile() {
+		return userRenamesMappingFile;
+	}
+
+	public void setUserRenamesMappingFile(File file) {
+		this.userRenamesMappingFile = file;
+	}
+
+	public UserRenamesMappingFileMode getUserRenamesMappingFileMode() {
+		return userRenamesMappingFileMode;
+	}
+
+	public void setUserRenamesMappingFileMode(UserRenamesMappingFileMode mode) {
+		this.userRenamesMappingFileMode = mode;
+	}
+
 	public boolean isDeobfuscationOn() {
 		return deobfuscationOn;
 	}
@@ -311,22 +331,24 @@ public class JadxArgs {
 
 	@Deprecated
 	public boolean isDeobfuscationForceSave() {
-		return deobfuscationMapFileMode == DeobfuscationMapFileMode.OVERWRITE;
+		return generatedRenamesMappingFileMode == GeneratedRenamesMappingFileMode.OVERWRITE;
 	}
 
 	@Deprecated
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
 		if (deobfuscationForceSave) {
-			this.deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
+			this.generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.OVERWRITE;
 		}
 	}
 
-	public DeobfuscationMapFileMode getDeobfuscationMapFileMode() {
-		return deobfuscationMapFileMode;
+	@Deprecated
+	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
+		return generatedRenamesMappingFileMode;
 	}
 
-	public void setDeobfuscationMapFileMode(DeobfuscationMapFileMode deobfuscationMapFileMode) {
-		this.deobfuscationMapFileMode = deobfuscationMapFileMode;
+	@Deprecated
+	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode mode) {
+		this.generatedRenamesMappingFileMode = mode;
 	}
 
 	public boolean isUseSourceNameAsClassAlias() {
@@ -361,12 +383,14 @@ public class JadxArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	public File getDeobfuscationMapFile() {
-		return deobfuscationMapFile;
+	@Deprecated
+	public File getGeneratedRenamesMappingFile() {
+		return generatedRenamesMappingFile;
 	}
 
-	public void setDeobfuscationMapFile(File deobfuscationMapFile) {
-		this.deobfuscationMapFile = deobfuscationMapFile;
+	@Deprecated
+	public void setGeneratedRenamesMappingFile(File file) {
+		this.generatedRenamesMappingFile = file;
 	}
 
 	public boolean isEscapeUnicode() {
@@ -561,9 +585,11 @@ public class JadxArgs {
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
 				+ ", includeDependencies=" + includeDependencies
+				+ ", userRenamesMappingFile=" + userRenamesMappingFile
+				+ ", userRenamesMappingFileMode=" + userRenamesMappingFileMode
 				+ ", deobfuscationOn=" + deobfuscationOn
-				+ ", deobfuscationMapFile=" + deobfuscationMapFile
-				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
+				+ ", generatedRenamesMappingFile=" + generatedRenamesMappingFile
+				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames

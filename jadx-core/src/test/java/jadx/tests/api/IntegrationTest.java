@@ -39,7 +39,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
@@ -132,7 +132,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setFsCaseSensitive(false); // use same value on all systems
 		args.setCommentsLevel(CommentsLevel.DEBUG);
 		args.setDeobfuscationOn(false);
-		args.setDeobfuscationMapFileMode(DeobfuscationMapFileMode.IGNORE);
+		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
 	}
 
 	@AfterEach
@@ -555,7 +555,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void enableDeobfuscation() {
 		args.setDeobfuscationOn(true);
-		args.setDeobfuscationMapFileMode(DeobfuscationMapFileMode.OVERWRITE);
+		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.OVERWRITE);
 		args.setDeobfuscationMinLength(2);
 		args.setDeobfuscationMaxLength(64);
 	}

@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AFlag;
@@ -77,7 +77,7 @@ public class Deobfuscator {
 	}
 
 	public void execute() {
-		if (args.getDeobfuscationMapFileMode().shouldRead()) {
+		if (args.getGeneratedRenamesMappingFileMode().shouldRead()) {
 			if (deobfPresets.load()) {
 				for (Map.Entry<String, String> pkgEntry : deobfPresets.getPkgPresetMap().entrySet()) {
 					addPackagePreset(pkgEntry.getKey(), pkgEntry.getValue());
@@ -90,12 +90,12 @@ public class Deobfuscator {
 	}
 
 	public void savePresets() {
-		DeobfuscationMapFileMode mode = args.getDeobfuscationMapFileMode();
+		GeneratedRenamesMappingFileMode mode = args.getGeneratedRenamesMappingFileMode();
 		if (!mode.shouldWrite()) {
 			return;
 		}
 		Path deobfMapFile = deobfPresets.getDeobfMapFile();
-		if (mode == DeobfuscationMapFileMode.READ_OR_SAVE && Files.exists(deobfMapFile)) {
+		if (mode == GeneratedRenamesMappingFileMode.READ_OR_SAVE && Files.exists(deobfMapFile)) {
 			return;
 		}
 		try {
