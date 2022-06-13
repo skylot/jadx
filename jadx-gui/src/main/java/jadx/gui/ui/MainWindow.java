@@ -391,15 +391,31 @@ public class MainWindow extends JFrame {
 	}
 
 	private void exportMappings(MappingFormat mappingFormat) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.EXPORT_MAPPINGS, mappingFormat);
+		List<Path> selectedDirs = fileDialog.show();
+		if (selectedDirs.isEmpty()) {
+			return;
+		}
+		settings.setLastSaveProjectPath(fileDialog.getCurrentDir());
+		Path savePath = selectedDirs.get(0);
+		if (mappingFormat.hasSingleFile() && !savePath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(mappingFormat.fileExt)) {
+			savePath = savePath.resolveSibling(savePath.getFileName() + "." + mappingFormat.fileExt);
+		}
+		if (Files.exists(savePath)) {
+			int res = JOptionPane.showConfirmDialog(
+					this,
+					NLS.str("confirm.save_as_message", savePath.getFileName()),
+					NLS.str("confirm.save_as_title"),
+					JOptionPane.YES_NO_OPTION);
+			if (res == JOptionPane.NO_OPTION) {
+				return;
+			}
+		}
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
-
+		Path finalSavePath = savePath;
 		Thread exportThread = new Thread(() -> {
-			new MappingExporter(rootNode).exportMappings(
-					Paths.get(project.getProjectPath().getParent().toString(),
-							"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
-					project.getCodeData(), mappingFormat);
+			new MappingExporter(rootNode).exportMappings(finalSavePath, project.getCodeData(), mappingFormat);
 		});
-
 		backgroundExecutor.execute(NLS.str("progress.export_mappings"), exportThread);
 		update();
 	}
