@@ -18,6 +18,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.format.MappingFormat;
+
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
@@ -25,13 +27,17 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 
 public class FileDialog {
+	public enum ProjectOpenMode {
+		OPEN, ADD, SAVE_PROJECT, EXPORT;
+	}
 
-	public enum OpenMode {
-		OPEN, ADD, SAVE_PROJECT, EXPORT
+	public enum MappingOpenMode {
+		IMPORT_MAPPINGS, EXPORT_MAPPINGS;
 	}
 
 	private final MainWindow mainWindow;
 
+	private MappingFormat mappingFormat;
 	private boolean isOpen;
 	private String title;
 	private List<String> fileExtList;
@@ -39,9 +45,15 @@ public class FileDialog {
 	private @Nullable Path currentDir;
 	private @Nullable Path selectedFile;
 
-	public FileDialog(MainWindow mainWindow, OpenMode mode) {
+	public FileDialog(MainWindow mainWindow, ProjectOpenMode mode) {
 		this.mainWindow = mainWindow;
 		initForMode(mode);
+	}
+
+	public FileDialog(MainWindow mainWindow, MappingOpenMode mappingAction, MappingFormat mappingFormat) {
+		this.mainWindow = mainWindow;
+		this.mappingFormat = mappingFormat;
+		initForMode(mappingAction);
 	}
 
 	public List<Path> show() {
@@ -70,12 +82,12 @@ public class FileDialog {
 		this.selectedFile = path;
 	}
 
-	private void initForMode(OpenMode mode) {
+	private void initForMode(ProjectOpenMode mode) {
 		switch (mode) {
 			case OPEN:
 			case ADD:
 				fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc"));
-				if (mode == OpenMode.OPEN) {
+				if (mode == ProjectOpenMode.OPEN) {
 					fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
 					title = NLS.str("file.open_title");
 				} else {
@@ -101,6 +113,29 @@ public class FileDialog {
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
+		}
+	}
+
+	private void initForMode(MappingOpenMode mode) {
+		switch (mode) {
+			case IMPORT_MAPPINGS:
+				title = NLS.str("file.import_mappings");
+				currentDir = mainWindow.getSettings().getLastOpenFilePath();
+				isOpen = true;
+				break;
+			case EXPORT_MAPPINGS:
+				title = NLS.str("file.export_mappings_as");
+				currentDir = mainWindow.getSettings().getLastSaveFilePath();
+				isOpen = false;
+				break;
+		}
+		currentDir = mainWindow.getSettings().getLastOpenFilePath();
+		if (mappingFormat.hasSingleFile()) {
+			fileExtList = Arrays.asList(mappingFormat.fileExt);
+			selectionMode = JFileChooser.FILES_ONLY;
+		} else {
+			fileExtList = Collections.emptyList();
+			selectionMode = JFileChooser.DIRECTORIES_ONLY;
 		}
 	}
 
