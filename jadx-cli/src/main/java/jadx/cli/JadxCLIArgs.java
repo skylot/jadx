@@ -1,6 +1,6 @@
 package jadx.cli;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -274,7 +274,9 @@ public class JadxCLIArgs {
 		args.setCfgOutput(cfgOutput);
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
-		args.setUserRenamesMappingsPath(Path.of(userRenamesMappingsPath));
+		if (userRenamesMappingsPath != null) {
+			args.setUserRenamesMappingsPath(Paths.get(userRenamesMappingsPath));
+		}
 		args.setUserRenamesMappingsMode(userRenamesMappingsMode);
 		args.setDeobfuscationOn(deobfuscationOn);
 		args.setGeneratedRenamesMappingFile(FileUtils.toFile(generatedRenamesMappingFile));
