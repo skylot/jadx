@@ -185,6 +185,7 @@ public class MainWindow extends JFrame {
 	private transient Action saveProjectAction;
 	private transient JMenu importMappingsMenu;
 	private transient JMenu exportMappingsMenu;
+	private transient Action closeMappingsAction;
 
 	private JPanel mainPanel;
 	private JSplitPane splitPane;
@@ -319,6 +320,7 @@ public class MainWindow extends JFrame {
 		closeAll();
 		importMappingsMenu.setEnabled(false);
 		exportMappingsMenu.setEnabled(false);
+		closeMappingsAction.setEnabled(false);
 		updateProject(new JadxProject(this));
 	}
 
@@ -378,16 +380,34 @@ public class MainWindow extends JFrame {
 
 		wrapper.getSettings().setUserRenamesMappingsPath(filePath.toString());
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
+		wrapper.getRootNode().setMappingTree(null);
 
 		for (JavaClass cls : wrapper.getClasses()) {
 			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			if (mappingTree.getClass(classPath) == null) {
+			if (mappingTree.getClass(classPath) == null && (wrapper.getRootNode().getMappingTree() == null
+					|| wrapper.getRootNode().getMappingTree().getClass(classPath) == null)) {
 				continue;
 			}
 			cls.unload();
 			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
 		}
 		reopen();
+	}
+
+	private void closeMappings() {
+		for (JavaClass cls : wrapper.getClasses()) {
+			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
+			if (wrapper.getRootNode().getMappingTree().getClass(classPath) == null) {
+				continue;
+			}
+			cls.unload();
+			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
+		}
+		wrapper.getSettings().setUserRenamesMappingsPath(null);
+		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
+		wrapper.getRootNode().setMappingTree(null);
+		reopen();
+		closeMappingsAction.setEnabled(false);
 	}
 
 	private void exportMappings(MappingFormat mappingFormat) {
@@ -481,6 +501,7 @@ public class MainWindow extends JFrame {
 	private void loadFiles(Runnable onFinish) {
 		importMappingsMenu.setEnabled(false);
 		exportMappingsMenu.setEnabled(false);
+		closeMappingsAction.setEnabled(false);
 		if (project.getFilePaths().isEmpty()) {
 			return;
 		}
@@ -496,6 +517,9 @@ public class MainWindow extends JFrame {
 					onOpen();
 					importMappingsMenu.setEnabled(true);
 					exportMappingsMenu.setEnabled(true);
+					if (wrapper.getRootNode().getMappingTree() != null) {
+						closeMappingsAction.setEnabled(true);
+					}
 					onFinish.run();
 				});
 	}
@@ -943,6 +967,15 @@ public class MainWindow extends JFrame {
 		exportMappingsMenu.add(exportMappingsAsEnigmaDir);
 		exportMappingsMenu.setEnabled(false);
 
+		closeMappingsAction = new AbstractAction(NLS.str("file.close_mappings")) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				closeMappings();
+			}
+		};
+		closeMappingsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.close_mappings"));
+		closeMappingsAction.setEnabled(false);
+
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1131,6 +1164,7 @@ public class MainWindow extends JFrame {
 		file.addSeparator();
 		file.add(importMappingsMenu);
 		file.add(exportMappingsMenu);
+		file.add(closeMappingsAction);
 		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);
