@@ -252,7 +252,7 @@ public class MappingExporter {
 				}
 			}
 			// Copy mappings from potentially imported mappings file
-			if (root.getMappingTree().getDstNamespaces() != null) {
+			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
 				root.getMappingTree().accept(mappingTree);
 			}
 			// Write file

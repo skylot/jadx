@@ -63,7 +63,7 @@ public class RootNode {
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
-	private MemoryMappingTree mappingTree = new MemoryMappingTree();
+	private MemoryMappingTree mappingTree;
 	private final InfoStorage infoStorage = new InfoStorage();
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
@@ -196,6 +196,7 @@ public class RootNode {
 		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
 				&& args.getUserRenamesMappingsPath() != null) {
 			try {
+				mappingTree = new MemoryMappingTree();
 				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
 			} catch (Exception e) {
 				LOG.error("Failed to load mappings file", e);
@@ -544,10 +545,6 @@ public class RootNode {
 	}
 
 	public void setMappingTree(MemoryMappingTree mappingTree) {
-		if (mappingTree == null) {
-			this.mappingTree = new MemoryMappingTree();
-			return;
-		}
 		this.mappingTree = mappingTree;
 	}
 
