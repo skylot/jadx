@@ -12,12 +12,16 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
@@ -53,11 +57,13 @@ public class RootNode {
 	private final JadxArgs args;
 	private final List<IDexTreeVisitor> preDecompilePasses;
 	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
+	private final List<IMappingsUpdateListener> mappingsUpdateListeners = new ArrayList<>();
 
 	private final ProcessClass processClasses;
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
+	private MemoryMappingTree mappingTree = new MemoryMappingTree();
 	private final InfoStorage infoStorage = new InfoStorage();
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
@@ -186,6 +192,14 @@ public class RootNode {
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
+		}
+		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
+				&& args.getUserRenamesMappingsPath() != null) {
+			try {
+				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
+			} catch (Exception e) {
+				LOG.error("Failed to load mappings file", e);
+			}
 		}
 	}
 
@@ -486,9 +500,17 @@ public class RootNode {
 		this.codeDataUpdateListeners.add(listener);
 	}
 
+	public void registerMappingsUpdateListener(IMappingsUpdateListener listener) {
+		this.mappingsUpdateListeners.add(listener);
+	}
+
 	public void notifyCodeDataListeners() {
 		ICodeData codeData = args.getCodeData();
 		codeDataUpdateListeners.forEach(l -> l.updated(codeData));
+	}
+
+	public void notifyMappingsListeners() {
+		mappingsUpdateListeners.forEach(l -> l.updated(mappingTree));
 	}
 
 	public ClspGraph getClsp() {
@@ -515,6 +537,18 @@ public class RootNode {
 
 	public ConstStorage getConstValues() {
 		return constValues;
+	}
+
+	public MemoryMappingTree getMappingTree() {
+		return mappingTree;
+	}
+
+	public void setMappingTree(MemoryMappingTree mappingTree) {
+		if (mappingTree == null) {
+			this.mappingTree = new MemoryMappingTree();
+			return;
+		}
+		this.mappingTree = mappingTree;
 	}
 
 	public InfoStorage getInfoStorage() {

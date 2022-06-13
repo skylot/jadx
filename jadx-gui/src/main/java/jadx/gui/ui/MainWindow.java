@@ -22,6 +22,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -77,16 +78,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.JadxArgs;
+import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.device.debugger.BreakpointManager;
@@ -352,6 +358,28 @@ public class MainWindow extends JFrame {
 		project.saveAs(savePath);
 		settings.addRecentProject(savePath);
 		update();
+	}
+
+	private void importMappings(MappingFormat mappingFormat, Path filePath) {
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+		try {
+			MappingReader.read(filePath, mappingTree);
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to load mappings file", e);
+		}
+
+		wrapper.getSettings().setUserRenamesMappingsPath(filePath.toString());
+		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
+
+		for (JavaClass cls : wrapper.getClasses()) {
+			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
+			if (mappingTree.getClass(classPath) == null) {
+				continue;
+			}
+			cls.unload();
+			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
+		}
+		reopen();
 	}
 
 	private void exportMappings(MappingFormat mappingFormat) {

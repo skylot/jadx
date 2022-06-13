@@ -1,5 +1,6 @@
 package jadx.cli;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
-import jadx.api.args.UserRenamesMappingFileMode;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
@@ -99,20 +100,20 @@ public class JadxCLIArgs {
 	protected boolean respectBytecodeAccessModifiers = false;
 
 	@Parameter(
-			names = { "--renames-mapping-file" },
+			names = { "--mappings-path" },
 			description = "deobfuscation mappings file or directory. Allowed formats: Tiny and Tiny v2 (both '.tiny'), Enigma (.mapping) or Enigma directory"
 	)
-	protected String userRenamesMappingFile;
+	protected String userRenamesMappingsPath;
 
 	@Parameter(
-			names = { "--renames-mapping-file-mode" },
+			names = { "--mappings-mode" },
 			description = "set mode for handling the deobfuscation mapping file:"
 					+ "\n 'read' - just read, user can always save manually (default)"
 					+ "\n 'read-and-autosave-every-change' - read and autosave after every change"
 					+ "\n 'read-and-autosave-before-closing' - read and autosave before exiting the app or closing the project"
 					+ "\n 'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)"
 	)
-	protected UserRenamesMappingFileMode userRenamesMappingFileMode = UserRenamesMappingFileMode.getDefault();
+	protected UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
 
 	@Parameter(names = { "--deobf" }, description = "activate deobfuscation")
 	protected boolean deobfuscationOn = false;
@@ -273,8 +274,8 @@ public class JadxCLIArgs {
 		args.setCfgOutput(cfgOutput);
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
-		args.setUserRenamesMappingFile(FileUtils.toFile(userRenamesMappingFile));
-		args.setUserRenamesMappingFileMode(userRenamesMappingFileMode);
+		args.setUserRenamesMappingsPath(Path.of(userRenamesMappingsPath));
+		args.setUserRenamesMappingsMode(userRenamesMappingsMode);
 		args.setDeobfuscationOn(deobfuscationOn);
 		args.setGeneratedRenamesMappingFile(FileUtils.toFile(generatedRenamesMappingFile));
 		args.setGeneratedRenamesMappingFileMode(generatedRenamesMappingFileMode);
@@ -371,12 +372,12 @@ public class JadxCLIArgs {
 		return inlineMethods;
 	}
 
-	public String getUserRenamesMappingFile() {
-		return userRenamesMappingFile;
+	public String getUserRenamesMappingsPath() {
+		return userRenamesMappingsPath;
 	}
 
-	public UserRenamesMappingFileMode getUserRenamesMappingFileMode() {
-		return userRenamesMappingFileMode;
+	public UserRenamesMappingsMode getUserRenamesMappingsMode() {
+		return userRenamesMappingsMode;
 	}
 
 	public boolean isDeobfuscationOn() {

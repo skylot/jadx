@@ -18,6 +18,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.impl.InMemoryCodeCache;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.JadxPlugin;
@@ -106,6 +107,17 @@ public class JadxWrapper {
 			case DISK:
 				getArgs().setCodeCache(buildBufferedDiskCache());
 				break;
+		}
+		// Remove cache for classes which have rename mappings available
+		if (getArgs().getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
+				&& getArgs().getUserRenamesMappingsPath() != null) {
+			for (JavaClass cls : getClasses()) {
+				String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
+				if (getRootNode().getMappingTree().getClass(classPath) == null) {
+					continue;
+				}
+				getArgs().getCodeCache().remove(cls.getRawName());
+			}
 		}
 	}
 
@@ -222,6 +234,10 @@ public class JadxWrapper {
 
 	public void reloadCodeData() {
 		getDecompiler().reloadCodeData();
+	}
+
+	public void reloadMappings() {
+		getDecompiler().reloadMappings();
 	}
 
 	public JavaNode getJavaNodeByRef(ICodeNodeRef nodeRef) {

@@ -646,6 +646,10 @@ public final class JadxDecompiler implements Closeable {
 		root.notifyCodeDataListeners();
 	}
 
+	public void reloadMappings() {
+		root.notifyMappingsListeners();
+	}
+
 	public JadxArgs getArgs() {
 		return args;
 	}

@@ -1,6 +1,6 @@
 package jadx.api.args;
 
-public enum UserRenamesMappingFileMode {
+public enum UserRenamesMappingsMode {
 
 	/**
 	 * Just read, user can save manually (default)
@@ -22,7 +22,7 @@ public enum UserRenamesMappingFileMode {
 	 */
 	IGNORE;
 
-	public static UserRenamesMappingFileMode getDefault() {
+	public static UserRenamesMappingsMode getDefault() {
 		return READ;
 	}
 

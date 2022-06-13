@@ -2,6 +2,7 @@ package jadx.api;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -16,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.args.GeneratedRenamesMappingFileMode;
-import jadx.api.args.UserRenamesMappingFileMode;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
@@ -67,8 +68,8 @@ public class JadxArgs {
 	 */
 	private boolean includeDependencies = false;
 
-	private File userRenamesMappingFile = null;
-	private UserRenamesMappingFileMode userRenamesMappingFileMode = UserRenamesMappingFileMode.getDefault();
+	private Path userRenamesMappingsPath = null;
+	private UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
 
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
@@ -305,20 +306,20 @@ public class JadxArgs {
 		this.classFilter = classFilter;
 	}
 
-	public File getUserRenamesMappingFile() {
-		return userRenamesMappingFile;
+	public Path getUserRenamesMappingsPath() {
+		return userRenamesMappingsPath;
 	}
 
-	public void setUserRenamesMappingFile(File file) {
-		this.userRenamesMappingFile = file;
+	public void setUserRenamesMappingsPath(Path path) {
+		this.userRenamesMappingsPath = path;
 	}
 
-	public UserRenamesMappingFileMode getUserRenamesMappingFileMode() {
-		return userRenamesMappingFileMode;
+	public UserRenamesMappingsMode getUserRenamesMappingsMode() {
+		return userRenamesMappingsMode;
 	}
 
-	public void setUserRenamesMappingFileMode(UserRenamesMappingFileMode mode) {
-		this.userRenamesMappingFileMode = mode;
+	public void setUserRenamesMappingsMode(UserRenamesMappingsMode mode) {
+		this.userRenamesMappingsMode = mode;
 	}
 
 	public boolean isDeobfuscationOn() {
@@ -585,8 +586,8 @@ public class JadxArgs {
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
 				+ ", includeDependencies=" + includeDependencies
-				+ ", userRenamesMappingFile=" + userRenamesMappingFile
-				+ ", userRenamesMappingFileMode=" + userRenamesMappingFileMode
+				+ ", userRenamesMappingsPath=" + userRenamesMappingsPath
+				+ ", userRenamesMappingsMode=" + userRenamesMappingsMode
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", generatedRenamesMappingFile=" + generatedRenamesMappingFile
 				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode

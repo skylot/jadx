@@ -30,7 +30,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
-import jadx.api.args.UserRenamesMappingFileMode;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.gui.ui.MainWindow;
@@ -320,8 +320,12 @@ public class JadxSettings extends JadxCLIArgs {
 		this.debugInfo = useDebugInfo;
 	}
 
-	public void setUserRenamesMappingFileMode(UserRenamesMappingFileMode mode) {
-		this.userRenamesMappingFileMode = mode;
+	public void setUserRenamesMappingsPath(String path) {
+		this.userRenamesMappingsPath = path;
+	}
+
+	public void setUserRenamesMappingsMode(UserRenamesMappingsMode mode) {
+		this.userRenamesMappingsMode = mode;
 	}
 
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
