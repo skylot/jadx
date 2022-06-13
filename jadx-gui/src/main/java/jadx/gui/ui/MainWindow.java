@@ -183,8 +183,8 @@ public class MainWindow extends JFrame {
 
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
-	private transient JMenu importMappingsMenu;
-	private transient JMenu exportMappingsMenu;
+	private transient JMenu openMappingsMenu;
+	private transient JMenu saveMappingsMenu;
 	private transient Action closeMappingsAction;
 
 	private JPanel mainPanel;
@@ -318,8 +318,8 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		closeAll();
-		importMappingsMenu.setEnabled(false);
-		exportMappingsMenu.setEnabled(false);
+		openMappingsMenu.setEnabled(false);
+		saveMappingsMenu.setEnabled(false);
 		closeMappingsAction.setEnabled(false);
 		updateProject(new JadxProject(this));
 	}
@@ -364,8 +364,8 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	private void importMappings(MappingFormat mappingFormat) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.IMPORT_MAPPINGS, mappingFormat);
+	private void openMappings(MappingFormat mappingFormat) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.OPEN_MAPPINGS, mappingFormat);
 		List<Path> selectedFiles = fileDialog.show();
 		if (selectedFiles.isEmpty()) {
 			return;
@@ -410,8 +410,8 @@ public class MainWindow extends JFrame {
 		closeMappingsAction.setEnabled(false);
 	}
 
-	private void exportMappings(MappingFormat mappingFormat) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.EXPORT_MAPPINGS, mappingFormat);
+	private void saveMappings(MappingFormat mappingFormat) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.SAVE_MAPPINGS, mappingFormat);
 		List<Path> selectedDirs = fileDialog.show();
 		if (selectedDirs.isEmpty()) {
 			return;
@@ -436,7 +436,7 @@ public class MainWindow extends JFrame {
 		Thread exportThread = new Thread(() -> {
 			new MappingExporter(rootNode).exportMappings(finalSavePath, project.getCodeData(), mappingFormat);
 		});
-		backgroundExecutor.execute(NLS.str("progress.export_mappings"), exportThread);
+		backgroundExecutor.execute(NLS.str("progress.save_mappings"), exportThread);
 		update();
 	}
 
@@ -499,8 +499,8 @@ public class MainWindow extends JFrame {
 	}
 
 	private void loadFiles(Runnable onFinish) {
-		importMappingsMenu.setEnabled(false);
-		exportMappingsMenu.setEnabled(false);
+		openMappingsMenu.setEnabled(false);
+		saveMappingsMenu.setEnabled(false);
 		closeMappingsAction.setEnabled(false);
 		if (project.getFilePaths().isEmpty()) {
 			return;
@@ -515,8 +515,8 @@ public class MainWindow extends JFrame {
 					}
 					checkLoadedStatus();
 					onOpen();
-					importMappingsMenu.setEnabled(true);
-					exportMappingsMenu.setEnabled(true);
+					openMappingsMenu.setEnabled(true);
+					saveMappingsMenu.setEnabled(true);
 					if (wrapper.getRootNode().getMappingTree() != null) {
 						closeMappingsAction.setEnabled(true);
 					}
@@ -910,7 +910,7 @@ public class MainWindow extends JFrame {
 		Action importTiny2Mappings = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				importMappings(MappingFormat.TINY_2);
+				openMappings(MappingFormat.TINY_2);
 			}
 		};
 		importTiny2Mappings.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
@@ -918,7 +918,7 @@ public class MainWindow extends JFrame {
 		Action importEnigmaMappings = new AbstractAction("Enigma file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				importMappings(MappingFormat.ENIGMA);
+				openMappings(MappingFormat.ENIGMA);
 			}
 		};
 		importEnigmaMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
@@ -926,46 +926,46 @@ public class MainWindow extends JFrame {
 		Action importEnigmaDirMappings = new AbstractAction("Enigma directory") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				importMappings(MappingFormat.ENIGMA_DIR);
+				openMappings(MappingFormat.ENIGMA_DIR);
 			}
 		};
 		importEnigmaDirMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
-		importMappingsMenu = new JMenu(NLS.str("file.import_mappings"));
-		importMappingsMenu.add(importTiny2Mappings);
-		importMappingsMenu.add(importEnigmaMappings);
-		importMappingsMenu.add(importEnigmaDirMappings);
-		importMappingsMenu.setEnabled(false);
+		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
+		openMappingsMenu.add(importTiny2Mappings);
+		openMappingsMenu.add(importEnigmaMappings);
+		openMappingsMenu.add(importEnigmaDirMappings);
+		openMappingsMenu.setEnabled(false);
 
-		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
+		Action saveMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				exportMappings(MappingFormat.TINY_2);
+				saveMappings(MappingFormat.TINY_2);
 			}
 		};
-		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
+		saveMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
 
-		Action exportMappingsAsEnigma = new AbstractAction("Enigma file") {
+		Action saveMappingsAsEnigma = new AbstractAction("Enigma file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				exportMappings(MappingFormat.ENIGMA);
+				saveMappings(MappingFormat.ENIGMA);
 			}
 		};
-		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
+		saveMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
 
-		Action exportMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
+		Action saveMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				exportMappings(MappingFormat.ENIGMA_DIR);
+				saveMappings(MappingFormat.ENIGMA_DIR);
 			}
 		};
-		exportMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+		saveMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
-		exportMappingsMenu = new JMenu(NLS.str("file.export_mappings_as"));
-		exportMappingsMenu.add(exportMappingsAsTiny2);
-		exportMappingsMenu.add(exportMappingsAsEnigma);
-		exportMappingsMenu.add(exportMappingsAsEnigmaDir);
-		exportMappingsMenu.setEnabled(false);
+		saveMappingsMenu = new JMenu(NLS.str("file.save_mappings_as"));
+		saveMappingsMenu.add(saveMappingsAsTiny2);
+		saveMappingsMenu.add(saveMappingsAsEnigma);
+		saveMappingsMenu.add(saveMappingsAsEnigmaDir);
+		saveMappingsMenu.setEnabled(false);
 
 		closeMappingsAction = new AbstractAction(NLS.str("file.close_mappings")) {
 			@Override
@@ -1162,8 +1162,8 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
-		file.add(importMappingsMenu);
-		file.add(exportMappingsMenu);
+		file.add(openMappingsMenu);
+		file.add(saveMappingsMenu);
 		file.add(closeMappingsAction);
 		file.addSeparator();
 		file.add(saveAllAction);

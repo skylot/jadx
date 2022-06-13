@@ -32,7 +32,7 @@ public class FileDialog {
 	}
 
 	public enum MappingOpenMode {
-		IMPORT_MAPPINGS, EXPORT_MAPPINGS;
+		OPEN_MAPPINGS, SAVE_MAPPINGS;
 	}
 
 	private final MainWindow mainWindow;
@@ -118,13 +118,13 @@ public class FileDialog {
 
 	private void initForMode(MappingOpenMode mode) {
 		switch (mode) {
-			case IMPORT_MAPPINGS:
-				title = NLS.str("file.import_mappings");
+			case OPEN_MAPPINGS:
+				title = NLS.str("file.open_mappings");
 				currentDir = mainWindow.getSettings().getLastOpenFilePath();
 				isOpen = true;
 				break;
-			case EXPORT_MAPPINGS:
-				title = NLS.str("file.export_mappings_as");
+			case SAVE_MAPPINGS:
+				title = NLS.str("file.save_mappings_as");
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
