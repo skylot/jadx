@@ -503,9 +503,9 @@ public class MainWindow extends JFrame {
 				LOG.error("The specified mappings path doesn't exist, falling back to the project's previously loaded ones");
 			}
 			// Use the project's last opened mappings, if present
-			settings.setUserRenamesMappingsPath(project.getMappingsPath());
-			// Invalidate cache if the last modified date changed
 			if (project.getMappingsPath() != null && project.getMappingsPath().toFile().exists()) {
+				settings.setUserRenamesMappingsPath(project.getMappingsPath());
+				// Invalidate cache if the last modified date changed
 				if (!project.getMappingsLastModified().equals(Long.valueOf(project.getMappingsPath().toFile().lastModified()))) {
 					wrapper.resetDiskCacheOnNextReload();
 				}
