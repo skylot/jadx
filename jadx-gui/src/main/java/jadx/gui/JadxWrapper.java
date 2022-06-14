@@ -47,6 +47,7 @@ public class JadxWrapper {
 
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
+	private boolean resetDiskCacheOnNextReload = false;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -119,8 +120,15 @@ public class JadxWrapper {
 		}
 	}
 
+	public void resetDiskCacheOnNextReload() {
+		resetDiskCacheOnNextReload = true;
+	}
+
 	private BufferCodeCache buildBufferedDiskCache() {
 		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
+		if (resetDiskCacheOnNextReload) {
+			diskCache.reset();
+		}
 		return new BufferCodeCache(diskCache);
 	}
 

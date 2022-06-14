@@ -85,7 +85,7 @@ public class DiskCodeCache implements ICodeCache {
 		}
 	}
 
-	private void reset() {
+	public void reset() {
 		try {
 			long start = System.currentTimeMillis();
 			LOG.info("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());

@@ -378,31 +378,14 @@ public class MainWindow extends JFrame {
 			throw new JadxRuntimeException("Failed to load mappings file", e);
 		}
 		project.setMappingsPath(filePath);
+		wrapper.getSettings().setUserRenamesMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
 		wrapper.getRootNode().setMappingTree(null);
-
-		for (JavaClass cls : wrapper.getClasses()) {
-			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			if (mappingTree.getClass(classPath) == null && (wrapper.getRootNode().getMappingTree() == null
-					|| wrapper.getRootNode().getMappingTree().getClass(classPath) == null)) {
-				continue;
-			}
-			cls.unload();
-			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
-		}
 		reopen();
 	}
 
 	private void closeMappings() {
 		closeMappingsAction.setEnabled(false);
-		for (JavaClass cls : wrapper.getClasses()) {
-			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			if (wrapper.getRootNode().getMappingTree().getClass(classPath) == null) {
-				continue;
-			}
-			cls.unload();
-			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
-		}
 		project.setMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
@@ -507,21 +490,32 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JadxSettings settings = wrapper.getSettings();
+		// Use CLI specified mappings path if present
 		if (settings.getUserRenamesMappingsPath() != null && settings.getUserRenamesMappingsPath().toFile().exists()) {
+			// Invalidate cache if other mappings were loaded previously
+			if (project.getMappingsPath() != null && !project.getMappingsPath().equals(settings.getUserRenamesMappingsPath())) {
+				wrapper.resetDiskCacheOnNextReload();
+			}
 			project.setMappingsPath(settings.getUserRenamesMappingsPath());
 		} else {
 			if (settings.getUserRenamesMappingsPath() != null) {
-				LOG.error("The specified mappings path doesn't exist, falling back to the project's default");
+				LOG.error("The specified mappings path doesn't exist, falling back to the project's previously loaded ones");
 			}
+			// Use the project's last opened mappings, if present
 			if (project.getMappingsPath() != null && project.getMappingsPath().toFile().exists()) {
 				settings.setUserRenamesMappingsPath(project.getMappingsPath());
 			} else {
 				if (project.getMappingsPath() != null
 						|| (project.getMappingsPath() == null && settings.getUserRenamesMappingsPath() != null)) {
-					LOG.error("The project's last used mappings path doesn't exist anymore, can't load any mappings");
+					LOG.error("The project's last opened mappings' path doesn't exist anymore, can't load any mappings");
+				}
+				// None of the mapping paths exist, so remove them from the settings
+				settings.setUserRenamesMappingsPath(null);
+				// Invalidate cache if other mappings were loaded previously
+				if (project.getMappingsPath() != null) {
+					wrapper.resetDiskCacheOnNextReload();
 				}
 				project.setMappingsPath(null);
-				settings.setUserRenamesMappingsPath(null);
 			}
 		}
 		backgroundExecutor.execute(NLS.str("progress.load"),
@@ -927,34 +921,34 @@ public class MainWindow extends JFrame {
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
 
-		Action importTiny2Mappings = new AbstractAction("Tiny v2 file") {
+		Action openTiny2Mappings = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				openMappings(MappingFormat.TINY_2);
 			}
 		};
-		importTiny2Mappings.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
+		openTiny2Mappings.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
 
-		Action importEnigmaMappings = new AbstractAction("Enigma file") {
+		Action openEnigmaMappings = new AbstractAction("Enigma file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				openMappings(MappingFormat.ENIGMA);
 			}
 		};
-		importEnigmaMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
+		openEnigmaMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
 
-		Action importEnigmaDirMappings = new AbstractAction("Enigma directory") {
+		Action openEnigmaDirMappings = new AbstractAction("Enigma directory") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				openMappings(MappingFormat.ENIGMA_DIR);
 			}
 		};
-		importEnigmaDirMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+		openEnigmaDirMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
 		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
-		openMappingsMenu.add(importTiny2Mappings);
-		openMappingsMenu.add(importEnigmaMappings);
-		openMappingsMenu.add(importEnigmaDirMappings);
+		openMappingsMenu.add(openTiny2Mappings);
+		openMappingsMenu.add(openEnigmaMappings);
+		openMappingsMenu.add(openEnigmaDirMappings);
 		openMappingsMenu.setEnabled(false);
 
 		Action saveMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
