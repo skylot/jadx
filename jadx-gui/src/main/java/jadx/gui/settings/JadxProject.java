@@ -142,6 +142,15 @@ public class JadxProject {
 		return data.getActiveTab();
 	}
 
+	public @NotNull Path getMappingsPath() {
+		return data.getMappingsPath();
+	}
+
+	public void setMappingsPath(Path mappingsPath) {
+		data.setMappingsPath(mappingsPath);
+		changed();
+	}
+
 	public @NotNull Path getCacheDir() {
 		Path cacheDir = data.getCacheDir();
 		if (cacheDir != null) {

@@ -18,6 +18,7 @@ public class ProjectData {
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private int activeTab = -1;
+	private @Nullable Path mappingsPath;
 	private @Nullable Path cacheDir;
 
 	public List<Path> getFiles() {
@@ -84,6 +85,15 @@ public class ProjectData {
 		}
 		this.activeTab = activeTab;
 		return true;
+	}
+
+	@Nullable
+	public Path getMappingsPath() {
+		return mappingsPath;
+	}
+
+	public void setMappingsPath(Path mappingsPath) {
+		this.mappingsPath = mappingsPath;
 	}
 
 	@Nullable

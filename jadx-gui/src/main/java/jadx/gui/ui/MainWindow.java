@@ -377,8 +377,7 @@ public class MainWindow extends JFrame {
 		} catch (IOException e) {
 			throw new JadxRuntimeException("Failed to load mappings file", e);
 		}
-
-		wrapper.getSettings().setUserRenamesMappingsPath(filePath.toString());
+		project.setMappingsPath(filePath);
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
 		wrapper.getRootNode().setMappingTree(null);
 
@@ -395,6 +394,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void closeMappings() {
+		closeMappingsAction.setEnabled(false);
 		for (JavaClass cls : wrapper.getClasses()) {
 			String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
 			if (wrapper.getRootNode().getMappingTree().getClass(classPath) == null) {
@@ -403,11 +403,11 @@ public class MainWindow extends JFrame {
 			cls.unload();
 			wrapper.getArgs().getCodeCache().remove(cls.getRawName());
 		}
+		project.setMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
 		wrapper.getRootNode().setMappingTree(null);
 		reopen();
-		closeMappingsAction.setEnabled(false);
 	}
 
 	private void saveMappings(MappingFormat mappingFormat) {
@@ -435,6 +435,7 @@ public class MainWindow extends JFrame {
 		Path finalSavePath = savePath;
 		Thread exportThread = new Thread(() -> {
 			new MappingExporter(rootNode).exportMappings(finalSavePath, project.getCodeData(), mappingFormat);
+			project.setMappingsPath(finalSavePath);
 		});
 		backgroundExecutor.execute(NLS.str("progress.save_mappings"), exportThread);
 		update();
@@ -505,6 +506,24 @@ public class MainWindow extends JFrame {
 		if (project.getFilePaths().isEmpty()) {
 			return;
 		}
+		JadxSettings settings = wrapper.getSettings();
+		if (settings.getUserRenamesMappingsPath() != null && settings.getUserRenamesMappingsPath().toFile().exists()) {
+			project.setMappingsPath(settings.getUserRenamesMappingsPath());
+		} else {
+			if (settings.getUserRenamesMappingsPath() != null) {
+				LOG.error("The specified mappings path doesn't exist, falling back to the project's default");
+			}
+			if (project.getMappingsPath() != null && project.getMappingsPath().toFile().exists()) {
+				settings.setUserRenamesMappingsPath(project.getMappingsPath());
+			} else {
+				if (project.getMappingsPath() != null
+						|| (project.getMappingsPath() == null && settings.getUserRenamesMappingsPath() != null)) {
+					LOG.error("The project's last used mappings path doesn't exist anymore, can't load any mappings");
+				}
+				project.setMappingsPath(null);
+				settings.setUserRenamesMappingsPath(null);
+			}
+		}
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				wrapper::open,
 				status -> {
@@ -515,11 +534,6 @@ public class MainWindow extends JFrame {
 					}
 					checkLoadedStatus();
 					onOpen();
-					openMappingsMenu.setEnabled(true);
-					saveMappingsMenu.setEnabled(true);
-					if (wrapper.getRootNode().getMappingTree() != null) {
-						closeMappingsAction.setEnabled(true);
-					}
 					onFinish.run();
 				});
 	}
@@ -564,6 +578,12 @@ public class MainWindow extends JFrame {
 		initTree();
 		update();
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
+
+		openMappingsMenu.setEnabled(true);
+		saveMappingsMenu.setEnabled(true);
+		if (wrapper.getRootNode().getMappingTree() != null) {
+			closeMappingsAction.setEnabled(true);
+		}
 
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				this::restoreOpenTabs,

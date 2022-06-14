@@ -1,6 +1,6 @@
 package jadx.cli;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -103,7 +103,7 @@ public class JadxCLIArgs {
 			names = { "--mappings-path" },
 			description = "deobfuscation mappings file or directory. Allowed formats: Tiny and Tiny v2 (both '.tiny'), Enigma (.mapping) or Enigma directory"
 	)
-	protected String userRenamesMappingsPath;
+	protected Path userRenamesMappingsPath;
 
 	@Parameter(
 			names = { "--mappings-mode" },
@@ -275,7 +275,7 @@ public class JadxCLIArgs {
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
 		if (userRenamesMappingsPath != null) {
-			args.setUserRenamesMappingsPath(Paths.get(userRenamesMappingsPath));
+			args.setUserRenamesMappingsPath(userRenamesMappingsPath);
 		}
 		args.setUserRenamesMappingsMode(userRenamesMappingsMode);
 		args.setDeobfuscationOn(deobfuscationOn);
@@ -374,7 +374,7 @@ public class JadxCLIArgs {
 		return inlineMethods;
 	}
 
-	public String getUserRenamesMappingsPath() {
+	public Path getUserRenamesMappingsPath() {
 		return userRenamesMappingsPath;
 	}
 
