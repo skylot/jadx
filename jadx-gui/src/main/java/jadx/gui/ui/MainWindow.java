@@ -491,8 +491,10 @@ public class MainWindow extends JFrame {
 		JadxSettings settings = wrapper.getSettings();
 		// Use CLI specified mappings path if present
 		if (settings.getUserRenamesMappingsPath() != null && settings.getUserRenamesMappingsPath().toFile().exists()) {
-			// Invalidate cache if other mappings were loaded previously
-			if (project.getMappingsPath() != null && !project.getMappingsPath().equals(settings.getUserRenamesMappingsPath())) {
+			// Invalidate cache if other mappings were loaded previously (or if it's the same file, but the
+			// last modified date is changed)
+			if (project.getMappingsPath() != null && (!project.getMappingsPath().equals(settings.getUserRenamesMappingsPath()) || !project
+					.getMappingsLastModified().equals(Long.valueOf(settings.getUserRenamesMappingsPath().toFile().lastModified())))) {
 				wrapper.resetDiskCacheOnNextReload();
 			}
 			project.setMappingsPath(settings.getUserRenamesMappingsPath());
@@ -501,8 +503,12 @@ public class MainWindow extends JFrame {
 				LOG.error("The specified mappings path doesn't exist, falling back to the project's previously loaded ones");
 			}
 			// Use the project's last opened mappings, if present
+			settings.setUserRenamesMappingsPath(project.getMappingsPath());
+			// Invalidate cache if the last modified date changed
 			if (project.getMappingsPath() != null && project.getMappingsPath().toFile().exists()) {
-				settings.setUserRenamesMappingsPath(project.getMappingsPath());
+				if (!project.getMappingsLastModified().equals(Long.valueOf(project.getMappingsPath().toFile().lastModified()))) {
+					wrapper.resetDiskCacheOnNextReload();
+				}
 			} else {
 				if (project.getMappingsPath() != null
 						|| (project.getMappingsPath() == null && settings.getUserRenamesMappingsPath() != null)) {

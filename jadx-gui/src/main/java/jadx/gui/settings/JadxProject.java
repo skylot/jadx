@@ -142,13 +142,20 @@ public class JadxProject {
 		return data.getActiveTab();
 	}
 
-	public @NotNull Path getMappingsPath() {
+	public Path getMappingsPath() {
 		return data.getMappingsPath();
 	}
 
 	public void setMappingsPath(Path mappingsPath) {
 		data.setMappingsPath(mappingsPath);
+		if (mappingsPath.toFile().exists()) {
+			data.setMappingsLastModified(mappingsPath.toFile().lastModified());
+		}
 		changed();
+	}
+
+	public Long getMappingsLastModified() {
+		return data.getMappingsLastModified();
 	}
 
 	public @NotNull Path getCacheDir() {
