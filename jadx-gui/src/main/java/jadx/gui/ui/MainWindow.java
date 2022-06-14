@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -404,13 +405,21 @@ public class MainWindow extends JFrame {
 			savePath = savePath.resolveSibling(savePath.getFileName() + "." + mappingFormat.fileExt);
 		}
 		if (Files.exists(savePath)) {
-			int res = JOptionPane.showConfirmDialog(
-					this,
-					NLS.str("confirm.save_as_message", savePath.getFileName()),
-					NLS.str("confirm.save_as_title"),
-					JOptionPane.YES_NO_OPTION);
-			if (res == JOptionPane.NO_OPTION) {
-				return;
+			// Only show error message if folder is not empty
+			boolean dirEmpty = false;
+			try (Stream<Path> entries = Files.list(savePath)) {
+				dirEmpty = !entries.findFirst().isPresent();
+			} catch (IOException ignored) {
+			}
+			if (!dirEmpty) {
+				int res = JOptionPane.showConfirmDialog(
+						this,
+						NLS.str("confirm.save_as_message", savePath.getFileName()),
+						NLS.str("confirm.save_as_title"),
+						JOptionPane.YES_NO_OPTION);
+				if (res == JOptionPane.NO_OPTION) {
+					return;
+				}
 			}
 		}
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
