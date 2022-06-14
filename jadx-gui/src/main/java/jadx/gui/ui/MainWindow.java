@@ -377,6 +377,16 @@ public class MainWindow extends JFrame {
 		} catch (IOException e) {
 			throw new JadxRuntimeException("Failed to load mappings file", e);
 		}
+		if (mappingTree.getSrcNamespace() == null) {
+			mappingTree.setSrcNamespace("official");
+		}
+		if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
+			mappingTree.setDstNamespaces(Arrays.asList("named"));
+		} else if (mappingTree.getDstNamespaces().size() > 1) {
+			throw new JadxRuntimeException(
+					String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
+							mappingTree.getDstNamespaces().size()));
+		}
 		project.setMappingsPath(filePath);
 		wrapper.getSettings().setUserRenamesMappingsPath(null);
 		wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());

@@ -1,6 +1,7 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -198,6 +199,16 @@ public class RootNode {
 			try {
 				mappingTree = new MemoryMappingTree();
 				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
+				if (mappingTree.getSrcNamespace() == null) {
+					mappingTree.setSrcNamespace("official");
+				}
+				if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
+					mappingTree.setDstNamespaces(Arrays.asList("named"));
+				} else if (mappingTree.getDstNamespaces().size() > 1) {
+					throw new JadxRuntimeException(
+							String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
+									mappingTree.getDstNamespaces().size()));
+				}
 			} catch (Exception e) {
 				LOG.error("Failed to load mappings file", e);
 			}
