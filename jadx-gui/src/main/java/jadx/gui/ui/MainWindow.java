@@ -83,7 +83,6 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.JadxArgs;
-import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.args.UserRenamesMappingsMode;
