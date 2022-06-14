@@ -147,11 +147,15 @@ public class JadxProject {
 	}
 
 	public void setMappingsPath(Path mappingsPath) {
-		data.setMappingsPath(mappingsPath);
-		if (mappingsPath.toFile().exists()) {
+		if (mappingsPath == null) {
+			data.setMappingsPath(mappingsPath);
+			data.setMappingsLastModified(null);
+			changed();
+		} else if (mappingsPath.toFile().exists()) {
+			data.setMappingsPath(mappingsPath);
 			data.setMappingsLastModified(mappingsPath.toFile().lastModified());
+			changed();
 		}
-		changed();
 	}
 
 	public Long getMappingsLastModified() {
