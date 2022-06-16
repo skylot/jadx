@@ -205,7 +205,7 @@ public class RootNode {
 		}
 	}
 
-	public MemoryMappingTree readMappingTreeFromDisk() throws IOException {
+	private MemoryMappingTree readMappingTreeFromDisk() throws IOException {
 		MemoryMappingTree tree = new MemoryMappingTree();
 		MappingReader.read(args.getUserRenamesMappingsPath(), tree);
 		if (tree.getSrcNamespace() == null) {
