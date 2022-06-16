@@ -383,9 +383,12 @@ public class MainWindow extends JFrame {
 		if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
 			mappingTree.setDstNamespaces(Arrays.asList("named"));
 		} else if (mappingTree.getDstNamespaces().size() > 1) {
-			throw new JadxRuntimeException(
-					String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
-							mappingTree.getDstNamespaces().size()));
+			JOptionPane.showMessageDialog(
+				this,
+				NLS.str("msg.mapping_namespace_count_error", mappingTree.getDstNamespaces().size()),
+				NLS.str("msg.mapping_namespace_count_error_title"),
+				JOptionPane.ERROR_MESSAGE);
+			return;
 		}
 		project.setMappingsPath(filePath);
 		wrapper.getSettings().setUserRenamesMappingsPath(null);
