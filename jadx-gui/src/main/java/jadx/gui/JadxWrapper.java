@@ -240,10 +240,12 @@ public class JadxWrapper {
 
 	public void reloadCodeData() {
 		getDecompiler().reloadCodeData();
+		mainWindow.renamesChanged();
 	}
 
 	public void reloadMappings() {
 		getDecompiler().reloadMappings();
+		mainWindow.renamesChanged();
 	}
 
 	public JavaNode getJavaNodeByRef(ICodeNodeRef nodeRef) {
