@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -566,9 +567,25 @@ public class MainWindow extends JFrame {
 				project.setMappingsPath(null);
 			}
 		}
+		AtomicReference<Exception> exceptionWrapper = new AtomicReference<>();
 		backgroundExecutor.execute(NLS.str("progress.load"),
-				wrapper::open,
+				() -> {
+					try {
+						wrapper.open();
+					} catch (Exception e) {
+						exceptionWrapper.set(e);
+					}
+				},
 				status -> {
+					if (exceptionWrapper.get() != null) {
+						closeAll();
+						Exception e = exceptionWrapper.get();
+						if (e instanceof RuntimeException) {
+							throw (RuntimeException) e;
+						} else {
+							throw new JadxRuntimeException("Project load error", e);
+						}
+					}
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
 						showHeapUsageBar();
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));

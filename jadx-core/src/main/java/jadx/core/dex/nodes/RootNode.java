@@ -1,6 +1,5 @@
 package jadx.core.dex.nodes;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -198,27 +197,23 @@ public class RootNode {
 		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
 				&& args.getUserRenamesMappingsPath() != null) {
 			try {
-				mappingTree = readMappingTreeFromDisk();
+				mappingTree = new MemoryMappingTree();
+				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
+				if (mappingTree.getSrcNamespace() == null) {
+					mappingTree.setSrcNamespace("official");
+				}
+				if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
+					mappingTree.setDstNamespaces(Arrays.asList("named"));
+				} else if (mappingTree.getDstNamespaces().size() > 1) {
+					throw new JadxRuntimeException(
+							String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
+									mappingTree.getDstNamespaces().size()));
+				}
 			} catch (Exception e) {
-				LOG.error("Failed to load mappings file", e);
+				mappingTree = null;
+				throw new JadxRuntimeException("Failed to load mappings", e);
 			}
 		}
-	}
-
-	private MemoryMappingTree readMappingTreeFromDisk() throws IOException {
-		MemoryMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(args.getUserRenamesMappingsPath(), tree);
-		if (tree.getSrcNamespace() == null) {
-			tree.setSrcNamespace("official");
-		}
-		if (tree.getDstNamespaces() == null || tree.getDstNamespaces().isEmpty()) {
-			tree.setDstNamespaces(Arrays.asList("named"));
-		} else if (tree.getDstNamespaces().size() > 1) {
-			throw new JadxRuntimeException(
-					String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
-							tree.getDstNamespaces().size()));
-		}
-		return tree;
 	}
 
 	public void processResources(ResourceStorage resStorage) {

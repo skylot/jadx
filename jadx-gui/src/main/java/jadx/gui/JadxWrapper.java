@@ -67,8 +67,8 @@ public class JadxWrapper {
 				initCodeCache();
 			}
 		} catch (Exception e) {
-			LOG.error("Jadx decompiler wrapper init error", e);
 			close();
+			throw new JadxRuntimeException("Jadx decompiler wrapper init error", e);
 		}
 	}
 
