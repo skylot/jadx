@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.ICodeCache;
@@ -200,10 +201,10 @@ public class RootNode {
 				mappingTree = new MemoryMappingTree();
 				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
 				if (mappingTree.getSrcNamespace() == null) {
-					mappingTree.setSrcNamespace("official");
+					mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
 				}
 				if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
-					mappingTree.setDstNamespaces(Arrays.asList("named"));
+					mappingTree.setDstNamespaces(Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
 				} else if (mappingTree.getDstNamespaces().size() > 1) {
 					throw new JadxRuntimeException(
 							String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",

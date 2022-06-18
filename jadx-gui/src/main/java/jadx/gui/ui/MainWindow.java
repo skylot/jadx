@@ -81,6 +81,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -380,10 +381,10 @@ public class MainWindow extends JFrame {
 			throw new JadxRuntimeException("Failed to load mappings file", e);
 		}
 		if (mappingTree.getSrcNamespace() == null) {
-			mappingTree.setSrcNamespace("official");
+			mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
 		}
 		if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
-			mappingTree.setDstNamespaces(Arrays.asList("named"));
+			mappingTree.setDstNamespaces(Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
 		} else if (mappingTree.getDstNamespaces().size() > 1) {
 			JOptionPane.showMessageDialog(
 					this,
@@ -419,13 +420,13 @@ public class MainWindow extends JFrame {
 				throw new JadxRuntimeException("Failed to save mappings", e);
 			}
 		}
+		renamesChanged = false;
+		update();
 
 		RootNode rootNode = wrapper.getDecompiler().getRoot();
 		Thread exportThread = new Thread(() -> {
 			new MappingExporter(rootNode).exportMappings(savePath, project.getCodeData(), currentMappingFormat);
 			project.setMappingsPath(savePath);
-			renamesChanged = false;
-			update();
 		});
 		backgroundExecutor.execute(NLS.str("progress.save_mappings"), exportThread);
 	}

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -160,8 +161,14 @@ public class MappingExporter {
 				FileUtils.makeDirs(path);
 			}
 
+			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
+			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
+			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
+				srcNamespace = root.getMappingTree().getSrcNamespace();
+				dstNamespace = root.getMappingTree().getDstNamespaces().get(0);
+			}
 			mappingTree.visitHeader();
-			mappingTree.visitNamespaces("official", Arrays.asList("named"));
+			mappingTree.visitNamespaces(srcNamespace, Arrays.asList(dstNamespace));
 			mappingTree.visitContent();
 
 			for (ClassNode cls : root.getClasses()) {
