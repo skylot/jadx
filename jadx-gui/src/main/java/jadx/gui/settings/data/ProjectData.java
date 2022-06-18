@@ -19,6 +19,7 @@ public class ProjectData {
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private int activeTab = -1;
 	private @Nullable Path cacheDir;
+	private boolean enableLiveReload = false;
 
 	public List<Path> getFiles() {
 		return files;
@@ -93,5 +94,13 @@ public class ProjectData {
 
 	public void setCacheDir(Path cacheDir) {
 		this.cacheDir = cacheDir;
+	}
+
+	public boolean isEnableLiveReload() {
+		return enableLiveReload;
+	}
+
+	public void setEnableLiveReload(boolean enableLiveReload) {
+		this.enableLiveReload = enableLiveReload;
 	}
 }

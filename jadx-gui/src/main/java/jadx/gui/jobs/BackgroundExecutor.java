@@ -3,6 +3,7 @@ package jadx.gui.jobs;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -19,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.NLS;
@@ -33,16 +36,16 @@ import static jadx.gui.utils.UiUtils.calcProgress;
 public class BackgroundExecutor {
 	private static final Logger LOG = LoggerFactory.getLogger(BackgroundExecutor.class);
 
-	private final MainWindow mainWindow;
+	private final JadxSettings settings;
 	private final ProgressPanel progressPane;
 
 	private ThreadPoolExecutor taskQueueExecutor;
 	private final Map<Long, IBackgroundTask> taskRunning = new ConcurrentHashMap<>();
 	private final AtomicLong idSupplier = new AtomicLong(0);
 
-	public BackgroundExecutor(MainWindow mainWindow) {
-		this.mainWindow = mainWindow;
-		this.progressPane = mainWindow.getProgressPane();
+	public BackgroundExecutor(JadxSettings settings, ProgressPanel progressPane) {
+		this.settings = Objects.requireNonNull(settings);
+		this.progressPane = Objects.requireNonNull(progressPane);
 		reset();
 	}
 
@@ -68,9 +71,16 @@ public class BackgroundExecutor {
 	public synchronized void cancelAll() {
 		try {
 			taskRunning.values().forEach(Cancelable::cancel);
-			taskQueueExecutor.shutdown();
-			boolean complete = taskQueueExecutor.awaitTermination(30, TimeUnit.SECONDS);
-			LOG.debug("Background task executor terminated with status: {}", complete ? "complete" : "interrupted");
+			taskQueueExecutor.shutdownNow();
+			boolean complete = taskQueueExecutor.awaitTermination(3, TimeUnit.SECONDS);
+			if (complete) {
+				LOG.debug("Background task executor canceled successfully");
+			} else {
+				String taskNames = taskRunning.values().stream()
+						.map(IBackgroundTask::getTitle)
+						.collect(Collectors.joining(", "));
+				LOG.debug("Background task executor cancel failed. Running tasks: {}", taskNames);
+			}
 		} catch (Exception e) {
 			LOG.error("Error terminating task executor", e);
 		} finally {
@@ -131,8 +141,16 @@ public class BackgroundExecutor {
 			try {
 				runJobs();
 			} finally {
-				taskComplete(id);
-				task.onDone(this);
+				try {
+					task.onDone(this);
+					// treat UI task operations as part of the task to not mix with others
+					UiUtils.uiRunAndWait(() -> {
+						progressPane.setVisible(false);
+						task.onFinish(this);
+					});
+				} finally {
+					taskComplete(id);
+				}
 			}
 			return status;
 		}
@@ -146,7 +164,7 @@ public class BackgroundExecutor {
 				progressPane.changeVisibility(this, true);
 			}
 			status = TaskStatus.STARTED;
-			int threadsCount = mainWindow.getSettings().getThreadsCount();
+			int threadsCount = settings.getThreadsCount();
 			executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
 			for (Runnable job : jobs) {
 				executor.execute(job);
@@ -256,12 +274,6 @@ public class BackgroundExecutor {
 				}
 				return null;
 			};
-		}
-
-		@Override
-		protected void done() {
-			progressPane.setVisible(false);
-			task.onFinish(this);
 		}
 
 		@Override

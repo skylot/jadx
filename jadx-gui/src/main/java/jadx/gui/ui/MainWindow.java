@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -135,7 +136,9 @@ import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.logs.LogCollector;
+import jadx.gui.utils.ui.ActionHandler;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -152,6 +155,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = UiUtils.openSvgIcon("ui/openDisk");
 	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
 	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
+	private static final ImageIcon ICON_RELOAD = UiUtils.openSvgIcon("ui/refresh");
 	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
 	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
 	private static final ImageIcon ICON_SYNC = UiUtils.openSvgIcon("ui/pagination");
@@ -196,6 +200,9 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
 
+	private JCheckBoxMenuItem liveReloadMenuItem;
+	private final LiveReloadWorker liveReloadWorker;
+
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
 	private transient Theme editorTheme;
@@ -208,18 +215,18 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
+		this.liveReloadWorker = new LiveReloadWorker(this);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
 		initUI();
+		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
 		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
 		loadSettings();
+
 		update();
-
-		this.backgroundExecutor = new BackgroundExecutor(this);
-
 		checkForUpdate();
 	}
 
@@ -405,7 +412,7 @@ public class MainWindow extends JFrame {
 		return loadedFile.resolveSibling(fileName);
 	}
 
-	public void reopen() {
+	public synchronized void reopen() {
 		saveAll();
 		closeAll();
 		loadFiles(EMPTY_RUNNABLE);
@@ -437,6 +444,10 @@ public class MainWindow extends JFrame {
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
 						showHeapUsageBar();
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
+						return;
+					}
+					if (status != TaskStatus.COMPLETE) {
+						LOG.warn("Loading task incomplete, status: {}", status);
 						return;
 					}
 					checkLoadedStatus();
@@ -485,11 +496,27 @@ public class MainWindow extends JFrame {
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
 		update();
+		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
 
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				this::restoreOpenTabs,
 				status -> runInitialBackgroundJobs());
+	}
+
+	public void updateLiveReload(boolean state) {
+		if (liveReloadWorker.isStarted() == state) {
+			return;
+		}
+		project.setEnableLiveReload(state);
+		liveReloadMenuItem.setEnabled(false);
+		backgroundExecutor.execute(
+				(state ? "Starting" : "Stopping") + " live reload",
+				() -> liveReloadWorker.updateState(state),
+				s -> {
+					liveReloadMenuItem.setState(state);
+					liveReloadMenuItem.setEnabled(true);
+				});
 	}
 
 	private void addTreeCustomNodes() {
@@ -829,6 +856,19 @@ public class MainWindow extends JFrame {
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
 
+		ActionHandler reload = new ActionHandler(ev -> UiUtils.uiRun(this::reopen));
+		reload.setNameAndDesc(NLS.str("file.reload"));
+		reload.setIcon(ICON_RELOAD);
+		reload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, 0));
+
+		ActionHandler liveReload = new ActionHandler(ev -> updateLiveReload(!project.isEnableLiveReload()));
+		liveReload.setName(NLS.str("file.live_reload"));
+		liveReload.setShortDescription(NLS.str("file.live_reload_desc"));
+		liveReload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK));
+
+		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
+		liveReloadMenuItem.setState(project.isEnableLiveReload());
+
 		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1045,6 +1085,9 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
+		file.add(reload);
+		file.add(liveReloadMenuItem);
+		file.addSeparator();
 		file.add(exportMappingsMenu);
 		file.addSeparator();
 		file.add(saveAllAction);
@@ -1113,6 +1156,8 @@ public class MainWindow extends JFrame {
 		toolbar.setFloatable(false);
 		toolbar.add(openAction);
 		toolbar.add(addFilesAction);
+		toolbar.addSeparator();
+		toolbar.add(reload);
 		toolbar.addSeparator();
 		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
@@ -1450,10 +1495,6 @@ public class MainWindow extends JFrame {
 
 	public BackgroundExecutor getBackgroundExecutor() {
 		return backgroundExecutor;
-	}
-
-	public ProgressPanel getProgressPane() {
-		return progressPane;
 	}
 
 	public JRoot getTreeRoot() {

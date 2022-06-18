@@ -169,6 +169,17 @@ public class JadxProject {
 		throw new JadxRuntimeException("Can't get working dir");
 	}
 
+	public boolean isEnableLiveReload() {
+		return data.isEnableLiveReload();
+	}
+
+	public void setEnableLiveReload(boolean newValue) {
+		if (newValue != data.isEnableLiveReload()) {
+			data.setEnableLiveReload(newValue);
+			changed();
+		}
+	}
+
 	private void changed() {
 		JadxSettings settings = mainWindow.getSettings();
 		if (settings != null && settings.isAutoSaveProject()) {

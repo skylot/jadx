@@ -428,7 +428,7 @@ public class Utils {
 	}
 
 	public static void checkThreadInterrupt() {
-		if (Thread.interrupted()) {
+		if (Thread.currentThread().isInterrupted()) {
 			throw new JadxRuntimeException("Thread interrupted");
 		}
 	}

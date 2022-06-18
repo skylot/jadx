@@ -11,6 +11,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -75,7 +76,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public AbstractCodeArea(ContentPanel contentPanel, JNode node) {
 		this.contentPanel = contentPanel;
-		this.node = node;
+		this.node = Objects.requireNonNull(node);
 
 		setMarkOccurrences(false);
 		setEditable(false);

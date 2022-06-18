@@ -269,6 +269,7 @@ public class RootNode {
 	public void runPreDecompileStage() {
 		boolean debugEnabled = LOG.isDebugEnabled();
 		for (IDexTreeVisitor pass : preDecompilePasses) {
+			Utils.checkThreadInterrupt();
 			long start = debugEnabled ? System.currentTimeMillis() : 0;
 			try {
 				pass.init(this);
