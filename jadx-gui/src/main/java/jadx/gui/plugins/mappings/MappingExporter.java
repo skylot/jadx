@@ -42,6 +42,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.mappings.DalvikToJavaBytecodeUtils;
 
 public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
@@ -49,32 +50,6 @@ public class MappingExporter {
 
 	public MappingExporter(RootNode rootNode) {
 		this.root = rootNode;
-	}
-
-	private List<VarNode> collectMethodArgs(MethodNode methodNode) {
-		ICodeInfo codeInfo = methodNode.getTopParentClass().getCode();
-		int mthDefPos = methodNode.getDefPosition();
-		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
-		List<VarNode> args = new ArrayList<>();
-		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
-			if (pos > lineEndPos) {
-				// Stop at line end
-				return Boolean.TRUE;
-			}
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
-				if (declRef instanceof VarNode) {
-					VarNode varNode = (VarNode) declRef;
-					if (!varNode.getMth().equals(methodNode)) {
-						// Stop if we've gone too far and have entered a different method
-						return Boolean.TRUE;
-					}
-					args.add(varNode);
-				}
-			}
-			return null;
-		});
-		return args;
 	}
 
 	private List<SimpleEntry<VarNode, Integer>> collectMethodVars(MethodNode methodNode) {
@@ -223,9 +198,9 @@ public class MappingExporter {
 					// Method args
 					int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
 					int lastArgLvIndex = lvtIndex - 1;
-					List<VarNode> args = collectMethodArgs(mth);
+					List<VarNode> args = mth.collectArgsWithoutLoading();
 					for (VarNode arg : args) {
-						int lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						int lvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(arg);
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(arg.getReg(), arg.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {

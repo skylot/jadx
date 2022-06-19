@@ -22,6 +22,7 @@ import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.mappings.DalvikToJavaBytecodeUtils;
 
 @JadxVisitor(
 		name = "ApplyCodeMappings",
@@ -68,7 +69,7 @@ public class CodeMappingsVisitor extends AbstractVisitor {
 			for (MethodArgMapping argMapping : methodMapping.getArgs()) {
 				int mappingLvIndex = argMapping.getLvIndex();
 				for (SSAVar ssaVar : ssaVars) {
-					int actualLvIndex = ssaVar.getRegNum() - ssaVars.get(0).getRegNum();
+					int actualLvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(ssaVar, mth);
 					if (actualLvIndex == mappingLvIndex) {
 						ssaVar.getCodeVar().setName(argMapping.getDstName(0));
 						break;

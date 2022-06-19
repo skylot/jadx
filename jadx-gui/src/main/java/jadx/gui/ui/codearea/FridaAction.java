@@ -12,14 +12,10 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
-import jadx.api.utils.CodeUtils;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -93,7 +89,10 @@ public final class FridaAction extends JNodeAction {
 			functionUntilImplementation = String.format("%s[\"%s\"].implementation", shortClassName, methodName);
 		}
 
-		List<String> methodArgNames = collectMethodArgNames(javaMethod);
+		List<String> methodArgNames = new ArrayList<>();
+		for (VarNode arg : javaMethod.getMethodNode().collectArgsWithoutLoading()) {
+			methodArgNames.add(arg.getName());
+		}
 
 		String functionParametersString = String.join(", ", methodArgNames);
 		String logParametersString =
@@ -112,29 +111,6 @@ public final class FridaAction extends JNodeAction {
 				functionParametersString, methodName);
 
 		return generateClassSnippet(jMth.getJParent()) + "\n" + functionParameterAndBody;
-	}
-
-	private List<String> collectMethodArgNames(JavaMethod javaMethod) {
-		ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
-		int mthDefPos = javaMethod.getDefPos();
-		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
-		List<String> argNames = new ArrayList<>();
-		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
-			if (pos > lineEndPos) {
-				return Boolean.TRUE; // stop at line end
-			}
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
-				if (declRef instanceof VarNode) {
-					VarNode varNode = (VarNode) declRef;
-					if (varNode.getMth().equals(javaMethod.getMethodNode())) {
-						argNames.add(varNode.getName());
-					}
-				}
-			}
-			return null;
-		});
-		return argNames;
 	}
 
 	private String generateClassSnippet(JClass jc) {
