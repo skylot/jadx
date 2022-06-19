@@ -626,6 +626,10 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
+		JCheckBox jumpOnDoubleClick = new JCheckBox();
+		jumpOnDoubleClick.setSelected(settings.isJumpOnDoubleClick());
+		jumpOnDoubleClick.addItemListener(e -> settings.setJumpOnDoubleClick(e.getStateChange() == ItemEvent.SELECTED));
+
 		JCheckBox update = new JCheckBox();
 		update.setSelected(settings.isCheckForUpdates());
 		update.addItemListener(e -> settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));
@@ -647,6 +651,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
+		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);

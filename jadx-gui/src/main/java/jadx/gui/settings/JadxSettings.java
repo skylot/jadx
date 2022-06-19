@@ -91,6 +91,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPort = "5037";
 
 	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_CACHE;
+	private boolean jumpOnDoubleClick = true;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -614,6 +615,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setCodeCacheMode(CodeCacheMode codeCacheMode) {
 		this.codeCacheMode = codeCacheMode;
+	}
+
+	public boolean isJumpOnDoubleClick() {
+		return jumpOnDoubleClick;
+	}
+
+	public void setJumpOnDoubleClick(boolean jumpOnDoubleClick) {
+		this.jumpOnDoubleClick = jumpOnDoubleClick;
 	}
 
 	private void upgradeSettings(int fromVersion) {
