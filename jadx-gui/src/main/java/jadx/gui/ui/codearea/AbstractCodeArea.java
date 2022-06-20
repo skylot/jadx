@@ -356,6 +356,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		return null;
 	}
 
+	public boolean isDisposed() {
+		return node == null;
+	}
+
 	public void dispose() {
 		// code area reference can still be used somewhere in UI objects,
 		// reset node reference to allow to GC jadx objects tree
@@ -363,6 +367,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		contentPanel = null;
 
 		// also clear internals
+		setIgnoreRepaint(true);
+		setText("");
+		setEnabled(false);
+		setSyntaxEditingStyle(SYNTAX_STYLE_NONE);
 		setLinkGenerator(null);
 		for (MouseListener mouseListener : getMouseListeners()) {
 			removeMouseListener(mouseListener);

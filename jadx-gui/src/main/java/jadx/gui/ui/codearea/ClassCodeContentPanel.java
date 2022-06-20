@@ -165,10 +165,15 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		} catch (Exception e) {
 			LOG.debug("Failed to restore view position: {}", viewState.getViewPoint(), e);
 		}
+		int caretPos = viewState.getCaretPos();
 		try {
-			activePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
+			AbstractCodeArea codeArea = activePanel.getCodeArea();
+			int codeLen = codeArea.getDocument().getLength();
+			if (caretPos >= 0 && caretPos < codeLen) {
+				codeArea.setCaretPosition(caretPos);
+			}
 		} catch (Exception e) {
-			LOG.debug("Failed to restore caret position: {}", viewState.getCaretPos(), e);
+			LOG.debug("Failed to restore caret position: {}", caretPos, e);
 		}
 	}
 

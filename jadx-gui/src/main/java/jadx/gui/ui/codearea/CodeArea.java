@@ -85,6 +85,10 @@ public final class CodeArea extends AbstractCodeArea {
 	@Override
 	public ICodeInfo getCodeInfo() {
 		if (cachedCodeInfo == null) {
+			if (isDisposed()) {
+				LOG.debug("CodeArea used after dispose!");
+				return ICodeInfo.EMPTY;
+			}
 			cachedCodeInfo = Objects.requireNonNull(node.getCodeInfo());
 		}
 		return cachedCodeInfo;

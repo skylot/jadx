@@ -145,11 +145,12 @@ public class BackgroundExecutor {
 					task.onDone(this);
 					// treat UI task operations as part of the task to not mix with others
 					UiUtils.uiRunAndWait(() -> {
-						progressPane.setVisible(false);
 						task.onFinish(this);
+						progressPane.setVisible(false);
 					});
 				} finally {
 					taskComplete(id);
+					progressPane.changeVisibility(this, false);
 				}
 			}
 			return status;
@@ -230,13 +231,13 @@ public class BackgroundExecutor {
 			// force termination
 			task.cancel();
 			executor.shutdown();
-			if (executor.awaitTermination(5, TimeUnit.SECONDS)) {
+			if (executor.awaitTermination(2, TimeUnit.SECONDS)) {
 				LOG.debug("Task cancel complete");
 				return;
 			}
 			LOG.debug("Forcing tasks cancel");
 			executor.shutdownNow();
-			boolean complete = executor.awaitTermination(30, TimeUnit.SECONDS);
+			boolean complete = executor.awaitTermination(5, TimeUnit.SECONDS);
 			LOG.debug("Forced task cancel status: {}",
 					complete ? "success" : "fail, still active: " + executor.getActiveCount());
 		}

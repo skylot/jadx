@@ -29,9 +29,12 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 
 	@Override
 	public Token getTokenList(Segment text, int initialTokenType, int startOffset) {
+		if (codeArea.isDisposed()) {
+			return new TokenImpl();
+		}
 		try {
 			Token tokens = super.getTokenList(text, initialTokenType, startOffset);
-			if (tokens.getType() != TokenTypes.NULL) {
+			if (tokens != null && tokens.getType() != TokenTypes.NULL) {
 				processTokens(tokens);
 			}
 			return tokens;
