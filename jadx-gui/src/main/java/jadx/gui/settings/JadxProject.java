@@ -57,6 +57,18 @@ public class JadxProject {
 		this.mainWindow = mainWindow;
 	}
 
+	public @Nullable Path getWorkingDir() {
+		if (projectPath != null) {
+			return projectPath.toAbsolutePath().getParent();
+		}
+		List<Path> files = data.getFiles();
+		if (!files.isEmpty()) {
+			Path path = files.get(0);
+			return path.toAbsolutePath().getParent();
+		}
+		return null;
+	}
+
 	@Nullable
 	public Path getProjectPath() {
 		return projectPath;
@@ -166,7 +178,7 @@ public class JadxProject {
 			Path path = files.get(0);
 			return path.resolveSibling(path.getFileName() + ".cache");
 		}
-		throw new JadxRuntimeException("Can't get working dir");
+		throw new JadxRuntimeException("Failed to build cache dir");
 	}
 
 	public boolean isEnableLiveReload() {

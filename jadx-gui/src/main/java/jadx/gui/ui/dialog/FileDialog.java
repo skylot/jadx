@@ -27,7 +27,12 @@ import jadx.gui.utils.NLS;
 public class FileDialog {
 
 	public enum OpenMode {
-		OPEN, ADD, SAVE_PROJECT, EXPORT
+		OPEN,
+		ADD,
+		SAVE_PROJECT,
+		EXPORT,
+		CUSTOM_SAVE,
+		CUSTOM_OPEN
 	}
 
 	private final MainWindow mainWindow;
@@ -42,6 +47,26 @@ public class FileDialog {
 	public FileDialog(MainWindow mainWindow, OpenMode mode) {
 		this.mainWindow = mainWindow;
 		initForMode(mode);
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setFileExtList(List<String> fileExtList) {
+		this.fileExtList = fileExtList;
+	}
+
+	public void setSelectionMode(int selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
+	public void setSelectedFile(Path path) {
+		this.selectedFile = path;
+	}
+
+	public void setCurrentDir(Path currentDir) {
+		this.currentDir = currentDir;
 	}
 
 	public List<Path> show() {
@@ -64,10 +89,6 @@ public class FileDialog {
 
 	public Path getCurrentDir() {
 		return currentDir;
-	}
-
-	public void setSelectedFile(Path path) {
-		this.selectedFile = path;
 	}
 
 	private void initForMode(OpenMode mode) {
@@ -101,6 +122,14 @@ public class FileDialog {
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
+
+			case CUSTOM_SAVE:
+				isOpen = false;
+				break;
+
+			case CUSTOM_OPEN:
+				isOpen = true;
+				break;
 		}
 	}
 
@@ -110,7 +139,7 @@ public class FileDialog {
 		fileChooser.setFileSelectionMode(selectionMode);
 		fileChooser.setMultiSelectionEnabled(isOpen);
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		if (!fileExtList.isEmpty()) {
+		if (Utils.notEmpty(fileExtList)) {
 			String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(fileExtList) + ')';
 			fileChooser.setFileFilter(new FileNameExtensionFilter(description, fileExtList.toArray(new String[0])));
 		}

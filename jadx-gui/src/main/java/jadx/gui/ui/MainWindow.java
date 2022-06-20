@@ -44,6 +44,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -85,7 +86,6 @@ import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
-import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
@@ -362,17 +362,28 @@ public class MainWindow extends JFrame {
 	}
 
 	private void exportMappings(MappingFormat mappingFormat) {
-		RootNode rootNode = wrapper.getDecompiler().getRoot();
-
-		Thread exportThread = new Thread(() -> {
-			new MappingExporter(rootNode).exportMappings(
-					Paths.get(project.getProjectPath().getParent().toString(),
-							"mappings" + (mappingFormat.hasSingleFile() ? "." + mappingFormat.fileExt : "")),
-					project.getCodeData(), mappingFormat);
-		});
-
-		backgroundExecutor.execute(NLS.str("progress.export_mappings"), exportThread);
-		update();
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_SAVE);
+		fileDialog.setTitle(NLS.str("file.export_mappings_as"));
+		Path workingDir = project.getWorkingDir();
+		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
+		if (mappingFormat.hasSingleFile()) {
+			fileDialog.setSelectedFile(baseDir.resolve("mappings." + mappingFormat.fileExt));
+			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
+			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
+		} else {
+			fileDialog.setCurrentDir(baseDir);
+			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
+		List<Path> paths = fileDialog.show();
+		if (paths.size() != 1) {
+			return;
+		}
+		Path savePath = paths.get(0);
+		LOG.info("Export mappings to: {}", savePath.toAbsolutePath());
+		backgroundExecutor.execute(NLS.str("progress.export_mappings"),
+				() -> new MappingExporter(wrapper.getDecompiler().getRoot())
+						.exportMappings(savePath, project.getCodeData(), mappingFormat),
+				s -> update());
 	}
 
 	void open(List<Path> paths) {
