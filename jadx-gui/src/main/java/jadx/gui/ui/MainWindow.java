@@ -814,7 +814,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initMenuAndToolbar() {
-		final boolean devVersion = (Jadx.VERSION_DEV.equals(Jadx.getVersion()));
 		Action openAction = new AbstractAction(NLS.str("file.open_action"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1124,7 +1123,7 @@ public class MainWindow extends JFrame {
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(logAction);
-		if (devVersion) {
+		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
 				public void actionPerformed(ActionEvent e) {

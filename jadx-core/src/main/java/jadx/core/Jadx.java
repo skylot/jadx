@@ -244,6 +244,10 @@ public class Jadx {
 		return version;
 	}
 
+	public static boolean isDevVersion() {
+		return getVersion().equals(VERSION_DEV);
+	}
+
 	private static String searchJadxVersion() {
 		try {
 			ClassLoader classLoader = Jadx.class.getClassLoader();
