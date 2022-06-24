@@ -10,6 +10,7 @@ import jadx.core.utils.Utils;
 
 @SuppressWarnings("MemberName")
 public class QuarkReportData {
+
 	public static class Crime {
 		public String crime;
 		public String confidence;
@@ -18,6 +19,22 @@ public class QuarkReportData {
 		List<Method> native_api;
 		List<JsonElement> combination;
 		List<Map<String, InvokePlace>> register;
+
+		public int parseConfidence() {
+			return Integer.parseInt(confidence.replace("%", ""));
+		}
+
+		@Override
+		public String toString() {
+			return "Crime{" +
+					"crime='" + crime + '\'' +
+					", confidence='" + confidence + '\'' +
+					", permissions=" + permissions +
+					", native_api=" + native_api +
+					", combination=" + combination +
+					", register=" + register +
+					'}';
+		}
 	}
 
 	public static class Method {
@@ -46,4 +63,22 @@ public class QuarkReportData {
 	String threat_level;
 	int total_score;
 	List<Crime> crimes;
+
+	public void validate() {
+		if (crimes == null) {
+			throw new RuntimeException("Invalid data: \"crimes\" list missing");
+		}
+		for (Crime crime : crimes) {
+			if (crime.confidence == null) {
+				throw new RuntimeException("Confidence value missing: " + crime);
+			}
+			try {
+				crime.parseConfidence();
+			} catch (Exception e) {
+				throw new RuntimeException("Invalid crime entry: " + crime);
+			}
+		}
+
+	}
+
 }

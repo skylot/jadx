@@ -70,7 +70,7 @@ public class QuarkReportPanel extends ContentPanel {
 	}
 
 	private void prepareData() {
-		data.crimes.sort(Comparator.comparingInt(c -> -Integer.parseInt(c.confidence.replace("%", ""))));
+		data.crimes.sort(Comparator.comparingInt(c -> -c.parseConfidence()));
 	}
 
 	private void initUI() {
@@ -290,7 +290,7 @@ public class QuarkReportPanel extends ContentPanel {
 			}
 			return new MethodTreeNode(javaMethod);
 		} catch (Exception e) {
-			LOG.error("Failed to parse method descriptor string", e);
+			LOG.error("Failed to parse method descriptor string: {}", descr, e);
 			return new TextTreeNode(descr);
 		}
 	}
