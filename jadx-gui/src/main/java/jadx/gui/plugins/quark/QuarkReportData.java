@@ -26,14 +26,15 @@ public class QuarkReportData {
 
 		@Override
 		public String toString() {
-			return "Crime{" +
-					"crime='" + crime + '\'' +
-					", confidence='" + confidence + '\'' +
-					", permissions=" + permissions +
-					", native_api=" + native_api +
-					", combination=" + combination +
-					", register=" + register +
-					'}';
+			final StringBuffer sb = new StringBuffer("Crime{");
+			sb.append("crime='").append(crime).append('\'');
+			sb.append(", confidence='").append(confidence).append('\'');
+			sb.append(", permissions=").append(permissions);
+			sb.append(", native_api=").append(native_api);
+			sb.append(", combination=").append(combination);
+			sb.append(", register=").append(register);
+			sb.append('}');
+			return sb.toString();
 		}
 	}
 
