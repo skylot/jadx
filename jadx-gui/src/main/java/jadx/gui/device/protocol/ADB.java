@@ -49,7 +49,7 @@ public class ADB {
 			return false;
 		}
 		if (buf == null) {
-			throw new IOException("isOkay failed - steam ended");
+			throw new IOException("isOkay failed - stream ended");
 		}
 		throw new IOException("isOkay failed - unexpected response " + new String(buf));
 	}
