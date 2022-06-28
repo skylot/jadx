@@ -367,29 +367,33 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		contentPanel = null;
 
 		// also clear internals
-		setIgnoreRepaint(true);
-		setText("");
-		setEnabled(false);
-		setSyntaxEditingStyle(SYNTAX_STYLE_NONE);
-		setLinkGenerator(null);
-		for (MouseListener mouseListener : getMouseListeners()) {
-			removeMouseListener(mouseListener);
-		}
-		for (MouseMotionListener mouseMotionListener : getMouseMotionListeners()) {
-			removeMouseMotionListener(mouseMotionListener);
-		}
-		JPopupMenu popupMenu = getPopupMenu();
-		for (PopupMenuListener popupMenuListener : popupMenu.getPopupMenuListeners()) {
-			popupMenu.removePopupMenuListener(popupMenuListener);
-		}
-		for (Component component : popupMenu.getComponents()) {
-			if (component instanceof JMenuItem) {
-				Action action = ((JMenuItem) component).getAction();
-				if (action instanceof JNodeAction) {
-					((JNodeAction) action).dispose();
+		try {
+			setIgnoreRepaint(true);
+			setText("");
+			setEnabled(false);
+			setSyntaxEditingStyle(SYNTAX_STYLE_NONE);
+			setLinkGenerator(null);
+			for (MouseListener mouseListener : getMouseListeners()) {
+				removeMouseListener(mouseListener);
+			}
+			for (MouseMotionListener mouseMotionListener : getMouseMotionListeners()) {
+				removeMouseMotionListener(mouseMotionListener);
+			}
+			JPopupMenu popupMenu = getPopupMenu();
+			for (PopupMenuListener popupMenuListener : popupMenu.getPopupMenuListeners()) {
+				popupMenu.removePopupMenuListener(popupMenuListener);
+			}
+			for (Component component : popupMenu.getComponents()) {
+				if (component instanceof JMenuItem) {
+					Action action = ((JMenuItem) component).getAction();
+					if (action instanceof JNodeAction) {
+						((JNodeAction) action).dispose();
+					}
 				}
 			}
+			popupMenu.removeAll();
+		} catch (Throwable e) {
+			LOG.debug("Error on code area dispose", e);
 		}
-		popupMenu.removeAll();
 	}
 }
