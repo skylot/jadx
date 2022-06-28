@@ -18,6 +18,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
@@ -134,7 +135,7 @@ public class FileDialog {
 	}
 
 	private FileChooser buildFileChooser() {
-		FileChooser fileChooser = new FileChooser();
+		FileChooser fileChooser = new FileChooser(currentDir);
 		fileChooser.setToolTipText(title);
 		fileChooser.setFileSelectionMode(selectionMode);
 		fileChooser.setMultiSelectionEnabled(isOpen);
@@ -143,9 +144,6 @@ public class FileDialog {
 			String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(fileExtList) + ')';
 			fileChooser.setFileFilter(new FileNameExtensionFilter(description, fileExtList.toArray(new String[0])));
 		}
-		if (currentDir != null) {
-			fileChooser.setCurrentDirectory(currentDir.toFile());
-		}
 		if (selectedFile != null) {
 			fileChooser.setSelectedFile(selectedFile.toFile());
 		}
@@ -153,6 +151,11 @@ public class FileDialog {
 	}
 
 	private class FileChooser extends JFileChooser {
+
+		public FileChooser(@Nullable Path currentDirectory) {
+			super(currentDirectory == null ? CommonFileUtils.CWD : currentDirectory.toFile());
+		}
+
 		@Override
 		protected JDialog createDialog(Component parent) throws HeadlessException {
 			JDialog dialog = super.createDialog(parent);
