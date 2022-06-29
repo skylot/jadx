@@ -45,8 +45,8 @@ public class RenameVisitor extends AbstractVisitor {
 			deobfuscator.execute();
 		}
 
-		checkClasses(deobfuscator, root, args);
 		UserRenames.applyForNodes(root);
+		checkClasses(deobfuscator, root, args);
 
 		if (args.isDeobfuscationOn() || !args.isJsonOutput()) {
 			deobfuscator.savePresets();

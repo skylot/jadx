@@ -38,6 +38,7 @@ import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.core.deobf.NameMapper;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.TaskStatus;
@@ -58,6 +59,7 @@ import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
@@ -69,6 +71,7 @@ public class RenameDialog extends JDialog {
 	private final transient JNode source;
 	private final transient JNode node;
 	private transient JTextField renameField;
+	private transient JButton renameBtn;
 
 	public static boolean rename(MainWindow mainWindow, JNode node) {
 		return rename(mainWindow, node, node);
@@ -76,7 +79,8 @@ public class RenameDialog extends JDialog {
 
 	public static boolean rename(MainWindow mainWindow, JNode source, JNode node) {
 		RenameDialog renameDialog = new RenameDialog(mainWindow, source, node);
-		renameDialog.setVisible(true);
+		UiUtils.uiRun(() -> renameDialog.setVisible(true));
+		UiUtils.uiRun(renameDialog::initRenameField); // wait for UI events to propagate
 		return true;
 	}
 
@@ -87,6 +91,11 @@ public class RenameDialog extends JDialog {
 		this.source = source;
 		this.node = replaceNode(node);
 		initUI();
+	}
+
+	private void initRenameField() {
+		renameField.setText(node.getName());
+		renameField.selectAll();
 	}
 
 	private JNode replaceNode(JNode node) {
@@ -103,7 +112,19 @@ public class RenameDialog extends JDialog {
 		return node;
 	}
 
+	private boolean checkNewName() {
+		boolean valid = NameMapper.isValidIdentifier(renameField.getText());
+		if (renameBtn.isEnabled() != valid) {
+			renameBtn.setEnabled(valid);
+			renameField.putClientProperty("JComponent.outline", valid ? "" : "error");
+		}
+		return valid;
+	}
+
 	private void rename() {
+		if (!checkNewName()) {
+			return;
+		}
 		try {
 			updateCodeRenames(set -> processRename(node, renameField.getText(), set));
 			refreshState();
@@ -270,7 +291,7 @@ public class RenameDialog extends JDialog {
 	protected JPanel initButtonsPanel() {
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
-		JButton renameBtn = new JButton(NLS.str("common_dialog.ok"));
+		renameBtn = new JButton(NLS.str("common_dialog.ok"));
 		renameBtn.addActionListener(event -> rename());
 		getRootPane().setDefaultButton(renameBtn);
 
@@ -291,9 +312,8 @@ public class RenameDialog extends JDialog {
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);
+		renameField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> checkNewName()));
 		renameField.addActionListener(e -> rename());
-		renameField.setText(node.getName());
-		renameField.selectAll();
 		new TextStandardActions(renameField);
 
 		JPanel renamePane = new JPanel();
