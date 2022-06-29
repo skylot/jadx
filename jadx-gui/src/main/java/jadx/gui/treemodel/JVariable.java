@@ -70,6 +70,6 @@ public class JVariable extends JNode {
 
 	@Override
 	public boolean canRename() {
-		return true;
+		return var.getName() != null;
 	}
 }
