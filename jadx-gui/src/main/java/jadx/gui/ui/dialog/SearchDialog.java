@@ -406,7 +406,6 @@ public class SearchDialog extends CommonSearchDialog {
 	private synchronized void stopSearchTask() {
 		if (searchTask != null) {
 			searchTask.cancel();
-			searchTask.waitTask();
 			searchTask = null;
 		}
 	}

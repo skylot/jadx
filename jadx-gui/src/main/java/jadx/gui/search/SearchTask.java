@@ -3,6 +3,7 @@ package jadx.gui.search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -65,6 +66,10 @@ public class SearchTask extends CancelableBackgroundTask {
 	}
 
 	public synchronized boolean addResult(JNode resultNode) {
+		if (isCanceled()) {
+			// ignore new results after cancel
+			return true;
+		}
 		this.results.accept(resultNode);
 		if (resultsLimit != 0 && resultsCount.incrementAndGet() >= resultsLimit) {
 			cancel();
@@ -76,9 +81,9 @@ public class SearchTask extends CancelableBackgroundTask {
 	public synchronized void waitTask() {
 		if (future != null) {
 			try {
-				future.get();
+				future.get(2, TimeUnit.SECONDS);
 			} catch (Exception e) {
-				LOG.error("Wait search task failed", e);
+				LOG.warn("Wait search task failed", e);
 			} finally {
 				future.cancel(true);
 				future = null;
