@@ -26,7 +26,6 @@ public class TestMoveInline extends SmaliTest {
 
 	@Test
 	public void test() {
-		getArgs().setRawCFGOutput(true);
 		assertThat(getClassNodeFromSmali())
 				.code()
 				// check operations order

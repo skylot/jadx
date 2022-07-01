@@ -50,7 +50,7 @@ public class BlockExceptionHandler {
 			return false;
 		}
 		BlockProcessor.updateCleanSuccessors(mth);
-		BlockProcessor.computeDominanceFrontier(mth);
+		DominatorTree.computeDominanceFrontier(mth);
 
 		processCatchAttr(mth);
 		initExcHandlers(mth);

@@ -316,6 +316,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return blocks;
 	}
 
+	public void setBasicBlocks(List<BlockNode> blocks) {
+		this.blocks = blocks;
+	}
+
 	public BlockNode getEnterBlock() {
 		return enterBlock;
 	}
