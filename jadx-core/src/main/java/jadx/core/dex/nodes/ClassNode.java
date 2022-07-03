@@ -21,6 +21,7 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
@@ -378,7 +379,13 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 				return code;
 			}
 		}
-		ICodeInfo codeInfo = root.getProcessClasses().generateCode(this);
+		ICodeInfo codeInfo;
+		try {
+			codeInfo = root.getProcessClasses().generateCode(this);
+		} catch (Throwable e) {
+			addError("Code generation failed", e);
+			codeInfo = new SimpleCodeInfo(Utils.getStackTrace(e));
+		}
 		if (codeInfo != ICodeInfo.EMPTY) {
 			codeCache.add(clsRawName, codeInfo);
 		}
