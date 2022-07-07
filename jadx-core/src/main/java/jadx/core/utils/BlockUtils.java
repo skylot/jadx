@@ -1013,6 +1013,9 @@ public class BlockUtils {
 	 */
 	@Nullable
 	public static InsnNode getOnlyOneInsnFromMth(MethodNode mth) {
+		if (mth.isNoCode()) {
+			return null;
+		}
 		InsnNode insn = null;
 		for (BlockNode block : mth.getBasicBlocks()) {
 			List<InsnNode> blockInsns = block.getInstructions();

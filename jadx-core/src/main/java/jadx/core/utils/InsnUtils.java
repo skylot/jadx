@@ -1,6 +1,7 @@
 package jadx.core.utils;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
@@ -138,6 +139,37 @@ public class InsnUtils {
 			}
 		}
 		return null;
+	}
+
+	public static void replaceInsns(MethodNode mth, Function<InsnNode, InsnNode> replaceFunction) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			List<InsnNode> insns = block.getInstructions();
+			int insnsCount = insns.size();
+			for (int i = 0; i < insnsCount; i++) {
+				InsnNode insn = insns.get(i);
+				replaceInsnsInInsn(mth, insn, replaceFunction);
+				InsnNode replace = replaceFunction.apply(insn);
+				if (replace != null) {
+					BlockUtils.replaceInsn(mth, block, i, replace);
+				}
+			}
+		}
+	}
+
+	public static void replaceInsnsInInsn(MethodNode mth, InsnNode insn, Function<InsnNode, InsnNode> replaceFunction) {
+		int argsCount = insn.getArgsCount();
+		for (int i = 0; i < argsCount; i++) {
+			InsnArg arg = insn.getArg(i);
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				replaceInsnsInInsn(mth, wrapInsn, replaceFunction);
+				InsnNode replace = replaceFunction.apply(wrapInsn);
+				if (replace != null) {
+					InsnRemover.unbindArgUsage(mth, arg);
+					insn.setArg(i, InsnArg.wrapInsnIntoArg(replace));
+				}
+			}
+		}
 	}
 
 	@Nullable

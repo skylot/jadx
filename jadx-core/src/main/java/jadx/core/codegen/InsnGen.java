@@ -823,7 +823,9 @@ public class InsnGen {
 		}
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
-			code.add(callMthNode.getAlias());
+		}
+		if (insn.contains(AFlag.FORCE_RAW_NAME)) {
+			code.add(callMth.getName());
 		} else {
 			code.add(callMth.getAlias());
 		}

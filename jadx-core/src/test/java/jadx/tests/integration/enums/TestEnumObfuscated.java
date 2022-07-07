@@ -1,8 +1,10 @@
 package jadx.tests.integration.enums;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
+import jadx.api.CommentsLevel;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -32,14 +34,31 @@ public class TestEnumObfuscated extends SmaliTest {
 			public synthetic int getNum() {
 				return this.num;
 			}
+
+			// custom values method
+			// should be kept and renamed to avoid collision to enum 'values()' method
+			public static int values() {
+				return new TestEnumObfuscated[0];
+			}
+
+			// usage of renamed 'values()' method, should be renamed back to 'values'
+			public static int valuesCount() {
+				return vs().length;
+			}
+
+			// usage of renamed '$VALUES' field, should be replaced with 'values()' method call
+			public static int valuesFieldUse() {
+				return $VLS.length;
+			}
 		}
 	*/
 	// @formatter:on
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmali();
-		assertThat(cls)
+		getArgs().setCommentsLevel(CommentsLevel.WARN);
+		getArgs().setRenameFlags(Collections.emptySet());
+		assertThat(getClassNodeFromSmali())
 				.code()
 				.doesNotContain("$VLS")
 				.doesNotContain("vo(")

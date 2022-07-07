@@ -25,6 +25,8 @@ public enum AFlag {
 	HIDDEN, // instruction used inside other instruction but not listed in args
 
 	DONT_RENAME, // do not rename during deobfuscation
+	FORCE_RAW_NAME, // force use of raw name instead alias
+
 	ADDED_TO_REGION,
 
 	EXC_TOP_SPLITTER,

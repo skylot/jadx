@@ -18,6 +18,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -26,6 +27,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -59,6 +61,7 @@ import static jadx.core.utils.InsnUtils.getWrappedInsn;
 public class EnumVisitor extends AbstractVisitor {
 
 	private MethodInfo enumValueOfMth;
+	private MethodInfo cloneMth;
 
 	@Override
 	public void init(RootNode root) {
@@ -68,6 +71,12 @@ public class EnumVisitor extends AbstractVisitor {
 				"valueOf",
 				Arrays.asList(ArgType.CLASS, ArgType.STRING),
 				ArgType.ENUM);
+
+		cloneMth = MethodInfo.fromDetails(root,
+				ClassInfo.fromType(root, ArgType.OBJECT),
+				"clone",
+				Collections.emptyList(),
+				ArgType.OBJECT);
 	}
 
 	@Override
@@ -377,6 +386,7 @@ public class EnumVisitor extends AbstractVisitor {
 		return enumFieldNode;
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	private EnumField createEnumFieldByConstructor(ClassNode cls, FieldNode enumFieldNode, ConstructorInsn co) {
 		// usually constructor signature is '<init>(Ljava/lang/String;I)V'.
 		// sometimes for one field enum second arg can be omitted
@@ -417,13 +427,12 @@ public class EnumVisitor extends AbstractVisitor {
 	}
 
 	private void removeEnumMethods(ClassNode cls, ArgType clsType, FieldNode valuesField) {
-		String valuesMethod = "values()" + TypeGen.signature(ArgType.array(clsType));
-		FieldInfo valuesFieldInfo = valuesField.getFieldInfo();
-
+		String valuesMethodShortId = "values()" + TypeGen.signature(ArgType.array(clsType));
+		MethodNode valuesMethod = null;
 		// remove compiler generated methods
 		for (MethodNode mth : cls.getMethods()) {
 			MethodInfo mi = mth.getMethodInfo();
-			if (mi.isClassInit()) {
+			if (mi.isClassInit() || mth.isNoCode()) {
 				continue;
 			}
 			String shortId = mi.getShortId();
@@ -432,11 +441,32 @@ public class EnumVisitor extends AbstractVisitor {
 					mth.add(AFlag.DONT_GENERATE);
 				}
 				markArgsForSkip(mth);
-			} else if (shortId.equals(valuesMethod)
-					|| usesValuesField(mth, valuesFieldInfo)
-					|| simpleValueOfMth(mth, clsType)) {
+			} else if (mi.getShortId().equals(valuesMethodShortId)) {
+				if (isValuesMethod(mth, clsType)) {
+					valuesMethod = mth;
+					mth.add(AFlag.DONT_GENERATE);
+				} else {
+					// custom values method => rename to resolve conflict with enum method
+					mth.getMethodInfo().setAlias("valuesCustom");
+					mth.addAttr(new RenameReasonAttr(mth).append("to resolve conflict with enum method"));
+				}
+			} else if (isValuesMethod(mth, clsType)) {
+				if (!mth.getMethodInfo().getAlias().equals("values") && !mth.getUseIn().isEmpty()) {
+					// rename to use default values method
+					mth.getMethodInfo().setAlias("values");
+					mth.addAttr(new RenameReasonAttr(mth).append("to match enum method name"));
+					mth.add(AFlag.DONT_RENAME);
+				}
+				valuesMethod = mth;
+				mth.add(AFlag.DONT_GENERATE);
+			} else if (simpleValueOfMth(mth, clsType)) {
 				mth.add(AFlag.DONT_GENERATE);
 			}
+		}
+		FieldInfo valuesFieldInfo = valuesField.getFieldInfo();
+		for (MethodNode mth : cls.getMethods()) {
+			// fix access to 'values' field and 'values()' method
+			fixValuesAccess(mth, valuesFieldInfo, clsType, valuesMethod);
 		}
 	}
 
@@ -458,6 +488,25 @@ public class EnumVisitor extends AbstractVisitor {
 		return false;
 	}
 
+	// TODO: support other method patterns ???
+	private boolean isValuesMethod(MethodNode mth, ArgType clsType) {
+		ArgType retType = mth.getReturnType();
+		if (!retType.isArray() || !retType.getArrayElement().equals(clsType)) {
+			return false;
+		}
+		InsnNode returnInsn = BlockUtils.getOnlyOneInsnFromMth(mth);
+		if (returnInsn == null || returnInsn.getType() != InsnType.RETURN || returnInsn.getArgsCount() != 1) {
+			return false;
+		}
+		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));
+		IndexInsnNode castInsn = (IndexInsnNode) checkInsnType(wrappedInsn, InsnType.CHECK_CAST);
+		if (castInsn != null && Objects.equals(castInsn.getIndex(), ArgType.array(clsType))) {
+			InvokeNode invokeInsn = (InvokeNode) checkInsnType(getWrappedInsn(getSingleArg(castInsn)), InsnType.INVOKE);
+			return invokeInsn != null && invokeInsn.getCallMth().equals(cloneMth);
+		}
+		return false;
+	}
+
 	private boolean simpleValueOfMth(MethodNode mth, ArgType clsType) {
 		InsnNode returnInsn = InsnUtils.searchSingleReturnInsn(mth, insn -> insn.getArgsCount() == 1);
 		if (returnInsn == null) {
@@ -472,9 +521,41 @@ public class EnumVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private boolean usesValuesField(MethodNode mth, FieldInfo valuesFieldInfo) {
+	private void fixValuesAccess(MethodNode mth, FieldInfo valuesFieldInfo, ArgType clsType, @Nullable MethodNode valuesMethod) {
+		MethodInfo mi = mth.getMethodInfo();
+		if (mi.isConstructor() || mi.isClassInit() || mth.isNoCode() || mth == valuesMethod) {
+			return;
+		}
+		// search value field usage
 		Predicate<InsnNode> insnTest = insn -> Objects.equals(((IndexInsnNode) insn).getIndex(), valuesFieldInfo);
-		return InsnUtils.searchInsn(mth, InsnType.SGET, insnTest) != null;
+		InsnNode useInsn = InsnUtils.searchInsn(mth, InsnType.SGET, insnTest);
+		if (useInsn == null) {
+			return;
+		}
+		// replace 'values' field with 'values()' method
+		InsnUtils.replaceInsns(mth, insn -> {
+			if (insn.getType() == InsnType.SGET && insnTest.test(insn)) {
+				MethodInfo valueMth = valuesMethod == null
+						? getValueMthInfo(mth.root(), clsType)
+						: valuesMethod.getMethodInfo();
+				InvokeNode invokeNode = new InvokeNode(valueMth, InvokeType.STATIC, 0);
+				invokeNode.setResult(insn.getResult());
+				if (valuesMethod == null) {
+					// forcing enum method (can overlap and get renamed by custom method)
+					invokeNode.add(AFlag.FORCE_RAW_NAME);
+				}
+				mth.addDebugComment("Replace access to removed values field (" + valuesFieldInfo.getName() + ") with 'values()' method");
+				return invokeNode;
+			}
+			return null;
+		});
+	}
+
+	private MethodInfo getValueMthInfo(RootNode root, ArgType clsType) {
+		return MethodInfo.fromDetails(root,
+				ClassInfo.fromType(root, clsType),
+				"values",
+				Collections.emptyList(), ArgType.array(clsType));
 	}
 
 	private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
