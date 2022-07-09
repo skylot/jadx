@@ -71,4 +71,9 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "ProcessMethodsForInline";
+	}
 }
