@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.core.nodes.IJadxDecompiler;
+import jadx.api.impl.plugins.SimplePluginContext;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
@@ -32,9 +34,13 @@ import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginManager;
+import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxInputPlugin;
 import jadx.api.plugins.input.data.ILoadResult;
 import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.pass.JadxPass;
+import jadx.api.plugins.pass.types.JadxAfterLoadPass;
+import jadx.api.plugins.pass.types.JadxPassType;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
@@ -79,7 +85,7 @@ import jadx.core.xmlgen.ResourcesSaver;
  * </code>
  * </pre>
  */
-public final class JadxDecompiler implements Closeable {
+public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final JadxArgs args;
@@ -100,6 +106,8 @@ public final class JadxDecompiler implements Closeable {
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 
 	private final List<ILoadResult> customLoads = new ArrayList<>();
+	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
+	private @Nullable JadxGuiContext guiContext;
 
 	public JadxDecompiler() {
 		this(new JadxArgs());
@@ -117,11 +125,14 @@ public final class JadxDecompiler implements Closeable {
 		loadInputFiles();
 
 		root = new RootNode(args);
+		root.setDecompilerRef(this);
+		root.mergePasses(customPasses);
 		root.loadClasses(loadedInputs);
 		root.initClassPath();
 		root.loadResources(getResources());
 		root.runPreDecompileStage();
 		root.initPasses();
+		loadFinished();
 	}
 
 	private void loadInputFiles() {
@@ -139,14 +150,6 @@ public final class JadxDecompiler implements Closeable {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Loaded using {} inputs plugin in {} ms", loadedInputs.size(), System.currentTimeMillis() - start);
 		}
-	}
-
-	public void addCustomLoad(ILoadResult customLoad) {
-		customLoads.add(customLoad);
-	}
-
-	public List<ILoadResult> getCustomLoads() {
-		return customLoads;
 	}
 
 	private void reset() {
@@ -186,6 +189,11 @@ public final class JadxDecompiler implements Closeable {
 			LOG.debug("Resolved plugins: {}", Utils.collectionMap(pluginManager.getResolvedPlugins(),
 					p -> p.getPluginInfo().getPluginId()));
 		}
+		applyPluginOptions(args);
+		initPlugins();
+	}
+
+	private void applyPluginOptions(JadxArgs args) {
 		Map<String, String> pluginOptions = args.getPluginOptions();
 		if (!pluginOptions.isEmpty()) {
 			LOG.debug("Applying plugin options: {}", pluginOptions);
@@ -196,6 +204,36 @@ public final class JadxDecompiler implements Closeable {
 					String pluginId = plugin.getPluginInfo().getPluginId();
 					throw new JadxRuntimeException("Failed to apply options for plugin: " + pluginId, e);
 				}
+			}
+		}
+	}
+
+	private void initPlugins() {
+		customPasses.clear();
+
+		List<JadxPlugin> plugins = pluginManager.getResolvedPlugins();
+		SimplePluginContext context = new SimplePluginContext(this);
+		context.setGuiContext(guiContext);
+		for (JadxPlugin passPlugin : plugins) {
+			try {
+				passPlugin.init(context);
+			} catch (Exception e) {
+				String pluginId = passPlugin.getPluginInfo().getPluginId();
+				throw new JadxRuntimeException("Failed to pass plugin: " + pluginId, e);
+			}
+		}
+		if (LOG.isDebugEnabled()) {
+			List<String> passes = customPasses.values().stream().flatMap(Collection::stream)
+					.map(p -> p.getInfo().getName()).collect(Collectors.toList());
+			LOG.debug("Loaded custom passes: {} {}", passes.size(), passes);
+		}
+	}
+
+	private void loadFinished() {
+		List<JadxPass> list = customPasses.get(JadxAfterLoadPass.TYPE);
+		if (list != null) {
+			for (JadxPass pass : list) {
+				((JadxAfterLoadPass) pass).init(this);
 			}
 		}
 	}
@@ -641,6 +679,22 @@ public final class JadxDecompiler implements Closeable {
 
 	public IDecompileScheduler getDecompileScheduler() {
 		return decompileScheduler;
+	}
+
+	public void addCustomLoad(ILoadResult customLoad) {
+		customLoads.add(customLoad);
+	}
+
+	public List<ILoadResult> getCustomLoads() {
+		return customLoads;
+	}
+
+	public void addCustomPass(JadxPass pass) {
+		customPasses.computeIfAbsent(pass.getPassType(), l -> new ArrayList<>()).add(pass);
+	}
+
+	public void setJadxGuiContext(JadxGuiContext guiContext) {
+		this.guiContext = guiContext;
 	}
 
 	@Override

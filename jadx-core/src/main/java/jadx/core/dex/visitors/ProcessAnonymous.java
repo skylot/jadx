@@ -295,4 +295,9 @@ public class ProcessAnonymous extends AbstractVisitor {
 		}
 		return null;
 	}
+
+	@Override
+	public String toString() {
+		return "ProcessAnonymous";
+	}
 }

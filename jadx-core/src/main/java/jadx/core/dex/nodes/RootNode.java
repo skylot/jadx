@@ -15,12 +15,20 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
+import jadx.api.core.nodes.IRootNode;
 import jadx.api.data.ICodeData;
+import jadx.api.impl.passes.DecompilePassWrapper;
+import jadx.api.impl.passes.PreparePassWrapper;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
+import jadx.api.plugins.pass.JadxPass;
+import jadx.api.plugins.pass.types.JadxDecompilePass;
+import jadx.api.plugins.pass.types.JadxPassType;
+import jadx.api.plugins.pass.types.JadxPreparePass;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.clsp.ClspGraph;
@@ -38,6 +46,7 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.PassMerge;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -48,7 +57,7 @@ import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class RootNode {
+public class RootNode implements IRootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final JadxArgs args;
@@ -75,10 +84,15 @@ public class RootNode {
 	private ClassNode appResClass;
 	private boolean isProto;
 
+	/**
+	 * Optional decompiler reference
+	 */
+	private @Nullable JadxDecompiler decompiler;
+
 	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
-		this.processClasses = new ProcessClass(this.getArgs());
+		this.processClasses = new ProcessClass(args);
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
@@ -266,6 +280,15 @@ public class RootNode {
 		classes.forEach(ClassNode::updateParentClass);
 	}
 
+	public void mergePasses(Map<JadxPassType, List<JadxPass>> customPasses) {
+		PassMerge.run(preDecompilePasses,
+				customPasses.get(JadxPreparePass.TYPE),
+				p -> new PreparePassWrapper((JadxPreparePass) p));
+		PassMerge.run(processClasses.getPasses(),
+				customPasses.get(JadxDecompilePass.TYPE),
+				p -> new DecompilePassWrapper((JadxDecompilePass) p));
+	}
+
 	public void runPreDecompileStage() {
 		boolean debugEnabled = LOG.isDebugEnabled();
 		for (IDexTreeVisitor pass : preDecompilePasses) {
@@ -283,7 +306,7 @@ public class RootNode {
 				DepthTraversal.visit(pass, cls);
 			}
 			if (debugEnabled) {
-				LOG.debug("{} time: {}ms", pass.getClass().getSimpleName(), System.currentTimeMillis() - start);
+				LOG.debug("Prepare pass: '{}' - {}ms", pass, System.currentTimeMillis() - start);
 			}
 		}
 	}
@@ -528,6 +551,14 @@ public class RootNode {
 
 	public JadxArgs getArgs() {
 		return args;
+	}
+
+	public void setDecompilerRef(JadxDecompiler jadxDecompiler) {
+		this.decompiler = jadxDecompiler;
+	}
+
+	public @Nullable JadxDecompiler getDecompiler() {
+		return decompiler;
 	}
 
 	public TypeUpdate getTypeUpdate() {

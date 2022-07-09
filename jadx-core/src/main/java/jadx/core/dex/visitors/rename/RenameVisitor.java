@@ -246,4 +246,9 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 		return pkg.substring(0, dotPos);
 	}
+
+	@Override
+	public String toString() {
+		return "RenameVisitor";
+	}
 }

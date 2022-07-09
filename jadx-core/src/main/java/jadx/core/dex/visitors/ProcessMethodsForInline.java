@@ -58,4 +58,9 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 			useTopCls.addCodegenDep(parentClass);
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "ProcessMethodsForInline";
+	}
 }

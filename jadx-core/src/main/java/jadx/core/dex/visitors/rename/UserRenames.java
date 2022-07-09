@@ -11,8 +11,6 @@ import jadx.api.data.ICodeData;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.instructions.args.ArgType;
@@ -72,26 +70,11 @@ public class UserRenames {
 				} else {
 					IJavaCodeRef codeRef = rename.getCodeRef();
 					if (codeRef == null) {
-						applyMethodRename(mth, rename);
+						mth.rename(rename.getNewName());
 					}
 				}
 				break;
 		}
-	}
-
-	private static void applyMethodRename(MethodNode mth, ICodeRename rename) {
-		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
-		if (overrideAttr != null) {
-			for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
-				renameMethod(relatedMth, rename);
-			}
-		} else {
-			renameMethod(mth, rename);
-		}
-	}
-
-	private static void renameMethod(MethodNode mth, ICodeRename rename) {
-		mth.getMethodInfo().setAlias(rename.getNewName());
 	}
 
 	// TODO: Very inefficient!!! Add PackageInfo class to build package hierarchy
