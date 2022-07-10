@@ -5,7 +5,6 @@ import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
@@ -21,7 +20,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class JClass extends JLoadableNode implements Comparable<JClass> {
+public class JClass extends JLoadableNode {
 	private static final long serialVersionUID = -1239986875244097177L;
 
 	private static final ImageIcon ICON_CLASS = UiUtils.openSvgIcon("nodes/class");
@@ -72,18 +71,16 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		update();
 	}
 
-	public synchronized void reload(CacheObject cache) {
+	public synchronized ICodeInfo reload(CacheObject cache) {
 		cache.getNodeCache().removeWholeClass(cls);
-		cache.getIndexService().remove(cls);
-		cls.reload();
+		ICodeInfo codeInfo = cls.reload();
 		loaded = true;
 		update();
-		cache.getIndexService().indexCls(cls);
+		return codeInfo;
 	}
 
 	public synchronized void unload(CacheObject cache) {
 		cache.getNodeCache().removeWholeClass(cls);
-		cache.getIndexService().remove(cls);
 		cls.unload();
 		loaded = false;
 	}
@@ -108,13 +105,8 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 	}
 
 	@Override
-	public @Nullable ICodeInfo getCodeInfo() {
+	public ICodeInfo getCodeInfo() {
 		return cls.getCodeInfo();
-	}
-
-	@Override
-	public String getContent() {
-		return cls.getCode();
 	}
 
 	@Override
@@ -186,11 +178,6 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 	}
 
 	@Override
-	public int getLine() {
-		return cls.getDecompiledLine();
-	}
-
-	@Override
 	public int hashCode() {
 		return cls.hashCode();
 	}
@@ -210,8 +197,22 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		return cls.getFullName();
 	}
 
+	public int compareToCls(@NotNull JClass otherCls) {
+		return this.getCls().getRawName().compareTo(otherCls.getCls().getRawName());
+	}
+
 	@Override
-	public int compareTo(@NotNull JClass o) {
-		return this.getFullName().compareTo(o.getFullName());
+	public int compareTo(@NotNull JNode other) {
+		if (other instanceof JClass) {
+			return compareToCls((JClass) other);
+		}
+		if (other instanceof JMethod) {
+			int cmp = compareToCls(other.getJParent());
+			if (cmp != 0) {
+				return cmp;
+			}
+			return -1;
+		}
+		return super.compareTo(other);
 	}
 }

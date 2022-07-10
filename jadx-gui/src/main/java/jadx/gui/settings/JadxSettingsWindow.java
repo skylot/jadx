@@ -65,7 +65,6 @@ import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.gui.ui.MainWindow;
@@ -75,6 +74,7 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.codecache.CodeCacheMode;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
@@ -137,7 +137,7 @@ public class JadxSettingsWindow extends JDialog {
 
 			SwingUtilities.invokeLater(() -> {
 				if (needReload) {
-					mainWindow.reOpenFile();
+					mainWindow.reopen();
 				}
 				if (!settings.getLangLocale().equals(prevLang)) {
 					JOptionPane.showMessageDialog(
@@ -434,6 +434,14 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<CodeCacheMode> codeCacheModeComboBox = new JComboBox<>(CodeCacheMode.values());
+		codeCacheModeComboBox.setSelectedItem(settings.getCodeCacheMode());
+		codeCacheModeComboBox.addActionListener(e -> {
+			settings.setCodeCacheMode((CodeCacheMode) codeCacheModeComboBox.getSelectedItem());
+			needReload();
+		});
+		String codeCacheModeToolTip = CodeCacheMode.buildToolTip();
+
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
 		showInconsistentCode.addItemListener(e -> {
@@ -504,6 +512,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useDebugInfo = new JCheckBox();
+		useDebugInfo.setSelected(settings.isDebugInfo());
+		useDebugInfo.addItemListener(e -> {
+			settings.setDebugInfo(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox inlineAnonymous = new JCheckBox();
 		inlineAnonymous.setSelected(settings.isInlineAnonymousClasses());
 		inlineAnonymous.addItemListener(e -> {
@@ -541,15 +556,17 @@ public class JadxSettingsWindow extends JDialog {
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
-		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
-				editExcludedPackages);
+		other.addRow(NLS.str("preferences.excludedPackages"),
+				NLS.str("preferences.excludedPackages.tooltip"), editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
+		other.addRow(NLS.str("preferences.codeCacheMode"), codeCacheModeToolTip, codeCacheModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
+		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
@@ -562,8 +579,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makePluginOptionsGroup() {
 		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
-		JadxPluginManager pluginManager = mainWindow.getWrapper().getDecompiler().getPluginManager();
-		for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
+		for (JadxPlugin plugin : mainWindow.getWrapper().getAllPlugins()) {
 			if (!(plugin instanceof JadxPluginOptions)) {
 				continue;
 			}
@@ -610,6 +626,10 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
+		JCheckBox jumpOnDoubleClick = new JCheckBox();
+		jumpOnDoubleClick.setSelected(settings.isJumpOnDoubleClick());
+		jumpOnDoubleClick.addItemListener(e -> settings.setJumpOnDoubleClick(e.getStateChange() == ItemEvent.SELECTED));
+
 		JCheckBox update = new JCheckBox();
 		update.setSelected(settings.isCheckForUpdates());
 		update.addItemListener(e -> settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));
@@ -631,6 +651,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
+		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);

@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -30,15 +31,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -46,6 +44,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -80,6 +79,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
@@ -88,17 +88,15 @@ import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
-import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
-import jadx.gui.jobs.IndexService;
-import jadx.gui.jobs.IndexTask;
 import jadx.gui.jobs.ProcessResult;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.plugins.mappings.MappingExporter;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -133,18 +131,16 @@ import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
-import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.logs.LogCollector;
-import jadx.gui.utils.search.CommentsIndex;
-import jadx.gui.utils.search.TextSearchIndex;
+import jadx.gui.utils.ui.ActionHandler;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
-import static jadx.gui.utils.FileUtils.fileNamesToPaths;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public class MainWindow extends JFrame {
@@ -159,6 +155,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = UiUtils.openSvgIcon("ui/openDisk");
 	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
 	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
+	private static final ImageIcon ICON_RELOAD = UiUtils.openSvgIcon("ui/refresh");
 	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
 	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
 	private static final ImageIcon ICON_SYNC = UiUtils.openSvgIcon("ui/pagination");
@@ -179,10 +176,12 @@ public class MainWindow extends JFrame {
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
 	private final transient BackgroundExecutor backgroundExecutor;
-	@NotNull
-	private transient JadxProject project = new JadxProject();
+
+	private transient @NotNull JadxProject project;
+
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
+	private transient JMenu exportMappingsMenu;
 
 	private JPanel mainPanel;
 	private JSplitPane splitPane;
@@ -201,6 +200,9 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
 
+	private JCheckBoxMenuItem liveReloadMenuItem;
+	private final LiveReloadWorker liveReloadWorker;
+
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
 	private transient Theme editorTheme;
@@ -209,22 +211,23 @@ public class MainWindow extends JFrame {
 	private JSplitPane verticalSplitter;
 
 	public MainWindow(JadxSettings settings) {
-		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
+		this.project = new JadxProject(this);
+		this.wrapper = new JadxWrapper(this);
+		this.liveReloadWorker = new LiveReloadWorker(this);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
 		initUI();
+		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
 		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
 		loadSettings();
 
-		this.backgroundExecutor = new BackgroundExecutor(this);
-
+		update();
 		checkForUpdate();
-		newProject();
 	}
 
 	public void init() {
@@ -248,7 +251,7 @@ public class MainWindow extends JFrame {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
-			open(fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
+			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
 	}
 
@@ -284,6 +287,10 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFileOrProject() {
+		saveAll();
+		if (!ensureProjectIsSaved()) {
+			return;
+		}
 		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.OPEN);
 		List<Path> openPaths = fileDialog.show();
 		if (!openPaths.isEmpty()) {
@@ -296,8 +303,13 @@ public class MainWindow extends JFrame {
 		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.ADD);
 		List<Path> addPaths = fileDialog.show();
 		if (!addPaths.isEmpty()) {
-			open(ListUtils.distinctMergeSortedLists(addPaths, wrapper.getOpenPaths()));
+			addFiles(addPaths);
 		}
+	}
+
+	public void addFiles(List<Path> addPaths) {
+		project.setFilePaths(ListUtils.distinctMergeSortedLists(addPaths, project.getFilePaths()));
+		reopen();
 	}
 
 	private void newProject() {
@@ -305,11 +317,12 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		closeAll();
-		updateProject(new JadxProject());
+		exportMappingsMenu.setEnabled(false);
+		updateProject(new JadxProject(this));
 	}
 
 	private void saveProject() {
-		if (project.getProjectPath() == null) {
+		if (!project.isSaveFileSelected()) {
 			saveProjectAs();
 		} else {
 			project.save();
@@ -321,9 +334,8 @@ public class MainWindow extends JFrame {
 		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.SAVE_PROJECT);
 		if (project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
-			Path loadedFile = this.project.getFilePaths().get(0);
-			String fileName = loadedFile.getFileName() + "." + JadxProject.PROJECT_EXTENSION;
-			fileDialog.setSelectedFile(loadedFile.resolveSibling(fileName));
+			Path projectPath = getProjectPathForFile(this.project.getFilePaths().get(0));
+			fileDialog.setSelectedFile(projectPath);
 		}
 		List<Path> saveFiles = fileDialog.show();
 		if (saveFiles.isEmpty()) {
@@ -349,53 +361,126 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
+	private void exportMappings(MappingFormat mappingFormat) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_SAVE);
+		fileDialog.setTitle(NLS.str("file.export_mappings_as"));
+		Path workingDir = project.getWorkingDir();
+		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
+		if (mappingFormat.hasSingleFile()) {
+			fileDialog.setSelectedFile(baseDir.resolve("mappings." + mappingFormat.fileExt));
+			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
+			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
+		} else {
+			fileDialog.setCurrentDir(baseDir);
+			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
+		List<Path> paths = fileDialog.show();
+		if (paths.size() != 1) {
+			return;
+		}
+		Path savePath = paths.get(0);
+		LOG.info("Export mappings to: {}", savePath.toAbsolutePath());
+		backgroundExecutor.execute(NLS.str("progress.export_mappings"),
+				() -> new MappingExporter(wrapper.getDecompiler().getRoot())
+						.exportMappings(savePath, project.getCodeData(), mappingFormat),
+				s -> update());
+	}
+
 	void open(List<Path> paths) {
 		open(paths, EMPTY_RUNNABLE);
 	}
 
-	void open(List<Path> paths, Runnable onFinish) {
+	private void open(List<Path> paths, Runnable onFinish) {
+		saveAll();
 		closeAll();
-		if (paths.size() == 1) {
-			Path singleFile = paths.get(0);
-			String fileExtension = CommonFileUtils.getFileExtension(singleFile.getFileName().toString());
-			if (fileExtension != null && fileExtension.equalsIgnoreCase(JadxProject.PROJECT_EXTENSION)) {
-				List<Path> projectFiles = openProject(singleFile);
-				if (!Utils.isEmpty(projectFiles)) {
-					openFiles(projectFiles, onFinish);
-				}
-				return;
-			}
+		if (paths.size() == 1 && openSingleFile(paths.get(0), onFinish)) {
+			return;
 		}
-		openFiles(paths, onFinish);
+		// start new project
+		project = new JadxProject(this);
+		project.setFilePaths(paths);
+		loadFiles(onFinish);
 	}
 
-	private void openFiles(List<Path> paths, Runnable onFinish) {
-		project.setFilePath(paths);
-		if (paths.isEmpty()) {
+	private boolean openSingleFile(Path singleFile, Runnable onFinish) {
+		String fileExtension = CommonFileUtils.getFileExtension(singleFile.getFileName().toString());
+		if (fileExtension != null && fileExtension.equalsIgnoreCase(JadxProject.PROJECT_EXTENSION)) {
+			openProject(singleFile, onFinish);
+			return true;
+		}
+		// check if project file already saved with default name
+		Path projectPath = getProjectPathForFile(singleFile);
+		if (Files.exists(projectPath)) {
+			LOG.info("Loading project for this file");
+			openProject(projectPath, onFinish);
+			return true;
+		}
+		return false;
+	}
+
+	private static Path getProjectPathForFile(Path loadedFile) {
+		String fileName = loadedFile.getFileName() + "." + JadxProject.PROJECT_EXTENSION;
+		return loadedFile.resolveSibling(fileName);
+	}
+
+	public synchronized void reopen() {
+		saveAll();
+		closeAll();
+		loadFiles(EMPTY_RUNNABLE);
+	}
+
+	private void openProject(Path path, Runnable onFinish) {
+		JadxProject jadxProject = JadxProject.load(this, path);
+		if (jadxProject == null) {
+			JOptionPane.showMessageDialog(
+					this,
+					NLS.str("msg.project_error"),
+					NLS.str("msg.project_error_title"),
+					JOptionPane.INFORMATION_MESSAGE);
+			jadxProject = new JadxProject(this);
+		}
+		settings.addRecentProject(path);
+		project = jadxProject;
+		loadFiles(onFinish);
+	}
+
+	private void loadFiles(Runnable onFinish) {
+		exportMappingsMenu.setEnabled(false);
+		if (project.getFilePaths().isEmpty()) {
 			return;
 		}
 		backgroundExecutor.execute(NLS.str("progress.load"),
-				() -> wrapper.openFile(paths),
+				wrapper::open,
 				status -> {
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
 						showHeapUsageBar();
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						return;
 					}
+					if (status != TaskStatus.COMPLETE) {
+						LOG.warn("Loading task incomplete, status: {}", status);
+						return;
+					}
 					checkLoadedStatus();
-					onOpen(paths);
+					onOpen();
+					exportMappingsMenu.setEnabled(true);
 					onFinish.run();
 				});
 	}
 
+	private void saveAll() {
+		saveOpenTabs();
+		BreakpointManager.saveAndExit();
+	}
+
 	private void closeAll() {
 		cancelBackgroundJobs();
-		saveOpenTabs();
 		clearTree();
-		BreakpointManager.saveAndExit();
+		resetCache();
 		LogCollector.getInstance().reset();
 		wrapper.close();
 		tabbedPane.closeAllTabs();
+		UiUtils.resetClipboardOwner();
 		System.gc();
 	}
 
@@ -418,13 +503,31 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void onOpen(List<Path> paths) {
+	private void onOpen() {
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
 		update();
-		restoreOpenTabs();
-		runInitialBackgroundJobs();
-		BreakpointManager.init(paths.get(0).toAbsolutePath().getParent());
+		updateLiveReload(project.isEnableLiveReload());
+		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
+
+		backgroundExecutor.execute(NLS.str("progress.load"),
+				this::restoreOpenTabs,
+				status -> runInitialBackgroundJobs());
+	}
+
+	public void updateLiveReload(boolean state) {
+		if (liveReloadWorker.isStarted() == state) {
+			return;
+		}
+		project.setEnableLiveReload(state);
+		liveReloadMenuItem.setEnabled(false);
+		backgroundExecutor.execute(
+				(state ? "Starting" : "Stopping") + " live reload",
+				() -> liveReloadWorker.updateState(state),
+				s -> {
+					liveReloadMenuItem.setState(state);
+					liveReloadMenuItem.setEnabled(true);
+				});
 	}
 
 	private void addTreeCustomNodes() {
@@ -433,7 +536,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private boolean ensureProjectIsSaved() {
-		if (project != null && !project.isSaved() && !project.isInitial()) {
+		if (!project.isSaved() && !project.isInitial()) {
 			int res = JOptionPane.showConfirmDialog(
 					this,
 					NLS.str("confirm.not_saved_message"),
@@ -449,30 +552,8 @@ public class MainWindow extends JFrame {
 		return true;
 	}
 
-	private List<Path> openProject(Path path) {
-		if (!ensureProjectIsSaved()) {
-			return Collections.emptyList();
-		}
-		JadxProject jadxProject = JadxProject.from(path);
-		if (jadxProject == null) {
-			JOptionPane.showMessageDialog(
-					this,
-					NLS.str("msg.project_error"),
-					NLS.str("msg.project_error_title"),
-					JOptionPane.INFORMATION_MESSAGE);
-			jadxProject = new JadxProject();
-		}
-		updateProject(jadxProject);
-		settings.addRecentProject(path);
-		return jadxProject.getFilePaths();
-	}
-
 	public void updateProject(@NotNull JadxProject jadxProject) {
-		jadxProject.setSettings(settings);
-		jadxProject.setMainWindow(this);
 		this.project = jadxProject;
-		this.wrapper.setProject(jadxProject);
-		this.cacheObject.setCommentsIndex(new CommentsIndex(wrapper, cacheObject, jadxProject));
 		update();
 	}
 
@@ -495,9 +576,6 @@ public class MainWindow extends JFrame {
 		cacheObject.reset();
 		cacheObject.setJRoot(treeRoot);
 		cacheObject.setJadxSettings(settings);
-
-		cacheObject.setIndexService(new IndexService(cacheObject));
-		cacheObject.setTextIndex(new TextSearchIndex(this));
 	}
 
 	synchronized void runInitialBackgroundJobs() {
@@ -515,20 +593,11 @@ public class MainWindow extends JFrame {
 
 	public void waitDecompileTask() {
 		synchronized (DECOMPILER_TASK_SYNC) {
-			if (cacheObject.getIndexService().isComplete()) {
-				return;
-			}
 			try {
-				DecompileTask decompileTask = new DecompileTask(this, wrapper);
+				DecompileTask decompileTask = new DecompileTask(wrapper);
 				backgroundExecutor.executeAndWait(decompileTask);
-
 				backgroundExecutor.execute(decompileTask.getTitle(), wrapper::unloadClasses).get();
-				System.gc();
-
-				IndexTask indexTask = new IndexTask(this, wrapper);
-				backgroundExecutor.executeAndWait(indexTask);
-
-				processDecompilationResults(decompileTask.getResult(), indexTask.getResult());
+				processDecompilationResults(decompileTask.getResult());
 				System.gc();
 			} catch (Exception e) {
 				LOG.error("Decompile task execution failed", e);
@@ -536,12 +605,12 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void processDecompilationResults(ProcessResult decompile, ProcessResult index) {
-		int skippedCls = Math.max(decompile.getSkipped(), index.getSkipped());
+	private void processDecompilationResults(ProcessResult decompile) {
+		int skippedCls = decompile.getSkipped();
 		if (skippedCls == 0) {
 			return;
 		}
-		TaskStatus status = mergeStatus(EnumSet.of(decompile.getStatus(), index.getStatus()));
+		TaskStatus status = decompile.getStatus();
 		LOG.warn("Decompile and indexing of some classes skipped: {}, status: {}", skippedCls, status);
 		switch (status) {
 			case CANCEL_BY_USER: {
@@ -564,34 +633,8 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private TaskStatus mergeStatus(Set<TaskStatus> statuses) {
-		if (statuses.size() == 1) {
-			return statuses.iterator().next();
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_MEMORY)) {
-			return TaskStatus.CANCEL_BY_MEMORY;
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_TIMEOUT)) {
-			return TaskStatus.CANCEL_BY_TIMEOUT;
-		}
-		if (statuses.contains(TaskStatus.CANCEL_BY_USER)) {
-			return TaskStatus.CANCEL_BY_USER;
-		}
-		return TaskStatus.COMPLETE;
-	}
-
 	public void cancelBackgroundJobs() {
-		ExecutorService worker = Executors.newSingleThreadExecutor();
-		worker.execute(backgroundExecutor::cancelAll);
-		worker.shutdown();
-	}
-
-	public void reOpenFile() {
-		List<Path> openedFile = wrapper.getOpenPaths();
-		if (openedFile != null) {
-			saveOpenTabs();
-			open(openedFile);
-		}
+		backgroundExecutor.cancelAll();
 	}
 
 	private void saveAll(boolean export) {
@@ -626,7 +669,6 @@ public class MainWindow extends JFrame {
 
 	private void clearTree() {
 		tabbedPane.reset();
-		resetCache();
 		treeRoot = null;
 		treeModel.setRoot(null);
 		treeModel.reload();
@@ -689,7 +731,7 @@ public class MainWindow extends JFrame {
 
 		deobfToggleBtn.setSelected(deobfOn);
 		deobfMenuItem.setState(deobfOn);
-		reOpenFile();
+		reopen();
 	}
 
 	private boolean nodeClickAction(@Nullable Object obj) {
@@ -706,7 +748,7 @@ public class MainWindow extends JFrame {
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				if (node.getRootClass() != null) {
-					tabbedPane.codeJump(new JumpPosition(node));
+					tabbedPane.codeJump(node);
 					return true;
 				}
 				return tabbedPane.showNode(node);
@@ -783,7 +825,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initMenuAndToolbar() {
-		final boolean devVersion = (Jadx.VERSION_DEV.equals(Jadx.getVersion()));
 		Action openAction = new AbstractAction(NLS.str("file.open_action"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -824,6 +865,49 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
+
+		ActionHandler reload = new ActionHandler(ev -> UiUtils.uiRun(this::reopen));
+		reload.setNameAndDesc(NLS.str("file.reload"));
+		reload.setIcon(ICON_RELOAD);
+		reload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, 0));
+
+		ActionHandler liveReload = new ActionHandler(ev -> updateLiveReload(!project.isEnableLiveReload()));
+		liveReload.setName(NLS.str("file.live_reload"));
+		liveReload.setShortDescription(NLS.str("file.live_reload_desc"));
+		liveReload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK));
+
+		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
+		liveReloadMenuItem.setState(project.isEnableLiveReload());
+
+		Action exportMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.TINY_2);
+			}
+		};
+		exportMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
+
+		Action exportMappingsAsEnigma = new AbstractAction("Enigma file") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA);
+			}
+		};
+		exportMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
+
+		Action exportMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportMappings(MappingFormat.ENIGMA_DIR);
+			}
+		};
+		exportMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+
+		exportMappingsMenu = new JMenu(NLS.str("file.export_mappings_as"));
+		exportMappingsMenu.add(exportMappingsAsTiny2);
+		exportMappingsMenu.add(exportMappingsAsEnigma);
+		exportMappingsMenu.add(exportMappingsAsEnigmaDir);
+		exportMappingsMenu.setEnabled(false);
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
@@ -1011,6 +1095,11 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
+		file.add(reload);
+		file.add(liveReloadMenuItem);
+		file.addSeparator();
+		file.add(exportMappingsMenu);
+		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);
 		file.addSeparator();
@@ -1045,7 +1134,7 @@ public class MainWindow extends JFrame {
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(logAction);
-		if (devVersion) {
+		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -1077,6 +1166,8 @@ public class MainWindow extends JFrame {
 		toolbar.setFloatable(false);
 		toolbar.add(openAction);
 		toolbar.add(addFilesAction);
+		toolbar.addSeparator();
+		toolbar.add(reload);
 		toolbar.addSeparator();
 		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
@@ -1349,7 +1440,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void closeWindow() {
-		saveOpenTabs();
+		saveAll();
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
@@ -1359,20 +1450,16 @@ public class MainWindow extends JFrame {
 		if (debuggerPanel != null) {
 			saveSplittersInfo();
 		}
-		cancelBackgroundJobs();
-		wrapper.close();
 		heapUsageBar.reset();
-		dispose();
+		closeAll();
 
-		BreakpointManager.saveAndExit();
 		FileUtils.deleteTempRootDir();
+		dispose();
 		System.exit(0);
 	}
 
 	private void saveOpenTabs() {
-		if (project != null) {
-			project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
-		}
+		project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
 	}
 
 	private void restoreOpenTabs() {
@@ -1418,10 +1505,6 @@ public class MainWindow extends JFrame {
 
 	public BackgroundExecutor getBackgroundExecutor() {
 		return backgroundExecutor;
-	}
-
-	public ProgressPanel getProgressPane() {
-		return progressPane;
 	}
 
 	public JRoot getTreeRoot() {
@@ -1470,7 +1553,7 @@ public class MainWindow extends JFrame {
 
 		@Override
 		public void menuSelected(MenuEvent menuEvent) {
-			Set<Path> current = new HashSet<>(wrapper.getOpenPaths());
+			Set<Path> current = new HashSet<>(project.getFilePaths());
 			List<JMenuItem> items = settings.getRecentProjects()
 					.stream()
 					.filter(path -> !current.contains(path))

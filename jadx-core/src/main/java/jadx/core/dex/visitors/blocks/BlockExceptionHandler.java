@@ -50,7 +50,7 @@ public class BlockExceptionHandler {
 			return false;
 		}
 		BlockProcessor.updateCleanSuccessors(mth);
-		BlockProcessor.computeDominanceFrontier(mth);
+		DominatorTree.computeDominanceFrontier(mth);
 
 		processCatchAttr(mth);
 		initExcHandlers(mth);
@@ -549,7 +549,7 @@ public class BlockExceptionHandler {
 			if (handler == resultHandler) {
 				return false;
 			}
-			resultHandler.addCatchTypes(handler.getCatchTypes());
+			resultHandler.addCatchTypes(mth, handler.getCatchTypes());
 			handler.markForRemove();
 			return true;
 		});

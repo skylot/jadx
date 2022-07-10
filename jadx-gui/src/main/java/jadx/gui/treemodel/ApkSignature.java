@@ -16,8 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.android.apksig.ApkVerifier;
 
+import jadx.api.ICodeInfo;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
@@ -34,7 +36,7 @@ public class ApkSignature extends JNode {
 	private static final ImageIcon CERTIFICATE_ICON = UiUtils.openSvgIcon("nodes/styleKeyPack");
 
 	private final transient File openFile;
-	private String content;
+	private ICodeInfo content;
 
 	@Nullable
 	public static ApkSignature getApkSignature(JadxWrapper wrapper) {
@@ -81,7 +83,7 @@ public class ApkSignature extends JNode {
 	}
 
 	@Override
-	public String getContent() {
+	public ICodeInfo getCodeInfo() {
 		if (content != null) {
 			return this.content;
 		}
@@ -165,7 +167,7 @@ public class ApkSignature extends JNode {
 			}
 			writeIssues(builder, warn, result.getWarnings());
 
-			this.content = builder.toString();
+			this.content = new SimpleCodeInfo(builder.toString());
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);
 			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
@@ -174,7 +176,7 @@ public class ApkSignature extends JNode {
 			builder.append("</h1><pre>");
 			builder.escape(ExceptionUtils.getStackTrace(e));
 			builder.append("</pre>");
-			return builder.toString();
+			return new SimpleCodeInfo(builder.toString());
 		}
 		return this.content;
 	}

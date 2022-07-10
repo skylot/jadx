@@ -1,6 +1,7 @@
 package jadx.api;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -11,12 +12,17 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxArgs {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
 
 	public static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
@@ -118,6 +124,19 @@ public class JadxArgs {
 		setOutDir(rootDir);
 		setOutDirSrc(new File(rootDir, DEFAULT_SRC_DIR));
 		setOutDirRes(new File(rootDir, DEFAULT_RES_DIR));
+	}
+
+	public void close() {
+		try {
+			inputFiles = null;
+			if (codeCache != null) {
+				codeCache.close();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to close JadxArgs", e);
+		} finally {
+			codeCache = null;
+		}
 	}
 
 	public List<File> getInputFiles() {
@@ -514,6 +533,21 @@ public class JadxArgs {
 		this.pluginOptions = pluginOptions;
 	}
 
+	/**
+	 * Hash of all options that can change result code
+	 */
+	public String makeCodeArgsHash() {
+		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
+				+ inlineAnonymousClasses + inlineMethods
+				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ parseKotlinMetadata + useKotlinMethodsForVarNames
+				+ insertDebugLines + extractFinally
+				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
+				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
+				+ commentsLevel + useDxInput + pluginOptions;
+		return FileUtils.md5Sum(argStr.getBytes(StandardCharsets.US_ASCII));
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -533,6 +567,8 @@ public class JadxArgs {
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
+				+ ", insertDebugLines=" + insertDebugLines
+				+ ", extractFinally=" + extractFinally
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
 				+ ", escapeUnicode=" + escapeUnicode

@@ -38,13 +38,14 @@ import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.codecache.CodeCacheMode;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 17;
+	private static final int CURRENT_SETTINGS_VERSION = 18;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -58,7 +59,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private Path lastOpenFilePath = USER_HOME;
 	private Path lastSaveFilePath = USER_HOME;
 	private boolean flattenPackage = false;
-	private boolean checkForUpdates = false;
+	private boolean checkForUpdates = true;
 	private List<Path> recentProjects = new ArrayList<>();
 	private String fontStr = "";
 	private String smaliFontStr = "";
@@ -88,6 +89,9 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPath = "";
 	private String adbDialogHost = "localhost";
 	private String adbDialogPort = "5037";
+
+	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_CACHE;
+	private boolean jumpOnDoubleClick = true;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -216,29 +220,22 @@ public class JadxSettings extends JadxCLIArgs {
 		if (pos == null || pos.getBounds() == null) {
 			return false;
 		}
-		if (window instanceof MainWindow) {
-			int extendedState = getMainWindowExtendedState();
-			if (extendedState != JFrame.NORMAL) {
-				((JFrame) window).setExtendedState(extendedState);
-				return true;
-			}
-		}
-
-		if (!isContainedInAnyScreen(pos)) {
+		if (!isAccessibleInAnyScreen(pos)) {
 			return false;
 		}
-
 		window.setBounds(pos.getBounds());
+		if (window instanceof MainWindow) {
+			((JFrame) window).setExtendedState(getMainWindowExtendedState());
+		}
 		return true;
 	}
 
-	private static boolean isContainedInAnyScreen(WindowLocation pos) {
-		Rectangle bounds = pos.getBounds();
-		if (bounds.getX() > 0 && bounds.getY() > 0) {
-			for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-				if (gd.getDefaultConfiguration().getBounds().contains(bounds)) {
-					return true;
-				}
+	private static boolean isAccessibleInAnyScreen(WindowLocation pos) {
+		Rectangle windowBounds = pos.getBounds();
+		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+			Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
+			if (screenBounds.intersects(windowBounds)) {
+				return true;
 			}
 		}
 		LOG.debug("Window saved position was ignored: {}", pos);
@@ -317,6 +314,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
+	}
+
+	public void setDebugInfo(boolean useDebugInfo) {
+		this.debugInfo = useDebugInfo;
 	}
 
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
@@ -412,12 +413,20 @@ public class JadxSettings extends JadxCLIArgs {
 		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
 	}
 
+	@JadxSettingsAdapter.GsonExclude
+	private Font cachedFont = null;
+
 	public Font getFont() {
+		if (cachedFont != null) {
+			return cachedFont;
+		}
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
 		}
 		try {
-			return FontUtils.loadByStr(fontStr);
+			Font font = FontUtils.loadByStr(fontStr);
+			this.cachedFont = font;
+			return font;
 		} catch (Exception e) {
 			LOG.warn("Failed to load font: {}, reset to default", fontStr, e);
 			setFont(DEFAULT_FONT);
@@ -427,10 +436,20 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFont(@Nullable Font font) {
 		if (font == null) {
-			this.fontStr = "";
+			setFontStr("");
 		} else {
-			this.fontStr = FontUtils.convertToStr(font);
+			setFontStr(FontUtils.convertToStr(font));
+			this.cachedFont = font;
 		}
+	}
+
+	public String getFontStr() {
+		return fontStr;
+	}
+
+	public void setFontStr(String fontStr) {
+		this.fontStr = fontStr;
+		this.cachedFont = null;
 	}
 
 	public Font getSmaliFont() {
@@ -590,6 +609,22 @@ public class JadxSettings extends JadxCLIArgs {
 		this.pluginOptions = pluginOptions;
 	}
 
+	public CodeCacheMode getCodeCacheMode() {
+		return codeCacheMode;
+	}
+
+	public void setCodeCacheMode(CodeCacheMode codeCacheMode) {
+		this.codeCacheMode = codeCacheMode;
+	}
+
+	public boolean isJumpOnDoubleClick() {
+		return jumpOnDoubleClick;
+	}
+
+	public void setJumpOnDoubleClick(boolean jumpOnDoubleClick) {
+		this.jumpOnDoubleClick = jumpOnDoubleClick;
+	}
+
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {
@@ -669,11 +704,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 15) {
-			if (deobfuscationForceSave) {
-				deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
-			} else {
-				deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
-			}
+			deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
 			fromVersion++;
 		}
 		if (fromVersion == 16) {
@@ -682,6 +713,10 @@ public class JadxSettings extends JadxCLIArgs {
 			} else {
 				decompilationMode = DecompilationMode.AUTO;
 			}
+			fromVersion++;
+		}
+		if (fromVersion == 17) {
+			checkForUpdates = true;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

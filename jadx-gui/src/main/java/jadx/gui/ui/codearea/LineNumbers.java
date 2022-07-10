@@ -59,7 +59,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	public LineNumbers(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
-		this.codeInfo = codeArea.getNode().getCodeInfo();
+		this.codeInfo = codeArea.getCodeInfo();
 
 		setFont(codeArea.getFont());
 		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();
@@ -252,7 +252,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 		if (!useSourceLines) {
 			return String.valueOf(lineNumber);
 		}
-		Integer sourceLine = codeInfo.getLineMapping().get(lineNumber);
+		Integer sourceLine = codeInfo.getCodeMetadata().getLineMapping().get(lineNumber);
 		if (sourceLine == null) {
 			return null;
 		}
@@ -260,8 +260,10 @@ public class LineNumbers extends JPanel implements CaretListener {
 	}
 
 	private int getMaxDebugLine() {
-		return codeInfo.getLineMapping().keySet().stream()
-				.mapToInt(Integer::intValue).max().orElse(0);
+		return codeInfo.getCodeMetadata().getLineMapping()
+				.keySet().stream()
+				.mapToInt(Integer::intValue)
+				.max().orElse(0);
 	}
 
 	@Override

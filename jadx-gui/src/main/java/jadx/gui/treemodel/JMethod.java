@@ -1,11 +1,13 @@
 package jadx.gui.treemodel;
 
+import java.util.Comparator;
 import java.util.Iterator;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
@@ -55,11 +57,6 @@ public class JMethod extends JNode {
 	@Override
 	public JClass getRootClass() {
 		return jParent.getRootClass();
-	}
-
-	@Override
-	public int getLine() {
-		return mth.getDecompiledLine();
 	}
 
 	@Override
@@ -131,6 +128,11 @@ public class JMethod extends JNode {
 	}
 
 	@Override
+	public String getName() {
+		return mth.getName();
+	}
+
+	@Override
 	public String makeString() {
 		return UiUtils.typeFormat(makeBaseString(), getReturnType());
 	}
@@ -159,7 +161,12 @@ public class JMethod extends JNode {
 
 	@Override
 	public boolean hasDescString() {
-		return true;
+		return false;
+	}
+
+	@Override
+	public int getPos() {
+		return mth.getDefPos();
 	}
 
 	@Override
@@ -170,5 +177,30 @@ public class JMethod extends JNode {
 	@Override
 	public boolean equals(Object o) {
 		return this == o || o instanceof JMethod && mth.equals(((JMethod) o).mth);
+	}
+
+	private static final Comparator<JMethod> COMPARATOR = Comparator
+			.comparing(JMethod::getJParent)
+			.thenComparing(jMethod -> jMethod.mth.getMethodNode().getMethodInfo().getShortId())
+			.thenComparingInt(JMethod::getPos);
+
+	public int compareToMth(@NotNull JMethod other) {
+		return COMPARATOR.compare(this, other);
+	}
+
+	@Override
+	public int compareTo(@NotNull JNode other) {
+		if (other instanceof JMethod) {
+			return compareToMth(((JMethod) other));
+		}
+		if (other instanceof JClass) {
+			JClass cls = (JClass) other;
+			int cmp = jParent.compareToCls(cls);
+			if (cmp != 0) {
+				return cmp;
+			}
+			return 1;
+		}
+		return super.compareTo(other);
 	}
 }

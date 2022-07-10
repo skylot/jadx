@@ -316,6 +316,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return blocks;
 	}
 
+	public void setBasicBlocks(List<BlockNode> blocks) {
+		this.blocks = blocks;
+	}
+
 	public BlockNode getEnterBlock() {
 		return enterBlock;
 	}
@@ -461,6 +465,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return regsCount;
 	}
 
+	public int getArgsStartReg() {
+		return argsStartReg;
+	}
+
 	public SSAVar makeNewSVar(@NotNull RegisterArg assignArg) {
 		int regNum = assignArg.getRegNum();
 		return makeNewSVar(regNum, getNextSVarVersion(regNum), assignArg);
@@ -590,6 +598,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
+	}
+
+	@Override
+	public AnnType getAnnType() {
+		return AnnType.METHOD;
 	}
 
 	@Override

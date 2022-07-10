@@ -31,6 +31,10 @@ public enum TestProfile implements Consumer<IntegrationTest> {
 		test.useTargetJavaVersion(11);
 		test.useJavaInput();
 	}),
+	JAVA17("java-17", test -> {
+		test.useTargetJavaVersion(17);
+		test.useJavaInput();
+	}),
 	ECJ_DX_J8("ecj-dx-j8", test -> {
 		test.useEclipseCompiler();
 		test.useTargetJavaVersion(8);
@@ -52,8 +56,9 @@ public enum TestProfile implements Consumer<IntegrationTest> {
 	}
 
 	@Override
-	public void accept(IntegrationTest integrationTest) {
-		this.setup.accept(integrationTest);
+	public void accept(IntegrationTest test) {
+		this.setup.accept(test);
+		test.setOutDirSuffix(description);
 	}
 
 	public String getDescription() {

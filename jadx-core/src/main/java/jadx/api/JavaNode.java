@@ -2,6 +2,8 @@ package jadx.api;
 
 import java.util.List;
 
+import jadx.api.metadata.ICodeAnnotation;
+
 public interface JavaNode {
 
 	String getName();
@@ -12,12 +14,12 @@ public interface JavaNode {
 
 	JavaClass getTopParentClass();
 
-	int getDecompiledLine();
-
 	int getDefPos();
 
 	List<JavaNode> getUseIn();
 
 	default void removeAlias() {
 	}
+
+	boolean isOwnCodeAnnotation(ICodeAnnotation ann);
 }

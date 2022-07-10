@@ -6,13 +6,12 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import jadx.api.ICodeCache;
-import jadx.api.JadxDecompiler;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.FixedCodeCache;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.codecache.FixedCodeCache;
 
-public class ExportTask implements IBackgroundTask {
+public class ExportTask extends CancelableBackgroundTask {
 
 	private final MainWindow mainWindow;
 	private final JadxWrapper wrapper;
@@ -35,9 +34,8 @@ public class ExportTask implements IBackgroundTask {
 	@Override
 	public List<Runnable> scheduleJobs() {
 		wrapCodeCache();
-		JadxDecompiler decompiler = wrapper.getDecompiler();
-		decompiler.getArgs().setRootDir(saveDir);
-		List<Runnable> saveTasks = decompiler.getSaveTasks();
+		wrapper.getArgs().setRootDir(saveDir);
+		List<Runnable> saveTasks = wrapper.getSaveTasks();
 		this.timeLimit = DecompileTask.calcDecompileTimeLimit(saveTasks.size());
 		return saveTasks;
 	}

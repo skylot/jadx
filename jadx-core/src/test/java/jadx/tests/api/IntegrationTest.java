@@ -32,7 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.CodePosition;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -41,11 +40,9 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.api.args.DeobfuscationMapFileMode;
-import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -63,13 +60,11 @@ import jadx.tests.api.utils.TestUtils;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -78,8 +73,6 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
-
-	private static final String OUT_DIR = "test-out-tmp";
 
 	private static final String DEFAULT_INPUT_PLUGIN = "dx";
 	/**
@@ -132,7 +125,7 @@ public abstract class IntegrationTest extends TestUtils {
 		this.useJavaInput = null;
 
 		args = new JadxArgs();
-		args.setOutDir(new File(OUT_DIR));
+		args.setOutDir(new File("test-out-tmp"));
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
@@ -154,6 +147,10 @@ public abstract class IntegrationTest extends TestUtils {
 		if (closeable != null) {
 			closeable.close();
 		}
+	}
+
+	public void setOutDirSuffix(String suffix) {
+		args.setOutDir(new File("test-out-" + suffix + "-tmp"));
 	}
 
 	public String getTestName() {
@@ -287,7 +284,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void runChecks(List<ClassNode> clsList) {
-		clsList.forEach(this::checkCode);
+		clsList.forEach(cls -> checkCode(cls, allowWarnInCode));
 		compileClassNode(clsList);
 		clsList.forEach(this::runAutoCheck);
 	}
@@ -300,7 +297,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private void printCodeWithLineNumbers(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
-		Map<Integer, Integer> lineMapping = code.getLineMapping();
+		Map<Integer, Integer> lineMapping = code.getCodeMetadata().getLineMapping();
 		String[] lines = codeStr.split(ICodeWriter.NL);
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
@@ -316,18 +313,18 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private void printCodeWithOffsets(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
-		Map<CodePosition, Object> annotations = code.getAnnotations();
-		String[] lines = codeStr.split(ICodeWriter.NL);
-		for (int i = 0; i < lines.length; i++) {
-			String line = lines[i];
-			int curLine = i + 1;
-			Object ann = annotations.get(new CodePosition(curLine, 0));
+		ICodeMetadata metadata = code.getCodeMetadata();
+		int lineStartPos = 0;
+		int newLineLen = ICodeWriter.NL.length();
+		for (String line : codeStr.split(ICodeWriter.NL)) {
+			Object ann = metadata.getAt(lineStartPos);
 			String offsetStr = "";
 			if (ann instanceof InsnCodeOffset) {
 				int offset = ((InsnCodeOffset) ann).getOffset();
 				offsetStr = "/* " + leftPad(String.valueOf(offset), 5) + " */";
 			}
 			System.out.println(rightPad(offsetStr, 12) + line);
+			lineStartPos += line.length() + newLineLen;
 		}
 	}
 
@@ -343,33 +340,6 @@ public abstract class IntegrationTest extends TestUtils {
 			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1], ""));
 		}
 		root.processResources(resStorage);
-	}
-
-	protected void checkCode(ClassNode cls) {
-		assertFalse(hasErrors(cls), "Inconsistent cls: " + cls);
-		for (MethodNode mthNode : cls.getMethods()) {
-			if (hasErrors(mthNode)) {
-				fail("Method with problems: " + mthNode
-						+ "\n " + Utils.listToString(mthNode.getAttributesStringsList(), "\n "));
-			}
-		}
-
-		String code = cls.getCode().getCodeStr();
-		assertThat(code, not(containsString("inconsistent")));
-		assertThat(code, not(containsString("JADX ERROR")));
-	}
-
-	private boolean hasErrors(IAttributeNode node) {
-		if (node.contains(AFlag.INCONSISTENT_CODE) || node.contains(AType.JADX_ERROR)) {
-			return true;
-		}
-		if (!allowWarnInCode) {
-			JadxCommentsAttr commentsAttr = node.get(AType.JADX_COMMENTS);
-			if (commentsAttr != null) {
-				return commentsAttr.getComments().get(CommentsLevel.WARN) != null;
-			}
-		}
-		return false;
 	}
 
 	private void runAutoCheck(ClassNode cls) {

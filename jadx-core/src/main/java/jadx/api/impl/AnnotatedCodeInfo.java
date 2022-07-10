@@ -2,23 +2,19 @@ package jadx.api.impl;
 
 import java.util.Map;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.impl.CodeMetadataStorage;
 
 public class AnnotatedCodeInfo implements ICodeInfo {
 
 	private final String code;
-	private final Map<Integer, Integer> lineMapping;
-	private final Map<CodePosition, Object> annotations;
+	private final ICodeMetadata metadata;
 
-	public AnnotatedCodeInfo(ICodeInfo codeInfo) {
-		this(codeInfo.getCodeStr(), codeInfo.getLineMapping(), codeInfo.getAnnotations());
-	}
-
-	public AnnotatedCodeInfo(String code, Map<Integer, Integer> lineMapping, Map<CodePosition, Object> annotations) {
+	public AnnotatedCodeInfo(String code, Map<Integer, Integer> lineMapping, Map<Integer, ICodeAnnotation> annotations) {
 		this.code = code;
-		this.lineMapping = lineMapping;
-		this.annotations = annotations;
+		this.metadata = CodeMetadataStorage.build(lineMapping, annotations);
 	}
 
 	@Override
@@ -27,13 +23,13 @@ public class AnnotatedCodeInfo implements ICodeInfo {
 	}
 
 	@Override
-	public Map<Integer, Integer> getLineMapping() {
-		return lineMapping;
+	public ICodeMetadata getCodeMetadata() {
+		return metadata;
 	}
 
 	@Override
-	public Map<CodePosition, Object> getAnnotations() {
-		return annotations;
+	public boolean hasMetadata() {
+		return metadata != ICodeMetadata.EMPTY;
 	}
 
 	@Override

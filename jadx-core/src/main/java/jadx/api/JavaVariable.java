@@ -4,17 +4,20 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.annotations.VarNode;
+import jadx.api.metadata.annotations.VarRef;
+import jadx.core.dex.instructions.args.ArgType;
 
 public class JavaVariable implements JavaNode {
 	private final JavaMethod mth;
-	private final VarRef varRef;
+	private final VarNode varNode;
 
-	public JavaVariable(JavaMethod mth, VarRef varRef) {
+	public JavaVariable(JavaMethod mth, VarNode varNode) {
 		this.mth = mth;
-		this.varRef = varRef;
+		this.varNode = varNode;
 	}
 
 	public JavaMethod getMth() {
@@ -22,26 +25,30 @@ public class JavaVariable implements JavaNode {
 	}
 
 	public int getReg() {
-		return varRef.getReg();
+		return varNode.getReg();
 	}
 
 	public int getSsa() {
-		return varRef.getSsa();
+		return varNode.getSsa();
 	}
 
 	@Override
-	public String getName() {
-		return varRef.getName();
+	public @Nullable String getName() {
+		return varNode.getName();
 	}
 
 	@ApiStatus.Internal
-	public VarRef getVarRef() {
-		return varRef;
+	public VarNode getVarNode() {
+		return varNode;
 	}
 
 	@Override
 	public String getFullName() {
-		return varRef.getType() + " " + varRef.getName() + " (r" + varRef.getReg() + "v" + varRef.getSsa() + ")";
+		return varNode.getType() + " " + varNode.getName() + " (r" + varNode.getReg() + "v" + varNode.getSsa() + ")";
+	}
+
+	public ArgType getType() {
+		return ArgType.tryToResolveClassAlias(mth.getMethodNode().root(), varNode.getType());
 	}
 
 	@Override
@@ -55,19 +62,8 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		if (varRef instanceof VarDeclareRef) {
-			return ((VarDeclareRef) varRef).getDecompiledLine();
-		}
-		return 0;
-	}
-
-	@Override
 	public int getDefPos() {
-		if (varRef instanceof VarDeclareRef) {
-			return ((VarDeclareRef) varRef).getDefPosition();
-		}
-		return 0;
+		return varNode.getDefPosition();
 	}
 
 	@Override
@@ -76,8 +72,17 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
+	public boolean isOwnCodeAnnotation(ICodeAnnotation ann) {
+		if (ann.getAnnType() == ICodeAnnotation.AnnType.VAR_REF) {
+			VarRef varRef = (VarRef) ann;
+			return varRef.getRefPos() == getDefPos();
+		}
+		return false;
+	}
+
+	@Override
 	public int hashCode() {
-		return varRef.hashCode();
+		return varNode.hashCode();
 	}
 
 	@Override
@@ -88,6 +93,6 @@ public class JavaVariable implements JavaNode {
 		if (!(o instanceof JavaVariable)) {
 			return false;
 		}
-		return varRef.equals(((JavaVariable) o).varRef);
+		return varNode.equals(((JavaVariable) o).varNode);
 	}
 }

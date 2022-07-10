@@ -103,7 +103,7 @@ public class ExcludePkgDialog extends JDialog {
 
 		btnOk.addActionListener(e -> {
 			mainWindow.getWrapper().setExcludedPackages(getExcludes());
-			mainWindow.reOpenFile();
+			mainWindow.reopen();
 			dispose();
 		});
 		btnAll.addActionListener(e -> {
@@ -121,7 +121,7 @@ public class ExcludePkgDialog extends JDialog {
 	}
 
 	private void initPackageList() {
-		List<String> pkgs = mainWindow.getWrapper().getDecompiler().getPackages()
+		List<String> pkgs = mainWindow.getWrapper().getPackages()
 				.stream()
 				.map(JavaPackage::getFullName)
 				.collect(Collectors.toList());

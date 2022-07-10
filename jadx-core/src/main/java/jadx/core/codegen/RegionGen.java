@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
@@ -26,6 +26,7 @@ import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
@@ -346,11 +347,11 @@ public class RegionGen extends InsnGen {
 		if (arg == null) {
 			code.add("unknown"); // throwing exception is too late at this point
 		} else if (arg instanceof RegisterArg) {
-			CodeVar codeVar = ((RegisterArg) arg).getSVar().getCodeVar();
+			SSAVar ssaVar = ((RegisterArg) arg).getSVar();
 			if (code.isMetadataSupported()) {
-				code.attachDefinition(VarDeclareRef.get(mth, codeVar));
+				code.attachDefinition(VarNode.get(mth, ssaVar));
 			}
-			code.add(mgen.getNameGen().assignArg(codeVar));
+			code.add(mgen.getNameGen().assignArg(ssaVar.getCodeVar()));
 		} else if (arg instanceof NamedArg) {
 			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		} else {

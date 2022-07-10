@@ -1,33 +1,35 @@
 package jadx.tests.external;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
+import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.DebugChecks;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.TestUtils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
-public abstract class BaseExternalTest extends IntegrationTest {
+public abstract class BaseExternalTest extends TestUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);
+
+	protected JadxDecompiler decompiler;
 
 	protected abstract String getSamplesDir();
 
@@ -56,16 +58,16 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	}
 
 	protected JadxDecompiler decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
-		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
-		jadx.load();
+		decompiler = new JadxDecompiler(jadxArgs);
+		decompiler.load();
 
 		if (clsPatternStr == null) {
-			jadx.save();
+			decompiler.save();
 		} else {
-			processByPatterns(jadx, clsPatternStr, mthPatternStr);
+			processByPatterns(decompiler, clsPatternStr, mthPatternStr);
 		}
-		printErrorReport(jadx);
-		return jadx;
+		printErrorReport(decompiler);
+		return decompiler;
 	}
 
 	private void processByPatterns(JadxDecompiler jadx, String clsPattern, @Nullable String mthPattern) {
@@ -110,7 +112,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		} else {
 			LOG.info("Code: \n{}", classNode.getCode());
 		}
-		checkCode(classNode);
+		checkCode(classNode, false);
 		return true;
 	}
 
@@ -127,37 +129,15 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	}
 
 	private void printMethods(ClassNode classNode, @NotNull String mthPattern) {
-		String code = classNode.getCode().getCodeStr();
+		ICodeInfo codeInfo = classNode.getCode();
+		String code = codeInfo.getCodeStr();
 		if (code == null) {
 			return;
 		}
-
 		String dashLine = "======================================================================================";
-		Map<Integer, MethodNode> methodsMap = getMethodsMap(classNode);
-		String[] lines = code.split(ICodeWriter.NL);
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
-				int decompiledLine = mth.getDecompiledLine() - 1;
-				StringBuilder mthCode = new StringBuilder();
-				int startLine = getCommentLinesCount(lines, decompiledLine);
-				int brackets = 0;
-				for (int i = startLine; i > 0 && i < lines.length; i++) {
-					// stop if next method started
-					MethodNode mthAtLine = methodsMap.get(i);
-					if (mthAtLine != null && !mthAtLine.equals(mth)) {
-						break;
-					}
-					String line = lines[i];
-					mthCode.append(line).append(ICodeWriter.NL);
-					// also count brackets for detect method end
-					if (i >= decompiledLine) {
-						brackets += StringUtils.countMatches(line, '{');
-						brackets -= StringUtils.countMatches(line, '}');
-						if (brackets <= 0) {
-							break;
-						}
-					}
-				}
+				String mthCode = cutMethodCode(codeInfo, mth);
 				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
 						dashLine,
 						mthCode,
@@ -166,22 +146,34 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		}
 	}
 
-	public Map<Integer, MethodNode> getMethodsMap(ClassNode classNode) {
-		Map<Integer, MethodNode> linesMap = new HashMap<>();
-		for (MethodNode method : classNode.getMethods()) {
-			linesMap.put(method.getDecompiledLine() - 1, method);
-		}
-		return linesMap;
+	private String cutMethodCode(ICodeInfo codeInfo, MethodNode mth) {
+		int startPos = getCommentStartPos(codeInfo, mth.getDefPosition());
+		int stopPos = getNextNodePos(mth, codeInfo);
+		return codeInfo.getCodeStr().substring(startPos, stopPos);
 	}
 
-	protected int getCommentLinesCount(String[] lines, int line) {
-		for (int i = line - 1; i > 0 && i < lines.length; i--) {
-			String str = lines[i];
-			if (str.isEmpty() || str.equals(ICodeWriter.NL)) {
-				return i + 1;
+	private int getNextNodePos(MethodNode mth, ICodeInfo codeInfo) {
+		int pos = mth.getDefPosition() + 1;
+		while (true) {
+			ICodeNodeRef nodeBelow = codeInfo.getCodeMetadata().getNodeBelow(pos);
+			if (nodeBelow == null) {
+				return codeInfo.getCodeStr().length();
 			}
+			if (nodeBelow.getAnnType() != ICodeAnnotation.AnnType.METHOD) {
+				return nodeBelow.getDefPosition();
+			}
+			MethodNode nodeMth = (MethodNode) nodeBelow;
+			if (nodeMth.getParentClass().equals(mth.getParentClass())) { // skip methods from anonymous classes
+				return getCommentStartPos(codeInfo, nodeMth.getDefPosition());
+			}
+			pos = nodeMth.getDefPosition() + 1;
 		}
-		return 0;
+	}
+
+	protected int getCommentStartPos(ICodeInfo codeInfo, int pos) {
+		String emptyLine = ICodeWriter.NL + ICodeWriter.NL;
+		int emptyLinePos = codeInfo.getCodeStr().lastIndexOf(emptyLine, pos);
+		return emptyLinePos == -1 ? pos : emptyLinePos + emptyLine.length();
 	}
 
 	private void printErrorReport(JadxDecompiler jadx) {

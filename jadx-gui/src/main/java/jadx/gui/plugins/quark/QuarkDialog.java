@@ -39,7 +39,7 @@ public class QuarkDialog extends JDialog {
 		this.files = filterOpenFiles(mainWindow);
 		if (files.isEmpty()) {
 			UiUtils.errorMessage(mainWindow, "Quark is unable to analyze loaded files");
-			LOG.error("Quark: The files cannot be analyzed: {}", mainWindow.getWrapper().getOpenPaths());
+			LOG.error("Quark: The files cannot be analyzed: {}", mainWindow.getProject().getFilePaths());
 			return;
 		}
 		initUI();
@@ -47,7 +47,7 @@ public class QuarkDialog extends JDialog {
 
 	private List<Path> filterOpenFiles(MainWindow mainWindow) {
 		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.{apk,dex}");
-		return mainWindow.getWrapper().getOpenPaths()
+		return mainWindow.getProject().getFilePaths()
 				.stream()
 				.filter(matcher::matches)
 				.collect(Collectors.toList());

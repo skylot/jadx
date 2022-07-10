@@ -5,8 +5,8 @@ import java.util.Map;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Assertions;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.tests.api.IntegrationTest;
@@ -67,8 +67,8 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		int codePos = code.getCodeStr().indexOf(refStr);
 		assertThat(codePos).describedAs("String '%s' not found", refStr).isNotEqualTo(-1);
 		int refPos = codePos + refOffset;
-		for (Map.Entry<CodePosition, Object> entry : code.getAnnotations().entrySet()) {
-			if (entry.getKey().getPos() == refPos) {
+		for (Map.Entry<Integer, ICodeAnnotation> entry : code.getCodeMetadata().getAsMap().entrySet()) {
+			if (entry.getKey() == refPos) {
 				Assertions.assertThat(entry.getValue()).isEqualTo(node);
 				return;
 			}

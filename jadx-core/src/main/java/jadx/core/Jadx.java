@@ -238,9 +238,17 @@ public class Jadx {
 	private static String version;
 
 	public static String getVersion() {
-		if (version != null) {
-			return version;
+		if (version == null) {
+			version = searchJadxVersion();
 		}
+		return version;
+	}
+
+	public static boolean isDevVersion() {
+		return getVersion().equals(VERSION_DEV);
+	}
+
+	private static String searchJadxVersion() {
 		try {
 			ClassLoader classLoader = Jadx.class.getClassLoader();
 			if (classLoader != null) {
@@ -250,7 +258,6 @@ public class Jadx {
 						Manifest manifest = new Manifest(is);
 						String ver = manifest.getMainAttributes().getValue("jadx-version");
 						if (ver != null) {
-							version = ver;
 							return ver;
 						}
 					}

@@ -45,6 +45,15 @@ public class MethodUtils {
 		return root.getClsp().getMethodDetails(callMth);
 	}
 
+	@Nullable
+	public MethodNode resolveMethod(BaseInvokeNode invokeNode) {
+		IMethodDetails methodDetails = getMethodDetails(invokeNode);
+		if (methodDetails instanceof MethodNode) {
+			return ((MethodNode) methodDetails);
+		}
+		return null;
+	}
+
 	/**
 	 * Search methods with same name and args count in class hierarchy starting from {@code startCls}
 	 * Beware {@code startCls} can be different from {@code mthInfo.getDeclClass()}

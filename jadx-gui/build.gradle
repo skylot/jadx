@@ -7,7 +7,6 @@ plugins {
 
 dependencies {
 	implementation(project(':jadx-core'))
-
 	implementation(project(":jadx-cli"))
 	implementation 'com.beust:jcommander:1.82'
 	implementation 'ch.qos.logback:logback-classic:1.2.11'
@@ -16,9 +15,9 @@ dependencies {
 	implementation files('libs/jfontchooser-1.0.5.jar')
 	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
-	implementation 'com.formdev:flatlaf:2.2'
-	implementation 'com.formdev:flatlaf-intellij-themes:2.2'
-	implementation 'com.formdev:flatlaf-extras:2.2'
+	implementation 'com.formdev:flatlaf:2.3'
+	implementation 'com.formdev:flatlaf-intellij-themes:2.3'
+	implementation 'com.formdev:flatlaf-extras:2.3'
 	implementation 'com.formdev:svgSalamander:1.1.3'
 
 	implementation 'com.google.code.gson:gson:2.9.0'
@@ -29,6 +28,13 @@ dependencies {
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
 	implementation 'com.android.tools.build:apksig:4.2.1'
 	implementation 'io.github.hqktech:jdwp:1.0'
+
+	// TODO: Switch back to upstream once this PR gets merged:
+	//   https://github.com/FabricMC/mapping-io/pull/19
+	// implementation 'net.fabricmc:mapping-io:0.3.0'
+	implementation files('libs/mapping-io-0.4.0-SNAPSHOT.jar')
+
+	testImplementation project(":jadx-core").sourceSets.test.output
 }
 
 application {
@@ -98,7 +104,6 @@ runtime {
 	addModules(
 			'java.desktop',
 			'java.naming',
-			'java.sql', // TODO: GSON register adapter for java.sql.Time
 			'java.xml',
 	)
 	jpackage {
@@ -111,16 +116,25 @@ runtime {
 	}
 }
 
-task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe']) {
+task copyDistWinWithJre(type: Copy, dependsOn: ['runtime', 'createExe']) {
 	group 'jadx'
-	destinationDirectory = buildDir
-	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
+	destinationDir = new File(buildDir, "jadx-gui-${jadxVersion}-with-jre-win")
 	from(runtime.jreDir) {
 		include '**/*'
 		into 'jre'
 	}
 	from(createExe.outputs) {
 		include '*.exe'
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+task distWinWithJre(type: Zip, dependsOn: ['copyDistWinWithJre']) {
+	group 'jadx'
+	destinationDirectory = buildDir
+	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
+	from(copyDistWinWithJre.outputs) {
+		include '**/*'
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

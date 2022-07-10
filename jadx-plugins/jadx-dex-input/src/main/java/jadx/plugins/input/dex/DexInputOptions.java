@@ -23,7 +23,7 @@ public class DexInputOptions extends BaseOptionsParser {
 		return Collections.singletonList(
 				new JadxOptionDescription(
 						VERIFY_CHECKSUM_OPT,
-						"Verify dex file checksum before load",
+						"verify dex file checksum before load",
 						"yes",
 						Arrays.asList("yes", "no")));
 	}

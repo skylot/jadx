@@ -362,8 +362,7 @@ public class ModVisitor extends AbstractVisitor {
 	private static void removeCheckCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
 		InsnArg castArg = insn.getArg(0);
 		ArgType castType = (ArgType) insn.getIndex();
-		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)
-				|| isCastDuplicate(insn)) {
+		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)) {
 			RegisterArg result = insn.getResult();
 			result.setType(castArg.getType());
 
@@ -371,10 +370,19 @@ public class ModVisitor extends AbstractVisitor {
 			move.setResult(result);
 			move.addArg(castArg);
 			replaceInsn(mth, block, i, move);
+			return;
+		}
+		InsnNode prevCast = isCastDuplicate(insn);
+		if (prevCast != null) {
+			// replace previous cast with move
+			InsnNode move = new InsnNode(InsnType.MOVE, 1);
+			move.setResult(prevCast.getResult());
+			move.addArg(prevCast.getArg(0));
+			replaceInsn(mth, block, prevCast, move);
 		}
 	}
 
-	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
+	private static @Nullable InsnNode isCastDuplicate(IndexInsnNode castInsn) {
 		InsnArg arg = castInsn.getArg(0);
 		if (arg.isRegister()) {
 			SSAVar sVar = ((RegisterArg) arg).getSVar();
@@ -382,11 +390,13 @@ public class ModVisitor extends AbstractVisitor {
 				InsnNode assignInsn = sVar.getAssign().getParentInsn();
 				if (assignInsn != null && assignInsn.getType() == InsnType.CHECK_CAST) {
 					ArgType assignCastType = (ArgType) ((IndexInsnNode) assignInsn).getIndex();
-					return assignCastType.equals(castInsn.getIndex());
+					if (assignCastType.equals(castInsn.getIndex())) {
+						return assignInsn;
+					}
 				}
 			}
 		}
-		return false;
+		return null;
 	}
 
 	/**

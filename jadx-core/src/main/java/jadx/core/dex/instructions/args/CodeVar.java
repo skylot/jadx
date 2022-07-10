@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.VarNode;
 
 public class CodeVar {
 	private String name;
@@ -15,7 +15,7 @@ public class CodeVar {
 	private boolean isThis;
 	private boolean isDeclared;
 
-	private VarRef cachedVarRef; // set and used at codegen stage
+	private VarNode cachedVarNode; // set and used at codegen stage
 
 	public static CodeVar fromMthArg(RegisterArg mthArg, boolean linkRegister) {
 		CodeVar var = new CodeVar();
@@ -94,12 +94,12 @@ public class CodeVar {
 		isDeclared = declared;
 	}
 
-	public VarRef getCachedVarRef() {
-		return cachedVarRef;
+	public VarNode getCachedVarNode() {
+		return cachedVarNode;
 	}
 
-	public void setCachedVarRef(VarRef cachedVarRef) {
-		this.cachedVarRef = cachedVarRef;
+	public void setCachedVarNode(VarNode varNode) {
+		this.cachedVarNode = varNode;
 	}
 
 	/**

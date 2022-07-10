@@ -8,16 +8,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
@@ -100,6 +103,10 @@ public class FileUtils {
 		}
 	}
 
+	public static void deleteFileIfExists(Path filePath) throws IOException {
+		Files.deleteIfExists(filePath);
+	}
+
 	public static boolean deleteDir(File dir) {
 		File[] content = dir.listFiles();
 		if (content != null) {
@@ -110,13 +117,24 @@ public class FileUtils {
 		return dir.delete();
 	}
 
-	public static void deleteDir(Path dir) {
+	public static void deleteDirIfExists(Path dir) {
+		if (Files.exists(dir)) {
+			try {
+				deleteDir(dir);
+			} catch (Exception e) {
+				LOG.error("Failed to delete dir: " + dir.toAbsolutePath(), e);
+			}
+		}
+	}
+
+	private static void deleteDir(Path dir) {
 		try (Stream<Path> pathStream = Files.walk(dir)) {
 			pathStream.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(file -> {
-						if (!file.delete()) {
-							LOG.warn("Failed to remove file: {}", file.getAbsolutePath());
+					.forEach(path -> {
+						try {
+							Files.delete(path);
+						} catch (Exception e) {
+							throw new JadxRuntimeException("Failed to delete path: " + path.toAbsolutePath(), e);
 						}
 					});
 		} catch (Exception e) {
@@ -143,11 +161,11 @@ public class FileUtils {
 	}
 
 	public static void deleteTempRootDir() {
-		deleteDir(TEMP_ROOT_DIR);
+		deleteDirIfExists(TEMP_ROOT_DIR);
 	}
 
 	public static void clearTempRootDir() {
-		deleteDir(TEMP_ROOT_DIR);
+		deleteDirIfExists(TEMP_ROOT_DIR);
 		makeDirs(TEMP_ROOT_DIR);
 	}
 
@@ -208,6 +226,15 @@ public class FileUtils {
 		}
 	}
 
+	public static void writeFile(Path file, String data) throws IOException {
+		FileUtils.makeDirsForFile(file);
+		Files.write(file, data.getBytes(StandardCharsets.UTF_8));
+	}
+
+	public static String readFile(Path textFile) throws IOException {
+		return new String(Files.readAllBytes(textFile), StandardCharsets.UTF_8);
+	}
+
 	@NotNull
 	public static File prepareFile(File file) {
 		File saveFile = cutFileName(file);
@@ -230,18 +257,41 @@ public class FileUtils {
 		return new File(file.getParentFile(), name);
 	}
 
-	private static String bytesToHex(byte[] bytes) {
-		char[] hexArray = "0123456789abcdef".toCharArray();
-		if (bytes == null || bytes.length <= 0) {
-			return null;
+	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes(StandardCharsets.US_ASCII);
+
+	public static String bytesToHex(byte[] bytes) {
+		if (bytes == null || bytes.length == 0) {
+			return "";
 		}
-		char[] hexChars = new char[bytes.length * 2];
+		byte[] hexChars = new byte[bytes.length * 2];
 		for (int j = 0; j < bytes.length; j++) {
 			int v = bytes[j] & 0xFF;
-			hexChars[j * 2] = hexArray[v >>> 4];
-			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+			hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+			hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
 		}
-		return new String(hexChars);
+		return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Zero padded hex string for first byte
+	 */
+	public static String byteToHex(int value) {
+		int v = value & 0xFF;
+		byte[] hexChars = new byte[] { HEX_ARRAY[v >>> 4], HEX_ARRAY[v & 0x0F] };
+		return new String(hexChars, StandardCharsets.US_ASCII);
+	}
+
+	/**
+	 * Zero padded hex string for int value
+	 */
+	public static String intToHex(int value) {
+		byte[] hexChars = new byte[8];
+		int v = value;
+		for (int i = 7; i >= 0; i--) {
+			hexChars[i] = HEX_ARRAY[v & 0x0F];
+			v >>>= 4;
+		}
+		return new String(hexChars, StandardCharsets.US_ASCII);
 	}
 
 	public static boolean isZipFile(File file) {
@@ -274,5 +324,31 @@ public class FileUtils {
 			return null;
 		}
 		return new File(path);
+	}
+
+	public static List<Path> toPaths(List<File> files) {
+		return files.stream().map(File::toPath).collect(Collectors.toList());
+	}
+
+	public static List<Path> toPaths(File[] files) {
+		return Stream.of(files).map(File::toPath).collect(Collectors.toList());
+	}
+
+	public static List<Path> fileNamesToPaths(List<String> fileNames) {
+		return fileNames.stream().map(Paths::get).collect(Collectors.toList());
+	}
+
+	public static List<File> toFiles(List<Path> paths) {
+		return paths.stream().map(Path::toFile).collect(Collectors.toList());
+	}
+
+	public static String md5Sum(byte[] data) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(data);
+			return bytesToHex(md.digest());
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to build hash", e);
+		}
 	}
 }

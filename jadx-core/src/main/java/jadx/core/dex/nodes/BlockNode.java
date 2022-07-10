@@ -170,6 +170,10 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		return contains(AFlag.RETURN);
 	}
 
+	public boolean isEmpty() {
+		return instructions.isEmpty();
+	}
+
 	@Override
 	public int hashCode() {
 		return startOffset;

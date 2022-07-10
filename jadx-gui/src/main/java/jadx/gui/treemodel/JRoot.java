@@ -132,13 +132,8 @@ public class JRoot extends JNode {
 	}
 
 	@Override
-	public int getLine() {
-		return 0;
-	}
-
-	@Override
 	public String makeString() {
-		List<Path> paths = wrapper.getOpenPaths();
+		List<Path> paths = wrapper.getProject().getFilePaths();
 		int count = paths.size();
 		if (count == 0) {
 			return "File not open";
@@ -151,7 +146,7 @@ public class JRoot extends JNode {
 
 	@Override
 	public String getTooltip() {
-		List<Path> paths = wrapper.getOpenPaths();
+		List<Path> paths = wrapper.getProject().getFilePaths();
 		int count = paths.size();
 		if (count < 2) {
 			return null;

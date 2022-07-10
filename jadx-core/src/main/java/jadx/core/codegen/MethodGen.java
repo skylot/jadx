@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
@@ -243,7 +243,7 @@ public class MethodGen {
 			code.add(' ');
 			String varName = nameGen.assignArg(var);
 			if (code.isMetadataSupported() && ssaVar != null /* for fallback mode */) {
-				code.attachDefinition(VarDeclareRef.get(mth, var));
+				code.attachDefinition(VarNode.get(mth, var));
 			}
 			code.add(varName);
 

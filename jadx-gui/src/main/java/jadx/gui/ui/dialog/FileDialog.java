@@ -18,16 +18,22 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.Utils;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.FileUtils;
 import jadx.gui.utils.NLS;
 
 public class FileDialog {
 
 	public enum OpenMode {
-		OPEN, ADD, SAVE_PROJECT, EXPORT
+		OPEN,
+		ADD,
+		SAVE_PROJECT,
+		EXPORT,
+		CUSTOM_SAVE,
+		CUSTOM_OPEN
 	}
 
 	private final MainWindow mainWindow;
@@ -44,6 +50,26 @@ public class FileDialog {
 		initForMode(mode);
 	}
 
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setFileExtList(List<String> fileExtList) {
+		this.fileExtList = fileExtList;
+	}
+
+	public void setSelectionMode(int selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
+	public void setSelectedFile(Path path) {
+		this.selectedFile = path;
+	}
+
+	public void setCurrentDir(Path currentDir) {
+		this.currentDir = currentDir;
+	}
+
 	public List<Path> show() {
 		FileChooser fileChooser = buildFileChooser();
 		int ret = isOpen ? fileChooser.showOpenDialog(mainWindow) : fileChooser.showSaveDialog(mainWindow);
@@ -51,15 +77,19 @@ public class FileDialog {
 			return Collections.emptyList();
 		}
 		currentDir = fileChooser.getCurrentDirectory().toPath();
-		return FileUtils.toPaths(fileChooser.getSelectedFiles());
+		File[] selectedFiles = fileChooser.getSelectedFiles();
+		if (selectedFiles.length != 0) {
+			return FileUtils.toPaths(selectedFiles);
+		}
+		File chosenFile = fileChooser.getSelectedFile();
+		if (chosenFile != null) {
+			return Collections.singletonList(chosenFile.toPath());
+		}
+		return Collections.emptyList();
 	}
 
 	public Path getCurrentDir() {
 		return currentDir;
-	}
-
-	public void setSelectedFile(Path path) {
-		this.selectedFile = path;
 	}
 
 	private void initForMode(OpenMode mode) {
@@ -93,21 +123,26 @@ public class FileDialog {
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
+
+			case CUSTOM_SAVE:
+				isOpen = false;
+				break;
+
+			case CUSTOM_OPEN:
+				isOpen = true;
+				break;
 		}
 	}
 
 	private FileChooser buildFileChooser() {
-		FileChooser fileChooser = new FileChooser();
+		FileChooser fileChooser = new FileChooser(currentDir);
 		fileChooser.setToolTipText(title);
 		fileChooser.setFileSelectionMode(selectionMode);
 		fileChooser.setMultiSelectionEnabled(isOpen);
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		if (!fileExtList.isEmpty()) {
+		if (Utils.notEmpty(fileExtList)) {
 			String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(fileExtList) + ')';
 			fileChooser.setFileFilter(new FileNameExtensionFilter(description, fileExtList.toArray(new String[0])));
-		}
-		if (currentDir != null) {
-			fileChooser.setCurrentDirectory(currentDir.toFile());
 		}
 		if (selectedFile != null) {
 			fileChooser.setSelectedFile(selectedFile.toFile());
@@ -116,6 +151,11 @@ public class FileDialog {
 	}
 
 	private class FileChooser extends JFileChooser {
+
+		public FileChooser(@Nullable Path currentDirectory) {
+			super(currentDirectory == null ? CommonFileUtils.CWD : currentDirectory.toFile());
+		}
+
 		@Override
 		protected JDialog createDialog(Component parent) throws HeadlessException {
 			JDialog dialog = super.createDialog(parent);

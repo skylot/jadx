@@ -14,9 +14,7 @@ import jadx.core.Consts;
 import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.deobf.NameMapper;
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
-import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.nodes.ClassNode;
@@ -45,8 +43,8 @@ public class RenameVisitor extends AbstractVisitor {
 			deobfuscator.execute();
 		}
 
-		checkClasses(deobfuscator, root, args);
 		UserRenames.applyForNodes(root);
+		checkClasses(deobfuscator, root, args);
 
 		if (args.isDeobfuscationOn() || !args.isJsonOutput()) {
 			deobfuscator.savePresets();
@@ -196,11 +194,6 @@ public class RenameVisitor extends AbstractVisitor {
 		if (args.isRenameValid()) {
 			Set<String> names = new HashSet<>(methods.size());
 			for (MethodNode mth : methods) {
-				AccessInfo accessFlags = mth.getAccessFlags();
-				if (accessFlags.isBridge() || accessFlags.isSynthetic()
-						|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
-					continue;
-				}
 				String signature = mth.getMethodInfo().makeSignature(true, false);
 				if (!names.add(signature)) {
 					deobfuscator.forceRenameMethod(mth);

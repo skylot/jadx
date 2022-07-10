@@ -180,12 +180,12 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		return makeFullClsName(pkg, name, parentClass, false, true);
 	}
 
-	private String makeAliasFullName() {
+	public String makeAliasFullName() {
 		return makeFullClsName(getAliasPkg(), getAliasShortName(), parentClass, true, false);
 	}
 
-	private String makeAliasRawFullName() {
-		return makeFullClsName(pkg, name, parentClass, true, true);
+	public String makeAliasRawFullName() {
+		return makeFullClsName(getAliasPkg(), getAliasShortName(), parentClass, true, true);
 	}
 
 	public String getAliasFullPath() {

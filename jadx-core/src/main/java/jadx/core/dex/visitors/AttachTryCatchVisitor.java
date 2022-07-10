@@ -133,7 +133,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			ExcHandlerAttr excHandlerAttr = insn.get(AType.EXC_HANDLER);
 			if (excHandlerAttr != null) {
 				ExceptionHandler handler = excHandlerAttr.getHandler();
-				if (handler.addCatchType(type)) {
+				if (handler.addCatchType(mth, type)) {
 					// exist handler updated (assume from same try block) - don't add again
 					return null;
 				}
@@ -143,7 +143,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 		} else {
 			insn = insertNOP(insnByOffset, handlerOffset);
 		}
-		ExceptionHandler handler = new ExceptionHandler(handlerOffset, type);
+		ExceptionHandler handler = ExceptionHandler.build(mth, handlerOffset, type);
 		mth.addExceptionHandler(handler);
 		insn.addAttr(new ExcHandlerAttr(handler));
 		return handler;

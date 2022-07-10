@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
-import jadx.api.data.annotations.InsnCodeOffset;
-import jadx.api.data.annotations.VarDeclareRef;
-import jadx.api.data.annotations.VarRef;
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -109,7 +108,7 @@ public class InsnGen {
 		if (arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
 			if (code.isMetadataSupported()) {
-				code.attachAnnotation(VarRef.get(mth, reg));
+				code.attachAnnotation(VarNode.getRef(mth, reg));
 			}
 			code.add(mgen.getNameGen().useArg(reg));
 		} else if (arg.isLiteral()) {
@@ -162,10 +161,18 @@ public class InsnGen {
 		}
 		useType(code, codeVar.getType());
 		code.add(' ');
+		defVar(code, codeVar);
+	}
+
+	/**
+	 * Variable definition without type, only var name
+	 */
+	private void defVar(ICodeWriter code, CodeVar codeVar) {
+		String varName = mgen.getNameGen().assignArg(codeVar);
 		if (code.isMetadataSupported()) {
-			code.attachDefinition(VarDeclareRef.get(mth, codeVar));
+			code.attachDefinition(VarNode.get(mth, codeVar));
 		}
-		code.add(mgen.getNameGen().assignArg(codeVar));
+		code.add(varName);
 	}
 
 	private String lit(LiteralArg arg) {
@@ -800,14 +807,9 @@ public class InsnGen {
 				break;
 
 			case SUPER:
-				ClassInfo superCallCls = getClassForSuperCall(code, callMth);
-				if (superCallCls != null) {
-					useClass(code, superCallCls);
-					code.add('.');
-				}
-				// use 'super' instead 'this' in 0 arg
-				code.add("super").add('.');
-				k++;
+				callSuper(code, callMth);
+				k++; // use 'super' instead 'this' in 0 arg
+				code.add('.');
 				break;
 
 			case STATIC:
@@ -821,7 +823,9 @@ public class InsnGen {
 		}
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
-			code.add(callMthNode.getAlias());
+		}
+		if (insn.contains(AFlag.FORCE_RAW_NAME)) {
+			code.add(callMth.getName());
 		} else {
 			code.add(callMth.getAlias());
 		}
@@ -939,7 +943,7 @@ public class InsnGen {
 					code.add(", ");
 				}
 				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();
-				code.add(nameGen.assignArg(argCodeVar));
+				defVar(code, argCodeVar);
 			}
 		}
 		// force set external arg names into call method args
@@ -947,7 +951,8 @@ public class InsnGen {
 		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip 'this' arg
 		for (int i = startArg; i < extArgsCount; i++) {
 			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
-			callArgs.get(i).setName(extArg.getName());
+			RegisterArg callRegArg = callArgs.get(i);
+			callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
 		}
 		code.add(" -> {");
 		code.incIndent();
@@ -957,34 +962,43 @@ public class InsnGen {
 		code.startLine('}');
 	}
 
-	@Nullable
-	private ClassInfo getClassForSuperCall(ICodeWriter code, MethodInfo callMth) {
-		ClassNode useCls = mth.getParentClass();
-		ClassInfo insnCls = useCls.getClassInfo();
-		ClassInfo declClass = callMth.getDeclClass();
-		if (insnCls.equals(declClass)) {
-			return null;
+	private void callSuper(ICodeWriter code, MethodInfo callMth) {
+		ClassInfo superCallCls = getClassForSuperCall(callMth);
+		if (superCallCls == null) {
+			// unknown class, add comment to keep that info
+			code.add("super/*").add(callMth.getDeclClass().getFullName()).add("*/");
+			return;
 		}
-		ClassNode topClass = useCls.getTopParentClass();
-		if (topClass.getClassInfo().equals(declClass)) {
-			return declClass;
+		ClassInfo curClass = mth.getParentClass().getClassInfo();
+		if (superCallCls.equals(curClass)) {
+			code.add("super");
+			return;
 		}
-		// search call class
-		ClassNode nextParent = useCls;
-		do {
-			ClassInfo nextClsInfo = nextParent.getClassInfo();
-			if (nextClsInfo.equals(declClass)
-					|| ArgType.isInstanceOf(mth.root(), nextClsInfo.getType(), declClass.getType())) {
-				if (nextParent == useCls) {
-					return null;
-				}
-				return nextClsInfo;
-			}
-			nextParent = nextParent.getParentClass();
-		} while (nextParent != null && nextParent != topClass);
+		// use custom class
+		useClass(code, superCallCls);
+		code.add(".super");
+	}
 
-		// search failed, just return parent class
-		return useCls.getParentClass().getClassInfo();
+	/**
+	 * Search call class in super types of this
+	 * and all parent classes (needed for inlined synthetic calls)
+	 */
+	@Nullable
+	private ClassInfo getClassForSuperCall(MethodInfo callMth) {
+		ArgType declClsType = callMth.getDeclClass().getType();
+		ClassNode parentNode = mth.getParentClass();
+		while (true) {
+			ClassInfo parentCls = parentNode.getClassInfo();
+			if (ArgType.isInstanceOf(root, parentCls.getType(), declClsType)) {
+				return parentCls;
+			}
+			ClassNode nextParent = parentNode.getParentClass();
+			if (nextParent == parentNode) {
+				// no parent, class not found
+				return null;
+			}
+			parentNode = nextParent;
+		}
 	}
 
 	void generateMethodArguments(ICodeWriter code, BaseInvokeNode insn, int startArgNum,

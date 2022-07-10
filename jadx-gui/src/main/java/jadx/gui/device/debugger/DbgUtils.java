@@ -160,7 +160,7 @@ public class DbgUtils {
 	// TODO: parse AndroidManifest.xml instead of looking for keywords
 	private static String getManifestContent(MainWindow mainWindow) {
 		try {
-			ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
+			ResourceFile androidManifest = mainWindow.getWrapper().getResources()
 					.stream()
 					.filter(res -> res.getType() == ResourceType.MANIFEST)
 					.findFirst()

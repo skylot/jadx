@@ -7,20 +7,10 @@ public abstract class LineAttrNode extends AttrNode implements ILineAttributeNod
 
 	private int sourceLine;
 
-	private int decompiledLine;
-
-	// the position exactly where a node declared at in decompiled java code.
+	/**
+	 * Position where a node declared at in decompiled code
+	 */
 	private int defPosition;
-
-	@Override
-	public int getDefPosition() {
-		return this.defPosition;
-	}
-
-	@Override
-	public void setDefPosition(int defPosition) {
-		this.defPosition = defPosition;
-	}
 
 	@Override
 	public int getSourceLine() {
@@ -33,13 +23,13 @@ public abstract class LineAttrNode extends AttrNode implements ILineAttributeNod
 	}
 
 	@Override
-	public int getDecompiledLine() {
-		return decompiledLine;
+	public int getDefPosition() {
+		return this.defPosition;
 	}
 
 	@Override
-	public void setDecompiledLine(int decompiledLine) {
-		this.decompiledLine = decompiledLine;
+	public void setDefPosition(int defPosition) {
+		this.defPosition = defPosition;
 	}
 
 	public void addSourceLineFrom(LineAttrNode lineAttrNode) {
@@ -50,6 +40,6 @@ public abstract class LineAttrNode extends AttrNode implements ILineAttributeNod
 
 	public void copyLines(LineAttrNode lineAttrNode) {
 		setSourceLine(lineAttrNode.getSourceLine());
-		setDecompiledLine(lineAttrNode.getDecompiledLine());
+		setDefPosition(lineAttrNode.getDefPosition());
 	}
 }

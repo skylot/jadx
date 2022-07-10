@@ -1,5 +1,6 @@
 package jadx.gui.plugins.quark;
 
+import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jadx.api.ICodeInfo;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -31,12 +34,12 @@ public class QuarkReportNode extends JNode {
 
 	private static final ImageIcon ICON = UiUtils.openSvgIcon("ui/quark");
 
-	private final Path apkFile;
+	private final Path reportFile;
 
-	private String errorContent;
+	private ICodeInfo errorContent;
 
-	public QuarkReportNode(Path apkFile) {
-		this.apkFile = apkFile;
+	public QuarkReportNode(Path reportFile) {
+		this.reportFile = reportFile;
 	}
 
 	@Override
@@ -57,7 +60,11 @@ public class QuarkReportNode extends JNode {
 	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		try {
-			QuarkReportData data = GSON.fromJson(Files.newBufferedReader(apkFile), QuarkReportData.class);
+			QuarkReportData data;
+			try (BufferedReader reader = Files.newBufferedReader(reportFile)) {
+				data = GSON.fromJson(reader, QuarkReportData.class);
+			}
+			data.validate();
 			return new QuarkReportPanel(tabbedPane, this, data);
 		} catch (Exception e) {
 			LOG.error("Quark report parse error", e);
@@ -71,13 +78,13 @@ public class QuarkReportNode extends JNode {
 			builder.append("<pre>");
 			builder.escape(ExceptionUtils.getStackTrace(e));
 			builder.append("</pre>");
-			errorContent = builder.toString();
+			errorContent = new SimpleCodeInfo(builder.toString());
 			return new HtmlPanel(tabbedPane, this);
 		}
 	}
 
 	@Override
-	public String getContent() {
-		return this.errorContent;
+	public ICodeInfo getCodeInfo() {
+		return errorContent;
 	}
 }

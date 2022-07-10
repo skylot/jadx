@@ -2,7 +2,6 @@ package jadx.gui.utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -41,22 +40,7 @@ public class JumpManager {
 		if (current == null) {
 			return false;
 		}
-		if (pos.equals(current)) {
-			return true;
-		}
-		if (Objects.equals(current.getNode(), pos.getNode())) {
-			// undefined jump line in same node // TODO: find the cause
-			if (pos.getLine() == 0) {
-				return true;
-			}
-			if (current.getLine() == 0) {
-				// replace current
-				getPrev();
-				return false;
-			}
-			return false;
-		}
-		return false;
+		return pos.equals(current);
 	}
 
 	@Nullable

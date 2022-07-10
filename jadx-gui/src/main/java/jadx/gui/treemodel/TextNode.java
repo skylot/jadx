@@ -18,11 +18,6 @@ public class TextNode extends JNode {
 	}
 
 	@Override
-	public int getLine() {
-		return 0;
-	}
-
-	@Override
 	public Icon getIcon() {
 		return null;
 	}

@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.data.impl.JadxCodeData;
 
 public class ProjectData {
@@ -16,6 +18,8 @@ public class ProjectData {
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private int activeTab = -1;
+	private @Nullable Path cacheDir;
+	private boolean enableLiveReload = false;
 
 	public List<Path> getFiles() {
 		return files;
@@ -81,5 +85,22 @@ public class ProjectData {
 		}
 		this.activeTab = activeTab;
 		return true;
+	}
+
+	@Nullable
+	public Path getCacheDir() {
+		return cacheDir;
+	}
+
+	public void setCacheDir(Path cacheDir) {
+		this.cacheDir = cacheDir;
+	}
+
+	public boolean isEnableLiveReload() {
+		return enableLiveReload;
+	}
+
+	public void setEnableLiveReload(boolean enableLiveReload) {
+		this.enableLiveReload = enableLiveReload;
 	}
 }

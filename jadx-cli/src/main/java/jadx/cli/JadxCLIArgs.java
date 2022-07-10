@@ -123,9 +123,6 @@ public class JadxCLIArgs {
 	)
 	protected DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
 
-	@Parameter(names = { "--deobf-rewrite-cfg" }, description = "set '--deobf-cfg-file-mode' to 'overwrite' (deprecated)")
-	protected boolean deobfuscationForceSave = false;
-
 	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = false;
 
@@ -259,11 +256,7 @@ public class JadxCLIArgs {
 		args.setReplaceConsts(replaceConsts);
 		args.setDeobfuscationOn(deobfuscationOn);
 		args.setDeobfuscationMapFile(FileUtils.toFile(deobfuscationMapFile));
-		if (deobfuscationForceSave) {
-			args.setDeobfuscationMapFileMode(DeobfuscationMapFileMode.OVERWRITE);
-		} else {
-			args.setDeobfuscationMapFileMode(deobfuscationMapFileMode);
-		}
+		args.setDeobfuscationMapFileMode(deobfuscationMapFileMode);
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
@@ -375,10 +368,6 @@ public class JadxCLIArgs {
 
 	public DeobfuscationMapFileMode getDeobfuscationMapFileMode() {
 		return deobfuscationMapFileMode;
-	}
-
-	public boolean isDeobfuscationForceSave() {
-		return deobfuscationForceSave;
 	}
 
 	public boolean isDeobfuscationUseSourceNameAsAlias() {

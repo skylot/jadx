@@ -35,6 +35,7 @@ import org.fife.ui.rtextarea.RTextAreaUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.settings.JadxSettings;
@@ -96,6 +97,11 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	@Override
+	public ICodeInfo getCodeInfo() {
+		return ICodeInfo.EMPTY;
+	}
+
+	@Override
 	public void refresh() {
 		load();
 	}
@@ -130,7 +136,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	@Override
 	public Font getFont() {
-		if (model == null) {
+		if (model == null || isDisposed()) {
 			return super.getFont();
 		}
 		return model.getFont();
@@ -138,7 +144,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	@Override
 	public Font getFontForTokenType(int type) {
-		return model.getFont();
+		return getFont();
 	}
 
 	private boolean shouldUseSmaliPrinterV2() {

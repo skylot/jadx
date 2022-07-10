@@ -13,9 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.IDecompileScheduler;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class DecompilerScheduler implements IDecompileScheduler {
@@ -24,18 +22,11 @@ public class DecompilerScheduler implements IDecompileScheduler {
 	private static final int MERGED_BATCH_SIZE = 16;
 	private static final boolean DEBUG_BATCHES = false;
 
-	private final JadxDecompiler decompiler;
-
-	public DecompilerScheduler(JadxDecompiler decompiler) {
-		this.decompiler = decompiler;
-	}
-
 	@Override
 	public List<List<JavaClass>> buildBatches(List<JavaClass> classes) {
 		try {
 			long start = System.currentTimeMillis();
-			List<List<ClassNode>> batches = internalBatches(Utils.collectionMap(classes, JavaClass::getClassNode));
-			List<List<JavaClass>> result = Utils.collectionMap(batches, l -> Utils.collectionMapNoNull(l, decompiler::getJavaClassByNode));
+			List<List<JavaClass>> result = internalBatches(classes);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Build decompilation batches in {}ms", System.currentTimeMillis() - start);
 			}
@@ -53,14 +44,14 @@ public class DecompilerScheduler implements IDecompileScheduler {
 	 * Put classes with many dependencies at the end.
 	 * Build batches for dependencies of single class to avoid locking from another thread.
 	 */
-	public List<List<ClassNode>> internalBatches(List<ClassNode> classes) {
+	public List<List<JavaClass>> internalBatches(List<JavaClass> classes) {
 		List<DepInfo> deps = sumDependencies(classes);
-		Set<ClassNode> added = new HashSet<>(classes.size());
-		Comparator<ClassNode> cmpDepSize = Comparator.comparingInt(ClassNode::getTotalDepsCount);
-		List<List<ClassNode>> result = new ArrayList<>();
-		List<ClassNode> mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
+		Set<JavaClass> added = new HashSet<>(classes.size());
+		Comparator<JavaClass> cmpDepSize = Comparator.comparingInt(JavaClass::getTotalDepsCount);
+		List<List<JavaClass>> result = new ArrayList<>();
+		List<JavaClass> mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
 		for (DepInfo depInfo : deps) {
-			ClassNode cls = depInfo.getCls();
+			JavaClass cls = depInfo.getCls();
 			if (!added.add(cls)) {
 				continue;
 			}
@@ -73,9 +64,9 @@ public class DecompilerScheduler implements IDecompileScheduler {
 					mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
 				}
 			} else {
-				List<ClassNode> batch = new ArrayList<>(depsSize + 1);
-				for (ClassNode dep : cls.getDependencies()) {
-					ClassNode topDep = dep.getTopParentClass();
+				List<JavaClass> batch = new ArrayList<>(depsSize + 1);
+				for (JavaClass dep : cls.getDependencies()) {
+					JavaClass topDep = dep.getTopParentClass();
 					if (!added.contains(topDep)) {
 						batch.add(topDep);
 						added.add(topDep);
@@ -95,11 +86,11 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		return result;
 	}
 
-	private static List<DepInfo> sumDependencies(List<ClassNode> classes) {
+	private static List<DepInfo> sumDependencies(List<JavaClass> classes) {
 		List<DepInfo> deps = new ArrayList<>(classes.size());
-		for (ClassNode cls : classes) {
+		for (JavaClass cls : classes) {
 			int count = 0;
-			for (ClassNode dep : cls.getDependencies()) {
+			for (JavaClass dep : cls.getDependencies()) {
 				count += 1 + dep.getTotalDepsCount();
 			}
 			deps.add(new DepInfo(cls, count));
@@ -109,15 +100,15 @@ public class DecompilerScheduler implements IDecompileScheduler {
 	}
 
 	private static final class DepInfo implements Comparable<DepInfo> {
-		private final ClassNode cls;
+		private final JavaClass cls;
 		private final int depsCount;
 
-		private DepInfo(ClassNode cls, int depsCount) {
+		private DepInfo(JavaClass cls, int depsCount) {
 			this.cls = cls;
 			this.depsCount = depsCount;
 		}
 
-		public ClassNode getCls() {
+		public JavaClass getCls() {
 			return cls;
 		}
 
@@ -129,7 +120,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		public int compareTo(@NotNull DecompilerScheduler.DepInfo o) {
 			int deps = Integer.compare(depsCount, o.depsCount);
 			if (deps == 0) {
-				return cls.compareTo(o.cls);
+				return cls.getClassNode().compareTo(o.cls.getClassNode());
 			}
 			return deps;
 		}
@@ -147,9 +138,9 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				.collect(Collectors.toList());
 	}
 
-	private void dumpBatchesStats(List<ClassNode> classes, List<List<ClassNode>> result, List<DepInfo> deps) {
+	private void dumpBatchesStats(List<JavaClass> classes, List<List<JavaClass>> result, List<DepInfo> deps) {
 		double avg = result.stream().mapToInt(List::size).average().orElse(-1);
-		int maxSingleDeps = classes.stream().mapToInt(ClassNode::getTotalDepsCount).max().orElse(-1);
+		int maxSingleDeps = classes.stream().mapToInt(JavaClass::getTotalDepsCount).max().orElse(-1);
 		int maxSubDeps = deps.stream().mapToInt(DepInfo::getDepsCount).max().orElse(-1);
 		LOG.info("Batches stats:"
 				+ "\n input classes: " + classes.size()

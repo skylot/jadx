@@ -1,9 +1,14 @@
 package jadx.cli;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.Utils.newConstStringMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -45,6 +50,40 @@ public class JadxCLIArgsTest {
 		args = new JadxCLIArgs();
 		args.useImports = false;
 		assertThat(override(args, "").isUseImports(), is(false));
+	}
+
+	@Test
+	public void testPluginOptionsOverride() {
+		// add key to empty base map
+		checkPluginOptionsMerge(
+				Collections.emptyMap(),
+				"-Poption=otherValue",
+				newConstStringMap("option", "otherValue"));
+
+		// override one key
+		checkPluginOptionsMerge(
+				newConstStringMap("option", "value"),
+				"-Poption=otherValue",
+				newConstStringMap("option", "otherValue"));
+
+		// merge different keys
+		checkPluginOptionsMerge(
+				Collections.singletonMap("option1", "value1"),
+				"-Poption2=otherValue2",
+				newConstStringMap("option1", "value1", "option2", "otherValue2"));
+
+		// merge and override
+		checkPluginOptionsMerge(
+				newConstStringMap("option1", "value1", "option2", "value2"),
+				"-Poption2=otherValue2",
+				newConstStringMap("option1", "value1", "option2", "otherValue2"));
+	}
+
+	private void checkPluginOptionsMerge(Map<String, String> baseMap, String providedArgs, Map<String, String> expectedMap) {
+		JadxCLIArgs args = new JadxCLIArgs();
+		args.pluginOptions = baseMap;
+		Map<String, String> resultMap = override(args, providedArgs).getPluginOptions();
+		assertThat(resultMap, Matchers.equalTo(expectedMap));
 	}
 
 	private JadxCLIArgs parse(String... args) {

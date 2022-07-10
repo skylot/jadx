@@ -101,6 +101,11 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 	}
 
 	@Override
+	public AnnType getAnnType() {
+		return AnnType.FIELD;
+	}
+
+	@Override
 	public int hashCode() {
 		return fieldInfo.hashCode();
 	}

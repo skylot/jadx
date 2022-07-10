@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeCache;
 import jadx.api.JavaClass;
 import jadx.gui.JadxWrapper;
-import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class DecompileTask implements IBackgroundTask {
+public class DecompileTask extends CancelableBackgroundTask {
 	private static final Logger LOG = LoggerFactory.getLogger(DecompileTask.class);
 
 	private static final int CLS_LIMIT = Integer.parseInt(UiUtils.getEnvVar("JADX_CLS_PROCESS_LIMIT", "50"));
@@ -23,15 +23,13 @@ public class DecompileTask implements IBackgroundTask {
 		return classCount * CLS_LIMIT + 5000;
 	}
 
-	private final MainWindow mainWindow;
 	private final JadxWrapper wrapper;
 	private final AtomicInteger complete = new AtomicInteger(0);
 	private int expectedCompleteCount;
 
 	private ProcessResult result;
 
-	public DecompileTask(MainWindow mainWindow, JadxWrapper wrapper) {
-		this.mainWindow = mainWindow;
+	public DecompileTask(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
 	}
 
@@ -42,11 +40,8 @@ public class DecompileTask implements IBackgroundTask {
 
 	@Override
 	public List<Runnable> scheduleJobs() {
-		IndexService indexService = mainWindow.getCacheObject().getIndexService();
 		List<JavaClass> classes = wrapper.getIncludedClasses();
 		expectedCompleteCount = classes.size();
-
-		indexService.setComplete(false);
 		complete.set(0);
 
 		List<List<JavaClass>> batches;
@@ -56,12 +51,18 @@ public class DecompileTask implements IBackgroundTask {
 			LOG.error("Decompile batches build error", e);
 			return Collections.emptyList();
 		}
+		ICodeCache codeCache = wrapper.getArgs().getCodeCache();
 		List<Runnable> jobs = new ArrayList<>(batches.size());
 		for (List<JavaClass> batch : batches) {
 			jobs.add(() -> {
 				for (JavaClass cls : batch) {
+					if (isCanceled()) {
+						return;
+					}
 					try {
-						cls.decompile();
+						if (!codeCache.contains(cls.getRawName())) {
+							cls.decompile();
+						}
 					} catch (Throwable e) {
 						LOG.error("Failed to decompile class: {}", cls, e);
 					} finally {
@@ -80,7 +81,7 @@ public class DecompileTask implements IBackgroundTask {
 		int timeLimit = timeLimit();
 		int skippedCls = expectedCompleteCount - complete.get();
 		if (LOG.isInfoEnabled()) {
-			LOG.info("Decompile task complete in " + taskTime + " ms (avg " + avgPerCls + " ms per class)"
+			LOG.info("Decompile and index task complete in " + taskTime + " ms (avg " + avgPerCls + " ms per class)"
 					+ ", classes: " + expectedCompleteCount
 					+ ", skipped: " + skippedCls
 					+ ", time limit:{ total: " + timeLimit + "ms, per cls: " + CLS_LIMIT + "ms }"

@@ -12,13 +12,13 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
-import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
+import jadx.api.metadata.ICodeMetadata;
+import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.MethodGen;
 import jadx.core.codegen.json.cls.JsonClass;
@@ -180,24 +180,27 @@ public class JsonCodeGen {
 		}
 
 		String[] lines = codeStr.split(ICodeWriter.NL);
-		Map<Integer, Integer> lineMapping = code.getLineMapping();
-		Map<CodePosition, Object> annotations = code.getAnnotations();
+		Map<Integer, Integer> lineMapping = code.getCodeMetadata().getLineMapping();
+		ICodeMetadata metadata = code.getCodeMetadata();
 		long mthCodeOffset = mth.getMethodCodeOffset() + 16;
 
 		int linesCount = lines.length;
 		List<JsonCodeLine> codeLines = new ArrayList<>(linesCount);
+		int lineStartPos = 0;
+		int newLineLen = ICodeWriter.NL.length();
 		for (int i = 0; i < linesCount; i++) {
 			String codeLine = lines[i];
 			int line = i + 2;
 			JsonCodeLine jsonCodeLine = new JsonCodeLine();
 			jsonCodeLine.setCode(codeLine);
 			jsonCodeLine.setSourceLine(lineMapping.get(line));
-			Object obj = annotations.get(new CodePosition(line));
+			Object obj = metadata.getAt(lineStartPos);
 			if (obj instanceof InsnCodeOffset) {
 				long offset = ((InsnCodeOffset) obj).getOffset();
 				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset * 2));
 			}
 			codeLines.add(jsonCodeLine);
+			lineStartPos += codeLine.length() + newLineLen;
 		}
 		return codeLines;
 	}

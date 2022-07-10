@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import jadx.api.JadxDecompiler;
+import jadx.core.Jadx;
 import jadx.gui.update.data.Release;
 
 @SuppressWarnings("SameParameterValue")
@@ -56,8 +57,7 @@ public class JadxUpdate {
 	}
 
 	private static Release checkForNewRelease() throws IOException {
-		String version = JadxDecompiler.getVersion();
-		if (version.contains("dev")) {
+		if (Jadx.isDevVersion()) {
 			LOG.debug("Ignore check for update: development version");
 			return null;
 		}
@@ -65,11 +65,12 @@ public class JadxUpdate {
 		if (latest == null) {
 			return null;
 		}
+		String currentVersion = JadxDecompiler.getVersion();
 		String latestName = latest.getName();
-		if (latestName.equalsIgnoreCase(version)) {
+		if (latestName.equalsIgnoreCase(currentVersion)) {
 			return null;
 		}
-		if (VersionComparator.checkAndCompare(version, latestName) >= 0) {
+		if (VersionComparator.checkAndCompare(currentVersion, latestName) >= 0) {
 			return null;
 		}
 		LOG.info("Found new jadx version: {}", latest);
