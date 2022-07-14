@@ -20,16 +20,16 @@ import com.android.aapt.Resources.Style;
 import com.android.aapt.Resources.Styleable;
 import com.android.aapt.Resources.Type;
 import com.android.aapt.Resources.Value;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import jadx.api.ICodeInfo;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.entry.EntryConfig;
 import jadx.core.xmlgen.entry.ProtoValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class ResProtoParser {
+public class ResProtoParser implements IResParser {
 	private final RootNode root;
 	private final ResourceStorage resStorage = new ResourceStorage();
 
@@ -38,16 +38,21 @@ public class ResProtoParser {
 	}
 
 	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
-		ResourceTable table = decodeProto(inputStream);
-		for (Package p : table.getPackageList()) {
-			parse(p);
-		}
-		resStorage.finish();
+		decode(inputStream);
 		ValuesParser vp = new ValuesParser(new String[0], resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
 		return ResContainer.resourceTable("res", xmlFiles, content);
+	}
+
+	@Override
+	public void decode(InputStream inputStream) throws IOException {
+		ResourceTable table = ResourceTable.parseFrom(FileUtils.streamToByteArray(inputStream));
+		for (Package p : table.getPackageList()) {
+			parse(p);
+		}
+		resStorage.finish();
 	}
 
 	private void parse(Package p) {
@@ -241,8 +246,13 @@ public class ResProtoParser {
 		return "";
 	}
 
-	private ResourceTable decodeProto(InputStream inputStream)
-			throws InvalidProtocolBufferException, IOException {
-		return ResourceTable.parseFrom(XmlGenUtils.readData(inputStream));
+	@Override
+	public ResourceStorage getResStorage() {
+		return resStorage;
+	}
+
+	@Override
+	public String[] getStrings() {
+		return new String[0];
 	}
 }

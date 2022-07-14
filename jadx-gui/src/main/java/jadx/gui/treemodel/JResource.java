@@ -226,6 +226,7 @@ public class JResource extends JLoadableNode {
 
 			case MANIFEST:
 			case XML:
+			case ARSC:
 				return SyntaxConstants.SYNTAX_STYLE_XML;
 
 			default:
@@ -249,8 +250,7 @@ public class JResource extends JLoadableNode {
 			"yaml", SyntaxConstants.SYNTAX_STYLE_YAML,
 			"properties", SyntaxConstants.SYNTAX_STYLE_PROPERTIES_FILE,
 			"ini", SyntaxConstants.SYNTAX_STYLE_INI,
-			"sql", SyntaxConstants.SYNTAX_STYLE_SQL,
-			"arsc", SyntaxConstants.SYNTAX_STYLE_XML);
+			"sql", SyntaxConstants.SYNTAX_STYLE_SQL);
 
 	private String getSyntaxByExtension(String name) {
 		int dot = name.lastIndexOf('.');

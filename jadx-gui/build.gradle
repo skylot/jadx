@@ -26,7 +26,7 @@ dependencies {
 
 	implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
-	implementation 'com.android.tools.build:apksig:4.2.1'
+	implementation 'com.android.tools.build:apksig:7.2.1'
 	implementation 'io.github.hqktech:jdwp:1.0'
 
 	// TODO: Switch back to upstream once this PR gets merged:
