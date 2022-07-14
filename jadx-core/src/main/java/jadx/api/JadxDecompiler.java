@@ -37,8 +37,6 @@ import jadx.api.plugins.input.data.ILoadResult;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -496,23 +494,9 @@ public final class JadxDecompiler implements Closeable {
 	@ApiStatus.Internal
 	JavaMethod convertMethodNode(MethodNode method) {
 		return methodsMap.computeIfAbsent(method, mthNode -> {
-			ClassNode codeCls = getCodeParentClass(mthNode.getParentClass());
-			return new JavaMethod(convertClassNode(codeCls), mthNode);
+			ClassNode parentCls = mthNode.getParentClass();
+			return new JavaMethod(convertClassNode(parentCls), mthNode);
 		});
-	}
-
-	private static ClassNode getCodeParentClass(ClassNode cls) {
-		ClassNode codeCls;
-		InlinedAttr inlinedAttr = cls.get(AType.INLINED);
-		if (inlinedAttr != null) {
-			codeCls = inlinedAttr.getInlineCls().getTopParentClass();
-		} else {
-			codeCls = cls.getTopParentClass();
-		}
-		if (codeCls == cls) {
-			return codeCls;
-		}
-		return getCodeParentClass(codeCls);
 	}
 
 	@Nullable
