@@ -356,8 +356,9 @@ public final class JadxDecompiler implements Closeable {
 			tasks.add(() -> {
 				for (JavaClass cls : decompileBatch) {
 					try {
-						ICodeInfo code = cls.getCodeInfo();
-						SaveCode.save(outDir, cls.getClassNode(), code);
+						ClassNode clsNode = cls.getClassNode();
+						ICodeInfo code = clsNode.getCode();
+						SaveCode.save(outDir, clsNode, code);
 					} catch (Exception e) {
 						LOG.error("Error saving class: {}", cls, e);
 					}

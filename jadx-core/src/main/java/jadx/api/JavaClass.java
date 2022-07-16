@@ -58,7 +58,10 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public @NotNull ICodeInfo getCodeInfo() {
-		load();
+		ICodeInfo code = load();
+		if (code != null) {
+			return code;
+		}
 		return cls.decompile();
 	}
 
@@ -107,19 +110,24 @@ public final class JavaClass implements JavaNode {
 	/**
 	 * Decompile class and loads internal lists of fields, methods, etc.
 	 * Do nothing if already loaded.
+	 *
+	 * @return code info if decompilation was executed, null otherwise
 	 */
-	@Nullable
-	private synchronized void load() {
+	private synchronized @Nullable ICodeInfo load() {
 		if (listsLoaded) {
-			return;
+			return null;
 		}
 		listsLoaded = true;
-		JadxDecompiler rootDecompiler = getRootDecompiler();
-		ICodeCache codeCache = rootDecompiler.getArgs().getCodeCache();
-		if (!codeCache.contains(cls.getRawName())) {
-			cls.decompile();
+
+		ICodeInfo code;
+		if (cls.getState().isProcessComplete()) {
+			// already decompiled -> class internals loaded
+			code = null;
+		} else {
+			code = cls.decompile();
 		}
 
+		JadxDecompiler rootDecompiler = getRootDecompiler();
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
 			List<JavaClass> list = new ArrayList<>(inClsCount);
@@ -165,6 +173,7 @@ public final class JavaClass implements JavaNode {
 			mths.sort(Comparator.comparing(JavaMethod::getName));
 			this.methods = Collections.unmodifiableList(mths);
 		}
+		return code;
 	}
 
 	JadxDecompiler getRootDecompiler() {
