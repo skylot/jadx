@@ -86,6 +86,7 @@ import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
@@ -103,9 +104,7 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JLoadableNode;
-import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
@@ -118,13 +117,11 @@ import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.FileDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
-import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
-import jadx.gui.ui.popupmenu.JPackagePopupMenu;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
@@ -210,6 +207,8 @@ public class MainWindow extends JFrame {
 
 	private JDebuggerPanel debuggerPanel;
 	private JSplitPane verticalSplitter;
+
+	private JMenu pluginsMenu;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
@@ -394,6 +393,40 @@ public class MainWindow extends JFrame {
 				() -> new MappingExporter(wrapper.getDecompiler().getRoot())
 						.exportMappings(savePath, project.getCodeData(), mappingFormat),
 				s -> update());
+	}
+
+	public void addNewScript() {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_SAVE);
+		fileDialog.setTitle(NLS.str("file.save"));
+		Path workingDir = project.getWorkingDir();
+		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
+		fileDialog.setSelectedFile(baseDir.resolve("script.jadx.kts"));
+		fileDialog.setFileExtList(Collections.singletonList("jadx.kts"));
+		fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
+		List<Path> paths = fileDialog.show();
+		if (paths.size() != 1) {
+			return;
+		}
+		Path scriptFile = paths.get(0);
+		try {
+			TemplateFile tmpl = TemplateFile.fromResources("/files/script.jadx.kts.tmpl");
+			FileUtils.writeFile(scriptFile, tmpl.build());
+		} catch (Exception e) {
+			LOG.error("Failed to save new script file: {}", scriptFile, e);
+		}
+		List<Path> inputs = project.getFilePaths();
+		inputs.add(scriptFile);
+		project.setFilePaths(inputs);
+		project.save();
+		reopen();
+	}
+
+	public void removeInput(Path file) {
+		List<Path> inputs = project.getFilePaths();
+		inputs.remove(file);
+		project.setFilePaths(inputs);
+		project.save();
+		reopen();
 	}
 
 	public void open(Path path) {
@@ -774,15 +807,12 @@ public class MainWindow extends JFrame {
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		JNode obj = getJNodeUnderMouse(e);
-		if (obj instanceof JPackage) {
-			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
-			menu.show(e.getComponent(), e.getX(), e.getY());
-		} else if (obj instanceof JClass || obj instanceof JField || obj instanceof JMethod) {
-			JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
-			jmi.addActionListener(action -> RenameDialog.rename(this, obj));
-			JPopupMenu menu = new JPopupMenu();
-			menu.add(jmi);
+		JNode node = getJNodeUnderMouse(e);
+		if (node == null) {
+			return;
+		}
+		JPopupMenu menu = node.onTreePopupMenu(this);
+		if (menu != null) {
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
@@ -931,7 +961,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
-		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, UiUtils.ctrlButton()));
+		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton()));
 
 		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
 			@Override
@@ -940,7 +970,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
-		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton()));
+		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(recentProjects));
@@ -1141,6 +1171,10 @@ public class MainWindow extends JFrame {
 		nav.add(backAction);
 		nav.add(forwardAction);
 
+		pluginsMenu = new JMenu(NLS.str("menu.plugins"));
+		pluginsMenu.setMnemonic(KeyEvent.VK_P);
+		pluginsMenu.setVisible(false);
+
 		JMenu tools = new JMenu(NLS.str("menu.tools"));
 		tools.setMnemonic(KeyEvent.VK_T);
 		tools.add(deobfMenuItem);
@@ -1165,6 +1199,7 @@ public class MainWindow extends JFrame {
 		menuBar.add(view);
 		menuBar.add(nav);
 		menuBar.add(tools);
+		menuBar.add(pluginsMenu);
 		menuBar.add(help);
 		setJMenuBar(menuBar);
 
@@ -1594,5 +1629,9 @@ public class MainWindow extends JFrame {
 		@Override
 		public void menuCanceled(MenuEvent e) {
 		}
+	}
+
+	public JMenu getPluginsMenu() {
+		return pluginsMenu;
 	}
 }

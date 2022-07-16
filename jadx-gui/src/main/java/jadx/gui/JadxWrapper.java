@@ -28,6 +28,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.plugins.context.PluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -47,6 +48,7 @@ public class JadxWrapper {
 
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
+	private PluginsContext pluginsContext;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -62,6 +64,8 @@ public class JadxWrapper {
 				jadxArgs.setCodeData(project.getCodeData());
 
 				this.decompiler = new JadxDecompiler(jadxArgs);
+				this.pluginsContext = new PluginsContext(mainWindow);
+				this.decompiler.setJadxGuiContext(pluginsContext);
 				this.decompiler.load();
 				initCodeCache();
 			}
@@ -86,6 +90,10 @@ public class JadxWrapper {
 				if (decompiler != null) {
 					decompiler.close();
 					decompiler = null;
+				}
+				if (pluginsContext != null) {
+					pluginsContext.reset();
+					pluginsContext = null;
 				}
 			}
 		} catch (Exception e) {

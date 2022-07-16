@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,8 @@ import jadx.api.JavaField;
 import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 
@@ -52,6 +55,11 @@ public class JField extends JNode {
 	@Override
 	public boolean canRename() {
 		return !field.getFieldNode().contains(AFlag.DONT_RENAME);
+	}
+
+	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return RenameDialog.buildRenamePopup(mainWindow, this);
 	}
 
 	@Override

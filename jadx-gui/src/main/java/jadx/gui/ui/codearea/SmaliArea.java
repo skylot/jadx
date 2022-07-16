@@ -93,6 +93,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			curVersion = shouldUseSmaliPrinterV2();
 			model.load();
 			setCaretPosition(0);
+			setLoaded();
 		}
 	}
 
