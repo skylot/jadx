@@ -24,6 +24,7 @@ import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.ImagePanel;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.res.ResTableHelper;
@@ -32,8 +33,6 @@ public class JResource extends JLoadableNode {
 	private static final long serialVersionUID = -201018424302612434L;
 
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/resourcesRoot");
-	private static final ImageIcon FOLDER_ICON = UiUtils.openSvgIcon("nodes/folder");
-	private static final ImageIcon FILE_ICON = UiUtils.openSvgIcon("nodes/file_any_type");
 	private static final ImageIcon ARSC_ICON = UiUtils.openSvgIcon("nodes/resourceBundle");
 	private static final ImageIcon XML_ICON = UiUtils.openSvgIcon("nodes/xml");
 	private static final ImageIcon IMAGE_ICON = UiUtils.openSvgIcon("nodes/ImagesFileType");
@@ -244,7 +243,7 @@ public class JResource extends JLoadableNode {
 			case ROOT:
 				return ROOT_ICON;
 			case DIR:
-				return FOLDER_ICON;
+				return Icons.FOLDER;
 
 			case FILE:
 				ResourceType resType = resFile.getType();
@@ -266,7 +265,7 @@ public class JResource extends JLoadableNode {
 				}
 				return UNKNOWN_ICON;
 		}
-		return FILE_ICON;
+		return Icons.FILE;
 	}
 
 	public static boolean isSupportedForView(ResourceType type) {

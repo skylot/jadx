@@ -16,6 +16,9 @@ import jadx.gui.utils.NLS;
 
 public class FileDialogWrapper {
 
+	private static final List<String> OPEN_FILES_EXTS = Arrays.asList(
+			"apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "jadx.kts");
+
 	private final MainWindow mainWindow;
 
 	private boolean isOpen;
@@ -60,21 +63,27 @@ public class FileDialogWrapper {
 
 	private void initForMode(FileOpenMode mode) {
 		switch (mode) {
-			case OPEN:
 			case OPEN_PROJECT:
+				title = NLS.str("file.open_title");
+				fileExtList = Collections.singletonList(JadxProject.PROJECT_EXTENSION);
+				selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
+				currentDir = mainWindow.getSettings().getLastOpenFilePath();
+				isOpen = true;
+				break;
+
+			case OPEN:
+				title = NLS.str("file.open_title");
+				fileExtList = new ArrayList<>(OPEN_FILES_EXTS);
+				fileExtList.add(JadxProject.PROJECT_EXTENSION);
+				fileExtList.add("aab");
+				selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
+				currentDir = mainWindow.getSettings().getLastOpenFilePath();
+				isOpen = true;
+				break;
+
 			case ADD:
-				if (mode == FileOpenMode.OPEN_PROJECT) {
-					fileExtList = Collections.singletonList(JadxProject.PROJECT_EXTENSION);
-					title = NLS.str("file.open_title");
-				} else {
-					fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "xapk", "aar", "arsc"));
-					if (mode == FileOpenMode.OPEN) {
-						fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
-						title = NLS.str("file.open_title");
-					} else {
-						title = NLS.str("file.add_files_action");
-					}
-				}
+				title = NLS.str("file.add_files_action");
+				fileExtList = OPEN_FILES_EXTS;
 				selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
 				currentDir = mainWindow.getSettings().getLastOpenFilePath();
 				isOpen = true;

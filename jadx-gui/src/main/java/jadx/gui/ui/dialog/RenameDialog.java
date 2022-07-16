@@ -20,7 +20,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
@@ -82,6 +84,14 @@ public class RenameDialog extends JDialog {
 		UiUtils.uiRun(() -> renameDialog.setVisible(true));
 		UiUtils.uiRun(renameDialog::initRenameField); // wait for UI events to propagate
 		return true;
+	}
+
+	public static JPopupMenu buildRenamePopup(MainWindow mainWindow, JNode node) {
+		JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
+		jmi.addActionListener(action -> RenameDialog.rename(mainWindow, node));
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(jmi);
+		return menu;
 	}
 
 	private RenameDialog(MainWindow mainWindow, JNode source, JNode node) {

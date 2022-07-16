@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.Icons;
@@ -53,13 +54,7 @@ public class TabComponent extends JPanel {
 		setOpaque(false);
 
 		JNode node = contentPanel.getNode();
-		String tabTitle;
-		if (node.getRootClass() != null) {
-			tabTitle = node.getRootClass().getName();
-		} else {
-			tabTitle = node.makeLongStringHtml();
-		}
-		label = new NodeLabel(tabTitle, node.disableHtml());
+		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {
@@ -67,6 +62,9 @@ public class TabComponent extends JPanel {
 		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 		label.setIcon(node.getIcon());
+		if (node instanceof JEditableNode) {
+			((JEditableNode) node).addChangeListener(c -> label.setText(buildTabTitle(node)));
+		}
 
 		final JButton closeBtn = new JButton();
 		closeBtn.setIcon(Icons.CLOSE_INACTIVE);
@@ -102,6 +100,21 @@ public class TabComponent extends JPanel {
 		add(label);
 		add(closeBtn);
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+	}
+
+	private String buildTabTitle(JNode node) {
+		String tabTitle;
+		if (node.getRootClass() != null) {
+			tabTitle = node.getRootClass().getName();
+		} else {
+			tabTitle = node.makeLongStringHtml();
+		}
+		if (node instanceof JEditableNode) {
+			if (((JEditableNode) node).isChanged()) {
+				return "*" + tabTitle;
+			}
+		}
+		return tabTitle;
 	}
 
 	private JPopupMenu createTabPopupMenu(final ContentPanel contentPanel) {

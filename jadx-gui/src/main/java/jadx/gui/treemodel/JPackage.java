@@ -6,10 +6,13 @@ import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import jadx.api.JavaPackage;
 import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.popupmenu.JPackagePopupMenu;
 import jadx.gui.utils.UiUtils;
 
 public class JPackage extends JNode {
@@ -66,6 +69,11 @@ public class JPackage extends JNode {
 				add(cls);
 			}
 		}
+	}
+
+	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return new JPackagePopupMenu(mainWindow, this);
 	}
 
 	@Override

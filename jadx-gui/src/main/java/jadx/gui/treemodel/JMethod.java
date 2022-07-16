@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,8 @@ import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
@@ -105,6 +108,11 @@ public class JMethod extends JNode {
 			return false;
 		}
 		return !mth.getMethodNode().contains(AFlag.DONT_RENAME);
+	}
+
+	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return RenameDialog.buildRenamePopup(mainWindow, this);
 	}
 
 	String makeBaseString() {

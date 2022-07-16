@@ -1,8 +1,11 @@
 package jadx.gui.treemodel;
 
 import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.function.Predicate;
 
 import javax.swing.Icon;
+import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -11,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
 
@@ -45,6 +49,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return ICodeInfo.EMPTY;
 	}
 
+	public boolean isEditable() {
+		return false;
+	}
+
 	public abstract Icon getIcon();
 
 	public String getName() {
@@ -57,6 +65,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 
 	public boolean canRename() {
 		return false;
+	}
+
+	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return null;
 	}
 
 	public abstract String makeString();
@@ -95,6 +107,17 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 
 	public String getTooltip() {
 		return makeLongStringHtml();
+	}
+
+	public @Nullable JNode searchNode(Predicate<JNode> filter) {
+		Enumeration<?> en = this.breadthFirstEnumeration();
+		while (en.hasMoreElements()) {
+			JNode node = (JNode) en.nextElement();
+			if (filter.test(node)) {
+				return node;
+			}
+		}
+		return null;
 	}
 
 	private static final Comparator<JNode> COMPARATOR = Comparator

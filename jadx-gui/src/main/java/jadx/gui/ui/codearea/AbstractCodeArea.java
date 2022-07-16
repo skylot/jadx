@@ -46,6 +46,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
@@ -53,6 +54,7 @@ import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.gui.utils.ui.ZoomActions;
 
 public abstract class AbstractCodeArea extends RSyntaxTextArea {
@@ -75,12 +77,14 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	protected ContentPanel contentPanel;
 	protected JNode node;
 
+	protected volatile boolean loaded = false;
+
 	public AbstractCodeArea(ContentPanel contentPanel, JNode node) {
 		this.contentPanel = contentPanel;
 		this.node = Objects.requireNonNull(node);
 
 		setMarkOccurrences(false);
-		setEditable(false);
+		setEditable(node.isEditable());
 		setCodeFoldingEnabled(false);
 		setFadeCurrentLineHighlight(true);
 		setCloseCurlyBraces(true);
@@ -91,10 +95,16 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		setLineWrap(settings.isCodeAreaLineWrap());
 		addWrapLineMenuAction(settings);
 
-		addCaretActions();
-		addFastCopyAction();
-
 		ZoomActions.register(this, settings, this::loadSettings);
+
+		if (node instanceof JEditableNode) {
+			JEditableNode editableNode = (JEditableNode) node;
+			addSaveActions(editableNode);
+			addChangeUpdates(editableNode);
+		} else {
+			addCaretActions();
+			addFastCopyAction();
+		}
 	}
 
 	private void addWrapLineMenuAction(JadxSettings settings) {
@@ -186,6 +196,26 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		});
 	}
 
+	private void addSaveActions(JEditableNode node) {
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_S && UiUtils.isCtrlDown(e)) {
+					node.save(AbstractCodeArea.this.getText());
+					node.setChanged(false);
+				}
+			}
+		});
+	}
+
+	private void addChangeUpdates(JEditableNode editableNode) {
+		getDocument().addDocumentListener(new DocumentUpdateListener(ev -> {
+			if (loaded) {
+				editableNode.setChanged(true);
+			}
+		}));
+	}
+
 	private String highlightCaretWord(String lastText, int pos) {
 		String text = getWordByPosition(pos);
 		if (StringUtils.isEmpty(text)) {
@@ -244,8 +274,13 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed
+	 * Call `setLoaded()` on load finish.
 	 */
 	public abstract void load();
+
+	public void setLoaded() {
+		this.loaded = true;
+	}
 
 	/**
 	 * Implement in this method the code that reloads node from cache and sets the new content to be

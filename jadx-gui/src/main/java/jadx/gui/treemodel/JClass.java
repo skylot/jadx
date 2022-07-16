@@ -2,6 +2,7 @@ package jadx.gui.treemodel;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +14,10 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
@@ -121,6 +124,11 @@ public class JClass extends JLoadableNode {
 	@Override
 	public String getSyntaxName() {
 		return SyntaxConstants.SYNTAX_STYLE_JAVA;
+	}
+
+	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return RenameDialog.buildRenamePopup(mainWindow, this);
 	}
 
 	@Override
