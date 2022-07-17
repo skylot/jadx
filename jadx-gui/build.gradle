@@ -8,6 +8,12 @@ plugins {
 dependencies {
 	implementation(project(':jadx-core'))
 	implementation(project(":jadx-cli"))
+
+	// jadx-script autocomplete support
+	implementation(project(":jadx-plugins::jadx-script:jadx-script-ide"))
+	implementation("org.jetbrains.kotlin:kotlin-scripting-common:1.7.20")
+	implementation 'com.fifesoft:autocomplete:3.3.0'
+
 	implementation 'com.beust:jcommander:1.82'
 	implementation 'ch.qos.logback:logback-classic:1.3.5'
 

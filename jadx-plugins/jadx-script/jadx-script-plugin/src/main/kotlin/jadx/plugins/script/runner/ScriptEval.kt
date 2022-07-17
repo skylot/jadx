@@ -2,7 +2,6 @@ package jadx.plugins.script.runner
 
 import jadx.api.JadxDecompiler
 import jadx.api.plugins.JadxPluginContext
-import jadx.api.plugins.pass.JadxPassContext
 import jadx.plugins.script.runtime.JadxScript
 import jadx.plugins.script.runtime.JadxScriptData
 import mu.KotlinLogging
@@ -38,11 +37,17 @@ class ScriptEval {
 		processEvalResult(result, scriptFile)
 	}
 
-	private fun eval(scriptFile: File, scriptData: JadxScriptData): ResultWithDiagnostics<EvaluationResult> {
-		val compilationConf = createJvmCompilationConfigurationFromTemplate<JadxScript>()
-		val evalConf = createJvmEvaluationConfigurationFromTemplate<JadxScript> {
+	fun buildCompileConf() = createJvmCompilationConfigurationFromTemplate<JadxScript>()
+
+	fun buildEvalConf(scriptData: JadxScriptData): ScriptEvaluationConfiguration {
+		return createJvmEvaluationConfigurationFromTemplate<JadxScript> {
 			constructorArgs(scriptData)
 		}
+	}
+
+	private fun eval(scriptFile: File, scriptData: JadxScriptData): ResultWithDiagnostics<EvaluationResult> {
+		val compilationConf = buildCompileConf()
+		val evalConf = buildEvalConf(scriptData)
 		return BasicJvmScriptingHost().eval(scriptFile.toScriptSource(), compilationConf, evalConf)
 	}
 

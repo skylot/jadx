@@ -20,6 +20,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -29,6 +30,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 
+import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -44,9 +46,12 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.plugins.script.CompletionRenderer;
+import jadx.gui.plugins.script.JadxScriptCompleteProvider;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
+import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
@@ -101,6 +106,9 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			JEditableNode editableNode = (JEditableNode) node;
 			addSaveActions(editableNode);
 			addChangeUpdates(editableNode);
+			if (node instanceof JInputScript) {
+				addAutoComplete(settings);
+			}
 		} else {
 			addCaretActions();
 			addFastCopyAction();
@@ -214,6 +222,17 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				editableNode.setChanged(true);
 			}
 		}));
+	}
+
+	private void addAutoComplete(JadxSettings settings) {
+		JadxScriptCompleteProvider provider = new JadxScriptCompleteProvider(this);
+		provider.setAutoActivationRules(false, ".");
+		AutoCompletion ac = new AutoCompletion(provider);
+		ac.setListCellRenderer(new CompletionRenderer(settings));
+		ac.setTriggerKey(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
+		ac.setAutoActivationEnabled(true);
+		ac.setAutoCompleteSingleChoices(true);
+		ac.install(this);
 	}
 
 	private String highlightCaretWord(String lastText, int pos) {

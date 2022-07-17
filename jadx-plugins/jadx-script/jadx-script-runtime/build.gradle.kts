@@ -4,8 +4,6 @@ plugins {
     kotlin("jvm") version "1.7.20"
 }
 
-group = "jadx-script-context"
-
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-scripting-common")
 	implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")

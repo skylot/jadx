@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 
 import jadx.api.JavaPackage;
@@ -13,12 +12,10 @@ import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.popupmenu.JPackagePopupMenu;
-import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.Icons;
 
 public class JPackage extends JNode {
 	private static final long serialVersionUID = -4120718634156839804L;
-
-	private static final ImageIcon PACKAGE_ICON = UiUtils.openSvgIcon("nodes/package");
 
 	private String fullName;
 	private String name;
@@ -118,7 +115,7 @@ public class JPackage extends JNode {
 
 	@Override
 	public Icon getIcon() {
-		return PACKAGE_ICON;
+		return Icons.PACKAGE;
 	}
 
 	@Override
