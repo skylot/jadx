@@ -20,4 +20,11 @@ public class Icons {
 
 	public static final ImageIcon FOLDER = UiUtils.openSvgIcon("nodes/folder");
 	public static final ImageIcon FILE = UiUtils.openSvgIcon("nodes/file_any_type");
+
+	public static final ImageIcon PACKAGE = UiUtils.openSvgIcon("nodes/package");
+	public static final ImageIcon CLASS = UiUtils.openSvgIcon("nodes/class");
+	public static final ImageIcon METHOD = UiUtils.openSvgIcon("nodes/method");
+	public static final ImageIcon FIELD = UiUtils.openSvgIcon("nodes/field");
+	public static final ImageIcon PROPERTY = UiUtils.openSvgIcon("nodes/property");
+	public static final ImageIcon PARAMETER = UiUtils.openSvgIcon("nodes/parameter");
 }

@@ -14,4 +14,5 @@ include("jadx-plugins:jadx-java-convert")
 
 include("jadx-plugins:jadx-script:jadx-script-plugin")
 include("jadx-plugins:jadx-script:jadx-script-runtime")
+include("jadx-plugins:jadx-script:jadx-script-ide")
 include("jadx-plugins:jadx-script:examples")

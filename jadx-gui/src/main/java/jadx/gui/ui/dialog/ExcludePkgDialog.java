@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -33,12 +32,12 @@ import javax.swing.tree.TreePath;
 
 import jadx.api.JavaPackage;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class ExcludePkgDialog extends JDialog {
 	private static final long serialVersionUID = -1111111202104151030L;
-	private static final ImageIcon PACKAGE_ICON = UiUtils.openSvgIcon("nodes/package");
 
 	private final transient MainWindow mainWindow;
 	private transient JTree tree;
@@ -311,7 +310,7 @@ public class ExcludePkgDialog extends JDialog {
 				return node.checkbox;
 			}
 			Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-			setIcon(PACKAGE_ICON);
+			setIcon(Icons.PACKAGE);
 			return c;
 		}
 	}
