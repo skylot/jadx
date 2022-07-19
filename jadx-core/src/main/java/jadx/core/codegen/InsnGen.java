@@ -761,6 +761,7 @@ public class InsnGen {
 				ctor.add(AFlag.DONT_GENERATE);
 			}
 		}
+		code.attachDefinition(cls);
 		code.add("new ");
 		useClass(code, parent);
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());

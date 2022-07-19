@@ -228,7 +228,7 @@ public class JadxWrapper {
 		return getDecompiler().getJavaNodeByRef(nodeRef);
 	}
 
-	public JavaNode getEnclosingNode(ICodeInfo codeInfo, int pos) {
+	public @Nullable JavaNode getEnclosingNode(ICodeInfo codeInfo, int pos) {
 		return getDecompiler().getEnclosingNode(codeInfo, pos);
 	}
 

@@ -23,9 +23,11 @@ import jadx.api.utils.CodeUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -104,9 +106,11 @@ public class UsageDialog extends CommonSearchDialog {
 			if (line.startsWith("import ")) {
 				continue;
 			}
+			JNodeCache nodeCache = getNodeCache();
 			JavaNode enclosingNode = wrapper.getEnclosingNode(codeInfo, pos);
-			JavaNode usageNode = enclosingNode == null ? topUseClass : enclosingNode;
-			usageList.add(new CodeNode(getNodeCache().makeFrom(usageNode), line.trim(), pos));
+			JClass rootJCls = nodeCache.makeFrom(topUseClass);
+			JNode usageJNode = enclosingNode == null ? rootJCls : nodeCache.makeFrom(enclosingNode);
+			usageList.add(new CodeNode(rootJCls, usageJNode, line.trim(), pos));
 		}
 	}
 

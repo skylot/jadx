@@ -6,16 +6,14 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
-import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 
 public class CodeMetadataStorage implements ICodeMetadata {
@@ -55,7 +53,7 @@ public class CodeMetadataStorage implements ICodeMetadata {
 	}
 
 	@Override
-	public @Nullable ICodeAnnotation searchUp(int position, ICodeAnnotation.AnnType annType) {
+	public @Nullable ICodeAnnotation searchUp(int position, AnnType annType) {
 		for (ICodeAnnotation v : navMap.tailMap(position, true).values()) {
 			if (v.getAnnType() == annType) {
 				return v;
@@ -65,7 +63,7 @@ public class CodeMetadataStorage implements ICodeMetadata {
 	}
 
 	@Override
-	public @Nullable ICodeAnnotation searchUp(int position, int limitPos, ICodeAnnotation.AnnType annType) {
+	public @Nullable ICodeAnnotation searchUp(int position, int limitPos, AnnType annType) {
 		for (ICodeAnnotation v : navMap.subMap(position, true, limitPos, true).values()) {
 			if (v.getAnnType() == annType) {
 				return v;
@@ -99,28 +97,40 @@ public class CodeMetadataStorage implements ICodeMetadata {
 
 	@Override
 	public ICodeNodeRef getNodeAt(int position) {
-		return navMap.tailMap(position, true)
-				.values().stream()
-				.flatMap(CodeMetadataStorage::mapEnclosingNode)
-				.findFirst().orElse(null);
+		int nesting = 0;
+		for (ICodeAnnotation ann : navMap.tailMap(position, true).values()) {
+			switch (ann.getAnnType()) {
+				case END:
+					nesting++;
+					break;
+
+				case DECLARATION:
+					ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
+					AnnType nodeType = node.getAnnType();
+					if (nodeType == AnnType.CLASS || nodeType == AnnType.METHOD) {
+						if (nesting == 0) {
+							return node;
+						}
+						nesting--;
+					}
+					break;
+			}
+		}
+		return null;
 	}
 
 	@Override
 	public ICodeNodeRef getNodeBelow(int position) {
-		return navMap.headMap(position, true).descendingMap()
-				.values().stream()
-				.flatMap(CodeMetadataStorage::mapEnclosingNode)
-				.findFirst().orElse(null);
-	}
-
-	private static Stream<ICodeNodeRef> mapEnclosingNode(ICodeAnnotation ann) {
-		if (ann instanceof NodeDeclareRef) {
-			ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
-			if (node instanceof ClassNode || node instanceof MethodNode) {
-				return Stream.of(node);
+		for (ICodeAnnotation ann : navMap.headMap(position, true).descendingMap().values()) {
+			if (ann.getAnnType() == AnnType.DECLARATION) {
+				ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
+				AnnType nodeType = node.getAnnType();
+				if (nodeType == AnnType.CLASS || nodeType == AnnType.METHOD) {
+					return node;
+				}
 			}
 		}
-		return Stream.empty();
+		return null;
 	}
 
 	@Override
@@ -135,7 +145,7 @@ public class CodeMetadataStorage implements ICodeMetadata {
 
 	@Override
 	public String toString() {
-		return "CodeMetadata{lines=" + lines
-				+ ", annotations=\n" + Utils.listToString(navMap.entrySet(), "\n") + "\n}";
+		return "CodeMetadata{\nlines=" + lines
+				+ "\nannotations=\n " + Utils.listToString(navMap.descendingMap().entrySet(), "\n ") + "\n}";
 	}
 }

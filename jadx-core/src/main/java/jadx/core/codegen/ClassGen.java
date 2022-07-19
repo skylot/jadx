@@ -19,6 +19,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.metadata.annotations.NodeEnd;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -256,6 +257,7 @@ public class ClassGen {
 		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();
 		clsCode.startLine('}');
+		clsCode.attachAnnotation(NodeEnd.VALUE);
 	}
 
 	private void addInnerClsAndMethods(ICodeWriter clsCode) {
@@ -369,6 +371,7 @@ public class ClassGen {
 			mthGen.addInstructions(code);
 			code.decIndent();
 			code.startLine('}');
+			code.attachAnnotation(NodeEnd.VALUE);
 		}
 	}
 
