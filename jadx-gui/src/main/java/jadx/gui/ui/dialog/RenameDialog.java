@@ -113,7 +113,12 @@ public class RenameDialog extends JDialog {
 	}
 
 	private boolean checkNewName() {
-		boolean valid = NameMapper.isValidIdentifier(renameField.getText());
+		String newName = renameField.getText();
+		if (newName.isEmpty()) {
+			// use empty name to reset rename (revert to original)
+			return true;
+		}
+		boolean valid = NameMapper.isValidIdentifier(newName);
 		if (renameBtn.isEnabled() != valid) {
 			renameBtn.setEnabled(valid);
 			renameField.putClientProperty("JComponent.outline", valid ? "" : "error");
