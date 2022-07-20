@@ -3,6 +3,7 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import jadx.api.JavaNode;
 import jadx.api.utils.CodeUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JMethod;
@@ -134,8 +136,12 @@ public class UsageDialog extends CommonSearchDialog {
 	}
 
 	private void initUI() {
+		JadxSettings settings = mainWindow.getSettings();
+		Font codeFont = settings.getFont();
 		JLabel lbl = new JLabel(NLS.str("usage_dialog.label"));
+		lbl.setFont(codeFont);
 		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
+		nodeLabel.setFont(codeFont);
 		lbl.setLabelFor(nodeLabel);
 
 		JPanel searchPane = new JPanel();
