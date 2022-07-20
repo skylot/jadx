@@ -33,6 +33,22 @@ public class NodeDeclareRef implements ICodeAnnotation {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof NodeDeclareRef)) {
+			return false;
+		}
+		return node.equals(((NodeDeclareRef) o).node);
+	}
+
+	@Override
+	public int hashCode() {
+		return node.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return "NodeDeclareRef{" + node + '}';
 	}

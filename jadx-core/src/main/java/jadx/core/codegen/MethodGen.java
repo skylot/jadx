@@ -26,6 +26,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IfNode;
@@ -144,8 +145,9 @@ public class MethodGen {
 		} else {
 			classGen.useType(code, mth.getReturnType());
 			code.add(' ');
-			code.attachDefinition(mth);
-			code.add(mth.getAlias());
+			MethodNode defMth = getMethodForDefinition();
+			code.attachDefinition(defMth);
+			code.add(defMth.getAlias());
 		}
 		code.add('(');
 
@@ -176,6 +178,14 @@ public class MethodGen {
 			}
 		}
 		return true;
+	}
+
+	private MethodNode getMethodForDefinition() {
+		MethodReplaceAttr replaceAttr = mth.get(AType.METHOD_REPLACE);
+		if (replaceAttr != null) {
+			return replaceAttr.getReplaceMth();
+		}
+		return mth;
 	}
 
 	private void addOverrideAnnotation(ICodeWriter code, MethodNode mth) {
