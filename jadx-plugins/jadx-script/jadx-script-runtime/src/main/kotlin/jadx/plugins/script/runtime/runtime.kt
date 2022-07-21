@@ -31,6 +31,7 @@ open class JadxScriptBaseClass(private val scriptData: JadxScriptData) {
 class JadxScriptData(
 	val jadxInstance: JadxDecompiler,
 	val pluginContext: JadxPluginContext,
+	val options: JadxScriptAllOptions,
 	val scriptFile: File
 ) {
 	val afterLoad: MutableList<() -> Unit> = ArrayList()
@@ -44,6 +45,7 @@ class JadxScriptInstance(
 ) {
 	private val decompiler = scriptData.jadxInstance
 
+	val options: JadxScriptOptions by lazy { JadxScriptOptions(this, scriptData.options) }
 	val rename: RenamePass by lazy { RenamePass(this) }
 	val stages: Stages by lazy { Stages(this) }
 	val replace: Replace by lazy { Replace(this) }

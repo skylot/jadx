@@ -22,4 +22,12 @@ public interface OptionDescription {
 	 */
 	@Nullable
 	String defaultValue();
+
+	enum OptionType {
+		STRING, NUMBER, BOOLEAN
+	}
+
+	default OptionType getType() {
+		return OptionType.STRING;
+	}
 }
