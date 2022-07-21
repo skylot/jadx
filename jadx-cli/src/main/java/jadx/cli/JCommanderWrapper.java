@@ -18,18 +18,20 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameterized;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.impl.plugins.SimplePluginContext;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.core.utils.Utils;
 
 public class JCommanderWrapper<T> {
 	private final JCommander jc;
+	private final JadxCLIArgs argsObj;
 
-	public JCommanderWrapper(T obj) {
-		this.jc = JCommander.newBuilder().addObject(obj).build();
+	public JCommanderWrapper(JadxCLIArgs argsObj) {
+		this.jc = JCommander.newBuilder().addObject(argsObj).build();
+		this.argsObj = argsObj;
 	}
 
 	public boolean parse(String[] args) {
@@ -43,7 +45,7 @@ public class JCommanderWrapper<T> {
 		}
 	}
 
-	public void overrideProvided(T obj) {
+	public void overrideProvided(JadxCLIArgs obj) {
 		List<ParameterDescription> fieldsParams = jc.getParameters();
 		List<ParameterDescription> parameters = new ArrayList<>(1 + fieldsParams.size());
 		parameters.add(jc.getMainParameterValue());
@@ -171,13 +173,19 @@ public class JCommanderWrapper<T> {
 
 	private String appendPluginOptions(int maxNamesLen) {
 		StringBuilder sb = new StringBuilder();
-		JadxPluginManager pluginManager = new JadxPluginManager();
-		pluginManager.load();
 		int k = 1;
-		for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
-			if (plugin instanceof JadxPluginOptions) {
-				if (appendPlugin(((JadxPluginOptions) plugin), sb, maxNamesLen, k)) {
-					k++;
+		// load and init all options plugins to print all options
+		try (JadxDecompiler decompiler = new JadxDecompiler(argsObj.toJadxArgs())) {
+			Map<String, String> pluginOptions = decompiler.getArgs().getPluginOptions();
+			SimplePluginContext context = new SimplePluginContext(decompiler);
+			for (JadxPlugin plugin : decompiler.getPluginManager().getAllPlugins()) {
+				if (plugin instanceof JadxPluginOptions) {
+					JadxPluginOptions optionsPlugin = (JadxPluginOptions) plugin;
+					optionsPlugin.setOptions(pluginOptions);
+					optionsPlugin.init(context);
+					if (appendPlugin(optionsPlugin, sb, maxNamesLen, k)) {
+						k++;
+					}
 				}
 			}
 		}

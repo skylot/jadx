@@ -12,12 +12,18 @@ public class JadxOptionDescription implements OptionDescription {
 	private final String desc;
 	private final String defaultValue;
 	private final List<String> values;
+	private final OptionType type;
 
 	public JadxOptionDescription(String name, String desc, @Nullable String defaultValue, List<String> values) {
+		this(name, desc, defaultValue, values, OptionType.STRING);
+	}
+
+	public JadxOptionDescription(String name, String desc, @Nullable String defaultValue, List<String> values, OptionType type) {
 		this.name = name;
 		this.desc = desc;
 		this.defaultValue = defaultValue;
 		this.values = values;
+		this.type = type;
 	}
 
 	@Override
@@ -38,6 +44,11 @@ public class JadxOptionDescription implements OptionDescription {
 	@Override
 	public List<String> values() {
 		return values;
+	}
+
+	@Override
+	public OptionType getType() {
+		return type;
 	}
 
 	@Override

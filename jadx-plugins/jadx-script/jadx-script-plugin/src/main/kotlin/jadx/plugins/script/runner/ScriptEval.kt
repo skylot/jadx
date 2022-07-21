@@ -4,6 +4,7 @@ import jadx.api.JadxDecompiler
 import jadx.api.plugins.JadxPluginContext
 import jadx.plugins.script.runtime.JadxScript
 import jadx.plugins.script.runtime.JadxScriptData
+import jadx.plugins.script.runtime.data.JadxScriptAllOptions
 import mu.KotlinLogging
 import java.io.File
 import kotlin.script.experimental.api.*
@@ -16,7 +17,7 @@ private val LOG = KotlinLogging.logger {}
 
 class ScriptEval {
 
-	fun process(init: JadxPluginContext): ScriptStates? {
+	fun process(init: JadxPluginContext, scriptOptions: JadxScriptAllOptions): ScriptStates? {
 		val jadx = init.decompiler as JadxDecompiler
 		val scripts = jadx.args.inputFiles.filter { f -> f.name.endsWith(".jadx.kts") }
 		if (scripts.isEmpty()) {
@@ -24,7 +25,7 @@ class ScriptEval {
 		}
 		val scriptStates = ScriptStates()
 		for (scriptFile in scripts) {
-			val scriptData = JadxScriptData(jadx, init, scriptFile)
+			val scriptData = JadxScriptData(jadx, init, scriptOptions, scriptFile)
 			load(scriptFile, scriptData)
 			scriptStates.add(scriptFile, scriptData)
 		}

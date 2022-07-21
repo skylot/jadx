@@ -116,7 +116,7 @@ public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 		reset();
 		JadxArgsValidator.validate(this);
 		LOG.info("loading ...");
-		loadPlugins(args);
+		loadPlugins();
 		loadInputFiles();
 
 		root = new RootNode(args);
@@ -173,18 +173,18 @@ public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 		loadedInputs.clear();
 	}
 
-	private void loadPlugins(JadxArgs args) {
+	private void loadPlugins() {
 		pluginManager.providesSuggestion("java-input", args.isUseDxInput() ? "java-convert" : "java-input");
 		pluginManager.load();
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Resolved plugins: {}", Utils.collectionMap(pluginManager.getResolvedPlugins(),
 					p -> p.getPluginInfo().getPluginId()));
 		}
-		applyPluginOptions(args);
+		applyPluginOptions();
 		initPlugins();
 	}
 
-	private void applyPluginOptions(JadxArgs args) {
+	private void applyPluginOptions() {
 		Map<String, String> pluginOptions = args.getPluginOptions();
 		if (!pluginOptions.isEmpty()) {
 			LOG.debug("Applying plugin options: {}", pluginOptions);
