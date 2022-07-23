@@ -197,10 +197,12 @@ public class MappingExporter {
 					}
 					// Method args
 					int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-					int lastArgLvIndex = lvtIndex - 1;
 					List<VarNode> args = mth.collectArgsWithoutLoading();
 					for (VarNode arg : args) {
-						int lvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(arg);
+						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(arg);
+						if (lvIndex == null) {
+							lvIndex = -1;
+						}
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(arg.getReg(), arg.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -208,7 +210,6 @@ public class MappingExporter {
 							mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
 							mappedMethodArgsAndVars.remove(key);
 						}
-						lastArgLvIndex = lvIndex;
 						lvtIndex++;
 						// Not checking for comments since method args can't have any
 					}
@@ -217,7 +218,10 @@ public class MappingExporter {
 					for (SimpleEntry<VarNode, Integer> entry : vars) {
 						VarNode var = entry.getKey();
 						int offset = entry.getValue();
-						int lvIndex = lastArgLvIndex + var.getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodVarLvIndex(var);
+						if (lvIndex == null) {
+							lvIndex = -1;
+						}
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {

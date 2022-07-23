@@ -26,7 +26,7 @@ import jadx.core.utils.mappings.DalvikToJavaBytecodeUtils;
 
 @JadxVisitor(
 		name = "ApplyCodeMappings",
-		desc = "Rename variables and other entities in methods",
+		desc = "Apply mappings to method args and vars",
 		runAfter = {
 				InitCodeVariables.class,
 				DebugInfoApplyVisitor.class
@@ -66,18 +66,18 @@ public class CodeMappingsVisitor extends AbstractVisitor {
 			if (methodMapping == null) {
 				continue;
 			}
+			// Method args
 			for (MethodArgMapping argMapping : methodMapping.getArgs()) {
-				int mappingLvIndex = argMapping.getLvIndex();
+				Integer mappingLvIndex = argMapping.getLvIndex();
 				for (SSAVar ssaVar : ssaVars) {
-					int actualLvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(ssaVar, mth);
-					if (actualLvIndex == mappingLvIndex) {
+					Integer actualLvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(ssaVar, mth);
+					if (actualLvIndex.equals(mappingLvIndex)) {
 						ssaVar.getCodeVar().setName(argMapping.getDstName(0));
 						break;
 					}
 				}
-
 			}
-			// TODO: Method vars
+			// TODO: Method vars (if ever feasible)
 		}
 	}
 
