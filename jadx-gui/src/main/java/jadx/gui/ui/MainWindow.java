@@ -595,19 +595,19 @@ public class MainWindow extends JFrame {
 				project.setMappingsPath(null);
 			}
 		}
-		AtomicReference<Exception> exceptionWrapper = new AtomicReference<>();
+		AtomicReference<Exception> wrapperException = new AtomicReference<>();
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				() -> {
 					try {
 						wrapper.open();
 					} catch (Exception e) {
-						exceptionWrapper.set(e);
+						wrapperException.set(e);
 					}
 				},
 				status -> {
-					if (exceptionWrapper.get() != null) {
+					if (wrapperException.get() != null) {
 						closeAll();
-						Exception e = exceptionWrapper.get();
+						Exception e = wrapperException.get();
 						if (e instanceof RuntimeException) {
 							throw (RuntimeException) e;
 						} else {
