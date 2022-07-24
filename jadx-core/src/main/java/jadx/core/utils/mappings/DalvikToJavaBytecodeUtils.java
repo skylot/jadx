@@ -121,8 +121,8 @@ public class DalvikToJavaBytecodeUtils {
 		if (ssaVars.isEmpty()) {
 			return null;
 		}
-		Integer lvtIndex;
-		if ((lvtIndex = getMethodArgLvtIndex(methodVarSsaVar, mth)) != null) {
+		Integer lvtIndex = getMethodArgLvtIndex(methodVarSsaVar, mth);
+		if (lvtIndex != null) {
 			return lvtIndex;
 		}
 

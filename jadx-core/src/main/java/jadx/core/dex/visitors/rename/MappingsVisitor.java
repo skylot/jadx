@@ -25,7 +25,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 		name = "MappingsVisitor",
 		desc = "Apply mappings to classes, fields and methods",
 		runAfter = {
-				RenameVisitor.class,
+				RenameVisitor.class
 		}
 )
 public class MappingsVisitor extends AbstractVisitor {
