@@ -24,7 +24,7 @@ import jadx.core.xmlgen.entry.RawValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class ResTableParser extends CommonBinaryParser {
+public class ResTableParser extends CommonBinaryParser implements IResParser {
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
 
 	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d_]+");
@@ -76,6 +76,7 @@ public class ResTableParser extends CommonBinaryParser {
 		this.useRawResName = useRawResNames;
 	}
 
+	@Override
 	public void decode(InputStream inputStream) throws IOException {
 		is = new ParserStream(inputStream);
 		decodeTableChunk();
@@ -91,14 +92,6 @@ public class ResTableParser extends CommonBinaryParser {
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
 		return ResContainer.resourceTable("res", xmlFiles, content);
-	}
-
-	public ResourceStorage getResStorage() {
-		return resStorage;
-	}
-
-	public String[] getStrings() {
-		return strings;
 	}
 
 	void decodeTableChunk() throws IOException {
@@ -433,5 +426,15 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 		is.skipToPos(start + length, "readScriptOrVariantChar");
 		return sb.toString();
+	}
+
+	@Override
+	public ResourceStorage getResStorage() {
+		return resStorage;
+	}
+
+	@Override
+	public String[] getStrings() {
+		return strings;
 	}
 }

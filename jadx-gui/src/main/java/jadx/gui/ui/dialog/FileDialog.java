@@ -18,8 +18,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.mappingio.format.MappingFormat;
-
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxProject;
@@ -27,17 +26,18 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 
 public class FileDialog {
-	public enum ProjectOpenMode {
-		OPEN, ADD, SAVE_PROJECT, EXPORT;
-	}
 
-	public enum MappingOpenMode {
-		OPEN_MAPPINGS, SAVE_MAPPINGS;
+	public enum OpenMode {
+		OPEN,
+		ADD,
+		SAVE_PROJECT,
+		EXPORT,
+		CUSTOM_SAVE,
+		CUSTOM_OPEN
 	}
 
 	private final MainWindow mainWindow;
 
-	private MappingFormat mappingFormat;
 	private boolean isOpen;
 	private String title;
 	private List<String> fileExtList;
@@ -45,15 +45,29 @@ public class FileDialog {
 	private @Nullable Path currentDir;
 	private @Nullable Path selectedFile;
 
-	public FileDialog(MainWindow mainWindow, ProjectOpenMode mode) {
+	public FileDialog(MainWindow mainWindow, OpenMode mode) {
 		this.mainWindow = mainWindow;
 		initForMode(mode);
 	}
 
-	public FileDialog(MainWindow mainWindow, MappingOpenMode mappingAction, MappingFormat mappingFormat) {
-		this.mainWindow = mainWindow;
-		this.mappingFormat = mappingFormat;
-		initForMode(mappingAction);
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setFileExtList(List<String> fileExtList) {
+		this.fileExtList = fileExtList;
+	}
+
+	public void setSelectionMode(int selectionMode) {
+		this.selectionMode = selectionMode;
+	}
+
+	public void setSelectedFile(Path path) {
+		this.selectedFile = path;
+	}
+
+	public void setCurrentDir(Path currentDir) {
+		this.currentDir = currentDir;
 	}
 
 	public List<Path> show() {
@@ -78,16 +92,12 @@ public class FileDialog {
 		return currentDir;
 	}
 
-	public void setSelectedFile(Path path) {
-		this.selectedFile = path;
-	}
-
-	private void initForMode(ProjectOpenMode mode) {
+	private void initForMode(OpenMode mode) {
 		switch (mode) {
 			case OPEN:
 			case ADD:
 				fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc"));
-				if (mode == ProjectOpenMode.OPEN) {
+				if (mode == OpenMode.OPEN) {
 					fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
 					title = NLS.str("file.open_title");
 				} else {
@@ -113,44 +123,28 @@ public class FileDialog {
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
-		}
-	}
 
-	private void initForMode(MappingOpenMode mode) {
-		switch (mode) {
-			case OPEN_MAPPINGS:
-				title = NLS.str("file.open_mappings");
-				currentDir = mainWindow.getSettings().getLastOpenFilePath();
-				isOpen = true;
-				break;
-			case SAVE_MAPPINGS:
-				title = NLS.str("file.save_mappings_as");
+			case CUSTOM_SAVE:
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				isOpen = false;
 				break;
-		}
-		currentDir = mainWindow.getSettings().getLastOpenFilePath();
-		if (mappingFormat.hasSingleFile()) {
-			fileExtList = Arrays.asList(mappingFormat.fileExt);
-			selectionMode = JFileChooser.FILES_ONLY;
-		} else {
-			fileExtList = Collections.emptyList();
-			selectionMode = JFileChooser.DIRECTORIES_ONLY;
+
+			case CUSTOM_OPEN:
+				currentDir = mainWindow.getSettings().getLastOpenFilePath();
+				isOpen = true;
+				break;
 		}
 	}
 
 	private FileChooser buildFileChooser() {
-		FileChooser fileChooser = new FileChooser();
+		FileChooser fileChooser = new FileChooser(currentDir);
 		fileChooser.setToolTipText(title);
 		fileChooser.setFileSelectionMode(selectionMode);
 		fileChooser.setMultiSelectionEnabled(isOpen);
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		if (!fileExtList.isEmpty()) {
+		if (Utils.notEmpty(fileExtList)) {
 			String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(fileExtList) + ')';
 			fileChooser.setFileFilter(new FileNameExtensionFilter(description, fileExtList.toArray(new String[0])));
-		}
-		if (currentDir != null) {
-			fileChooser.setCurrentDirectory(currentDir.toFile());
 		}
 		if (selectedFile != null) {
 			fileChooser.setSelectedFile(selectedFile.toFile());
@@ -159,6 +153,11 @@ public class FileDialog {
 	}
 
 	private class FileChooser extends JFileChooser {
+
+		public FileChooser(@Nullable Path currentDirectory) {
+			super(currentDirectory == null ? CommonFileUtils.CWD : currentDirectory.toFile());
+		}
+
 		@Override
 		protected JDialog createDialog(Component parent) throws HeadlessException {
 			JDialog dialog = super.createDialog(parent);

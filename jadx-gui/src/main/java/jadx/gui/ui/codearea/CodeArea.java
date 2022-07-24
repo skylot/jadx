@@ -58,7 +58,7 @@ public final class CodeArea extends AbstractCodeArea {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() % 2 == 0 || e.isControlDown()) {
+				if (e.isControlDown() || jumpOnDoubleClick(e)) {
 					navToDecl(e.getPoint(), codeLinkGenerator);
 				}
 			}
@@ -67,6 +67,10 @@ public final class CodeArea extends AbstractCodeArea {
 		if (isJavaCode) {
 			addMouseMotionListener(new MouseHoverHighlighter(this, codeLinkGenerator));
 		}
+	}
+
+	private boolean jumpOnDoubleClick(MouseEvent e) {
+		return e.getClickCount() == 2 && getMainWindow().getSettings().isJumpOnDoubleClick();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -81,6 +85,10 @@ public final class CodeArea extends AbstractCodeArea {
 	@Override
 	public ICodeInfo getCodeInfo() {
 		if (cachedCodeInfo == null) {
+			if (isDisposed()) {
+				LOG.debug("CodeArea used after dispose!");
+				return ICodeInfo.EMPTY;
+			}
 			cachedCodeInfo = Objects.requireNonNull(node.getCodeInfo());
 		}
 		return cachedCodeInfo;

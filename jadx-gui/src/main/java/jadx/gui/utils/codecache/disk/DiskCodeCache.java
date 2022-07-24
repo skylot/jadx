@@ -42,7 +42,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 11;
+	private static final int DATA_FORMAT_VERSION = 12;
 
 	private static final byte[] JADX_NAMES_MAP_HEADER = "jadxnm".getBytes(StandardCharsets.US_ASCII);
 

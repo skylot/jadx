@@ -21,6 +21,7 @@ public class ProjectData {
 	private @Nullable Path mappingsPath;
 	private @Nullable Long mappingsLastModified;
 	private @Nullable Path cacheDir;
+	private boolean enableLiveReload = false;
 
 	public List<Path> getFiles() {
 		return files;
@@ -113,5 +114,13 @@ public class ProjectData {
 
 	public void setCacheDir(Path cacheDir) {
 		this.cacheDir = cacheDir;
+	}
+
+	public boolean isEnableLiveReload() {
+		return enableLiveReload;
+	}
+
+	public void setEnableLiveReload(boolean enableLiveReload) {
+		this.enableLiveReload = enableLiveReload;
 	}
 }

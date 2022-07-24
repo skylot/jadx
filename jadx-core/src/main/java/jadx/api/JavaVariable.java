@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.VarNode;
@@ -32,7 +33,7 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
-	public String getName() {
+	public @Nullable String getName() {
 		return varNode.getName();
 	}
 

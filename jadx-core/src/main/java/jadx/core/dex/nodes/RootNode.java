@@ -48,7 +48,8 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.xmlgen.ResTableParser;
+import jadx.core.xmlgen.IResParser;
+import jadx.core.xmlgen.ResDecoder;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
@@ -171,23 +172,13 @@ public class RootNode {
 	}
 
 	public void loadResources(List<ResourceFile> resources) {
-		ResourceFile arsc = null;
-		for (ResourceFile rf : resources) {
-			if (rf.getType() == ResourceType.ARSC) {
-				arsc = rf;
-				break;
-			}
-		}
+		ResourceFile arsc = getResourceFile(resources);
 		if (arsc == null) {
 			LOG.debug("'.arsc' file not found");
 			return;
 		}
 		try {
-			ResTableParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> {
-				ResTableParser tableParser = new ResTableParser(this);
-				tableParser.decode(is);
-				return tableParser;
-			});
+			IResParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> ResDecoder.decode(this, arsc, is));
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
@@ -217,6 +208,15 @@ public class RootNode {
 		}
 	}
 
+	private @Nullable ResourceFile getResourceFile(List<ResourceFile> resources) {
+		for (ResourceFile rf : resources) {
+			if (rf.getType() == ResourceType.ARSC) {
+				return rf;
+			}
+		}
+		return null;
+	}
+
 	public void processResources(ResourceStorage resStorage) {
 		constValues.setResourcesNames(resStorage.getResourcesNames());
 		appPackage = resStorage.getAppPackage();
@@ -237,7 +237,7 @@ public class RootNode {
 		}
 	}
 
-	private void updateObfuscatedFiles(ResTableParser parser, List<ResourceFile> resources) {
+	private void updateObfuscatedFiles(IResParser parser, List<ResourceFile> resources) {
 		if (args.isSkipResources()) {
 			return;
 		}
@@ -297,6 +297,7 @@ public class RootNode {
 	public void runPreDecompileStage() {
 		boolean debugEnabled = LOG.isDebugEnabled();
 		for (IDexTreeVisitor pass : preDecompilePasses) {
+			Utils.checkThreadInterrupt();
 			long start = debugEnabled ? System.currentTimeMillis() : 0;
 			try {
 				pass.init(this);

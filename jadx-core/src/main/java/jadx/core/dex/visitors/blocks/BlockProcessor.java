@@ -1,9 +1,6 @@
 package jadx.core.dex.visitors.blocks;
 
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +28,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.blocks.BlockSplitter.connect;
-import static jadx.core.utils.EmptyBitSet.EMPTY;
 
 public class BlockProcessor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(BlockProcessor.class);
@@ -50,29 +46,23 @@ public class BlockProcessor extends AbstractVisitor {
 		computeDominators(mth);
 		if (independentBlockTreeMod(mth)) {
 			checkForUnreachableBlocks(mth);
-			clearBlocksState(mth);
 			computeDominators(mth);
 		}
 		if (FixMultiEntryLoops.process(mth)) {
-			clearBlocksState(mth);
 			computeDominators(mth);
 		}
 		updateCleanSuccessors(mth);
 
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
-			// revert calculations
-			clearBlocksState(mth);
-			// recalculate dominators tree
 			computeDominators(mth);
-
 			if (i++ > 100) {
 				throw new JadxRuntimeException("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
 			}
 		}
 		checkForUnreachableBlocks(mth);
 
-		computeDominanceFrontier(mth);
+		DominatorTree.computeDominanceFrontier(mth);
 		registerLoops(mth);
 		processNestedLoops(mth);
 
@@ -209,139 +199,9 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void computeDominators(MethodNode mth) {
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		int nBlocks = basicBlocks.size();
-		for (int i = 0; i < nBlocks; i++) {
-			BlockNode block = basicBlocks.get(i);
-			block.setId(i);
-			block.setDoms(new BitSet(nBlocks));
-			block.getDoms().set(0, nBlocks);
-		}
-
-		BlockNode entryBlock = mth.getEnterBlock();
-		calcDominators(basicBlocks, entryBlock);
+		clearBlocksState(mth);
+		DominatorTree.compute(mth);
 		markLoops(mth);
-
-		// clear self dominance
-		basicBlocks.forEach(block -> {
-			block.getDoms().clear(block.getId());
-			if (block.getDoms().isEmpty()) {
-				block.setDoms(EMPTY);
-			}
-		});
-
-		calcImmediateDominators(mth, basicBlocks, entryBlock);
-	}
-
-	private static void calcDominators(List<BlockNode> basicBlocks, BlockNode entryBlock) {
-		entryBlock.getDoms().clear();
-		entryBlock.getDoms().set(entryBlock.getId());
-
-		BitSet domSet = new BitSet(basicBlocks.size());
-		boolean changed;
-		do {
-			changed = false;
-			for (BlockNode block : basicBlocks) {
-				if (block == entryBlock) {
-					continue;
-				}
-				BitSet d = block.getDoms();
-				if (!changed) {
-					domSet.clear();
-					domSet.or(d);
-				}
-				for (BlockNode pred : block.getPredecessors()) {
-					d.and(pred.getDoms());
-				}
-				d.set(block.getId());
-				if (!changed && !d.equals(domSet)) {
-					changed = true;
-				}
-			}
-		} while (changed);
-	}
-
-	private static void calcImmediateDominators(MethodNode mth, List<BlockNode> basicBlocks, BlockNode entryBlock) {
-		for (BlockNode block : basicBlocks) {
-			if (block == entryBlock) {
-				continue;
-			}
-			BlockNode idom;
-			List<BlockNode> preds = block.getPredecessors();
-			if (preds.size() == 1) {
-				idom = preds.get(0);
-			} else {
-				BitSet bs = new BitSet(block.getDoms().length());
-				bs.or(block.getDoms());
-				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-					BlockNode dom = basicBlocks.get(i);
-					bs.andNot(dom.getDoms());
-				}
-				if (bs.cardinality() != 1) {
-					throw new JadxRuntimeException("Can't find immediate dominator for block " + block
-							+ " in " + bs + " preds:" + preds);
-				}
-				idom = basicBlocks.get(bs.nextSetBit(0));
-			}
-			block.setIDom(idom);
-			idom.addDominatesOn(block);
-		}
-	}
-
-	static void computeDominanceFrontier(MethodNode mth) {
-		mth.getExitBlock().setDomFrontier(EMPTY);
-		List<BlockNode> domSortedBlocks = new ArrayList<>(mth.getBasicBlocks().size());
-		Deque<BlockNode> stack = new LinkedList<>();
-		stack.push(mth.getEnterBlock());
-		while (!stack.isEmpty()) {
-			BlockNode node = stack.pop();
-			for (BlockNode dominated : node.getDominatesOn()) {
-				stack.push(dominated);
-			}
-			domSortedBlocks.add(node);
-		}
-		Collections.reverse(domSortedBlocks);
-		for (BlockNode block : domSortedBlocks) {
-			try {
-				computeBlockDF(mth, block);
-			} catch (Exception e) {
-				throw new JadxRuntimeException("Failed compute block dominance frontier", e);
-			}
-		}
-	}
-
-	private static void computeBlockDF(MethodNode mth, BlockNode block) {
-		if (block.getDomFrontier() != null) {
-			return;
-		}
-		List<BlockNode> blocks = mth.getBasicBlocks();
-		BitSet domFrontier = null;
-		for (BlockNode s : block.getSuccessors()) {
-			if (s.getIDom() != block) {
-				if (domFrontier == null) {
-					domFrontier = new BitSet(blocks.size());
-				}
-				domFrontier.set(s.getId());
-			}
-		}
-		for (BlockNode c : block.getDominatesOn()) {
-			BitSet frontier = c.getDomFrontier();
-			if (frontier == null) {
-				throw new JadxRuntimeException("Dominance frontier not calculated for dominated block: " + c + ", from: " + block);
-			}
-			for (int p = frontier.nextSetBit(0); p >= 0; p = frontier.nextSetBit(p + 1)) {
-				if (blocks.get(p).getIDom() != block) {
-					if (domFrontier == null) {
-						domFrontier = new BitSet(blocks.size());
-					}
-					domFrontier.set(p);
-				}
-			}
-		}
-		if (domFrontier == null || domFrontier.isEmpty()) {
-			domFrontier = EMPTY;
-		}
-		block.setDomFrontier(domFrontier);
 	}
 
 	private static void markLoops(MethodNode mth) {
@@ -349,7 +209,7 @@ public class BlockProcessor extends AbstractVisitor {
 			// Every successor that dominates its predecessor is a header of a loop,
 			// block -> successor is a back edge.
 			block.getSuccessors().forEach(successor -> {
-				if (block.getDoms().get(successor.getId())) {
+				if (block.getDoms().get(successor.getId()) || block == successor) {
 					successor.add(AFlag.LOOP_START);
 					block.add(AFlag.LOOP_END);
 

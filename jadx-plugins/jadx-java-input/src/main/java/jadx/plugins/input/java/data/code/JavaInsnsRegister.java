@@ -59,9 +59,9 @@ public class JavaInsnsRegister {
 		loadConst(arr, 0x14, "ldc2_w", true);
 
 		register(arr, 0x15, "iload", 1, 2, Opcode.MOVE, s -> s.local(1, s.u1()).push(0));
-		register(arr, 0x16, "lload", 1, 2, Opcode.MOVE, s -> s.local(1, s.u1()).pushWide(0));
+		register(arr, 0x16, "lload", 1, 2, Opcode.MOVE_WIDE, s -> s.local(1, s.u1()).pushWide(0));
 		register(arr, 0x17, "fload", 1, 2, Opcode.MOVE, s -> s.local(1, s.u1()).push(0));
-		register(arr, 0x18, "dload", 1, 2, Opcode.MOVE, s -> s.local(1, s.u1()).pushWide(0));
+		register(arr, 0x18, "dload", 1, 2, Opcode.MOVE_WIDE, s -> s.local(1, s.u1()).pushWide(0));
 		register(arr, 0x19, "aload", 1, 2, Opcode.MOVE, s -> s.local(1, s.u1()).push(0));
 
 		register(arr, 0x1a, "iload_0", 0, 2, Opcode.MOVE, s -> s.local(1, 0).push(0));
@@ -69,20 +69,20 @@ public class JavaInsnsRegister {
 		register(arr, 0x1c, "iload_2", 0, 2, Opcode.MOVE, s -> s.local(1, 2).push(0));
 		register(arr, 0x1d, "iload_3", 0, 2, Opcode.MOVE, s -> s.local(1, 3).push(0));
 
-		register(arr, 0x1e, "lload_0", 0, 2, Opcode.MOVE, s -> s.local(1, 0).pushWide(0));
-		register(arr, 0x1f, "lload_1", 0, 2, Opcode.MOVE, s -> s.local(1, 1).pushWide(0));
-		register(arr, 0x20, "lload_2", 0, 2, Opcode.MOVE, s -> s.local(1, 2).pushWide(0));
-		register(arr, 0x21, "lload_3", 0, 2, Opcode.MOVE, s -> s.local(1, 3).pushWide(0));
+		register(arr, 0x1e, "lload_0", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 0).pushWide(0));
+		register(arr, 0x1f, "lload_1", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 1).pushWide(0));
+		register(arr, 0x20, "lload_2", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 2).pushWide(0));
+		register(arr, 0x21, "lload_3", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 3).pushWide(0));
 
 		register(arr, 0x22, "fload_0", 0, 2, Opcode.MOVE, s -> s.local(1, 0).push(0));
 		register(arr, 0x23, "fload_1", 0, 2, Opcode.MOVE, s -> s.local(1, 1).push(0));
 		register(arr, 0x24, "fload_2", 0, 2, Opcode.MOVE, s -> s.local(1, 2).push(0));
 		register(arr, 0x25, "fload_3", 0, 2, Opcode.MOVE, s -> s.local(1, 3).push(0));
 
-		register(arr, 0x26, "dload_0", 0, 2, Opcode.MOVE, s -> s.local(1, 0).pushWide(0));
-		register(arr, 0x27, "dload_1", 0, 2, Opcode.MOVE, s -> s.local(1, 1).pushWide(0));
-		register(arr, 0x28, "dload_2", 0, 2, Opcode.MOVE, s -> s.local(1, 2).pushWide(0));
-		register(arr, 0x29, "dload_3", 0, 2, Opcode.MOVE, s -> s.local(1, 3).pushWide(0));
+		register(arr, 0x26, "dload_0", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 0).pushWide(0));
+		register(arr, 0x27, "dload_1", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 1).pushWide(0));
+		register(arr, 0x28, "dload_2", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 2).pushWide(0));
+		register(arr, 0x29, "dload_3", 0, 2, Opcode.MOVE_WIDE, s -> s.local(1, 3).pushWide(0));
 
 		register(arr, 0x2a, "aload_0", 0, 2, Opcode.MOVE, s -> s.local(1, 0).push(0));
 		register(arr, 0x2b, "aload_1", 0, 2, Opcode.MOVE, s -> s.local(1, 1).push(0));
@@ -99,9 +99,9 @@ public class JavaInsnsRegister {
 		register(arr, 0x35, "saload", 0, 3, Opcode.AGET_SHORT, aget());
 
 		register(arr, 0x36, "istore", 1, 2, Opcode.MOVE, s -> s.pop(1).local(0, s.u1()));
-		register(arr, 0x37, "lstore", 1, 2, Opcode.MOVE, s -> s.pop(1).local(0, s.u1()));
+		register(arr, 0x37, "lstore", 1, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, s.u1()));
 		register(arr, 0x38, "fstore", 1, 2, Opcode.MOVE, s -> s.pop(1).local(0, s.u1()));
-		register(arr, 0x39, "dstore", 1, 2, Opcode.MOVE, s -> s.pop(1).local(0, s.u1()));
+		register(arr, 0x39, "dstore", 1, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, s.u1()));
 		register(arr, 0x3a, "astore", 1, 2, Opcode.MOVE, s -> s.pop(1).local(0, s.u1()));
 
 		register(arr, 0x3b, "istore_0", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 0));
@@ -109,20 +109,20 @@ public class JavaInsnsRegister {
 		register(arr, 0x3d, "istore_2", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 2));
 		register(arr, 0x3e, "istore_3", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 3));
 
-		register(arr, 0x3f, "lstore_0", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 0));
-		register(arr, 0x40, "lstore_1", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 1));
-		register(arr, 0x41, "lstore_2", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 2));
-		register(arr, 0x42, "lstore_3", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 3));
+		register(arr, 0x3f, "lstore_0", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 0));
+		register(arr, 0x40, "lstore_1", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 1));
+		register(arr, 0x41, "lstore_2", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 2));
+		register(arr, 0x42, "lstore_3", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 3));
 
 		register(arr, 0x43, "fstore_0", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 0));
 		register(arr, 0x44, "fstore_1", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 1));
 		register(arr, 0x45, "fstore_2", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 2));
 		register(arr, 0x46, "fstore_3", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 3));
 
-		register(arr, 0x47, "dstore_0", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 0));
-		register(arr, 0x48, "dstore_1", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 1));
-		register(arr, 0x49, "dstore_2", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 2));
-		register(arr, 0x4a, "dstore_3", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 3));
+		register(arr, 0x47, "dstore_0", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 0));
+		register(arr, 0x48, "dstore_1", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 1));
+		register(arr, 0x49, "dstore_2", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 2));
+		register(arr, 0x4a, "dstore_3", 0, 2, Opcode.MOVE_WIDE, s -> s.pop(1).local(0, 3));
 
 		register(arr, 0x4b, "astore_0", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 0));
 		register(arr, 0x4c, "astore_1", 0, 2, Opcode.MOVE, s -> s.pop(1).local(0, 1));

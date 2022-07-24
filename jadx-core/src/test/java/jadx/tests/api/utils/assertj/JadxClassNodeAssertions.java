@@ -8,7 +8,6 @@ import org.assertj.core.api.Assertions;
 import jadx.api.ICodeInfo;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.ICodeNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -58,11 +57,12 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		return this;
 	}
 
-	public void checkCodeAnnotationFor(String refStr, ICodeNode node) {
+	public JadxClassNodeAssertions checkCodeAnnotationFor(String refStr, ICodeAnnotation node) {
 		checkCodeAnnotationFor(refStr, 0, node);
+		return this;
 	}
 
-	public void checkCodeAnnotationFor(String refStr, int refOffset, ICodeNode node) {
+	public JadxClassNodeAssertions checkCodeAnnotationFor(String refStr, int refOffset, ICodeAnnotation node) {
 		ICodeInfo code = actual.getCode();
 		int codePos = code.getCodeStr().indexOf(refStr);
 		assertThat(codePos).describedAs("String '%s' not found", refStr).isNotEqualTo(-1);
@@ -70,9 +70,10 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		for (Map.Entry<Integer, ICodeAnnotation> entry : code.getCodeMetadata().getAsMap().entrySet()) {
 			if (entry.getKey() == refPos) {
 				Assertions.assertThat(entry.getValue()).isEqualTo(node);
-				return;
+				return this;
 			}
 		}
 		fail("Annotation for reference string: '%s' at position %d not found", refStr, refPos);
+		return this;
 	}
 }

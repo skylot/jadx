@@ -11,6 +11,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -75,7 +76,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public AbstractCodeArea(ContentPanel contentPanel, JNode node) {
 		this.contentPanel = contentPanel;
-		this.node = node;
+		this.node = Objects.requireNonNull(node);
 
 		setMarkOccurrences(false);
 		setEditable(false);
@@ -355,6 +356,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		return null;
 	}
 
+	public boolean isDisposed() {
+		return node == null;
+	}
+
 	public void dispose() {
 		// code area reference can still be used somewhere in UI objects,
 		// reset node reference to allow to GC jadx objects tree
@@ -362,25 +367,33 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		contentPanel = null;
 
 		// also clear internals
-		setLinkGenerator(null);
-		for (MouseListener mouseListener : getMouseListeners()) {
-			removeMouseListener(mouseListener);
-		}
-		for (MouseMotionListener mouseMotionListener : getMouseMotionListeners()) {
-			removeMouseMotionListener(mouseMotionListener);
-		}
-		JPopupMenu popupMenu = getPopupMenu();
-		for (PopupMenuListener popupMenuListener : popupMenu.getPopupMenuListeners()) {
-			popupMenu.removePopupMenuListener(popupMenuListener);
-		}
-		for (Component component : popupMenu.getComponents()) {
-			if (component instanceof JMenuItem) {
-				Action action = ((JMenuItem) component).getAction();
-				if (action instanceof JNodeAction) {
-					((JNodeAction) action).dispose();
+		try {
+			setIgnoreRepaint(true);
+			setText("");
+			setEnabled(false);
+			setSyntaxEditingStyle(SYNTAX_STYLE_NONE);
+			setLinkGenerator(null);
+			for (MouseListener mouseListener : getMouseListeners()) {
+				removeMouseListener(mouseListener);
+			}
+			for (MouseMotionListener mouseMotionListener : getMouseMotionListeners()) {
+				removeMouseMotionListener(mouseMotionListener);
+			}
+			JPopupMenu popupMenu = getPopupMenu();
+			for (PopupMenuListener popupMenuListener : popupMenu.getPopupMenuListeners()) {
+				popupMenu.removePopupMenuListener(popupMenuListener);
+			}
+			for (Component component : popupMenu.getComponents()) {
+				if (component instanceof JMenuItem) {
+					Action action = ((JMenuItem) component).getAction();
+					if (action instanceof JNodeAction) {
+						((JNodeAction) action).dispose();
+					}
 				}
 			}
+			popupMenu.removeAll();
+		} catch (Throwable e) {
+			LOG.debug("Error on code area dispose", e);
 		}
-		popupMenu.removeAll();
 	}
 }

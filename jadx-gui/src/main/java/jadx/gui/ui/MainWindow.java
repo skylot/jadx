@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -46,6 +47,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -91,7 +93,6 @@ import jadx.api.ResourceFile;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
-import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -143,7 +144,9 @@ import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.logs.LogCollector;
+import jadx.gui.utils.ui.ActionHandler;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -160,6 +163,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = UiUtils.openSvgIcon("ui/openDisk");
 	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
 	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
+	private static final ImageIcon ICON_RELOAD = UiUtils.openSvgIcon("ui/refresh");
 	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
 	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
 	private static final ImageIcon ICON_SYNC = UiUtils.openSvgIcon("ui/pagination");
@@ -210,6 +214,9 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
 
+	private JCheckBoxMenuItem liveReloadMenuItem;
+	private final LiveReloadWorker liveReloadWorker;
+
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
 	private transient Theme editorTheme;
@@ -222,18 +229,18 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
+		this.liveReloadWorker = new LiveReloadWorker(this);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
 		initUI();
+		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
 		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
 		loadSettings();
+
 		update();
-
-		this.backgroundExecutor = new BackgroundExecutor(this);
-
 		checkForUpdate();
 	}
 
@@ -298,7 +305,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		FileDialog fileDialog = new FileDialog(this, FileDialog.ProjectOpenMode.OPEN);
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.OPEN);
 		List<Path> openPaths = fileDialog.show();
 		if (!openPaths.isEmpty()) {
 			settings.setLastOpenFilePath(fileDialog.getCurrentDir());
@@ -307,7 +314,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void addFiles() {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.ProjectOpenMode.ADD);
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.ADD);
 		List<Path> addPaths = fileDialog.show();
 		if (!addPaths.isEmpty()) {
 			addFiles(addPaths);
@@ -337,7 +344,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveProjectAs() {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.ProjectOpenMode.SAVE_PROJECT);
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.SAVE_PROJECT);
 		if (project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
 			Path projectPath = getProjectPathForFile(this.project.getFilePaths().get(0));
@@ -368,12 +375,22 @@ public class MainWindow extends JFrame {
 	}
 
 	private void openMappings(MappingFormat mappingFormat) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.OPEN_MAPPINGS, mappingFormat);
-		List<Path> selectedFiles = fileDialog.show();
-		if (selectedFiles.isEmpty()) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_OPEN);
+		fileDialog.setTitle(NLS.str("file.open_mappings"));
+		if (mappingFormat.hasSingleFile()) {
+			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
+			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
+		} else {
+			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
+		List<Path> selectedPaths = fileDialog.show();
+		if (selectedPaths.size() != 1) {
 			return;
 		}
-		Path filePath = selectedFiles.get(0);
+		settings.setLastOpenFilePath(fileDialog.getCurrentDir());
+		Path filePath = selectedPaths.get(0);
+		LOG.info("Loading mappings from: {}", filePath.toAbsolutePath());
+
 		MemoryMappingTree mappingTree = new MemoryMappingTree();
 		try {
 			MappingReader.read(filePath, mappingTree);
@@ -421,35 +438,44 @@ public class MainWindow extends JFrame {
 			}
 		}
 		renamesChanged = false;
-		update();
-
-		RootNode rootNode = wrapper.getDecompiler().getRoot();
-		Thread exportThread = new Thread(() -> {
-			new MappingExporter(rootNode).exportMappings(savePath, project.getCodeData(), currentMappingFormat);
-			project.setMappingsPath(savePath);
-		});
-		backgroundExecutor.execute(NLS.str("progress.save_mappings"), exportThread);
+		backgroundExecutor.execute(NLS.str("progress.save_mappings"),
+				() -> {
+					new MappingExporter(wrapper.getDecompiler().getRoot())
+							.exportMappings(savePath, project.getCodeData(), currentMappingFormat);
+					project.setMappingsPath(savePath);
+				},
+				s -> update());
 	}
 
 	private void saveMappingsAs(MappingFormat mappingFormat) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.MappingOpenMode.SAVE_MAPPINGS, mappingFormat);
-		List<Path> selectedDirs = fileDialog.show();
-		if (selectedDirs.isEmpty()) {
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_SAVE);
+		fileDialog.setTitle(NLS.str("file.save_mappings_as"));
+		if (mappingFormat.hasSingleFile()) {
+			fileDialog.setSelectedFile(fileDialog.getCurrentDir().resolve("mappings." + mappingFormat.fileExt));
+			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
+			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
+		} else {
+			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
+		List<Path> selectedPaths = fileDialog.show();
+		if (selectedPaths.size() != 1) {
 			return;
 		}
 		settings.setLastSaveFilePath(fileDialog.getCurrentDir());
-		Path savePath = selectedDirs.get(0);
+		Path savePath = selectedPaths.get(0);
+		// Append file extension if missing
 		if (mappingFormat.hasSingleFile() && !savePath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(mappingFormat.fileExt)) {
 			savePath = savePath.resolveSibling(savePath.getFileName() + "." + mappingFormat.fileExt);
 		}
+		// If the target file already exists (and it's not an empty directory), show an overwrite
+		// confirmation
 		if (Files.exists(savePath)) {
-			// Only show error message if folder is not empty
-			boolean dirEmpty = false;
+			boolean emptyDir = false;
 			try (Stream<Path> entries = Files.list(savePath)) {
-				dirEmpty = !entries.findFirst().isPresent();
+				emptyDir = !entries.findFirst().isPresent();
 			} catch (IOException ignored) {
 			}
-			if (!dirEmpty) {
+			if (!emptyDir) {
 				int res = JOptionPane.showConfirmDialog(
 						this,
 						NLS.str("confirm.save_as_message", savePath.getFileName()),
@@ -460,6 +486,7 @@ public class MainWindow extends JFrame {
 				}
 			}
 		}
+		LOG.info("Saving mappings to: {}", savePath.toAbsolutePath());
 		project.setMappingsPath(savePath);
 		currentMappingFormat = mappingFormat;
 		saveMappings();
@@ -502,7 +529,7 @@ public class MainWindow extends JFrame {
 		return loadedFile.resolveSibling(fileName);
 	}
 
-	public void reopen() {
+	public synchronized void reopen() {
 		saveAll();
 		closeAll();
 		loadFiles(EMPTY_RUNNABLE);
@@ -592,6 +619,10 @@ public class MainWindow extends JFrame {
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						return;
 					}
+					if (status != TaskStatus.COMPLETE) {
+						LOG.warn("Loading task incomplete, status: {}", status);
+						return;
+					}
 					checkLoadedStatus();
 					onOpen();
 					onFinish.run();
@@ -644,10 +675,26 @@ public class MainWindow extends JFrame {
 		initTree();
 		projectOpen = true;
 		update();
+		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				this::restoreOpenTabs,
 				status -> runInitialBackgroundJobs());
+	}
+
+	public void updateLiveReload(boolean state) {
+		if (liveReloadWorker.isStarted() == state) {
+			return;
+		}
+		project.setEnableLiveReload(state);
+		liveReloadMenuItem.setEnabled(false);
+		backgroundExecutor.execute(
+				(state ? "Starting" : "Stopping") + " live reload",
+				() -> liveReloadWorker.updateState(state),
+				s -> {
+					liveReloadMenuItem.setState(state);
+					liveReloadMenuItem.setEnabled(true);
+				});
 	}
 
 	private void addTreeCustomNodes() {
@@ -777,7 +824,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.ProjectOpenMode.EXPORT);
+		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.EXPORT);
 		List<Path> saveDirs = fileDialog.show();
 		if (saveDirs.isEmpty()) {
 			return;
@@ -964,7 +1011,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initMenuAndToolbar() {
-		final boolean devVersion = (Jadx.VERSION_DEV.equals(Jadx.getVersion()));
 		Action openAction = new AbstractAction(NLS.str("file.open_action"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1005,6 +1051,19 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
+
+		ActionHandler reload = new ActionHandler(ev -> UiUtils.uiRun(this::reopen));
+		reload.setNameAndDesc(NLS.str("file.reload"));
+		reload.setIcon(ICON_RELOAD);
+		reload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, 0));
+
+		ActionHandler liveReload = new ActionHandler(ev -> updateLiveReload(!project.isEnableLiveReload()));
+		liveReload.setName(NLS.str("file.live_reload"));
+		liveReload.setShortDescription(NLS.str("file.live_reload_desc"));
+		liveReload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK));
+
+		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
+		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
 		Action openTiny2Mappings = new AbstractAction("Tiny v2 file") {
 			@Override
@@ -1267,6 +1326,9 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
+		file.add(reload);
+		file.add(liveReloadMenuItem);
+		file.addSeparator();
 		file.add(openMappingsMenu);
 		file.add(saveMappingsAction);
 		file.add(saveMappingsAsMenu);
@@ -1306,7 +1368,7 @@ public class MainWindow extends JFrame {
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(logAction);
-		if (devVersion) {
+		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -1338,6 +1400,8 @@ public class MainWindow extends JFrame {
 		toolbar.setFloatable(false);
 		toolbar.add(openAction);
 		toolbar.add(addFilesAction);
+		toolbar.addSeparator();
+		toolbar.add(reload);
 		toolbar.addSeparator();
 		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
@@ -1675,10 +1739,6 @@ public class MainWindow extends JFrame {
 
 	public BackgroundExecutor getBackgroundExecutor() {
 		return backgroundExecutor;
-	}
-
-	public ProgressPanel getProgressPane() {
-		return progressPane;
 	}
 
 	public JRoot getTreeRoot() {

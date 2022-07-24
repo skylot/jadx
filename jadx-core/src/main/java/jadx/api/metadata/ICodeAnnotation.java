@@ -9,7 +9,8 @@ public interface ICodeAnnotation {
 		VAR,
 		VAR_REF,
 		DECLARATION,
-		OFFSET
+		OFFSET,
+		END // class or method body end
 	}
 
 	AnnType getAnnType();

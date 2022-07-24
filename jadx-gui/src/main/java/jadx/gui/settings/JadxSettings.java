@@ -46,7 +46,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 17;
+	private static final int CURRENT_SETTINGS_VERSION = 18;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -60,7 +60,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private Path lastOpenFilePath = USER_HOME;
 	private Path lastSaveFilePath = USER_HOME;
 	private boolean flattenPackage = false;
-	private boolean checkForUpdates = false;
+	private boolean checkForUpdates = true;
 	private List<Path> recentProjects = new ArrayList<>();
 	private String fontStr = "";
 	private String smaliFontStr = "";
@@ -92,6 +92,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPort = "5037";
 
 	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_CACHE;
+	private boolean jumpOnDoubleClick = true;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -625,6 +626,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.codeCacheMode = codeCacheMode;
 	}
 
+	public boolean isJumpOnDoubleClick() {
+		return jumpOnDoubleClick;
+	}
+
+	public void setJumpOnDoubleClick(boolean jumpOnDoubleClick) {
+		this.jumpOnDoubleClick = jumpOnDoubleClick;
+	}
+
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {
@@ -713,6 +722,10 @@ public class JadxSettings extends JadxCLIArgs {
 			} else {
 				decompilationMode = DecompilationMode.AUTO;
 			}
+			fromVersion++;
+		}
+		if (fromVersion == 17) {
+			checkForUpdates = true;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

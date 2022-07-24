@@ -72,6 +72,27 @@
     return-object v0
 .end method
 
+.method public static values()[Lenums/TestEnumObfuscated;
+    .registers 1
+    sget-object v0, Lenums/TestEnumObfuscated;->$VLS:[Lenums/TestEnumObfuscated;
+    return v0
+.end method
+
+.method public static valuesCount()I
+    .registers 2
+    invoke-static {v0, p0}, Lenums/TestEnumObfuscated;->vs()[Lenums/TestEnumObfuscated;
+    move-result-object v0
+    array-length v1, v0
+    return v1
+.end method
+
+.method public static valuesFieldUse()I
+    .registers 2
+    sget-object v0, Lenums/TestEnumObfuscated;->$VLS:[Lenums/TestEnumObfuscated;
+    array-length v1, v0
+    return v1
+.end method
+
 .method public synthetic getNum()I
     .registers 2
 

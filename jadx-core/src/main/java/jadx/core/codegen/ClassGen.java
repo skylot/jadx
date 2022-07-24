@@ -19,6 +19,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.metadata.annotations.NodeEnd;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
@@ -256,6 +257,7 @@ public class ClassGen {
 		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();
 		clsCode.startLine('}');
+		clsCode.attachAnnotation(NodeEnd.VALUE);
 	}
 
 	private void addInnerClsAndMethods(ICodeWriter clsCode) {
@@ -369,6 +371,7 @@ public class ClassGen {
 			mthGen.addInstructions(code);
 			code.decIndent();
 			code.startLine('}');
+			code.attachAnnotation(NodeEnd.VALUE);
 		}
 	}
 
@@ -614,19 +617,21 @@ public class ClassGen {
 		if (useCls.equals(extClsInfo)) {
 			return shortName;
 		}
-		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
-			return shortName;
-		}
 		if (isClassInnerFor(useCls, extClsInfo)) {
 			return shortName;
 		}
 		if (extClsInfo.isInner()) {
 			return expandInnerClassName(useCls, extClsInfo);
 		}
-		if (searchCollision(cls.root(), useCls, extClsInfo)) {
+		if (checkInnerCollision(cls.root(), useCls, extClsInfo)
+				|| checkInPackageCollision(cls.root(), useCls, extClsInfo)) {
 			return fullName;
 		}
 		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
+			return shortName;
+		}
+		// don't add import for top classes from 'java.lang' package (subpackages excluded)
+		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
 		// don't add import if this class from same package
@@ -709,7 +714,7 @@ public class ClassGen {
 		return false;
 	}
 
-	private static boolean searchCollision(RootNode root, ClassInfo useCls, ClassInfo searchCls) {
+	private static boolean checkInnerCollision(RootNode root, @Nullable ClassInfo useCls, ClassInfo searchCls) {
 		if (useCls == null) {
 			return false;
 		}
@@ -726,7 +731,20 @@ public class ClassGen {
 				}
 			}
 		}
-		return searchCollision(root, useCls.getParentClass(), searchCls);
+		return checkInnerCollision(root, useCls.getParentClass(), searchCls);
+	}
+
+	/**
+	 * Check if class with same name exists in current package
+	 */
+	private static boolean checkInPackageCollision(RootNode root, ClassInfo useCls, ClassInfo searchCls) {
+		String currentPkg = useCls.getAliasPkg();
+		if (currentPkg.equals(searchCls.getAliasPkg())) {
+			// search class already from current package
+			return false;
+		}
+		String shortName = searchCls.getAliasShortName();
+		return root.getClsp().isClsKnown(currentPkg + '.' + shortName);
 	}
 
 	private void insertRenameInfo(ICodeWriter code, ClassNode cls) {

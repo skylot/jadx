@@ -761,6 +761,7 @@ public class InsnGen {
 				ctor.add(AFlag.DONT_GENERATE);
 			}
 		}
+		code.attachDefinition(cls);
 		code.add("new ");
 		useClass(code, parent);
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
@@ -823,7 +824,9 @@ public class InsnGen {
 		}
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
-			code.add(callMthNode.getAlias());
+		}
+		if (insn.contains(AFlag.FORCE_RAW_NAME)) {
+			code.add(callMth.getName());
 		} else {
 			code.add(callMth.getAlias());
 		}

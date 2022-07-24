@@ -136,7 +136,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	@Override
 	public Font getFont() {
-		if (model == null) {
+		if (model == null || isDisposed()) {
 			return super.getFont();
 		}
 		return model.getFont();
@@ -144,7 +144,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	@Override
 	public Font getFontForTokenType(int type) {
-		return model.getFont();
+		return getFont();
 	}
 
 	private boolean shouldUseSmaliPrinterV2() {

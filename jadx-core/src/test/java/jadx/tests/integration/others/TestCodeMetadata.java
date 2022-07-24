@@ -1,6 +1,7 @@
 package jadx.tests.integration.others;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,7 @@ import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeAnnotation.AnnType;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.ClassNode;
@@ -53,14 +55,25 @@ public class TestCodeMetadata extends IntegrationTest {
 		int callUse = callUsePlaces.get(0);
 
 		ICodeMetadata metadata = cls.getCode().getCodeMetadata();
+		System.out.println(metadata);
 		ICodeNodeRef callDef = metadata.getNodeAt(callUse);
 		assertThat(callDef).isSameAs(testMth);
 
-		int beforeCallDef = callDefPos - 10;
-		ICodeAnnotation closest = metadata.getClosestUp(beforeCallDef);
+		AtomicInteger endPos = new AtomicInteger();
+		ICodeAnnotation testEnd = metadata.searchUp(callDefPos, (pos, ann) -> {
+			if (ann.getAnnType() == AnnType.END) {
+				endPos.set(pos);
+				return ann;
+			}
+			return null;
+		});
+		assertThat(testEnd).isNotNull();
+		int testEndPos = endPos.get();
+
+		ICodeAnnotation closest = metadata.getClosestUp(testEndPos);
 		assertThat(closest).isInstanceOf(FieldNode.class); // field reference from 'return a.str;'
 
-		ICodeNodeRef nodeBelow = metadata.getNodeBelow(beforeCallDef);
+		ICodeNodeRef nodeBelow = metadata.getNodeBelow(testEndPos);
 		assertThat(nodeBelow).isSameAs(callMth);
 	}
 }

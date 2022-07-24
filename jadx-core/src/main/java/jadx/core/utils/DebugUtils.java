@@ -246,4 +246,29 @@ public class DebugUtils {
 		Set<Object> seen = ConcurrentHashMap.newKeySet();
 		return t -> seen.add(keyExtractor.apply(t));
 	}
+
+	private static Map<String, Long> execTimes;
+
+	public static void initExecTimes() {
+		execTimes = new ConcurrentHashMap<>();
+	}
+
+	public static void mergeExecTimeFromStart(String tag, long startTimeMillis) {
+		mergeExecTime(tag, System.currentTimeMillis() - startTimeMillis);
+	}
+
+	public static void mergeExecTime(String tag, long execTimeMillis) {
+		execTimes.merge(tag, execTimeMillis, Long::sum);
+	}
+
+	public static void printExecTimes() {
+		System.out.println("Exec times:");
+		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"));
+	}
+
+	public static void printExecTimesWithTotal(long totalMillis) {
+		System.out.println("Exec times: total " + totalMillis + "ms");
+		execTimes.forEach((tag, time) -> System.out.println(" " + tag + ": " + time + "ms"
+				+ String.format(" (%.2f%%)", time * 100. / (double) totalMillis)));
+	}
 }

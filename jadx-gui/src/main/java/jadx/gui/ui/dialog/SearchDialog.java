@@ -307,7 +307,7 @@ public class SearchDialog extends CommonSearchDialog {
 		Flowable<String> textChanges = onTextFieldChanges(searchField);
 		Flowable<String> searchEvents = Flowable.merge(textChanges, searchEmitter.getFlowable());
 		searchDisposable = searchEvents
-				.debounce(100, TimeUnit.MILLISECONDS)
+				.debounce(500, TimeUnit.MILLISECONDS)
 				.observeOn(SwingSchedulers.edt())
 				.subscribe(this::search);
 	}
@@ -342,6 +342,7 @@ public class SearchDialog extends CommonSearchDialog {
 			return;
 		}
 
+		updateTableHighlight();
 		startSearch();
 		searchTask.setResultsLimit(100);
 		searchTask.setProgressListener(this::updateProgress);
@@ -405,7 +406,6 @@ public class SearchDialog extends CommonSearchDialog {
 	private synchronized void stopSearchTask() {
 		if (searchTask != null) {
 			searchTask.cancel();
-			searchTask.waitTask();
 			searchTask = null;
 		}
 	}
@@ -476,7 +476,6 @@ public class SearchDialog extends CommonSearchDialog {
 	private synchronized void searchComplete() {
 		UiUtils.uiThreadGuard();
 		LOG.debug("Search complete");
-		updateTableHighlight();
 		updateTable();
 
 		boolean complete = searchTask == null || searchTask.isSearchComplete();

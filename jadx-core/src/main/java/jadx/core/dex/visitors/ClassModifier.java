@@ -10,6 +10,7 @@ import java.util.Objects;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
@@ -225,7 +226,7 @@ public class ClassModifier extends AbstractVisitor {
 	}
 
 	private static boolean removeBridgeMethod(ClassNode cls, MethodNode mth) {
-		if (cls.root().getArgs().isRenameValid()) {
+		if (cls.root().getArgs().isInlineMethods()) { // simple wrapper remove is same as inline
 			List<InsnNode> allInsns = BlockUtils.collectAllInsns(mth.getBasicBlocks());
 			if (allInsns.size() == 1) {
 				InsnNode wrappedInsn = allInsns.get(0);
@@ -235,12 +236,10 @@ public class ClassModifier extends AbstractVisitor {
 						wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
 					}
 				}
-				if (checkSyntheticWrapper(mth, wrappedInsn)) {
-					return true;
-				}
+				return checkSyntheticWrapper(mth, wrappedInsn);
 			}
 		}
-		return !isMethodUnique(cls, mth);
+		return false;
 	}
 
 	private static boolean checkSyntheticWrapper(MethodNode mth, InsnNode insn) {
@@ -283,6 +282,9 @@ public class ClassModifier extends AbstractVisitor {
 		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
 			wrappedMth.getMethodInfo().setAlias(alias);
 		}
+		wrappedMth.addAttr(new MethodReplaceAttr(mth));
+		wrappedMth.copyAttributeFrom(mth, AType.METHOD_OVERRIDE);
+		wrappedMth.addDebugComment("Method merged with bridge method");
 		return true;
 	}
 
@@ -297,20 +299,6 @@ public class ClassModifier extends AbstractVisitor {
 			}
 		}
 		return false;
-	}
-
-	private static boolean isMethodUnique(ClassNode cls, MethodNode mth) {
-		MethodInfo mi = mth.getMethodInfo();
-		for (MethodNode otherMth : cls.getMethods()) {
-			if (otherMth != mth) {
-				MethodInfo omi = otherMth.getMethodInfo();
-				if (omi.getName().equals(mi.getName())
-						&& Objects.equals(omi.getArgumentsTypes(), mi.getArgumentsTypes())) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 	/**
