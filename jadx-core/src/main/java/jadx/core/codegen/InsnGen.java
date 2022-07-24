@@ -828,7 +828,11 @@ public class InsnGen {
 		if (insn.contains(AFlag.FORCE_RAW_NAME)) {
 			code.add(callMth.getName());
 		} else {
-			code.add(callMth.getAlias());
+			if (callMthNode != null) {
+				code.add(callMthNode.getAlias());
+			} else {
+				code.add(callMth.getAlias());
+			}
 		}
 		generateMethodArguments(code, insn, k, callMthNode);
 	}

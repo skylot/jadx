@@ -1,7 +1,5 @@
 package jadx.tests.integration.names;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.api.CommentsLevel;
