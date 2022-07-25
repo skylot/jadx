@@ -65,12 +65,20 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		return fieldInfo.getAlias();
 	}
 
+	public void rename(String alias) {
+		fieldInfo.setAlias(alias);
+	}
+
 	public ArgType getType() {
 		return type;
 	}
 
 	public ClassNode getParentClass() {
 		return parentClass;
+	}
+
+	public ClassNode getTopParentClass() {
+		return parentClass.getTopParentClass();
 	}
 
 	public List<MethodNode> getUseIn() {

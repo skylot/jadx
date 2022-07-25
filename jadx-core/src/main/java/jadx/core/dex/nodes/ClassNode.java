@@ -657,6 +657,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return contains(AType.ANONYMOUS_CLASS);
 	}
 
+	public boolean isSynthetic() {
+		return contains(AFlag.SYNTHETIC);
+	}
+
 	public boolean isInner() {
 		return parentClass != this;
 	}

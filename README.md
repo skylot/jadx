@@ -116,6 +116,10 @@ options:
                                          'ignore' - don't read and don't save
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
+  --deobf-res-name-source             - better name source for resources:
+                                         'auto' - automatically select best name (default)
+                                         'resources' - use resources names
+                                         'code' - use R class fields names
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                      - fix options (comma-separated list of):
                                          'case' - fix case sensitivity issues (according to --fs-case-sensitive option),

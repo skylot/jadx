@@ -10,14 +10,18 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.args.ResourceNameSource;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.BetterName;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.EntryConfig;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.RawValue;
@@ -287,35 +291,66 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		if (renamedKey != null) {
 			return renamedKey;
 		}
-		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
-		if (constField != null) {
-			constField.add(AFlag.DONT_RENAME);
-			return constField.getName();
-		}
-		// styles might contain dots in name, use VALID_RES_KEY_PATTERN only for resource file name
+		// styles might contain dots in name, search for alias only for resources names
 		if (typeName.equals("style")) {
 			return origKeyName;
-		} else if (VALID_RES_KEY_PATTERN.matcher(origKeyName).matches()) {
-			return origKeyName;
+		}
+		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
+		String resAlias = getResAlias(resRef, origKeyName, constField);
+		resStorage.addRename(resRef, resAlias);
+		if (constField != null) {
+			constField.rename(resAlias);
+			constField.add(AFlag.DONT_RENAME);
+		}
+		return resAlias;
+	}
+
+	private String getResAlias(int resRef, String origKeyName, @Nullable FieldNode constField) {
+		String name;
+		if (constField == null || constField.getTopParentClass().isSynthetic()) {
+			name = origKeyName;
+		} else {
+			name = getBetterName(root.getArgs().getResourceNameSource(), origKeyName, constField.getName());
+		}
+		Matcher matcher = VALID_RES_KEY_PATTERN.matcher(name);
+		if (matcher.matches()) {
+			return name;
 		}
 		// Making sure origKeyName compliant with resource file name rules
-		Matcher m = VALID_RES_KEY_PATTERN.matcher(origKeyName);
+		String cleanedResName = cleanName(matcher);
+		String newResName = String.format("res_0x%08x", resRef);
+		if (cleanedResName.isEmpty()) {
+			return newResName;
+		}
+		// autogenerate key name, appended with cleaned origKeyName to be human-friendly
+		return newResName + "_" + cleanedResName.toLowerCase();
+	}
+
+	public static String getBetterName(ResourceNameSource nameSource, String resName, String codeName) {
+		switch (nameSource) {
+			case AUTO:
+				return BetterName.compareAndGet(resName, codeName);
+			case RESOURCES:
+				return resName;
+			case CODE:
+				return codeName;
+
+			default:
+				throw new JadxRuntimeException("Unexpected ResourceNameSource value: " + nameSource);
+		}
+	}
+
+	private String cleanName(Matcher matcher) {
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
-		while (m.find()) {
+		while (matcher.find()) {
 			if (!first) {
 				sb.append("_");
 			}
-			sb.append(m.group());
+			sb.append(matcher.group());
 			first = false;
 		}
-		// autogenerate key name, appended with cleaned origKeyName to be human-friendly
-		String newResName = String.format("res_0x%08x", resRef);
-		String cleanedResName = sb.toString();
-		if (!cleanedResName.isEmpty()) {
-			newResName += "_" + cleanedResName.toLowerCase();
-		}
-		return newResName;
+		return sb.toString();
 	}
 
 	private RawNamedValue parseValueMap() throws IOException {

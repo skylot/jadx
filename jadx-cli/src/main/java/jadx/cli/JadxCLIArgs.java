@@ -21,6 +21,7 @@ import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.JadxDecompiler;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
@@ -128,6 +129,16 @@ public class JadxCLIArgs {
 
 	@Parameter(names = { "--deobf-parse-kotlin-metadata" }, description = "parse kotlin metadata to class and package names")
 	protected boolean deobfuscationParseKotlinMetadata = false;
+
+	@Parameter(
+			names = { "--deobf-res-name-source" },
+			description = "better name source for resources:"
+					+ "\n 'auto' - automatically select best name (default)"
+					+ "\n 'resources' - use resources names"
+					+ "\n 'code' - use R class fields names",
+			converter = ResourceNameSourceConverter.class
+	)
+	protected ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
 
 	@Parameter(
 			names = { "--use-kotlin-methods-for-var-names" },
@@ -262,6 +273,7 @@ public class JadxCLIArgs {
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
 		args.setParseKotlinMetadata(deobfuscationParseKotlinMetadata);
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
+		args.setResourceNameSource(resourceNameSource);
 		args.setEscapeUnicode(escapeUnicode);
 		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
@@ -376,6 +388,10 @@ public class JadxCLIArgs {
 
 	public boolean isDeobfuscationParseKotlinMetadata() {
 		return deobfuscationParseKotlinMetadata;
+	}
+
+	public ResourceNameSource getResourceNameSource() {
+		return resourceNameSource;
 	}
 
 	public UseKotlinMethodsForVarNames getUseKotlinMethodsForVarNames() {
@@ -498,6 +514,19 @@ public class JadxCLIArgs {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
 								+ JadxCLIArgs.enumValuesString(DeobfuscationMapFileMode.values()));
+			}
+		}
+	}
+
+	public static class ResourceNameSourceConverter implements IStringConverter<ResourceNameSource> {
+		@Override
+		public ResourceNameSource convert(String value) {
+			try {
+				return ResourceNameSource.valueOf(value.toUpperCase());
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						'\'' + value + "' is unknown, possible values are: "
+								+ JadxCLIArgs.enumValuesString(ResourceNameSource.values()));
 			}
 		}
 	}

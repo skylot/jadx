@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
@@ -72,6 +73,7 @@ public class JadxArgs {
 	private File deobfuscationMapFile = null;
 
 	private DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+	private ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -369,6 +371,14 @@ public class JadxArgs {
 		this.deobfuscationMapFile = deobfuscationMapFile;
 	}
 
+	public ResourceNameSource getResourceNameSource() {
+		return resourceNameSource;
+	}
+
+	public void setResourceNameSource(ResourceNameSource resourceNameSource) {
+		this.resourceNameSource = resourceNameSource;
+	}
+
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}
@@ -540,6 +550,7 @@ public class JadxArgs {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ resourceNameSource
 				+ parseKotlinMetadata + useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
@@ -564,6 +575,7 @@ public class JadxArgs {
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", deobfuscationMapFile=" + deobfuscationMapFile
 				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
+				+ ", resourceNameSource=" + resourceNameSource
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames

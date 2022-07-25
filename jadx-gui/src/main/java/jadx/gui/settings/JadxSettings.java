@@ -30,6 +30,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.gui.ui.MainWindow;
@@ -346,6 +347,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setUseKotlinMethodsForVarNames(JadxArgs.UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
 		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
+	}
+
+	public void setResourceNameSource(ResourceNameSource source) {
+		this.resourceNameSource = source;
 	}
 
 	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
