@@ -23,6 +23,9 @@ object JadxScriptConfiguration : ScriptCompilationConfiguration({
 			wholeClasspath = true
 		)
 	}
+	ide {
+		acceptedLocations(ScriptAcceptedLocation.Everywhere)
+	}
 
 	baseClass(JadxScriptBaseClass::class)
 

@@ -399,7 +399,7 @@ public class ClassGen {
 		annotationGen.addForField(code, f);
 
 		boolean addInfoComments = f.checkCommentsLevel(CommentsLevel.INFO);
-		if (f.getFieldInfo().isRenamed() && addInfoComments) {
+		if (f.getFieldInfo().hasAlias() && addInfoComments) {
 			code.newLine();
 			CodeGenUtils.addRenamedComment(code, f, f.getName());
 		}

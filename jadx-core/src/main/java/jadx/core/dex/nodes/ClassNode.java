@@ -54,11 +54,13 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
-public class ClassNode extends NotificationAttrNode implements IClassNode, ILoadable, ICodeNode, Comparable<ClassNode> {
+public class ClassNode extends NotificationAttrNode
+		implements IClassNode, ILoadable, ICodeNode, IPackageUpdate, Comparable<ClassNode> {
 	private final RootNode root;
 	private final IClassData clsData;
 
 	private final ClassInfo clsInfo;
+	private final PackageNode packageNode;
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
@@ -103,6 +105,7 @@ public class ClassNode extends NotificationAttrNode implements IClassNode, ILoad
 	public ClassNode(RootNode root, IClassData cls) {
 		this.root = root;
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
+		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 		this.clsData = cls.copy();
 		initialLoad(clsData);
 	}
@@ -236,6 +239,7 @@ public class ClassNode extends NotificationAttrNode implements IClassNode, ILoad
 		this.fields = new ArrayList<>();
 		this.accessFlags = new AccessInfo(accessFlags, AFType.CLASS);
 		this.parentClass = this;
+		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 	}
 
 	private void initStaticValues(List<FieldNode> fields) {
@@ -566,6 +570,18 @@ public class ClassNode extends NotificationAttrNode implements IClassNode, ILoad
 			}
 		}
 		parentClass = this;
+	}
+
+	@Override
+	public void onParentPackageUpdate(PackageNode updatedPkg) {
+		if (isInner()) {
+			return;
+		}
+		getClassInfo().changePkg(packageNode.getAliasPkgInfo().getFullName());
+	}
+
+	public PackageNode getPackageNode() {
+		return packageNode;
 	}
 
 	public ClassNode getTopParentClass() {

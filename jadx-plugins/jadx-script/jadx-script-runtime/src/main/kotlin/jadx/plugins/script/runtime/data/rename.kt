@@ -12,9 +12,18 @@ class RenamePass(private val jadx: JadxScriptInstance) {
 	}
 
 	fun all(makeNewName: (String, IDexNode) -> String?) {
-		jadx.addPass(object : ScriptPreparePass(jadx, "RenameAll") {
+		jadx.addPass(object : ScriptOrderedPreparePass(
+			jadx,
+			"RenameAll",
+			runBefore = listOf("RenameVisitor")
+		) {
 			override fun init(root: IRootNode) {
 				val rootNode = root as RootNode
+				for (pkgNode in rootNode.packages) {
+					makeNewName.invoke(pkgNode.pkgInfo.name, pkgNode)?.let {
+						pkgNode.rename(it)
+					}
+				}
 				for (cls in rootNode.classes) {
 					makeNewName.invoke(cls.classInfo.shortName, cls)?.let {
 						cls.classInfo.changeShortName(it)

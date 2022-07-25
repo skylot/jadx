@@ -3,6 +3,8 @@ package jadx.core.dex.info;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.instructions.args.ArgType;
 
 public class InfoStorage {
@@ -13,6 +15,8 @@ public class InfoStorage {
 	private final Map<MethodInfo, MethodInfo> uniqueMethods = new HashMap<>();
 	// can contain same method with different ids (from different files)
 	private final Map<Integer, MethodInfo> methods = new HashMap<>();
+
+	private final Map<String, PackageInfo> packages = new HashMap<>();
 
 	public ClassInfo getCls(ArgType type) {
 		return classes.get(type);
@@ -57,5 +61,13 @@ public class InfoStorage {
 			fields.put(field, field);
 			return field;
 		}
+	}
+
+	public @Nullable PackageInfo getPkg(String fullName) {
+		return packages.get(fullName);
+	}
+
+	public void putPkg(PackageInfo pkg) {
+		packages.put(pkg.getFullName(), pkg);
 	}
 }
