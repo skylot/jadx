@@ -9,6 +9,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-script-runtime")
 
 	implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
+
+	// for deobf2 script
+	implementation("com.github.javafaker:javafaker:1.0.2")
 }
 
 sourceSets {

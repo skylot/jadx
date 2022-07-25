@@ -1,6 +1,7 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.nodes.utils.TypeUtils;
@@ -76,6 +78,8 @@ public class RootNode implements IRootNode {
 
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 	private List<ClassNode> classes = new ArrayList<>();
+
+	private final Map<String, PackageNode> pkgMap = new HashMap<>();
 
 	private ClspGraph clsp;
 	@Nullable
@@ -336,6 +340,24 @@ public class RootNode implements IRootNode {
 			}
 		}
 		return notInnerClasses;
+	}
+
+	public List<PackageNode> getPackages() {
+		List<PackageNode> list = new ArrayList<>(pkgMap.values());
+		Collections.sort(list);
+		return list;
+	}
+
+	public @Nullable PackageNode resolvePackage(String fullPkg) {
+		return pkgMap.get(fullPkg);
+	}
+
+	public @Nullable PackageNode resolvePackage(@Nullable PackageInfo pkgInfo) {
+		return pkgInfo == null ? null : pkgMap.get(pkgInfo.getFullName());
+	}
+
+	public void addPackage(PackageNode pkg) {
+		pkgMap.put(pkg.getPkgInfo().getFullName(), pkg);
 	}
 
 	@Nullable
