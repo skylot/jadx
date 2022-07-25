@@ -103,7 +103,7 @@ public class ADB {
 			}
 			return result;
 		} catch (SocketException e) {
-			LOG.error("Aborting readServiceProtocol: socket closed");
+			LOG.warn("Aborting readServiceProtocol: {}", e.toString());
 		} catch (IOException e) {
 			LOG.error("Failed to read readServiceProtocol", e);
 		}
@@ -207,7 +207,7 @@ public class ADB {
 					List<ADBDeviceInfo> deviceInfoList = new ArrayList<>(deviceLines.length);
 					for (String deviceLine : deviceLines) {
 						if (!deviceLine.trim().isEmpty()) {
-							deviceInfoList.add(ADBDeviceInfo.make(deviceLine, host, port));
+							deviceInfoList.add(new ADBDeviceInfo(deviceLine, host, port));
 						}
 					}
 					listener.onDeviceStatusChange(deviceInfoList);
