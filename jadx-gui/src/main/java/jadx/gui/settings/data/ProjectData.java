@@ -19,7 +19,6 @@ public class ProjectData {
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private int activeTab = -1;
 	private @Nullable Path mappingsPath;
-	private @Nullable Long mappingsLastModified;
 	private @Nullable Path cacheDir;
 	private boolean enableLiveReload = false;
 
@@ -96,15 +95,6 @@ public class ProjectData {
 
 	public void setMappingsPath(Path mappingsPath) {
 		this.mappingsPath = mappingsPath;
-	}
-
-	@Nullable
-	public Long getMappingsLastModified() {
-		return mappingsLastModified;
-	}
-
-	public void setMappingsLastModified(Long lastModifiedDate) {
-		this.mappingsLastModified = lastModifiedDate;
 	}
 
 	@Nullable

@@ -161,17 +161,12 @@ public class JadxProject {
 	public void setMappingsPath(Path mappingsPath) {
 		if (mappingsPath == null) {
 			data.setMappingsPath(mappingsPath);
-			data.setMappingsLastModified(null);
 			changed();
-		} else if (mappingsPath.toFile().exists()) {
+		} else if (mappingsPath != getMappingsPath()
+				&& mappingsPath.toFile().exists()) {
 			data.setMappingsPath(mappingsPath);
-			data.setMappingsLastModified(mappingsPath.toFile().lastModified());
 			changed();
 		}
-	}
-
-	public Long getMappingsLastModified() {
-		return data.getMappingsLastModified();
 	}
 
 	public @NotNull Path getCacheDir() {

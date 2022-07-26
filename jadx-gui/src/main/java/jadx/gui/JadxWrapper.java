@@ -108,16 +108,6 @@ public class JadxWrapper {
 				getArgs().setCodeCache(buildBufferedDiskCache());
 				break;
 		}
-		// Remove cache for classes which have rename mappings available
-		if (getRootNode().getMappingTree() != null) {
-			for (JavaClass cls : getClasses()) {
-				String classPath = cls.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-				if (getRootNode().getMappingTree().getClass(classPath) == null) {
-					continue;
-				}
-				getArgs().getCodeCache().remove(cls.getRawName());
-			}
-		}
 	}
 
 	public void resetDiskCacheOnNextReload() {
@@ -125,7 +115,7 @@ public class JadxWrapper {
 	}
 
 	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
+		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject(), getSettings());
 		if (resetDiskCacheOnNextReload) {
 			diskCache.reset();
 		}
