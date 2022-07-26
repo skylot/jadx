@@ -162,7 +162,7 @@ public class RenameDialog extends JDialog {
 		if (mappingTree == null) {
 			return;
 		}
-		if (newName.isEmpty() || newName.equals(javaNode.getName())) {
+		if (newName.isEmpty() || (javaNode != null && newName.equals(javaNode.getName()))) {
 			newName = null;
 		}
 		if (node instanceof JMethod) {
@@ -210,10 +210,12 @@ public class RenameDialog extends JDialog {
 		} else if (node instanceof JPackage) {
 			JPackage jPackage = (JPackage) node;
 			String origPackageName = jPackage.getFullName().replace('.', '/');
-			LOG.info("Package name: " + origPackageName);
 			for (ClassMapping cls : mappingTree.getClasses()) {
 				if (!cls.getSrcName().startsWith(origPackageName)) {
 					continue;
+				}
+				if (newName == null) {
+					newName = "";
 				}
 				String newDstName = newName.replace('.', '/') + cls.getDstName(0).substring(newName.length() + 1);
 				cls.setDstName(newDstName, 0);
