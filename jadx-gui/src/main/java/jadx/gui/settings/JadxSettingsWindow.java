@@ -63,6 +63,7 @@ import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -271,7 +272,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		@Deprecated
+		JComboBox<ResourceNameSource> resNamesSource = new JComboBox<>(ResourceNameSource.values());
+		resNamesSource.setSelectedItem(settings.getResourceNameSource());
+		resNamesSource.addActionListener(e -> {
+			settings.setResourceNameSource((ResourceNameSource) resNamesSource.getSelectedItem());
+			needReload();
+		});
+
 		JComboBox<GeneratedRenamesMappingFileMode> generatedRenamesMappingFileModeCB =
 				new JComboBox<>(GeneratedRenamesMappingFileMode.values());
 		generatedRenamesMappingFileModeCB.setSelectedItem(settings.getGeneratedRenamesMappingFileMode());
@@ -290,6 +297,7 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
 		deobfGroup.addRow(NLS.str("preferences.generated_renames_mapping_file_mode"), generatedRenamesMappingFileModeCB);
 		deobfGroup.end();
 

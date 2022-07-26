@@ -39,7 +39,10 @@ public class ADBDevice {
 	}
 
 	public boolean updateDeviceInfo(ADBDeviceInfo info) {
-		boolean matched = this.info.serial.equals(info.serial);
+		if (info.getSerial() == null || info.getSerial().isEmpty()) {
+			return false;
+		}
+		boolean matched = this.info.getSerial().equals(info.getSerial());
 		if (matched) {
 			this.info = info;
 		}
@@ -47,21 +50,21 @@ public class ADBDevice {
 	}
 
 	public String getSerial() {
-		return info.serial;
+		return info.getSerial();
 	}
 
 	public boolean removeForward(String localPort) throws IOException {
-		return ADB.removeForward(info.adbHost, info.adbPort, info.serial, localPort);
+		return ADB.removeForward(info.getAdbHost(), info.getAdbPort(), info.getSerial(), localPort);
 	}
 
 	public ForwardResult forwardJDWP(String localPort, String jdwpPid) throws IOException {
-		try (Socket socket = ADB.connect(info.adbHost, info.adbPort)) {
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
 			String cmd = String.format("host:forward:tcp:%s;jdwp:%s", localPort, jdwpPid);
 			cmd = String.format("%04x%s", cmd.length(), cmd);
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
 			ForwardResult rst;
-			if (ADB.setSerial(info.serial, outputStream, inputStream)) {
+			if (ADB.setSerial(info.getSerial(), outputStream, inputStream)) {
 				outputStream.write(cmd.getBytes());
 				if (!ADB.isOkay(inputStream)) {
 					rst = new ForwardResult(1, ADB.readServiceProtocol(inputStream));
@@ -99,9 +102,9 @@ public class ADBDevice {
 	 */
 	public int launchApp(String fullAppName) throws IOException, InterruptedException {
 		byte[] res;
-		try (Socket socket = ADB.connect(info.adbHost, info.adbPort)) {
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
 			String cmd = "am start -D -n " + fullAppName;
-			res = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+			res = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 			if (res == null) {
 				return -1;
 			}
@@ -134,13 +137,13 @@ public class ADBDevice {
 	}
 
 	public List<String> getProp(String entry) throws IOException {
-		try (Socket socket = ADB.connect(info.adbHost, info.adbPort)) {
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
 			List<String> props = Collections.emptyList();
 			String cmd = "getprop";
 			if (!StringUtils.isEmpty(entry)) {
 				cmd += " " + entry;
 			}
-			byte[] payload = ADB.execShellCommandRaw(info.serial, cmd,
+			byte[] payload = ADB.execShellCommandRaw(info.getSerial(), cmd,
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
 				props = new ArrayList<>();
@@ -166,9 +169,9 @@ public class ADBDevice {
 	}
 
 	private List<Process> getProcessList(String cmd, int index) throws IOException {
-		try (Socket socket = ADB.connect(info.adbHost, info.adbPort)) {
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
 			List<Process> procs = new ArrayList<>();
-			byte[] payload = ADB.execShellCommandRaw(info.serial, cmd,
+			byte[] payload = ADB.execShellCommandRaw(info.getSerial(), cmd,
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
 				String ps = new String(payload);
@@ -194,10 +197,10 @@ public class ADBDevice {
 		if (this.jdwpListenerSock != null) {
 			return false;
 		}
-		jdwpListenerSock = ADB.connect(this.info.adbHost, this.info.adbPort);
+		jdwpListenerSock = ADB.connect(this.info.getAdbHost(), this.info.getAdbPort());
 		InputStream inputStream = jdwpListenerSock.getInputStream();
 		OutputStream outputStream = jdwpListenerSock.getOutputStream();
-		if (ADB.setSerial(info.serial, outputStream, inputStream)
+		if (ADB.setSerial(info.getSerial(), outputStream, inputStream)
 				&& ADB.execCommandAsync(outputStream, inputStream, CMD_TRACK_JDWP)) {
 			Executors.newFixedThreadPool(1).execute(() -> {
 				for (;;) {
@@ -244,19 +247,20 @@ public class ADBDevice {
 
 	@Override
 	public int hashCode() {
-		return info.serial.hashCode();
+		return info.getSerial().hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ADBDevice) {
-			return ((ADBDevice) obj).getDeviceInfo().serial.equals(info.serial);
+			String otherSerial = ((ADBDevice) obj).getDeviceInfo().getSerial();
+			return otherSerial.equals(info.getSerial());
 		}
 		return false;
 	}
 
 	@Override
 	public String toString() {
-		return info.allInfo;
+		return info.getAllInfo();
 	}
 }

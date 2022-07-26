@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
@@ -77,6 +78,7 @@ public class JadxArgs {
 
 	private File generatedRenamesMappingFile = null;
 	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
+	private ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -394,6 +396,14 @@ public class JadxArgs {
 		this.generatedRenamesMappingFile = file;
 	}
 
+	public ResourceNameSource getResourceNameSource() {
+		return resourceNameSource;
+	}
+
+	public void setResourceNameSource(ResourceNameSource resourceNameSource) {
+		this.resourceNameSource = resourceNameSource;
+	}
+
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}
@@ -565,6 +575,7 @@ public class JadxArgs {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ resourceNameSource
 				+ parseKotlinMetadata + useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
@@ -591,6 +602,7 @@ public class JadxArgs {
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", generatedRenamesMappingFile=" + generatedRenamesMappingFile
 				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
+				+ ", resourceNameSource=" + resourceNameSource
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames

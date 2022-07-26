@@ -555,7 +555,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void enableDeobfuscation() {
 		args.setDeobfuscationOn(true);
-		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.OVERWRITE);
+		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
 		args.setDeobfuscationMinLength(2);
 		args.setDeobfuscationMaxLength(64);
 	}

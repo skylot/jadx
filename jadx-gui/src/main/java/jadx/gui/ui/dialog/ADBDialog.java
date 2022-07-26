@@ -359,7 +359,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		try {
 			return mainWindow.getDebuggerPanel().showDebugger(
 					debugSetter.name,
-					debugSetter.device.getDeviceInfo().adbHost,
+					debugSetter.device.getDeviceInfo().getAdbHost(),
 					debugSetter.forwardTcpPort,
 					debugSetter.ver);
 		} catch (Exception e) {
@@ -569,10 +569,10 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 
 		void refresh() {
 			ADBDeviceInfo info = device.getDeviceInfo();
-			String text = info.model;
+			String text = info.getModel();
 			if (text != null) {
-				if (!text.equals(info.serial)) {
-					text += String.format(" [serial: %s]", info.serial);
+				if (!text.equals(info.getSerial())) {
+					text += String.format(" [serial: %s]", info.getSerial());
 				}
 				text += String.format(" [state: %s]", info.isOnline() ? "online" : "offline");
 				tNode.setUserObject(text);
@@ -668,8 +668,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			String jdwpPid = " jdwp:" + pid;
 			String tcpPort = " tcp:" + forwardTcpPort;
 			try {
-				List<String> list = ADB.listForward(device.getDeviceInfo().adbHost,
-						device.getDeviceInfo().adbPort);
+				List<String> list = ADB.listForward(device.getDeviceInfo().getAdbHost(),
+						device.getDeviceInfo().getAdbPort());
 				for (String s : list) {
 					if (s.startsWith(device.getSerial()) && s.endsWith(jdwpPid) && !s.contains(tcpPort)) {
 						String[] fields = s.split("\\s+");
@@ -693,8 +693,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			String jdwpPid = " jdwp:" + pid;
 			String tcpPort = " tcp:" + forwardTcpPort;
 			try {
-				List<String> list = ADB.listForward(device.getDeviceInfo().adbHost,
-						device.getDeviceInfo().adbPort);
+				List<String> list = ADB.listForward(device.getDeviceInfo().getAdbHost(),
+						device.getDeviceInfo().getAdbPort());
 				for (String s : list) {
 					if (s.startsWith(device.getSerial()) && s.endsWith(jdwpPid)) {
 						return !s.contains(tcpPort);
