@@ -33,9 +33,9 @@ class DiskCodeCacheTest extends IntegrationTest {
 		ICodeInfo codeInfo = clsNode.getCode();
 
 		JadxSettings settings = new JadxSettings();
-		DiskCodeCache cache = new DiskCodeCache(clsNode.root(), new JadxProject(new MainWindow(settings)) {{
-			setCacheDir(tempDir);
-		}}, settings);
+		JadxProject project = new JadxProject(new MainWindow(settings));
+		project.setCacheDir(tempDir);
+		DiskCodeCache cache = new DiskCodeCache(clsNode.root(), project, settings);
 
 		String clsKey = clsNode.getFullName();
 		cache.add(clsKey, codeInfo);
