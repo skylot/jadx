@@ -39,6 +39,9 @@ public class MappingsVisitor extends AbstractVisitor {
 		}
 
 		MappingTree tree = root.getMappingTree();
+		if (tree == null) {
+			return;
+		}
 
 		for (ClassNode cls : root.getClasses(true)) {
 			ClassMapping mapping = tree.getClass(cls.getClassInfo().makeRawFullName().replace('.', '/'));
