@@ -29,13 +29,25 @@ public final class InsnList implements Iterable<InsnNode> {
 	}
 
 	public static int getIndex(List<InsnNode> list, InsnNode insn) {
+		return getIndex(list, insn, 0);
+	}
+
+	public static int getIndex(List<InsnNode> list, InsnNode insn, int startOffset) {
 		int size = list.size();
-		for (int i = 0; i < size; i++) {
+		for (int i = startOffset; i < size; i++) {
 			if (list.get(i) == insn) {
 				return i;
 			}
 		}
 		return -1;
+	}
+
+	public static boolean contains(List<InsnNode> list, InsnNode insn) {
+		return getIndex(list, insn, 0) != -1;
+	}
+
+	public static boolean contains(List<InsnNode> list, InsnNode insn, int startOffset) {
+		return getIndex(list, insn, startOffset) != -1;
 	}
 
 	public int getIndex(InsnNode insn) {
