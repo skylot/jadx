@@ -89,6 +89,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-inline-methods" }, description = "disable methods inline")
 	protected boolean inlineMethods = true;
 
+	@Parameter(names = "--no-finally", description = "don't extract finally block")
+	protected boolean extractFinally = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -282,6 +285,7 @@ public class JadxCLIArgs {
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setInlineMethods(inlineMethods);
+		args.setExtractFinally(extractFinally);
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
@@ -360,6 +364,10 @@ public class JadxCLIArgs {
 
 	public boolean isInlineMethods() {
 		return inlineMethods;
+	}
+
+	public boolean isExtractFinally() {
+		return extractFinally;
 	}
 
 	public boolean isDeobfuscationOn() {

@@ -542,6 +542,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox extractFinally = new JCheckBox();
+		extractFinally.setSelected(settings.isExtractFinally());
+		extractFinally.addItemListener(e -> {
+			settings.setExtractFinally(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox fsCaseSensitive = new JCheckBox();
 		fsCaseSensitive.setSelected(settings.isFsCaseSensitive());
 		fsCaseSensitive.addItemListener(e -> {
@@ -578,6 +585,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
+		other.addRow(NLS.str("preferences.extractFinally"), extractFinally);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);

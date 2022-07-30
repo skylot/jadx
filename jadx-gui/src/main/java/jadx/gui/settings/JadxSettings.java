@@ -385,6 +385,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.inlineMethods = inlineMethods;
 	}
 
+	public void setExtractFinally(boolean extractFinally) {
+		this.extractFinally = extractFinally;
+	}
+
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
 		this.fsCaseSensitive = fsCaseSensitive;
 	}
