@@ -83,6 +83,15 @@ public class UsageDialog extends CommonSearchDialog {
 			for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
 				map.put(mth, mth.getUseIn());
 			}
+		} else if (node instanceof JClass) {
+			JavaClass javaCls = ((JClass) node).getCls();
+			map.put(javaCls, javaCls.getUseIn());
+			// add constructors usage into class usage
+			for (JavaMethod javaMth : javaCls.getMethods()) {
+				if (javaMth.isConstructor()) {
+					map.put(javaMth, javaMth.getUseIn());
+				}
+			}
 		} else {
 			JavaNode javaNode = node.getJavaNode();
 			map.put(javaNode, javaNode.getUseIn());
