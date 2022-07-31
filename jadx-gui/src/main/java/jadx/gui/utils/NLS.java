@@ -37,6 +37,7 @@ public class NLS {
 		LANG_LOCALES.add(new LangLocale("es", "ES"));
 		LANG_LOCALES.add(new LangLocale("de", "DE"));
 		LANG_LOCALES.add(new LangLocale("ko", "KR"));
+		LANG_LOCALES.add(new LangLocale("pt", "BR"));
 
 		LANG_LOCALES.forEach(NLS::load);
 
