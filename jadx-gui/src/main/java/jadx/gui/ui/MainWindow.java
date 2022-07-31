@@ -411,7 +411,7 @@ public class MainWindow extends JFrame {
 		// check if project file already saved with default name
 		Path projectPath = getProjectPathForFile(singleFile);
 		if (Files.exists(projectPath)) {
-			LOG.info("Loading project for this file");
+			LOG.info("Loading project {}", projectPath);
 			openProject(projectPath, onFinish);
 			return true;
 		}
