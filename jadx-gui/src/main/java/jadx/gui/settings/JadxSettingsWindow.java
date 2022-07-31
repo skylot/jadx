@@ -255,20 +255,6 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JCheckBox deobfSourceAlias = new JCheckBox();
-		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
-		deobfSourceAlias.addItemListener(e -> {
-			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
-		JCheckBox deobfKotlinMetadata = new JCheckBox();
-		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
-		deobfKotlinMetadata.addItemListener(e -> {
-			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
 		JComboBox<ResourceNameSource> resNamesSource = new JComboBox<>(ResourceNameSource.values());
 		resNamesSource.setSelectedItem(settings.getResourceNameSource());
 		resNamesSource.addActionListener(e -> {
@@ -290,14 +276,11 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_map_file_mode"), deobfMapFileModeCB);
 		deobfGroup.end();
 
-		Collection<JComponent> connectedComponents =
-				Arrays.asList(minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);
+		Collection<JComponent> connectedComponents = Arrays.asList(minLenSpinner, maxLenSpinner);
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
@@ -325,10 +308,26 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox deobfSourceAlias = new JCheckBox();
+		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
+		deobfSourceAlias.addItemListener(e -> {
+			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox deobfKotlinMetadata = new JCheckBox();
+		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
+		deobfKotlinMetadata.addItemListener(e -> {
+			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
+		group.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
+		group.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		return group;
 	}
 

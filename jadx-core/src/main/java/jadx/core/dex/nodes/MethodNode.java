@@ -576,6 +576,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodNode,
 		noCode = true;
 	}
 
+	@Override
 	public void rename(String newName) {
 		MethodOverrideAttr overrideAttr = get(AType.METHOD_OVERRIDE);
 		if (overrideAttr != null) {

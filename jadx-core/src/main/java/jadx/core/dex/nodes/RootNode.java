@@ -81,6 +81,7 @@ public class RootNode implements IRootNode {
 	private List<ClassNode> classes = new ArrayList<>();
 
 	private final Map<String, PackageNode> pkgMap = new HashMap<>();
+	private final List<PackageNode> packages = new ArrayList<>();
 
 	private ClspGraph clsp;
 	@Nullable
@@ -104,6 +105,15 @@ public class RootNode implements IRootNode {
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
 		this.isProto = args.getInputFiles().size() > 0 && args.getInputFiles().get(0).getName().toLowerCase().endsWith(".aab");
+	}
+
+	public void init() {
+		if (args.isDeobfuscationOn() || !args.getRenameFlags().isEmpty()) {
+			args.getAliasProvider().init(this);
+		}
+		if (args.isDeobfuscationOn()) {
+			args.getRenameCondition().init(this);
+		}
 	}
 
 	public void loadClasses(List<ILoadResult> loadedInputs) {
@@ -132,6 +142,9 @@ public class RootNode implements IRootNode {
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		// move inner classes
 		initInnerClasses();
+
+		// sort packages
+		Collections.sort(packages);
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {
@@ -350,9 +363,7 @@ public class RootNode implements IRootNode {
 	}
 
 	public List<PackageNode> getPackages() {
-		List<PackageNode> list = new ArrayList<>(pkgMap.values());
-		Collections.sort(list);
-		return list;
+		return packages;
 	}
 
 	public @Nullable PackageNode resolvePackage(String fullPkg) {
@@ -365,6 +376,18 @@ public class RootNode implements IRootNode {
 
 	public void addPackage(PackageNode pkg) {
 		pkgMap.put(pkg.getPkgInfo().getFullName(), pkg);
+		packages.add(pkg);
+	}
+
+	/**
+	 * Update sub packages
+	 */
+	public void runPackagesUpdate() {
+		for (PackageNode pkg : getPackages()) {
+			if (pkg.isRoot()) {
+				pkg.updatePackages();
+			}
+		}
 	}
 
 	@Nullable

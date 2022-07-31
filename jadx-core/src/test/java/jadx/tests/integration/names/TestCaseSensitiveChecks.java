@@ -29,7 +29,7 @@ public class TestCaseSensitiveChecks extends SmaliTest {
 		for (ClassNode cls : classes) {
 			assertThat(cls.getPackage(), is(Consts.DEFAULT_PACKAGE_NAME));
 		}
-		long namesCount = classes.stream().map(cls -> cls.getShortName().toLowerCase()).distinct().count();
+		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase()).distinct().count();
 		assertThat(namesCount, is(2L));
 	}
 
@@ -41,7 +41,7 @@ public class TestCaseSensitiveChecks extends SmaliTest {
 		for (ClassNode cls : classes) {
 			assertThat(cls.getPackage(), is(Consts.DEFAULT_PACKAGE_NAME));
 		}
-		List<String> names = classes.stream().map(ClassNode::getShortName).collect(Collectors.toList());
+		List<String> names = classes.stream().map(ClassNode::getAlias).collect(Collectors.toList());
 		assertThat(names, Matchers.containsInAnyOrder("A", "a"));
 	}
 
@@ -54,7 +54,7 @@ public class TestCaseSensitiveChecks extends SmaliTest {
 			assertThat(cls.getPackage(), not(emptyString()));
 			assertThat(cls.getPackage(), not(Consts.DEFAULT_PACKAGE_NAME));
 		}
-		long namesCount = classes.stream().map(cls -> cls.getShortName().toLowerCase()).distinct().count();
+		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase()).distinct().count();
 		assertThat(namesCount, is(2L));
 	}
 }

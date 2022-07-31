@@ -17,7 +17,7 @@ public class TldHelper {
 
 	private static Set<String> loadTldFile() {
 		Set<String> tldNames = new HashSet<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Deobfuscator.class.getResourceAsStream("tld_3.txt")))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(TldHelper.class.getResourceAsStream("tld_3.txt")))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				line = line.trim();
@@ -34,5 +34,4 @@ public class TldHelper {
 	public static boolean contains(String name) {
 		return TLD_SET.contains(name);
 	}
-
 }

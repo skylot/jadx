@@ -45,6 +45,11 @@ public enum AFlag {
 	SUPER,
 
 	/**
+	 * Mark Android resources class
+	 */
+	ANDROID_R_CLASS,
+
+	/**
 	 * RegisterArg attribute for method arguments
 	 */
 	METHOD_ARGUMENT,

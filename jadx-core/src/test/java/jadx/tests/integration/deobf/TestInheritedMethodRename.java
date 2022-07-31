@@ -34,8 +34,8 @@ public class TestInheritedMethodRename extends IntegrationTest {
 
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("public void m0call() {")
+				.containsOne("public void m1call() {")
 				.doesNotContain(".call();")
-				.containsOne(".m0call();");
+				.containsOne(".m1call();");
 	}
 }
