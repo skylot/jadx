@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
+import jadx.core.deobf.DeobfuscatorVisitor;
+import jadx.core.deobf.SaveDeobfMapping;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.visitors.AnonymousClassVisitor;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
@@ -91,7 +93,12 @@ public class Jadx {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
 		passes.add(new SignatureProcessor());
 		passes.add(new OverrideMethodVisitor());
+
+		// rename and deobfuscation
+		passes.add(new DeobfuscatorVisitor());
 		passes.add(new RenameVisitor());
+		passes.add(new SaveDeobfMapping());
+
 		passes.add(new UsageInfoVisitor());
 		passes.add(new ProcessAnonymous());
 		passes.add(new ProcessMethodsForInline());

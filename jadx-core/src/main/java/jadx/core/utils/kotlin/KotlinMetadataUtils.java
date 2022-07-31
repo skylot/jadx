@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
-import jadx.core.deobf.ClsAliasPair;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.info.ClassInfo;

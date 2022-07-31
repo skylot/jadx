@@ -17,9 +17,15 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.deobf.IAliasProvider;
+import jadx.api.deobf.impl.AlwaysRename;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
 
@@ -140,6 +146,66 @@ public class DeobfPresets {
 		LOG.info("Deobfuscation map file saved as: {}", deobfMapFile);
 	}
 
+	public void fill(RootNode root) {
+		for (PackageNode pkg : root.getPackages()) {
+			if (pkg.isLeaf()) { // ignore middle packages
+				if (pkg.hasParentAlias()) {
+					pkgPresetMap.put(pkg.getPkgInfo().getFullName(), pkg.getAliasPkgInfo().getFullName());
+				} else if (pkg.hasAlias()) {
+					pkgPresetMap.put(pkg.getPkgInfo().getFullName(), pkg.getAliasPkgInfo().getName());
+				}
+			}
+		}
+		for (ClassNode cls : root.getClasses()) {
+			ClassInfo classInfo = cls.getClassInfo();
+			if (classInfo.hasAlias()) {
+				clsPresetMap.put(classInfo.makeRawFullName(), classInfo.getAliasShortName());
+			}
+			for (FieldNode fld : cls.getFields()) {
+				FieldInfo fieldInfo = fld.getFieldInfo();
+				if (fieldInfo.hasAlias()) {
+					fldPresetMap.put(fieldInfo.getRawFullId(), fld.getAlias());
+				}
+			}
+			for (MethodNode mth : cls.getMethods()) {
+				MethodInfo methodInfo = mth.getMethodInfo();
+				if (methodInfo.hasAlias()) {
+					mthPresetMap.put(methodInfo.getRawFullId(), methodInfo.getAlias());
+				}
+			}
+		}
+	}
+
+	public void apply(RootNode root) {
+		DeobfuscatorVisitor.process(root,
+				AlwaysRename.INSTANCE,
+				new IAliasProvider() {
+					@Override
+					public String forPackage(PackageNode pkg) {
+						return pkgPresetMap.get(pkg.getPkgInfo().getFullName());
+					}
+
+					@Override
+					public String forClass(ClassNode cls) {
+						return getForCls(cls.getClassInfo());
+					}
+
+					@Override
+					public String forField(FieldNode fld) {
+						return getForFld(fld.getFieldInfo());
+					}
+
+					@Override
+					public String forMethod(MethodNode mth) {
+						return getForMth(mth.getMethodInfo());
+					}
+				});
+	}
+
+	public void initIndexes(IAliasProvider aliasProvider) {
+		aliasProvider.initIndexes(pkgPresetMap.size(), clsPresetMap.size(), fldPresetMap.size(), mthPresetMap.size());
+	}
+
 	public String getForCls(ClassInfo cls) {
 		if (clsPresetMap.isEmpty()) {
 			return null;
@@ -162,6 +228,7 @@ public class DeobfPresets {
 	}
 
 	public void clear() {
+		pkgPresetMap.clear();
 		clsPresetMap.clear();
 		fldPresetMap.clear();
 		mthPresetMap.clear();

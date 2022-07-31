@@ -336,6 +336,13 @@ public class StringUtils {
 		return WORD_SEPARATORS.indexOf(chr) != -1;
 	}
 
+	public static String removeSuffix(String str, String suffix) {
+		if (str.endsWith(suffix)) {
+			return str.substring(0, str.length() - suffix.length());
+		}
+		return str;
+	}
+
 	public static String getDateText() {
 		return new SimpleDateFormat("HH:mm:ss").format(new Date());
 	}

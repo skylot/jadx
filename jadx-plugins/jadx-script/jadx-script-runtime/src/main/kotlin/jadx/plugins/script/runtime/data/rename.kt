@@ -1,6 +1,8 @@
 package jadx.plugins.script.runtime.data
 
 import jadx.api.core.nodes.IRootNode
+import jadx.core.dex.attributes.AFlag
+import jadx.core.dex.attributes.IAttributeNode
 import jadx.core.dex.nodes.IDexNode
 import jadx.core.dex.nodes.RootNode
 import jadx.plugins.script.runtime.JadxScriptInstance
@@ -20,27 +22,31 @@ class RenamePass(private val jadx: JadxScriptInstance) {
 			override fun init(root: IRootNode) {
 				val rootNode = root as RootNode
 				for (pkgNode in rootNode.packages) {
-					makeNewName.invoke(pkgNode.pkgInfo.name, pkgNode)?.let {
-						pkgNode.rename(it)
-					}
+					rename(makeNewName, pkgNode, pkgNode.pkgInfo.name)
 				}
 				for (cls in rootNode.classes) {
-					makeNewName.invoke(cls.classInfo.shortName, cls)?.let {
-						cls.classInfo.changeShortName(it)
-					}
+					rename(makeNewName, cls, cls.name)
 					for (mth in cls.methods) {
-						if (mth.isConstructor) {
-							continue
-						}
-						makeNewName.invoke(mth.name, mth)?.let {
-							mth.rename(it)
+						if (!mth.isConstructor) {
+							rename(makeNewName, mth, mth.name)
 						}
 					}
 					for (fld in cls.fields) {
-						makeNewName.invoke(fld.name, fld)?.let {
-							fld.fieldInfo.alias = it
-						}
+						rename(makeNewName, fld, fld.name)
 					}
+				}
+			}
+
+			private inline fun <T : IDexNode> rename(
+				makeNewName: (String, IDexNode) -> String?,
+				node: T,
+				name: String
+			) {
+				if (node is IAttributeNode && node.contains(AFlag.DONT_RENAME)) {
+					return
+				}
+				makeNewName.invoke(name, node)?.let {
+					node.rename(it)
 				}
 			}
 		})

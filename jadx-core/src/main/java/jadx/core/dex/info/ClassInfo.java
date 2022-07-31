@@ -111,17 +111,10 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public boolean hasAlias() {
-		if (alias != null) {
+		if (alias != null && !alias.getShortName().equals(getShortName())) {
 			return true;
 		}
 		return parentClass != null && parentClass.hasAlias();
-	}
-
-	public boolean hasAliasPkg() {
-		if (alias != null) {
-			return !getPackage().equals(getAliasPkg());
-		}
-		return parentClass != null && parentClass.hasAliasPkg();
 	}
 
 	public void removeAlias() {
@@ -160,8 +153,8 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	private static String makeFullClsName(String pkg, String shortName, ClassInfo parentClass, boolean alias, boolean raw) {
 		if (parentClass != null) {
-			String innerSep = raw ? "$" : ".";
 			String parentFullName;
+			char innerSep = raw ? '$' : '.';
 			if (alias) {
 				parentFullName = raw ? parentClass.makeAliasRawFullName() : parentClass.getAliasFullName();
 			} else {

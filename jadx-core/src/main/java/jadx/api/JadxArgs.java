@@ -18,8 +18,12 @@ import org.slf4j.LoggerFactory;
 import jadx.api.args.DeobfuscationMapFileMode;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.data.ICodeData;
+import jadx.api.deobf.IAliasProvider;
+import jadx.api.deobf.IRenameCondition;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.core.deobf.DeobfAliasProvider;
+import jadx.core.deobf.DeobfCondition;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxArgs {
@@ -77,6 +81,16 @@ public class JadxArgs {
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
+
+	/**
+	 * Nodes alias provider for deobfuscator and rename visitor
+	 */
+	private IAliasProvider aliasProvider = new DeobfAliasProvider();
+
+	/**
+	 * Condition to rename node in deobfuscator
+	 */
+	private IRenameCondition renameCondition = new DeobfCondition();
 
 	private boolean escapeUnicode = false;
 	private boolean replaceConsts = true;
@@ -377,6 +391,22 @@ public class JadxArgs {
 
 	public void setResourceNameSource(ResourceNameSource resourceNameSource) {
 		this.resourceNameSource = resourceNameSource;
+	}
+
+	public IAliasProvider getAliasProvider() {
+		return aliasProvider;
+	}
+
+	public void setAliasProvider(IAliasProvider aliasProvider) {
+		this.aliasProvider = aliasProvider;
+	}
+
+	public IRenameCondition getRenameCondition() {
+		return renameCondition;
+	}
+
+	public void setRenameCondition(IRenameCondition renameCondition) {
+		this.renameCondition = renameCondition;
 	}
 
 	public boolean isEscapeUnicode() {

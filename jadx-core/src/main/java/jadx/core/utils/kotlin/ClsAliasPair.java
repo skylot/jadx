@@ -1,4 +1,4 @@
-package jadx.core.deobf;
+package jadx.core.utils.kotlin;
 
 public class ClsAliasPair {
 	private final String pkg;

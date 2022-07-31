@@ -2,6 +2,7 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,25 +41,63 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 	}
 
 	private static @Nullable PackageNode getParentPkg(RootNode root, PackageInfo pgkInfo) {
-		return root.resolvePackage(pgkInfo.getParentPkg());
+		PackageInfo parentPkg = pgkInfo.getParentPkg();
+		if (parentPkg == null) {
+			return null;
+		}
+		return getOrBuild(root, parentPkg.getFullName());
 	}
 
 	private PackageNode(RootNode root, @Nullable PackageNode parentPkg, PackageInfo pkgInfo) {
 		this.root = root;
 		this.parentPkg = parentPkg;
 		this.pkgInfo = pkgInfo;
+		this.aliasPkgInfo = pkgInfo;
 	}
 
-	public void rename(String alias) {
-		rename(alias, true);
+	@Override
+	public void rename(String newName) {
+		rename(newName, true);
 	}
 
-	public void rename(String alias, boolean runUpdates) {
+	public void rename(String newName, boolean runUpdates) {
+		String alias;
+		boolean isFullAlias;
+		if (newName.indexOf('/') != -1) {
+			alias = newName.replace('/', '.');
+			isFullAlias = true;
+		} else if (newName.endsWith(".")) {
+			// treat as full pkg, remove ending dot
+			alias = newName.substring(0, newName.length() - 1);
+			isFullAlias = true;
+		} else {
+			alias = newName;
+			isFullAlias = alias.indexOf('.') != -1;
+		}
+		if (isFullAlias) {
+			setFullAlias(alias, runUpdates);
+		} else {
+			setLeafAlias(alias, runUpdates);
+		}
+	}
+
+	public void setLeafAlias(String alias, boolean runUpdates) {
 		if (pkgInfo.getName().equals(alias)) {
 			aliasPkgInfo = pkgInfo;
-			return;
+		} else {
+			aliasPkgInfo = PackageInfo.fromShortName(root, getParentAliasPkgInfo(), alias);
 		}
-		aliasPkgInfo = PackageInfo.fromShortName(root, getParentAliasPkgInfo(), alias);
+		if (runUpdates) {
+			updatePackages(this);
+		}
+	}
+
+	public void setFullAlias(String fullAlias, boolean runUpdates) {
+		if (pkgInfo.getFullName().equals(fullAlias)) {
+			aliasPkgInfo = pkgInfo;
+		} else {
+			aliasPkgInfo = PackageInfo.fromFullPkg(root, fullAlias);
+		}
 		if (runUpdates) {
 			updatePackages(this);
 		}
@@ -91,12 +130,34 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 		return aliasPkgInfo;
 	}
 
+	public boolean hasAlias() {
+		if (pkgInfo == aliasPkgInfo) {
+			return false;
+		}
+		return !pkgInfo.getName().equals(aliasPkgInfo.getName());
+	}
+
+	public boolean hasParentAlias() {
+		if (pkgInfo == aliasPkgInfo) {
+			return false;
+		}
+		return !Objects.equals(pkgInfo.getParentPkg(), aliasPkgInfo.getParentPkg());
+	}
+
 	public PackageNode getParentPkg() {
 		return parentPkg;
 	}
 
 	public @Nullable PackageInfo getParentAliasPkgInfo() {
 		return parentPkg == null ? null : parentPkg.aliasPkgInfo;
+	}
+
+	public boolean isRoot() {
+		return parentPkg == null;
+	}
+
+	public boolean isLeaf() {
+		return subPackages.isEmpty();
 	}
 
 	public List<PackageNode> getSubPackages() {

@@ -3,7 +3,6 @@ package jadx.core.dex.visitors.rename;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +16,13 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 
 public class UserRenames {
 	private static final Logger LOG = LoggerFactory.getLogger(UserRenames.class);
 
-	public static void applyForNodes(RootNode root) {
+	public static void apply(RootNode root) {
 		ICodeData codeData = root.getArgs().getCodeData();
 		if (codeData == null || codeData.getRenames().isEmpty()) {
 			return;
@@ -51,7 +51,7 @@ public class UserRenames {
 		IJavaNodeRef nodeRef = rename.getNodeRef();
 		switch (nodeRef.getType()) {
 			case CLASS:
-				cls.getClassInfo().changeShortName(rename.getNewName());
+				cls.rename(rename.getNewName());
 				break;
 
 			case FIELD:
@@ -59,7 +59,7 @@ public class UserRenames {
 				if (fieldNode == null) {
 					LOG.warn("Field reference not found: {}", nodeRef);
 				} else {
-					fieldNode.getFieldInfo().setAlias(rename.getNewName());
+					fieldNode.rename(rename.getNewName());
 				}
 				break;
 
@@ -77,39 +77,17 @@ public class UserRenames {
 		}
 	}
 
-	// TODO: Very inefficient!!! Add PackageInfo class to build package hierarchy
 	private static void applyPkgRenames(RootNode root, List<ICodeRename> renames) {
-		List<ClassNode> classes = root.getClasses(false);
 		renames.stream()
 				.filter(r -> r.getNodeRef().getType() == IJavaNodeRef.RefType.PKG)
 				.forEach(pkgRename -> {
 					String pkgFullName = pkgRename.getNodeRef().getDeclaringClass();
-					String pkgFullNameDot = pkgFullName + ".";
-					for (ClassNode cls : classes) {
-						ClassInfo clsInfo = cls.getClassInfo();
-						String pkg = clsInfo.getPackage();
-						if (pkg.equals(pkgFullName)) {
-							clsInfo.changePkg(cutLastPkgPart(clsInfo.getAliasPkg()) + '.' + pkgRename.getNewName());
-						} else if (pkg.startsWith(pkgFullNameDot)) {
-							clsInfo.changePkg(rebuildPkgMiddle(clsInfo.getAliasPkg(), pkgFullName, pkgRename.getNewName()));
-						}
+					PackageNode pkgNode = root.resolvePackage(pkgFullName);
+					if (pkgNode == null) {
+						LOG.warn("Package for rename not found: {}", pkgFullName);
+					} else {
+						pkgNode.rename(pkgRename.getNewName());
 					}
 				});
-	}
-
-	@NotNull
-	private static String cutLastPkgPart(String pkgFullName) {
-		int lastDotIndex = pkgFullName.lastIndexOf('.');
-		if (lastDotIndex == -1) {
-			return pkgFullName;
-		}
-		return pkgFullName.substring(0, lastDotIndex);
-	}
-
-	private static String rebuildPkgMiddle(String aliasPkg, String renameOriginPkg, String newName) {
-		String[] aliasParts = aliasPkg.split("\\.");
-		String[] renameParts = renameOriginPkg.split("\\.");
-		aliasParts[renameParts.length - 1] = newName;
-		return String.join(".", aliasParts);
 	}
 }
