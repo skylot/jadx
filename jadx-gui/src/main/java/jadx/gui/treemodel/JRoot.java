@@ -66,7 +66,7 @@ public class JRoot extends JNode {
 					if (i != count - 1) {
 						subRF = new JResource(null, name, JResType.DIR);
 					} else {
-						subRF = new JResource(rf, rf.getOriginalName(), name, JResType.FILE);
+						subRF = new JResource(rf, rf.getDeobfName(), name, JResType.FILE);
 					}
 					curRf.getFiles().add(subRF);
 				}
