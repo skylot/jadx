@@ -11,6 +11,10 @@ public class ActionHandler extends AbstractAction {
 
 	private final Consumer<ActionEvent> consumer;
 
+	public ActionHandler(Runnable action) {
+		this.consumer = ev -> action.run();
+	}
+
 	public ActionHandler(Consumer<ActionEvent> consumer) {
 		this.consumer = consumer;
 	}

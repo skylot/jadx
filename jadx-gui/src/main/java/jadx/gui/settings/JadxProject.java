@@ -135,6 +135,9 @@ public class JadxProject {
 				.map(TabStateViewAdapter::build)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
+		if (tabStateList.isEmpty()) {
+			return;
+		}
 		boolean dataChanged;
 		dataChanged = data.setOpenTabs(tabStateList);
 		dataChanged |= data.setActiveTab(activeTab);

@@ -46,9 +46,6 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 public class UiUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);
 
-	public static final ImageIcon ICON_STATIC = openSvgIcon("nodes/staticMark");
-	public static final ImageIcon ICON_FINAL = openSvgIcon("nodes/finalMark");
-
 	/**
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may
 	 * run out of heap
@@ -190,10 +187,10 @@ public class UiUtils {
 		}
 		OverlayIcon overIcon = new OverlayIcon(icon);
 		if (af.isFinal()) {
-			overIcon.add(ICON_FINAL);
+			overIcon.add(Icons.FINAL);
 		}
 		if (af.isStatic()) {
-			overIcon.add(ICON_STATIC);
+			overIcon.add(Icons.STATIC);
 		}
 		return overIcon;
 	}

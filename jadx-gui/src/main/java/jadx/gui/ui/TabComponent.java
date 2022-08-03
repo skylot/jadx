@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -21,14 +20,12 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class TabComponent extends JPanel {
 	private static final long serialVersionUID = -8147035487543610321L;
-
-	private static final ImageIcon ICON_CLOSE = UiUtils.openSvgIcon("ui/closeHovered");
-	private static final ImageIcon ICON_CLOSE_INACTIVE = UiUtils.openSvgIcon("ui/close");
 
 	private final TabbedPane tabbedPane;
 	private final ContentPanel contentPanel;
@@ -71,8 +68,8 @@ public class TabComponent extends JPanel {
 		label.setIcon(node.getIcon());
 
 		final JButton closeBtn = new JButton();
-		closeBtn.setIcon(ICON_CLOSE_INACTIVE);
-		closeBtn.setRolloverIcon(ICON_CLOSE);
+		closeBtn.setIcon(Icons.CLOSE_INACTIVE);
+		closeBtn.setRolloverIcon(Icons.CLOSE);
 		closeBtn.setRolloverEnabled(true);
 		closeBtn.setOpaque(false);
 		closeBtn.setUI(new BasicButtonUI());

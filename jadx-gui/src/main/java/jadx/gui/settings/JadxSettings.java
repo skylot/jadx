@@ -210,6 +210,11 @@ public class JadxSettings extends JadxCLIArgs {
 		partialSync(settings -> settings.recentProjects = recentProjects);
 	}
 
+	public void removeRecentProject(Path projectPath) {
+		recentProjects.remove(projectPath);
+		partialSync(settings -> settings.recentProjects = recentProjects);
+	}
+
 	public void saveWindowPos(Window window) {
 		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
 		windowPos.put(pos.getWindowId(), pos);
