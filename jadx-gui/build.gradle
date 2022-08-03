@@ -138,3 +138,8 @@ task distWinWithJre(type: Zip, dependsOn: ['copyDistWinWithJre']) {
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+task addNewNLSLines(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set('jadx.gui.utils.tools.NLSAddNewLines')
+}
