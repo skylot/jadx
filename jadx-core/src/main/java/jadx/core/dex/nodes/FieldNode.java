@@ -57,6 +57,10 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		return accFlags.isStatic();
 	}
 
+	public boolean isInstance() {
+		return !accFlags.isStatic();
+	}
+
 	public String getName() {
 		return fieldInfo.getName();
 	}

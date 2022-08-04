@@ -29,6 +29,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -45,20 +46,22 @@ public class ExtractFieldInit extends AbstractVisitor {
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
-		moveStaticFieldsInit(cls);
-		moveCommonFieldsInit(cls);
+		if (!cls.getFields().isEmpty()) {
+			moveStaticFieldsInit(cls);
+			moveCommonFieldsInit(cls);
+		}
 		return false;
 	}
 
 	private static final class FieldInitInfo {
 		final FieldNode fieldNode;
 		final IndexInsnNode putInsn;
-		final boolean singlePath;
+		final boolean canMove;
 
-		public FieldInitInfo(FieldNode fieldNode, IndexInsnNode putInsn, boolean singlePath) {
+		public FieldInitInfo(FieldNode fieldNode, IndexInsnNode putInsn, boolean canMove) {
 			this.fieldNode = fieldNode;
 			this.putInsn = putInsn;
-			this.singlePath = singlePath;
+			this.canMove = canMove;
 		}
 	}
 
@@ -78,6 +81,9 @@ public class ExtractFieldInit extends AbstractVisitor {
 				|| !classInitMth.getAccessFlags().isStatic()
 				|| classInitMth.isNoCode()
 				|| classInitMth.getBasicBlocks() == null) {
+			return;
+		}
+		if (ListUtils.noneMatch(cls.getFields(), FieldNode::isStatic)) {
 			return;
 		}
 		while (processStaticFields(cls, classInitMth)) {
@@ -116,15 +122,15 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static void moveCommonFieldsInit(ClassNode cls) {
+		if (ListUtils.noneMatch(cls.getFields(), FieldNode::isInstance)) {
+			return;
+		}
 		List<MethodNode> constructors = getConstructorsList(cls);
 		if (constructors.isEmpty()) {
 			return;
 		}
 		List<ConstructorInitInfo> infoList = new ArrayList<>(constructors.size());
 		for (MethodNode constructorMth : constructors) {
-			if (constructorMth.isNoCode()) {
-				return;
-			}
 			List<FieldInitInfo> inits = collectFieldsInit(cls, constructorMth, InsnType.IPUT);
 			filterFieldsInit(inits);
 			if (inits.isEmpty()) {
@@ -168,18 +174,24 @@ public class ExtractFieldInit extends AbstractVisitor {
 		Set<BlockNode> singlePathBlocks = new HashSet<>();
 		BlockUtils.visitSinglePath(mth.getEnterBlock(), singlePathBlocks::add);
 
+		boolean canReorder = true;
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
+				boolean fieldInsn = false;
 				if (insn.getType() == putType) {
 					IndexInsnNode putInsn = (IndexInsnNode) insn;
 					FieldInfo field = (FieldInfo) putInsn.getIndex();
 					if (field.getDeclClass().equals(cls.getClassInfo())) {
 						FieldNode fn = cls.searchField(field);
 						if (fn != null) {
-							boolean singlePath = singlePathBlocks.contains(block);
-							fieldsInit.add(new FieldInitInfo(fn, putInsn, singlePath));
+							boolean canMove = canReorder && singlePathBlocks.contains(block);
+							fieldsInit.add(new FieldInitInfo(fn, putInsn, canMove));
+							fieldInsn = true;
 						}
 					}
+				}
+				if (!fieldInsn && canReorder && !insn.canReorder()) {
+					canReorder = false;
 				}
 			}
 		}
@@ -226,14 +238,14 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static boolean checkInsn(FieldInitInfo initInfo) {
-		if (!initInfo.singlePath) {
+		if (!initInfo.canMove) {
 			return false;
 		}
 		IndexInsnNode insn = initInfo.putInsn;
 		InsnArg arg = insn.getArg(0);
 		if (arg.isInsnWrap()) {
 			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-			if (!wrapInsn.canReorderRecursive() && insn.contains(AType.EXC_CATCH)) {
+			if (!wrapInsn.canReorder() && insn.contains(AType.EXC_CATCH)) {
 				return false;
 			}
 		} else {
@@ -364,7 +376,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 			AccessInfo accFlags = mth.getAccessFlags();
 			if (!accFlags.isStatic() && accFlags.isConstructor()) {
 				list.add(mth);
-				if (BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks())) {
+				if (mth.isNoCode() || BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks())) {
 					return Collections.emptyList();
 				}
 			}

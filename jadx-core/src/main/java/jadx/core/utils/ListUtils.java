@@ -160,6 +160,10 @@ public class ListUtils {
 		return true;
 	}
 
+	public static <T> boolean noneMatch(Collection<T> list, Predicate<T> test) {
+		return !anyMatch(list, test);
+	}
+
 	public static <T> boolean anyMatch(Collection<T> list, Predicate<T> test) {
 		if (list == null || list.isEmpty()) {
 			return false;
