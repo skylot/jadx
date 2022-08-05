@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -58,7 +56,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
-import jadx.gui.utils.ui.DocumentUpdateListener;
+import jadx.gui.utils.rx.RxUtils;
 
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
@@ -119,6 +117,8 @@ public class SearchDialog extends CommonSearchDialog {
 	private transient @Nullable SearchTask searchTask;
 	private transient JButton loadAllButton;
 	private transient JButton loadMoreButton;
+	private transient JButton stopBtn;
+	private transient JButton sortBtn;
 
 	private transient Disposable searchDisposable;
 	private transient SearchEventEmitter searchEmitter;
@@ -142,7 +142,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 		loadWindowPos();
 		initUI();
-		searchFieldSubscribe();
+		initSearchEvents();
 		registerInitOnOpen();
 		registerActiveTabListener();
 	}
@@ -208,9 +208,30 @@ public class SearchDialog extends CommonSearchDialog {
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		TextStandardActions.attach(searchField);
 
+		boolean autoSearch = mainWindow.getSettings().isUseAutoSearch();
+		JButton searchBtn = new JButton(NLS.str("search_dialog.search_button"));
+		searchBtn.setVisible(!autoSearch);
+		searchBtn.addActionListener(ev -> searchEmitter.emitSearch());
+
+		JCheckBox autoSearchCB = new JCheckBox(NLS.str("search_dialog.auto_search"));
+		autoSearchCB.setSelected(autoSearch);
+		autoSearchCB.addActionListener(ev -> {
+			boolean newValue = autoSearchCB.isSelected();
+			mainWindow.getSettings().setUseAutoSearch(newValue);
+			searchBtn.setVisible(!newValue);
+			initSearchEvents();
+			if (newValue) {
+				searchEmitter.emitSearch();
+			}
+		});
+
 		JPanel searchLinePanel = new JPanel();
 		searchLinePanel.setLayout(new BoxLayout(searchLinePanel, BoxLayout.LINE_AXIS));
 		searchLinePanel.add(searchField);
+		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchLinePanel.add(searchBtn);
+		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchLinePanel.add(autoSearchCB);
 		searchLinePanel.setAlignmentX(LEFT_ALIGNMENT);
 
 		JLabel findLabel = new JLabel(NLS.str("search_dialog.open_by_name"));
@@ -261,22 +282,11 @@ public class SearchDialog extends CommonSearchDialog {
 		contentPanel.add(buttonPane, BorderLayout.PAGE_END);
 		getContentPane().add(contentPanel);
 
-		searchField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (resultsModel.getRowCount() != 0) {
-						resultsTable.setRowSelectionInterval(0, 0);
-					}
-					resultsTable.requestFocus();
-				}
-			}
-		});
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
 
-	protected void addCustomResultsActions(JPanel resultsActionsPanel) {
+	protected void addResultsActions(JPanel resultsActionsPanel) {
 		loadAllButton = new JButton(NLS.str("search_dialog.load_all"));
 		loadAllButton.addActionListener(e -> loadMoreResults(true));
 		loadAllButton.setEnabled(false);
@@ -285,9 +295,29 @@ public class SearchDialog extends CommonSearchDialog {
 		loadMoreButton.addActionListener(e -> loadMoreResults(false));
 		loadMoreButton.setEnabled(false);
 
+		stopBtn = new JButton(NLS.str("search_dialog.stop"));
+		stopBtn.addActionListener(e -> pauseSearch());
+		stopBtn.setEnabled(false);
+
+		sortBtn = new JButton(NLS.str("search_dialog.sort_results"));
+		sortBtn.addActionListener(e -> {
+			synchronized (pendingResults) {
+				resultsModel.sort();
+				resultsTable.updateTable();
+			}
+		});
+		sortBtn.setEnabled(false);
+
 		resultsActionsPanel.add(loadAllButton);
 		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		resultsActionsPanel.add(loadMoreButton);
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		resultsActionsPanel.add(stopBtn);
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		resultsActionsPanel.add(stopBtn);
+		super.addResultsActions(resultsActionsPanel);
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		resultsActionsPanel.add(sortBtn);
 	}
 
 	private class SearchEventEmitter {
@@ -311,10 +341,19 @@ public class SearchDialog extends CommonSearchDialog {
 		}
 	}
 
-	private void searchFieldSubscribe() {
+	private void initSearchEvents() {
+		if (searchDisposable != null) {
+			searchDisposable.dispose();
+			searchDisposable = null;
+		}
 		searchEmitter = new SearchEventEmitter();
-		Flowable<String> textChanges = onTextFieldChanges(searchField);
-		Flowable<String> searchEvents = Flowable.merge(textChanges, searchEmitter.getFlowable());
+		Flowable<String> searchEvents;
+		if (mainWindow.getSettings().isUseAutoSearch()) {
+			searchEvents = Flowable.merge(RxUtils.textFieldChanges(searchField),
+					RxUtils.textFieldEnterPress(searchField), searchEmitter.getFlowable());
+		} else {
+			searchEvents = Flowable.merge(RxUtils.textFieldEnterPress(searchField), searchEmitter.getFlowable());
+		}
 		searchDisposable = searchEvents
 				.debounce(50, TimeUnit.MILLISECONDS)
 				.observeOn(Schedulers.from(searchBackgroundExecutor))
@@ -424,6 +463,15 @@ public class SearchDialog extends CommonSearchDialog {
 		return true;
 	}
 
+	private void pauseSearch() {
+		stopBtn.setEnabled(false);
+		searchBackgroundExecutor.execute(() -> {
+			if (searchTask != null) {
+				searchTask.cancel();
+			}
+		});
+	}
+
 	private void stopSearchTask() {
 		UiUtils.notUiThreadGuard();
 		if (searchTask != null) {
@@ -462,6 +510,9 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private void prepareForSearch() {
+		UiUtils.uiThreadGuard();
+		stopBtn.setEnabled(true);
+		sortBtn.setEnabled(false);
 		showSearchState();
 		progressStartCommon();
 	}
@@ -502,38 +553,16 @@ public class SearchDialog extends CommonSearchDialog {
 		LOG.debug("Search complete: {}, complete: {}", status, complete);
 		loadAllButton.setEnabled(!complete);
 		loadMoreButton.setEnabled(!complete);
+		stopBtn.setEnabled(false);
 		progressFinishedCommon();
 		updateTable();
 		updateProgressLabel(complete);
+		sortBtn.setEnabled(resultsModel.getRowCount() != 0);
 	}
 
 	private void unloadTempData() {
 		mainWindow.getWrapper().unloadClasses();
 		System.gc();
-	}
-
-	private static Flowable<String> onTextFieldChanges(final JTextField textField) {
-		return Flowable.<String>create(emitter -> {
-			DocumentUpdateListener listener = new DocumentUpdateListener(
-					ev -> emitter.onNext(textField.getText()));
-
-			textField.getDocument().addDocumentListener(listener);
-			emitter.setDisposable(new Disposable() {
-				private boolean disposed = false;
-
-				@Override
-				public void dispose() {
-					textField.getDocument().removeDocumentListener(listener);
-					disposed = true;
-				}
-
-				@Override
-				public boolean isDisposed() {
-					return disposed;
-				}
-			});
-		}, BackpressureStrategy.LATEST)
-				.distinctUntilChanged();
 	}
 
 	private JCheckBox makeOptionsCheckBox(String name, final SearchOptions opt) {

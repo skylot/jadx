@@ -79,6 +79,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean codeAreaLineWrap = false;
 	private int srhResourceSkipSize = 1000;
 	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
+	private boolean useAutoSearch = true;
 	private boolean keepCommonDialogOpen = false;
 	private boolean smaliAreaShowBytecode = false;
 	private LineNumbersMode lineNumbersMode = LineNumbersMode.AUTO;
@@ -538,6 +539,15 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setSrhResourceFileExt(String all) {
 		srhResourceFileExt = all.trim();
+	}
+
+	public boolean isUseAutoSearch() {
+		return useAutoSearch;
+	}
+
+	public void setUseAutoSearch(boolean useAutoSearch) {
+		this.useAutoSearch = useAutoSearch;
+		partialSync(settings -> settings.useAutoSearch = useAutoSearch);
 	}
 
 	public void setKeepCommonDialogOpen(boolean yes) {

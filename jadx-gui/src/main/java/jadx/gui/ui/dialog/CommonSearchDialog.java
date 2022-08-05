@@ -14,6 +14,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -250,15 +251,13 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		JScrollPane scroll = new JScrollPane(resultsTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
+		resultsInfoLabel = new JLabel("");
+		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
+
 		JPanel resultsActionsPanel = new JPanel();
 		resultsActionsPanel.setLayout(new BoxLayout(resultsActionsPanel, BoxLayout.LINE_AXIS));
 		resultsActionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-		addCustomResultsActions(resultsActionsPanel);
-		resultsInfoLabel = new JLabel("");
-		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
-		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
-		resultsActionsPanel.add(resultsInfoLabel);
-		resultsActionsPanel.add(Box.createHorizontalGlue());
+		addResultsActions(resultsActionsPanel);
 
 		JPanel resultsPanel = new JPanel();
 		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
@@ -268,7 +267,10 @@ public abstract class CommonSearchDialog extends JFrame {
 		return resultsPanel;
 	}
 
-	protected void addCustomResultsActions(JPanel actionsPanel) {
+	protected void addResultsActions(JPanel resultsActionsPanel) {
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		resultsActionsPanel.add(resultsInfoLabel);
+		resultsActionsPanel.add(Box.createHorizontalGlue());
 	}
 
 	protected void updateProgressLabel(boolean complete) {
@@ -363,6 +365,10 @@ public abstract class CommonSearchDialog extends JFrame {
 		public void clear() {
 			addDescColumn = false;
 			rows.clear();
+		}
+
+		public void sort() {
+			Collections.sort(rows);
 		}
 
 		public boolean isAddDescColumn() {
