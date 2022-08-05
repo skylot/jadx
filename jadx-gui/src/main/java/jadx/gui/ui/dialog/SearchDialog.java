@@ -20,7 +20,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeListener;
@@ -28,6 +30,9 @@ import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.icons.FlatSearchWithHistoryIcon;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Emitter;
@@ -207,6 +212,8 @@ public class SearchDialog extends CommonSearchDialog {
 		searchFieldDefaultBgColor = searchField.getBackground();
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		TextStandardActions.attach(searchField);
+		addSearchHistoryButton();
+		searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
 		boolean autoSearch = mainWindow.getSettings().isUseAutoSearch();
 		JButton searchBtn = new JButton(NLS.str("search_dialog.search_button"));
@@ -284,6 +291,25 @@ public class SearchDialog extends CommonSearchDialog {
 
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	}
+
+	private void addSearchHistoryButton() {
+		JButton searchHistoryButton = new JButton(new FlatSearchWithHistoryIcon(true));
+		searchHistoryButton.setToolTipText(NLS.str("search_dialog.search_history"));
+		searchHistoryButton.addActionListener(e -> {
+			JPopupMenu popupMenu = new JPopupMenu();
+			List<String> searchHistory = mainWindow.getProject().getSearchHistory();
+			if (searchHistory.isEmpty()) {
+				popupMenu.add("(empty)");
+			} else {
+				for (String str : searchHistory) {
+					JMenuItem item = popupMenu.add(str);
+					item.addActionListener(ev -> searchField.setText(str));
+				}
+			}
+			popupMenu.show(searchHistoryButton, 0, searchHistoryButton.getHeight());
+		});
+		searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_COMPONENT, searchHistoryButton);
 	}
 
 	protected void addResultsActions(JPanel resultsActionsPanel) {
@@ -463,6 +489,15 @@ public class SearchDialog extends CommonSearchDialog {
 		return true;
 	}
 
+	@Override
+	protected void openItem(JNode node) {
+		if (mainWindow.getSettings().isUseAutoSearch()) {
+			// for auto search save only searches which leads to node opening
+			mainWindow.getProject().addToSearchHistory(searchField.getText());
+		}
+		super.openItem(node);
+	}
+
 	private void pauseSearch() {
 		stopBtn.setEnabled(false);
 		searchBackgroundExecutor.execute(() -> {
@@ -539,6 +574,9 @@ public class SearchDialog extends CommonSearchDialog {
 		updateHighlightContext(text, !options.contains(IGNORE_CASE), options.contains(USE_REGEX));
 		cache.setLastSearch(text);
 		cache.getLastSearchOptions().put(searchPreset, options);
+		if (!mainWindow.getSettings().isUseAutoSearch()) {
+			mainWindow.getProject().addToSearchHistory(text);
+		}
 	}
 
 	private void updateProgress(ITaskProgress progress) {

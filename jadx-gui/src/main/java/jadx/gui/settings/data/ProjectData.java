@@ -20,6 +20,7 @@ public class ProjectData {
 	private int activeTab = -1;
 	private @Nullable Path cacheDir;
 	private boolean enableLiveReload = false;
+	private List<String> searchHistory = new ArrayList<>();
 
 	public List<Path> getFiles() {
 		return files;
@@ -102,5 +103,13 @@ public class ProjectData {
 
 	public void setEnableLiveReload(boolean enableLiveReload) {
 		this.enableLiveReload = enableLiveReload;
+	}
+
+	public List<String> getSearchHistory() {
+		return searchHistory;
+	}
+
+	public void setSearchHistory(List<String> searchHistory) {
+		this.searchHistory = searchHistory;
 	}
 }
