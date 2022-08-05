@@ -374,6 +374,8 @@ public class UiUtils {
 		}
 		try {
 			SwingUtilities.invokeAndWait(runnable);
+		} catch (InterruptedException e) {
+			LOG.warn("UI thread interrupted", e);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -382,6 +384,12 @@ public class UiUtils {
 	public static void uiThreadGuard() {
 		if (!SwingUtilities.isEventDispatchThread()) {
 			LOG.warn("Expect UI thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
+		}
+	}
+
+	public static void notUiThreadGuard() {
+		if (SwingUtilities.isEventDispatchThread()) {
+			LOG.warn("Expect background thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
 		}
 	}
 

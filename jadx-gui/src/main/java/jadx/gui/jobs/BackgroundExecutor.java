@@ -145,8 +145,8 @@ public class BackgroundExecutor {
 					task.onDone(this);
 					// treat UI task operations as part of the task to not mix with others
 					UiUtils.uiRunAndWait(() -> {
-						task.onFinish(this);
 						progressPane.setVisible(false);
+						task.onFinish(this);
 					});
 				} finally {
 					taskComplete(id);
@@ -190,13 +190,21 @@ public class BackgroundExecutor {
 						performCancel(executor);
 						return cancelStatus;
 					}
-					updateProgress(executor);
-					k++;
-					Thread.sleep(k < 10 ? 200 : 1000); // faster update for short tasks
-					if (jobsCount == 1 && k == 3) {
+					if (k < 10) {
+						// faster update for short tasks
+						Thread.sleep(200);
+						if (k == 5) {
+							updateProgress(executor);
+						}
+					} else {
+						updateProgress(executor);
+						Thread.sleep(1000);
+					}
+					if (jobsCount == 1 && k == 5) {
 						// small delay before show progress to reduce blinking on short tasks
 						progressPane.changeVisibility(this, true);
 					}
+					k++;
 				}
 			} catch (InterruptedException e) {
 				LOG.debug("Task wait interrupted");
@@ -210,7 +218,7 @@ public class BackgroundExecutor {
 		}
 
 		private void updateProgress(ThreadPoolExecutor executor) {
-			Consumer<ITaskProgress> onProgressListener = task.getOnProgressListener();
+			Consumer<ITaskProgress> onProgressListener = task.getProgressListener();
 			ITaskProgress taskProgress = task.getTaskProgress();
 			if (taskProgress == null) {
 				setProgress(calcProgress(executor.getCompletedTaskCount(), jobsCount));
@@ -231,13 +239,16 @@ public class BackgroundExecutor {
 			// force termination
 			task.cancel();
 			executor.shutdown();
-			if (executor.awaitTermination(2, TimeUnit.SECONDS)) {
-				LOG.debug("Task cancel complete");
-				return;
+			int cancelTimeout = task.getCancelTimeoutMS();
+			if (cancelTimeout != 0) {
+				if (executor.awaitTermination(cancelTimeout, TimeUnit.MILLISECONDS)) {
+					LOG.debug("Task cancel complete");
+					return;
+				}
 			}
 			LOG.debug("Forcing tasks cancel");
 			executor.shutdownNow();
-			boolean complete = executor.awaitTermination(5, TimeUnit.SECONDS);
+			boolean complete = executor.awaitTermination(task.getShutdownTimeoutMS(), TimeUnit.MILLISECONDS);
 			LOG.debug("Forced task cancel status: {}",
 					complete ? "success" : "fail, still active: " + executor.getActiveCount());
 		}
@@ -300,6 +311,14 @@ public class BackgroundExecutor {
 		@Override
 		public long getTime() {
 			return time;
+		}
+
+		@Override
+		public String toString() {
+			return "TaskWorker{status=" + status
+					+ ", jobsCount=" + jobsCount
+					+ ", jobsComplete=" + jobsComplete
+					+ ", time=" + time + '}';
 		}
 	}
 }
