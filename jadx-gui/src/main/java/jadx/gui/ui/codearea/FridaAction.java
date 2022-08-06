@@ -79,8 +79,11 @@ public final class FridaAction extends JNodeAction {
 		JavaMethod javaMethod = jMth.getJavaMethod();
 		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
 		String methodName = StringEscapeUtils.escapeEcmaScript(methodInfo.getName());
+		String callMethodName = methodName;
+
 		if (methodInfo.isConstructor()) {
 			methodName = "$init";
+			callMethodName = "$new";
 		}
 		String shortClassName = javaMethod.getDeclaringClass().getName();
 
@@ -108,7 +111,7 @@ public final class FridaAction extends JNodeAction {
 						+ "    console.log('%s ret value is ' + ret);\n"
 						+ "    return ret;\n"
 						+ "};",
-				functionUntilImplementation, functionParametersString, methodName, logParametersString, methodName,
+				functionUntilImplementation, functionParametersString, methodName, logParametersString, callMethodName,
 				functionParametersString, methodName);
 
 		return generateClassSnippet(jMth.getJParent()) + "\n" + functionParameterAndBody;
