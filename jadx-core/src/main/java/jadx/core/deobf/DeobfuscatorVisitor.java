@@ -20,7 +20,7 @@ public class DeobfuscatorVisitor extends AbstractVisitor {
 			return;
 		}
 		DeobfPresets mapping = DeobfPresets.build(root);
-		if (args.getDeobfuscationMapFileMode().shouldRead()) {
+		if (args.getGeneratedRenamesMappingFileMode().shouldRead()) {
 			if (mapping.load()) {
 				mapping.apply(root);
 			}

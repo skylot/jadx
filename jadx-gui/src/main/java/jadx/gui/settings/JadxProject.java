@@ -159,6 +159,21 @@ public class JadxProject {
 		return data.getActiveTab();
 	}
 
+	public Path getMappingsPath() {
+		return data.getMappingsPath();
+	}
+
+	public void setMappingsPath(Path mappingsPath) {
+		if (mappingsPath == null) {
+			data.setMappingsPath(mappingsPath);
+			changed();
+		} else if (mappingsPath != getMappingsPath()
+				&& mappingsPath.toFile().exists()) {
+			data.setMappingsPath(mappingsPath);
+			changed();
+		}
+	}
+
 	public @NotNull Path getCacheDir() {
 		Path cacheDir = data.getCacheDir();
 		if (cacheDir != null) {

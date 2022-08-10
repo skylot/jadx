@@ -1,7 +1,6 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -12,14 +11,9 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
-import jadx.api.JavaMethod;
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
-import jadx.api.utils.CodeUtils;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -94,7 +88,8 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			overload = "";
 		}
-		List<String> argNames = collectMethodArgNames(jMth.getJavaMethod());
+		List<String> argNames = mth.collectArgsWithoutLoading().stream()
+				.map(VarNode::getName).collect(Collectors.toList());
 		String args = String.join(", ", argNames);
 		String logArgs;
 		if (argNames.isEmpty()) {
@@ -102,7 +97,7 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			logArgs = ": " + argNames.stream().map(arg -> arg + "=${" + arg + "}").collect(Collectors.joining(", "));
 		}
-		String shortClassName = mth.getParentClass().getShortName();
+		String shortClassName = mth.getParentClass().getAlias();
 		String classSnippet = generateClassSnippet(jMth.getJParent());
 		if (methodInfo.isConstructor() || methodInfo.getReturnType() == ArgType.VOID) {
 			// no return value
@@ -119,33 +114,6 @@ public final class FridaAction extends JNodeAction {
 				+ "    console.log(`" + shortClassName + "." + newMethodName + " result=${result}`);\n"
 				+ "    return result;\n"
 				+ "};";
-	}
-
-	private List<String> collectMethodArgNames(JavaMethod javaMethod) {
-		ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
-		int mthDefPos = javaMethod.getDefPos();
-		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
-		List<String> argNames = new ArrayList<>();
-		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
-			if (pos > lineEndPos) {
-				return Boolean.TRUE; // stop at line end
-			}
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
-				if (declRef instanceof VarNode) {
-					VarNode varNode = (VarNode) declRef;
-					if (varNode.getMth().equals(javaMethod.getMethodNode())) {
-						argNames.add(varNode.getName());
-					}
-				}
-			}
-			return null;
-		});
-		int argsCount = javaMethod.getMethodNode().getMethodInfo().getArgsCount();
-		if (argNames.size() != argsCount) {
-			LOG.warn("Incorrect args count, expected: {}, got: {}", argsCount, argNames.size());
-		}
-		return argNames;
 	}
 
 	private String generateClassSnippet(JClass jc) {

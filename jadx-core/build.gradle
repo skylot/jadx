@@ -5,6 +5,13 @@ plugins {
 dependencies {
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
+	// TODO: Switch back to upstream once this PR gets merged:
+	//   https://github.com/FabricMC/mapping-io/pull/19
+	// api 'net.fabricmc:mapping-io:0.3.0'
+	api files('libs/mapping-io-0.4.0-SNAPSHOT.jar')
+	// mapping-io's dependencies
+	runtimeOnly 'org.ow2.asm:asm:9.3'
+
 	implementation 'com.google.code.gson:gson:2.10.1'
 
 	// TODO: move resources decoding to separate plugin module

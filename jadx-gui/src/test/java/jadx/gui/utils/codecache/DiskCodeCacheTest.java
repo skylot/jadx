@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.gui.settings.JadxProject;
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.codecache.disk.DiskCodeCache;
 import jadx.tests.api.IntegrationTest;
 
@@ -29,7 +32,10 @@ class DiskCodeCacheTest extends IntegrationTest {
 		ClassNode clsNode = getClassNode(DiskCodeCacheTest.class);
 		ICodeInfo codeInfo = clsNode.getCode();
 
-		DiskCodeCache cache = new DiskCodeCache(clsNode.root(), tempDir);
+		JadxSettings settings = new JadxSettings();
+		JadxProject project = new JadxProject(new MainWindow(settings));
+		project.setCacheDir(tempDir);
+		DiskCodeCache cache = new DiskCodeCache(clsNode.root(), project, settings);
 
 		String clsKey = clsNode.getFullName();
 		cache.add(clsKey, codeInfo);

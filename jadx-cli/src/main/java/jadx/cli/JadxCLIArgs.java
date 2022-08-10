@@ -1,5 +1,6 @@
 package jadx.cli;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -22,8 +23,9 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.JadxDecompiler;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
@@ -106,6 +108,22 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--respect-bytecode-access-modifiers" }, description = "don't change original access modifiers")
 	protected boolean respectBytecodeAccessModifiers = false;
 
+	@Parameter(
+			names = { "--mappings-path" },
+			description = "deobfuscation mappings file or directory. Allowed formats: Tiny and Tiny v2 (both '.tiny'), Enigma (.mapping) or Enigma directory"
+	)
+	protected Path userRenamesMappingsPath;
+
+	@Parameter(
+			names = { "--mappings-mode" },
+			description = "set mode for handling the deobfuscation mapping file:"
+					+ "\n 'read' - just read, user can always save manually (default)"
+					+ "\n 'read-and-autosave-every-change' - read and autosave after every change"
+					+ "\n 'read-and-autosave-before-closing' - read and autosave before exiting the app or closing the project"
+					+ "\n 'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)"
+	)
+	protected UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
+
 	@Parameter(names = { "--deobf" }, description = "activate deobfuscation")
 	protected boolean deobfuscationOn = false;
 
@@ -115,22 +133,24 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
+	@Deprecated
 	@Parameter(
 			names = { "--deobf-cfg-file" },
-			description = "deobfuscation map file, default: same dir and name as input file with '.jobf' extension"
+			description = "deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension (deprecated)"
 	)
-	protected String deobfuscationMapFile;
+	protected String generatedRenamesMappingFile;
 
+	@Deprecated
 	@Parameter(
 			names = { "--deobf-cfg-file-mode" },
-			description = "set mode for handle deobfuscation map file:"
+			description = "set mode for handling the JADX auto-generated names' deobfuscation map file (deprecated):"
 					+ "\n 'read' - read if found, don't save (default)"
 					+ "\n 'read-or-save' - read if found, save otherwise (don't overwrite)"
 					+ "\n 'overwrite' - don't read, always save"
 					+ "\n 'ignore' - don't read and don't save",
 			converter = DeobfuscationMapFileModeConverter.class
 	)
-	protected DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+	protected GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
 
 	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = false;
@@ -273,9 +293,13 @@ public class JadxCLIArgs {
 		args.setCfgOutput(cfgOutput);
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
+		if (userRenamesMappingsPath != null) {
+			args.setUserRenamesMappingsPath(userRenamesMappingsPath);
+		}
+		args.setUserRenamesMappingsMode(userRenamesMappingsMode);
 		args.setDeobfuscationOn(deobfuscationOn);
-		args.setDeobfuscationMapFile(FileUtils.toFile(deobfuscationMapFile));
-		args.setDeobfuscationMapFileMode(deobfuscationMapFileMode);
+		args.setGeneratedRenamesMappingFile(FileUtils.toFile(generatedRenamesMappingFile));
+		args.setGeneratedRenamesMappingFileMode(generatedRenamesMappingFileMode);
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
@@ -380,6 +404,14 @@ public class JadxCLIArgs {
 		return extractFinally;
 	}
 
+	public Path getUserRenamesMappingsPath() {
+		return userRenamesMappingsPath;
+	}
+
+	public UserRenamesMappingsMode getUserRenamesMappingsMode() {
+		return userRenamesMappingsMode;
+	}
+
 	public boolean isDeobfuscationOn() {
 		return deobfuscationOn;
 	}
@@ -392,12 +424,14 @@ public class JadxCLIArgs {
 		return deobfuscationMaxLength;
 	}
 
-	public String getDeobfuscationMapFile() {
-		return deobfuscationMapFile;
+	@Deprecated
+	public String getGeneratedRenamesMappingFile() {
+		return generatedRenamesMappingFile;
 	}
 
-	public DeobfuscationMapFileMode getDeobfuscationMapFileMode() {
-		return deobfuscationMapFileMode;
+	@Deprecated
+	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
+		return generatedRenamesMappingFileMode;
 	}
 
 	public boolean isDeobfuscationUseSourceNameAsAlias() {
@@ -509,9 +543,9 @@ public class JadxCLIArgs {
 		}
 	}
 
-	public static class DeobfuscationMapFileModeConverter extends BaseEnumConverter<DeobfuscationMapFileMode> {
+	public static class DeobfuscationMapFileModeConverter extends BaseEnumConverter<GeneratedRenamesMappingFileMode> {
 		public DeobfuscationMapFileModeConverter() {
-			super(DeobfuscationMapFileMode::valueOf, DeobfuscationMapFileMode::values);
+			super(GeneratedRenamesMappingFileMode::valueOf, GeneratedRenamesMappingFileMode::values);
 		}
 	}
 

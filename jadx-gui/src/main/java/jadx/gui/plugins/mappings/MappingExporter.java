@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -41,6 +42,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.mappings.DalvikToJavaBytecodeUtils;
 
 public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
@@ -48,32 +50,6 @@ public class MappingExporter {
 
 	public MappingExporter(RootNode rootNode) {
 		this.root = rootNode;
-	}
-
-	private List<VarNode> collectMethodArgs(MethodNode methodNode) {
-		ICodeInfo codeInfo = methodNode.getTopParentClass().getCode();
-		int mthDefPos = methodNode.getDefPosition();
-		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
-		List<VarNode> args = new ArrayList<>();
-		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
-			if (pos > lineEndPos) {
-				// Stop at line end
-				return Boolean.TRUE;
-			}
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
-				if (declRef instanceof VarNode) {
-					VarNode varNode = (VarNode) declRef;
-					if (!varNode.getMth().equals(methodNode)) {
-						// Stop if we've gone too far and have entered a different method
-						return Boolean.TRUE;
-					}
-					args.add(varNode);
-				}
-			}
-			return null;
-		});
-		return args;
 	}
 
 	private List<SimpleEntry<VarNode, Integer>> collectMethodVars(MethodNode methodNode) {
@@ -160,8 +136,14 @@ public class MappingExporter {
 				FileUtils.makeDirs(path);
 			}
 
+			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
+			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
+			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
+				srcNamespace = root.getMappingTree().getSrcNamespace();
+				dstNamespace = root.getMappingTree().getDstNamespaces().get(0);
+			}
 			mappingTree.visitHeader();
-			mappingTree.visitNamespaces("official", Arrays.asList("named"));
+			mappingTree.visitNamespaces(srcNamespace, Arrays.asList(dstNamespace));
 			mappingTree.visitContent();
 
 			for (ClassNode cls : root.getClasses()) {
@@ -215,10 +197,12 @@ public class MappingExporter {
 					}
 					// Method args
 					int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-					int lastArgLvIndex = lvtIndex - 1;
-					List<VarNode> args = collectMethodArgs(mth);
+					List<VarNode> args = mth.collectArgsWithoutLoading();
 					for (VarNode arg : args) {
-						int lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(arg);
+						if (lvIndex == null) {
+							lvIndex = -1;
+						}
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(arg.getReg(), arg.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -226,7 +210,6 @@ public class MappingExporter {
 							mappingTree.visitDstName(MappedElementKind.METHOD_ARG, 0, mappedMethodArgsAndVars.get(key));
 							mappedMethodArgsAndVars.remove(key);
 						}
-						lastArgLvIndex = lvIndex;
 						lvtIndex++;
 						// Not checking for comments since method args can't have any
 					}
@@ -235,7 +218,10 @@ public class MappingExporter {
 					for (SimpleEntry<VarNode, Integer> entry : vars) {
 						VarNode var = entry.getKey();
 						int offset = entry.getValue();
-						int lvIndex = lastArgLvIndex + var.getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
+						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodVarLvIndex(var);
+						if (lvIndex == null) {
+							lvIndex = -1;
+						}
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -251,7 +237,11 @@ public class MappingExporter {
 					}
 				}
 			}
-
+			// Copy mappings from potentially imported mappings file
+			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
+				root.getMappingTree().accept(mappingTree);
+			}
+			// Write file
 			MappingWriter writer = MappingWriter.create(path, mappingFormat);
 			mappingTree.accept(writer);
 			mappingTree.visitEnd();

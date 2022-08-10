@@ -2,6 +2,7 @@ package jadx.api;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -15,8 +16,9 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
 import jadx.api.deobf.IAliasProvider;
 import jadx.api.deobf.IRenameCondition;
@@ -72,12 +74,15 @@ public class JadxArgs {
 	 */
 	private boolean includeDependencies = false;
 
+	private Path userRenamesMappingsPath = null;
+	private UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
+
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
 	private boolean parseKotlinMetadata = false;
-	private File deobfuscationMapFile = null;
 
-	private DeobfuscationMapFileMode deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+	private File generatedRenamesMappingFile = null;
+	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
 	private ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
 
 	private int deobfuscationMinLength = 0;
@@ -326,6 +331,22 @@ public class JadxArgs {
 		this.classFilter = classFilter;
 	}
 
+	public Path getUserRenamesMappingsPath() {
+		return userRenamesMappingsPath;
+	}
+
+	public void setUserRenamesMappingsPath(Path path) {
+		this.userRenamesMappingsPath = path;
+	}
+
+	public UserRenamesMappingsMode getUserRenamesMappingsMode() {
+		return userRenamesMappingsMode;
+	}
+
+	public void setUserRenamesMappingsMode(UserRenamesMappingsMode mode) {
+		this.userRenamesMappingsMode = mode;
+	}
+
 	public boolean isDeobfuscationOn() {
 		return deobfuscationOn;
 	}
@@ -336,22 +357,24 @@ public class JadxArgs {
 
 	@Deprecated
 	public boolean isDeobfuscationForceSave() {
-		return deobfuscationMapFileMode == DeobfuscationMapFileMode.OVERWRITE;
+		return generatedRenamesMappingFileMode == GeneratedRenamesMappingFileMode.OVERWRITE;
 	}
 
 	@Deprecated
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
 		if (deobfuscationForceSave) {
-			this.deobfuscationMapFileMode = DeobfuscationMapFileMode.OVERWRITE;
+			this.generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.OVERWRITE;
 		}
 	}
 
-	public DeobfuscationMapFileMode getDeobfuscationMapFileMode() {
-		return deobfuscationMapFileMode;
+	@Deprecated
+	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
+		return generatedRenamesMappingFileMode;
 	}
 
-	public void setDeobfuscationMapFileMode(DeobfuscationMapFileMode deobfuscationMapFileMode) {
-		this.deobfuscationMapFileMode = deobfuscationMapFileMode;
+	@Deprecated
+	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode mode) {
+		this.generatedRenamesMappingFileMode = mode;
 	}
 
 	public boolean isUseSourceNameAsClassAlias() {
@@ -386,12 +409,14 @@ public class JadxArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	public File getDeobfuscationMapFile() {
-		return deobfuscationMapFile;
+	@Deprecated
+	public File getGeneratedRenamesMappingFile() {
+		return generatedRenamesMappingFile;
 	}
 
-	public void setDeobfuscationMapFile(File deobfuscationMapFile) {
-		this.deobfuscationMapFile = deobfuscationMapFile;
+	@Deprecated
+	public void setGeneratedRenamesMappingFile(File file) {
+		this.generatedRenamesMappingFile = file;
 	}
 
 	public ResourceNameSource getResourceNameSource() {
@@ -611,9 +636,11 @@ public class JadxArgs {
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
 				+ ", includeDependencies=" + includeDependencies
+				+ ", userRenamesMappingsPath=" + userRenamesMappingsPath
+				+ ", userRenamesMappingsMode=" + userRenamesMappingsMode
 				+ ", deobfuscationOn=" + deobfuscationOn
-				+ ", deobfuscationMapFile=" + deobfuscationMapFile
-				+ ", deobfuscationMapFileMode=" + deobfuscationMapFileMode
+				+ ", generatedRenamesMappingFile=" + generatedRenamesMappingFile
+				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
 				+ ", resourceNameSource=" + resourceNameSource
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata

@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
@@ -28,13 +28,13 @@ public class SaveDeobfMapping extends AbstractVisitor {
 	}
 
 	private void saveMappings(RootNode root) {
-		DeobfuscationMapFileMode mode = root.getArgs().getDeobfuscationMapFileMode();
+		GeneratedRenamesMappingFileMode mode = root.getArgs().getGeneratedRenamesMappingFileMode();
 		if (!mode.shouldWrite()) {
 			return;
 		}
 		DeobfPresets mapping = DeobfPresets.build(root);
 		Path deobfMapFile = mapping.getDeobfMapFile();
-		if (mode == DeobfuscationMapFileMode.READ_OR_SAVE && Files.exists(deobfMapFile)) {
+		if (mode == GeneratedRenamesMappingFileMode.READ_OR_SAVE && Files.exists(deobfMapFile)) {
 			return;
 		}
 		try {

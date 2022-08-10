@@ -50,6 +50,7 @@ public class JadxWrapper {
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
 	private PluginsContext pluginsContext;
+	private boolean resetDiskCacheOnNextReload = false;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -71,8 +72,8 @@ public class JadxWrapper {
 				initCodeCache();
 			}
 		} catch (Exception e) {
-			LOG.error("Jadx decompiler wrapper init error", e);
 			close();
+			throw new JadxRuntimeException("Jadx decompiler wrapper init error", e);
 		}
 	}
 
@@ -118,8 +119,15 @@ public class JadxWrapper {
 		}
 	}
 
+	public void resetDiskCacheOnNextReload() {
+		resetDiskCacheOnNextReload = true;
+	}
+
 	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
+		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject(), getSettings());
+		if (resetDiskCacheOnNextReload) {
+			diskCache.reset();
+		}
 		return new BufferCodeCache(diskCache);
 	}
 
@@ -231,6 +239,12 @@ public class JadxWrapper {
 
 	public void reloadCodeData() {
 		getDecompiler().reloadCodeData();
+		mainWindow.renamesChanged();
+	}
+
+	public void reloadMappings() {
+		getDecompiler().reloadMappings();
+		mainWindow.renamesChanged();
 	}
 
 	public JavaNode getJavaNodeByRef(ICodeNodeRef nodeRef) {

@@ -29,8 +29,9 @@ import com.beust.jcommander.Parameter;
 import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.gui.ui.MainWindow;
@@ -337,6 +338,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.debugInfo = useDebugInfo;
 	}
 
+	public void setUserRenamesMappingsPath(Path path) {
+		this.userRenamesMappingsPath = path;
+	}
+
+	public void setUserRenamesMappingsMode(UserRenamesMappingsMode mode) {
+		this.userRenamesMappingsMode = mode;
+	}
+
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
 		this.deobfuscationOn = deobfuscationOn;
 	}
@@ -349,8 +358,8 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	public void setDeobfuscationMapFileMode(DeobfuscationMapFileMode mode) {
-		this.deobfuscationMapFileMode = mode;
+	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode mode) {
+		this.generatedRenamesMappingFileMode = mode;
 	}
 
 	public void setDeobfuscationUseSourceNameAsAlias(boolean deobfuscationUseSourceNameAsAlias) {
@@ -678,7 +687,7 @@ public class JadxSettings extends JadxCLIArgs {
 			setDeobfuscationMaxLength(64);
 			setDeobfuscationUseSourceNameAsAlias(true);
 			setDeobfuscationParseKotlinMetadata(true);
-			setDeobfuscationMapFileMode(DeobfuscationMapFileMode.READ);
+			setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.getDefault());
 			setThreadsCount(JadxArgs.DEFAULT_THREADS_COUNT);
 			setReplaceConsts(true);
 			setSkipResources(false);
@@ -750,7 +759,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 15) {
-			deobfuscationMapFileMode = DeobfuscationMapFileMode.READ;
+			generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
 			fromVersion++;
 		}
 		if (fromVersion == 16) {

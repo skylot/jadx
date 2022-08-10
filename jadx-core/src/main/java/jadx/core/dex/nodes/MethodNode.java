@@ -10,13 +10,18 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JavaMethod;
 import jadx.api.core.nodes.IMethodNode;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
+import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -247,6 +252,36 @@ public class MethodNode extends NotificationAttrNode implements IMethodNode,
 
 	public boolean isVoidReturn() {
 		return mthInfo.getReturnType().equals(ArgType.VOID);
+	}
+
+	public List<VarNode> collectArgsWithoutLoading() {
+		ICodeInfo codeInfo = getTopParentClass().getCode();
+		int mthDefPos = getDefPosition();
+		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		int argsCount = mthInfo.getArgsCount();
+		List<VarNode> args = new ArrayList<>(argsCount);
+		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
+			if (pos > lineEndPos) {
+				// Stop at line end
+				return Boolean.TRUE;
+			}
+			if (ann instanceof NodeDeclareRef) {
+				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
+				if (declRef instanceof VarNode) {
+					VarNode varNode = (VarNode) declRef;
+					if (!varNode.getMth().equals(this)) {
+						// Stop if we've gone too far and have entered a different method
+						return Boolean.TRUE;
+					}
+					args.add(varNode);
+				}
+			}
+			return null;
+		});
+		if (args.size() != argsCount) {
+			LOG.warn("Incorrect args count, expected: {}, got: {}", argsCount, args.size());
+		}
+		return args;
 	}
 
 	public List<RegisterArg> getArgRegs() {

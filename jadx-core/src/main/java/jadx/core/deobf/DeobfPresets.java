@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
-import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.deobf.IAliasProvider;
 import jadx.api.deobf.impl.AlwaysRename;
 import jadx.core.dex.info.ClassInfo;
@@ -45,7 +45,7 @@ public class DeobfPresets {
 
 	public static DeobfPresets build(RootNode root) {
 		Path deobfMapPath = getPathDeobfMapPath(root);
-		if (root.getArgs().getDeobfuscationMapFileMode() != DeobfuscationMapFileMode.IGNORE) {
+		if (root.getArgs().getGeneratedRenamesMappingFileMode() != GeneratedRenamesMappingFileMode.IGNORE) {
 			LOG.debug("Deobfuscation map file set to: {}", deobfMapPath);
 		}
 		return new DeobfPresets(deobfMapPath);
@@ -53,7 +53,7 @@ public class DeobfPresets {
 
 	private static Path getPathDeobfMapPath(RootNode root) {
 		JadxArgs jadxArgs = root.getArgs();
-		File deobfMapFile = jadxArgs.getDeobfuscationMapFile();
+		File deobfMapFile = jadxArgs.getGeneratedRenamesMappingFile();
 		if (deobfMapFile != null) {
 			return deobfMapFile.toPath();
 		}

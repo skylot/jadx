@@ -35,11 +35,6 @@ dependencies {
 	implementation 'com.android.tools.build:apksig:7.4.1'
 	implementation 'io.github.skylot:jdwp:2.0.0'
 
-	// TODO: Switch back to upstream once this PR gets merged:
-	//   https://github.com/FabricMC/mapping-io/pull/19
-	// implementation 'net.fabricmc:mapping-io:0.3.0'
-	implementation files('libs/mapping-io-0.4.0-SNAPSHOT.jar')
-
 	testImplementation project(":jadx-core").sourceSets.test.output
 }
 
