@@ -18,8 +18,7 @@ public interface JavaNode {
 
 	List<JavaNode> getUseIn();
 
-	default void removeAlias() {
-	}
+	void removeAlias();
 
 	boolean isOwnCodeAnnotation(ICodeAnnotation ann);
 }

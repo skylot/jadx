@@ -1,63 +1,50 @@
 package jadx.gui.treemodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 
+import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
-import jadx.core.utils.Utils;
-import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.popupmenu.JPackagePopupMenu;
 import jadx.gui.utils.Icons;
 
+import static jadx.gui.utils.UiUtils.escapeHtml;
+import static jadx.gui.utils.UiUtils.fadeHtml;
+import static jadx.gui.utils.UiUtils.wrapHtml;
+
 public class JPackage extends JNode {
 	private static final long serialVersionUID = -4120718634156839804L;
 
-	private String fullName;
+	public static final String PACKAGE_DEFAULT_HTML_STR = wrapHtml(fadeHtml(escapeHtml("<empty>")));
+
+	private final JavaPackage pkg;
+	private final boolean enabled;
+	private final List<JClass> classes;
+	private final List<JPackage> subPackages;
+
+	/**
+	 * Package created by full package alias, don't have a raw package reference.
+	 * `pkg` field point to the closest raw package leaf.
+	 */
+	private final boolean synthetic;
+
 	private String name;
-	private boolean enabled;
-	private List<JClass> classes;
-	private List<JPackage> innerPackages;
 
-	public JPackage(JavaPackage pkg, JadxWrapper wrapper) {
-		this(pkg.getName(), pkg.getName(),
-				isPkgEnabled(wrapper, pkg.getName()),
-				Utils.collectionMap(pkg.getClasses(), JClass::new),
-				new ArrayList<>());
-		update();
-	}
-
-	public JPackage(String fullName, JadxWrapper wrapper) {
-		this(fullName, fullName, isPkgEnabled(wrapper, fullName), new ArrayList<>(), new ArrayList<>());
-	}
-
-	public JPackage(String fullName, String name) {
-		this(fullName, name, true, Collections.emptyList(), Collections.emptyList());
-	}
-
-	private JPackage(String fullName, String name, boolean enabled, List<JClass> classes, List<JPackage> innerPackages) {
-		this.fullName = fullName;
-		this.name = name;
+	public JPackage(JavaPackage pkg, boolean enabled, List<JClass> classes, List<JPackage> subPackages, boolean synthetic) {
+		this.pkg = pkg;
 		this.enabled = enabled;
 		this.classes = classes;
-		this.innerPackages = innerPackages;
+		this.subPackages = subPackages;
+		this.synthetic = synthetic;
 	}
 
-	private static boolean isPkgEnabled(JadxWrapper wrapper, String fullPkgName) {
-		List<String> excludedPackages = wrapper.getExcludedPackages();
-		return excludedPackages.isEmpty()
-				|| excludedPackages.stream().filter(p -> !p.isEmpty())
-						.noneMatch(p -> fullPkgName.equals(p) || fullPkgName.startsWith(p + '.'));
-	}
-
-	public final void update() {
+	public void update() {
 		removeAllChildren();
 		if (isEnabled()) {
-			for (JPackage pkg : innerPackages) {
+			for (JPackage pkg : subPackages) {
 				pkg.update();
 				add(pkg);
 			}
@@ -73,44 +60,37 @@ public class JPackage extends JNode {
 		return new JPackagePopupMenu(mainWindow, this);
 	}
 
+	public JavaPackage getPkg() {
+		return pkg;
+	}
+
+	public JavaNode getJavaNode() {
+		return pkg;
+	}
+
 	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
-	public boolean canRename() {
-		return true;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void updateBothNames(String fullName, String name, JadxWrapper wrapper) {
-		this.fullName = fullName;
-		this.name = name;
-		this.enabled = isPkgEnabled(wrapper, fullName);
-	}
-
-	public void updateName(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public List<JPackage> getInnerPackages() {
-		return innerPackages;
-	}
-
-	public void setInnerPackages(List<JPackage> innerPackages) {
-		this.innerPackages = innerPackages;
+	public List<JPackage> getSubPackages() {
+		return subPackages;
 	}
 
 	public List<JClass> getClasses() {
 		return classes;
 	}
 
-	public void setClasses(List<JClass> classes) {
-		this.classes = classes;
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public boolean isSynthetic() {
+		return synthetic;
 	}
 
 	@Override
@@ -131,12 +111,12 @@ public class JPackage extends JNode {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		return name.equals(((JPackage) o).name);
+		return pkg.equals(((JPackage) o).pkg);
 	}
 
 	@Override
 	public int hashCode() {
-		return name.hashCode();
+		return pkg.hashCode();
 	}
 
 	@Override
@@ -145,11 +125,20 @@ public class JPackage extends JNode {
 	}
 
 	@Override
-	public String makeLongString() {
+	public String makeStringHtml() {
+		if (name.isEmpty()) {
+			return PACKAGE_DEFAULT_HTML_STR;
+		}
 		return name;
 	}
 
-	public boolean isEnabled() {
-		return enabled;
+	@Override
+	public String makeLongString() {
+		return pkg.getFullName();
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 }

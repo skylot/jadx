@@ -23,7 +23,7 @@ public class JNodeCache {
 		if (javaNode == null) {
 			return null;
 		}
-		// don't use 'computeIfAbsent' method here, it this cause 'Recursive update' exception
+		// don't use 'computeIfAbsent' method here, it will cause 'Recursive update' exception
 		JNode jNode = cache.get(javaNode);
 		if (jNode == null || jNode.getJavaNode() != javaNode) {
 			jNode = convert(javaNode);

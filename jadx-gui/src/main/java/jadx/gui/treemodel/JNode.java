@@ -63,10 +63,6 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return javaNode.getName();
 	}
 
-	public boolean canRename() {
-		return false;
-	}
-
 	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		return null;
 	}

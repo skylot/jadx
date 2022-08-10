@@ -32,6 +32,7 @@ import jadx.gui.plugins.context.PluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.codecache.CodeStringCache;
 import jadx.gui.utils.codecache.disk.BufferCodeCache;
 import jadx.gui.utils.codecache.disk.DiskCodeCache;
@@ -262,6 +263,10 @@ public class JadxWrapper {
 
 	public JadxSettings getSettings() {
 		return mainWindow.getSettings();
+	}
+
+	public CacheObject getCache() {
+		return mainWindow.getCacheObject();
 	}
 
 	/**

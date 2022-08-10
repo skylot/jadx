@@ -225,7 +225,7 @@ public class DebugUtils {
 	}
 
 	public static void printStackTrace(String label) {
-		LOG.debug("StackTrace: {}\n{}", label, Utils.getStackTrace(new Exception()));
+		LOG.debug("StackTrace: {}\n{}", label, Utils.getFullStackTrace(new Exception()));
 	}
 
 	public static void printMethodOverrideTop(RootNode root) {

@@ -27,29 +27,19 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.api.JavaVariable;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
-import jadx.api.data.impl.JadxCodeRef;
-import jadx.api.data.impl.JadxCodeRename;
-import jadx.api.data.impl.JadxNodeRef;
-import jadx.core.deobf.NameMapper;
 import jadx.core.utils.Utils;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JField;
-import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JPackage;
-import jadx.gui.treemodel.JVariable;
+import jadx.gui.treemodel.JRenameNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
@@ -70,36 +60,32 @@ public class RenameDialog extends JDialog {
 
 	private final transient MainWindow mainWindow;
 	private final transient CacheObject cache;
-	private final transient JNode source;
-	private final transient JNode node;
+	private final transient @Nullable JNode source;
+	private final transient JRenameNode node;
 	private transient JTextField renameField;
 	private transient JButton renameBtn;
 
-	public static boolean rename(MainWindow mainWindow, JNode node) {
-		return rename(mainWindow, node, node);
-	}
-
-	public static boolean rename(MainWindow mainWindow, JNode source, JNode node) {
+	public static boolean rename(MainWindow mainWindow, JNode source, JRenameNode node) {
 		RenameDialog renameDialog = new RenameDialog(mainWindow, source, node);
 		UiUtils.uiRun(() -> renameDialog.setVisible(true));
 		UiUtils.uiRun(renameDialog::initRenameField); // wait for UI events to propagate
 		return true;
 	}
 
-	public static JPopupMenu buildRenamePopup(MainWindow mainWindow, JNode node) {
+	public static JPopupMenu buildRenamePopup(MainWindow mainWindow, JRenameNode node) {
 		JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
-		jmi.addActionListener(action -> RenameDialog.rename(mainWindow, node));
+		jmi.addActionListener(action -> RenameDialog.rename(mainWindow, null, node));
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(jmi);
 		return menu;
 	}
 
-	private RenameDialog(MainWindow mainWindow, JNode source, JNode node) {
+	private RenameDialog(MainWindow mainWindow, JNode source, JRenameNode node) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
 		this.source = source;
-		this.node = replaceNode(node);
+		this.node = node.replace();
 		initUI();
 	}
 
@@ -108,27 +94,12 @@ public class RenameDialog extends JDialog {
 		renameField.selectAll();
 	}
 
-	private JNode replaceNode(JNode node) {
-		if (node instanceof JMethod) {
-			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-			if (javaMethod.isClassInit()) {
-				throw new JadxRuntimeException("Can't rename class init method: " + node);
-			}
-			if (javaMethod.isConstructor()) {
-				// rename class instead constructor
-				return node.getJParent();
-			}
-		}
-		return node;
-	}
-
-	private boolean checkNewName() {
-		String newName = renameField.getText();
+	private boolean checkNewName(String newName) {
 		if (newName.isEmpty()) {
 			// use empty name to reset rename (revert to original)
 			return true;
 		}
-		boolean valid = NameMapper.isValidIdentifier(newName);
+		boolean valid = node.isValidName(newName);
 		if (renameBtn.isEnabled() != valid) {
 			renameBtn.setEnabled(valid);
 			renameField.putClientProperty("JComponent.outline", valid ? "" : "error");
@@ -137,11 +108,12 @@ public class RenameDialog extends JDialog {
 	}
 
 	private void rename() {
-		if (!checkNewName()) {
+		String newName = renameField.getText().trim();
+		if (!checkNewName(newName)) {
 			return;
 		}
 		try {
-			updateCodeRenames(set -> processRename(node, renameField.getText(), set));
+			updateCodeRenames(set -> processRename(newName, set));
 			refreshState();
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
@@ -150,44 +122,13 @@ public class RenameDialog extends JDialog {
 		dispose();
 	}
 
-	private void processRename(JNode node, String newName, Set<ICodeRename> renames) {
-		JadxCodeRename rename = buildRename(node, newName, renames);
+	private void processRename(String newName, Set<ICodeRename> renames) {
+		ICodeRename rename = node.buildCodeRename(newName, renames);
 		renames.remove(rename);
-		JavaNode javaNode = node.getJavaNode();
-		if (javaNode != null) {
-			javaNode.removeAlias();
-		}
+		node.removeAlias();
 		if (!newName.isEmpty()) {
 			renames.add(rename);
 		}
-	}
-
-	@NotNull
-	private JadxCodeRename buildRename(JNode node, String newName, Set<ICodeRename> renames) {
-		if (node instanceof JMethod) {
-			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-			List<JavaMethod> relatedMethods = javaMethod.getOverrideRelatedMethods();
-			if (!relatedMethods.isEmpty()) {
-				for (JavaMethod relatedMethod : relatedMethods) {
-					renames.remove(new JadxCodeRename(JadxNodeRef.forMth(relatedMethod), ""));
-				}
-			}
-			return new JadxCodeRename(JadxNodeRef.forMth(javaMethod), newName);
-		}
-		if (node instanceof JField) {
-			return new JadxCodeRename(JadxNodeRef.forFld(((JField) node).getJavaField()), newName);
-		}
-		if (node instanceof JClass) {
-			return new JadxCodeRename(JadxNodeRef.forCls(((JClass) node).getCls()), newName);
-		}
-		if (node instanceof JPackage) {
-			return new JadxCodeRename(JadxNodeRef.forPkg(((JPackage) node).getFullName()), newName);
-		}
-		if (node instanceof JVariable) {
-			JavaVariable javaVar = ((JVariable) node).getJavaVarNode();
-			return new JadxCodeRename(JadxNodeRef.forMth(javaVar.getMth()), JadxCodeRef.forVar(javaVar), newName);
-		}
-		throw new JadxRuntimeException("Failed to build rename node for: " + node);
 	}
 
 	private void updateCodeRenames(Consumer<Set<ICodeRename>> updater) {
@@ -208,24 +149,13 @@ public class RenameDialog extends JDialog {
 	private void refreshState() {
 		mainWindow.getWrapper().reInitRenameVisitor();
 
-		JNodeCache nodeCache = cache.getNodeCache();
-		JavaNode javaNode = node.getJavaNode();
-
 		List<JavaNode> toUpdate = new ArrayList<>();
 		if (source != null && source != node) {
 			toUpdate.add(source.getJavaNode());
 		}
-		if (javaNode != null) {
-			toUpdate.add(javaNode);
-			toUpdate.addAll(javaNode.getUseIn());
-			if (node instanceof JMethod) {
-				toUpdate.addAll(((JMethod) node).getJavaMethod().getOverrideRelatedMethods());
-			}
-		} else if (node instanceof JPackage) {
-			processPackage(toUpdate);
-		} else {
-			throw new JadxRuntimeException("Unexpected node type: " + node);
-		}
+		node.addUpdateNodes(toUpdate);
+
+		JNodeCache nodeCache = cache.getNodeCache();
 		Set<JClass> updatedTopClasses = toUpdate
 				.stream()
 				.map(JavaNode::getTopParentClass)
@@ -245,25 +175,8 @@ public class RenameDialog extends JDialog {
 							mainWindow.showHeapUsageBar();
 							UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						}
-						if (node instanceof JPackage) {
-							mainWindow.getTreeRoot().update();
-						}
-						mainWindow.reloadTree();
+						node.reload(mainWindow);
 					});
-		}
-	}
-
-	private void processPackage(List<JavaNode> toUpdate) {
-		String rawFullPkg = ((JPackage) node).getFullName();
-		String rawFullPkgDot = rawFullPkg + ".";
-		for (JavaClass cls : mainWindow.getWrapper().getClasses()) {
-			String clsPkg = cls.getClassNode().getClassInfo().getPackage();
-			// search all classes in package
-			if (clsPkg.equals(rawFullPkg) || clsPkg.startsWith(rawFullPkgDot)) {
-				toUpdate.add(cls);
-				// also include all usages (for import fix)
-				toUpdate.addAll(cls.getUseIn());
-			}
 		}
 	}
 
@@ -323,11 +236,15 @@ public class RenameDialog extends JDialog {
 
 	private void initUI() {
 		JLabel lbl = new JLabel(NLS.str("popup.rename"));
-		JLabel nodeLabel = NodeLabel.longName(node);
+		NodeLabel nodeLabel = new NodeLabel(node.getTitle());
+		nodeLabel.setIcon(node.getIcon());
+		if (node instanceof JNode) {
+			nodeLabel.disableHtml(((JNode) node).disableHtml());
+		}
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);
-		renameField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> checkNewName()));
+		renameField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> checkNewName(renameField.getText())));
 		renameField.addActionListener(e -> rename());
 		new TextStandardActions(renameField);
 

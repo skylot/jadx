@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.JavaPackage;
 import jadx.core.dex.info.PackageInfo;
 
 public class PackageNode implements IPackageUpdate, IDexNode, Comparable<PackageNode> {
@@ -18,6 +19,8 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 	private final List<ClassNode> classes = new ArrayList<>();
 
 	private PackageInfo aliasPkgInfo;
+
+	private JavaPackage javaNode;
 
 	public static PackageNode getForClass(RootNode root, String fullPkg, ClassNode cls) {
 		PackageNode pkg = getOrBuild(root, fullPkg);
@@ -144,6 +147,10 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 		return !Objects.equals(pkgInfo.getParentPkg(), aliasPkgInfo.getParentPkg());
 	}
 
+	public void removeAlias() {
+		aliasPkgInfo = pkgInfo;
+	}
+
 	public PackageNode getParentPkg() {
 		return parentPkg;
 	}
@@ -166,6 +173,14 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 
 	public List<ClassNode> getClasses() {
 		return classes;
+	}
+
+	public JavaPackage getJavaNode() {
+		return javaNode;
+	}
+
+	public void setJavaNode(JavaPackage javaNode) {
+		this.javaNode = javaNode;
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +44,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
@@ -444,25 +444,7 @@ public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 	}
 
 	public List<JavaPackage> getPackages() {
-		List<JavaClass> classList = getClasses();
-		if (classList.isEmpty()) {
-			return Collections.emptyList();
-		}
-		Map<String, List<JavaClass>> map = new HashMap<>();
-		for (JavaClass javaClass : classList) {
-			String pkg = javaClass.getPackage();
-			List<JavaClass> clsList = map.computeIfAbsent(pkg, k -> new ArrayList<>());
-			clsList.add(javaClass);
-		}
-		List<JavaPackage> packages = new ArrayList<>(map.size());
-		for (Map.Entry<String, List<JavaClass>> entry : map.entrySet()) {
-			packages.add(new JavaPackage(entry.getKey(), entry.getValue()));
-		}
-		Collections.sort(packages);
-		for (JavaPackage pkg : packages) {
-			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName, String.CASE_INSENSITIVE_ORDER));
-		}
-		return Collections.unmodifiableList(packages);
+		return Utils.collectionMap(root.getPackages(), this::convertPackageNode);
 	}
 
 	public int getErrorsCount() {
@@ -543,6 +525,26 @@ public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 			mth.setJavaNode(javaMethod);
 		}
 		return javaMethod;
+	}
+
+	@ApiStatus.Internal
+	synchronized JavaPackage convertPackageNode(PackageNode pkg) {
+		JavaPackage foundPkg = pkg.getJavaNode();
+		if (foundPkg != null) {
+			return foundPkg;
+		}
+		List<JavaClass> clsList = Utils.collectionMap(pkg.getClasses(), this::convertClassNode);
+		int subPkgsCount = pkg.getSubPackages().size();
+		List<JavaPackage> subPkgs = subPkgsCount == 0 ? Collections.emptyList() : new ArrayList<>(subPkgsCount);
+		JavaPackage javaPkg = new JavaPackage(pkg, clsList, subPkgs);
+		if (subPkgsCount != 0) {
+			// add subpackages after parent to avoid endless recursion
+			for (PackageNode subPackage : pkg.getSubPackages()) {
+				subPkgs.add(convertPackageNode(subPackage));
+			}
+		}
+		pkg.setJavaNode(javaPkg);
+		return javaPkg;
 	}
 
 	@Nullable

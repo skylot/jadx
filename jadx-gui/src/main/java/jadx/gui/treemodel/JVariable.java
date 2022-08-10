@@ -1,12 +1,21 @@
 package jadx.gui.treemodel;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.swing.Icon;
 
 import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.impl.JadxCodeRef;
+import jadx.api.data.impl.JadxCodeRename;
+import jadx.api.data.impl.JadxNodeRef;
+import jadx.core.deobf.NameMapper;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 
-public class JVariable extends JNode {
+public class JVariable extends JNode implements JRenameNode {
 	private static final long serialVersionUID = -3002100457834453783L;
 
 	private final JMethod jMth;
@@ -76,5 +85,34 @@ public class JVariable extends JNode {
 	@Override
 	public boolean canRename() {
 		return var.getName() != null;
+	}
+
+	@Override
+	public String getTitle() {
+		return makeLongStringHtml();
+	}
+
+	@Override
+	public boolean isValidName(String newName) {
+		return NameMapper.isValidIdentifier(newName);
+	}
+
+	@Override
+	public ICodeRename buildCodeRename(String newName, Set<ICodeRename> renames) {
+		return new JadxCodeRename(JadxNodeRef.forMth(var.getMth()), JadxCodeRef.forVar(var), newName);
+	}
+
+	@Override
+	public void removeAlias() {
+		var.removeAlias();
+	}
+
+	@Override
+	public void addUpdateNodes(List<JavaNode> toUpdate) {
+		toUpdate.add(var.getMth());
+	}
+
+	@Override
+	public void reload(MainWindow mainWindow) {
 	}
 }

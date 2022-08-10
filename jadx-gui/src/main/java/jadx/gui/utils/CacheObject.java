@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JavaClass;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 public class CacheObject {
 
@@ -17,6 +18,7 @@ public class CacheObject {
 	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
 
 	private List<List<JavaClass>> decompileBatches;
+	private PackageHelper packageHelper;
 
 	private volatile boolean fullDecompilationFinished;
 
@@ -29,6 +31,7 @@ public class CacheObject {
 		jNodeCache = new JNodeCache();
 		lastSearchOptions = new HashMap<>();
 		decompileBatches = null;
+		packageHelper = null;
 		fullDecompilationFinished = false;
 	}
 
@@ -55,6 +58,14 @@ public class CacheObject {
 
 	public void setDecompileBatches(List<List<JavaClass>> decompileBatches) {
 		this.decompileBatches = decompileBatches;
+	}
+
+	public PackageHelper getPackageHelper() {
+		return packageHelper;
+	}
+
+	public void setPackageHelper(PackageHelper packageHelper) {
+		this.packageHelper = packageHelper;
 	}
 
 	public boolean isFullDecompilationFinished() {
