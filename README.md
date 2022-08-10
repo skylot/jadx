@@ -102,6 +102,7 @@ options:
   --add-debug-lines                   - add comments with debug line numbers if available
   --no-inline-anonymous               - disable anonymous classes inline
   --no-inline-methods                 - disable methods inline
+  --no-finally                        - don't extract finally block
   --no-replace-consts                 - don't replace constant value with matching constant field
   --escape-unicode                    - escape non latin characters in strings (with \u)
   --respect-bytecode-access-modifiers - don't change original access modifiers

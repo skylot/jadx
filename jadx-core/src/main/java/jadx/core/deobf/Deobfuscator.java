@@ -428,7 +428,9 @@ public class Deobfuscator {
 			return "Enum";
 		}
 		String result = "";
-		if (cls.getAccessFlags().isAbstract()) {
+		if (cls.getAccessFlags().isInterface()) {
+			result += "Interface";
+		} else if (cls.getAccessFlags().isAbstract()) {
 			result += "Abstract";
 		}
 

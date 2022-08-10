@@ -14,6 +14,7 @@ import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 
@@ -84,10 +85,10 @@ public class JMethod extends JNode {
 
 		OverlayIcon overIcon = new OverlayIcon(icon);
 		if (accessFlags.isFinal()) {
-			overIcon.add(UiUtils.ICON_FINAL);
+			overIcon.add(Icons.FINAL);
 		}
 		if (accessFlags.isStatic()) {
-			overIcon.add(UiUtils.ICON_STATIC);
+			overIcon.add(Icons.STATIC);
 		}
 
 		return overIcon;

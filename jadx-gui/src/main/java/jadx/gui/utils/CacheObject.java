@@ -1,11 +1,13 @@
 package jadx.gui.utils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.JavaClass;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.dialog.SearchDialog;
@@ -19,6 +21,8 @@ public class CacheObject {
 	private JRoot jRoot;
 	private JadxSettings settings;
 
+	private List<List<JavaClass>> decompileBatches;
+
 	public CacheObject() {
 		reset();
 	}
@@ -29,6 +33,7 @@ public class CacheObject {
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
 		lastSearchOptions = new HashMap<>();
+		decompileBatches = null;
 	}
 
 	@Nullable
@@ -62,5 +67,13 @@ public class CacheObject {
 
 	public void setJRoot(JRoot jRoot) {
 		this.jRoot = jRoot;
+	}
+
+	public @Nullable List<List<JavaClass>> getDecompileBatches() {
+		return decompileBatches;
+	}
+
+	public void setDecompileBatches(List<List<JavaClass>> decompileBatches) {
+		this.decompileBatches = decompileBatches;
 	}
 }

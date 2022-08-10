@@ -264,21 +264,6 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
-	public boolean canReorderRecursive() {
-		if (!canReorder()) {
-			return false;
-		}
-		for (InsnArg arg : this.getArguments()) {
-			if (arg.isInsnWrap()) {
-				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-				if (!wrapInsn.canReorderRecursive()) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
 	public boolean containsWrappedInsn() {
 		for (InsnArg arg : this.getArguments()) {
 			if (arg.isInsnWrap()) {

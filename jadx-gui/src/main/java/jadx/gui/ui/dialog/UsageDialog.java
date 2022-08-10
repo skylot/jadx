@@ -1,7 +1,6 @@
 package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -83,6 +82,15 @@ public class UsageDialog extends CommonSearchDialog {
 			for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
 				map.put(mth, mth.getUseIn());
 			}
+		} else if (node instanceof JClass) {
+			JavaClass javaCls = ((JClass) node).getCls();
+			map.put(javaCls, javaCls.getUseIn());
+			// add constructors usage into class usage
+			for (JavaMethod javaMth : javaCls.getMethods()) {
+				if (javaMth.isConstructor()) {
+					map.put(javaMth, javaMth.getUseIn());
+				}
+			}
 		} else {
 			JavaNode javaNode = node.getJavaNode();
 			map.put(javaNode, javaNode.getUseIn());
@@ -123,8 +131,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 		Collections.sort(usageList);
 		resultsModel.addAll(usageList);
-		// TODO: highlight only needed node usage
-		setHighlightText(null);
+		updateHighlightContext(node.getName(), true, false);
 		resultsTable.initColumnWidth();
 		resultsTable.updateTable();
 		updateProgressLabel(true);
@@ -154,10 +161,13 @@ public class UsageDialog extends CommonSearchDialog {
 		JPanel resultsPanel = initResultsTable();
 		JPanel buttonPane = initButtonsPanel();
 
-		Container contentPane = getContentPane();
-		contentPane.add(searchPane, BorderLayout.PAGE_START);
-		contentPane.add(resultsPanel, BorderLayout.CENTER);
-		contentPane.add(buttonPane, BorderLayout.PAGE_END);
+		JPanel contentPanel = new JPanel();
+		contentPanel.setLayout(new BorderLayout(5, 5));
+		contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		contentPanel.add(searchPane, BorderLayout.PAGE_START);
+		contentPanel.add(resultsPanel, BorderLayout.CENTER);
+		contentPanel.add(buttonPane, BorderLayout.PAGE_END);
+		getContentPane().add(contentPanel);
 
 		pack();
 		setSize(800, 500);

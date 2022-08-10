@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -28,6 +29,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InsnList;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 
@@ -376,6 +378,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	 * 'Finally' instructions can start in the middle of the first block.
 	 */
 	private static InsnsSlice isStartBlock(BlockNode dupBlock, BlockNode finallyBlock, FinallyExtractInfo extractInfo) {
+		extractInfo.setCurDupSlice(null);
 		List<InsnNode> dupInsns = dupBlock.getInstructions();
 		List<InsnNode> finallyInsns = finallyBlock.getInstructions();
 		int dupSize = dupInsns.size();
@@ -386,7 +389,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		int startPos;
 		int endPos = 0;
 		if (dupSize == finSize) {
-			if (!checkInsns(dupInsns, finallyInsns, 0)) {
+			if (!checkInsns(extractInfo, dupInsns, finallyInsns, 0)) {
 				return null;
 			}
 			startPos = 0;
@@ -394,11 +397,11 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			// dupSize > finSize
 			startPos = dupSize - finSize;
 			// fast check from end of block
-			if (!checkInsns(dupInsns, finallyInsns, startPos)) {
+			if (!checkInsns(extractInfo, dupInsns, finallyInsns, startPos)) {
 				// search start insn
 				boolean found = false;
 				for (int i = 1; i < startPos; i++) {
-					if (checkInsns(dupInsns, finallyInsns, i)) {
+					if (checkInsns(extractInfo, dupInsns, finallyInsns, i)) {
 						startPos = i;
 						endPos = finSize + i;
 						found = true;
@@ -414,6 +417,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		// put instructions into slices
 		boolean complete;
 		InsnsSlice slice = new InsnsSlice();
+		extractInfo.setCurDupSlice(slice);
 		int endIndex;
 		if (endPos != 0) {
 			endIndex = endPos + 1;
@@ -453,11 +457,12 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		return slice;
 	}
 
-	private static boolean checkInsns(List<InsnNode> remInsns, List<InsnNode> finallyInsns, int delta) {
+	private static boolean checkInsns(FinallyExtractInfo extractInfo, List<InsnNode> dupInsns, List<InsnNode> finallyInsns, int delta) {
+		extractInfo.setCurDupInsns(dupInsns, delta);
 		for (int i = finallyInsns.size() - 1; i >= 0; i--) {
 			InsnNode startInsn = finallyInsns.get(i);
-			InsnNode remInsn = remInsns.get(delta + i);
-			if (!sameInsns(remInsn, startInsn)) {
+			InsnNode dupInsn = dupInsns.get(delta + i);
+			if (!sameInsns(extractInfo, dupInsn, startInsn)) {
 				return false;
 			}
 		}
@@ -509,8 +514,9 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		if (dupInsnCount < finallyInsnCount) {
 			return false;
 		}
+		extractInfo.setCurDupInsns(dupInsns, 0);
 		for (int i = 0; i < finallyInsnCount; i++) {
-			if (!sameInsns(dupInsns.get(i), finallyInsns.get(i))) {
+			if (!sameInsns(extractInfo, dupInsns.get(i), finallyInsns.get(i))) {
 				return false;
 			}
 		}
@@ -524,25 +530,84 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean sameInsns(InsnNode remInsn, InsnNode fInsn) {
-		if (!remInsn.isSame(fInsn)) {
+	private static boolean sameInsns(FinallyExtractInfo extractInfo, InsnNode dupInsn, InsnNode fInsn) {
+		if (!dupInsn.isSame(fInsn)) {
 			return false;
 		}
 		// TODO: check instance arg in ConstructorInsn
-		// TODO: compare literals
-		for (int i = 0; i < remInsn.getArgsCount(); i++) {
-			InsnArg remArg = remInsn.getArg(i);
+		for (int i = 0; i < dupInsn.getArgsCount(); i++) {
+			InsnArg dupArg = dupInsn.getArg(i);
 			InsnArg fArg = fInsn.getArg(i);
-			if (remArg.isRegister() != fArg.isRegister()) {
+			if (!isSameArgs(extractInfo, dupArg, fArg)) {
 				return false;
 			}
-			boolean remConst = remArg.isConst();
-			if (remConst != fArg.isConst()) {
+		}
+		return true;
+	}
+
+	@SuppressWarnings("RedundantIfStatement")
+	private static boolean isSameArgs(FinallyExtractInfo extractInfo, InsnArg dupArg, InsnArg fArg) {
+		boolean isReg = dupArg.isRegister();
+		if (isReg != fArg.isRegister()) {
+			return false;
+		}
+		if (isReg) {
+			RegisterArg dupReg = (RegisterArg) dupArg;
+			RegisterArg fReg = (RegisterArg) fArg;
+			if (!dupReg.sameCodeVar(fReg)
+					&& !sameDebugInfo(dupReg, fReg)
+					&& assignedOutsideHandler(extractInfo, dupReg, fReg)
+					&& assignInsnDifferent(dupReg, fReg)) {
 				return false;
 			}
-			if (remConst && !remArg.isSameConst(fArg)) {
-				return false;
-			}
+		}
+		boolean remConst = dupArg.isConst();
+		if (remConst != fArg.isConst()) {
+			return false;
+		}
+		if (remConst && !dupArg.isSameConst(fArg)) {
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean sameDebugInfo(RegisterArg dupReg, RegisterArg fReg) {
+		RegDebugInfoAttr fDbgInfo = fReg.get(AType.REG_DEBUG_INFO);
+		RegDebugInfoAttr dupDbgInfo = dupReg.get(AType.REG_DEBUG_INFO);
+		if (fDbgInfo == null || dupDbgInfo == null) {
+			return false;
+		}
+		return dupDbgInfo.equals(fDbgInfo);
+	}
+
+	private static boolean assignInsnDifferent(RegisterArg dupReg, RegisterArg fReg) {
+		InsnNode assignInsn = fReg.getAssignInsn();
+		InsnNode dupAssign = dupReg.getAssignInsn();
+		if (assignInsn == null || dupAssign == null) {
+			return true;
+		}
+		if (!assignInsn.isSame(dupAssign)) {
+			return true;
+		}
+		if (assignInsn.isConstInsn() && dupAssign.isConstInsn()) {
+			return !assignInsn.isDeepEquals(dupAssign);
+		}
+		return false;
+	}
+
+	@SuppressWarnings("RedundantIfStatement")
+	private static boolean assignedOutsideHandler(FinallyExtractInfo extractInfo, RegisterArg dupReg, RegisterArg fReg) {
+		if (InsnList.contains(extractInfo.getFinallyInsnsSlice().getInsnsList(), fReg.getAssignInsn())) {
+			return false;
+		}
+		InsnNode dupAssign = dupReg.getAssignInsn();
+		InsnsSlice curDupSlice = extractInfo.getCurDupSlice();
+		if (curDupSlice != null && InsnList.contains(curDupSlice.getInsnsList(), dupAssign)) {
+			return false;
+		}
+		List<InsnNode> curDupInsns = extractInfo.getCurDupInsns();
+		if (Utils.notEmpty(curDupInsns) && InsnList.contains(curDupInsns, dupAssign, extractInfo.getCurDupInsnsOffset())) {
+			return false;
 		}
 		return true;
 	}

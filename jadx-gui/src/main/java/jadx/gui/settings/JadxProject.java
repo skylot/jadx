@@ -43,6 +43,8 @@ public class JadxProject {
 	private static final int CURRENT_PROJECT_VERSION = 1;
 	public static final String PROJECT_EXTENSION = "jadx";
 
+	private static final int SEARCH_HISTORY_LIMIT = 30;
+
 	private final transient MainWindow mainWindow;
 
 	private transient String name = "New Project";
@@ -135,6 +137,9 @@ public class JadxProject {
 				.map(TabStateViewAdapter::build)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
+		if (tabStateList.isEmpty()) {
+			return;
+		}
 		boolean dataChanged;
 		dataChanged = data.setOpenTabs(tabStateList);
 		dataChanged |= data.setActiveTab(activeTab);
@@ -205,6 +210,27 @@ public class JadxProject {
 			data.setEnableLiveReload(newValue);
 			changed();
 		}
+	}
+
+	public List<String> getSearchHistory() {
+		return data.getSearchHistory();
+	}
+
+	public void addToSearchHistory(String str) {
+		if (str == null || str.isEmpty()) {
+			return;
+		}
+		List<String> list = data.getSearchHistory();
+		if (!list.isEmpty() && list.get(0).equals(str)) {
+			return;
+		}
+		list.remove(str);
+		list.add(0, str);
+		if (list.size() > SEARCH_HISTORY_LIMIT) {
+			list.remove(list.size() - 1);
+		}
+		data.setSearchHistory(list);
+		changed();
 	}
 
 	private void changed() {
