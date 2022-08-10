@@ -8,6 +8,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 
 public class CleanRegions extends AbstractVisitor {
@@ -41,6 +42,13 @@ public class CleanRegions extends AbstractVisitor {
 			if (container instanceof BlockNode) {
 				BlockNode block = (BlockNode) container;
 				return block.getInstructions().isEmpty();
+			}
+			if (container instanceof LoopRegion) {
+				LoopRegion loopRegion = (LoopRegion) container;
+				if (loopRegion.isEndless()) {
+					// keep empty endless loops
+					return false;
+				}
 			}
 			if (container instanceof IRegion) {
 				List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();

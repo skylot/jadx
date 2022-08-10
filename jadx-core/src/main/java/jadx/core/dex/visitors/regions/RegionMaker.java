@@ -464,7 +464,7 @@ public class RegionMaker {
 		BlockNode exitEnd = BlockUtils.followEmptyPath(exit);
 		List<LoopInfo> loops = exitEnd.getAll(AType.LOOP);
 		for (LoopInfo loopAtEnd : loops) {
-			if (loopAtEnd != loop) {
+			if (loopAtEnd != loop && loop.hasParent(loopAtEnd)) {
 				insertEdge = exitEdge;
 				confirm = true;
 				break;

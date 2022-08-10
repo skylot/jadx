@@ -391,7 +391,8 @@ public class BlockSplitter extends AbstractVisitor {
 				&& block.getSuccessors().size() <= 1
 				&& !block.getPredecessors().isEmpty()
 				&& !block.contains(AFlag.MTH_ENTER_BLOCK)
-				&& !block.contains(AFlag.MTH_EXIT_BLOCK);
+				&& !block.contains(AFlag.MTH_EXIT_BLOCK)
+				&& !block.getSuccessors().contains(block); // no self loop
 	}
 
 	static void collectSuccessors(BlockNode startBlock, BlockNode methodEnterBlock, Set<BlockNode> toRemove) {
