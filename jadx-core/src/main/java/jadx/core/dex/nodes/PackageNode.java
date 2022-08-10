@@ -144,6 +144,10 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 		return !Objects.equals(pkgInfo.getParentPkg(), aliasPkgInfo.getParentPkg());
 	}
 
+	public void removeAlias() {
+		aliasPkgInfo = pkgInfo;
+	}
+
 	public PackageNode getParentPkg() {
 		return parentPkg;
 	}

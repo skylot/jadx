@@ -11,6 +11,7 @@ import jadx.api.JavaClass;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 public class CacheObject {
 
@@ -22,6 +23,7 @@ public class CacheObject {
 	private JadxSettings settings;
 
 	private List<List<JavaClass>> decompileBatches;
+	private PackageHelper packageHelper;
 
 	public CacheObject() {
 		reset();
@@ -34,6 +36,7 @@ public class CacheObject {
 		jNodeCache = new JNodeCache();
 		lastSearchOptions = new HashMap<>();
 		decompileBatches = null;
+		packageHelper = null;
 	}
 
 	@Nullable
@@ -75,5 +78,13 @@ public class CacheObject {
 
 	public void setDecompileBatches(List<List<JavaClass>> decompileBatches) {
 		this.decompileBatches = decompileBatches;
+	}
+
+	public PackageHelper getPackageHelper() {
+		return packageHelper;
+	}
+
+	public void setPackageHelper(PackageHelper packageHelper) {
+		this.packageHelper = packageHelper;
 	}
 }

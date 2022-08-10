@@ -295,6 +295,9 @@ public class RootNode implements IRootNode {
 			}
 		}
 		classes.forEach(ClassNode::updateParentClass);
+		for (PackageNode pkg : packages) {
+			pkg.getClasses().removeIf(ClassNode::isInner);
+		}
 	}
 
 	public void mergePasses(Map<JadxPassType, List<JadxPass>> customPasses) {
