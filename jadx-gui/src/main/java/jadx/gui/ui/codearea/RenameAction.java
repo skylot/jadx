@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JRenameNode;
 import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.NLS;
 
@@ -17,11 +18,17 @@ public final class RenameAction extends JNodeAction {
 
 	@Override
 	public boolean isActionEnabled(JNode node) {
-		return node != null && node.canRename();
+		if (node == null) {
+			return false;
+		}
+		if (node instanceof JRenameNode) {
+			return ((JRenameNode) node).canRename();
+		}
+		return false;
 	}
 
 	@Override
 	public void runAction(JNode node) {
-		RenameDialog.rename(getCodeArea().getMainWindow(), getCodeArea().getNode(), node);
+		RenameDialog.rename(getCodeArea().getMainWindow(), getCodeArea().getNode(), (JRenameNode) node);
 	}
 }

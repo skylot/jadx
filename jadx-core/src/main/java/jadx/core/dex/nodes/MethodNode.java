@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.core.nodes.IMethodNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
@@ -21,7 +22,9 @@ import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
@@ -40,7 +43,8 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
-public class MethodNode extends NotificationAttrNode implements IMethodDetails, ILoadable, ICodeNode, Comparable<MethodNode> {
+public class MethodNode extends NotificationAttrNode implements IMethodNode,
+		IMethodDetails, ILoadable, ICodeNode, Comparable<MethodNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -590,8 +594,20 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		noCode = true;
 	}
 
+	@Override
+	public void rename(String newName) {
+		MethodOverrideAttr overrideAttr = get(AType.METHOD_OVERRIDE);
+		if (overrideAttr != null) {
+			for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
+				relatedMth.getMethodInfo().setAlias(newName);
+			}
+		} else {
+			mthInfo.setAlias(newName);
+		}
+	}
+
 	/**
-	 * Calculate instructions count at currect stage
+	 * Calculate instructions count at current stage
 	 */
 	public long countInsns() {
 		if (instructions != null) {

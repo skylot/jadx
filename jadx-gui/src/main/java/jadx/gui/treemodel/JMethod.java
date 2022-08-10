@@ -2,26 +2,33 @@ package jadx.gui.treemodel;
 
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.impl.JadxCodeRename;
+import jadx.api.data.impl.JadxNodeRef;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 
-public class JMethod extends JNode {
+public class JMethod extends JNode implements JRenameNode {
 	private static final long serialVersionUID = 3834526867464663751L;
-
-	private static final ImageIcon ICON_METHOD = UiUtils.openSvgIcon("nodes/method");
 	private static final ImageIcon ICON_METHOD_ABSTRACT = UiUtils.openSvgIcon("nodes/abstractMethod");
 	private static final ImageIcon ICON_METHOD_PRIVATE = UiUtils.openSvgIcon("nodes/privateMethod");
 	private static final ImageIcon ICON_METHOD_PROTECTED = UiUtils.openSvgIcon("nodes/protectedMethod");
@@ -63,7 +70,7 @@ public class JMethod extends JNode {
 	@Override
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
-		Icon icon = ICON_METHOD;
+		Icon icon = Icons.METHOD;
 		if (accessFlags.isAbstract()) {
 			icon = ICON_METHOD_ABSTRACT;
 		}
@@ -100,11 +107,8 @@ public class JMethod extends JNode {
 	}
 
 	@Override
-	public boolean canRename() {
-		if (mth.isClassInit()) {
-			return false;
-		}
-		return !mth.getMethodNode().contains(AFlag.DONT_RENAME);
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return RenameDialog.buildRenamePopup(mainWindow, this);
 	}
 
 	String makeBaseString() {
@@ -131,6 +135,65 @@ public class JMethod extends JNode {
 	@Override
 	public String getName() {
 		return mth.getName();
+	}
+
+	@Override
+	public String getTitle() {
+		return makeLongStringHtml();
+	}
+
+	@Override
+	public boolean canRename() {
+		if (mth.isClassInit()) {
+			return false;
+		}
+		return !mth.getMethodNode().contains(AFlag.DONT_RENAME);
+	}
+
+	@Override
+	public JRenameNode replace() {
+		if (mth.isConstructor()) {
+			// rename class instead constructor
+			return jParent;
+		}
+		return this;
+	}
+
+	@Override
+	public ICodeRename buildCodeRename(String newName, Set<ICodeRename> renames) {
+		List<JavaMethod> relatedMethods = mth.getOverrideRelatedMethods();
+		if (!relatedMethods.isEmpty()) {
+			for (JavaMethod relatedMethod : relatedMethods) {
+				renames.remove(new JadxCodeRename(JadxNodeRef.forMth(relatedMethod), ""));
+			}
+		}
+		return new JadxCodeRename(JadxNodeRef.forMth(mth), newName);
+	}
+
+	@Override
+	public boolean isValidName(String newName) {
+		return NameMapper.isValidIdentifier(newName);
+	}
+
+	@Override
+	public void removeAlias() {
+		mth.removeAlias();
+	}
+
+	@Override
+	public void addUpdateNodes(List<JavaNode> toUpdate) {
+		toUpdate.add(mth);
+		toUpdate.addAll(mth.getUseIn());
+		List<JavaMethod> overrideRelatedMethods = mth.getOverrideRelatedMethods();
+		toUpdate.addAll(overrideRelatedMethods);
+		for (JavaMethod ovrdMth : overrideRelatedMethods) {
+			toUpdate.addAll(ovrdMth.getUseIn());
+		}
+	}
+
+	@Override
+	public void reload(MainWindow mainWindow) {
+		mainWindow.reloadTree();
 	}
 
 	@Override

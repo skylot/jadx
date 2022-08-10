@@ -145,4 +145,9 @@ public class UsageInfoVisitor extends AbstractVisitor {
 		mergeIntoMth.setUseIn(mergedUsage);
 		sourceMth.setUseIn(Collections.emptyList());
 	}
+
+	@Override
+	public String toString() {
+		return "UsageInfoVisitor";
+	}
 }

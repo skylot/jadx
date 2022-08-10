@@ -72,6 +72,10 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
+	public void removeAlias() {
+	}
+
+	@Override
 	public boolean isOwnCodeAnnotation(ICodeAnnotation ann) {
 		if (ann.getAnnType() == ICodeAnnotation.AnnType.VAR_REF) {
 			VarRef varRef = (VarRef) ann;

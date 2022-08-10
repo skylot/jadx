@@ -1,5 +1,6 @@
 package jadx.tests.integration.names;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -42,16 +43,11 @@ public class TestReservedPackageNames extends SmaliTest {
 
 	@Test
 	public void testRenameDisabled() {
-		args.setRenameCaseSensitive(false);
-		args.setRenameValid(false);
-		args.setRenamePrintable(false);
-
 		disableCompilation();
-
-		List<ClassNode> clsList = loadFromSmaliFiles();
-		for (ClassNode cls : clsList) {
+		args.setRenameFlags(Collections.emptySet());
+		for (ClassNode cls : loadFromSmaliFiles()) {
 			String code = cls.getCode().toString();
-			if (cls.getShortName().equals("A")) {
+			if (cls.getAlias().equals("A")) {
 				assertThat(code, containsString("package do.if;"));
 			}
 		}

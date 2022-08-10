@@ -1,0 +1,5 @@
+val jadx = getJadxInstance()
+
+jadx.afterLoad {
+	log.info { "Hello from jadx script!" }
+}

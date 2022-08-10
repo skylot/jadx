@@ -25,6 +25,6 @@ public class DocumentUpdateListener implements DocumentListener {
 
 	@Override
 	public void changedUpdate(DocumentEvent event) {
-		this.listener.accept(event);
+		// ignore attributes change
 	}
 }

@@ -8,6 +8,7 @@ import jadx.api.JavaClass;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.settings.data.ViewPoint;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
@@ -52,9 +53,15 @@ public class TabStateViewAdapter {
 					return mw.getCacheObject().getNodeCache().makeFrom(javaClass);
 				}
 				break;
+
 			case "resource":
 				JResource tmpNode = new JResource(null, tvs.getTabPath(), JResource.JResType.FILE);
 				return mw.getTreeRoot().searchNode(tmpNode); // equals method in JResource check only name
+
+			case "script":
+				return mw.getTreeRoot()
+						.followStaticPath("JInputs", "JInputScripts")
+						.searchNode(node -> node instanceof JInputScript && node.getName().equals(tvs.getTabPath()));
 		}
 		return null;
 	}
@@ -67,6 +74,11 @@ public class TabStateViewAdapter {
 		}
 		if (node instanceof JResource) {
 			tvs.setType("resource");
+			tvs.setTabPath(node.getName());
+			return true;
+		}
+		if (node instanceof JInputScript) {
+			tvs.setType("script");
 			tvs.setTabPath(node.getName());
 			return true;
 		}

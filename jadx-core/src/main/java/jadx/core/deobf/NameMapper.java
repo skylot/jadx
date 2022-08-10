@@ -11,7 +11,7 @@ import static jadx.core.utils.StringUtils.notEmpty;
 
 public class NameMapper {
 
-	private static final Pattern VALID_JAVA_IDENTIFIER = Pattern.compile(
+	public static final Pattern VALID_JAVA_IDENTIFIER = Pattern.compile(
 			"\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
 	private static final Pattern VALID_JAVA_FULL_IDENTIFIER = Pattern.compile(

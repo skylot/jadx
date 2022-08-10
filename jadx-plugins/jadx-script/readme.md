@@ -1,0 +1,29 @@
+## JADX scripting support
+
+NOTE: work still in progress!
+
+### Examples
+
+Check script examples in `examples/scripts/` (start with `hello`)
+
+### Script usage
+
+#### In jadx-cli
+
+Just add script file as input
+
+#### In jadx-gui
+
+1. Add script file to the project
+2. Script will appear in `Inputs/Scripts` section
+3. After script change you need to reload project (`Reload` button in toolbar or `F5`)
+4. You can enable `Live reload` option in `File` menu to reload project automatically on scripts change
+
+### Script development
+
+Jadx-gui for now don't support autocompletion, errors highlighting, docs and code navigation
+so best approach for script editing is to open jadx project in IntelliJ Idea and write your script in `examples/scripts/` folder.
+Also, this will allow to debug your scripts: for that you need to create run configuration for jadx-cli or jadx-gui
+add breakpoints and next run it in debug mode (jadx-gui is preferred because of faster script reload).
+
+Script logs and compilation errors will appear in `Log viewer` (separate script log will be added later)

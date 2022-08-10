@@ -42,7 +42,6 @@ public class JadxPluginManager {
 		ServiceLoader<JadxPlugin> jadxPlugins = ServiceLoader.load(JadxPlugin.class);
 		for (JadxPlugin plugin : jadxPlugins) {
 			addPlugin(plugin);
-			LOG.debug("Loading plugin: {}", plugin.getPluginInfo().getPluginId());
 		}
 		resolve();
 	}
@@ -56,6 +55,7 @@ public class JadxPluginManager {
 
 	private PluginData addPlugin(JadxPlugin plugin) {
 		PluginData pluginData = new PluginData(plugin, plugin.getPluginInfo());
+		LOG.debug("Loading plugin: {}", pluginData.getPluginId());
 		if (!allPlugins.add(pluginData)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginData + ", class " + plugin.getClass());
 		}
@@ -112,16 +112,18 @@ public class JadxPluginManager {
 	}
 
 	public List<JadxInputPlugin> getInputPlugins() {
-		return resolvedPlugins.stream()
-				.filter(JadxInputPlugin.class::isInstance)
-				.map(JadxInputPlugin.class::cast)
-				.collect(Collectors.toList());
+		return getPluginsWithType(JadxInputPlugin.class);
 	}
 
 	public List<JadxPluginOptions> getPluginsWithOptions() {
+		return getPluginsWithType(JadxPluginOptions.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends JadxPlugin> List<T> getPluginsWithType(Class<T> type) {
 		return resolvedPlugins.stream()
-				.filter(JadxPluginOptions.class::isInstance)
-				.map(JadxPluginOptions.class::cast)
+				.filter(p -> type.isAssignableFrom(p.getClass()))
+				.map(p -> (T) p)
 				.collect(Collectors.toList());
 	}
 

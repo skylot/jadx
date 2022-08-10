@@ -85,4 +85,12 @@ public class JadxCodeRename implements ICodeRename {
 	public int hashCode() {
 		return 31 * getNodeRef().hashCode() + Objects.hashCode(getCodeRef());
 	}
+
+	@Override
+	public String toString() {
+		return "JadxCodeRename{" + nodeRef
+				+ ", codeRef=" + codeRef
+				+ ", newName='" + newName + '\''
+				+ '}';
+	}
 }

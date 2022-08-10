@@ -69,6 +69,7 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		return fieldInfo.getAlias();
 	}
 
+	@Override
 	public void rename(String alias) {
 		fieldInfo.setAlias(alias);
 	}

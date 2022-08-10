@@ -21,6 +21,7 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.core.nodes.IClassNode;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
@@ -54,13 +55,15 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
-public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
+public class ClassNode extends NotificationAttrNode
+		implements IClassNode, ILoadable, ICodeNode, IPackageUpdate, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final RootNode root;
 	private final IClassData clsData;
 
 	private final ClassInfo clsInfo;
+	private final PackageNode packageNode;
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
@@ -103,6 +106,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public ClassNode(RootNode root, IClassData cls) {
 		this.root = root;
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
+		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 		this.clsData = cls.copy();
 		initialLoad(clsData);
 	}
@@ -236,6 +240,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.fields = new ArrayList<>();
 		this.accessFlags = new AccessInfo(accessFlags, AFType.CLASS);
 		this.parentClass = this;
+		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 	}
 
 	private void initStaticValues(List<FieldNode> fields) {
@@ -565,6 +570,23 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		parentClass = this;
 	}
 
+	@Override
+	public void rename(String newName) {
+		clsInfo.changeShortName(newName);
+	}
+
+	@Override
+	public void onParentPackageUpdate(PackageNode updatedPkg) {
+		if (isInner()) {
+			return;
+		}
+		getClassInfo().changePkg(packageNode.getAliasPkgInfo().getFullName());
+	}
+
+	public PackageNode getPackageNode() {
+		return packageNode;
+	}
+
 	public ClassNode getTopParentClass() {
 		ClassNode parent = getParentClass();
 		return parent == this ? this : parent.getTopParentClass();
@@ -715,6 +737,15 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return clsInfo;
 	}
 
+	public String getName() {
+		return clsInfo.getShortName();
+	}
+
+	public String getAlias() {
+		return clsInfo.getAliasShortName();
+	}
+
+	@Deprecated
 	public String getShortName() {
 		return clsInfo.getAliasShortName();
 	}

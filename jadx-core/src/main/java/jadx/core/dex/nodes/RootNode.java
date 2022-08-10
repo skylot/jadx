@@ -2,6 +2,7 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -20,13 +21,21 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.api.core.nodes.IRootNode;
 import jadx.api.data.ICodeData;
+import jadx.api.impl.passes.DecompilePassWrapper;
+import jadx.api.impl.passes.PreparePassWrapper;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
+import jadx.api.plugins.pass.JadxPass;
+import jadx.api.plugins.pass.types.JadxDecompilePass;
+import jadx.api.plugins.pass.types.JadxPassType;
+import jadx.api.plugins.pass.types.JadxPreparePass;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.clsp.ClspGraph;
@@ -35,6 +44,7 @@ import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.nodes.utils.TypeUtils;
@@ -44,6 +54,7 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.PassMerge;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -54,7 +65,7 @@ import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class RootNode {
+public class RootNode implements IRootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final JadxArgs args;
@@ -76,6 +87,9 @@ public class RootNode {
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 	private List<ClassNode> classes = new ArrayList<>();
 
+	private final Map<String, PackageNode> pkgMap = new HashMap<>();
+	private final List<PackageNode> packages = new ArrayList<>();
+
 	private ClspGraph clsp;
 	@Nullable
 	private String appPackage;
@@ -83,16 +97,30 @@ public class RootNode {
 	private ClassNode appResClass;
 	private boolean isProto;
 
+	/**
+	 * Optional decompiler reference
+	 */
+	private @Nullable JadxDecompiler decompiler;
+
 	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
-		this.processClasses = new ProcessClass(this.getArgs());
+		this.processClasses = new ProcessClass(args);
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
 		this.isProto = args.getInputFiles().size() > 0 && args.getInputFiles().get(0).getName().toLowerCase().endsWith(".aab");
+	}
+
+	public void init() {
+		if (args.isDeobfuscationOn() || !args.getRenameFlags().isEmpty()) {
+			args.getAliasProvider().init(this);
+		}
+		if (args.isDeobfuscationOn()) {
+			args.getRenameCondition().init(this);
+		}
 	}
 
 	public void loadClasses(List<ILoadResult> loadedInputs) {
@@ -121,6 +149,9 @@ public class RootNode {
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		// move inner classes
 		initInnerClasses();
+
+		// sort packages
+		Collections.sort(packages);
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {
@@ -292,6 +323,18 @@ public class RootNode {
 			}
 		}
 		classes.forEach(ClassNode::updateParentClass);
+		for (PackageNode pkg : packages) {
+			pkg.getClasses().removeIf(ClassNode::isInner);
+		}
+	}
+
+	public void mergePasses(Map<JadxPassType, List<JadxPass>> customPasses) {
+		PassMerge.run(preDecompilePasses,
+				customPasses.get(JadxPreparePass.TYPE),
+				p -> new PreparePassWrapper((JadxPreparePass) p));
+		PassMerge.run(processClasses.getPasses(),
+				customPasses.get(JadxDecompilePass.TYPE),
+				p -> new DecompilePassWrapper((JadxDecompilePass) p));
 	}
 
 	public void runPreDecompileStage() {
@@ -311,7 +354,7 @@ public class RootNode {
 				DepthTraversal.visit(pass, cls);
 			}
 			if (debugEnabled) {
-				LOG.debug("{} time: {}ms", pass.getClass().getSimpleName(), System.currentTimeMillis() - start);
+				LOG.debug("Prepare pass: '{}' - {}ms", pass, System.currentTimeMillis() - start);
 			}
 		}
 	}
@@ -341,6 +384,34 @@ public class RootNode {
 			}
 		}
 		return notInnerClasses;
+	}
+
+	public List<PackageNode> getPackages() {
+		return packages;
+	}
+
+	public @Nullable PackageNode resolvePackage(String fullPkg) {
+		return pkgMap.get(fullPkg);
+	}
+
+	public @Nullable PackageNode resolvePackage(@Nullable PackageInfo pkgInfo) {
+		return pkgInfo == null ? null : pkgMap.get(pkgInfo.getFullName());
+	}
+
+	public void addPackage(PackageNode pkg) {
+		pkgMap.put(pkg.getPkgInfo().getFullName(), pkg);
+		packages.add(pkg);
+	}
+
+	/**
+	 * Update sub packages
+	 */
+	public void runPackagesUpdate() {
+		for (PackageNode pkg : getPackages()) {
+			if (pkg.isRoot()) {
+				pkg.updatePackages();
+			}
+		}
 	}
 
 	@Nullable
@@ -572,6 +643,14 @@ public class RootNode {
 
 	public JadxArgs getArgs() {
 		return args;
+	}
+
+	public void setDecompilerRef(JadxDecompiler jadxDecompiler) {
+		this.decompiler = jadxDecompiler;
+	}
+
+	public @Nullable JadxDecompiler getDecompiler() {
+		return decompiler;
 	}
 
 	public TypeUpdate getTypeUpdate() {

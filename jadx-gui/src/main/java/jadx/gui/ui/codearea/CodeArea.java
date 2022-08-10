@@ -99,6 +99,7 @@ public final class CodeArea extends AbstractCodeArea {
 		if (getText().isEmpty()) {
 			setText(getCodeInfo().getCodeStr());
 			setCaretPosition(0);
+			setLoaded();
 		}
 	}
 

@@ -231,4 +231,9 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		return validateInnerType(innerType);
 	}
+
+	@Override
+	public String toString() {
+		return "SignatureProcessor";
+	}
 }

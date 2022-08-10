@@ -72,10 +72,6 @@ public final class FieldInfo {
 		return declClass.makeRawFullName() + '.' + name + ':' + TypeGen.signature(type);
 	}
 
-	public boolean isRenamed() {
-		return !name.equals(alias);
-	}
-
 	public boolean equalsNameAndType(FieldInfo other) {
 		return name.equals(other.name) && type.equals(other.type);
 	}

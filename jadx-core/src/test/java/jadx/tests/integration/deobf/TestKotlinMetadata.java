@@ -43,7 +43,6 @@ public class TestKotlinMetadata extends SmaliTest {
 	private void prepareArgs(boolean parseKotlinMetadata) {
 		enableDeobfuscation();
 		args.setDeobfuscationMinLength(100); // rename everything
-		args.setDeobfuscationForceSave(true);
 		getArgs().setParseKotlinMetadata(parseKotlinMetadata);
 		disableCompilation();
 	}

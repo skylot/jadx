@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -258,20 +259,6 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JCheckBox deobfSourceAlias = new JCheckBox();
-		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
-		deobfSourceAlias.addItemListener(e -> {
-			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
-		JCheckBox deobfKotlinMetadata = new JCheckBox();
-		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
-		deobfKotlinMetadata.addItemListener(e -> {
-			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
 		JComboBox<ResourceNameSource> resNamesSource = new JComboBox<>(ResourceNameSource.values());
 		resNamesSource.setSelectedItem(settings.getResourceNameSource());
 		resNamesSource.addActionListener(e -> {
@@ -295,14 +282,11 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
 		deobfGroup.addRow(NLS.str("preferences.generated_renames_mapping_file_mode"), generatedRenamesMappingFileModeCB);
 		deobfGroup.end();
 
-		Collection<JComponent> connectedComponents =
-				Arrays.asList(minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);
+		Collection<JComponent> connectedComponents = Arrays.asList(minLenSpinner, maxLenSpinner);
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
@@ -330,10 +314,26 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox deobfSourceAlias = new JCheckBox();
+		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
+		deobfSourceAlias.addItemListener(e -> {
+			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox deobfKotlinMetadata = new JCheckBox();
+		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
+		deobfKotlinMetadata.addItemListener(e -> {
+			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
+		group.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
+		group.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		return group;
 	}
 
@@ -606,13 +606,12 @@ public class JadxSettingsWindow extends JDialog {
 			JadxPluginOptions optPlugin = (JadxPluginOptions) plugin;
 			for (OptionDescription opt : optPlugin.getOptionsDescriptions()) {
 				String title = "[" + pluginInfo.getPluginId() + "]  " + opt.description();
-				if (opt.values().isEmpty()) {
-					JTextField textField = new JTextField();
-					textField.getDocument().addDocumentListener(new DocumentUpdateListener(event -> {
-						settings.getPluginOptions().put(opt.name(), textField.getText());
-						needReload();
-					}));
-					pluginsGroup.addRow(title, textField);
+				if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
+					try {
+						pluginsGroup.addRow(title, getPluginOptionEditor(opt));
+					} catch (Exception e) {
+						LOG.error("Failed to add editor for plugin option: {}", opt.name(), e);
+					}
 				} else {
 					String curValue = settings.getPluginOptions().get(opt.name());
 					JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
@@ -626,6 +625,54 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		}
 		return pluginsGroup;
+	}
+
+	private JComponent getPluginOptionEditor(OptionDescription opt) {
+		String curValue = settings.getPluginOptions().get(opt.name());
+		String value = curValue == null ? opt.defaultValue() : curValue;
+
+		switch (opt.getType()) {
+			case STRING:
+				JTextField textField = new JTextField();
+				textField.setText(value == null ? "" : value);
+				textField.getDocument().addDocumentListener(new DocumentUpdateListener(event -> {
+					settings.getPluginOptions().put(opt.name(), textField.getText());
+					needReload();
+				}));
+				return textField;
+
+			case NUMBER:
+				JSpinner numberField = new JSpinner();
+				numberField.setValue(safeStringToInt(value, 0));
+				numberField.addChangeListener(e -> {
+					settings.getPluginOptions().put(opt.name(), numberField.getValue().toString());
+					needReload();
+				});
+				return numberField;
+
+			case BOOLEAN:
+				JCheckBox boolField = new JCheckBox();
+				boolField.setSelected(Objects.equals(value, "yes") || Objects.equals(value, "true"));
+				boolField.addItemListener(e -> {
+					boolean editorValue = e.getStateChange() == ItemEvent.SELECTED;
+					settings.getPluginOptions().put(opt.name(), editorValue ? "yes" : "no");
+					needReload();
+				});
+				return boolField;
+		}
+		return null;
+	}
+
+	private int safeStringToInt(String value, int defValue) {
+		if (value == null) {
+			return defValue;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {
+			LOG.warn("Failed parse string to int: {}", value, e);
+			return defValue;
+		}
 	}
 
 	private SettingsGroup makeOtherGroup() {

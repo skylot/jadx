@@ -1,24 +1,32 @@
 package jadx.gui.treemodel;
 
 import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaField;
 import jadx.api.JavaNode;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.impl.JadxCodeRename;
+import jadx.api.data.impl.JadxNodeRef;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
-import jadx.gui.utils.OverlayIcon;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.RenameDialog;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.UiUtils;
 
-public class JField extends JNode {
+public class JField extends JNode implements JRenameNode {
 	private static final long serialVersionUID = 1712572192106793359L;
 
-	private static final ImageIcon ICON_FLD_DEF = UiUtils.openSvgIcon("nodes/field");
 	private static final ImageIcon ICON_FLD_PRI = UiUtils.openSvgIcon("nodes/privateField");
 	private static final ImageIcon ICON_FLD_PRO = UiUtils.openSvgIcon("nodes/protectedField");
 	private static final ImageIcon ICON_FLD_PUB = UiUtils.openSvgIcon("nodes/publicField");
@@ -55,10 +63,45 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return RenameDialog.buildRenamePopup(mainWindow, this);
+	}
+
+	@Override
+	public String getTitle() {
+		return makeLongStringHtml();
+	}
+
+	@Override
+	public ICodeRename buildCodeRename(String newName, Set<ICodeRename> renames) {
+		return new JadxCodeRename(JadxNodeRef.forFld(field), newName);
+	}
+
+	@Override
+	public boolean isValidName(String newName) {
+		return NameMapper.isValidIdentifier(newName);
+	}
+
+	@Override
+	public void removeAlias() {
+		field.removeAlias();
+	}
+
+	@Override
+	public void addUpdateNodes(List<JavaNode> toUpdate) {
+		toUpdate.add(field);
+		toUpdate.addAll(field.getUseIn());
+	}
+
+	@Override
+	public void reload(MainWindow mainWindow) {
+		mainWindow.reloadTree();
+	}
+
+	@Override
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
-		OverlayIcon icon = UiUtils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);
-		return icon;
+		return UiUtils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, Icons.FIELD);
 	}
 
 	@Override

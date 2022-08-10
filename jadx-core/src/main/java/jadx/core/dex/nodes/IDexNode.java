@@ -1,6 +1,8 @@
 package jadx.core.dex.nodes;
 
-public interface IDexNode {
+import jadx.api.core.nodes.IRenameNode;
+
+public interface IDexNode extends IRenameNode {
 
 	String typeName();
 

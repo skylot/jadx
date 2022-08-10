@@ -27,6 +27,9 @@ import jadx.gui.utils.NLS;
 
 public class FileDialog {
 
+	private static final List<String> OPEN_FILES_EXTS = Arrays.asList(
+			"apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "jadx.kts");
+
 	public enum OpenMode {
 		OPEN,
 		OPEN_PROJECT,
@@ -102,11 +105,12 @@ public class FileDialog {
 					fileExtList = Collections.singletonList(JadxProject.PROJECT_EXTENSION);
 					title = NLS.str("file.open_title");
 				} else {
-					fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "xapk", "aar", "arsc"));
 					if (mode == OpenMode.OPEN) {
+						fileExtList = new ArrayList<>(OPEN_FILES_EXTS);
 						fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
 						title = NLS.str("file.open_title");
 					} else {
+						fileExtList = OPEN_FILES_EXTS;
 						title = NLS.str("file.add_files_action");
 					}
 				}
