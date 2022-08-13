@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.Jadx;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -42,7 +44,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class DiskCodeCache implements ICodeCache {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskCodeCache.class);
 
-	private static final int DATA_FORMAT_VERSION = 12;
+	private static final int DATA_FORMAT_VERSION = 13;
 
 	private static final byte[] JADX_NAMES_MAP_HEADER = "jadxnm".getBytes(StandardCharsets.US_ASCII);
 
@@ -55,6 +57,7 @@ public class DiskCodeCache implements ICodeCache {
 	private final ExecutorService writePool;
 	private final Map<String, ICodeInfo> writeOps = new ConcurrentHashMap<>();
 	private final Map<String, Integer> namesMap = new ConcurrentHashMap<>();
+	private final Map<String, Integer> allClsIds;
 
 	public DiskCodeCache(RootNode root, Path baseDir) {
 		srcDir = baseDir.resolve("sources");
@@ -65,6 +68,7 @@ public class DiskCodeCache implements ICodeCache {
 		codeVersion = buildCodeVersion(args);
 		writePool = Executors.newFixedThreadPool(args.getThreadsCount());
 		codeMetadataAdapter = new CodeMetadataAdapter(root);
+		allClsIds = buildClassIdsMap(root.getClasses());
 		if (checkCodeVersion()) {
 			loadNamesMap();
 		} else {
@@ -112,6 +116,7 @@ public class DiskCodeCache implements ICodeCache {
 	public void add(String clsFullName, ICodeInfo codeInfo) {
 		writeOps.put(clsFullName, codeInfo);
 		int clsId = getClsId(clsFullName);
+		namesMap.put(clsFullName, clsId);
 		writePool.execute(() -> {
 			try {
 				FileUtils.writeFile(getJavaFile(clsId), codeInfo.getCodeStr());
@@ -218,7 +223,11 @@ public class DiskCodeCache implements ICodeCache {
 	}
 
 	private int getClsId(String clsFullName) {
-		return namesMap.computeIfAbsent(clsFullName, n -> namesMap.size());
+		Integer id = allClsIds.get(clsFullName);
+		if (id == null) {
+			throw new JadxRuntimeException("Unknown class name: " + clsFullName);
+		}
+		return id;
 	}
 
 	private void saveNamesMap() {
@@ -250,6 +259,13 @@ public class DiskCodeCache implements ICodeCache {
 				String clsName = in.readUTF();
 				int clsId = in.readInt();
 				namesMap.put(clsName, clsId);
+				Integer prevId = allClsIds.get(clsName);
+				if (prevId == null || prevId != clsId) {
+					LOG.debug("Unexpected class id, got: {}, expect: {}", clsId, prevId);
+					LOG.warn("Inconsistent disk cache, resetting...");
+					reset();
+					return;
+				}
 			}
 			LOG.info("Found {} classes in disk cache, dir: {}", count, metaDir.getParent());
 		} catch (Exception e) {
@@ -269,6 +285,16 @@ public class DiskCodeCache implements ICodeCache {
 		// all classes divided between 256 top level folders
 		String firstByte = FileUtils.byteToHex(clsId);
 		return Paths.get(firstByte, FileUtils.intToHex(clsId) + ext);
+	}
+
+	private Map<String, Integer> buildClassIdsMap(List<ClassNode> classes) {
+		int clsCount = classes.size();
+		Map<String, Integer> map = new HashMap<>(clsCount);
+		for (int i = 0; i < clsCount; i++) {
+			ClassNode cls = classes.get(i);
+			map.put(cls.getRawName(), i);
+		}
+		return map;
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")

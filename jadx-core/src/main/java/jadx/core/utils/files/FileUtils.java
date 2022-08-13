@@ -13,6 +13,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -228,7 +229,8 @@ public class FileUtils {
 
 	public static void writeFile(Path file, String data) throws IOException {
 		FileUtils.makeDirsForFile(file);
-		Files.write(file, data.getBytes(StandardCharsets.UTF_8));
+		Files.write(file, data.getBytes(StandardCharsets.UTF_8),
+				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
 	public static String readFile(Path textFile) throws IOException {
