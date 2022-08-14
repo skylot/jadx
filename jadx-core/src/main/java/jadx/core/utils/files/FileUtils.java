@@ -10,13 +10,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
@@ -109,13 +112,8 @@ public class FileUtils {
 	}
 
 	public static boolean deleteDir(File dir) {
-		File[] content = dir.listFiles();
-		if (content != null) {
-			for (File file : content) {
-				deleteDir(file);
-			}
-		}
-		return dir.delete();
+		deleteDir(dir.toPath());
+		return true;
 	}
 
 	public static void deleteDirIfExists(Path dir) {
@@ -128,16 +126,23 @@ public class FileUtils {
 		}
 	}
 
+	private static final SimpleFileVisitor<Path> FILE_DELETE_VISITOR = new SimpleFileVisitor<Path>() {
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+			Files.delete(file);
+			return FileVisitResult.CONTINUE;
+		}
+
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+			Files.delete(dir);
+			return FileVisitResult.CONTINUE;
+		}
+	};
+
 	private static void deleteDir(Path dir) {
-		try (Stream<Path> pathStream = Files.walk(dir)) {
-			pathStream.sorted(Comparator.reverseOrder())
-					.forEach(path -> {
-						try {
-							Files.delete(path);
-						} catch (Exception e) {
-							throw new JadxRuntimeException("Failed to delete path: " + path.toAbsolutePath(), e);
-						}
-					});
+		try {
+			Files.walkFileTree(dir, Collections.emptySet(), Integer.MAX_VALUE, FILE_DELETE_VISITOR);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to delete directory " + dir, e);
 		}
