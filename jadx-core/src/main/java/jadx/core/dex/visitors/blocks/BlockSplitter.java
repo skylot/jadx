@@ -137,8 +137,9 @@ public class BlockSplitter extends AbstractVisitor {
 	}
 
 	static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(mth.getBasicBlocks().size(), offset);
-		mth.getBasicBlocks().add(block);
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		BlockNode block = new BlockNode(mth.getNextBlockCId(), blocks.size(), offset);
+		blocks.add(block);
 		return block;
 	}
 

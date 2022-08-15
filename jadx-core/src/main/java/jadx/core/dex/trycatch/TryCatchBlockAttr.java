@@ -60,6 +60,10 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 		return throwFound;
 	}
 
+	public int getId() {
+		return id;
+	}
+
 	public List<ExceptionHandler> getHandlers() {
 		return handlers;
 	}

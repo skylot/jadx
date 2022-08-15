@@ -171,10 +171,6 @@ public class BlockExceptionHandler {
 		}
 	}
 
-	protected static void removeTmpConnections(MethodNode mth) {
-		mth.getBasicBlocks().forEach(BlockExceptionHandler::removeTmpConnection);
-	}
-
 	private static void removeTmpConnection(BlockNode block) {
 		TmpEdgeAttr tmpEdgeAttr = block.get(AType.TMP_EDGE);
 		if (tmpEdgeAttr != null) {
@@ -402,6 +398,13 @@ public class BlockExceptionHandler {
 		}
 		BlockNode topDom = BlockUtils.getCommonDominator(mth, blocks);
 		if (topDom != null) {
+			// dominator always return one up block if blocks already contains dominator, use successor instead
+			if (topDom.getSuccessors().size() == 1) {
+				BlockNode upBlock = topDom.getSuccessors().get(0);
+				if (blocks.contains(upBlock)) {
+					return upBlock;
+				}
+			}
 			return adjustTopBlock(topDom);
 		}
 		throw new JadxRuntimeException("Failed to find top block for try-catch from: " + blocks);

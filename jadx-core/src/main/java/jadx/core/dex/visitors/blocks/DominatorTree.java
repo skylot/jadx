@@ -25,23 +25,16 @@ public class DominatorTree {
 		List<BlockNode> sorted = sortBlocks(mth);
 		BlockNode[] doms = build(sorted);
 		apply(sorted, doms);
-		mth.setBasicBlocks(sorted);
 	}
 
 	private static List<BlockNode> sortBlocks(MethodNode mth) {
 		int blocksCount = mth.getBasicBlocks().size();
-		BitSet reachSet = new BitSet(blocksCount);
 		List<BlockNode> sorted = new ArrayList<>(blocksCount);
-		BlockUtils.dfsVisit(mth, b -> {
-			sorted.add(b);
-			reachSet.set(b.getId());
-		});
-		if (reachSet.cardinality() != blocksCount) {
+		BlockUtils.dfsVisit(mth, sorted::add);
+		if (sorted.size() != blocksCount) {
 			throw new JadxRuntimeException("Found unreachable blocks");
 		}
-		for (int i = 0; i < blocksCount; i++) {
-			sorted.get(i).setId(i);
-		}
+		mth.setBasicBlocks(sorted);
 		return sorted;
 	}
 
