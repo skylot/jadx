@@ -420,6 +420,9 @@ public abstract class CommonSearchDialog extends JFrame {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj,
 				boolean isSelected, boolean hasFocus, int row, int column) {
+			if (obj == null || table == null) {
+				return emptyLabel;
+			}
 			Component comp = makeCell((JNode) obj, column);
 			updateSelection(table, comp, column, isSelected);
 			return comp;

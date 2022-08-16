@@ -553,6 +553,7 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private void addSearchResult(JNode node) {
+		Objects.requireNonNull(node);
 		synchronized (pendingResults) {
 			UiUtils.notUiThreadGuard();
 			pendingResults.add(node);
