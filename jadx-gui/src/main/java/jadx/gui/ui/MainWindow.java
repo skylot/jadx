@@ -132,6 +132,7 @@ import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
+import jadx.gui.utils.ILoadListener;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
@@ -210,6 +211,9 @@ public class MainWindow extends JFrame {
 
 	private JDebuggerPanel debuggerPanel;
 	private JSplitPane verticalSplitter;
+
+	private List<ILoadListener> loadListeners = new ArrayList<>();
+	private boolean loaded;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
@@ -488,6 +492,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void closeAll() {
+		notifyLoadListeners(false);
 		cancelBackgroundJobs();
 		clearTree();
 		resetCache();
@@ -526,7 +531,10 @@ public class MainWindow extends JFrame {
 
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				this::restoreOpenTabs,
-				status -> runInitialBackgroundJobs());
+				status -> {
+					runInitialBackgroundJobs();
+					notifyLoadListeners(true);
+				});
 	}
 
 	public void updateLiveReload(boolean state) {
@@ -1210,6 +1218,22 @@ public class MainWindow extends JFrame {
 		toolbar.add(updateLink);
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
+
+		addLoadListener(loaded -> {
+			textSearchAction.setEnabled(loaded);
+			clsSearchAction.setEnabled(loaded);
+			commentSearchAction.setEnabled(loaded);
+			backAction.setEnabled(loaded);
+			forwardAction.setEnabled(loaded);
+			syncAction.setEnabled(loaded);
+			saveAllAction.setEnabled(loaded);
+			exportAction.setEnabled(loaded);
+			saveProjectAsAction.setEnabled(loaded);
+			reload.setEnabled(loaded);
+			deobfAction.setEnabled(loaded);
+			quarkAction.setEnabled(loaded);
+			return false;
+		});
 	}
 
 	private void initUI() {
@@ -1497,6 +1521,17 @@ public class MainWindow extends JFrame {
 		settings.setMainWindowVerticalSplitterLoc(verticalSplitter.getDividerLocation());
 		settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
 		settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
+	}
+
+	public void addLoadListener(ILoadListener loadListener) {
+		this.loadListeners.add(loadListener);
+		// set initial value
+		loadListener.update(loaded);
+	}
+
+	public void notifyLoadListeners(boolean loaded) {
+		this.loaded = loaded;
+		loadListeners.removeIf(listener -> listener.update(loaded));
 	}
 
 	public JadxWrapper getWrapper() {

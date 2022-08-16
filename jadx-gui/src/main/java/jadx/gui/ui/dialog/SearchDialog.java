@@ -81,17 +81,28 @@ public class SearchDialog extends CommonSearchDialog {
 
 	public static void search(MainWindow window, SearchPreset preset) {
 		SearchDialog searchDialog = new SearchDialog(window, preset, Collections.emptySet());
-		searchDialog.setVisible(true);
+		show(searchDialog, window);
 	}
 
 	public static void searchInActiveTab(MainWindow window, SearchPreset preset) {
 		SearchDialog searchDialog = new SearchDialog(window, preset, EnumSet.of(SearchOptions.ACTIVE_TAB));
-		searchDialog.setVisible(true);
+		show(searchDialog, window);
 	}
 
 	public static void searchText(MainWindow window, String text) {
 		SearchDialog searchDialog = new SearchDialog(window, SearchPreset.TEXT, Collections.emptySet());
 		searchDialog.initSearchText = text;
+		show(searchDialog, window);
+	}
+
+	private static void show(SearchDialog searchDialog, MainWindow mw) {
+		mw.addLoadListener(loaded -> {
+			if (!loaded) {
+				searchDialog.dispose();
+				return true;
+			}
+			return false;
+		});
 		searchDialog.setVisible(true);
 	}
 

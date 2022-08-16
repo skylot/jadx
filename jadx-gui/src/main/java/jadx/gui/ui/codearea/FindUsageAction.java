@@ -3,6 +3,7 @@ package jadx.gui.ui.codearea;
 import java.awt.event.KeyEvent;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.UsageDialog;
 import jadx.gui.utils.NLS;
 
@@ -18,7 +19,15 @@ public final class FindUsageAction extends JNodeAction {
 
 	@Override
 	public void runAction(JNode node) {
-		UsageDialog usageDialog = new UsageDialog(getCodeArea().getMainWindow(), node);
+		MainWindow mw = getCodeArea().getMainWindow();
+		UsageDialog usageDialog = new UsageDialog(mw, node);
+		mw.addLoadListener(loaded -> {
+			if (!loaded) {
+				usageDialog.dispose();
+				return true;
+			}
+			return false;
+		});
 		usageDialog.setVisible(true);
 	}
 }
