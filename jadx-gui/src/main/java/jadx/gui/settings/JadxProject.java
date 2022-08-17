@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import jadx.api.JadxArgs;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaCodeRef;
@@ -31,6 +32,7 @@ import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.data.ProjectData;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
@@ -57,6 +59,12 @@ public class JadxProject {
 
 	public JadxProject(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
+	}
+
+	public void fillJadxArgs(JadxArgs jadxArgs) {
+		jadxArgs.setInputFiles(FileUtils.toFiles(getFilePaths()));
+		jadxArgs.setUserRenamesMappingsPath(getMappingsPath());
+		jadxArgs.setCodeData(getCodeData());
 	}
 
 	public @Nullable Path getWorkingDir() {
@@ -164,14 +172,8 @@ public class JadxProject {
 	}
 
 	public void setMappingsPath(Path mappingsPath) {
-		if (mappingsPath == null) {
-			data.setMappingsPath(mappingsPath);
-			changed();
-		} else if (mappingsPath != getMappingsPath()
-				&& mappingsPath.toFile().exists()) {
-			data.setMappingsPath(mappingsPath);
-			changed();
-		}
+		data.setMappingsPath(mappingsPath);
+		changed();
 	}
 
 	public @NotNull Path getCacheDir() {

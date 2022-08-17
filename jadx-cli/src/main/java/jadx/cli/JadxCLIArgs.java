@@ -133,17 +133,16 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
-	@Deprecated
 	@Parameter(
 			names = { "--deobf-cfg-file" },
-			description = "deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension (deprecated)"
+			description = "deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format),"
+					+ " default: same dir and name as input file with '.jobf' extension"
 	)
 	protected String generatedRenamesMappingFile;
 
-	@Deprecated
 	@Parameter(
 			names = { "--deobf-cfg-file-mode" },
-			description = "set mode for handling the JADX auto-generated names' deobfuscation map file (deprecated):"
+			description = "set mode for handling the JADX auto-generated names' deobfuscation map file:"
 					+ "\n 'read' - read if found, don't save (default)"
 					+ "\n 'read-or-save' - read if found, save otherwise (don't overwrite)"
 					+ "\n 'overwrite' - don't read, always save"
@@ -424,12 +423,10 @@ public class JadxCLIArgs {
 		return deobfuscationMaxLength;
 	}
 
-	@Deprecated
 	public String getGeneratedRenamesMappingFile() {
 		return generatedRenamesMappingFile;
 	}
 
-	@Deprecated
 	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
 		return generatedRenamesMappingFileMode;
 	}

@@ -34,7 +34,10 @@ public class JadxGUI {
 			LafManager.init(settings);
 			NLS.setLocale(settings.getLangLocale());
 			ExceptionDialog.registerUncaughtExceptionHandler();
-			SwingUtilities.invokeLater(new MainWindow(settings)::init);
+			SwingUtilities.invokeLater(() -> {
+				MainWindow mw = new MainWindow(settings);
+				mw.init();
+			});
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);

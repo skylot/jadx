@@ -9,6 +9,9 @@ dependencies {
 	implementation(project(':jadx-core'))
 	implementation(project(":jadx-cli"))
 
+	// import mappings
+	implementation project(':jadx-plugins:jadx-rename-mappings')
+
 	// jadx-script autocomplete support
 	implementation(project(":jadx-plugins::jadx-script:jadx-script-ide"))
 	implementation("org.jetbrains.kotlin:kotlin-scripting-common:1.7.20")

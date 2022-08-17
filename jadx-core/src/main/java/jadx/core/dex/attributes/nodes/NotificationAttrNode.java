@@ -24,6 +24,10 @@ public abstract class NotificationAttrNode extends LineAttrNode implements ICode
 		this.add(AFlag.INCONSISTENT_CODE);
 	}
 
+	public void addCodeComment(String comment) {
+		addAttr(AType.CODE_COMMENTS, comment);
+	}
+
 	public void addWarnComment(String warn) {
 		initCommentsAttr().add(CommentsLevel.WARN, warn);
 	}

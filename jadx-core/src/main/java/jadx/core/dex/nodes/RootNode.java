@@ -1,7 +1,6 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,10 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fabricmc.mappingio.MappingReader;
-import net.fabricmc.mappingio.MappingUtil;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
-
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -25,7 +20,6 @@ import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
-import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.core.nodes.IRootNode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.passes.DecompilePassWrapper;
@@ -72,13 +66,11 @@ public class RootNode implements IRootNode {
 	private final JadxArgs args;
 	private final List<IDexTreeVisitor> preDecompilePasses;
 	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
-	private final List<IMappingsUpdateListener> mappingsUpdateListeners = new ArrayList<>();
 
 	private final ProcessClass processClasses;
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
-	private MemoryMappingTree mappingTree;
 	private final InfoStorage infoStorage = new InfoStorage();
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
@@ -218,26 +210,6 @@ public class RootNode implements IRootNode {
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
-		}
-		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
-				&& args.getUserRenamesMappingsPath() != null) {
-			try {
-				mappingTree = new MemoryMappingTree();
-				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
-				if (mappingTree.getSrcNamespace() == null) {
-					mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
-				}
-				if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
-					mappingTree.setDstNamespaces(Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
-				} else if (mappingTree.getDstNamespaces().size() > 1) {
-					throw new JadxRuntimeException(
-							String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
-									mappingTree.getDstNamespaces().size()));
-				}
-			} catch (Exception e) {
-				mappingTree = null;
-				throw new JadxRuntimeException("Failed to load mappings", e);
-			}
 		}
 	}
 
@@ -593,17 +565,9 @@ public class RootNode implements IRootNode {
 		this.codeDataUpdateListeners.add(listener);
 	}
 
-	public void registerMappingsUpdateListener(IMappingsUpdateListener listener) {
-		this.mappingsUpdateListeners.add(listener);
-	}
-
 	public void notifyCodeDataListeners() {
 		ICodeData codeData = args.getCodeData();
 		codeDataUpdateListeners.forEach(l -> l.updated(codeData));
-	}
-
-	public void notifyMappingsListeners() {
-		mappingsUpdateListeners.forEach(l -> l.updated(mappingTree));
 	}
 
 	public ClspGraph getClsp() {
@@ -630,14 +594,6 @@ public class RootNode implements IRootNode {
 
 	public ConstStorage getConstValues() {
 		return constValues;
-	}
-
-	public MemoryMappingTree getMappingTree() {
-		return mappingTree;
-	}
-
-	public void setMappingTree(MemoryMappingTree mappingTree) {
-		this.mappingTree = mappingTree;
 	}
 
 	public InfoStorage getInfoStorage() {

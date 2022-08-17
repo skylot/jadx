@@ -338,10 +338,6 @@ public class JadxSettings extends JadxCLIArgs {
 		this.debugInfo = useDebugInfo;
 	}
 
-	public void setUserRenamesMappingsPath(Path path) {
-		this.userRenamesMappingsPath = path;
-	}
-
 	public void setUserRenamesMappingsMode(UserRenamesMappingsMode mode) {
 		this.userRenamesMappingsMode = mode;
 	}

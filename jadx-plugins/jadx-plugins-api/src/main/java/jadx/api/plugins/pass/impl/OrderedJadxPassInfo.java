@@ -12,10 +12,6 @@ public class OrderedJadxPassInfo implements JadxPassInfo {
 	private final List<String> runAfter;
 	private final List<String> runBefore;
 
-	public OrderedJadxPassInfo(String name) {
-		this(name, name);
-	}
-
 	public OrderedJadxPassInfo(String name, String desc) {
 		this(name, desc, new ArrayList<>(), new ArrayList<>());
 	}
@@ -25,6 +21,16 @@ public class OrderedJadxPassInfo implements JadxPassInfo {
 		this.desc = desc;
 		this.runAfter = runAfter;
 		this.runBefore = runBefore;
+	}
+
+	public OrderedJadxPassInfo after(String pass) {
+		runAfter.add(pass);
+		return this;
+	}
+
+	public OrderedJadxPassInfo before(String pass) {
+		runBefore.add(pass);
+		return this;
 	}
 
 	@Override

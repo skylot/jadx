@@ -25,9 +25,7 @@ import jadx.api.plugins.JadxPluginManager;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.FileUtils;
 import jadx.gui.plugins.context.PluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -50,7 +48,6 @@ public class JadxWrapper {
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
 	private PluginsContext pluginsContext;
-	private boolean resetDiskCacheOnNextReload = false;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -62,8 +59,7 @@ public class JadxWrapper {
 			synchronized (DECOMPILER_UPDATE_SYNC) {
 				JadxProject project = getProject();
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
-				jadxArgs.setInputFiles(FileUtils.toFiles(project.getFilePaths()));
-				jadxArgs.setCodeData(project.getCodeData());
+				project.fillJadxArgs(jadxArgs);
 
 				this.decompiler = new JadxDecompiler(jadxArgs);
 				this.pluginsContext = new PluginsContext(mainWindow);
@@ -72,8 +68,8 @@ public class JadxWrapper {
 				initCodeCache();
 			}
 		} catch (Exception e) {
+			LOG.error("Jadx decompiler wrapper init error", e);
 			close();
-			throw new JadxRuntimeException("Jadx decompiler wrapper init error", e);
 		}
 	}
 
@@ -119,15 +115,8 @@ public class JadxWrapper {
 		}
 	}
 
-	public void resetDiskCacheOnNextReload() {
-		resetDiskCacheOnNextReload = true;
-	}
-
 	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject(), getSettings());
-		if (resetDiskCacheOnNextReload) {
-			diskCache.reset();
-		}
+		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
 	}
 
@@ -233,18 +222,8 @@ public class JadxWrapper {
 		return getDecompiler().getRoot();
 	}
 
-	public void reInitRenameVisitor() {
-		new RenameVisitor().init(getRootNode());
-	}
-
 	public void reloadCodeData() {
 		getDecompiler().reloadCodeData();
-		mainWindow.renamesChanged();
-	}
-
-	public void reloadMappings() {
-		getDecompiler().reloadMappings();
-		mainWindow.renamesChanged();
 	}
 
 	public JavaNode getJavaNodeByRef(ICodeNodeRef nodeRef) {

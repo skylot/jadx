@@ -1,4 +1,4 @@
-package jadx.core.utils.mappings;
+package jadx.plugins.mappings.utils;
 
 import java.util.ArrayList;
 import java.util.List;

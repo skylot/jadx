@@ -1,10 +1,11 @@
-package jadx.gui.plugins.mappings;
+package jadx.plugins.mappings.save;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +43,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.mappings.DalvikToJavaBytecodeUtils;
+import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
 
 public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
@@ -128,22 +129,18 @@ public class MappingExporter {
 
 		try {
 			if (mappingFormat.hasSingleFile()) {
-				if (path.toFile().exists()) {
-					path.toFile().delete();
-				}
-				path.toFile().createNewFile();
+				FileUtils.deleteFileIfExists(path);
+				FileUtils.makeDirsForFile(path);
+				Files.createFile(path);
 			} else {
 				FileUtils.makeDirs(path);
 			}
 
 			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
 			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
-			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
-				srcNamespace = root.getMappingTree().getSrcNamespace();
-				dstNamespace = root.getMappingTree().getDstNamespaces().get(0);
-			}
+
 			mappingTree.visitHeader();
-			mappingTree.visitNamespaces(srcNamespace, Arrays.asList(dstNamespace));
+			mappingTree.visitNamespaces(srcNamespace, Collections.singletonList(dstNamespace));
 			mappingTree.visitContent();
 
 			for (ClassNode cls : root.getClasses()) {
@@ -236,10 +233,6 @@ public class MappingExporter {
 						lvtIndex++;
 					}
 				}
-			}
-			// Copy mappings from potentially imported mappings file
-			if (root.getMappingTree() != null && root.getMappingTree().getDstNamespaces() != null) {
-				root.getMappingTree().accept(mappingTree);
 			}
 			// Write file
 			MappingWriter writer = MappingWriter.create(path, mappingFormat);

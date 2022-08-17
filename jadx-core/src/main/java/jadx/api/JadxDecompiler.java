@@ -673,10 +673,6 @@ public final class JadxDecompiler implements IJadxDecompiler, Closeable {
 		root.notifyCodeDataListeners();
 	}
 
-	public void reloadMappings() {
-		root.notifyMappingsListeners();
-	}
-
 	public JadxArgs getArgs() {
 		return args;
 	}

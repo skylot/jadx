@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,8 +38,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.gui.settings.JadxProject;
-import jadx.gui.settings.JadxSettings;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -62,14 +61,13 @@ public class DiskCodeCache implements ICodeCache {
 	private final Map<String, Integer> namesMap = new ConcurrentHashMap<>();
 	private final Map<String, Integer> allClsIds;
 
-	public DiskCodeCache(RootNode root, JadxProject project, JadxSettings settings) {
-		Path baseDir = project.getCacheDir();
+	public DiskCodeCache(RootNode root, Path baseDir) {
 		srcDir = baseDir.resolve("sources");
 		metaDir = baseDir.resolve("metadata");
 		codeVersionFile = baseDir.resolve("code-version");
 		namesMapFile = baseDir.resolve("names-map");
 		JadxArgs args = root.getArgs();
-		codeVersion = buildCodeVersion(args, project, settings);
+		codeVersion = buildCodeVersion(args);
 		writePool = Executors.newFixedThreadPool(args.getThreadsCount());
 		codeMetadataAdapter = new CodeMetadataAdapter(root);
 		allClsIds = buildClassIdsMap(root.getClasses());
@@ -93,7 +91,7 @@ public class DiskCodeCache implements ICodeCache {
 		}
 	}
 
-	public void reset() {
+	private void reset() {
 		try {
 			long start = System.currentTimeMillis();
 			LOG.info("Resetting disk code cache, base dir: {}", srcDir.getParent().toAbsolutePath());
@@ -198,19 +196,24 @@ public class DiskCodeCache implements ICodeCache {
 		}
 	}
 
-	private String buildCodeVersion(JadxArgs args, JadxProject project, JadxSettings settings) {
-		long mappingsLastModified = -1;
-		if (settings.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
-				&& project.getMappingsPath() != null
-				&& project.getMappingsPath().toFile().exists()) {
-			mappingsLastModified = project.getMappingsPath().toFile().lastModified();
+	private String buildCodeVersion(JadxArgs args) {
+		List<File> inputFiles = new ArrayList<>(args.getInputFiles());
+		Path userMappingPath = args.getUserRenamesMappingsPath();
+		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
+				&& userMappingPath != null
+				&& Files.exists(userMappingPath)) {
+			inputFiles.add(userMappingPath.toFile());
 		}
-
+		File generatedMappingFile = args.getGeneratedRenamesMappingFile();
+		if (args.getGeneratedRenamesMappingFileMode().shouldRead()
+				&& generatedMappingFile != null
+				&& generatedMappingFile.exists()) {
+			inputFiles.add(generatedMappingFile);
+		}
 		return DATA_FORMAT_VERSION
 				+ ":" + Jadx.getVersion()
 				+ ":" + args.makeCodeArgsHash()
-				+ ":" + buildInputsHash(args.getInputFiles())
-				+ ":" + mappingsLastModified;
+				+ ":" + buildInputsHash(inputFiles);
 	}
 
 	/**

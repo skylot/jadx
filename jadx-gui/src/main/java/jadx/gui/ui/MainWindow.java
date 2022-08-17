@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -84,9 +85,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import net.fabricmc.mappingio.MappingReader;
-import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
@@ -97,6 +96,7 @@ import jadx.core.Jadx;
 import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
@@ -105,7 +105,6 @@ import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.TaskStatus;
-import jadx.gui.plugins.mappings.MappingExporter;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -149,6 +148,7 @@ import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.logs.LogCollector;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
+import jadx.plugins.mappings.save.MappingExporter;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -188,7 +188,6 @@ public class MainWindow extends JFrame {
 	private final transient BackgroundExecutor backgroundExecutor;
 
 	private transient @NotNull JadxProject project;
-	private boolean projectOpen = false;
 
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
@@ -346,7 +345,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		closeAll(false);
+		closeAll();
 		updateProject(new JadxProject(this));
 	}
 
@@ -406,48 +405,19 @@ public class MainWindow extends JFrame {
 		settings.setLastOpenFilePath(fileDialog.getCurrentDir());
 		Path filePath = selectedPaths.get(0);
 		LOG.info("Loading mappings from: {}", filePath.toAbsolutePath());
-
-		MemoryMappingTree mappingTree = new MemoryMappingTree();
-		try {
-			MappingReader.read(filePath, mappingTree);
-		} catch (IOException e) {
-			throw new JadxRuntimeException("Failed to load mappings file", e);
-		}
-		if (mappingTree.getSrcNamespace() == null) {
-			mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
-		}
-		if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
-			mappingTree.setDstNamespaces(Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
-		} else if (mappingTree.getDstNamespaces().size() > 1) {
-			JOptionPane.showMessageDialog(
-					this,
-					NLS.str("msg.mapping_namespace_count_error", mappingTree.getDstNamespaces().size()),
-					NLS.str("msg.mapping_namespace_count_error_title"),
-					JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		closeMappings(true);
 		project.setMappingsPath(filePath);
+		currentMappingFormat = mappingFormat;
 		reopen();
 	}
 
-	private void closeMappings(boolean resetMappingsMode) {
-		if (projectOpen) {
-			wrapper.getRootNode().setMappingTree(null);
-		}
-		if (resetMappingsMode) {
-			wrapper.getSettings().setUserRenamesMappingsPath(null);
-			wrapper.getSettings().setUserRenamesMappingsMode(UserRenamesMappingsMode.getDefault());
-		}
-	}
-
 	private void closeMappingsAndRemoveFromProject() {
-		closeMappings(true);
 		project.setMappingsPath(null);
+		currentMappingFormat = null;
 	}
 
 	private void saveMappings() {
 		Path savePath = project.getMappingsPath();
+		Objects.requireNonNull(savePath, "expect mapping path to be set");
 		if (currentMappingFormat == null) {
 			try {
 				currentMappingFormat = MappingReader.detectFormat(savePath);
@@ -457,11 +427,8 @@ public class MainWindow extends JFrame {
 		}
 		renamesChanged = false;
 		backgroundExecutor.execute(NLS.str("progress.save_mappings"),
-				() -> {
-					new MappingExporter(wrapper.getDecompiler().getRoot())
-							.exportMappings(savePath, project.getCodeData(), currentMappingFormat);
-					project.setMappingsPath(savePath);
-				},
+				() -> new MappingExporter(wrapper.getDecompiler().getRoot())
+						.exportMappings(savePath, project.getCodeData(), currentMappingFormat),
 				s -> update());
 	}
 
@@ -469,7 +436,8 @@ public class MainWindow extends JFrame {
 		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
 		fileDialog.setTitle(NLS.str("file.save_mappings_as"));
 		if (mappingFormat.hasSingleFile()) {
-			fileDialog.setSelectedFile(fileDialog.getCurrentDir().resolve("mappings." + mappingFormat.fileExt));
+			Path currentDir = Utils.getOrElse(fileDialog.getCurrentDir(), CommonFileUtils.CWD_PATH);
+			fileDialog.setSelectedFile(currentDir.resolve("mappings." + mappingFormat.fileExt));
 			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
 			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
 		} else {
@@ -554,14 +522,14 @@ public class MainWindow extends JFrame {
 
 	private void open(List<Path> paths, Runnable onFinish) {
 		saveAll();
-		closeAll(false);
+		closeAll();
 		if (paths.size() == 1 && openSingleFile(paths.get(0), onFinish)) {
 			return;
 		}
 		// start new project
 		project = new JadxProject(this);
 		project.setFilePaths(paths);
-		loadFiles(false, onFinish);
+		loadFiles(onFinish);
 	}
 
 	private boolean openSingleFile(Path singleFile, Runnable onFinish) {
@@ -587,8 +555,8 @@ public class MainWindow extends JFrame {
 
 	public synchronized void reopen() {
 		saveAll();
-		closeAll(true);
-		loadFiles(true, EMPTY_RUNNABLE);
+		closeAll();
+		loadFiles(EMPTY_RUNNABLE);
 	}
 
 	private void openProject(Path path, Runnable onFinish) {
@@ -603,41 +571,12 @@ public class MainWindow extends JFrame {
 		}
 		settings.addRecentProject(path);
 		project = jadxProject;
-		loadFiles(false, onFinish);
+		loadFiles(onFinish);
 	}
 
-	private void loadFiles(boolean reopening, Runnable onFinish) {
+	private void loadFiles(Runnable onFinish) {
 		if (project.getFilePaths().isEmpty()) {
 			return;
-		}
-		JadxSettings settings = wrapper.getSettings();
-		if (settings.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE) {
-			// Use CLI specified mappings path if present
-			if (settings.getUserRenamesMappingsPath() != null && settings.getUserRenamesMappingsPath().toFile().exists()) {
-				project.setMappingsPath(settings.getUserRenamesMappingsPath());
-			} else {
-				if (settings.getUserRenamesMappingsPath() != null) {
-					LOG.error("The specified mappings path doesn't exist, falling back to the project's previously loaded ones");
-				}
-				MappingFormat mappingFormat = null;
-				try {
-					mappingFormat = MappingReader.detectFormat(project.getMappingsPath());
-				} catch (Exception ignored) {
-				}
-				// Use the project's last opened mappings, if present
-				if (mappingFormat != null) {
-					settings.setUserRenamesMappingsPath(project.getMappingsPath());
-					currentMappingFormat = mappingFormat;
-				} else {
-					if (project.getMappingsPath() != null
-							|| (project.getMappingsPath() == null && settings.getUserRenamesMappingsPath() != null)) {
-						LOG.error("The project's last opened mappings path is corrupted, resetting");
-					}
-					// None of the mapping paths exist, so remove them from the settings
-					settings.setUserRenamesMappingsPath(null);
-					project.setMappingsPath(null);
-				}
-			}
 		}
 		AtomicReference<Exception> wrapperException = new AtomicReference<>();
 		backgroundExecutor.execute(NLS.str("progress.load"),
@@ -650,7 +589,7 @@ public class MainWindow extends JFrame {
 				},
 				status -> {
 					if (wrapperException.get() != null) {
-						closeAll(reopening);
+						closeAll();
 						Exception e = wrapperException.get();
 						if (e instanceof RuntimeException) {
 							throw (RuntimeException) e;
@@ -678,21 +617,17 @@ public class MainWindow extends JFrame {
 		BreakpointManager.saveAndExit();
 	}
 
-	private void closeAll(boolean reopening) {
+	private void closeAll() {
 		notifyLoadListeners(false);
+		renamesChanged = false;
 		cancelBackgroundJobs();
 		clearTree();
-		if (projectOpen) {
-			closeMappings(!reopening);
-		}
 		resetCache();
 		LogCollector.getInstance().reset();
 		wrapper.close();
 		tabbedPane.closeAllTabs();
 		UiUtils.resetClipboardOwner();
 		System.gc();
-		projectOpen = false;
-		renamesChanged = false;
 		update();
 	}
 
@@ -716,10 +651,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void onOpen() {
-		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
-		projectOpen = true;
-		update();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
 
@@ -730,6 +662,7 @@ public class MainWindow extends JFrame {
 					restoreOpenTabs(openTabs);
 					runInitialBackgroundJobs();
 					notifyLoadListeners(true);
+					update();
 				});
 	}
 
@@ -755,8 +688,8 @@ public class MainWindow extends JFrame {
 
 	private boolean ensureProjectIsSaved() {
 		if (!project.isSaved() && !project.isInitial()) {
-			if (wrapper.getRootNode().getMappingTree() != null
-					&& wrapper.getSettings().getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_BEFORE_CLOSING) {
+			if (project.getMappingsPath() != null
+					&& settings.getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_BEFORE_CLOSING) {
 				saveMappings();
 			}
 			int res = JOptionPane.showConfirmDialog(
@@ -780,13 +713,15 @@ public class MainWindow extends JFrame {
 	}
 
 	private void update() {
+		UiUtils.uiThreadGuard();
 		newProjectAction.setEnabled(!project.isInitial());
-		saveProjectAction.setEnabled(projectOpen && !project.isSaved());
-		openMappingsMenu.setEnabled(projectOpen);
-		saveMappingsAction.setEnabled(projectOpen && renamesChanged == true);
-		saveMappingsAsMenu.setEnabled(projectOpen && (!project.getCodeData().getRenames().isEmpty()
-				|| !project.getCodeData().getComments().isEmpty() || wrapper.getRootNode().getMappingTree() != null));
-		closeMappingsAction.setEnabled(projectOpen && wrapper.getRootNode().getMappingTree() != null);
+		saveProjectAction.setEnabled(loaded && !project.isSaved());
+		openMappingsMenu.setEnabled(loaded);
+		saveMappingsAction.setEnabled(loaded && renamesChanged && project.getMappingsPath() != null);
+		saveMappingsAsMenu.setEnabled(loaded
+				&& (!project.getCodeData().getRenames().isEmpty() || !project.getCodeData().getComments().isEmpty()));
+		closeMappingsAction.setEnabled(loaded && project.getMappingsPath() != null);
+		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 
 		Path projectPath = project.getProjectPath();
 		String pathString;
@@ -800,8 +735,8 @@ public class MainWindow extends JFrame {
 	}
 
 	public void renamesChanged() {
-		UserRenamesMappingsMode mode = wrapper.getSettings().getUserRenamesMappingsMode();
-		if (mode == UserRenamesMappingsMode.READ_AND_AUTOSAVE_EVERY_CHANGE) {
+		if (project.getMappingsPath() != null
+				&& settings.getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_EVERY_CHANGE) {
 			saveMappings();
 		} else {
 			renamesChanged = true;
@@ -1723,7 +1658,7 @@ public class MainWindow extends JFrame {
 			saveSplittersInfo();
 		}
 		heapUsageBar.reset();
-		closeAll(false);
+		closeAll();
 
 		FileUtils.deleteTempRootDir();
 		dispose();

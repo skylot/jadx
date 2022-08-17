@@ -1,6 +1,5 @@
 package jadx.api.args;
 
-@Deprecated
 public enum GeneratedRenamesMappingFileMode {
 
 	/**

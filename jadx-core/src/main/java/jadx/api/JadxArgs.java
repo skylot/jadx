@@ -355,24 +355,20 @@ public class JadxArgs {
 		this.deobfuscationOn = deobfuscationOn;
 	}
 
-	@Deprecated
 	public boolean isDeobfuscationForceSave() {
 		return generatedRenamesMappingFileMode == GeneratedRenamesMappingFileMode.OVERWRITE;
 	}
 
-	@Deprecated
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
 		if (deobfuscationForceSave) {
 			this.generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.OVERWRITE;
 		}
 	}
 
-	@Deprecated
 	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
 		return generatedRenamesMappingFileMode;
 	}
 
-	@Deprecated
 	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode mode) {
 		this.generatedRenamesMappingFileMode = mode;
 	}
@@ -409,12 +405,10 @@ public class JadxArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	@Deprecated
 	public File getGeneratedRenamesMappingFile() {
 		return generatedRenamesMappingFile;
 	}
 
-	@Deprecated
 	public void setGeneratedRenamesMappingFile(File file) {
 		this.generatedRenamesMappingFile = file;
 	}

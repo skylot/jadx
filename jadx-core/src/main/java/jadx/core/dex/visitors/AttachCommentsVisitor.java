@@ -113,7 +113,6 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		if (node == null) {
 			return;
 		}
-		node.remove(AType.CODE_COMMENTS);
 		node.addAttr(AType.CODE_COMMENTS, comment);
 	}
 

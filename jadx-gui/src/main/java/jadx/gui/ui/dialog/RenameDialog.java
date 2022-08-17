@@ -31,29 +31,15 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
-import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
-import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
-
-import jadx.api.JavaClass;
-import jadx.api.JavaField;
-import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
-import jadx.core.codegen.TypeGen;
 import jadx.core.utils.Utils;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JField;
-import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JRenameNode;
-import jadx.gui.treemodel.JVariable;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
@@ -143,97 +129,6 @@ public class RenameDialog extends JDialog {
 		if (!newName.isEmpty()) {
 			renames.add(rename);
 		}
-		MemoryMappingTree mappingTree = mainWindow.getWrapper().getRootNode().getMappingTree();
-		if (mappingTree == null) {
-			return;
-		}
-		if (newName.isEmpty() || (javaNode != null && newName.equals(javaNode.getName()))) {
-			newName = null;
-		}
-		if (node instanceof JMethod) {
-			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-			String classPath = javaMethod.getDeclaringClass().getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			String methodName = javaMethod.getMethodNode().getMethodInfo().getName();
-			String methodDesc = javaMethod.getMethodNode().getMethodInfo().getShortId().substring(methodName.length());
-			if (newName == null) {
-				MethodMapping mapping = mappingTree.getMethod(classPath, methodName, methodDesc);
-				if (mapping == null || deleteMappingIfEmpty(mapping, methodName, methodDesc)) {
-					return;
-				}
-			}
-			mappingTree.visitClass(classPath);
-			mappingTree.visitMethod(methodName, methodDesc);
-			mappingTree.visitDstName(MappedElementKind.METHOD, 0, newName);
-			mappingTree.visitEnd();
-		} else if (node instanceof JField) {
-			JavaField javaField = ((JField) node).getJavaField();
-			String classPath = javaField.getDeclaringClass().getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			String fieldName = javaField.getFieldNode().getFieldInfo().getName();
-			String fieldDesc = TypeGen.signature(javaField.getFieldNode().getFieldInfo().getType());
-			if (newName == null) {
-				FieldMapping mapping = mappingTree.getField(classPath, fieldName, fieldDesc);
-				if (mapping == null || deleteMappingIfEmpty(mapping, fieldName, fieldDesc)) {
-					return;
-				}
-			}
-			mappingTree.visitClass(classPath);
-			mappingTree.visitField(fieldName, fieldDesc);
-			mappingTree.visitDstName(MappedElementKind.FIELD, 0, newName);
-			mappingTree.visitEnd();
-		} else if (node instanceof JClass) {
-			JavaClass javaClass = ((JClass) node).getCls();
-			String classPath = javaClass.getClassNode().getClassInfo().makeRawFullName().replace('.', '/');
-			if (newName == null) {
-				ClassMapping mapping = mappingTree.getClass(classPath);
-				if (mapping == null || deleteMappingIfEmpty(mapping)) {
-					return;
-				}
-			}
-			mappingTree.visitClass(classPath);
-			mappingTree.visitDstName(MappedElementKind.CLASS, 0, newName);
-			mappingTree.visitEnd();
-		} else if (node instanceof JPackage) {
-			JPackage jPackage = (JPackage) node;
-			String origPackageName = jPackage.getFullName().replace('.', '/');
-			for (ClassMapping cls : mappingTree.getClasses()) {
-				if (!cls.getSrcName().startsWith(origPackageName)) {
-					continue;
-				}
-				if (newName == null) {
-					newName = "";
-				}
-				String newDstName = newName.replace('.', '/') + cls.getDstName(0).substring(newName.length() + 1);
-				cls.setDstName(newDstName, 0);
-			}
-		} else if (node instanceof JVariable) {
-			// TODO
-		}
-	}
-
-	private boolean deleteMappingIfEmpty(ClassMapping mapping) {
-		if (mapping.getFields().isEmpty() && mapping.getMethods().isEmpty()) {
-			mapping.getTree().removeClass(mapping.getSrcName());
-			return true;
-		}
-		return false;
-	}
-
-	private boolean deleteMappingIfEmpty(MethodMapping mapping, String methodName, String methodDesc) {
-		if (mapping.getArgs().isEmpty() && mapping.getVars().isEmpty()) {
-			mapping.getOwner().removeMethod(methodName, methodDesc);
-			deleteMappingIfEmpty(mapping.getOwner());
-			return true;
-		}
-		return false;
-	}
-
-	private boolean deleteMappingIfEmpty(FieldMapping mapping, String fieldName, String fieldDesc) {
-		mapping.getOwner().removeMethod(fieldName, fieldDesc);
-		if (mapping.getOwner().getFields().isEmpty() && mapping.getOwner().getMethods().isEmpty()) {
-			mapping.getTree().removeClass(mapping.getOwner().getSrcName());
-			return true;
-		}
-		return false;
 	}
 
 	private void updateCodeRenames(Consumer<Set<ICodeRename>> updater) {
@@ -248,12 +143,9 @@ public class RenameDialog extends JDialog {
 		Collections.sort(list);
 		codeData.setRenames(list);
 		project.setCodeData(codeData);
-		mainWindow.getWrapper().reloadCodeData();
 	}
 
 	private void refreshState() {
-		mainWindow.getWrapper().reInitRenameVisitor();
-
 		List<JavaNode> toUpdate = new ArrayList<>();
 		if (source != null && source != node) {
 			toUpdate.add(source.getJavaNode());
@@ -269,20 +161,23 @@ public class RenameDialog extends JDialog {
 				.collect(Collectors.toSet());
 
 		LOG.debug("Classes to update: {}", updatedTopClasses);
-
-		refreshTabs(mainWindow.getTabbedPane(), updatedTopClasses);
-
-		if (!updatedTopClasses.isEmpty()) {
-			mainWindow.getBackgroundExecutor().execute("Refreshing",
-					() -> refreshClasses(updatedTopClasses),
-					(status) -> {
-						if (status == TaskStatus.CANCEL_BY_MEMORY) {
-							mainWindow.showHeapUsageBar();
-							UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
-						}
-						node.reload(mainWindow);
-					});
+		if (updatedTopClasses.isEmpty()) {
+			return;
 		}
+		mainWindow.getBackgroundExecutor().execute("Refreshing",
+				() -> {
+					mainWindow.getWrapper().reloadCodeData();
+					UiUtils.uiRunAndWait(() -> refreshTabs(mainWindow.getTabbedPane(), updatedTopClasses));
+					refreshClasses(updatedTopClasses);
+				},
+				(status) -> {
+					if (status == TaskStatus.CANCEL_BY_MEMORY) {
+						mainWindow.showHeapUsageBar();
+						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
+					}
+					node.reload(mainWindow);
+					mainWindow.renamesChanged();
+				});
 	}
 
 	private void refreshClasses(Set<JClass> updatedTopClasses) {

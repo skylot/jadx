@@ -36,6 +36,7 @@ public class RenameVisitor extends AbstractVisitor {
 			return;
 		}
 		process(root);
+		root.registerCodeDataUpdateListener(codeData -> process(root));
 	}
 
 	private void process(RootNode root) {

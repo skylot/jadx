@@ -60,9 +60,7 @@ import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
-import jadx.core.dex.visitors.rename.CodeMappingsVisitor;
 import jadx.core.dex.visitors.rename.CodeRenameVisitor;
-import jadx.core.dex.visitors.rename.MappingsVisitor;
 import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
@@ -99,7 +97,6 @@ public class Jadx {
 		// rename and deobfuscation
 		passes.add(new DeobfuscatorVisitor());
 		passes.add(new RenameVisitor());
-		passes.add(new MappingsVisitor());
 		passes.add(new SaveDeobfMapping());
 
 		passes.add(new UsageInfoVisitor());
@@ -146,7 +143,6 @@ public class Jadx {
 			passes.add(new ProcessKotlinInternals());
 		}
 		passes.add(new CodeRenameVisitor());
-		passes.add(new CodeMappingsVisitor());
 		if (args.isInlineMethods()) {
 			passes.add(new InlineMethods());
 		}
@@ -218,7 +214,6 @@ public class Jadx {
 		}
 		passes.add(new FinishTypeInference());
 		passes.add(new CodeRenameVisitor());
-		passes.add(new CodeMappingsVisitor());
 		passes.add(new DeboxingVisitor());
 		passes.add(new ModVisitor());
 		passes.add(new CodeShrinkVisitor());
