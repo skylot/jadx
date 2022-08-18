@@ -129,7 +129,7 @@ public class AndroidResourcesUtils {
 				FieldNode newResField = new FieldNode(typeCls, rFieldInfo,
 						AccessFlags.PUBLIC | AccessFlags.STATIC | AccessFlags.FINAL);
 				newResField.addAttr(new EncodedValue(EncodedType.ENCODED_INT, resource.getId()));
-				typeCls.getFields().add(newResField);
+				typeCls.addField(newResField);
 				if (rClsExists) {
 					newResField.addInfoComment("Added by JADX");
 				}
