@@ -4,10 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.net.URL;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -24,6 +22,7 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.logs.ILogListener;
 import jadx.gui.utils.logs.LogCollector;
 
@@ -37,7 +36,7 @@ public class LogViewerDialog extends JFrame {
 	private transient RSyntaxTextArea textPane;
 	private JComboBox<Level> levelCb;
 
-	private static transient LogViewerDialog openLogDialog;
+	private static LogViewerDialog openLogDialog;
 
 	public static void open(MainWindow mainWindow) {
 		openWithLevel(mainWindow, level);
@@ -71,8 +70,7 @@ public class LogViewerDialog extends JFrame {
 	}
 
 	public final void initUI(MainWindow mainWindow) {
-		URL logoURL = getClass().getResource("/logos/jadx-logo-48px.png");
-		this.setIconImage(new ImageIcon(logoURL).getImage());
+		UiUtils.setWindowIcons(this);
 
 		textPane = AbstractCodeArea.getDefaultArea(mainWindow);
 		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
