@@ -469,8 +469,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public void addField(FieldNode fld) {
-		if (fields == Collections.EMPTY_LIST) {
-			fields = new ArrayList<>();
+		if (fields == null || fields.isEmpty()) {
+			fields = new ArrayList<>(1);
 		}
 		fields.add(fld);
 	}
