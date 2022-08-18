@@ -150,11 +150,16 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	@Nullable
 	private JNode getSelectedNode() {
-		int selectedId = resultsTable.getSelectedRow();
-		if (selectedId == -1) {
+		try {
+			int selectedId = resultsTable.getSelectedRow();
+			if (selectedId == -1 || selectedId >= resultsTable.getRowCount()) {
+				return null;
+			}
+			return (JNode) resultsModel.getValueAt(selectedId, 0);
+		} catch (Exception e) {
+			LOG.error("Failed to get results table selected object", e);
 			return null;
 		}
-		return (JNode) resultsModel.getValueAt(selectedId, 0);
 	}
 
 	@Override
