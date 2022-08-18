@@ -2,11 +2,13 @@ package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -20,10 +22,11 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.logs.ILogListener;
 import jadx.gui.utils.logs.LogCollector;
 
-public class LogViewerDialog extends JDialog {
+public class LogViewerDialog extends JFrame {
 	private static final long serialVersionUID = -2188700277429054641L;
 	private static final Level[] LEVEL_ITEMS = { Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR };
 
@@ -31,6 +34,9 @@ public class LogViewerDialog extends JDialog {
 
 	private final transient JadxSettings settings;
 	private transient RSyntaxTextArea textPane;
+	private JComboBox<Level> levelCb;
+
+	private static LogViewerDialog openLogDialog;
 
 	public static void open(MainWindow mainWindow) {
 		openWithLevel(mainWindow, level);
@@ -38,7 +44,16 @@ public class LogViewerDialog extends JDialog {
 
 	public static void openWithLevel(MainWindow mainWindow, Level newLevel) {
 		level = newLevel;
-		new LogViewerDialog(mainWindow).setVisible(true);
+		if (openLogDialog == null) {
+			LogViewerDialog newLogDialog = new LogViewerDialog(mainWindow);
+			newLogDialog.setVisible(true);
+			openLogDialog = newLogDialog;
+		} else {
+			LogViewerDialog logDialog = openLogDialog;
+			logDialog.levelCb.setSelectedItem(level);
+			logDialog.setVisible(true);
+			logDialog.toFront();
+		}
 	}
 
 	private LogViewerDialog(MainWindow mainWindow) {
@@ -46,25 +61,33 @@ public class LogViewerDialog extends JDialog {
 		initUI(mainWindow);
 		registerLogListener();
 		settings.loadWindowPos(this);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				openLogDialog = null;
+			}
+		});
 	}
 
 	public final void initUI(MainWindow mainWindow) {
+		UiUtils.setWindowIcons(this);
+
 		textPane = AbstractCodeArea.getDefaultArea(mainWindow);
 		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
 		JPanel controlPane = new JPanel();
 		controlPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		final JComboBox<Level> cb = new JComboBox<>(LEVEL_ITEMS);
-		cb.setSelectedItem(level);
-		cb.addActionListener(e -> {
-			int i = cb.getSelectedIndex();
+		levelCb = new JComboBox<>(LEVEL_ITEMS);
+		levelCb.setSelectedItem(level);
+		levelCb.addActionListener(e -> {
+			int i = levelCb.getSelectedIndex();
 			level = LEVEL_ITEMS[i];
 			registerLogListener();
 		});
 		JLabel levelLabel = new JLabel(NLS.str("log_viewer.log_level"));
-		levelLabel.setLabelFor(cb);
+		levelLabel.setLabelFor(levelCb);
 		controlPane.add(levelLabel);
-		controlPane.add(cb);
+		controlPane.add(levelCb);
 
 		JScrollPane scrollPane = new JScrollPane(textPane);
 
@@ -81,7 +104,6 @@ public class LogViewerDialog extends JDialog {
 		pack();
 		setSize(800, 600);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
 		setLocationRelativeTo(null);
 	}
 
