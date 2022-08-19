@@ -52,7 +52,7 @@ public class ResourceSearchProvider implements ISearchProvider {
 			if (cancelable.isCanceled()) {
 				return null;
 			}
-			JResource resNode = getNextNode();
+			JResource resNode = getNextResFile(cancelable);
 			if (resNode == null) {
 				return null;
 			}
@@ -62,7 +62,7 @@ public class ResourceSearchProvider implements ISearchProvider {
 			}
 			pos = 0;
 			resQueue.removeLast();
-			addChildren(resQueue, resNode);
+			addChildren(resNode);
 			if (resQueue.isEmpty()) {
 				return null;
 			}
@@ -90,39 +90,37 @@ public class ResourceSearchProvider implements ISearchProvider {
 		return new JResSearchNode(resNode, line.trim(), newPos);
 	}
 
-	private @Nullable JResource getNextNode() {
-		JResource node = resQueue.peekLast();
-		if (node == null) {
-			return null;
-		}
-		try {
-			node.loadNode();
-		} catch (Exception e) {
-			LOG.error("Error load resource node: {}", node, e);
-			resQueue.removeLast();
-			return getNextNode();
-		}
-		if (node.getType() == JResource.JResType.FILE) {
-			if (shouldProcess(node)) {
-				return node;
+	private @Nullable JResource getNextResFile(Cancelable cancelable) {
+		while (true) {
+			JResource node = resQueue.peekLast();
+			if (node == null) {
+				return null;
 			}
-			resQueue.removeLast();
-			return getNextNode();
+			try {
+				node.loadNode();
+			} catch (Exception e) {
+				LOG.error("Error load resource node: {}", node, e);
+				resQueue.removeLast();
+				continue;
+			}
+			if (cancelable.isCanceled()) {
+				return null;
+			}
+			if (node.getType() == JResource.JResType.FILE) {
+				if (shouldProcess(node)) {
+					return node;
+				}
+				resQueue.removeLast();
+			} else {
+				// dir
+				resQueue.removeLast();
+				addChildren(node);
+			}
 		}
-		// dit or root
-		resQueue.removeLast();
-		addChildren(resQueue, node);
-		return getNextNode();
 	}
 
-	private void addChildren(Deque<JResource> deque, JResource resNode) {
-		Enumeration<TreeNode> children = resNode.children();
-		while (children.hasMoreElements()) {
-			TreeNode node = children.nextElement();
-			if (node instanceof JResource) {
-				deque.add((JResource) node);
-			}
-		}
+	private void addChildren(JResource resNode) {
+		resQueue.addAll(resNode.getSubNodes());
 	}
 
 	private static Deque<JResource> initResQueue(MainWindow mw) {
@@ -155,16 +153,15 @@ public class ResourceSearchProvider implements ISearchProvider {
 	}
 
 	private boolean shouldProcess(JResource resNode) {
+		ResourceFile resFile = resNode.getResFile();
+		if (resFile.getType() == ResourceType.ARSC) {
+			// don't check size of generated resource table, it will also skip all sub files
+			return anyExt || extSet.contains("xml");
+		}
 		if (!anyExt) {
-			String fileExt;
-			ResourceFile resFile = resNode.getResFile();
-			if (resFile.getType() == ResourceType.ARSC) {
-				fileExt = "xml";
-			} else {
-				fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
-				if (fileExt == null) {
-					return false;
-				}
+			String fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
+			if (fileExt == null) {
+				return false;
 			}
 			if (!extSet.contains(fileExt)) {
 				return false;

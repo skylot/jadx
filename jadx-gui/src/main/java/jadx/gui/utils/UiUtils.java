@@ -375,7 +375,7 @@ public class UiUtils {
 		try {
 			SwingUtilities.invokeAndWait(runnable);
 		} catch (InterruptedException e) {
-			LOG.warn("UI thread interrupted", e);
+			LOG.warn("UI thread interrupted, runnable: {}", runnable, e);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

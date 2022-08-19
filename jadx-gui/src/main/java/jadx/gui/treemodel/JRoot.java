@@ -68,17 +68,18 @@ public class JRoot extends JNode {
 					} else {
 						subRF = new JResource(rf, rf.getDeobfName(), name, JResType.FILE);
 					}
-					curRf.getFiles().add(subRF);
+					curRf.addSubNode(subRF);
 				}
 				curRf = subRF;
 			}
 		}
+		root.sortSubNodes();
 		root.update();
 		return root;
 	}
 
 	private JResource getResourceByName(JResource rf, String name) {
-		for (JResource sub : rf.getFiles()) {
+		for (JResource sub : rf.getSubNodes()) {
 			if (sub.getName().equals(name)) {
 				return sub;
 			}

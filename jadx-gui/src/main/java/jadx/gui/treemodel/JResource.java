@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.ResourceFile;
-import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.ui.TabbedPane;
@@ -26,6 +26,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.res.ResTableHelper;
 
 public class JResource extends JLoadableNode {
 	private static final long serialVersionUID = -201018424302612434L;
@@ -41,6 +42,10 @@ public class JResource extends JLoadableNode {
 	private static final ImageIcon JAVA_ICON = UiUtils.openSvgIcon("nodes/java");
 	private static final ImageIcon UNKNOWN_ICON = UiUtils.openSvgIcon("nodes/unknown");
 
+	public static final Comparator<JResource> RESOURCES_COMPARATOR =
+			Comparator.<JResource>comparingInt(r -> r.type.ordinal())
+					.thenComparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
+
 	public enum JResType {
 		ROOT,
 		DIR,
@@ -49,11 +54,11 @@ public class JResource extends JLoadableNode {
 
 	private final transient String name;
 	private final transient String shortName;
-	private final transient List<JResource> files = new ArrayList<>(1);
 	private final transient JResType type;
 	private final transient ResourceFile resFile;
 
-	private transient boolean loaded;
+	private transient volatile boolean loaded;
+	private transient List<JResource> subNodes = Collections.emptyList();
 	private transient ICodeInfo content;
 
 	public JResource(ResourceFile resFile, String name, JResType type) {
@@ -69,7 +74,8 @@ public class JResource extends JLoadableNode {
 	}
 
 	public final void update() {
-		if (files.isEmpty()) {
+		removeAllChildren();
+		if (Utils.isEmpty(subNodes)) {
 			if (type == JResType.DIR || type == JResType.ROOT
 					|| resFile.getType() == ResourceType.ARSC) {
 				// fake leaf to force show expand button
@@ -77,14 +83,7 @@ public class JResource extends JLoadableNode {
 				add(new TextNode(NLS.str("tree.loading")));
 			}
 		} else {
-			removeAllChildren();
-
-			Comparator<JResource> typeComparator = Comparator.comparingInt(r -> r.type.ordinal());
-			Comparator<JResource> nameComparator = Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
-
-			files.sort(typeComparator.thenComparing(nameComparator));
-
-			for (JResource res : files) {
+			for (JResource res : subNodes) {
 				res.update();
 				add(res);
 			}
@@ -106,8 +105,23 @@ public class JResource extends JLoadableNode {
 		return type;
 	}
 
-	public List<JResource> getFiles() {
-		return files;
+	public List<JResource> getSubNodes() {
+		return subNodes;
+	}
+
+	public void addSubNode(JResource node) {
+		subNodes = ListUtils.safeAdd(subNodes, node);
+	}
+
+	public void sortSubNodes() {
+		sortResNodes(subNodes);
+	}
+
+	private static void sortResNodes(List<JResource> nodes) {
+		if (Utils.notEmpty(nodes)) {
+			nodes.forEach(JResource::sortSubNodes);
+			nodes.sort(RESOURCES_COMPARATOR);
+		}
 	}
 
 	@Override
@@ -145,9 +159,9 @@ public class JResource extends JLoadableNode {
 		}
 		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
 			ICodeInfo codeInfo = loadCurrentSingleRes(rc);
-			for (ResContainer subFile : rc.getSubFiles()) {
-				loadSubNodes(this, subFile, 1);
-			}
+			List<JResource> nodes = ResTableHelper.buildTree(rc);
+			sortResNodes(nodes);
+			subNodes = nodes;
 			return codeInfo;
 		}
 		// single node
@@ -176,47 +190,6 @@ public class JResource extends JLoadableNode {
 			default:
 				return new SimpleCodeInfo("Unexpected resource type: " + rc);
 		}
-	}
-
-	private void loadSubNodes(JResource root, ResContainer rc, int depth) {
-		String resName = rc.getName();
-		String[] path = resName.split("/");
-		String resShortName = path.length == 0 ? resName : path[path.length - 1];
-		ICodeInfo code = rc.getText();
-		ResourceFileContent fileContent = new ResourceFileContent(resShortName, ResourceType.XML, code);
-		addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
-
-		for (ResContainer subFile : rc.getSubFiles()) {
-			loadSubNodes(root, subFile, depth + 1);
-		}
-	}
-
-	private static void addPath(String[] path, JResource root, JResource jResource) {
-		if (path.length == 1) {
-			root.getFiles().add(jResource);
-			return;
-		}
-		JResource currentRoot = root;
-		int last = path.length - 1;
-		for (int i = 0; i <= last; i++) {
-			String f = path[i];
-			if (i == last) {
-				currentRoot.getFiles().add(jResource);
-			} else {
-				currentRoot = getResDir(currentRoot, f);
-			}
-		}
-	}
-
-	private static JResource getResDir(JResource root, String dirName) {
-		for (JResource file : root.getFiles()) {
-			if (file.getName().equals(dirName)) {
-				return file;
-			}
-		}
-		JResource resDir = new JResource(null, dirName, JResType.DIR);
-		root.getFiles().add(resDir);
-		return resDir;
 	}
 
 	@Override
