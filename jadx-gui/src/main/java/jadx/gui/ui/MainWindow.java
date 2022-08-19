@@ -596,8 +596,6 @@ public class MainWindow extends JFrame {
 
 	protected void resetCache() {
 		cacheObject.reset();
-		cacheObject.setJRoot(treeRoot);
-		cacheObject.setJadxSettings(settings);
 	}
 
 	synchronized void runInitialBackgroundJobs() {
@@ -680,13 +678,11 @@ public class MainWindow extends JFrame {
 
 	public void initTree() {
 		treeRoot = new JRoot(wrapper);
-		cacheObject.setJRoot(treeRoot);
 		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
 		addTreeCustomNodes();
 		treeRoot.update();
 		reloadTree();
-		cacheObject.setJadxSettings(settings);
 	}
 
 	private void clearTree() {

@@ -1,13 +1,10 @@
 package jadx.gui.search.providers;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.swing.tree.TreeNode;
 
@@ -18,56 +15,55 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeWriter;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
-import jadx.core.utils.files.FileUtils;
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.ISearchProvider;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.CacheObject;
 
 public class ResourceSearchProvider implements ISearchProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourceSearchProvider.class);
 
-	private final CacheObject cache;
 	private final SearchSettings searchSettings;
-	private final Set<String> extSet = new HashSet<>();
-
-	private List<JResource> resNodes;
-	private String fileExts;
+	private final Set<String> extSet;
+	private final int sizeLimit;
 	private boolean anyExt;
-	private int sizeLimit;
 
-	private int progress;
+	/**
+	 * Resources queue for process. Using UI nodes to reuse loading cache
+	 */
+	private final Deque<JResource> resQueue;
 	private int pos;
 
 	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings) {
-		this.cache = mw.getCacheObject();
 		this.searchSettings = searchSettings;
+		this.sizeLimit = mw.getSettings().getSrhResourceSkipSize() * 1048576;
+		this.extSet = buildAllowedFilesExtensions(mw.getSettings().getSrhResourceFileExt());
+		this.resQueue = initResQueue(mw);
 	}
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		if (resNodes == null) {
-			load();
-		}
-		if (resNodes.isEmpty()) {
-			return null;
-		}
 		while (true) {
 			if (cancelable.isCanceled()) {
 				return null;
 			}
-			JResource resNode = resNodes.get(progress);
+			JResource resNode = getNextNode();
+			if (resNode == null) {
+				return null;
+			}
 			JNode newResult = search(resNode);
 			if (newResult != null) {
 				return newResult;
 			}
-			progress++;
 			pos = 0;
-			if (progress >= resNodes.size()) {
+			resQueue.removeLast();
+			addChildren(resQueue, resNode);
+			if (resQueue.isEmpty()) {
 				return null;
 			}
 		}
@@ -94,133 +90,110 @@ public class ResourceSearchProvider implements ISearchProvider {
 		return new JResSearchNode(resNode, line.trim(), newPos);
 	}
 
-	private synchronized void load() {
-		resNodes = new ArrayList<>();
-		sizeLimit = cache.getJadxSettings().getSrhResourceSkipSize() * 1048576;
-		fileExts = cache.getJadxSettings().getSrhResourceFileExt();
-		for (String extStr : fileExts.split("\\|")) {
+	private @Nullable JResource getNextNode() {
+		JResource node = resQueue.peekLast();
+		if (node == null) {
+			return null;
+		}
+		try {
+			node.loadNode();
+		} catch (Exception e) {
+			LOG.error("Error load resource node: {}", node, e);
+			resQueue.removeLast();
+			return getNextNode();
+		}
+		if (node.getType() == JResource.JResType.FILE) {
+			if (shouldProcess(node)) {
+				return node;
+			}
+			resQueue.removeLast();
+			return getNextNode();
+		}
+		// dit or root
+		resQueue.removeLast();
+		addChildren(resQueue, node);
+		return getNextNode();
+	}
+
+	private void addChildren(Deque<JResource> deque, JResource resNode) {
+		Enumeration<TreeNode> children = resNode.children();
+		while (children.hasMoreElements()) {
+			TreeNode node = children.nextElement();
+			if (node instanceof JResource) {
+				deque.add((JResource) node);
+			}
+		}
+	}
+
+	private static Deque<JResource> initResQueue(MainWindow mw) {
+		JRoot jRoot = mw.getTreeRoot();
+		Deque<JResource> deque = new ArrayDeque<>(jRoot.getChildCount());
+		Enumeration<TreeNode> children = jRoot.children();
+		while (children.hasMoreElements()) {
+			TreeNode node = children.nextElement();
+			if (node instanceof JResource) {
+				JResource resNode = (JResource) node;
+				deque.add(resNode);
+			}
+		}
+		return deque;
+	}
+
+	private Set<String> buildAllowedFilesExtensions(String srhResourceFileExt) {
+		Set<String> set = new HashSet<>();
+		for (String extStr : srhResourceFileExt.split("[|.]")) {
 			String ext = extStr.trim();
 			if (!ext.isEmpty()) {
 				anyExt = ext.equals("*");
 				if (anyExt) {
 					break;
 				}
-				extSet.add(ext);
+				set.add(ext);
 			}
 		}
-		try (ZipFile zipFile = getZipFile(cache.getJRoot())) {
-			traverseTree(cache.getJRoot(), zipFile); // reindex
-		} catch (Exception e) {
-			LOG.error("Failed to apply settings to resource index", e);
-		}
+		return set;
 	}
 
-	private void traverseTree(TreeNode root, @Nullable ZipFile zip) {
-		for (int i = 0; i < root.getChildCount(); i++) {
-			TreeNode node = root.getChildAt(i);
-			if (node instanceof JResource) {
-				JResource resNode = (JResource) node;
-				try {
-					resNode.loadNode();
-				} catch (Exception e) {
-					LOG.error("Error load resource node: {}", resNode, e);
-					return;
-				}
-				ResourceFile resFile = resNode.getResFile();
-				if (resFile == null) {
-					traverseTree(node, zip);
-				} else {
-					if (resFile.getType() == ResourceType.ARSC && shouldSearchXML()) {
-						resFile.loadContent();
-						resNode.getFiles().forEach(t -> traverseTree(t, null));
-					} else {
-						filter(resNode, zip);
-					}
-				}
-			}
-		}
-	}
-
-	private boolean shouldSearchXML() {
-		return anyExt || fileExts.contains(".xml");
-	}
-
-	@Nullable
-	private ZipFile getZipFile(TreeNode res) {
-		for (int i = 0; i < res.getChildCount(); i++) {
-			TreeNode node = res.getChildAt(i);
-			if (node instanceof JResource) {
-				JResource resNode = (JResource) node;
-				try {
-					resNode.loadNode();
-				} catch (Exception e) {
-					LOG.error("Error load resource node: {}", resNode, e);
-					return null;
-				}
-				ResourceFile file = resNode.getResFile();
-				if (file == null) {
-					ZipFile zip = getZipFile(resNode);
-					if (zip != null) {
-						return zip;
-					}
-				} else {
-					ResourceFile.ZipRef zipRef = file.getZipRef();
-					if (zipRef != null) {
-						File zfile = zipRef.getZipFile();
-						if (FileUtils.isZipFile(zfile)) {
-							try {
-								return new ZipFile(zfile);
-							} catch (IOException ignore) {
-							}
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	private void filter(JResource resNode, ZipFile zip) {
-		ResourceFile resFile = resNode.getResFile();
-		if (JResource.isSupportedForView(resFile.getType())) {
-			long size = -1;
-			if (zip != null) {
-				ZipEntry entry = zip.getEntry(resFile.getOriginalName());
-				if (entry != null) {
-					size = entry.getSize();
-				}
-			}
-			if (size == -1) { // resource from ARSC is unknown size
-				try {
-					size = resNode.getCodeInfo().getCodeStr().length();
-				} catch (Exception ignore) {
-					return;
-				}
-			}
-			if (size <= sizeLimit) {
-				if (!anyExt) {
-					for (String ext : extSet) {
-						if (resFile.getOriginalName().endsWith(ext)) {
-							resNodes.add(resNode);
-							break;
-						}
-					}
-				} else {
-					resNodes.add(resNode);
-				}
+	private boolean shouldProcess(JResource resNode) {
+		if (!anyExt) {
+			String fileExt;
+			ResourceFile resFile = resNode.getResFile();
+			if (resFile.getType() == ResourceType.ARSC) {
+				fileExt = "xml";
 			} else {
-				LOG.debug("Resource index skipped because of size limit: {} res size {} bytes", resNode, size);
+				fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
+				if (fileExt == null) {
+					return false;
+				}
 			}
+			if (!extSet.contains(fileExt)) {
+				return false;
+			}
+		}
+		if (sizeLimit == 0) {
+			return true;
+		}
+		try {
+			int charsCount = resNode.getCodeInfo().getCodeStr().length();
+			long size = charsCount * 8L;
+			if (size > sizeLimit) {
+				LOG.debug("Resource search skipped because of size limit: {} res size {} bytes", resNode, size);
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			LOG.warn("Resource load error: {}", resNode, e);
+			return false;
 		}
 	}
 
 	@Override
 	public int progress() {
-		return progress;
+		return 0;
 	}
 
 	@Override
 	public int total() {
-		return resNodes == null ? 0 : resNodes.size();
+		return 0;
 	}
 }

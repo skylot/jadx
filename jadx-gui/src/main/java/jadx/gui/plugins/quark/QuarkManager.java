@@ -107,7 +107,7 @@ public class QuarkManager {
 	private void loadReport() {
 		try {
 			QuarkReportNode quarkNode = new QuarkReportNode(reportFile);
-			JRoot root = mainWindow.getCacheObject().getJRoot();
+			JRoot root = mainWindow.getTreeRoot();
 			root.replaceCustomNode(quarkNode);
 			root.update();
 			mainWindow.reloadTree();

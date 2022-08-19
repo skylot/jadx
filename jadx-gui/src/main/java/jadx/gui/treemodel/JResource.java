@@ -92,7 +92,7 @@ public class JResource extends JLoadableNode {
 	}
 
 	@Override
-	public void loadNode() {
+	public synchronized void loadNode() {
 		getCodeInfo();
 		update();
 	}
@@ -100,6 +100,10 @@ public class JResource extends JLoadableNode {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	public JResType getType() {
+		return type;
 	}
 
 	public List<JResource> getFiles() {
