@@ -90,7 +90,7 @@ launch4j {
 	windowTitle = 'jadx'
 	companyName = 'jadx'
 	jreMinVersion = '11'
-	jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
+	jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC', '-Djava.util.Arrays.useLegacyMergeSort=true']
 	jreRuntimeBits = "64"
 	bundledJre64Bit = true
 	initialHeapPercent = 5
