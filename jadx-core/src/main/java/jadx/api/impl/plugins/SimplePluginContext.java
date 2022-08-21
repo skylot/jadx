@@ -2,6 +2,7 @@ package jadx.api.impl.plugins;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.gui.JadxGuiContext;
@@ -16,6 +17,11 @@ public class SimplePluginContext implements JadxPluginContext {
 	public SimplePluginContext(JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
 		this.passContext = new SimplePassContext(decompiler);
+	}
+
+	@Override
+	public JadxArgs getArgs() {
+		return decompiler.getArgs();
 	}
 
 	@Override

@@ -5,6 +5,8 @@ plugins {
 }
 
 dependencies {
+	api(project(":jadx-core"))
+
 	implementation("org.jetbrains.kotlin:kotlin-scripting-common")
 	implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")
 
@@ -14,9 +16,6 @@ dependencies {
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 	implementation("io.github.microutils:kotlin-logging-jvm:3.0.2")
-
-	api(project(":jadx-plugins:jadx-plugins-api"))
-	api(project(":jadx-core")) // TODO: workaround
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-smali-input"))

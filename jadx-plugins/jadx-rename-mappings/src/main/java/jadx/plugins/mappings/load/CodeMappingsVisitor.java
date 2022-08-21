@@ -9,9 +9,6 @@ import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodArgMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 
-import jadx.api.core.nodes.IClassNode;
-import jadx.api.core.nodes.IMethodNode;
-import jadx.api.core.nodes.IRootNode;
 import jadx.api.plugins.pass.JadxPassInfo;
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo;
 import jadx.api.plugins.pass.types.JadxDecompilePass;
@@ -38,15 +35,13 @@ public class CodeMappingsVisitor implements JadxDecompilePass {
 	}
 
 	@Override
-	public void init(IRootNode iroot) {
-		RootNode root = (RootNode) iroot;
+	public void init(RootNode root) {
 		updateMappingsMap();
 		root.registerCodeDataUpdateListener(codeData -> updateMappingsMap());
 	}
 
 	@Override
-	public boolean visit(IClassNode icls) {
-		ClassNode cls = (ClassNode) icls;
+	public boolean visit(ClassNode cls) {
 		ClassMapping classMapping = getMapping(cls);
 		if (classMapping != null) {
 			applyRenames(cls, classMapping);
@@ -56,7 +51,7 @@ public class CodeMappingsVisitor implements JadxDecompilePass {
 	}
 
 	@Override
-	public void visit(IMethodNode mth) {
+	public void visit(MethodNode mth) {
 	}
 
 	private static void applyRenames(ClassNode cls, ClassMapping classMapping) {

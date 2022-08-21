@@ -5,7 +5,6 @@ import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 
-import jadx.api.core.nodes.IRootNode;
 import jadx.api.plugins.pass.JadxPassInfo;
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo;
 import jadx.api.plugins.pass.types.JadxPreparePass;
@@ -34,8 +33,7 @@ public class MappingsVisitor implements JadxPreparePass {
 	}
 
 	@Override
-	public void init(IRootNode iroot) {
-		RootNode root = (RootNode) iroot;
+	public void init(RootNode root) {
 		process(root);
 		root.registerCodeDataUpdateListener(codeData -> process(root));
 	}

@@ -20,7 +20,6 @@ import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
-import jadx.api.core.nodes.IRootNode;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.passes.DecompilePassWrapper;
 import jadx.api.impl.passes.PreparePassWrapper;
@@ -60,7 +59,7 @@ import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class RootNode implements IRootNode {
+public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final JadxArgs args;

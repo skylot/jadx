@@ -1,13 +1,13 @@
 package jadx.plugins.script.runtime.data
 
-import jadx.api.core.nodes.IClassNode
-import jadx.api.core.nodes.IMethodNode
-import jadx.api.core.nodes.IRootNode
+import jadx.api.plugins.pass.types.JadxDecompilePass
 import jadx.api.plugins.pass.JadxPass
+import jadx.api.plugins.pass.types.JadxPreparePass
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo
 import jadx.api.plugins.pass.impl.SimpleJadxPassInfo
-import jadx.api.plugins.pass.types.JadxDecompilePass
-import jadx.api.plugins.pass.types.JadxPreparePass
+import jadx.core.dex.nodes.ClassNode
+import jadx.core.dex.nodes.MethodNode
+import jadx.core.dex.nodes.RootNode
 import jadx.plugins.script.runtime.JadxScriptInstance
 
 private fun buildScriptName(jadx: JadxScriptInstance, name: String) = "JadxScript${name}(${jadx.scriptName})"
@@ -26,14 +26,14 @@ abstract class ScriptDecompilePass(
 ) : JadxDecompilePass {
 	override fun getInfo() = buildSimplePassInfo(jadx, name)
 
-	override fun init(root: IRootNode) {
+	override fun init(root: RootNode) {
 	}
 
-	override fun visit(cls: IClassNode): Boolean {
+	override fun visit(cls: ClassNode): Boolean {
 		return true
 	}
 
-	override fun visit(mth: IMethodNode) {
+	override fun visit(mth: MethodNode) {
 	}
 }
 
@@ -57,13 +57,13 @@ abstract class ScriptOrderedDecompilePass(
 	jadx: JadxScriptInstance, name: String, runAfter: List<String> = listOf(), runBefore: List<String> = listOf()
 ) : ScriptOrderedPass(jadx, name, runAfter, runBefore), JadxDecompilePass {
 
-	override fun init(root: IRootNode) {
+	override fun init(root: RootNode) {
 	}
 
-	override fun visit(cls: IClassNode): Boolean {
+	override fun visit(cls: ClassNode): Boolean {
 		return true
 	}
 
-	override fun visit(mth: IMethodNode) {
+	override fun visit(mth: MethodNode) {
 	}
 }

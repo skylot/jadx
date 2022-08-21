@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api(project(":jadx-plugins:jadx-plugins-api"))
+	api(project(":jadx-core"))
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
 	implementation('com.jakewharton.android.repackaged:dalvik-dx:11.0.0_r3')

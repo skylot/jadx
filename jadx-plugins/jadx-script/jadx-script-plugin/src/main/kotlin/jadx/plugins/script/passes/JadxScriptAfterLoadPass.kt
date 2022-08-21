@@ -1,6 +1,6 @@
 package jadx.plugins.script.passes
 
-import jadx.api.core.nodes.IJadxDecompiler
+import jadx.api.JadxDecompiler
 import jadx.api.plugins.pass.impl.SimpleJadxPassInfo
 import jadx.api.plugins.pass.types.JadxAfterLoadPass
 import jadx.plugins.script.runner.ScriptStates
@@ -12,7 +12,7 @@ class JadxScriptAfterLoadPass(private val scriptStates: ScriptStates) : JadxAfte
 
 	override fun getInfo() = SimpleJadxPassInfo("JadxScriptAfterLoad", "Execute scripts 'afterLoad' block")
 
-	override fun init(decompiler: IJadxDecompiler) {
+	override fun init(decompiler: JadxDecompiler) {
 		for (script in scriptStates.getScripts()) {
 			if (script.error) {
 				continue

@@ -20,7 +20,6 @@ import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
-import jadx.api.core.nodes.IClassNode;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
@@ -55,7 +54,7 @@ import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends NotificationAttrNode
-		implements IClassNode, ILoadable, ICodeNode, IPackageUpdate, Comparable<ClassNode> {
+		implements ILoadable, ICodeNode, IPackageUpdate, Comparable<ClassNode> {
 	private final RootNode root;
 	private final IClassData clsData;
 

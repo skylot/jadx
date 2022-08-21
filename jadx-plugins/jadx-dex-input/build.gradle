@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api(project(":jadx-plugins:jadx-plugins-api"))
+	api(project(":jadx-core"))
 
 	// TODO: finish own smali printer
 	implementation 'org.smali:baksmali:2.5.2'

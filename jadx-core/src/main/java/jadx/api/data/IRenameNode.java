@@ -1,4 +1,4 @@
-package jadx.api.core.nodes;
+package jadx.api.data;
 
 public interface IRenameNode {
 

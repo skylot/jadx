@@ -1,6 +1,5 @@
 package jadx.plugins.script.runtime.data
 
-import jadx.api.core.nodes.IRootNode
 import jadx.core.dex.attributes.AFlag
 import jadx.core.dex.attributes.IAttributeNode
 import jadx.core.dex.nodes.IDexNode
@@ -19,12 +18,11 @@ class RenamePass(private val jadx: JadxScriptInstance) {
 			"RenameAll",
 			runBefore = listOf("RenameVisitor")
 		) {
-			override fun init(root: IRootNode) {
-				val rootNode = root as RootNode
-				for (pkgNode in rootNode.packages) {
+			override fun init(root: RootNode) {
+				for (pkgNode in root.packages) {
 					rename(makeNewName, pkgNode, pkgNode.pkgInfo.name)
 				}
-				for (cls in rootNode.classes) {
+				for (cls in root.classes) {
 					rename(makeNewName, cls, cls.name)
 					for (mth in cls.methods) {
 						if (!mth.isConstructor) {

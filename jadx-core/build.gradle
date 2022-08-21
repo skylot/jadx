@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-	api(project(':jadx-plugins:jadx-plugins-api'))
-
 	implementation 'com.google.code.gson:gson:2.10.1'
 
 	// TODO: move resources decoding to separate plugin module

@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api(project(":jadx-plugins:jadx-plugins-api"))
+	api(project(":jadx-core"))
 
 	// show bytecode disassemble
 	implementation 'io.github.skylot:raung-disasm:0.0.3'
