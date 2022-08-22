@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
+import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.JadxPluginManager;
-import jadx.api.plugins.input.JadxInputPlugin;
-import jadx.api.plugins.input.data.ILoadResult;
+import jadx.api.plugins.input.ICodeLoader;
+import jadx.api.plugins.input.JadxCodeInput;
 import jadx.core.clsp.ClsSet;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -38,10 +40,12 @@ public class ConvertToClsSet {
 		List<Path> inputPaths = Stream.of(args).map(Paths::get).collect(Collectors.toList());
 		Path output = inputPaths.remove(0);
 
+		PluginsContext pluginsContext = new PluginsContext(new JadxDecompiler());
 		JadxPluginManager pluginManager = new JadxPluginManager();
 		pluginManager.load();
-		List<ILoadResult> loadedInputs = new ArrayList<>();
-		for (JadxInputPlugin inputPlugin : pluginManager.getInputPlugins()) {
+		pluginManager.initResolved(pluginsContext);
+		List<ICodeLoader> loadedInputs = new ArrayList<>();
+		for (JadxCodeInput inputPlugin : pluginsContext.getCodeInputs()) {
 			loadedInputs.add(inputPlugin.loadFiles(inputPaths));
 		}
 

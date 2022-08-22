@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -61,8 +62,8 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.gui.ui.MainWindow;
@@ -602,14 +603,18 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makePluginOptionsGroup() {
 		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
-		for (JadxPlugin plugin : mainWindow.getWrapper().getAllPlugins()) {
-			if (!(plugin instanceof JadxPluginOptions)) {
-				continue;
-			}
-			JadxPluginInfo pluginInfo = plugin.getPluginInfo();
-			JadxPluginOptions optPlugin = (JadxPluginOptions) plugin;
-			for (OptionDescription opt : optPlugin.getOptionsDescriptions()) {
-				String title = "[" + pluginInfo.getPluginId() + "]  " + opt.description();
+		PluginsContext pluginsContext = mainWindow.getWrapper().getPluginsContext();
+		for (Map.Entry<JadxPlugin, JadxPluginOptions> entry : pluginsContext.getOptionsMap().entrySet()) {
+			JadxPlugin plugin = entry.getKey();
+			JadxPluginOptions options = entry.getValue();
+			String pluginId = plugin.getPluginInfo().getPluginId();
+			for (OptionDescription opt : options.getOptionsDescriptions()) {
+				String title;
+				if (pluginId.equals("jadx-script")) {
+					title = '[' + opt.name().replace("jadx-script.", "script:") + "] " + opt.description();
+				} else {
+					title = '[' + pluginId + "]  " + opt.description();
+				}
 				if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
 					try {
 						pluginsGroup.addRow(title, getPluginOptionEditor(opt));

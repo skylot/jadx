@@ -19,14 +19,13 @@ import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.JadxPluginManager;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.plugins.context.PluginsContext;
+import jadx.gui.plugins.context.GuiPluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -47,7 +46,7 @@ public class JadxWrapper {
 
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
-	private PluginsContext pluginsContext;
+	private GuiPluginsContext guiPluginsContext;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -62,8 +61,8 @@ public class JadxWrapper {
 				project.fillJadxArgs(jadxArgs);
 
 				this.decompiler = new JadxDecompiler(jadxArgs);
-				this.pluginsContext = new PluginsContext(mainWindow);
-				this.decompiler.setJadxGuiContext(pluginsContext);
+				this.guiPluginsContext = new GuiPluginsContext(mainWindow);
+				this.decompiler.getPluginsContext().setGuiContext(guiPluginsContext);
 				this.decompiler.load();
 				initCodeCache();
 			}
@@ -89,9 +88,9 @@ public class JadxWrapper {
 					decompiler.close();
 					decompiler = null;
 				}
-				if (pluginsContext != null) {
-					pluginsContext.reset();
-					pluginsContext = null;
+				if (guiPluginsContext != null) {
+					guiPluginsContext.reset();
+					guiPluginsContext = null;
 				}
 			}
 		} catch (Exception e) {
@@ -197,13 +196,14 @@ public class JadxWrapper {
 		getSettings().sync();
 	}
 
-	public List<JadxPlugin> getAllPlugins() {
+	public PluginsContext getPluginsContext() {
 		if (decompiler != null) {
-			return decompiler.getPluginManager().getAllPlugins();
+			return decompiler.getPluginsContext();
 		}
-		JadxPluginManager pluginManager = new JadxPluginManager();
-		pluginManager.load();
-		return pluginManager.getAllPlugins();
+		try (JadxDecompiler tmpDecompiler = new JadxDecompiler()) {
+			tmpDecompiler.load();
+			return tmpDecompiler.getPluginsContext();
+		}
 	}
 
 	/**

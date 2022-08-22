@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.AccessFlagsScope;
 import jadx.api.plugins.input.data.ICodeReader;
-import jadx.api.plugins.input.data.ILoadResult;
 import jadx.plugins.input.dex.utils.SmaliTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +38,7 @@ class DexInputPluginTest {
 		System.out.println("Input file: " + sample.toAbsolutePath());
 		long start = System.currentTimeMillis();
 		List<Path> files = Collections.singletonList(sample);
-		try (ILoadResult result = new DexInputPlugin().loadFiles(files)) {
+		try (ICodeLoader result = new DexInputPlugin().loadFiles(files)) {
 			AtomicInteger count = new AtomicInteger();
 			result.visitClasses(cls -> {
 				System.out.println();

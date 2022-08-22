@@ -69,7 +69,7 @@ class JadxScriptInstance(
 	}
 
 	fun addPass(pass: JadxPass) {
-		scriptData.pluginContext.passContext.addPass(pass)
+		scriptData.pluginContext.addPass(pass)
 	}
 
 	val internalDecompiler: JadxDecompiler

@@ -10,12 +10,12 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.ActionHandler;
 
-public class PluginsContext implements JadxGuiContext {
-	private static final Logger LOG = LoggerFactory.getLogger(PluginsContext.class);
+public class GuiPluginsContext implements JadxGuiContext {
+	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginsContext.class);
 
 	private final MainWindow mainWindow;
 
-	public PluginsContext(MainWindow mainWindow) {
+	public GuiPluginsContext(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 	}
 

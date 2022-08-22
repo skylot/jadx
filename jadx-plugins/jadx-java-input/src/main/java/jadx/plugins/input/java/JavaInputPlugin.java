@@ -9,13 +9,14 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.input.JadxInputPlugin;
-import jadx.api.plugins.input.data.ILoadResult;
-import jadx.api.plugins.input.data.impl.EmptyLoadResult;
+import jadx.api.plugins.input.ICodeLoader;
+import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.java.utils.JavaClassParseException;
 
-public class JavaInputPlugin implements JadxInputPlugin {
+public class JavaInputPlugin implements JadxPlugin {
 
 	public static final JadxPluginInfo PLUGIN_INFO = new JadxPluginInfo(
 			"java-input",
@@ -28,26 +29,26 @@ public class JavaInputPlugin implements JadxInputPlugin {
 	}
 
 	@Override
-	public ILoadResult loadFiles(List<Path> inputFiles) {
+	public void init(JadxPluginContext context) {
+		context.addCodeInput(JavaInputPlugin::loadClassFiles);
+	}
+
+	public static ICodeLoader loadClassFiles(List<Path> inputFiles) {
 		return loadClassFiles(inputFiles, null);
 	}
 
-	public static ILoadResult loadClassFiles(List<Path> inputFiles, @Nullable Closeable closeable) {
+	public static ICodeLoader loadClassFiles(List<Path> inputFiles, @Nullable Closeable closeable) {
 		List<JavaClassReader> readers = new JavaInputLoader().collectFiles(inputFiles);
 		if (readers.isEmpty()) {
-			return EmptyLoadResult.INSTANCE;
+			return EmptyCodeLoader.INSTANCE;
 		}
 		return new JavaLoadResult(readers, closeable);
-	}
-
-	public static ILoadResult loadClassFiles(List<Path> inputFiles) {
-		return loadClassFiles(inputFiles, null);
 	}
 
 	/**
 	 * Method for provide several inputs by using load methods from {@link JavaInputLoader} class.
 	 */
-	public static ILoadResult load(Function<JavaInputLoader, List<JavaClassReader>> loader) {
+	public static ICodeLoader load(Function<JavaInputLoader, List<JavaClassReader>> loader) {
 		return wrapClassReaders(loader.apply(new JavaInputLoader()));
 	}
 
@@ -56,7 +57,7 @@ public class JavaInputPlugin implements JadxInputPlugin {
 	 * Should be used only once per JadxDecompiler instance.
 	 * For load several times use {@link JavaInputPlugin#load(Function)} method.
 	 */
-	public static ILoadResult loadFromInputStream(InputStream in, String fileName) {
+	public static ICodeLoader loadFromInputStream(InputStream in, String fileName) {
 		try {
 			return wrapClassReaders(new JavaInputLoader().loadInputStream(in, fileName));
 		} catch (Exception e) {
@@ -69,14 +70,14 @@ public class JavaInputPlugin implements JadxInputPlugin {
 	 * Should be used only once per JadxDecompiler instance.
 	 * For load several times use {@link JavaInputPlugin#load(Function)} method.
 	 */
-	public static ILoadResult loadSingleClass(byte[] content, String fileName) {
+	public static ICodeLoader loadSingleClass(byte[] content, String fileName) {
 		JavaClassReader reader = new JavaInputLoader().loadClass(content, fileName);
 		return new JavaLoadResult(Collections.singletonList(reader));
 	}
 
-	public static ILoadResult wrapClassReaders(List<JavaClassReader> readers) {
+	public static ICodeLoader wrapClassReaders(List<JavaClassReader> readers) {
 		if (readers.isEmpty()) {
-			return EmptyLoadResult.INSTANCE;
+			return EmptyCodeLoader.INSTANCE;
 		}
 		return new JavaLoadResult(readers);
 	}

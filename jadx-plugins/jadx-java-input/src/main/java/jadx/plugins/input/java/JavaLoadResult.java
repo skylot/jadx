@@ -9,11 +9,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.data.IClassData;
-import jadx.api.plugins.input.data.ILoadResult;
-import jadx.api.plugins.input.data.IResourceData;
 
-public class JavaLoadResult implements ILoadResult {
+public class JavaLoadResult implements ICodeLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaLoadResult.class);
 
 	private final List<JavaClassReader> readers;
@@ -38,10 +37,6 @@ public class JavaLoadResult implements ILoadResult {
 				LOG.error("Failed to load class data for file: " + reader.getFileName(), e);
 			}
 		}
-	}
-
-	@Override
-	public void visitResources(Consumer<IResourceData> consumer) {
 	}
 
 	@Override

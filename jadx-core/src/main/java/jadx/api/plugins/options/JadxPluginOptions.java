@@ -3,9 +3,7 @@ package jadx.api.plugins.options;
 import java.util.List;
 import java.util.Map;
 
-import jadx.api.plugins.JadxPlugin;
-
-public interface JadxPluginOptions extends JadxPlugin {
+public interface JadxPluginOptions {
 
 	void setOptions(Map<String, String> options);
 

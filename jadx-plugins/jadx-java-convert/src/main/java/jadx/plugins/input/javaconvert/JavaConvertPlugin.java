@@ -2,17 +2,16 @@ package jadx.plugins.input.javaconvert;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
+import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.input.JadxInputPlugin;
-import jadx.api.plugins.input.data.ILoadResult;
-import jadx.api.plugins.input.data.impl.EmptyLoadResult;
-import jadx.api.plugins.options.JadxPluginOptions;
-import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.input.ICodeLoader;
+import jadx.api.plugins.input.JadxCodeInput;
+import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.dex.DexInputPlugin;
 
-public class JavaConvertPlugin implements JadxInputPlugin, JadxPluginOptions {
+public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 
 	public static final String PLUGIN_ID = "java-convert";
 
@@ -30,22 +29,18 @@ public class JavaConvertPlugin implements JadxInputPlugin, JadxPluginOptions {
 	}
 
 	@Override
-	public ILoadResult loadFiles(List<Path> input) {
+	public void init(JadxPluginContext context) {
+		context.registerOptions(options);
+		context.addCodeInput(this);
+	}
+
+	@Override
+	public ICodeLoader loadFiles(List<Path> input) {
 		ConvertResult result = loader.process(input);
 		if (result.isEmpty()) {
 			result.close();
-			return EmptyLoadResult.INSTANCE;
+			return EmptyCodeLoader.INSTANCE;
 		}
 		return dexInput.loadFiles(result.getConverted(), result);
-	}
-
-	@Override
-	public void setOptions(Map<String, String> options) {
-		this.options.apply(options);
-	}
-
-	@Override
-	public List<OptionDescription> getOptionsDescriptions() {
-		return this.options.buildOptionsDescriptions();
 	}
 }

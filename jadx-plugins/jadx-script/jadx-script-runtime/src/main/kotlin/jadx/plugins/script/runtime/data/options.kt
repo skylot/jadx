@@ -1,14 +1,21 @@
 package jadx.plugins.script.runtime.data
 
+import jadx.api.plugins.options.JadxPluginOptions
 import jadx.api.plugins.options.OptionDescription
 import jadx.api.plugins.options.OptionDescription.OptionType
 import jadx.api.plugins.options.impl.JadxOptionDescription
 import jadx.plugins.script.runtime.JadxScriptInstance
 
-data class JadxScriptAllOptions(
-	val values: Map<String, String>,
+class JadxScriptAllOptions : JadxPluginOptions {
+	lateinit var values: Map<String, String>
 	val descriptions: MutableList<OptionDescription> = mutableListOf()
-)
+
+	override fun setOptions(options: Map<String, String>) {
+		values = options
+	}
+
+	override fun getOptionsDescriptions(): MutableList<OptionDescription> = descriptions
+}
 
 class ScriptOption<T>(
 	val name: String,

@@ -8,12 +8,10 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.JadxArgs;
-import jadx.api.JadxDecompiler;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.pass.JadxPassContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.plugins.mappings.load.CodeMappingsVisitor;
 import jadx.plugins.mappings.load.MappingsVisitor;
@@ -27,12 +25,10 @@ public class RenameMappingsPlugin implements JadxPlugin {
 
 	@Override
 	public void init(JadxPluginContext context) {
-		JadxArgs args = ((JadxDecompiler) context.getDecompiler()).getArgs();
-		MappingTree mappingTree = openMapping(args);
+		MappingTree mappingTree = openMapping(context.getArgs());
 		if (mappingTree != null) {
-			JadxPassContext passContext = context.getPassContext();
-			passContext.addPass(new MappingsVisitor(mappingTree));
-			passContext.addPass(new CodeMappingsVisitor(mappingTree));
+			context.addPass(new MappingsVisitor(mappingTree));
+			context.addPass(new CodeMappingsVisitor(mappingTree));
 		}
 	}
 

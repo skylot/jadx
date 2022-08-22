@@ -15,9 +15,10 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.plugins.input.JadxInputPlugin;
+import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
@@ -59,32 +60,7 @@ public class JadxPluginManager {
 		if (!allPlugins.add(pluginData)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginData + ", class " + plugin.getClass());
 		}
-		if (plugin instanceof JadxPluginOptions) {
-			verifyOptions(((JadxPluginOptions) plugin), pluginData.getPluginId());
-		}
 		return pluginData;
-	}
-
-	private void verifyOptions(JadxPluginOptions plugin, String pluginId) {
-		List<OptionDescription> descriptions = plugin.getOptionsDescriptions();
-		if (descriptions == null) {
-			throw new IllegalArgumentException("Null option descriptions in plugin id: " + pluginId);
-		}
-		String prefix = pluginId + '.';
-		descriptions.forEach(descObj -> {
-			String optName = descObj.name();
-			if (optName == null || !optName.startsWith(prefix)) {
-				throw new IllegalArgumentException("Plugin option name should start with plugin id: '" + prefix + "', option: " + optName);
-			}
-			String desc = descObj.description();
-			if (desc == null || desc.isEmpty()) {
-				throw new IllegalArgumentException("Plugin option description not set, plugin: " + pluginId);
-			}
-			List<String> values = descObj.values();
-			if (values == null) {
-				throw new IllegalArgumentException("Plugin option values is null, option: " + optName + ", plugin: " + pluginId);
-			}
-		});
 	}
 
 	public boolean unload(String pluginId) {
@@ -111,22 +87,6 @@ public class JadxPluginManager {
 		return Collections.unmodifiableList(resolvedPlugins);
 	}
 
-	public List<JadxInputPlugin> getInputPlugins() {
-		return getPluginsWithType(JadxInputPlugin.class);
-	}
-
-	public List<JadxPluginOptions> getPluginsWithOptions() {
-		return getPluginsWithType(JadxPluginOptions.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	public <T extends JadxPlugin> List<T> getPluginsWithType(Class<T> type) {
-		return resolvedPlugins.stream()
-				.filter(p -> type.isAssignableFrom(p.getClass()))
-				.map(p -> (T) p)
-				.collect(Collectors.toList());
-	}
-
 	private synchronized void resolve() {
 		Map<String, List<PluginData>> provides = allPlugins.stream()
 				.collect(Collectors.groupingBy(p -> p.getInfo().getProvides()));
@@ -149,6 +109,52 @@ public class JadxPluginManager {
 		});
 		Collections.sort(result);
 		resolvedPlugins = result.stream().map(PluginData::getPlugin).collect(Collectors.toList());
+	}
+
+	public void initAll(PluginsContext context) {
+		init(context, getAllPlugins());
+	}
+
+	public void initResolved(PluginsContext context) {
+		init(context, resolvedPlugins);
+	}
+
+	private void init(PluginsContext context, List<JadxPlugin> plugins) {
+		for (JadxPlugin plugin : plugins) {
+			try {
+				context.setCurrentPlugin(plugin);
+				plugin.init(context);
+			} catch (Exception e) {
+				String pluginId = plugin.getPluginInfo().getPluginId();
+				throw new JadxRuntimeException("Failed to init plugin: " + pluginId, e);
+			}
+		}
+		for (Map.Entry<JadxPlugin, JadxPluginOptions> entry : context.getOptionsMap().entrySet()) {
+			verifyOptions(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private void verifyOptions(JadxPlugin plugin, JadxPluginOptions options) {
+		String pluginId = plugin.getPluginInfo().getPluginId();
+		List<OptionDescription> descriptions = options.getOptionsDescriptions();
+		if (descriptions == null) {
+			throw new IllegalArgumentException("Null option descriptions in plugin id: " + pluginId);
+		}
+		String prefix = pluginId + '.';
+		descriptions.forEach(descObj -> {
+			String optName = descObj.name();
+			if (optName == null || !optName.startsWith(prefix)) {
+				throw new IllegalArgumentException("Plugin option name should start with plugin id: '" + prefix + "', option: " + optName);
+			}
+			String desc = descObj.description();
+			if (desc == null || desc.isEmpty()) {
+				throw new IllegalArgumentException("Plugin option description not set, plugin: " + pluginId);
+			}
+			List<String> values = descObj.values();
+			if (values == null) {
+				throw new IllegalArgumentException("Plugin option values is null, option: " + optName + ", plugin: " + pluginId);
+			}
+		});
 	}
 
 	private static final class PluginData implements Comparable<PluginData> {

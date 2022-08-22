@@ -23,8 +23,8 @@ import jadx.api.ResourcesLoader;
 import jadx.api.data.ICodeData;
 import jadx.api.impl.passes.DecompilePassWrapper;
 import jadx.api.impl.passes.PreparePassWrapper;
+import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.data.IClassData;
-import jadx.api.plugins.input.data.ILoadResult;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.pass.types.JadxDecompilePass;
 import jadx.api.plugins.pass.types.JadxPassType;
@@ -115,9 +115,9 @@ public class RootNode {
 		}
 	}
 
-	public void loadClasses(List<ILoadResult> loadedInputs) {
-		for (ILoadResult loadedInput : loadedInputs) {
-			loadedInput.visitClasses(cls -> {
+	public void loadClasses(List<ICodeLoader> loadedInputs) {
+		for (ICodeLoader codeLoader : loadedInputs) {
+			codeLoader.visitClasses(cls -> {
 				try {
 					addClassNode(new ClassNode(RootNode.this, cls));
 				} catch (Exception e) {

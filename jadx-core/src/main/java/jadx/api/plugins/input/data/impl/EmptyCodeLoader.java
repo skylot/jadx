@@ -3,13 +3,12 @@ package jadx.api.plugins.input.data.impl;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.data.IClassData;
-import jadx.api.plugins.input.data.ILoadResult;
-import jadx.api.plugins.input.data.IResourceData;
 
-public class EmptyLoadResult implements ILoadResult {
+public class EmptyCodeLoader implements ICodeLoader {
 
-	public static final EmptyLoadResult INSTANCE = new EmptyLoadResult();
+	public static final EmptyCodeLoader INSTANCE = new EmptyCodeLoader();
 
 	@Override
 	public boolean isEmpty() {
@@ -18,10 +17,6 @@ public class EmptyLoadResult implements ILoadResult {
 
 	@Override
 	public void visitClasses(Consumer<IClassData> consumer) {
-	}
-
-	@Override
-	public void visitResources(Consumer<IResourceData> consumer) {
 	}
 
 	@Override

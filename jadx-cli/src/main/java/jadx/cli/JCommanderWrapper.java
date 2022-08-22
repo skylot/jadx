@@ -18,7 +18,7 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameterized;
 
 import jadx.api.JadxDecompiler;
-import jadx.api.impl.plugins.SimplePluginContext;
+import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -73,7 +73,7 @@ public class JCommanderWrapper<T> {
 	}
 
 	public void printUsage() {
-		// print usage in not sorted fields order (by default its sorted by description)
+		// print usage in not sorted fields order (by default sorted by description)
 		PrintStream out = System.out;
 		out.println();
 		out.println("jadx - dex to java decompiler, version: " + JadxDecompiler.getVersion());
@@ -176,16 +176,11 @@ public class JCommanderWrapper<T> {
 		int k = 1;
 		// load and init all options plugins to print all options
 		try (JadxDecompiler decompiler = new JadxDecompiler(argsObj.toJadxArgs())) {
-			Map<String, String> pluginOptions = decompiler.getArgs().getPluginOptions();
-			SimplePluginContext context = new SimplePluginContext(decompiler);
-			for (JadxPlugin plugin : decompiler.getPluginManager().getAllPlugins()) {
-				if (plugin instanceof JadxPluginOptions) {
-					JadxPluginOptions optionsPlugin = (JadxPluginOptions) plugin;
-					optionsPlugin.setOptions(pluginOptions);
-					optionsPlugin.init(context);
-					if (appendPlugin(optionsPlugin, sb, maxNamesLen, k)) {
-						k++;
-					}
+			PluginsContext context = new PluginsContext(decompiler);
+			decompiler.getPluginManager().initAll(context);
+			for (Map.Entry<JadxPlugin, JadxPluginOptions> entry : context.getOptionsMap().entrySet()) {
+				if (appendPlugin(entry.getKey(), entry.getValue(), sb, maxNamesLen, k)) {
+					k++;
 				}
 			}
 		}
@@ -195,8 +190,8 @@ public class JCommanderWrapper<T> {
 		return "\nPlugin options (-P<name>=<value>):" + sb;
 	}
 
-	private boolean appendPlugin(JadxPluginOptions plugin, StringBuilder out, int maxNamesLen, int k) {
-		List<OptionDescription> descs = plugin.getOptionsDescriptions();
+	private boolean appendPlugin(JadxPlugin plugin, JadxPluginOptions options, StringBuilder out, int maxNamesLen, int k) {
+		List<OptionDescription> descs = options.getOptionsDescriptions();
 		if (descs.isEmpty()) {
 			return false;
 		}

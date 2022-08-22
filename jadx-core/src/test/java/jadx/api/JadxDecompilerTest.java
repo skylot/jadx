@@ -46,7 +46,7 @@ public class JadxDecompilerTest {
 	public void testDirectDexInput() throws IOException {
 		try (JadxDecompiler jadx = new JadxDecompiler();
 				InputStream in = new FileInputStream(getFileFromSampleDir("hello.dex"))) {
-			jadx.addCustomLoad(new DexInputPlugin().loadDexFromInputStream(in, "input"));
+			jadx.addCustomCodeLoader(new DexInputPlugin().loadDexFromInputStream(in, "input"));
 			jadx.load();
 			for (JavaClass cls : jadx.getClasses()) {
 				System.out.println(cls.getCode());
