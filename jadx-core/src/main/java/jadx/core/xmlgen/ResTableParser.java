@@ -150,16 +150,33 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
 		resStorage.setAppPackage(name);
 
-		while (is.getPos() < endPos) {
+		chunkLoop: while (is.getPos() < endPos) {
 			long chunkStart = is.getPos();
 			int type = is.readInt16();
-			if (type == RES_NULL_TYPE) {
-				continue;
-			}
-			if (type == RES_TABLE_TYPE_SPEC_TYPE) {
-				parseTypeSpecChunk();
-			} else if (type == RES_TABLE_TYPE_TYPE) {
-				parseTypeChunk(chunkStart, pkg);
+			LOG.trace("res package chunk start at {} type {}", chunkStart, type);
+			switch (type) {
+				case RES_NULL_TYPE:
+					LOG.info("Null chunk type encountered at offset {}", chunkStart);
+					break;
+				case RES_TABLE_TYPE_TYPE: // 0x0201
+					parseTypeChunk(chunkStart, pkg);
+					break;
+				case RES_TABLE_TYPE_SPEC_TYPE: // 0x0202
+					parseTypeSpecChunk(chunkStart);
+					break;
+				case RES_TABLE_TYPE_LIBRARY: // 0x0203
+					parseLibraryTypeChunk(chunkStart);
+					break;
+				case RES_TABLE_TYPE_OVERLAY: // 0x0204
+					throw new IOException(
+							String.format("Encountered unsupported chunk type TYPE_OVERLAY at offset 0x%x ", chunkStart));
+				case RES_TABLE_TYPE_STAGED_ALIAS: // 0x0206
+					throw new IOException(
+							String.format("Encountered unsupported chunk type TYPE_STAGED_ALIAS at offset 0x%x ", chunkStart));
+				default:
+					// In some resources.arsc files endPos is not correctly set (e.g. points to the end of the file),
+					// so we have to stop when we encounter an unknown type entry
+					break chunkLoop;
 			}
 		}
 		return pkg;
@@ -192,16 +209,38 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	}
 
 	@SuppressWarnings("unused")
-	private void parseTypeSpecChunk() throws IOException {
+	private void parseTypeSpecChunk(long chunkStart) throws IOException {
 		is.checkInt16(0x0010, "Unexpected type spec header size");
-		/* int size = */
-		is.readInt32();
+		int chunkSize = is.readInt32();
+		long expectedEndPos = chunkStart + chunkSize;
 
 		int id = is.readInt8();
 		is.skip(3);
 		int entryCount = is.readInt32();
 		for (int i = 0; i < entryCount; i++) {
 			int entryFlag = is.readInt32();
+		}
+		if (is.getPos() != expectedEndPos) {
+			throw new IOException(String.format("Error reading type spec chunk at offset 0x%x", chunkStart));
+		}
+	}
+
+	private void parseLibraryTypeChunk(long chunkStart) throws IOException {
+		LOG.trace("parsing library type chunk starting at offset {}", chunkStart);
+		is.checkInt16(12, "Unexpected header size");
+		int chunkSize = is.readInt32();
+		long expectedEndPos = chunkStart + chunkSize;
+		int count = is.readInt32();
+		for (int i = 0; i < count; i++) {
+			int packageId = is.readInt32();
+			String packageName = is.readString16Fixed(128);
+			LOG.info("Found resource shared library {}, pkgId: {}", packageName, packageId);
+			if (is.getPos() > expectedEndPos) {
+				throw new IOException("reading after chunk end");
+			}
+		}
+		if (is.getPos() != expectedEndPos) {
+			throw new IOException(String.format("Error reading library chunk at offset 0x%x", chunkStart));
 		}
 	}
 
