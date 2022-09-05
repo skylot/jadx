@@ -79,6 +79,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean codeAreaLineWrap = false;
 	private int srhResourceSkipSize = 1000;
 	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
+	private int searchResultsPerPage = 50;
 	private boolean useAutoSearch = true;
 	private boolean keepCommonDialogOpen = false;
 	private boolean smaliAreaShowBytecode = false;
@@ -539,6 +540,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setSrhResourceFileExt(String all) {
 		srhResourceFileExt = all.trim();
+	}
+
+	public int getSearchResultsPerPage() {
+		return searchResultsPerPage;
+	}
+
+	public void setSearchResultsPerPage(int searchResultsPerPage) {
+		this.searchResultsPerPage = searchResultsPerPage;
 	}
 
 	public boolean isUseAutoSearch() {

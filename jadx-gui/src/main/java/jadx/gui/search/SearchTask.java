@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -35,7 +34,6 @@ public class SearchTask extends CancelableBackgroundTask {
 	private final TaskProgress taskProgress = new TaskProgress();
 
 	private final AtomicInteger resultsCount = new AtomicInteger(0);
-	private final AtomicBoolean complete = new AtomicBoolean(false);
 	private int resultsLimit;
 	private Future<TaskStatus> future;
 
@@ -60,7 +58,6 @@ public class SearchTask extends CancelableBackgroundTask {
 			throw new IllegalStateException("Previous task not yet finished");
 		}
 		resetCancel();
-		complete.set(false);
 		resultsCount.set(0);
 		taskProgress.updateTotal(jobs.stream().mapToInt(s -> s.getProvider().total()).sum());
 		future = backgroundExecutor.execute(this);
@@ -74,7 +71,6 @@ public class SearchTask extends CancelableBackgroundTask {
 		this.resultsListener.accept(resultNode);
 		if (resultsLimit != 0 && resultsCount.incrementAndGet() >= resultsLimit) {
 			cancel();
-			complete.set(false);
 			return true;
 		}
 		return false;

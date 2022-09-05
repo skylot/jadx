@@ -45,10 +45,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -676,48 +672,26 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeSearchResGroup() {
-		SettingsGroup group = new SettingsGroup(NLS.str("preferences.search_res_title"));
-		int prevSize = settings.getSrhResourceSkipSize();
-		String prevExts = settings.getSrhResourceFileExt();
-		SpinnerNumberModel sizeLimitModel = new SpinnerNumberModel(prevSize,
-				0, Integer.MAX_VALUE, 1);
-		JSpinner spinner = new JSpinner(sizeLimitModel);
+		JSpinner resultsPerPage = new JSpinner(
+				new SpinnerNumberModel(settings.getSearchResultsPerPage(), 0, Integer.MAX_VALUE, 1));
+		resultsPerPage.addChangeListener(ev -> settings.setSearchResultsPerPage((Integer) resultsPerPage.getValue()));
+
+		JSpinner sizeLimit = new JSpinner(
+				new SpinnerNumberModel(settings.getSrhResourceSkipSize(), 0, Integer.MAX_VALUE, 1));
+		sizeLimit.addChangeListener(ev -> settings.setSrhResourceSkipSize((Integer) sizeLimit.getValue()));
+
 		JTextField fileExtField = new JTextField();
-		group.addRow(NLS.str("preferences.res_skip_file"), spinner);
-		group.addRow(NLS.str("preferences.res_file_ext"), fileExtField);
+		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener((ev) -> {
+			String ext = fileExtField.getText();
+			settings.setSrhResourceFileExt(ext);
+		}));
+		fileExtField.setText(settings.getSrhResourceFileExt());
 
-		spinner.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int size = (Integer) spinner.getValue();
-				settings.setSrhResourceSkipSize(size);
-			}
-		});
-
-		fileExtField.getDocument().addDocumentListener(new DocumentListener() {
-			private void update() {
-				String ext = fileExtField.getText();
-				settings.setSrhResourceFileExt(ext);
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update();
-			}
-		});
-		fileExtField.setText(prevExts);
-
-		return group;
+		SettingsGroup searchGroup = new SettingsGroup(NLS.str("preferences.search_group_title"));
+		searchGroup.addRow(NLS.str("preferences.search_results_per_page"), resultsPerPage);
+		searchGroup.addRow(NLS.str("preferences.res_skip_file"), sizeLimit);
+		searchGroup.addRow(NLS.str("preferences.res_file_ext"), fileExtField);
+		return searchGroup;
 	}
 
 	private void needReload() {

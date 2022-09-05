@@ -409,7 +409,7 @@ public class SearchDialog extends CommonSearchDialog {
 			updateTableHighlight();
 			prepareForSearch();
 		});
-		this.searchTask.setResultsLimit(50);
+		this.searchTask.setResultsLimit(mainWindow.getSettings().getSearchResultsPerPage());
 		this.searchTask.setProgressListener(this::updateProgress);
 		this.searchTask.fetchResults();
 		LOG.debug("Total search items count estimation: {}", this.searchTask.getTaskProgress().total());
