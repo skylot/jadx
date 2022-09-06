@@ -21,6 +21,7 @@ import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.JadxDecompiler;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
@@ -88,6 +89,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-inline-methods" }, description = "disable methods inline")
 	protected boolean inlineMethods = true;
 
+	@Parameter(names = "--no-finally", description = "don't extract finally block")
+	protected boolean extractFinally = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -128,6 +132,16 @@ public class JadxCLIArgs {
 
 	@Parameter(names = { "--deobf-parse-kotlin-metadata" }, description = "parse kotlin metadata to class and package names")
 	protected boolean deobfuscationParseKotlinMetadata = false;
+
+	@Parameter(
+			names = { "--deobf-res-name-source" },
+			description = "better name source for resources:"
+					+ "\n 'auto' - automatically select best name (default)"
+					+ "\n 'resources' - use resources names"
+					+ "\n 'code' - use R class fields names",
+			converter = ResourceNameSourceConverter.class
+	)
+	protected ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
 
 	@Parameter(
 			names = { "--use-kotlin-methods-for-var-names" },
@@ -262,6 +276,7 @@ public class JadxCLIArgs {
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
 		args.setParseKotlinMetadata(deobfuscationParseKotlinMetadata);
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
+		args.setResourceNameSource(resourceNameSource);
 		args.setEscapeUnicode(escapeUnicode);
 		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
@@ -270,6 +285,7 @@ public class JadxCLIArgs {
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setInlineMethods(inlineMethods);
+		args.setExtractFinally(extractFinally);
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
@@ -350,6 +366,10 @@ public class JadxCLIArgs {
 		return inlineMethods;
 	}
 
+	public boolean isExtractFinally() {
+		return extractFinally;
+	}
+
 	public boolean isDeobfuscationOn() {
 		return deobfuscationOn;
 	}
@@ -376,6 +396,10 @@ public class JadxCLIArgs {
 
 	public boolean isDeobfuscationParseKotlinMetadata() {
 		return deobfuscationParseKotlinMetadata;
+	}
+
+	public ResourceNameSource getResourceNameSource() {
+		return resourceNameSource;
 	}
 
 	public UseKotlinMethodsForVarNames getUseKotlinMethodsForVarNames() {
@@ -498,6 +522,19 @@ public class JadxCLIArgs {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
 								+ JadxCLIArgs.enumValuesString(DeobfuscationMapFileMode.values()));
+			}
+		}
+	}
+
+	public static class ResourceNameSourceConverter implements IStringConverter<ResourceNameSource> {
+		@Override
+		public ResourceNameSource convert(String value) {
+			try {
+				return ResourceNameSource.valueOf(value.toUpperCase());
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						'\'' + value + "' is unknown, possible values are: "
+								+ JadxCLIArgs.enumValuesString(ResourceNameSource.values()));
 			}
 		}
 	}

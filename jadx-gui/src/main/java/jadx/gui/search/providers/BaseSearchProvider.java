@@ -7,6 +7,7 @@ import jadx.api.JavaNode;
 import jadx.gui.search.ISearchMethod;
 import jadx.gui.search.ISearchProvider;
 import jadx.gui.search.SearchSettings;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JNodeCache;
@@ -33,7 +34,7 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		return nodeCache.makeFrom(node);
 	}
 
-	protected JNode convert(JavaClass cls) {
+	protected JClass convert(JavaClass cls) {
 		return nodeCache.makeFrom(cls);
 	}
 

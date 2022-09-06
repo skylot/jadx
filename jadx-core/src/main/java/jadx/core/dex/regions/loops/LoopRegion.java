@@ -49,6 +49,10 @@ public final class LoopRegion extends ConditionRegion {
 		return header;
 	}
 
+	public boolean isEndless() {
+		return header == null;
+	}
+
 	public IRegion getBody() {
 		return body;
 	}

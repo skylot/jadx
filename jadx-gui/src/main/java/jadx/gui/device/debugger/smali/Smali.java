@@ -46,6 +46,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.api.plugins.input.data.AccessFlagsScope.FIELD;
 import static jadx.api.plugins.input.data.AccessFlagsScope.METHOD;
@@ -60,7 +61,9 @@ import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM;
 import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM_RANGE;
 import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC;
 import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC_RANGE;
+import static jadx.api.plugins.input.insns.Opcode.PACKED_SWITCH;
 import static jadx.api.plugins.input.insns.Opcode.PACKED_SWITCH_PAYLOAD;
+import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH;
 import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH_PAYLOAD;
 
 public class Smali {
@@ -288,6 +291,14 @@ public class Smali {
 			if (codeReader.getDebugInfo() != null) {
 				formatDbgInfo(codeReader.getDebugInfo(), line);
 			}
+			// first pass to fill payload offsets for switch instructions
+			codeReader.visitInstructions(insn -> {
+				Opcode opcode = insn.getOpcode();
+				if (opcode == PACKED_SWITCH || opcode == SPARSE_SWITCH) {
+					insn.decode();
+					line.addPayloadOffset(insn.getOffset(), insn.getTarget());
+				}
+			});
 			codeReader.visitInstructions(insn -> {
 				InsnNode node = decodeInsn(insn, line);
 				nodes.put((long) insn.getOffset(), node);
@@ -404,7 +415,6 @@ public class Smali {
 					line.addTip(target, String.format(FMT_S_SWITCH_TAG, target), "");
 					line.getLineWriter().append(", ").append(String.format(FMT_S_SWITCH, target));
 				}
-				line.addPayloadOffset(insn.getOffset(), target);
 				return true;
 			}
 		}
@@ -733,7 +743,7 @@ public class Smali {
 
 			ISwitchPayload payload = (ISwitchPayload) insn.getPayload();
 			if (payload != null) {
-				fmtSwitchPayload(insn, FMT_P_SWITCH_CASE, FMT_P_SWITCH_CASE_TAG, line, payload, insn.getOffset());
+				fmtSwitchPayload(insn, FMT_P_SWITCH_CASE, FMT_P_SWITCH_CASE_TAG, line, payload);
 			}
 			return true;
 		}
@@ -743,7 +753,7 @@ public class Smali {
 
 			ISwitchPayload payload = (ISwitchPayload) insn.getPayload();
 			if (payload != null) {
-				fmtSwitchPayload(insn, FMT_S_SWITCH_CASE, FMT_S_SWITCH_CASE_TAG, line, payload, insn.getOffset());
+				fmtSwitchPayload(insn, FMT_S_SWITCH_CASE, FMT_S_SWITCH_CASE_TAG, line, payload);
 			}
 			return true;
 		}
@@ -755,17 +765,19 @@ public class Smali {
 		return false;
 	}
 
-	private void fmtSwitchPayload(InsnData insn, String fmtTarget, String fmtTag, LineInfo line,
-			ISwitchPayload payload, int curOffset) {
+	private void fmtSwitchPayload(InsnData insn, String fmtTarget, String fmtTag, LineInfo line, ISwitchPayload payload) {
 		int lineStart = getInsnColStart();
 		lineStart += CODE_OFFSET_COLUMN_WIDTH + 1 + 1; // plus 1s for space and the ':'
 		String basicIndent = new String(new byte[lineStart]).replace("\0", " ");
 		String indent = SmaliWriter.INDENT_STR + basicIndent;
 		int[] keys = payload.getKeys();
 		int[] targets = payload.getTargets();
-		int opcodeOffset = line.payloadOffsetMap.get(curOffset);
+		Integer switchOffset = line.payloadOffsetMap.get(insn.getOffset());
+		if (switchOffset == null) {
+			throw new JadxRuntimeException("Unknown switch insn for payload at " + insn.getOffset());
+		}
 		for (int i = 0; i < keys.length; i++) {
-			int target = opcodeOffset + targets[i];
+			int target = switchOffset + targets[i];
 			line.addInsnLine(insn.getOffset(),
 					String.format("%scase %d: -> " + fmtTarget, indent, keys[i], target));
 			line.addTip(target,

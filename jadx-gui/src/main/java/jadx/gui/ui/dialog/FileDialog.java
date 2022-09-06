@@ -29,6 +29,7 @@ public class FileDialog {
 
 	public enum OpenMode {
 		OPEN,
+		OPEN_PROJECT,
 		ADD,
 		SAVE_PROJECT,
 		EXPORT,
@@ -95,13 +96,19 @@ public class FileDialog {
 	private void initForMode(OpenMode mode) {
 		switch (mode) {
 			case OPEN:
+			case OPEN_PROJECT:
 			case ADD:
-				fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc"));
-				if (mode == OpenMode.OPEN) {
-					fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
+				if (mode == OpenMode.OPEN_PROJECT) {
+					fileExtList = Collections.singletonList(JadxProject.PROJECT_EXTENSION);
 					title = NLS.str("file.open_title");
 				} else {
-					title = NLS.str("file.add_files_action");
+					fileExtList = new ArrayList<>(Arrays.asList("apk", "dex", "jar", "class", "smali", "zip", "xapk", "aar", "arsc"));
+					if (mode == OpenMode.OPEN) {
+						fileExtList.addAll(Arrays.asList(JadxProject.PROJECT_EXTENSION, "aab"));
+						title = NLS.str("file.open_title");
+					} else {
+						title = NLS.str("file.add_files_action");
+					}
 				}
 				selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
 				currentDir = mainWindow.getSettings().getLastOpenFilePath();

@@ -54,7 +54,7 @@ public interface IBackgroundTask extends Cancelable {
 	/**
 	 * Return progress notifications listener (use executor tick rate and thread) (Optional)
 	 */
-	default @Nullable Consumer<ITaskProgress> getOnProgressListener() {
+	default @Nullable Consumer<ITaskProgress> getProgressListener() {
 		return null;
 	}
 }

@@ -57,6 +57,10 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		return accFlags.isStatic();
 	}
 
+	public boolean isInstance() {
+		return !accFlags.isStatic();
+	}
+
 	public String getName() {
 		return fieldInfo.getName();
 	}
@@ -65,12 +69,20 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		return fieldInfo.getAlias();
 	}
 
+	public void rename(String alias) {
+		fieldInfo.setAlias(alias);
+	}
+
 	public ArgType getType() {
 		return type;
 	}
 
 	public ClassNode getParentClass() {
 		return parentClass;
+	}
+
+	public ClassNode getTopParentClass() {
+		return parentClass.getTopParentClass();
 	}
 
 	public List<MethodNode> getUseIn() {

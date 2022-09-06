@@ -9,11 +9,13 @@ import jadx.api.JavaNode;
 public class CodeNode extends JNode {
 	private static final long serialVersionUID = 1658650786734966545L;
 
+	private final transient JClass rootCls;
 	private final transient JNode jNode;
 	private final transient String line;
 	private final transient int pos;
 
-	public CodeNode(JNode jNode, String lineStr, int pos) {
+	public CodeNode(JClass rootCls, JNode jNode, String lineStr, int pos) {
+		this.rootCls = rootCls;
 		this.jNode = jNode;
 		this.line = lineStr;
 		this.pos = pos;
@@ -36,14 +38,7 @@ public class CodeNode extends JNode {
 
 	@Override
 	public JClass getRootClass() {
-		JClass parent = jNode.getJParent();
-		if (parent != null) {
-			return parent.getRootClass();
-		}
-		if (jNode instanceof JClass) {
-			return (JClass) jNode;
-		}
-		return null;
+		return rootCls;
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlockAttr;
@@ -289,7 +290,11 @@ public class RegionUtils {
 				}
 			}
 			return false;
-		} else if (container instanceof IRegion) {
+		}
+		if (container instanceof LoopRegion) {
+			return true;
+		}
+		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			for (IContainer block : region.getSubBlocks()) {
 				if (notEmpty(block)) {
@@ -297,9 +302,8 @@ public class RegionUtils {
 				}
 			}
 			return false;
-		} else {
-			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	public static void getAllRegionBlocks(IContainer container, Set<IBlock> blocks) {

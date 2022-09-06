@@ -19,29 +19,59 @@ import static jadx.core.utils.Utils.lockList;
 
 public final class BlockNode extends AttrNode implements IBlock, Comparable<BlockNode> {
 
+	/**
+	 * Const ID
+	 */
+	private final int cid;
+
+	/**
+	 * ID linked to position in blocks list (easier to use BitSet)
+	 * TODO: rename to avoid confusion
+	 */
 	private int id;
+
+	/**
+	 * Offset in methods bytecode
+	 */
 	private final int startOffset;
+
 	private final List<InsnNode> instructions = new ArrayList<>(2);
 
 	private List<BlockNode> predecessors = new ArrayList<>(1);
 	private List<BlockNode> successors = new ArrayList<>(1);
 	private List<BlockNode> cleanSuccessors;
 
-	// all dominators
+	/**
+	 * All dominators, excluding self
+	 */
 	private BitSet doms = EmptyBitSet.EMPTY;
-	// dominance frontier
+
+	/**
+	 * Dominance frontier
+	 */
 	private BitSet domFrontier;
-	// immediate dominator
+
+	/**
+	 * Immediate dominator
+	 */
 	private BlockNode idom;
-	// blocks on which dominates this block
+
+	/**
+	 * Blocks on which dominates this block
+	 */
 	private List<BlockNode> dominatesOn = new ArrayList<>(3);
 
-	public BlockNode(int id, int offset) {
+	public BlockNode(int cid, int id, int offset) {
+		this.cid = cid;
 		this.id = id;
 		this.startOffset = offset;
 	}
 
-	public void setId(int id) {
+	public int getCId() {
+		return cid;
+	}
+
+	void setId(int id) {
 		this.id = id;
 	}
 
@@ -188,12 +218,12 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 			return false;
 		}
 		BlockNode other = (BlockNode) obj;
-		return id == other.id && startOffset == other.startOffset;
+		return cid == other.cid && startOffset == other.startOffset;
 	}
 
 	@Override
 	public int compareTo(@NotNull BlockNode o) {
-		return Integer.compare(id, o.id);
+		return Integer.compare(cid, o.cid);
 	}
 
 	@Override
@@ -203,6 +233,6 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	@Override
 	public String toString() {
-		return "B:" + id + ':' + InsnUtils.formatOffset(startOffset);
+		return "B:" + cid + ':' + InsnUtils.formatOffset(startOffset);
 	}
 }

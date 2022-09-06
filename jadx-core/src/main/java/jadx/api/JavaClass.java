@@ -18,6 +18,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
+import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -57,7 +58,10 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public @NotNull ICodeInfo getCodeInfo() {
-		load();
+		ICodeInfo code = load();
+		if (code != null) {
+			return code;
+		}
 		return cls.decompile();
 	}
 
@@ -106,19 +110,24 @@ public final class JavaClass implements JavaNode {
 	/**
 	 * Decompile class and loads internal lists of fields, methods, etc.
 	 * Do nothing if already loaded.
+	 *
+	 * @return code info if decompilation was executed, null otherwise
 	 */
-	@Nullable
-	private synchronized void load() {
+	private synchronized @Nullable ICodeInfo load() {
 		if (listsLoaded) {
-			return;
+			return null;
 		}
 		listsLoaded = true;
-		JadxDecompiler rootDecompiler = getRootDecompiler();
-		ICodeCache codeCache = rootDecompiler.getArgs().getCodeCache();
-		if (!codeCache.contains(cls.getRawName())) {
-			cls.decompile();
+
+		ICodeInfo code;
+		if (cls.getState().isProcessComplete()) {
+			// already decompiled -> class internals loaded
+			code = null;
+		} else {
+			code = cls.decompile();
 		}
 
+		JadxDecompiler rootDecompiler = getRootDecompiler();
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
 			List<JavaClass> list = new ArrayList<>(inClsCount);
@@ -164,6 +173,7 @@ public final class JavaClass implements JavaNode {
 			mths.sort(Comparator.comparing(JavaMethod::getName));
 			this.methods = Collections.unmodifiableList(mths);
 		}
+		return code;
 	}
 
 	JadxDecompiler getRootDecompiler() {
@@ -242,19 +252,37 @@ public final class JavaClass implements JavaNode {
 		return parent;
 	}
 
-	@Override
-	public JavaClass getTopParentClass() {
-		if (cls.contains(AType.ANONYMOUS_CLASS)) {
-			// moved to usage class
-			return getParentForAnonymousClass();
-		}
-		return parent == null ? this : parent.getTopParentClass();
+	public JavaClass getOriginalTopParentClass() {
+		return parent == null ? this : parent.getOriginalTopParentClass();
 	}
 
-	private JavaClass getParentForAnonymousClass() {
-		AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
-		ClassNode topParentClass = attr.getOuterCls().getTopParentClass();
-		return getRootDecompiler().convertClassNode(topParentClass);
+	/**
+	 * Return top parent class which contains code of this class.
+	 * Code parent can be different from original parent after move or inline
+	 *
+	 * @return this if already a top class
+	 */
+	@Override
+	public JavaClass getTopParentClass() {
+		JavaClass codeParent = getCodeParent();
+		return codeParent == null ? this : codeParent.getTopParentClass();
+	}
+
+	/**
+	 * Return parent class which contains code of this class.
+	 * Code parent can be different for original parent after move or inline
+	 */
+	public @Nullable JavaClass getCodeParent() {
+		AnonymousClassAttr anonymousClsAttr = cls.get(AType.ANONYMOUS_CLASS);
+		if (anonymousClsAttr != null) {
+			// moved to usage class
+			return getRootDecompiler().convertClassNode(anonymousClsAttr.getOuterCls());
+		}
+		InlinedAttr inlinedAttr = cls.get(AType.INLINED);
+		if (inlinedAttr != null) {
+			return getRootDecompiler().convertClassNode(inlinedAttr.getInlineCls());
+		}
+		return parent;
 	}
 
 	public AccessInfo getAccessInfo() {

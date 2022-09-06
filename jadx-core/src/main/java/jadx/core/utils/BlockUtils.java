@@ -697,7 +697,7 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Search lowest common ancestor in dominator tree for input set.
+	 * Search the lowest common ancestor in dominator tree for input set.
 	 */
 	@Nullable
 	public static BlockNode getCommonDominator(MethodNode mth, List<BlockNode> blocks) {

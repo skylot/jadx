@@ -45,10 +45,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +59,7 @@ import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -271,6 +268,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<ResourceNameSource> resNamesSource = new JComboBox<>(ResourceNameSource.values());
+		resNamesSource.setSelectedItem(settings.getResourceNameSource());
+		resNamesSource.addActionListener(e -> {
+			settings.setResourceNameSource((ResourceNameSource) resNamesSource.getSelectedItem());
+			needReload();
+		});
+
 		JComboBox<DeobfuscationMapFileMode> deobfMapFileModeCB = new JComboBox<>(DeobfuscationMapFileMode.values());
 		deobfMapFileModeCB.setSelectedItem(settings.getDeobfuscationMapFileMode());
 		deobfMapFileModeCB.addActionListener(e -> {
@@ -287,6 +291,7 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_map_file_mode"), deobfMapFileModeCB);
 		deobfGroup.end();
 
@@ -533,6 +538,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox extractFinally = new JCheckBox();
+		extractFinally.setSelected(settings.isExtractFinally());
+		extractFinally.addItemListener(e -> {
+			settings.setExtractFinally(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox fsCaseSensitive = new JCheckBox();
 		fsCaseSensitive.setSelected(settings.isFsCaseSensitive());
 		fsCaseSensitive.addItemListener(e -> {
@@ -569,6 +581,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
+		other.addRow(NLS.str("preferences.extractFinally"), extractFinally);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
@@ -659,48 +672,26 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeSearchResGroup() {
-		SettingsGroup group = new SettingsGroup(NLS.str("preferences.search_res_title"));
-		int prevSize = settings.getSrhResourceSkipSize();
-		String prevExts = settings.getSrhResourceFileExt();
-		SpinnerNumberModel sizeLimitModel = new SpinnerNumberModel(prevSize,
-				0, Integer.MAX_VALUE, 1);
-		JSpinner spinner = new JSpinner(sizeLimitModel);
+		JSpinner resultsPerPage = new JSpinner(
+				new SpinnerNumberModel(settings.getSearchResultsPerPage(), 0, Integer.MAX_VALUE, 1));
+		resultsPerPage.addChangeListener(ev -> settings.setSearchResultsPerPage((Integer) resultsPerPage.getValue()));
+
+		JSpinner sizeLimit = new JSpinner(
+				new SpinnerNumberModel(settings.getSrhResourceSkipSize(), 0, Integer.MAX_VALUE, 1));
+		sizeLimit.addChangeListener(ev -> settings.setSrhResourceSkipSize((Integer) sizeLimit.getValue()));
+
 		JTextField fileExtField = new JTextField();
-		group.addRow(NLS.str("preferences.res_skip_file"), spinner);
-		group.addRow(NLS.str("preferences.res_file_ext"), fileExtField);
+		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener((ev) -> {
+			String ext = fileExtField.getText();
+			settings.setSrhResourceFileExt(ext);
+		}));
+		fileExtField.setText(settings.getSrhResourceFileExt());
 
-		spinner.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int size = (Integer) spinner.getValue();
-				settings.setSrhResourceSkipSize(size);
-			}
-		});
-
-		fileExtField.getDocument().addDocumentListener(new DocumentListener() {
-			private void update() {
-				String ext = fileExtField.getText();
-				settings.setSrhResourceFileExt(ext);
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update();
-			}
-		});
-		fileExtField.setText(prevExts);
-
-		return group;
+		SettingsGroup searchGroup = new SettingsGroup(NLS.str("preferences.search_group_title"));
+		searchGroup.addRow(NLS.str("preferences.search_results_per_page"), resultsPerPage);
+		searchGroup.addRow(NLS.str("preferences.res_skip_file"), sizeLimit);
+		searchGroup.addRow(NLS.str("preferences.res_file_ext"), fileExtField);
+		return searchGroup;
 	}
 
 	private void needReload() {

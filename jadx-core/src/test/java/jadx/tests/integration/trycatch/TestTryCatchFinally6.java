@@ -10,6 +10,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsLines;
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestTryCatchFinally6 extends IntegrationTest {
@@ -54,15 +55,7 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsLines(2,
-				"FileInputStream fileInputStream = null;",
-				"try {",
-				indent() + "call();",
-				indent() + "fileInputStream = new FileInputStream(\"1.txt\");",
-				"} finally {",
-				indent() + "if (fileInputStream != null) {",
-				indent() + indent() + "fileInputStream.close();",
-				indent() + '}',
-				"}"));
+		// impossible to proof that variables should be merged, so can't restore finally block here
+		assertThat(code, containsOne("if (0 != 0) {"));
 	}
 }

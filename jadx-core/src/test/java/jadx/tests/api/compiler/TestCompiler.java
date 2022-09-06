@@ -113,7 +113,7 @@ public class TestCompiler implements Closeable {
 			assertNotNull(mth, "Failed to get method " + methodName + '(' + Arrays.toString(types) + ')');
 			return mth.invoke(inst, args);
 		} catch (Throwable e) {
-			IntegrationTest.rethrow("Invoke error", e);
+			IntegrationTest.rethrow("Invoke error for method: " + methodName, e);
 			return null;
 		}
 	}

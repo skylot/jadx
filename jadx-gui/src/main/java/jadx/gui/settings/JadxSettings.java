@@ -30,6 +30,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.args.DeobfuscationMapFileMode;
+import jadx.api.args.ResourceNameSource;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.gui.ui.MainWindow;
@@ -78,6 +79,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean codeAreaLineWrap = false;
 	private int srhResourceSkipSize = 1000;
 	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
+	private int searchResultsPerPage = 50;
+	private boolean useAutoSearch = true;
 	private boolean keepCommonDialogOpen = false;
 	private boolean smaliAreaShowBytecode = false;
 	private LineNumbersMode lineNumbersMode = LineNumbersMode.AUTO;
@@ -206,6 +209,11 @@ public class JadxSettings extends JadxCLIArgs {
 		if (count > RECENT_PROJECTS_COUNT) {
 			recentProjects.subList(RECENT_PROJECTS_COUNT, count).clear();
 		}
+		partialSync(settings -> settings.recentProjects = recentProjects);
+	}
+
+	public void removeRecentProject(Path projectPath) {
+		recentProjects.remove(projectPath);
 		partialSync(settings -> settings.recentProjects = recentProjects);
 	}
 
@@ -348,6 +356,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
 	}
 
+	public void setResourceNameSource(ResourceNameSource source) {
+		this.resourceNameSource = source;
+	}
+
 	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
 		if (enabled) {
 			renameFlags.add(flag);
@@ -378,6 +390,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setInlineMethods(boolean inlineMethods) {
 		this.inlineMethods = inlineMethods;
+	}
+
+	public void setExtractFinally(boolean extractFinally) {
+		this.extractFinally = extractFinally;
 	}
 
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
@@ -524,6 +540,23 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setSrhResourceFileExt(String all) {
 		srhResourceFileExt = all.trim();
+	}
+
+	public int getSearchResultsPerPage() {
+		return searchResultsPerPage;
+	}
+
+	public void setSearchResultsPerPage(int searchResultsPerPage) {
+		this.searchResultsPerPage = searchResultsPerPage;
+	}
+
+	public boolean isUseAutoSearch() {
+		return useAutoSearch;
+	}
+
+	public void setUseAutoSearch(boolean useAutoSearch) {
+		this.useAutoSearch = useAutoSearch;
+		partialSync(settings -> settings.useAutoSearch = useAutoSearch);
 	}
 
 	public void setKeepCommonDialogOpen(boolean yes) {

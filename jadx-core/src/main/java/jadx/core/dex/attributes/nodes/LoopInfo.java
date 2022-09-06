@@ -91,6 +91,19 @@ public class LoopInfo {
 		this.parentLoop = parentLoop;
 	}
 
+	public boolean hasParent(LoopInfo searchLoop) {
+		LoopInfo parent = parentLoop;
+		while (true) {
+			if (parent == null) {
+				return false;
+			}
+			if (parent == searchLoop) {
+				return true;
+			}
+			parent = parent.getParentLoop();
+		}
+	}
+
 	@Override
 	public String toString() {
 		return "LOOP:" + id + ": " + start + "->" + end;

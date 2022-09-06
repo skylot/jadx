@@ -191,7 +191,6 @@ public class Jadx {
 		passes.add(new ProcessInstructionsVisitor());
 
 		passes.add(new BlockSplitter());
-		passes.add(new MethodVisitor(mth -> mth.add(AFlag.DISABLE_BLOCKS_LOCK)));
 		if (args.isRawCFGOutput()) {
 			passes.add(DotGraphVisitor.dumpRaw());
 		}
@@ -215,9 +214,6 @@ public class Jadx {
 		passes.add(new CodeShrinkVisitor());
 		passes.add(new SimplifyVisitor());
 		passes.add(new MethodVisitor(mth -> mth.remove(AFlag.DONT_GENERATE)));
-		if (args.isRawCFGOutput()) {
-			passes.add(DotGraphVisitor.dumpRaw());
-		}
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dump());
 		}

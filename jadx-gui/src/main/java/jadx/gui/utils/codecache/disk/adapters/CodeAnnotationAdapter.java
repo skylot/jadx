@@ -38,6 +38,7 @@ public class CodeAnnotationAdapter implements DataAdapter<ICodeAnnotation> {
 		map.put(AnnType.VAR, new VarNodeAdapter(mthAdapter));
 		map.put(AnnType.VAR_REF, VarRefAdapter.INSTANCE);
 		map.put(AnnType.OFFSET, InsnCodeOffsetAdapter.INSTANCE);
+		map.put(AnnType.END, new NodeEndAdapter());
 		return map;
 	}
 

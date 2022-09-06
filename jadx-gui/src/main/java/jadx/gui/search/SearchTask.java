@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,21 +28,20 @@ public class SearchTask extends CancelableBackgroundTask {
 	private static final Logger LOG = LoggerFactory.getLogger(SearchTask.class);
 
 	private final BackgroundExecutor backgroundExecutor;
-	private final Consumer<ITaskInfo> onFinish;
-	private final Consumer<JNode> results;
+	private final Consumer<JNode> resultsListener;
+	private final BiConsumer<ITaskInfo, Boolean> onFinish;
 	private final List<SearchJob> jobs = new ArrayList<>();
 	private final TaskProgress taskProgress = new TaskProgress();
 
 	private final AtomicInteger resultsCount = new AtomicInteger(0);
-	private final AtomicBoolean complete = new AtomicBoolean(false);
 	private int resultsLimit;
 	private Future<TaskStatus> future;
 
 	private Consumer<ITaskProgress> progressListener;
 
-	public SearchTask(MainWindow mainWindow, Consumer<JNode> results, Consumer<ITaskInfo> onFinish) {
+	public SearchTask(MainWindow mainWindow, Consumer<JNode> results, BiConsumer<ITaskInfo, Boolean> onFinish) {
 		this.backgroundExecutor = mainWindow.getBackgroundExecutor();
-		this.results = results;
+		this.resultsListener = results;
 		this.onFinish = onFinish;
 	}
 
@@ -55,11 +55,9 @@ public class SearchTask extends CancelableBackgroundTask {
 
 	public synchronized void fetchResults() {
 		if (future != null) {
-			cancel();
-			waitTask();
+			throw new IllegalStateException("Previous task not yet finished");
 		}
 		resetCancel();
-		complete.set(false);
 		resultsCount.set(0);
 		taskProgress.updateTotal(jobs.stream().mapToInt(s -> s.getProvider().total()).sum());
 		future = backgroundExecutor.execute(this);
@@ -70,7 +68,7 @@ public class SearchTask extends CancelableBackgroundTask {
 			// ignore new results after cancel
 			return true;
 		}
-		this.results.accept(resultNode);
+		this.resultsListener.accept(resultNode);
 		if (resultsLimit != 0 && resultsCount.incrementAndGet() >= resultsLimit) {
 			cancel();
 			return true;
@@ -81,14 +79,17 @@ public class SearchTask extends CancelableBackgroundTask {
 	public synchronized void waitTask() {
 		if (future != null) {
 			try {
-				future.get(2, TimeUnit.SECONDS);
+				future.get(200, TimeUnit.MILLISECONDS);
+			} catch (TimeoutException e) {
+				LOG.debug("Search task wait timeout");
 			} catch (Exception e) {
-				LOG.warn("Wait search task failed", e);
+				LOG.warn("Search task wait error", e);
 			} finally {
 				future.cancel(true);
 				future = null;
 			}
 		}
+
 	}
 
 	@Override
@@ -101,18 +102,12 @@ public class SearchTask extends CancelableBackgroundTask {
 		return jobs;
 	}
 
-	public boolean isSearchComplete() {
-		return complete.get() && !isCanceled();
-	}
-
 	@Override
-	public void onDone(ITaskInfo taskInfo) {
-		this.complete.set(true);
-	}
-
-	@Override
-	public void onFinish(ITaskInfo status) {
-		this.onFinish.accept(status);
+	public void onFinish(ITaskInfo task) {
+		boolean complete = !isCanceled()
+				&& task.getStatus() == TaskStatus.COMPLETE
+				&& task.getJobsComplete() == task.getJobsCount();
+		this.onFinish.accept(task, complete);
 	}
 
 	@Override
@@ -131,7 +126,17 @@ public class SearchTask extends CancelableBackgroundTask {
 	}
 
 	@Override
-	public @Nullable Consumer<ITaskProgress> getOnProgressListener() {
+	public @Nullable Consumer<ITaskProgress> getProgressListener() {
 		return this.progressListener;
+	}
+
+	@Override
+	public int getCancelTimeoutMS() {
+		return 0;
+	}
+
+	@Override
+	public int getShutdownTimeoutMS() {
+		return 10;
 	}
 }

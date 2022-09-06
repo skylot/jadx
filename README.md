@@ -102,6 +102,7 @@ options:
   --add-debug-lines                   - add comments with debug line numbers if available
   --no-inline-anonymous               - disable anonymous classes inline
   --no-inline-methods                 - disable methods inline
+  --no-finally                        - don't extract finally block
   --no-replace-consts                 - don't replace constant value with matching constant field
   --escape-unicode                    - escape non latin characters in strings (with \u)
   --respect-bytecode-access-modifiers - don't change original access modifiers
@@ -116,6 +117,10 @@ options:
                                          'ignore' - don't read and don't save
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
+  --deobf-res-name-source             - better name source for resources:
+                                         'auto' - automatically select best name (default)
+                                         'resources' - use resources names
+                                         'code' - use R class fields names
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                      - fix options (comma-separated list of):
                                          'case' - fix case sensitivity issues (according to --fs-case-sensitive option),

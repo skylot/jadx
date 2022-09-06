@@ -222,6 +222,10 @@ public class ProcessAnonymous extends AbstractVisitor {
 			// exclude self usage
 			return null;
 		}
+		if (ctrUseCls.getTopParentClass().equals(cls)) {
+			// exclude usage inside inner classes
+			return null;
+		}
 		for (MethodNode mth : cls.getMethods()) {
 			if (mth == ctr) {
 				continue;

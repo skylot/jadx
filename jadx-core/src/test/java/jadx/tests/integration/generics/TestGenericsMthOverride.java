@@ -56,8 +56,6 @@ public class TestGenericsMthOverride extends IntegrationTest {
 		assertThat(code, containsOne("public Y method(Exception x) {"));
 		assertThat(code, containsOne("public Object method(Object x) {"));
 
-		assertThat(code, countString(3, "@Override"));
-		// TODO: @Override missing for class C
-		// assertThat(code, countString(4, "@Override"));
+		assertThat(code, countString(4, "@Override"));
 	}
 }

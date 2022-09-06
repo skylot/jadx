@@ -10,6 +10,7 @@ import java.util.Objects;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
@@ -281,6 +282,9 @@ public class ClassModifier extends AbstractVisitor {
 		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
 			wrappedMth.getMethodInfo().setAlias(alias);
 		}
+		wrappedMth.addAttr(new MethodReplaceAttr(mth));
+		wrappedMth.copyAttributeFrom(mth, AType.METHOD_OVERRIDE);
+		wrappedMth.addDebugComment("Method merged with bridge method");
 		return true;
 	}
 

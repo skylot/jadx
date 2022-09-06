@@ -16,9 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -77,9 +75,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected JLabel warnLabel;
 	protected ProgressPanel progressPane;
 
-	private String highlightText;
-	protected boolean highlightTextCaseInsensitive = false;
-	protected boolean highlightTextUseRegex = false;
+	private SearchContext highlightContext;
 
 	public CommonSearchDialog(MainWindow mainWindow, String title) {
 		this.mainWindow = mainWindow;
@@ -88,7 +84,7 @@ public abstract class CommonSearchDialog extends JFrame {
 		this.codeFont = mainWindow.getSettings().getFont();
 		this.windowTitle = title;
 		UiUtils.setWindowIcons(this);
-		updateTitle();
+		updateTitle("");
 	}
 
 	protected abstract void openInit();
@@ -103,17 +99,24 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	private void updateTitle() {
-		if (highlightText == null || highlightText.trim().isEmpty()) {
+	private void updateTitle(String searchText) {
+		if (searchText == null || searchText.isEmpty() || searchText.trim().isEmpty()) {
 			setTitle(windowTitle);
 		} else {
-			setTitle(windowTitle + ": " + highlightText);
+			setTitle(windowTitle + ": " + searchText);
 		}
 	}
 
-	public void setHighlightText(String highlightText) {
-		this.highlightText = highlightText;
-		updateTitle();
+	public void updateHighlightContext(String text, boolean caseSensitive, boolean regexp) {
+		updateTitle(text);
+		highlightContext = new SearchContext(text);
+		highlightContext.setMatchCase(caseSensitive);
+		highlightContext.setRegularExpression(regexp);
+		highlightContext.setMarkAll(true);
+	}
+
+	public void disableHighlight() {
+		highlightContext = null;
 	}
 
 	protected void registerInitOnOpen() {
@@ -147,11 +150,16 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	@Nullable
 	private JNode getSelectedNode() {
-		int selectedId = resultsTable.getSelectedRow();
-		if (selectedId == -1) {
+		try {
+			int selectedId = resultsTable.getSelectedRow();
+			if (selectedId == -1 || selectedId >= resultsTable.getRowCount()) {
+				return null;
+			}
+			return (JNode) resultsModel.getValueAt(selectedId, 0);
+		} catch (Exception e) {
+			LOG.error("Failed to get results table selected object", e);
 			return null;
 		}
-		return (JNode) resultsModel.getValueAt(selectedId, 0);
 	}
 
 	@Override
@@ -174,16 +182,16 @@ public abstract class CommonSearchDialog extends JFrame {
 		openBtn.addActionListener(event -> openSelectedItem());
 		getRootPane().setDefaultButton(openBtn);
 
-		JPanel buttonPane = new JPanel();
-		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-
 		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
 		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
 		cbKeepOpen.addActionListener(e -> {
 			mainWindow.getSettings().setKeepCommonDialogOpen(cbKeepOpen.isSelected());
 			mainWindow.getSettings().sync();
 		});
+		cbKeepOpen.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+		JPanel buttonPane = new JPanel();
+		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.add(cbKeepOpen);
 		buttonPane.add(Box.createRigidArea(new Dimension(15, 0)));
 		buttonPane.add(progressPane);
@@ -197,7 +205,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	protected JPanel initResultsTable() {
 		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
-		resultsModel = new ResultsModel(renderer);
+		resultsModel = new ResultsModel();
 		resultsModel.addTableModelListener(e -> updateProgressLabel(false));
 
 		resultsTable = new ResultsTable(resultsModel, renderer);
@@ -247,28 +255,27 @@ public abstract class CommonSearchDialog extends JFrame {
 		warnLabel.setVisible(false);
 
 		JScrollPane scroll = new JScrollPane(resultsTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		// scroll.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+
+		resultsInfoLabel = new JLabel("");
+		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
 
 		JPanel resultsActionsPanel = new JPanel();
 		resultsActionsPanel.setLayout(new BoxLayout(resultsActionsPanel, BoxLayout.LINE_AXIS));
 		resultsActionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-		addCustomResultsActions(resultsActionsPanel);
-		resultsInfoLabel = new JLabel("");
-		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
-		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
-		resultsActionsPanel.add(resultsInfoLabel);
-		resultsActionsPanel.add(Box.createHorizontalGlue());
+		addResultsActions(resultsActionsPanel);
 
 		JPanel resultsPanel = new JPanel();
 		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
-		resultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		resultsPanel.add(warnLabel, BorderLayout.PAGE_START);
 		resultsPanel.add(scroll, BorderLayout.CENTER);
 		resultsPanel.add(resultsActionsPanel, BorderLayout.PAGE_END);
 		return resultsPanel;
 	}
 
-	protected void addCustomResultsActions(JPanel actionsPanel) {
+	protected void addResultsActions(JPanel resultsActionsPanel) {
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		resultsActionsPanel.add(resultsInfoLabel);
+		resultsActionsPanel.add(Box.createHorizontalGlue());
 	}
 
 	protected void updateProgressLabel(boolean complete) {
@@ -288,13 +295,12 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	protected static final class ResultsTable extends JTable {
 		private static final long serialVersionUID = 3901184054736618969L;
-		private final transient ResultsTableCellRenderer renderer;
 		private final transient ResultsModel model;
 
 		public ResultsTable(ResultsModel resultsModel, ResultsTableCellRenderer renderer) {
 			super(resultsModel);
 			this.model = resultsModel;
-			this.renderer = renderer;
+			setRowHeight(renderer.getMaxRowHeight());
 		}
 
 		public void initColumnWidth() {
@@ -309,6 +315,11 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		public void updateTable() {
 			UiUtils.uiThreadGuard();
+			int rowCount = getRowCount();
+			if (rowCount == 0) {
+				updateUI();
+				return;
+			}
 			long start = System.currentTimeMillis();
 			int width = getParent().getWidth();
 			TableColumn firstColumn = columnModel.getColumn(0);
@@ -324,30 +335,6 @@ public abstract class CommonSearchDialog extends JFrame {
 				}
 			} else {
 				firstColumn.setPreferredWidth(width);
-			}
-			int rowCount = getRowCount();
-			int columnCount = getColumnCount();
-			Map<Class<?>, Integer> heightByType = new HashMap<>();
-			for (int row = 0; row < rowCount; row++) {
-				Object value = model.getValueAt(row, 0);
-				Class<?> valueType = value.getClass();
-				Integer cachedHeight = heightByType.get(valueType);
-				if (cachedHeight != null) {
-					setRowHeight(row, cachedHeight);
-				} else {
-					int height = 0;
-					for (int col = 0; col < columnCount; col++) {
-						Component comp = prepareRenderer(renderer, row, col);
-						if (comp == null) {
-							continue;
-						}
-						Dimension preferredSize = comp.getPreferredSize();
-						int h = Math.max(comp.getHeight(), preferredSize.height);
-						height = Math.max(height, h);
-					}
-					heightByType.put(valueType, height);
-					setRowHeight(row, height);
-				}
 			}
 			updateUI();
 			if (LOG.isDebugEnabled()) {
@@ -365,13 +352,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		private static final long serialVersionUID = -7821286846923903208L;
 		private static final String[] COLUMN_NAMES = { NLS.str("search_dialog.col_node"), NLS.str("search_dialog.col_code") };
 
-		private final transient List<JNode> rows = Collections.synchronizedList(new ArrayList<>());
-		private final transient ResultsTableCellRenderer renderer;
+		private final transient List<JNode> rows = new ArrayList<>();
 		private transient boolean addDescColumn;
-
-		public ResultsModel(ResultsTableCellRenderer renderer) {
-			this.renderer = renderer;
-		}
 
 		public void addAll(Collection<? extends JNode> nodes) {
 			rows.addAll(nodes);
@@ -388,7 +370,10 @@ public abstract class CommonSearchDialog extends JFrame {
 		public void clear() {
 			addDescColumn = false;
 			rows.clear();
-			renderer.clear();
+		}
+
+		public void sort() {
+			Collections.sort(rows);
 		}
 
 		public boolean isAddDescColumn() {
@@ -417,38 +402,39 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	protected final class ResultsTableCellRenderer implements TableCellRenderer {
-		private final JLabel emptyLabel = new JLabel();
-		private final Font font;
+		private final JLabel label;
+		private final RSyntaxTextArea codeArea;
+		private final JLabel emptyLabel;
 		private final Color codeSelectedColor;
 		private final Color codeBackground;
-		private final Map<Integer, Component> componentCache = new HashMap<>();
 
 		public ResultsTableCellRenderer() {
-			RSyntaxTextArea area = AbstractCodeArea.getDefaultArea(mainWindow);
-			this.font = area.getFont();
-			this.codeSelectedColor = area.getSelectionColor();
-			this.codeBackground = area.getBackground();
+			codeArea = AbstractCodeArea.getDefaultArea(mainWindow);
+			codeArea.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+			codeArea.setRows(1);
+			codeBackground = codeArea.getBackground();
+			codeSelectedColor = codeArea.getSelectionColor();
+			label = new JLabel();
+			label.setOpaque(true);
+			label.setFont(codeArea.getFont());
+			label.setHorizontalAlignment(SwingConstants.LEFT);
+			emptyLabel = new JLabel();
+			emptyLabel.setOpaque(true);
 		}
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj,
 				boolean isSelected, boolean hasFocus, int row, int column) {
-			Component comp = componentCache.computeIfAbsent(makeID(row, column), id -> {
-				if (obj instanceof JNode) {
-					return makeCell((JNode) obj, column);
-				}
+			if (obj == null || table == null) {
 				return emptyLabel;
-			});
-			updateSelection(table, comp, isSelected);
+			}
+			Component comp = makeCell((JNode) obj, column);
+			updateSelection(table, comp, column, isSelected);
 			return comp;
 		}
 
-		private int makeID(int row, int col) {
-			return row << 2 | (col & 0b11);
-		}
-
-		private void updateSelection(JTable table, Component comp, boolean isSelected) {
-			if (comp instanceof RSyntaxTextArea) {
+		private void updateSelection(JTable table, Component comp, int column, boolean isSelected) {
+			if (column == 1) {
 				if (isSelected) {
 					comp.setBackground(codeSelectedColor);
 				} else {
@@ -467,39 +453,32 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
-				JLabel label = new JLabel(node.makeLongStringHtml(), node.getIcon(), SwingConstants.LEFT);
-				label.setFont(font);
-				label.setOpaque(true);
+				label.setText(node.makeLongStringHtml());
 				label.setToolTipText(label.getText());
+				label.setIcon(node.getIcon());
 				return label;
 			}
 			if (!node.hasDescString()) {
 				return emptyLabel;
 			}
-
-			RSyntaxTextArea textArea = AbstractCodeArea.getDefaultArea(mainWindow);
-			textArea.setSyntaxEditingStyle(node.getSyntaxName());
+			codeArea.setSyntaxEditingStyle(node.getSyntaxName());
 			String descStr = node.makeDescString();
-			textArea.setText(descStr);
-			if (descStr.contains("\n")) {
-				textArea.setRows(textArea.getLineCount());
-			} else {
-				textArea.setRows(1);
-				textArea.setColumns(descStr.length() + 1);
+			codeArea.setText(descStr);
+			codeArea.setColumns(descStr.length() + 1);
+			if (highlightContext != null) {
+				SearchEngine.markAll(codeArea, highlightContext);
 			}
-			if (highlightText != null) {
-				SearchContext searchContext = new SearchContext(highlightText);
-				searchContext.setMatchCase(!highlightTextCaseInsensitive);
-				searchContext.setRegularExpression(highlightTextUseRegex);
-				searchContext.setMarkAll(true);
-				SearchEngine.markAll(textArea, searchContext);
-			}
-			textArea.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-			return textArea;
+			return codeArea;
 		}
 
-		public void clear() {
-			componentCache.clear();
+		public int getMaxRowHeight() {
+			label.setText("Text");
+			codeArea.setText("Text");
+			return Math.max(getCompHeight(label), getCompHeight(codeArea));
+		}
+
+		private int getCompHeight(Component comp) {
+			return Math.max(comp.getHeight(), comp.getPreferredSize().height);
 		}
 	}
 

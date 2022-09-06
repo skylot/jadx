@@ -16,8 +16,11 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.CodeNode;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+
+import static jadx.core.utils.Utils.getOrElse;
 
 public final class CodeSearchProvider extends BaseSearchProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeSearchProvider.class);
@@ -68,10 +71,12 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 		int end = lineEnd == -1 ? clsCode.length() : lineEnd;
 		String line = clsCode.substring(lineStart, end);
 		this.pos = end;
-		return new CodeNode(getEnclosingNode(javaClass, end), line.trim(), newPos);
+		JClass rootCls = convert(javaClass);
+		JNode enclosingNode = getOrElse(getEnclosingNode(javaClass, end), rootCls);
+		return new CodeNode(rootCls, enclosingNode, line.trim(), newPos);
 	}
 
-	private JNode getEnclosingNode(JavaClass javaCls, int pos) {
+	private @Nullable JNode getEnclosingNode(JavaClass javaCls, int pos) {
 		try {
 			ICodeMetadata metadata = javaCls.getCodeInfo().getCodeMetadata();
 			ICodeNodeRef nodeRef = metadata.getNodeAt(pos);
@@ -82,7 +87,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 		} catch (Exception e) {
 			LOG.debug("Failed to resolve enclosing node", e);
 		}
-		return convert(javaCls);
+		return null;
 	}
 
 	private String getClassCode(JavaClass javaClass, ICodeCache codeCache) {

@@ -82,5 +82,6 @@ public class JumpManager {
 
 	public void reset() {
 		list.clear();
+		currentPos = 0;
 	}
 }

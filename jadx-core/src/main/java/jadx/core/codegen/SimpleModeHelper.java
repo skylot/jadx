@@ -53,7 +53,9 @@ public class SimpleModeHelper {
 				startLabel.set(block.getId());
 			} else if (predsCount == 1 && prev != null) {
 				if (!prev.equals(preds.get(0))) {
-					startLabel.set(block.getId());
+					if (!block.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
+						startLabel.set(block.getId());
+					}
 					if (prev.getSuccessors().size() == 1 && !mth.isPreExitBlocks(prev)) {
 						endGoto.set(prev.getId());
 					}

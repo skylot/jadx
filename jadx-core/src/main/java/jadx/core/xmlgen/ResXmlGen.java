@@ -168,11 +168,13 @@ public class ResXmlGen {
 	private void addItem(ICodeWriter cw, String itemTag, String typeName, RawNamedValue value) {
 		String nameStr = vp.decodeNameRef(value.getNameRef());
 		String valueStr = vp.decodeValue(value.getRawValue());
+		int dataType = value.getRawValue().getDataType();
+
 		if (!typeName.equals("attr")) {
-			if (valueStr == null || valueStr.equals("0")) {
+			if (dataType == ParserConstants.TYPE_REFERENCE && (valueStr == null || valueStr.equals("0"))) {
 				valueStr = "@null";
 			}
-			if (nameStr != null) {
+			if (dataType == ParserConstants.TYPE_INT_DEC && nameStr != null) {
 				try {
 					int intVal = Integer.parseInt(valueStr);
 					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:attr.", ""), intVal);

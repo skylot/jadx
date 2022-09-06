@@ -137,8 +137,9 @@ public class BlockSplitter extends AbstractVisitor {
 	}
 
 	static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(mth.getBasicBlocks().size(), offset);
-		mth.getBasicBlocks().add(block);
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		BlockNode block = new BlockNode(mth.getNextBlockCId(), blocks.size(), offset);
+		blocks.add(block);
 		return block;
 	}
 
@@ -391,7 +392,8 @@ public class BlockSplitter extends AbstractVisitor {
 				&& block.getSuccessors().size() <= 1
 				&& !block.getPredecessors().isEmpty()
 				&& !block.contains(AFlag.MTH_ENTER_BLOCK)
-				&& !block.contains(AFlag.MTH_EXIT_BLOCK);
+				&& !block.contains(AFlag.MTH_EXIT_BLOCK)
+				&& !block.getSuccessors().contains(block); // no self loop
 	}
 
 	static void collectSuccessors(BlockNode startBlock, BlockNode methodEnterBlock, Set<BlockNode> toRemove) {
