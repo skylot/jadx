@@ -125,9 +125,9 @@ public class ADBDevice {
 	 */
 	public byte[] getBinaryLogcat() throws IOException{
 
-		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
 		String cmd = "logcat -dB";
-		byte[] bRes = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		byte[] bRes = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 		return bRes;
 	}
 
@@ -135,9 +135,9 @@ public class ADBDevice {
 	 * @Return binary output of logcat after provided timestamp
 	 */
 	public byte[] getBinaryLogcat(String timestamp) throws IOException{
-		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
 		String cmd = "logcat -dB -t \"" + timestamp + "\"";
-		byte[] bRes = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		byte[] bRes = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 		return bRes;
 	}
 
@@ -145,9 +145,9 @@ public class ADBDevice {
 	 * @return Timezone for the attached android device
 	 */
 	public String getTimezone() throws IOException{
-		Socket socket = ADB.connect(info.adbHost, info.adbPort);
+		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
 		String cmd = "getprop persist.sys.timezone";
-		byte[] tz = ADB.execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+		byte[] tz = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 		return new String(tz).trim();
 	}
 
