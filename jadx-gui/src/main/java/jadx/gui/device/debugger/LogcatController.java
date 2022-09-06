@@ -29,6 +29,7 @@ public class LogcatController {
 	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
 	private List<ADB.Process> procs;
 	private LogcatFilter filter = new LogcatFilter(null, null);
+	private String status = "null";
 
 	public LogcatController(LogcatPanel logcatPanel, ADBDevice adbDevice) throws IOException, InterruptedException {
 		this.adbDevice = adbDevice;
@@ -49,10 +50,17 @@ public class LogcatController {
 				getLog();
 			}
 		}, 0, 1000);
+		this.status = "running";
 	}
 
 	public void stopLogcat() {
 		timer.cancel();
+		this.status = "stopped";
+
+	}
+
+	public String getStatus() {
+		return this.status;
 	}
 
 	private void getTimezone() {

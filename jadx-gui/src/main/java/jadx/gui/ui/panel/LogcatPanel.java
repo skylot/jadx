@@ -5,6 +5,7 @@ import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.utils.NLS;
 
+import jadx.gui.utils.UiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +33,16 @@ public class LogcatPanel extends JPanel{
 	private final AttributeSet fatalAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#d33682"));
 	private final AttributeSet silentAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#002b36"));
 
+	private static final ImageIcon ICON_PAUSE = UiUtils.openSvgIcon("debugger/threadFrozen");
+	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");;
+
+
 	private transient JTextPane logcatPane;
 	private final transient JDebuggerPanel debugPanel;
 	private LogcatController logcatController;
 	private boolean ready = false;
 	private List<ADB.Process> procs;
-	private transient JPanel menuPanel;
+	private transient JToolBar menuPanel;
 	public LogcatPanel(JDebuggerPanel debugPanel){
 		this.debugPanel = debugPanel;
 	}
@@ -45,6 +50,14 @@ public class LogcatPanel extends JPanel{
 	private int pid;
 	private ArrayList<String> pkgs;
 	private ArrayList<Integer> pids;
+
+	private AbstractAction pauseButton = new AbstractAction(NLS.str("debugger.pause"), ICON_PAUSE) {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleLogcat();
+		}
+	};
+
 	public boolean showLogcat() {
 		pkgs = new ArrayList<String>();
 		pids = new ArrayList<Integer>();
@@ -65,19 +78,21 @@ public class LogcatPanel extends JPanel{
 				NLS.str( "logcat.fatal" ),
 				NLS.str( "logcat.silent" )};
 		Integer msgIndex[] = {1,2,3,4,5,6,7,8};
-		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), 2, msgIndex,msgTypes).getContent();
 
 		this.setLayout(new BorderLayout());
 		logcatPane = new JTextPane();
 		logcatPane.setEditable(false);
 		logcatScroll = new JScrollPane(logcatPane);
-		menuPanel = new JPanel();
-		menuPanel.setLayout(new BorderLayout());
+		menuPanel = new JToolBar();
 
 		procBox = new CheckCombo(NLS.str( "logcat.process" ) , 1, pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
+		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), 2, msgIndex,msgTypes).getContent();
 
-		menuPanel.add(procBox,BorderLayout.WEST);
-		menuPanel.add(msgTypeBox,BorderLayout.CENTER);
+		menuPanel.add(procBox);
+		menuPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		menuPanel.add(msgTypeBox);
+		menuPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		menuPanel.add(pauseButton);
 
 		this.add(menuPanel,BorderLayout.NORTH);
 		this.add(logcatScroll,BorderLayout.CENTER);
@@ -106,6 +121,18 @@ public class LogcatPanel extends JPanel{
 		}
 		this.ready = true;
 		return true;
+	}
+
+	private void toggleLogcat() {
+		if(this.logcatController.getStatus() == "running") {
+			this.debugPanel.log("STOPPING");
+			this.logcatController.stopLogcat();
+			this.pauseButton.putValue(Action.SMALL_ICON,ICON_RUN);
+		} else if(this.logcatController.getStatus() == "stopped") {
+			this.debugPanel.log("STARTING");
+			this.logcatController.startLogcat();
+			this.pauseButton.putValue(Action.SMALL_ICON,ICON_PAUSE);
+		}
 	}
 
 	public JDebuggerPanel getDebugPanel() {
@@ -232,8 +259,17 @@ public class LogcatPanel extends JPanel{
 			combo = new JComboBox(stores);
 			combo.setRenderer(new CheckComboRenderer());
 			JPanel panel = new JPanel();
-			panel.add(label);
-			panel.add(combo);
+			panel.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.weightx = 0;
+			c.gridwidth = 1;
+			c.insets = new Insets(0,1,0,1);
+			panel.add(label,c);
+			c.weightx = 1;
+			c.gridwidth = GridBagConstraints.REMAINDER;
+			c.anchor = GridBagConstraints.WEST;
+			c.insets = new Insets(0,1,0,1);
+			panel.add(combo,c);
 			combo.addActionListener(this);
 			combo.addMouseListener(new FilterClickListener(this));
 			return panel;
@@ -290,9 +326,7 @@ public class LogcatPanel extends JPanel{
 		}
 
 		public JCheckBox getCheckBoxAt(int i) {
-			debugPanel.log(String.valueOf(boxes.size()));
 			return boxes.get(i);
-
 		}
 	}
 
