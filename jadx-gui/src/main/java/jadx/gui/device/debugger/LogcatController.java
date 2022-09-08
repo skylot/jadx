@@ -247,7 +247,6 @@ public class LogcatController {
 			});
 			return outInfoList;
 		}
-
 	}
 
 	public class logcatInfo {
@@ -340,8 +339,6 @@ public class LogcatController {
 			return this.uid;
 		}
 
-
-
 		public Instant getInstant() {
 			return Instant.ofEpochSecond(getSec(), getNSec());
 		}
@@ -389,5 +386,4 @@ public class LogcatController {
 			return this.msg;
 		}
 	}
-
 }
