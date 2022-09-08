@@ -287,11 +287,14 @@ public class LogcatPanel extends JPanel {
 				case 1: // process
 					logcatController.getFilter().togglePid(store.index, store.state);
 					logcatController.reload();
+					break;
 				case 2: // label
 					logcatController.getFilter().toggleMsgType((byte) store.index, store.state);
 					logcatController.reload();
+					break;
 				default:
 					LOG.error("Invalid Logcat Filter Type");
+					break;
 			}
 		}
 
@@ -327,10 +330,13 @@ public class LogcatPanel extends JPanel {
 				switch (type) {
 					case 1: // process
 						logcatController.getFilter().togglePid(ccs.index, checked);
+						break;
 					case 2: // level
 						logcatController.getFilter().toggleMsgType((byte) ccs.index, checked);
+						break;
 					default:
 						LOG.error("Invalid Logcat Toggle Filter Encountered");
+						break;
 				}
 			}
 			logcatController.reload();
@@ -347,10 +353,13 @@ public class LogcatPanel extends JPanel {
 				switch (type) {
 					case 1: // process
 						logcatController.getFilter().togglePid(ccs.index, ccs.state);
+						break;
 					case 2: // level
 						logcatController.getFilter().toggleMsgType((byte) ccs.index, ccs.state);
+						break;
 					default:
 						LOG.error("Invalid Logcat selectAllBut filter encountered");
+						break;
 				}
 			}
 			logcatController.reload();
