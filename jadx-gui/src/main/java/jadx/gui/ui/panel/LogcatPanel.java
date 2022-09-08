@@ -35,7 +35,7 @@ public class LogcatPanel extends JPanel{
 
 	private static final ImageIcon ICON_PAUSE = UiUtils.openSvgIcon("debugger/threadFrozen");
 	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
-	private static final ImageIcon CLEAR_LOGCAT = UiUtils.openSvgIcon("debugger/suspend");
+	private static final ImageIcon CLEAR_LOGCAT = UiUtils.openSvgIcon("debugger/trash");
 
 
 	private transient JTextPane logcatPane;
