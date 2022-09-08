@@ -28,8 +28,8 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
@@ -141,7 +141,7 @@ public class JDebuggerPanel extends JPanel {
 		JScrollPane loggerScroll = new JScrollPane(logger);
 		loggerPanel.addTab("Debugger Log", null, loggerScroll, null);
 		this.logcatPanel = new LogcatPanel(this);
-		loggerPanel.addTab(NLS.str( "logcat.logcat" ), null, logcatPanel, null);
+		loggerPanel.addTab(NLS.str("logcat.logcat"), null, logcatPanel, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
@@ -387,7 +387,7 @@ public class JDebuggerPanel extends JPanel {
 			try {
 				logcatPanel.init(device, pid);
 			} catch (Exception e) {
-				log(NLS.str( "logcat.error_fail_start" ));
+				log(NLS.str("logcat.error_fail_start"));
 				e.printStackTrace();
 			}
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());

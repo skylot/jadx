@@ -1,21 +1,20 @@
 package jadx.gui.device.debugger;
 
-import jadx.gui.device.protocol.ADBDevice;
-import jadx.gui.ui.panel.LogcatPanel;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.gui.device.protocol.ADBDevice;
+import jadx.gui.ui.panel.LogcatPanel;
 
 public class LogcatController {
 	private static final Logger LOG = LoggerFactory.getLogger(LogcatController.class);
@@ -24,8 +23,8 @@ public class LogcatController {
 	private final LogcatPanel logcatPanel;
 	private Timer timer;
 	private final String timezone;
-	private logcatInfo recent = null;
-	private ArrayList<logcatInfo> events = new ArrayList<>();
+	private LogcatInfo recent = null;
+	private ArrayList<LogcatInfo> events = new ArrayList<>();
 	private LogcatFilter filter = new LogcatFilter(null, null);
 	private String status = "null";
 
@@ -60,84 +59,84 @@ public class LogcatController {
 		try {
 			adbDevice.clearLogcat();
 			clearEvents();
-		} catch(IOException e) {
+		} catch (IOException e) {
 			LOG.error("Failed to clear Logcat", e);
 		}
 	}
 
 	private void getLog() {
-		if(!logcatPanel.isReady()) {
+		if (!logcatPanel.isReady()) {
 			return;
 		}
 		try {
 			byte[] buf;
-			if(recent == null) {
+			if (recent == null) {
 				buf = adbDevice.getBinaryLogcat();
 			} else {
 				buf = adbDevice.getBinaryLogcat(recent.getAfterTimestamp());
 			}
-			if(buf == null) {
+			if (buf == null) {
 				return;
 			}
 			ByteBuffer in = ByteBuffer.wrap(buf);
 			in.order(ByteOrder.LITTLE_ENDIAN);
-			while(in.remaining() > 20) {
+			while (in.remaining() > 20) {
 
-				logcatInfo eInfo = null;
+				LogcatInfo eInfo = null;
 				byte[] msgBuf;
 				short eLen = in.getShort();
 				short eHdrLen = in.getShort();
-				if(eLen + eHdrLen > in.remaining()) {
+				if (eLen + eHdrLen > in.remaining()) {
 					return;
 				}
-				switch(eHdrLen) {
-					case 20: //header length 20 == version 1
-						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+				switch (eHdrLen) {
+					case 20: // header length 20 == version 1
+						eInfo = new LogcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
 						msgBuf = new byte[eLen];
-						in.get(msgBuf,0,eLen-1);
+						in.get(msgBuf, 0, eLen - 1);
 						eInfo.setMsg(msgBuf);
 						break;
-					case 24: //header length 24 == version 2 / 3
-						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+					case 24: // header length 24 == version 2 / 3
+						eInfo = new LogcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
 						msgBuf = new byte[eLen];
-						in.get(msgBuf,0,eLen-1);
+						in.get(msgBuf, 0, eLen - 1);
 						eInfo.setMsg(msgBuf);
 						break;
-					case 28: //header length 28 == version 4
-						eInfo = new logcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.get());
+					case 28: // header length 28 == version 4
+						eInfo = new LogcatInfo(eLen, eHdrLen, in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(), in.getInt(),
+								in.get());
 						msgBuf = new byte[eLen];
-						in.get(msgBuf,0,eLen-1);
+						in.get(msgBuf, 0, eLen - 1);
 						eInfo.setMsg(msgBuf);
 						break;
 					default:
 
 						break;
 				}
-				if(eInfo == null) {
+				if (eInfo == null) {
 					return;
 				}
-				if(recent == null) {
+				if (recent == null) {
 					recent = eInfo;
-				} else if(recent.getInstant().isBefore(eInfo.getInstant())) {
+				} else if (recent.getInstant().isBefore(eInfo.getInstant())) {
 					recent = eInfo;
 				}
 
-				if(filter.doFilter(eInfo)) {
+				if (filter.doFilter(eInfo)) {
 					logcatPanel.log(eInfo);
 				}
 				events.add(eInfo);
-
 			}
 
 		} catch (Exception e) {
-			LOG.error("Failed to get logcat message",e);
+			LOG.error("Failed to get logcat message", e);
 		}
 	}
 
 	public boolean reload() {
 		stopLogcat();
 		boolean ok = logcatPanel.clearLogcatArea();
-		if(ok) {
+		if (ok) {
 			events.forEach((eInfo) -> {
 				if (filter.doFilter(eInfo)) {
 					logcatPanel.log(eInfo);
@@ -165,45 +164,47 @@ public class LogcatController {
 
 	public class LogcatFilter {
 		private final ArrayList<Integer> pid;
-		private ArrayList<Byte> msgType = new ArrayList<Byte>() {{
-			add((byte)1);
-			add((byte)2);
-			add((byte)3);
-			add((byte)4);
-			add((byte)5);
-			add((byte)6);
-			add((byte)7);
-			add((byte)8);
-		}};
+		private ArrayList<Byte> msgType = new ArrayList<Byte>() {
+			{
+				add((byte) 1);
+				add((byte) 2);
+				add((byte) 3);
+				add((byte) 4);
+				add((byte) 5);
+				add((byte) 6);
+				add((byte) 7);
+				add((byte) 8);
+			}
+		};
 
 		public LogcatFilter(ArrayList<Integer> pid, ArrayList<Byte> msgType) {
-			if(pid != null) {
+			if (pid != null) {
 				this.pid = pid;
 			} else {
 				this.pid = new ArrayList<>();
 			}
 
-			if(msgType != null) {
+			if (msgType != null) {
 				this.msgType = msgType;
 			}
 		}
 
 		public void addPid(int pid) {
 
-			if(!this.pid.contains(pid)) {
+			if (!this.pid.contains(pid)) {
 				this.pid.add(pid);
 			}
 		}
 
 		public void removePid(int pid) {
 			int pidPos = this.pid.indexOf(pid);
-			if(pidPos >= 0) {
+			if (pidPos >= 0) {
 				this.pid.remove(pidPos);
 			}
 		}
 
 		public void togglePid(int pid, boolean state) {
-			if(state) {
+			if (state) {
 				addPid(pid);
 			} else {
 				removePid(pid);
@@ -211,37 +212,37 @@ public class LogcatController {
 		}
 
 		public void addMsgType(byte msgType) {
-			if(!this.msgType.contains(msgType)) {
+			if (!this.msgType.contains(msgType)) {
 				this.msgType.add(msgType);
 			}
 		}
 
 		public void removeMsgType(byte msgType) {
 			int typePos = this.msgType.indexOf(msgType);
-			if(typePos >= 0) {
+			if (typePos >= 0) {
 				this.msgType.remove(typePos);
 			}
 		}
 
 		public void toggleMsgType(byte msgType, boolean state) {
-			if(state) {
+			if (state) {
 				addMsgType(msgType);
 			} else {
 				removeMsgType(msgType);
 			}
 		}
 
-		public boolean doFilter(logcatInfo inInfo) {
-			if(pid.contains(inInfo.getPid())) {
+		public boolean doFilter(LogcatInfo inInfo) {
+			if (pid.contains(inInfo.getPid())) {
 				return msgType.contains(inInfo.getMsgType());
 			}
 			return false;
 		}
 
-		public ArrayList<logcatInfo> getFilteredList(ArrayList<logcatInfo> inInfoList) {
-			ArrayList<logcatInfo> outInfoList = new ArrayList<logcatInfo>();
+		public ArrayList<LogcatInfo> getFilteredList(ArrayList<LogcatInfo> inInfoList) {
+			ArrayList<LogcatInfo> outInfoList = new ArrayList<LogcatInfo>();
 			inInfoList.forEach((inInfo) -> {
-				if(doFilter(inInfo)) {
+				if (doFilter(inInfo)) {
 					outInfoList.add(inInfo);
 				}
 			});
@@ -249,21 +250,21 @@ public class LogcatController {
 		}
 	}
 
-	public class logcatInfo {
+	public class LogcatInfo {
 		private String msg;
 		private final byte msgType;
 		private final int nsec;
 		private final int pid;
 		private final int sec;
 		private final int tid;
-		private final short hdr_size;
+		private final short hdrSize;
 		private final short len;
 		private final short version;
 		private int lid;
 		private int uid;
 
-		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, byte msgType) {
-			this.hdr_size = hdr_size;
+		public LogcatInfo(short len, short hdrSize, int pid, int tid, int sec, int nsec, byte msgType) {
+			this.hdrSize = hdrSize;
 			this.len = len;
 			this.msgType = msgType;
 			this.nsec = nsec;
@@ -273,9 +274,9 @@ public class LogcatController {
 			this.version = 1;
 		}
 
-		//Version 2 and 3 both have the same arguments
-		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, byte msgType) {
-			this.hdr_size = hdr_size;
+		// Version 2 and 3 both have the same arguments
+		public LogcatInfo(short len, short hdrSize, int pid, int tid, int sec, int nsec, int lid, byte msgType) {
+			this.hdrSize = hdrSize;
 			this.len = len;
 			this.lid = lid;
 			this.msgType = msgType;
@@ -286,8 +287,8 @@ public class LogcatController {
 			this.version = 3;
 		}
 
-		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, int uid, byte msgType) {
-			this.hdr_size = hdr_size;
+		public LogcatInfo(short len, short hdrSize, int pid, int tid, int sec, int nsec, int lid, int uid, byte msgType) {
+			this.hdrSize = hdrSize;
 			this.len = len;
 			this.lid = lid;
 			this.msgType = msgType;
@@ -312,7 +313,7 @@ public class LogcatController {
 		}
 
 		public short getHeaderLen() {
-			return this.hdr_size;
+			return this.hdrSize;
 		}
 
 		public int getPid() {
@@ -344,12 +345,12 @@ public class LogcatController {
 		}
 
 		public String getTimestamp() {
-			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone( ZoneId.of(timezone) );
+			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(timezone));
 			return dtFormat.format(getInstant());
 		}
 
 		public String getAfterTimestamp() {
-			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone( ZoneId.of(timezone) );
+			DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone(ZoneId.of(timezone));
 			return dtFormat.format(getInstant().plusMillis(1));
 		}
 
