@@ -78,14 +78,14 @@ public class LogcatPanel extends JPanel{
 	private JScrollPane logcatScroll;
 	private int pid;
 
-	private final AbstractAction pauseButton = new AbstractAction(NLS.str("debugger.pause"), ICON_PAUSE) {
+	private final AbstractAction pauseButton = new AbstractAction(NLS.str("logcat.pause"), ICON_PAUSE) {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			toggleLogcat();
 		}
 	};
 
-	private final AbstractAction clearButton = new AbstractAction(NLS.str("debugger.stop"), CLEAR_LOGCAT) {
+	private final AbstractAction clearButton = new AbstractAction(NLS.str("logcat.clear"), CLEAR_LOGCAT) {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			clearLogcat();
@@ -288,9 +288,7 @@ public class LogcatPanel extends JPanel{
 				case 2: //label
 					logcatController.getFilter().toggleMsgType((byte)store.index, store.state);
 					logcatController.reload();
-
 			}
-
 		}
 
 		public JPanel getContent() {
@@ -428,6 +426,4 @@ public class LogcatPanel extends JPanel{
 			add(unselectAll);
 		}
 	}
-
-
 }
