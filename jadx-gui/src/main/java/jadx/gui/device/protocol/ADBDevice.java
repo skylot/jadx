@@ -142,6 +142,16 @@ public class ADBDevice {
 	}
 
 	/**
+	 * @Return binary output of logcat -c
+	 */
+	public byte[] clearLogcat() throws IOException{
+		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
+		String cmd = "logcat -c";
+		byte[] bRes = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+		return bRes;
+	}
+
+	/**
 	 * @return Timezone for the attached android device
 	 */
 	public String getTimezone() throws IOException{

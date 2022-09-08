@@ -34,7 +34,8 @@ public class LogcatPanel extends JPanel{
 	private final AttributeSet silentAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#002b36"));
 
 	private static final ImageIcon ICON_PAUSE = UiUtils.openSvgIcon("debugger/threadFrozen");
-	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");;
+	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
+	private static final ImageIcon CLEAR_LOGCAT = UiUtils.openSvgIcon("debugger/suspend");
 
 
 	private transient JTextPane logcatPane;
@@ -55,6 +56,13 @@ public class LogcatPanel extends JPanel{
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			toggleLogcat();
+		}
+	};
+
+	private AbstractAction clearButton = new AbstractAction(NLS.str("debugger.stop"), CLEAR_LOGCAT) {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			clearLogcat();
 		}
 	};
 
@@ -93,6 +101,8 @@ public class LogcatPanel extends JPanel{
 		menuPanel.add(msgTypeBox);
 		menuPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		menuPanel.add(pauseButton);
+		menuPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		menuPanel.add(clearButton);
 
 		this.add(menuPanel,BorderLayout.NORTH);
 		this.add(logcatScroll,BorderLayout.CENTER);
@@ -125,13 +135,25 @@ public class LogcatPanel extends JPanel{
 
 	private void toggleLogcat() {
 		if(this.logcatController.getStatus() == "running") {
-			this.debugPanel.log("STOPPING");
 			this.logcatController.stopLogcat();
 			this.pauseButton.putValue(Action.SMALL_ICON,ICON_RUN);
 		} else if(this.logcatController.getStatus() == "stopped") {
-			this.debugPanel.log("STARTING");
 			this.logcatController.startLogcat();
 			this.pauseButton.putValue(Action.SMALL_ICON,ICON_PAUSE);
+		}
+	}
+
+	private void clearLogcat() {
+		boolean running = false;
+		if(this.logcatController.getStatus() == "running") {
+			this.logcatController.stopLogcat();
+			running = true;
+		}
+		this.logcatController.clearLogcat();
+		clearLogcatArea();
+		this.debugPanel.log(this.logcatController.getStatus());
+		if(running == true) {
+			this.logcatController.startLogcat();
 		}
 	}
 
@@ -217,6 +239,8 @@ public class LogcatPanel extends JPanel{
 	public void exit() {
 		logcatController.exit();
 		clearLogcatArea();
+		this.logcatController.clearEvents();
+
 	}
 
 	class CheckCombo implements ActionListener {

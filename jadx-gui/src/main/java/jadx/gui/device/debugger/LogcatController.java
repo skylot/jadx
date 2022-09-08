@@ -21,11 +21,11 @@ public class LogcatController {
 
 	private ADBDevice adbDevice;
 	private LogcatPanel logcatPanel;
-	private logcatInfo recent = null;
 	private Timer timer;
 	private String timezone;
 	private String host;
 	private int port;
+	private logcatInfo recent = null;
 	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
 	private List<ADB.Process> procs;
 	private LogcatFilter filter = new LogcatFilter(null, null);
@@ -56,7 +56,6 @@ public class LogcatController {
 	public void stopLogcat() {
 		timer.cancel();
 		this.status = "stopped";
-
 	}
 
 	public String getStatus() {
@@ -68,6 +67,15 @@ public class LogcatController {
 			this.timezone = adbDevice.getTimezone();
 		} catch(IOException e) {
 			LOG.error("Failed to get adb timezone", e);
+		}
+	}
+
+	public void clearLogcat() {
+		try {
+			adbDevice.clearLogcat();
+			clearEvents();
+		} catch(IOException e) {
+			LOG.error("Failed to clear Logcat", e);
 		}
 	}
 
@@ -152,6 +160,11 @@ public class LogcatController {
 			startLogcat();
 		}
 		return true;
+	}
+
+	public void clearEvents() {
+		this.recent = null;
+		this.events = new ArrayList<logcatInfo>();
 	}
 
 	public void exit() {
