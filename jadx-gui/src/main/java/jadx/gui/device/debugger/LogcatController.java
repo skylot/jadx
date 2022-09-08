@@ -1,8 +1,6 @@
 package jadx.gui.device.debugger;
 
-import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
-import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.panel.LogcatPanel;
 
 import org.slf4j.Logger;
@@ -14,31 +12,27 @@ import java.nio.ByteOrder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LogcatController {
 	private static final Logger LOG = LoggerFactory.getLogger(LogcatController.class);
 
-	private ADBDevice adbDevice;
-	private LogcatPanel logcatPanel;
+	private final ADBDevice adbDevice;
+	private final LogcatPanel logcatPanel;
 	private Timer timer;
-	private String timezone;
-	private String host;
-	private int port;
+	private final String timezone;
 	private logcatInfo recent = null;
-	private ArrayList<logcatInfo> events = new ArrayList<logcatInfo>();
-	private List<ADB.Process> procs;
+	private ArrayList<logcatInfo> events = new ArrayList<>();
 	private LogcatFilter filter = new LogcatFilter(null, null);
 	private String status = "null";
 
-	public LogcatController(LogcatPanel logcatPanel, ADBDevice adbDevice) throws IOException, InterruptedException {
+	public LogcatController(LogcatPanel logcatPanel, ADBDevice adbDevice) throws IOException {
 		this.adbDevice = adbDevice;
-		this.host = host;
-		this.port = port;
 		this.logcatPanel = logcatPanel;
-		this.procs = adbDevice.getProcessList();
 		this.timezone = adbDevice.getTimezone();
-
 		this.startLogcat();
 	}
 
@@ -62,14 +56,6 @@ public class LogcatController {
 		return this.status;
 	}
 
-	private void getTimezone() {
-		try {
-			this.timezone = adbDevice.getTimezone();
-		} catch(IOException e) {
-			LOG.error("Failed to get adb timezone", e);
-		}
-	}
-
 	public void clearLogcat() {
 		try {
 			adbDevice.clearLogcat();
@@ -80,7 +66,7 @@ public class LogcatController {
 	}
 
 	private void getLog() {
-		if(logcatPanel.isReady() == false) {
+		if(!logcatPanel.isReady()) {
 			return;
 		}
 		try {
@@ -164,7 +150,7 @@ public class LogcatController {
 
 	public void clearEvents() {
 		this.recent = null;
-		this.events = new ArrayList<logcatInfo>();
+		this.events = new ArrayList<>();
 	}
 
 	public void exit() {
@@ -178,7 +164,7 @@ public class LogcatController {
 	}
 
 	public class LogcatFilter {
-		private ArrayList<Integer> pid;
+		private final ArrayList<Integer> pid;
 		private ArrayList<Byte> msgType = new ArrayList<Byte>() {{
 			add((byte)1);
 			add((byte)2);
@@ -194,7 +180,7 @@ public class LogcatController {
 			if(pid != null) {
 				this.pid = pid;
 			} else {
-				this.pid = new ArrayList<Integer>();
+				this.pid = new ArrayList<>();
 			}
 
 			if(msgType != null) {
@@ -204,7 +190,7 @@ public class LogcatController {
 
 		public void addPid(int pid) {
 
-			if(this.pid.contains(pid) == false) {
+			if(!this.pid.contains(pid)) {
 				this.pid.add(pid);
 			}
 		}
@@ -225,7 +211,7 @@ public class LogcatController {
 		}
 
 		public void addMsgType(byte msgType) {
-			if(this.msgType.contains(msgType) == false) {
+			if(!this.msgType.contains(msgType)) {
 				this.msgType.add(msgType);
 			}
 		}
@@ -247,9 +233,7 @@ public class LogcatController {
 
 		public boolean doFilter(logcatInfo inInfo) {
 			if(pid.contains(inInfo.getPid())) {
-				if(msgType.contains(inInfo.getMsgType())) {
-					return true;
-				}
+				return msgType.contains(inInfo.getMsgType());
 			}
 			return false;
 		}
@@ -267,53 +251,53 @@ public class LogcatController {
 	}
 
 	public class logcatInfo {
-		private short version;
-		private short len;
-		private short hdr_size;
-		private int pid;
-		private int tid;
-		private int sec;
-		private int nsec;
+		private String msg;
+		private final byte msgType;
+		private final int nsec;
+		private final int pid;
+		private final int sec;
+		private final int tid;
+		private final short hdr_size;
+		private final short len;
+		private final short version;
 		private int lid;
 		private int uid;
-		private byte msgType;
-		private String msg;
 
 		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, byte msgType) {
-			this.version = 1;
-			this.len = len;
 			this.hdr_size = hdr_size;
-			this.pid = pid;
-			this.tid = tid;
-			this.sec = sec;
-			this.nsec = nsec;
+			this.len = len;
 			this.msgType = msgType;
+			this.nsec = nsec;
+			this.pid = pid;
+			this.sec = sec;
+			this.tid = tid;
+			this.version = 1;
 		}
 
 		//Version 2 and 3 both have the same arguments
 		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, byte msgType) {
-			this.version = 3;
-			this.len = len;
 			this.hdr_size = hdr_size;
-			this.pid = pid;
-			this.tid = tid;
-			this.sec = sec;
-			this.nsec = nsec;
+			this.len = len;
 			this.lid = lid;
 			this.msgType = msgType;
+			this.nsec = nsec;
+			this.pid = pid;
+			this.sec = sec;
+			this.tid = tid;
+			this.version = 3;
 		}
 
 		public logcatInfo(short len, short hdr_size, int pid, int tid, int sec, int nsec, int lid, int uid, byte msgType) {
-			this.version = 4;
-			this.len = len;
 			this.hdr_size = hdr_size;
-			this.pid = pid;
-			this.tid = tid;
-			this.sec = sec;
-			this.nsec = nsec;
+			this.len = len;
 			this.lid = lid;
-			this.uid = uid;
 			this.msgType = msgType;
+			this.nsec = nsec;
+			this.pid = pid;
+			this.sec = sec;
+			this.tid = tid;
+			this.uid = uid;
+			this.version = 4;
 		}
 
 		public void setMsg(byte[] msg) {

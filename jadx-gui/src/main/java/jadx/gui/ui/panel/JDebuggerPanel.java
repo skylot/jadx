@@ -1,4 +1,3 @@
-
 package jadx.gui.ui.panel;
 
 import java.awt.BorderLayout;
@@ -16,7 +15,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -46,10 +44,7 @@ import io.reactivex.annotations.Nullable;
 
 import jadx.core.utils.StringUtils;
 import jadx.gui.device.debugger.DebugController;
-import jadx.gui.device.debugger.LogcatController;
-import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
-import jadx.gui.ui.panel.LogcatPanel;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.SmaliArea;
@@ -83,8 +78,7 @@ public class JDebuggerPanel extends JPanel {
 	private final transient JSplitPane rightSplitter;
 	private final transient JSplitPane leftSplitter;
 	private final transient IDebugController controller;
-
-	private LogcatPanel logcatPanel;
+	private final LogcatPanel logcatPanel;
 
 	private final transient VarTreePopupMenu varTreeMenu;
 	private transient KeyEventDispatcher controllerShortCutDispatcher;
@@ -521,7 +515,6 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-
 	public void updateRegTree(ValueTreeNode node) {
 		SwingUtilities.invokeLater(() -> {
 			variableTreeModel.reload(regTreeNode);
@@ -541,10 +534,6 @@ public class JDebuggerPanel extends JPanel {
 			TreeNode[] path = node.getPath();
 			variableTree.scrollPathToVisible(new TreePath(path));
 		});
-	}
-
-	public LogcatPanel getLogcatPanel() {
-		return this.logcatPanel;
 	}
 
 	public abstract static class ValueTreeNode extends DefaultMutableTreeNode {
