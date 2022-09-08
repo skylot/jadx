@@ -27,7 +27,7 @@ public class ADBDevice {
 	private static final Logger LOG = LoggerFactory.getLogger(ADBDevice.class);
 
 	private static final String CMD_TRACK_JDWP = "000atrack-jdwp";
-	private static final Pattern TimestampFormat = Pattern.compile("^[0-9]{2}\\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}$");
+	private static final Pattern TIMESTAMP_FORMAT = Pattern.compile("^[0-9]{2}\\-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}$");
 	ADBDeviceInfo info;
 	String androidReleaseVer;
 	volatile Socket jdwpListenerSock;
@@ -138,7 +138,7 @@ public class ADBDevice {
 	 */
 	public byte[] getBinaryLogcat(String timestamp) throws IOException {
 		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
-		Matcher matcher = TimestampFormat.matcher(timestamp);
+		Matcher matcher = TIMESTAMP_FORMAT.matcher(timestamp);
 		if (!matcher.find()) {
 			LOG.error("Invalid Logcat Timestamp " + timestamp);
 		}
