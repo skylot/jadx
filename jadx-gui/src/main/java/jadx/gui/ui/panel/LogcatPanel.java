@@ -421,7 +421,6 @@ public class LogcatPanel extends JPanel{
 				add(selectAttached);
 			}
 
-
 			add(selectAll);
 			add(unselectAll);
 		}
