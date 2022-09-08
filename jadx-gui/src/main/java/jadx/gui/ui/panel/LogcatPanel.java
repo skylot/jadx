@@ -164,9 +164,11 @@ public class LogcatPanel extends JPanel {
 		if (Objects.equals(this.logcatController.getStatus(), "running")) {
 			this.logcatController.stopLogcat();
 			this.pauseButton.putValue(Action.SMALL_ICON, ICON_RUN);
+			this.pauseButton.putValue(Action.NAME, NLS.str("logcat.start"));
 		} else if (Objects.equals(this.logcatController.getStatus(), "stopped")) {
 			this.logcatController.startLogcat();
 			this.pauseButton.putValue(Action.SMALL_ICON, ICON_PAUSE);
+			this.pauseButton.putValue(Action.NAME, NLS.str("logcat.pause"));
 		}
 	}
 
