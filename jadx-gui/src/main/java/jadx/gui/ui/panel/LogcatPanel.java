@@ -99,7 +99,6 @@ public class LogcatPanel extends JPanel{
 		for( ADB.Process proc : procs.subList(1, procs.size() )) {  //skipping first element because it contains the column label
 			pkgs.add(String.format("[pid: %-6s] %s", proc.pid, proc.name));
 			pids.add(Integer.valueOf(proc.pid));
-			logcatController.getFilter().addPid(Integer.parseInt(proc.pid));
 		}
 
 		String[] msgTypes = {
@@ -119,7 +118,10 @@ public class LogcatPanel extends JPanel{
 		logcatScroll = new JScrollPane(logcatPane);
 		JToolBar menuPanel = new JToolBar();
 
-		procBox = new CheckCombo(NLS.str( "logcat.process" ) , 1, pids.toArray(new Integer[0]), pkgs.toArray(new String[0])).getContent();
+		CheckCombo procObj = new CheckCombo(NLS.str( "logcat.process" ) , 1, pids.toArray(new Integer[0]), pkgs.toArray(new String[0]));
+		procBox = procObj.getContent();
+		procObj.selectAllBut(this.pids.indexOf(this.pid));
+
 		JPanel msgTypeBox = new CheckCombo(NLS.str( "logcat.level" ), 2, msgIndex,msgTypes).getContent();
 
 		menuPanel.add(procBox);
@@ -149,7 +151,6 @@ public class LogcatPanel extends JPanel{
 			if(!this.showLogcat()) {
 				debugPanel.log(NLS.str( "logcat.error_fail_start" ));
 			}
-
 		} catch (Exception e) {
 			this.ready = false;
 			LOG.error("Failed to start logcat", e);
