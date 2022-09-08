@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
@@ -39,10 +40,14 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.annotations.Nullable;
 
 import jadx.core.utils.StringUtils;
 import jadx.gui.device.debugger.DebugController;
+import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.SmaliArea;
@@ -53,6 +58,7 @@ import jadx.gui.utils.UiUtils;
 
 public class JDebuggerPanel extends JPanel {
 	private static final long serialVersionUID = -1111111202102181631L;
+	private static final Logger LOG = LoggerFactory.getLogger(LogcatPanel.class);
 
 	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
 	private static final ImageIcon ICON_RERUN = UiUtils.openSvgIcon("debugger/rerun");
@@ -76,6 +82,7 @@ public class JDebuggerPanel extends JPanel {
 	private final transient JSplitPane rightSplitter;
 	private final transient JSplitPane leftSplitter;
 	private final transient IDebugController controller;
+	private final LogcatPanel logcatPanel;
 
 	private final transient VarTreePopupMenu varTreeMenu;
 	private transient KeyEventDispatcher controllerShortCutDispatcher;
@@ -131,11 +138,14 @@ public class JDebuggerPanel extends JPanel {
 
 		varTreeMenu = new VarTreePopupMenu(mainWindow);
 
-		JPanel loggerPanel = new JPanel(new CardLayout());
+		JTabbedPane loggerPanel = new JTabbedPane();
 		logger = new JTextArea();
 		logger.setEditable(false);
 		logger.setLineWrap(true);
-		loggerPanel.add(new JScrollPane(logger));
+		JScrollPane loggerScroll = new JScrollPane(logger);
+		loggerPanel.addTab("Debugger Log", null, loggerScroll, null);
+		this.logcatPanel = new LogcatPanel(this);
+		loggerPanel.addTab(NLS.str("logcat.logcat"), null, logcatPanel, null);
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
@@ -159,6 +169,7 @@ public class JDebuggerPanel extends JPanel {
 							JOptionPane.OK_CANCEL_OPTION);
 					if (what == JOptionPane.OK_OPTION) {
 						controller.exit();
+						logcatPanel.exit();
 					} else {
 						return;
 					}
@@ -373,10 +384,16 @@ public class JDebuggerPanel extends JPanel {
 		}
 	}
 
-	public boolean showDebugger(String procName, String host, int port, int androidVer) {
+	public boolean showDebugger(String procName, String host, int port, int androidVer, ADBDevice device, String pid) {
 		boolean ok = controller.startDebugger(this, host, port, androidVer);
 		if (ok) {
 			log(String.format("Attached %s %s:%d", procName, host, port));
+			try {
+				logcatPanel.init(device, pid);
+			} catch (Exception e) {
+				log(NLS.str("logcat.error_fail_start"));
+				LOG.error("Logcat failed to start", e);
+			}
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());
 			rightSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerVarTreeSplitterLoc());
 			mainWindow.showDebuggerPanel();

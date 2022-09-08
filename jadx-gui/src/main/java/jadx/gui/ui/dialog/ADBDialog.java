@@ -361,7 +361,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					debugSetter.name,
 					debugSetter.device.getDeviceInfo().getAdbHost(),
 					debugSetter.forwardTcpPort,
-					debugSetter.ver);
+					debugSetter.ver,
+					debugSetter.device,
+					debugSetter.pid);
 		} catch (Exception e) {
 			LOG.error("Failed to attach to process", e);
 			return false;
