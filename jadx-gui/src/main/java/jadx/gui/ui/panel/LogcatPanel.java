@@ -290,14 +290,17 @@ public class LogcatPanel extends JPanel {
 				case 2: // label
 					logcatController.getFilter().toggleMsgType((byte) store.index, store.state);
 					logcatController.reload();
+				default:
+					LOG.error("Invalid Logcat Filter Type");
 			}
 		}
 
 		public JPanel getContent() {
 			JLabel label = new JLabel(this.label + ": ");
 			CheckComboStore[] stores = new CheckComboStore[ids.length];
-			for (int j = 0; j < ids.length; j++)
+			for (int j = 0; j < ids.length; j++) {
 				stores[j] = new CheckComboStore(index[j], ids[j], Boolean.TRUE);
+			}
 			combo = new JComboBox<>(stores);
 			combo.setRenderer(new CheckComboRenderer());
 			JPanel panel = new JPanel();
@@ -326,6 +329,8 @@ public class LogcatPanel extends JPanel {
 						logcatController.getFilter().togglePid(ccs.index, checked);
 					case 2: // level
 						logcatController.getFilter().toggleMsgType((byte) ccs.index, checked);
+					default:
+						LOG.error("Invalid Logcat Toggle Filter Encountered");
 				}
 			}
 			logcatController.reload();
@@ -344,6 +349,8 @@ public class LogcatPanel extends JPanel {
 						logcatController.getFilter().togglePid(ccs.index, ccs.state);
 					case 2: // level
 						logcatController.getFilter().toggleMsgType((byte) ccs.index, ccs.state);
+					default:
+						LOG.error("Invalid Logcat selectAllBut filter encountered");
 				}
 			}
 			logcatController.reload();

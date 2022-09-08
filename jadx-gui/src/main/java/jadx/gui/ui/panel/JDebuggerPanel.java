@@ -40,6 +40,9 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.annotations.Nullable;
 
 import jadx.core.utils.StringUtils;
@@ -55,6 +58,7 @@ import jadx.gui.utils.UiUtils;
 
 public class JDebuggerPanel extends JPanel {
 	private static final long serialVersionUID = -1111111202102181631L;
+	private static final Logger LOG = LoggerFactory.getLogger(LogcatPanel.class);
 
 	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
 	private static final ImageIcon ICON_RERUN = UiUtils.openSvgIcon("debugger/rerun");
@@ -388,7 +392,7 @@ public class JDebuggerPanel extends JPanel {
 				logcatPanel.init(device, pid);
 			} catch (Exception e) {
 				log(NLS.str("logcat.error_fail_start"));
-				e.printStackTrace();
+				LOG.error("Logcat failed to start", e);
 			}
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());
 			rightSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerVarTreeSplitterLoc());
