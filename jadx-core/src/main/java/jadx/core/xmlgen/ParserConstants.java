@@ -28,9 +28,12 @@ public class ParserConstants {
 	protected static final int RES_XML_LAST_CHUNK_TYPE = 0x017f;
 	protected static final int RES_XML_RESOURCE_MAP_TYPE = 0x0180;
 
-	protected static final int RES_TABLE_PACKAGE_TYPE = 0x0200;
-	protected static final int RES_TABLE_TYPE_TYPE = 0x0201;
-	protected static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202;
+	protected static final int RES_TABLE_PACKAGE_TYPE = 0x0200; // 512
+	protected static final int RES_TABLE_TYPE_TYPE = 0x0201; // 513
+	protected static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202; // 514
+	protected static final int RES_TABLE_TYPE_LIBRARY = 0x0203; // 515
+	protected static final int RES_TABLE_TYPE_OVERLAY = 0x0204; // 516
+	protected static final int RES_TABLE_TYPE_STAGED_ALIAS = 0x0206; // 517
 
 	/**
 	 * Type constants
