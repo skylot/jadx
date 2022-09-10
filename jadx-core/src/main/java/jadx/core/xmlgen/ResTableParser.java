@@ -150,7 +150,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
 		resStorage.setAppPackage(name);
 
-		chunkLoop: while (is.getPos() < endPos) {
+		while (is.getPos() < endPos) {
 			long chunkStart = is.getPos();
 			int type = is.readInt16();
 			LOG.trace("res package chunk start at {} type {}", chunkStart, type);
@@ -174,9 +174,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 					throw new IOException(
 							String.format("Encountered unsupported chunk type TYPE_STAGED_ALIAS at offset 0x%x ", chunkStart));
 				default:
-					// In some resources.arsc files endPos is not correctly set (e.g. points to the end of the file),
-					// so we have to stop when we encounter an unknown type entry
-					break chunkLoop;
+					LOG.warn("Unknown chunk type {} encountered at offset {}", type, chunkStart);
 			}
 		}
 		return pkg;
@@ -279,6 +277,13 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 				}
 				parseEntry(pkg, id, i, config.getQualifiers());
 			}
+		}
+		if (chunkEnd > is.getPos()) {
+			// Skip remaining unknown data in this chunk (e.g. type 8 entries")
+			long skipSize = chunkEnd - is.getPos();
+			LOG.debug("Unknown data at the end of type chunk encountered, skipping {} bytes and continuing at offset {}", skipSize,
+					chunkEnd);
+			is.skip(skipSize);
 		}
 	}
 
