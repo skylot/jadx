@@ -146,20 +146,6 @@ public class RegionUtils {
 		}
 	}
 
-	@Nullable
-	public static IContainer getLastRegion(@Nullable IContainer container) {
-		if (container == null) {
-			return null;
-		}
-		if (container instanceof IBlock || container instanceof IBranchRegion) {
-			return container;
-		}
-		if (container instanceof IRegion) {
-			return getLastRegion(Utils.last(((IRegion) container).getSubBlocks()));
-		}
-		throw new JadxRuntimeException(unknownContainerType(container));
-	}
-
 	public static boolean isExitBlock(MethodNode mth, IContainer container) {
 		if (container instanceof BlockNode) {
 			return BlockUtils.isExitBlock(mth, (BlockNode) container);

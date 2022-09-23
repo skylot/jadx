@@ -3,8 +3,10 @@ package jadx.core.dex.visitors.regions;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfCondition;
@@ -45,7 +47,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 	}
 
-	@SuppressWarnings("UnnecessaryReturnStatement")
+	@SuppressWarnings({ "UnnecessaryReturnStatement", "StatementWithEmptyBody" })
 	private static void orderBranches(MethodNode mth, IfRegion ifRegion) {
 		if (RegionUtils.isEmpty(ifRegion.getElseRegion())) {
 			return;
@@ -79,9 +81,15 @@ public class IfRegionVisitor extends AbstractVisitor {
 					return;
 				}
 			}
-			boolean lastRegion = ifRegion == RegionUtils.getLastRegion(mth.getRegion());
+			boolean lastRegion = RegionUtils.hasExitEdge(ifRegion);
 			if (elseSize == 1 && lastRegion && mth.isVoidReturn()) {
-				// single return at method end will be removed later
+				InsnNode lastElseInsn = RegionUtils.getLastInsn(ifRegion.getElseRegion());
+				if (lastElseInsn != null && lastElseInsn.getType() == InsnType.THROW) {
+					// move `throw` into `then` block
+					invertIfRegion(ifRegion);
+				} else {
+					// single return at method end will be removed later
+				}
 				return;
 			}
 			if (!lastRegion) {
