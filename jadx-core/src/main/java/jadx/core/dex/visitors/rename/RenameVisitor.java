@@ -14,6 +14,9 @@ import jadx.core.Consts;
 import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -195,12 +198,29 @@ public class RenameVisitor extends AbstractVisitor {
 			Set<String> names = new HashSet<>(methods.size());
 			for (MethodNode mth : methods) {
 				String signature = mth.getMethodInfo().makeSignature(true, false);
-				if (!names.add(signature)) {
+				if (!names.add(signature) && canRename(mth)) {
 					deobfuscator.forceRenameMethod(mth);
 					mth.addAttr(new RenameReasonAttr("collision with other method in class"));
 				}
 			}
 		}
+	}
+
+	private static boolean canRename(MethodNode mth) {
+		if (mth.contains(AFlag.DONT_RENAME)) {
+			return false;
+		}
+		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (overrideAttr != null) {
+			for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
+				if (relatedMth != mth && mth.getParentClass().equals(relatedMth.getParentClass())) {
+					// ignore rename if exists related method from same class (bridge method in most cases)
+					// such rename will also rename current method and will not help to resolve name collision
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private static void processRootPackages(Deobfuscator deobfuscator, RootNode root, List<ClassNode> classes) {
