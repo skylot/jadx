@@ -1,12 +1,12 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.usage.UsageInfoVisitor;
-import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -45,7 +45,14 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 		}
 		AccessInfo accessFlags = mth.getAccessFlags();
 		boolean isSynthetic = accessFlags.isSynthetic() || mth.getName().contains("$");
-		return isSynthetic && (accessFlags.isStatic() || mth.isConstructor());
+		return isSynthetic && canInlineMethod(mth, accessFlags);
+	}
+
+	private static boolean canInlineMethod(MethodNode mth, AccessInfo accessFlags) {
+		if (accessFlags.isStatic()) {
+			return true;
+		}
+		return mth.isConstructor() && mth.root().getArgs().isInlineAnonymousClasses();
 	}
 
 	private static void fixClassDependencies(MethodNode mth) {
@@ -54,8 +61,14 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 			// remove possible cross dependency
 			// to force class with inline method to be processed before its usage
 			ClassNode useTopCls = useInMth.getTopParentClass();
-			parentClass.setDependencies(ListUtils.safeRemoveAndTrim(parentClass.getDependencies(), useTopCls));
-			useTopCls.addCodegenDep(parentClass);
+			if (useTopCls != parentClass) {
+				parentClass.removeDependency(useTopCls);
+				useTopCls.addCodegenDep(parentClass);
+				if (Consts.DEBUG_USAGE) {
+					parentClass.addDebugComment("Remove dependency: " + useTopCls + " to inline " + mth);
+					useTopCls.addDebugComment("Add dependency: " + parentClass + " to inline " + mth);
+				}
+			}
 		}
 	}
 }

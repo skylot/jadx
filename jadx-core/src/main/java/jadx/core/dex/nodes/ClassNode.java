@@ -805,7 +805,9 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public void addCodegenDep(ClassNode dep) {
-		this.codegenDeps = ListUtils.safeAdd(this.codegenDeps, dep);
+		if (!codegenDeps.contains(dep)) {
+			this.codegenDeps = ListUtils.safeAdd(this.codegenDeps, dep);
+		}
 	}
 
 	public int getTotalDepsCount() {
