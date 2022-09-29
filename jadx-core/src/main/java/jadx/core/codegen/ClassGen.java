@@ -322,19 +322,25 @@ public class ClassGen {
 		if (inlineAttr == null || inlineAttr.notNeeded()) {
 			return false;
 		}
-		if (mth.getUseIn().isEmpty()) {
-			mth.add(AFlag.DONT_GENERATE);
-			return true;
+		try {
+			if (mth.getUseIn().isEmpty()) {
+				mth.add(AFlag.DONT_GENERATE);
+				return true;
+			}
+			List<MethodNode> useInCompleted = mth.getUseIn().stream()
+					.filter(m -> m.getTopParentClass().getState().isProcessComplete())
+					.collect(Collectors.toList());
+			if (useInCompleted.isEmpty()) {
+				mth.add(AFlag.DONT_GENERATE);
+				return true;
+			}
+			mth.addDebugComment("Method not inlined, still used in: " + useInCompleted);
+			return false;
+		} catch (Exception e) {
+			// check failed => keep method
+			mth.addWarnComment("Failed to check method usage", e);
+			return false;
 		}
-		List<MethodNode> useInCompleted = mth.getUseIn().stream()
-				.filter(m -> m.getTopParentClass().getState().isProcessComplete())
-				.collect(Collectors.toList());
-		if (useInCompleted.isEmpty()) {
-			mth.add(AFlag.DONT_GENERATE);
-			return true;
-		}
-		mth.addDebugComment("Method not inlined, still used in: " + useInCompleted);
-		return false;
 	}
 
 	private boolean isMethodsPresents() {
