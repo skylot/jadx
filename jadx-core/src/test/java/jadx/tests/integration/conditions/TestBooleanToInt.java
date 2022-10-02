@@ -6,6 +6,7 @@ import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
+@SuppressWarnings("CommentedOutCode")
 public class TestBooleanToInt extends SmaliTest {
 
 	// @formatter:off

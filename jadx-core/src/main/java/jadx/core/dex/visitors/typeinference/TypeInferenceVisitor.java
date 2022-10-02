@@ -913,23 +913,18 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 
 		boolean fixed = false;
-		for (ITypeBound bound : typeInfo.getBounds()) {
-			if (bound.getBound() == BoundEnum.USE
-					&& fixBooleanUsage(mth, bound)) {
+		for (RegisterArg arg : new ArrayList<>(var.getUseList())) {
+			if (fixBooleanUsage(mth, arg)) {
 				fixed = true;
 			}
 		}
 		return fixed;
 	}
 
-	private boolean fixBooleanUsage(MethodNode mth, ITypeBound bound) {
-		ArgType boundType = bound.getType();
+	private boolean fixBooleanUsage(MethodNode mth, RegisterArg boundArg) {
+		ArgType boundType = boundArg.getInitType();
 		if (boundType == ArgType.BOOLEAN
 				|| (boundType.isTypeKnown() && !boundType.isPrimitive())) {
-			return false;
-		}
-		RegisterArg boundArg = bound.getArg();
-		if (boundArg == null) {
 			return false;
 		}
 		InsnNode insn = boundArg.getParentInsn();
