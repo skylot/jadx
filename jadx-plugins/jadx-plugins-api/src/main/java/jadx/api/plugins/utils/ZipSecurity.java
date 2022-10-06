@@ -53,10 +53,10 @@ public class ZipSecurity {
 			if (isInSubDirectoryInternal(currentPath, canonical)) {
 				return true;
 			}
-			LOG.error("Path traversal attack detected, invalid name: {}", entryName);
+			LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
 			return false;
 		} catch (Exception e) {
-			LOG.error("Path traversal attack detected, invalid name: {}", entryName);
+			LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
 			return false;
 		}
 	}
