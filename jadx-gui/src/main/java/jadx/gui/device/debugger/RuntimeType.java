@@ -1,6 +1,6 @@
 package jadx.gui.device.debugger;
 
-import io.github.hqktech.JDWP;
+import io.github.skylot.jdwp.JDWP;
 
 public enum RuntimeType {
 	ARRAY(91, "[]"),

@@ -1,23 +1,23 @@
 package jadx.gui.device.debugger;
 
-import io.github.hqktech.JDWP.Event.Composite.BreakpointEvent;
-import io.github.hqktech.JDWP.Event.Composite.ClassPrepareEvent;
-import io.github.hqktech.JDWP.Event.Composite.ClassUnloadEvent;
-import io.github.hqktech.JDWP.Event.Composite.ExceptionEvent;
-import io.github.hqktech.JDWP.Event.Composite.FieldAccessEvent;
-import io.github.hqktech.JDWP.Event.Composite.FieldModificationEvent;
-import io.github.hqktech.JDWP.Event.Composite.MethodEntryEvent;
-import io.github.hqktech.JDWP.Event.Composite.MethodExitEvent;
-import io.github.hqktech.JDWP.Event.Composite.MethodExitWithReturnValueEvent;
-import io.github.hqktech.JDWP.Event.Composite.MonitorContendedEnterEvent;
-import io.github.hqktech.JDWP.Event.Composite.MonitorContendedEnteredEvent;
-import io.github.hqktech.JDWP.Event.Composite.MonitorWaitEvent;
-import io.github.hqktech.JDWP.Event.Composite.MonitorWaitedEvent;
-import io.github.hqktech.JDWP.Event.Composite.SingleStepEvent;
-import io.github.hqktech.JDWP.Event.Composite.ThreadDeathEvent;
-import io.github.hqktech.JDWP.Event.Composite.ThreadStartEvent;
-import io.github.hqktech.JDWP.Event.Composite.VMDeathEvent;
-import io.github.hqktech.JDWP.Event.Composite.VMStartEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.BreakpointEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.ClassPrepareEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.ClassUnloadEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.ExceptionEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.FieldAccessEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.FieldModificationEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MethodEntryEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MethodExitEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MethodExitWithReturnValueEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MonitorContendedEnterEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MonitorContendedEnteredEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MonitorWaitEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.MonitorWaitedEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.SingleStepEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.ThreadDeathEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.ThreadStartEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.VMDeathEvent;
+import io.github.skylot.jdwp.JDWP.Event.Composite.VMStartEvent;
 
 abstract class EventListenerAdapter {
 	void onVMStart(VMStartEvent event) {
