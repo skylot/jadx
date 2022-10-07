@@ -171,7 +171,7 @@ public class ClassGen {
 		ArgType sup = cls.getSuperClass();
 		if (sup != null
 				&& !sup.equals(ArgType.OBJECT)
-				&& !cls.isEnum()) {
+				&& !cls.contains(AFlag.REMOVE_SUPER_CLASS)) {
 			clsCode.add("extends ");
 			useClass(clsCode, sup);
 			clsCode.add(' ');

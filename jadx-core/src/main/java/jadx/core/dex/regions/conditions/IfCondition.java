@@ -156,7 +156,7 @@ public final class IfCondition extends AttrNode {
 				return i;
 			}
 			if (c.getOp() == IfOp.EQ && c.getB().isFalse()) {
-				cond = not(new IfCondition(c.invert()));
+				cond = new IfCondition(Mode.NOT, Collections.singletonList(new IfCondition(c.invert())));
 			} else {
 				c.normalize();
 			}

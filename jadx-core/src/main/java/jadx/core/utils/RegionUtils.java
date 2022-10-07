@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,8 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlockAttr;
+import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
+import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegionUtils {
@@ -472,5 +475,14 @@ public class RegionUtils {
 			return "Null container variable";
 		}
 		return "Unknown container type: " + container.getClass();
+	}
+
+	public static void visitBlocks(MethodNode mth, IContainer container, Consumer<IBlock> visitor) {
+		DepthRegionTraversal.traverse(mth, container, new AbstractRegionVisitor() {
+			@Override
+			public void processBlock(MethodNode mth, IBlock block) {
+				visitor.accept(block);
+			}
+		});
 	}
 }

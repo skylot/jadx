@@ -10,6 +10,7 @@ import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -73,11 +74,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			return false;
 		}
 		if (elseRegion == null) {
-			if (mth.isConstructor()) {
-				// force ternary conversion to inline all code in 'super' or 'this' calls
-				return processOneBranchTernary(mth, ifRegion);
-			}
-			return false;
+			return processOneBranchTernary(mth, ifRegion);
 		}
 		BlockNode tb = getTernaryInsnBlock(thenRegion);
 		BlockNode eb = getTernaryInsnBlock(elseRegion);
@@ -93,21 +90,8 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		InsnNode thenInsn = tb.getInstructions().get(0);
 		InsnNode elseInsn = eb.getInstructions().get(0);
 
-		if (mth.contains(AFlag.USE_LINES_HINTS)
-				&& thenInsn.getSourceLine() != elseInsn.getSourceLine()) {
-			if (thenInsn.getSourceLine() != 0 && elseInsn.getSourceLine() != 0) {
-				// sometimes source lines incorrect
-				if (!checkLineStats(thenInsn, elseInsn)) {
-					return false;
-				}
-			} else {
-				// no debug info
-				if (containsTernary(thenInsn) || containsTernary(elseInsn)) {
-					// don't make nested ternary by default
-					// TODO: add addition checks
-					return false;
-				}
-			}
+		if (!verifyLineHints(mth, thenInsn, elseInsn)) {
+			return false;
 		}
 
 		RegisterArg thenResArg = thenInsn.getResult();
@@ -182,6 +166,20 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			return true;
 		}
 		return false;
+	}
+
+	private static boolean verifyLineHints(MethodNode mth, InsnNode thenInsn, InsnNode elseInsn) {
+		if (mth.contains(AFlag.USE_LINES_HINTS)
+				&& thenInsn.getSourceLine() != elseInsn.getSourceLine()) {
+			if (thenInsn.getSourceLine() != 0 && elseInsn.getSourceLine() != 0) {
+				// sometimes source lines incorrect
+				return checkLineStats(thenInsn, elseInsn);
+			}
+			// don't make nested ternary by default
+			// TODO: add addition checks
+			return !containsTernary(thenInsn) && !containsTernary(elseInsn);
+		}
+		return true;
 	}
 
 	private static void clearConditionBlocks(List<BlockNode> conditionBlocks, BlockNode header) {
@@ -277,6 +275,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		return false;
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	private static void replaceWithTernary(MethodNode mth, IfRegion ifRegion, BlockNode block, InsnNode insn) {
 		RegisterArg resArg = insn.getResult();
 		if (resArg.getSVar().getUseList().size() != 1) {
@@ -296,17 +295,45 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		if (otherArg == null) {
 			return;
 		}
+		InsnNode elseAssign = otherArg.getAssignInsn();
+		if (mth.isConstructor() || (mth.getParentClass().isEnum() && mth.getMethodInfo().isClassInit())) {
+			// forcing ternary inline for constructors (will help in moving super call to the top) and enums
+			// skip code style checks
+		} else {
+			if (elseAssign != null && elseAssign.isConstInsn()) {
+				if (!verifyLineHints(mth, insn, elseAssign)) {
+					return;
+				}
+			} else {
+				if (insn.getResult().sameCodeVar(otherArg)) {
+					// don't use same variable in else branch to prevent: l = (l == 0) ? 1 : l
+					return;
+				}
+			}
+		}
 
 		// all checks passed
 		BlockNode header = ifRegion.getConditionBlocks().get(0);
 		if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
 			return;
 		}
+		InsnArg elseArg;
+		if (elseAssign != null && elseAssign.isConstInsn()) {
+			// inline constant
+			SSAVar elseVar = elseAssign.getResult().getSVar();
+			if (elseVar.getUseCount() == 1 && elseVar.getOnlyOneUseInPhi() == phiInsn) {
+				InsnRemover.remove(mth, elseAssign);
+			}
+			elseArg = InsnArg.wrapInsnIntoArg(elseAssign);
+		} else {
+			elseArg = otherArg;
+		}
 		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), otherArg);
+				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), elseArg);
+		ternInsn.simplifyCondition();
+
 		InsnRemover.unbindResult(mth, insn);
 		InsnList.remove(block, insn);
-
 		InsnRemover.unbindAllArgs(mth, phiInsn);
 		header.getInstructions().clear();
 		ternInsn.rebindArgs();

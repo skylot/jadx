@@ -62,45 +62,47 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				|| insn.getResult() == null) {
 			return;
 		}
-
 		SSAVar sVar = insn.getResult().getSVar();
 		InsnArg constArg;
 		Runnable onSuccess = null;
-
-		InsnType insnType = insn.getType();
-		if (insnType == InsnType.CONST || insnType == InsnType.MOVE) {
-			constArg = insn.getArg(0);
-			if (!constArg.isLiteral()) {
+		switch (insn.getType()) {
+			case CONST:
+			case MOVE: {
+				constArg = insn.getArg(0);
+				if (!constArg.isLiteral()) {
+					return;
+				}
+				long lit = ((LiteralArg) constArg).getLiteral();
+				if (lit == 0 && forbidNullInlines(sVar)) {
+					// all usages forbids inlining
+					return;
+				}
+				break;
+			}
+			case CONST_STR: {
+				String s = ((ConstStringNode) insn).getString();
+				FieldNode f = mth.getParentClass().getConstField(s);
+				if (f == null) {
+					InsnNode copy = insn.copyWithoutResult();
+					constArg = InsnArg.wrapArg(copy);
+				} else {
+					InsnNode constGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+					constArg = InsnArg.wrapArg(constGet);
+					constArg.setType(ArgType.STRING);
+					onSuccess = () -> f.addUseIn(mth);
+				}
+				break;
+			}
+			case CONST_CLASS: {
+				if (sVar.isUsedInPhi()) {
+					return;
+				}
+				constArg = InsnArg.wrapArg(insn.copyWithoutResult());
+				constArg.setType(ArgType.CLASS);
+				break;
+			}
+			default:
 				return;
-			}
-			long lit = ((LiteralArg) constArg).getLiteral();
-			if (lit == 0 && forbidNullInlines(sVar)) {
-				// all usages forbids inlining
-				return;
-			}
-		} else if (insnType == InsnType.CONST_STR) {
-			if (sVar.isUsedInPhi()) {
-				return;
-			}
-			String s = ((ConstStringNode) insn).getString();
-			FieldNode f = mth.getParentClass().getConstField(s);
-			if (f == null) {
-				InsnNode copy = insn.copyWithoutResult();
-				constArg = InsnArg.wrapArg(copy);
-			} else {
-				InsnNode constGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
-				constArg = InsnArg.wrapArg(constGet);
-				constArg.setType(ArgType.STRING);
-				onSuccess = () -> f.addUseIn(mth);
-			}
-		} else if (insnType == InsnType.CONST_CLASS) {
-			if (sVar.isUsedInPhi()) {
-				return;
-			}
-			constArg = InsnArg.wrapArg(insn.copyWithoutResult());
-			constArg.setType(ArgType.CLASS);
-		} else {
-			return;
 		}
 
 		// all check passed, run replace

@@ -21,6 +21,7 @@ public enum AFlag {
 	DONT_GENERATE, // process as usual, but don't output to generated code
 	COMMENT_OUT, // process as usual, but comment insn in generated code
 	REMOVE, // can be completely removed
+	REMOVE_SUPER_CLASS, // don't add super class
 
 	HIDDEN, // instruction used inside other instruction but not listed in args
 

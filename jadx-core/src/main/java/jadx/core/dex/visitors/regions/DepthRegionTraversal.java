@@ -19,6 +19,10 @@ public class DepthRegionTraversal {
 		traverseInternal(mth, visitor, mth.getRegion());
 	}
 
+	public static void traverse(MethodNode mth, IContainer container, IRegionVisitor visitor) {
+		traverseInternal(mth, visitor, container);
+	}
+
 	public static void traverseIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
 		int k = 0;
