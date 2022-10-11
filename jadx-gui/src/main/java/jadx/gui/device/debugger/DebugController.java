@@ -44,11 +44,12 @@ import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
 
 public final class DebugController implements SmaliDebugger.SuspendListener, IDebugController {
-	private static final Logger LOG = LoggerFactory.getLogger(DebugController.class);
 
+	private static final Logger LOG = LoggerFactory.getLogger(DebugController.class);
 	private static final String ONCREATE_SIGNATURE = "onCreate(Landroid/os/Bundle;)V";
 	private static final Map<String, RuntimeType> TYPE_MAP = new HashMap<>();
 	private static final RuntimeType[] POSSIBLE_TYPES = { RuntimeType.OBJECT, RuntimeType.INT, RuntimeType.LONG };
+	private static final int DEFAULT_CACHE_SIZE = 512;
 
 	private JDebuggerPanel debuggerPanel;
 	private SmaliDebugger debugger;
@@ -1115,7 +1116,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		private long thisID;
 
 		public FrameNode(long threadID, SmaliDebugger.Frame frame) {
-			cache = new StringBuilder(16);
+			cache = new StringBuilder(DEFAULT_CACHE_SIZE);
 			this.frame = frame;
 			this.threadID = threadID;
 			regNodes = Collections.emptyList();
@@ -1153,7 +1154,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		public void setSignatures(String clsSig, String mthSig) {
 			this.clsSig = clsSig;
 			this.mthSig = mthSig;
-			this.cache.delete(0, this.cache.length());
+			resetCache();
 		}
 
 		public String getClsSig() {
@@ -1167,7 +1168,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		public void updateCodeOffset(long codeOffset) {
 			this.codeOffset = codeOffset;
 			if (this.codeOffset > -1) {
-				this.cache.delete(0, this.cache.length());
+				resetCache();
 			}
 		}
 
@@ -1209,27 +1210,34 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 			}
 		}
 
+		private void resetCache() {
+			// Do not reuse thee existing cache instance as this can result in
+			// multi-threading access issues in case toString() method is active
+			this.cache = new StringBuilder(DEFAULT_CACHE_SIZE);
+		}
+
 		@Override
 		public String toString() {
-			if (cache.length() == 0) {
+			StringBuilder sbCache = cache;
+			if (sbCache.length() == 0) {
 				long off = getCodeOffset();
 				if (off < 0) {
-					cache.append(String.format("index: %-4d ", off));
+					sbCache.append(String.format("index: %-4d ", off));
 				} else {
-					cache.append(String.format("index: %04x ", off));
+					sbCache.append(String.format("index: %04x ", off));
 				}
 				if (clsSig == null) {
-					cache.append("clsID: ").append(frame.getClassID());
+					sbCache.append("clsID: ").append(frame.getClassID());
 				} else {
-					cache.append(clsSig).append("->");
+					sbCache.append(clsSig).append("->");
 				}
 				if (mthSig == null) {
-					cache.append(" mthID: ").append(frame.getMethodID());
+					sbCache.append(" mthID: ").append(frame.getMethodID());
 				} else {
-					cache.append(mthSig);
+					sbCache.append(mthSig);
 				}
 			}
-			return cache.toString();
+			return sbCache.toString();
 		}
 	}
 
