@@ -1,7 +1,7 @@
 package jadx.core.codegen;
 
+import java.util.ArrayDeque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Queue;
 
 import jadx.api.ICodeWriter;
@@ -23,7 +23,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class ConditionGen extends InsnGen {
 
 	private static class CondStack {
-		private final Queue<IfCondition> stack = new LinkedList<>();
+		private final Queue<IfCondition> stack = new ArrayDeque<>();
 
 		public Queue<IfCondition> getStack() {
 			return stack;

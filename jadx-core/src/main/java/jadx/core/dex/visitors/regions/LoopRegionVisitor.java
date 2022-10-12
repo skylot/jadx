@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -125,7 +125,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		// can't make loop if argument from increment instruction is assign in loop
-		List<RegisterArg> args = new LinkedList<>();
+		List<RegisterArg> args = new ArrayList<>();
 		incrInsn.getRegisterArgs(args);
 		for (RegisterArg iArg : args) {
 			try {
@@ -268,7 +268,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
 		}
-		List<InsnNode> toSkip = new LinkedList<>();
+		List<InsnNode> toSkip = new ArrayList<>();
 		RegisterArg iterVar;
 		if (nextCall.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);

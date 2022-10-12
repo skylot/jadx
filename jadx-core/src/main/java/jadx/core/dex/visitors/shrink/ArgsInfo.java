@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors.shrink;
 
+import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import jadx.core.dex.instructions.InsnType;
@@ -30,7 +30,7 @@ final class ArgsInfo {
 	}
 
 	public static List<RegisterArg> getArgs(InsnNode insn) {
-		List<RegisterArg> args = new LinkedList<>();
+		List<RegisterArg> args = new ArrayList<>();
 		addArgs(insn, args);
 		return args;
 	}

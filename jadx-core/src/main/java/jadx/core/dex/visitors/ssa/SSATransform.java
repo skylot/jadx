@@ -1,10 +1,10 @@
 package jadx.core.dex.visitors.ssa;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
@@ -81,7 +81,7 @@ public class SSATransform extends AbstractVisitor {
 		int blocksCount = blocks.size();
 		BitSet hasPhi = new BitSet(blocksCount);
 		BitSet processed = new BitSet(blocksCount);
-		Deque<BlockNode> workList = new LinkedList<>();
+		Deque<BlockNode> workList = new ArrayDeque<>();
 
 		BitSet assignBlocks = la.getAssignBlocks(regNum);
 		for (int id = assignBlocks.nextSetBit(0); id >= 0; id = assignBlocks.nextSetBit(id + 1)) {
@@ -136,7 +136,7 @@ public class SSATransform extends AbstractVisitor {
 		RenameState initState = RenameState.init(mth);
 		initPhiInEnterBlock(initState);
 
-		Deque<RenameState> stack = new LinkedList<>();
+		Deque<RenameState> stack = new ArrayDeque<>();
 		stack.push(initState);
 		while (!stack.isEmpty()) {
 			RenameState state = stack.pop();

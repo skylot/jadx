@@ -4,10 +4,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 
@@ -175,7 +173,7 @@ public class ManifestAttributes {
 		if (attr.getType() == MAttrType.ENUM) {
 			return attr.getValues().get(value);
 		} else if (attr.getType() == MAttrType.FLAG) {
-			List<String> flagList = new LinkedList<>();
+			List<String> flagList = new ArrayList<>();
 			List<Long> attrKeys = new ArrayList<>(attr.getValues().keySet());
 			attrKeys.sort((a, b) -> Long.compare(b, a)); // sort descending
 			for (Long key : attrKeys) {
@@ -188,7 +186,7 @@ public class ManifestAttributes {
 					value ^= key;
 				}
 			}
-			return flagList.stream().collect(Collectors.joining("|"));
+			return String.join("|", flagList);
 		}
 		return null;
 	}

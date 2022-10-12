@@ -1,6 +1,6 @@
 package jadx.core.dex.attributes.nodes;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import jadx.api.ICodeWriter;
@@ -10,7 +10,7 @@ import jadx.core.dex.instructions.PhiInsn;
 
 public class PhiListAttr implements IJadxAttribute {
 
-	private final List<PhiInsn> list = new LinkedList<>();
+	private final List<PhiInsn> list = new ArrayList<>();
 
 	@Override
 	public AType<PhiListAttr> getAttrType() {

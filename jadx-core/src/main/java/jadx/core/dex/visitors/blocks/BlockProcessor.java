@@ -2,7 +2,6 @@ package jadx.core.dex.visitors.blocks;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -432,7 +431,7 @@ public class BlockProcessor extends AbstractVisitor {
 		BlockNode loopHeader = loop.getStart();
 		List<BlockNode> preds = loopHeader.getPredecessors();
 		if (preds.size() > 2) {
-			List<BlockNode> blocks = new LinkedList<>(preds);
+			List<BlockNode> blocks = new ArrayList<>(preds);
 			blocks.removeIf(block -> block.contains(AFlag.LOOP_END));
 			BlockNode first = blocks.remove(0);
 			BlockNode preHeader = BlockSplitter.insertBlockBetween(mth, first, loopHeader);
