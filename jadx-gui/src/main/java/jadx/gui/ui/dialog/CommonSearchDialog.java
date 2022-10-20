@@ -55,6 +55,7 @@ import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.NodeLabel;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -402,9 +403,9 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	protected final class ResultsTableCellRenderer implements TableCellRenderer {
-		private final JLabel label;
+		private final NodeLabel label;
 		private final RSyntaxTextArea codeArea;
-		private final JLabel emptyLabel;
+		private final NodeLabel emptyLabel;
 		private final Color codeSelectedColor;
 		private final Color codeBackground;
 
@@ -414,11 +415,11 @@ public abstract class CommonSearchDialog extends JFrame {
 			codeArea.setRows(1);
 			codeBackground = codeArea.getBackground();
 			codeSelectedColor = codeArea.getSelectionColor();
-			label = new JLabel();
+			label = new NodeLabel();
 			label.setOpaque(true);
 			label.setFont(codeArea.getFont());
 			label.setHorizontalAlignment(SwingConstants.LEFT);
-			emptyLabel = new JLabel();
+			emptyLabel = new NodeLabel();
 			emptyLabel.setOpaque(true);
 		}
 
@@ -454,8 +455,9 @@ public abstract class CommonSearchDialog extends JFrame {
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
 				label.setText(node.makeLongStringHtml());
-				label.setToolTipText(label.getText());
+				label.setToolTipText(node.getTooltip());
 				label.setIcon(node.getIcon());
+				label.disableHtml(node.disableHtml());
 				return label;
 			}
 			if (!node.hasDescString()) {

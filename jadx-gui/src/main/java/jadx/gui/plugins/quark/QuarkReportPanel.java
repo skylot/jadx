@@ -44,6 +44,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.JNodeCache;
+import jadx.gui.utils.ui.NodeLabel;
 
 public class QuarkReportPanel extends ContentPanel {
 	private static final long serialVersionUID = -242266836695889206L;
@@ -211,7 +212,7 @@ public class QuarkReportPanel extends ContentPanel {
 
 		@Override
 		public Component render() {
-			JLabel label = new JLabel(((String) getUserObject()));
+			JLabel label = new NodeLabel(((String) getUserObject()));
 			label.setFont(bold ? boldFont : font);
 			label.setIcon(null);
 			label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -320,7 +321,7 @@ public class QuarkReportPanel extends ContentPanel {
 
 		@Override
 		public Component render() {
-			JLabel label = new JLabel(mth.toString());
+			JLabel label = new NodeLabel(mth.toString());
 			label.setFont(font);
 			label.setIcon(jnode.getIcon());
 			label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));

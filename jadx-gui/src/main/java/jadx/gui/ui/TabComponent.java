@@ -23,6 +23,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.NodeLabel;
 
 public class TabComponent extends JPanel {
 	private static final long serialVersionUID = -8147035487543610321L;
@@ -58,7 +59,7 @@ public class TabComponent extends JPanel {
 		} else {
 			tabTitle = node.makeLongStringHtml();
 		}
-		label = new JLabel(tabTitle);
+		label = new NodeLabel(tabTitle, node.disableHtml());
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {

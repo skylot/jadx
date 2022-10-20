@@ -142,6 +142,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.logs.LogCollector;
 import jadx.gui.utils.ui.ActionHandler;
+import jadx.gui.utils.ui.NodeLabel;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -1281,6 +1282,7 @@ public class MainWindow extends JFrame {
 				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
 				if (value instanceof JNode) {
 					JNode jNode = (JNode) value;
+					NodeLabel.disableHtml(this, jNode.disableHtml());
 					setText(jNode.makeStringHtml());
 					setIcon(jNode.getIcon());
 					setToolTipText(jNode.getTooltip());

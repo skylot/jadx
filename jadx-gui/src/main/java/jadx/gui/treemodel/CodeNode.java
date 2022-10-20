@@ -72,6 +72,11 @@ public class CodeNode extends JNode {
 	}
 
 	@Override
+	public boolean disableHtml() {
+		return jNode.disableHtml();
+	}
+
+	@Override
 	public String getSyntaxName() {
 		return jNode.getSyntaxName();
 	}

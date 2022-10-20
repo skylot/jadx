@@ -81,6 +81,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return makeLongString();
 	}
 
+	public boolean disableHtml() {
+		return true;
+	}
+
 	public int getPos() {
 		JavaNode javaNode = getJavaNode();
 		if (javaNode == null) {

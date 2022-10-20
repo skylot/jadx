@@ -46,6 +46,7 @@ import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.NodeLabel;
 
 public class LogcatPanel extends JPanel {
 	private static final Logger LOG = LoggerFactory.getLogger(LogcatPanel.class);
@@ -301,7 +302,7 @@ public class LogcatPanel extends JPanel {
 		}
 
 		public JPanel getContent() {
-			JLabel label = new JLabel(this.label + ": ");
+			JLabel label = NodeLabel.noHtml(this.label + ": ");
 			CheckComboStore[] stores = new CheckComboStore[ids.length];
 			for (int j = 0; j < ids.length; j++) {
 				stores[j] = new CheckComboStore(index[j], ids[j], Boolean.TRUE);

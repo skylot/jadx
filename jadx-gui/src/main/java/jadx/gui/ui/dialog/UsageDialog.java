@@ -12,7 +12,6 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import jadx.api.ICodeInfo;
@@ -31,6 +30,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.ui.NodeLabel;
 
 public class UsageDialog extends CommonSearchDialog {
 	private static final long serialVersionUID = -5105405789969134105L;
@@ -147,7 +147,7 @@ public class UsageDialog extends CommonSearchDialog {
 		Font codeFont = settings.getFont();
 		JLabel lbl = new JLabel(NLS.str("usage_dialog.label"));
 		lbl.setFont(codeFont);
-		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
+		JLabel nodeLabel = NodeLabel.longName(node);
 		nodeLabel.setFont(codeFont);
 		lbl.setLabelFor(nodeLabel);
 

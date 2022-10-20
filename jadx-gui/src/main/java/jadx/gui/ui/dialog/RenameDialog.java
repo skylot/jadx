@@ -22,7 +22,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +59,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.DocumentUpdateListener;
+import jadx.gui.utils.ui.NodeLabel;
 
 public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
@@ -313,7 +313,7 @@ public class RenameDialog extends JDialog {
 
 	private void initUI() {
 		JLabel lbl = new JLabel(NLS.str("popup.rename"));
-		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
+		JLabel nodeLabel = NodeLabel.longName(node);
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);

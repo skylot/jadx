@@ -98,6 +98,11 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public boolean disableHtml() {
+		return false;
+	}
+
+	@Override
 	public boolean hasDescString() {
 		return false;
 	}

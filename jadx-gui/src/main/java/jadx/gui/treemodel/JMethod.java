@@ -156,6 +156,11 @@ public class JMethod extends JNode {
 	}
 
 	@Override
+	public boolean disableHtml() {
+		return false;
+	}
+
+	@Override
 	public String makeDescString() {
 		return UiUtils.typeStr(getReturnType()) + " " + makeBaseString();
 	}
