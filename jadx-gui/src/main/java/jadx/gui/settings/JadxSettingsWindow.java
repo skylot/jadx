@@ -66,6 +66,8 @@ import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.gui.cache.code.CodeCacheMode;
+import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -73,7 +75,6 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.codecache.CodeCacheMode;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
@@ -450,6 +451,13 @@ public class JadxSettingsWindow extends JDialog {
 		});
 		String codeCacheModeToolTip = CodeCacheMode.buildToolTip();
 
+		JComboBox<UsageCacheMode> usageCacheModeComboBox = new JComboBox<>(UsageCacheMode.values());
+		usageCacheModeComboBox.setSelectedItem(settings.getUsageCacheMode());
+		usageCacheModeComboBox.addActionListener(e -> {
+			settings.setUsageCacheMode((UsageCacheMode) usageCacheModeComboBox.getSelectedItem());
+			needReload();
+		});
+
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
 		showInconsistentCode.addItemListener(e -> {
@@ -583,6 +591,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
 		other.addRow(NLS.str("preferences.codeCacheMode"), codeCacheModeToolTip, codeCacheModeComboBox);
+		other.addRow(NLS.str("preferences.usageCacheMode"), usageCacheModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);

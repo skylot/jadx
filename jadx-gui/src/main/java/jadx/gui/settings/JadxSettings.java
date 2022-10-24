@@ -34,13 +34,14 @@ import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
+import jadx.gui.cache.code.CodeCacheMode;
+import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.codecache.CodeCacheMode;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -96,6 +97,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String adbDialogPort = "5037";
 
 	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK_WITH_CACHE;
+	private UsageCacheMode usageCacheMode = UsageCacheMode.DISK;
 	private boolean jumpOnDoubleClick = true;
 
 	/**
@@ -666,6 +668,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setCodeCacheMode(CodeCacheMode codeCacheMode) {
 		this.codeCacheMode = codeCacheMode;
+	}
+
+	public UsageCacheMode getUsageCacheMode() {
+		return usageCacheMode;
+	}
+
+	public void setUsageCacheMode(UsageCacheMode usageCacheMode) {
+		this.usageCacheMode = usageCacheMode;
 	}
 
 	public boolean isJumpOnDoubleClick() {

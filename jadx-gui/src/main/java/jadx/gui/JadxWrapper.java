@@ -21,18 +21,22 @@ import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
 import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.usage.impl.EmptyUsageInfoCache;
+import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
+import jadx.gui.cache.code.CodeStringCache;
+import jadx.gui.cache.code.disk.BufferCodeCache;
+import jadx.gui.cache.code.disk.DiskCodeCache;
+import jadx.gui.cache.usage.UsageInfoCache;
 import jadx.gui.plugins.context.GuiPluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.codecache.CodeStringCache;
-import jadx.gui.utils.codecache.disk.BufferCodeCache;
-import jadx.gui.utils.codecache.disk.DiskCodeCache;
 
 import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
@@ -60,10 +64,10 @@ public class JadxWrapper {
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
 				project.fillJadxArgs(jadxArgs);
 
-				this.decompiler = new JadxDecompiler(jadxArgs);
-				this.guiPluginsContext = new GuiPluginsContext(mainWindow);
-				this.decompiler.getPluginsContext().setGuiContext(guiPluginsContext);
-				this.decompiler.load();
+				decompiler = new JadxDecompiler(jadxArgs);
+				initGuiPluginsContext();
+				initUsageCache(jadxArgs);
+				decompiler.load();
 				initCodeCache();
 			}
 		} catch (Exception e) {
@@ -117,6 +121,25 @@ public class JadxWrapper {
 	private BufferCodeCache buildBufferedDiskCache() {
 		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
+	}
+
+	private void initUsageCache(JadxArgs jadxArgs) {
+		switch (getSettings().getUsageCacheMode()) {
+			case NONE:
+				jadxArgs.setUsageInfoCache(new EmptyUsageInfoCache());
+				break;
+			case MEMORY:
+				jadxArgs.setUsageInfoCache(new InMemoryUsageInfoCache());
+				break;
+			case DISK:
+				jadxArgs.setUsageInfoCache(new UsageInfoCache(getProject().getCacheDir(), jadxArgs.getInputFiles()));
+				break;
+		}
+	}
+
+	private void initGuiPluginsContext() {
+		guiPluginsContext = new GuiPluginsContext(mainWindow);
+		decompiler.getPluginsContext().setGuiContext(guiPluginsContext);
 	}
 
 	/**
@@ -201,6 +224,8 @@ public class JadxWrapper {
 			return decompiler.getPluginsContext();
 		}
 		try (JadxDecompiler tmpDecompiler = new JadxDecompiler()) {
+			// TODO: override input file checks
+			tmpDecompiler.getArgs().setInputFile(FileUtils.createTempFile("tmp.txt").toFile());
 			tmpDecompiler.load();
 			return tmpDecompiler.getPluginsContext();
 		}

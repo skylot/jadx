@@ -1,5 +1,6 @@
 package jadx.api;
 
+import java.io.Closeable;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -24,11 +25,13 @@ import jadx.api.deobf.IAliasProvider;
 import jadx.api.deobf.IRenameCondition;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.api.usage.IUsageInfoCache;
+import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
 import jadx.core.deobf.DeobfCondition;
 import jadx.core.utils.files.FileUtils;
 
-public class JadxArgs {
+public class JadxArgs implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
 
 	public static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
@@ -44,6 +47,13 @@ public class JadxArgs {
 	private File outDirRes;
 
 	private ICodeCache codeCache = new InMemoryCodeCache();
+
+	/**
+	 * Usage data cache. Saves use places of classes, methods and fields between code reloads.
+	 * Can be set to {@link jadx.api.usage.impl.EmptyUsageInfoCache} if code reload not needed.
+	 */
+	private IUsageInfoCache usageInfoCache = new InMemoryUsageInfoCache();
+
 	private Function<JadxArgs, ICodeWriter> codeWriterProvider = AnnotatedCodeWriter::new;
 
 	private int threadsCount = DEFAULT_THREADS_COUNT;
@@ -148,16 +158,21 @@ public class JadxArgs {
 		setOutDirRes(new File(rootDir, DEFAULT_RES_DIR));
 	}
 
+	@Override
 	public void close() {
 		try {
 			inputFiles = null;
 			if (codeCache != null) {
 				codeCache.close();
 			}
+			if (usageInfoCache != null) {
+				usageInfoCache.close();
+			}
 		} catch (Exception e) {
 			LOG.error("Failed to close JadxArgs", e);
 		} finally {
 			codeCache = null;
+			usageInfoCache = null;
 		}
 	}
 
@@ -551,6 +566,14 @@ public class JadxArgs {
 
 	public void setCodeWriterProvider(Function<JadxArgs, ICodeWriter> codeWriterProvider) {
 		this.codeWriterProvider = codeWriterProvider;
+	}
+
+	public IUsageInfoCache getUsageInfoCache() {
+		return usageInfoCache;
+	}
+
+	public void setUsageInfoCache(IUsageInfoCache usageInfoCache) {
+		this.usageInfoCache = usageInfoCache;
 	}
 
 	public ICodeData getCodeData() {

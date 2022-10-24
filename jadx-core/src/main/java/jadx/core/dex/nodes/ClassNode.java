@@ -32,6 +32,7 @@ import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.api.plugins.input.data.impl.ListConsumer;
+import jadx.api.usage.IUsageInfoData;
 import jadx.core.Consts;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
@@ -106,10 +107,10 @@ public class ClassNode extends NotificationAttrNode
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
 		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 		this.clsData = cls.copy();
-		initialLoad(clsData);
+		load(clsData, false);
 	}
 
-	private void initialLoad(IClassData cls) {
+	private void load(IClassData cls, boolean reloading) {
 		try {
 			addAttrs(cls.getAttributes());
 			this.accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
@@ -119,13 +120,11 @@ public class ClassNode extends NotificationAttrNode
 			ListConsumer<IFieldData, FieldNode> fieldsConsumer = new ListConsumer<>(fld -> FieldNode.build(this, fld));
 			ListConsumer<IMethodData, MethodNode> methodsConsumer = new ListConsumer<>(mth -> MethodNode.build(this, mth));
 			cls.visitFieldsAndMethods(fieldsConsumer, methodsConsumer);
-			if (this.fields != null && this.methods != null) {
-				// TODO: temporary solution for restore usage info in reloaded methods and fields
-				restoreUsageData(this.fields, this.methods, fieldsConsumer.getResult(), methodsConsumer.getResult());
-			}
 			this.fields = fieldsConsumer.getResult();
 			this.methods = methodsConsumer.getResult();
-
+			if (reloading) {
+				restoreUsageData();
+			}
 			initStaticValues(fields);
 			processAttributes(this);
 			buildCache();
@@ -139,21 +138,10 @@ public class ClassNode extends NotificationAttrNode
 		}
 	}
 
-	private void restoreUsageData(List<FieldNode> oldFields, List<MethodNode> oldMethods,
-			List<FieldNode> newFields, List<MethodNode> newMethods) {
-		Map<FieldInfo, FieldNode> oldFieldMap = Utils.groupBy(oldFields, FieldNode::getFieldInfo);
-		for (FieldNode newField : newFields) {
-			FieldNode oldField = oldFieldMap.get(newField.getFieldInfo());
-			if (oldField != null) {
-				newField.setUseIn(oldField.getUseIn());
-			}
-		}
-		Map<MethodInfo, MethodNode> oldMethodsMap = Utils.groupBy(oldMethods, MethodNode::getMethodInfo);
-		for (MethodNode newMethod : newMethods) {
-			MethodNode oldMethod = oldMethodsMap.get(newMethod.getMethodInfo());
-			if (oldMethod != null) {
-				newMethod.setUseIn(oldMethod.getUseIn());
-			}
+	private void restoreUsageData() {
+		IUsageInfoData usageInfoData = root.getArgs().getUsageInfoCache().get(root);
+		if (usageInfoData != null) {
+			usageInfoData.applyForClass(this);
 		}
 	}
 
@@ -357,7 +345,7 @@ public class ClassNode extends NotificationAttrNode
 		unload();
 		clearAttributes();
 		root().getConstValues().removeForClass(this);
-		initialLoad(clsData);
+		load(clsData, true);
 
 		innerClasses.forEach(ClassNode::deepUnload);
 	}

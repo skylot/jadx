@@ -472,6 +472,18 @@ public class RootNode {
 		return deepResolveMethod(cls, mth.makeSignature(false));
 	}
 
+	public @NotNull MethodNode resolveDirectMethod(String rawClsName, String mthShortId) {
+		ClassNode clsNode = resolveClass(rawClsName);
+		if (clsNode == null) {
+			throw new RuntimeException("Class not found: " + rawClsName);
+		}
+		MethodNode methodNode = clsNode.searchMethodByShortId(mthShortId);
+		if (methodNode == null) {
+			throw new RuntimeException("Method not found: " + rawClsName + "." + mthShortId);
+		}
+		return methodNode;
+	}
+
 	@Nullable
 	private MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
 		for (MethodNode m : cls.getMethods()) {

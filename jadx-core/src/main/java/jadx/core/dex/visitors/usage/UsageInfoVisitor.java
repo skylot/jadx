@@ -3,6 +3,9 @@ package jadx.core.dex.visitors.usage;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodHandle;
@@ -10,6 +13,8 @@ import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
+import jadx.api.usage.IUsageInfoCache;
+import jadx.api.usage.IUsageInfoData;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -33,14 +38,39 @@ import jadx.core.utils.input.InsnDataUtils;
 		}
 )
 public class UsageInfoVisitor extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(UsageInfoVisitor.class);
 
 	@Override
 	public void init(RootNode root) {
+		IUsageInfoCache usageCache = root.getArgs().getUsageInfoCache();
+		IUsageInfoData usageInfoData = usageCache.get(root);
+		if (usageInfoData != null) {
+			try {
+				apply(usageInfoData);
+				return;
+			} catch (Exception e) {
+				LOG.error("Failed to apply cached usage data", e);
+			}
+		}
+		IUsageInfoData collectedInfoData = buildUsageData(root);
+		usageCache.set(root, collectedInfoData);
+		apply(collectedInfoData);
+	}
+
+	private static void apply(IUsageInfoData usageInfoData) {
+		long start = System.currentTimeMillis();
+		usageInfoData.apply();
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Apply usage data in {}ms", System.currentTimeMillis() - start);
+		}
+	}
+
+	private static IUsageInfoData buildUsageData(RootNode root) {
 		UsageInfo usageInfo = new UsageInfo(root);
 		for (ClassNode cls : root.getClasses()) {
 			processClass(cls, usageInfo);
 		}
-		usageInfo.apply();
+		return usageInfo;
 	}
 
 	private static void processClass(ClassNode cls, UsageInfo usageInfo) {

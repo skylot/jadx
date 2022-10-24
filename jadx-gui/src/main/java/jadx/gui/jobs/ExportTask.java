@@ -7,9 +7,9 @@ import javax.swing.JOptionPane;
 
 import jadx.api.ICodeCache;
 import jadx.gui.JadxWrapper;
+import jadx.gui.cache.code.FixedCodeCache;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.codecache.FixedCodeCache;
 
 public class ExportTask extends CancelableBackgroundTask {
 
