@@ -73,6 +73,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
+	private boolean useAlternativeFileDialog = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
@@ -266,6 +267,14 @@ public class JadxSettings extends JadxCLIArgs {
 	public void setAlwaysSelectOpened(boolean alwaysSelectOpened) {
 		this.alwaysSelectOpened = alwaysSelectOpened;
 		partialSync(settings -> settings.alwaysSelectOpened = alwaysSelectOpened);
+	}
+
+	public boolean isUseAlternativeFileDialog() {
+		return useAlternativeFileDialog;
+	}
+
+	public void setUseAlternativeFileDialog(boolean useAlternativeFileDialog) {
+		this.useAlternativeFileDialog = useAlternativeFileDialog;
 	}
 
 	public String getExcludedPackages() {

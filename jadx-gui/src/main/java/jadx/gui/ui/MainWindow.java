@@ -116,10 +116,11 @@ import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
-import jadx.gui.ui.dialog.FileDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.ui.filedialog.FileDialogWrapper;
+import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
@@ -293,19 +294,19 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFileDialog() {
-		showOpenDialog(FileDialog.OpenMode.OPEN);
+		showOpenDialog(FileOpenMode.OPEN);
 	}
 
 	public void openProjectDialog() {
-		showOpenDialog(FileDialog.OpenMode.OPEN_PROJECT);
+		showOpenDialog(FileOpenMode.OPEN_PROJECT);
 	}
 
-	private void showOpenDialog(FileDialog.OpenMode mode) {
+	private void showOpenDialog(FileOpenMode mode) {
 		saveAll();
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		FileDialog fileDialog = new FileDialog(this, mode);
+		FileDialogWrapper fileDialog = new FileDialogWrapper(this, mode);
 		List<Path> openPaths = fileDialog.show();
 		if (!openPaths.isEmpty()) {
 			settings.setLastOpenFilePath(fileDialog.getCurrentDir());
@@ -314,7 +315,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void addFiles() {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.ADD);
+		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.ADD);
 		List<Path> addPaths = fileDialog.show();
 		if (!addPaths.isEmpty()) {
 			addFiles(addPaths);
@@ -346,7 +347,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveProjectAs() {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.SAVE_PROJECT);
+		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.SAVE_PROJECT);
 		if (project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
 			Path projectPath = getProjectPathForFile(this.project.getFilePaths().get(0));
@@ -377,7 +378,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void exportMappings(MappingFormat mappingFormat) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.CUSTOM_SAVE);
+		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
 		fileDialog.setTitle(NLS.str("file.export_mappings_as"));
 		Path workingDir = project.getWorkingDir();
 		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
@@ -659,7 +660,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
-		FileDialog fileDialog = new FileDialog(this, FileDialog.OpenMode.EXPORT);
+		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.EXPORT);
 		List<Path> saveDirs = fileDialog.show();
 		if (saveDirs.isEmpty()) {
 			return;
