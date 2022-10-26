@@ -12,6 +12,7 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import jadx.api.plugins.utils.CommonFileUtils;
@@ -22,10 +23,16 @@ import jadx.gui.utils.NLS;
 
 class CustomFileChooser extends JFileChooser {
 
+	static {
+		// disable left shortcut panel, can crush in "Win32ShellFolderManager2.getNetwork()" or similar call
+		UIManager.put("FileChooser.noPlacesBar", Boolean.TRUE);
+	}
+
 	private final FileDialogWrapper data;
 
 	public CustomFileChooser(FileDialogWrapper data) {
 		super(data.getCurrentDir() == null ? CommonFileUtils.CWD : data.getCurrentDir().toFile());
+		putClientProperty("FileChooser.useShellFolder", Boolean.FALSE);
 		this.data = data;
 	}
 
