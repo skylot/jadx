@@ -454,10 +454,10 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
+				label.disableHtml(node.disableHtml());
 				label.setText(node.makeLongStringHtml());
 				label.setToolTipText(node.getTooltip());
 				label.setIcon(node.getIcon());
-				label.disableHtml(node.disableHtml());
 				return label;
 			}
 			if (!node.hasDescString()) {
