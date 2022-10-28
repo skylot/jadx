@@ -7,15 +7,22 @@ import jadx.api.JadxDecompiler
 import jadx.api.JavaClass
 import jadx.api.plugins.JadxPluginContext
 import jadx.api.plugins.pass.JadxPass
-import jadx.plugins.script.runtime.data.*
+import jadx.plugins.script.runtime.data.Debug
+import jadx.plugins.script.runtime.data.Decompile
+import jadx.plugins.script.runtime.data.Gui
+import jadx.plugins.script.runtime.data.JadxScriptAllOptions
+import jadx.plugins.script.runtime.data.JadxScriptOptions
+import jadx.plugins.script.runtime.data.Rename
+import jadx.plugins.script.runtime.data.Replace
+import jadx.plugins.script.runtime.data.Search
+import jadx.plugins.script.runtime.data.Stages
 import mu.KLogger
 import mu.KotlinLogging
 import java.io.File
 
-
 open class JadxScriptBaseClass(private val scriptData: JadxScriptData) {
 	val scriptName = scriptData.scriptName
-	val log = KotlinLogging.logger("JadxScript:${scriptName}")
+	val log = KotlinLogging.logger("JadxScript:$scriptName")
 
 	fun getJadxInstance() = JadxScriptInstance(scriptData, log)
 
@@ -46,7 +53,7 @@ class JadxScriptInstance(
 	private val decompiler = scriptData.jadxInstance
 
 	val options: JadxScriptOptions by lazy { JadxScriptOptions(this, scriptData.options) }
-	val rename: RenamePass by lazy { RenamePass(this) }
+	val rename: Rename by lazy { Rename(this) }
 	val stages: Stages by lazy { Stages(this) }
 	val replace: Replace by lazy { Replace(this) }
 	val decompile: Decompile by lazy { Decompile(this) }

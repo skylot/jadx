@@ -20,7 +20,7 @@ class JadxScriptAllOptions : JadxPluginOptions {
 class ScriptOption<T>(
 	val name: String,
 	val id: String,
-	private val getter: () -> T,
+	private val getter: () -> T
 ) {
 	private var validate: ((T) -> Boolean)? = null
 

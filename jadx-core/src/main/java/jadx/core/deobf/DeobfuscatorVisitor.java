@@ -71,4 +71,9 @@ public class DeobfuscatorVisitor extends AbstractVisitor {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "DeobfuscatorVisitor";
+	}
 }

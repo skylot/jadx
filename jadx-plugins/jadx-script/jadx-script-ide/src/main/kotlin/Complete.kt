@@ -3,7 +3,12 @@ package jadx.plugins.script.ide
 import jadx.plugins.script.runner.ScriptEval
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.ide_services.compiler.KJvmReplCompilerWithIdeServices
-import kotlin.script.experimental.api.*
+import kotlin.script.experimental.api.ReplCompletionResult
+import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.api.SourceCodeCompletionVariant
+import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.util.toSourceCodePosition
 

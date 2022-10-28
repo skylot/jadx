@@ -45,4 +45,9 @@ public class SaveDeobfMapping extends AbstractVisitor {
 			LOG.error("Failed to save deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "SaveDeobfMapping";
+	}
 }

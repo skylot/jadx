@@ -4,7 +4,8 @@ NOTE: work still in progress!
 
 ### Examples
 
-Check script examples in `examples/scripts/` (start with `hello`)
+Check script examples in [`examples/scripts/`](https://github.com/skylot/jadx/tree/master/jadx-plugins/jadx-script/examples/scripts)
+(start with [`hello`](https://github.com/skylot/jadx/blob/master/jadx-plugins/jadx-script/examples/scripts/hello.jadx.kts))
 
 ### Script usage
 
@@ -21,7 +22,7 @@ Just add script file as input
 
 ### Script development
 
-Jadx-gui for now don't support autocompletion, errors highlighting, docs and code navigation
+Jadx-gui for now don't support ~~autocompletion,~~ errors highlighting, docs and code navigation,
 so best approach for script editing is to open jadx project in IntelliJ Idea and write your script in `examples/scripts/` folder.
 Also, this will allow to debug your scripts: for that you need to create run configuration for jadx-cli or jadx-gui
 add breakpoints and next run it in debug mode (jadx-gui is preferred because of faster script reload).

@@ -1,6 +1,10 @@
+//file:noinspection UnnecessaryQualifiedReference
+
 plugins {
 	id 'com.github.ben-manes.versions' version '0.45.0'
 	id 'com.diffplug.spotless' version '6.13.0'
+
+	id 'org.jetbrains.kotlin.jvm' version '1.7.20' // needed for spotless
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -9,6 +13,7 @@ println("jadx version: ${jadxVersion}")
 
 allprojects {
 	apply plugin: 'java'
+	apply plugin: 'kotlin'
 	apply plugin: 'checkstyle'
 
 	version = jadxVersion
@@ -49,11 +54,6 @@ allprojects {
 		mavenLocal()
 		mavenCentral()
 		google()
-		// Commented out for now since we're using a local mapping-io fork atm.
-        // maven {
-		// 	name 'FabricMC'
-		// 	url 'https://maven.fabricmc.net/'
-		// }
 	}
 }
 
@@ -75,8 +75,22 @@ spotless {
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
+	kotlin {
+		target fileTree(rootDir).matching {
+			include 'jadx-plugins/jadx-script/**/*.kt'
+//			include 'jadx-plugins/jadx-script/examples/scripts/**/*.jadx.kts'
+		}
+		ktlint()
+			.setUseExperimental(false)
+			.editorConfigOverride([indent_style: "tab"])
+
+		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
+		encoding("UTF-8")
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 	format 'misc', {
-		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
+		target '**/*.gradle', '**/*.xml', '**/.gitignore', '**/.properties'
 		targetExclude ".gradle/**", ".idea/**", "*/build/**"
 
 		lineEndings(com.diffplug.spotless.LineEnding.UNIX)

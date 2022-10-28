@@ -22,4 +22,9 @@ public abstract class AbstractVisitor implements IDexTreeVisitor {
 	public void visit(MethodNode mth) throws JadxException {
 		// no op implementation
 	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
 }

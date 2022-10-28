@@ -14,12 +14,12 @@ class Stages(private val jadx: JadxScriptInstance) {
 			"StageRawInsns",
 			runAfter = listOf("start")
 		) {
-			override fun visit(mth: MethodNode) {
-				mth.instructions?.let {
-					block.invoke(mth, it)
+				override fun visit(mth: MethodNode) {
+					mth.instructions?.let {
+						block.invoke(mth, it)
+					}
 				}
-			}
-		})
+			})
 	}
 
 	fun mthEarlyBlocks(block: (MethodNode, List<BlockNode>) -> Unit) {
@@ -35,12 +35,12 @@ class Stages(private val jadx: JadxScriptInstance) {
 			"StageMthBlocks",
 			runBefore = listOf(beforePass)
 		) {
-			override fun visit(mth: MethodNode) {
-				mth.basicBlocks?.let {
-					block.invoke(mth, it)
+				override fun visit(mth: MethodNode) {
+					mth.basicBlocks?.let {
+						block.invoke(mth, it)
+					}
 				}
-			}
-		})
+			})
 	}
 
 	fun mthRegions(block: (MethodNode, Region) -> Unit) {
@@ -49,11 +49,11 @@ class Stages(private val jadx: JadxScriptInstance) {
 			"StageMthRegions",
 			runBefore = listOf("PrepareForCodeGen")
 		) {
-			override fun visit(mth: MethodNode) {
-				mth.region?.let {
-					block.invoke(mth, it)
+				override fun visit(mth: MethodNode) {
+					mth.region?.let {
+						block.invoke(mth, it)
+					}
 				}
-			}
-		})
+			})
 	}
 }
