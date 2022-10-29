@@ -2,6 +2,7 @@ package jadx.gui.ui.codearea;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -394,6 +395,26 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			popupMenu.removeAll();
 		} catch (Throwable e) {
 			LOG.debug("Error on code area dispose", e);
+		}
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		try {
+			return super.getPreferredSize();
+		} catch (Exception e) {
+			LOG.warn("Failed to calculate preferred size for code area", e);
+			// copied from javax.swing.JTextArea.getPreferredSize (super call above)
+			// as a fallback for returned null size
+			Dimension d = new Dimension(400, 400);
+			Insets insets = getInsets();
+			if (getColumns() != 0) {
+				d.width = Math.max(d.width, getColumns() * getColumnWidth() + insets.left + insets.right);
+			}
+			if (getRows() != 0) {
+				d.height = Math.max(d.height, getRows() * getRowHeight() + insets.top + insets.bottom);
+			}
+			return d;
 		}
 	}
 }
