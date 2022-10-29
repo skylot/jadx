@@ -2,8 +2,8 @@ package jadx.plugins.script.runner
 
 import jadx.api.JadxDecompiler
 import jadx.api.plugins.JadxPluginContext
-import jadx.plugins.script.runtime.JadxScript
 import jadx.plugins.script.runtime.JadxScriptData
+import jadx.plugins.script.runtime.JadxScriptTemplate
 import jadx.plugins.script.runtime.data.JadxScriptAllOptions
 import mu.KotlinLogging
 import java.io.File
@@ -43,10 +43,10 @@ class ScriptEval {
 		processEvalResult(result, scriptFile)
 	}
 
-	fun buildCompileConf() = createJvmCompilationConfigurationFromTemplate<JadxScript>()
+	fun buildCompileConf() = createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate>()
 
 	fun buildEvalConf(scriptData: JadxScriptData): ScriptEvaluationConfiguration {
-		return createJvmEvaluationConfigurationFromTemplate<JadxScript> {
+		return createJvmEvaluationConfigurationFromTemplate<JadxScriptTemplate> {
 			constructorArgs(scriptData)
 		}
 	}

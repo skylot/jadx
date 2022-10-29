@@ -14,8 +14,12 @@ dependencies {
 
 	// jadx-script autocomplete support
 	implementation(project(":jadx-plugins::jadx-script:jadx-script-ide"))
-	implementation("org.jetbrains.kotlin:kotlin-scripting-common:1.7.20")
+	implementation 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.20'
 	implementation 'com.fifesoft:autocomplete:3.3.0'
+
+	// use ktlint for lint and format jadx scripts
+	implementation 'com.pinterest.ktlint:ktlint-core:0.47.1'
+	implementation 'com.pinterest.ktlint:ktlint-ruleset-standard:0.47.1'
 
 	implementation 'com.beust:jcommander:1.82'
 	implementation 'ch.qos.logback:logback-classic:1.3.5'
@@ -44,10 +48,13 @@ dependencies {
 application {
 	applicationName = 'jadx-gui'
 	mainClass.set('jadx.gui.JadxGUI')
-	// The option -XX:+UseG1GC is only relevant for Java 8. Starting with Java 9 G1GC is already the default GC
-	applicationDefaultJvmArgs = ['-Xms128M', '-XX:MaxRAMPercentage=70.0', '-XX:+UseG1GC',
-								 '-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true',
-								 '-Djava.util.Arrays.useLegacyMergeSort=true']
+	applicationDefaultJvmArgs = [
+			'-Xms128M', '-XX:MaxRAMPercentage=70.0',
+			'-XX:+UseG1GC', // only relevant for Java 8, starting with Java 9 G1GC is already the default GC
+			'-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true',
+			'-Djava.util.Arrays.useLegacyMergeSort=true',
+			'-XX:+IgnoreUnrecognizedVMOptions', '--add-opens=java.base/java.lang=ALL-UNNAMED', // for ktlint formatter
+	]
 }
 
 applicationDistribution.with {
@@ -94,7 +101,7 @@ launch4j {
 	windowTitle = 'jadx'
 	companyName = 'jadx'
 	jreMinVersion = '11'
-	jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC', '-Djava.util.Arrays.useLegacyMergeSort=true']
+	jvmOptions = application.getApplicationDefaultJvmArgs()
 	jreRuntimeBits = "64"
 	bundledJre64Bit = true
 	initialHeapPercent = 5

@@ -182,9 +182,9 @@ public class DiskCodeCache implements ICodeCache {
 	@Override
 	public void remove(String clsFullName) {
 		try {
-			LOG.debug("Removing class info from disk: {}", clsFullName);
 			Integer clsId = namesMap.remove(clsFullName);
 			if (clsId != null) {
+				LOG.debug("Removing class info from disk: {}", clsFullName);
 				Files.deleteIfExists(getJavaFile(clsId));
 				Files.deleteIfExists(getMetadataFile(clsId));
 			}

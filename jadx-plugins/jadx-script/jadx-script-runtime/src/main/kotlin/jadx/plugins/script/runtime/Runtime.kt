@@ -17,23 +17,7 @@ import jadx.plugins.script.runtime.data.Replace
 import jadx.plugins.script.runtime.data.Search
 import jadx.plugins.script.runtime.data.Stages
 import mu.KLogger
-import mu.KotlinLogging
 import java.io.File
-
-open class JadxScriptBaseClass(private val scriptData: JadxScriptData) {
-	val scriptName = scriptData.scriptName
-	val log = KotlinLogging.logger("JadxScript:$scriptName")
-
-	fun getJadxInstance() = JadxScriptInstance(scriptData, log)
-
-	fun println(message: Any?) {
-		log.info(message?.toString())
-	}
-
-	fun print(message: Any?) {
-		log.info(message?.toString())
-	}
-}
 
 class JadxScriptData(
 	val jadxInstance: JadxDecompiler,

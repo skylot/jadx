@@ -4,6 +4,7 @@ import javax.swing.JPanel;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -43,6 +44,10 @@ public abstract class ContentPanel extends JPanel {
 			return jClass.getFullName();
 		}
 		return node.getName();
+	}
+
+	public JadxSettings getSettings() {
+		return tabbedPane.getMainWindow().getSettings();
 	}
 
 	public void dispose() {

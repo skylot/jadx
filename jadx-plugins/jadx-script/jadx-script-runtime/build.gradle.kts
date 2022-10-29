@@ -5,12 +5,13 @@ plugins {
 dependencies {
 	api(project(":jadx-core"))
 
-	implementation("org.jetbrains.kotlin:kotlin-scripting-common")
-	implementation("org.jetbrains.kotlin:kotlin-scripting-jvm")
+	implementation(kotlin("stdlib"))
+	implementation(kotlin("scripting-common"))
+	implementation(kotlin("scripting-jvm"))
 
 	// allow to use maven dependencies in scripts
-	implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies")
-	implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven")
+	implementation(kotlin("scripting-dependencies"))
+	implementation(kotlin("scripting-dependencies-maven"))
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 	implementation("io.github.microutils:kotlin-logging-jvm:3.0.2")

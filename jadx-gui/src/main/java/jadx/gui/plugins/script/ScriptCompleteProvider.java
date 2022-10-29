@@ -27,13 +27,13 @@ import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.Icons;
-import jadx.plugins.script.ide.JadxScriptAutoComplete;
+import jadx.plugins.script.ide.ScriptCompiler;
 import jadx.plugins.script.ide.ScriptCompletionResult;
 
-import static jadx.plugins.script.ide.CompleteKt.AUTO_COMPLETE_INSERT_STR;
+import static jadx.plugins.script.ide.ScriptCompilerKt.AUTO_COMPLETE_INSERT_STR;
 
-public class JadxScriptCompleteProvider extends CompletionProviderBase {
-	private static final Logger LOG = LoggerFactory.getLogger(JadxScriptCompleteProvider.class);
+public class ScriptCompleteProvider extends CompletionProviderBase {
+	private static final Logger LOG = LoggerFactory.getLogger(ScriptCompleteProvider.class);
 
 	private static final Map<String, Icon> ICONS_MAP = buildIconsMap();
 
@@ -49,16 +49,19 @@ public class JadxScriptCompleteProvider extends CompletionProviderBase {
 	}
 
 	private final AbstractCodeArea codeArea;
+	private ScriptCompiler scriptComplete;
 
-	public JadxScriptCompleteProvider(AbstractCodeArea codeArea) {
+	public ScriptCompleteProvider(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
+		// this.scriptComplete = new ScriptCompiler(codeArea.getNode().getName());
 	}
 
 	private List<Completion> getCompletions() {
 		try {
 			String code = codeArea.getText();
 			int caretPos = codeArea.getCaretPosition();
-			JadxScriptAutoComplete scriptComplete = new JadxScriptAutoComplete(codeArea.getNode().getName());
+			// TODO: resolve error after reusing ScriptCompiler
+			scriptComplete = new ScriptCompiler(codeArea.getNode().getName());
 			ScriptCompletionResult result = scriptComplete.complete(code, caretPos);
 			int replacePos = getReplacePos(caretPos, result);
 			if (!result.getReports().isEmpty()) {
@@ -88,7 +91,7 @@ public class JadxScriptCompleteProvider extends CompletionProviderBase {
 				continue;
 			}
 
-			JadxScriptCompletion cmpl = new JadxScriptCompletion(this, count - i);
+			ScriptCompletionData cmpl = new ScriptCompletionData(this, count - i);
 			cmpl.setData(c.getText(), code, replacePos);
 			if (Objects.equals(c.getIcon(), "method") && !Objects.equals(c.getText(), c.getDisplayText())) {
 				// add method args details for methods

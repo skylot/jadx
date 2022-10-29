@@ -11,15 +11,15 @@ import static jadx.gui.utils.UiUtils.escapeHtml;
 import static jadx.gui.utils.UiUtils.fadeHtml;
 import static jadx.gui.utils.UiUtils.wrapHtml;
 
-public class CompletionRenderer extends CompletionCellRenderer {
+public class ScriptCompletionRenderer extends CompletionCellRenderer {
 
-	public CompletionRenderer(JadxSettings settings) {
+	public ScriptCompletionRenderer(JadxSettings settings) {
 		setDisplayFont(settings.getFont());
 	}
 
 	@Override
 	protected void prepareForOtherCompletion(JList list, Completion c, int index, boolean selected, boolean hasFocus) {
-		JadxScriptCompletion cmpl = (JadxScriptCompletion) c;
+		ScriptCompletionData cmpl = (ScriptCompletionData) c;
 		setText(wrapHtml(escapeHtml(cmpl.getInputText()) + "  "
 				+ fadeHtml(escapeHtml(cmpl.getSummary()))));
 	}

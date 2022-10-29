@@ -15,9 +15,9 @@ import jadx.api.ICodeInfo;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.plugins.script.ScriptContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
-import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -38,7 +38,7 @@ public class JInputScript extends JEditableNode {
 
 	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
-		return new CodeContentPanel(tabbedPane, this);
+		return new ScriptContentPanel(tabbedPane, this);
 	}
 
 	@Override
@@ -67,11 +67,6 @@ public class JInputScript extends JEditableNode {
 		menu.add(new SimpleMenuItem(NLS.str("popup.new_script"), mainWindow::addNewScript));
 		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), () -> mainWindow.removeInput(scriptPath)));
 		return menu;
-	}
-
-	@Override
-	public boolean isEditable() {
-		return true;
 	}
 
 	@Override

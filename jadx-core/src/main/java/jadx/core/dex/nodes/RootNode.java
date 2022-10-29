@@ -343,6 +343,24 @@ public class RootNode {
 		}
 	}
 
+	// TODO: make better API for reload passes lists
+	public void resetPasses() {
+		preDecompilePasses.clear();
+		preDecompilePasses.addAll(Jadx.getPreDecompilePassesList());
+
+		processClasses.getPasses().clear();
+		processClasses.getPasses().addAll(Jadx.getPassesList(args));
+	}
+
+	public void restartVisitors() {
+		for (ClassNode cls : classes) {
+			cls.unload();
+			cls.clearAttributes();
+			cls.unloadFromCache();
+		}
+		runPreDecompileStage();
+	}
+
 	public List<ClassNode> getClasses() {
 		return classes;
 	}

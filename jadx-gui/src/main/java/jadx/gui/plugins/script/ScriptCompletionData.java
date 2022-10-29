@@ -6,7 +6,7 @@ import javax.swing.text.JTextComponent;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 
-public class JadxScriptCompletion implements Completion {
+public class ScriptCompletionData implements Completion {
 
 	private final CompletionProvider provider;
 	private final int relevance;
@@ -18,7 +18,7 @@ public class JadxScriptCompletion implements Completion {
 	private String summary;
 	private String toolTip;
 
-	public JadxScriptCompletion(CompletionProvider provider, int relevance) {
+	public ScriptCompletionData(CompletionProvider provider, int relevance) {
 		this.provider = provider;
 		this.relevance = relevance;
 	}

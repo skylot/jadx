@@ -1,11 +1,16 @@
 package jadx.gui.utils.ui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+
+import jadx.gui.utils.UiUtils;
 
 public class ActionHandler extends AbstractAction {
 
@@ -40,8 +45,27 @@ public class ActionHandler extends AbstractAction {
 		putValue(ACCELERATOR_KEY, keyStroke);
 	}
 
+	public void attachKeyBindingFor(JComponent component, KeyStroke keyStroke) {
+		UiUtils.addKeyBinding(component, keyStroke, "run", this);
+		setKeyBinding(keyStroke);
+	}
+
+	public void addKeyBindToDescription() {
+		KeyStroke keyStroke = (KeyStroke) getValue(ACCELERATOR_KEY);
+		if (keyStroke != null) {
+			String keyText = KeyEvent.getKeyText(keyStroke.getKeyCode());
+			String desc = (String) getValue(SHORT_DESCRIPTION);
+			setShortDescription(desc + " (" + keyText + ")");
+		}
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		consumer.accept(e);
+	}
+
+	public JButton makeButton() {
+		addKeyBindToDescription();
+		return new JButton(this);
 	}
 }

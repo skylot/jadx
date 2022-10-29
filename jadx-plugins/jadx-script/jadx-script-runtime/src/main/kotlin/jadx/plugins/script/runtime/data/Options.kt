@@ -45,7 +45,6 @@ class JadxScriptOptions(
 	private val jadx: JadxScriptInstance,
 	private val options: JadxScriptAllOptions
 ) {
-
 	fun <T> register(
 		name: String,
 		desc: String,

@@ -31,5 +31,6 @@ public abstract class JEditableNode extends JNode {
 
 	public void addChangeListener(Consumer<Boolean> listener) {
 		changeListeners.add(listener);
+		listener.accept(changed);
 	}
 }

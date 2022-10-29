@@ -24,7 +24,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 
-class SearchBar extends JToolBar {
+public class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);

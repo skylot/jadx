@@ -128,6 +128,17 @@ public final class JadxDecompiler implements Closeable {
 		loadFinished();
 	}
 
+	public void reloadPasses() {
+		LOG.info("reloading (passes only) ...");
+		customPasses.clear();
+		root.resetPasses();
+		loadPlugins();
+		root.mergePasses(customPasses);
+		root.restartVisitors();
+		root.initPasses();
+		loadFinished();
+	}
+
 	private void loadInputFiles() {
 		loadedInputs.clear();
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);

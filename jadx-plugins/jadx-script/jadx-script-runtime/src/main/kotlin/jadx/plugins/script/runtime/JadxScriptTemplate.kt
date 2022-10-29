@@ -1,6 +1,7 @@
 package jadx.plugins.script.runtime
 
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptAcceptedLocation
@@ -9,11 +10,11 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
 import kotlin.script.experimental.api.acceptedLocations
 import kotlin.script.experimental.api.asSuccess
-import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.collectedAnnotations
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.ide
+import kotlin.script.experimental.api.isStandalone
 import kotlin.script.experimental.api.onSuccess
 import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
@@ -31,7 +32,22 @@ import kotlin.script.experimental.jvm.jvm
 	fileExtension = "jadx.kts",
 	compilationConfiguration = JadxScriptConfiguration::class
 )
-abstract class JadxScript
+abstract class JadxScriptTemplate(
+	private val scriptData: JadxScriptData
+) {
+	val scriptName = scriptData.scriptName
+	val log = KotlinLogging.logger("JadxScript:$scriptName")
+
+	fun getJadxInstance() = JadxScriptInstance(scriptData, log)
+
+	fun println(message: Any?) {
+		log.info(message?.toString())
+	}
+
+	fun print(message: Any?) {
+		log.info(message?.toString())
+	}
+}
 
 object JadxScriptConfiguration : ScriptCompilationConfiguration({
 	defaultImports(DependsOn::class, Repository::class)
@@ -45,11 +61,11 @@ object JadxScriptConfiguration : ScriptCompilationConfiguration({
 		acceptedLocations(ScriptAcceptedLocation.Everywhere)
 	}
 
-	baseClass(JadxScriptBaseClass::class)
-
 	refineConfiguration {
 		onAnnotations(DependsOn::class, Repository::class, handler = ::configureMavenDepsOnAnnotations)
 	}
+
+	isStandalone(false)
 })
 
 private val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver())

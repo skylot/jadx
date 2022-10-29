@@ -163,7 +163,6 @@ public class MainWindow extends JFrame {
 	public static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
-	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
 	private static final ImageIcon ICON_RELOAD = UiUtils.openSvgIcon("ui/refresh");
 	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
 	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
@@ -1083,7 +1082,7 @@ public class MainWindow extends JFrame {
 		};
 		closeMappingsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.close_mappings"));
 
-		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
+		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), Icons.SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				saveAll(false);

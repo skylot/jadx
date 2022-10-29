@@ -4,7 +4,7 @@ plugins {
 	id 'com.github.ben-manes.versions' version '0.45.0'
 	id 'com.diffplug.spotless' version '6.13.0'
 
-	id 'org.jetbrains.kotlin.jvm' version '1.7.20' // needed for spotless
+	id 'org.jetbrains.kotlin.jvm' version '1.7.20'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -22,6 +22,12 @@ allprojects {
 
 	compileJava {
 		options.encoding = "UTF-8"
+	}
+	compileKotlin {
+		kotlinOptions {
+			incremental = false // cause unexpected issues sometime
+			// useK2 = true
+		}
 	}
 
 	jar {
@@ -78,6 +84,7 @@ spotless {
 	kotlin {
 		target fileTree(rootDir).matching {
 			include 'jadx-plugins/jadx-script/**/*.kt'
+			include 'jadx-gui/src/main/**/*.kt'
 //			include 'jadx-plugins/jadx-script/examples/scripts/**/*.jadx.kts'
 		}
 		ktlint()
