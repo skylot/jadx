@@ -3,17 +3,21 @@ package jadx.gui.ui.treenodes;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 import jadx.api.ICodeInfo;
+import jadx.api.ResourceFile;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -92,6 +96,8 @@ public class SummaryNode extends JNode {
 		}
 		builder.append("</ul>");
 
+		addNativeLibsInfo(builder);
+
 		int methodsCount = classes.stream().mapToInt(cls -> cls.getMethods().size()).sum();
 		int fieldsCount = classes.stream().mapToInt(cls -> cls.getFields().size()).sum();
 		int insnCount = classes.stream().flatMap(cls -> cls.getMethods().stream()).mapToInt(MethodNode::getInsnsCount).sum();
@@ -101,6 +107,50 @@ public class SummaryNode extends JNode {
 		builder.append("<li>Methods: " + methodsCount + "</li>");
 		builder.append("<li>Fields: " + fieldsCount + "</li>");
 		builder.append("<li>Instructions: " + insnCount + " (units)</li>");
+		builder.append("</ul>");
+	}
+
+	private void addNativeLibsInfo(StringEscapeUtils.Builder builder) {
+		List<String> nativeLibs = wrapper.getResources().stream()
+				.map(ResourceFile::getOriginalName)
+				.filter(f -> f.endsWith(".so"))
+				.sorted(Comparator.naturalOrder())
+				.collect(Collectors.toList());
+		builder.append("<h3>Native libs</h3>");
+		builder.append("<ul>");
+		if (nativeLibs.isEmpty()) {
+			builder.append("<li>Total count: 0</li>");
+		} else {
+			Map<String, Set<String>> libsByArch = new HashMap<>();
+			for (String libFile : nativeLibs) {
+				String[] parts = StringUtils.split(libFile, '/');
+				int count = parts.length;
+				if (count >= 2) {
+					String arch = parts[count - 2];
+					String name = parts[count - 1];
+					libsByArch.computeIfAbsent(arch, (a) -> new HashSet<>())
+							.add(name);
+				}
+			}
+			String arches = libsByArch.keySet().stream()
+					.sorted(Comparator.naturalOrder())
+					.collect(Collectors.joining(", "));
+			builder.append("<li>Arch list: " + arches + "</li>");
+
+			String perArchCount = libsByArch.entrySet().stream()
+					.map(entry -> entry.getKey() + ":" + entry.getValue().size())
+					.sorted(Comparator.naturalOrder())
+					.collect(Collectors.joining(", "));
+			builder.append("<li>Per arch count: " + perArchCount + "</li>");
+
+			builder.append("<br>");
+			builder.append("<li>Total count: " + nativeLibs.size() + "</li>");
+			for (String lib : nativeLibs) {
+				builder.append("<li>");
+				builder.escape(lib);
+				builder.append("</li>");
+			}
+		}
 		builder.append("</ul>");
 	}
 
