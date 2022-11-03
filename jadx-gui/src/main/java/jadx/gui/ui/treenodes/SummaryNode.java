@@ -2,6 +2,7 @@ package jadx.gui.ui.treenodes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class SummaryNode extends JNode {
 		List<String> codeSources = classes.stream()
 				.map(ClassNode::getInputFileName)
 				.distinct()
-				.sorted()
+				.sorted(Comparator.naturalOrder())
 				.collect(Collectors.toList());
 		codeSources.remove("synthetic");
 		int codeSourcesCount = codeSources.size();
@@ -84,14 +85,10 @@ public class SummaryNode extends JNode {
 		if (codeSourcesCount != 1) {
 			builder.append("<li>Count: " + codeSourcesCount + "</li>");
 		}
-		// dex files list
-		codeSources.removeIf(f -> !f.endsWith(".dex"));
-		if (!codeSources.isEmpty()) {
-			for (String input : codeSources) {
-				builder.append("<li>");
-				builder.escape(input);
-				builder.append("</li>");
-			}
+		for (String input : codeSources) {
+			builder.append("<li>");
+			builder.escape(input);
+			builder.append("</li>");
 		}
 		builder.append("</ul>");
 
