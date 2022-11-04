@@ -11,6 +11,7 @@ import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.deobf.NameMapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
@@ -38,6 +39,11 @@ public class JVariable extends JNode implements JRenameNode {
 	@Override
 	public JClass getRootClass() {
 		return jMth.getRootClass();
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return var.getVarNode();
 	}
 
 	@Override

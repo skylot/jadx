@@ -11,6 +11,7 @@ dependencies {
 
 	// manual imports (IDE can't import dependencies by scripts annotations)
 	implementation("com.github.javafaker:javafaker:1.0.2")
+	implementation("org.apache.commons:commons-text:1.10.0")
 }
 
 sourceSets {

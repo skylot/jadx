@@ -5,7 +5,7 @@
 import jadx.api.plugins.input.insns.Opcode
 import jadx.core.dex.nodes.MethodNode
 
-val renamesMap  = mapOf(
+val renamesMap = mapOf(
 	"specificString" to "newMethodName",
 	"AA6" to "aa6Method"
 )
@@ -14,7 +14,7 @@ val jadx = getJadxInstance()
 
 var n = 0
 jadx.rename.all { _, node ->
-	var newName : String? = null
+	var newName: String? = null
 	if (node is MethodNode) {
 		// use quick instructions scanner
 		node.codeReader?.visitInstructions { insn ->

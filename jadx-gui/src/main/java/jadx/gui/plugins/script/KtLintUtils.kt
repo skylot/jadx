@@ -2,7 +2,10 @@ package jadx.gui.plugins.script
 
 import com.pinterest.ktlint.core.KtLint
 import com.pinterest.ktlint.core.LintError
+import com.pinterest.ktlint.core.api.DefaultEditorConfigProperties.indentStyleProperty
+import com.pinterest.ktlint.core.api.EditorConfigOverride
 import com.pinterest.ktlint.ruleset.standard.StandardRuleSetProvider
+import org.ec4j.core.model.PropertyType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -12,11 +15,18 @@ object KtLintUtils {
 
 	val rules = lazy { StandardRuleSetProvider().getRuleProviders() }
 
+	val configOverride = lazy {
+		EditorConfigOverride.from(
+			indentStyleProperty to PropertyType.IndentStyleValue.tab
+		)
+	}
+
 	fun format(code: String, fileName: String): String {
 		val params = KtLint.ExperimentalParams(
 			text = code,
 			fileName = fileName,
 			ruleProviders = rules.value,
+			editorConfigOverride = configOverride.value,
 			script = true,
 			cb = { e: LintError, corrected ->
 				if (!corrected) {
@@ -33,6 +43,7 @@ object KtLintUtils {
 			text = code,
 			fileName = fileName,
 			ruleProviders = rules.value,
+			editorConfigOverride = configOverride.value,
 			script = true,
 			cb = { e: LintError, corrected ->
 				if (!corrected) {

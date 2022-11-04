@@ -16,6 +16,7 @@ import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
@@ -45,6 +46,11 @@ public class JField extends JNode implements JRenameNode {
 	@Override
 	public JavaNode getJavaNode() {
 		return field;
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return field.getFieldNode();
 	}
 
 	@Override

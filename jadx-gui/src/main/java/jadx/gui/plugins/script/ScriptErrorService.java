@@ -62,25 +62,40 @@ public class ScriptErrorService extends AbstractParser {
 		}
 	}
 
-	public void addErrors(List<ScriptDiagnostic> errors) {
-		for (ScriptDiagnostic error : errors) {
+	public void addCompilerIssues(List<ScriptDiagnostic> issues) {
+		for (ScriptDiagnostic issue : issues) {
 			DefaultParserNotice notice;
-			SourceCode.Location loc = error.getLocation();
+			SourceCode.Location loc = issue.getLocation();
 			if (loc == null) {
-				notice = new DefaultParserNotice(this, error.getMessage(), 0);
+				notice = new DefaultParserNotice(this, issue.getMessage(), 0);
 			} else {
 				try {
 					int line = loc.getStart().getLine();
 					int offset = scriptArea.getLineStartOffset(line - 1) + loc.getStart().getCol();
 					int len = loc.getEnd() == null ? -1 : loc.getEnd().getCol() - loc.getStart().getCol();
-					notice = new DefaultParserNotice(this, error.getMessage(), line, offset - 1, len);
+					notice = new DefaultParserNotice(this, issue.getMessage(), line, offset - 1, len);
+					notice.setLevel(convertLevel(issue.getSeverity()));
 				} catch (Exception e) {
-					LOG.error("Failed to convert script error", e);
+					LOG.error("Failed to convert script issue", e);
 					continue;
 				}
 			}
 			addNotice(notice);
 		}
+	}
+
+	private static ParserNotice.Level convertLevel(ScriptDiagnostic.Severity severity) {
+		switch (severity) {
+			case FATAL:
+			case ERROR:
+				return ParserNotice.Level.ERROR;
+			case WARNING:
+				return ParserNotice.Level.WARNING;
+			case INFO:
+			case DEBUG:
+				return ParserNotice.Level.INFO;
+		}
+		return ParserNotice.Level.ERROR;
 	}
 
 	public void addLintErrors(List<LintError> errors) {

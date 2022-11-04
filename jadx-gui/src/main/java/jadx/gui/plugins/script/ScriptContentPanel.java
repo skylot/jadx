@@ -23,6 +23,7 @@ import com.pinterest.ktlint.core.LintError;
 
 import kotlin.script.experimental.api.ScriptDiagnostic;
 
+import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JInputScript;
@@ -131,7 +132,9 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		MainWindow mainWindow = tabbedPane.getMainWindow();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("script.run"), () -> {
 			try {
-				mainWindow.getWrapper().getDecompiler().reloadPasses();
+				JadxWrapper wrapper = mainWindow.getWrapper();
+				wrapper.resetGuiPluginsContext();
+				wrapper.getDecompiler().reloadPasses();
 			} catch (Exception e) {
 				LOG.error("Passes reload failed", e);
 			}
@@ -149,23 +152,24 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 
 			ScriptCompiler scriptCompiler = new ScriptCompiler(fileName);
 			ScriptAnalyzeResult result = scriptCompiler.analyze(code, scriptArea.getCaretPosition());
-			List<ScriptDiagnostic> errors = result.getErrors();
-			for (ScriptDiagnostic error : errors) {
-				LOG.warn("Parse error: {}", error);
+			List<ScriptDiagnostic> issues = result.getIssues();
+			for (ScriptDiagnostic issue : issues) {
+				LOG.warn("Compiler issue: {}", issue);
 			}
+			boolean success = issues.stream().map(ScriptDiagnostic::getSeverity)
+					.noneMatch(s -> s == ScriptDiagnostic.Severity.ERROR || s == ScriptDiagnostic.Severity.FATAL);
 
 			List<LintError> lintErrs = Collections.emptyList();
-			if (errors.isEmpty()) {
+			if (success) {
 				lintErrs = getLintIssues(code, fileName);
 			}
 
 			errorService.clearErrors();
-			errorService.addErrors(errors);
+			errorService.addCompilerIssues(issues);
 			errorService.addLintErrors(lintErrs);
 			errorService.apply();
-			boolean success = errors.isEmpty();
 			if (!success) {
-				resultLabel.setText("Parsing errors: " + errors.size());
+				resultLabel.setText("Compiler issues: " + issues.size());
 			} else if (!lintErrs.isEmpty()) {
 				resultLabel.setText("Lint issues: " + lintErrs.size());
 			}

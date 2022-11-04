@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
@@ -32,6 +33,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 	}
 
 	public JavaNode getJavaNode() {
+		return null;
+	}
+
+	public ICodeNodeRef getCodeNodeRef() {
 		return null;
 	}
 

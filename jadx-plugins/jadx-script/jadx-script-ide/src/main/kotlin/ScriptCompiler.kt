@@ -23,7 +23,7 @@ data class ScriptCompletionResult(
 )
 
 data class ScriptAnalyzeResult(
-	val errors: List<ScriptDiagnostic>,
+	val issues: List<ScriptDiagnostic>,
 	val renderType: String?,
 	val reports: List<ScriptDiagnostic>
 )
@@ -44,7 +44,7 @@ class ScriptCompiler(private val scriptName: String) {
 		val result = analyze(code.toScriptSource(scriptName), cursor)
 		val analyzerResult = result.valueOrNull()
 		return ScriptAnalyzeResult(
-			errors = analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.toList() ?: emptyList(),
+			issues = analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.toList() ?: emptyList(),
 			renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
 			reports = result.reports
 		)

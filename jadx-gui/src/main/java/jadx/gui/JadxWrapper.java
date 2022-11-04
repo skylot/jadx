@@ -93,7 +93,7 @@ public class JadxWrapper {
 					decompiler = null;
 				}
 				if (guiPluginsContext != null) {
-					guiPluginsContext.reset();
+					resetGuiPluginsContext();
 					guiPluginsContext = null;
 				}
 			}
@@ -140,6 +140,14 @@ public class JadxWrapper {
 	private void initGuiPluginsContext() {
 		guiPluginsContext = new GuiPluginsContext(mainWindow);
 		decompiler.getPluginsContext().setGuiContext(guiPluginsContext);
+	}
+
+	public GuiPluginsContext getGuiPluginsContext() {
+		return guiPluginsContext;
+	}
+
+	public void resetGuiPluginsContext() {
+		guiPluginsContext.reset();
 	}
 
 	/**

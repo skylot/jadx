@@ -1,5 +1,6 @@
 package jadx.plugins.script.runtime.data
 
+import jadx.api.metadata.ICodeNodeRef
 import jadx.api.plugins.gui.JadxGuiContext
 import jadx.plugins.script.runtime.JadxScriptInstance
 
@@ -15,10 +16,30 @@ class Gui(
 	}
 
 	fun ui(block: () -> Unit) {
-		guiContext?.uiRun(block)
+		context().uiRun(block)
 	}
 
 	fun addMenuAction(name: String, action: () -> Unit) {
-		guiContext?.addMenuAction(name, action)
+		context().addMenuAction(name, action)
 	}
+
+	fun addPopupMenuAction(
+		name: String,
+		enabled: (ICodeNodeRef) -> Boolean = { _ -> true },
+		keyBinding: String? = null,
+		action: (ICodeNodeRef) -> Unit
+	) {
+		context().addPopupMenuAction(name, enabled, keyBinding, action)
+	}
+
+	fun registerGlobalKeyBinding(id: String, keyBinding: String, action: () -> Unit): Boolean {
+		return context().registerGlobalKeyBinding(id, keyBinding, action)
+	}
+
+	fun copyToClipboard(str: String) {
+		context().copyToClipboard(str)
+	}
+
+	private fun context(): JadxGuiContext =
+		guiContext ?: throw IllegalStateException("GUI plugins context not available!")
 }

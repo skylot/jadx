@@ -21,6 +21,7 @@ import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.nodes.ICodeNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
@@ -162,6 +163,11 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	@Override
 	public JavaNode getJavaNode() {
 		return cls;
+	}
+
+	@Override
+	public ICodeNode getCodeNodeRef() {
+		return cls.getClassNode();
 	}
 
 	@Override

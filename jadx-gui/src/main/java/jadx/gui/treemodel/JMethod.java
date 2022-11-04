@@ -17,6 +17,7 @@ import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
@@ -51,6 +52,11 @@ public class JMethod extends JNode implements JRenameNode {
 
 	public JavaMethod getJavaMethod() {
 		return mth;
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return mth.getMethodNode();
 	}
 
 	@Override
