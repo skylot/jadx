@@ -79,12 +79,12 @@ public final class FridaAction extends JNodeAction {
 		JavaMethod javaMethod = jMth.getJavaMethod();
 		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
 		String methodName = StringEscapeUtils.escapeEcmaScript(methodInfo.getName());
-		String callMethodName = methodName;
 
 		if (methodInfo.isConstructor()) {
 			methodName = "$init";
-			callMethodName = "$new";
 		}
+
+		String callMethodName = methodName;
 		String shortClassName = javaMethod.getDeclaringClass().getName();
 
 		String functionUntilImplementation;
