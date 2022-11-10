@@ -22,8 +22,10 @@ import org.slf4j.LoggerFactory;
 import com.pinterest.ktlint.core.LintError;
 
 import kotlin.script.experimental.api.ScriptDiagnostic;
+import kotlin.script.experimental.api.ScriptDiagnostic.Severity;
 
 import jadx.gui.JadxWrapper;
+import jadx.gui.logs.LogOptions;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JInputScript;
@@ -40,10 +42,10 @@ import jadx.gui.utils.ui.NodeLabel;
 import jadx.plugins.script.ide.ScriptAnalyzeResult;
 import jadx.plugins.script.ide.ScriptCompiler;
 
+import static jadx.plugins.script.runtime.JadxScriptTemplateKt.JADX_SCRIPT_LOG_PREFIX;
+
 public class ScriptContentPanel extends AbstractCodeContentPanel {
 	private static final long serialVersionUID = 6575696321112417513L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ScriptContentPanel.class);
 
 	private final ScriptCodeArea scriptArea;
 	private final SearchBar searchBar;
@@ -51,6 +53,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 	private final JPanel actionPanel;
 	private final JLabel resultLabel;
 	private final ScriptErrorService errorService;
+	private final Logger scriptLog;
 
 	public ScriptContentPanel(TabbedPane panel, JInputScript scriptNode) {
 		super(panel, scriptNode);
@@ -60,6 +63,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		actionPanel = buildScriptActionsPanel();
 		searchBar = new SearchBar(scriptArea);
 		codeScrollPane = new RTextScrollPane(scriptArea);
+		scriptLog = LoggerFactory.getLogger(JADX_SCRIPT_LOG_PREFIX + scriptNode.getName());
 
 		initUI();
 		applySettings();
@@ -136,7 +140,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 				wrapper.resetGuiPluginsContext();
 				wrapper.getDecompiler().reloadPasses();
 			} catch (Exception e) {
-				LOG.error("Passes reload failed", e);
+				scriptLog.error("Passes reload failed", e);
 			}
 		}, taskStatus -> {
 			tabbedPane.reloadInactiveTabs();
@@ -153,12 +157,16 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			ScriptCompiler scriptCompiler = new ScriptCompiler(fileName);
 			ScriptAnalyzeResult result = scriptCompiler.analyze(code, scriptArea.getCaretPosition());
 			List<ScriptDiagnostic> issues = result.getIssues();
+			boolean success = true;
 			for (ScriptDiagnostic issue : issues) {
-				LOG.warn("Compiler issue: {}", issue);
+				Severity severity = issue.getSeverity();
+				if (severity == Severity.ERROR || severity == Severity.FATAL) {
+					scriptLog.error("{}", issue.render(false, true, true, true));
+					success = false;
+				} else {
+					scriptLog.warn("Compiler issue: {}", issue);
+				}
 			}
-			boolean success = issues.stream().map(ScriptDiagnostic::getSeverity)
-					.noneMatch(s -> s == ScriptDiagnostic.Severity.ERROR || s == ScriptDiagnostic.Severity.FATAL);
-
 			List<LintError> lintErrs = Collections.emptyList();
 			if (success) {
 				lintErrs = getLintIssues(code, fileName);
@@ -170,12 +178,13 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			errorService.apply();
 			if (!success) {
 				resultLabel.setText("Compiler issues: " + issues.size());
+				getTabbedPane().getMainWindow().showLogViewer(LogOptions.forScript(getNode().getName()));
 			} else if (!lintErrs.isEmpty()) {
 				resultLabel.setText("Lint issues: " + lintErrs.size());
 			}
 			return success;
 		} catch (Throwable e) {
-			LOG.error("Failed to check code", e);
+			scriptLog.error("Failed to check code", e);
 			return true;
 		}
 	}
@@ -184,11 +193,12 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		try {
 			List<LintError> lintErrs = KtLintUtils.INSTANCE.lint(code, fileName);
 			for (LintError error : lintErrs) {
-				LOG.warn("Lint issue: {}", error);
+				scriptLog.warn("Lint issue: {} ({}:{})(ruleId={})",
+						error.getDetail(), error.getLine(), error.getCol(), error.getRuleId());
 			}
 			return lintErrs;
 		} catch (Throwable e) { // can throw initialization error
-			LOG.warn("KtLint failed", e);
+			scriptLog.warn("KtLint failed", e);
 			return Collections.emptyList();
 		}
 	}
@@ -205,7 +215,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 				errorService.clearErrors();
 			}
 		} catch (Throwable e) { // can throw initialization error
-			LOG.error("Failed to reformat code", e);
+			scriptLog.error("Failed to reformat code", e);
 		}
 	}
 

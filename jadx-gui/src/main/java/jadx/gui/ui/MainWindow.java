@@ -33,15 +33,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
@@ -53,7 +50,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -65,8 +61,6 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -105,6 +99,9 @@ import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.logs.LogCollector;
+import jadx.gui.logs.LogOptions;
+import jadx.gui.logs.LogPanel;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -130,6 +127,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
+import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
@@ -145,7 +143,6 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
-import jadx.gui.utils.logs.LogCollector;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 import jadx.plugins.mappings.save.MappingExporter;
@@ -197,8 +194,10 @@ public class MainWindow extends JFrame {
 	private MappingFormat currentMappingFormat;
 	private boolean renamesChanged = false;
 
-	private JPanel mainPanel;
-	private JSplitPane splitPane;
+	private transient JPanel mainPanel;
+	private transient JSplitPane treeSplitPane;
+	private transient JSplitPane rightSplitPane;
+	private transient JSplitPane bottomSplitPane;
 
 	private JTree tree;
 	private DefaultTreeModel treeModel;
@@ -221,8 +220,9 @@ public class MainWindow extends JFrame {
 	private transient ProgressPanel progressPane;
 	private transient Theme editorTheme;
 
-	private JDebuggerPanel debuggerPanel;
-	private JSplitPane verticalSplitter;
+	private transient IssuesPanel issuesPanel;
+	private transient @Nullable LogPanel logPanel;
+	private transient @Nullable JDebuggerPanel debuggerPanel;
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
 	private boolean loaded;
@@ -238,6 +238,7 @@ public class MainWindow extends JFrame {
 
 		resetCache();
 		FontUtils.registerBundledFonts();
+		setEditorTheme(settings.getEditorThemePath());
 		initUI();
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
@@ -252,7 +253,7 @@ public class MainWindow extends JFrame {
 	public void init() {
 		pack();
 		setLocationAndPosition();
-		splitPane.setDividerLocation(settings.getTreeWidth());
+		treeSplitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -634,7 +635,7 @@ public class MainWindow extends JFrame {
 		if (!wrapper.getClasses().isEmpty()) {
 			return;
 		}
-		int errors = LogCollector.getInstance().getErrors();
+		int errors = issuesPanel.getErrorsCount();
 		if (errors > 0) {
 			int result = JOptionPane.showConfirmDialog(this,
 					NLS.str("message.load_errors", errors),
@@ -642,7 +643,7 @@ public class MainWindow extends JFrame {
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.ERROR_MESSAGE);
 			if (result == JOptionPane.OK_OPTION) {
-				LogViewerDialog.openWithLevel(this, Level.ERROR);
+				showLogViewer(LogOptions.allWithLevel(Level.ERROR));
 			}
 		} else {
 			UiUtils.showMessageBox(this, NLS.str("message.no_classes"));
@@ -1101,7 +1102,7 @@ public class MainWindow extends JFrame {
 		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
-		recentProjects.addMenuListener(new RecentProjectsMenuListener(recentProjects));
+		recentProjects.addMenuListener(new RecentProjectsMenuListener(this, recentProjects));
 
 		Action prefsAction = new AbstractAction(NLS.str("menu.preferences"), ICON_PREF) {
 			@Override
@@ -1139,6 +1140,10 @@ public class MainWindow extends JFrame {
 				this.syncWithEditor();
 			}
 		});
+
+		JCheckBoxMenuItem dockLog = new JCheckBoxMenuItem(NLS.str("menu.dock_log"));
+		dockLog.setState(settings.isDockLogViewer());
+		dockLog.addActionListener(event -> settings.setDockLogViewer(!settings.isDockLogViewer()));
 
 		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
 			@Override
@@ -1211,15 +1216,10 @@ public class MainWindow extends JFrame {
 		deobfMenuItem = new JCheckBoxMenuItem(deobfAction);
 		deobfMenuItem.setState(settings.isDeobfuscationOn());
 
-		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				LogViewerDialog.open(MainWindow.this);
-			}
-		};
-		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
-		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
-				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+		ActionHandler showLog = new ActionHandler(ev -> showLogViewer(LogOptions.current()));
+		showLog.setNameAndDesc(NLS.str("menu.log"));
+		showLog.setIcon(ICON_LOG);
+		showLog.setKeyBinding(getKeyStroke(KeyEvent.VK_L, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_INFO) {
 			@Override
@@ -1296,6 +1296,7 @@ public class MainWindow extends JFrame {
 		view.add(syncAction);
 		view.add(heapUsageBarMenuItem);
 		view.add(alwaysSelectOpened);
+		view.add(dockLog);
 
 		JMenu nav = new JMenu(NLS.str("menu.navigation"));
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -1319,7 +1320,7 @@ public class MainWindow extends JFrame {
 
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
-		help.add(logAction);
+		help.add(showLog);
 		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
@@ -1373,7 +1374,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(quarkAction);
 		toolbar.add(openDeviceAction);
 		toolbar.addSeparator();
-		toolbar.add(logAction);
+		toolbar.add(showLog);
 		toolbar.addSeparator();
 		toolbar.add(prefsAction);
 		toolbar.addSeparator();
@@ -1403,9 +1404,9 @@ public class MainWindow extends JFrame {
 	private void initUI() {
 		setMinimumSize(new Dimension(200, 150));
 		mainPanel = new JPanel(new BorderLayout());
-		splitPane = new JSplitPane();
-		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
-		mainPanel.add(splitPane);
+		treeSplitPane = new JSplitPane();
+		treeSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
+		mainPanel.add(treeSplitPane);
 
 		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
 		treeModel = new DefaultTreeModel(treeRootNode);
@@ -1486,7 +1487,7 @@ public class MainWindow extends JFrame {
 		});
 
 		progressPane = new ProgressPanel(this, true);
-		IssuesPanel issuesPanel = new IssuesPanel(this);
+		issuesPanel = new IssuesPanel(this);
 
 		JPanel leftPane = new JPanel(new BorderLayout());
 		JScrollPane treeScrollPane = new JScrollPane(tree);
@@ -1498,22 +1499,27 @@ public class MainWindow extends JFrame {
 
 		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
-		splitPane.setLeftComponent(leftPane);
+		treeSplitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
-		splitPane.setRightComponent(tabbedPane);
+
+		rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		rightSplitPane.setTopComponent(tabbedPane);
+		rightSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
+
+		treeSplitPane.setRightComponent(rightSplitPane);
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
 
 		heapUsageBar = new HeapUsageBar();
 		mainPanel.add(heapUsageBar, BorderLayout.SOUTH);
 
-		verticalSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		verticalSplitter.setTopComponent(splitPane);
-		verticalSplitter.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
+		bottomSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		bottomSplitPane.setTopComponent(treeSplitPane);
+		bottomSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 
-		mainPanel.add(verticalSplitter, BorderLayout.CENTER);
+		mainPanel.add(bottomSplitPane, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
 	}
@@ -1643,6 +1649,9 @@ public class MainWindow extends JFrame {
 		tree.setRowHeight(-1);
 
 		tabbedPane.loadSettings();
+		if (logPanel != null) {
+			logPanel.loadSettings();
+		}
 	}
 
 	private void closeWindow() {
@@ -1650,7 +1659,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		settings.setTreeWidth(splitPane.getDividerLocation());
+		settings.setTreeWidth(treeSplitPane.getDividerLocation());
 		settings.saveWindowPos(this);
 		settings.setMainWindowExtendedState(getExtendedState());
 		if (debuggerPanel != null) {
@@ -1696,7 +1705,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveSplittersInfo() {
-		settings.setMainWindowVerticalSplitterLoc(verticalSplitter.getDividerLocation());
+		settings.setMainWindowVerticalSplitterLoc(bottomSplitPane.getDividerLocation());
 		settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
 		settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
 	}
@@ -1764,49 +1773,44 @@ public class MainWindow extends JFrame {
 		if (debuggerPanel == null) {
 			debuggerPanel = new JDebuggerPanel(this);
 			debuggerPanel.loadSettings();
-			verticalSplitter.setBottomComponent(debuggerPanel);
+			bottomSplitPane.setBottomComponent(debuggerPanel);
 			int loc = settings.getMainWindowVerticalSplitterLoc();
 			if (loc == 0) {
 				loc = 300;
 			}
-			verticalSplitter.setDividerLocation(loc);
+			bottomSplitPane.setDividerLocation(loc);
 		}
 	}
 
-	private class RecentProjectsMenuListener implements MenuListener {
-		private final JMenu menu;
-
-		public RecentProjectsMenuListener(JMenu menu) {
-			this.menu = menu;
+	public void showLogViewer(LogOptions logOptions) {
+		if (settings.isDockLogViewer()) {
+			showDockedLog(logOptions);
+		} else {
+			LogViewerDialog.open(this, logOptions);
 		}
+	}
 
-		@Override
-		public void menuSelected(MenuEvent menuEvent) {
-			Set<Path> current = new HashSet<>(project.getFilePaths());
-			List<JMenuItem> items = settings.getRecentProjects()
-					.stream()
-					.filter(path -> !current.contains(path))
-					.map(path -> {
-						JMenuItem menuItem = new JMenuItem(path.toAbsolutePath().toString());
-						menuItem.addActionListener(e -> open(Collections.singletonList(path)));
-						return menuItem;
-					}).collect(Collectors.toList());
-
-			menu.removeAll();
-			if (items.isEmpty()) {
-				menu.add(new JMenuItem(NLS.str("menu.no_recent_projects")));
-			} else {
-				items.forEach(menu::add);
-			}
+	private void showDockedLog(LogOptions logOptions) {
+		if (logPanel != null) {
+			logPanel.applyLogOptions(logOptions);
+			return;
 		}
+		Runnable undock = () -> {
+			hideDockedLog();
+			settings.setDockLogViewer(false);
+			LogViewerDialog.open(this, logOptions);
+		};
+		logPanel = new LogPanel(this, logOptions, undock, this::hideDockedLog);
+		rightSplitPane.setBottomComponent(logPanel);
+	}
 
-		@Override
-		public void menuDeselected(MenuEvent e) {
+	private void hideDockedLog() {
+		if (logPanel == null) {
+			return;
 		}
-
-		@Override
-		public void menuCanceled(MenuEvent e) {
-		}
+		logPanel.dispose();
+		logPanel = null;
+		rightSplitPane.setBottomComponent(null);
 	}
 
 	public JMenu getPluginsMenu() {

@@ -28,6 +28,8 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 
+const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
+
 @KotlinScript(
 	fileExtension = "jadx.kts",
 	compilationConfiguration = JadxScriptConfiguration::class
@@ -36,7 +38,7 @@ abstract class JadxScriptTemplate(
 	private val scriptData: JadxScriptData
 ) {
 	val scriptName = scriptData.scriptName
-	val log = KotlinLogging.logger("JadxScript:$scriptName")
+	val log = KotlinLogging.logger("$JADX_SCRIPT_LOG_PREFIX$scriptName")
 
 	fun getJadxInstance() = JadxScriptInstance(scriptData, log)
 

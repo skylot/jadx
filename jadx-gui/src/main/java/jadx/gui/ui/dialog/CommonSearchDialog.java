@@ -50,6 +50,7 @@ import ch.qos.logback.classic.Level;
 import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.gui.logs.LogOptions;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
@@ -305,7 +306,7 @@ public abstract class CommonSearchDialog extends JFrame {
 		progressInfoLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				LogViewerDialog.openWithLevel(mainWindow, Level.INFO);
+				mainWindow.showLogViewer(LogOptions.allWithLevel(Level.INFO));
 			}
 		});
 

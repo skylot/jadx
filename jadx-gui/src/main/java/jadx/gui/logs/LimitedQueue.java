@@ -1,4 +1,4 @@
-package jadx.gui.utils.logs;
+package jadx.gui.logs;
 
 import java.util.AbstractQueue;
 import java.util.ArrayDeque;

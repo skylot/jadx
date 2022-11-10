@@ -14,10 +14,11 @@ dependencies {
 
 	// jadx-script autocomplete support
 	implementation(project(":jadx-plugins::jadx-script:jadx-script-ide"))
+	implementation(project(":jadx-plugins::jadx-script:jadx-script-runtime"))
 	implementation 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.20'
 	implementation 'com.fifesoft:autocomplete:3.3.0'
 
-	// use ktlint for lint and format jadx scripts
+	// use KtLint for format and check jadx scripts
 	implementation 'com.pinterest.ktlint:ktlint-core:0.47.1'
 	implementation 'com.pinterest.ktlint:ktlint-ruleset-standard:0.47.1'
 

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.cli.LogHelper;
+import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.ExceptionDialog;
@@ -13,7 +14,6 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
-import jadx.gui.utils.logs.LogCollector;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);

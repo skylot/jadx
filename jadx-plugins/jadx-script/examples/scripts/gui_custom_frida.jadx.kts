@@ -101,7 +101,7 @@ fun generateFieldSnippet(fld: FieldNode): String {
 	return """
 		${generateClassSnippet(fld.parentClass)}
 		${fld.name} = ${fld.parentClass.name}.$rawFieldName.value;
-		""".trimIndent()
+	""".trimIndent()
 }
 
 fun isOverloaded(methodNode: MethodNode): Boolean {

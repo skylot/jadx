@@ -9,15 +9,15 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import ch.qos.logback.classic.Level;
 
+import jadx.gui.logs.IssuesListener;
+import jadx.gui.logs.LogCollector;
+import jadx.gui.logs.LogOptions;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.logs.LogCollector;
 
 public class IssuesPanel extends JPanel {
 	private static final long serialVersionUID = -7720576036668459218L;
@@ -26,15 +26,19 @@ public class IssuesPanel extends JPanel {
 	private static final ImageIcon WARN_ICON = UiUtils.openSvgIcon("ui/warning");
 
 	private final MainWindow mainWindow;
+	private final IssuesListener issuesListener;
 	private JLabel errorLabel;
 	private JLabel warnLabel;
 
 	public IssuesPanel(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 		initUI();
-		LogCollector.getInstance().registerIssueListener((error, warnings) -> {
-			SwingUtilities.invokeLater(() -> onUpdate(error, warnings));
-		});
+		this.issuesListener = new IssuesListener(this);
+		LogCollector.getInstance().registerListener(issuesListener);
+	}
+
+	public int getErrorsCount() {
+		return issuesListener.getErrors();
 	}
 
 	private void initUI() {
@@ -49,13 +53,13 @@ public class IssuesPanel extends JPanel {
 		errorLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				LogViewerDialog.openWithLevel(mainWindow, Level.ERROR);
+				mainWindow.showLogViewer(LogOptions.allWithLevel(Level.ERROR));
 			}
 		});
 		warnLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				LogViewerDialog.openWithLevel(mainWindow, Level.WARN);
+				mainWindow.showLogViewer(LogOptions.allWithLevel(Level.WARN));
 			}
 		});
 
@@ -69,7 +73,7 @@ public class IssuesPanel extends JPanel {
 		add(warnLabel);
 	}
 
-	private void onUpdate(int error, int warnings) {
+	public void onUpdate(int error, int warnings) {
 		if (error == 0 && warnings == 0) {
 			setVisible(false);
 			return;

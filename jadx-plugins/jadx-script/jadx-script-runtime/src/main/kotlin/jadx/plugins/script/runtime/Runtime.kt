@@ -27,7 +27,7 @@ class JadxScriptData(
 ) {
 	val afterLoad: MutableList<() -> Unit> = ArrayList()
 
-	val scriptName get() = scriptFile.name.removeSuffix(".jadx.kts")
+	val scriptName = scriptFile.name.removeSuffix(".jadx.kts")
 }
 
 class JadxScriptInstance(
