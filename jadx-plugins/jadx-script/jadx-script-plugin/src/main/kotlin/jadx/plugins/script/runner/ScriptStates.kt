@@ -6,7 +6,7 @@ import java.io.File
 data class ScriptStateData(
 	val scriptFile: File,
 	val scriptData: JadxScriptData,
-	var error: Boolean = false
+	var error: Boolean = false,
 )
 
 class ScriptStates {

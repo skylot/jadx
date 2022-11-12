@@ -16,37 +16,37 @@ class Rename(private val jadx: JadxScriptInstance) {
 		jadx.addPass(object : ScriptOrderedPreparePass(
 			jadx,
 			"RenameAll",
-			runBefore = listOf("RenameVisitor")
+			runBefore = listOf("RenameVisitor"),
 		) {
-				override fun init(root: RootNode) {
-					for (pkgNode in root.packages) {
-						rename(makeNewName, pkgNode, pkgNode.pkgInfo.name)
+			override fun init(root: RootNode) {
+				for (pkgNode in root.packages) {
+					rename(makeNewName, pkgNode, pkgNode.pkgInfo.name)
+				}
+				for (cls in root.classes) {
+					rename(makeNewName, cls, cls.name)
+					for (mth in cls.methods) {
+						if (!mth.isConstructor) {
+							rename(makeNewName, mth, mth.name)
+						}
 					}
-					for (cls in root.classes) {
-						rename(makeNewName, cls, cls.name)
-						for (mth in cls.methods) {
-							if (!mth.isConstructor) {
-								rename(makeNewName, mth, mth.name)
-							}
-						}
-						for (fld in cls.fields) {
-							rename(makeNewName, fld, fld.name)
-						}
+					for (fld in cls.fields) {
+						rename(makeNewName, fld, fld.name)
 					}
 				}
+			}
 
-				private inline fun <T : IDexNode> rename(
-					makeNewName: (String, IDexNode) -> String?,
-					node: T,
-					name: String
-				) {
-					if (node is IAttributeNode && node.contains(AFlag.DONT_RENAME)) {
-						return
-					}
-					makeNewName.invoke(name, node)?.let {
-						node.rename(it)
-					}
+			private inline fun <T : IDexNode> rename(
+				makeNewName: (String, IDexNode) -> String?,
+				node: T,
+				name: String,
+			) {
+				if (node is IAttributeNode && node.contains(AFlag.DONT_RENAME)) {
+					return
 				}
-			})
+				makeNewName.invoke(name, node)?.let {
+					node.rename(it)
+				}
+			}
+		})
 	}
 }

@@ -12,14 +12,14 @@ class Stages(private val jadx: JadxScriptInstance) {
 		jadx.addPass(object : ScriptOrderedDecompilePass(
 			jadx,
 			"StageRawInsns",
-			runAfter = listOf("start")
+			runAfter = listOf("start"),
 		) {
-				override fun visit(mth: MethodNode) {
-					mth.instructions?.let {
-						block.invoke(mth, it)
-					}
+			override fun visit(mth: MethodNode) {
+				mth.instructions?.let {
+					block.invoke(mth, it)
 				}
-			})
+			}
+		})
 	}
 
 	fun mthEarlyBlocks(block: (MethodNode, List<BlockNode>) -> Unit) {
@@ -28,32 +28,32 @@ class Stages(private val jadx: JadxScriptInstance) {
 
 	fun mthBlocks(
 		beforePass: String = "RegionMakerVisitor",
-		block: (MethodNode, List<BlockNode>) -> Unit
+		block: (MethodNode, List<BlockNode>) -> Unit,
 	) {
 		jadx.addPass(object : ScriptOrderedDecompilePass(
 			jadx,
 			"StageMthBlocks",
-			runBefore = listOf(beforePass)
+			runBefore = listOf(beforePass),
 		) {
-				override fun visit(mth: MethodNode) {
-					mth.basicBlocks?.let {
-						block.invoke(mth, it)
-					}
+			override fun visit(mth: MethodNode) {
+				mth.basicBlocks?.let {
+					block.invoke(mth, it)
 				}
-			})
+			}
+		})
 	}
 
 	fun mthRegions(block: (MethodNode, Region) -> Unit) {
 		jadx.addPass(object : ScriptOrderedDecompilePass(
 			jadx,
 			"StageMthRegions",
-			runBefore = listOf("PrepareForCodeGen")
+			runBefore = listOf("PrepareForCodeGen"),
 		) {
-				override fun visit(mth: MethodNode) {
-					mth.region?.let {
-						block.invoke(mth, it)
-					}
+			override fun visit(mth: MethodNode) {
+				mth.region?.let {
+					block.invoke(mth, it)
 				}
-			})
+			}
+		})
 	}
 }

@@ -32,10 +32,10 @@ const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
 
 @KotlinScript(
 	fileExtension = "jadx.kts",
-	compilationConfiguration = JadxScriptConfiguration::class
+	compilationConfiguration = JadxScriptConfiguration::class,
 )
 abstract class JadxScriptTemplate(
-	private val scriptData: JadxScriptData
+	private val scriptData: JadxScriptData,
 ) {
 	val scriptName = scriptData.scriptName
 	val log = KotlinLogging.logger("$JADX_SCRIPT_LOG_PREFIX$scriptName")
@@ -56,7 +56,7 @@ object JadxScriptConfiguration : ScriptCompilationConfiguration({
 
 	jvm {
 		dependenciesFromCurrentContext(
-			wholeClasspath = true
+			wholeClasspath = true,
 		)
 	}
 	ide {

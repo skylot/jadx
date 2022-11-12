@@ -23,7 +23,7 @@ class JadxScriptData(
 	val jadxInstance: JadxDecompiler,
 	val pluginContext: JadxPluginContext,
 	val options: JadxScriptAllOptions,
-	val scriptFile: File
+	val scriptFile: File,
 ) {
 	val afterLoad: MutableList<() -> Unit> = ArrayList()
 
@@ -32,7 +32,7 @@ class JadxScriptData(
 
 class JadxScriptInstance(
 	private val scriptData: JadxScriptData,
-	val log: KLogger
+	val log: KLogger,
 ) {
 	private val decompiler = scriptData.jadxInstance
 

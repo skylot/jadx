@@ -6,7 +6,7 @@ import jadx.plugins.script.runtime.JadxScriptInstance
 
 class Gui(
 	private val jadx: JadxScriptInstance,
-	private val guiContext: JadxGuiContext?
+	private val guiContext: JadxGuiContext?,
 ) {
 
 	fun isAvailable() = guiContext != null
@@ -27,7 +27,7 @@ class Gui(
 		name: String,
 		enabled: (ICodeNodeRef) -> Boolean = { _ -> true },
 		keyBinding: String? = null,
-		action: (ICodeNodeRef) -> Unit
+		action: (ICodeNodeRef) -> Unit,
 	) {
 		context().addPopupMenuAction(name, enabled, keyBinding, action)
 	}

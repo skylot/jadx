@@ -19,13 +19,13 @@ const val AUTO_COMPLETE_INSERT_STR = "ABCDEF" // defined at KJvmReplCompleter.IN
 
 data class ScriptCompletionResult(
 	val completions: List<SourceCodeCompletionVariant>,
-	val reports: List<ScriptDiagnostic>
+	val reports: List<ScriptDiagnostic>,
 )
 
 data class ScriptAnalyzeResult(
 	val issues: List<ScriptDiagnostic>,
 	val renderType: String?,
-	val reports: List<ScriptDiagnostic>
+	val reports: List<ScriptDiagnostic>,
 )
 
 class ScriptCompiler(private val scriptName: String) {
@@ -36,7 +36,7 @@ class ScriptCompiler(private val scriptName: String) {
 		val result = complete(code.toScriptSource(scriptName), cursor)
 		return ScriptCompletionResult(
 			completions = result.valueOrNull()?.toList() ?: emptyList(),
-			reports = result.reports
+			reports = result.reports,
 		)
 	}
 
@@ -46,7 +46,7 @@ class ScriptCompiler(private val scriptName: String) {
 		return ScriptAnalyzeResult(
 			issues = analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.toList() ?: emptyList(),
 			renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
-			reports = result.reports
+			reports = result.reports,
 		)
 	}
 

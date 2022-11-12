@@ -17,7 +17,7 @@ object KtLintUtils {
 
 	val configOverride = lazy {
 		EditorConfigOverride.from(
-			indentStyleProperty to PropertyType.IndentStyleValue.tab
+			indentStyleProperty to PropertyType.IndentStyleValue.tab,
 		)
 	}
 
@@ -32,7 +32,7 @@ object KtLintUtils {
 				if (!corrected) {
 					LOG.warn("Lint error: {}", e)
 				}
-			}
+			},
 		)
 		return KtLint.format(params)
 	}
@@ -49,7 +49,7 @@ object KtLintUtils {
 				if (!corrected) {
 					errors.add(e)
 				}
-			}
+			},
 		)
 		KtLint.lint(params)
 		return errors

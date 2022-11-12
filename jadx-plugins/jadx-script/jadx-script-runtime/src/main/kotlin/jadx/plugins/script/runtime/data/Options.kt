@@ -20,7 +20,7 @@ class JadxScriptAllOptions : JadxPluginOptions {
 class ScriptOption<T>(
 	val name: String,
 	val id: String,
-	private val getter: () -> T
+	private val getter: () -> T,
 ) {
 	private var validate: ((T) -> Boolean)? = null
 
@@ -43,7 +43,7 @@ class ScriptOption<T>(
 
 class JadxScriptOptions(
 	private val jadx: JadxScriptInstance,
-	private val options: JadxScriptAllOptions
+	private val options: JadxScriptAllOptions,
 ) {
 	fun <T> register(
 		name: String,
@@ -51,7 +51,7 @@ class JadxScriptOptions(
 		values: List<String>,
 		defaultValue: String,
 		type: OptionType = OptionType.STRING,
-		convert: (String?) -> T
+		convert: (String?) -> T,
 	): ScriptOption<T> {
 		val id = "jadx-script.${jadx.scriptName}.$name"
 		options.descriptions.add(JadxOptionDescription(id, desc, defaultValue, values, type))
@@ -62,7 +62,7 @@ class JadxScriptOptions(
 		name: String,
 		desc: String = "",
 		values: List<String> = emptyList(),
-		defaultValue: String = ""
+		defaultValue: String = "",
 	): ScriptOption<String> {
 		return register(name, desc, values, defaultValue) { value ->
 			if (value == null) {

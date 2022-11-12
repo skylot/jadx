@@ -17,14 +17,14 @@ private fun buildSimplePassInfo(jadx: JadxScriptInstance, name: String) =
 
 abstract class ScriptPreparePass(
 	private val jadx: JadxScriptInstance,
-	private val name: String
+	private val name: String,
 ) : JadxPreparePass {
 	override fun getInfo() = buildSimplePassInfo(jadx, name)
 }
 
 abstract class ScriptDecompilePass(
 	private val jadx: JadxScriptInstance,
-	private val name: String
+	private val name: String,
 ) : JadxDecompilePass {
 	override fun getInfo() = buildSimplePassInfo(jadx, name)
 
@@ -43,7 +43,7 @@ abstract class ScriptOrderedPass(
 	private val jadx: JadxScriptInstance,
 	private val name: String,
 	private val runAfter: List<String> = listOf(),
-	private val runBefore: List<String> = listOf()
+	private val runBefore: List<String> = listOf(),
 ) : JadxPass {
 	override fun getInfo(): OrderedJadxPassInfo {
 		val scriptName = buildScriptName(jadx, name)
@@ -55,14 +55,14 @@ abstract class ScriptOrderedPreparePass(
 	jadx: JadxScriptInstance,
 	name: String,
 	runAfter: List<String> = listOf(),
-	runBefore: List<String> = listOf()
+	runBefore: List<String> = listOf(),
 ) : ScriptOrderedPass(jadx, name, runAfter, runBefore), JadxPreparePass
 
 abstract class ScriptOrderedDecompilePass(
 	jadx: JadxScriptInstance,
 	name: String,
 	runAfter: List<String> = listOf(),
-	runBefore: List<String> = listOf()
+	runBefore: List<String> = listOf(),
 ) : ScriptOrderedPass(jadx, name, runAfter, runBefore), JadxDecompilePass {
 
 	override fun init(root: RootNode) {
