@@ -48,7 +48,7 @@ allprojects {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		google()
+		maven { url 'https://maven.google.com' }
 		// Commented out for now since we're using a local mapping-io fork atm.
         // maven {
 		// 	name 'FabricMC'
