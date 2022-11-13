@@ -59,9 +59,7 @@ public class JadxCodeComment implements ICodeComment {
 	@Override
 	public int compareTo(@NotNull ICodeComment other) {
 		int cmpNodeRef = this.getNodeRef().compareTo(other.getNodeRef());
-		if (cmpNodeRef != 0) {
-			return cmpNodeRef;
-		}
+		if (cmpNodeRef != 0) return cmpNodeRef;
 		if (this.getCodeRef() != null && other.getCodeRef() != null) {
 			return this.getCodeRef().compareTo(other.getCodeRef());
 		}
