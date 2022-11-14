@@ -1,6 +1,6 @@
 package jadx.plugins.script.ide
 
-import jadx.plugins.script.runner.ScriptEval
+import jadx.plugins.script.ScriptEval
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.ide_services.compiler.KJvmReplCompilerWithIdeServices
 import kotlin.script.experimental.api.ReplAnalyzerResult
@@ -28,7 +28,7 @@ data class ScriptAnalyzeResult(
 	val reports: List<ScriptDiagnostic>,
 )
 
-class ScriptCompiler(private val scriptName: String) {
+class ScriptServices(private val scriptName: String) {
 	private val replCompiler = KJvmReplCompilerWithIdeServices()
 	private val compileConf = ScriptEval().buildCompileConf()
 

@@ -27,10 +27,10 @@ import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.Icons;
-import jadx.plugins.script.ide.ScriptCompiler;
 import jadx.plugins.script.ide.ScriptCompletionResult;
+import jadx.plugins.script.ide.ScriptServices;
 
-import static jadx.plugins.script.ide.ScriptCompilerKt.AUTO_COMPLETE_INSERT_STR;
+import static jadx.plugins.script.ide.ScriptServicesKt.AUTO_COMPLETE_INSERT_STR;
 
 public class ScriptCompleteProvider extends CompletionProviderBase {
 	private static final Logger LOG = LoggerFactory.getLogger(ScriptCompleteProvider.class);
@@ -49,11 +49,10 @@ public class ScriptCompleteProvider extends CompletionProviderBase {
 	}
 
 	private final AbstractCodeArea codeArea;
-	private ScriptCompiler scriptComplete;
+	private ScriptServices scriptComplete;
 
 	public ScriptCompleteProvider(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
-		// this.scriptComplete = new ScriptCompiler(codeArea.getNode().getName());
 	}
 
 	private List<Completion> getCompletions() {
@@ -61,7 +60,7 @@ public class ScriptCompleteProvider extends CompletionProviderBase {
 			String code = codeArea.getText();
 			int caretPos = codeArea.getCaretPosition();
 			// TODO: resolve error after reusing ScriptCompiler
-			scriptComplete = new ScriptCompiler(codeArea.getNode().getName());
+			scriptComplete = new ScriptServices(codeArea.getNode().getName());
 			ScriptCompletionResult result = scriptComplete.complete(code, caretPos);
 			int replacePos = getReplacePos(caretPos, result);
 			if (!result.getReports().isEmpty()) {

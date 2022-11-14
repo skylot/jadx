@@ -6,7 +6,7 @@ import ch.qos.logback.classic.Level;
 
 import jadx.core.utils.Utils;
 
-import static jadx.plugins.script.runtime.JadxScriptTemplateKt.JADX_SCRIPT_LOG_PREFIX;
+import static jadx.plugins.script.runtime.ScriptRuntime.JADX_SCRIPT_LOG_PREFIX;
 
 public class LogOptions {
 

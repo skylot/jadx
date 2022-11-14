@@ -40,9 +40,9 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 import jadx.plugins.script.ide.ScriptAnalyzeResult;
-import jadx.plugins.script.ide.ScriptCompiler;
+import jadx.plugins.script.ide.ScriptServices;
 
-import static jadx.plugins.script.runtime.JadxScriptTemplateKt.JADX_SCRIPT_LOG_PREFIX;
+import static jadx.plugins.script.runtime.ScriptRuntime.JADX_SCRIPT_LOG_PREFIX;
 
 public class ScriptContentPanel extends AbstractCodeContentPanel {
 	private static final long serialVersionUID = 6575696321112417513L;
@@ -154,8 +154,8 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			String code = scriptArea.getText();
 			String fileName = scriptArea.getNode().getName();
 
-			ScriptCompiler scriptCompiler = new ScriptCompiler(fileName);
-			ScriptAnalyzeResult result = scriptCompiler.analyze(code, scriptArea.getCaretPosition());
+			ScriptServices scriptServices = new ScriptServices(fileName);
+			ScriptAnalyzeResult result = scriptServices.analyze(code, scriptArea.getCaretPosition());
 			List<ScriptDiagnostic> issues = result.getIssues();
 			boolean success = true;
 			for (ScriptDiagnostic issue : issues) {

@@ -6,7 +6,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.plugins.script.runtime.JadxScriptTemplateKt.JADX_SCRIPT_LOG_PREFIX;
+import static jadx.plugins.script.runtime.ScriptRuntime.JADX_SCRIPT_LOG_PREFIX;
 
 class LogAppender implements ILogListener {
 	private final LogOptions options;

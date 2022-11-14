@@ -1,3 +1,4 @@
+@file:JvmName("ScriptRuntime")
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package jadx.plugins.script.runtime
@@ -17,7 +18,10 @@ import jadx.plugins.script.runtime.data.Replace
 import jadx.plugins.script.runtime.data.Search
 import jadx.plugins.script.runtime.data.Stages
 import mu.KLogger
+import mu.KotlinLogging
 import java.io.File
+
+const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
 
 class JadxScriptData(
 	val jadxInstance: JadxDecompiler,
@@ -25,9 +29,10 @@ class JadxScriptData(
 	val options: JadxScriptAllOptions,
 	val scriptFile: File,
 ) {
-	val afterLoad: MutableList<() -> Unit> = ArrayList()
-
 	val scriptName = scriptFile.name.removeSuffix(".jadx.kts")
+	val log = KotlinLogging.logger("$JADX_SCRIPT_LOG_PREFIX$scriptName")
+	val afterLoad: MutableList<() -> Unit> = ArrayList()
+	var error: Boolean = false
 }
 
 class JadxScriptInstance(

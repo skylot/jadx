@@ -7,14 +7,14 @@ plugins {
 
 dependencies {
 	implementation(project(':jadx-core'))
-	implementation(project(":jadx-cli"))
+	implementation(project(':jadx-cli'))
 
 	// import mappings
 	implementation project(':jadx-plugins:jadx-rename-mappings')
 
 	// jadx-script autocomplete support
-	implementation(project(":jadx-plugins::jadx-script:jadx-script-ide"))
-	implementation(project(":jadx-plugins::jadx-script:jadx-script-runtime"))
+	implementation(project(':jadx-plugins:jadx-script:jadx-script-ide'))
+	implementation(project(':jadx-plugins:jadx-script:jadx-script-runtime'))
 	implementation 'org.jetbrains.kotlin:kotlin-scripting-common:1.8.10'
 	implementation 'com.fifesoft:autocomplete:3.3.1'
 

@@ -1,7 +1,6 @@
 package jadx.plugins.script.runtime
 
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptAcceptedLocation
@@ -28,19 +27,19 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 
-const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
-
 @KotlinScript(
 	fileExtension = "jadx.kts",
 	compilationConfiguration = JadxScriptConfiguration::class,
 )
 abstract class JadxScriptTemplate(
-	private val scriptData: JadxScriptData,
+	scriptData: JadxScriptData,
 ) {
 	val scriptName = scriptData.scriptName
-	val log = KotlinLogging.logger("$JADX_SCRIPT_LOG_PREFIX$scriptName")
+	val log = scriptData.log
 
-	fun getJadxInstance() = JadxScriptInstance(scriptData, log)
+	private val scriptInstance = JadxScriptInstance(scriptData, log)
+
+	fun getJadxInstance() = scriptInstance
 
 	fun println(message: Any?) {
 		log.info(message?.toString())
