@@ -23,6 +23,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -1423,8 +1424,9 @@ public class MainWindow extends JFrame {
 		}
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		DisplayMode mode = gd.getDisplayMode();
-		int w = mode.getWidth();
-		int h = mode.getHeight();
+		AffineTransform trans = gd.getDefaultConfiguration().getDefaultTransform();
+		int w = (int) (mode.getWidth() / trans.getScaleX());
+		int h = (int) (mode.getHeight() / trans.getScaleY());
 		setBounds((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO),
 				(int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
 		setLocationRelativeTo(null);
