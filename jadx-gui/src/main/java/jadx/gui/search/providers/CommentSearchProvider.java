@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import javax.swing.Icon;
 
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -197,7 +198,7 @@ public class CommentSearchProvider implements ISearchProvider {
 
 		@Override
 		public String getSyntaxName() {
-			return node.getSyntaxName();
+			return SyntaxConstants.SYNTAX_STYLE_NONE; // comment is always plain text
 		}
 
 		@Override
@@ -218,6 +219,11 @@ public class CommentSearchProvider implements ISearchProvider {
 		@Override
 		public String makeLongStringHtml() {
 			return node.makeLongStringHtml();
+		}
+
+		@Override
+		public boolean disableHtml() {
+			return node.disableHtml();
 		}
 
 		@Override
