@@ -199,7 +199,18 @@ public class JClass extends JLoadableNode implements JRenameNode {
 
 	@Override
 	public boolean isValidName(String newName) {
-		return NameMapper.isValidIdentifier(newName);
+		if (NameMapper.isValidIdentifier(newName)) {
+			return true;
+		}
+		if (cls.isInner()) {
+			// disallow to change package for inner classes
+			return false;
+		}
+		if (NameMapper.isValidFullIdentifier(newName)) {
+			return true;
+		}
+		// moving to default pkg
+		return newName.startsWith(".") && NameMapper.isValidIdentifier(newName.substring(1));
 	}
 
 	@Override
@@ -220,6 +231,8 @@ public class JClass extends JLoadableNode implements JRenameNode {
 
 	@Override
 	public void reload(MainWindow mainWindow) {
+		// TODO: rebuild packages only if class package has been changed
+		mainWindow.rebuildPackagesTree();
 		mainWindow.reloadTree();
 	}
 

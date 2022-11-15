@@ -399,6 +399,33 @@ public class RootNode {
 		packages.add(pkg);
 	}
 
+	public void removePackage(PackageNode pkg) {
+		if (pkgMap.remove(pkg.getPkgInfo().getFullName()) != null) {
+			packages.remove(pkg);
+			PackageNode parentPkg = pkg.getParentPkg();
+			if (parentPkg != null) {
+				parentPkg.getSubPackages().remove(pkg);
+				if (parentPkg.isEmpty()) {
+					removePackage(parentPkg);
+				}
+			}
+			for (PackageNode subPkg : pkg.getSubPackages()) {
+				removePackage(subPkg);
+			}
+		}
+	}
+
+	public void sortPackages() {
+		Collections.sort(packages);
+	}
+
+	public void removeClsFromPackage(PackageNode pkg, ClassNode cls) {
+		boolean removed = pkg.getClasses().remove(cls);
+		if (removed && pkg.isEmpty()) {
+			removePackage(pkg);
+		}
+	}
+
 	/**
 	 * Update sub packages
 	 */

@@ -329,7 +329,7 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public void removeAlias() {
-		this.cls.getClassInfo().removeAlias();
+		cls.removeAlias();
 	}
 
 	@Override

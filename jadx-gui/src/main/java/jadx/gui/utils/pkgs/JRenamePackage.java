@@ -66,7 +66,7 @@ public class JRenamePackage implements JRenameNode {
 	}
 
 	private static final Pattern PACKAGE_RENAME_PATTERN = Pattern.compile(
-			"PKG(\\.PKG)*(\\.)?".replace("PKG", VALID_JAVA_IDENTIFIER.pattern()));
+			"(\\.)?PKG(\\.PKG)*".replace("PKG", VALID_JAVA_IDENTIFIER.pattern()));
 
 	static boolean isValidPackageName(String newName) {
 		if (newName == null || newName.isEmpty() || NameMapper.isReserved(newName)) {
@@ -96,8 +96,7 @@ public class JRenamePackage implements JRenameNode {
 
 	@Override
 	public void reload(MainWindow mainWindow) {
-		mainWindow.getCacheObject().setPackageHelper(null);
-		mainWindow.getTreeRoot().update();
+		mainWindow.rebuildPackagesTree();
 		mainWindow.reloadTree();
 	}
 }

@@ -10,11 +10,11 @@ class TestJRenamePackage {
 	void isValidName() {
 		valid("foo");
 		valid("foo.bar");
-		valid("foo.bar.");
+		valid(".bar");
 
 		invalid("");
 		invalid("0foo");
-		invalid(".foo");
+		invalid("foo.");
 		invalid("do");
 		invalid("foo.if");
 		invalid("foo.if.bar");

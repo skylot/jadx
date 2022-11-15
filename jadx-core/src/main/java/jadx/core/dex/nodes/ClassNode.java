@@ -60,7 +60,7 @@ public class ClassNode extends NotificationAttrNode
 	private final IClassData clsData;
 
 	private final ClassInfo clsInfo;
-	private final PackageNode packageNode;
+	private PackageNode packageNode;
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
@@ -559,9 +559,50 @@ public class ClassNode extends NotificationAttrNode
 		parentClass = this;
 	}
 
+	/**
+	 * Change class name and package (if full name provided)
+	 * Leading dot can be used to move to default package.
+	 * Package for inner classes can't be changed.
+	 */
 	@Override
 	public void rename(String newName) {
-		clsInfo.changeShortName(newName);
+		int lastDot = newName.lastIndexOf('.');
+		if (lastDot == -1) {
+			clsInfo.changeShortName(newName);
+			return;
+		}
+		if (isInner()) {
+			addWarn("Can't change package for inner class: " + this + " to " + newName);
+			return;
+		}
+		// change class package
+		String newPkg = newName.substring(0, lastDot);
+		String newShortName = newName.substring(lastDot + 1);
+		if (changeClassNodePackage(newPkg)) {
+			clsInfo.changePkgAndName(newPkg, newShortName);
+		} else {
+			clsInfo.changeShortName(newShortName);
+		}
+	}
+
+	private boolean changeClassNodePackage(String fullPkg) {
+		if (clsInfo.isInner()) {
+			throw new JadxRuntimeException("Can't change package for inner class");
+		}
+		if (fullPkg.equals(clsInfo.getAliasPkg())) {
+			return false;
+		}
+		root.removeClsFromPackage(packageNode, this);
+		packageNode = PackageNode.getForClass(root, fullPkg, this);
+		root.sortPackages();
+		return true;
+	}
+
+	public void removeAlias() {
+		if (!clsInfo.isInner()) {
+			changeClassNodePackage(clsInfo.getPackage());
+		}
+		clsInfo.removeAlias();
 	}
 
 	@Override
@@ -569,7 +610,7 @@ public class ClassNode extends NotificationAttrNode
 		if (isInner()) {
 			return;
 		}
-		getClassInfo().changePkg(packageNode.getAliasPkgInfo().getFullName());
+		clsInfo.changePkg(packageNode.getAliasPkgInfo().getFullName());
 	}
 
 	public PackageNode getPackageNode() {
@@ -884,7 +925,7 @@ public class ClassNode extends NotificationAttrNode
 
 	@Override
 	public int compareTo(@NotNull ClassNode o) {
-		return this.getFullName().compareTo(o.getFullName());
+		return this.clsInfo.compareTo(o.clsInfo);
 	}
 
 	@Override

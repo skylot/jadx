@@ -79,6 +79,15 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		}
 	}
 
+	public void changePkgAndName(String aliasPkg, String aliasShortName) {
+		if (isInner()) {
+			throw new JadxRuntimeException("Can't change package for inner class");
+		}
+		ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, aliasShortName);
+		fillAliasFullName(newAlias);
+		this.alias = newAlias;
+	}
+
 	private void fillAliasFullName(ClassAliasInfo alias) {
 		if (parentClass == null) {
 			alias.setFullName(makeFullClsName(alias.getPkg(), alias.getShortName(), null, true, false));
@@ -115,6 +124,10 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			return true;
 		}
 		return parentClass != null && parentClass.hasAlias();
+	}
+
+	public boolean hasAliasPkg() {
+		return !getPackage().equals(getAliasPkg());
 	}
 
 	public void removeAlias() {
@@ -272,14 +285,13 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			return true;
 		}
 		if (obj instanceof ClassInfo) {
-			ClassInfo other = (ClassInfo) obj;
-			return this.type.equals(other.type);
+			return type.equals(((ClassInfo) obj).type);
 		}
 		return false;
 	}
 
 	@Override
-	public int compareTo(@NotNull ClassInfo o) {
-		return getFullName().compareTo(o.getFullName());
+	public int compareTo(@NotNull ClassInfo other) {
+		return getRawName().compareTo(other.getRawName());
 	}
 }

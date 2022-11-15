@@ -819,6 +819,11 @@ public class MainWindow extends JFrame {
 		treeReloading = false;
 	}
 
+	public void rebuildPackagesTree() {
+		cacheObject.setPackageHelper(null);
+		treeRoot.update();
+	}
+
 	private void expand(TreeNode node, List<String[]> treeExpansions) {
 		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
 		if (pathNodes == null) {
