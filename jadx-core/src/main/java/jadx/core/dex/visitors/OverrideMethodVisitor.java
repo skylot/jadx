@@ -90,7 +90,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		for (ArgType superType : superData.getSuperTypes()) {
 			ClassNode classNode = mth.root().resolveClass(superType);
 			if (classNode != null) {
-				MethodNode ovrdMth = searchOverriddenMethod(classNode, signature);
+				MethodNode ovrdMth = searchOverriddenMethod(classNode, mth, signature);
 				if (ovrdMth != null) {
 					if (isMethodVisibleInCls(ovrdMth, cls)) {
 						overrideList.add(ovrdMth);
@@ -107,6 +107,8 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 					Map<String, ClspMethod> methodsMap = clsDetails.getMethodsMap();
 					for (Map.Entry<String, ClspMethod> entry : methodsMap.entrySet()) {
 						String mthShortId = entry.getKey();
+						// do not check full signature, classpath methods can be trusted
+						// i.e. doesn't contain methods with same signature in one class
 						if (mthShortId.startsWith(signature)) {
 							overrideList.add(entry.getValue());
 							break;
@@ -130,10 +132,28 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	@Nullable
-	private MethodNode searchOverriddenMethod(ClassNode cls, String signature) {
+	private MethodNode searchOverriddenMethod(ClassNode cls, MethodNode mth, String signature) {
+		// search by exact full signature (with return value) to fight obfuscation (see test
+		// 'TestOverrideWithSameName')
+		String shortId = mth.getMethodInfo().getShortId();
 		for (MethodNode supMth : cls.getMethods()) {
-			if (!supMth.getAccessFlags().isStatic() && supMth.getMethodInfo().getShortId().startsWith(signature)) {
+			if (supMth.getMethodInfo().getShortId().equals(shortId) && !supMth.getAccessFlags().isStatic()) {
 				return supMth;
+			}
+		}
+		// search by signature without return value and check if return value is wider type
+		for (MethodNode supMth : cls.getMethods()) {
+			if (supMth.getMethodInfo().getShortId().startsWith(signature) && !supMth.getAccessFlags().isStatic()) {
+				TypeCompare typeCompare = cls.root().getTypeCompare();
+				ArgType supRetType = supMth.getMethodInfo().getReturnType();
+				ArgType mthRetType = mth.getMethodInfo().getReturnType();
+				TypeCompareEnum res = typeCompare.compareTypes(supRetType, mthRetType);
+				if (res.isWider()) {
+					return supMth;
+				}
+				if (res == TypeCompareEnum.UNKNOWN || res == TypeCompareEnum.CONFLICT) {
+					mth.addDebugComment("Possible override for method " + supMth.getMethodInfo().getFullId());
+				}
 			}
 		}
 		return null;
