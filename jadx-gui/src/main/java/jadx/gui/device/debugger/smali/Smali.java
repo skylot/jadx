@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.plugins.input.data.AccessFlags;
@@ -46,6 +48,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.api.plugins.input.data.AccessFlagsScope.FIELD;
@@ -67,6 +70,7 @@ import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH;
 import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH_PAYLOAD;
 
 public class Smali {
+	private static final Logger LOG = LoggerFactory.getLogger(Smali.class);
 
 	private static SmaliInsnDecoder insnDecoder = null;
 
@@ -219,7 +223,15 @@ public class Smali {
 						writeFields(smali, clsData, fields, colWidths);
 						fields.clear();
 					}
-					writeMethod(smali, cls.getMethods().get(mthIndex[0]++), m, line);
+					try {
+						writeMethod(smali, cls.getMethods().get(mthIndex[0]++), m, line);
+					} catch (Throwable e) {
+						IMethodRef methodRef = m.getMethodRef();
+						String mthFullName = methodRef.getParentClassType() + "->" + methodRef.getName();
+						smali.setIndent(0);
+						smali.startLine("Failed to write method: " + mthFullName + "\n" + Utils.getStackTrace(e));
+						LOG.error("Failed to write smali code for method: {}", mthFullName, e);
+					}
 					line.reset();
 				});
 
@@ -451,48 +463,45 @@ public class Smali {
 		if (types.isEmpty()) {
 			return false;
 		}
-		int paramCount = 0;
-		int paramStart = 0;
-		int regNum = line.smaliMthNode.getParamRegStart();
-		if (!hasStaticFlag(mth.getAccessFlags())) {
-			line.addRegName(regNum, "p0");
-			line.smaliMthNode.setParamReg(regNum, "p0");
-			regNum += 1;
-			paramStart = 1;
-		}
+		ILocalVar[] params = new ILocalVar[codeReader.getRegistersCount()];
 		IDebugInfo dbgInfo = codeReader.getDebugInfo();
 		if (dbgInfo != null) {
 			for (ILocalVar var : dbgInfo.getLocalVars()) {
-				if (var.getRegNum() == regNum) {
-					int i = writeParamInfo(smali, line, regNum, paramStart, var.getName(), var.getType());
-					regNum += i;
-					paramStart += i;
-					paramCount++;
+				// collect only method parameters
+				if (var.getStartOffset() <= 0) {
+					params[var.getRegNum()] = var;
 				}
 			}
 		}
-		for (; paramCount < types.size(); paramCount++) {
-			int i = writeParamInfo(smali, line, regNum, paramStart, "", types.get(paramCount));
-			regNum += i;
-			paramStart += i;
+		int paramStart = 0;
+		int regNum = line.smaliMthNode.getParamRegStart();
+		if (!hasStaticFlag(mth.getAccessFlags())) {
+			// add 'this' register
+			line.addRegName(regNum, "p0");
+			line.smaliMthNode.setParamReg(regNum, "p0");
+			regNum++;
+			paramStart++;
+		}
+		for (String paramType : types) {
+			String name;
+			String type;
+			ILocalVar param = params[regNum];
+			if (param != null) {
+				name = Utils.getOrElse(param.getName(), "");
+				type = Utils.getOrElse(param.getSignature(), paramType);
+			} else {
+				name = "";
+				type = paramType;
+			}
+			String varName = "p" + paramStart;
+			smali.startLine(String.format(".param %s, \"%s\" # %s", varName, name, type));
+			line.addRegName(regNum, varName);
+			line.smaliMthNode.setParamReg(regNum, varName);
+			int regSize = isWideType(paramType) ? 2 : 1;
+			regNum += regSize;
+			paramStart += regSize;
 		}
 		return true;
-	}
-
-	private static int writeParamInfo(SmaliWriter smali, LineInfo line,
-			int regNum, int paramNum, String dbgInfoName, String type) {
-		smali.startLine(String.format(".param p%d, \"%s\":%s", paramNum, dbgInfoName, type));
-		String pName = "p" + paramNum;
-		line.addRegName(regNum, pName);
-		line.smaliMthNode.setParamReg(regNum, pName);
-		if (isWideType(type)) {
-			regNum++;
-			dbgInfoName = "p" + (paramNum + 1);
-			line.addRegName(regNum, dbgInfoName);
-			line.smaliMthNode.setParamReg(regNum, dbgInfoName);
-			return 2;
-		}
-		return 1;
 	}
 
 	private static int getParamStartRegNum(IMethodData mth) {

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class DbgSmaliTest extends SmaliTest {
 	private static final Logger LOG = LoggerFactory.getLogger(DbgSmaliTest.class);
 
@@ -17,10 +19,20 @@ class DbgSmaliTest extends SmaliTest {
 	}
 
 	@Test
-	void test() {
+	void testSwitch() {
 		disableCompilation();
 		ClassNode cls = getClassNodeFromSmali("switch", "SwitchTest");
 		Smali disasm = Smali.disassemble(cls);
 		LOG.debug("{}", disasm.getCode());
+	}
+
+	@Test
+	void testParams() {
+		disableCompilation();
+		ClassNode cls = getClassNodeFromSmali("params", "ParamsTest");
+		Smali disasm = Smali.disassemble(cls);
+		String code = disasm.getCode();
+		LOG.debug("{}", code);
+		assertThat(code).doesNotContain("Failed to write method");
 	}
 }
