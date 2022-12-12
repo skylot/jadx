@@ -47,6 +47,7 @@ public final class FridaAction extends JNodeAction {
 	public void runAction(JNode node) {
 		try {
 			String fridaSnippet = generateFridaSnippet(node);
+			fridaSnippet = "Java.perform(function() {\n\t" + fridaSnippet + "\n});"; 
 			LOG.info("Frida snippet:\n{}", fridaSnippet);
 			UiUtils.copyToClipboard(fridaSnippet);
 		} catch (Exception e) {
