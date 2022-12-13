@@ -84,7 +84,7 @@ public class ProtoXMLParser {
 		}
 		String name = a.getName();
 		String value = deobfClassName(a.getValue());
-		writer.add(name).add("=\"").add(value).add('\"');
+		writer.add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
 		memorizePackageName(name, value);
 	}
 
