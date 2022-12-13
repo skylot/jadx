@@ -463,7 +463,7 @@ public class Smali {
 		IDebugInfo dbgInfo = codeReader.getDebugInfo();
 		if (dbgInfo != null) {
 			for (ILocalVar var : dbgInfo.getLocalVars()) {
-				if (var.getStartOffset() == -1) {
+				if (var.getRegNum() == regNum) {
 					int i = writeParamInfo(smali, line, regNum, paramStart, var.getName(), var.getType());
 					regNum += i;
 					paramStart += i;
