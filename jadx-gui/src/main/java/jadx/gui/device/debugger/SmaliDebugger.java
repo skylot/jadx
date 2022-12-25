@@ -1286,7 +1286,10 @@ public class SmaliDebugger {
 		@Override
 		public String getType() {
 			String gen = getSignature();
-			return gen.isEmpty() ? this.slot.signature : gen;
+			if (gen == null || gen.isEmpty()) {
+				return this.slot.signature;
+			}
+			return gen;
 		}
 
 		@NonNull
@@ -1303,6 +1306,11 @@ public class SmaliDebugger {
 		@Override
 		public int getEndOffset() {
 			return (int) (slot.codeIndex + slot.length);
+		}
+
+		@Override
+		public boolean isMarkedAsParameter() {
+			return false;
 		}
 	}
 

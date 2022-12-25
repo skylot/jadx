@@ -15,4 +15,10 @@ public interface ILocalVar {
 	int getStartOffset();
 
 	int getEndOffset();
+
+	/**
+	 * Hint if variable is a method parameter.
+	 * Can be incorrect and shouldn't be trusted.
+	 */
+	boolean isMarkedAsParameter();
 }

@@ -94,7 +94,6 @@ class SmaliMethodNode {
 	protected void setParamReg(int regNum, String name) {
 		SmaliRegister r = regList.get(regNum);
 		r.setParam(name);
-		r.setStartOffset(-1);
 	}
 
 	protected void setParamRegStart(int paramRegStart) {

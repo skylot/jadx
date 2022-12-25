@@ -96,8 +96,9 @@ public class DebugInfoParser {
 			int nameId = in.readUleb128p1();
 			String name = ext.getString(nameId);
 			if (name != null && i < argsCount) {
-				int regNum = argRegs[i];
-				startVar(new DexLocalVar(regNum, name, argTypes.get(i)), -1);
+				DexLocalVar paramVar = new DexLocalVar(argRegs[i], name, argTypes.get(i));
+				startVar(paramVar, addr);
+				paramVar.markAsParameter();
 				varsInfoFound = true;
 			}
 		}

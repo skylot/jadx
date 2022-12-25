@@ -62,6 +62,11 @@ public class JavaLocalVar implements ILocalVar {
 	}
 
 	@Override
+	public boolean isMarkedAsParameter() {
+		return false;
+	}
+
+	@Override
 	public int hashCode() {
 		int result = regNum;
 		result = 31 * result + name.hashCode();

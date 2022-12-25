@@ -33,6 +33,9 @@ class DbgSmaliTest extends SmaliTest {
 		Smali disasm = Smali.disassemble(cls);
 		String code = disasm.getCode();
 		LOG.debug("{}", code);
-		assertThat(code).doesNotContain("Failed to write method");
+		assertThat(code)
+				.doesNotContain("Failed to write method")
+				.doesNotContain(".param p1")
+				.contains(".local p1, \"arg0\":Landroid/widget/AdapterView;, \"Landroid/widget/AdapterView<*>;\"");
 	}
 }

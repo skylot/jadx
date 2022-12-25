@@ -285,24 +285,25 @@ public class Smali {
 		writeMethodDef(smali, mth, line);
 		ICodeReader codeReader = mth.getCodeReader();
 		if (codeReader != null) {
+			int regsCount = codeReader.getRegistersCount();
 			line.smaliMthNode.setParamRegStart(getParamStartRegNum(mth));
-			line.smaliMthNode.setRegCount(codeReader.getRegistersCount());
+			line.smaliMthNode.setRegCount(regsCount);
 			Map<Long, InsnNode> nodes = new HashMap<>(codeReader.getUnitsCount() / 2);
 			line.smaliMthNode.setInsnNodes(nodes, codeReader.getUnitsCount());
-			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount(), codeReader.getUnitsCount());
+			line.smaliMthNode.initRegInfoList(regsCount, codeReader.getUnitsCount());
 
 			smali.incIndent();
-			smali.startLine(".registers ")
-					.add("" + codeReader.getRegistersCount())
-					.startLine();
+			smali.startLine(".registers ").add(Integer.toString(regsCount));
+
 			writeTries(codeReader, line);
-			if (formatMthParamInfo(mth, smali, codeReader, line)) {
-				smali.startLine();
+			IDebugInfo debugInfo = codeReader.getDebugInfo();
+			List<ILocalVar> localVars = debugInfo != null ? debugInfo.getLocalVars() : Collections.emptyList();
+			formatMthParamInfo(mth, smali, line, regsCount, localVars);
+			if (debugInfo != null) {
+				formatDbgInfo(debugInfo, localVars, line);
 			}
+			smali.newLine();
 			smali.startLine();
-			if (codeReader.getDebugInfo() != null) {
-				formatDbgInfo(codeReader.getDebugInfo(), line);
-			}
 			// first pass to fill payload offsets for switch instructions
 			codeReader.visitInstructions(insn -> {
 				Opcode opcode = insn.getOpcode();
@@ -458,20 +459,11 @@ public class Smali {
 		}
 	}
 
-	private boolean formatMthParamInfo(IMethodData mth, SmaliWriter smali, ICodeReader codeReader, LineInfo line) {
+	private void formatMthParamInfo(IMethodData mth, SmaliWriter smali, LineInfo line,
+			int regsCount, List<ILocalVar> localVars) {
 		List<String> types = mth.getMethodRef().getArgTypes();
 		if (types.isEmpty()) {
-			return false;
-		}
-		ILocalVar[] params = new ILocalVar[codeReader.getRegistersCount()];
-		IDebugInfo dbgInfo = codeReader.getDebugInfo();
-		if (dbgInfo != null) {
-			for (ILocalVar var : dbgInfo.getLocalVars()) {
-				// collect only method parameters
-				if (var.getStartOffset() <= 0) {
-					params[var.getRegNum()] = var;
-				}
-			}
+			return;
 		}
 		int paramStart = 0;
 		int regNum = line.smaliMthNode.getParamRegStart();
@@ -482,26 +474,30 @@ public class Smali {
 			regNum++;
 			paramStart++;
 		}
+		if (localVars.isEmpty()) {
+			return;
+		}
+		ILocalVar[] params = new ILocalVar[regsCount];
+		for (ILocalVar var : localVars) {
+			if (var.isMarkedAsParameter()) {
+				params[var.getRegNum()] = var;
+			}
+		}
+		smali.newLine();
 		for (String paramType : types) {
-			String name;
-			String type;
 			ILocalVar param = params[regNum];
 			if (param != null) {
-				name = Utils.getOrElse(param.getName(), "");
-				type = Utils.getOrElse(param.getSignature(), paramType);
-			} else {
-				name = "";
-				type = paramType;
+				String name = Utils.getOrElse(param.getName(), "");
+				String type = Utils.getOrElse(param.getSignature(), paramType);
+				String varName = "p" + paramStart;
+				smali.startLine(String.format(".param %s, \"%s\" # %s", varName, name, type));
+				line.addRegName(regNum, varName);
+				line.smaliMthNode.setParamReg(regNum, varName);
 			}
-			String varName = "p" + paramStart;
-			smali.startLine(String.format(".param %s, \"%s\" # %s", varName, name, type));
-			line.addRegName(regNum, varName);
-			line.smaliMthNode.setParamReg(regNum, varName);
 			int regSize = isWideType(paramType) ? 2 : 1;
 			regNum += regSize;
 			paramStart += regSize;
 		}
-		return true;
 	}
 
 	private static int getParamStartRegNum(IMethodData mth) {
@@ -558,30 +554,42 @@ public class Smali {
 		smali.startLine(".end annotation");
 	}
 
-	private void formatDbgInfo(IDebugInfo dbgInfo, LineInfo line) {
+	private void formatDbgInfo(IDebugInfo dbgInfo, List<ILocalVar> localVars, LineInfo line) {
 		dbgInfo.getSourceLineMapping().forEach((codeOffset, srcLine) -> {
 			if (codeOffset > -1) {
 				line.addDebugLineTip(codeOffset, String.format(".line %d", srcLine), "");
 			}
 		});
-		for (ILocalVar localVar : dbgInfo.getLocalVars()) {
-			String type = localVar.getSignature();
-			if (type == null || type.trim().isEmpty()) {
-				type = localVar.getType();
+		for (ILocalVar localVar : localVars) {
+			if (localVar.isMarkedAsParameter()) {
+				continue;
 			}
-			if (localVar.getStartOffset() > -1) {
-				line.addTip(
-						localVar.getStartOffset(),
-						String.format(".local v%d", localVar.getRegNum()),
-						String.format(", \"%s\":%s", localVar.getName(), type));
+			String type = localVar.getType();
+			String sign = localVar.getSignature();
+			String longTypeStr;
+			if (sign == null || sign.trim().isEmpty()) {
+				longTypeStr = String.format(", \"%s\":%s", localVar.getName(), type);
+			} else {
+				longTypeStr = String.format(", \"%s\":%s, \"%s\"", localVar.getName(), type, localVar.getSignature());
 			}
-			if (localVar.getEndOffset() > -1) {
-				line.addTip(
-						localVar.getEndOffset(),
-						String.format(".end local v%d", localVar.getRegNum()),
-						String.format(" # \"%s\":%s", localVar.getName(), type));
-			}
+			line.addTip(
+					localVar.getStartOffset(),
+					".local " + formatVarName(line.smaliMthNode, localVar),
+					longTypeStr);
+			line.addTip(
+					localVar.getEndOffset(),
+					".end local " + formatVarName(line.smaliMthNode, localVar),
+					String.format(" # \"%s\":%s", localVar.getName(), type));
 		}
+	}
+
+	private String formatVarName(SmaliMethodNode smaliMthNode, ILocalVar localVar) {
+		int paramRegStart = smaliMthNode.getParamRegStart();
+		int regNum = localVar.getRegNum();
+		if (regNum < paramRegStart) {
+			return "v" + regNum;
+		}
+		return "p" + (regNum - paramRegStart);
 	}
 
 	private void writeEncodedValue(SmaliWriter smali, EncodedValue value, boolean wrapArray) {

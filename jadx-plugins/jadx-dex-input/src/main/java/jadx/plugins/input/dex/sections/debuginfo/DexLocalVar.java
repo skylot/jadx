@@ -7,6 +7,8 @@ import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.dex.sections.SectionReader;
 
 public class DexLocalVar implements ILocalVar {
+	private static final int PARAM_START_OFFSET = -1;
+
 	private final int regNum;
 	private final String name;
 	private final String type;
@@ -76,6 +78,15 @@ public class DexLocalVar implements ILocalVar {
 	@Override
 	public int getStartOffset() {
 		return startOffset;
+	}
+
+	public void markAsParameter() {
+		startOffset = PARAM_START_OFFSET;
+	}
+
+	@Override
+	public boolean isMarkedAsParameter() {
+		return startOffset == PARAM_START_OFFSET;
 	}
 
 	@Override

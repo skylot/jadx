@@ -33,10 +33,6 @@ public class SmaliRegister extends RegisterInfo {
 	}
 
 	protected void setStartOffset(int off) {
-		if (startOffset == -1 && !isParam) {
-			startOffset = off;
-			return;
-		}
 		if (off < startOffset) {
 			startOffset = off;
 		}
@@ -70,5 +66,10 @@ public class SmaliRegister extends RegisterInfo {
 	@Override
 	public int getEndOffset() {
 		return endOffset;
+	}
+
+	@Override
+	public boolean isMarkedAsParameter() {
+		return isParam;
 	}
 }
