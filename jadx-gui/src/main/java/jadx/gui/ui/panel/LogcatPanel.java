@@ -94,7 +94,6 @@ public class LogcatPanel extends JPanel {
 	};
 
 	public boolean showLogcat() {
-
 		this.removeAll();
 
 		ArrayList<String> pkgs = new ArrayList<>();
@@ -115,7 +114,6 @@ public class LogcatPanel extends JPanel {
 				NLS.str("logcat.fatal"),
 				NLS.str("logcat.silent") };
 		Integer[] msgIndex = { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
 		this.setLayout(new BorderLayout());
 		logcatPane = new JTextPane();
 		logcatPane.setEditable(false);
@@ -135,7 +133,6 @@ public class LogcatPanel extends JPanel {
 		menuPanel.add(pauseButton);
 		menuPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		menuPanel.add(clearButton);
-		
 		this.add(menuPanel, BorderLayout.NORTH);
 		this.add(logcatScroll, BorderLayout.CENTER);
 
