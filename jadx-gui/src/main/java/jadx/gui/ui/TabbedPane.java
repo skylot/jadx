@@ -73,6 +73,7 @@ public class TabbedPane extends JTabbedPane {
 			}
 		});
 		interceptTabKey();
+		interceptCloseKey();
 		enableSwitchingTabs();
 	}
 
@@ -116,6 +117,34 @@ public class TabbedPane extends JTabbedPane {
 					}
 				}
 				return consume;
+			}
+		});
+	}
+
+	private void interceptCloseKey() {
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+			private static final int closeKey = KeyEvent.VK_W;
+			private boolean canClose = true;
+
+			@Override
+			public boolean dispatchKeyEvent(KeyEvent e) {
+				if (!FocusManager.isActive()) {
+					return false; // do nothing when tab is not on focus.
+				}
+				if (e.getKeyCode() != closeKey) {
+					return false; // only intercept the events of the close key
+				}
+				if (e.getID() == KeyEvent.KEY_RELEASED) {
+					canClose = true; // after the close key is lifted we allow to use it again
+					return false;
+				}
+				if (e.isControlDown() && canClose) {
+					// close the current tab
+					closeCodePanel(curTab);
+					canClose = false; // make sure we dont close more tabs until the close key is lifted
+					return true;
+				}
+				return false;
 			}
 		});
 	}
