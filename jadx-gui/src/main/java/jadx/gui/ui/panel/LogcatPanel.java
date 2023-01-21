@@ -94,6 +94,8 @@ public class LogcatPanel extends JPanel {
 	};
 
 	public boolean showLogcat() {
+		this.removeAll();
+
 		ArrayList<String> pkgs = new ArrayList<>();
 		pids = new ArrayList<>();
 		JPanel procBox;
