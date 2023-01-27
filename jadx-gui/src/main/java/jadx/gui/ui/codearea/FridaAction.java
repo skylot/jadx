@@ -16,6 +16,8 @@ import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
@@ -78,10 +80,18 @@ public final class FridaAction extends JNodeAction {
 		MethodNode mth = jMth.getJavaMethod().getMethodNode();
 		MethodInfo methodInfo = mth.getMethodInfo();
 		String methodName;
+		String newMethodName;
 		if (methodInfo.isConstructor()) {
 			methodName = "$init";
+			newMethodName = methodName;
 		} else {
 			methodName = StringEscapeUtils.escapeEcmaScript(methodInfo.getName());
+			newMethodName = methodName;
+			for (ICodeRename rename : getCodeArea().getContentPanel().getTabbedPane().getMainWindow().getProject().getCodeData().getRenames()) {
+				if (null == rename.getCodeRef() && rename.getNodeRef().equals(JadxNodeRef.forMth(jMth.getJavaMethod()))) {
+					newMethodName = rename.getNewName();
+				}
+			}
 		}
 		String overload;
 		if (isOverloaded(mth)) {
@@ -106,15 +116,15 @@ public final class FridaAction extends JNodeAction {
 			// no return value
 			return classSnippet + "\n"
 					+ shortClassName + "[\"" + methodName + "\"]" + overload + ".implementation = function (" + args + ") {\n"
-					+ "    console.log('" + shortClassName + "." + methodName + " is called'" + logArgs + ");\n"
+					+ "    console.log('" + shortClassName + "." + newMethodName + " is called'" + logArgs + ");\n"
 					+ "    this[\"" + methodName + "\"](" + args + ");\n"
 					+ "};";
 		}
 		return classSnippet + "\n"
 				+ shortClassName + "[\"" + methodName + "\"]" + overload + ".implementation = function (" + args + ") {\n"
-				+ "    console.log('" + shortClassName + "." + methodName + " is called'" + logArgs + ");\n"
+				+ "    console.log('" + shortClassName + "." + newMethodName + " is called'" + logArgs + ");\n"
 				+ "    let ret = this[\"" + methodName + "\"](" + args + ");\n"
-				+ "    console.log('" + shortClassName + "." + methodName + " return: ' + ret);\n"
+				+ "    console.log('" + shortClassName + "." + newMethodName + " return: ' + ret);\n"
 				+ "    return ret;\n"
 				+ "};";
 	}
