@@ -87,7 +87,8 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			methodName = StringEscapeUtils.escapeEcmaScript(methodInfo.getName());
 			newMethodName = methodName;
-			for (ICodeRename rename : getCodeArea().getContentPanel().getTabbedPane().getMainWindow().getProject().getCodeData().getRenames()) {
+			for (ICodeRename rename : getCodeArea().getContentPanel().getTabbedPane().getMainWindow().getProject().getCodeData()
+					.getRenames()) {
 				if (null == rename.getCodeRef() && rename.getNodeRef().equals(JadxNodeRef.forMth(jMth.getJavaMethod()))) {
 					newMethodName = rename.getNewName();
 				}
