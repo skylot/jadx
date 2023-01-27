@@ -62,6 +62,11 @@ public class JVariable extends JNode {
 	}
 
 	@Override
+	public boolean disableHtml() {
+		return false;
+	}
+
+	@Override
 	public String getTooltip() {
 		String name = var.getName() + " (r" + var.getReg() + "v" + var.getSsa() + ")";
 		String fullType = UiUtils.escapeHtml(var.getType().toString());
