@@ -19,7 +19,6 @@ import jadx.api.JavaMethod;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
-import jadx.api.utils.CodeUtils;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -123,12 +122,12 @@ public final class FridaAction extends JNodeAction {
 
 	private List<String> collectMethodArgNames(JavaMethod javaMethod) {
 		ICodeInfo codeInfo = javaMethod.getTopParentClass().getCodeInfo();
-		int mthDefPos = javaMethod.getDefPos();
-		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
+		final int argsAmount = javaMethod.getArguments().size();
+		final int[] addedArgsAmount = { 0 };
 		List<String> argNames = new ArrayList<>();
-		codeInfo.getCodeMetadata().searchDown(mthDefPos, (pos, ann) -> {
-			if (pos > lineEndPos) {
-				return Boolean.TRUE; // stop at line end
+		codeInfo.getCodeMetadata().searchDown(0, (pos, ann) -> {
+			if (addedArgsAmount[0] == argsAmount) {
+				return Boolean.TRUE;
 			}
 			if (ann instanceof NodeDeclareRef) {
 				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
@@ -136,6 +135,7 @@ public final class FridaAction extends JNodeAction {
 					VarNode varNode = (VarNode) declRef;
 					if (varNode.getMth().equals(javaMethod.getMethodNode())) {
 						argNames.add(varNode.getName());
+						addedArgsAmount[0]++;
 					}
 				}
 			}
@@ -148,7 +148,7 @@ public final class FridaAction extends JNodeAction {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = StringEscapeUtils.escapeEcmaScript(javaClass.getRawName());
 		String shortClassName = javaClass.getName();
-		return String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
+		return String.format("var %s = Java.use(\"%s\");", shortClassName, rawClassName);
 	}
 
 	private String generateFieldSnippet(JField jf) {
