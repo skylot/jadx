@@ -3,6 +3,7 @@ package jadx.core.dex.nodes;
 import java.util.Collections;
 import java.util.List;
 
+import jadx.api.JavaField;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -20,6 +21,8 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 	private ArgType type;
 
 	private List<MethodNode> useIn = Collections.emptyList();
+
+	private JavaField javaNode;
 
 	public static FieldNode build(ClassNode cls, IFieldData fieldData) {
 		FieldInfo fieldInfo = FieldInfo.fromRef(cls.root(), fieldData);
@@ -110,6 +113,14 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 	@Override
 	public RootNode root() {
 		return parentClass.root();
+	}
+
+	public JavaField getJavaNode() {
+		return javaNode;
+	}
+
+	public void setJavaNode(JavaField javaNode) {
+		this.javaNode = javaNode;
 	}
 
 	@Override

@@ -141,6 +141,10 @@ public final class FridaAction extends JNodeAction {
 			}
 			return null;
 		});
+		int argsCount = javaMethod.getMethodNode().getMethodInfo().getArgsCount();
+		if (argNames.size() != argsCount) {
+			LOG.warn("Incorrect args count, expected: {}, got: {}", argsCount, argNames.size());
+		}
 		return argNames;
 	}
 

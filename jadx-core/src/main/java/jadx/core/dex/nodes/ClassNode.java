@@ -21,6 +21,7 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.JavaClass;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
@@ -99,6 +100,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
+
+	private JavaClass javaNode;
 
 	public ClassNode(RootNode root, IClassData cls) {
 		this.root = root;
@@ -833,6 +836,14 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	@Override
 	public String getInputFileName() {
 		return clsData == null ? "synthetic" : clsData.getInputFileName();
+	}
+
+	public JavaClass getJavaNode() {
+		return javaNode;
+	}
+
+	public void setJavaNode(JavaClass javaNode) {
+		this.javaNode = javaNode;
 	}
 
 	@Override

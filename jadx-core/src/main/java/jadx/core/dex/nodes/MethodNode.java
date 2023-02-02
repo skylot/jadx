@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaMethod;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
@@ -70,6 +71,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private Region region;
 
 	private List<MethodNode> useIn = Collections.emptyList();
+
+	private JavaMethod javaNode;
 
 	public static MethodNode build(ClassNode classNode, IMethodData methodData) {
 		MethodNode methodNode = new MethodNode(classNode, methodData);
@@ -608,6 +611,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
+	}
+
+	public JavaMethod getJavaNode() {
+		return javaNode;
+	}
+
+	public void setJavaNode(JavaMethod javaNode) {
+		this.javaNode = javaNode;
 	}
 
 	@Override

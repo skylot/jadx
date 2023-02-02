@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -93,10 +92,6 @@ public final class JadxDecompiler implements Closeable {
 	private BinaryXMLParser binaryXmlParser;
 	private ProtoXMLParser protoXmlParser;
 
-	private final Map<ClassNode, JavaClass> classesMap = new ConcurrentHashMap<>();
-	private final Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
-	private final Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
-
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 
 	private final List<ILoadResult> customLoads = new ArrayList<>();
@@ -155,10 +150,6 @@ public final class JadxDecompiler implements Closeable {
 		resources = null;
 		binaryXmlParser = null;
 		protoXmlParser = null;
-
-		classesMap.clear();
-		methodsMap.clear();
-		fieldsMap.clear();
 	}
 
 	@Override
@@ -471,33 +462,36 @@ public final class JadxDecompiler implements Closeable {
 	 * Get JavaClass by ClassNode without loading and decompilation
 	 */
 	@ApiStatus.Internal
-	JavaClass convertClassNode(ClassNode cls) {
-		return classesMap.compute(cls, (node, prevJavaCls) -> {
-			if (prevJavaCls != null && prevJavaCls.getClassNode() == cls) {
-				// keep previous variable
-				return prevJavaCls;
-			}
-			if (cls.isInner()) {
-				return new JavaClass(cls, convertClassNode(cls.getParentClass()));
-			}
-			return new JavaClass(cls, this);
-		});
+	synchronized JavaClass convertClassNode(ClassNode cls) {
+		JavaClass javaClass = cls.getJavaNode();
+		if (javaClass == null) {
+			javaClass = cls.isInner()
+					? new JavaClass(cls, convertClassNode(cls.getParentClass()))
+					: new JavaClass(cls, this);
+			cls.setJavaNode(javaClass);
+		}
+		return javaClass;
 	}
 
 	@ApiStatus.Internal
-	JavaField convertFieldNode(FieldNode field) {
-		return fieldsMap.computeIfAbsent(field, fldNode -> {
-			JavaClass parentCls = convertClassNode(fldNode.getParentClass());
-			return new JavaField(parentCls, fldNode);
-		});
+	synchronized JavaField convertFieldNode(FieldNode fld) {
+		JavaField javaField = fld.getJavaNode();
+		if (javaField == null) {
+			JavaClass parentCls = convertClassNode(fld.getParentClass());
+			javaField = new JavaField(parentCls, fld);
+			fld.setJavaNode(javaField);
+		}
+		return javaField;
 	}
 
 	@ApiStatus.Internal
-	JavaMethod convertMethodNode(MethodNode method) {
-		return methodsMap.computeIfAbsent(method, mthNode -> {
-			ClassNode parentCls = mthNode.getParentClass();
-			return new JavaMethod(convertClassNode(parentCls), mthNode);
-		});
+	synchronized JavaMethod convertMethodNode(MethodNode mth) {
+		JavaMethod javaMethod = mth.getJavaNode();
+		if (javaMethod == null) {
+			javaMethod = new JavaMethod(convertClassNode(mth.getParentClass()), mth);
+			mth.setJavaNode(javaMethod);
+		}
+		return javaMethod;
 	}
 
 	@Nullable
@@ -574,14 +568,9 @@ public final class JadxDecompiler implements Closeable {
 		}
 	}
 
-	@Nullable
 	private JavaVariable resolveVarNode(VarNode varNode) {
-		MethodNode mthNode = varNode.getMth();
-		JavaMethod mth = convertMethodNode(mthNode);
-		if (mth == null) {
-			return null;
-		}
-		return new JavaVariable(mth, varNode);
+		JavaMethod javaNode = convertMethodNode(varNode.getMth());
+		return new JavaVariable(javaNode, varNode);
 	}
 
 	@Nullable
