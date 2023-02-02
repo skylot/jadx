@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
-	implementation 'com.google.code.gson:gson:2.10'
+	implementation 'com.google.code.gson:gson:2.10.1'
 
 	// TODO: move resources decoding to separate plugin module
 	implementation 'com.android.tools.build:aapt2-proto:7.3.1-8691043'
