@@ -539,19 +539,25 @@ public class InsnNode extends LineAttrNode {
 		return super.equals(obj);
 	}
 
-	protected void appendArgs(StringBuilder sb) {
+	/**
+	 * Append arguments type, wrap line if too long
+	 *
+	 * @return true if args wrapped
+	 */
+	protected boolean appendArgs(StringBuilder sb) {
 		if (arguments.isEmpty()) {
-			return;
+			return false;
 		}
 		String argsStr = Utils.listToString(arguments);
 		if (argsStr.length() < 120) {
 			sb.append(argsStr);
-		} else {
-			// wrap args
-			String separator = ICodeWriter.NL + "  ";
-			sb.append(separator).append(Utils.listToString(arguments, separator));
-			sb.append(ICodeWriter.NL);
+			return false;
 		}
+		// wrap args
+		String separator = ICodeWriter.NL + "  ";
+		sb.append(separator).append(Utils.listToString(arguments, separator));
+		sb.append(ICodeWriter.NL);
+		return true;
 	}
 
 	@Override

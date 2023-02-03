@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
+import jadx.api.DecompilationMode;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -546,7 +547,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void setFallback() {
 		disableCompilation();
-		this.args.setFallbackMode(true);
+		this.args.setDecompilationMode(DecompilationMode.FALLBACK);
 	}
 
 	protected void disableCompilation() {

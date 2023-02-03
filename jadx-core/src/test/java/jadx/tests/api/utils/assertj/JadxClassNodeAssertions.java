@@ -34,6 +34,13 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		return new JadxCodeAssertions(codeStr);
 	}
 
+	public JadxCodeAssertions disasmCode() {
+		isNotNull();
+		String disasmCode = actual.getDisassembledCode();
+		assertThat(disasmCode).isNotNull().isNotBlank();
+		return new JadxCodeAssertions(disasmCode);
+	}
+
 	public JadxCodeAssertions reloadCode(IntegrationTest testInstance) {
 		isNotNull();
 		ICodeInfo code = actual.reloadCode();

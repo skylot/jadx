@@ -795,11 +795,19 @@ public class InsnGen {
 		MethodInfo callMth = insn.getCallMth();
 		MethodNode callMthNode = mth.root().resolveMethod(callMth);
 
+		if (insn.isPolymorphicCall()) {
+			// add missing cast
+			code.add('(');
+			useType(code, callMth.getReturnType());
+			code.add(") ");
+		}
+
 		int k = 0;
 		switch (type) {
 			case DIRECT:
 			case VIRTUAL:
 			case INTERFACE:
+			case POLYMORPHIC:
 				InsnArg arg = insn.getArg(0);
 				if (needInvokeArg(arg)) {
 					addArgDot(code, arg);

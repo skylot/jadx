@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.custom.IArrayPayload;
@@ -25,6 +27,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.input.InsnDataUtils;
@@ -440,6 +443,8 @@ public class InsnDecoder {
 				return invokeCustom(insn, false);
 			case INVOKE_SPECIAL:
 				return invokeSpecial(insn);
+			case INVOKE_POLYMORPHIC:
+				return invokePolymorphic(insn, false);
 
 			case INVOKE_DIRECT_RANGE:
 				return invoke(insn, InvokeType.DIRECT, true);
@@ -451,6 +456,8 @@ public class InsnDecoder {
 				return invoke(insn, InvokeType.VIRTUAL, true);
 			case INVOKE_CUSTOM_RANGE:
 				return invokeCustom(insn, true);
+			case INVOKE_POLYMORPHIC_RANGE:
+				return invokePolymorphic(insn, true);
 
 			case NEW_INSTANCE:
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
@@ -579,6 +586,22 @@ public class InsnDecoder {
 
 	private InsnNode invokeCustom(InsnData insn, boolean isRange) {
 		return InvokeCustomBuilder.build(method, insn, isRange);
+	}
+
+	private InsnNode invokePolymorphic(InsnData insn, boolean isRange) {
+		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);
+		if (mthRef == null) {
+			throw new JadxRuntimeException("Failed to load method reference for insn: " + insn);
+		}
+		MethodInfo callMth = MethodInfo.fromRef(root, mthRef);
+		IMethodProto proto = insn.getIndexAsProto(insn.getTarget());
+
+		// expand call args
+		List<ArgType> args = Utils.collectionMap(proto.getArgTypes(), ArgType::parse);
+		ArgType returnType = ArgType.parse(proto.getReturnType());
+		MethodInfo effectiveCallMth = MethodInfo.fromDetails(root, callMth.getDeclClass(),
+				callMth.getName(), args, returnType);
+		return new InvokePolymorphicNode(effectiveCallMth, insn, proto, callMth, isRange);
 	}
 
 	private InsnNode invokeSpecial(InsnData insn) {

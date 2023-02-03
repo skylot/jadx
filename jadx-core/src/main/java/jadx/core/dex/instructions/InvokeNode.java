@@ -67,6 +67,19 @@ public class InvokeNode extends BaseInvokeNode {
 		return type == InvokeType.STATIC;
 	}
 
+	public boolean isPolymorphicCall() {
+		if (type == InvokeType.POLYMORPHIC) {
+			return true;
+		}
+		// java bytecode uses virtual call with modified method info
+		if (type == InvokeType.VIRTUAL
+				&& mth.getDeclClass().getFullName().equals("java.lang.invoke.MethodHandle")
+				&& (mth.getName().equals("invoke") || mth.getName().equals("invokeExact"))) {
+			return true;
+		}
+		return false;
+	}
+
 	public int getFirstArgOffset() {
 		return type == InvokeType.STATIC ? 0 : 1;
 	}

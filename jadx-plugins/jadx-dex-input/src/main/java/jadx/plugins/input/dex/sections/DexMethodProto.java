@@ -25,6 +25,24 @@ public class DexMethodProto implements IMethodProto {
 	}
 
 	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (!(other instanceof IMethodProto)) {
+			return false;
+		}
+		IMethodProto that = (IMethodProto) other;
+		return argTypes.equals(that.getArgTypes())
+				&& returnType.equals(that.getReturnType());
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * argTypes.hashCode() + returnType.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return "(" + Utils.listToStr(argTypes) + ")" + returnType;
 	}

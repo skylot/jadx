@@ -48,6 +48,7 @@ public class SmaliConvert implements Closeable {
 		SmaliOptions options = new SmaliOptions();
 		options.outputDexFile = output.toAbsolutePath().toString();
 		options.verboseErrors = true;
+		options.apiLevel = 27; // TODO: add as plugin option
 
 		List<String> inputFileNames = inputFiles.stream()
 				.map(p -> p.toAbsolutePath().toString())
