@@ -53,12 +53,12 @@ public class EncodedValue extends PinnedAttribute {
 		switch (type) {
 			case ENCODED_NULL:
 				return "null";
-			case ENCODED_STRING:
-				return (String) value;
 			case ENCODED_ARRAY:
 				return "[" + value + "]";
+			case ENCODED_STRING:
+				return "{STRING: \"" + value + "\"}";
 			default:
-				return "{" + type + ": " + value + '}';
+				return "{" + type.toString().substring(8) + ": " + value + '}';
 		}
 	}
 }

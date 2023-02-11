@@ -8,4 +8,5 @@ public enum InvokeType {
 	SUPER,
 	POLYMORPHIC,
 	CUSTOM,
+	CUSTOM_RAW,
 }

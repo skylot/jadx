@@ -110,6 +110,12 @@ public abstract class IntegrationTest extends TestUtils {
 	private @Nullable TestCompiler sourceCompiler;
 	private @Nullable TestCompiler decompiledCompiler;
 
+	/**
+	 * Run check method on decompiled code even if source check method not found.
+	 * Useful for smali test if check method added to smali code
+	 */
+	private boolean forceDecompiledCheck = false;
+
 	static {
 		// enable debug checks
 		DebugChecks.checksEnabled = true;
@@ -347,11 +353,10 @@ public abstract class IntegrationTest extends TestUtils {
 		String clsName = cls.getClassInfo().getRawName().replace('/', '.');
 		try {
 			// run 'check' method from original class
-			if (runSourceAutoCheck(clsName)) {
-				return;
-			}
+			boolean sourceCheckFound = runSourceAutoCheck(clsName);
+
 			// run 'check' method from decompiled class
-			if (compile) {
+			if (compile && (sourceCheckFound || forceDecompiledCheck)) {
 				runDecompiledAutoCheck(cls);
 			}
 		} catch (Exception e) {
@@ -362,36 +367,36 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private boolean runSourceAutoCheck(String clsName) {
 		if (sourceCompiler == null) {
-			// no source code (smali case)
-			return true;
+			System.out.println("Source check: no code");
+			return false;
 		}
 		Class<?> origCls;
 		try {
 			origCls = sourceCompiler.getClass(clsName);
 		} catch (ClassNotFoundException e) {
 			rethrow("Missing class: " + clsName, e);
-			return true;
+			return false;
 		}
 		Method checkMth;
 		try {
 			checkMth = sourceCompiler.getMethod(origCls, CHECK_METHOD_NAME, new Class[] {});
 		} catch (NoSuchMethodException e) {
 			// ignore
-			return true;
+			return false;
 		}
 		if (!checkMth.getReturnType().equals(void.class)
 				|| !Modifier.isPublic(checkMth.getModifiers())
 				|| Modifier.isStatic(checkMth.getModifiers())) {
 			fail("Wrong 'check' method");
-			return true;
+			return false;
 		}
 		try {
 			limitExecTime(() -> checkMth.invoke(origCls.getConstructor().newInstance()));
 			System.out.println("Source check: PASSED");
+			return true;
 		} catch (Throwable e) {
 			throw new JadxRuntimeException("Source check failed", e);
 		}
-		return false;
 	}
 
 	public void runDecompiledAutoCheck(ClassNode cls) {
@@ -552,6 +557,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void disableCompilation() {
 		this.compile = false;
+	}
+
+	protected void forceDecompiledCheck() {
+		this.forceDecompiledCheck = true;
 	}
 
 	protected void enableDeobfuscation() {

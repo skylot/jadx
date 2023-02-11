@@ -14,6 +14,7 @@ import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.MethodHandleType;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -36,6 +37,7 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeCustomNode;
+import jadx.core.dex.instructions.InvokeCustomRawNode;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
@@ -795,6 +797,10 @@ public class InsnGen {
 		MethodInfo callMth = insn.getCallMth();
 		MethodNode callMthNode = mth.root().resolveMethod(callMth);
 
+		if (type == InvokeType.CUSTOM_RAW) {
+			makeInvokeCustomRaw((InvokeCustomRawNode) insn, callMthNode, code);
+			return;
+		}
 		if (insn.isPolymorphicCall()) {
 			// add missing cast
 			code.add('(');
@@ -843,6 +849,31 @@ public class InsnGen {
 			}
 		}
 		generateMethodArguments(code, insn, k, callMthNode);
+	}
+
+	private void makeInvokeCustomRaw(InvokeCustomRawNode insn,
+			@Nullable MethodNode callMthNode, ICodeWriter code) throws CodegenException {
+		if (isFallback()) {
+			code.add("call_site(");
+			code.incIndent();
+			for (EncodedValue value : insn.getCallSiteValues()) {
+				code.startLine(value.toString());
+			}
+			code.decIndent();
+			code.startLine(").invoke");
+			generateMethodArguments(code, insn, 0, callMthNode);
+		} else {
+			ArgType returnType = insn.getCallMth().getReturnType();
+			if (!returnType.isVoid()) {
+				code.add('(');
+				useType(code, returnType);
+				code.add(") ");
+			}
+			makeInvoke(insn.getResolveInvoke(), code);
+			code.add(".dynamicInvoker().invoke");
+			generateMethodArguments(code, insn, 0, callMthNode);
+			code.add(" /* invoke-custom */");
+		}
 	}
 
 	// FIXME: add 'this' for equals methods in scope

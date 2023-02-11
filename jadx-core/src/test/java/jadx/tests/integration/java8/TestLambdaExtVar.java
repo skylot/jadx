@@ -33,7 +33,5 @@ public class TestLambdaExtVar extends IntegrationTest {
 				.code()
 				.doesNotContain("lambda$")
 				.containsOne("return s.equals(str);"); // TODO: simplify to expression
-
-		System.out.println(cls.getCode().getCodeMetadata());
 	}
 }

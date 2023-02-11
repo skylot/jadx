@@ -8,6 +8,7 @@ import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.MethodHandleType;
+import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
@@ -34,7 +35,11 @@ public class CustomLambdaCall {
 		if (values.size() < 6) {
 			return false;
 		}
-		IMethodHandle methodHandle = (IMethodHandle) values.get(0).getValue();
+		EncodedValue mthRef = values.get(0);
+		if (mthRef.getType() != EncodedType.ENCODED_METHOD_HANDLE) {
+			return false;
+		}
+		IMethodHandle methodHandle = (IMethodHandle) mthRef.getValue();
 		if (methodHandle.getType() != MethodHandleType.INVOKE_STATIC) {
 			return false;
 		}
@@ -113,7 +118,7 @@ public class CustomLambdaCall {
 	@NotNull
 	private static InvokeNode buildInvokeNode(MethodHandleType methodHandleType, InvokeCustomNode invokeCustomNode,
 			MethodInfo callMthInfo) {
-		InvokeType invokeType = convertInvokeType(methodHandleType);
+		InvokeType invokeType = InvokeCustomUtils.convertInvokeType(methodHandleType);
 		int callArgsCount = callMthInfo.getArgsCount();
 		boolean instanceCall = invokeType != InvokeType.STATIC;
 		if (instanceCall) {
@@ -146,22 +151,5 @@ public class CustomLambdaCall {
 			}
 		}
 		return invokeNode;
-	}
-
-	private static InvokeType convertInvokeType(MethodHandleType type) {
-		switch (type) {
-			case INVOKE_STATIC:
-				return InvokeType.STATIC;
-			case INVOKE_INSTANCE:
-				return InvokeType.VIRTUAL;
-			case INVOKE_DIRECT:
-			case INVOKE_CONSTRUCTOR:
-				return InvokeType.DIRECT;
-			case INVOKE_INTERFACE:
-				return InvokeType.INTERFACE;
-
-			default:
-				throw new JadxRuntimeException("Unsupported method handle type: " + type);
-		}
 	}
 }
