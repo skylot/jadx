@@ -472,7 +472,11 @@ public class InsnNode extends LineAttrNode {
 	public void rebindArgs() {
 		RegisterArg resArg = getResult();
 		if (resArg != null) {
-			resArg.getSVar().setAssign(resArg);
+			SSAVar ssaVar = resArg.getSVar();
+			if (ssaVar == null) {
+				throw new JadxRuntimeException("No SSA var for result arg: " + resArg + " from " + resArg.getParentInsn());
+			}
+			ssaVar.setAssign(resArg);
 		}
 		for (InsnArg arg : getArguments()) {
 			if (arg instanceof RegisterArg) {
@@ -560,16 +564,36 @@ public class InsnNode extends LineAttrNode {
 		return true;
 	}
 
-	@Override
-	public String toString() {
+	protected String attributesString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(InsnUtils.formatOffset(offset));
-		sb.append(": ");
-		sb.append(InsnUtils.insnTypeToString(insnType));
+		appendAttributes(sb);
+		return sb.toString();
+	}
+
+	protected void appendAttributes(StringBuilder sb) {
+		if (!isAttrStorageEmpty()) {
+			sb.append(' ').append(getAttributesString());
+		}
+		if (getSourceLine() != 0) {
+			sb.append(" (LINE:").append(getSourceLine()).append(')');
+		}
+	}
+
+	protected String baseString() {
+		StringBuilder sb = new StringBuilder();
+		if (offset != -1) {
+			sb.append(InsnUtils.formatOffset(offset)).append(": ");
+		}
+		sb.append(insnType).append(' ');
 		if (result != null) {
 			sb.append(result).append(" = ");
 		}
 		appendArgs(sb);
 		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return baseString() + attributesString();
 	}
 }

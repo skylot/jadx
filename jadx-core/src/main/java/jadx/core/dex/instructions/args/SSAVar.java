@@ -65,7 +65,13 @@ public class SSAVar {
 	}
 
 	public void setAssign(@NotNull RegisterArg assign) {
-		this.assign = assign;
+		RegisterArg oldAssign = this.assign;
+		if (oldAssign == null) {
+			this.assign = assign;
+		} else if (oldAssign != assign) {
+			oldAssign.resetSSAVar();
+			this.assign = assign;
+		}
 	}
 
 	public List<RegisterArg> getUseList() {

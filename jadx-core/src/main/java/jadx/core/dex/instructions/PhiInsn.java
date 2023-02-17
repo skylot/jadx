@@ -14,7 +14,6 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnRemover;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class PhiInsn extends InsnNode {
@@ -134,7 +133,6 @@ public final class PhiInsn extends InsnNode {
 
 	@Override
 	public String toString() {
-		return "PHI: " + getResult() + " = " + Utils.listToString(getArguments())
-				+ " binds: " + blockBinds;
+		return baseString() + " binds: " + blockBinds + attributesString();
 	}
 }

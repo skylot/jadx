@@ -37,6 +37,7 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -517,6 +518,24 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public int getArgsStartReg() {
 		return argsStartReg;
+	}
+
+	/**
+	 * Create new fake register arg.
+	 */
+	public RegisterArg makeSyntheticRegArg(ArgType type) {
+		RegisterArg arg = InsnArg.reg(0, type);
+		arg.add(AFlag.SYNTHETIC);
+		SSAVar ssaVar = makeNewSVar(arg);
+		InitCodeVariables.initCodeVar(ssaVar);
+		ssaVar.setType(type);
+		return arg;
+	}
+
+	public RegisterArg makeSyntheticRegArg(ArgType type, String name) {
+		RegisterArg arg = makeSyntheticRegArg(type);
+		arg.setName(name);
+		return arg;
 	}
 
 	public SSAVar makeNewSVar(@NotNull RegisterArg assignArg) {

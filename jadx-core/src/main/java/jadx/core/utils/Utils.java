@@ -119,6 +119,20 @@ public class Utils {
 		return sb.toString();
 	}
 
+	public static String currentStackTrace() {
+		return getStackTrace(new Exception());
+	}
+
+	public static String currentStackTrace(int skipFrames) {
+		Exception e = new Exception();
+		StackTraceElement[] stackTrace = e.getStackTrace();
+		int len = stackTrace.length;
+		if (skipFrames < len) {
+			e.setStackTrace(Arrays.copyOfRange(stackTrace, skipFrames, len));
+		}
+		return getStackTrace(e);
+	}
+
 	public static String getFullStackTrace(Throwable throwable) {
 		return getStackTrace(throwable, false);
 	}

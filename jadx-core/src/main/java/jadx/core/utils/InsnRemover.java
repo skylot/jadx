@@ -22,6 +22,9 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.utils.InsnUtils.isInsnType;
+import static jadx.core.utils.ListUtils.allMatch;
+
 /**
  * Helper class for correct instructions removing,
  * can be used while iterating over instructions list
@@ -108,14 +111,13 @@ public class InsnRemover {
 		if (r == null) {
 			return;
 		}
-		r.add(AFlag.REMOVE); // don't unset result arg, can be used to restore variable
-		if (mth == null) {
-			return;
+		if (mth != null) {
+			SSAVar ssaVar = r.getSVar();
+			if (ssaVar != null && ssaVar.getAssignInsn() == insn /* can be already reassigned */) {
+				removeSsaVar(mth, ssaVar);
+			}
 		}
-		SSAVar ssaVar = r.getSVar();
-		if (ssaVar != null && ssaVar.getAssign() == insn.getResult()) {
-			removeSsaVar(mth, ssaVar);
-		}
+		insn.setResult(null);
 	}
 
 	private static void removeSsaVar(MethodNode mth, SSAVar ssaVar) {
@@ -125,15 +127,7 @@ public class InsnRemover {
 			return;
 		}
 		// check if all usage only in PHI insns
-		boolean allPhis = true;
-		for (RegisterArg arg : ssaVar.getUseList()) {
-			InsnNode parentInsn = arg.getParentInsn();
-			if (parentInsn == null || parentInsn.getType() != InsnType.PHI) {
-				allPhis = false;
-				break;
-			}
-		}
-		if (allPhis) {
+		if (allMatch(ssaVar.getUseList(), arg -> isInsnType(arg.getParentInsn(), InsnType.PHI))) {
 			for (RegisterArg arg : new ArrayList<>(ssaVar.getUseList())) {
 				InsnNode parentInsn = arg.getParentInsn();
 				if (parentInsn != null) {
@@ -143,12 +137,19 @@ public class InsnRemover {
 			mth.removeSVar(ssaVar);
 			return;
 		}
-		if (Consts.DEBUG_WITH_ERRORS) {
-			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount + ", list:"
-					+ ICodeWriter.NL + "  " + ssaVar.getUseList().stream()
-							.map(arg -> arg + " from " + arg.getParentInsn())
-							.collect(Collectors.joining(ICodeWriter.NL + "  ")));
+		// check if all usage only in not generated instructions
+		if (allMatch(ssaVar.getUseList(),
+				arg -> arg.contains(AFlag.DONT_GENERATE) || (InsnUtils.contains(arg.getParentInsn(), AFlag.DONT_GENERATE)))) {
+			for (RegisterArg arg : ssaVar.getUseList()) {
+				arg.resetSSAVar();
+			}
+			mth.removeSVar(ssaVar);
+			return;
 		}
+		throw new JadxRuntimeException("Can't remove SSA var: " + ssaVar + ", still in use, count: " + useCount
+				+ ", list:" + ICodeWriter.NL + "  " + ssaVar.getUseList().stream()
+						.map(arg -> arg + " from " + arg.getParentInsn())
+						.collect(Collectors.joining(ICodeWriter.NL + "  ")));
 	}
 
 	public static void unbindArgUsage(@Nullable MethodNode mth, InsnArg arg) {

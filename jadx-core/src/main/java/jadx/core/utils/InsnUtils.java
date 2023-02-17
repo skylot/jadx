@@ -215,6 +215,10 @@ public class InsnUtils {
 		return null;
 	}
 
+	public static boolean isInsnType(@Nullable InsnNode insn, InsnType insnType) {
+		return insn != null && insn.getType() == insnType;
+	}
+
 	@Nullable
 	public static InsnNode getWrappedInsn(InsnArg arg) {
 		if (arg != null && arg.isInsnWrap()) {
@@ -249,5 +253,9 @@ public class InsnUtils {
 			}
 		}
 		return false;
+	}
+
+	public static boolean contains(InsnNode insn, AFlag flag) {
+		return insn != null && insn.contains(flag);
 	}
 }

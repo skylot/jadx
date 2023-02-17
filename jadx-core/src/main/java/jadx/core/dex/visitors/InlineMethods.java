@@ -15,10 +15,8 @@ import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -84,7 +82,7 @@ public class InlineMethods extends AbstractVisitor {
 			inlCopy.setResult(resultArg.duplicate());
 		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
 			// add fake result to make correct java expression (see test TestGetterInlineNegative)
-			inlCopy.setResult(makeFakeArg(mth, callMth.getReturnType(), "unused"));
+			inlCopy.setResult(mth.makeSyntheticRegArg(callMth.getReturnType(), "unused"));
 		}
 		if (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
 			// remap args
@@ -133,15 +131,6 @@ public class InlineMethods extends AbstractVisitor {
 			return false;
 		}
 		return !callMthNode.isVoidReturn();
-	}
-
-	private RegisterArg makeFakeArg(MethodNode mth, ArgType varType, String name) {
-		RegisterArg fakeArg = RegisterArg.reg(0, varType);
-		SSAVar ssaVar = mth.makeNewSVar(fakeArg);
-		InitCodeVariables.initCodeVar(ssaVar);
-		fakeArg.setName(name);
-		ssaVar.setType(varType);
-		return fakeArg;
 	}
 
 	private void updateUsageInfo(MethodNode mth, MethodNode inlinedMth, InsnNode insn) {

@@ -80,16 +80,30 @@ public class DebugChecks {
 
 		SSAVar sVar = reg.getSVar();
 		if (sVar == null) {
+			if (reg.contains(AFlag.DONT_GENERATE) || insn.contains(AFlag.DONT_GENERATE)) {
+				return;
+			}
 			if (Utils.notEmpty(mth.getSVars())) {
-				throw new JadxRuntimeException("Null SSA var in " + insn + ", mth: " + mth);
+				throw new JadxRuntimeException("Null SSA var in " + reg + " at " + insn);
 			}
 			return;
 		}
+		if (Utils.indexInListByRef(mth.getSVars(), sVar) == -1) {
+			throw new JadxRuntimeException("SSA var not present in method vars list, var: " + sVar + " from insn: " + insn);
+		}
+		RegisterArg resArg = insn.getResult();
 		List<RegisterArg> useList = sVar.getUseList();
-		boolean assignReg = insn.getResult() == reg;
-		if (!assignReg && !Utils.containsInListByRef(useList, reg)) {
-			throw new JadxRuntimeException("Incorrect use list in ssa var: " + sVar + ", register not listed."
-					+ ICodeWriter.NL + " insn: " + insn);
+		if (resArg == reg) {
+			if (sVar.getAssignInsn() != insn) {
+				throw new JadxRuntimeException("Incorrect assign in ssa var: " + sVar
+						+ ICodeWriter.NL + " expected: " + sVar.getAssignInsn()
+						+ ICodeWriter.NL + " got: " + insn);
+			}
+		} else {
+			if (!Utils.containsInListByRef(useList, reg)) {
+				throw new JadxRuntimeException("Incorrect use list in ssa var: " + sVar + ", register not listed."
+						+ ICodeWriter.NL + " insn: " + insn);
+			}
 		}
 		for (RegisterArg useArg : useList) {
 			checkRegisterArg(mth, useArg);

@@ -287,7 +287,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		}
 		RegisterArg otherArg = null;
 		for (InsnArg arg : phiInsn.getArguments()) {
-			if (arg != resArg && arg instanceof RegisterArg) {
+			if (!resArg.sameRegAndSVar(arg)) {
 				otherArg = (RegisterArg) arg;
 				break;
 			}
@@ -326,15 +326,16 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			}
 			elseArg = InsnArg.wrapInsnIntoArg(elseAssign);
 		} else {
-			elseArg = otherArg;
+			elseArg = otherArg.duplicate();
 		}
-		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), elseArg);
+		InsnArg thenArg = InsnArg.wrapInsnIntoArg(insn);
+		RegisterArg resultArg = phiInsn.getResult().duplicate();
+		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resultArg, thenArg, elseArg);
 		ternInsn.simplifyCondition();
 
+		InsnRemover.unbindAllArgs(mth, phiInsn);
 		InsnRemover.unbindResult(mth, insn);
 		InsnList.remove(block, insn);
-		InsnRemover.unbindAllArgs(mth, phiInsn);
 		header.getInstructions().clear();
 		ternInsn.rebindArgs();
 		header.getInstructions().add(ternInsn);

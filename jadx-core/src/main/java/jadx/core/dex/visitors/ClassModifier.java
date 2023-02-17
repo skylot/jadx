@@ -79,8 +79,9 @@ public class ClassModifier extends AbstractVisitor {
 		boolean inline = cls.isAnonymous();
 		if (inline || cls.getClassInfo().isInner()) {
 			for (FieldNode field : cls.getFields()) {
-				if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
-					ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
+				ArgType fldType = field.getType();
+				if (field.getAccessFlags().isSynthetic() && fldType.isObject() && !fldType.isGenericType()) {
+					ClassInfo clsInfo = ClassInfo.fromType(cls.root(), fldType);
 					ClassNode fieldsCls = cls.root().resolveClass(clsInfo);
 					ClassInfo parentClass = cls.getClassInfo().getParentClass();
 					if (fieldsCls != null

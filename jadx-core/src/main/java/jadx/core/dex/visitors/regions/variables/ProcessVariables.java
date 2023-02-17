@@ -8,12 +8,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
@@ -30,6 +32,7 @@ import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
@@ -72,14 +75,58 @@ public class ProcessVariables extends AbstractVisitor {
 			public void processBlock(MethodNode mth, IBlock container) {
 				for (InsnNode insn : container.getInstructions()) {
 					RegisterArg resultArg = insn.getResult();
-					if (resultArg != null) {
-						SSAVar ssaVar = resultArg.getSVar();
-						if (ssaVar.getUseList().isEmpty() && insn.canRemoveResult()) {
+					if (resultArg == null) {
+						continue;
+					}
+					SSAVar ssaVar = resultArg.getSVar();
+					if (isVarUnused(mth, ssaVar)) {
+						boolean remove = false;
+						if (insn.canRemoveResult()) {
+							// remove unused result
+							remove = true;
+						} else if (insn.isConstInsn()) {
+							// remove whole insn
+							insn.add(AFlag.REMOVE);
+							insn.add(AFlag.DONT_GENERATE);
+							remove = true;
+						}
+						if (remove) {
 							insn.setResult(null);
 							mth.removeSVar(ssaVar);
+							for (RegisterArg arg : ssaVar.getUseList()) {
+								arg.resetSSAVar();
+							}
 						}
 					}
 				}
+			}
+
+			private boolean isVarUnused(MethodNode mth, @Nullable SSAVar ssaVar) {
+				if (ssaVar == null) {
+					return true;
+				}
+				List<RegisterArg> useList = ssaVar.getUseList();
+				if (useList.isEmpty()) {
+					return true;
+				}
+				if (ssaVar.isUsedInPhi()) {
+					return false;
+				}
+				return ListUtils.allMatch(useList, arg -> isArgUnused(mth, arg));
+			}
+
+			private boolean isArgUnused(MethodNode mth, RegisterArg arg) {
+				if (arg.contains(AFlag.REMOVE) || arg.contains(AFlag.SKIP_ARG)) {
+					return true;
+				}
+				InsnNode parentInsn = arg.getParentInsn();
+				if (parentInsn instanceof BaseInvokeNode
+						&& mth.root().getMethodUtils().isSkipArg(((BaseInvokeNode) parentInsn), arg)) {
+					arg.add(AFlag.DONT_GENERATE);
+					arg.add(AFlag.REMOVE);
+					return true;
+				}
+				return false;
 			}
 		});
 	}

@@ -92,6 +92,7 @@ public class InvokeCustomRawNode extends InvokeNode {
 		if (!appendArgs(sb)) {
 			sb.append('\n');
 		}
+		appendAttributes(sb);
 		sb.append(" call-site: \n  ").append(Utils.listToString(callSiteValues, "\n  ")).append('\n');
 		return sb.toString();
 	}

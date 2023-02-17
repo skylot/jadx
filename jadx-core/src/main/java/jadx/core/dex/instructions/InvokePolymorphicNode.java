@@ -59,6 +59,7 @@ public class InvokePolymorphicNode extends InvokeNode {
 		if (!appendArgs(sb)) {
 			sb.append('\n');
 		}
+		appendAttributes(sb);
 		sb.append(" base: ").append(baseCallRef).append('\n');
 		sb.append(" proto: ").append(proto).append('\n');
 		return sb.toString();

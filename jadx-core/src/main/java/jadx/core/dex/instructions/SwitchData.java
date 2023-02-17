@@ -44,6 +44,7 @@ public class SwitchData extends InsnNode {
 			sb.append(keys[i]).append("->").append(InsnUtils.formatOffset(targets[i])).append(", ");
 		}
 		sb.append('}');
+		appendAttributes(sb);
 		return sb.toString();
 	}
 }

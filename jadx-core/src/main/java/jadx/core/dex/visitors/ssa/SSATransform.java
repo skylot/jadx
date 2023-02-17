@@ -18,9 +18,12 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.trycatch.CatchAttr;
+import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocks.BlockProcessor;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -58,20 +61,10 @@ public class SSATransform extends AbstractVisitor {
 			placePhi(mth, i, la);
 		}
 		renameVariables(mth);
-
 		fixLastAssignInTry(mth);
 		removeBlockerInsns(mth);
 		markThisArgs(mth.getThisArg());
-
-		boolean repeatFix;
-		int k = 0;
-		do {
-			repeatFix = fixUselessPhi(mth);
-			if (k++ > 50) {
-				throw new JadxRuntimeException("Phi nodes fix limit reached!");
-			}
-		} while (repeatFix);
-
+		tryToFixUselessPhi(mth);
 		hidePhiInsns(mth);
 		removeUnusedInvokeResults(mth);
 	}
@@ -208,29 +201,42 @@ public class SSATransform extends AbstractVisitor {
 	private static void fixLastAssignInTry(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			PhiListAttr phiList = block.get(AType.PHI_LIST);
-			if (phiList != null && block.contains(AType.EXC_HANDLER)) {
-				for (PhiInsn phi : phiList.getList()) {
-					fixPhiInTryCatch(phi);
+			if (phiList != null) {
+				ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
+				if (handlerAttr != null) {
+					for (PhiInsn phi : phiList.getList()) {
+						fixPhiInTryCatch(mth, phi, handlerAttr);
+					}
 				}
 			}
 		}
 	}
 
-	private static void fixPhiInTryCatch(PhiInsn phi) {
+	private static void fixPhiInTryCatch(MethodNode mth, PhiInsn phi, ExcHandlerAttr handlerAttr) {
 		int argsCount = phi.getArgsCount();
 		int k = 0;
 		while (k < argsCount) {
 			RegisterArg arg = phi.getArg(k);
-			InsnNode parentInsn = arg.getAssignInsn();
-			if (parentInsn != null
-					&& parentInsn.getResult() != null
-					&& parentInsn.contains(AFlag.TRY_LEAVE)
-					&& phi.removeArg(arg) /* TODO: fix registers removing */) {
+			if (shouldSkipInsnResult(mth, arg.getAssignInsn(), handlerAttr)) {
+				phi.removeArg(arg);
 				argsCount--;
-				continue;
+			} else {
+				k++;
 			}
-			k++;
 		}
+		if (phi.getArgsCount() == 0) {
+			throw new JadxRuntimeException("PHI empty after try-catch fix!");
+		}
+	}
+
+	private static boolean shouldSkipInsnResult(MethodNode mth, InsnNode insn, ExcHandlerAttr handlerAttr) {
+		if (insn != null
+				&& insn.getResult() != null
+				&& insn.contains(AFlag.TRY_LEAVE)) {
+			CatchAttr catchAttr = BlockUtils.getCatchAttrForInsn(mth, insn);
+			return catchAttr != null && catchAttr.getHandlers().contains(handlerAttr.getHandler());
+		}
+		return false;
 	}
 
 	private static boolean removeBlockerInsns(MethodNode mth) {
@@ -254,6 +260,16 @@ public class SSATransform extends AbstractVisitor {
 			}
 		}
 		return removed;
+	}
+
+	private static void tryToFixUselessPhi(MethodNode mth) {
+		int k = 0;
+		int maxTries = mth.getSVars().size() * 2;
+		while (fixUselessPhi(mth)) {
+			if (k++ > maxTries) {
+				throw new JadxRuntimeException("Phi nodes fix limit reached!");
+			}
+		}
 	}
 
 	private static boolean fixUselessPhi(MethodNode mth) {
@@ -299,10 +315,10 @@ public class SSATransform extends AbstractVisitor {
 			return true;
 		}
 		boolean allSame = phi.getArgsCount() == 1 || isSameArgs(phi);
-		if (!allSame) {
-			return false;
+		if (allSame) {
+			return replacePhiWithMove(mth, block, phi, phi.getArg(0));
 		}
-		return replacePhiWithMove(mth, block, phi, phi.getArg(0));
+		return false;
 	}
 
 	private static boolean isSameArgs(PhiInsn phi) {

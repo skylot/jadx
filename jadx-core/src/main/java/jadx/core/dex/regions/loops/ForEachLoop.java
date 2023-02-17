@@ -13,7 +13,7 @@ public final class ForEachLoop extends LoopType {
 	public ForEachLoop(RegisterArg varArg, InsnArg iterableArg) {
 		// store for-each args in fake instructions to
 		// save code semantics and allow args manipulations like args inlining
-		varArgInsn = new InsnNode(InsnType.REGION_ARG, 1);
+		varArgInsn = new InsnNode(InsnType.REGION_ARG, 0);
 		varArgInsn.add(AFlag.DONT_INLINE);
 		varArgInsn.setResult(varArg.duplicate());
 

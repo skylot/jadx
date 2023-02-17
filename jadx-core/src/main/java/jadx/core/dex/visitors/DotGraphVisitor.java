@@ -284,15 +284,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 		private String insertInsns(MethodNode mth, IBlock block) {
 			if (rawInsn) {
-				StringBuilder str = new StringBuilder();
+				StringBuilder sb = new StringBuilder();
 				for (InsnNode insn : block.getInstructions()) {
-					str.append(escape(insn + " " + insn.getAttributesString()));
-					if (insn.getSourceLine() != 0) {
-						str.append(" (LINE:").append(insn.getSourceLine()).append(')');
-					}
-					str.append(NL);
+					sb.append(escape(insn)).append(NL);
 				}
-				return str.toString();
+				return sb.toString();
 			} else {
 				ICodeWriter code = new SimpleCodeWriter();
 				List<InsnNode> instructions = block.getInstructions();

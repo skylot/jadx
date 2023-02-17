@@ -638,9 +638,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (assignBlock == null) {
 			return false;
 		}
-		RegisterArg newAssignArg = assignArg.duplicateWithNewSSAVar(mth);
-		assignInsn.setResult(newAssignArg);
-		IndexInsnNode castInsn = makeSoftCastInsn(assignArg, newAssignArg, castType);
+		assignInsn.setResult(assignArg.duplicateWithNewSSAVar(mth));
+		IndexInsnNode castInsn = makeSoftCastInsn(assignArg.duplicate(), assignInsn.getResult().duplicate(), castType);
 		return BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn);
 	}
 
@@ -657,18 +656,19 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (useBlock == null) {
 			return false;
 		}
-		RegisterArg newUseArg = useArg.duplicateWithNewSSAVar(mth);
-		useInsn.replaceArg(useArg, newUseArg);
-
-		IndexInsnNode castInsn = makeSoftCastInsn(newUseArg, useArg, useArg.getInitType());
+		IndexInsnNode castInsn = makeSoftCastInsn(
+				useArg.duplicateWithNewSSAVar(mth),
+				useArg.duplicate(),
+				useArg.getInitType());
+		useInsn.replaceArg(useArg, castInsn.getResult().duplicate());
 		return BlockUtils.insertBeforeInsn(useBlock, useInsn, castInsn);
 	}
 
 	@NotNull
 	private IndexInsnNode makeSoftCastInsn(RegisterArg result, RegisterArg arg, ArgType castType) {
 		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
-		castInsn.setResult(result.duplicate());
-		castInsn.addArg(arg.duplicate());
+		castInsn.setResult(result);
+		castInsn.addArg(arg);
 		castInsn.add(AFlag.SOFT_CAST);
 		castInsn.add(AFlag.SYNTHETIC);
 		return castInsn;

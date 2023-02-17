@@ -10,10 +10,12 @@ import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
@@ -52,6 +54,19 @@ public class MethodUtils {
 			return ((MethodNode) methodDetails);
 		}
 		return null;
+	}
+
+	public boolean isSkipArg(BaseInvokeNode invokeNode, InsnArg arg) {
+		MethodNode mth = resolveMethod(invokeNode);
+		if (mth == null) {
+			return false;
+		}
+		SkipMethodArgsAttr skipArgsAttr = mth.get(AType.SKIP_MTH_ARGS);
+		if (skipArgsAttr == null) {
+			return false;
+		}
+		int argIndex = invokeNode.getArgIndex(arg);
+		return skipArgsAttr.isSkip(argIndex);
 	}
 
 	/**

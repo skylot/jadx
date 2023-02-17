@@ -103,7 +103,7 @@ public class SwitchInsn extends TargetInsnNode {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
+		sb.append(baseString());
 		if (switchData == null) {
 			sb.append("no payload");
 		} else {
@@ -129,6 +129,7 @@ public class SwitchInsn extends TargetInsnNode {
 				}
 			}
 		}
+		appendAttributes(sb);
 		return sb.toString();
 	}
 

@@ -31,6 +31,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
@@ -165,6 +166,9 @@ public class ReSugarCode extends AbstractVisitor {
 		// checks complete, apply
 		InsnNode filledArr = new FilledNewArrayNode(elemType, len);
 		filledArr.setResult(arrArg.duplicate());
+		filledArr.copyAttributesFrom(newArrayInsn);
+		filledArr.inheritMetadata(newArrayInsn);
+		filledArr.setOffset(newArrayInsn.getOffset());
 
 		long prevIndex = -1;
 		for (Map.Entry<Long, InsnNode> entry : arrPuts.entrySet()) {
@@ -185,6 +189,7 @@ public class ReSugarCode extends AbstractVisitor {
 		InsnNode lastPut = arrPuts.get(arrPuts.lastKey());
 		int replaceIndex = InsnList.getIndex(instructions, lastPut);
 		instructions.set(replaceIndex, filledArr);
+		BlockUtils.replaceInsn(mth, lastPut, filledArr);
 		return true;
 	}
 

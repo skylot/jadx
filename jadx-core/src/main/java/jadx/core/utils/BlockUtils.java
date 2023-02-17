@@ -35,6 +35,7 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -408,6 +409,12 @@ public class BlockUtils {
 	public static BlockNode getNextBlock(BlockNode block) {
 		List<BlockNode> s = block.getCleanSuccessors();
 		return s.isEmpty() ? null : s.get(0);
+	}
+
+	@Nullable
+	public static BlockNode getPrevBlock(BlockNode block) {
+		List<BlockNode> preds = block.getPredecessors();
+		return preds.size() == 1 ? preds.get(0) : null;
 	}
 
 	/**
@@ -1244,5 +1251,17 @@ public class BlockUtils {
 			}
 		}
 		return null;
+	}
+
+	public static @Nullable CatchAttr getCatchAttrForInsn(MethodNode mth, InsnNode insn) {
+		CatchAttr catchAttr = insn.get(AType.EXC_CATCH);
+		if (catchAttr != null) {
+			return catchAttr;
+		}
+		BlockNode block = getBlockByInsn(mth, insn);
+		if (block == null) {
+			return null;
+		}
+		return block.get(AType.EXC_CATCH);
 	}
 }

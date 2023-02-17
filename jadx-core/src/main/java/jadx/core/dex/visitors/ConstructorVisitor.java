@@ -1,7 +1,5 @@
 package jadx.core.dex.visitors;
 
-import java.util.ArrayList;
-
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.codegen.TypeGen;
@@ -71,7 +69,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		co.inheritMetadata(inv);
 
 		RegisterArg instanceArg = ((RegisterArg) inv.getArg(0));
-		InsnNode newInstInsn = null;
+		instanceArg.getSVar().removeUse(instanceArg);
 		if (co.isNewInstance()) {
 			InsnNode assignInsn = instanceArg.getAssignInsn();
 			if (assignInsn != null) {
@@ -79,8 +77,9 @@ public class ConstructorVisitor extends AbstractVisitor {
 					// arg already used in another constructor instruction
 					mth.add(AFlag.RERUN_SSA_TRANSFORM);
 				} else {
-					newInstInsn = removeAssignChain(mth, assignInsn, remover, InsnType.NEW_INSTANCE);
+					InsnNode newInstInsn = removeAssignChain(mth, assignInsn, remover, InsnType.NEW_INSTANCE);
 					if (newInstInsn != null) {
+						co.inheritMetadata(newInstInsn);
 						newInstInsn.add(AFlag.REMOVE);
 						remover.addWithoutUnbind(newInstInsn);
 					}
@@ -89,23 +88,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 			// convert instance arg from 'use' to 'assign'
 			co.setResult(instanceArg.duplicate());
 		}
-		instanceArg.getSVar().removeUse(instanceArg);
-
 		co.rebindArgs();
-		if (co.isNewInstance() && newInstInsn != null) {
-			RegisterArg instArg = newInstInsn.getResult();
-			RegisterArg resultArg = co.getResult();
-			if (!resultArg.equals(instArg)) {
-				// replace all usages of 'instArg' with result of this constructor instruction
-				for (RegisterArg useArg : new ArrayList<>(instArg.getSVar().getUseList())) {
-					InsnNode parentInsn = useArg.getParentInsn();
-					if (parentInsn != null) {
-						parentInsn.replaceArg(useArg, resultArg.duplicate());
-					}
-				}
-			}
-			co.inheritMetadata(newInstInsn);
-		}
 		ConstructorInsn replace = processConstructor(mth, co);
 		if (replace != null) {
 			remover.addAndUnbind(co);

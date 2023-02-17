@@ -123,6 +123,7 @@ public class InvokeCustomNode extends InvokeNode {
 			sb.append(getResult()).append(" = ");
 		}
 		appendArgs(sb);
+		appendAttributes(sb);
 		sb.append("\n handle type: ").append(handleType);
 		sb.append("\n lambda: ").append(implMthInfo);
 		sb.append("\n call insn: ").append(callInsn);

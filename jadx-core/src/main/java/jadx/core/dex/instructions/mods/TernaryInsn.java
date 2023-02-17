@@ -96,7 +96,7 @@ public final class TernaryInsn extends InsnNode {
 
 	@Override
 	public String toString() {
-		return InsnUtils.formatOffset(offset) + ": TERNARY"
+		return InsnUtils.formatOffset(offset) + ": TERNARY "
 				+ getResult() + " = (" + condition + ") ? " + getArg(0) + " : " + getArg(1);
 	}
 }

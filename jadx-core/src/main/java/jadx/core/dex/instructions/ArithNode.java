@@ -117,11 +117,20 @@ public class ArithNode extends InsnNode {
 
 	@Override
 	public String toString() {
-		return InsnUtils.formatOffset(offset) + ": "
-				+ InsnUtils.insnTypeToString(insnType)
-				+ getResult() + " = "
-				+ getArg(0) + ' '
-				+ op.getSymbol() + ' '
-				+ getArg(1);
+		StringBuilder sb = new StringBuilder();
+		sb.append(InsnUtils.formatOffset(offset));
+		sb.append(": ARITH ");
+		if (contains(AFlag.ARITH_ONEARG)) {
+			sb.append(getArg(0)).append(' ').append(op.getSymbol()).append("= ").append(getArg(1));
+		} else {
+			RegisterArg result = getResult();
+			if (result != null) {
+				sb.append(result).append(" = ");
+			}
+			sb.append(getArg(0)).append(' ').append(op.getSymbol()).append(' ').append(getArg(1));
+		}
+
+		appendAttributes(sb);
+		return sb.toString();
 	}
 }

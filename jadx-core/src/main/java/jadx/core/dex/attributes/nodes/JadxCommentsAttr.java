@@ -11,9 +11,24 @@ import jadx.api.CommentsLevel;
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.utils.Utils;
 
 public class JadxCommentsAttr implements IJadxAttribute {
+
+	public static void add(IAttributeNode node, CommentsLevel level, String comment) {
+		initFor(node).add(level, comment);
+	}
+
+	private static JadxCommentsAttr initFor(IAttributeNode node) {
+		JadxCommentsAttr currentAttr = node.get(AType.JADX_COMMENTS);
+		if (currentAttr != null) {
+			return currentAttr;
+		}
+		JadxCommentsAttr newAttr = new JadxCommentsAttr();
+		node.addAttr(newAttr);
+		return newAttr;
+	}
 
 	private final Map<CommentsLevel, List<String>> comments = new EnumMap<>(CommentsLevel.class);
 

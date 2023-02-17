@@ -149,6 +149,7 @@ public class IfNode extends GotoNode {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)
 				+ getArg(0) + ' ' + op.getSymbol() + ' ' + getArg(1)
-				+ "  -> " + (thenBlock != null ? thenBlock : InsnUtils.formatOffset(target));
+				+ "  -> " + (thenBlock != null ? thenBlock : InsnUtils.formatOffset(target))
+				+ attributesString();
 	}
 }

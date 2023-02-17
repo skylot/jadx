@@ -210,11 +210,24 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return null;
 		}
 		RegisterArg iterVar = arrGetInsn.getResult();
-		if (iterVar == null) {
-			return null;
-		}
-		if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
-			return null;
+		if (iterVar != null) {
+			if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
+				return null;
+			}
+		} else {
+			if (!arrGetInsn.contains(AFlag.WRAPPED)) {
+				return null;
+			}
+			// create new variable and replace wrapped insn
+			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
+			if (wrapArg == null || wrapArg.getParentInsn() == null) {
+				mth.addWarnComment("checkArrayForEach: Wrapped insn not found: " + arrGetInsn);
+				return null;
+			}
+			iterVar = mth.makeSyntheticRegArg(wrapArg.getType());
+			InsnNode parentInsn = wrapArg.getParentInsn();
+			parentInsn.replaceArg(wrapArg, iterVar.duplicate());
+			parentInsn.rebindArgs();
 		}
 
 		// array for each loop confirmed
@@ -224,16 +237,6 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		arrGetInsn.add(AFlag.DONT_GENERATE);
 		compare.getInsn().add(AFlag.DONT_GENERATE);
 
-		if (arrGetInsn.contains(AFlag.WRAPPED)) {
-			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
-			if (wrapArg != null && wrapArg.getParentInsn() != null) {
-				InsnNode parentInsn = wrapArg.getParentInsn();
-				parentInsn.replaceArg(wrapArg, iterVar.duplicate());
-				parentInsn.rebindArgs();
-			} else {
-				LOG.debug(" checkArrayForEach: Wrapped insn not found: {}, mth: {}", arrGetInsn, mth);
-			}
-		}
 		ForEachLoop forEachLoop = new ForEachLoop(iterVar, len.getArg(0));
 		forEachLoop.injectFakeInsns(loopRegion);
 		if (InsnUtils.dontGenerateIfNotUsed(len)) {
@@ -327,6 +330,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		assignInsn.getResult().add(AFlag.DONT_GENERATE);
 
 		for (InsnNode insnNode : toSkip) {
+			insnNode.setResult(null);
 			insnNode.add(AFlag.DONT_GENERATE);
 		}
 		for (RegisterArg itArg : itUseList) {

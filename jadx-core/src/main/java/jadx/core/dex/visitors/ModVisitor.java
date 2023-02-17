@@ -531,7 +531,7 @@ public class ModVisitor extends AbstractVisitor {
 
 		List<LiteralArg> list = insn.getLiteralArgs(elType);
 		InsnNode filledArr = new FilledNewArrayNode(elType, list.size());
-		filledArr.setResult(newArrayNode.getResult());
+		filledArr.setResult(newArrayNode.getResult().duplicate());
 		for (LiteralArg arg : list) {
 			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(arg);
 			if (f != null) {
@@ -539,7 +539,7 @@ public class ModVisitor extends AbstractVisitor {
 				filledArr.addArg(InsnArg.wrapArg(fGet));
 				f.addUseIn(mth);
 			} else {
-				filledArr.addArg(arg);
+				filledArr.addArg(arg.duplicate());
 			}
 		}
 		return filledArr;
