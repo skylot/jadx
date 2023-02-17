@@ -309,9 +309,21 @@ public final class JadxDecompiler implements Closeable {
 		if (args.isSkipFilesSave()) {
 			return;
 		}
+		// process AndroidManifest.xml first to load complete resource ids table
+		for (ResourceFile resourceFile : getResources()) {
+			if (resourceFile.getType() == ResourceType.MANIFEST) {
+				new ResourcesSaver(outDir, resourceFile).run();
+			}
+		}
+
 		Set<String> inputFileNames = args.getInputFiles().stream().map(File::getAbsolutePath).collect(Collectors.toSet());
 		for (ResourceFile resourceFile : getResources()) {
-			if (resourceFile.getType() != ResourceType.ARSC
+			ResourceType resType = resourceFile.getType();
+			if (resType == ResourceType.MANIFEST) {
+				// already processed
+				continue;
+			}
+			if (resType != ResourceType.ARSC
 					&& inputFileNames.contains(resourceFile.getOriginalName())) {
 				// ignore resource made from input file
 				continue;
@@ -382,7 +394,7 @@ public final class JadxDecompiler implements Closeable {
 		return Utils.collectionMap(root.getClasses(), this::convertClassNode);
 	}
 
-	public List<ResourceFile> getResources() {
+	public synchronized List<ResourceFile> getResources() {
 		if (resources == null) {
 			if (root == null) {
 				return Collections.emptyList();

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isLastEnd = true;
 	private boolean isOneLine = true;
 	private int namespaceDepth = 0;
-	private int[] resourceIds;
+	private @Nullable int[] resourceIds;
 
 	private final RootNode rootNode;
 	private String appPackageName;
@@ -358,7 +359,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		// As the outcome of https://github.com/skylot/jadx/issues/1208
 		// Android seems to favor entries from AndroidResMap and only if
 		// there is no entry uses the values form the XML string pool
-		if (0 <= id && id < resourceIds.length) {
+		if (resourceIds != null && 0 <= id && id < resourceIds.length) {
 			int resId = resourceIds[id];
 			String str = ValuesParser.getAndroidResMap().get(resId);
 			if (str != null) {

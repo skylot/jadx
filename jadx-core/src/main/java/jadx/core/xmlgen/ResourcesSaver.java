@@ -29,7 +29,11 @@ public class ResourcesSaver implements Runnable {
 
 	@Override
 	public void run() {
-		saveResources(resourceFile.loadContent());
+		try {
+			saveResources(resourceFile.loadContent());
+		} catch (Throwable e) {
+			LOG.warn("Failed to save resource: {}", resourceFile.getOriginalName(), e);
+		}
 	}
 
 	private void saveResources(ResContainer rc) {
