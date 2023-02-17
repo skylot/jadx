@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -178,7 +179,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : useList) {
-			if (canInline(arg) && replaceArg(mth, arg, constArg, constInsn)) {
+			if (canInline(mth, arg) && replaceArg(mth, arg, constArg, constInsn)) {
 				replaceCount++;
 			}
 		}
@@ -204,8 +205,8 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	}
 
 	@SuppressWarnings("RedundantIfStatement")
-	private static boolean canInline(RegisterArg arg) {
-		if (arg.contains(AFlag.DONT_INLINE_CONST)) {
+	private static boolean canInline(MethodNode mth, RegisterArg arg) {
+		if (arg.contains(AFlag.DONT_INLINE_CONST) || arg.contains(AFlag.DONT_INLINE)) {
 			return false;
 		}
 		InsnNode parentInsn = arg.getParentInsn();
@@ -218,6 +219,14 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		if (arg.isLinkedToOtherSsaVars() && !arg.getSVar().isUsedInPhi()) {
 			// don't inline vars used in finally block
 			return false;
+		}
+		if (parentInsn.getType() == InsnType.CONSTRUCTOR) {
+			// don't inline into anonymous call if it can be inlined later
+			ConstructorInsn ctrInsn = (ConstructorInsn) parentInsn;
+			MethodNode ctrMth = mth.root().getMethodUtils().resolveMethod(ctrInsn);
+			if (ctrMth != null && ctrMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+				return false;
+			}
 		}
 		return true;
 	}
