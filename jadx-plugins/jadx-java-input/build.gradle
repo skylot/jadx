@@ -6,5 +6,5 @@ dependencies {
 	api(project(":jadx-plugins:jadx-plugins-api"))
 
 	// show bytecode disassemble
-	implementation 'io.github.skylot:raung-disasm:0.0.2'
+	implementation 'io.github.skylot:raung-disasm:0.0.3'
 }
