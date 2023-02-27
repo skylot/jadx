@@ -491,7 +491,7 @@ public class JadxCLIArgs {
 		@Override
 		public CommentsLevel convert(String value) {
 			try {
-				return CommentsLevel.valueOf(value.toUpperCase());
+				return CommentsLevel.valueOf(stringAsEnumName(value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown comments level, possible values are: "
@@ -504,7 +504,7 @@ public class JadxCLIArgs {
 		@Override
 		public UseKotlinMethodsForVarNames convert(String value) {
 			try {
-				return UseKotlinMethodsForVarNames.valueOf(value.replace('-', '_').toUpperCase());
+				return UseKotlinMethodsForVarNames.valueOf(stringAsEnumName(value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
@@ -517,7 +517,7 @@ public class JadxCLIArgs {
 		@Override
 		public DeobfuscationMapFileMode convert(String value) {
 			try {
-				return DeobfuscationMapFileMode.valueOf(value.toUpperCase());
+				return DeobfuscationMapFileMode.valueOf(stringAsEnumName(value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
@@ -530,7 +530,7 @@ public class JadxCLIArgs {
 		@Override
 		public ResourceNameSource convert(String value) {
 			try {
-				return ResourceNameSource.valueOf(value.toUpperCase());
+				return ResourceNameSource.valueOf(stringAsEnumName(value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
@@ -543,7 +543,7 @@ public class JadxCLIArgs {
 		@Override
 		public DecompilationMode convert(String value) {
 			try {
-				return DecompilationMode.valueOf(value.toUpperCase());
+				return DecompilationMode.valueOf(stringAsEnumName(value));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
 						'\'' + value + "' is unknown, possible values are: "
@@ -556,5 +556,10 @@ public class JadxCLIArgs {
 		return Stream.of(values)
 				.map(v -> v.name().replace('_', '-').toLowerCase(Locale.ROOT))
 				.collect(Collectors.joining(", "));
+	}
+
+	private static String stringAsEnumName(String raw) {
+        // inverse of enumValuesString conversion
+		return value.replace('-', '_').toUpperCase();
 	}
 }
