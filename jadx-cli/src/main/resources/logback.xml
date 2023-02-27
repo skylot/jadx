@@ -1,9 +1,14 @@
+<!-- Jadx logger config. Used both in cli and gui -->
+
 <configuration>
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
 			<pattern>%-5level - %msg%n</pattern>
 		</encoder>
 	</appender>
+
+	<!-- jadx-gui -->
+	<logger name="com.pinterest.ktlint" level="INFO"/>
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
