@@ -16,7 +16,7 @@ jadx.gui.ifAvailable {
 		"Custom Frida snippet (g)",
 		enabled = ::isActionEnabled,
 		keyBinding = "G",
-		action = ::runAction
+		action = ::runAction,
 	)
 }
 

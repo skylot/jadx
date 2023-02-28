@@ -46,6 +46,10 @@ dependencies {
 	testImplementation project(":jadx-core").sourceSets.test.output
 }
 
+test {
+	exclude '**/tmp/*'
+}
+
 application {
 	applicationName = 'jadx-gui'
 	mainClass.set('jadx.gui.JadxGUI')

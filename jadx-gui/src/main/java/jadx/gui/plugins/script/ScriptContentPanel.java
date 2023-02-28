@@ -108,6 +108,8 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		check.addActionListener(ev -> checkScript());
 		JButton format = new JButton(NLS.str("script.format"), Icons.FORMAT);
 		format.addActionListener(ev -> reformatCode());
+		JButton scriptLog = new JButton(NLS.str("script.log"), Icons.FORMAT);
+		scriptLog.addActionListener(ev -> showScriptLog());
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
@@ -122,6 +124,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		panel.add(Box.createRigidArea(new Dimension(30, 0)));
 		panel.add(resultLabel);
 		panel.add(Box.createHorizontalGlue());
+		panel.add(scriptLog);
 		return panel;
 	}
 
@@ -178,9 +181,11 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			errorService.apply();
 			if (!success) {
 				resultLabel.setText("Compiler issues: " + issues.size());
-				getTabbedPane().getMainWindow().showLogViewer(LogOptions.forScript(getNode().getName()));
+				showScriptLog();
 			} else if (!lintErrs.isEmpty()) {
 				resultLabel.setText("Lint issues: " + lintErrs.size());
+			} else {
+				resultLabel.setText("OK");
 			}
 			return success;
 		} catch (Throwable e) {
@@ -228,6 +233,10 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		codeScrollPane.setLineNumbersEnabled(settings.getLineNumbersMode() != LineNumbersMode.DISABLE);
 		codeScrollPane.getGutter().setLineNumberFont(settings.getFont());
 		scriptArea.loadSettings();
+	}
+
+	private void showScriptLog() {
+		getTabbedPane().getMainWindow().showLogViewer(LogOptions.forScript(getNode().getName()));
 	}
 
 	@Override
