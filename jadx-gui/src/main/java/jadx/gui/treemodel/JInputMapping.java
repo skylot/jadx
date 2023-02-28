@@ -15,63 +15,61 @@ import jadx.api.ICodeInfo;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.gui.plugins.script.ScriptContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.SimpleMenuItem;
 
-public class JInputScript extends JEditableNode {
-	private static final Logger LOG = LoggerFactory.getLogger(JInputScript.class);
+public class JInputMapping extends JEditableNode {
+	private static final Logger LOG = LoggerFactory.getLogger(JInputMapping.class);
 
-	private static final ImageIcon SCRIPT_ICON = UiUtils.openSvgIcon("nodes/kotlin_script");
+	private static final ImageIcon MAPPING_ICON = UiUtils.openSvgIcon("nodes/abbreviatePackageNames");
 
-	private final Path scriptPath;
+	private final Path mappingPath;
 	private final String name;
 
-	public JInputScript(Path scriptPath) {
-		this.scriptPath = scriptPath;
-		this.name = scriptPath.getFileName().toString().replace(".jadx.kts", "");
+	public JInputMapping(Path mappingPath) {
+		this.mappingPath = mappingPath;
+		this.name = mappingPath.getFileName().toString();
 	}
 
 	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
-		return new ScriptContentPanel(tabbedPane, this);
+		return new CodeContentPanel(tabbedPane, this);
 	}
 
 	@Override
 	public @NotNull ICodeInfo getCodeInfo() {
 		try {
-			return new SimpleCodeInfo(FileUtils.readFile(scriptPath));
+			return new SimpleCodeInfo(FileUtils.readFile(mappingPath));
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to read script file: " + scriptPath.toAbsolutePath(), e);
+			throw new JadxRuntimeException("Failed to read mapping file: " + mappingPath.toAbsolutePath(), e);
 		}
 	}
 
 	@Override
 	public void save(String newContent) {
 		try {
-			FileUtils.writeFile(scriptPath, newContent);
-			LOG.debug("Script saved: {}", scriptPath.toAbsolutePath());
+			FileUtils.writeFile(mappingPath, newContent);
+			LOG.debug("Mapping saved: {}", mappingPath.toAbsolutePath());
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to write script file: " + scriptPath.toAbsolutePath(), e);
+			throw new JadxRuntimeException("Failed to write mapping file: " + mappingPath.toAbsolutePath(), e);
 		}
 	}
 
 	@Override
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		JPopupMenu menu = new JPopupMenu();
-		menu.add(new SimpleMenuItem(NLS.str("popup.add_scripts"), mainWindow::addFiles));
-		menu.add(new SimpleMenuItem(NLS.str("popup.new_script"), mainWindow::addNewScript));
-		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), () -> mainWindow.removeInput(scriptPath)));
+		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), mainWindow::closeMappingsAndRemoveFromProject));
 		return menu;
 	}
 
 	@Override
 	public String getSyntaxName() {
-		return SyntaxConstants.SYNTAX_STYLE_KOTLIN;
+		return SyntaxConstants.SYNTAX_STYLE_NONE;
 	}
 
 	@Override
@@ -81,7 +79,7 @@ public class JInputScript extends JEditableNode {
 
 	@Override
 	public Icon getIcon() {
-		return SCRIPT_ICON;
+		return MAPPING_ICON;
 	}
 
 	@Override
@@ -96,6 +94,6 @@ public class JInputScript extends JEditableNode {
 
 	@Override
 	public String getTooltip() {
-		return scriptPath.normalize().toAbsolutePath().toString();
+		return mappingPath.normalize().toAbsolutePath().toString();
 	}
 }

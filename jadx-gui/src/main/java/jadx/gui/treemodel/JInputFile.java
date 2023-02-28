@@ -40,4 +40,9 @@ public class JInputFile extends JNode {
 	public String makeString() {
 		return filePath.getFileName().toString();
 	}
+
+	@Override
+	public String getTooltip() {
+		return filePath.normalize().toAbsolutePath().toString();
+	}
 }

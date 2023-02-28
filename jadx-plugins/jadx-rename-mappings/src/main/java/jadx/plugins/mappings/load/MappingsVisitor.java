@@ -40,11 +40,11 @@ public class MappingsVisitor implements JadxPreparePass {
 
 	private void process(RootNode root) {
 		for (ClassNode cls : root.getClasses()) {
-			ClassMapping mapping = mappingTree.getClass(cls.getClassInfo().makeRawFullName().replace('.', '/'));
-			if (mapping == null) {
-				continue;
+			String clsRawName = cls.getClassInfo().makeRawFullName().replace('.', '/');
+			ClassMapping mapping = mappingTree.getClass(clsRawName);
+			if (mapping != null) {
+				processClass(cls, mapping);
 			}
-			processClass(cls, mapping);
 		}
 	}
 

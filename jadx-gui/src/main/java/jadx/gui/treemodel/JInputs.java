@@ -1,5 +1,6 @@
 package jadx.gui.treemodel;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +11,7 @@ import javax.swing.ImageIcon;
 
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
+import jadx.gui.settings.JadxProject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -17,7 +19,8 @@ public class JInputs extends JNode {
 	private static final ImageIcon INPUTS_ICON = UiUtils.openSvgIcon("nodes/projectStructure");
 
 	public JInputs(JadxWrapper wrapper) {
-		List<Path> inputs = wrapper.getProject().getFilePaths();
+		JadxProject project = wrapper.getProject();
+		List<Path> inputs = project.getFilePaths();
 		List<Path> files = FileUtils.expandDirs(inputs);
 		List<Path> scripts = new ArrayList<>();
 		Iterator<Path> it = files.iterator();
@@ -31,6 +34,11 @@ public class JInputs extends JNode {
 
 		add(new JInputFiles(files));
 		add(new JInputScripts(scripts));
+
+		Path mappingsPath = project.getMappingsPath();
+		if (mappingsPath != null && Files.isRegularFile(mappingsPath)) {
+			add(new JInputMapping(mappingsPath));
+		}
 	}
 
 	@Override

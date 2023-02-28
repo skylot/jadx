@@ -28,4 +28,9 @@ public class JadxCodeData implements ICodeData {
 	public void setRenames(List<ICodeRename> renames) {
 		this.renames = renames;
 	}
+
+	@Override
+	public boolean isEmpty() {
+		return comments.isEmpty() && renames.isEmpty();
+	}
 }

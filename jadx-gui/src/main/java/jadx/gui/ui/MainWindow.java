@@ -410,7 +410,7 @@ public class MainWindow extends JFrame {
 		reopen();
 	}
 
-	private void closeMappingsAndRemoveFromProject() {
+	public void closeMappingsAndRemoveFromProject() {
 		project.setMappingsPath(null);
 		currentMappingFormat = null;
 	}
@@ -718,9 +718,8 @@ public class MainWindow extends JFrame {
 		saveProjectAction.setEnabled(loaded && !project.isSaved());
 		openMappingsMenu.setEnabled(loaded);
 		saveMappingsAction.setEnabled(loaded && renamesChanged && project.getMappingsPath() != null);
-		saveMappingsAsMenu.setEnabled(loaded
-				&& (!project.getCodeData().getRenames().isEmpty() || !project.getCodeData().getComments().isEmpty()));
-		closeMappingsAction.setEnabled(loaded && project.getMappingsPath() != null);
+		saveMappingsAsMenu.setEnabled(loaded && !project.getCodeData().isEmpty());
+		closeMappingsAction.setEnabled(project.getMappingsPath() != null);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 
 		Path projectPath = project.getProjectPath();
@@ -1013,6 +1012,9 @@ public class MainWindow extends JFrame {
 		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
 		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
+		ActionHandler openProGuardMappings = new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD));
+		openProGuardMappings.setNameAndDesc("Proguard");
+
 		Action openTiny2Mappings = new AbstractAction("Tiny v2 file") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1038,6 +1040,7 @@ public class MainWindow extends JFrame {
 		openEnigmaDirMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
 		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
+		openMappingsMenu.add(openProGuardMappings);
 		openMappingsMenu.add(openTiny2Mappings);
 		openMappingsMenu.add(openEnigmaMappings);
 		openMappingsMenu.add(openEnigmaDirMappings);
@@ -1049,6 +1052,9 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveMappingsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_mappings"));
+
+		ActionHandler saveProGuardMappings = new ActionHandler(ev -> saveMappingsAs(MappingFormat.PROGUARD));
+		saveProGuardMappings.setNameAndDesc("Proguard");
 
 		Action saveMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
 			@Override
@@ -1075,6 +1081,7 @@ public class MainWindow extends JFrame {
 		saveMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
 
 		saveMappingsAsMenu = new JMenu(NLS.str("file.save_mappings_as"));
+		saveMappingsAsMenu.add(saveProGuardMappings);
 		saveMappingsAsMenu.add(saveMappingsAsTiny2);
 		saveMappingsAsMenu.add(saveMappingsAsEnigma);
 		saveMappingsAsMenu.add(saveMappingsAsEnigmaDir);
@@ -1765,8 +1772,10 @@ public class MainWindow extends JFrame {
 
 	public void destroyDebuggerPanel() {
 		saveSplittersInfo();
-		debuggerPanel.setVisible(false);
-		debuggerPanel = null;
+		if (debuggerPanel != null) {
+			debuggerPanel.setVisible(false);
+			debuggerPanel = null;
+		}
 	}
 
 	public void showHeapUsageBar() {
