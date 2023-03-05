@@ -149,7 +149,7 @@ class SearchBar extends JToolBar {
 	private void search(int direction) {
 		String searchText = searchField.getText();
 		if (searchText == null
-				|| searchText.length() == 0
+				|| searchText.isEmpty()
 				|| rTextArea.getText() == null) {
 			return;
 		}

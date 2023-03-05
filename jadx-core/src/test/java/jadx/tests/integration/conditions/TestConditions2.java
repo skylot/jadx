@@ -12,7 +12,7 @@ public class TestConditions2 extends IntegrationTest {
 		String f;
 
 		public void testComplexIf(String a, int b) {
-			if (d == null || (c == 0 && b != -1 && d.length() == 0)) {
+			if (d == null || (c == 0 && b != -1 && d.isEmpty())) {
 				c = a.codePointAt(c);
 			} else {
 				if (a.hashCode() != 0xCDE) {

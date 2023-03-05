@@ -49,9 +49,9 @@ public class DbgUtils {
 	}
 
 	public static String[] sepClassAndMthSig(String fullSig) {
-		int pos = fullSig.indexOf("(");
+		int pos = fullSig.indexOf('(');
 		if (pos != -1) {
-			pos = fullSig.lastIndexOf(".", pos);
+			pos = fullSig.lastIndexOf('.', pos);
 			if (pos != -1) {
 				String[] sigs = new String[2];
 				sigs[0] = fullSig.substring(0, pos);
@@ -108,7 +108,7 @@ public class DbgUtils {
 		String content = getManifestContent(mainWindow);
 		int pos = content.indexOf("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
 		if (pos > -1) {
-			pos = content.lastIndexOf(">", pos);
+			pos = content.lastIndexOf('>', pos);
 			if (pos > -1) {
 				pos = content.indexOf(" package=\"", pos);
 				if (pos > -1) {

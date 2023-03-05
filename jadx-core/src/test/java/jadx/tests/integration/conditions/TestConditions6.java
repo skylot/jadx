@@ -18,7 +18,7 @@ public class TestConditions6 extends IntegrationTest {
 			if (l2.size() > 0) {
 				l1.clear();
 			}
-			return l1.size() == 0;
+			return l1.isEmpty();
 		}
 	}
 

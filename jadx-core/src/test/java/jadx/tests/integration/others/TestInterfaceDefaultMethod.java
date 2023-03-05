@@ -17,10 +17,10 @@ public class TestInterfaceDefaultMethod extends IntegrationTest {
 			default void test2() {
 			}
 
-			static void test3() {
+			void test3() {
 			}
 
-			abstract void test4();
+			void test4();
 		}
 	}
 
