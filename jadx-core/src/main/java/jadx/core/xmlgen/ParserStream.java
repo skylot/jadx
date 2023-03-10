@@ -127,6 +127,10 @@ public class ParserStream {
 
 	public void skipToPos(long expectedOffset, String error) throws IOException {
 		long pos = getPos();
+		if (pos > expectedOffset) {
+			throw new IOException(error + ", expected offset not reachable: 0x" + Long.toHexString(expectedOffset)
+					+ ", actual: 0x" + Long.toHexString(getPos()));
+		}
 		if (pos < expectedOffset) {
 			skip(expectedOffset - pos);
 		}

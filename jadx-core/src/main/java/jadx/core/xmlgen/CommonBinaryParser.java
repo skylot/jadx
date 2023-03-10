@@ -26,7 +26,7 @@ public class CommonBinaryParser extends ParserConstants {
 		int[] stringsOffset = is.readInt32Array(stringCount);
 		int[] stylesOffset = is.readInt32Array(styleCount);
 
-		is.checkPos(start + stringsStart, "Expected strings start");
+		is.skipToPos(start + stringsStart, "Expected strings start");
 		String[] strings = new String[stringCount];
 		byte[] strData = is.readInt8Array((int) (chunkEnd - is.getPos()));
 		if ((flags & UTF8_FLAG) != 0) {
