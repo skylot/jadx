@@ -8,6 +8,7 @@ import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.BetterName;
 import jadx.core.utils.StringUtils;
 
 public class SourceFileRename {
@@ -44,6 +45,15 @@ public class SourceFileRename {
 		ClassNode otherCls = cls.root().resolveClass(cls.getPackage() + '.' + name);
 		if (otherCls != null) {
 			return null;
+		}
+
+		if (cls.getClassInfo().hasAlias()) {
+			// ignore source name if current alias is "better"
+			String currentAlias = cls.getAlias();
+			String betterName = BetterName.compareAndGet(name, currentAlias);
+			if (betterName.equals(currentAlias)) {
+				return null;
+			}
 		}
 		cls.remove(JadxAttrType.SOURCE_FILE);
 		return name;

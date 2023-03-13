@@ -25,9 +25,9 @@ public class BetterName {
 		boolean firstBetter = firstRating >= secondRating;
 		if (DEBUG) {
 			if (firstBetter) {
-				LOG.info("Better name: '{}' > '{}' ({} > {})", first, second, firstRating, secondRating);
+				LOG.debug("Better name: '{}' > '{}' ({} > {})", first, second, firstRating, secondRating);
 			} else {
-				LOG.info("Better name: '{}' > '{}' ({} > {})", second, first, secondRating, firstRating);
+				LOG.debug("Better name: '{}' > '{}' ({} > {})", second, first, secondRating, firstRating);
 			}
 		}
 		return firstBetter ? first : second;
