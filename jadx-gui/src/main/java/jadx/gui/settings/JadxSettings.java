@@ -66,12 +66,12 @@ public class JadxSettings extends JadxCLIArgs {
 	private List<Path> recentProjects = new ArrayList<>();
 	private String fontStr = "";
 	private String smaliFontStr = "";
-	private String editorThemePath = "";
+	private String editorThemePath = EditorTheme.getDefaultTheme().getPath();
 	private String lafTheme = LafManager.INITIAL_THEME_NAME;
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
-	private boolean autoSaveProject = false;
+	private boolean autoSaveProject = true;
 
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
@@ -107,7 +107,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean dockLogViewer = true;
 
-	private int settingsVersion = 0;
+	private int settingsVersion = CURRENT_SETTINGS_VERSION;
 
 	@JadxSettingsAdapter.GsonExclude
 	@Parameter(names = { "-sc", "--select-class" }, description = "GUI: Open the selected class and show the decompiled code")
@@ -699,65 +699,8 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
-		if (fromVersion == 0) {
-			setDeobfuscationMinLength(3);
-			setDeobfuscationMaxLength(64);
-			setDeobfuscationUseSourceNameAsAlias(true);
-			setDeobfuscationParseKotlinMetadata(true);
-			setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.getDefault());
-			setThreadsCount(JadxArgs.DEFAULT_THREADS_COUNT);
-			setReplaceConsts(true);
-			setSkipResources(false);
-			setAutoStartJobs(false);
-			setAutoSaveProject(true);
-			fromVersion++;
-		}
-		if (fromVersion == 1) {
-			setEditorThemePath(EditorTheme.getDefaultTheme().getPath());
-			fromVersion++;
-		}
-		if (fromVersion == 2) {
-			if (getDeobfuscationMinLength() == 4) {
-				setDeobfuscationMinLength(3);
-			}
-			fromVersion++;
-		}
-		if (fromVersion == 3) {
-			setLangLocale(NLS.defaultLocale());
-			fromVersion++;
-		}
-		if (fromVersion == 4) {
-			setUseImports(true);
-			fromVersion++;
-		}
-		if (fromVersion == 5) {
-			setRespectBytecodeAccessModifiers(false);
-			fromVersion++;
-		}
-		if (fromVersion == 6) {
-			if (getFont().getFontName().equals("Hack Regular")) {
-				setFont(null);
-			}
-			fromVersion++;
-		}
-		if (fromVersion == 7) {
-			outDir = null;
-			outDirSrc = null;
-			outDirRes = null;
-			fromVersion++;
-		}
-		if (fromVersion == 8) {
-			fromVersion++;
-		}
-		if (fromVersion == 9) {
-			showHeapUsageBar = false;
-			fromVersion++;
-		}
-		if (fromVersion == 10) {
-			srhResourceSkipSize = 3;
-			srhResourceFileExt = ".xml|.html|.js|.json|.txt";
-			fontStr = fontStr.replace('-', '/');
-			fromVersion++;
+		if (fromVersion <= 10) {
+			fromVersion = 11;
 		}
 		if (fromVersion == 11) {
 			inlineMethods = true;
