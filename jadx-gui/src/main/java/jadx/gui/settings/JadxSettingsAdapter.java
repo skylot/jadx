@@ -7,7 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.util.prefs.Preferences;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +18,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
 import com.google.gson.JsonObject;
 
-import jadx.gui.JadxGUI;
 import jadx.gui.utils.PathTypeAdapter;
 import jadx.gui.utils.RectangleTypeAdapter;
 
@@ -27,9 +25,7 @@ public class JadxSettingsAdapter {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettingsAdapter.class);
 
-	private static final String JADX_GUI_KEY = "jadx.gui.settings";
-
-	private static final Preferences PREFS = Preferences.userNodeForPackage(JadxGUI.class);
+	private static final JadxSettingsStorage STORAGE = new JadxSettingsStorage();
 
 	private static final ExclusionStrategy EXCLUDE_FIELDS = new ExclusionStrategy() {
 		@Override
@@ -49,16 +45,16 @@ public class JadxSettingsAdapter {
 	private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
 			.setExclusionStrategies(EXCLUDE_FIELDS)
 			.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
-			.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton());
+			.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton())
+			.setPrettyPrinting();
 	private static final Gson GSON = GSON_BUILDER.create();
 
 	private JadxSettingsAdapter() {
 	}
 
 	public static JadxSettings load() {
-		String jsonSettings = PREFS.get(JADX_GUI_KEY, "");
 		try {
-			JadxSettings settings = fromString(jsonSettings);
+			JadxSettings settings = fromString(STORAGE.load());
 			if (settings == null) {
 				LOG.debug("Created new settings.");
 				settings = JadxSettings.makeDefault();
@@ -67,22 +63,23 @@ public class JadxSettingsAdapter {
 			}
 			return settings;
 		} catch (Exception e) {
-			LOG.error("Error load settings. Settings will reset.\n Loaded json string: {}", jsonSettings, e);
+			LOG.error("Error load settings. Settings will reset", e);
 			return new JadxSettings();
 		}
 	}
 
 	public static void store(JadxSettings settings) {
 		try {
-			String jsonSettings = makeString(settings);
-			PREFS.put(JADX_GUI_KEY, jsonSettings);
-			PREFS.sync();
+			STORAGE.save(makeString(settings));
 		} catch (Exception e) {
 			LOG.error("Error store settings", e);
 		}
 	}
 
 	public static JadxSettings fromString(String jsonSettings) {
+		if (jsonSettings == null) {
+			return null;
+		}
 		return GSON.fromJson(jsonSettings, JadxSettings.class);
 	}
 
