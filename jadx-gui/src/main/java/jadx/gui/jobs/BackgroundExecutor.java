@@ -20,7 +20,6 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ProgressPanel;
@@ -58,14 +57,6 @@ public class BackgroundExecutor {
 			taskWorker.run();
 		});
 		return taskWorker;
-	}
-
-	public TaskStatus executeAndWait(IBackgroundTask task) {
-		try {
-			return execute(task).get();
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Task execution error", e);
-		}
 	}
 
 	public synchronized void cancelAll() {

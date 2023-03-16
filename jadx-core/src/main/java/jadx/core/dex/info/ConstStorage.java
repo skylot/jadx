@@ -82,14 +82,22 @@ public class ConstStorage {
 			return;
 		}
 		for (FieldNode f : staticFields) {
-			AccessInfo accFlags = f.getAccessFlags();
-			if (accFlags.isStatic() && accFlags.isFinal()) {
-				EncodedValue constVal = f.get(JadxAttrType.CONSTANT_VALUE);
-				if (constVal != null && constVal.getValue() != null) {
-					addConstField(cls, f, constVal.getValue(), accFlags.isPublic());
-				}
+			Object value = getFieldConstValue(f);
+			if (value != null) {
+				addConstField(cls, f, value, f.getAccessFlags().isPublic());
 			}
 		}
+	}
+
+	public static @Nullable Object getFieldConstValue(FieldNode fld) {
+		AccessInfo accFlags = fld.getAccessFlags();
+		if (accFlags.isStatic() && accFlags.isFinal()) {
+			EncodedValue constVal = fld.get(JadxAttrType.CONSTANT_VALUE);
+			if (constVal != null) {
+				return constVal.getValue();
+			}
+		}
+		return null;
 	}
 
 	public void removeForClass(ClassNode cls) {

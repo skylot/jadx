@@ -18,6 +18,8 @@ public class CacheObject {
 
 	private List<List<JavaClass>> decompileBatches;
 
+	private volatile boolean fullDecompilationFinished;
+
 	public CacheObject() {
 		reset();
 	}
@@ -27,6 +29,7 @@ public class CacheObject {
 		jNodeCache = new JNodeCache();
 		lastSearchOptions = new HashMap<>();
 		decompileBatches = null;
+		fullDecompilationFinished = false;
 	}
 
 	@Nullable
@@ -52,5 +55,13 @@ public class CacheObject {
 
 	public void setDecompileBatches(List<List<JavaClass>> decompileBatches) {
 		this.decompileBatches = decompileBatches;
+	}
+
+	public boolean isFullDecompilationFinished() {
+		return fullDecompilationFinished;
+	}
+
+	public void setFullDecompilationFinished(boolean fullDecompilationFinished) {
+		this.fullDecompilationFinished = fullDecompilationFinished;
 	}
 }

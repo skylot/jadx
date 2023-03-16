@@ -19,11 +19,14 @@ import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.utils.CodeUtils;
+import jadx.core.dex.info.ConstStorage;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -51,6 +54,7 @@ public class UsageDialog extends CommonSearchDialog {
 	@Override
 	protected void openInit() {
 		progressStartCommon();
+		prepareUsageData();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
 				this::collectUsageData,
 				(status) -> {
@@ -63,26 +67,39 @@ public class UsageDialog extends CommonSearchDialog {
 				});
 	}
 
+	private void prepareUsageData() {
+		if (mainWindow.getSettings().isReplaceConsts() && node instanceof JField) {
+			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
+			boolean constField = ConstStorage.getFieldConstValue(fld) != null;
+			if (constField && !fld.getAccessFlags().isPrivate()) {
+				// run full decompilation to prepare for full code scan
+				mainWindow.requestFullDecompilation();
+			}
+		}
+	}
+
 	private void collectUsageData() {
 		usageList = new ArrayList<>();
-		Map<JavaNode, List<JavaNode>> usageQuery = buildUsageQuery();
-		usageQuery.forEach((searchNode, useNodes) -> useNodes.stream()
-				.map(JavaNode::getTopParentClass)
-				.distinct()
-				.forEach(u -> processUsage(searchNode, u)));
+		buildUsageQuery().forEach(
+				(searchNode, useNodes) -> useNodes.stream()
+						.map(JavaNode::getTopParentClass)
+						.distinct()
+						.forEach(u -> processUsage(searchNode, u)));
 	}
 
 	/**
 	 * Return mapping of 'node to search' to 'use places'
 	 */
-	private Map<JavaNode, List<JavaNode>> buildUsageQuery() {
-		Map<JavaNode, List<JavaNode>> map = new HashMap<>();
+	private Map<JavaNode, List<? extends JavaNode>> buildUsageQuery() {
+		Map<JavaNode, List<? extends JavaNode>> map = new HashMap<>();
 		if (node instanceof JMethod) {
 			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
 			for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
 				map.put(mth, mth.getUseIn());
 			}
-		} else if (node instanceof JClass) {
+			return map;
+		}
+		if (node instanceof JClass) {
 			JavaClass javaCls = ((JClass) node).getCls();
 			map.put(javaCls, javaCls.getUseIn());
 			// add constructors usage into class usage
@@ -91,10 +108,19 @@ public class UsageDialog extends CommonSearchDialog {
 					map.put(javaMth, javaMth.getUseIn());
 				}
 			}
-		} else {
-			JavaNode javaNode = node.getJavaNode();
-			map.put(javaNode, javaNode.getUseIn());
+			return map;
 		}
+		if (node instanceof JField && mainWindow.getSettings().isReplaceConsts()) {
+			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
+			boolean constField = ConstStorage.getFieldConstValue(fld) != null;
+			if (constField && !fld.getAccessFlags().isPrivate()) {
+				// search all classes to collect usage of replaced constants
+				map.put(fld.getJavaNode(), mainWindow.getWrapper().getIncludedClasses());
+				return map;
+			}
+		}
+		JavaNode javaNode = node.getJavaNode();
+		map.put(javaNode, javaNode.getUseIn());
 		return map;
 	}
 
@@ -108,9 +134,12 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void processUsage(JavaNode searchNode, JavaClass topUseClass) {
 		ICodeInfo codeInfo = topUseClass.getCodeInfo();
+		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
+		if (usePositions.isEmpty()) {
+			return;
+		}
 		String code = codeInfo.getCodeStr();
 		JadxWrapper wrapper = mainWindow.getWrapper();
-		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
 		for (int pos : usePositions) {
 			String line = CodeUtils.getLineForPos(code, pos);
 			if (line.startsWith("import ")) {
