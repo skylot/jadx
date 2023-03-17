@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
@@ -56,8 +54,6 @@ import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
-	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
-
 	private final RootNode root;
 	private final IClassData clsData;
 
@@ -174,10 +170,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return ArgType.object(superType);
 	}
 
-	public void updateGenericClsData(ArgType superClass, List<ArgType> interfaces, List<ArgType> generics) {
+	public void updateGenericClsData(List<ArgType> generics, ArgType superClass, List<ArgType> interfaces) {
+		this.generics = generics;
 		this.superClass = superClass;
 		this.interfaces = interfaces;
-		this.generics = generics;
 	}
 
 	private static void processAttributes(ClassNode cls) {

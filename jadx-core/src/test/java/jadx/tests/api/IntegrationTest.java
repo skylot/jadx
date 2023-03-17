@@ -225,6 +225,11 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	@NotNull
+	public ClassNode searchTestCls(List<ClassNode> list, String shortClsName) {
+		return searchCls(list, getTestPkg() + '.' + shortClsName);
+	}
+
+	@NotNull
 	public ClassNode searchCls(List<ClassNode> list, String clsName) {
 		for (ClassNode cls : list) {
 			if (cls.getClassInfo().getFullName().equals(clsName)) {

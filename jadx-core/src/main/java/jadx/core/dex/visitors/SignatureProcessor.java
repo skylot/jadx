@@ -2,8 +2,12 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -18,7 +22,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 public class SignatureProcessor extends AbstractVisitor {
-
 	private RootNode root;
 
 	@Override
@@ -55,10 +58,52 @@ public class SignatureProcessor extends AbstractVisitor {
 					break;
 				}
 			}
-			cls.updateGenericClsData(superClass, interfaces, generics);
+			generics = fixTypeParamDeclarations(cls, generics, superClass, interfaces);
+			cls.updateGenericClsData(generics, superClass, interfaces);
 		} catch (Exception e) {
 			cls.addWarnComment("Failed to parse class signature: " + sp.getSignature(), e);
 		}
+	}
+
+	/**
+	 * Add missing type parameters from super type and interfaces to make code compilable
+	 */
+	private static List<ArgType> fixTypeParamDeclarations(ClassNode cls,
+			List<ArgType> generics, ArgType superClass, List<ArgType> interfaces) {
+		if (interfaces.isEmpty() && superClass.equals(ArgType.OBJECT)) {
+			return generics;
+		}
+		Set<String> typeParams = new HashSet<>();
+		superClass.visitTypes(t -> addGenericType(typeParams, t));
+		interfaces.forEach(i -> i.visitTypes(t -> addGenericType(typeParams, t)));
+		if (typeParams.isEmpty()) {
+			return generics;
+		}
+		List<ArgType> knownTypeParams;
+		if (cls.isInner()) {
+			knownTypeParams = new ArrayList<>(generics);
+			cls.visitParentClasses(p -> knownTypeParams.addAll(p.getGenericTypeParameters()));
+		} else {
+			knownTypeParams = generics;
+		}
+		for (ArgType declTypeParam : knownTypeParams) {
+			typeParams.remove(declTypeParam.getObject());
+		}
+		if (typeParams.isEmpty()) {
+			return generics;
+		}
+		cls.addInfoComment("Add missing generic type declarations: " + typeParams);
+		List<ArgType> fixedGenerics = new ArrayList<>(generics.size() + typeParams.size());
+		fixedGenerics.addAll(generics);
+		typeParams.stream().sorted().map(ArgType::genericType).forEach(fixedGenerics::add);
+		return fixedGenerics;
+	}
+
+	private static @Nullable Object addGenericType(Set<String> usedTypeParameters, ArgType t) {
+		if (t.isGenericType()) {
+			usedTypeParameters.add(t.getObject());
+		}
+		return null;
 	}
 
 	private ArgType validateClsType(ClassNode cls, ArgType candidateType, ArgType currentType) {
