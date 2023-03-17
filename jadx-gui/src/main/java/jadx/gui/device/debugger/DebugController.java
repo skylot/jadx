@@ -14,11 +14,9 @@ import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.reactivex.annotations.NonNull;
-import io.reactivex.annotations.Nullable;
 
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -42,6 +40,7 @@ import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.JDebuggerPanel.IListElement;
 import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public final class DebugController implements SmaliDebugger.SuspendListener, IDebugController {
 
@@ -78,7 +77,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 			initTypeMap();
 		}
 		this.debuggerPanel = debuggerPanel;
-		debuggerPanel.resetUI();
+		UiUtils.uiRunAndWait(debuggerPanel::resetUI);
 		try {
 			debugger = SmaliDebugger.attach(adbHost, adbPort, this);
 		} catch (SmaliDebuggerException e) {
@@ -251,7 +250,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		throw new JadxRuntimeException("Unexpected type: " + type);
 	}
 
-	@NonNull
 	protected static RuntimeType castType(String type) {
 		RuntimeType rt = null;
 		if (!StringUtils.isEmpty(type)) {
@@ -663,22 +661,22 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	}
 
 	private void updateAllRegisters(FrameNode frame) {
-		if (buildRegTreeNodes(frame).size() > 0) {
-			fetchAllRegisters(frame);
-		}
+		UiUtils.uiRun(() -> {
+			if (!buildRegTreeNodes(frame).isEmpty()) {
+				fetchAllRegisters(frame);
+			}
+		});
 	}
 
 	private void fetchAllRegisters(FrameNode frame) {
 		List<SmaliRegister> regs = cur.regAdapter.getInitializedList(frame.getCodeOffset());
 		for (SmaliRegister reg : regs) {
-			lazyQueue.execute(() -> {
-				Entry<String, String> info = cur.regAdapter.getInfo(reg.getRuntimeRegNum(), frame.getCodeOffset());
-				RegTreeNode regNode = frame.getRegNodes().get(reg.getRegNum());
-				if (info != null) {
-					applyDbgInfo(regNode, info);
-				}
-				updateRegister(regNode, null, true);
-			});
+			Entry<String, String> info = cur.regAdapter.getInfo(reg.getRuntimeRegNum(), frame.getCodeOffset());
+			RegTreeNode regNode = frame.getRegNodes().get(reg.getRegNum());
+			if (info != null) {
+				applyDbgInfo(regNode, info);
+			}
+			updateRegister(regNode, null, true);
 		}
 	}
 

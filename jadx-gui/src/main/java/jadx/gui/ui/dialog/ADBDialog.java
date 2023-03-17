@@ -475,28 +475,28 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			LOG.error("Failed to find device", e);
 			return;
 		}
-		node.tNode.removeAllChildren();
-		DefaultMutableTreeNode tempNode = null;
-		for (String s : procList) {
-			DefaultMutableTreeNode pnode = new DefaultMutableTreeNode(s);
-			node.tNode.add(pnode);
-			if (!debugSetter.expectPkg.isEmpty() && s.endsWith(debugSetter.expectPkg)) {
-				if (debugSetter.autoAttachPkg && debugSetter.device.equals(node.device)) {
-					debugSetter.set(node.device, debugSetter.ver, getPid(s), s);
-					if (attachProcess(mainWindow)) {
-						dispose();
-						return;
-					}
-				}
-				tempNode = pnode;
-			}
-		}
-		DefaultMutableTreeNode theNode = tempNode;
+
 		SwingUtilities.invokeLater(() -> {
+			node.tNode.removeAllChildren();
+			DefaultMutableTreeNode foundNode = null;
+			for (String procStr : procList) {
+				DefaultMutableTreeNode pnode = new DefaultMutableTreeNode(procStr);
+				node.tNode.add(pnode);
+				if (!debugSetter.expectPkg.isEmpty() && procStr.endsWith(debugSetter.expectPkg)) {
+					if (debugSetter.autoAttachPkg && debugSetter.device.equals(node.device)) {
+						debugSetter.set(node.device, debugSetter.ver, getPid(procStr), procStr);
+						if (attachProcess(mainWindow)) {
+							dispose();
+							return;
+						}
+					}
+					foundNode = pnode;
+				}
+			}
 			procTreeModel.reload(node.tNode);
 			procTree.expandPath(new TreePath(node.tNode.getPath()));
-			if (theNode != null) {
-				TreePath thePath = new TreePath(theNode.getPath());
+			if (foundNode != null) {
+				TreePath thePath = new TreePath(foundNode.getPath());
 				procTree.scrollPathToVisible(thePath);
 				procTree.setSelectionPath(thePath);
 			}
