@@ -33,7 +33,8 @@ public class ParserConstants {
 	protected static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202; // 514
 	protected static final int RES_TABLE_TYPE_LIBRARY = 0x0203; // 515
 	protected static final int RES_TABLE_TYPE_OVERLAY = 0x0204; // 516
-	protected static final int RES_TABLE_TYPE_STAGED_ALIAS = 0x0206; // 517
+	protected static final int RES_TABLE_TYPE_OVERLAY_POLICY = 0x0205; // 517
+	protected static final int RES_TABLE_TYPE_STAGED_ALIAS = 0x0206; // 518
 
 	/**
 	 * Type constants

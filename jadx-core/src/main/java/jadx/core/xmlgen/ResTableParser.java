@@ -168,8 +168,11 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 					parseLibraryTypeChunk(chunkStart);
 					break;
 				case RES_TABLE_TYPE_OVERLAY: // 0x0204
+					parseOverlayTypeChunk(chunkStart);
+					break;
+				case RES_TABLE_TYPE_OVERLAY_POLICY: // 0x0205
 					throw new IOException(
-							String.format("Encountered unsupported chunk type TYPE_OVERLAY at offset 0x%x ", chunkStart));
+							String.format("Encountered unsupported chunk type RES_TABLE_TYPE_OVERLAY_POLICY at offset 0x%x ", chunkStart));
 				case RES_TABLE_TYPE_STAGED_ALIAS: // 0x0206
 					throw new IOException(
 							String.format("Encountered unsupported chunk type TYPE_STAGED_ALIAS at offset 0x%x ", chunkStart));
@@ -285,6 +288,18 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 					chunkEnd);
 			is.skip(skipSize);
 		}
+	}
+
+	private void parseOverlayTypeChunk(long chunkStart) throws IOException {
+		LOG.trace("parsing overlay type chunk starting at offset {}", chunkStart);
+		int headerSize = is.readInt16(); // usually 1032 bytes
+		int chunkSize = is.readInt32(); // e.g. 1056 bytes
+		long expectedEndPos = chunkStart + chunkSize;
+		String name = is.readString16Fixed(128); // 256 bytes
+		String actor = is.readString16Fixed(128); // 256 bytes
+		LOG.trace("Overlay header data: name={} actor={}", name, actor);
+		// the other data in the chunk header and body is unknown
+		is.skipToPos(expectedEndPos, "overlay chunk end");
 	}
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
