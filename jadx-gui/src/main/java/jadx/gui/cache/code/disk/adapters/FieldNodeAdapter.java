@@ -27,7 +27,7 @@ public class FieldNodeAdapter implements DataAdapter<FieldNode> {
 	public FieldNode read(DataInput in) throws IOException {
 		String cls = in.readUTF();
 		String sign = in.readUTF();
-		ClassNode clsNode = root.resolveClass(cls);
+		ClassNode clsNode = root.resolveRawClass(cls);
 		if (clsNode == null) {
 			throw new RuntimeException("Class not found: " + cls);
 		}

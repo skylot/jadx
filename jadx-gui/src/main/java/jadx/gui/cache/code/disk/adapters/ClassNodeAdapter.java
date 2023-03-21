@@ -21,6 +21,6 @@ public class ClassNodeAdapter implements DataAdapter<ClassNode> {
 
 	@Override
 	public ClassNode read(DataInput in) throws IOException {
-		return root.resolveClass(in.readUTF());
+		return root.resolveRawClass(in.readUTF());
 	}
 }

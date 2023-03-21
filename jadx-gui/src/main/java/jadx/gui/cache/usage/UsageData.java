@@ -28,13 +28,13 @@ class UsageData implements IUsageInfoData {
 
 	@Override
 	public void apply() {
-		for (ClsUsageData clsUsageData : rawUsageData.getClsMap().values()) {
-			String clsRawName = clsUsageData.getRawName();
-			ClassNode cls = root.resolveClass(clsRawName);
-			if (cls == null) {
-				throw new JadxRuntimeException("Failed to resolve class: " + clsRawName);
+		Map<String, ClsUsageData> clsMap = rawUsageData.getClsMap();
+		for (ClassNode cls : root.getClasses()) {
+			String clsRawName = cls.getRawName();
+			ClsUsageData clsUsageData = clsMap.get(clsRawName);
+			if (clsUsageData != null) {
+				applyForClass(clsUsageData, cls);
 			}
-			applyForClass(clsUsageData, clsRawName, cls);
 		}
 	}
 
@@ -46,26 +46,27 @@ class UsageData implements IUsageInfoData {
 			LOG.debug("No usage data for class: {}", clsRawName);
 			return;
 		}
-		applyForClass(clsUsageData, clsRawName, cls);
+		applyForClass(clsUsageData, cls);
 	}
 
-	private void applyForClass(ClsUsageData clsUsageData, String clsRawName, ClassNode cls) {
+	private void applyForClass(ClsUsageData clsUsageData, ClassNode cls) {
 		cls.setDependencies(resolveClsList(clsUsageData.getClsDeps()));
 		cls.setUseIn(resolveClsList(clsUsageData.getClsUsage()));
 		cls.setUseInMth(resolveMthList(clsUsageData.getClsUseInMth()));
-		for (Map.Entry<String, MthUsageData> entry : clsUsageData.getMthUsage().entrySet()) {
-			MethodNode mth = cls.searchMethodByShortId(entry.getKey());
-			if (mth == null) {
-				throw new JadxRuntimeException("Method not found: " + clsRawName + "." + entry.getKey());
+
+		Map<String, MthUsageData> mthUsage = clsUsageData.getMthUsage();
+		for (MethodNode mth : cls.getMethods()) {
+			MthUsageData mthUsageData = mthUsage.get(mth.getMethodInfo().getShortId());
+			if (mthUsageData != null) {
+				mth.setUseIn(resolveMthList(mthUsageData.getUsage()));
 			}
-			mth.setUseIn(resolveMthList(entry.getValue().getUsage()));
 		}
-		for (Map.Entry<String, FldUsageData> entry : clsUsageData.getFldUsage().entrySet()) {
-			FieldNode fld = cls.searchFieldByShortId(entry.getKey());
-			if (fld == null) {
-				throw new JadxRuntimeException("Field not found: " + clsRawName + "." + entry.getKey());
+		Map<String, FldUsageData> fldUsage = clsUsageData.getFldUsage();
+		for (FieldNode fld : cls.getFields()) {
+			FldUsageData fldUsageData = fldUsage.get(fld.getFieldInfo().getShortId());
+			if (fldUsageData != null) {
+				fld.setUseIn(resolveMthList(fldUsageData.getUsage()));
 			}
-			fld.setUseIn(resolveMthList(entry.getValue().getUsage()));
 		}
 	}
 
@@ -75,7 +76,7 @@ class UsageData implements IUsageInfoData {
 	}
 
 	private List<ClassNode> resolveClsList(List<String> clsList) {
-		return Utils.collectionMap(clsList, root::resolveClass);
+		return Utils.collectionMap(clsList, root::resolveRawClass);
 	}
 
 	private List<MethodNode> resolveMthList(List<MthRef> mthRefList) {

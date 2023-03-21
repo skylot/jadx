@@ -77,6 +77,7 @@ public class RootNode {
 	private final TypeUtils typeUtils;
 
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
+	private final Map<String, ClassNode> rawClsMap = new HashMap<>();
 	private List<ClassNode> classes = new ArrayList<>();
 
 	private final Map<String, PackageNode> pkgMap = new HashMap<>();
@@ -192,6 +193,7 @@ public class RootNode {
 	public void addClassNode(ClassNode clsNode) {
 		classes.add(clsNode);
 		clsMap.put(clsNode.getClassInfo(), clsNode);
+		rawClsMap.put(clsNode.getRawName(), clsNode);
 	}
 
 	public void loadResources(List<ResourceFile> resources) {
@@ -462,6 +464,11 @@ public class RootNode {
 		return resolveClass(clsInfo);
 	}
 
+	@Nullable
+	public ClassNode resolveRawClass(String rawFullName) {
+		return rawClsMap.get(rawFullName);
+	}
+
 	/**
 	 * Searches for ClassNode by its full name (original or alias name)
 	 * <br>
@@ -518,7 +525,7 @@ public class RootNode {
 	}
 
 	public @NotNull MethodNode resolveDirectMethod(String rawClsName, String mthShortId) {
-		ClassNode clsNode = resolveClass(rawClsName);
+		ClassNode clsNode = resolveRawClass(rawClsName);
 		if (clsNode == null) {
 			throw new RuntimeException("Class not found: " + rawClsName);
 		}
