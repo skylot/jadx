@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -174,8 +176,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 					throw new IOException(
 							String.format("Encountered unsupported chunk type RES_TABLE_TYPE_OVERLAY_POLICY at offset 0x%x ", chunkStart));
 				case RES_TABLE_TYPE_STAGED_ALIAS: // 0x0206
-					throw new IOException(
-							String.format("Encountered unsupported chunk type TYPE_STAGED_ALIAS at offset 0x%x ", chunkStart));
+					parseStagedAliasChunk(chunkStart);
+					break;
 				default:
 					LOG.warn("Unknown chunk type {} encountered at offset {}", type, chunkStart);
 			}
@@ -245,6 +247,13 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		}
 	}
 
+	/**
+	 * Parse an <code>ResTable_type</code> (except for the 2 bytes <code>uint16_t</code>
+	 * from <code>ResChunk_header</code>).
+	 *
+	 * @see <a href=
+	 *      "https://github.com/aosp-mirror/platform_frameworks_base/blob/master/libs/androidfw/include/androidfw/ResourceTypes.h"></a>ResourceTypes.h</a>
+	 */
 	private void parseTypeChunk(long start, PackageChunk pkg) throws IOException {
 		/* int headerSize = */
 		is.readInt16();
@@ -252,9 +261,13 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		long chunkSize = is.readUInt32();
 		long chunkEnd = start + chunkSize;
 
+		// The type identifier this chunk is holding. Type IDs start at 1 (corresponding
+		// to the value of the type bits in a resource identifier). 0 is invalid.
 		int id = is.readInt8();
-		is.checkInt8(0, "type chunk, res0");
-		is.checkInt16(0, "type chunk, res1");
+		int flags = is.readInt8(); // 0 or 1
+		boolean flagSparse = (flags == 1);
+
+		is.checkInt16(0, "type chunk, reserved");
 		int entryCount = is.readInt32();
 		long entriesStart = start + is.readInt32();
 
@@ -265,21 +278,30 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 			LOG.warn("Invalid config flags detected: {}{}", typeName, config.getQualifiers());
 		}
 
-		int[] entryIndexes = new int[entryCount];
-		for (int i = 0; i < entryCount; i++) {
-			entryIndexes[i] = is.readInt32();
+		Map<Integer, Integer> entryOffsetMap = new LinkedHashMap<>(entryCount);
+		if (flagSparse) {
+			for (int i = 0; i < entryCount; i++) {
+				entryOffsetMap.put(is.readInt16(), is.readInt16());
+			}
+		} else {
+			for (int i = 0; i < entryCount; i++) {
+				entryOffsetMap.put(i, is.readInt32());
+			}
 		}
 		is.checkPos(entriesStart, "Expected entry start");
-		for (int i = 0; i < entryCount; i++) {
-			if (entryIndexes[i] != NO_ENTRY) {
+		int processed = 0;
+		for (int index : entryOffsetMap.keySet()) {
+			int offset = entryOffsetMap.get(index);
+			if (offset != NO_ENTRY) {
 				if (is.getPos() >= chunkEnd) {
 					// Certain resource obfuscated apps like com.facebook.orca have more entries defined
 					// than actually fit into the chunk size -> ignore the remaining entries
-					LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - i);
+					LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - processed);
 					break;
 				}
-				parseEntry(pkg, id, i, config.getQualifiers());
+				parseEntry(pkg, id, index, config.getQualifiers());
 			}
+			processed++;
 		}
 		if (chunkEnd > is.getPos()) {
 			// Skip remaining unknown data in this chunk (e.g. type 8 entries")
@@ -292,14 +314,32 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 
 	private void parseOverlayTypeChunk(long chunkStart) throws IOException {
 		LOG.trace("parsing overlay type chunk starting at offset {}", chunkStart);
-		int headerSize = is.readInt16(); // usually 1032 bytes
+		// read ResTable_overlayable_header
+		/* headerSize = */ is.readInt16(); // usually 1032 bytes
 		int chunkSize = is.readInt32(); // e.g. 1056 bytes
 		long expectedEndPos = chunkStart + chunkSize;
-		String name = is.readString16Fixed(128); // 256 bytes
-		String actor = is.readString16Fixed(128); // 256 bytes
+		String name = is.readString16Fixed(256); // 512 bytes
+		String actor = is.readString16Fixed(256); // 512 bytes
 		LOG.trace("Overlay header data: name={} actor={}", name, actor);
-		// the other data in the chunk header and body is unknown
+		// skip: ResTable_overlayable_policy_header + ResTable_ref * x
 		is.skipToPos(expectedEndPos, "overlay chunk end");
+	}
+
+	private void parseStagedAliasChunk(long chunkStart) throws IOException {
+		// read ResTable_staged_alias_header
+		LOG.trace("parsing staged alias chunk starting at offset {}", chunkStart);
+		/* headerSize = */ is.readInt16();
+		int chunkSize = is.readInt32();
+		long expectedEndPos = chunkStart + chunkSize;
+		int count = is.readInt32();
+
+		for (int i = 0; i < count; i++) {
+			// read ResTable_staged_alias_entry
+			int stagedResId = is.readInt32();
+			int finalizedResId = is.readInt32();
+			LOG.debug("Staged alias: stagedResId {} finalizedResId {}", stagedResId, finalizedResId);
+		}
+		is.skipToPos(expectedEndPos, "staged alias chunk end");
 	}
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
