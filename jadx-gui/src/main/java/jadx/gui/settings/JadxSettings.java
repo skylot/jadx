@@ -401,6 +401,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.inlineMethods = inlineMethods;
 	}
 
+	public void setAllowInlineKotlinLambda(boolean allowInlineKotlinLambda) {
+		this.allowInlineKotlinLambda = allowInlineKotlinLambda;
+	}
+
 	public void setExtractFinally(boolean extractFinally) {
 		this.extractFinally = extractFinally;
 	}

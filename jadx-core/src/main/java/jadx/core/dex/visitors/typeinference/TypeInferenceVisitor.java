@@ -325,7 +325,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			ClassNode ctrCls = root.resolveClass(ctr.getClassType());
 			if (ctrCls != null && ctrCls.contains(AFlag.DONT_GENERATE)) {
 				AnonymousClassAttr baseTypeAttr = ctrCls.get(AType.ANONYMOUS_CLASS);
-				if (baseTypeAttr != null) {
+				if (baseTypeAttr != null && baseTypeAttr.getInlineType() == AnonymousClassAttr.InlineType.CONSTRUCTOR) {
 					return baseTypeAttr.getBaseType();
 				}
 			}

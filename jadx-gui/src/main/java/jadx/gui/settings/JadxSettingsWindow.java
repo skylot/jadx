@@ -538,6 +538,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox inlineKotlinLambdas = new JCheckBox();
+		inlineKotlinLambdas.setSelected(settings.isAllowInlineKotlinLambda());
+		inlineKotlinLambdas.addItemListener(e -> {
+			settings.setAllowInlineKotlinLambda(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox extractFinally = new JCheckBox();
 		extractFinally.setSelected(settings.isExtractFinally());
 		extractFinally.addItemListener(e -> {
@@ -581,6 +588,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
+		other.addRow(NLS.str("preferences.inlineKotlinLambdas"), inlineKotlinLambdas);
 		other.addRow(NLS.str("preferences.extractFinally"), extractFinally);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.useDx"), useDx);

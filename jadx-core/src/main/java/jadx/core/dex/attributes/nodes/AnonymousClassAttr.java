@@ -7,12 +7,19 @@ import jadx.core.dex.nodes.ClassNode;
 
 public class AnonymousClassAttr extends PinnedAttribute {
 
+	public enum InlineType {
+		CONSTRUCTOR,
+		INSTANCE_FIELD,
+	}
+
 	private final ClassNode outerCls;
 	private final ArgType baseType;
+	private final InlineType inlineType;
 
-	public AnonymousClassAttr(ClassNode outerCls, ArgType baseType) {
+	public AnonymousClassAttr(ClassNode outerCls, ArgType baseType, InlineType inlineType) {
 		this.outerCls = outerCls;
 		this.baseType = baseType;
+		this.inlineType = inlineType;
 	}
 
 	public ClassNode getOuterCls() {
@@ -23,6 +30,10 @@ public class AnonymousClassAttr extends PinnedAttribute {
 		return baseType;
 	}
 
+	public InlineType getInlineType() {
+		return inlineType;
+	}
+
 	@Override
 	public AType<AnonymousClassAttr> getAttrType() {
 		return AType.ANONYMOUS_CLASS;
@@ -30,6 +41,6 @@ public class AnonymousClassAttr extends PinnedAttribute {
 
 	@Override
 	public String toString() {
-		return "AnonymousClass{" + outerCls + ", base: " + baseType + '}';
+		return "AnonymousClass{" + outerCls + ", base: " + baseType + ", inline type: " + inlineType + '}';
 	}
 }

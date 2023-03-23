@@ -17,6 +17,7 @@ import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitInsnAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
@@ -210,7 +211,31 @@ public class InsnGen {
 		}
 	}
 
+	protected void staticField(ICodeWriter code, FieldInfo field) throws CodegenException {
+		FieldNode fieldNode = root.resolveField(field);
+		if (fieldNode != null
+				&& fieldNode.contains(AFlag.INLINE_INSTANCE_FIELD)
+				&& fieldNode.getParentClass().contains(AType.ANONYMOUS_CLASS)) {
+			FieldInitInsnAttr initInsnAttr = fieldNode.get(AType.FIELD_INIT_INSN);
+			if (initInsnAttr != null) {
+				InsnNode insn = initInsnAttr.getInsn();
+				if (insn instanceof ConstructorInsn) {
+					fieldNode.add(AFlag.DONT_GENERATE);
+					inlineAnonymousConstructor(code, fieldNode.getParentClass(), (ConstructorInsn) insn);
+					return;
+				}
+			}
+		}
+		makeStaticFieldAccess(code, field, fieldNode, mgen.getClassGen());
+	}
+
 	public static void makeStaticFieldAccess(ICodeWriter code, FieldInfo field, ClassGen clsGen) {
+		FieldNode fieldNode = clsGen.getClassNode().root().resolveField(field);
+		makeStaticFieldAccess(code, field, fieldNode, clsGen);
+	}
+
+	private static void makeStaticFieldAccess(ICodeWriter code,
+			FieldInfo field, @Nullable FieldNode fieldNode, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
 		// TODO
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
@@ -221,7 +246,6 @@ public class InsnGen {
 			}
 			code.add('.');
 		}
-		FieldNode fieldNode = clsGen.getClassNode().root().resolveField(field);
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
@@ -230,10 +254,6 @@ public class InsnGen {
 		} else {
 			code.add(fieldNode.getAlias());
 		}
-	}
-
-	protected void staticField(ICodeWriter code, FieldInfo field) {
-		makeStaticFieldAccess(code, field, mgen.getClassGen());
 	}
 
 	public void useClass(ICodeWriter code, ArgType type) {
@@ -695,9 +715,7 @@ public class InsnGen {
 	private void makeConstructor(ConstructorInsn insn, ICodeWriter code) throws CodegenException {
 		ClassNode cls = mth.root().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous() && !fallback) {
-			cls.ensureProcessed();
 			inlineAnonymousConstructor(code, cls, insn);
-			mth.getParentClass().addInlinedClass(cls);
 			return;
 		}
 		if (insn.isSelf()) {
@@ -748,6 +766,7 @@ public class InsnGen {
 	}
 
 	private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+		cls.ensureProcessed();
 		if (this.mth.getParentClass() == cls) {
 			cls.remove(AType.ANONYMOUS_CLASS);
 			cls.remove(AFlag.DONT_GENERATE);
@@ -786,6 +805,8 @@ public class InsnGen {
 		ClassGen classGen = new ClassGen(cls, mgen.getClassGen().getParentGen());
 		classGen.setOuterNameGen(mgen.getNameGen());
 		classGen.addClassBody(code, true);
+
+		mth.getParentClass().addInlinedClass(cls);
 	}
 
 	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {

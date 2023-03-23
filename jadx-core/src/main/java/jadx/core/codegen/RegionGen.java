@@ -270,7 +270,7 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
-	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) {
+	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) throws CodegenException {
 		if (k instanceof FieldNode) {
 			FieldNode fn = (FieldNode) k;
 			if (fn.getParentClass().isEnum()) {

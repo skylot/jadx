@@ -384,8 +384,14 @@ public class ExtractFieldInit extends AbstractVisitor {
 		return list;
 	}
 
-	private static void addFieldInitAttr(MethodNode mth, FieldNode field, InsnNode insn) {
-		InsnNode assignInsn = InsnNode.wrapArg(insn.getArg(0));
+	private static void addFieldInitAttr(MethodNode mth, FieldNode field, IndexInsnNode putInsn) {
+		InsnNode assignInsn;
+		InsnArg fldArg = putInsn.getArg(0);
+		if (fldArg.isInsnWrap()) {
+			assignInsn = ((InsnWrapArg) fldArg).getWrapInsn();
+		} else {
+			assignInsn = InsnNode.wrapArg(fldArg);
+		}
 		field.addAttr(new FieldInitInsnAttr(mth, assignInsn));
 	}
 }

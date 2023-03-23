@@ -1,4 +1,4 @@
-.class public Linline/Lambda;
+.class public Linline/Lambda$1;
 .super Ljava/lang/Object;
 
 .implements Ljava/util/function/Function;
@@ -12,13 +12,13 @@
     }
 .end annotation
 
-.field public static final INSTANCE:Linline/Lambda;
+.field public static final INSTANCE:Linline/Lambda$1;
 
 .method static constructor <clinit>()V
     .registers 1
-    new-instance v0, Linline/Lambda;
-    invoke-direct {v0}, Linline/Lambda;-><init>()V
-    sput-object v0, Linline/Lambda;->INSTANCE:Linline/Lambda;
+    new-instance v0, Linline/Lambda$1;
+    invoke-direct {v0}, Linline/Lambda$1;-><init>()V
+    sput-object v0, Linline/Lambda$1;->INSTANCE:Linline/Lambda$1;
     return-void
 .end method
 

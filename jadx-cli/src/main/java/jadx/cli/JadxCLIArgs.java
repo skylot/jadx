@@ -91,6 +91,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-inline-methods" }, description = "disable methods inline")
 	protected boolean inlineMethods = true;
 
+	@Parameter(names = { "--no-inline-kotlin-lambda" }, description = "disable inline for Kotlin lambdas")
+	protected boolean allowInlineKotlinLambda = true;
+
 	@Parameter(names = "--no-finally", description = "don't extract finally block")
 	protected boolean extractFinally = true;
 
@@ -287,6 +290,7 @@ public class JadxCLIArgs {
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setInlineMethods(inlineMethods);
+		args.setAllowInlineKotlinLambda(allowInlineKotlinLambda);
 		args.setExtractFinally(extractFinally);
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
@@ -366,6 +370,10 @@ public class JadxCLIArgs {
 
 	public boolean isInlineMethods() {
 		return inlineMethods;
+	}
+
+	public boolean isAllowInlineKotlinLambda() {
+		return allowInlineKotlinLambda;
 	}
 
 	public boolean isExtractFinally() {
