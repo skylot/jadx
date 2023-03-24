@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JResource;
 
 public class SearchSettings {
 
@@ -13,6 +14,7 @@ public class SearchSettings {
 	private final boolean ignoreCase;
 
 	private JClass activeCls;
+	private JResource activeResource;
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
 
@@ -62,6 +64,14 @@ public class SearchSettings {
 
 	public void setActiveCls(JClass activeCls) {
 		this.activeCls = activeCls;
+	}
+
+	public JResource getActiveResource() {
+		return activeResource;
+	}
+
+	public void setActiveResource(JResource activeResource) {
+		this.activeResource = activeResource;
 	}
 
 	public ISearchMethod getSearchMethod() {

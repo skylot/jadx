@@ -55,6 +55,7 @@ import jadx.gui.search.providers.MethodSearchProvider;
 import jadx.gui.search.providers.ResourceSearchProvider;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -452,9 +453,18 @@ public class SearchDialog extends CommonSearchDialog {
 				resultsInfoLabel.setText("Can't search in current tab");
 				return false;
 			}
-			JClass activeCls = currentPos.getNode().getRootClass();
-			searchSettings.setActiveCls(activeCls);
-			allClasses = Collections.singletonList(activeCls.getCls());
+			JNode currentNode = currentPos.getNode();
+			if (currentNode instanceof JClass) {
+				JClass activeCls = currentNode.getRootClass();
+				searchSettings.setActiveCls(activeCls);
+				allClasses = Collections.singletonList(activeCls.getCls());
+			} else if (currentNode instanceof JResource) {
+				searchSettings.setActiveResource((JResource) currentNode);
+				allClasses = Collections.emptyList();
+			} else {
+				resultsInfoLabel.setText("Can't search in current tab");
+				return false;
+			}
 		} else {
 			allClasses = mainWindow.getWrapper().getIncludedClassesWithInners();
 		}
@@ -475,9 +485,10 @@ public class SearchDialog extends CommonSearchDialog {
 			merged.add(new FieldSearchProvider(mainWindow, searchSettings, allClasses));
 		}
 		if (options.contains(CODE)) {
-			if (allClasses.size() == 1) {
+			int clsCount = allClasses.size();
+			if (clsCount == 1) {
 				newSearchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
-			} else {
+			} else if (clsCount > 1) {
 				List<List<JavaClass>> batches = mainWindow.getCacheObject().getDecompileBatches();
 				if (batches == null) {
 					List<JavaClass> topClasses = ListUtils.filter(allClasses, c -> !c.isInner());
@@ -490,7 +501,7 @@ public class SearchDialog extends CommonSearchDialog {
 			}
 		}
 		if (options.contains(RESOURCE)) {
-			newSearchTask.addProviderJob(new ResourceSearchProvider(mainWindow, searchSettings));
+			newSearchTask.addProviderJob(new ResourceSearchProvider(mainWindow, searchSettings, this));
 		}
 		if (options.contains(COMMENT)) {
 			newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
@@ -549,6 +560,7 @@ public class SearchDialog extends CommonSearchDialog {
 		synchronized (pendingResults) {
 			pendingResults.clear();
 		}
+		updateProgressLabel("");
 		progressPane.setVisible(false);
 		warnLabel.setVisible(false);
 		loadAllButton.setEnabled(false);
@@ -596,6 +608,10 @@ public class SearchDialog extends CommonSearchDialog {
 			progressPane.setProgress(progress);
 			updateTable();
 		});
+	}
+
+	public void updateProgressLabel(String text) {
+		UiUtils.uiRun(() -> progressInfoLabel.setText(text));
 	}
 
 	private void searchFinished(ITaskInfo status, Boolean complete) {

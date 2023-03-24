@@ -45,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+
 import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeDeclareRef;
@@ -78,6 +80,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected ResultsModel resultsModel;
 	protected ResultsTable resultsTable;
 	protected JLabel resultsInfoLabel;
+	protected JLabel progressInfoLabel;
 	protected JLabel warnLabel;
 	protected ProgressPanel progressPane;
 
@@ -297,6 +300,15 @@ public abstract class CommonSearchDialog extends JFrame {
 		resultsInfoLabel = new JLabel("");
 		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
 
+		progressInfoLabel = new JLabel("");
+		progressInfoLabel.setFont(mainWindow.getSettings().getFont());
+		progressInfoLabel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				LogViewerDialog.openWithLevel(mainWindow, Level.INFO);
+			}
+		});
+
 		JPanel resultsActionsPanel = new JPanel();
 		resultsActionsPanel.setLayout(new BoxLayout(resultsActionsPanel, BoxLayout.LINE_AXIS));
 		resultsActionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -313,6 +325,8 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected void addResultsActions(JPanel resultsActionsPanel) {
 		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
 		resultsActionsPanel.add(resultsInfoLabel);
+		resultsActionsPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		resultsActionsPanel.add(progressInfoLabel);
 		resultsActionsPanel.add(Box.createHorizontalGlue());
 	}
 

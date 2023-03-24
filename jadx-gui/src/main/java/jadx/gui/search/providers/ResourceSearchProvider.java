@@ -1,6 +1,7 @@
 package jadx.gui.search.providers;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -24,12 +25,15 @@ import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.utils.NLS;
 
 public class ResourceSearchProvider implements ISearchProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourceSearchProvider.class);
 
 	private final SearchSettings searchSettings;
 	private final Set<String> extSet;
+	private final SearchDialog searchDialog;
 	private final int sizeLimit;
 	private boolean anyExt;
 
@@ -39,11 +43,20 @@ public class ResourceSearchProvider implements ISearchProvider {
 	private final Deque<JResource> resQueue;
 	private int pos;
 
-	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings) {
+	private int loadErrors = 0;
+	private int skipBySize = 0;
+
+	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings, SearchDialog searchDialog) {
 		this.searchSettings = searchSettings;
 		this.sizeLimit = mw.getSettings().getSrhResourceSkipSize() * 1048576;
 		this.extSet = buildAllowedFilesExtensions(mw.getSettings().getSrhResourceFileExt());
-		this.resQueue = initResQueue(mw);
+		this.searchDialog = searchDialog;
+		JResource activeResource = searchSettings.getActiveResource();
+		if (activeResource != null) {
+			this.resQueue = new ArrayDeque<>(Collections.singleton(activeResource));
+		} else {
+			this.resQueue = initResQueue(mw);
+		}
 	}
 
 	@Override
@@ -93,29 +106,46 @@ public class ResourceSearchProvider implements ISearchProvider {
 	private @Nullable JResource getNextResFile(Cancelable cancelable) {
 		while (true) {
 			JResource node = resQueue.peekLast();
-			if (node == null) {
-				return null;
-			}
-			try {
-				node.loadNode();
-			} catch (Exception e) {
-				LOG.error("Error load resource node: {}", node, e);
-				resQueue.removeLast();
-				continue;
-			}
-			if (cancelable.isCanceled()) {
+			if (node == null || cancelable.isCanceled()) {
 				return null;
 			}
 			if (node.getType() == JResource.JResType.FILE) {
-				if (shouldProcess(node)) {
+				if (shouldProcess(node) && loadResNode(node)) {
 					return node;
 				}
 				resQueue.removeLast();
 			} else {
 				// dir
 				resQueue.removeLast();
+				loadResNode(node);
 				addChildren(node);
 			}
+		}
+	}
+
+	private void updateProgressInfo() {
+		StringBuilder sb = new StringBuilder();
+		if (loadErrors != 0) {
+			sb.append("  ").append(NLS.str("search_dialog.resources_load_errors", loadErrors));
+		}
+		if (skipBySize != 0) {
+			sb.append("  ").append(NLS.str("search_dialog.resources_skip_by_size", skipBySize));
+		}
+		if (sb.length() != 0) {
+			sb.append("  ").append(NLS.str("search_dialog.resources_check_logs"));
+		}
+		searchDialog.updateProgressLabel(sb.toString());
+	}
+
+	private boolean loadResNode(JResource node) {
+		try {
+			node.loadNode();
+			return true;
+		} catch (Exception e) {
+			LOG.error("Error load resource node: {}", node, e);
+			loadErrors++;
+			updateProgressInfo();
+			return false;
 		}
 	}
 
@@ -167,19 +197,24 @@ public class ResourceSearchProvider implements ISearchProvider {
 				return false;
 			}
 		}
-		if (sizeLimit == 0) {
+		if (sizeLimit <= 0) {
 			return true;
 		}
 		try {
 			int charsCount = resNode.getCodeInfo().getCodeStr().length();
 			long size = charsCount * 8L;
 			if (size > sizeLimit) {
-				LOG.debug("Resource search skipped because of size limit: {} res size {} bytes", resNode, size);
+				LOG.info("Resource search skipped because of size limit. Resource '{}' size {} bytes, limit: {}",
+						resNode.getName(), size, sizeLimit);
+				skipBySize++;
+				updateProgressInfo();
 				return false;
 			}
 			return true;
 		} catch (Exception e) {
 			LOG.warn("Resource load error: {}", resNode, e);
+			loadErrors++;
+			updateProgressInfo();
 			return false;
 		}
 	}
