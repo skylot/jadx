@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -62,7 +62,6 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
-import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
@@ -75,6 +74,8 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.plugins.CollectPluginOptions;
+import jadx.gui.utils.plugins.PluginWithOptions;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
@@ -612,37 +613,39 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makePluginOptionsGroup() {
 		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
-		PluginsContext pluginsContext = mainWindow.getWrapper().getPluginsContext();
-		for (Map.Entry<JadxPlugin, JadxPluginOptions> entry : pluginsContext.getOptionsMap().entrySet()) {
-			JadxPlugin plugin = entry.getKey();
-			JadxPluginOptions options = entry.getValue();
-			String pluginId = plugin.getPluginInfo().getPluginId();
-			for (OptionDescription opt : options.getOptionsDescriptions()) {
-				String title;
-				if (pluginId.equals("jadx-script")) {
-					title = '[' + opt.name().replace("jadx-script.", "script:") + "] " + opt.description();
-				} else {
-					title = '[' + pluginId + "]  " + opt.description();
-				}
-				if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
-					try {
-						pluginsGroup.addRow(title, getPluginOptionEditor(opt));
-					} catch (Exception e) {
-						LOG.error("Failed to add editor for plugin option: {}", opt.name(), e);
-					}
-				} else {
-					String curValue = settings.getPluginOptions().get(opt.name());
-					JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
-					combo.setSelectedItem(curValue != null ? curValue : opt.defaultValue());
-					combo.addActionListener(e -> {
-						settings.getPluginOptions().put(opt.name(), ((String) combo.getSelectedItem()));
-						needReload();
-					});
-					pluginsGroup.addRow(title, combo);
-				}
-			}
+		List<PluginWithOptions> list = new CollectPluginOptions(mainWindow.getWrapper()).build();
+		for (PluginWithOptions data : list) {
+			addPluginOptions(pluginsGroup, data.getPlugin(), data.getOptions());
 		}
 		return pluginsGroup;
+	}
+
+	private void addPluginOptions(SettingsGroup pluginsGroup, JadxPlugin plugin, JadxPluginOptions options) {
+		String pluginId = plugin.getPluginInfo().getPluginId();
+		for (OptionDescription opt : options.getOptionsDescriptions()) {
+			String title;
+			if (pluginId.equals("jadx-script")) {
+				title = '[' + opt.name().replace("jadx-script.", "script:") + "] " + opt.description();
+			} else {
+				title = '[' + pluginId + "]  " + opt.description();
+			}
+			if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
+				try {
+					pluginsGroup.addRow(title, getPluginOptionEditor(opt));
+				} catch (Exception e) {
+					LOG.error("Failed to add editor for plugin option: {}", opt.name(), e);
+				}
+			} else {
+				String curValue = settings.getPluginOptions().get(opt.name());
+				JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
+				combo.setSelectedItem(curValue != null ? curValue : opt.defaultValue());
+				combo.addActionListener(e -> {
+					settings.getPluginOptions().put(opt.name(), ((String) combo.getSelectedItem()));
+					needReload();
+				});
+				pluginsGroup.addRow(title, combo);
+			}
+		}
 	}
 
 	private JComponent getPluginOptionEditor(OptionDescription opt) {

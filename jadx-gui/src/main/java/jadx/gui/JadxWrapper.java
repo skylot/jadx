@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,6 @@ import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
-import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.usage.impl.EmptyUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
@@ -27,7 +27,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.FileUtils;
 import jadx.gui.cache.code.CodeStringCache;
 import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
@@ -227,15 +226,9 @@ public class JadxWrapper {
 		getSettings().sync();
 	}
 
-	public PluginsContext getPluginsContext() {
-		if (decompiler != null) {
-			return decompiler.getPluginsContext();
-		}
-		try (JadxDecompiler tmpDecompiler = new JadxDecompiler()) {
-			// TODO: override input file checks
-			tmpDecompiler.getArgs().setInputFile(FileUtils.createTempFile("tmp.txt").toFile());
-			tmpDecompiler.load();
-			return tmpDecompiler.getPluginsContext();
+	public Optional<JadxDecompiler> getCurrentDecompiler() {
+		synchronized (DECOMPILER_UPDATE_SYNC) {
+			return Optional.ofNullable(decompiler);
 		}
 	}
 

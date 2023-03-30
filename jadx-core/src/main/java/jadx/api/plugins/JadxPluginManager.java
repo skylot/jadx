@@ -119,11 +119,12 @@ public class JadxPluginManager {
 		init(context, resolvedPlugins);
 	}
 
-	private void init(PluginsContext context, List<JadxPlugin> plugins) {
+	public void init(PluginsContext context, List<JadxPlugin> plugins) {
 		for (JadxPlugin plugin : plugins) {
 			try {
 				context.setCurrentPlugin(plugin);
 				plugin.init(context);
+				context.setCurrentPlugin(null);
 			} catch (Exception e) {
 				String pluginId = plugin.getPluginInfo().getPluginId();
 				throw new JadxRuntimeException("Failed to init plugin: " + pluginId, e);
