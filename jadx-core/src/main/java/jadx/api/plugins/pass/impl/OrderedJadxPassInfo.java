@@ -52,4 +52,9 @@ public class OrderedJadxPassInfo implements JadxPassInfo {
 	public List<String> runBefore() {
 		return runBefore;
 	}
+
+	@Override
+	public String toString() {
+		return "PassInfo{'" + name + '\'' + ", desc='" + desc + '\'' + ", runAfter=" + runAfter + ", runBefore=" + runBefore + '}';
+	}
 }

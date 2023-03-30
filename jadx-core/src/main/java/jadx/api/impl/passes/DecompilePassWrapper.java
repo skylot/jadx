@@ -3,6 +3,7 @@ package jadx.api.impl.passes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.pass.types.JadxDecompilePass;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -10,13 +11,18 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
-public class DecompilePassWrapper extends AbstractVisitor {
+public class DecompilePassWrapper extends AbstractVisitor implements IPassWrapperVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(DecompilePassWrapper.class);
 
 	private final JadxDecompilePass decompilePass;
 
 	public DecompilePassWrapper(JadxDecompilePass decompilePass) {
 		this.decompilePass = decompilePass;
+	}
+
+	@Override
+	public JadxPass getPass() {
+		return decompilePass;
 	}
 
 	@Override
@@ -48,7 +54,7 @@ public class DecompilePassWrapper extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return decompilePass.getInfo().getName();
 	}
 }

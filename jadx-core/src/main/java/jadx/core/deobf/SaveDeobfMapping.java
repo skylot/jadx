@@ -47,7 +47,7 @@ public class SaveDeobfMapping extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "SaveDeobfMapping";
 	}
 }

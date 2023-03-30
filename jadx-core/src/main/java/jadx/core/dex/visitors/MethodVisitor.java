@@ -2,16 +2,16 @@ package jadx.core.dex.visitors;
 
 import java.util.function.Consumer;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxException;
 
-public class MethodVisitor implements IDexTreeVisitor {
+public class MethodVisitor extends AbstractVisitor {
 
+	private final String name;
 	private final Consumer<MethodNode> visitor;
 
-	public MethodVisitor(Consumer<MethodNode> visitor) {
+	public MethodVisitor(String name, Consumer<MethodNode> visitor) {
+		this.name = name;
 		this.visitor = visitor;
 	}
 
@@ -21,11 +21,7 @@ public class MethodVisitor implements IDexTreeVisitor {
 	}
 
 	@Override
-	public void init(RootNode root) throws JadxException {
-	}
-
-	@Override
-	public boolean visit(ClassNode cls) throws JadxException {
-		return true;
+	public String getName() {
+		return name;
 	}
 }

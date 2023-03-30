@@ -278,7 +278,7 @@ public class SignatureProcessor extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "SignatureProcessor";
 	}
 }

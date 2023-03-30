@@ -55,7 +55,7 @@ public class PluginsContext implements JadxPluginContext {
 		return codeInputs;
 	}
 
-	public void setCurrentPlugin(JadxPlugin currentPlugin) {
+	public void setCurrentPlugin(@Nullable JadxPlugin currentPlugin) {
 		this.currentPlugin = currentPlugin;
 	}
 

@@ -177,7 +177,7 @@ public class UsageInfoVisitor extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "UsageInfoVisitor";
 	}
 }

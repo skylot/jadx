@@ -201,7 +201,7 @@ public class Jadx {
 		if (args.isRawCFGOutput()) {
 			passes.add(DotGraphVisitor.dumpRaw());
 		}
-		passes.add(new MethodVisitor(mth -> mth.add(AFlag.DISABLE_BLOCKS_LOCK)));
+		passes.add(new MethodVisitor("DisableBlockLock", mth -> mth.add(AFlag.DISABLE_BLOCKS_LOCK)));
 		passes.add(new BlockProcessor());
 		passes.add(new SSATransform());
 		passes.add(new MoveInlineVisitor());
@@ -220,7 +220,7 @@ public class Jadx {
 		passes.add(new ReSugarCode());
 		passes.add(new CodeShrinkVisitor());
 		passes.add(new SimplifyVisitor());
-		passes.add(new MethodVisitor(mth -> mth.remove(AFlag.DONT_GENERATE)));
+		passes.add(new MethodVisitor("ForceGenerateAll", mth -> mth.remove(AFlag.DONT_GENERATE)));
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dump());
 		}

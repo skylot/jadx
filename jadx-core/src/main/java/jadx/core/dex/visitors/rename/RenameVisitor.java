@@ -246,7 +246,7 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "RenameVisitor";
 	}
 }

@@ -11,6 +11,11 @@ import jadx.core.utils.exceptions.JadxException;
 public interface IDexTreeVisitor {
 
 	/**
+	 * Visitor short id
+	 */
+	String getName();
+
+	/**
 	 * Called after loading dex tree, but before visitor traversal.
 	 */
 	void init(RootNode root) throws JadxException;

@@ -462,7 +462,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "OverrideMethodVisitor";
 	}
 }

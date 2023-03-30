@@ -73,7 +73,7 @@ public class ProcessMethodsForInline extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "ProcessMethodsForInline";
 	}
 }

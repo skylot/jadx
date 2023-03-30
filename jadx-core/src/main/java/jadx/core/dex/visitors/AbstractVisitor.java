@@ -24,7 +24,12 @@ public abstract class AbstractVisitor implements IDexTreeVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return this.getClass().getSimpleName();
+	}
+
+	@Override
+	public String toString() {
+		return getName();
 	}
 }

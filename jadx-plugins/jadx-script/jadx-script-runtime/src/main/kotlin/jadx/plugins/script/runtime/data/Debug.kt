@@ -15,4 +15,12 @@ class Debug(private val jadx: JadxScriptInstance) {
 	fun saveCFG(mth: MethodNode, file: File = File("dump-mth-raw")) {
 		DotGraphVisitor.dumpRaw().save(file, mth)
 	}
+
+	fun printPreparePasses() {
+		jadx.internalDecompiler.root.preDecompilePasses.forEach { jadx.log.info { it.name } }
+	}
+
+	fun printPasses() {
+		jadx.internalDecompiler.root.passes.forEach { jadx.log.info { it.name } }
+	}
 }

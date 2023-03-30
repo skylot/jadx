@@ -362,7 +362,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return "ProcessAnonymous";
 	}
 }

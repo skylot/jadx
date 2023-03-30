@@ -309,12 +309,10 @@ public class RootNode {
 	}
 
 	public void mergePasses(Map<JadxPassType, List<JadxPass>> customPasses) {
-		PassMerge.run(preDecompilePasses,
-				customPasses.get(JadxPreparePass.TYPE),
-				p -> new PreparePassWrapper((JadxPreparePass) p));
-		PassMerge.run(processClasses.getPasses(),
-				customPasses.get(JadxDecompilePass.TYPE),
-				p -> new DecompilePassWrapper((JadxDecompilePass) p));
+		new PassMerge(preDecompilePasses)
+				.merge(customPasses.get(JadxPreparePass.TYPE), p -> new PreparePassWrapper((JadxPreparePass) p));
+		new PassMerge(processClasses.getPasses())
+				.merge(customPasses.get(JadxDecompilePass.TYPE), p -> new DecompilePassWrapper((JadxDecompilePass) p));
 	}
 
 	public void runPreDecompileStage() {
@@ -613,6 +611,10 @@ public class RootNode {
 
 	public List<IDexTreeVisitor> getPasses() {
 		return processClasses.getPasses();
+	}
+
+	public List<IDexTreeVisitor> getPreDecompilePasses() {
+		return preDecompilePasses;
 	}
 
 	public void initPasses() {

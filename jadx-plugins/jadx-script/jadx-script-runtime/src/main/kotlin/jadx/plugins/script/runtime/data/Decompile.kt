@@ -13,8 +13,7 @@ class Decompile(private val jadx: JadxScriptInstance) {
 
 	fun allThreaded(threadsCount: Int = JadxArgs.DEFAULT_THREADS_COUNT) {
 		val executor = Executors.newFixedThreadPool(threadsCount)
-		val dec = jadx.internalDecompiler
-		val batches = dec.decompileScheduler.buildBatches(jadx.classes)
+		val batches = jadx.internalDecompiler.decompileScheduler.buildBatches(jadx.classes)
 		for (batch in batches) {
 			executor.submit {
 				batch.forEach(JavaClass::decompile)
