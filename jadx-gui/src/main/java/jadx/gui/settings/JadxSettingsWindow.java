@@ -22,8 +22,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -62,9 +64,10 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.ResourceNameSource;
-import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.options.OptionDescription.OptionFlag;
+import jadx.core.plugins.PluginContext;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.ui.MainWindow;
@@ -75,7 +78,6 @@ import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.plugins.CollectPluginOptions;
-import jadx.gui.utils.plugins.PluginWithOptions;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
@@ -613,34 +615,54 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makePluginOptionsGroup() {
 		SettingsGroup pluginsGroup = new SettingsGroup(NLS.str("preferences.plugins"));
-		List<PluginWithOptions> list = new CollectPluginOptions(mainWindow.getWrapper()).build();
-		for (PluginWithOptions data : list) {
-			addPluginOptions(pluginsGroup, data.getPlugin(), data.getOptions());
+		List<PluginContext> list = new CollectPluginOptions(mainWindow.getWrapper()).build();
+		for (PluginContext context : list) {
+			addPluginOptions(pluginsGroup, context);
 		}
 		return pluginsGroup;
 	}
 
-	private void addPluginOptions(SettingsGroup pluginsGroup, JadxPlugin plugin, JadxPluginOptions options) {
-		String pluginId = plugin.getPluginInfo().getPluginId();
+	private void addPluginOptions(SettingsGroup pluginsGroup, PluginContext context) {
+		JadxPluginOptions options = context.getOptions();
+		if (options == null) {
+			return;
+		}
+		String pluginId = context.getPluginId();
 		for (OptionDescription opt : options.getOptionsDescriptions()) {
+			if (opt.getFlags().contains(OptionFlag.HIDE_IN_GUI)) {
+				continue;
+			}
+			String optName = opt.name();
 			String title;
 			if (pluginId.equals("jadx-script")) {
-				title = '[' + opt.name().replace("jadx-script.", "script:") + "] " + opt.description();
+				title = '[' + optName.replace("jadx-script.", "script:") + "] " + opt.description();
 			} else {
 				title = '[' + pluginId + "]  " + opt.description();
 			}
+			Consumer<String> updateFunc;
+			String curValue;
+			if (opt.getFlags().contains(OptionFlag.PER_PROJECT)) {
+				JadxProject project = mainWindow.getProject();
+				updateFunc = value -> project.updatePluginOptions(m -> m.put(optName, value));
+				curValue = project.getPluginOption(optName);
+			} else {
+				Map<String, String> optionsMap = settings.getPluginOptions();
+				updateFunc = value -> optionsMap.put(optName, value);
+				curValue = optionsMap.get(optName);
+			}
+			String value = curValue != null ? curValue : opt.defaultValue();
+
 			if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
 				try {
-					pluginsGroup.addRow(title, getPluginOptionEditor(opt));
+					pluginsGroup.addRow(title, getPluginOptionEditor(opt, value, updateFunc));
 				} catch (Exception e) {
-					LOG.error("Failed to add editor for plugin option: {}", opt.name(), e);
+					LOG.error("Failed to add editor for plugin option: {}", optName, e);
 				}
 			} else {
-				String curValue = settings.getPluginOptions().get(opt.name());
 				JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
-				combo.setSelectedItem(curValue != null ? curValue : opt.defaultValue());
+				combo.setSelectedItem(value);
 				combo.addActionListener(e -> {
-					settings.getPluginOptions().put(opt.name(), ((String) combo.getSelectedItem()));
+					updateFunc.accept((String) combo.getSelectedItem());
 					needReload();
 				});
 				pluginsGroup.addRow(title, combo);
@@ -648,16 +670,13 @@ public class JadxSettingsWindow extends JDialog {
 		}
 	}
 
-	private JComponent getPluginOptionEditor(OptionDescription opt) {
-		String curValue = settings.getPluginOptions().get(opt.name());
-		String value = curValue == null ? opt.defaultValue() : curValue;
-
+	private JComponent getPluginOptionEditor(OptionDescription opt, String value, Consumer<String> updateFunc) {
 		switch (opt.getType()) {
 			case STRING:
 				JTextField textField = new JTextField();
 				textField.setText(value == null ? "" : value);
 				textField.getDocument().addDocumentListener(new DocumentUpdateListener(event -> {
-					settings.getPluginOptions().put(opt.name(), textField.getText());
+					updateFunc.accept(textField.getText());
 					needReload();
 				}));
 				return textField;
@@ -666,7 +685,7 @@ public class JadxSettingsWindow extends JDialog {
 				JSpinner numberField = new JSpinner();
 				numberField.setValue(safeStringToInt(value, 0));
 				numberField.addChangeListener(e -> {
-					settings.getPluginOptions().put(opt.name(), numberField.getValue().toString());
+					updateFunc.accept(numberField.getValue().toString());
 					needReload();
 				});
 				return numberField;
@@ -676,7 +695,7 @@ public class JadxSettingsWindow extends JDialog {
 				boolField.setSelected(Objects.equals(value, "yes") || Objects.equals(value, "true"));
 				boolField.addItemListener(e -> {
 					boolean editorValue = e.getStateChange() == ItemEvent.SELECTED;
-					settings.getPluginOptions().put(opt.name(), editorValue ? "yes" : "no");
+					updateFunc.accept(editorValue ? "yes" : "no");
 					needReload();
 				});
 				return boolField;

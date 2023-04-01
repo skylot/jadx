@@ -6,7 +6,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
 public interface JadxDecompilePass extends JadxPass {
-	JadxPassType TYPE = new JadxPassType(JadxDecompilePass.class);
+	JadxPassType TYPE = new JadxPassType("DecompilePass");
 
 	void init(RootNode root);
 

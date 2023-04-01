@@ -23,14 +23,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.impl.plugins.PluginsContext;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
 import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.pass.JadxPass;
@@ -45,6 +43,7 @@ import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
+import jadx.core.plugins.JadxPluginManager;
 import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -85,7 +84,7 @@ public final class JadxDecompiler implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final JadxArgs args;
-	private final JadxPluginManager pluginManager = new JadxPluginManager();
+	private final JadxPluginManager pluginManager = new JadxPluginManager(this);
 	private final List<ICodeLoader> loadedInputs = new ArrayList<>();
 
 	private RootNode root;
@@ -97,7 +96,6 @@ public final class JadxDecompiler implements Closeable {
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 
-	private final PluginsContext pluginsContext = new PluginsContext(this);
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
 
@@ -144,7 +142,7 @@ public final class JadxDecompiler implements Closeable {
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		long start = System.currentTimeMillis();
-		for (JadxCodeInput codeLoader : pluginsContext.getCodeInputs()) {
+		for (JadxCodeInput codeLoader : pluginManager.getCodeInputs()) {
 			ICodeLoader loader = codeLoader.loadFiles(inputFiles);
 			if (loader != null && !loader.isEmpty()) {
 				loadedInputs.add(loader);
@@ -186,10 +184,9 @@ public final class JadxDecompiler implements Closeable {
 		pluginManager.providesSuggestion("java-input", args.isUseDxInput() ? "java-convert" : "java-input");
 		pluginManager.load();
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Resolved plugins: {}", Utils.collectionMap(pluginManager.getResolvedPlugins(),
-					p -> p.getPluginInfo().getPluginId()));
+			LOG.debug("Resolved plugins: {}", pluginManager.getResolvedPluginContexts());
 		}
-		pluginManager.initResolved(pluginsContext);
+		pluginManager.initResolved();
 		if (LOG.isDebugEnabled()) {
 			List<String> passes = customPasses.values().stream().flatMap(Collection::stream)
 					.map(p -> p.getInfo().getName()).collect(Collectors.toList());
@@ -671,10 +668,6 @@ public final class JadxDecompiler implements Closeable {
 
 	public void addCustomPass(JadxPass pass) {
 		customPasses.computeIfAbsent(pass.getPassType(), l -> new ArrayList<>()).add(pass);
-	}
-
-	public PluginsContext getPluginsContext() {
-		return pluginsContext;
 	}
 
 	@Override

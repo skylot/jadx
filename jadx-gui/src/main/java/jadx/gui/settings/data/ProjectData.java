@@ -3,7 +3,9 @@ package jadx.gui.settings.data;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +24,7 @@ public class ProjectData {
 	private @Nullable Path cacheDir;
 	private boolean enableLiveReload = false;
 	private List<String> searchHistory = new ArrayList<>();
+	protected Map<String, String> pluginOptions = new HashMap<>();
 
 	public List<Path> getFiles() {
 		return files;
@@ -121,5 +124,9 @@ public class ProjectData {
 
 	public void setSearchHistory(List<String> searchHistory) {
 		this.searchHistory = searchHistory;
+	}
+
+	public Map<String, String> getPluginOptions() {
+		return pluginOptions;
 	}
 }

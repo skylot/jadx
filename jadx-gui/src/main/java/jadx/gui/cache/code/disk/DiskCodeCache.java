@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -28,10 +29,11 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
-import jadx.api.args.UserRenamesMappingsMode;
+import jadx.api.JadxDecompiler;
 import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -64,7 +66,7 @@ public class DiskCodeCache implements ICodeCache {
 		codeVersionFile = baseDir.resolve("code-version");
 		namesMapFile = baseDir.resolve("names-map");
 		JadxArgs args = root.getArgs();
-		codeVersion = buildCodeVersion(args);
+		codeVersion = buildCodeVersion(args, root.getDecompiler());
 		writePool = Executors.newFixedThreadPool(args.getThreadsCount());
 		codeMetadataAdapter = new CodeMetadataAdapter(root);
 		allClsIds = buildClassIdsMap(root.getClasses());
@@ -193,24 +195,28 @@ public class DiskCodeCache implements ICodeCache {
 		}
 	}
 
-	private String buildCodeVersion(JadxArgs args) {
+	private String buildCodeVersion(JadxArgs args, @Nullable JadxDecompiler decompiler) {
 		List<File> inputFiles = new ArrayList<>(args.getInputFiles());
-		Path userMappingPath = args.getUserRenamesMappingsPath();
-		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
-				&& userMappingPath != null
-				&& Files.exists(userMappingPath)) {
-			inputFiles.add(userMappingPath.toFile());
-		}
-		File generatedMappingFile = args.getGeneratedRenamesMappingFile();
 		if (args.getGeneratedRenamesMappingFileMode().shouldRead()
-				&& generatedMappingFile != null
-				&& generatedMappingFile.exists()) {
-			inputFiles.add(generatedMappingFile);
+				&& args.getGeneratedRenamesMappingFile() != null
+				&& args.getGeneratedRenamesMappingFile().exists()) {
+			inputFiles.add(args.getGeneratedRenamesMappingFile());
 		}
 		return DATA_FORMAT_VERSION
 				+ ":" + Jadx.getVersion()
 				+ ":" + args.makeCodeArgsHash()
-				+ ":" + FileUtils.buildInputsHash(Utils.collectionMap(inputFiles, File::toPath));
+				+ ":" + FileUtils.buildInputsHash(Utils.collectionMap(inputFiles, File::toPath))
+				+ ":" + FileUtils.md5Sum(buildPluginsHash(decompiler));
+	}
+
+	private String buildPluginsHash(JadxDecompiler decompiler) {
+		if (decompiler == null) {
+			return "";
+		}
+		return decompiler.getPluginManager().getResolvedPluginContexts()
+				.stream()
+				.map(PluginContext::getInputsHash)
+				.collect(Collectors.joining());
 	}
 
 	private int getClsId(String clsFullName) {

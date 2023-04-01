@@ -28,6 +28,11 @@ public class ActionHandler extends AbstractAction {
 		putValue(NAME, name);
 	}
 
+	public ActionHandler withNameAndDesc(String name) {
+		setNameAndDesc(name);
+		return this;
+	}
+
 	public void setNameAndDesc(String name) {
 		setName(name);
 		setShortDescription(name);

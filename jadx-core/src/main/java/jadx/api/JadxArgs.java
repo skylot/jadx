@@ -2,7 +2,6 @@ package jadx.api;
 
 import java.io.Closeable;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -636,8 +635,8 @@ public class JadxArgs implements Closeable {
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
-				+ commentsLevel + useDxInput + pluginOptions;
-		return FileUtils.md5Sum(argStr.getBytes(StandardCharsets.US_ASCII));
+				+ commentsLevel + useDxInput;
+		return FileUtils.md5Sum(argStr);
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import jadx.api.JavaClass;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.settings.data.ViewPoint;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JInputMapping;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
@@ -62,6 +63,9 @@ public class TabStateViewAdapter {
 				return mw.getTreeRoot()
 						.followStaticPath("JInputs", "JInputScripts")
 						.searchNode(node -> node instanceof JInputScript && node.getName().equals(tvs.getTabPath()));
+
+			case "mapping":
+				return mw.getTreeRoot().followStaticPath("JInputs", "JInputMapping");
 		}
 		return null;
 	}
@@ -80,6 +84,10 @@ public class TabStateViewAdapter {
 		if (node instanceof JInputScript) {
 			tvs.setType("script");
 			tvs.setTabPath(node.getName());
+			return true;
+		}
+		if (node instanceof JInputMapping) {
+			tvs.setType("mapping");
 			return true;
 		}
 		return false;

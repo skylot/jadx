@@ -138,7 +138,7 @@ public class JadxWrapper {
 
 	private void initGuiPluginsContext() {
 		guiPluginsContext = new GuiPluginsContext(mainWindow);
-		decompiler.getPluginsContext().setGuiContext(guiPluginsContext);
+		decompiler.getPluginManager().setGuiContext(guiPluginsContext);
 	}
 
 	public GuiPluginsContext getGuiPluginsContext() {

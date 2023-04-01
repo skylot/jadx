@@ -17,12 +17,13 @@ import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameterized;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
-import jadx.api.impl.plugins.PluginsContext;
-import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.core.plugins.JadxPluginManager;
+import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
 
 public class JCommanderWrapper<T> {
@@ -175,12 +176,15 @@ public class JCommanderWrapper<T> {
 		StringBuilder sb = new StringBuilder();
 		int k = 1;
 		// load and init all options plugins to print all options
-		try (JadxDecompiler decompiler = new JadxDecompiler(argsObj.toJadxArgs())) {
-			PluginsContext context = new PluginsContext(decompiler);
-			decompiler.getPluginManager().initAll(context);
-			for (Map.Entry<JadxPlugin, JadxPluginOptions> entry : context.getOptionsMap().entrySet()) {
-				if (appendPlugin(entry.getKey(), entry.getValue(), sb, maxNamesLen, k)) {
-					k++;
+		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
+			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			pluginManager.initAll();
+			for (PluginContext context : pluginManager.getAllPluginContexts()) {
+				JadxPluginOptions options = context.getOptions();
+				if (options != null) {
+					if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen, k)) {
+						k++;
+					}
 				}
 			}
 		}
@@ -190,12 +194,11 @@ public class JCommanderWrapper<T> {
 		return "\nPlugin options (-P<name>=<value>):" + sb;
 	}
 
-	private boolean appendPlugin(JadxPlugin plugin, JadxPluginOptions options, StringBuilder out, int maxNamesLen, int k) {
+	private boolean appendPlugin(JadxPluginInfo pluginInfo, JadxPluginOptions options, StringBuilder out, int maxNamesLen, int k) {
 		List<OptionDescription> descs = options.getOptionsDescriptions();
 		if (descs.isEmpty()) {
 			return false;
 		}
-		JadxPluginInfo pluginInfo = plugin.getPluginInfo();
 		out.append("\n ").append(k).append(") ");
 		out.append(pluginInfo.getPluginId()).append(": ").append(pluginInfo.getDescription());
 		for (OptionDescription desc : descs) {

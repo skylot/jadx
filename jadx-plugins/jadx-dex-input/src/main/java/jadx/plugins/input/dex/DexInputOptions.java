@@ -1,6 +1,5 @@
 package jadx.plugins.input.dex;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,11 +20,10 @@ public class DexInputOptions extends BaseOptionsParser {
 
 	public List<OptionDescription> getOptionsDescriptions() {
 		return Collections.singletonList(
-				new JadxOptionDescription(
+				JadxOptionDescription.booleanOption(
 						VERIFY_CHECKSUM_OPT,
 						"verify dex file checksum before load",
-						"yes",
-						Arrays.asList("yes", "no")));
+						true));
 	}
 
 	public boolean isVerifyChecksum() {

@@ -145,6 +145,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
+import jadx.plugins.mappings.RenameMappingsOptions;
 import jadx.plugins.mappings.save.MappingExporter;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
@@ -389,7 +390,7 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	private void openMappings(MappingFormat mappingFormat) {
+	private void openMappings(MappingFormat mappingFormat, boolean inverted) {
 		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_OPEN);
 		fileDialog.setTitle(NLS.str("file.open_mappings"));
 		if (mappingFormat.hasSingleFile()) {
@@ -407,12 +408,17 @@ public class MainWindow extends JFrame {
 		LOG.info("Loading mappings from: {}", filePath.toAbsolutePath());
 		project.setMappingsPath(filePath);
 		currentMappingFormat = mappingFormat;
+		project.updatePluginOptions(options -> {
+			options.put(RenameMappingsOptions.FORMAT_OPT, mappingFormat.name());
+			options.put(RenameMappingsOptions.INVERT_OPT, inverted ? "yes" : "no");
+		});
 		reopen();
 	}
 
 	public void closeMappingsAndRemoveFromProject() {
 		project.setMappingsPath(null);
 		currentMappingFormat = null;
+		reopen();
 	}
 
 	private void saveMappings() {
@@ -1012,88 +1018,25 @@ public class MainWindow extends JFrame {
 		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
 		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
-		ActionHandler openProGuardMappings = new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD));
-		openProGuardMappings.setNameAndDesc("Proguard");
-
-		Action openTiny2Mappings = new AbstractAction("Tiny v2 file") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				openMappings(MappingFormat.TINY_2);
-			}
-		};
-		openTiny2Mappings.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
-
-		Action openEnigmaMappings = new AbstractAction("Enigma file") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				openMappings(MappingFormat.ENIGMA);
-			}
-		};
-		openEnigmaMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
-
-		Action openEnigmaDirMappings = new AbstractAction("Enigma directory") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				openMappings(MappingFormat.ENIGMA_DIR);
-			}
-		};
-		openEnigmaDirMappings.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
-
 		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
-		openMappingsMenu.add(openProGuardMappings);
-		openMappingsMenu.add(openTiny2Mappings);
-		openMappingsMenu.add(openEnigmaMappings);
-		openMappingsMenu.add(openEnigmaDirMappings);
+		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, true)).withNameAndDesc("Proguard (inverted)"));
+		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, false)).withNameAndDesc("Proguard"));
 
-		saveMappingsAction = new AbstractAction(NLS.str("file.save_mappings")) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveMappings();
-			}
-		};
-		saveMappingsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_mappings"));
-
-		ActionHandler saveProGuardMappings = new ActionHandler(ev -> saveMappingsAs(MappingFormat.PROGUARD));
-		saveProGuardMappings.setNameAndDesc("Proguard");
-
-		Action saveMappingsAsTiny2 = new AbstractAction("Tiny v2 file") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveMappingsAs(MappingFormat.TINY_2);
-			}
-		};
-		saveMappingsAsTiny2.putValue(Action.SHORT_DESCRIPTION, "Tiny v2 file");
-
-		Action saveMappingsAsEnigma = new AbstractAction("Enigma file") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveMappingsAs(MappingFormat.ENIGMA);
-			}
-		};
-		saveMappingsAsEnigma.putValue(Action.SHORT_DESCRIPTION, "Enigma file");
-
-		Action saveMappingsAsEnigmaDir = new AbstractAction("Enigma directory") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveMappingsAs(MappingFormat.ENIGMA_DIR);
-			}
-		};
-		saveMappingsAsEnigmaDir.putValue(Action.SHORT_DESCRIPTION, "Enigma directory");
+		saveMappingsAction = new ActionHandler(this::saveMappings).withNameAndDesc(NLS.str("file.save_mappings"));
 
 		saveMappingsAsMenu = new JMenu(NLS.str("file.save_mappings_as"));
-		saveMappingsAsMenu.add(saveProGuardMappings);
-		saveMappingsAsMenu.add(saveMappingsAsTiny2);
-		saveMappingsAsMenu.add(saveMappingsAsEnigma);
-		saveMappingsAsMenu.add(saveMappingsAsEnigmaDir);
 
-		closeMappingsAction = new AbstractAction(NLS.str("file.close_mappings")) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				closeMappingsAndRemoveFromProject();
-				reopen();
+		for (MappingFormat mappingFormat : MappingFormat.values()) {
+			if (mappingFormat != MappingFormat.PROGUARD) {
+				openMappingsMenu.add(new ActionHandler(ev -> openMappings(mappingFormat, false))
+						.withNameAndDesc(mappingFormat.name));
 			}
-		};
-		closeMappingsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.close_mappings"));
+			saveMappingsAsMenu.add(new ActionHandler(ev -> saveMappingsAs(mappingFormat))
+					.withNameAndDesc(mappingFormat.name));
+		}
+
+		closeMappingsAction = new ActionHandler(ev -> closeMappingsAndRemoveFromProject())
+				.withNameAndDesc(NLS.str("file.close_mappings"));
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), Icons.SAVE_ALL) {
 			@Override

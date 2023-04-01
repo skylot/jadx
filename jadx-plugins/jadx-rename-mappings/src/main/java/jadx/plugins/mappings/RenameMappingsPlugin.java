@@ -1,58 +1,58 @@
 package jadx.plugins.mappings;
 
-import java.util.Collections;
-
-import net.fabricmc.mappingio.MappingReader;
-import net.fabricmc.mappingio.MappingUtil;
-import net.fabricmc.mappingio.tree.MappingTree;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import jadx.api.JadxArgs;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.plugins.mappings.load.CodeMappingsVisitor;
-import jadx.plugins.mappings.load.MappingsVisitor;
+import jadx.core.utils.files.FileUtils;
+import jadx.plugins.mappings.load.ApplyMappingsPass;
+import jadx.plugins.mappings.load.CodeMappingsPass;
+import jadx.plugins.mappings.load.LoadMappingsPass;
 
 public class RenameMappingsPlugin implements JadxPlugin {
+	public static final String PLUGIN_ID = "rename-mappings";
+
+	private final RenameMappingsOptions options = new RenameMappingsOptions();
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return new JadxPluginInfo("jadx-rename-mappings", "Rename Mappings", "various mappings support");
+		return new JadxPluginInfo(PLUGIN_ID, "Rename Mappings", "various mappings support");
 	}
 
 	@Override
 	public void init(JadxPluginContext context) {
-		MappingTree mappingTree = openMapping(context.getArgs());
-		if (mappingTree != null) {
-			context.addPass(new MappingsVisitor(mappingTree));
-			context.addPass(new CodeMappingsVisitor(mappingTree));
+		context.registerOptions(options);
+		JadxArgs args = context.getArgs();
+		if (args.getUserRenamesMappingsMode() == UserRenamesMappingsMode.IGNORE) {
+			return;
 		}
+		Path mappingsPath = args.getUserRenamesMappingsPath();
+		if (mappingsPath == null || !Files.isReadable(mappingsPath)) {
+			return;
+		}
+		LoadMappingsPass loadPass = new LoadMappingsPass(options);
+		context.addPass(loadPass);
+		context.addPass(new ApplyMappingsPass(loadPass));
+		context.addPass(new CodeMappingsPass(loadPass));
+
+		// use mapping file time modification to check for changes
+		context.registerInputsHashSupplier(() -> FileUtils.md5Sum(getInputsHashString(mappingsPath)));
 	}
 
-	public MappingTree openMapping(JadxArgs args) {
-		if (args.getUserRenamesMappingsMode() != UserRenamesMappingsMode.IGNORE
-				&& args.getUserRenamesMappingsPath() != null) {
-			try {
-				MemoryMappingTree mappingTree = new MemoryMappingTree();
-				MappingReader.read(args.getUserRenamesMappingsPath(), mappingTree);
-				if (mappingTree.getSrcNamespace() == null) {
-					mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
-				}
-				if (mappingTree.getDstNamespaces() == null || mappingTree.getDstNamespaces().isEmpty()) {
-					mappingTree.setDstNamespaces(Collections.singletonList(MappingUtil.NS_TARGET_FALLBACK));
-				} else if (mappingTree.getDstNamespaces().size() > 1) {
-					throw new JadxRuntimeException(
-							String.format("JADX only supports mappings with just one destination namespace! The provided ones have %s.",
-									mappingTree.getDstNamespaces().size()));
-				}
-				return mappingTree;
-			} catch (Exception e) {
-				throw new JadxRuntimeException("Failed to load mappings", e);
-			}
+	private String getInputsHashString(Path mappingsPath) {
+		return getFileHashString(mappingsPath) + ':' + options.getOptionsHashString();
+	}
+
+	private static String getFileHashString(Path mappingsPath) {
+		try {
+			return mappingsPath.toAbsolutePath().normalize()
+					+ ":" + Files.getLastModifiedTime(mappingsPath).toMillis();
+		} catch (Exception e) {
+			return "";
 		}
-		return null;
 	}
 }

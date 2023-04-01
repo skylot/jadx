@@ -16,31 +16,36 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
-public class MappingsVisitor implements JadxPreparePass {
+public class ApplyMappingsPass implements JadxPreparePass {
 
-	private final MappingTree mappingTree;
+	private final LoadMappingsPass loadPass;
 
-	public MappingsVisitor(MappingTree mappingTree) {
-		this.mappingTree = mappingTree;
+	public ApplyMappingsPass(LoadMappingsPass loadPass) {
+		this.loadPass = loadPass;
 	}
 
 	@Override
 	public JadxPassInfo getInfo() {
 		return new OrderedJadxPassInfo(
-				"MappingVisitor",
+				"ApplyMappings",
 				"Apply mappings to classes, fields and methods")
+						.after("LoadMappings")
 						.before("RenameVisitor");
 	}
 
 	@Override
 	public void init(RootNode root) {
-		process(root);
-		root.registerCodeDataUpdateListener(codeData -> process(root));
+		MappingTree mappingTree = loadPass.getMappings();
+		if (mappingTree == null) {
+			return;
+		}
+		process(root, mappingTree);
+		root.registerCodeDataUpdateListener(codeData -> process(root, mappingTree));
 	}
 
-	private void process(RootNode root) {
+	private void process(RootNode root, MappingTree mappingTree) {
 		for (ClassNode cls : root.getClasses()) {
-			String clsRawName = cls.getClassInfo().makeRawFullName().replace('.', '/');
+			String clsRawName = cls.getClassInfo().getRawName().replace('.', '/');
 			ClassMapping mapping = mappingTree.getClass(clsRawName);
 			if (mapping != null) {
 				processClass(cls, mapping);
@@ -95,6 +100,6 @@ public class MappingsVisitor implements JadxPreparePass {
 		if (comment != null) {
 			method.addCodeComment(comment);
 		}
-		// Method args & vars are handled in CodeMappingsVisitor
+		// Method args & vars are handled in CodeMappingsPass
 	}
 }

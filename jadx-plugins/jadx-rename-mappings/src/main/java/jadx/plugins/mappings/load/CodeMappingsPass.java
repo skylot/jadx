@@ -18,26 +18,30 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
 
-public class CodeMappingsVisitor implements JadxDecompilePass {
-	private final MappingTree mappingTree;
+public class CodeMappingsPass implements JadxDecompilePass {
+	private final LoadMappingsPass loadPass;
 	private Map<String, ClassMapping> clsRenamesMap;
 
-	public CodeMappingsVisitor(MappingTree mappingTree) {
-		this.mappingTree = mappingTree;
+	public CodeMappingsPass(LoadMappingsPass loadPass) {
+		this.loadPass = loadPass;
 	}
 
 	@Override
 	public JadxPassInfo getInfo() {
 		return new OrderedJadxPassInfo(
-				"ApplyCodeMappings",
+				"CodeMappings",
 				"Apply mappings to method args and vars")
 						.before("CodeRenameVisitor");
 	}
 
 	@Override
 	public void init(RootNode root) {
-		updateMappingsMap();
-		root.registerCodeDataUpdateListener(codeData -> updateMappingsMap());
+		MappingTree mappingTree = loadPass.getMappings();
+		if (mappingTree == null) {
+			return;
+		}
+		updateMappingsMap(mappingTree);
+		root.registerCodeDataUpdateListener(codeData -> updateMappingsMap(mappingTree));
 	}
 
 	@Override
@@ -89,9 +93,9 @@ public class CodeMappingsVisitor implements JadxDecompilePass {
 		return clsRenamesMap.get(classPath);
 	}
 
-	private void updateMappingsMap() {
+	private void updateMappingsMap(MappingTree mappings) {
 		clsRenamesMap = new HashMap<>();
-		for (ClassMapping cls : mappingTree.getClasses()) {
+		for (ClassMapping cls : mappings.getClasses()) {
 			for (MethodMapping mth : cls.getMethods()) {
 				if (!mth.getArgs().isEmpty() || !mth.getVars().isEmpty()) {
 					clsRenamesMap.put(cls.getSrcName(), cls);

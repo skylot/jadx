@@ -351,6 +351,10 @@ public class FileUtils {
 		return paths.stream().map(Path::toFile).collect(Collectors.toList());
 	}
 
+	public static String md5Sum(String str) {
+		return md5Sum(str.getBytes(StandardCharsets.UTF_8));
+	}
+
 	public static String md5Sum(byte[] data) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");

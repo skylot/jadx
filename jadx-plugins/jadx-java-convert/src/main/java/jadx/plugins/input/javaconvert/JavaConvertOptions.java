@@ -7,6 +7,7 @@ import java.util.Locale;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.impl.BaseOptionsParser;
 import jadx.api.plugins.options.impl.JadxOptionDescription;
+import jadx.core.utils.files.FileUtils;
 
 public class JavaConvertOptions extends BaseOptionsParser {
 
@@ -34,11 +35,10 @@ public class JavaConvertOptions extends BaseOptionsParser {
 						"convert mode",
 						"both",
 						Arrays.asList("dx", "d8", "both")),
-				new JadxOptionDescription(
+				JadxOptionDescription.booleanOption(
 						D8_DESUGAR_OPT,
 						"use desugar in d8",
-						"no",
-						Arrays.asList("yes", "no")));
+						false));
 	}
 
 	public Mode getMode() {
@@ -47,5 +47,9 @@ public class JavaConvertOptions extends BaseOptionsParser {
 
 	public boolean isD8Desugar() {
 		return d8Desugar;
+	}
+
+	public String getOptionsHash() {
+		return FileUtils.md5Sum(mode + ":" + d8Desugar);
 	}
 }

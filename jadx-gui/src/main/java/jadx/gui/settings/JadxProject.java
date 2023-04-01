@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +67,7 @@ public class JadxProject {
 		jadxArgs.setInputFiles(FileUtils.toFiles(getFilePaths()));
 		jadxArgs.setUserRenamesMappingsPath(getMappingsPath());
 		jadxArgs.setCodeData(getCodeData());
+		jadxArgs.getPluginOptions().putAll(data.getPluginOptions());
 	}
 
 	public @Nullable Path getWorkingDir() {
@@ -174,6 +177,18 @@ public class JadxProject {
 	public void setMappingsPath(Path mappingsPath) {
 		data.setMappingsPath(mappingsPath);
 		changed();
+	}
+
+	/**
+	 * Do not expose options map directly to be able to intercept changes
+	 */
+	public void updatePluginOptions(Consumer<Map<String, String>> update) {
+		update.accept(data.getPluginOptions());
+		changed();
+	}
+
+	public @Nullable String getPluginOption(String key) {
+		return data.getPluginOptions().get(key);
 	}
 
 	public @NotNull Path getCacheDir() {

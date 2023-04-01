@@ -1,16 +1,14 @@
 package jadx.gui.utils.plugins;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
-import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.JadxPluginManager;
-import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.core.plugins.JadxPluginManager;
+import jadx.core.plugins.PluginContext;
 import jadx.gui.JadxWrapper;
 
 /**
@@ -21,47 +19,32 @@ import jadx.gui.JadxWrapper;
 public class CollectPluginOptions {
 
 	private final JadxWrapper wrapper;
-	private final Map<Class<?>, PluginWithOptions> plugins;
 
 	public CollectPluginOptions(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
-		this.plugins = new HashMap<>();
 	}
 
-	public List<PluginWithOptions> build() {
-		wrapper.getCurrentDecompiler().ifPresent(decompiler -> {
-			List<JadxPlugin> loadedPlugins = decompiler.getPluginManager().getResolvedPlugins();
-			addOptions(decompiler, loadedPlugins);
-		});
+	public List<PluginContext> build() {
+		SortedSet<PluginContext> allPlugins = new TreeSet<>();
+		wrapper.getCurrentDecompiler()
+				.ifPresent(decompiler -> allPlugins.addAll(decompiler.getPluginManager().getResolvedPluginContexts()));
+
 		// collect and init not loaded plugins in new context
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
-			List<JadxPlugin> missingPlugins = new ArrayList<>();
-			for (JadxPlugin plugin : pluginManager.getAllPlugins()) {
-				if (!plugins.containsKey(plugin.getClass())) {
-					missingPlugins.add(plugin);
+			pluginManager.load();
+			SortedSet<PluginContext> missingPlugins = new TreeSet<>();
+			for (PluginContext context : pluginManager.getAllPluginContexts()) {
+				if (!allPlugins.contains(context)) {
+					missingPlugins.add(context);
 				}
 			}
-			pluginManager.init(decompiler.getPluginsContext(), missingPlugins);
-			addOptions(decompiler, missingPlugins);
+			pluginManager.init(missingPlugins);
+			allPlugins.addAll(missingPlugins);
 		}
-		return plugins.values().stream()
-				.filter(data -> data != PluginWithOptions.NULL)
+		return allPlugins.stream()
+				.filter(context -> context.getOptions() != null)
 				.sorted()
 				.collect(Collectors.toList());
-	}
-
-	private void addOptions(JadxDecompiler decompiler, List<JadxPlugin> loadedPlugins) {
-		Map<JadxPlugin, JadxPluginOptions> optionsMap = decompiler.getPluginsContext().getOptionsMap();
-		for (JadxPlugin loadedPlugin : loadedPlugins) {
-			JadxPluginOptions pluginOptions = optionsMap.get(loadedPlugin);
-			PluginWithOptions options;
-			if (pluginOptions != null) {
-				options = new PluginWithOptions(loadedPlugin, pluginOptions);
-			} else {
-				options = PluginWithOptions.NULL;
-			}
-			plugins.put(loadedPlugin.getClass(), options);
-		}
 	}
 }

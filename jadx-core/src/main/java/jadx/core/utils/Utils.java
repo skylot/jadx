@@ -44,6 +44,13 @@ public class Utils {
 		return obj;
 	}
 
+	public static String cutObject(String obj) {
+		if (obj.charAt(0) == 'L') {
+			return obj.substring(1, obj.length() - 1);
+		}
+		return obj;
+	}
+
 	public static String makeQualifiedObjectName(String obj) {
 		return 'L' + obj.replace('.', '/') + ';';
 	}

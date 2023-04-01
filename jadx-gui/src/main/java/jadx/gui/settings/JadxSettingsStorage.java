@@ -39,7 +39,7 @@ public class JadxSettingsStorage {
 
 	private static Path initConfigFile() {
 		ProjectDirectories jadxDirs = ProjectDirectories.from("io.github", "skylot", "jadx");
-		Path confPath = Paths.get(jadxDirs.configDir, "config.json");
+		Path confPath = Paths.get(jadxDirs.configDir, "gui.json");
 		if (!Files.exists(confPath)) {
 			copyFromPreferences(confPath);
 		}

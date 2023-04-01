@@ -1,6 +1,10 @@
 package jadx.api.plugins.options.impl;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -8,11 +12,19 @@ import jadx.api.plugins.options.OptionDescription;
 
 public class JadxOptionDescription implements OptionDescription {
 
+	public static JadxOptionDescription booleanOption(String name, String desc, boolean defaultValue) {
+		return new JadxOptionDescription(name, desc,
+				defaultValue ? "yes" : "no",
+				Arrays.asList("yes", "no"),
+				OptionType.BOOLEAN);
+	}
+
 	private final String name;
 	private final String desc;
 	private final String defaultValue;
 	private final List<String> values;
 	private final OptionType type;
+	private final Set<OptionFlag> flags = EnumSet.noneOf(OptionFlag.class);
 
 	public JadxOptionDescription(String name, String desc, @Nullable String defaultValue, List<String> values) {
 		this(name, desc, defaultValue, values, OptionType.STRING);
@@ -49,6 +61,21 @@ public class JadxOptionDescription implements OptionDescription {
 	@Override
 	public OptionType getType() {
 		return type;
+	}
+
+	@Override
+	public Set<OptionFlag> getFlags() {
+		return flags;
+	}
+
+	public JadxOptionDescription withFlag(OptionFlag flag) {
+		this.flags.add(flag);
+		return this;
+	}
+
+	public JadxOptionDescription withFlags(OptionFlag... flags) {
+		Collections.addAll(this.flags, flags);
+		return this;
 	}
 
 	@Override
