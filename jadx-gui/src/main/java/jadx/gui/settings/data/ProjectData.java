@@ -19,7 +19,6 @@ public class ProjectData {
 	private List<String[]> treeExpansions = new ArrayList<>();
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
-	private int activeTab = -1;
 	private @Nullable Path mappingsPath;
 	private @Nullable Path cacheDir;
 	private boolean enableLiveReload = false;
@@ -62,33 +61,11 @@ public class ProjectData {
 		return openTabs;
 	}
 
-	/**
-	 *
-	 * @param openTabs
-	 * @return <code>true></code> if a change was saved
-	 */
 	public boolean setOpenTabs(List<TabViewState> openTabs) {
 		if (this.openTabs.equals(openTabs)) {
 			return false;
 		}
 		this.openTabs = openTabs;
-		return true;
-	}
-
-	public int getActiveTab() {
-		return activeTab;
-	}
-
-	/**
-	 *
-	 * @param activeTab
-	 * @return <code>true></code> if a change was saved
-	 */
-	public boolean setActiveTab(int activeTab) {
-		if (this.activeTab == activeTab) {
-			return false;
-		}
-		this.activeTab = activeTab;
 		return true;
 	}
 

@@ -150,7 +150,7 @@ public class TabComponent extends JPanel {
 			menu.add(closeAll);
 			menu.addSeparator();
 
-			ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
+			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
 			for (final Map.Entry<JNode, ContentPanel> entry : openTabs.entrySet()) {
 				final ContentPanel cp = entry.getValue();
 				if (cp == selectedContentPanel) {

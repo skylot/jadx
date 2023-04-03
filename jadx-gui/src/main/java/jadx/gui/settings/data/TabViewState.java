@@ -6,6 +6,7 @@ public class TabViewState {
 	private String subPath;
 	private int caret;
 	private ViewPoint view;
+	boolean active;
 
 	public String getType() {
 		return type;
@@ -45,5 +46,13 @@ public class TabViewState {
 
 	public void setView(ViewPoint view) {
 		this.view = view;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

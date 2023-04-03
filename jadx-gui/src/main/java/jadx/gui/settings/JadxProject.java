@@ -143,7 +143,7 @@ public class JadxProject {
 		changed();
 	}
 
-	public void saveOpenTabs(List<EditorViewState> tabs, int activeTab) {
+	public void saveOpenTabs(List<EditorViewState> tabs) {
 		List<TabViewState> tabStateList = tabs.stream()
 				.map(TabStateViewAdapter::build)
 				.filter(Objects::nonNull)
@@ -151,10 +151,7 @@ public class JadxProject {
 		if (tabStateList.isEmpty()) {
 			return;
 		}
-		boolean dataChanged;
-		dataChanged = data.setOpenTabs(tabStateList);
-		dataChanged |= data.setActiveTab(activeTab);
-		if (dataChanged) {
+		if (data.setOpenTabs(tabStateList)) {
 			changed();
 		}
 	}
@@ -164,10 +161,6 @@ public class JadxProject {
 				.map(s -> TabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-	}
-
-	public int getActiveTab() {
-		return data.getActiveTab();
 	}
 
 	public Path getMappingsPath() {

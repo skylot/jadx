@@ -11,6 +11,7 @@ public class EditorViewState {
 	private final int caretPos;
 	private final Point viewPoint;
 	private final String subPath;
+	private boolean active;
 
 	public EditorViewState(JNode node, String subPath, int caretPos, Point viewPoint) {
 		this.node = node;
@@ -35,12 +36,21 @@ public class EditorViewState {
 		return subPath;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
 	@Override
 	public String toString() {
 		return "EditorViewState{node=" + node
 				+ ", caretPos=" + caretPos
 				+ ", viewPoint=" + viewPoint
 				+ ", subPath='" + subPath + '\''
+				+ ", active=" + active
 				+ '}';
 	}
 }

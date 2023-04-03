@@ -152,7 +152,7 @@ public class TabbedPane extends JTabbedPane {
 
 	private void enableSwitchingTabs() {
 		addChangeListener(e -> {
-			ContentPanel tab = getSelectedCodePanel();
+			ContentPanel tab = getSelectedContentPanel();
 			if (tab == null) { // all closed
 				curTab = null;
 				lastTab = null;
@@ -285,7 +285,7 @@ public class TabbedPane extends JTabbedPane {
 
 	@Nullable
 	public JumpPosition getCurrentPosition() {
-		ContentPanel selectedCodePanel = getSelectedCodePanel();
+		ContentPanel selectedCodePanel = getSelectedContentPanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
@@ -293,13 +293,17 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public List<EditorViewState> getEditorViewStates() {
+		ContentPanel selected = getSelectedContentPanel();
 		List<EditorViewState> states = new ArrayList<>();
 		for (ContentPanel panel : openTabs.values()) {
+			EditorViewState viewState;
 			if (panel instanceof IViewStateSupport) {
-				states.add(((IViewStateSupport) panel).getEditorViewState());
+				viewState = ((IViewStateSupport) panel).getEditorViewState();
 			} else {
-				states.add(new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO));
+				viewState = new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO);
 			}
+			viewState.setActive(panel == selected);
+			states.add(viewState);
 		}
 		return states;
 	}
@@ -308,6 +312,9 @@ public class TabbedPane extends JTabbedPane {
 		ContentPanel contentPanel = getContentPanel(viewState.getNode());
 		if (contentPanel instanceof IViewStateSupport) {
 			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
+		}
+		if (viewState.isActive()) {
+			setSelectedComponent(contentPanel);
 		}
 	}
 
@@ -388,7 +395,7 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	@Nullable
-	public ContentPanel getSelectedCodePanel() {
+	public ContentPanel getSelectedContentPanel() {
 		return (ContentPanel) getSelectedComponent();
 	}
 

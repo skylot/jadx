@@ -141,7 +141,7 @@ public class LogPanel extends JPanel {
 	}
 
 	private @Nullable String getCurrentScriptName() {
-		ContentPanel selectedCodePanel = mainWindow.getTabbedPane().getSelectedCodePanel();
+		ContentPanel selectedCodePanel = mainWindow.getTabbedPane().getSelectedContentPanel();
 		if (selectedCodePanel != null) {
 			JNode node = selectedCodePanel.getNode();
 			if (node instanceof JInputScript) {

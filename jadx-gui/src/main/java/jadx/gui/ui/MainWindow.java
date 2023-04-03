@@ -938,7 +938,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void syncWithEditor() {
-		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
+		ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
 		if (selectedContentPanel == null) {
 			return;
 		}
@@ -1112,7 +1112,7 @@ public class MainWindow extends JFrame {
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ContentPanel panel = tabbedPane.getSelectedCodePanel();
+				ContentPanel panel = tabbedPane.getSelectedContentPanel();
 				if (panel instanceof AbstractCodeContentPanel) {
 					AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
 					String preferText = codeArea.getSelectedText();
@@ -1629,7 +1629,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveOpenTabs() {
-		project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
+		project.saveOpenTabs(tabbedPane.getEditorViewStates());
 	}
 
 	private void restoreOpenTabs(List<EditorViewState> openTabs) {
@@ -1639,11 +1639,6 @@ public class MainWindow extends JFrame {
 		}
 		for (EditorViewState viewState : openTabs) {
 			tabbedPane.restoreEditorViewState(viewState);
-		}
-		try {
-			tabbedPane.setSelectedIndex(project.getActiveTab());
-		} catch (Exception e) {
-			LOG.warn("Failed to restore active tab", e);
 		}
 	}
 
@@ -1661,8 +1656,10 @@ public class MainWindow extends JFrame {
 
 	private void saveSplittersInfo() {
 		settings.setMainWindowVerticalSplitterLoc(bottomSplitPane.getDividerLocation());
-		settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
-		settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
+		if (debuggerPanel != null) {
+			settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
+			settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
+		}
 	}
 
 	public void addLoadListener(ILoadListener loadListener) {
