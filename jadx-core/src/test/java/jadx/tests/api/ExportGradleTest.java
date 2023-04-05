@@ -67,4 +67,10 @@ public abstract class ExportGradleTest {
 		assertThat(appBuildGradle.exists());
 		return loadFileContent(appBuildGradle);
 	}
+
+	protected String getSettingsGradle() {
+		File settingsGradle = new File(exportDir, "settings.gradle");
+		assertThat(settingsGradle.exists());
+		return loadFileContent(settingsGradle);
+	}
 }
