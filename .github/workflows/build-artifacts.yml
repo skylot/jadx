@@ -15,8 +15,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: 8
+          distribution: 'temurin'
+          java-version: 11
 
       - name: Set jadx version
         run: |

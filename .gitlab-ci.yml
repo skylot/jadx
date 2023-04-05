@@ -8,17 +8,12 @@ before_script:
 stages:
   - test
 
-java-8:
-  stage: test
-  image: openjdk:8
-  script: ./gradlew clean build dist copyExe --warning-mode=all
-
 java-11:
   stage: test
-  image: openjdk:11
-  script: ./gradlew clean build dist copyExe --warning-mode=all
+  image: eclipse-temurin:11
+  script: ./gradlew clean build dist
 
-java-latest:
+java-17:
   stage: test
-  image: openjdk:latest
-  script: java -version && ./gradlew clean build dist --warning-mode=all
+  image: eclipse-temurin:17
+  script: ./gradlew clean build dist

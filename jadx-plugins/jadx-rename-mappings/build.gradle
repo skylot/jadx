@@ -1,7 +1,7 @@
 plugins {
 	id 'jadx-library'
 
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 dependencies {
@@ -13,7 +13,7 @@ dependencies {
 	api(files('libs/mapping-io-0.4.0-SNAPSHOT.jar'))
 
 	constraints {
-		runtimeOnly 'org.ow2.asm:asm:9.3'
+		runtimeOnly 'org.ow2.asm:asm:9.5'
 	}
 }
 
