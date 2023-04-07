@@ -177,7 +177,7 @@ public class ResXmlGen {
 			if (dataType == ParserConstants.TYPE_INT_DEC && nameStr != null) {
 				try {
 					int intVal = Integer.parseInt(valueStr);
-					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:attr.", ""), intVal);
+					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
 					if (newVal != null) {
 						valueStr = newVal;
 					}
@@ -188,7 +188,7 @@ public class ResXmlGen {
 			if (dataType == ParserConstants.TYPE_INT_HEX && nameStr != null) {
 				try {
 					int intVal = Integer.decode(valueStr);
-					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:attr.", ""), intVal);
+					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
 					if (newVal != null) {
 						valueStr = newVal;
 					}

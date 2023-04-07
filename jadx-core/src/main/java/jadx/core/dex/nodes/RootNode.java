@@ -43,6 +43,7 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.IResParser;
+import jadx.core.xmlgen.ManifestAttributes;
 import jadx.core.xmlgen.ResDecoder;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
@@ -174,10 +175,16 @@ public class RootNode {
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
+				updateManifestAttribMap(parser);
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
 		}
+	}
+
+	private void updateManifestAttribMap(IResParser parser) {
+		ManifestAttributes manifestAttributes = ManifestAttributes.getInstance();
+		manifestAttributes.updateAttributes(parser);
 	}
 
 	private @Nullable ResourceFile getResourceFile(List<ResourceFile> resources) {

@@ -17,6 +17,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.xmlgen.entry.RawNamedValue;
+import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.core.xmlgen.entry.ValuesParser;
 
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
@@ -51,6 +54,8 @@ public class ManifestAttributes {
 	}
 
 	private final Map<String, MAttr> attrMap = new HashMap<>();
+
+	private final Map<String, MAttr> appAttrMap = new HashMap<>();
 
 	private static ManifestAttributes instance;
 
@@ -168,7 +173,10 @@ public class ManifestAttributes {
 	public String decode(String attrName, long value) {
 		MAttr attr = attrMap.get(attrName);
 		if (attr == null) {
-			return null;
+			attr = appAttrMap.get(attrName);
+			if (attr == null) {
+				return null;
+			}
 		}
 		if (attr.getType() == MAttrType.ENUM) {
 			return attr.getValues().get(value);
@@ -189,5 +197,33 @@ public class ManifestAttributes {
 			return String.join("|", flagList);
 		}
 		return null;
+	}
+
+	public void updateAttributes(IResParser parser) {
+		appAttrMap.clear();
+
+		ResourceStorage resStorage = parser.getResStorage();
+		ValuesParser vp = new ValuesParser(parser.getStrings(), resStorage.getResourcesNames());
+
+		for (ResourceEntry ri : resStorage.getResources()) {
+			if (ri.getTypeName().equals("attr") && ri.getNamedValues().size() > 1) {
+				RawNamedValue first = ri.getNamedValues().get(0);
+				MAttrType attrTyp;
+				if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_FLAGS) {
+					attrTyp = MAttrType.FLAG;
+				} else if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_ENUM) {
+					attrTyp = MAttrType.ENUM;
+				} else {
+					continue;
+				}
+				MAttr attr = new MAttr(attrTyp);
+				for (int i = 1; i < ri.getNamedValues().size(); i++) {
+					RawNamedValue rv = ri.getNamedValues().get(i);
+					String value = vp.decodeNameRef(rv.getNameRef());
+					attr.getValues().put((long) rv.getRawValue().getData(), value.startsWith("id.") ? value.substring(3) : value);
+				}
+				appAttrMap.put(ri.getKeyName(), attr);
+			}
+		}
 	}
 }
