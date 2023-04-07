@@ -211,7 +211,7 @@ public class ManifestAttributes {
 				MAttrType attrTyp;
 				if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_FLAGS) {
 					attrTyp = MAttrType.FLAG;
-				} else if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_ENUM) {
+				} else if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_ENUM || first.getRawValue().getData() == 65600) {
 					attrTyp = MAttrType.ENUM;
 				} else {
 					continue;
