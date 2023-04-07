@@ -185,6 +185,17 @@ public class ResXmlGen {
 					// ignore
 				}
 			}
+			if (dataType == ParserConstants.TYPE_INT_HEX && nameStr != null) {
+				try {
+					int intVal = Integer.decode(valueStr);
+					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:attr.", ""), intVal);
+					if (newVal != null) {
+						valueStr = newVal;
+					}
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
 		}
 		switch (typeName) {
 			case "attr":
