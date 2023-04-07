@@ -109,10 +109,10 @@ public class ResXmlGen {
 			addSimpleValue(cw, ri.getTypeName(), ri.getTypeName(), "name", ri.getKeyName(), valueStr);
 		} else {
 			cw.startLine();
-			cw.add('<').add(ri.getTypeName()).add(' ');
+			cw.add('<').add(ri.getTypeName()).add(" name=\"");
 			String itemTag = "item";
 			if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
-				cw.add("name=\"").add(ri.getKeyName());
+				cw.add(ri.getKeyName());
 				int type = ri.getNamedValues().get(0).getRawValue().getData();
 				if ((type & ValuesParser.ATTR_TYPE_ENUM) != 0) {
 					itemTag = "enum";
@@ -125,13 +125,14 @@ public class ResXmlGen {
 				}
 				cw.add("\"");
 			} else {
-				cw.add("name=\"").add(ri.getKeyName()).add('\"');
+				cw.add(ri.getKeyName()).add('\"');
 			}
+			cw.add(" parent=\"");
 			if (ri.getParentRef() != 0) {
 				String parent = vp.decodeValue(TYPE_REFERENCE, ri.getParentRef());
-				cw.add(" parent=\"").add(parent).add('\"');
+				cw.add(parent);
 			}
-			cw.add(">");
+			cw.add("\">");
 
 			cw.incIndent();
 			for (RawNamedValue value : ri.getNamedValues()) {
