@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 
@@ -28,6 +29,8 @@ import jadx.core.xmlgen.XmlSecurity;
 public class ExportGradleProject {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ExportGradleProject.class);
+
+	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
 
 	private static final Set<String> IGNORE_CLS_NAMES = new HashSet<>(Arrays.asList(
 			"R",
@@ -72,7 +75,7 @@ public class ExportGradleProject {
 	private void saveSettingsGradle() throws IOException {
 		TemplateFile tmpl = TemplateFile.fromResources("/export/settings.gradle.tmpl");
 
-		tmpl.add("applicationName", applicationParams.getApplicationName());
+		tmpl.add("applicationName", ILLEGAL_GRADLE_CHARS.matcher(applicationParams.getApplicationName()).replaceAll(""));
 		tmpl.save(new File(projectDir, "settings.gradle"));
 	}
 
