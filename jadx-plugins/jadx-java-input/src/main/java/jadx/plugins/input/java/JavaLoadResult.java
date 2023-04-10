@@ -20,6 +20,10 @@ public class JavaLoadResult implements ILoadResult {
 	@Nullable
 	private final Closeable closeable;
 
+	public JavaLoadResult(List<JavaClassReader> readers) {
+		this(readers, null);
+	}
+
 	public JavaLoadResult(List<JavaClassReader> readers, @Nullable Closeable closeable) {
 		this.readers = readers;
 		this.closeable = closeable;
@@ -47,7 +51,6 @@ public class JavaLoadResult implements ILoadResult {
 
 	@Override
 	public void close() throws IOException {
-		readers.clear();
 		if (closeable != null) {
 			closeable.close();
 		}

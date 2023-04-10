@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.api.plugins.utils.ZipSecurity;
 
-public class JavaFileLoader {
-	private static final Logger LOG = LoggerFactory.getLogger(JavaFileLoader.class);
+public class JavaInputLoader {
+	private static final Logger LOG = LoggerFactory.getLogger(JavaInputLoader.class);
 
 	private static final int MAX_MAGIC_SIZE = 4;
 	private static final byte[] JAVA_CLASS_FILE_MAGIC = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };
@@ -35,6 +35,14 @@ public class JavaFileLoader {
 				.filter(list -> !list.isEmpty())
 				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
+	}
+
+	public List<JavaClassReader> loadInputStream(InputStream in, String name) throws IOException {
+		return loadReader(in, name, null, null);
+	}
+
+	public JavaClassReader loadClass(byte[] content, String fileName) {
+		return new JavaClassReader(getNextUniqId(), fileName, content);
 	}
 
 	private List<JavaClassReader> loadFromFile(File file) {

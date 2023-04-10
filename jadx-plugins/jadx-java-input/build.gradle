@@ -7,4 +7,6 @@ dependencies {
 
 	// show bytecode disassemble
 	implementation 'io.github.skylot:raung-disasm:0.0.3'
+
+	testImplementation(project(":jadx-core"))
 }
