@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import jadx.api.ICodeInfo;
@@ -43,14 +45,18 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
+import jadx.plugins.mappings.RenameMappingsData;
 import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
 
 public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
-	private final RootNode root;
 
-	public MappingExporter(RootNode rootNode) {
-		this.root = rootNode;
+	private final RootNode root;
+	private final @Nullable MappingTree loadedMappingTree;
+
+	public MappingExporter(RootNode root) {
+		this.root = root;
+		this.loadedMappingTree = RenameMappingsData.getTree(this.root);
 	}
 
 	private List<SimpleEntry<VarNode, Integer>> collectMethodVars(MethodNode methodNode) {
@@ -138,7 +144,10 @@ public class MappingExporter {
 
 			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
 			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
-
+			if (loadedMappingTree != null && loadedMappingTree.getDstNamespaces() != null) {
+				srcNamespace = loadedMappingTree.getSrcNamespace();
+				dstNamespace = loadedMappingTree.getDstNamespaces().get(0);
+			}
 			mappingTree.visitHeader();
 			mappingTree.visitNamespaces(srcNamespace, Collections.singletonList(dstNamespace));
 			mappingTree.visitContent();
@@ -233,6 +242,10 @@ public class MappingExporter {
 						lvtIndex++;
 					}
 				}
+			}
+			// Copy mappings from potentially imported mappings file
+			if (loadedMappingTree != null && loadedMappingTree.getDstNamespaces() != null) {
+				loadedMappingTree.accept(mappingTree);
 			}
 			// Write file
 			MappingWriter writer = MappingWriter.create(path, mappingFormat);

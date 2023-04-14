@@ -24,7 +24,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -35,11 +34,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -78,19 +75,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
-import net.fabricmc.mappingio.MappingReader;
-import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
-import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
@@ -102,6 +95,7 @@ import jadx.gui.jobs.TaskStatus;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
+import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
@@ -145,8 +139,6 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
-import jadx.plugins.mappings.RenameMappingsOptions;
-import jadx.plugins.mappings.save.MappingExporter;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -188,12 +180,6 @@ public class MainWindow extends JFrame {
 
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
-	private transient JMenu openMappingsMenu;
-	private transient Action saveMappingsAction;
-	private transient JMenu saveMappingsAsMenu;
-	private transient Action closeMappingsAction;
-	private MappingFormat currentMappingFormat;
-	private boolean renamesChanged = false;
 
 	private transient JPanel mainPanel;
 	private transient JSplitPane treeSplitPane;
@@ -230,12 +216,15 @@ public class MainWindow extends JFrame {
 
 	private JMenu pluginsMenu;
 
+	private final transient RenameMappingsGui renameMappings;
+
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
 		this.liveReloadWorker = new LiveReloadWorker(this);
+		this.renameMappings = new RenameMappingsGui(this);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
@@ -390,100 +379,6 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	private void openMappings(MappingFormat mappingFormat, boolean inverted) {
-		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_OPEN);
-		fileDialog.setTitle(NLS.str("file.open_mappings"));
-		if (mappingFormat.hasSingleFile()) {
-			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
-			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
-		} else {
-			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		}
-		List<Path> selectedPaths = fileDialog.show();
-		if (selectedPaths.size() != 1) {
-			return;
-		}
-		settings.setLastOpenFilePath(fileDialog.getCurrentDir());
-		Path filePath = selectedPaths.get(0);
-		LOG.info("Loading mappings from: {}", filePath.toAbsolutePath());
-		project.setMappingsPath(filePath);
-		currentMappingFormat = mappingFormat;
-		project.updatePluginOptions(options -> {
-			options.put(RenameMappingsOptions.FORMAT_OPT, mappingFormat.name());
-			options.put(RenameMappingsOptions.INVERT_OPT, inverted ? "yes" : "no");
-		});
-		reopen();
-	}
-
-	public void closeMappingsAndRemoveFromProject() {
-		project.setMappingsPath(null);
-		currentMappingFormat = null;
-		reopen();
-	}
-
-	private void saveMappings() {
-		Path savePath = project.getMappingsPath();
-		Objects.requireNonNull(savePath, "expect mapping path to be set");
-		if (currentMappingFormat == null) {
-			try {
-				currentMappingFormat = MappingReader.detectFormat(savePath);
-			} catch (IOException e) {
-				throw new JadxRuntimeException("Failed to save mappings", e);
-			}
-		}
-		renamesChanged = false;
-		backgroundExecutor.execute(NLS.str("progress.save_mappings"),
-				() -> new MappingExporter(wrapper.getDecompiler().getRoot())
-						.exportMappings(savePath, project.getCodeData(), currentMappingFormat),
-				s -> update());
-	}
-
-	private void saveMappingsAs(MappingFormat mappingFormat) {
-		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
-		fileDialog.setTitle(NLS.str("file.save_mappings_as"));
-		if (mappingFormat.hasSingleFile()) {
-			Path currentDir = Utils.getOrElse(fileDialog.getCurrentDir(), CommonFileUtils.CWD_PATH);
-			fileDialog.setSelectedFile(currentDir.resolve("mappings." + mappingFormat.fileExt));
-			fileDialog.setFileExtList(Collections.singletonList(mappingFormat.fileExt));
-			fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
-		} else {
-			fileDialog.setSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		}
-		List<Path> selectedPaths = fileDialog.show();
-		if (selectedPaths.size() != 1) {
-			return;
-		}
-		settings.setLastSaveFilePath(fileDialog.getCurrentDir());
-		Path savePath = selectedPaths.get(0);
-		// Append file extension if missing
-		if (mappingFormat.hasSingleFile() && !savePath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(mappingFormat.fileExt)) {
-			savePath = savePath.resolveSibling(savePath.getFileName() + "." + mappingFormat.fileExt);
-		}
-		// If the target file already exists (and it's not an empty directory), show an overwrite
-		// confirmation
-		if (Files.exists(savePath)) {
-			boolean emptyDir = false;
-			try (Stream<Path> entries = Files.list(savePath)) {
-				emptyDir = !entries.findFirst().isPresent();
-			} catch (IOException ignored) {
-			}
-			if (!emptyDir) {
-				int res = JOptionPane.showConfirmDialog(
-						this,
-						NLS.str("confirm.save_as_message", savePath.getFileName()),
-						NLS.str("confirm.save_as_title"),
-						JOptionPane.YES_NO_OPTION);
-				if (res == JOptionPane.NO_OPTION) {
-					return;
-				}
-			}
-		}
-		LOG.info("Saving mappings to: {}", savePath.toAbsolutePath());
-		project.setMappingsPath(savePath);
-		currentMappingFormat = mappingFormat;
-		saveMappings();
-	}
-
 	public void addNewScript() {
 		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
 		fileDialog.setTitle(NLS.str("file.save"));
@@ -625,7 +520,6 @@ public class MainWindow extends JFrame {
 
 	private void closeAll() {
 		notifyLoadListeners(false);
-		renamesChanged = false;
 		cancelBackgroundJobs();
 		clearTree();
 		resetCache();
@@ -694,10 +588,6 @@ public class MainWindow extends JFrame {
 
 	private boolean ensureProjectIsSaved() {
 		if (!project.isSaved() && !project.isInitial()) {
-			if (project.getMappingsPath() != null
-					&& settings.getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_BEFORE_CLOSING) {
-				saveMappings();
-			}
 			int res = JOptionPane.showConfirmDialog(
 					this,
 					NLS.str("confirm.not_saved_message"),
@@ -718,15 +608,12 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	private void update() {
+	public void update() {
 		UiUtils.uiThreadGuard();
 		newProjectAction.setEnabled(!project.isInitial());
 		saveProjectAction.setEnabled(loaded && !project.isSaved());
-		openMappingsMenu.setEnabled(loaded);
-		saveMappingsAction.setEnabled(loaded && renamesChanged && project.getMappingsPath() != null);
-		saveMappingsAsMenu.setEnabled(loaded && !project.getCodeData().isEmpty());
-		closeMappingsAction.setEnabled(project.getMappingsPath() != null);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
+		renameMappings.onUpdate(loaded);
 
 		Path projectPath = project.getProjectPath();
 		String pathString;
@@ -737,16 +624,6 @@ public class MainWindow extends JFrame {
 		}
 		setTitle((project.isSaved() ? "" : '*')
 				+ project.getName() + pathString + " - " + DEFAULT_TITLE);
-	}
-
-	public void renamesChanged() {
-		if (project.getMappingsPath() != null
-				&& settings.getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_EVERY_CHANGE) {
-			saveMappings();
-		} else {
-			renamesChanged = true;
-			update();
-		}
 	}
 
 	protected void resetCache() {
@@ -1018,26 +895,6 @@ public class MainWindow extends JFrame {
 		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
 		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
-		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
-		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, true)).withNameAndDesc("Proguard (inverted)"));
-		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, false)).withNameAndDesc("Proguard"));
-
-		saveMappingsAction = new ActionHandler(this::saveMappings).withNameAndDesc(NLS.str("file.save_mappings"));
-
-		saveMappingsAsMenu = new JMenu(NLS.str("file.save_mappings_as"));
-
-		for (MappingFormat mappingFormat : MappingFormat.values()) {
-			if (mappingFormat != MappingFormat.PROGUARD) {
-				openMappingsMenu.add(new ActionHandler(ev -> openMappings(mappingFormat, false))
-						.withNameAndDesc(mappingFormat.name));
-			}
-			saveMappingsAsMenu.add(new ActionHandler(ev -> saveMappingsAs(mappingFormat))
-					.withNameAndDesc(mappingFormat.name));
-		}
-
-		closeMappingsAction = new ActionHandler(ev -> closeMappingsAndRemoveFromProject())
-				.withNameAndDesc(NLS.str("file.close_mappings"));
-
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), Icons.SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1230,11 +1087,7 @@ public class MainWindow extends JFrame {
 		file.addSeparator();
 		file.add(reload);
 		file.add(liveReloadMenuItem);
-		file.addSeparator();
-		file.add(openMappingsMenu);
-		file.add(saveMappingsAction);
-		file.add(saveMappingsAsMenu);
-		file.add(closeMappingsAction);
+		renameMappings.addMenuActions(file);
 		file.addSeparator();
 		file.add(saveAllAction);
 		file.add(exportAction);
@@ -1769,5 +1622,9 @@ public class MainWindow extends JFrame {
 
 	public JMenu getPluginsMenu() {
 		return pluginsMenu;
+	}
+
+	public RenameMappingsGui getRenameMappings() {
+		return renameMappings;
 	}
 }

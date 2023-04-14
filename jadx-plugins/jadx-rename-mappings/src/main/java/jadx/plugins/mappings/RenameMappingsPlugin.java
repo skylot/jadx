@@ -34,10 +34,9 @@ public class RenameMappingsPlugin implements JadxPlugin {
 		if (mappingsPath == null || !Files.isReadable(mappingsPath)) {
 			return;
 		}
-		LoadMappingsPass loadPass = new LoadMappingsPass(options);
-		context.addPass(loadPass);
-		context.addPass(new ApplyMappingsPass(loadPass));
-		context.addPass(new CodeMappingsPass(loadPass));
+		context.addPass(new LoadMappingsPass(options));
+		context.addPass(new ApplyMappingsPass());
+		context.addPass(new CodeMappingsPass());
 
 		// use mapping file time modification to check for changes
 		context.registerInputsHashSupplier(() -> FileUtils.md5Sum(getInputsHashString(mappingsPath)));

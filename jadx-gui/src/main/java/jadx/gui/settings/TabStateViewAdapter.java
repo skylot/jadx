@@ -5,10 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
+import jadx.gui.plugins.mappings.JInputMapping;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.settings.data.ViewPoint;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JInputMapping;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;

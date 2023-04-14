@@ -32,6 +32,7 @@ import jadx.api.plugins.pass.types.JadxPreparePass;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.clsp.ClspGraph;
+import jadx.core.dex.attributes.AttributeStorage;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
@@ -75,6 +76,7 @@ public class RootNode {
 	private final TypeUpdate typeUpdate;
 	private final MethodUtils methodUtils;
 	private final TypeUtils typeUtils;
+	private final AttributeStorage attributes = new AttributeStorage();
 
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 	private final Map<String, ClassNode> rawClsMap = new HashMap<>();
@@ -699,6 +701,10 @@ public class RootNode {
 
 	public TypeUtils getTypeUtils() {
 		return typeUtils;
+	}
+
+	public AttributeStorage getAttributes() {
+		return attributes;
 	}
 
 	public boolean isProto() {

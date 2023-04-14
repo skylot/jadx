@@ -15,14 +15,9 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.plugins.mappings.RenameMappingsData;
 
 public class ApplyMappingsPass implements JadxPreparePass {
-
-	private final LoadMappingsPass loadPass;
-
-	public ApplyMappingsPass(LoadMappingsPass loadPass) {
-		this.loadPass = loadPass;
-	}
 
 	@Override
 	public JadxPassInfo getInfo() {
@@ -35,10 +30,11 @@ public class ApplyMappingsPass implements JadxPreparePass {
 
 	@Override
 	public void init(RootNode root) {
-		MappingTree mappingTree = loadPass.getMappings();
-		if (mappingTree == null) {
+		RenameMappingsData data = RenameMappingsData.getData(root);
+		if (data == null) {
 			return;
 		}
+		MappingTree mappingTree = data.getMappings();
 		process(root, mappingTree);
 		root.registerCodeDataUpdateListener(codeData -> process(root, mappingTree));
 	}

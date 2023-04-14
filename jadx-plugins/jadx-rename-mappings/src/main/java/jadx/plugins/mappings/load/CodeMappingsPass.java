@@ -16,15 +16,11 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.plugins.mappings.RenameMappingsData;
 import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
 
 public class CodeMappingsPass implements JadxDecompilePass {
-	private final LoadMappingsPass loadPass;
 	private Map<String, ClassMapping> clsRenamesMap;
-
-	public CodeMappingsPass(LoadMappingsPass loadPass) {
-		this.loadPass = loadPass;
-	}
 
 	@Override
 	public JadxPassInfo getInfo() {
@@ -36,10 +32,11 @@ public class CodeMappingsPass implements JadxDecompilePass {
 
 	@Override
 	public void init(RootNode root) {
-		MappingTree mappingTree = loadPass.getMappings();
-		if (mappingTree == null) {
+		RenameMappingsData data = RenameMappingsData.getData(root);
+		if (data == null) {
 			return;
 		}
+		MappingTree mappingTree = data.getMappings();
 		updateMappingsMap(mappingTree);
 		root.registerCodeDataUpdateListener(codeData -> updateMappingsMap(mappingTree));
 	}

@@ -176,7 +176,6 @@ public class RenameDialog extends JDialog {
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 					}
 					node.reload(mainWindow);
-					mainWindow.renamesChanged();
 				});
 	}
 

@@ -1,4 +1,4 @@
-package jadx.gui.treemodel;
+package jadx.gui.plugins.mappings;
 
 import java.nio.file.Path;
 
@@ -15,6 +15,8 @@ import jadx.api.ICodeInfo;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.CodeContentPanel;
@@ -63,7 +65,8 @@ public class JInputMapping extends JEditableNode {
 	@Override
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		JPopupMenu menu = new JPopupMenu();
-		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), mainWindow::closeMappingsAndRemoveFromProject));
+		menu.add(new SimpleMenuItem(NLS.str("popup.remove"),
+				() -> mainWindow.getRenameMappings().closeMappingsAndRemoveFromProject()));
 		return menu;
 	}
 

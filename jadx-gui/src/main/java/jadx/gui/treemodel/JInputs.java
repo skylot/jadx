@@ -11,6 +11,7 @@ import javax.swing.ImageIcon;
 
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
+import jadx.gui.plugins.mappings.JInputMapping;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;

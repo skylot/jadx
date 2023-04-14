@@ -3,8 +3,6 @@ package jadx.plugins.mappings.load;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
@@ -17,12 +15,12 @@ import jadx.api.plugins.pass.impl.SimpleJadxPassInfo;
 import jadx.api.plugins.pass.types.JadxPreparePass;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.plugins.mappings.RenameMappingsData;
 import jadx.plugins.mappings.RenameMappingsOptions;
 
 public class LoadMappingsPass implements JadxPreparePass {
 
 	private final RenameMappingsOptions options;
-	private MappingTree mappings;
 
 	public LoadMappingsPass(RenameMappingsOptions options) {
 		this.options = options;
@@ -35,11 +33,8 @@ public class LoadMappingsPass implements JadxPreparePass {
 
 	@Override
 	public void init(RootNode root) {
-		mappings = loadMapping(root.getArgs());
-	}
-
-	public @Nullable MappingTree getMappings() {
-		return mappings;
+		MappingTree mappings = loadMapping(root.getArgs());
+		root.getAttributes().add(new RenameMappingsData(mappings));
 	}
 
 	private MappingTree loadMapping(JadxArgs args) {
