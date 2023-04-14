@@ -2,7 +2,7 @@
 
 plugins {
 	id 'com.github.ben-manes.versions' version '0.46.0'
-	id 'com.diffplug.spotless' version '6.17.0'
+	id 'com.diffplug.spotless' version '6.18.0'
 
 	id 'org.jetbrains.kotlin.jvm' version '1.8.20'
 }
@@ -15,6 +15,7 @@ allprojects {
 	apply plugin: 'java'
 	apply plugin: 'kotlin'
 	apply plugin: 'checkstyle'
+	apply plugin: 'com.diffplug.spotless'
 
 	version = jadxVersion
 
@@ -62,37 +63,37 @@ allprojects {
 		mavenCentral()
 		google()
 	}
-}
 
-spotless {
-	java {
-		importOrderFile 'config/code-formatter/eclipse.importorder'
-		eclipse().configFile 'config/code-formatter/eclipse.xml'
-		removeUnusedImports()
+	spotless {
+		java {
+			importOrderFile "$rootDir/config/code-formatter/eclipse.importorder"
+			eclipse().configFile "$rootDir/config/code-formatter/eclipse.xml"
+			removeUnusedImports()
 
-		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
-		encoding("UTF-8")
-		trimTrailingWhitespace()
-		endWithNewline()
-	}
-	kotlin {
-		ktlint()
-				.setUseExperimental(false)
-				.editorConfigOverride([indent_style: "tab"])
+			lineEndings(com.diffplug.spotless.LineEnding.UNIX)
+			encoding("UTF-8")
+			trimTrailingWhitespace()
+			endWithNewline()
+		}
+		kotlin {
+			ktlint()
+					.setUseExperimental(false)
+					.editorConfigOverride([indent_style: "tab"])
 
-		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
-		encoding("UTF-8")
-		trimTrailingWhitespace()
-		endWithNewline()
-	}
-	format 'misc', {
-		target '**/*.gradle', '**/*.xml', '**/.gitignore', '**/.properties'
-		targetExclude ".gradle/**", ".idea/**", "*/build/**"
+			lineEndings(com.diffplug.spotless.LineEnding.UNIX)
+			encoding("UTF-8")
+			trimTrailingWhitespace()
+			endWithNewline()
+		}
+		format 'misc', {
+			target '**/*.gradle', '**/*.xml', '**/.gitignore', '**/.properties'
+			targetExclude ".gradle/**", ".idea/**", "*/build/**"
 
-		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
-		encoding("UTF-8")
-		trimTrailingWhitespace()
-		endWithNewline()
+			lineEndings(com.diffplug.spotless.LineEnding.UNIX)
+			encoding("UTF-8")
+			trimTrailingWhitespace()
+			endWithNewline()
+		}
 	}
 }
 

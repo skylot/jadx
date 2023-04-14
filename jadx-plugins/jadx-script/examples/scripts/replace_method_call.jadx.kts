@@ -14,10 +14,10 @@ import jadx.core.dex.instructions.args.RegisterArg
 
 val jadx = getJadxInstance()
 
+val mthSignature = "com.xshield.aa.iIiIiiiiII(Ljava/lang/String;)Ljava/lang/String;"
+
 jadx.replace.insns { mth, insn ->
-	if (insn is InvokeNode
-		&& insn.callMth.rawFullId == "com.xshield.aa.iIiIiiiiII(Ljava/lang/String;)Ljava/lang/String;"
-	) {
+	if (insn is InvokeNode && insn.callMth.rawFullId == mthSignature) {
 		val str = getConstStr(insn.getArg(0))
 		if (str != null) {
 			val resultStr = decode(str)

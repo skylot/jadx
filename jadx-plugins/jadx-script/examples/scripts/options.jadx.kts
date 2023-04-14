@@ -4,7 +4,7 @@ val testOpt = jadx.options.registerString(
 	"test",
 	"Simple string option",
 	values = listOf("first", "second"),
-	defaultValue = "first"
+	defaultValue = "first",
 )
 
 val numOpt = jadx.options.registerInt("number", "Number option").validate { it >= 0 }
