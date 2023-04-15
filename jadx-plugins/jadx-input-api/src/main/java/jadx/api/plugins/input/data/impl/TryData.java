@@ -2,7 +2,8 @@ package jadx.api.plugins.input.data.impl;
 
 import jadx.api.plugins.input.data.ICatch;
 import jadx.api.plugins.input.data.ITry;
-import jadx.api.plugins.utils.Utils;
+
+import static jadx.api.plugins.input.data.impl.InputUtils.formatOffset;
 
 public class TryData implements ITry {
 
@@ -33,6 +34,6 @@ public class TryData implements ITry {
 
 	@Override
 	public String toString() {
-		return "Try{" + Utils.formatOffset(startOffset) + " - " + Utils.formatOffset(endOffset) + ": " + catchHandler + '}';
+		return "Try{" + formatOffset(startOffset) + " - " + formatOffset(endOffset) + ": " + catchHandler + '}';
 	}
 }

@@ -4,7 +4,7 @@ include("jadx-core")
 include("jadx-cli")
 include("jadx-gui")
 
-include("jadx-plugins")
+include("jadx-plugins:jadx-input-api")
 include("jadx-plugins:jadx-dex-input")
 include("jadx-plugins:jadx-java-input")
 include("jadx-plugins:jadx-raung-input")
