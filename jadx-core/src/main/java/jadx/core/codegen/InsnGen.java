@@ -1014,9 +1014,10 @@ public class InsnGen {
 		// force set external arg names into call method args
 		int extArgsCount = customNode.getArgsCount();
 		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip 'this' arg
+		int callArg = 0;
 		for (int i = startArg; i < extArgsCount; i++) {
 			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
-			RegisterArg callRegArg = callArgs.get(i);
+			RegisterArg callRegArg = callArgs.get(callArg++);
 			callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
 		}
 		code.add(" -> {");
