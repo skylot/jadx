@@ -125,15 +125,28 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		int k = 0;
 		for (RegisterArg useArg : useList) {
 			InsnNode insn = useArg.getParentInsn();
-			if (insn == null) {
-				continue;
-			}
-			if (!canUseNull(insn, useArg)) {
-				useArg.add(AFlag.DONT_INLINE_CONST);
+			if (insn != null && forbidNullArgInline(insn, useArg)) {
 				k++;
 			}
 		}
 		return k == useList.size();
+	}
+
+	private static boolean forbidNullArgInline(InsnNode insn, RegisterArg useArg) {
+		switch (insn.getType()) {
+			case MOVE:
+			case CAST:
+			case CHECK_CAST:
+				// result is null, chain checks
+				return forbidNullInlines(insn.getResult().getSVar());
+
+			default:
+				if (!canUseNull(insn, useArg)) {
+					useArg.add(AFlag.DONT_INLINE_CONST);
+					return true;
+				}
+				return false;
+		}
 	}
 
 	private static boolean canUseNull(InsnNode insn, RegisterArg useArg) {
