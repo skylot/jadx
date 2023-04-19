@@ -80,11 +80,45 @@ public class MarkMethodsForInline extends AbstractVisitor {
 			return addInlineAttr(mth, insn);
 		}
 		if (insnsCount == 2 && insns.get(1).getType() == InsnType.RETURN) {
-			// synthetic field setter
-			return addInlineAttr(mth, insns.get(0));
+			InsnNode firstInsn = insns.get(0);
+			InsnNode retInsn = insns.get(1);
+			if (retInsn.getArgsCount() == 0
+					|| isSyntheticAccessPattern(mth, firstInsn, retInsn)) {
+				return addInlineAttr(mth, firstInsn);
+			}
 		}
 		// TODO: inline field arithmetics. Disabled tests: TestAnonymousClass3a and TestAnonymousClass5
 		return null;
+	}
+
+	private static boolean isSyntheticAccessPattern(MethodNode mth, InsnNode firstInsn, InsnNode retInsn) {
+		List<RegisterArg> mthRegs = mth.getArgRegs();
+		switch (firstInsn.getType()) {
+			case IGET:
+				return mthRegs.size() == 1
+						&& retInsn.getArg(0).isSameVar(firstInsn.getResult())
+						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0));
+			case SGET:
+				return mthRegs.size() == 0
+						&& retInsn.getArg(0).isSameVar(firstInsn.getResult());
+
+			case IPUT:
+				return mthRegs.size() == 2
+						&& retInsn.getArg(0).isSameVar(mthRegs.get(1))
+						&& firstInsn.getArg(0).isSameVar(mthRegs.get(1))
+						&& firstInsn.getArg(1).isSameVar(mthRegs.get(0));
+			case SPUT:
+				return mthRegs.size() == 1
+						&& retInsn.getArg(0).isSameVar(mthRegs.get(0))
+						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0));
+
+			case INVOKE:
+				return mthRegs.size() >= 1
+						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0))
+						&& retInsn.getArg(0).isSameVar(firstInsn.getResult());
+			default:
+				return false;
+		}
 	}
 
 	private static MethodInlineAttr addInlineAttr(MethodNode mth, InsnNode insn) {

@@ -9,6 +9,8 @@ import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeCustomNode;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.Named;
@@ -123,6 +125,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 				return;
 			}
 		}
+		if (!checkLambdaInline(arg, assignInsn)) {
+			return;
+		}
 
 		int assignPos = insnList.getIndex(assignInsn);
 		if (assignPos != -1) {
@@ -143,6 +148,26 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Forbid inline lambda into invoke as an instance arg, i.e. this will not compile:
+	 * {@code () -> { ... }.apply(); }
+	 */
+	private static boolean checkLambdaInline(RegisterArg arg, InsnNode assignInsn) {
+		if (assignInsn.getType() == InsnType.INVOKE && assignInsn instanceof InvokeCustomNode) {
+			for (RegisterArg useArg : arg.getSVar().getUseList()) {
+				InsnNode parentInsn = useArg.getParentInsn();
+				if (parentInsn != null && parentInsn.getType() == InsnType.INVOKE) {
+					InvokeNode invokeNode = (InvokeNode) parentInsn;
+					InsnArg instArg = invokeNode.getInstanceArg();
+					if (instArg != null && instArg == useArg) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	private static boolean varWithSameNameExists(MethodNode mth, SSAVar inlineVar) {
