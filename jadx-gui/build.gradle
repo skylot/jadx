@@ -23,16 +23,16 @@ dependencies {
 	implementation 'com.pinterest.ktlint:ktlint-ruleset-standard:0.48.2'
 
 	implementation 'com.beust:jcommander:1.82'
-	implementation 'ch.qos.logback:logback-classic:1.4.6'
+	implementation 'ch.qos.logback:logback-classic:1.4.7'
 	implementation 'dev.dirs:directories:26'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.3.3'
 	implementation files('libs/jfontchooser-1.0.5.jar')
 	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
-	implementation 'com.formdev:flatlaf:3.1'
-	implementation 'com.formdev:flatlaf-intellij-themes:3.1'
-	implementation 'com.formdev:flatlaf-extras:3.1'
+	implementation 'com.formdev:flatlaf:3.1.1'
+	implementation 'com.formdev:flatlaf-intellij-themes:3.1.1'
+	implementation 'com.formdev:flatlaf-extras:3.1.1'
 	implementation 'com.formdev:svgSalamander:1.1.4'
 
 	implementation 'com.google.code.gson:gson:2.10.1'
@@ -41,7 +41,7 @@ dependencies {
 
 	implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
-	implementation 'com.android.tools.build:apksig:7.4.2'
+	implementation 'com.android.tools.build:apksig:8.0.0'
 	implementation 'io.github.skylot:jdwp:2.0.0'
 
 	testImplementation project(":jadx-core").sourceSets.test.output
