@@ -128,7 +128,10 @@ task pack(type: Zip) {
 task copyExe(type: Copy) {
 	group 'jadx'
 	description = 'Copy exe to build dir'
-	mustRunAfter pack // not needed, but gradle throws warning because of same output dir
+
+	// next task dependencies not needed, but gradle throws warning because of same output dir
+	mustRunAfter jar
+	mustRunAfter pack
 
 	from tasks.getByPath('jadx-gui:createExe')
 	include '*.exe'
@@ -139,6 +142,7 @@ task copyExe(type: Copy) {
 task distWinBundle(type: Copy, dependsOn: 'jadx-gui:distWinWithJre') {
 	group 'jadx'
 	description = 'Copy bundle to build dir'
+	mustRunAfter pack
 	destinationDir buildDir
 	from(tasks.getByPath('jadx-gui:distWinWithJre').outputs) {
 		include '*.zip'

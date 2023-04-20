@@ -11,9 +11,9 @@ stages:
 java-11:
   stage: test
   image: eclipse-temurin:11
-  script: ./gradlew clean build dist
+  script: ./gradlew clean build dist copyExe
 
 java-17:
   stage: test
   image: eclipse-temurin:17
-  script: ./gradlew clean build dist
+  script: ./gradlew clean build dist copyExe

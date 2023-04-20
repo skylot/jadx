@@ -99,7 +99,7 @@ startScripts {
 
 launch4j {
 	mainClassName = application.mainClass.get()
-	copyConfigurable = project.tasks.shadowJar.outputs.files
+	copyConfigurable = []
 	jarTask = project.tasks.shadowJar
 	icon = "${projectDir}/src/main/resources/logos/jadx-logo.ico"
 	outfile = "jadx-gui-${version}.exe"
@@ -116,6 +116,7 @@ launch4j {
 	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/#jdk17-windows'
 	bundledJrePath = project.hasProperty("bundleJRE") ? '%EXEDIR%/jre' : '%JAVA_HOME%'
 }
+createExe.dependsOn(jar)
 
 runtime {
 	addOptions('--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages')
