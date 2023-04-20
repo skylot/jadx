@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -212,6 +213,7 @@ public class MainWindow extends JFrame {
 	private transient @Nullable JDebuggerPanel debuggerPanel;
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
+	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 	private boolean loaded;
 
 	private JMenu pluginsMenu;
@@ -689,6 +691,7 @@ public class MainWindow extends JFrame {
 
 	public void reloadTree() {
 		treeReloading = true;
+		treeUpdateListener.forEach(listener -> listener.accept(treeRoot));
 
 		treeModel.reload();
 		List<String[]> treeExpansions = project.getTreeExpansions();
@@ -1524,6 +1527,10 @@ public class MainWindow extends JFrame {
 	public void notifyLoadListeners(boolean loaded) {
 		this.loaded = loaded;
 		loadListeners.removeIf(listener -> listener.update(loaded));
+	}
+
+	public void addTreeUpdateListener(Consumer<JRoot> listener) {
+		treeUpdateListener.add(listener);
 	}
 
 	public JadxWrapper getWrapper() {

@@ -68,7 +68,7 @@ public class TabStateViewAdapter {
 						.searchNode(node -> node instanceof JInputScript && node.getName().equals(tvs.getTabPath()));
 
 			case "mapping":
-				return mw.getTreeRoot().followStaticPath("JInputs", "JInputMapping");
+				return mw.getTreeRoot().followStaticPath("JInputs").searchNode(node -> node instanceof JInputMapping);
 		}
 		return null;
 	}

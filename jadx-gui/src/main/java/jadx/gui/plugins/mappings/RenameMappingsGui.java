@@ -27,9 +27,13 @@ import jadx.core.utils.Utils;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.ActionHandler;
@@ -41,8 +45,8 @@ public class RenameMappingsGui {
 
 	private final MainWindow mainWindow;
 
-	// private MappingFormat currentMappingFormat;
 	private boolean renamesChanged = false;
+	private JInputMapping mappingNode;
 
 	private transient JMenu openMappingsMenu;
 	private transient Action saveMappingsAction;
@@ -52,6 +56,7 @@ public class RenameMappingsGui {
 	public RenameMappingsGui(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 		mainWindow.addLoadListener(this::onLoad);
+		mainWindow.addTreeUpdateListener(this::treeUpdate);
 	}
 
 	public void addMenuActions(JMenu menu) {
@@ -84,6 +89,7 @@ public class RenameMappingsGui {
 
 	private boolean onLoad(boolean loaded) {
 		renamesChanged = false;
+		mappingNode = null;
 		if (loaded) {
 			RootNode rootNode = mainWindow.getWrapper().getRootNode();
 			rootNode.registerCodeDataUpdateListener(codeData -> onRename());
@@ -117,6 +123,29 @@ public class RenameMappingsGui {
 		saveMappingsAction.setEnabled(loaded && renamesChanged && project.getMappingsPath() != null);
 		saveMappingsAsMenu.setEnabled(loaded);
 		closeMappingsAction.setEnabled(project.getMappingsPath() != null);
+	}
+
+	private void treeUpdate(JRoot treeRoot) {
+		if (mappingNode != null) {
+			// already added
+			return;
+		}
+		Path mappingsPath = mainWindow.getProject().getMappingsPath();
+		if (mappingsPath == null) {
+			return;
+		}
+		JNode node = treeRoot.followStaticPath("JInputs");
+		JNode currentNode = node.removeNode(n -> n.getClass().equals(JInputMapping.class));
+		if (currentNode != null) {
+			// close opened tab
+			TabbedPane tabbedPane = mainWindow.getTabbedPane();
+			ContentPanel openedTab = tabbedPane.getOpenTabs().get(currentNode);
+			if (openedTab != null) {
+				tabbedPane.closeCodePanel(openedTab);
+			}
+		}
+		mappingNode = new JInputMapping(mappingsPath);
+		node.add(mappingNode);
 	}
 
 	private void openMappings(MappingFormat mappingFormat, boolean inverted) {
@@ -205,7 +234,10 @@ public class RenameMappingsGui {
 			options.put(RenameMappingsOptions.FORMAT_OPT, mappingFormat.name());
 			options.put(RenameMappingsOptions.INVERT_OPT, "no");
 		});
-		saveInBackground(mappingFormat, savePath, s -> mainWindow.reopen());
+		saveInBackground(mappingFormat, savePath, s -> {
+			mappingNode = null;
+			mainWindow.reloadTree();
+		});
 	}
 
 	private void saveInBackground(MappingFormat mappingFormat, Path savePath, Consumer<TaskStatus> onFinishUiRunnable) {

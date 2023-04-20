@@ -1,6 +1,5 @@
 package jadx.gui.treemodel;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,7 +10,6 @@ import javax.swing.ImageIcon;
 
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
-import jadx.gui.plugins.mappings.JInputMapping;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -35,11 +33,6 @@ public class JInputs extends JNode {
 
 		add(new JInputFiles(files));
 		add(new JInputScripts(scripts));
-
-		Path mappingsPath = project.getMappingsPath();
-		if (mappingsPath != null && Files.isRegularFile(mappingsPath)) {
-			add(new JInputMapping(mappingsPath));
-		}
 	}
 
 	@Override

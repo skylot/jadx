@@ -111,10 +111,25 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 	}
 
 	public @Nullable JNode searchNode(Predicate<JNode> filter) {
-		Enumeration<?> en = this.breadthFirstEnumeration();
+		Enumeration<?> en = this.children();
 		while (en.hasMoreElements()) {
 			JNode node = (JNode) en.nextElement();
 			if (filter.test(node)) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Remove and return first found node
+	 */
+	public @Nullable JNode removeNode(Predicate<JNode> filter) {
+		Enumeration<?> en = this.children();
+		while (en.hasMoreElements()) {
+			JNode node = (JNode) en.nextElement();
+			if (filter.test(node)) {
+				this.remove(node);
 				return node;
 			}
 		}
