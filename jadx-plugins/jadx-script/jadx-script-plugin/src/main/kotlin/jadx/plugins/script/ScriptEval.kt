@@ -11,7 +11,6 @@ import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic.Severity
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
-import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.constructorArgs
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
@@ -39,9 +38,7 @@ class ScriptEval {
 	}
 
 	fun buildCompileConf(): ScriptCompilationConfiguration {
-		return createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate>() {
-			compilerOptions(listOf("-Xuse-k2"))
-		}
+		return createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate>()
 	}
 
 	fun buildEvalConf(scriptData: JadxScriptData): ScriptEvaluationConfiguration {
