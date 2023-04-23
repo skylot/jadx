@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -114,6 +115,11 @@ public final class JavaMethod implements JavaNode {
 			return ann.equals(mth);
 		}
 		return false;
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return mth;
 	}
 
 	/**

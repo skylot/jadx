@@ -29,6 +29,7 @@ import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
 import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.pass.JadxPass;
@@ -44,6 +45,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleTask;
 import jadx.core.plugins.JadxPluginManager;
+import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -94,6 +96,7 @@ public final class JadxDecompiler implements Closeable {
 	private ProtoXMLParser protoXmlParser;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
+	private final JadxEventsImpl events = new JadxEventsImpl();
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
@@ -129,6 +132,7 @@ public final class JadxDecompiler implements Closeable {
 		LOG.info("reloading (passes only) ...");
 		customPasses.clear();
 		root.resetPasses();
+		events.reset();
 		loadPlugins();
 		root.mergePasses(customPasses);
 		root.restartVisitors();
@@ -159,6 +163,7 @@ public final class JadxDecompiler implements Closeable {
 		resources = null;
 		binaryXmlParser = null;
 		protoXmlParser = null;
+		events.reset();
 	}
 
 	@Override
@@ -658,6 +663,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public IDecompileScheduler getDecompileScheduler() {
 		return decompileScheduler;
+	}
+
+	public IJadxEvents events() {
+		return events;
 	}
 
 	public void addCustomCodeLoader(ICodeLoader customCodeLoader) {

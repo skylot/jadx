@@ -8,11 +8,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JavaPackage;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.PackageInfo;
 
 import static jadx.core.utils.StringUtils.containsChar;
 
-public class PackageNode implements IPackageUpdate, IDexNode, Comparable<PackageNode> {
+public class PackageNode extends LineAttrNode
+		implements IPackageUpdate, IDexNode, ICodeNodeRef, Comparable<PackageNode> {
 
 	private final RootNode root;
 	private final PackageInfo pkgInfo;
@@ -192,6 +195,11 @@ public class PackageNode implements IPackageUpdate, IDexNode, Comparable<Package
 	@Override
 	public String typeName() {
 		return "package";
+	}
+
+	@Override
+	public AnnType getAnnType() {
+		return AnnType.PKG;
 	}
 
 	@Override

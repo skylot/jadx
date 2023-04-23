@@ -3,8 +3,11 @@ package jadx.api;
 import java.util.List;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 
 public interface JavaNode {
+
+	ICodeNodeRef getCodeNodeRef();
 
 	String getName();
 

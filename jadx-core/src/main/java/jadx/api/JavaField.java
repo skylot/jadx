@@ -5,6 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.ApiStatus;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.FieldNode;
@@ -72,6 +73,11 @@ public final class JavaField implements JavaNode {
 			return ann.equals(field);
 		}
 		return false;
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return field;
 	}
 
 	/**

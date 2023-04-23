@@ -78,11 +78,14 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.export.TemplateFile;
+import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -1638,5 +1641,16 @@ public class MainWindow extends JFrame {
 
 	public RenameMappingsGui getRenameMappings() {
 		return renameMappings;
+	}
+
+	/**
+	 * Events instance if decompiler not yet available
+	 */
+	private final IJadxEvents fallbackEvents = new JadxEventsImpl();
+
+	public IJadxEvents events() {
+		return wrapper.getCurrentDecompiler()
+				.map(JadxDecompiler::events)
+				.orElse(fallbackEvents);
 	}
 }

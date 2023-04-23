@@ -99,6 +99,11 @@ public final class JavaClass implements JavaNode {
 		return false;
 	}
 
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return cls;
+	}
+
 	/**
 	 * Internal API. Not Stable!
 	 */

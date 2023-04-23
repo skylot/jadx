@@ -36,6 +36,11 @@ public class JRenamePackage implements JRenameNode {
 	}
 
 	@Override
+	public JavaNode getJavaNode() {
+		return refPkg;
+	}
+
+	@Override
 	public String getTitle() {
 		return fullName;
 	}

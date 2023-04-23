@@ -8,6 +8,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.nodes.PackageNode;
 
@@ -73,6 +74,11 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 		PackageInfo parent = pkgNode.getPkgInfo().getParentPkg();
 		PackageInfo aliasParent = pkgNode.getAliasPkgInfo().getParentPkg();
 		return !Objects.equals(parent, aliasParent);
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return pkgNode;
 	}
 
 	@Internal

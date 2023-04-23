@@ -22,6 +22,7 @@ sourceSets {
 	main {
 		kotlin.srcDirs(
 			"scripts",
+			"scripts/gui",
 			"context"
 		)
 	}

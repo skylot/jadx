@@ -11,6 +11,8 @@ import jadx.gui.ui.MainWindow;
 
 public interface JRenameNode {
 
+	JavaNode getJavaNode();
+
 	String getTitle();
 
 	String getName();

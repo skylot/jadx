@@ -7,6 +7,7 @@ import jadx.api.JadxArgs
 import jadx.api.JadxDecompiler
 import jadx.api.JavaClass
 import jadx.api.plugins.JadxPluginContext
+import jadx.api.plugins.events.IJadxEvents
 import jadx.api.plugins.pass.JadxPass
 import jadx.plugins.script.runtime.data.Debug
 import jadx.plugins.script.runtime.data.Decompile
@@ -49,6 +50,9 @@ class JadxScriptInstance(
 	val search: Search by lazy { Search(this) }
 	val gui: Gui by lazy { Gui(this, scriptData.pluginContext.guiContext) }
 	val debug: Debug by lazy { Debug(this) }
+
+	val events: IJadxEvents
+		get() = scriptData.pluginContext.events()
 
 	val args: JadxArgs
 		get() = decompiler.args

@@ -12,6 +12,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -93,6 +94,11 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 			}
 		}
 		return "";
+	}
+
+	@Override
+	public IJadxEvents events() {
+		return decompiler.events();
 	}
 
 	@Override

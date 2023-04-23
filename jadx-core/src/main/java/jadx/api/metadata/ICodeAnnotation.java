@@ -6,6 +6,7 @@ public interface ICodeAnnotation {
 		CLASS,
 		FIELD,
 		METHOD,
+		PKG,
 		VAR,
 		VAR_REF,
 		DECLARATION,

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
 import jadx.core.dex.instructions.args.ArgType;
@@ -35,6 +36,11 @@ public class JavaVariable implements JavaNode {
 	@Override
 	public @Nullable String getName() {
 		return varNode.getName();
+	}
+
+	@Override
+	public ICodeNodeRef getCodeNodeRef() {
+		return varNode;
 	}
 
 	@ApiStatus.Internal

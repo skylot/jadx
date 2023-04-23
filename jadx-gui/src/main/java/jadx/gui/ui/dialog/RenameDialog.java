@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.core.utils.Utils;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
@@ -126,11 +128,19 @@ public class RenameDialog extends JDialog {
 	private void processRename(String newName, Set<ICodeRename> renames) {
 		ICodeRename rename = node.buildCodeRename(newName, renames);
 		renames.remove(rename);
+		String oldName = node.getName();
 		if (newName.isEmpty()) {
 			node.removeAlias();
+			sendRenameEvent(oldName, node.getJavaNode().getName());
 		} else {
 			renames.add(rename);
+			sendRenameEvent(oldName, newName);
 		}
+	}
+
+	private void sendRenameEvent(String oldName, String newName) {
+		ICodeNodeRef nodeRef = node.getJavaNode().getCodeNodeRef();
+		mainWindow.events().send(new NodeRenamedByUser(nodeRef, oldName, newName));
 	}
 
 	private void updateCodeRenames(Consumer<Set<ICodeRename>> updater) {

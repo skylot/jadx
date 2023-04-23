@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -29,6 +30,11 @@ public interface JadxPluginContext {
 	 * so this method can omit these files.
 	 */
 	void registerInputsHashSupplier(Supplier<String> supplier);
+
+	/**
+	 * Subscribe and send events
+	 */
+	IJadxEvents events();
 
 	@Nullable
 	JadxGuiContext getGuiContext();
