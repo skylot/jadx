@@ -1003,12 +1003,18 @@ public class InsnGen {
 		} else {
 			int callArgsCount = callArgs.size();
 			int startArg = callArgsCount - implArgs.size();
+			if (callArgsCount - startArg > 1) {
+				code.add('(');
+			}
 			for (int i = startArg; i < callArgsCount; i++) {
 				if (i != startArg) {
 					code.add(", ");
 				}
 				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();
 				defVar(code, argCodeVar);
+			}
+			if (callArgsCount - startArg > 1) {
+				code.add(')');
 			}
 		}
 		// force set external arg names into call method args
