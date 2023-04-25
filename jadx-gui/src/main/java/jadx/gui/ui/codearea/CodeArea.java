@@ -141,23 +141,6 @@ public final class CodeArea extends AbstractCodeArea {
 		if (token == null) {
 			return -1;
 		}
-		int type = token.getType();
-		final int sourceOffset;
-		if (node instanceof JClass) {
-			if (type == TokenTypes.IDENTIFIER) {
-				sourceOffset = token.getOffset();
-			} else if (type == TokenTypes.ANNOTATION && token.length() > 1) {
-				sourceOffset = token.getOffset() + 1;
-			} else {
-				return -1;
-			}
-		} else {
-			if (type == TokenTypes.MARKUP_TAG_ATTRIBUTE_VALUE) {
-				sourceOffset = token.getOffset() + 1; // skip quote at start (")
-			} else {
-				return -1;
-			}
-		}
 		// fast skip
 		if (token.length() == 1) {
 			char ch = token.getTextArray()[token.getTextOffset()];
@@ -165,7 +148,18 @@ public final class CodeArea extends AbstractCodeArea {
 				return -1;
 			}
 		}
-		return sourceOffset;
+		int type = token.getType();
+		if (node instanceof JClass) {
+			if (type == TokenTypes.IDENTIFIER || type == TokenTypes.FUNCTION) {
+				return token.getOffset();
+			}
+			if (type == TokenTypes.ANNOTATION && token.length() > 1) {
+				return token.getOffset() + 1;
+			}
+		} else if (type == TokenTypes.MARKUP_TAG_ATTRIBUTE_VALUE) {
+			return token.getOffset() + 1; // skip quote at start (")
+		}
+		return -1;
 	}
 
 	/**
