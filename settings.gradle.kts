@@ -1,5 +1,9 @@
 rootProject.name = "jadx"
 
+if (!JavaVersion.current().isJava11Compatible) {
+	throw GradleException("Jadx requires at least Java 11 for build (current version is '${JavaVersion.current()}')")
+}
+
 include("jadx-core")
 include("jadx-cli")
 include("jadx-gui")
