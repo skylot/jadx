@@ -259,6 +259,11 @@ public class InsnNode extends LineAttrNode {
 			case STR_CONCAT:
 				return true;
 
+			case SGET:
+			case IGET:
+				// TODO: allow to move final fields
+				return false;
+
 			default:
 				return false;
 		}

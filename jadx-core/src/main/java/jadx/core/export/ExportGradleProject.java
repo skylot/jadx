@@ -3,23 +3,16 @@ package jadx.core.export;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import jadx.api.ResourceFile;
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -27,14 +20,7 @@ import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.XmlSecurity;
 
 public class ExportGradleProject {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ExportGradleProject.class);
-
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
-
-	private static final Set<String> IGNORE_CLS_NAMES = new HashSet<>(Arrays.asList(
-			"R",
-			"BuildConfig"));
 
 	private final RootNode root;
 	private final File projectDir;
@@ -61,7 +47,6 @@ public class ExportGradleProject {
 			saveProjectBuildGradle();
 			saveApplicationBuildGradle();
 			saveSettingsGradle();
-			skipGeneratedClasses();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Gradle export failed", e);
 		}
@@ -93,16 +78,6 @@ public class ExportGradleProject {
 		tmpl.add("versionCode", applicationParams.getVersionCode());
 		tmpl.add("versionName", applicationParams.getVersionName());
 		tmpl.save(new File(appDir, "build.gradle"));
-	}
-
-	private void skipGeneratedClasses() {
-		for (ClassNode cls : root.getClasses()) {
-			String shortName = cls.getClassInfo().getShortName();
-			if (IGNORE_CLS_NAMES.contains(shortName)) {
-				cls.add(AFlag.DONT_GENERATE);
-				LOG.debug("Skip class: {}", cls);
-			}
-		}
 	}
 
 	private ApplicationParams getApplicationParams(Document androidManifest, Document appStrings) {

@@ -72,7 +72,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				changed = true;
 			}
 		}
-		if (changed) {
+		if (changed || mth.contains(AFlag.REQUEST_CODE_SHRINK)) {
 			CodeShrinkVisitor.shrinkMethod(mth);
 		}
 	}
@@ -121,6 +121,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 		if (changed) {
 			insn.rebindArgs();
+			mth.add(AFlag.REQUEST_CODE_SHRINK);
 		}
 	}
 

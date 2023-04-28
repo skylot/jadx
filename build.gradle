@@ -25,12 +25,13 @@ allprojects {
 	compileJava {
 		options.encoding = "UTF-8"
 	}
-	compileKotlin {
-		compilerOptions {
-			incremental = false // cause unexpected issues sometime
-			jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-		}
-	}
+
+	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+			.configureEach {
+				compilerOptions {
+					jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+				}
+			}
 
 	jar {
 		manifest {
