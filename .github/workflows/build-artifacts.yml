@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: 11
 
       - name: Set jadx version
@@ -24,12 +24,10 @@ jobs:
           JADX_VERSION="${JADX_LAST_TAG:1}.$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:8}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
-      - uses: burrunan/gradle-cache-action@v1
-        name: Build with Gradle
-        env:
-          TERM: dumb
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean dist copyExe
+          arguments: dist copyExe
 
       - name: Save bundle artifact
         uses: actions/upload-artifact@v3
@@ -72,12 +70,10 @@ jobs:
           JADX_VERSION="${JADX_LAST_TAG:1}.$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:8}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
-      - uses: gradle/gradle-build-action@v2
-        name: Build with Gradle
-        env:
-          TERM: dumb
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean dist -PbundleJRE=true
+          arguments: dist -PbundleJRE=true
 
       - name: Save exe bundle artifact
         uses: actions/upload-artifact@v3

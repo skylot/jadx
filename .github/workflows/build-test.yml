@@ -11,18 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: 11
 
-      - uses: burrunan/gradle-cache-action@v1
-        name: Build with Gradle
-        env:
-          TERM: dumb
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean build dist copyExe --warning-mode=all
+          arguments: build dist copyExe
