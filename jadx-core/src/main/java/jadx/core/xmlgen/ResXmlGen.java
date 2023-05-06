@@ -243,7 +243,7 @@ public class ResXmlGen {
 			cw.add(" />");
 		} else {
 			cw.add('>');
-			if (itemTag.equals("string")) {
+			if (itemTag.equals("string") || (typeName.equals("array") && valueStr.charAt(0) != '@')) {
 				cw.add(StringUtils.escapeResStrValue(valueStr));
 			} else {
 				cw.add(StringUtils.escapeResValue(valueStr));

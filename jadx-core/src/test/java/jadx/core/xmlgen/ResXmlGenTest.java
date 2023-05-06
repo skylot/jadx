@@ -125,4 +125,26 @@ class ResXmlGenTest {
 				+ "    <string name=\"app_name\">Jadx Decompiler App</string>\n"
 				+ "</resources>", files.get(0).getText().toString());
 	}
+
+	@Test
+	void testArrayEscape() {
+		ResourceStorage resStorage = new ResourceStorage();
+		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "array", "single_quote_escape_sample", "");
+		re.setNamedValues(
+				Lists.list(new RawNamedValue(16777216, new RawValue(3, 0))));
+		resStorage.add(re);
+
+		ValuesParser vp = new ValuesParser(new String[] { "Let's go" }, resStorage.getResourcesNames());
+		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
+		List<ResContainer> files = resXmlGen.makeResourcesXml();
+
+		assertEquals(1, files.size());
+		assertEquals("res/values/arrays.xml", files.get(0).getFileName());
+		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+				+ "<resources>\n"
+				+ "    <array name=\"single_quote_escape_sample\">\n"
+				+ "        <item>Let\\'s go</item>\n"
+				+ "    </array>\n"
+				+ "</resources>", files.get(0).getText().toString());
+	}
 }
