@@ -36,7 +36,8 @@ public final class ClassSearchProvider extends BaseSearchProvider {
 		ClassInfo clsInfo = cls.getClassNode().getClassInfo();
 		return isMatch(clsInfo.getShortName())
 				|| isMatch(clsInfo.getFullName())
-				|| isMatch(clsInfo.getAliasFullName());
+				|| isMatch(clsInfo.getAliasFullName())
+				|| isMatch(clsInfo.getRawName());
 	}
 
 	@Override

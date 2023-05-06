@@ -178,6 +178,7 @@ public class JCommanderWrapper<T> {
 		// load and init all options plugins to print all options
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			pluginManager.load();
 			pluginManager.initAll();
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				JadxPluginOptions options = context.getOptions();

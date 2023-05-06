@@ -69,6 +69,7 @@ public class JadxArgs implements Closeable {
 	private boolean inlineAnonymousClasses = true;
 	private boolean inlineMethods = true;
 	private boolean allowInlineKotlinLambda = true;
+	private boolean moveInnerClasses = true;
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
@@ -303,6 +304,14 @@ public class JadxArgs implements Closeable {
 
 	public void setAllowInlineKotlinLambda(boolean allowInlineKotlinLambda) {
 		this.allowInlineKotlinLambda = allowInlineKotlinLambda;
+	}
+
+	public boolean isMoveInnerClasses() {
+		return moveInnerClasses;
+	}
+
+	public void setMoveInnerClasses(boolean moveInnerClasses) {
+		this.moveInnerClasses = moveInnerClasses;
 	}
 
 	public boolean isExtractFinally() {
@@ -628,7 +637,7 @@ public class JadxArgs implements Closeable {
 	 */
 	public String makeCodeArgsHash() {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
-				+ inlineAnonymousClasses + inlineMethods
+				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
 				+ resourceNameSource
 				+ parseKotlinMetadata + useKotlinMethodsForVarNames

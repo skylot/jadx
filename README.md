@@ -98,19 +98,27 @@ options:
                                          'fallback' - raw instructions without modifications
   --show-bad-code                     - show inconsistent code (incorrectly decompiled)
   --no-imports                        - disable use of imports, always write entire package name
-  --no-debug-info                     - disable debug info
+  --no-debug-info                     - disable debug info parsing and processing
   --add-debug-lines                   - add comments with debug line numbers if available
   --no-inline-anonymous               - disable anonymous classes inline
   --no-inline-methods                 - disable methods inline
+  --no-move-inner-classes             - disable move inner classes into parent
+  --no-inline-kotlin-lambda           - disable inline for Kotlin lambdas
   --no-finally                        - don't extract finally block
   --no-replace-consts                 - don't replace constant value with matching constant field
   --escape-unicode                    - escape non latin characters in strings (with \u)
   --respect-bytecode-access-modifiers - don't change original access modifiers
+  --mappings-path                     - deobfuscation mappings file or directory. Allowed formats: Tiny and Tiny v2 (both '.tiny'), Enigma (.mapping) or Enigma directory
+  --mappings-mode                     - set mode for handling the deobfuscation mapping file:
+                                         'read' - just read, user can always save manually (default)
+                                         'read-and-autosave-every-change' - read and autosave after every change
+                                         'read-and-autosave-before-closing' - read and autosave before exiting the app or closing the project
+                                         'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)
   --deobf                             - activate deobfuscation
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
-  --deobf-cfg-file                    - deobfuscation map file, default: same dir and name as input file with '.jobf' extension
-  --deobf-cfg-file-mode               - set mode for handle deobfuscation map file:
+  --deobf-cfg-file                    - deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension
+  --deobf-cfg-file-mode               - set mode for handling the JADX auto-generated names' deobfuscation map file:
                                          'read' - read if found, don't save (default)
                                          'read-or-save' - read if found, save otherwise (don't overwrite)
                                          'overwrite' - don't read, always save

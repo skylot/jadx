@@ -142,9 +142,11 @@ public class RootNode {
 
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
-		// move inner classes
-		initInnerClasses();
 
+		if (args.isMoveInnerClasses()) {
+			// detect and move inner classes
+			initInnerClasses();
+		}
 		// sort packages
 		Collections.sort(packages);
 	}

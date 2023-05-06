@@ -75,7 +75,7 @@ public class ClassNode extends NotificationAttrNode
 	// store smali
 	private String smali;
 	// store parent for inner classes or 'this' otherwise
-	private ClassNode parentClass;
+	private ClassNode parentClass = this;
 
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
 	private LoadStage loadStage = LoadStage.NONE;
@@ -225,7 +225,6 @@ public class ClassNode extends NotificationAttrNode
 		this.methods = new ArrayList<>();
 		this.fields = new ArrayList<>();
 		this.accessFlags = new AccessInfo(accessFlags, AFType.CLASS);
-		this.parentClass = this;
 		this.packageNode = PackageNode.getForClass(root, clsInfo.getPackage(), this);
 	}
 
@@ -555,6 +554,8 @@ public class ClassNode extends NotificationAttrNode
 				parentClass = parent;
 				return;
 			}
+			// undo inner mark in class info
+			clsInfo.notInner(root);
 		}
 		parentClass = this;
 	}
@@ -667,8 +668,7 @@ public class ClassNode extends NotificationAttrNode
 	/**
 	 * Get all inner and inlined classes recursively
 	 *
-	 * @param resultClassesSet
-	 *                         all identified inner and inlined classes are added to this set
+	 * @param resultClassesSet all identified inner and inlined classes are added to this set
 	 */
 	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesSet) {
 		for (ClassNode innerCls : innerClasses) {

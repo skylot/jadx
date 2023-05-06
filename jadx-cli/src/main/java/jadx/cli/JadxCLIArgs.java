@@ -81,7 +81,7 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-imports" }, description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
-	@Parameter(names = { "--no-debug-info" }, description = "disable debug info")
+	@Parameter(names = { "--no-debug-info" }, description = "disable debug info parsing and processing")
 	protected boolean debugInfo = true;
 
 	@Parameter(names = { "--add-debug-lines" }, description = "add comments with debug line numbers if available")
@@ -92,6 +92,9 @@ public class JadxCLIArgs {
 
 	@Parameter(names = { "--no-inline-methods" }, description = "disable methods inline")
 	protected boolean inlineMethods = true;
+
+	@Parameter(names = { "--no-move-inner-classes" }, description = "disable move inner classes into parent")
+	protected boolean moveInnerClasses = true;
 
 	@Parameter(names = { "--no-inline-kotlin-lambda" }, description = "disable inline for Kotlin lambdas")
 	protected boolean allowInlineKotlinLambda = true;
@@ -313,6 +316,7 @@ public class JadxCLIArgs {
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setInlineMethods(inlineMethods);
+		args.setMoveInnerClasses(moveInnerClasses);
 		args.setAllowInlineKotlinLambda(allowInlineKotlinLambda);
 		args.setExtractFinally(extractFinally);
 		args.setRenameFlags(renameFlags);
@@ -393,6 +397,10 @@ public class JadxCLIArgs {
 
 	public boolean isInlineMethods() {
 		return inlineMethods;
+	}
+
+	public boolean isMoveInnerClasses() {
+		return moveInnerClasses;
 	}
 
 	public boolean isAllowInlineKotlinLambda() {
