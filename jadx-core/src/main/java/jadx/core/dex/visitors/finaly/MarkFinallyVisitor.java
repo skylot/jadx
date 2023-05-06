@@ -1,7 +1,9 @@
 package jadx.core.dex.visitors.finaly;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +34,7 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
+import jadx.core.utils.blocks.BlockPair;
 
 @JadxVisitor(
 		name = "MarkFinallyVisitor",
@@ -351,9 +354,14 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		if (dupSlice == null) {
 			return null;
 		}
-		if (!dupSlice.isComplete()
-				&& !checkBlocksTree(dupBlock, startBlock, dupSlice, extractInfo)) {
-			return null;
+		if (!dupSlice.isComplete()) {
+			Map<BlockPair, Boolean> checkCache = new HashMap<>();
+			if (checkBlocksTree(dupBlock, startBlock, dupSlice, extractInfo, checkCache)) {
+				dupSlice.setComplete(true);
+				extractInfo.getFinallyInsnsSlice().setComplete(true);
+			} else {
+				return null;
+			}
 		}
 		return checkTempSlice(dupSlice);
 	}
@@ -470,30 +478,41 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	}
 
 	private static boolean checkBlocksTree(BlockNode dupBlock, BlockNode finallyBlock,
-			InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
+			InsnsSlice dupSlice, FinallyExtractInfo extractInfo,
+			Map<BlockPair, Boolean> checksCache) {
+		BlockPair checkBlocks = new BlockPair(dupBlock, finallyBlock);
+		Boolean checked = checksCache.get(checkBlocks);
+		if (checked != null) {
+			return checked;
+		}
+		boolean same;
 		InsnsSlice finallySlice = extractInfo.getFinallyInsnsSlice();
-
 		List<BlockNode> finallyCS = getSuccessorsWithoutLoop(finallyBlock);
 		List<BlockNode> dupCS = getSuccessorsWithoutLoop(dupBlock);
 		if (finallyCS.size() == dupCS.size()) {
+			same = true;
 			for (int i = 0; i < finallyCS.size(); i++) {
 				BlockNode finSBlock = finallyCS.get(i);
 				BlockNode dupSBlock = dupCS.get(i);
 				if (extractInfo.getAllHandlerBlocks().contains(finSBlock)) {
 					if (!compareBlocks(dupSBlock, finSBlock, dupSlice, extractInfo)) {
-						return false;
+						same = false;
+						break;
 					}
-					if (!checkBlocksTree(dupSBlock, finSBlock, dupSlice, extractInfo)) {
-						return false;
+					if (!checkBlocksTree(dupSBlock, finSBlock, dupSlice, extractInfo, checksCache)) {
+						same = false;
+						break;
 					}
 					dupSlice.addBlock(dupSBlock);
 					finallySlice.addBlock(finSBlock);
 				}
 			}
+		} else {
+			// stop checks at start blocks (already compared)
+			same = true;
 		}
-		dupSlice.setComplete(true);
-		finallySlice.setComplete(true);
-		return true;
+		checksCache.put(checkBlocks, same);
+		return same;
 	}
 
 	private static List<BlockNode> getSuccessorsWithoutLoop(BlockNode block) {
