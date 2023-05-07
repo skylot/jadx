@@ -11,6 +11,7 @@ import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic.Severity
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.constructorArgs
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
@@ -38,7 +39,11 @@ class ScriptEval {
 	}
 
 	fun buildCompileConf(): ScriptCompilationConfiguration {
-		return createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate>()
+		return createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate> {
+			// forcing compiler to not use modules while building script classpath
+			// because shadow jar remove all modules-info.class (https://github.com/johnrengelman/shadow/issues/710)
+			compilerOptions("-Xjdk-release=1.8")
+		}
 	}
 
 	fun buildEvalConf(scriptData: JadxScriptData): ScriptEvaluationConfiguration {
