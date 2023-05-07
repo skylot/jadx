@@ -11,8 +11,6 @@ import org.fife.ui.rsyntaxtextarea.parser.ParserNotice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pinterest.ktlint.core.LintError;
-
 import kotlin.script.experimental.api.ScriptDiagnostic;
 import kotlin.script.experimental.api.SourceCode;
 
@@ -98,8 +96,8 @@ public class ScriptErrorService extends AbstractParser {
 		return ParserNotice.Level.ERROR;
 	}
 
-	public void addLintErrors(List<LintError> errors) {
-		for (LintError error : errors) {
+	public void addLintErrors(List<JadxLintError> errors) {
+		for (JadxLintError error : errors) {
 			try {
 				int line = error.getLine();
 				int offset = scriptArea.getLineStartOffset(line - 1) + error.getCol() - 1;

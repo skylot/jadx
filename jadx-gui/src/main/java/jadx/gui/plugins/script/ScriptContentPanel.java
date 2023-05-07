@@ -19,8 +19,6 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pinterest.ktlint.core.LintError;
-
 import kotlin.script.experimental.api.ScriptDiagnostic;
 import kotlin.script.experimental.api.ScriptDiagnostic.Severity;
 
@@ -170,9 +168,9 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 					scriptLog.warn("Compiler issue: {}", issue);
 				}
 			}
-			List<LintError> lintErrs = Collections.emptyList();
+			List<JadxLintError> lintErrs = Collections.emptyList();
 			if (success) {
-				lintErrs = getLintIssues(code, fileName);
+				lintErrs = getLintIssues(code);
 			}
 
 			errorService.clearErrors();
@@ -194,10 +192,10 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		}
 	}
 
-	private List<LintError> getLintIssues(String code, String fileName) {
+	private List<JadxLintError> getLintIssues(String code) {
 		try {
-			List<LintError> lintErrs = KtLintUtils.INSTANCE.lint(code, fileName);
-			for (LintError error : lintErrs) {
+			List<JadxLintError> lintErrs = KtLintUtils.INSTANCE.lint(code);
+			for (JadxLintError error : lintErrs) {
 				scriptLog.warn("Lint issue: {} ({}:{})(ruleId={})",
 						error.getDetail(), error.getLine(), error.getCol(), error.getRuleId());
 			}
@@ -212,8 +210,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		resetResultLabel();
 		try {
 			String code = scriptArea.getText();
-			String fileName = scriptArea.getNode().getName();
-			String formattedCode = KtLintUtils.INSTANCE.format(code, fileName);
+			String formattedCode = KtLintUtils.INSTANCE.format(code);
 			if (!code.equals(formattedCode)) {
 				scriptArea.updateCode(formattedCode);
 				resultLabel.setText("Code updated");

@@ -444,7 +444,6 @@ public class MainWindow extends JFrame {
 		// check if project file already saved with default name
 		Path projectPath = getProjectPathForFile(singleFile);
 		if (Files.exists(projectPath)) {
-			LOG.info("Loading project {}", projectPath);
 			openProject(projectPath, onFinish);
 			return true;
 		}
@@ -463,6 +462,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void openProject(Path path, Runnable onFinish) {
+		LOG.debug("Loading project: {}", path);
 		JadxProject jadxProject = JadxProject.load(this, path);
 		if (jadxProject == null) {
 			JOptionPane.showMessageDialog(
