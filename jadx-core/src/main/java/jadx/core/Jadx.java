@@ -7,6 +7,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.Manifest;
 
+import jadx.core.dex.visitors.kotlin.KotlinDataClassVisitor;
+import jadx.core.dex.visitors.kotlin.KotlinMetadataVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,6 +144,8 @@ public class Jadx {
 		if (args.getUseKotlinMethodsForVarNames() != JadxArgs.UseKotlinMethodsForVarNames.DISABLE) {
 			passes.add(new ProcessKotlinInternals());
 		}
+		passes.add(new KotlinMetadataVisitor());
+		passes.add(new KotlinDataClassVisitor());
 		passes.add(new CodeRenameVisitor());
 		if (args.isInlineMethods()) {
 			passes.add(new InlineMethods());

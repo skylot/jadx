@@ -10,6 +10,10 @@ dependencies {
 	// TODO: move resources decoding to separate plugin module
 	implementation 'com.android.tools.build:aapt2-proto:8.0.1-9289358'
 	implementation 'com.google.protobuf:protobuf-java:3.22.4' // forcing latest version
+	implementation 'com.google.protobuf:protobuf-java-util:3.22.4'
+
+	implementation "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"
+	implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.20"
 
 	testImplementation 'org.apache.commons:commons-lang3:3.12.0'
 
