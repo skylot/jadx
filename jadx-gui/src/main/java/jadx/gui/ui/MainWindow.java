@@ -1449,6 +1449,11 @@ public class MainWindow extends JFrame {
 	}
 
 	public void loadSettings() {
+		// queue update to not interrupt current UI tasks
+		UiUtils.uiRun(this::updateUiSettings);
+	}
+
+	private void updateUiSettings() {
 		LafManager.updateLaf(settings);
 
 		Font font = settings.getFont();
