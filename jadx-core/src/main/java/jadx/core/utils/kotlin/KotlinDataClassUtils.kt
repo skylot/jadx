@@ -2,7 +2,7 @@ package jadx.core.utils.kotlin
 
 import jadx.api.plugins.input.data.AccessFlags
 import jadx.core.Consts
-import jadx.core.dex.attributes.AFlag
+import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.instructions.IndexInsnNode
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.MethodNode
@@ -14,13 +14,11 @@ object KotlinDataClassUtils {
 
 	fun fixDataClass(cls: ClassNode, kmCls: KmClass) {
 		val isData = Flag.Class.IS_DATA(kmCls.flags)
-		var changed = false
 
 		if (isData != cls.accessFlags.isData) {
 			cls.accessFlags = cls.accessFlags.run {
 				if (isData) add(AccessFlags.DATA) else remove(AccessFlags.DATA)
 			}
-			changed = true
 		}
 
 		val mthToString: MethodNode? = cls.searchMethodByShortId(Consts.MTH_TOSTRING_SIGNATURE)
@@ -28,19 +26,15 @@ object KotlinDataClassUtils {
 			val trans = DataClassTransform(mthToString)
 
 			trans.clsAlias?.let { alias ->
-				if (alias != cls.alias) {
-					cls.rename(alias)
-					changed = true
-				}
+				RenameReasonAttr.forNode(cls).append("from toString")
+				cls.rename(alias)
 			}
 
 			trans.list.forEach { (alias, fieldInfo) ->
 				// rename inner field
 				val field = cls.searchFieldByShortId(fieldInfo.shortId) ?: return@forEach
-				if (alias != field.alias) {
-					field.rename(alias)
-					changed = true
-				}
+				RenameReasonAttr.forNode(field).append("from toString")
+				field.rename(alias)
 
 				// find getter method
 				cls.methods.firstOrNull {
@@ -50,16 +44,12 @@ object KotlinDataClassUtils {
 							it.sVars.size == 2 &&
 							(it.sVars[1].assignInsn as? IndexInsnNode)?.index == fieldInfo
 				}?.let { getter ->
+					RenameReasonAttr.forNode(getter).append("from toString getter of: $alias")
 					getter.rename(getGetterAlias(alias))
-					changed = true
 				}
 
 			}
 
-		}
-
-		if (!changed) {
-			cls.add(AFlag.DONT_GENERATE)
 		}
 	}
 

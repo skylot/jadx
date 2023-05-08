@@ -61,11 +61,7 @@ private fun IAnnotation.getParamsAsList(paramName: String): List<EncodedValue>? 
 private fun IAnnotation.getParamAsStringArray(paramName: String): Array<String>? {
 	return getParamsAsList(paramName)
 		?.map<EncodedValue, Any?>(EncodedValue::getValue)
-		?.onEach {
-			if (it != null && it !is String) {
-				println("enc string: $it, ${it::class}")
-			}
-		}
+		?.onEach { if (it != null && it !is String) /* TODO is this valid ? */ return@onEach }
 		?.map { "$it" }
 		?.toTypedArray()
 }
@@ -73,7 +69,7 @@ private fun IAnnotation.getParamAsStringArray(paramName: String): Array<String>?
 private fun IAnnotation.getParamAsIntArray(paramName: String): IntArray? {
 	return getParamsAsList(paramName)
 		?.map<EncodedValue, Any?>(EncodedValue::getValue)
-		?.onEach { if (it != null && it !is Int) println("enc int: $it") }
+		?.onEach { if (it != null && it !is Int) /* TODO is this valid ? */ return@onEach }
 		?.map { it as Int }
 		?.toIntArray()
 }
