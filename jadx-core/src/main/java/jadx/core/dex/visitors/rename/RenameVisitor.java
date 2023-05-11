@@ -46,8 +46,6 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void process(RootNode root) {
-		// TODO refactor maybe ?
-		KotlinMetadataRename.preDecompileProcess(root);
 		SourceFileRename.process(root);
 
 		UserRenames.apply(root);

@@ -16,15 +16,13 @@ import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.BlockUtils
 import jadx.core.utils.log.LOG
 
-class DataClassTransform(private val mthToString: MethodNode) {
+class ToStringParser private constructor(mthToString: MethodNode) {
 	private var isStarted = false
 	private var isFirstProcessed = false
 	private var isFinished = false
 	private var pendingAlias: String? = null
-	var clsAlias: String? = null
-		private set
-	val list: MutableList<Pair<String, FieldInfo>> = mutableListOf()
-	private val isFirst: Boolean get() = list.isEmpty()
+	private var clsAlias: String? = null
+	private val list: MutableList<Pair<String, FieldInfo>> = mutableListOf()
 	val isSuccess: Boolean get() = isStarted && isFinished
 
 	init {
@@ -105,20 +103,41 @@ class DataClassTransform(private val mthToString: MethodNode) {
 
 
 	companion object {
-		fun isStartStringBuilder(inst: InsnNode): Boolean {
+
+		fun parse(mth: MethodNode): ToStringRename? {
+			val parser =
+				kotlin.runCatching { ToStringParser(mth) }.getOrNull()
+			if (parser?.isSuccess != true) return null
+
+			val cls = mth.parentClass
+			return ToStringRename(
+				cls = cls,
+				clsAlias = parser.clsAlias,
+				fields = parser.list.mapNotNull { (alias, fieldInfo) ->
+					val field = cls.searchField(fieldInfo)
+						?: return@mapNotNull null
+					FieldRename(
+						field = field,
+						alias = alias,
+					)
+				}
+			)
+		}
+
+		private fun isStartStringBuilder(inst: InsnNode): Boolean {
 			return inst is ConstructorInsn &&
 					inst.isNewInstance &&
 					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER
 		}
 
-		fun isAppendInvoke(inst: InsnNode): Boolean {
+		private fun isAppendInvoke(inst: InsnNode): Boolean {
 			return inst is InvokeNode &&
 					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
 					inst.callMth.name == "append" &&
 					inst.argsCount == 2
 		}
 
-		fun isToString(inst: InsnNode): Boolean {
+		private fun isToString(inst: InsnNode): Boolean {
 			return inst is InvokeNode &&
 					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
 					inst.callMth.shortId == Consts.MTH_TOSTRING_SIGNATURE

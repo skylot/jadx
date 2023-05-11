@@ -9,36 +9,28 @@ import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.Metadata
 
 
-class KotlinMetadataHolder(
-	val classNode: ClassNode,
-) {
-	val annotation: Metadata = requireNotNull(classNode.getMetadata())
-	val kmm by lazy { KotlinClassMetadata.read(annotation) }
-
-
-	companion object {
-		const val KOTLIN_METADATA_ANNOTATION = "Lkotlin/Metadata;"
-		const val KOTLIN_METADATA_K_PARAMETER = "k"
-		const val KOTLIN_METADATA_D1_PARAMETER = "d1"
-		const val KOTLIN_METADATA_D2_PARAMETER = "d2"
-		const val KOTLIN_METADATA_MV_PARAMETER = "mv"
-		const val KOTLIN_METADATA_XS_PARAMETER = "xs"
-		const val KOTLIN_METADATA_PN_PARAMETER = "pn"
-		const val KOTLIN_METADATA_XI_PARAMETER = "xi"
-	}
+object KotlinMetadataConsts {
+	const val KOTLIN_METADATA_ANNOTATION = "Lkotlin/Metadata;"
+	const val KOTLIN_METADATA_K_PARAMETER = "k"
+	const val KOTLIN_METADATA_D1_PARAMETER = "d1"
+	const val KOTLIN_METADATA_D2_PARAMETER = "d2"
+	const val KOTLIN_METADATA_MV_PARAMETER = "mv"
+	const val KOTLIN_METADATA_XS_PARAMETER = "xs"
+	const val KOTLIN_METADATA_PN_PARAMETER = "pn"
+	const val KOTLIN_METADATA_XI_PARAMETER = "xi"
 }
 
 fun ClassNode.getMetadata(): Metadata? {
-	val annotation: IAnnotation? = getAnnotation(KotlinMetadataHolder.KOTLIN_METADATA_ANNOTATION)
+	val annotation: IAnnotation? = getAnnotation(KotlinMetadataConsts.KOTLIN_METADATA_ANNOTATION)
 
 	return annotation?.run {
-		val k = getParamAsInt(KotlinMetadataHolder.KOTLIN_METADATA_K_PARAMETER)
-		val mvArray = getParamAsIntArray(KotlinMetadataHolder.KOTLIN_METADATA_MV_PARAMETER)
-		val d1Array = getParamAsStringArray(KotlinMetadataHolder.KOTLIN_METADATA_D1_PARAMETER)
-		val d2Array = getParamAsStringArray(KotlinMetadataHolder.KOTLIN_METADATA_D2_PARAMETER)
-		val xs = getParamAsString(KotlinMetadataHolder.KOTLIN_METADATA_XS_PARAMETER)
-		val pn = getParamAsString(KotlinMetadataHolder.KOTLIN_METADATA_PN_PARAMETER)
-		val xi = getParamAsInt(KotlinMetadataHolder.KOTLIN_METADATA_XI_PARAMETER)
+		val k = getParamAsInt(KotlinMetadataConsts.KOTLIN_METADATA_K_PARAMETER)
+		val mvArray = getParamAsIntArray(KotlinMetadataConsts.KOTLIN_METADATA_MV_PARAMETER)
+		val d1Array = getParamAsStringArray(KotlinMetadataConsts.KOTLIN_METADATA_D1_PARAMETER)
+		val d2Array = getParamAsStringArray(KotlinMetadataConsts.KOTLIN_METADATA_D2_PARAMETER)
+		val xs = getParamAsString(KotlinMetadataConsts.KOTLIN_METADATA_XS_PARAMETER)
+		val pn = getParamAsString(KotlinMetadataConsts.KOTLIN_METADATA_PN_PARAMETER)
+		val xi = getParamAsInt(KotlinMetadataConsts.KOTLIN_METADATA_XI_PARAMETER)
 
 		Metadata(
 			kind = k,
@@ -86,8 +78,6 @@ private fun IAnnotation.getParamAsString(paramName: String): String? {
 	return encodedValue?.value?.let { it as String }
 }
 
-
-fun ClassNode.getKotlinMetadataHolder(): KotlinMetadataHolder? {
-	return getAnnotation(KotlinMetadataHolder.KOTLIN_METADATA_ANNOTATION)
-		?.let { KotlinMetadataHolder(this) }
+fun ClassNode.getKotlinClassMetadata(): KotlinClassMetadata? {
+	return getMetadata()?.let(KotlinClassMetadata::read)
 }

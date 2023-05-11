@@ -3,10 +3,8 @@ package jadx.core.utils.kotlin
 import jadx.core.deobf.NameMapper
 import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.nodes.ClassNode
-import jadx.core.dex.nodes.FieldNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.Utils
-import jadx.core.utils.kmCls
 import jadx.core.utils.log.LOG
 import jadx.core.utils.shortId
 import kotlinx.metadata.KmClass
@@ -14,42 +12,15 @@ import kotlinx.metadata.KmClass
 object KotlinMetadataUtils {
 
 	@JvmStatic
-	fun getAlias(cls: ClassNode): ClsAliasPair? {
+	fun getAlias(cls: ClassNode): ClassAliasRename? {
 		val annotation = cls.getMetadata() ?: return null
 		return getClassAlias(cls, annotation)
-	}
-
-	@JvmStatic
-	fun getMetadataResult(cls: ClassNode): ClsMetadataResult? {
-		val kmCls = cls.kmCls ?: return null
-		var methodArgs: Map<MethodNode, List<MethodArgRename>> = emptyMap()
-		var fields: Map<FieldNode, String> = emptyMap()
-
-		if (kmCls.companionObject != null) {
-			LOG.info("${cls.fullName}: Companion -> ${kmCls.companionObject}")
-		}
-
-		try {
-			methodArgs = mapMethodArgs(cls, kmCls)
-		} catch (t: Throwable) {
-			LOG.error("Failed to parse kotlin metadata method args", t)
-		}
-		try {
-			fields = mapFields(cls, kmCls)
-		} catch (t: Throwable) {
-			LOG.error("Failed to parse kotlin metadata fields", t)
-		}
-
-		return ClsMetadataResult(
-			methodArgs = methodArgs,
-			fields = fields
-		)
 	}
 
 	/**
 	 * Try to get class info from Kotlin Metadata annotation
 	 */
-	private fun getClassAlias(cls: ClassNode, annotation: Metadata): ClsAliasPair? {
+	private fun getClassAlias(cls: ClassNode, annotation: Metadata): ClassAliasRename? {
 		val firstValue = annotation.data2.getOrNull(0) ?: return null
 
 		try {
@@ -70,7 +41,7 @@ object KotlinMetadataUtils {
 	}
 
 	// Don't use ClassInfo facility to not pollute class into cache
-	private fun splitAndCheckClsName(originCls: ClassNode, fullClsName: String): ClsAliasPair? {
+	private fun splitAndCheckClsName(originCls: ClassNode, fullClsName: String): ClassAliasRename? {
 		if (!NameMapper.isValidFullIdentifier(fullClsName)) {
 			return null
 		}
@@ -96,7 +67,7 @@ object KotlinMetadataUtils {
 		return if (newClsNode != null) {
 			// class with alias name already exist
 			null
-		} else ClsAliasPair(pkg, name)
+		} else ClassAliasRename(pkg, name)
 	}
 
 	private fun countPkgParts(pkg: String): Int {
@@ -115,11 +86,10 @@ object KotlinMetadataUtils {
 		}
 	}
 
-	private fun mapMethodArgs(cls: ClassNode, kmCls: KmClass): Map<MethodNode, List<MethodArgRename>> {
+	fun mapMethodArgs(cls: ClassNode, kmCls: KmClass): Map<MethodNode, List<MethodArgRename>> {
 		return buildMap {
 			kmCls.functions.forEach { kmFunction ->
-				val node: MethodNode? = cls.searchMethodByShortId(kmFunction.shortId)
-				if (node == null || node.isNoCode) return@forEach
+				val node: MethodNode = cls.searchMethodByShortId(kmFunction.shortId) ?: return@forEach
 
 				val argCount = node.argTypes.size
 				val paramCount = kmFunction.valueParameters.size
@@ -134,13 +104,35 @@ object KotlinMetadataUtils {
 		}
 	}
 
-	private fun mapFields(cls: ClassNode, kmCls: KmClass): Map<FieldNode, String> {
-		return buildMap {
-			kmCls.properties.forEach { kmProperty ->
-				val node = cls.searchFieldByShortId(kmProperty.shortId) ?: return@forEach
-				put(node, kmProperty.name)
-			}
+	fun mapFields(cls: ClassNode, kmCls: KmClass): List<FieldRename> {
+		return kmCls.properties.mapNotNull { kmProperty ->
+			val node = cls.searchFieldByShortId(kmProperty.shortId) ?: return@mapNotNull null
+			FieldRename(field = node, alias = kmProperty.name)
 		}
 	}
-}
 
+	fun mapCompanion(cls: ClassNode, kmCls: KmClass): CompanionRename? {
+		val compName = kmCls.companionObject ?: return null
+		val compField = cls.fields.firstOrNull {
+			it.name == compName && it.accessFlags.run { isStatic && isFinal && isPublic }
+		} ?: return null
+
+		if (compField.type.isObject) {
+			val compType = compField.type.`object`
+			val compCls = cls.innerClasses.firstOrNull {
+				it.classInfo.makeRawFullName() == compType
+			} ?: return null
+
+			val isOnlyInit = compField.useIn.size == 1 && compField.useIn[0].methodInfo.isClassInit
+			val isEmpty = compCls.run { methods.all { it.isConstructor } && fields.isEmpty() }
+
+			return CompanionRename(
+				field = compField,
+				cls = compCls,
+				hide = isOnlyInit && isEmpty,
+			)
+		}
+
+		return null
+	}
+}
