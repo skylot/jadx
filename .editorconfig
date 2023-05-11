@@ -14,14 +14,14 @@ trim_trailing_whitespace = true
 [*.java]
 ij_java_continuation_indent_size = 8
 ij_java_use_single_class_imports = true
-ij_java_class_count_to_use_import_on_demand = 999
-ij_java_names_count_to_use_import_on_demand = 999
+ij_java_class_count_to_use_import_on_demand = 99
+ij_java_names_count_to_use_import_on_demand = 99
 ij_java_packages_to_use_import_on_demand = *
 
 [*.kt]
 ij_kotlin_continuation_indent_size = 8
-ij_kotlin_name_count_to_use_star_import = 999
-ij_kotlin_name_count_to_use_star_import_for_members = 999
+ij_kotlin_name_count_to_use_star_import = 99
+ij_kotlin_name_count_to_use_star_import_for_members = 99
 ij_kotlin_packages_to_use_import_on_demand = *
 
 [*.yml]
