@@ -329,6 +329,21 @@ public class BlockProcessor extends AbstractVisitor {
 		return changed;
 	}
 
+	private static boolean simplifyLoopEnd(MethodNode mth, LoopInfo loop) {
+		BlockNode loopEnd = loop.getEnd();
+		if (loopEnd.getSuccessors().size() > 1) {
+			// make loop end a simple path block
+			BlockNode newLoopEnd = BlockSplitter.startNewBlock(mth, -1);
+			newLoopEnd.add(AFlag.SYNTHETIC);
+			newLoopEnd.add(AFlag.LOOP_END);
+			BlockNode loopStart = loop.getStart();
+			BlockSplitter.replaceConnection(loopEnd, loopStart, newLoopEnd);
+			BlockSplitter.connect(newLoopEnd, loopStart);
+			return true;
+		}
+		return false;
+	}
+
 	private static boolean checkLoops(MethodNode mth, BlockNode block) {
 		if (!block.contains(AFlag.LOOP_START)) {
 			return false;
@@ -350,7 +365,8 @@ public class BlockProcessor extends AbstractVisitor {
 			LoopInfo loop = loops.get(0);
 			return insertBlocksForContinue(mth, loop)
 					|| insertBlockForPredecessors(mth, loop)
-					|| insertPreHeader(mth, loop);
+					|| insertPreHeader(mth, loop)
+					|| simplifyLoopEnd(mth, loop);
 		}
 		return false;
 	}

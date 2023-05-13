@@ -20,7 +20,7 @@ public class TestDoWhileBreak2 extends IntegrationTest {
 			do {
 				obj = this.it.next();
 				if (obj == null) {
-					return obj; // 'return null' works
+					return obj; // 'return null' or 'break' also fine
 				}
 			} while (this.it.hasNext());
 			return obj;

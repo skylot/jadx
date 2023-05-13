@@ -40,6 +40,22 @@ public class TestLoopInTryCatch extends SmaliTest {
 								"}",
 								"if (i != 1) {",
 								"    getI();",
+								"}"),
+						// TODO: weird result but correct, better to not use do-while if not really needed
+						c -> c.containsLines(2,
+								"int i;",
+								"do {",
+								"    try {",
+								"        i = getI();",
+								"        if (i == 1) {",
+								"            break;",
+								"        }",
+								"    } catch (RuntimeException unused) {",
+								"        return;",
+								"    }",
+								"} while (i != 2);",
+								"if (i != 1) {",
+								"    getI();",
 								"}"));
 	}
 }
