@@ -9,6 +9,8 @@ dependencies {
 	runtimeOnly(project(':jadx-plugins:jadx-java-input'))
 	runtimeOnly(project(':jadx-plugins:jadx-java-convert'))
 	runtimeOnly(project(':jadx-plugins:jadx-smali-input'))
+	runtimeOnly(project(':jadx-plugins:jadx-rename-mappings'))
+	runtimeOnly(project(':jadx-plugins:jadx-kotlin-metadata'))
 	runtimeOnly(project(':jadx-plugins:jadx-script:jadx-script-plugin'))
 
 	implementation 'com.beust:jcommander:1.82'

@@ -154,6 +154,17 @@ Plugin options (-P<name>=<value>):
  2) java-convert: Convert .class, .jar and .aar files to dex
     - java-convert.mode               - convert mode, values: [dx, d8, both], default: both
     - java-convert.d8-desugar         - use desugar in d8, values: [yes, no], default: no
+ 3) kotlin-metadata: Use kotlin.Metadata annotation for code generation
+    - kotlin-metadata.class-alias     - rename class alias, values: [yes, no], default: yes
+    - kotlin-metadata.method-args     - rename function arguments, values: [yes, no], default: yes
+    - kotlin-metadata.fields          - rename fields, values: [yes, no], default: yes
+    - kotlin-metadata.companion       - rename companion object, values: [yes, no], default: yes
+    - kotlin-metadata.data-class      - add data class modifier, values: [yes, no], default: yes
+    - kotlin-metadata.to-string       - rename fields using toString, values: [yes, no], default: yes
+    - kotlin-metadata.getters         - rename simple getters to field names, values: [yes, no], default: yes
+ 4) rename-mappings: various mappings support
+    - rename-mappings.format          - mapping format, values: [auto, TINY, TINY_2, ENIGMA, ENIGMA_DIR, MCP, SRG, TSRG, TSRG2, PROGUARD], default: auto
+    - rename-mappings.invert          - invert mapping, values: [yes, no], default: no
 
 Examples:
   jadx -d out classes.dex

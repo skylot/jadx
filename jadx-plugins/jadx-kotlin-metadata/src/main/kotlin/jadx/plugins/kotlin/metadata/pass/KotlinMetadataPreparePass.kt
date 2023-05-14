@@ -5,7 +5,6 @@ import jadx.api.plugins.pass.impl.OrderedJadxPassInfo
 import jadx.api.plugins.pass.types.JadxPreparePass
 import jadx.core.dex.attributes.AFlag
 import jadx.core.dex.nodes.RootNode
-import jadx.core.dex.visitors.rename.RenameVisitor
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions
 import jadx.plugins.kotlin.metadata.utils.KotlinMetadataUtils
 
@@ -17,11 +16,8 @@ class KotlinMetadataPreparePass(
 		return OrderedJadxPassInfo(
 			"KotlinMetadataPrepare",
 			"Use kotlin.Metadata annotation to rename class & package",
-			emptyList(),
-			listOf(
-				RenameVisitor::class.java.simpleName,
-			),
 		)
+			.before("RenameVisitor")
 	}
 
 	override fun init(root: RootNode) {

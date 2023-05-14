@@ -1,4 +1,4 @@
-package jadx.tests.integration.deobf
+package jadx.plugins.kotlin.metadata.tests
 
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions.Companion.CLASS_ALIAS_OPT
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions.Companion.COMPANION_OPT
@@ -157,11 +157,9 @@ class TestKotlinMetadata : SmaliTest() {
 		args.pluginOptions = allOff.apply(builder).mapValues {
 			if (it.value) "yes" else "no"
 		}
-		allowWarnInCode()
-		disableCompilation()
 	}
 
 	private fun assertThatClass(): JadxCodeAssertions =
-		assertThat(searchCls(loadFromSmaliFiles(), "a"))
+		assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinMetadata", "a"))
 			.code()
 }

@@ -18,6 +18,7 @@ class KotlinMetadataPlugin : JadxPlugin {
 		context.registerOptions(options)
 		context.addPass(KotlinMetadataPreparePass(options))
 		context.addPass(KotlinMetadataDecompilePass(options))
+		context.registerInputsHashSupplier { options.toString() }
 	}
 
 	companion object {

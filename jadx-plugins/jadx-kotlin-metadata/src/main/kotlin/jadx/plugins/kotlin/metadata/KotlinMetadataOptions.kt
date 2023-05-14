@@ -50,6 +50,10 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 		)
 	}
 
+	override fun toString(): String {
+		return "KotlinMetadataOptions(isClassAlias=$isClassAlias, isMethodArgs=$isMethodArgs, isFields=$isFields, isCompanion=$isCompanion, isDataClass=$isDataClass, isToString=$isToString, isGetters=$isGetters)"
+	}
+
 	companion object {
 		const val CLASS_ALIAS_OPT = "$PLUGIN_ID.class-alias"
 		const val METHOD_ARGS_OPT = "$PLUGIN_ID.method-args"

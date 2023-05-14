@@ -1,4 +1,3 @@
-###### Class deobf.C0008a.a (deobf.a$b)
 .class public final Ldeobf/a$b;
 .super Ljava/lang/Object;
 .source "SourceFile"
@@ -64,4 +63,3 @@
 
     return-object v0
 .end method
-

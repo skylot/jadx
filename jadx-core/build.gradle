@@ -10,7 +10,6 @@ dependencies {
 	// TODO: move resources decoding to separate plugin module
 	implementation 'com.android.tools.build:aapt2-proto:8.0.1-9289358'
 	implementation 'com.google.protobuf:protobuf-java:3.22.4' // forcing latest version
-	implementation 'com.google.protobuf:protobuf-java-util:3.22.4'
 
 	testImplementation 'org.apache.commons:commons-lang3:3.12.0'
 
@@ -19,8 +18,6 @@ dependencies {
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-convert'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-raung-input'))
-	testRuntimeOnly(project(':jadx-plugins:jadx-rename-mappings'))
-	testRuntimeOnly(project(':jadx-plugins:jadx-kotlin-metadata'))
 
 	testImplementation 'org.eclipse.jdt:ecj:3.33.0'
 	testImplementation 'tools.profiler:async-profiler:2.9'

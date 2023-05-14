@@ -9,11 +9,6 @@ import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.dex.nodes.RootNode
-import jadx.core.dex.visitors.InitCodeVariables
-import jadx.core.dex.visitors.ProcessInstructionsVisitor
-import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor
-import jadx.core.dex.visitors.kotlin.ProcessKotlinInternals
-import jadx.core.dex.visitors.rename.CodeRenameVisitor
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions
 import jadx.plugins.kotlin.metadata.utils.KmClassWrapper
 import jadx.plugins.kotlin.metadata.utils.KmClassWrapper.Companion.getWrapper
@@ -26,16 +21,8 @@ class KotlinMetadataDecompilePass(
 		return OrderedJadxPassInfo(
 			"KotlinMetadataDecompile",
 			"Use kotlin.Metadata annotation perform various renames",
-			listOf(
-				InitCodeVariables::class.java.simpleName,
-				DebugInfoApplyVisitor::class.java.simpleName,
-				ProcessKotlinInternals::class.java.simpleName,
-				ProcessInstructionsVisitor::class.java.simpleName,
-			),
-			listOf(
-				CodeRenameVisitor::class.java.simpleName,
-			),
 		)
+			.before("CodeRenameVisitor")
 	}
 
 	override fun init(root: RootNode) {
@@ -55,7 +42,8 @@ class KotlinMetadataDecompilePass(
 		return false
 	}
 
-	override fun visit(mth: MethodNode?) { /* no op */ }
+	override fun visit(mth: MethodNode?) { /* no op */
+	}
 
 	private fun renameMethodArgs(wrapper: KmClassWrapper) {
 		val args = wrapper.getMethodArgs()

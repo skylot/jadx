@@ -1,4 +1,3 @@
-###### Class deobf.C0008a (deobf.a)
 .class public final Ldeobf/a;
 .super Ljava/lang/Object;
 .source "SourceFile"
