@@ -14,9 +14,9 @@ import jadx.core.dex.visitors.ProcessInstructionsVisitor
 import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor
 import jadx.core.dex.visitors.kotlin.ProcessKotlinInternals
 import jadx.core.dex.visitors.rename.CodeRenameVisitor
-import jadx.core.utils.kotlin.KmClassWrapper
-import jadx.core.utils.kotlin.KmClassWrapper.Companion.getWrapper
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions
+import jadx.plugins.kotlin.metadata.utils.KmClassWrapper
+import jadx.plugins.kotlin.metadata.utils.KmClassWrapper.Companion.getWrapper
 
 class KotlinMetadataDecompilePass(
 	private val options: KotlinMetadataOptions,
@@ -34,7 +34,7 @@ class KotlinMetadataDecompilePass(
 			),
 			listOf(
 				CodeRenameVisitor::class.java.simpleName,
-			)
+			),
 		)
 	}
 
@@ -103,8 +103,11 @@ class KotlinMetadataDecompilePass(
 		wrapper.cls.run {
 			if (isData != accessFlags.isData) {
 				accessFlags = accessFlags.run {
-					if (isData) add(AccessFlags.DATA)
-					else remove(AccessFlags.DATA)
+					if (isData) {
+						add(AccessFlags.DATA)
+					} else {
+						remove(AccessFlags.DATA)
+					}
 				}
 			}
 		}
@@ -138,7 +141,6 @@ class KotlinMetadataDecompilePass(
 			}
 		}
 	}
-
 
 	companion object {
 		private const val METADATA_REASON = "from kotlin metadata"

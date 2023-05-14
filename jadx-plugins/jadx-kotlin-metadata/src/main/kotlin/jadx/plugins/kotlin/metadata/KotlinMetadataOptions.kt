@@ -21,7 +21,6 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 	var isGetters: Boolean = true
 		private set
 
-
 	override fun parseOptions() {
 		isClassAlias = getBooleanOption(CLASS_ALIAS_OPT, true)
 		isMethodArgs = getBooleanOption(METHOD_ARGS_OPT, true)
@@ -31,7 +30,6 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 		isToString = getBooleanOption(TO_STRING_OPT, true)
 		isGetters = getBooleanOption(GETTERS_OPT, true)
 	}
-
 
 	override fun getOptionsDescriptions(): List<OptionDescription> {
 		return listOf(

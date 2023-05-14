@@ -1,4 +1,4 @@
-package jadx.core.utils.kotlin
+package jadx.plugins.kotlin.metadata.utils
 
 import jadx.core.Consts
 import jadx.core.dex.info.FieldInfo
@@ -15,6 +15,8 @@ import jadx.core.dex.nodes.InsnNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.BlockUtils
 import jadx.core.utils.log.LOG
+import jadx.plugins.kotlin.metadata.model.FieldRename
+import jadx.plugins.kotlin.metadata.model.ToStringRename
 
 class ToStringParser private constructor(mthToString: MethodNode) {
 	private var isStarted = false
@@ -101,7 +103,6 @@ class ToStringParser private constructor(mthToString: MethodNode) {
 		pendingAlias = null
 	}
 
-
 	companion object {
 
 		fun parse(mth: MethodNode): ToStringRename? {
@@ -120,27 +121,27 @@ class ToStringParser private constructor(mthToString: MethodNode) {
 						field = field,
 						alias = alias,
 					)
-				}
+				},
 			)
 		}
 
 		private fun isStartStringBuilder(inst: InsnNode): Boolean {
 			return inst is ConstructorInsn &&
-					inst.isNewInstance &&
-					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER
+				inst.isNewInstance &&
+				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER
 		}
 
 		private fun isAppendInvoke(inst: InsnNode): Boolean {
 			return inst is InvokeNode &&
-					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
-					inst.callMth.name == "append" &&
-					inst.argsCount == 2
+				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
+				inst.callMth.name == "append" &&
+				inst.argsCount == 2
 		}
 
 		private fun isToString(inst: InsnNode): Boolean {
 			return inst is InvokeNode &&
-					inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
-					inst.callMth.shortId == Consts.MTH_TOSTRING_SIGNATURE
+				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
+				inst.callMth.shortId == Consts.MTH_TOSTRING_SIGNATURE
 		}
 	}
 }

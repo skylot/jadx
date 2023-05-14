@@ -6,12 +6,11 @@ import jadx.api.plugins.pass.types.JadxPreparePass
 import jadx.core.dex.attributes.AFlag
 import jadx.core.dex.nodes.RootNode
 import jadx.core.dex.visitors.rename.RenameVisitor
-import jadx.core.utils.kotlin.KotlinMetadataUtils
 import jadx.plugins.kotlin.metadata.KotlinMetadataOptions
-
+import jadx.plugins.kotlin.metadata.utils.KotlinMetadataUtils
 
 class KotlinMetadataPreparePass(
-	private val options: KotlinMetadataOptions
+	private val options: KotlinMetadataOptions,
 ) : JadxPreparePass {
 
 	override fun getInfo(): JadxPassInfo {
@@ -20,7 +19,7 @@ class KotlinMetadataPreparePass(
 			"Use kotlin.Metadata annotation to rename class & package",
 			emptyList(),
 			listOf(
-				RenameVisitor::class.java.simpleName
+				RenameVisitor::class.java.simpleName,
 			),
 		)
 	}

@@ -1,4 +1,4 @@
-package jadx.core.utils
+package jadx.plugins.kotlin.metadata.utils
 
 import kotlinx.metadata.KmFunction
 import kotlinx.metadata.KmProperty

@@ -1,24 +1,14 @@
 @file:Suppress("UNCHECKED_CAST")
-package jadx.core.utils.kotlin
+
+package jadx.plugins.kotlin.metadata.utils
 
 import jadx.api.plugins.input.data.annotations.EncodedType
 import jadx.api.plugins.input.data.annotations.EncodedValue
 import jadx.api.plugins.input.data.annotations.IAnnotation
 import jadx.core.dex.nodes.ClassNode
+import jadx.plugins.kotlin.metadata.model.KotlinMetadataConsts
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.Metadata
-
-
-object KotlinMetadataConsts {
-	const val KOTLIN_METADATA_ANNOTATION = "Lkotlin/Metadata;"
-	const val KOTLIN_METADATA_K_PARAMETER = "k"
-	const val KOTLIN_METADATA_D1_PARAMETER = "d1"
-	const val KOTLIN_METADATA_D2_PARAMETER = "d2"
-	const val KOTLIN_METADATA_MV_PARAMETER = "mv"
-	const val KOTLIN_METADATA_XS_PARAMETER = "xs"
-	const val KOTLIN_METADATA_PN_PARAMETER = "pn"
-	const val KOTLIN_METADATA_XI_PARAMETER = "xi"
-}
 
 fun ClassNode.getMetadata(): Metadata? {
 	val annotation: IAnnotation? = getAnnotation(KotlinMetadataConsts.KOTLIN_METADATA_ANNOTATION)
@@ -39,7 +29,7 @@ fun ClassNode.getMetadata(): Metadata? {
 			data2 = d2Array,
 			extraString = xs,
 			packageName = pn,
-			extraInt = xi
+			extraInt = xi,
 		)
 	}
 }
@@ -61,7 +51,6 @@ private fun IAnnotation.getParamAsStringArray(paramName: String): Array<String>?
 private fun IAnnotation.getParamAsIntArray(paramName: String): IntArray? {
 	return getParamsAsList(paramName)
 		?.map<EncodedValue, Any?>(EncodedValue::getValue)
-		?.onEach { if (it != null && it !is Int) /* TODO is this valid ? */ return@onEach }
 		?.map { it as Int }
 		?.toIntArray()
 }

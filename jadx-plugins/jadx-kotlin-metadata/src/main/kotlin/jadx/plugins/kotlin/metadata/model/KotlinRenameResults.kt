@@ -1,10 +1,9 @@
-package jadx.core.utils.kotlin
+package jadx.plugins.kotlin.metadata.model
 
 import jadx.core.dex.instructions.args.RegisterArg
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.FieldNode
 import jadx.core.dex.nodes.MethodNode
-
 
 data class ClassAliasRename(
 	val pkg: String,

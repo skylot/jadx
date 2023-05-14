@@ -1,4 +1,4 @@
-package jadx.core.utils.kotlin
+package jadx.plugins.kotlin.metadata.utils
 
 import jadx.core.dex.nodes.ClassNode
 import kotlinx.metadata.KmClass

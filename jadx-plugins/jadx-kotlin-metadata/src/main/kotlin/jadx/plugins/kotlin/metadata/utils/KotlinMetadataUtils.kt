@@ -1,4 +1,4 @@
-package jadx.core.utils.kotlin
+package jadx.plugins.kotlin.metadata.utils
 
 import jadx.core.deobf.NameMapper
 import jadx.core.dex.attributes.nodes.RenameReasonAttr
@@ -6,7 +6,10 @@ import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.Utils
 import jadx.core.utils.log.LOG
-import jadx.core.utils.shortId
+import jadx.plugins.kotlin.metadata.model.ClassAliasRename
+import jadx.plugins.kotlin.metadata.model.CompanionRename
+import jadx.plugins.kotlin.metadata.model.FieldRename
+import jadx.plugins.kotlin.metadata.model.MethodArgRename
 import kotlinx.metadata.KmClass
 
 object KotlinMetadataUtils {
@@ -57,9 +60,9 @@ object KotlinMetadataUtils {
 		}
 		val originClsInfo = originCls.classInfo
 		val originName = originClsInfo.shortName
-		if (originName == name || name.contains("$")
-			|| !NameMapper.isValidIdentifier(name)
-			|| countPkgParts(originClsInfo.getPackage()) != countPkgParts(pkg) || pkg.startsWith("java.")
+		if (originName == name || name.contains("$") ||
+			!NameMapper.isValidIdentifier(name) ||
+			countPkgParts(originClsInfo.getPackage()) != countPkgParts(pkg) || pkg.startsWith("java.")
 		) {
 			return null
 		}
@@ -67,7 +70,9 @@ object KotlinMetadataUtils {
 		return if (newClsNode != null) {
 			// class with alias name already exist
 			null
-		} else ClassAliasRename(pkg, name)
+		} else {
+			ClassAliasRename(pkg, name)
+		}
 	}
 
 	private fun countPkgParts(pkg: String): Int {

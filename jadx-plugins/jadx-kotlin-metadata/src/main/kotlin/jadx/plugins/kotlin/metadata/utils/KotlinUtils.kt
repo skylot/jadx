@@ -1,4 +1,4 @@
-package jadx.core.utils.kotlin
+package jadx.plugins.kotlin.metadata.utils
 
 import jadx.core.Consts
 import jadx.core.dex.info.FieldInfo
@@ -9,6 +9,8 @@ import jadx.core.dex.instructions.args.PrimitiveType
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.FieldNode
 import jadx.core.dex.nodes.MethodNode
+import jadx.plugins.kotlin.metadata.model.MethodRename
+import jadx.plugins.kotlin.metadata.model.ToStringRename
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmClass
 import java.util.Locale
@@ -32,19 +34,18 @@ object KotlinUtils {
 				?: return@mapNotNull null
 			MethodRename(
 				mth = mth,
-				alias = getGetterAlias(field.alias)
+				alias = getGetterAlias(field.alias),
 			)
 		}
 	}
 
-
 	private fun getFieldGetterMethod(cls: ClassNode, field: FieldInfo): MethodNode? {
 		return cls.methods.firstOrNull {
 			it.returnType == field.type &&
-					it.argTypes.isEmpty() &&
-					it.insnsCount == 3 &&
-					it.sVars.size == 2 &&
-					(it.sVars[1].assignInsn as? IndexInsnNode)?.index == field
+				it.argTypes.isEmpty() &&
+				it.insnsCount == 3 &&
+				it.sVars.size == 2 &&
+				(it.sVars[1].assignInsn as? IndexInsnNode)?.index == field
 		}
 	}
 
@@ -55,26 +56,25 @@ object KotlinUtils {
 		return "get$capitalized"
 	}
 
-
 	// untested & overly complicated
 	fun parseDefaultMethods(cls: ClassNode): List<MethodRename> {
 		val possibleMthList = cls.methods.filter {
 			it.accessFlags.isStatic && it.accessFlags.isSynthetic &&
-			it.argTypes.run {
-				size > 3 &&
-				first().isObject && first().`object` == cls.fullName &&
-				get(size - 2).isPrimitive && get(size - 2).primitiveType == PrimitiveType.INT &&
-				last().isObject && last().`object` == Consts.CLASS_OBJECT
-			}
+				it.argTypes.run {
+					size > 3 &&
+						first().isObject && first().`object` == cls.fullName &&
+						get(size - 2).isPrimitive && get(size - 2).primitiveType == PrimitiveType.INT &&
+						last().isObject && last().`object` == Consts.CLASS_OBJECT
+				}
 		}
 		val insnList = possibleMthList.filter {
 			it.exitBlock.run {
 				iDom != null && iDom.instructions.firstOrNull()?.type == InsnType.RETURN
 				iDom.iDom != null
 			} &&
-			it.exitBlock.iDom.iDom.run {
-				instructions.firstOrNull() is InvokeNode
-			}
+				it.exitBlock.iDom.iDom.run {
+					instructions.firstOrNull() is InvokeNode
+				}
 		}
 
 		val remapped = insnList.mapNotNull {
@@ -85,7 +85,7 @@ object KotlinUtils {
 		return remapped.map { (defaultMethod, originalMethod) ->
 			MethodRename(
 				mth = defaultMethod,
-				alias = getDefaultMethodAlias(originalMethod.alias)
+				alias = getDefaultMethodAlias(originalMethod.alias),
 			)
 		}
 	}

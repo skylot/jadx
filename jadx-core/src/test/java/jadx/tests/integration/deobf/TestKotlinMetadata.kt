@@ -32,7 +32,6 @@ class TestKotlinMetadata : SmaliTest() {
 	*/
 	// @formatter:on
 
-
 	@Test
 	fun testMethodArgs() {
 		setupArgs { this[METHOD_ARGS_OPT] = true }
@@ -144,7 +143,6 @@ class TestKotlinMetadata : SmaliTest() {
 		assertThatClass()
 			.countString(0, "reason: from getter")
 	}
-
 
 	private fun setupArgs(builder: MutableMap<String, Boolean>.() -> Unit = {}) {
 		val allOff = mutableMapOf(
