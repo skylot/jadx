@@ -44,6 +44,7 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -217,6 +218,8 @@ public class RegionMaker {
 			condInfo = IfInfo.invert(condInfo);
 		}
 		loopRegion.updateCondition(condInfo);
+		// prevent if's merge with loop condition
+		condInfo.getMergedBlocks().forEach(b -> b.add(AFlag.ADDED_TO_REGION));
 		exitBlocks.removeAll(condInfo.getMergedBlocks());
 
 		if (!exitBlocks.isEmpty()) {
@@ -234,7 +237,8 @@ public class RegionMaker {
 		BlockNode out;
 		if (loopRegion.isConditionAtEnd()) {
 			BlockNode thenBlock = condInfo.getThenBlock();
-			out = thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;
+			out = (thenBlock == loop.getEnd() || thenBlock == loopStart) ? condInfo.getElseBlock() : thenBlock;
+			out = BlockUtils.followEmptyPath(out);
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.ADDED_TO_REGION);
 			stack.addExit(loop.getEnd());
@@ -246,6 +250,7 @@ public class RegionMaker {
 		} else {
 			out = condInfo.getElseBlock();
 			if (outerRegion != null
+					&& out != null
 					&& out.contains(AFlag.LOOP_START)
 					&& !out.getAll(AType.LOOP).contains(loop)
 					&& RegionUtils.isRegionContainsBlock(outerRegion, out)) {
@@ -298,9 +303,13 @@ public class RegionMaker {
 				// skip nested loop condition
 				continue;
 			}
-			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, block == loop.getEnd());
+			BlockNode loopEnd = loop.getEnd();
+			boolean exitAtLoopEnd = block == loopEnd
+					|| (loopEnd.getInstructions().isEmpty() && ListUtils.isSingleElement(loopEnd.getPredecessors(), block));
+
+			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, exitAtLoopEnd);
 			boolean found;
-			if (block == loop.getStart() || block == loop.getEnd()
+			if (block == loop.getStart() || exitAtLoopEnd
 					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
 				found = true;
 			} else if (block.getPredecessors().contains(loop.getStart())) {

@@ -38,7 +38,10 @@ public class TestLoopCondition5 extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmaliWithPath("loops", "TestLoopCondition5");
 		String code = cls.getCode().toString();
 
-		assertThat(code, anyOf(containsOne("for ("), containsOne("while (true) {")));
+		assertThat(code, anyOf(
+				containsOne("for ("),
+				containsOne("while (true) {"),
+				containsOne("} while (iArr[i3] != i);")));
 		assertThat(code, containsOne("return -1;"));
 		assertThat(code, countString(2, "return "));
 	}

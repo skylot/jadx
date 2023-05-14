@@ -981,6 +981,9 @@ public class BlockUtils {
 	}
 
 	public static boolean isAllBlocksEmpty(List<BlockNode> blocks) {
+		if (Utils.isEmpty(blocks)) {
+			return true;
+		}
 		for (BlockNode block : blocks) {
 			if (!block.getInstructions().isEmpty()) {
 				return false;

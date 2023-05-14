@@ -553,7 +553,7 @@ public class MethodGen {
 	}
 
 	public static String getLabelName(BlockNode block) {
-		return String.format("L%d", block.getId());
+		return String.format("L%d", block.getCId());
 	}
 
 	public static String getLabelName(IfNode insn) {
