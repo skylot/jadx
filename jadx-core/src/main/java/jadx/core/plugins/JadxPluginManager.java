@@ -55,13 +55,13 @@ public class JadxPluginManager {
 	public void register(JadxPlugin plugin) {
 		Objects.requireNonNull(plugin);
 		PluginContext addedPlugin = addPlugin(plugin);
-		LOG.warn("Register plugin: {}", addedPlugin.getPluginId());
+		LOG.debug("Register plugin: {}", addedPlugin.getPluginId());
 		resolve();
 	}
 
 	private PluginContext addPlugin(JadxPlugin plugin) {
 		PluginContext pluginContext = new PluginContext(decompiler, plugin);
-		LOG.warn("Loading plugin: {}", pluginContext);
+		LOG.debug("Loading plugin: {}", pluginContext);
 		if (!allPlugins.add(pluginContext)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginContext + ", class " + plugin.getClass());
 		}
@@ -72,7 +72,7 @@ public class JadxPluginManager {
 	public boolean unload(String pluginId) {
 		boolean result = allPlugins.removeIf(context -> {
 			if (context.getPluginId().equals(pluginId)) {
-				LOG.warn("Unload plugin: {}", pluginId);
+				LOG.debug("Unload plugin: {}", pluginId);
 				return true;
 			}
 			return false;

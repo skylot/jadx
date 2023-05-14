@@ -7,12 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import jadx.core.dex.visitors.InitCodeVariables;
-import jadx.core.dex.visitors.JadxVisitor;
-import jadx.core.dex.visitors.ProcessInstructionsVisitor;
-import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
-import jadx.core.dex.visitors.kotlin.ProcessKotlinInternals;
-import jadx.core.utils.exceptions.JadxException;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
