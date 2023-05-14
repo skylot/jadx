@@ -15,6 +15,7 @@ include("jadx-plugins:jadx-raung-input")
 include("jadx-plugins:jadx-smali-input")
 include("jadx-plugins:jadx-java-convert")
 include("jadx-plugins:jadx-rename-mappings")
+include("jadx-plugins:jadx-kotlin-metadata")
 
 include("jadx-plugins:jadx-script:jadx-script-plugin")
 include("jadx-plugins:jadx-script:jadx-script-runtime")

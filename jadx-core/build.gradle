@@ -18,7 +18,6 @@ dependencies {
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-convert'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-raung-input'))
-	testRuntimeOnly(project(':jadx-plugins:jadx-rename-mappings'))
 
 	testImplementation 'org.eclipse.jdt:ecj:3.33.0'
 	testImplementation 'tools.profiler:async-profiler:2.9'

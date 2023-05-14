@@ -40,7 +40,6 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void process(RootNode root) {
-		KotlinMetadataRename.process(root);
 		SourceFileRename.process(root);
 
 		UserRenames.apply(root);

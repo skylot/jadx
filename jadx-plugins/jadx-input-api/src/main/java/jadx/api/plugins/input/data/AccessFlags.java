@@ -22,6 +22,7 @@ public class AccessFlags {
 	public static final int MODULE = 0x8000;
 	public static final int CONSTRUCTOR = 0x10000;
 	public static final int DECLARED_SYNCHRONIZED = 0x20000;
+	public static final int DATA = 0x40000;
 
 	public static boolean hasFlag(int flags, int flagValue) {
 		return (flags & flagValue) != 0;
@@ -84,6 +85,9 @@ public class AccessFlags {
 				}
 				if (hasFlag(flags, ENUM)) {
 					code.append("enum ");
+				}
+				if (hasFlag(flags, DATA)) {
+					code.append("data ");
 				}
 				break;
 		}

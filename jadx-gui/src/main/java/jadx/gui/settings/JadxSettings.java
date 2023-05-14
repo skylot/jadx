@@ -362,10 +362,6 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationUseSourceNameAsAlias = deobfuscationUseSourceNameAsAlias;
 	}
 
-	public void setDeobfuscationParseKotlinMetadata(boolean deobfuscationParseKotlinMetadata) {
-		this.deobfuscationParseKotlinMetadata = deobfuscationParseKotlinMetadata;
-	}
-
 	public void setUseKotlinMethodsForVarNames(JadxArgs.UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
 		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
 	}

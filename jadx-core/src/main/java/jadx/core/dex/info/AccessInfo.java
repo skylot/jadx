@@ -164,6 +164,10 @@ public class AccessInfo {
 		return (accFlags & AccessFlags.MODULE) != 0;
 	}
 
+	public boolean isData() {
+		return (accFlags & AccessFlags.DATA) != 0;
+	}
+
 	public AFType getType() {
 		return type;
 	}
@@ -220,6 +224,9 @@ public class AccessInfo {
 					code.append("strict ");
 				}
 				if (showHidden) {
+					if (isData()) {
+						code.append("/* data */ ");
+					}
 					if (isModuleInfo()) {
 						code.append("/* module-info */ ");
 					}

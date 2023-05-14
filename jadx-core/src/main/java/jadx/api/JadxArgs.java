@@ -89,7 +89,6 @@ public class JadxArgs implements Closeable {
 
 	private boolean deobfuscationOn = false;
 	private boolean useSourceNameAsClassAlias = false;
-	private boolean parseKotlinMetadata = false;
 
 	private File generatedRenamesMappingFile = null;
 	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
@@ -404,14 +403,6 @@ public class JadxArgs implements Closeable {
 		this.useSourceNameAsClassAlias = useSourceNameAsClassAlias;
 	}
 
-	public boolean isParseKotlinMetadata() {
-		return parseKotlinMetadata;
-	}
-
-	public void setParseKotlinMetadata(boolean parseKotlinMetadata) {
-		this.parseKotlinMetadata = parseKotlinMetadata;
-	}
-
 	public int getDeobfuscationMinLength() {
 		return deobfuscationMinLength;
 	}
@@ -640,7 +631,7 @@ public class JadxArgs implements Closeable {
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
 				+ resourceNameSource
-				+ parseKotlinMetadata + useKotlinMethodsForVarNames
+				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
@@ -668,7 +659,6 @@ public class JadxArgs implements Closeable {
 				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
 				+ ", resourceNameSource=" + resourceNameSource
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
-				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
 				+ ", insertDebugLines=" + insertDebugLines
 				+ ", extractFinally=" + extractFinally

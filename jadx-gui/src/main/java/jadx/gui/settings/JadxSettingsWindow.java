@@ -322,19 +322,11 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JCheckBox deobfKotlinMetadata = new JCheckBox();
-		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
-		deobfKotlinMetadata.addItemListener(e -> {
-			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
-			needReload();
-		});
-
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
 		group.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
-		group.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		return group;
 	}
 
