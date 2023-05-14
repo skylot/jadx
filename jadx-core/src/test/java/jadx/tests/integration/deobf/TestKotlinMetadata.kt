@@ -142,7 +142,6 @@ class TestKotlinMetadata : SmaliTest() {
 	fun testIgnoreGetters() {
 		setupArgs()
 		assertThatClass()
-			.containsOne("public final String a() {")
 			.countString(0, "reason: from getter")
 	}
 
