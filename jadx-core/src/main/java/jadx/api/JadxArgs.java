@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
@@ -131,6 +132,8 @@ public class JadxArgs implements Closeable {
 	private ICodeData codeData;
 
 	private CommentsLevel commentsLevel = CommentsLevel.INFO;
+
+	private IntegerFormat integerFormat = IntegerFormat.AUTO;
 
 	private boolean useDxInput = false;
 
@@ -591,6 +594,14 @@ public class JadxArgs implements Closeable {
 		this.commentsLevel = commentsLevel;
 	}
 
+	public IntegerFormat getIntegerFormat() {
+		return integerFormat;
+	}
+
+	public void setIntegerFormat(IntegerFormat format) {
+		this.integerFormat = format;
+	}
+
 	public boolean isUseDxInput() {
 		return useDxInput;
 	}
@@ -635,7 +646,7 @@ public class JadxArgs implements Closeable {
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
-				+ commentsLevel + useDxInput;
+				+ commentsLevel + useDxInput + integerFormat;
 		return FileUtils.md5Sum(argStr);
 	}
 

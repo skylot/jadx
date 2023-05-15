@@ -19,6 +19,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.args.IntegerFormat;
 import jadx.api.metadata.annotations.NodeEnd;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
@@ -59,6 +60,7 @@ public class ClassGen {
 	private final boolean fallback;
 	private final boolean useImports;
 	private final boolean showInconsistentCode;
+	private final IntegerFormat integerFormat;
 
 	private final Set<ClassInfo> imports = new HashSet<>();
 	private int clsDeclOffset;
@@ -69,19 +71,22 @@ public class ClassGen {
 	private NameGen outerNameGen;
 
 	public ClassGen(ClassNode cls, JadxArgs jadxArgs) {
-		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
+		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode(), jadxArgs.getIntegerFormat());
 	}
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen) {
-		this(cls, parentClsGen, parentClsGen.useImports, parentClsGen.fallback, parentClsGen.showInconsistentCode);
+		this(cls, parentClsGen, parentClsGen.useImports, parentClsGen.fallback, parentClsGen.showInconsistentCode,
+				parentClsGen.integerFormat);
 	}
 
-	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean useImports, boolean fallback, boolean showBadCode) {
+	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean useImports, boolean fallback, boolean showBadCode,
+			IntegerFormat integerFormat) {
 		this.cls = cls;
 		this.parentGen = parentClsGen;
 		this.fallback = fallback;
 		this.useImports = useImports;
 		this.showInconsistentCode = showBadCode;
+		this.integerFormat = integerFormat;
 
 		this.annotationGen = new AnnotationGen(cls, this);
 	}
@@ -424,10 +429,7 @@ public class ClassGen {
 					Object val = EncodedValueUtils.convertToConstValue(constVal);
 					if (val instanceof LiteralArg) {
 						long lit = ((LiteralArg) val).getLiteral();
-						if (!AndroidResourcesUtils.handleResourceFieldValue(cls, code, lit, f.getType())) {
-							// force literal type to be same as field (java bytecode can use different type)
-							code.add(TypeGen.literalToString(lit, f.getType(), cls, fallback));
-						}
+						code.add(getIntegerString(lit, f.getType()));
 					} else {
 						annotationGen.encodeValue(cls.root(), code, constVal);
 					}
@@ -435,6 +437,14 @@ public class ClassGen {
 			}
 		}
 		code.add(';');
+	}
+
+	private String getIntegerString(long lit, ArgType type) {
+		if (integerFormat != IntegerFormat.DECIMAL && AndroidResourcesUtils.isResourceFieldValue(cls, type)) {
+			return String.format("0x%08x", lit);
+		}
+		// force literal type to be same as field (java bytecode can use different type)
+		return TypeGen.literalToString(lit, type, cls, fallback);
 	}
 
 	private boolean isFieldsPresents() {

@@ -76,12 +76,8 @@ public class AndroidResourcesUtils {
 	/**
 	 * Force hex format for Android resources ids
 	 */
-	public static boolean handleResourceFieldValue(ClassNode cls, ICodeWriter code, long lit, ArgType type) {
-		if (type.equals(ArgType.INT) && isResourceClass(cls)) {
-			code.add(String.format("0x%08x", lit));
-			return true;
-		}
-		return false;
+	public static boolean isResourceFieldValue(ClassNode cls, ArgType type) {
+		return type.equals(ArgType.INT) && isResourceClass(cls);
 	}
 
 	public static boolean isResourceClass(ClassNode cls) {

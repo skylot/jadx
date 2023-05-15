@@ -26,6 +26,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.JadxCLIArgs;
@@ -650,6 +651,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public LineNumbersMode getLineNumbersMode() {
 		return lineNumbersMode;
+	}
+
+	public void setIntegerFormat(IntegerFormat format) {
+		this.integerFormat = format;
 	}
 
 	public void setLineNumbersMode(LineNumbersMode lineNumbersMode) {

@@ -37,7 +37,6 @@ import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.InsnIndexType;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.api.plugins.input.insns.custom.ISwitchPayload;
-import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AttributeStorage;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnDecoder;
@@ -48,6 +47,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -593,6 +593,7 @@ public class Smali {
 	}
 
 	private void writeEncodedValue(SmaliWriter smali, EncodedValue value, boolean wrapArray) {
+		StringUtils stringUtils = smali.getClassNode().root().getStringUtils();
 		switch (value.getType()) {
 			case ENCODED_ARRAY:
 				smali.add("{");
@@ -624,28 +625,28 @@ public class Smali {
 				writeAnnotation(smali, (IAnnotation) value.getValue());
 				break;
 			case ENCODED_BYTE:
-				smali.add(TypeGen.formatByte((Byte) value.getValue(), false));
+				smali.add(stringUtils.formatByte((Byte) value.getValue(), false));
 				break;
 			case ENCODED_SHORT:
-				smali.add(TypeGen.formatShort((Short) value.getValue(), false));
+				smali.add(stringUtils.formatShort((Short) value.getValue(), false));
 				break;
 			case ENCODED_CHAR:
-				smali.add(smali.getClassNode().root().getStringUtils().unescapeChar((Character) value.getValue()));
+				smali.add(stringUtils.unescapeChar((Character) value.getValue()));
 				break;
 			case ENCODED_INT:
-				smali.add(TypeGen.formatInteger((Integer) value.getValue(), false));
+				smali.add(stringUtils.formatInteger((Integer) value.getValue(), false));
 				break;
 			case ENCODED_LONG:
-				smali.add(TypeGen.formatLong((Long) value.getValue(), false));
+				smali.add(stringUtils.formatLong((Long) value.getValue(), false));
 				break;
 			case ENCODED_FLOAT:
-				smali.add(TypeGen.formatFloat((Float) value.getValue()));
+				smali.add(StringUtils.formatFloat((Float) value.getValue()));
 				break;
 			case ENCODED_DOUBLE:
-				smali.add(TypeGen.formatDouble((Double) value.getValue()));
+				smali.add(StringUtils.formatDouble((Double) value.getValue()));
 				break;
 			case ENCODED_STRING:
-				smali.add(smali.getClassNode().root().getStringUtils().unescapeString((String) value.getValue()));
+				smali.add(stringUtils.unescapeString((String) value.getValue()));
 				break;
 			case ENCODED_TYPE:
 				smali.add(ArgType.parse((String) value.getValue()) + ".class");
