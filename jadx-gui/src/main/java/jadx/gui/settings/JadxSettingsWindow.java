@@ -63,6 +63,7 @@ import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
@@ -758,6 +759,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<IntegerFormat> integerFormat = new JComboBox<>(IntegerFormat.values());
+		integerFormat.setSelectedItem(settings.getIntegerFormat());
+		integerFormat.addActionListener(e -> {
+			settings.setIntegerFormat((IntegerFormat) integerFormat.getSelectedItem());
+			needReload();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
@@ -766,6 +774,7 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
+		group.addRow(NLS.str("preferences.integerFormat"), integerFormat);
 		return group;
 	}
 

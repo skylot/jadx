@@ -24,6 +24,7 @@ import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
+import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.core.utils.exceptions.JadxException;
@@ -186,6 +187,16 @@ public class JadxCLIArgs {
 	)
 	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
+	@Parameter(
+			names = { "--integer-format" },
+			description = "how integers are displayed:"
+					+ "\n 'auto' - automatically select (default)"
+					+ "\n 'decimal' - use decimal"
+					+ "\n 'hexadecimal' - use hexadecimal",
+			converter = IntegerFormatConverter.class
+	)
+	protected IntegerFormat integerFormat = IntegerFormat.AUTO;
+
 	@Parameter(names = { "--fs-case-sensitive" }, description = "treat filesystem as case sensitive, false by default")
 	protected boolean fsCaseSensitive = false;
 
@@ -318,6 +329,7 @@ public class JadxCLIArgs {
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
+		args.setIntegerFormat(integerFormat);
 		args.setUseDxInput(useDx);
 		args.setPluginOptions(pluginOptions);
 		return args;
@@ -447,6 +459,10 @@ public class JadxCLIArgs {
 		return useKotlinMethodsForVarNames;
 	}
 
+	public IntegerFormat getIntegerFormat() {
+		return integerFormat;
+	}
+
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}
@@ -561,6 +577,12 @@ public class JadxCLIArgs {
 	public static class LogLevelConverter extends BaseEnumConverter<LogHelper.LogLevelEnum> {
 		public LogLevelConverter() {
 			super(LogHelper.LogLevelEnum::valueOf, LogHelper.LogLevelEnum::values);
+		}
+	}
+
+	public static class IntegerFormatConverter extends BaseEnumConverter<IntegerFormat> {
+		public IntegerFormatConverter() {
+			super(IntegerFormat::valueOf, IntegerFormat::values);
 		}
 	}
 

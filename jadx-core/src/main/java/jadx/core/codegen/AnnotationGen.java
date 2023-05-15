@@ -146,6 +146,8 @@ public class AnnotationGen {
 			code.add("null");
 			return;
 		}
+
+		StringUtils stringUtils = getStringUtils();
 		Object value = encodedValue.getValue();
 		switch (encodedValue.getType()) {
 			case ENCODED_NULL:
@@ -155,28 +157,28 @@ public class AnnotationGen {
 				code.add(Boolean.TRUE.equals(value) ? "true" : "false");
 				break;
 			case ENCODED_BYTE:
-				code.add(TypeGen.formatByte((Byte) value, false));
+				code.add(stringUtils.formatByte((Byte) value, false));
 				break;
 			case ENCODED_SHORT:
-				code.add(TypeGen.formatShort((Short) value, false));
+				code.add(stringUtils.formatShort((Short) value, false));
 				break;
 			case ENCODED_CHAR:
-				code.add(getStringUtils().unescapeChar((Character) value));
+				code.add(stringUtils.unescapeChar((Character) value));
 				break;
 			case ENCODED_INT:
-				code.add(TypeGen.formatInteger((Integer) value, false));
+				code.add(stringUtils.formatInteger((Integer) value, false));
 				break;
 			case ENCODED_LONG:
-				code.add(TypeGen.formatLong((Long) value, false));
+				code.add(stringUtils.formatLong((Long) value, false));
 				break;
 			case ENCODED_FLOAT:
-				code.add(TypeGen.formatFloat((Float) value));
+				code.add(StringUtils.formatFloat((Float) value));
 				break;
 			case ENCODED_DOUBLE:
-				code.add(TypeGen.formatDouble((Double) value));
+				code.add(StringUtils.formatDouble((Double) value));
 				break;
 			case ENCODED_STRING:
-				code.add(getStringUtils().unescapeString((String) value));
+				code.add(stringUtils.unescapeString((String) value));
 				break;
 			case ENCODED_TYPE:
 				classGen.useType(code, ArgType.parse((String) value));

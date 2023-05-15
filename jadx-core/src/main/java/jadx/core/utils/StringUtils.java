@@ -7,6 +7,7 @@ import java.util.function.IntConsumer;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
+import jadx.api.args.IntegerFormat;
 import jadx.core.deobf.NameMapper;
 
 public class StringUtils {
@@ -19,9 +20,15 @@ public class StringUtils {
 	}
 
 	private final boolean escapeUnicode;
+	private final IntegerFormat integerFormat;
 
 	public StringUtils(JadxArgs args) {
 		this.escapeUnicode = args.isEscapeUnicode();
+		this.integerFormat = args.getIntegerFormat();
+	}
+
+	public IntegerFormat getIntegerFormat() {
+		return integerFormat;
 	}
 
 	public static void visitCodePoints(String str, IntConsumer visitor) {
@@ -369,5 +376,103 @@ public class StringUtils {
 
 	public static String getDateText() {
 		return new SimpleDateFormat("HH:mm:ss").format(new Date());
+	}
+
+	private String toFormatString(long l) {
+		if (integerFormat.isHexadecimal()) {
+			return "0x" + Long.toHexString(l);
+		}
+		return Long.toString(l);
+	}
+
+	public String formatShort(long l, boolean cast) {
+		if (l == Short.MAX_VALUE) {
+			return "Short.MAX_VALUE";
+		}
+		if (l == Short.MIN_VALUE) {
+			return "Short.MIN_VALUE";
+		}
+		String str = toFormatString(l);
+		return cast ? "(short) " + str : str;
+	}
+
+	public String formatByte(long l, boolean cast) {
+		if (l == Byte.MAX_VALUE) {
+			return "Byte.MAX_VALUE";
+		}
+		if (l == Byte.MIN_VALUE) {
+			return "Byte.MIN_VALUE";
+		}
+		String str = toFormatString(l);
+		return cast ? "(byte) " + str : str;
+	}
+
+	public String formatInteger(long l, boolean cast) {
+		if (l == Integer.MAX_VALUE) {
+			return "Integer.MAX_VALUE";
+		}
+		if (l == Integer.MIN_VALUE) {
+			return "Integer.MIN_VALUE";
+		}
+		String str = toFormatString(l);
+		return cast ? "(int) " + str : str;
+	}
+
+	public String formatLong(long l, boolean cast) {
+		if (l == Long.MAX_VALUE) {
+			return "Long.MAX_VALUE";
+		}
+		if (l == Long.MIN_VALUE) {
+			return "Long.MIN_VALUE";
+		}
+		String str = toFormatString(l);
+		if (cast || Math.abs(l) >= Integer.MAX_VALUE) {
+			return str + 'L';
+		}
+		return str;
+	}
+
+	public static String formatDouble(double d) {
+		if (Double.isNaN(d)) {
+			return "Double.NaN";
+		}
+		if (d == Double.NEGATIVE_INFINITY) {
+			return "Double.NEGATIVE_INFINITY";
+		}
+		if (d == Double.POSITIVE_INFINITY) {
+			return "Double.POSITIVE_INFINITY";
+		}
+		if (d == Double.MIN_VALUE) {
+			return "Double.MIN_VALUE";
+		}
+		if (d == Double.MAX_VALUE) {
+			return "Double.MAX_VALUE";
+		}
+		if (d == Double.MIN_NORMAL) {
+			return "Double.MIN_NORMAL";
+		}
+		return Double.toString(d) + 'd';
+	}
+
+	public static String formatFloat(float f) {
+		if (Float.isNaN(f)) {
+			return "Float.NaN";
+		}
+		if (f == Float.NEGATIVE_INFINITY) {
+			return "Float.NEGATIVE_INFINITY";
+		}
+		if (f == Float.POSITIVE_INFINITY) {
+			return "Float.POSITIVE_INFINITY";
+		}
+		if (f == Float.MIN_VALUE) {
+			return "Float.MIN_VALUE";
+		}
+		if (f == Float.MAX_VALUE) {
+			return "Float.MAX_VALUE";
+		}
+		if (f == Float.MIN_NORMAL) {
+			return "Float.MIN_NORMAL";
+		}
+		return Float.toString(f) + 'f';
 	}
 }

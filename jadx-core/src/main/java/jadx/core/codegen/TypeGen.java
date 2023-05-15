@@ -73,17 +73,17 @@ public class TypeGen {
 			case CHAR:
 				return stringUtils.unescapeChar((char) lit, cast);
 			case BYTE:
-				return formatByte(lit, cast);
+				return stringUtils.formatByte(lit, cast);
 			case SHORT:
-				return formatShort(lit, cast);
+				return stringUtils.formatShort(lit, cast);
 			case INT:
-				return formatInteger(lit, cast);
+				return stringUtils.formatInteger(lit, cast);
 			case LONG:
-				return formatLong(lit, cast);
+				return stringUtils.formatLong(lit, cast);
 			case FLOAT:
-				return formatFloat(Float.intBitsToFloat((int) lit));
+				return StringUtils.formatFloat(Float.intBitsToFloat((int) lit));
 			case DOUBLE:
-				return formatDouble(Double.longBitsToDouble(lit));
+				return StringUtils.formatDouble(Double.longBitsToDouble(lit));
 
 			case OBJECT:
 			case ARRAY:
@@ -133,96 +133,5 @@ public class TypeGen {
 			default:
 				return null;
 		}
-	}
-
-	public static String formatShort(long l, boolean cast) {
-		if (l == Short.MAX_VALUE) {
-			return "Short.MAX_VALUE";
-		}
-		if (l == Short.MIN_VALUE) {
-			return "Short.MIN_VALUE";
-		}
-		String str = Long.toString(l);
-		return cast ? "(short) " + str : str;
-	}
-
-	public static String formatByte(long l, boolean cast) {
-		if (l == Byte.MAX_VALUE) {
-			return "Byte.MAX_VALUE";
-		}
-		if (l == Byte.MIN_VALUE) {
-			return "Byte.MIN_VALUE";
-		}
-		String str = Long.toString(l);
-		return cast ? "(byte) " + str : str;
-	}
-
-	public static String formatInteger(long l, boolean cast) {
-		if (l == Integer.MAX_VALUE) {
-			return "Integer.MAX_VALUE";
-		}
-		if (l == Integer.MIN_VALUE) {
-			return "Integer.MIN_VALUE";
-		}
-		String str = Long.toString(l);
-		return cast ? "(int) " + str : str;
-	}
-
-	public static String formatLong(long l, boolean cast) {
-		if (l == Long.MAX_VALUE) {
-			return "Long.MAX_VALUE";
-		}
-		if (l == Long.MIN_VALUE) {
-			return "Long.MIN_VALUE";
-		}
-		String str = Long.toString(l);
-		if (cast || Math.abs(l) >= Integer.MAX_VALUE) {
-			return str + 'L';
-		}
-		return str;
-	}
-
-	public static String formatDouble(double d) {
-		if (Double.isNaN(d)) {
-			return "Double.NaN";
-		}
-		if (d == Double.NEGATIVE_INFINITY) {
-			return "Double.NEGATIVE_INFINITY";
-		}
-		if (d == Double.POSITIVE_INFINITY) {
-			return "Double.POSITIVE_INFINITY";
-		}
-		if (d == Double.MIN_VALUE) {
-			return "Double.MIN_VALUE";
-		}
-		if (d == Double.MAX_VALUE) {
-			return "Double.MAX_VALUE";
-		}
-		if (d == Double.MIN_NORMAL) {
-			return "Double.MIN_NORMAL";
-		}
-		return Double.toString(d) + 'd';
-	}
-
-	public static String formatFloat(float f) {
-		if (Float.isNaN(f)) {
-			return "Float.NaN";
-		}
-		if (f == Float.NEGATIVE_INFINITY) {
-			return "Float.NEGATIVE_INFINITY";
-		}
-		if (f == Float.POSITIVE_INFINITY) {
-			return "Float.POSITIVE_INFINITY";
-		}
-		if (f == Float.MIN_VALUE) {
-			return "Float.MIN_VALUE";
-		}
-		if (f == Float.MAX_VALUE) {
-			return "Float.MAX_VALUE";
-		}
-		if (f == Float.MIN_NORMAL) {
-			return "Float.MIN_NORMAL";
-		}
-		return Float.toString(f) + 'f';
 	}
 }
