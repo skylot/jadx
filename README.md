@@ -124,7 +124,6 @@ options:
                                          'overwrite' - don't read, always save
                                          'ignore' - don't read and don't save
   --deobf-use-sourcename              - use source file name as class name alias
-  --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
   --deobf-res-name-source             - better name source for resources:
                                          'auto' - automatically select best name (default)
                                          'resources' - use resources names
@@ -136,6 +135,10 @@ options:
                                          'printable' - remove non-printable chars from identifiers,
                                         or single 'none' - to disable all renames
                                         or single 'all' - to enable all (default)
+  --integer-format                    - how integers are displayed:
+                                         'auto' - automatically select (default)
+                                         'decimal' - use decimal
+                                         'hexadecimal' - use hexadecimal
   --fs-case-sensitive                 - treat filesystem as case sensitive, false by default
   --cfg                               - save methods control flow graph to dot file
   --raw-cfg                           - save methods control flow graph (use raw instructions)

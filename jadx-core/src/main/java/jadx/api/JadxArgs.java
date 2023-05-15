@@ -646,7 +646,7 @@ public class JadxArgs implements Closeable {
 				+ insertDebugLines + extractFinally
 				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
-				+ commentsLevel + useDxInput;
+				+ commentsLevel + useDxInput + integerFormat;
 		return FileUtils.md5Sum(argStr);
 	}
 
