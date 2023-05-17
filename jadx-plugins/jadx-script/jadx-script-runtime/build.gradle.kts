@@ -13,7 +13,7 @@ dependencies {
 	implementation(kotlin("scripting-dependencies"))
 	implementation(kotlin("scripting-dependencies-maven"))
 
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
 	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))

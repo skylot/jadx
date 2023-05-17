@@ -7,6 +7,6 @@ dependencies {
 	implementation(kotlin("scripting-compiler-embeddable"))
 	implementation(kotlin("scripting-ide-services"))
 
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
 	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 }
