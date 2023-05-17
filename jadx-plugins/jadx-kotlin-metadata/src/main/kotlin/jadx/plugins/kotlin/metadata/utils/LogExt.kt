@@ -1,4 +1,4 @@
-package jadx.core.utils.log
+package jadx.plugins.kotlin.metadata.utils
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

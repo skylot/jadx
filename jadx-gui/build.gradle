@@ -1,4 +1,5 @@
 plugins {
+	id 'jadx-kotlin'
 	id 'application'
 	id 'edu.sc.seis.launch4j' version '2.5.4'
 	id 'com.github.johnrengelman.shadow' version '8.1.1'

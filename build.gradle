@@ -4,8 +4,6 @@ plugins {
 	id 'com.github.ben-manes.versions' version '0.46.0'
 	id 'se.patrikerdes.use-latest-versions' version '0.2.18'
 	id 'com.diffplug.spotless' version '6.18.0'
-
-	id 'org.jetbrains.kotlin.jvm' version '1.8.21'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -14,7 +12,6 @@ println("jadx version: ${jadxVersion}")
 
 allprojects {
 	apply plugin: 'java'
-	apply plugin: 'kotlin'
 	apply plugin: 'checkstyle'
 	apply plugin: 'com.diffplug.spotless'
 	apply plugin: 'com.github.ben-manes.versions'
@@ -28,13 +25,6 @@ allprojects {
 	compileJava {
 		options.encoding = "UTF-8"
 	}
-
-	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
-			.configureEach {
-				compilerOptions {
-					jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-				}
-			}
 
 	jar {
 		manifest {

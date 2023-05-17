@@ -5,7 +5,6 @@ import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.Utils
-import jadx.core.utils.log.LOG
 import jadx.plugins.kotlin.metadata.model.ClassAliasRename
 import jadx.plugins.kotlin.metadata.model.CompanionRename
 import jadx.plugins.kotlin.metadata.model.FieldRename

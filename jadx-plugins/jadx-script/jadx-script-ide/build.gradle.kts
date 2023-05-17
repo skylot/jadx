@@ -1,3 +1,7 @@
+plugins {
+	id("jadx-kotlin")
+}
+
 dependencies {
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-plugin"))

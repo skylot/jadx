@@ -14,7 +14,6 @@ import jadx.core.dex.nodes.BlockNode
 import jadx.core.dex.nodes.InsnNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.BlockUtils
-import jadx.core.utils.log.LOG
 import jadx.plugins.kotlin.metadata.model.FieldRename
 import jadx.plugins.kotlin.metadata.model.ToStringRename
 
