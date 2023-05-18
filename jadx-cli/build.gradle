@@ -1,5 +1,8 @@
 plugins {
 	id 'application'
+
+	// use shadow only for application scripts, jar will be copied from jadx-gui
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 dependencies {
@@ -21,6 +24,13 @@ application {
 	applicationName = 'jadx'
 	mainClass.set('jadx.cli.JadxCLI')
 	applicationDefaultJvmArgs = ['-Xms128M', '-XX:MaxRAMPercentage=70.0', '-XX:+UseG1GC']
+}
+shadow {
+	mainClassName = application.mainClass.get()
+}
+shadowJar {
+	// shadow jar not needed
+	configurations = []
 }
 
 applicationDistribution.with {

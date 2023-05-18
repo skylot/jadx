@@ -107,8 +107,22 @@ allprojects {
 }
 
 task copyArtifacts(type: Copy) {
-	from tasks.getByPath(":jadx-cli:installDist")
-	from tasks.getByPath(":jadx-gui:installDist")
+	from(tasks.getByPath(":jadx-cli:installShadowDist")) {
+		exclude '**/*.jar'
+		filter { line ->
+			line.replaceAll('jadx-cli-(.*)-all.jar', 'jadx-$1-all.jar')
+				.replace('-jar "\\"$CLASSPATH\\""', '-cp "\\"$CLASSPATH\\"" jadx.cli.JadxCLI')
+				.replace('-jar "%CLASSPATH%"', '-cp "%CLASSPATH%" jadx.cli.JadxCLI')
+		}
+	}
+	from(tasks.getByPath(":jadx-gui:installShadowDist")) {
+		exclude '**/*.jar'
+		filter { line -> line.replaceAll('jadx-gui-(.*)-all.jar', 'jadx-$1-all.jar') }
+	}
+	from(tasks.getByPath(":jadx-gui:installShadowDist")) {
+		include '**/*.jar'
+		rename 'jadx-gui-(.*)-all.jar', 'jadx-$1-all.jar'
+	}
 	into layout.buildDirectory.dir("jadx")
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

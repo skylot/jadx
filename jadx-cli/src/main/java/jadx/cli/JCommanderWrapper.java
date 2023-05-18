@@ -74,6 +74,8 @@ public class JCommanderWrapper<T> {
 	}
 
 	public void printUsage() {
+		LogHelper.setLogLevel(LogHelper.LogLevelEnum.ERROR); // mute logger while printing help
+
 		// print usage in not sorted fields order (by default sorted by description)
 		PrintStream out = System.out;
 		out.println();

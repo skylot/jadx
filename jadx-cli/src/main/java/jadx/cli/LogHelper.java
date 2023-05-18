@@ -51,6 +51,11 @@ public class LogHelper {
 		return args.logLevel;
 	}
 
+	public static void setLogLevel(LogLevelEnum newLogLevel) {
+		logLevelValue = newLogLevel;
+		applyLogLevel(logLevelValue);
+	}
+
 	public static void setLogLevelsForLoadingStage() {
 		if (logLevelValue == null) {
 			return;
