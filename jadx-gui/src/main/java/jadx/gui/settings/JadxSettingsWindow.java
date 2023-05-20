@@ -602,7 +602,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
-		other.addRow(NLS.str("preferences.inlineMethods"), moveInnerClasses);
+		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.inlineKotlinLambdas"), inlineKotlinLambdas);
 		other.addRow(NLS.str("preferences.moveInnerClasses"), moveInnerClasses);
 		other.addRow(NLS.str("preferences.extractFinally"), extractFinally);

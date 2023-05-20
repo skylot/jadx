@@ -14,6 +14,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -276,17 +277,18 @@ public class ClassModifier extends AbstractVisitor {
 			}
 		}
 		// remove confirmed, change visibility and name if needed
-		if (!wrappedAccFlags.isPublic()) {
+		if (!wrappedAccFlags.isPublic() && !mth.root().getArgs().isRespectBytecodeAccModifiers()) {
 			// must be public
 			FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.PUBLIC);
 		}
 		String alias = mth.getAlias();
 		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
-			wrappedMth.getMethodInfo().setAlias(alias);
+			wrappedMth.rename(alias);
+			RenameReasonAttr.forNode(wrappedMth).append("merged with bridge method [inline-methods]");
 		}
 		wrappedMth.addAttr(new MethodReplaceAttr(mth));
 		wrappedMth.copyAttributeFrom(mth, AType.METHOD_OVERRIDE);
-		wrappedMth.addDebugComment("Method merged with bridge method");
+		wrappedMth.addDebugComment("Method merged with bridge method: " + mth.getMethodInfo().getShortId());
 		return true;
 	}
 
