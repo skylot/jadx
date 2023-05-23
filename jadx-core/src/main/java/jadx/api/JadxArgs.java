@@ -25,6 +25,8 @@ import jadx.api.deobf.IAliasProvider;
 import jadx.api.deobf.IRenameCondition;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
+import jadx.api.plugins.loader.JadxBasePluginLoader;
+import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.usage.IUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
@@ -150,6 +152,8 @@ public class JadxArgs implements Closeable {
 
 	private Map<String, String> pluginOptions = new HashMap<>();
 
+	private JadxPluginLoader pluginLoader = new JadxBasePluginLoader();
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -169,6 +173,9 @@ public class JadxArgs implements Closeable {
 			}
 			if (usageInfoCache != null) {
 				usageInfoCache.close();
+			}
+			if (pluginLoader != null) {
+				pluginLoader.close();
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to close JadxArgs", e);
@@ -632,6 +639,14 @@ public class JadxArgs implements Closeable {
 
 	public void setPluginOptions(Map<String, String> pluginOptions) {
 		this.pluginOptions = pluginOptions;
+	}
+
+	public JadxPluginLoader getPluginLoader() {
+		return pluginLoader;
+	}
+
+	public void setPluginLoader(JadxPluginLoader pluginLoader) {
+		this.pluginLoader = pluginLoader;
 	}
 
 	/**

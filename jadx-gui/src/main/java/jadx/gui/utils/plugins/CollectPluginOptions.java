@@ -10,6 +10,7 @@ import jadx.api.JadxDecompiler;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.gui.JadxWrapper;
+import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 /**
  * Collect options from all plugins.
@@ -32,7 +33,7 @@ public class CollectPluginOptions {
 		// collect and init not loaded plugins in new context
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
-			pluginManager.load();
+			pluginManager.load(new JadxExternalPluginsLoader());
 			SortedSet<PluginContext> missingPlugins = new TreeSet<>();
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				if (!allPlugins.contains(context)) {

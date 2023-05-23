@@ -264,6 +264,10 @@ public class JadxCLIArgs {
 	}
 
 	private boolean process(JCommanderWrapper<JadxCLIArgs> jcw) {
+		files.addAll(jcw.getUnknownOptions());
+		if (jcw.processCommands()) {
+			return false;
+		}
 		if (printHelp) {
 			jcw.printUsage();
 			return false;

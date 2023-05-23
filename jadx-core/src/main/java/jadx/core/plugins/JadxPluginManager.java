@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.ServiceLoader;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -18,6 +17,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
+import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -43,10 +43,9 @@ public class JadxPluginManager {
 		provideSuggestions.put(provides, pluginId);
 	}
 
-	public void load() {
+	public void load(JadxPluginLoader pluginLoader) {
 		allPlugins.clear();
-		ServiceLoader<JadxPlugin> jadxPlugins = ServiceLoader.load(JadxPlugin.class);
-		for (JadxPlugin plugin : jadxPlugins) {
+		for (JadxPlugin plugin : pluginLoader.load()) {
 			addPlugin(plugin);
 		}
 		resolve();

@@ -182,7 +182,7 @@ public final class JadxDecompiler implements Closeable {
 
 	private void loadPlugins() {
 		pluginManager.providesSuggestion("java-input", args.isUseDxInput() ? "java-convert" : "java-input");
-		pluginManager.load();
+		pluginManager.load(args.getPluginLoader());
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Resolved plugins: {}", pluginManager.getResolvedPluginContexts());
 		}

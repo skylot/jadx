@@ -36,6 +36,7 @@ import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
+import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
@@ -61,6 +62,7 @@ public class JadxWrapper {
 			synchronized (DECOMPILER_UPDATE_SYNC) {
 				JadxProject project = getProject();
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
+				jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
 				project.fillJadxArgs(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);

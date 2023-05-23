@@ -79,7 +79,12 @@ and also packed to `build/jadx-<version>.zip`
 
 ### Usage
 ```
-jadx[-gui] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab)
+jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab)
+commands (use '<command> --help' for command options):
+  plugins	  - manage jadx plugins
+
+options:
+  -d, --output-dir                    - output directory
 options:
   -d, --output-dir                    - output directory
   -ds, --output-dir-src               - output directory for sources

@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
 	implementation(project(':jadx-core'))
+	implementation(project(':jadx-plugins-tools'))
 
 	runtimeOnly(project(':jadx-plugins:jadx-dex-input'))
 	runtimeOnly(project(':jadx-plugins:jadx-java-input'))

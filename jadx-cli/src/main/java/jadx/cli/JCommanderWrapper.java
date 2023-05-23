@@ -25,13 +25,17 @@ import jadx.api.plugins.options.OptionDescription;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
+import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 public class JCommanderWrapper<T> {
 	private final JCommander jc;
 	private final JadxCLIArgs argsObj;
 
 	public JCommanderWrapper(JadxCLIArgs argsObj) {
-		this.jc = JCommander.newBuilder().addObject(argsObj).build();
+		JCommander.Builder builder = JCommander.newBuilder().addObject(argsObj);
+		builder.acceptUnknownOptions(true); // workaround for "default" command
+		JadxCLICommands.append(builder);
+		this.jc = builder.build();
 		this.argsObj = argsObj;
 	}
 
@@ -44,6 +48,14 @@ public class JCommanderWrapper<T> {
 			printUsage();
 			return false;
 		}
+	}
+
+	public boolean processCommands() {
+		String parsedCommand = jc.getParsedCommand();
+		if (parsedCommand == null) {
+			return false;
+		}
+		return JadxCLICommands.process(this, jc, parsedCommand);
 	}
 
 	public void overrideProvided(JadxCLIArgs obj) {
@@ -73,6 +85,10 @@ public class JCommanderWrapper<T> {
 		return value;
 	}
 
+	public List<String> getUnknownOptions() {
+		return jc.getUnknownOptions();
+	}
+
 	public void printUsage() {
 		LogHelper.setLogLevel(LogHelper.LogLevelEnum.ERROR); // mute logger while printing help
 
@@ -81,7 +97,32 @@ public class JCommanderWrapper<T> {
 		out.println();
 		out.println("jadx - dex to java decompiler, version: " + JadxDecompiler.getVersion());
 		out.println();
-		out.println("usage: jadx [options] " + jc.getMainParameterDescription());
+		out.println("usage: jadx [command] [options] " + jc.getMainParameterDescription());
+
+		out.println("commands (use '<command> --help' for command options):");
+		for (String command : jc.getCommands().keySet()) {
+			out.println("  " + command + "\t  - " + jc.getUsageFormatter().getCommandDescription(command));
+		}
+		out.println();
+
+		int maxNamesLen = printOptions(jc, out, true);
+		out.println(appendPluginOptions(maxNamesLen));
+		out.println();
+		out.println("Examples:");
+		out.println("  jadx -d out classes.dex");
+		out.println("  jadx --rename-flags \"none\" classes.dex");
+		out.println("  jadx --rename-flags \"valid, printable\" classes.dex");
+		out.println("  jadx --log-level ERROR app.apk");
+		out.println("  jadx -Pdex-input.verify-checksum=no app.apk");
+	}
+
+	public void printUsage(JCommander subCommander) {
+		PrintStream out = System.out;
+		out.println("usage: " + subCommander.getProgramName() + " [options]");
+		printOptions(subCommander, out, false);
+	}
+
+	private static int printOptions(JCommander jc, PrintStream out, boolean addDefaults) {
 		out.println("options:");
 
 		List<ParameterDescription> params = jc.getParameters();
@@ -96,7 +137,7 @@ public class JCommanderWrapper<T> {
 		}
 		maxNamesLen += 3;
 
-		JadxCLIArgs args = (JadxCLIArgs) jc.getObjects().get(0);
+		Object args = jc.getObjects().get(0);
 		for (Field f : getFields(args.getClass())) {
 			String name = f.getName();
 			ParameterDescription p = paramsMap.get(name);
@@ -118,26 +159,21 @@ public class JCommanderWrapper<T> {
 			} else {
 				opt.append("- ").append(description);
 			}
-			String defaultValue = getDefaultValue(args, f, opt);
-			if (defaultValue != null && !description.contains("(default)")) {
-				opt.append(", default: ").append(defaultValue);
+			if (addDefaults) {
+				String defaultValue = getDefaultValue(args, f, opt);
+				if (defaultValue != null && !description.contains("(default)")) {
+					opt.append(", default: ").append(defaultValue);
+				}
 			}
 			out.println(opt);
 		}
-		out.println(appendPluginOptions(maxNamesLen));
-		out.println();
-		out.println("Examples:");
-		out.println("  jadx -d out classes.dex");
-		out.println("  jadx --rename-flags \"none\" classes.dex");
-		out.println("  jadx --rename-flags \"valid, printable\" classes.dex");
-		out.println("  jadx --log-level ERROR app.apk");
-		out.println("  jadx -Pdex-input.verify-checksum=no app.apk");
+		return maxNamesLen;
 	}
 
 	/**
 	 * Get all declared fields of the specified class and all super classes
 	 */
-	private List<Field> getFields(Class<?> clazz) {
+	private static List<Field> getFields(Class<?> clazz) {
 		List<Field> fieldList = new ArrayList<>();
 		while (clazz != null) {
 			fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
@@ -147,7 +183,7 @@ public class JCommanderWrapper<T> {
 	}
 
 	@Nullable
-	private String getDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
+	private static String getDefaultValue(Object args, Field f, StringBuilder opt) {
 		try {
 			Class<?> fieldType = f.getType();
 			if (fieldType == int.class) {
@@ -180,7 +216,7 @@ public class JCommanderWrapper<T> {
 		// load and init all options plugins to print all options
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
-			pluginManager.load();
+			pluginManager.load(new JadxExternalPluginsLoader());
 			pluginManager.initAll();
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				JadxPluginOptions options = context.getOptions();
