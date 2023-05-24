@@ -46,6 +46,7 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
+import jadx.core.export.GradleInfoStorage;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.PassMerge;
@@ -77,6 +78,8 @@ public class RootNode {
 	private final MethodUtils methodUtils;
 	private final TypeUtils typeUtils;
 	private final AttributeStorage attributes = new AttributeStorage();
+
+	private final GradleInfoStorage gradleInfoStorage = new GradleInfoStorage();
 
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 	private final Map<String, ClassNode> rawClsMap = new HashMap<>();
@@ -711,5 +714,9 @@ public class RootNode {
 
 	public boolean isProto() {
 		return isProto;
+	}
+
+	public GradleInfoStorage getGradleInfoStorage() {
+		return gradleInfoStorage;
 	}
 }

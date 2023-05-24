@@ -12,7 +12,7 @@ public class OptionalTargetSdkVersion extends ExportGradleTest {
 	void test() {
 		exportGradle("OptionalTargetSdkVersion.xml", "strings.xml");
 
-		assertThat(getAppGradleBuild()).contains("targetSdkVersion 14");
+		assertThat(getAppGradleBuild()).contains("targetSdkVersion 14").doesNotContain("        vectorDrawables.useSupportLibrary = true");
 	}
 
 }

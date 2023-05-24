@@ -316,6 +316,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			decodeAttribute(attributeNS, attrValDataType, attrValData,
 					shortNsName, attrName);
 		}
+		if (shortNsName != null && shortNsName.equals("android")) {
+			if (attrName.equals("pathData")) {
+				rootNode.getGradleInfoStorage().setVectorPathData(true);
+			} else if (attrName.equals("fillType")) {
+				rootNode.getGradleInfoStorage().setVectorFillType(true);
+			}
+		}
 		writer.add('"');
 	}
 

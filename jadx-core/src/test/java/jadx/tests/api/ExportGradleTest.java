@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.io.TempDir;
@@ -12,8 +13,10 @@ import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxDecompilerTestUtils;
 import jadx.api.ResourceFile;
+import jadx.api.TaskBarrier;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.export.ExportGradleProject;
+import jadx.core.export.ExportGradleTask;
 import jadx.core.xmlgen.ResContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +25,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class ExportGradleTest {
+
+	private final RootNode root;
+
+	public ExportGradleTest() {
+		final JadxDecompiler decompiler = JadxDecompilerTestUtils.getMockDecompiler();
+		root = decompiler.getRoot();
+	}
 
 	private static final String MANIFEST_TESTS_DIR = "src/test/manifest";
 
@@ -47,19 +57,25 @@ public abstract class ExportGradleTest {
 		return contentBuilder.toString();
 	}
 
+	protected RootNode getRootNode() {
+		return root;
+	}
+
 	protected void exportGradle(String manifestFilename, String stringsFileName) {
-		final JadxDecompiler decompiler = JadxDecompilerTestUtils.getMockDecompiler();
 		ResourceFile androidManifest = mock(ResourceFile.class);
 		final ResContainer androidManifestContainer = createResourceContainer(manifestFilename);
 		when(androidManifest.loadContent()).thenReturn(androidManifestContainer);
 		final ResContainer strings = createResourceContainer(stringsFileName);
-		final RootNode root = decompiler.getRoot();
+		TaskBarrier taskBarrier = new TaskBarrier();
+
+		final ExportGradleTask exportGradleTask = new ExportGradleTask(List.of(androidManifest), root, exportDir, taskBarrier);
+		exportGradleTask.init();
+		assertThat(exportGradleTask.getSrcOutDir().exists());
+		assertThat(exportGradleTask.getResOutDir().exists());
 
 		final ExportGradleProject export =
 				new ExportGradleProject(root, exportDir, androidManifest, strings);
-		export.init();
-		assertThat(export.getSrcOutDir().exists());
-		assertThat(export.getResOutDir().exists());
+		export.generateGradleFiles();
 	}
 
 	protected String getAppGradleBuild() {

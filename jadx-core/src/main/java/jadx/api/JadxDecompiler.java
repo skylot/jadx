@@ -42,7 +42,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
-import jadx.core.export.ExportGradleProject;
+import jadx.core.export.ExportGradleTask;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
@@ -50,7 +50,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ProtoXMLParser;
-import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
@@ -281,50 +280,42 @@ public final class JadxDecompiler implements Closeable {
 		}
 		File sourcesOutDir;
 		File resOutDir;
+		List<Runnable> tasks = new ArrayList<>();
+		TaskBarrier barrier = new TaskBarrier();
 		if (args.isExportAsGradleProject()) {
-			ResourceFile androidManifest = resources.stream()
-					.filter(resourceFile -> resourceFile.getType() == ResourceType.MANIFEST)
-					.findFirst()
-					.orElseThrow(IllegalStateException::new);
-
-			ResContainer strings = resources.stream()
-					.filter(resourceFile -> resourceFile.getType() == ResourceType.ARSC)
-					.findFirst()
-					.orElseThrow(IllegalStateException::new)
-					.loadContent()
-					.getSubFiles()
-					.stream()
-					.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
-					.findFirst()
-					.orElseThrow(IllegalStateException::new);
-
-			ExportGradleProject export = new ExportGradleProject(root, args.getOutDir(), androidManifest, strings);
-			export.init();
-			sourcesOutDir = export.getSrcOutDir();
-			resOutDir = export.getResOutDir();
+			ExportGradleTask gradleExportTask = new ExportGradleTask(resources, root, args.getOutDir(), barrier);
+			gradleExportTask.init();
+			sourcesOutDir = gradleExportTask.getSrcOutDir();
+			resOutDir = gradleExportTask.getResOutDir();
+			tasks.add(gradleExportTask);
 		} else {
 			sourcesOutDir = args.getOutDirSrc();
 			resOutDir = args.getOutDirRes();
 		}
-		List<Runnable> tasks = new ArrayList<>();
+
+		int taskCount = 0;
 		// save resources first because decompilation can hang or fail
 		if (saveResources) {
-			appendResourcesSaveTasks(tasks, resOutDir);
+			taskCount = appendResourcesSaveTasks(tasks, resOutDir, barrier);
 		}
 		if (saveSources) {
-			appendSourcesSave(tasks, sourcesOutDir);
+			taskCount += appendSourcesSave(tasks, sourcesOutDir, barrier);
 		}
+		barrier.setUpBarrier(taskCount);
+
 		return tasks;
 	}
 
-	private void appendResourcesSaveTasks(List<Runnable> tasks, File outDir) {
+	private int appendResourcesSaveTasks(List<Runnable> tasks, File outDir, TaskBarrier barrier) {
+		int numResourceTasks = 0;
 		if (args.isSkipFilesSave()) {
-			return;
+			return 0;
 		}
 		// process AndroidManifest.xml first to load complete resource ids table
 		for (ResourceFile resourceFile : getResources()) {
 			if (resourceFile.getType() == ResourceType.MANIFEST) {
 				new ResourcesSaver(outDir, resourceFile).run();
+				break;
 			}
 		}
 
@@ -340,11 +331,14 @@ public final class JadxDecompiler implements Closeable {
 				// ignore resource made from input file
 				continue;
 			}
-			tasks.add(new ResourcesSaver(outDir, resourceFile));
+			tasks.add(new ResourcesSaver(outDir, resourceFile, barrier));
+			numResourceTasks++;
 		}
+		return numResourceTasks;
 	}
 
-	private void appendSourcesSave(List<Runnable> tasks, File outDir) {
+	private int appendSourcesSave(List<Runnable> tasks, File outDir, TaskBarrier barrier) {
+		int numSourceTasks = 0;
 		Predicate<String> classFilter = args.getClassFilter();
 		List<JavaClass> classes = getClasses();
 		List<JavaClass> processQueue = new ArrayList<>(classes.size());
@@ -369,17 +363,25 @@ public final class JadxDecompiler implements Closeable {
 		}
 		for (List<JavaClass> decompileBatch : batches) {
 			tasks.add(() -> {
-				for (JavaClass cls : decompileBatch) {
-					try {
-						ClassNode clsNode = cls.getClassNode();
-						ICodeInfo code = clsNode.getCode();
-						SaveCode.save(outDir, clsNode, code);
-					} catch (Exception e) {
-						LOG.error("Error saving class: {}", cls, e);
+				try {
+					for (JavaClass cls : decompileBatch) {
+						try {
+							ClassNode clsNode = cls.getClassNode();
+							ICodeInfo code = clsNode.getCode();
+							SaveCode.save(outDir, clsNode, code);
+						} catch (Exception e) {
+							LOG.error("Error saving class: {}", cls, e);
+						}
+					}
+				} finally {
+					if (barrier != null) {
+						barrier.finishTask();
 					}
 				}
 			});
+			numSourceTasks++;
 		}
+		return numSourceTasks;
 	}
 
 	public List<JavaClass> getClasses() {
