@@ -23,6 +23,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
@@ -49,6 +50,10 @@ public final class CodeArea extends AbstractCodeArea {
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));
 			addMenuItems();
+		}
+
+		if (node instanceof JResource && node.makeString().endsWith(".json")) {
+			addMenuForJsonFile();
 		}
 
 		setHyperlinksEnabled(true);
@@ -135,6 +140,12 @@ public final class CodeArea extends AbstractCodeArea {
 				}
 			}
 		});
+	}
+
+	private void addMenuForJsonFile() {
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
+		popup.addSeparator();
+		popup.add(new JsonPrettifyAction(this));
 	}
 
 	public int adjustOffsetForToken(@Nullable Token token) {
