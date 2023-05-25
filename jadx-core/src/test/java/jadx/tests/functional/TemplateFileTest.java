@@ -17,6 +17,7 @@ public class TemplateFileTest {
 		tmpl.add("targetSdkVersion", 2);
 		tmpl.add("versionCode", 3);
 		tmpl.add("versionName", "1.2.3");
+		tmpl.add("additionalOptions", "useLibrary 'org.apache.http.legacy'");
 		String res = tmpl.build();
 		System.out.println(res);
 

@@ -3,6 +3,8 @@ package jadx.core.export;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -15,7 +17,6 @@ import org.xml.sax.InputSource;
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.XmlSecurity;
 
@@ -25,25 +26,19 @@ public class ExportGradleProject {
 	private final RootNode root;
 	private final File projectDir;
 	private final File appDir;
-	private final File srcOutDir;
-	private final File resOutDir;
 	private final ApplicationParams applicationParams;
 
 	public ExportGradleProject(RootNode root, File projectDir, ResourceFile androidManifest, ResContainer appStrings) {
 		this.root = root;
 		this.projectDir = projectDir;
 		this.appDir = new File(projectDir, "app");
-		this.srcOutDir = new File(appDir, "src/main/java");
-		this.resOutDir = new File(appDir, "src/main");
 		this.applicationParams = getApplicationParams(
 				parseAndroidManifest(androidManifest),
 				parseAppStrings(appStrings));
 	}
 
-	public void init() {
+	public void generateGradleFiles() {
 		try {
-			FileUtils.makeDirs(srcOutDir);
-			FileUtils.makeDirs(resOutDir);
 			saveProjectBuildGradle();
 			saveApplicationBuildGradle();
 			saveSettingsGradle();
@@ -72,12 +67,30 @@ public class ExportGradleProject {
 			appPackage = "UNKNOWN";
 		}
 
+		Integer minSdkVersion = applicationParams.getMinSdkVersion();
+
 		tmpl.add("applicationId", appPackage);
-		tmpl.add("minSdkVersion", applicationParams.getMinSdkVersion());
+		tmpl.add("minSdkVersion", minSdkVersion);
 		tmpl.add("targetSdkVersion", applicationParams.getTargetSdkVersion());
 		tmpl.add("versionCode", applicationParams.getVersionCode());
 		tmpl.add("versionName", applicationParams.getVersionName());
+
+		List<String> additionalOptions = new ArrayList<>();
+		GradleInfoStorage gradleInfo = root.getGradleInfoStorage();
+		if (gradleInfo.isVectorPathData() && minSdkVersion < 21 || gradleInfo.isVectorFillType() && minSdkVersion < 24) {
+			additionalOptions.add("vectorDrawables.useSupportLibrary = true");
+		}
+		genAdditionalAndroidPluginOptions(tmpl, additionalOptions);
+
 		tmpl.save(new File(appDir, "build.gradle"));
+	}
+
+	private void genAdditionalAndroidPluginOptions(TemplateFile tmpl, List<String> additionalOptions) {
+		StringBuilder sb = new StringBuilder();
+		for (String additionalOption : additionalOptions) {
+			sb.append("        ").append(additionalOption).append('\n');
+		}
+		tmpl.add("additionalOptions", sb.toString());
 	}
 
 	private ApplicationParams getApplicationParams(Document androidManifest, Document appStrings) {
@@ -139,13 +152,5 @@ public class ExportGradleProject {
 		String content = androidManifest.loadContent().getText().getCodeStr();
 
 		return parseXml(content);
-	}
-
-	public File getSrcOutDir() {
-		return srcOutDir;
-	}
-
-	public File getResOutDir() {
-		return resOutDir;
 	}
 }

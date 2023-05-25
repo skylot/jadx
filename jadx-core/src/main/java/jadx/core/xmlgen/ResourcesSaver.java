@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourcesLoader;
+import jadx.api.TaskBarrier;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.utils.exceptions.JadxException;
@@ -22,9 +23,17 @@ public class ResourcesSaver implements Runnable {
 	private final ResourceFile resourceFile;
 	private final File outDir;
 
+	private TaskBarrier barrier = null;
+
 	public ResourcesSaver(File outDir, ResourceFile resourceFile) {
 		this.resourceFile = resourceFile;
 		this.outDir = outDir;
+	}
+
+	public ResourcesSaver(File outDir, ResourceFile resourceFile, TaskBarrier barrier) {
+		this.resourceFile = resourceFile;
+		this.outDir = outDir;
+		this.barrier = barrier;
 	}
 
 	@Override
@@ -33,6 +42,10 @@ public class ResourcesSaver implements Runnable {
 			saveResources(resourceFile.loadContent());
 		} catch (Throwable e) {
 			LOG.warn("Failed to save resource: {}", resourceFile.getOriginalName(), e);
+		} finally {
+			if (barrier != null) {
+				barrier.finishTask();
+			}
 		}
 	}
 
