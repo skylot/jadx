@@ -8,7 +8,6 @@ import java.util.Objects;
 
 import javax.swing.event.PopupMenuEvent;
 
-import jadx.gui.treemodel.JResource;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
@@ -24,6 +23,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
@@ -146,7 +146,6 @@ public final class CodeArea extends AbstractCodeArea {
 		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
 		popup.addSeparator();
 		popup.add(new JsonPrettifyAction(this));
-		getMainWindow().getWrapper().getGuiPluginsContext().appendPopupMenus(this, popup);
 	}
 
 	public int adjustOffsetForToken(@Nullable Token token) {
