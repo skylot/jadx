@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import javax.swing.event.PopupMenuEvent;
 
+import jadx.gui.treemodel.JResource;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
@@ -49,6 +50,10 @@ public final class CodeArea extends AbstractCodeArea {
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));
 			addMenuItems();
+		}
+
+		if (node instanceof JResource && node.makeString().endsWith(".json")) {
+			addMenuForJsonFile();
 		}
 
 		setHyperlinksEnabled(true);
@@ -135,6 +140,13 @@ public final class CodeArea extends AbstractCodeArea {
 				}
 			}
 		});
+	}
+
+	private void addMenuForJsonFile() {
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
+		popup.addSeparator();
+		popup.add(new JsonPrettifyAction(this));
+		getMainWindow().getWrapper().getGuiPluginsContext().appendPopupMenus(this, popup);
 	}
 
 	public int adjustOffsetForToken(@Nullable Token token) {
