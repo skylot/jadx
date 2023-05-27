@@ -100,7 +100,7 @@ import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.settings.JadxSettingsWindow;
+import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
