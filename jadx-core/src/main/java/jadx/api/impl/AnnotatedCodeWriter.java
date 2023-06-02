@@ -154,7 +154,6 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public ICodeInfo finish() {
-		removeFirstEmptyLine();
 		processDefinitionAnnotations();
 		validateAnnotations();
 		String code = buf.toString();

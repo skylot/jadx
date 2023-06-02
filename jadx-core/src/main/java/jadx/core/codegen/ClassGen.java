@@ -100,10 +100,12 @@ public class ClassGen {
 		addClassCode(clsBody);
 
 		ICodeWriter clsCode = cls.root().makeCodeWriter();
-		if (!"".equals(cls.getPackage())) {
+		if (cls.getPackage().isEmpty()) {
+			clsCode.add("// default package");
+		} else {
 			clsCode.add("package ").add(cls.getPackage()).add(';');
-			clsCode.newLine();
 		}
+		clsCode.newLine();
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			List<ClassInfo> sortedImports = new ArrayList<>(imports);
