@@ -44,4 +44,9 @@ public interface JadxGuiContext {
 	boolean registerGlobalKeyBinding(String id, String keyBinding, Runnable action);
 
 	void copyToClipboard(String str);
+
+	/**
+	 * Access to GUI settings
+	 */
+	JadxGuiSettings settings();
 }

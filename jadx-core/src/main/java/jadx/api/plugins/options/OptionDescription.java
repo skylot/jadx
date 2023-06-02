@@ -25,17 +25,8 @@ public interface OptionDescription {
 	@Nullable
 	String defaultValue();
 
-	enum OptionType {
-		STRING, NUMBER, BOOLEAN
-	}
-
 	default OptionType getType() {
 		return OptionType.STRING;
-	}
-
-	enum OptionFlag {
-		PER_PROJECT, // store in project settings instead global (for jadx-gui)
-		HIDE_IN_GUI, // do not show this option in jadx-gui (useful if option is configured with custom ui)
 	}
 
 	default Set<OptionFlag> getFlags() {

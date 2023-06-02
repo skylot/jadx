@@ -15,9 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -53,16 +50,13 @@ import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
+import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
-import jadx.api.plugins.options.JadxPluginOptions;
-import jadx.api.plugins.options.OptionDescription;
-import jadx.api.plugins.options.OptionDescription.OptionFlag;
-import jadx.core.plugins.PluginContext;
+import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
-import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
@@ -73,7 +67,6 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.plugins.CollectPluginOptions;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
@@ -85,6 +78,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient MainWindow mainWindow;
 	private final transient JadxSettings settings;
 	private final transient String startSettings;
+	private final transient String startSettingsHash;
 	private final transient LangLocale prevLang;
 
 	private transient boolean needReload = false;
@@ -93,6 +87,7 @@ public class JadxSettingsWindow extends JDialog {
 		this.mainWindow = mainWindow;
 		this.settings = settings;
 		this.startSettings = JadxSettingsAdapter.makeString(settings);
+		this.startSettingsHash = calcSettingsHash();
 		this.prevLang = settings.getLangLocale();
 
 		initUI();
@@ -113,14 +108,14 @@ public class JadxSettingsWindow extends JDialog {
 		groupPanel.setLayout(new BoxLayout(groupPanel, BoxLayout.LINE_AXIS));
 		groupPanel.setBorder(BorderFactory.createEmptyBorder(10, 3, 3, 10));
 
-		List<SettingsGroupPanel> groups = new ArrayList<>();
+		List<ISettingsGroup> groups = new ArrayList<>();
 		groups.add(makeDecompilationGroup());
 		groups.add(makeDeobfuscationGroup());
 		groups.add(makeRenameGroup());
 		groups.add(makeAppearanceGroup());
 		groups.add(makeSearchResGroup());
 		groups.add(makeProjectGroup());
-		groups.add(makePluginOptionsGroup());
+		groups.add(new PluginsSettings(mainWindow, settings).build());
 		groups.add(makeOtherGroup());
 
 		SettingsTree tree = new SettingsTree();
@@ -187,7 +182,7 @@ public class JadxSettingsWindow extends JDialog {
 		}
 	}
 
-	private SettingsGroupPanel makeDeobfuscationGroup() {
+	private SettingsGroup makeDeobfuscationGroup() {
 		JCheckBox deobfOn = new JCheckBox();
 		deobfOn.setSelected(settings.isDeobfuscationOn());
 		deobfOn.addItemListener(e -> {
@@ -228,7 +223,7 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
-		SettingsGroupPanel deobfGroup = new SettingsGroupPanel(NLS.str("preferences.deobfuscation"));
+		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
@@ -242,7 +237,7 @@ public class JadxSettingsWindow extends JDialog {
 		return deobfGroup;
 	}
 
-	private SettingsGroupPanel makeRenameGroup() {
+	private SettingsGroup makeRenameGroup() {
 		JCheckBox renameCaseSensitive = new JCheckBox();
 		renameCaseSensitive.setSelected(settings.isRenameCaseSensitive());
 		renameCaseSensitive.addItemListener(e -> {
@@ -271,7 +266,7 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		SettingsGroupPanel group = new SettingsGroupPanel(NLS.str("preferences.rename"));
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
@@ -283,18 +278,18 @@ public class JadxSettingsWindow extends JDialog {
 		connectedComponents.forEach(comp -> comp.setEnabled(enabled));
 	}
 
-	private SettingsGroupPanel makeProjectGroup() {
+	private SettingsGroup makeProjectGroup() {
 		JCheckBox autoSave = new JCheckBox();
 		autoSave.setSelected(settings.isAutoSaveProject());
 		autoSave.addItemListener(e -> settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));
 
-		SettingsGroupPanel group = new SettingsGroupPanel(NLS.str("preferences.project"));
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.project"));
 		group.addRow(NLS.str("preferences.autoSave"), autoSave);
 
 		return group;
 	}
 
-	private SettingsGroupPanel makeAppearanceGroup() {
+	private SettingsGroup makeAppearanceGroup() {
 		JComboBox<LangLocale> languageCbx = new JComboBox<>(NLS.getLangLocales());
 		for (LangLocale locale : NLS.getLangLocales()) {
 			if (locale.equals(settings.getLangLocale())) {
@@ -329,7 +324,7 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
-		SettingsGroupPanel group = new SettingsGroupPanel(NLS.str("preferences.appearance"));
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.appearance"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
@@ -382,7 +377,7 @@ public class JadxSettingsWindow extends JDialog {
 		return NLS.str("preferences.smali_font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
 	}
 
-	private SettingsGroupPanel makeDecompilationGroup() {
+	private SettingsGroup makeDecompilationGroup() {
 		JCheckBox useDx = new JCheckBox();
 		useDx.setSelected(settings.isUseDx());
 		useDx.addItemListener(e -> {
@@ -552,7 +547,7 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		SettingsGroupPanel other = new SettingsGroupPanel(NLS.str("preferences.decompile"));
+		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"),
 				NLS.str("preferences.excludedPackages.tooltip"), editExcludedPackages);
@@ -580,109 +575,7 @@ public class JadxSettingsWindow extends JDialog {
 		return other;
 	}
 
-	private SettingsGroupPanel makePluginOptionsGroup() {
-		SettingsGroupPanel pluginsGroup = new SettingsGroupPanel(NLS.str("preferences.plugins"));
-		List<PluginContext> list = new CollectPluginOptions(mainWindow.getWrapper()).build();
-		for (PluginContext context : list) {
-			addPluginOptions(pluginsGroup, context);
-		}
-		return pluginsGroup;
-	}
-
-	private void addPluginOptions(SettingsGroupPanel pluginsGroup, PluginContext context) {
-		JadxPluginOptions options = context.getOptions();
-		if (options == null) {
-			return;
-		}
-		String pluginId = context.getPluginId();
-		for (OptionDescription opt : options.getOptionsDescriptions()) {
-			if (opt.getFlags().contains(OptionFlag.HIDE_IN_GUI)) {
-				continue;
-			}
-			String optName = opt.name();
-			String title;
-			if (pluginId.equals("jadx-script")) {
-				title = '[' + optName.replace("jadx-script.", "script:") + "] " + opt.description();
-			} else {
-				title = '[' + pluginId + "]  " + opt.description();
-			}
-			Consumer<String> updateFunc;
-			String curValue;
-			if (opt.getFlags().contains(OptionFlag.PER_PROJECT)) {
-				JadxProject project = mainWindow.getProject();
-				updateFunc = value -> project.updatePluginOptions(m -> m.put(optName, value));
-				curValue = project.getPluginOption(optName);
-			} else {
-				Map<String, String> optionsMap = settings.getPluginOptions();
-				updateFunc = value -> optionsMap.put(optName, value);
-				curValue = optionsMap.get(optName);
-			}
-			String value = curValue != null ? curValue : opt.defaultValue();
-
-			if (opt.values().isEmpty() || opt.getType() == OptionDescription.OptionType.BOOLEAN) {
-				try {
-					pluginsGroup.addRow(title, getPluginOptionEditor(opt, value, updateFunc));
-				} catch (Exception e) {
-					LOG.error("Failed to add editor for plugin option: {}", optName, e);
-				}
-			} else {
-				JComboBox<String> combo = new JComboBox<>(opt.values().toArray(new String[0]));
-				combo.setSelectedItem(value);
-				combo.addActionListener(e -> {
-					updateFunc.accept((String) combo.getSelectedItem());
-					needReload();
-				});
-				pluginsGroup.addRow(title, combo);
-			}
-		}
-	}
-
-	private JComponent getPluginOptionEditor(OptionDescription opt, String value, Consumer<String> updateFunc) {
-		switch (opt.getType()) {
-			case STRING:
-				JTextField textField = new JTextField();
-				textField.setText(value == null ? "" : value);
-				textField.getDocument().addDocumentListener(new DocumentUpdateListener(event -> {
-					updateFunc.accept(textField.getText());
-					needReload();
-				}));
-				return textField;
-
-			case NUMBER:
-				JSpinner numberField = new JSpinner();
-				numberField.setValue(safeStringToInt(value, 0));
-				numberField.addChangeListener(e -> {
-					updateFunc.accept(numberField.getValue().toString());
-					needReload();
-				});
-				return numberField;
-
-			case BOOLEAN:
-				JCheckBox boolField = new JCheckBox();
-				boolField.setSelected(Objects.equals(value, "yes") || Objects.equals(value, "true"));
-				boolField.addItemListener(e -> {
-					boolean editorValue = e.getStateChange() == ItemEvent.SELECTED;
-					updateFunc.accept(editorValue ? "yes" : "no");
-					needReload();
-				});
-				return boolField;
-		}
-		return null;
-	}
-
-	private int safeStringToInt(String value, int defValue) {
-		if (value == null) {
-			return defValue;
-		}
-		try {
-			return Integer.parseInt(value);
-		} catch (Exception e) {
-			LOG.warn("Failed parse string to int: {}", value, e);
-			return defValue;
-		}
-	}
-
-	private SettingsGroupPanel makeOtherGroup() {
+	private SettingsGroup makeOtherGroup() {
 		JComboBox<LineNumbersMode> lineNumbersMode = new JComboBox<>(LineNumbersMode.values());
 		lineNumbersMode.setSelectedItem(settings.getLineNumbersMode());
 		lineNumbersMode.addActionListener(e -> {
@@ -716,7 +609,7 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		SettingsGroupPanel group = new SettingsGroupPanel(NLS.str("preferences.other"));
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
 		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
 		group.addRow(NLS.str("preferences.useAlternativeFileDialog"), useAltFileDialog);
@@ -726,7 +619,7 @@ public class JadxSettingsWindow extends JDialog {
 		return group;
 	}
 
-	private SettingsGroupPanel makeSearchResGroup() {
+	private SettingsGroup makeSearchResGroup() {
 		JSpinner resultsPerPage = new JSpinner(
 				new SpinnerNumberModel(settings.getSearchResultsPerPage(), 0, Integer.MAX_VALUE, 1));
 		resultsPerPage.addChangeListener(ev -> settings.setSearchResultsPerPage((Integer) resultsPerPage.getValue()));
@@ -742,7 +635,7 @@ public class JadxSettingsWindow extends JDialog {
 		}));
 		fileExtField.setText(settings.getSrhResourceFileExt());
 
-		SettingsGroupPanel searchGroup = new SettingsGroupPanel(NLS.str("preferences.search_group_title"));
+		SettingsGroup searchGroup = new SettingsGroup(NLS.str("preferences.search_group_title"));
 		searchGroup.addRow(NLS.str("preferences.search_results_per_page"), resultsPerPage);
 		searchGroup.addRow(NLS.str("preferences.res_skip_file"), sizeLimit);
 		searchGroup.addRow(NLS.str("preferences.res_file_ext"), fileExtField);
@@ -753,7 +646,7 @@ public class JadxSettingsWindow extends JDialog {
 		settings.sync();
 		enableComponents(this, false);
 		SwingUtilities.invokeLater(() -> {
-			if (needReload) {
+			if (shouldReload()) {
 				mainWindow.reopen();
 			}
 			if (!settings.getLangLocale().equals(prevLang)) {
@@ -809,8 +702,18 @@ public class JadxSettingsWindow extends JDialog {
 				NLS.str("preferences.copy_message"));
 	}
 
-	private void needReload() {
+	void needReload() {
 		needReload = true;
+	}
+
+	private boolean shouldReload() {
+		return needReload || !startSettingsHash.equals(calcSettingsHash());
+	}
+
+	@SuppressWarnings("resource")
+	private String calcSettingsHash() {
+		JadxDecompiler decompiler = mainWindow.getWrapper().getCurrentDecompiler().orElse(null);
+		return settings.toJadxArgs().makeCodeArgsHash(decompiler);
 	}
 
 	@Override

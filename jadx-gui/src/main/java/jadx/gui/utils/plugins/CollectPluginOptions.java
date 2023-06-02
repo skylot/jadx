@@ -9,7 +9,9 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
-import jadx.gui.JadxWrapper;
+import jadx.gui.plugins.context.CommonGuiPluginsContext;
+import jadx.gui.plugins.context.GuiPluginContext;
+import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 /**
@@ -19,21 +21,26 @@ import jadx.plugins.tools.JadxExternalPluginsLoader;
  */
 public class CollectPluginOptions {
 
-	private final JadxWrapper wrapper;
+	private final MainWindow mainWindow;
 
-	public CollectPluginOptions(JadxWrapper wrapper) {
-		this.wrapper = wrapper;
+	public CollectPluginOptions(MainWindow mainWindow) {
+		this.mainWindow = mainWindow;
 	}
 
 	public List<PluginContext> build() {
 		SortedSet<PluginContext> allPlugins = new TreeSet<>();
-		wrapper.getCurrentDecompiler()
+		mainWindow.getWrapper().getCurrentDecompiler()
 				.ifPresent(decompiler -> allPlugins.addAll(decompiler.getPluginManager().getResolvedPluginContexts()));
 
 		// collect and init not loaded plugins in new context
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.load(new JadxExternalPluginsLoader());
+			CommonGuiPluginsContext guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
+			decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
+				GuiPluginContext guiContext = guiPluginsContext.buildForPlugin(pluginContext);
+				pluginContext.setGuiContext(guiContext);
+			});
 			SortedSet<PluginContext> missingPlugins = new TreeSet<>();
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				if (!allPlugins.contains(context)) {

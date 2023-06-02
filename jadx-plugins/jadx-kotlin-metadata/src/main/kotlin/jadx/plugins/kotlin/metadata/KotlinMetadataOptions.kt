@@ -2,7 +2,7 @@ package jadx.plugins.kotlin.metadata
 
 import jadx.api.plugins.options.OptionDescription
 import jadx.api.plugins.options.impl.BaseOptionsParser
-import jadx.api.plugins.options.impl.JadxOptionDescription
+import jadx.api.plugins.options.impl.JadxOptionDescription.booleanOption
 import jadx.plugins.kotlin.metadata.KotlinMetadataPlugin.Companion.PLUGIN_ID
 
 class KotlinMetadataOptions : BaseOptionsParser() {
@@ -33,25 +33,14 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 
 	override fun getOptionsDescriptions(): List<OptionDescription> {
 		return listOf(
-			JadxOptionDescription.booleanOption(CLASS_ALIAS_OPT, "rename class alias", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(METHOD_ARGS_OPT, "rename function arguments", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(FIELDS_OPT, "rename fields", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(COMPANION_OPT, "rename companion object", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(DATA_CLASS_OPT, "add data class modifier", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(TO_STRING_OPT, "rename fields using toString", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
-			JadxOptionDescription.booleanOption(GETTERS_OPT, "rename simple getters to field names", true)
-				.withFlag(OptionDescription.OptionFlag.PER_PROJECT),
+			booleanOption(CLASS_ALIAS_OPT, "rename class alias", true),
+			booleanOption(METHOD_ARGS_OPT, "rename function arguments", true),
+			booleanOption(FIELDS_OPT, "rename fields", true),
+			booleanOption(COMPANION_OPT, "rename companion object", true),
+			booleanOption(DATA_CLASS_OPT, "add data class modifier", true),
+			booleanOption(TO_STRING_OPT, "rename fields using toString", true),
+			booleanOption(GETTERS_OPT, "rename simple getters to field names", true),
 		)
-	}
-
-	override fun toString(): String {
-		return "KotlinMetadataOptions(isClassAlias=$isClassAlias, isMethodArgs=$isMethodArgs, isFields=$isFields, isCompanion=$isCompanion, isDataClass=$isDataClass, isToString=$isToString, isGetters=$isGetters)"
 	}
 
 	companion object {

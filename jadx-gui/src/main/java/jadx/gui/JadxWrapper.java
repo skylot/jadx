@@ -31,7 +31,8 @@ import jadx.gui.cache.code.CodeStringCache;
 import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
 import jadx.gui.cache.usage.UsageInfoCache;
-import jadx.gui.plugins.context.GuiPluginsContext;
+import jadx.gui.plugins.context.CommonGuiPluginsContext;
+import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -50,7 +51,7 @@ public class JadxWrapper {
 
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
-	private GuiPluginsContext guiPluginsContext;
+	private CommonGuiPluginsContext guiPluginsContext;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -139,11 +140,14 @@ public class JadxWrapper {
 	}
 
 	private void initGuiPluginsContext() {
-		guiPluginsContext = new GuiPluginsContext(mainWindow);
-		decompiler.getPluginManager().setGuiContext(guiPluginsContext);
+		guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
+		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
+			GuiPluginContext guiContext = guiPluginsContext.buildForPlugin(pluginContext);
+			pluginContext.setGuiContext(guiContext);
+		});
 	}
 
-	public GuiPluginsContext getGuiPluginsContext() {
+	public CommonGuiPluginsContext getGuiPluginsContext() {
 		return guiPluginsContext;
 	}
 
@@ -291,8 +295,7 @@ public class JadxWrapper {
 	}
 
 	/**
-	 * @param fullName
-	 *                 Full name of an outer class. Inner classes are not supported.
+	 * @param fullName Full name of an outer class. Inner classes are not supported.
 	 */
 	public @Nullable JavaClass searchJavaClassByFullAlias(String fullName) {
 		return getDecompiler().getClasses().stream()
@@ -306,8 +309,7 @@ public class JadxWrapper {
 	}
 
 	/**
-	 * @param rawName
-	 *                Full raw name of an outer class. Inner classes are not supported.
+	 * @param rawName Full raw name of an outer class. Inner classes are not supported.
 	 */
 	public @Nullable JavaClass searchJavaClassByRawName(String rawName) {
 		return getDecompiler().getClasses().stream()

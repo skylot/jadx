@@ -16,6 +16,7 @@ class JadxScriptPlugin : JadxPlugin {
 		val scripts = ScriptEval().process(init, scriptOptions)
 		if (scripts.isNotEmpty()) {
 			init.addPass(JadxScriptAfterLoadPass(scripts))
+			init.guiContext?.let { JadxScriptOptionsUI.setup(it, scriptOptions) }
 		}
 	}
 }

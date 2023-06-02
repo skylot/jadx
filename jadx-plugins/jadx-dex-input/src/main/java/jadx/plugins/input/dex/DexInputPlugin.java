@@ -23,7 +23,7 @@ public class DexInputPlugin implements JadxPlugin {
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return new JadxPluginInfo(PLUGIN_ID, "DexInput", "Load .dex and .apk files");
+		return new JadxPluginInfo(PLUGIN_ID, "Dex Input", "Load .dex and .apk files");
 	}
 
 	@Override

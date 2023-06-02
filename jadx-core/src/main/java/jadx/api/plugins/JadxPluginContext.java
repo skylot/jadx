@@ -26,8 +26,8 @@ public interface JadxPluginContext {
 
 	/**
 	 * Function to calculate hash of all options which can change output code.
-	 * Hash for input files ({@link JadxArgs#getInputFiles()}) already calculated,
-	 * so this method can omit these files.
+	 * Hash for input files ({@link JadxArgs#getInputFiles()}) and registered options
+	 * calculated by default implementations.
 	 */
 	void registerInputsHashSupplier(Supplier<String> supplier);
 

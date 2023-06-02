@@ -2,20 +2,29 @@ package jadx.plugins.script.runtime.data
 
 import jadx.api.plugins.options.JadxPluginOptions
 import jadx.api.plugins.options.OptionDescription
-import jadx.api.plugins.options.OptionDescription.OptionType
+import jadx.api.plugins.options.OptionType
 import jadx.api.plugins.options.impl.JadxOptionDescription
 import jadx.plugins.script.runtime.JadxScriptInstance
 
 class JadxScriptAllOptions : JadxPluginOptions {
 	lateinit var values: Map<String, String>
-	val descriptions: MutableList<OptionDescription> = mutableListOf()
+	val descriptions: MutableList<ScriptOptionDesc> = mutableListOf()
 
 	override fun setOptions(options: Map<String, String>) {
 		values = options
 	}
 
-	override fun getOptionsDescriptions(): MutableList<OptionDescription> = descriptions
+	override fun getOptionsDescriptions(): List<OptionDescription> = descriptions
 }
+
+class ScriptOptionDesc(
+	val script: String,
+	optName: String,
+	desc: String,
+	defaultValue: String?,
+	values: List<String>,
+	type: OptionType,
+) : JadxOptionDescription("jadx-script.$script.$optName", desc, defaultValue, values, type)
 
 class ScriptOption<T>(
 	val name: String,
@@ -53,9 +62,10 @@ class JadxScriptOptions(
 		type: OptionType = OptionType.STRING,
 		convert: (String?) -> T,
 	): ScriptOption<T> {
-		val id = "jadx-script.${jadx.scriptName}.$name"
-		options.descriptions.add(JadxOptionDescription(id, desc, defaultValue, values, type))
-		return ScriptOption(name, id) { convert.invoke(options.values[id]) }
+		val optDesc = ScriptOptionDesc(jadx.scriptName, name, desc, defaultValue, values, type)
+		options.descriptions.add(optDesc)
+		val optId = optDesc.name()
+		return ScriptOption(name, optId) { convert.invoke(options.values[optId]) }
 	}
 
 	fun registerString(

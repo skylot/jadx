@@ -11,17 +11,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-public class SettingsGroupPanel extends JPanel {
+import jadx.api.plugins.gui.ISettingsGroup;
+
+public class SettingsGroup implements ISettingsGroup {
 	private static final long serialVersionUID = -6487309975896192544L;
 
 	private final String title;
+	private final JPanel panel;
 	private final GridBagConstraints c;
 	private int row;
 
-	public SettingsGroupPanel(String title) {
+	public SettingsGroup(String title) {
 		this.title = title;
-		setBorder(BorderFactory.createTitledBorder(title));
-		setLayout(new GridBagLayout());
+		panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder(title));
 		c = new GridBagConstraints();
 		c.insets = new Insets(5, 5, 5, 5);
 		c.weighty = 1.0;
@@ -41,7 +44,7 @@ public class SettingsGroupPanel extends JPanel {
 		c.anchor = GridBagConstraints.LINE_START;
 		c.weightx = 0.8;
 		c.fill = GridBagConstraints.NONE;
-		add(jLabel, c);
+		panel.add(jLabel, c);
 		c.gridx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.anchor = GridBagConstraints.CENTER;
@@ -53,18 +56,28 @@ public class SettingsGroupPanel extends JPanel {
 			comp.setToolTipText(tooltip);
 		}
 
-		add(comp, c);
+		panel.add(comp, c);
 
 		comp.addPropertyChangeListener("enabled", evt -> jLabel.setEnabled((boolean) evt.getNewValue()));
 		return jLabel;
 	}
 
 	public void end() {
-		add(Box.createVerticalGlue());
+		panel.add(Box.createVerticalGlue());
 	}
 
+	@Override
+	public JComponent buildComponent() {
+		return panel;
+	}
+
+	@Override
 	public String getTitle() {
 		return title;
+	}
+
+	public JPanel getPanel() {
+		return panel;
 	}
 
 	@Override

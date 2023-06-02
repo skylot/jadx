@@ -9,6 +9,8 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.options.OptionFlag;
+import jadx.api.plugins.options.OptionType;
 
 public class JadxOptionDescription implements OptionDescription {
 

@@ -3,6 +3,7 @@ package jadx.gui.settings.ui;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -15,41 +16,39 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.utils.NLS;
 
 public class SettingsTree extends JTree {
 
-	public void init(JPanel groupPanel, List<SettingsGroupPanel> groups) {
+	public void init(JPanel groupPanel, List<ISettingsGroup> groups) {
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(NLS.str("preferences.title"));
-		for (SettingsGroupPanel group : groups) {
-			treeRoot.add(new DefaultMutableTreeNode(group));
-		}
+		addGroups(treeRoot, groups);
 		setModel(new DefaultTreeModel(treeRoot));
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		setFocusable(false);
-		addTreeSelectionListener(e -> {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-			Object obj = node.getUserObject();
-			groupPanel.removeAll();
-			if (obj instanceof SettingsGroupPanel) {
-				SettingsGroupPanel panel = (SettingsGroupPanel) obj;
-				groupPanel.add(panel);
-			}
-			groupPanel.updateUI();
-		});
+		addTreeSelectionListener(e -> switchGroup(groupPanel));
 		// expand all nodes and disallow collapsing
 		setNodeExpandedState(this, treeRoot, true);
-		addTreeWillExpandListener(new TreeWillExpandListener() {
-			@Override
-			public void treeWillExpand(TreeExpansionEvent event) {
-			}
-
-			@Override
-			public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
-				throw new ExpandVetoException(event, "Collapsing tree not allowed");
-			}
-		});
+		addTreeWillExpandListener(new DisableRootCollapseListener(treeRoot));
 		addSelectionRow(1);
+	}
+
+	private static void addGroups(DefaultMutableTreeNode base, List<ISettingsGroup> groups) {
+		for (ISettingsGroup group : groups) {
+			SettingsTreeNode node = new SettingsTreeNode(group);
+			base.add(node);
+			addGroups(node, group.getSubGroups());
+		}
+	}
+
+	private void switchGroup(JPanel groupPanel) {
+		Object selected = getLastSelectedPathComponent();
+		groupPanel.removeAll();
+		if (selected instanceof SettingsTreeNode) {
+			groupPanel.add(((SettingsTreeNode) selected).getGroup().buildComponent());
+		}
+		groupPanel.updateUI();
 	}
 
 	private static void setNodeExpandedState(JTree tree, TreeNode node, boolean expanded) {
@@ -66,6 +65,26 @@ public class SettingsTree extends JTree {
 			tree.expandPath(path);
 		} else {
 			tree.collapsePath(path);
+		}
+	}
+
+	private static class DisableRootCollapseListener implements TreeWillExpandListener {
+		private final DefaultMutableTreeNode treeRoot;
+
+		public DisableRootCollapseListener(DefaultMutableTreeNode treeRoot) {
+			this.treeRoot = treeRoot;
+		}
+
+		@Override
+		public void treeWillExpand(TreeExpansionEvent event) {
+		}
+
+		@Override
+		public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+			Object current = event.getPath().getLastPathComponent();
+			if (Objects.equals(current, treeRoot)) {
+				throw new ExpandVetoException(event, "Root collapsing not allowed");
+			}
 		}
 	}
 }

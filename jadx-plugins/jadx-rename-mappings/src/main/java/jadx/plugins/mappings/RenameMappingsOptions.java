@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.plugins.options.OptionDescription;
-import jadx.api.plugins.options.OptionDescription.OptionFlag;
+import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.options.impl.BaseOptionsParser;
 import jadx.api.plugins.options.impl.JadxOptionDescription;
 

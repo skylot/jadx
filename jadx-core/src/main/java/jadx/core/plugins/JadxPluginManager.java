@@ -7,15 +7,14 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -30,7 +29,7 @@ public class JadxPluginManager {
 	private final SortedSet<PluginContext> resolvedPlugins = new TreeSet<>();
 	private final Map<String, String> provideSuggestions = new TreeMap<>();
 
-	private @Nullable JadxGuiContext guiContext;
+	private final List<Consumer<PluginContext>> addPluginListeners = new ArrayList<>();
 
 	public JadxPluginManager(JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
@@ -64,7 +63,7 @@ public class JadxPluginManager {
 		if (!allPlugins.add(pluginContext)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginContext + ", class " + plugin.getClass());
 		}
-		pluginContext.setGuiContext(guiContext);
+		addPluginListeners.forEach(l -> l.accept(pluginContext));
 		return pluginContext;
 	}
 
@@ -166,10 +165,9 @@ public class JadxPluginManager {
 				.collect(Collectors.toList());
 	}
 
-	public void setGuiContext(JadxGuiContext guiContext) {
-		this.guiContext = guiContext;
-		for (PluginContext context : getAllPluginContexts()) {
-			context.setGuiContext(guiContext);
-		}
+	public void registerAddPluginListener(Consumer<PluginContext> listener) {
+		this.addPluginListeners.add(listener);
+		// run for already added plugins
+		getAllPluginContexts().forEach(listener);
 	}
 }

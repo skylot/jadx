@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import jadx.api.JadxDecompiler;
 import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -204,19 +202,8 @@ public class DiskCodeCache implements ICodeCache {
 		}
 		return DATA_FORMAT_VERSION
 				+ ":" + Jadx.getVersion()
-				+ ":" + args.makeCodeArgsHash()
-				+ ":" + FileUtils.buildInputsHash(Utils.collectionMap(inputFiles, File::toPath))
-				+ ":" + FileUtils.md5Sum(buildPluginsHash(decompiler));
-	}
-
-	private String buildPluginsHash(JadxDecompiler decompiler) {
-		if (decompiler == null) {
-			return "";
-		}
-		return decompiler.getPluginManager().getResolvedPluginContexts()
-				.stream()
-				.map(PluginContext::getInputsHash)
-				.collect(Collectors.joining());
+				+ ":" + args.makeCodeArgsHash(decompiler)
+				+ ":" + FileUtils.buildInputsHash(Utils.collectionMap(inputFiles, File::toPath));
 	}
 
 	private int getClsId(String clsFullName) {

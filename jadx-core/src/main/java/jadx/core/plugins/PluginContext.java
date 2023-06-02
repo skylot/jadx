@@ -2,6 +2,7 @@ package jadx.core.plugins;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -16,8 +17,11 @@ import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 
 public class PluginContext implements JadxPluginContext, Comparable<PluginContext> {
 	private final JadxDecompiler decompiler;
@@ -86,14 +90,28 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 	}
 
 	public String getInputsHash() {
-		if (inputsHashSupplier != null) {
-			try {
-				return inputsHashSupplier.get();
-			} catch (Exception e) {
-				throw new JadxRuntimeException("Failed to get inputs hash for plugin: " + getPluginId(), e);
+		if (inputsHashSupplier == null) {
+			return defaultOptionsHash();
+		}
+		try {
+			return inputsHashSupplier.get();
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to get inputs hash for plugin: " + getPluginId(), e);
+		}
+	}
+
+	private String defaultOptionsHash() {
+		if (options == null) {
+			return "";
+		}
+		Map<String, String> allOptions = getArgs().getPluginOptions();
+		StringBuilder sb = new StringBuilder();
+		for (OptionDescription optDesc : options.getOptionsDescriptions()) {
+			if (!optDesc.getFlags().contains(OptionFlag.NOT_CHANGING_CODE)) {
+				sb.append(':').append(allOptions.get(optDesc.name()));
 			}
 		}
-		return "";
+		return FileUtils.md5Sum(sb.toString());
 	}
 
 	@Override
