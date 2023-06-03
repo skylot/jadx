@@ -125,8 +125,9 @@ public class RenameDialog extends JDialog {
 	private void processRename(String newName, Set<ICodeRename> renames) {
 		ICodeRename rename = node.buildCodeRename(newName, renames);
 		renames.remove(rename);
-		node.removeAlias();
-		if (!newName.isEmpty()) {
+		if (newName.isEmpty()) {
+			node.removeAlias();
+		} else {
 			renames.add(rename);
 		}
 	}

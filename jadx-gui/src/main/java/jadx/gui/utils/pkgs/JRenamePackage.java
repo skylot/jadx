@@ -99,4 +99,9 @@ public class JRenamePackage implements JRenameNode {
 		mainWindow.rebuildPackagesTree();
 		mainWindow.reloadTree();
 	}
+
+	@Override
+	public String toString() {
+		return refPkg.toString();
+	}
 }

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class ClassInfo implements Comparable<ClassInfo> {
@@ -59,13 +60,21 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public void changeShortName(String aliasName) {
-		if (!Objects.equals(name, aliasName)) {
-			ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
-			fillAliasFullName(newAlias);
-			this.alias = newAlias;
+		ClassAliasInfo newAlias;
+		String aliasPkg = getAliasPkg();
+		if (Objects.equals(name, aliasName) || StringUtils.isEmpty(aliasName)) {
+			if (Objects.equals(getPackage(), aliasPkg)) {
+				newAlias = null;
+			} else {
+				newAlias = new ClassAliasInfo(aliasPkg, name);
+			}
 		} else {
-			this.alias = null;
+			newAlias = new ClassAliasInfo(aliasPkg, aliasName);
 		}
+		if (newAlias != null) {
+			fillAliasFullName(newAlias);
+		}
+		this.alias = newAlias;
 	}
 
 	public void changePkg(String aliasPkg) {

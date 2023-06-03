@@ -220,7 +220,8 @@ public class JClass extends JLoadableNode implements JRenameNode {
 
 	@Override
 	public void removeAlias() {
-		cls.removeAlias();
+		// reset only short name, package name should be reset explicitly using PackageNode
+		cls.getClassNode().rename("");
 	}
 
 	@Override
