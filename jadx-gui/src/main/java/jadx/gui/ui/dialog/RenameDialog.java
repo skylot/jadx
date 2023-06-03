@@ -65,7 +65,7 @@ public class RenameDialog extends JDialog {
 	private transient JTextField renameField;
 	private transient JButton renameBtn;
 
-	public static boolean rename(MainWindow mainWindow, JNode source, JRenameNode node) {
+	public static boolean rename(MainWindow mainWindow, @Nullable JNode source, JRenameNode node) {
 		RenameDialog renameDialog = new RenameDialog(mainWindow, source, node);
 		UiUtils.uiRun(() -> renameDialog.setVisible(true));
 		UiUtils.uiRun(renameDialog::initRenameField); // wait for UI events to propagate
@@ -75,12 +75,13 @@ public class RenameDialog extends JDialog {
 	public static JPopupMenu buildRenamePopup(MainWindow mainWindow, JRenameNode node) {
 		JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
 		jmi.addActionListener(action -> RenameDialog.rename(mainWindow, null, node));
+		jmi.setEnabled(node.canRename());
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(jmi);
 		return menu;
 	}
 
-	private RenameDialog(MainWindow mainWindow, JNode source, JRenameNode node) {
+	private RenameDialog(MainWindow mainWindow, @Nullable JNode source, JRenameNode node) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
