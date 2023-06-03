@@ -144,10 +144,12 @@ public class MappingExporter {
 
 			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
 			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
+
+			// Copy mappings from potentially imported mappings file
 			if (loadedMappingTree != null && loadedMappingTree.getDstNamespaces() != null) {
-				srcNamespace = loadedMappingTree.getSrcNamespace();
-				dstNamespace = loadedMappingTree.getDstNamespaces().get(0);
+				loadedMappingTree.accept(mappingTree);
 			}
+
 			mappingTree.visitHeader();
 			mappingTree.visitNamespaces(srcNamespace, Collections.singletonList(dstNamespace));
 			mappingTree.visitContent();
@@ -242,10 +244,6 @@ public class MappingExporter {
 						lvtIndex++;
 					}
 				}
-			}
-			// Copy mappings from potentially imported mappings file
-			if (loadedMappingTree != null && loadedMappingTree.getDstNamespaces() != null) {
-				loadedMappingTree.accept(mappingTree);
 			}
 			// Write file
 			MappingWriter writer = MappingWriter.create(path, mappingFormat);
