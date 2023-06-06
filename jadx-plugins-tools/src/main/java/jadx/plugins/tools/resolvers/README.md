@@ -10,10 +10,9 @@ Examples: `github:skylot:jadx`, `github:skylot:jadx:sample-plugin` or `github:sk
 
 `<version>` - exact version to install (optional), should be equal to release name
 
-Artifact should have a name: `<artifact name prefix>-<release-version-name>.jar`.
+Artifact name pattern: `<artifact name prefix>[-<release-version-name>].jar`.
 
-Default value for `<artifact name prefix>` is a repo name,
-`release-version-name` should have a `x.x.x` format.
+Default value for `<artifact name prefix>` is a repo name, `-<release-version-name>` is optional.
 
 ---
 

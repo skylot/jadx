@@ -9,7 +9,7 @@ public interface JadxGuiSettings {
 	/**
 	 * Set plugin custom settings page
 	 */
-	void setCustomSettings(ISettingsGroup group);
+	void setCustomSettingsGroup(ISettingsGroup group);
 
 	/**
 	 * Helper method to build options group only for provided option list

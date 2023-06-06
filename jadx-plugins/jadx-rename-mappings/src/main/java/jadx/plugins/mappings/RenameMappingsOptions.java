@@ -38,7 +38,7 @@ public class RenameMappingsOptions extends BaseOptionsParser {
 	public List<OptionDescription> getOptionsDescriptions() {
 		return Arrays.asList(
 				new JadxOptionDescription(FORMAT_OPT, "mapping format", "auto", getMappingFormats())
-						.withFlag(OptionFlag.PER_PROJECT),
+						.withFlags(OptionFlag.PER_PROJECT, OptionFlag.DISABLE_IN_GUI),
 				JadxOptionDescription.booleanOption(INVERT_OPT, "invert mapping", false)
 						.withFlag(OptionFlag.PER_PROJECT));
 	}

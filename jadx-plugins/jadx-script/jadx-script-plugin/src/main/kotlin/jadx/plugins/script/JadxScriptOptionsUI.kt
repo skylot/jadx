@@ -13,7 +13,7 @@ object JadxScriptOptionsUI {
 			.groupBy { it.script }
 			.map { (script, options) -> settings.buildSettingsGroupForOptions(script, options) }
 			.toList()
-		settings.setCustomSettings(EmptyRootGroup("Scripts", subGroups))
+		settings.setCustomSettingsGroup(EmptyRootGroup("Scripts", subGroups))
 	}
 }
 

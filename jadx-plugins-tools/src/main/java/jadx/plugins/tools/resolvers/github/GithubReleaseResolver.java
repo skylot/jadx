@@ -64,7 +64,7 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 		Asset asset = release.getAssets().stream()
 				.filter(a -> a.getName().equals(artifactName))
 				.findFirst()
-				.orElseThrow(() -> new RuntimeException("Release artifact with name '" + artifactName + "' not found"));
+				.orElse(searchIgnoringVersion(release, artifactPrefix));
 
 		JadxPluginMetadata metadata = new JadxPluginMetadata();
 		metadata.setResolverId(id());
@@ -72,6 +72,13 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 		metadata.setLocationId(buildLocationId(owner, project, artifactPrefix)); // exclude version for later updates
 		metadata.setJar(asset.getDownloadUrl());
 		return Optional.of(metadata);
+	}
+
+	private @NotNull Asset searchIgnoringVersion(Release release, String artifactPrefix) {
+		return release.getAssets().stream()
+				.filter(a -> a.getName().startsWith(artifactPrefix) && a.getName().startsWith(".jar"))
+				.findFirst()
+				.orElseThrow(() -> new RuntimeException("Release artifact with prefix '" + artifactPrefix + "' not found"));
 	}
 
 	@NotNull

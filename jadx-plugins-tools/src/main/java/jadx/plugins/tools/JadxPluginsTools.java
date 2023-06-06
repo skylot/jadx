@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +46,7 @@ public class JadxPluginsTools {
 
 	private JadxPluginsTools() {
 		ProjectDirectories jadxDirs = ProjectDirectories.from("io.github", "skylot", "jadx");
-		Path plugins = Paths.get(jadxDirs.configDir, "plugins"); // TODO: use dataDir?
+		Path plugins = Paths.get(jadxDirs.configDir, "plugins");
 		makeDirs(plugins);
 		pluginsJson = plugins.resolve("plugins.json");
 		dropins = plugins.resolve("dropins");
@@ -165,7 +165,9 @@ public class JadxPluginsTools {
 		}
 		fillPluginInfoFromJar(metadata, tmpJar);
 
-		Path pluginJar = installed.resolve(metadata.getPluginId() + '-' + metadata.getVersion() + ".jar");
+		String version = metadata.getVersion();
+		String fileName = metadata.getPluginId() + (version != null ? '-' + version : "") + ".jar";
+		Path pluginJar = installed.resolve(fileName);
 		copyJar(tmpJar, pluginJar);
 		metadata.setJar(installed.relativize(pluginJar).toString());
 
@@ -195,7 +197,7 @@ public class JadxPluginsTools {
 	}
 
 	private void downloadJar(String sourceJar, Path destPath) {
-		try (InputStream in = new URL(sourceJar).openStream()) {
+		try (InputStream in = URI.create(sourceJar).toURL().openStream()) {
 			Files.copy(in, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to download jar: " + sourceJar, e);

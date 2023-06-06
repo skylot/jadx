@@ -1,9 +1,9 @@
 package jadx.gui.utils.plugins;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
@@ -15,15 +15,15 @@ import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 /**
- * Collect options from all plugins.
+ * Collect all plugins.
  * Init not yet loaded plugins in new temporary context.
  * Support case if decompiler in wrapper not initialized yet.
  */
-public class CollectPluginOptions {
+public class CollectPlugins {
 
 	private final MainWindow mainWindow;
 
-	public CollectPluginOptions(MainWindow mainWindow) {
+	public CollectPlugins(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 	}
 
@@ -50,9 +50,6 @@ public class CollectPluginOptions {
 			pluginManager.init(missingPlugins);
 			allPlugins.addAll(missingPlugins);
 		}
-		return allPlugins.stream()
-				.filter(context -> context.getOptions() != null)
-				.sorted()
-				.collect(Collectors.toList());
+		return new ArrayList<>(allPlugins);
 	}
 }

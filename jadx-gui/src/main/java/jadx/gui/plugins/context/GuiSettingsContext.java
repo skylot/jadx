@@ -5,8 +5,8 @@ import java.util.List;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiSettings;
 import jadx.api.plugins.options.OptionDescription;
-import jadx.gui.settings.ui.PluginsSettings;
 import jadx.gui.settings.ui.SubSettingsGroup;
+import jadx.gui.settings.ui.plugins.PluginsSettings;
 import jadx.gui.ui.MainWindow;
 
 public class GuiSettingsContext implements JadxGuiSettings {
@@ -17,7 +17,7 @@ public class GuiSettingsContext implements JadxGuiSettings {
 	}
 
 	@Override
-	public void setCustomSettings(ISettingsGroup group) {
+	public void setCustomSettingsGroup(ISettingsGroup group) {
 		guiPluginContext.setCustomSettings(group);
 	}
 

@@ -40,8 +40,8 @@ public class LafManager {
 	public static void updateLaf(JadxSettings settings) {
 		if (setupLaf(getThemeClass(settings))) {
 			// update all components
-			FlatLaf.updateUI();
 			FlatAnimatedLafChange.hideSnapshotWithAnimation();
+			FlatLaf.updateUI();
 		}
 	}
 

@@ -1,12 +1,13 @@
 package jadx.plugins.tools.data;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String pluginId;
 	private String name;
 	private String description;
-	private String version;
+	private @Nullable String version;
 	private String locationId;
 	private String resolverId;
 	private String jar;
@@ -27,7 +28,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 		this.name = name;
 	}
 
-	public String getVersion() {
+	public @Nullable String getVersion() {
 		return version;
 	}
 
@@ -93,7 +94,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 		return "JadxPluginMetadata{"
 				+ "id=" + pluginId
 				+ ", name=" + name
-				+ ", version=" + version
+				+ ", version=" + (version != null ? version : "?")
 				+ ", locationId=" + locationId
 				+ ", jar=" + jar
 				+ '}';

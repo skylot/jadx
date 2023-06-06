@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JMenu;
-
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +39,7 @@ public class CommonGuiPluginsContext {
 
 	public void reset() {
 		codePopupActionList.clear();
-		JMenu pluginsMenu = mainWindow.getPluginsMenu();
-		pluginsMenu.removeAll();
-		pluginsMenu.setVisible(false);
+		mainWindow.resetPluginsMenu();
 	}
 
 	public MainWindow getMainWindow() {
@@ -63,9 +59,7 @@ public class CommonGuiPluginsContext {
 			}
 		});
 		item.setNameAndDesc(name);
-		JMenu pluginsMenu = mainWindow.getPluginsMenu();
-		pluginsMenu.add(item);
-		pluginsMenu.setVisible(true);
+		mainWindow.addToPluginsMenu(item);
 	}
 
 	public void appendPopupMenus(CodeArea codeArea, JNodePopupBuilder popup) {

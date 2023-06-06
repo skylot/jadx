@@ -1,6 +1,5 @@
 package jadx.plugins.script
 
-import jadx.api.JadxDecompiler
 import jadx.api.plugins.JadxPluginContext
 import jadx.plugins.script.runtime.JadxScriptData
 import jadx.plugins.script.runtime.JadxScriptTemplate
@@ -18,13 +17,15 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.system.measureTimeMillis
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class ScriptEval {
 
 	private val scriptingHost = BasicJvmScriptingHost()
 
 	fun process(init: JadxPluginContext, scriptOptions: JadxScriptAllOptions): List<JadxScriptData> {
-		val jadx = init.decompiler as JadxDecompiler
+		val jadx = init.decompiler
 		val scripts = jadx.args.inputFiles.filter { f -> f.name.endsWith(".jadx.kts") }
 		if (scripts.isEmpty()) {
 			return emptyList()
@@ -60,7 +61,7 @@ class ScriptEval {
 			val result = scriptingHost.eval(scriptData.scriptFile.toScriptSource(), compilationConf, evalConf)
 			processEvalResult(result, scriptData)
 		}
-		scriptData.log.debug { "Script '${scriptData.scriptName}' executed in $execTime ms" }
+		scriptData.log.debug { "Script '${scriptData.scriptName}' executed in ${execTime.toDuration(DurationUnit.MILLISECONDS)}" }
 	}
 
 	private fun processEvalResult(res: ResultWithDiagnostics<EvaluationResult>, scriptData: JadxScriptData) {

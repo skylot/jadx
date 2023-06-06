@@ -37,6 +37,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +55,14 @@ import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
+import jadx.gui.settings.ui.plugins.PluginsSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -82,6 +85,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient LangLocale prevLang;
 
 	private transient boolean needReload = false;
+	private SettingsTree tree;
 
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
@@ -91,6 +95,7 @@ public class JadxSettingsWindow extends JDialog {
 		this.prevLang = settings.getLangLocale();
 
 		initUI();
+		mainWindow.events().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, r -> UiUtils.uiRun(this::reloadUI));
 
 		setTitle(NLS.str("preferences.title"));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -103,10 +108,18 @@ public class JadxSettingsWindow extends JDialog {
 		}
 	}
 
+	private void reloadUI() {
+		TreePath selectionPath = tree.getSelectionPath();
+		mainWindow.getSettings().saveWindowPos(this);
+		getContentPane().removeAll();
+		initUI();
+		pack();
+		mainWindow.getSettings().loadWindowPos(this);
+		tree.setSelectionPath(selectionPath);
+	}
+
 	private void initUI() {
-		JPanel groupPanel = new JPanel();
-		groupPanel.setLayout(new BoxLayout(groupPanel, BoxLayout.LINE_AXIS));
-		groupPanel.setBorder(BorderFactory.createEmptyBorder(10, 3, 3, 10));
+		JPanel wrapGroupPanel = new JPanel(new BorderLayout(10, 10));
 
 		List<ISettingsGroup> groups = new ArrayList<>();
 		groups.add(makeDecompilationGroup());
@@ -118,18 +131,15 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(new PluginsSettings(mainWindow, settings).build());
 		groups.add(makeOtherGroup());
 
-		SettingsTree tree = new SettingsTree();
-		tree.init(groupPanel, groups);
+		tree = new SettingsTree();
+		tree.init(wrapGroupPanel, groups);
 		JScrollPane leftPane = new JScrollPane(tree);
 		leftPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 3, 3));
-
-		JPanel wrapGroupPanel = new JPanel(new BorderLayout());
-		wrapGroupPanel.add(groupPanel, BorderLayout.PAGE_START);
 
 		JScrollPane rightPane = new JScrollPane(wrapGroupPanel);
 		rightPane.getVerticalScrollBar().setUnitIncrement(16);
 		rightPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		rightPane.setBorder(BorderFactory.createEmptyBorder());
+		rightPane.setBorder(BorderFactory.createEmptyBorder(10, 3, 3, 10));
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.2);

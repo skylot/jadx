@@ -1,4 +1,4 @@
-package jadx.gui.settings.ui;
+package jadx.gui.settings.ui.plugins;
 
 import java.awt.event.ItemEvent;
 import java.util.List;
@@ -11,13 +11,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -25,13 +25,18 @@ import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.options.OptionType;
 import jadx.core.plugins.PluginContext;
+import jadx.core.utils.Utils;
 import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.ui.SettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.plugins.CollectPluginOptions;
+import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.plugins.CollectPlugins;
 import jadx.gui.utils.ui.DocumentUpdateListener;
+import jadx.plugins.tools.JadxPluginsTools;
+import jadx.plugins.tools.data.JadxPluginUpdate;
 
 public class PluginsSettings {
 	private static final Logger LOG = LoggerFactory.getLogger(PluginsSettings.class);
@@ -44,12 +49,11 @@ public class PluginsSettings {
 		this.settings = settings;
 	}
 
-	public SettingsGroup build() {
-		SettingsGroup pluginsGroup = new SubSettingsGroup(NLS.str("preferences.plugins"));
-		fillMainSettings(pluginsGroup);
-		List<PluginContext> list = new CollectPluginOptions(mainWindow).build();
+	public ISettingsGroup build() {
+		List<PluginContext> list = new CollectPlugins(mainWindow).build();
+		ISettingsGroup pluginsGroup = new PluginsSettingsGroup(this, list);
 		for (PluginContext context : list) {
-			ISettingsGroup pluginGroup = buildPluginGroup(context);
+			ISettingsGroup pluginGroup = addPluginGroup(context);
 			if (pluginGroup != null) {
 				pluginsGroup.getSubGroups().add(pluginGroup);
 			}
@@ -57,12 +61,37 @@ public class PluginsSettings {
 		return pluginsGroup;
 	}
 
-	private void fillMainSettings(SettingsGroup settingsGroup) {
-		JPanel panel = settingsGroup.getPanel();
-		panel.add(new JPanel());
+	public void addPlugin() {
+		new InstallPluginDialog(mainWindow).setVisible(true);
 	}
 
-	private ISettingsGroup buildPluginGroup(PluginContext context) {
+	public void uninstall(String pluginId) {
+		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.uninstalling"), () -> {
+			boolean success = JadxPluginsTools.getInstance().uninstall(pluginId);
+			if (success) {
+				LOG.debug("Uninstall complete");
+				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
+				UiUtils.uiRun(mainWindow::reopen);
+			} else {
+				LOG.debug("Uninstall failed");
+			}
+		});
+	}
+
+	void updateAll() {
+		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.updating"), () -> {
+			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
+			if (!updates.isEmpty()) {
+				LOG.debug("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
+				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
+				UiUtils.uiRun(mainWindow::reopen);
+			} else {
+				LOG.debug("No updates found");
+			}
+		});
+	}
+
+	private ISettingsGroup addPluginGroup(PluginContext context) {
 		JadxGuiContext guiContext = context.getGuiContext();
 		if (guiContext instanceof GuiPluginContext) {
 			GuiPluginContext pluginGuiContext = ((GuiPluginContext) guiContext);

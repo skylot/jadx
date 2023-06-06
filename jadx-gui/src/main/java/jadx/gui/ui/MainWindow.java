@@ -104,6 +104,7 @@ import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
+import jadx.gui.settings.ui.plugins.InstallPluginDialog;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
@@ -482,6 +483,7 @@ public class MainWindow extends JFrame {
 
 	private void loadFiles(Runnable onFinish) {
 		if (project.getFilePaths().isEmpty()) {
+			tabbedPane.showNode(new StartPageNode());
 			return;
 		}
 		AtomicReference<Exception> wrapperException = new AtomicReference<>();
@@ -1123,7 +1125,7 @@ public class MainWindow extends JFrame {
 
 		pluginsMenu = new JMenu(NLS.str("menu.plugins"));
 		pluginsMenu.setMnemonic(KeyEvent.VK_P);
-		pluginsMenu.setVisible(false);
+		resetPluginsMenu();
 
 		JMenu tools = new JMenu(NLS.str("menu.tools"));
 		tools.setMnemonic(KeyEvent.VK_T);
@@ -1637,6 +1639,19 @@ public class MainWindow extends JFrame {
 
 	public JMenu getPluginsMenu() {
 		return pluginsMenu;
+	}
+
+	public void resetPluginsMenu() {
+		pluginsMenu.removeAll();
+		pluginsMenu.add(new ActionHandler(() -> new InstallPluginDialog(this).setVisible(true))
+				.withNameAndDesc(NLS.str("preferences.plugins.install")));
+	}
+
+	public void addToPluginsMenu(Action item) {
+		if (pluginsMenu.getMenuComponentCount() == 1) {
+			pluginsMenu.addSeparator();
+		}
+		pluginsMenu.add(item);
 	}
 
 	public RenameMappingsGui getRenameMappings() {
