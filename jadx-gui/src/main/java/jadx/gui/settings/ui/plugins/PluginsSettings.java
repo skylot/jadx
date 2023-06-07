@@ -69,11 +69,11 @@ public class PluginsSettings {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.uninstalling"), () -> {
 			boolean success = JadxPluginsTools.getInstance().uninstall(pluginId);
 			if (success) {
-				LOG.debug("Uninstall complete");
+				LOG.info("Uninstall complete");
 				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
 				UiUtils.uiRun(mainWindow::reopen);
 			} else {
-				LOG.debug("Uninstall failed");
+				LOG.warn("Uninstall failed");
 			}
 		});
 	}
@@ -82,11 +82,11 @@ public class PluginsSettings {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.updating"), () -> {
 			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
 			if (!updates.isEmpty()) {
-				LOG.debug("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
+				LOG.info("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
 				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
 				UiUtils.uiRun(mainWindow::reopen);
 			} else {
-				LOG.debug("No updates found");
+				LOG.info("No updates found");
 			}
 		});
 	}
