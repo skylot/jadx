@@ -29,7 +29,7 @@ class TestKotlinMetadata : SmaliTest() {
 				}
 			}
 		}
-	*/
+	 */
 	// @formatter:on
 
 	@Test

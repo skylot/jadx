@@ -43,7 +43,7 @@ private fun IAnnotation.getParamsAsList(paramName: String): List<EncodedValue>? 
 private fun IAnnotation.getParamAsStringArray(paramName: String): Array<String>? {
 	return getParamsAsList(paramName)
 		?.map<EncodedValue, Any?>(EncodedValue::getValue)
-		?.onEach { if (it != null && it !is String) /* TODO is this valid ? */ return@onEach }
+		?.onEach { if (it != null && it !is String) return@onEach }
 		?.map { "$it" }
 		?.toTypedArray()
 }

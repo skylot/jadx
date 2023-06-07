@@ -59,6 +59,6 @@ jadx.afterLoad {
 		Start full decompilation (optional):
 		1. jadx-cli start decompilation automatically
 		2. jadx-gui start decompilation only on class open or search, so you might need to force it
-	*/
+	 */
 	// jadx.decompile.all()
 }

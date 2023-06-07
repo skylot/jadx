@@ -72,7 +72,7 @@ class ScriptEval {
 				Severity.FATAL, Severity.ERROR -> log.error(r.exception) { "Script execution error: $msg" }
 				Severity.WARNING -> log.warn { "Script execution issue: $msg" }
 				Severity.INFO -> log.info { "Script report: $msg" }
-				Severity.DEBUG -> {} /* ignore, too verbose */
+				Severity.DEBUG -> {} // ignore, too verbose
 			}
 		}
 		when (res) {

@@ -42,7 +42,8 @@ class KotlinMetadataDecompilePass(
 		return false
 	}
 
-	override fun visit(mth: MethodNode?) { /* no op */
+	override fun visit(mth: MethodNode?) {
+		/* no op */
 	}
 
 	private fun renameMethodArgs(wrapper: KmClassWrapper) {
