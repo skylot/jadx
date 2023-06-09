@@ -214,10 +214,40 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	@Nullable
+	public JNode getEnclosingNodeUnderCaret() {
+		int caretPos = getCaretPosition();
+		Token token = modelToToken(caretPos);
+		if (token == null) {
+			return null;
+		}
+		int start = adjustOffsetForToken(token);
+		if (start == -1) {
+			start = caretPos;
+		}
+		return getEnclosingJNodeAtOffset(start);
+	}
+
+	@Nullable
 	public JNode getNodeUnderMouse() {
 		Point pos = UiUtils.getMousePosition(this);
 		int offset = adjustOffsetForToken(viewToToken(pos));
 		return getJNodeAtOffset(offset);
+	}
+
+	@Nullable
+	public JNode getEnclosingNodeUnderMouse() {
+		Point pos = UiUtils.getMousePosition(this);
+		int offset = adjustOffsetForToken(viewToToken(pos));
+		return getEnclosingJNodeAtOffset(offset);
+	}
+
+	@Nullable
+	public JNode getEnclosingJNodeAtOffset(int offset) {
+		JavaNode javaNode = getEnclosingJavaNode(offset);
+		if (javaNode != null) {
+			return convertJavaNode(javaNode);
+		}
+		return null;
 	}
 
 	@Nullable
@@ -247,6 +277,15 @@ public final class CodeArea extends AbstractCodeArea {
 	public JavaNode getClosestJavaNode(int offset) {
 		try {
 			return getJadxWrapper().getDecompiler().getClosestJavaNode(getCodeInfo(), offset);
+		} catch (Exception e) {
+			LOG.error("Can't get java node by offset: {}", offset, e);
+			return null;
+		}
+	}
+
+	public JavaNode getEnclosingJavaNode(int offset) {
+		try {
+			return getJadxWrapper().getDecompiler().getEnclosingNode(getCodeInfo(), offset);
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", offset, e);
 			return null;
