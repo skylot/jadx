@@ -40,6 +40,17 @@ class Gui(
 		context().copyToClipboard(str)
 	}
 
+	fun open(ref: ICodeNodeRef): Boolean = context().open(ref)
+
+	val nodeUnderCaret: ICodeNodeRef?
+		get() = context().nodeUnderCaret
+	val nodeUnderMouse: ICodeNodeRef?
+		get() = context().nodeUnderMouse
+	val enclosingNodeUnderCaret: ICodeNodeRef?
+		get() = context().enclosingNodeUnderCaret
+	val enclosingNodeUnderMouse: ICodeNodeRef?
+		get() = context().enclosingNodeUnderMouse
+
 	private fun context(): JadxGuiContext =
 		guiContext ?: throw IllegalStateException("GUI plugins context not available!")
 }

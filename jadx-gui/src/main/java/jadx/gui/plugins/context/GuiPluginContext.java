@@ -1,5 +1,6 @@
 package jadx.gui.plugins.context;
 
+import java.awt.Container;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -14,7 +15,15 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.gui.JadxGuiSettings;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.plugins.PluginContext;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.UiUtils;
 
 public class GuiPluginContext implements JadxGuiContext {
@@ -86,4 +95,85 @@ public class GuiPluginContext implements JadxGuiContext {
 	public @Nullable ISettingsGroup getCustomSettingsGroup() {
 		return customSettingsGroup;
 	}
+
+	@Nullable
+	private CodeArea getCodeArea() {
+		Container contentPane = commonContext.getMainWindow().getTabbedPane().getSelectedContentPanel();
+		if (contentPane instanceof AbstractCodeContentPanel) {
+			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPane).getCodeArea();
+			if (codeArea instanceof CodeArea) {
+				return (CodeArea) codeArea;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ICodeNodeRef getNodeUnderCaret() {
+		CodeArea codeArea = getCodeArea();
+		if (codeArea != null) {
+			JNode nodeUnderCaret = codeArea.getNodeUnderCaret();
+			if (nodeUnderCaret != null) {
+				return nodeUnderCaret.getCodeNodeRef();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ICodeNodeRef getNodeUnderMouse() {
+		CodeArea codeArea = getCodeArea();
+		if (codeArea != null) {
+			JNode nodeUnderMouse = codeArea.getNodeUnderMouse();
+			if (nodeUnderMouse != null) {
+				return nodeUnderMouse.getCodeNodeRef();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ICodeNodeRef getEnclosingNodeUnderCaret() {
+		CodeArea codeArea = getCodeArea();
+		if (codeArea != null) {
+			JNode nodeUnderMouse = codeArea.getEnclosingNodeUnderCaret();
+			if (nodeUnderMouse != null) {
+				return nodeUnderMouse.getCodeNodeRef();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ICodeNodeRef getEnclosingNodeUnderMouse() {
+		CodeArea codeArea = getCodeArea();
+		if (codeArea != null) {
+			JNode nodeUnderMouse = codeArea.getEnclosingNodeUnderMouse();
+			if (nodeUnderMouse != null) {
+				return nodeUnderMouse.getCodeNodeRef();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public boolean open(ICodeNodeRef ref) {
+		JNodeCache cache = commonContext.getMainWindow().getWrapper().getCache().getNodeCache();
+		JNode node;
+		if (ref instanceof ClassNode) {
+			node = cache.makeFrom(((ClassNode) ref).getJavaNode());
+		} else if (ref instanceof MethodNode) {
+			node = cache.makeFrom(((MethodNode) ref).getJavaNode());
+		} else if (ref instanceof FieldNode) {
+			node = cache.makeFrom(((FieldNode) ref).getJavaNode());
+		} else {
+			// Package node - cannot jump to it
+			// TODO: Var node - might be possible
+			return false;
+		}
+
+		commonContext.getMainWindow().getTabbedPane().codeJump(node);
+		return true;
+	}
+
 }
