@@ -4,7 +4,6 @@ import jadx.core.dex.nodes.MethodNode
 val jadx = getJadxInstance()
 var savedBookmark: ICodeNodeRef? = null
 
-
 jadx.gui.ifAvailable {
 	addPopupMenuAction(
 		"Set bookmark",
@@ -13,13 +12,11 @@ jadx.gui.ifAvailable {
 		action = ::setBookmark,
 	)
 
-
 	addMenuAction(
 		"Jump to bookmark",
-		action = ::jumpToBookmark
+		action = ::jumpToBookmark,
 	)
 }
-
 
 fun setBookmark(node: ICodeNodeRef) {
 	val enclosing = jadx.gui.enclosingNodeUnderCaret ?: run {

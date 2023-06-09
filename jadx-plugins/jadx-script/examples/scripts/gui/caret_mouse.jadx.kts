@@ -11,7 +11,6 @@ jadx.gui.ifAvailable {
 	)
 }
 
-
 fun runAction(node: ICodeNodeRef) {
 	jadx.log.info { "Node under caret: ${jadx.gui.nodeUnderCaret}" }
 	jadx.log.info { "Enclosing node under caret: ${jadx.gui.enclosingNodeUnderCaret}" }

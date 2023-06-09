@@ -51,12 +51,16 @@ public interface JadxGuiContext {
 	JadxGuiSettings settings();
 
 	ICodeNodeRef getNodeUnderCaret();
+
 	ICodeNodeRef getNodeUnderMouse();
+
 	ICodeNodeRef getEnclosingNodeUnderCaret();
+
 	ICodeNodeRef getEnclosingNodeUnderMouse();
 
 	/**
 	 * Jump to a code ref
+	 *
 	 * @return if successfully jumped to the code ref
 	 */
 	boolean open(ICodeNodeRef ref);
