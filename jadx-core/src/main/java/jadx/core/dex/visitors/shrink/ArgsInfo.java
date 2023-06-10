@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -20,6 +22,7 @@ final class ArgsInfo {
 	private final int pos;
 	private int inlineBorder;
 	private ArgsInfo inlinedInsn;
+	private @Nullable List<ArgsInfo> wrappedInsns;
 
 	public ArgsInfo(InsnNode insn, List<ArgsInfo> argsList, int pos) {
 		this.insn = insn;
@@ -69,7 +72,6 @@ final class ArgsInfo {
 
 	private boolean canMove(int from, int to) {
 		ArgsInfo startInfo = argsList.get(from);
-		List<RegisterArg> movedArgs = startInfo.getArgs();
 		int start = from + 1;
 		if (start == to) {
 			// previous instruction or on edge of inline border
@@ -79,6 +81,7 @@ final class ArgsInfo {
 			throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 		}
 		BitSet movedSet;
+		List<RegisterArg> movedArgs = startInfo.getArgs();
 		if (movedArgs.isEmpty()) {
 			if (startInfo.insn.isConstInsn()) {
 				return true;
@@ -90,7 +93,7 @@ final class ArgsInfo {
 				movedSet.set(arg.getRegNum());
 			}
 		}
-		boolean canReorder = startInfo.insn.canReorder();
+		boolean canReorder = startInfo.canReorder();
 		for (int i = start; i < to; i++) {
 			ArgsInfo argsInfo = argsList.get(i);
 			if (argsInfo.getInlinedInsn() == this) {
@@ -103,6 +106,21 @@ final class ArgsInfo {
 				}
 			} else {
 				if (!curInsn.canReorder() || usedArgAssign(curInsn, movedSet)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean canReorder() {
+		if (!insn.canReorder()) {
+			return false;
+		}
+		List<ArgsInfo> wrapList = wrappedInsns;
+		if (wrapList != null) {
+			for (ArgsInfo wrapInsn : wrapList) {
+				if (!wrapInsn.canReorder()) {
 					return false;
 				}
 			}
@@ -124,6 +142,10 @@ final class ArgsInfo {
 	WrapInfo inline(int assignInsnPos, RegisterArg arg) {
 		ArgsInfo argsInfo = argsList.get(assignInsnPos);
 		argsInfo.inlinedInsn = this;
+		if (wrappedInsns == null) {
+			wrappedInsns = new ArrayList<>(args.size());
+		}
+		wrappedInsns.add(argsInfo);
 		return new WrapInfo(argsInfo.insn, arg);
 	}
 
