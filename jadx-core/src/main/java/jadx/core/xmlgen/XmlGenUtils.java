@@ -28,7 +28,7 @@ public class XmlGenUtils {
 	}
 
 	public static ICodeInfo makeXmlDump(ICodeWriter writer, ResourceStorage resStorage) {
-		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		writer.startLine("<resources>");
 		writer.incIndent();
 
