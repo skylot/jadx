@@ -1,7 +1,7 @@
 plugins {
 	id 'jadx-kotlin'
 	id 'application'
-	id 'edu.sc.seis.launch4j' version '3.0.1'
+	id 'edu.sc.seis.launch4j' version '3.0.3'
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
 	id 'org.beryx.runtime' version '1.13.0'
 }
@@ -17,7 +17,7 @@ dependencies {
 	// jadx-script autocomplete support
 	implementation(project(':jadx-plugins:jadx-script:jadx-script-ide'))
 	implementation(project(':jadx-plugins:jadx-script:jadx-script-runtime'))
-	implementation 'org.jetbrains.kotlin:kotlin-scripting-common:1.8.21'
+	implementation 'org.jetbrains.kotlin:kotlin-scripting-common:1.8.22'
 	implementation 'com.fifesoft:autocomplete:3.3.1'
 
 	// use KtLint for format and check jadx scripts
