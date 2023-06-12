@@ -108,6 +108,7 @@ public class ResXmlGen {
 			String valueStr = vp.decodeValue(ri.getSimpleValue());
 			addSimpleValue(cw, ri.getTypeName(), ri.getTypeName(), "name", ri.getKeyName(), valueStr);
 		} else {
+			boolean skipNamedValues = false;
 			cw.startLine();
 			cw.add('<').add(ri.getTypeName()).add(" name=\"");
 			String itemTag = "item";
@@ -123,6 +124,14 @@ public class ResXmlGen {
 				if (formatValue != null) {
 					cw.add("\" format=\"").add(formatValue);
 				}
+				if (ri.getNamedValues().size() > 1) {
+					for (RawNamedValue rv : ri.getNamedValues()) {
+						if (rv.getNameRef() == ParserConstants.ATTR_MIN) {
+							cw.add("\" min=\"").add(String.valueOf(rv.getRawValue().getData()));
+							skipNamedValues = true;
+						}
+					}
+				}
 			} else {
 				cw.add(ri.getKeyName());
 			}
@@ -135,11 +144,13 @@ public class ResXmlGen {
 			}
 			cw.add("\">");
 
-			cw.incIndent();
-			for (RawNamedValue value : ri.getNamedValues()) {
-				addItem(cw, itemTag, ri.getTypeName(), value);
+			if (!skipNamedValues) {
+				cw.incIndent();
+				for (RawNamedValue value : ri.getNamedValues()) {
+					addItem(cw, itemTag, ri.getTypeName(), value);
+				}
+				cw.decIndent();
 			}
-			cw.decIndent();
 			cw.startLine().add("</").add(ri.getTypeName()).add('>');
 		}
 	}

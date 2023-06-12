@@ -80,6 +80,27 @@ class ResXmlGenTest {
 	}
 
 	@Test
+	void testAttrMin() {
+		ResourceStorage resStorage = new ResourceStorage();
+		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "attr", "size", "");
+		re.setNamedValues(
+				Lists.list(new RawNamedValue(16777216, new RawValue(16, 4)), new RawNamedValue(16777217, new RawValue(16, 1))));
+		resStorage.add(re);
+
+		ValuesParser vp = new ValuesParser(null, resStorage.getResourcesNames());
+		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
+		List<ResContainer> files = resXmlGen.makeResourcesXml();
+
+		assertEquals(1, files.size());
+		assertEquals("res/values/attrs.xml", files.get(0).getFileName());
+		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+				+ "<resources>\n"
+				+ "    <attr name=\"size\" format=\"integer\" min=\"1\">\n"
+				+ "    </attr>\n"
+				+ "</resources>", files.get(0).getText().toString());
+	}
+
+	@Test
 	void testStyle() {
 		ResourceStorage resStorage = new ResourceStorage();
 		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "style", "JadxGui", "");
