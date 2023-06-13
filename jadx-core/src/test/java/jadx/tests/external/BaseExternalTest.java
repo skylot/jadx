@@ -1,6 +1,7 @@
 package jadx.tests.external;
 
 import java.io.File;
+import java.util.function.BiFunction;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -148,26 +150,39 @@ public abstract class BaseExternalTest extends TestUtils {
 
 	private String cutMethodCode(ICodeInfo codeInfo, MethodNode mth) {
 		int startPos = getCommentStartPos(codeInfo, mth.getDefPosition());
-		int stopPos = getNextNodePos(mth, codeInfo);
+		int stopPos = getMethodEnd(mth, codeInfo);
 		return codeInfo.getCodeStr().substring(startPos, stopPos);
 	}
 
-	private int getNextNodePos(MethodNode mth, ICodeInfo codeInfo) {
-		int pos = mth.getDefPosition() + 1;
-		while (true) {
-			ICodeNodeRef nodeBelow = codeInfo.getCodeMetadata().getNodeBelow(pos);
-			if (nodeBelow == null) {
-				return codeInfo.getCodeStr().length();
+	private int getMethodEnd(MethodNode mth, ICodeInfo codeInfo) {
+		// skip nested nodes DEF/END until first unpaired END annotation (end of this method)
+		Integer end = codeInfo.getCodeMetadata().searchDown(mth.getDefPosition() + 1, new BiFunction<>() {
+			int nested = 0;
+
+			@Override
+			public Integer apply(Integer pos, ICodeAnnotation ann) {
+				switch (ann.getAnnType()) {
+					case DECLARATION:
+						ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
+						switch (node.getAnnType()) {
+							case CLASS:
+							case METHOD:
+								nested++;
+								break;
+						}
+						break;
+
+					case END:
+						if (nested == 0) {
+							return pos;
+						}
+						nested--;
+						break;
+				}
+				return null;
 			}
-			if (nodeBelow.getAnnType() != ICodeAnnotation.AnnType.METHOD) {
-				return nodeBelow.getDefPosition();
-			}
-			MethodNode nodeMth = (MethodNode) nodeBelow;
-			if (nodeMth.getParentClass().equals(mth.getParentClass())) { // skip methods from anonymous classes
-				return getCommentStartPos(codeInfo, nodeMth.getDefPosition());
-			}
-			pos = nodeMth.getDefPosition() + 1;
-		}
+		});
+		return end != null ? end : codeInfo.getCodeStr().length();
 	}
 
 	protected int getCommentStartPos(ICodeInfo codeInfo, int pos) {

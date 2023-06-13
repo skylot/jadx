@@ -222,9 +222,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		}
 		if (parentInsn.getType() == InsnType.CONSTRUCTOR) {
 			// don't inline into anonymous call if it can be inlined later
-			ConstructorInsn ctrInsn = (ConstructorInsn) parentInsn;
-			MethodNode ctrMth = mth.root().getMethodUtils().resolveMethod(ctrInsn);
-			if (ctrMth != null && ctrMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+			MethodNode ctrMth = mth.root().getMethodUtils().resolveMethod((ConstructorInsn) parentInsn);
+			if (ctrMth != null
+					&& (ctrMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) || ctrMth.contains(AFlag.ANONYMOUS_CONSTRUCTOR))) {
 				return false;
 			}
 		}

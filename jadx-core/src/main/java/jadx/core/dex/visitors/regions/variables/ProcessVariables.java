@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
-import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -116,15 +116,26 @@ public class ProcessVariables extends AbstractVisitor {
 			}
 
 			private boolean isArgUnused(MethodNode mth, RegisterArg arg) {
-				if (arg.contains(AFlag.REMOVE) || arg.contains(AFlag.SKIP_ARG)) {
+				if (arg.contains(AFlag.REMOVE)) {
 					return true;
 				}
+				// check constructors for removed args
 				InsnNode parentInsn = arg.getParentInsn();
-				if (parentInsn instanceof BaseInvokeNode
-						&& mth.root().getMethodUtils().isSkipArg(((BaseInvokeNode) parentInsn), arg)) {
-					arg.add(AFlag.DONT_GENERATE);
-					arg.add(AFlag.REMOVE);
-					return true;
+				if (parentInsn != null
+						&& parentInsn.getType() == InsnType.CONSTRUCTOR
+						&& parentInsn.contains(AType.METHOD_DETAILS)) {
+					MethodNode resolveMth = mth.root().getMethodUtils().resolveMethod(((ConstructorInsn) parentInsn));
+					if (resolveMth != null && resolveMth.contains(AType.SKIP_MTH_ARGS)) {
+						int insnPos = parentInsn.getArgIndex(arg);
+						List<RegisterArg> mthArgs = resolveMth.getArgRegs();
+						if (0 <= insnPos && insnPos < mthArgs.size()) {
+							RegisterArg mthArg = mthArgs.get(insnPos);
+							if (mthArg.contains(AFlag.REMOVE) && arg.sameType(mthArg)) {
+								arg.add(AFlag.DONT_GENERATE);
+								return true;
+							}
+						}
+					}
 				}
 				return false;
 			}

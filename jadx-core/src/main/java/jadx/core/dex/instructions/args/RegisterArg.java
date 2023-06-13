@@ -185,6 +185,10 @@ public class RegisterArg extends InsnArg implements Named {
 		return regNum == ((RegisterArg) arg).getRegNum();
 	}
 
+	public boolean sameType(InsnArg arg) {
+		return this.getType().equals(arg.getType());
+	}
+
 	public boolean sameCodeVar(RegisterArg arg) {
 		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
 	}
