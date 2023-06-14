@@ -128,9 +128,6 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 
 	private void runScript() {
 		scriptArea.save();
-		if (!checkScript()) {
-			return;
-		}
 		resetResultLabel();
 
 		TabbedPane tabbedPane = getTabbedPane();
