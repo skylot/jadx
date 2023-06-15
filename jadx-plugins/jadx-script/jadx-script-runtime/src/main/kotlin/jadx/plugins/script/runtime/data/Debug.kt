@@ -23,4 +23,12 @@ class Debug(private val jadx: JadxScriptInstance) {
 	fun printPasses() {
 		jadx.internalDecompiler.root.passes.forEach { jadx.log.info { it.name } }
 	}
+
+	fun catchExceptions(label: String = "", code: () -> Unit) {
+		try {
+			code.invoke()
+		} catch (e: Throwable) {
+			jadx.log.error(e) { "Exception in '$label'" }
+		}
+	}
 }

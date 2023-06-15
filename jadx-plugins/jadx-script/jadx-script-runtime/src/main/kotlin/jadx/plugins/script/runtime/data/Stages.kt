@@ -16,7 +16,9 @@ class Stages(private val jadx: JadxScriptInstance) {
 		) {
 			override fun visit(mth: MethodNode) {
 				mth.instructions?.let {
-					block.invoke(mth, it)
+					jadx.debug.catchExceptions("Method instructions visit") {
+						block.invoke(mth, it)
+					}
 				}
 			}
 		})
@@ -37,7 +39,9 @@ class Stages(private val jadx: JadxScriptInstance) {
 		) {
 			override fun visit(mth: MethodNode) {
 				mth.basicBlocks?.let {
-					block.invoke(mth, it)
+					jadx.debug.catchExceptions("Method blocks visit") {
+						block.invoke(mth, it)
+					}
 				}
 			}
 		})
@@ -51,7 +55,9 @@ class Stages(private val jadx: JadxScriptInstance) {
 		) {
 			override fun visit(mth: MethodNode) {
 				mth.region?.let {
-					block.invoke(mth, it)
+					jadx.debug.catchExceptions("Method region visit") {
+						block.invoke(mth, it)
+					}
 				}
 			}
 		})
