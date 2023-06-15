@@ -128,6 +128,9 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 
 	private void runScript() {
 		scriptArea.save();
+		if (!checkScript()) {
+			return;
+		}
 		resetResultLabel();
 
 		TabbedPane tabbedPane = getTabbedPane();
@@ -152,17 +155,17 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			String code = scriptArea.getText();
 			String fileName = scriptArea.getNode().getName();
 
-			ScriptServices scriptServices = new ScriptServices(fileName);
-			ScriptAnalyzeResult result = scriptServices.analyze(code, scriptArea.getCaretPosition());
+			ScriptServices scriptServices = new ScriptServices();
+			ScriptAnalyzeResult result = scriptServices.analyze(fileName, code);
+			boolean success = result.getSuccess();
 			List<ScriptDiagnostic> issues = result.getIssues();
-			boolean success = true;
 			for (ScriptDiagnostic issue : issues) {
 				Severity severity = issue.getSeverity();
 				if (severity == Severity.ERROR || severity == Severity.FATAL) {
 					scriptLog.error("{}", issue.render(false, true, true, true));
 					success = false;
-				} else {
-					scriptLog.warn("Compiler issue: {}", issue);
+				} else if (severity == Severity.WARNING) {
+					scriptLog.warn("Compile issue: {}", issue);
 				}
 			}
 			List<JadxLintError> lintErrs = Collections.emptyList();
@@ -175,7 +178,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			errorService.addLintErrors(lintErrs);
 			errorService.apply();
 			if (!success) {
-				resultLabel.setText("Compiler issues: " + issues.size());
+				resultLabel.setText("Compile issues: " + issues.size());
 				showScriptLog();
 			} else if (!lintErrs.isEmpty()) {
 				resultLabel.setText("Lint issues: " + lintErrs.size());

@@ -17,6 +17,7 @@ class JadxScriptPluginTest {
 		args.inputFiles.run {
 			add(getSampleFile("hello.smali"))
 			add(getSampleFile("test.jadx.kts"))
+			add(getSampleFile("test-deps.jadx.kts"))
 		}
 		val elapsed = measureTimeMillis {
 			JadxDecompiler(args).use { jadx ->

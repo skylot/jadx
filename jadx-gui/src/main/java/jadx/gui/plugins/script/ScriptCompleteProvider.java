@@ -49,7 +49,7 @@ public class ScriptCompleteProvider extends CompletionProviderBase {
 	}
 
 	private final AbstractCodeArea codeArea;
-	private ScriptServices scriptComplete;
+	private ScriptServices scriptServices;
 
 	public ScriptCompleteProvider(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
@@ -60,8 +60,9 @@ public class ScriptCompleteProvider extends CompletionProviderBase {
 			String code = codeArea.getText();
 			int caretPos = codeArea.getCaretPosition();
 			// TODO: resolve error after reusing ScriptCompiler
-			scriptComplete = new ScriptServices(codeArea.getNode().getName());
-			ScriptCompletionResult result = scriptComplete.complete(code, caretPos);
+			scriptServices = new ScriptServices();
+			String scriptName = codeArea.getNode().getName();
+			ScriptCompletionResult result = scriptServices.complete(scriptName, code, caretPos);
 			int replacePos = getReplacePos(caretPos, result);
 			if (!result.getReports().isEmpty()) {
 				LOG.debug("Script completion reports: {}", result.getReports());

@@ -62,6 +62,9 @@ public class ScriptErrorService extends AbstractParser {
 
 	public void addCompilerIssues(List<ScriptDiagnostic> issues) {
 		for (ScriptDiagnostic issue : issues) {
+			if (issue.getSeverity() == ScriptDiagnostic.Severity.DEBUG) {
+				continue;
+			}
 			DefaultParserNotice notice;
 			SourceCode.Location loc = issue.getLocation();
 			if (loc == null) {

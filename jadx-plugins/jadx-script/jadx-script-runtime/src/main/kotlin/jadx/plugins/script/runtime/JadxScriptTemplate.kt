@@ -10,6 +10,7 @@ import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
 import kotlin.script.experimental.api.acceptedLocations
 import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.api.collectedAnnotations
+import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.ide
@@ -28,6 +29,7 @@ import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 
 @KotlinScript(
+	displayName = "Jadx Script",
 	fileExtension = "jadx.kts",
 	compilationConfiguration = JadxScriptConfiguration::class,
 )
@@ -66,7 +68,11 @@ object JadxScriptConfiguration : ScriptCompilationConfiguration({
 		onAnnotations(DependsOn::class, Repository::class, handler = ::configureMavenDepsOnAnnotations)
 	}
 
-	isStandalone(false)
+	isStandalone(true)
+
+	// forcing compiler to not use modules while building script classpath
+	// because shadow jar remove all modules-info.class (https://github.com/johnrengelman/shadow/issues/710)
+	compilerOptions.append("-Xjdk-release=1.8")
 })
 
 private val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), MavenDependenciesResolver())
@@ -75,10 +81,11 @@ fun configureMavenDepsOnAnnotations(context: ScriptConfigurationRefinementContex
 	val annotations = context.collectedData?.get(ScriptCollectedData.collectedAnnotations)
 		?.takeIf { it.isNotEmpty() }
 		?: return context.compilationConfiguration.asSuccess()
-	return runBlocking { resolver.resolveFromScriptSourceAnnotations(annotations) }
-		.onSuccess {
-			context.compilationConfiguration.with {
-				dependencies.append(JvmDependency(it))
-			}.asSuccess()
-		}
+	return runBlocking {
+		resolver.resolveFromScriptSourceAnnotations(annotations)
+	}.onSuccess {
+		context.compilationConfiguration.with {
+			dependencies.append(JvmDependency(it))
+		}.asSuccess()
+	}
 }

@@ -4,15 +4,17 @@ import jadx.plugins.script.ScriptEval
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.scripting.ide_services.compiler.KJvmReplCompilerWithIdeServices
 import kotlin.script.experimental.api.ReplAnalyzerResult
-import kotlin.script.experimental.api.ReplCompletionResult
-import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.SourceCodeCompletionVariant
 import kotlin.script.experimental.api.analysisDiagnostics
+import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.renderedResultType
 import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
+import kotlin.script.experimental.jvm.util.isError
 import kotlin.script.experimental.jvm.util.toSourceCodePosition
 
 const val AUTO_COMPLETE_INSERT_STR = "ABCDEF" // defined at KJvmReplCompleter.INSERTED_STRING
@@ -23,42 +25,55 @@ data class ScriptCompletionResult(
 )
 
 data class ScriptAnalyzeResult(
+	val success: Boolean,
 	val issues: List<ScriptDiagnostic>,
 	val renderType: String?,
-	val reports: List<ScriptDiagnostic>,
 )
 
-class ScriptServices(private val scriptName: String) {
-	private val replCompiler = KJvmReplCompilerWithIdeServices()
-	private val compileConf = ScriptEval().buildCompileConf()
+class ScriptServices {
+	private val compileConf = ScriptEval.compileConf
+	private val replCompiler = KJvmReplCompilerWithIdeServices(
+		compileConf[ScriptCompilationConfiguration.hostConfiguration]
+			?: defaultJvmScriptingHostConfiguration,
+	)
 
-	fun complete(code: String, cursor: Int): ScriptCompletionResult {
-		val result = complete(code.toScriptSource(scriptName), cursor)
+	fun complete(scriptName: String, code: String, cursor: Int): ScriptCompletionResult {
+		val snippet = code.toScriptSource(scriptName)
+		val result = runBlocking {
+			replCompiler.complete(snippet, cursor.toSourceCodePosition(snippet), compileConf)
+		}
 		return ScriptCompletionResult(
 			completions = result.valueOrNull()?.toList() ?: emptyList(),
 			reports = result.reports,
 		)
 	}
 
-	fun analyze(code: String, cursor: Int): ScriptAnalyzeResult {
-		val result = analyze(code.toScriptSource(scriptName), cursor)
-		val analyzerResult = result.valueOrNull()
-		return ScriptAnalyzeResult(
-			issues = analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.toList() ?: emptyList(),
-			renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
-			reports = result.reports,
-		)
-	}
-
-	private fun complete(code: SourceCode, cursor: Int): ResultWithDiagnostics<ReplCompletionResult> {
-		return runBlocking {
-			replCompiler.complete(code, cursor.toSourceCodePosition(code), compileConf)
-		}
-	}
-
-	private fun analyze(code: SourceCode, cursor: Int): ResultWithDiagnostics<ReplAnalyzerResult> {
-		return runBlocking {
-			replCompiler.analyze(code, cursor.toSourceCodePosition(code), compileConf)
+	fun analyze(scriptName: String, code: String): ScriptAnalyzeResult {
+		// TODO: temp solution: analyze do not work with dependencies, use compile instead
+		val sourceCode = code.toScriptSource(scriptName)
+		if (code.contains("@file:DependsOn(")) {
+			val result = runBlocking {
+				ScriptEval().compile(sourceCode)
+			}
+			return ScriptAnalyzeResult(
+				success = !result.isError(),
+				issues = result.reports,
+				renderType = null,
+			)
+		} else {
+			val result = runBlocking {
+				val cursor = SourceCode.Position(0, 0) // not used
+				replCompiler.analyze(sourceCode, cursor, compileConf)
+			}
+			val analyzerResult = result.valueOrNull()
+			val issues = mutableListOf<ScriptDiagnostic>()
+			analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.let(issues::addAll)
+			issues.addAll(result.reports)
+			return ScriptAnalyzeResult(
+				success = !result.isError(),
+				issues = issues,
+				renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
+			)
 		}
 	}
 }
