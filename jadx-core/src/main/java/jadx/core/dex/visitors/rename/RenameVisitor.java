@@ -40,8 +40,6 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void process(RootNode root) {
-		SourceFileRename.process(root);
-
 		UserRenames.apply(root);
 		checkNames(root);
 	}

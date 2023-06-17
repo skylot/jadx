@@ -1,34 +1,79 @@
 package jadx.core.dex.visitors.rename;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BetterName;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxException;
 
-public class SourceFileRename {
+public class SourceFileRename extends AbstractVisitor {
 
-	public static void process(RootNode root) {
-		if (root.getArgs().isUseSourceNameAsClassAlias()) {
-			for (ClassNode cls : root.getClasses()) {
-				if (cls.contains(AFlag.DONT_RENAME)) {
-					continue;
+	@Override
+	public String getName() {
+		return "SourceFileRename";
+	}
+
+	@Override
+	public void init(RootNode root) throws JadxException {
+		if (!root.getArgs().isUseSourceNameAsClassAlias()) {
+			return;
+		}
+		List<ClassNode> classes = root.getClasses();
+		Map<String, Boolean> canUseAlias = new HashMap<>();
+		for (ClassNode cls : classes) {
+			canUseAlias.put(cls.getClassInfo().getShortName(), Boolean.FALSE);
+		}
+		List<ClsRename> renames = new ArrayList<>();
+		for (ClassNode cls : classes) {
+			if (cls.contains(AFlag.DONT_RENAME)) {
+				continue;
+			}
+			String alias = getAliasFromSourceFile(cls);
+			if (alias != null) {
+				Boolean prev = canUseAlias.get(alias);
+				if (prev == null) {
+					canUseAlias.put(alias, Boolean.TRUE);
+					renames.add(new ClsRename(cls, alias));
+				} else if (prev == Boolean.TRUE) {
+					canUseAlias.put(alias, Boolean.FALSE);
 				}
-				String alias = getAliasFromSourceFile(cls);
-				if (alias != null) {
-					cls.rename(alias);
-				}
+			}
+		}
+		for (ClsRename clsRename : renames) {
+			String alias = clsRename.getAlias();
+			if (canUseAlias.get(alias) == Boolean.TRUE) {
+				applyRename(clsRename.getCls(), alias);
 			}
 		}
 	}
 
-	@Nullable
-	private static String getAliasFromSourceFile(ClassNode cls) {
+	private static void applyRename(ClassNode cls, String alias) {
+		if (cls.getClassInfo().hasAlias()) {
+			// ignore source name if current alias is "better"
+			String currentAlias = cls.getAlias();
+			String betterName = BetterName.compareAndGet(alias, currentAlias);
+			if (betterName.equals(currentAlias)) {
+				return;
+			}
+		}
+		cls.getClassInfo().changeShortName(alias);
+		cls.addAttr(new RenameReasonAttr(cls).append("use source file name"));
+	}
+
+	private static @Nullable String getAliasFromSourceFile(ClassNode cls) {
 		SourceFileAttr sourceFileAttr = cls.get(JadxAttrType.SOURCE_FILE);
 		if (sourceFileAttr == null) {
 			return null;
@@ -42,20 +87,32 @@ public class SourceFileRename {
 		if (!NameMapper.isValidAndPrintable(name)) {
 			return null;
 		}
-		ClassNode otherCls = cls.root().resolveClass(cls.getPackage() + '.' + name);
-		if (otherCls != null) {
+		if (name.equals(cls.getName())) {
 			return null;
 		}
-
-		if (cls.getClassInfo().hasAlias()) {
-			// ignore source name if current alias is "better"
-			String currentAlias = cls.getAlias();
-			String betterName = BetterName.compareAndGet(name, currentAlias);
-			if (betterName.equals(currentAlias)) {
-				return null;
-			}
-		}
-		cls.remove(JadxAttrType.SOURCE_FILE);
 		return name;
+	}
+
+	private static final class ClsRename {
+		private final ClassNode cls;
+		private final String alias;
+
+		private ClsRename(ClassNode cls, String alias) {
+			this.cls = cls;
+			this.alias = alias;
+		}
+
+		public ClassNode getCls() {
+			return cls;
+		}
+
+		public String getAlias() {
+			return alias;
+		}
+
+		@Override
+		public String toString() {
+			return "ClsRename{" + cls + " -> '" + alias + "'}";
+		}
 	}
 }

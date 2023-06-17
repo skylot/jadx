@@ -62,6 +62,7 @@ import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.rename.CodeRenameVisitor;
 import jadx.core.dex.visitors.rename.RenameVisitor;
+import jadx.core.dex.visitors.rename.SourceFileRename;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.FinishTypeInference;
@@ -96,6 +97,7 @@ public class Jadx {
 
 		// rename and deobfuscation
 		passes.add(new DeobfuscatorVisitor());
+		passes.add(new SourceFileRename());
 		passes.add(new RenameVisitor());
 		passes.add(new SaveDeobfMapping());
 
