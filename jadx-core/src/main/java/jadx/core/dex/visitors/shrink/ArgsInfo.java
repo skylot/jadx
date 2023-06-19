@@ -13,6 +13,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.EmptyBitSet;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 final class ArgsInfo {
@@ -62,6 +63,27 @@ final class ArgsInfo {
 		return args;
 	}
 
+	public BitSet getArgsSet() {
+		if (args.isEmpty() && Utils.isEmpty(wrappedInsns)) {
+			return EmptyBitSet.EMPTY;
+		}
+		BitSet set = new BitSet();
+		fillArgsSet(set);
+		return set;
+	}
+
+	private void fillArgsSet(BitSet set) {
+		for (RegisterArg arg : args) {
+			set.set(arg.getRegNum());
+		}
+		List<ArgsInfo> wrapList = wrappedInsns;
+		if (wrapList != null) {
+			for (ArgsInfo wrappedInsn : wrapList) {
+				wrappedInsn.fillArgsSet(set);
+			}
+		}
+	}
+
 	public WrapInfo checkInline(int assignPos, RegisterArg arg) {
 		if (assignPos >= inlineBorder || !canMove(assignPos, inlineBorder)) {
 			return null;
@@ -80,18 +102,9 @@ final class ArgsInfo {
 		if (start > to) {
 			throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 		}
-		BitSet movedSet;
-		List<RegisterArg> movedArgs = startInfo.getArgs();
-		if (movedArgs.isEmpty()) {
-			if (startInfo.insn.isConstInsn()) {
-				return true;
-			}
-			movedSet = EmptyBitSet.EMPTY;
-		} else {
-			movedSet = new BitSet();
-			for (RegisterArg arg : movedArgs) {
-				movedSet.set(arg.getRegNum());
-			}
+		BitSet movedSet = startInfo.getArgsSet();
+		if (movedSet == EmptyBitSet.EMPTY && startInfo.insn.isConstInsn()) {
+			return true;
 		}
 		boolean canReorder = startInfo.canReorder();
 		for (int i = start; i < to; i++) {
