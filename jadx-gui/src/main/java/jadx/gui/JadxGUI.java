@@ -37,6 +37,8 @@ public class JadxGUI {
 			SwingUtilities.invokeLater(() -> {
 				MainWindow mw = new MainWindow(settings);
 				mw.init();
+				Desktop application = Desktop.getDesktop();
+				application.setOpenFileHandler(e -> mw.open(e.getFiles().stream().map(i -> i.toPath()).collect(Collectors.toList())));
 			});
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
