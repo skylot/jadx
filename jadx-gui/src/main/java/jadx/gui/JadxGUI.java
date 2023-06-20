@@ -1,11 +1,14 @@
 package jadx.gui;
 
+import java.awt.Desktop;
+
 import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.cli.LogHelper;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
@@ -37,12 +40,24 @@ public class JadxGUI {
 			SwingUtilities.invokeLater(() -> {
 				MainWindow mw = new MainWindow(settings);
 				mw.init();
-				Desktop application = Desktop.getDesktop();
-				application.setOpenFileHandler(e -> mw.open(e.getFiles().stream().map(i -> i.toPath()).collect(Collectors.toList())));
+				registerOpenFileHandler(mw);
 			});
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);
+		}
+	}
+
+	private static void registerOpenFileHandler(MainWindow mw) {
+		try {
+			if (Desktop.isDesktopSupported()) {
+				Desktop desktop = Desktop.getDesktop();
+				if (desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
+					desktop.setOpenFileHandler(e -> mw.open(FileUtils.toPaths(e.getFiles())));
+				}
+			}
+		} catch (Throwable e) {
+			LOG.error("Failed to register open file handler", e);
 		}
 	}
 
