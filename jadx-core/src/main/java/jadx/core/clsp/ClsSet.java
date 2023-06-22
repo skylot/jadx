@@ -47,6 +47,7 @@ public class ClsSet {
 
 	private static final String CLST_EXTENSION = ".jcst";
 	private static final String CLST_FILENAME = "core" + CLST_EXTENSION;
+
 	private static final String CLST_PATH = "/clst/" + CLST_FILENAME;
 
 	private static final String JADX_CLS_SET_HEADER = "jadx-cst";
@@ -97,7 +98,17 @@ public class ClsSet {
 			ArgType clsType = cls.getClassInfo().getType();
 			String clsRawName = clsType.getObject();
 			cls.load();
-			ClspClass nClass = new ClspClass(clsType, k);
+
+			ClspClassSource source;
+			int idx = cls.getClsData().getInputFileName().indexOf(':');
+			if (idx > -1) {
+				String sourceFile = cls.getClsData().getInputFileName().substring(0, idx);
+				source = ClspClassSource.getClspClassSource(sourceFile);
+			} else {
+				source = ClspClassSource.APP;
+			}
+
+			ClspClass nClass = new ClspClass(clsType, k, source);
 			if (names.put(clsRawName, nClass) != null) {
 				throw new JadxRuntimeException("Duplicate class: " + clsRawName);
 			}
@@ -217,6 +228,7 @@ public class ClsSet {
 		Map<String, ClspClass> names = new HashMap<>(classes.length);
 		out.writeInt(classes.length);
 		for (ClspClass cls : classes) {
+			writeUnsignedByte(out, cls.getSource().ordinal());
 			String clsName = cls.getName();
 			writeString(out, clsName);
 			names.put(clsName, cls);
@@ -343,8 +355,12 @@ public class ClsSet {
 			int clsCount = in.readInt();
 			classes = new ClspClass[clsCount];
 			for (int i = 0; i < clsCount; i++) {
+				int source = readUnsignedByte(in);
+				if (source < 0 || source > ClspClassSource.values().length) {
+					throw new DecodeException("Wrong jadx source identifier");
+				}
 				String name = readString(in);
-				classes[i] = new ClspClass(ArgType.object(name), i);
+				classes[i] = new ClspClass(ArgType.object(name), i, ClspClassSource.values()[source]);
 			}
 			for (int i = 0; i < clsCount; i++) {
 				ClspClass nClass = classes[i];

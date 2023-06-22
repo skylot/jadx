@@ -26,6 +26,11 @@ public class ConvertToClsSet {
 
 	public static void usage() {
 		LOG.info("<output .jcst or .jar file> <several input dex or jar files> ");
+		LOG.info("Arguments to update core.jcst: "
+				+ "<jadx root>/jadx-core/src/main/resources/clst/core.jcst "
+				+ "<sdk_root>/platforms/android-<api level>/android.jar"
+				+ "<sdk_root>/platforms/android-<api level>/optional/android.car.jar "
+				+ "<sdk_root>/platforms/android-<api level>/optional/org.apache.http.legacy.jar");
 	}
 
 	public static void main(String[] args) throws Exception {
