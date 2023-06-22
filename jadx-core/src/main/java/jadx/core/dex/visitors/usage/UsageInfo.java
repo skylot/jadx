@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 
 import jadx.api.usage.IUsageInfoData;
 import jadx.api.usage.IUsageInfoVisitor;
+import jadx.core.clsp.ClspClass;
+import jadx.core.clsp.ClspClassSource;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -113,6 +115,10 @@ public class UsageInfo implements IUsageInfoData {
 			return;
 		}
 		if (type.isObject() && !type.isGenericType()) {
+			ClspClass clsDetails = root.getClsp().getClsDetails(type);
+			if (clsDetails != null && clsDetails.getSource() == ClspClassSource.APACHE_HTTP_LEGACY_CLIENT) {
+				root.getGradleInfoStorage().setUseApacheHttpLegacy(true);
+			}
 			ClassNode clsNode = root.resolveClass(type);
 			if (clsNode != null) {
 				consumer.accept(clsNode);
