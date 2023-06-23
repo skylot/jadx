@@ -4,18 +4,19 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class BinaryXMLStrings {
-	final private int stringCount;
+	private final int stringCount;
 
-	final private long stringsStart;
+	private final long stringsStart;
 
-	final private ByteBuffer buffer;
+	private final ByteBuffer buffer;
 
-	final private boolean isUtf8;
+	private final boolean isUtf8;
 
 	// This cache include strings that have been overridden by the deobfuscator.
-	final private HashMap<Integer, String> cache = new HashMap<>();
+	private final Map<Integer, String> cache = new HashMap<>();
 
 	public BinaryXMLStrings() {
 		stringCount = 0;

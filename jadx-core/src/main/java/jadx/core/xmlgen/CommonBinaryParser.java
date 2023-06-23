@@ -1,7 +1,6 @@
 package jadx.core.xmlgen;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public class CommonBinaryParser extends ParserConstants {
 	protected ParserStream is;
@@ -32,8 +31,7 @@ public class CommonBinaryParser extends ParserConstants {
 				stringCount,
 				stringsStart,
 				buffer,
-				(flags & UTF8_FLAG) != 0
-		);
+				(flags & UTF8_FLAG) != 0);
 	}
 
 	protected void die(String message) throws IOException {

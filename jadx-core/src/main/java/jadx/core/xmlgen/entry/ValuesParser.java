@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import jadx.core.xmlgen.BinaryXMLStrings;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.android.TextResMapFile;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.xmlgen.BinaryXMLStrings;
 import jadx.core.xmlgen.ParserConstants;
 import jadx.core.xmlgen.XmlGenUtils;
 
