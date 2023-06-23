@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jadx.core.xmlgen.BinaryXMLStrings;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +20,10 @@ public class ValuesParser extends ParserConstants {
 
 	private static Map<Integer, String> androidResMap;
 
-	private final String[] strings;
+	private final BinaryXMLStrings strings;
 	private final Map<Integer, String> resMap;
 
-	public ValuesParser(String[] strings, Map<Integer, String> resMap) {
+	public ValuesParser(BinaryXMLStrings strings, Map<Integer, String> resMap) {
 		this.strings = strings;
 		this.resMap = resMap;
 		getAndroidResMap();
@@ -105,7 +106,7 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_NULL:
 				return null;
 			case TYPE_STRING:
-				return strings[data];
+				return strings.get(data);
 			case TYPE_INT_DEC:
 				return Integer.toString(data);
 			case TYPE_INT_HEX:

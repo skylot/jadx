@@ -9,5 +9,5 @@ public interface IResParser {
 
 	ResourceStorage getResStorage();
 
-	String[] getStrings();
+	BinaryXMLStrings getStrings();
 }
