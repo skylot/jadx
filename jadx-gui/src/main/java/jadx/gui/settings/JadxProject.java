@@ -65,7 +65,9 @@ public class JadxProject {
 
 	public void fillJadxArgs(JadxArgs jadxArgs) {
 		jadxArgs.setInputFiles(FileUtils.toFiles(getFilePaths()));
-		jadxArgs.setUserRenamesMappingsPath(getMappingsPath());
+		if (jadxArgs.getUserRenamesMappingsPath() == null) {
+			jadxArgs.setUserRenamesMappingsPath(getMappingsPath());
+		}
 		jadxArgs.setCodeData(getCodeData());
 		jadxArgs.getPluginOptions().putAll(data.getPluginOptions());
 	}
