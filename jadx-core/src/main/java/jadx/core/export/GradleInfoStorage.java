@@ -6,6 +6,8 @@ public class GradleInfoStorage {
 
 	private boolean vectorFillType;
 
+	private boolean useApacheHttpLegacy;
+
 	public boolean isVectorPathData() {
 		return vectorPathData;
 	}
@@ -20,5 +22,13 @@ public class GradleInfoStorage {
 
 	public void setVectorFillType(boolean vectorFillType) {
 		this.vectorFillType = vectorFillType;
+	}
+
+	public boolean isUseApacheHttpLegacy() {
+		return useApacheHttpLegacy;
+	}
+
+	public void setUseApacheHttpLegacy(boolean useApacheHttpLegacy) {
+		this.useApacheHttpLegacy = useApacheHttpLegacy;
 	}
 }

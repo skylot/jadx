@@ -20,9 +20,18 @@ public class ClspClass {
 	private Map<String, ClspMethod> methodsMap = Collections.emptyMap();
 	private List<ArgType> typeParameters = Collections.emptyList();
 
+	private ClspClassSource source;
+
 	public ClspClass(ArgType clsType, int id) {
 		this.clsType = clsType;
 		this.id = id;
+		this.source = ClspClassSource.APP;
+	}
+
+	public ClspClass(ArgType clsType, int id, ClspClassSource source) {
+		this.clsType = clsType;
+		this.id = id;
+		this.source = source;
 	}
 
 	public String getName() {
@@ -74,6 +83,10 @@ public class ClspClass {
 
 	public void setTypeParameters(List<ArgType> typeParameters) {
 		this.typeParameters = typeParameters;
+	}
+
+	public ClspClassSource getSource() {
+		return this.source;
 	}
 
 	@Override

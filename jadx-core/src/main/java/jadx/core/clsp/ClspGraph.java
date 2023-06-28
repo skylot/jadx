@@ -38,7 +38,7 @@ public class ClspGraph {
 		this.root = rootNode;
 	}
 
-	public void load() throws IOException, DecodeException {
+	public void loadClsSetFile() throws IOException, DecodeException {
 		ClsSet set = new ClsSet(root);
 		set.loadFromClstFile();
 		addClasspath(set);
@@ -55,7 +55,7 @@ public class ClspGraph {
 
 	public void addApp(List<ClassNode> classes) {
 		if (nameMap == null) {
-			throw new JadxRuntimeException("Classpath must be loaded first");
+			nameMap = new HashMap<>(classes.size());
 		}
 		for (ClassNode cls : classes) {
 			addClass(cls);

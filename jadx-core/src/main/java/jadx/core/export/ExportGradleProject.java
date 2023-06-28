@@ -80,6 +80,9 @@ public class ExportGradleProject {
 		if (gradleInfo.isVectorPathData() && minSdkVersion < 21 || gradleInfo.isVectorFillType() && minSdkVersion < 24) {
 			additionalOptions.add("vectorDrawables.useSupportLibrary = true");
 		}
+		if (gradleInfo.isUseApacheHttpLegacy()) {
+			additionalOptions.add("useLibrary 'org.apache.http.legacy'");
+		}
 		genAdditionalAndroidPluginOptions(tmpl, additionalOptions);
 
 		tmpl.save(new File(appDir, "build.gradle"));
