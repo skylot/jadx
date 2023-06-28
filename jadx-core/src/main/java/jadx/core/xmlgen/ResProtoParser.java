@@ -39,7 +39,7 @@ public class ResProtoParser implements IResParser {
 
 	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
 		decode(inputStream);
-		ValuesParser vp = new ValuesParser(new String[0], resStorage.getResourcesNames());
+		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
@@ -252,7 +252,7 @@ public class ResProtoParser implements IResParser {
 	}
 
 	@Override
-	public String[] getStrings() {
-		return new String[0];
+	public BinaryXMLStrings getStrings() {
+		return new BinaryXMLStrings();
 	}
 }

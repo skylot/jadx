@@ -45,7 +45,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
 	private ICodeWriter writer;
-	private String[] strings;
+	private BinaryXMLStrings strings;
 	private String currentTag = "ERROR";
 	private boolean firstElement;
 	private ValuesParser valuesParser;
@@ -387,8 +387,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private String getString(int strId) {
-		if (0 <= strId && strId < strings.length) {
-			return strings[strId];
+		if (0 <= strId && strId < strings.size()) {
+			return strings.get(strId);
 		}
 		return "NOT_FOUND_STR_0x" + Integer.toHexString(strId);
 	}

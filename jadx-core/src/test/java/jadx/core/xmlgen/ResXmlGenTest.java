@@ -135,7 +135,9 @@ class ResXmlGenTest {
 		re.setNamedValues(Lists.list());
 		resStorage.add(re);
 
-		ValuesParser vp = new ValuesParser(new String[] { "Jadx Decompiler App" }, resStorage.getResourcesNames());
+		BinaryXMLStrings strings = new BinaryXMLStrings();
+		strings.put(0, "Jadx Decompiler App");
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml();
 
@@ -155,7 +157,9 @@ class ResXmlGenTest {
 				Lists.list(new RawNamedValue(16777216, new RawValue(3, 0))));
 		resStorage.add(re);
 
-		ValuesParser vp = new ValuesParser(new String[] { "Let's go" }, resStorage.getResourcesNames());
+		BinaryXMLStrings strings = new BinaryXMLStrings();
+		strings.put(0, "Let's go");
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml();
 

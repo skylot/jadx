@@ -38,10 +38,10 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	private static final class PackageChunk {
 		private final int id;
 		private final String name;
-		private final String[] typeStrings;
-		private final String[] keyStrings;
+		private final BinaryXMLStrings typeStrings;
+		private final BinaryXMLStrings keyStrings;
 
-		private PackageChunk(int id, String name, String[] typeStrings, String[] keyStrings) {
+		private PackageChunk(int id, String name, BinaryXMLStrings typeStrings, BinaryXMLStrings keyStrings) {
 			this.id = id;
 			this.name = name;
 			this.typeStrings = typeStrings;
@@ -56,11 +56,11 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 			return name;
 		}
 
-		public String[] getTypeStrings() {
+		public BinaryXMLStrings getTypeStrings() {
 			return typeStrings;
 		}
 
-		public String[] getKeyStrings() {
+		public BinaryXMLStrings getKeyStrings() {
 			return keyStrings;
 		}
 	}
@@ -71,7 +71,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	private final boolean useRawResName;
 	private final RootNode root;
 	private final ResourceStorage resStorage = new ResourceStorage();
-	private String[] strings;
+	private BinaryXMLStrings strings;
 
 	public ResTableParser(RootNode root) {
 		this(root, false);
@@ -137,12 +137,12 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 			is.readInt32();
 		}
 
-		String[] typeStrings = null;
+		BinaryXMLStrings typeStrings = null;
 		if (typeStringsOffset != 0) {
 			is.skipToPos(typeStringsOffset, "Expected typeStrings string pool");
 			typeStrings = parseStringPool();
 		}
-		String[] keyStrings = null;
+		BinaryXMLStrings keyStrings = null;
 		if (keyStringsOffset != 0) {
 			is.skipToPos(keyStringsOffset, "Expected keyStrings string pool");
 			keyStrings = parseStringPool();
@@ -185,23 +185,23 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		return pkg;
 	}
 
-	private void deobfKeyStrings(String[] keyStrings) {
-		int keysCount = keyStrings.length;
+	private void deobfKeyStrings(BinaryXMLStrings keyStrings) {
+		int keysCount = keyStrings.size();
 		if (root.getArgs().isRenamePrintable()) {
 			for (int i = 0; i < keysCount; i++) {
-				String keyString = keyStrings[i];
+				String keyString = keyStrings.get(i);
 				if (!NameMapper.isAllCharsPrintable(keyString)) {
-					keyStrings[i] = makeNewKeyName(i);
+					keyStrings.put(i, makeNewKeyName(i));
 				}
 			}
 		}
 		if (root.getArgs().isRenameValid()) {
 			Set<String> keySet = new HashSet<>(keysCount);
 			for (int i = 0; i < keysCount; i++) {
-				String keyString = keyStrings[i];
+				String keyString = keyStrings.get(i);
 				boolean isNew = keySet.add(keyString);
 				if (!isNew) {
-					keyStrings[i] = makeNewKeyName(i);
+					keyStrings.put(i, makeNewKeyName(i));
 				}
 			}
 		}
@@ -274,7 +274,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		EntryConfig config = parseConfig();
 
 		if (config.isInvalid) {
-			String typeName = pkg.getTypeStrings()[id - 1];
+			String typeName = pkg.getTypeStrings().get(id - 1);
 			LOG.warn("Invalid config flags detected: {}{}", typeName, config.getQualifiers());
 		}
 
@@ -351,8 +351,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		}
 
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
-		String typeName = pkg.getTypeStrings()[typeId - 1];
-		String origKeyName = pkg.getKeyStrings()[key];
+		String typeName = pkg.getTypeStrings().get(typeId - 1);
+		String origKeyName = pkg.getKeyStrings().get(key);
 		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(typeName, resRef, origKeyName), config);
 		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 		if (prevResEntry != null) {
@@ -568,7 +568,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	}
 
 	@Override
-	public String[] getStrings() {
+	public BinaryXMLStrings getStrings() {
 		return strings;
 	}
 }
