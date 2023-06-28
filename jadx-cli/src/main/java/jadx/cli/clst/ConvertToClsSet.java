@@ -1,6 +1,5 @@
 package jadx.cli.clst;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
@@ -14,9 +13,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.core.clsp.ClsSet;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.SignatureProcessor;
+import jadx.core.utils.files.FileUtils;
 
 /**
  * Utility class for convert dex or jar to jadx classes set (.jcst)
@@ -33,29 +31,31 @@ public class ConvertToClsSet {
 				+ "<sdk_root>/platforms/android-<api level>/optional/org.apache.http.legacy.jar");
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		if (args.length < 2) {
 			usage();
 			System.exit(1);
 		}
 		List<Path> inputPaths = Stream.of(args).map(Paths::get).collect(Collectors.toList());
 		Path output = inputPaths.remove(0);
-		List<File> inputFiles = inputPaths.stream().map(Path::toFile).collect(Collectors.toList());
 
 		JadxArgs jadxArgs = new JadxArgs();
+		jadxArgs.setInputFiles(FileUtils.toFiles(inputPaths));
+
+		// disable not needed passes executed at prepare stage
+		jadxArgs.setDeobfuscationOn(false);
 		jadxArgs.setRenameFlags(EnumSet.noneOf(JadxArgs.RenameEnum.class));
-		jadxArgs.setInputFiles(inputFiles);
+		jadxArgs.setUseSourceNameAsClassAlias(false);
+		jadxArgs.setMoveInnerClasses(false);
+		jadxArgs.setInlineAnonymousClasses(false);
+		jadxArgs.setInlineMethods(false);
+
+		// don't require/load class set file
+		jadxArgs.setLoadJadxClsSetFile(false);
+
 		try (JadxDecompiler decompiler = new JadxDecompiler(jadxArgs)) {
 			decompiler.load();
 			RootNode root = decompiler.getRoot();
-
-			// from pre-decompilation stage run only SignatureProcessor
-			SignatureProcessor signatureProcessor = new SignatureProcessor();
-			signatureProcessor.init(root);
-			for (ClassNode classNode : root.getClasses()) {
-				signatureProcessor.visit(classNode);
-			}
-
 			ClsSet set = new ClsSet(root);
 			set.loadFrom(root);
 			set.save(output);

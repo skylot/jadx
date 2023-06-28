@@ -245,7 +245,9 @@ public class RootNode {
 		try {
 			if (this.clsp == null) {
 				ClspGraph newClsp = new ClspGraph(this);
-				newClsp.load();
+				if (args.isLoadJadxClsSetFile()) {
+					newClsp.loadClsSetFile();
+				}
 				newClsp.addApp(classes);
 				newClsp.initCache();
 				this.clsp = newClsp;

@@ -6,11 +6,11 @@ public enum ClspClassSource {
 	ANDROID_CAR("android.car.jar"),
 	APACHE_HTTP_LEGACY_CLIENT("org.apache.http.legacy.jar");
 
+	private final String jarFile;
+
 	ClspClassSource(String jarFile) {
 		this.jarFile = jarFile;
 	}
-
-	private String jarFile;
 
 	public String getJarFile() {
 		return jarFile;

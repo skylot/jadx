@@ -157,6 +157,8 @@ public class JadxArgs implements Closeable {
 
 	private JadxPluginLoader pluginLoader = new JadxBasePluginLoader();
 
+	private boolean loadJadxClsSetFile = true;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -650,6 +652,14 @@ public class JadxArgs implements Closeable {
 
 	public void setPluginLoader(JadxPluginLoader pluginLoader) {
 		this.pluginLoader = pluginLoader;
+	}
+
+	public boolean isLoadJadxClsSetFile() {
+		return loadJadxClsSetFile;
+	}
+
+	public void setLoadJadxClsSetFile(boolean loadJadxClsSetFile) {
+		this.loadJadxClsSetFile = loadJadxClsSetFile;
 	}
 
 	/**
