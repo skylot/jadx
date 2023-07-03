@@ -25,6 +25,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.utils.StringUtils;
 
 public class RenameVisitor extends AbstractVisitor {
 	private static final Pattern ANONYMOUS_CLASS_PATTERN = Pattern.compile("^\\d+$");
@@ -125,6 +126,9 @@ public class RenameVisitor extends AbstractVisitor {
 
 	@Nullable
 	private static String fixClsShortName(JadxArgs args, String clsName) {
+		if (StringUtils.isEmpty(clsName)) {
+			return null;
+		}
 		boolean renameValid = args.isRenameValid();
 		if (renameValid) {
 			if (ANONYMOUS_CLASS_PATTERN.matcher(clsName).matches()) {

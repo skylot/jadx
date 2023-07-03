@@ -2,6 +2,8 @@ package jadx.core.dex.info;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.utils.StringUtils;
+
 class ClassAliasInfo {
 	private final String shortName;
 	@Nullable
@@ -10,6 +12,9 @@ class ClassAliasInfo {
 	private String fullName;
 
 	ClassAliasInfo(@Nullable String pkg, String shortName) {
+		if (StringUtils.isEmpty(shortName)) {
+			throw new IllegalArgumentException("Class alias can't be empty");
+		}
 		this.pkg = pkg;
 		this.shortName = shortName;
 	}
