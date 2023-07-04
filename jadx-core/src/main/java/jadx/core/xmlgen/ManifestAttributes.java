@@ -209,9 +209,10 @@ public class ManifestAttributes {
 			if (ri.getTypeName().equals("attr") && ri.getNamedValues().size() > 1) {
 				RawNamedValue first = ri.getNamedValues().get(0);
 				MAttrType attrTyp;
-				if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_FLAGS) {
+				int attrTypeVal = first.getRawValue().getData() & 0xff0000;
+				if (attrTypeVal == ValuesParser.ATTR_TYPE_FLAGS) {
 					attrTyp = MAttrType.FLAG;
-				} else if (first.getRawValue().getData() == ValuesParser.ATTR_TYPE_ENUM || first.getRawValue().getData() == 65600) {
+				} else if (attrTypeVal == ValuesParser.ATTR_TYPE_ENUM) {
 					attrTyp = MAttrType.ENUM;
 				} else {
 					continue;
