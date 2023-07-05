@@ -26,7 +26,7 @@ dependencies {
 	implementation 'com.pinterest.ktlint:ktlint-ruleset-standard:0.49.1'
 
 	implementation 'com.beust:jcommander:1.82'
-	implementation 'ch.qos.logback:logback-classic:1.4.7'
+	implementation 'ch.qos.logback:logback-classic:1.4.8'
 	implementation 'dev.dirs:directories:26'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.3.3'
