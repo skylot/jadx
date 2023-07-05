@@ -17,6 +17,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+import jadx.core.utils.ListUtils;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
@@ -148,6 +149,24 @@ public class TabComponent extends JPanel {
 			JMenuItem closeAll = new JMenuItem(NLS.str("tabs.closeAll"));
 			closeAll.addActionListener(e -> tabbedPane.closeAllTabs());
 			menu.add(closeAll);
+
+			List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
+			if (contentPanel != ListUtils.last(contentPanels)) {
+				JMenuItem closeAllRight = new JMenuItem(NLS.str("tabs.closeAllRight"));
+				closeAllRight.addActionListener(e -> {
+					boolean pastCurrentPanel = false;
+					for (ContentPanel panel : contentPanels) {
+						if (!pastCurrentPanel) {
+							if (panel == contentPanel) {
+								pastCurrentPanel = true;
+							}
+						} else {
+							tabbedPane.closeCodePanel(panel);
+						}
+					}
+				});
+				menu.add(closeAllRight);
+			}
 			menu.addSeparator();
 
 			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
