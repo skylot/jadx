@@ -811,7 +811,13 @@ public class ClassNode extends NotificationAttrNode
 		}
 		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
 		sb.append(ICodeWriter.NL);
-		sb.append(clsData.getDisassembledCode());
+		try {
+			sb.append(clsData.getDisassembledCode());
+		} catch (Throwable e) {
+			sb.append("Failed to disassemble class:");
+			sb.append(ICodeWriter.NL);
+			sb.append(Utils.getStackTrace(e));
+		}
 	}
 
 	public IClassData getClsData() {
