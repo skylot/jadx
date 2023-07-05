@@ -5,7 +5,6 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +17,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+import jadx.core.utils.ListUtils;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
@@ -133,8 +133,7 @@ public class TabComponent extends JPanel {
 		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
 		menu.add(closeTab);
 
-		@SuppressWarnings("checkstyle:IllegalType")
-		LinkedHashMap<JNode, ContentPanel> openTabs = tabbedPane.getOpenTabs();
+		Map<JNode, ContentPanel> openTabs = tabbedPane.getOpenTabs();
 		if (openTabs.size() > 1) {
 			JMenuItem closeOther = new JMenuItem(NLS.str("tabs.closeOthers"));
 			closeOther.addActionListener(e -> {
@@ -151,10 +150,10 @@ public class TabComponent extends JPanel {
 			closeAll.addActionListener(e -> tabbedPane.closeAllTabs());
 			menu.add(closeAll);
 
-			if (contentPanel != openTabs.values().toArray()[openTabs.size() - 1]) {
+			List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
+			if (contentPanel != ListUtils.last(contentPanels)) {
 				JMenuItem closeAllRight = new JMenuItem(NLS.str("tabs.closeAllRight"));
 				closeAllRight.addActionListener(e -> {
-					List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
 					boolean pastCurrentPanel = false;
 					for (ContentPanel panel : contentPanels) {
 						if (!pastCurrentPanel) {
