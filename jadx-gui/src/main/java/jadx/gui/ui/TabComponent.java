@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -132,7 +133,8 @@ public class TabComponent extends JPanel {
 		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
 		menu.add(closeTab);
 
-		Map<JNode, ContentPanel> openTabs = tabbedPane.getOpenTabs();
+		@SuppressWarnings("checkstyle:IllegalType")
+		LinkedHashMap<JNode, ContentPanel> openTabs = tabbedPane.getOpenTabs();
 		if (openTabs.size() > 1) {
 			JMenuItem closeOther = new JMenuItem(NLS.str("tabs.closeOthers"));
 			closeOther.addActionListener(e -> {
@@ -148,6 +150,24 @@ public class TabComponent extends JPanel {
 			JMenuItem closeAll = new JMenuItem(NLS.str("tabs.closeAll"));
 			closeAll.addActionListener(e -> tabbedPane.closeAllTabs());
 			menu.add(closeAll);
+
+			if (contentPanel != openTabs.values().toArray()[openTabs.size() - 1]) {
+				JMenuItem closeAllRight = new JMenuItem(NLS.str("tabs.closeAllRight"));
+				closeAllRight.addActionListener(e -> {
+					List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
+					boolean pastCurrentPanel = false;
+					for (ContentPanel panel : contentPanels) {
+						if (!pastCurrentPanel) {
+							if (panel == contentPanel) {
+								pastCurrentPanel = true;
+							}
+						} else {
+							tabbedPane.closeCodePanel(panel);
+						}
+					}
+				});
+				menu.add(closeAllRight);
+			}
 			menu.addSeparator();
 
 			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();

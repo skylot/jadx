@@ -9,7 +9,6 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -41,7 +40,8 @@ public class TabbedPane extends JTabbedPane {
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 
 	private final transient MainWindow mainWindow;
-	private final transient Map<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
+	@SuppressWarnings("checkstyle:IllegalType")
+	private final transient LinkedHashMap<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
 	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
@@ -410,7 +410,8 @@ public class TabbedPane extends JTabbedPane {
 		}
 	}
 
-	public Map<JNode, ContentPanel> getOpenTabs() {
+	@SuppressWarnings("checkstyle:IllegalType")
+	public LinkedHashMap<JNode, ContentPanel> getOpenTabs() {
 		return openTabs;
 	}
 
