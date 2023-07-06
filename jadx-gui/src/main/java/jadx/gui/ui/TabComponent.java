@@ -4,9 +4,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -133,12 +131,11 @@ public class TabComponent extends JPanel {
 		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
 		menu.add(closeTab);
 
-		Map<JNode, ContentPanel> openTabs = tabbedPane.getOpenTabs();
-		if (openTabs.size() > 1) {
+		List<ContentPanel> tabs = tabbedPane.getTabs();
+		if (tabs.size() > 1) {
 			JMenuItem closeOther = new JMenuItem(NLS.str("tabs.closeOthers"));
 			closeOther.addActionListener(e -> {
-				List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
-				for (ContentPanel panel : contentPanels) {
+				for (ContentPanel panel : tabs) {
 					if (panel != contentPanel) {
 						tabbedPane.closeCodePanel(panel);
 					}
@@ -150,12 +147,11 @@ public class TabComponent extends JPanel {
 			closeAll.addActionListener(e -> tabbedPane.closeAllTabs());
 			menu.add(closeAll);
 
-			List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
-			if (contentPanel != ListUtils.last(contentPanels)) {
+			if (contentPanel != ListUtils.last(tabs)) {
 				JMenuItem closeAllRight = new JMenuItem(NLS.str("tabs.closeAllRight"));
 				closeAllRight.addActionListener(e -> {
 					boolean pastCurrentPanel = false;
-					for (ContentPanel panel : contentPanels) {
+					for (ContentPanel panel : tabs) {
 						if (!pastCurrentPanel) {
 							if (panel == contentPanel) {
 								pastCurrentPanel = true;
@@ -170,15 +166,14 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 
 			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
-			for (final Map.Entry<JNode, ContentPanel> entry : openTabs.entrySet()) {
-				final ContentPanel cp = entry.getValue();
-				if (cp == selectedContentPanel) {
+			for (ContentPanel tab : tabs) {
+				if (tab == selectedContentPanel) {
 					continue;
 				}
-				JNode node = entry.getKey();
+				JNode node = tab.getNode();
 				final String clsName = node.makeLongString();
 				JMenuItem item = new JMenuItem(clsName);
-				item.addActionListener(e -> tabbedPane.setSelectedComponent(cp));
+				item.addActionListener(e -> tabbedPane.setSelectedComponent(tab));
 				item.setIcon(node.getIcon());
 				menu.add(item);
 			}

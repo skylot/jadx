@@ -74,7 +74,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			public void actionPerformed(ActionEvent e) {
 				JadxSettings settings = getContentPanel().getTabbedPane().getMainWindow().getSettings();
 				settings.setSmaliAreaShowBytecode(!settings.getSmaliAreaShowBytecode());
-				contentPanel.getTabbedPane().getOpenTabs().values().forEach(v -> {
+				contentPanel.getTabbedPane().getTabs().forEach(v -> {
 					if (v instanceof ClassCodeContentPanel) {
 						switchModel();
 						((ClassCodeContentPanel) v).getSmaliCodeArea().refresh();

@@ -139,7 +139,7 @@ public class RenameMappingsGui {
 		if (currentNode != null) {
 			// close opened tab
 			TabbedPane tabbedPane = mainWindow.getTabbedPane();
-			ContentPanel openedTab = tabbedPane.getOpenTabs().get(currentNode);
+			ContentPanel openedTab = tabbedPane.getTabByNode(currentNode);
 			if (openedTab != null) {
 				tabbedPane.closeCodePanel(openedTab);
 			}

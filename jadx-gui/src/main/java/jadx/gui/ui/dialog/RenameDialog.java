@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -216,10 +215,10 @@ public class RenameDialog extends JDialog {
 	}
 
 	private void refreshTabs(TabbedPane tabbedPane, Set<JClass> updatedClasses) {
-		for (Map.Entry<JNode, ContentPanel> entry : tabbedPane.getOpenTabs().entrySet()) {
-			JClass rootClass = entry.getKey().getRootClass();
+		for (ContentPanel tab : tabbedPane.getTabs()) {
+			JClass rootClass = tab.getNode().getRootClass();
 			if (updatedClasses.remove(rootClass)) {
-				ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) entry.getValue();
+				ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) tab;
 				CodeArea codeArea = (CodeArea) contentPanel.getJavaCodePanel().getCodeArea();
 				codeArea.refreshClass();
 			}

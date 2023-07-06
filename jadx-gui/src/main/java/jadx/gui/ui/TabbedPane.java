@@ -7,7 +7,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class TabbedPane extends JTabbedPane {
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 
 	private final transient MainWindow mainWindow;
-	private final transient Map<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
+	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
 	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
@@ -54,7 +54,7 @@ public class TabbedPane extends JTabbedPane {
 
 		addMouseWheelListener(event -> {
 			int direction = event.getWheelRotation();
-			if (openTabs.isEmpty() || direction == 0) {
+			if (getTabCount() == 0 || direction == 0) {
 				return;
 			}
 			direction = (direction < 0) ? -1 : 1; // normalize direction
@@ -226,12 +226,13 @@ public class TabbedPane extends JTabbedPane {
 		}
 	}
 
-	private void showCode(JumpPosition jumpPos) {
+	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
 		ContentPanel contentPanel = getContentPanel(jumpPos.getNode());
 		if (contentPanel != null) {
 			scrollToPos(contentPanel, jumpPos.getPos());
 			selectTab(contentPanel);
 		}
+		return contentPanel;
 	}
 
 	public boolean showNode(JNode node) {
@@ -263,10 +264,9 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {
-		ContentPanel panel = getOpenTabs().get(cls);
+		ContentPanel panel = getTabByNode(cls);
 		if (panel == null) {
-			showCode(new JumpPosition(cls, 1));
-			panel = getOpenTabs().get(cls);
+			panel = showCode(new JumpPosition(cls, 1));
 			if (panel == null) {
 				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);
 			}
@@ -295,7 +295,7 @@ public class TabbedPane extends JTabbedPane {
 	public List<EditorViewState> getEditorViewStates() {
 		ContentPanel selected = getSelectedContentPanel();
 		List<EditorViewState> states = new ArrayList<>();
-		for (ContentPanel panel : openTabs.values()) {
+		for (ContentPanel panel : getTabs()) {
 			EditorViewState viewState;
 			if (panel instanceof IViewStateSupport) {
 				viewState = ((IViewStateSupport) panel).getEditorViewState();
@@ -339,34 +339,46 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private void addContentPanel(ContentPanel contentPanel) {
-		openTabs.put(contentPanel.getNode(), contentPanel);
+		tabsMap.put(contentPanel.getNode(), contentPanel);
 		int tabCount = getTabCount();
 		add(contentPanel, tabCount);
 		setTabComponentAt(tabCount, makeTabComponent(contentPanel));
 	}
 
 	public void closeCodePanel(ContentPanel contentPanel) {
-		openTabs.remove(contentPanel.getNode());
+		tabsMap.remove(contentPanel.getNode());
 		remove(contentPanel);
 		contentPanel.dispose();
 	}
 
-	@Nullable
-	private ContentPanel getContentPanel(JNode node) {
-		ContentPanel panel = openTabs.get(node);
-		if (panel == null) {
-			panel = node.getContentPanel(this);
-			if (panel == null) {
-				return null;
-			}
-			FocusManager.listen(panel);
-			addContentPanel(panel);
+	public List<ContentPanel> getTabs() {
+		List<ContentPanel> list = new ArrayList<>(getTabCount());
+		for (int i = 0; i < getTabCount(); i++) {
+			list.add((ContentPanel) getComponentAt(i));
 		}
-		return panel;
+		return list;
+	}
+
+	public @Nullable ContentPanel getTabByNode(JNode node) {
+		return tabsMap.get(node);
+	}
+
+	private @Nullable ContentPanel getContentPanel(JNode node) {
+		ContentPanel panel = getTabByNode(node);
+		if (panel != null) {
+			return panel;
+		}
+		ContentPanel newPanel = node.getContentPanel(this);
+		if (newPanel == null) {
+			return null;
+		}
+		FocusManager.listen(newPanel);
+		addContentPanel(newPanel);
+		return newPanel;
 	}
 
 	public void refresh(JNode node) {
-		ContentPanel panel = openTabs.get(node);
+		ContentPanel panel = getTabByNode(node);
 		if (panel != null) {
 			setTabComponentAt(indexOfComponent(panel), makeTabComponent(panel));
 			fireStateChanged();
@@ -387,7 +399,7 @@ public class TabbedPane extends JTabbedPane {
 			JNode node = ((ContentPanel) getComponentAt(i)).getNode();
 			ContentPanel panel = node.getContentPanel(this);
 			FocusManager.listen(panel);
-			openTabs.put(node, panel);
+			tabsMap.put(node, panel);
 			setComponentAt(i, panel);
 			setTabComponentAt(i, makeTabComponent(panel));
 		}
@@ -404,32 +416,21 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeAllTabs() {
-		List<ContentPanel> contentPanels = new ArrayList<>(openTabs.values());
-		for (ContentPanel panel : contentPanels) {
+		for (ContentPanel panel : getTabs()) {
 			closeCodePanel(panel);
 		}
 	}
 
-	public Map<JNode, ContentPanel> getOpenTabs() {
-		return openTabs;
-	}
-
 	public void loadSettings() {
-		for (ContentPanel panel : openTabs.values()) {
-			panel.loadSettings();
-		}
-		int tabCount = getTabCount();
-		for (int i = 0; i < tabCount; i++) {
-			Component tabComponent = getTabComponentAt(i);
-			if (tabComponent instanceof TabComponent) {
-				((TabComponent) tabComponent).loadSettings();
-			}
+		for (int i = 0; i < getTabCount(); i++) {
+			((ContentPanel) getComponentAt(i)).loadSettings();
+			((TabComponent) getTabComponentAt(i)).loadSettings();
 		}
 	}
 
 	public void reset() {
 		closeAllTabs();
-		openTabs.clear();
+		tabsMap.clear();
 		jumps.reset();
 		curTab = null;
 		lastTab = null;
