@@ -1,5 +1,5 @@
 plugins {
-	id 'jadx-library'
+	id("jadx-library")
 }
 
 dependencies {
@@ -7,5 +7,5 @@ dependencies {
 
 	implementation(project(":jadx-plugins:jadx-java-input"))
 
-	implementation('io.github.skylot:raung-asm:0.1.0')
+	implementation("io.github.skylot:raung-asm:0.1.0")
 }

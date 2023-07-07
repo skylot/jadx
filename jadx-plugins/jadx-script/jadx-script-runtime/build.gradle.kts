@@ -22,5 +22,4 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-java-convert"))
 	runtimeOnly(project(":jadx-plugins:jadx-java-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-raung-input"))
-
 }

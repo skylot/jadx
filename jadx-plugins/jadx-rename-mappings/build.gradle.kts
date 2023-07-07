@@ -1,7 +1,7 @@
 plugins {
-	id 'jadx-library'
+	id("jadx-library")
 
-	id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 dependencies {
@@ -10,17 +10,18 @@ dependencies {
 	// TODO: Switch back to upstream once this PR gets merged:
 	//   https://github.com/FabricMC/mapping-io/pull/19
 	// implementation 'net.fabricmc:mapping-io:0.3.0'
-	api(files('libs/mapping-io-0.4.0-SNAPSHOT.jar'))
+	api(files("libs/mapping-io-0.4.0-SNAPSHOT.jar"))
 
 	constraints {
-		runtimeOnly 'org.ow2.asm:asm:9.5'
+		runtimeOnly("org.ow2.asm:asm:9.5")
 	}
 }
 
 publishing {
 	publications {
-		shadow(MavenPublication) { publication ->
-			project.shadow.component(publication)
+		create<MavenPublication>("maven") {
+			from(components["java"])
+			artifact(tasks["shadowJar"])
 		}
 	}
 }
