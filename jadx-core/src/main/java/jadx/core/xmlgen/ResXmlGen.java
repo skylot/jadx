@@ -250,6 +250,11 @@ public class ResXmlGen {
 				cw.add(' ').add(attrName).add("=\"").add(attrValue).add('"');
 			}
 		}
+
+		if (itemTag.equals("string") && valueStr.contains("%") && StringFormattedCheck.hasMultipleNonPositionalSubstitutions(valueStr)) {
+			cw.add(" formatted=\"false\"");
+		}
+
 		if (valueStr.equals("")) {
 			cw.add(" />");
 		} else {
