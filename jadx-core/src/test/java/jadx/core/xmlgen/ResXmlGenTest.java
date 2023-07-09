@@ -150,6 +150,28 @@ class ResXmlGenTest {
 	}
 
 	@Test
+	void testStringFormattedFalse() {
+		ResourceStorage resStorage = new ResourceStorage();
+		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "string", "app_name", "");
+		re.setSimpleValue(new RawValue(3, 0));
+		re.setNamedValues(Lists.list());
+		resStorage.add(re);
+
+		BinaryXMLStrings strings = new BinaryXMLStrings();
+		strings.put(0, "%s at %s");
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
+		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
+		List<ResContainer> files = resXmlGen.makeResourcesXml();
+
+		assertEquals(1, files.size());
+		assertEquals("res/values/strings.xml", files.get(0).getFileName());
+		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+				+ "<resources>\n"
+				+ "    <string name=\"app_name\" formatted=\"false\">%s at %s</string>\n"
+				+ "</resources>", files.get(0).getText().toString());
+	}
+
+	@Test
 	void testArrayEscape() {
 		ResourceStorage resStorage = new ResourceStorage();
 		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "array", "single_quote_escape_sample", "");
