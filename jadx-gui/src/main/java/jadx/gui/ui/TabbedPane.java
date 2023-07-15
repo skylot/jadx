@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -18,6 +19,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaClass;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -199,6 +204,34 @@ public class TabbedPane extends JTabbedPane {
 	 * Jump to node definition
 	 */
 	public void codeJump(JNode node) {
+		JClass parentCls = node.getJParent();
+		if (parentCls != null) {
+			JavaClass cls = node.getJParent().getCls();
+			JavaClass origTopCls = cls.getOriginalTopParentClass();
+			JavaClass codeParent = cls.getTopParentClass();
+			if (!Objects.equals(codeParent, origTopCls)) {
+				JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
+				mainWindow.getBackgroundExecutor().execute(
+						NLS.str("progress.load"),
+						jumpCls::loadNode, // load code in background
+						status -> {
+							// search original node in jump class
+							codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
+								if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+									ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
+									if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
+										codeJump(new JumpPosition(jumpCls, pos));
+										return true;
+									}
+								}
+								return null;
+							});
+						});
+				return;
+			}
+		}
+
+		// Not an inline node, jump normally
 		if (node.getPos() != 0 || node.getRootClass() == null) {
 			codeJump(new JumpPosition(node));
 			return;
