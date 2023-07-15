@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -47,11 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
-import jadx.api.JavaClass;
-import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.gui.logs.LogOptions;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.ui.MainWindow;
@@ -151,43 +146,11 @@ public abstract class CommonSearchDialog extends JFrame {
 			JumpPosition jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
 			tabbedPane.codeJump(jmpPos);
 		} else {
-			if (!checkForRedirects(node)) {
-				tabbedPane.codeJump(node);
-			}
+			tabbedPane.codeJump(node);
 		}
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
 			dispose();
 		}
-	}
-
-	// TODO: temp solution, move implementation into corresponding nodes
-	private boolean checkForRedirects(JNode node) {
-		if (node instanceof JClass) {
-			JavaClass cls = ((JClass) node).getCls();
-			JavaClass origTopCls = cls.getOriginalTopParentClass();
-			JavaClass codeParent = cls.getTopParentClass();
-			if (Objects.equals(codeParent, origTopCls)) {
-				return false;
-			}
-			JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
-			mainWindow.getBackgroundExecutor().execute(
-					NLS.str("progress.load"),
-					jumpCls::loadNode, // load code in background
-					status -> {
-						// search original node in jump class
-						codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
-							if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
-								if (((NodeDeclareRef) ann).getNode().equals(cls.getClassNode())) {
-									tabbedPane.codeJump(new JumpPosition(jumpCls, pos));
-									return true;
-								}
-							}
-							return null;
-						});
-					});
-			return true;
-		}
-		return false;
 	}
 
 	@Nullable
