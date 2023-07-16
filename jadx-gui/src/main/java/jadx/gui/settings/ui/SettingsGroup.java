@@ -80,8 +80,8 @@ public class SettingsGroup implements ISettingsGroup {
 		return title;
 	}
 
-	public JPanel getPanel() {
-		return panel;
+	public JPanel getGridPanel() {
+		return gridPanel;
 	}
 
 	@Override

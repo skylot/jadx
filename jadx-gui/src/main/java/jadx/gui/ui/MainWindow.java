@@ -91,6 +91,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
+import jadx.gui.cache.manager.CacheManager;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
@@ -179,6 +180,7 @@ public class MainWindow extends JFrame {
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
+	private final transient CacheManager cacheManager;
 	private final transient BackgroundExecutor backgroundExecutor;
 
 	private transient @NotNull JadxProject project;
@@ -231,6 +233,7 @@ public class MainWindow extends JFrame {
 		this.wrapper = new JadxWrapper(this);
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
+		this.cacheManager = new CacheManager(settings);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
@@ -655,6 +658,15 @@ public class MainWindow extends JFrame {
 		backgroundExecutor.execute(new DecompileTask(this));
 	}
 
+	public void resetCodeCache() {
+		Path cacheDir = project.getCacheDir();
+		project.resetCacheDir();
+		backgroundExecutor.execute(
+				NLS.str("preferences.cache.task.delete"),
+				() -> FileUtils.deleteDirIfExists(cacheDir),
+				status -> reopen());
+	}
+
 	public void cancelBackgroundJobs() {
 		backgroundExecutor.cancelAll();
 	}
@@ -1019,6 +1031,10 @@ public class MainWindow extends JFrame {
 		decompileAllAction.setNameAndDesc(NLS.str("menu.decompile_all"));
 		decompileAllAction.setIcon(ICON_DECOMPILE_ALL);
 
+		ActionHandler resetCacheAction = new ActionHandler(ev -> resetCodeCache());
+		resetCacheAction.setNameAndDesc(NLS.str("menu.reset_cache"));
+		resetCacheAction.setIcon(Icons.RESET);
+
 		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1130,6 +1146,7 @@ public class MainWindow extends JFrame {
 		JMenu tools = new JMenu(NLS.str("menu.tools"));
 		tools.setMnemonic(KeyEvent.VK_T);
 		tools.add(decompileAllAction);
+		tools.add(resetCacheAction);
 		tools.add(deobfMenuItem);
 		tools.add(quarkAction);
 		tools.add(openDeviceAction);
@@ -1656,6 +1673,10 @@ public class MainWindow extends JFrame {
 
 	public RenameMappingsGui getRenameMappings() {
 		return renameMappings;
+	}
+
+	public CacheManager getCacheManager() {
+		return cacheManager;
 	}
 
 	/**

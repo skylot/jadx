@@ -104,9 +104,10 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		JScrollPane scrollPane = new JScrollPane(pluginsList);
 
 		detailsPanel = new JPanel(new BorderLayout(5, 5));
-		detailsPanel.setBorder(BorderFactory.createTitledBorder("Plugin details"));
+		detailsPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(NLS.str("preferences.plugins.details")),
+				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 		detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.PAGE_AXIS));
-		detailsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		JSplitPane splitPanel = new JSplitPane();
 		splitPanel.setBorder(BorderFactory.createEmptyBorder(10, 2, 2, 2));

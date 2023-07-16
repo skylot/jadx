@@ -20,7 +20,7 @@ public class ProjectData {
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private @Nullable Path mappingsPath;
-	private @Nullable Path cacheDir;
+	private @Nullable String cacheDir; // don't use relative path adapter
 	private boolean enableLiveReload = false;
 	private List<String> searchHistory = new ArrayList<>();
 	protected Map<String, String> pluginOptions = new HashMap<>();
@@ -78,12 +78,11 @@ public class ProjectData {
 		this.mappingsPath = mappingsPath;
 	}
 
-	@Nullable
-	public Path getCacheDir() {
+	public @Nullable String getCacheDir() {
 		return cacheDir;
 	}
 
-	public void setCacheDir(Path cacheDir) {
+	public void setCacheDir(@Nullable String cacheDir) {
 		this.cacheDir = cacheDir;
 	}
 

@@ -3,18 +3,16 @@ package jadx.gui.settings;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dev.dirs.ProjectDirectories;
-
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxGUI;
+import jadx.gui.utils.files.JadxFiles;
 
 /**
  * Jadx settings storage. Select first available option:
@@ -38,8 +36,7 @@ public class JadxSettingsStorage {
 	}
 
 	private static Path initConfigFile() {
-		ProjectDirectories jadxDirs = ProjectDirectories.from("io.github", "skylot", "jadx");
-		Path confPath = Paths.get(jadxDirs.configDir, "gui.json");
+		Path confPath = JadxFiles.GUI_CONF;
 		if (!Files.exists(confPath)) {
 			copyFromPreferences(confPath);
 		}

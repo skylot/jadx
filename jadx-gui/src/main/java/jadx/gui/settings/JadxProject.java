@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.cache.manager.CacheManager;
 import jadx.gui.settings.data.ProjectData;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
@@ -84,8 +86,10 @@ public class JadxProject {
 		return null;
 	}
 
-	@Nullable
-	public Path getProjectPath() {
+	/**
+	 * @return null if project not saved
+	 */
+	public @Nullable Path getProjectPath() {
 		return projectPath;
 	}
 
@@ -100,13 +104,23 @@ public class JadxProject {
 	}
 
 	public void setFilePaths(List<Path> files) {
-		if (!files.equals(getFilePaths())) {
-			data.setFiles(files);
-			String joinedName = files.stream().map(p -> CommonFileUtils.removeFileExtension(p.getFileName().toString()))
-					.collect(Collectors.joining("_"));
-			this.name = StringUtils.abbreviate(joinedName, 100);
-			changed();
+		if (files.equals(getFilePaths())) {
+			return;
 		}
+		if (files.isEmpty()) {
+			data.setFiles(files);
+			name = "";
+		} else {
+			Collections.sort(files);
+			data.setFiles(files);
+			String joinedName = files.stream()
+					.map(p -> p.getFileName().toString())
+					.filter(file -> !file.endsWith(".jadx.kts"))
+					.map(CommonFileUtils::removeFileExtension)
+					.collect(Collectors.joining("_"));
+			name = StringUtils.abbreviate(joinedName, 100);
+		}
+		changed();
 	}
 
 	public List<String[]> getTreeExpansions() {
@@ -186,31 +200,28 @@ public class JadxProject {
 		return data.getPluginOptions().get(key);
 	}
 
-	public @NotNull Path getCacheDir() {
-		Path cacheDir = data.getCacheDir();
-		if (cacheDir != null) {
-			return cacheDir;
+	private Path cacheDir;
+
+	public Path getCacheDir() {
+		if (cacheDir == null) {
+			cacheDir = resolveCachePath(data.getCacheDir());
 		}
-		Path newCacheDir = buildCacheDir();
-		setCacheDir(newCacheDir);
+		return cacheDir;
+	}
+
+	public void resetCacheDir() {
+		cacheDir = resolveCachePath(null);
+	}
+
+	private Path resolveCachePath(@Nullable String cacheDirStr) {
+		CacheManager cacheManager = mainWindow.getCacheManager();
+		Path newCacheDir = cacheManager.getCacheDir(this, cacheDirStr);
+		String newCacheStr = cacheManager.buildCacheDirStr(newCacheDir);
+		if (!newCacheStr.equals(cacheDirStr)) {
+			data.setCacheDir(newCacheStr);
+			changed();
+		}
 		return newCacheDir;
-	}
-
-	public void setCacheDir(Path cacheDir) {
-		data.setCacheDir(cacheDir);
-		changed();
-	}
-
-	private Path buildCacheDir() {
-		if (projectPath != null) {
-			return projectPath.resolveSibling(projectPath.getFileName() + ".cache");
-		}
-		List<Path> files = data.getFiles();
-		if (!files.isEmpty()) {
-			Path path = files.get(0);
-			return path.resolveSibling(path.getFileName() + ".cache");
-		}
-		throw new JadxRuntimeException("Failed to build cache dir");
 	}
 
 	public boolean isEnableLiveReload() {
@@ -273,6 +284,7 @@ public class JadxProject {
 	}
 
 	public void saveAs(Path path) {
+		mainWindow.getCacheManager().projectPathUpdate(this, path);
 		setProjectPath(path);
 		save();
 	}
@@ -291,10 +303,9 @@ public class JadxProject {
 	}
 
 	public static JadxProject load(MainWindow mainWindow, Path path) {
-		Path basePath = path.toAbsolutePath().getParent();
-		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+		try {
 			JadxProject project = new JadxProject(mainWindow);
-			project.data = buildGson(basePath).fromJson(reader, ProjectData.class);
+			project.data = loadProjectData(path);
 			project.saved = true;
 			project.setProjectPath(path);
 			project.upgrade();
@@ -302,6 +313,15 @@ public class JadxProject {
 		} catch (Exception e) {
 			LOG.error("Error loading project", e);
 			return null;
+		}
+	}
+
+	public static ProjectData loadProjectData(Path path) {
+		Path basePath = path.toAbsolutePath().getParent();
+		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+			return buildGson(basePath).fromJson(reader, ProjectData.class);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to load project file: " + path, e);
 		}
 	}
 

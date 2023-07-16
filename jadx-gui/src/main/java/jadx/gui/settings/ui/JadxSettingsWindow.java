@@ -57,11 +57,10 @@ import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.gui.ISettingsGroup;
-import jadx.gui.cache.code.CodeCacheMode;
-import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
+import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.plugins.PluginsSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
@@ -125,6 +124,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(makeDecompilationGroup());
 		groups.add(makeDeobfuscationGroup());
 		groups.add(makeRenameGroup());
+		groups.add(new CacheSettingsGroup(this));
 		groups.add(makeAppearanceGroup());
 		groups.add(makeSearchResGroup());
 		groups.add(makeProjectGroup());
@@ -402,21 +402,6 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JComboBox<CodeCacheMode> codeCacheModeComboBox = new JComboBox<>(CodeCacheMode.values());
-		codeCacheModeComboBox.setSelectedItem(settings.getCodeCacheMode());
-		codeCacheModeComboBox.addActionListener(e -> {
-			settings.setCodeCacheMode((CodeCacheMode) codeCacheModeComboBox.getSelectedItem());
-			needReload();
-		});
-		String codeCacheModeToolTip = CodeCacheMode.buildToolTip();
-
-		JComboBox<UsageCacheMode> usageCacheModeComboBox = new JComboBox<>(UsageCacheMode.values());
-		usageCacheModeComboBox.setSelectedItem(settings.getUsageCacheMode());
-		usageCacheModeComboBox.addActionListener(e -> {
-			settings.setUsageCacheMode((UsageCacheMode) usageCacheModeComboBox.getSelectedItem());
-			needReload();
-		});
-
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
 		showInconsistentCode.addItemListener(e -> {
@@ -563,8 +548,6 @@ public class JadxSettingsWindow extends JDialog {
 				NLS.str("preferences.excludedPackages.tooltip"), editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
-		other.addRow(NLS.str("preferences.codeCacheMode"), codeCacheModeToolTip, codeCacheModeComboBox);
-		other.addRow(NLS.str("preferences.usageCacheMode"), usageCacheModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
@@ -712,7 +695,7 @@ public class JadxSettingsWindow extends JDialog {
 				NLS.str("preferences.copy_message"));
 	}
 
-	void needReload() {
+	public void needReload() {
 		needReload = true;
 	}
 
@@ -724,6 +707,10 @@ public class JadxSettingsWindow extends JDialog {
 	private String calcSettingsHash() {
 		JadxDecompiler decompiler = mainWindow.getWrapper().getCurrentDecompiler().orElse(null);
 		return settings.toJadxArgs().makeCodeArgsHash(decompiler);
+	}
+
+	public MainWindow getMainWindow() {
+		return mainWindow;
 	}
 
 	@Override

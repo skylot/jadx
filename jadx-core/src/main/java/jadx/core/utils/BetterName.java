@@ -14,7 +14,7 @@ import jadx.core.deobf.TldHelper;
 public class BetterName {
 	private static final Logger LOG = LoggerFactory.getLogger(BetterName.class);
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	public static String compareAndGet(String first, String second) {
 		if (Objects.equals(first, second)) {
