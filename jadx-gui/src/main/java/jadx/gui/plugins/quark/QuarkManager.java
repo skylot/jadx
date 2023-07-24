@@ -201,7 +201,9 @@ public class QuarkManager {
 
 	private void runCommand(List<String> cmd) throws Exception {
 		LOG.debug("Running command: {}", String.join(" ", cmd));
-		Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+		ProcessBuilder builder = new ProcessBuilder(cmd);
+		builder.redirectErrorStream(true);
+		Process process = builder.start();
 		try (BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 			buf.lines().forEach(msg -> LOG.debug("# {}", msg));
 		} finally {
