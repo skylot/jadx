@@ -199,6 +199,7 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	private void loadFinished() {
+		LOG.debug("Load finished");
 		List<JadxPass> list = customPasses.get(JadxAfterLoadPass.TYPE);
 		if (list != null) {
 			for (JadxPass pass : list) {

@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -281,7 +282,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 
 	@Nullable
 	private SuperTypesData collectSuperTypes(ClassNode cls) {
-		List<ArgType> superTypes = new ArrayList<>();
+		Set<ArgType> superTypes = new LinkedHashSet<>();
 		Set<String> endTypes = new HashSet<>();
 		collectSuperTypes(cls, superTypes, endTypes);
 		if (superTypes.isEmpty()) {
@@ -290,10 +291,10 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		if (endTypes.isEmpty()) {
 			throw new JadxRuntimeException("No end types in class hierarchy: " + cls);
 		}
-		return new SuperTypesData(superTypes, endTypes);
+		return new SuperTypesData(new ArrayList<>(superTypes), endTypes);
 	}
 
-	private void collectSuperTypes(ClassNode cls, List<ArgType> superTypes, Set<String> endTypes) {
+	private void collectSuperTypes(ClassNode cls, Set<ArgType> superTypes, Set<String> endTypes) {
 		RootNode root = cls.root();
 		int k = 0;
 		ArgType superClass = cls.getSuperClass();
@@ -308,21 +309,24 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		}
 	}
 
-	private int addSuperType(RootNode root, List<ArgType> superTypesMap, Set<String> endTypes, ArgType superType) {
+	private int addSuperType(RootNode root, Set<ArgType> superTypes, Set<String> endTypes, ArgType superType) {
 		if (Objects.equals(superType, ArgType.OBJECT)) {
 			return 0;
 		}
-		superTypesMap.add(superType);
+		if (!superTypes.add(superType)) {
+			// found 'super' loop, stop processing
+			return 0;
+		}
 		ClassNode classNode = root.resolveClass(superType);
 		if (classNode != null) {
-			collectSuperTypes(classNode, superTypesMap, endTypes);
+			collectSuperTypes(classNode, superTypes, endTypes);
 			return 1;
 		}
 		ClspClass clsDetails = root.getClsp().getClsDetails(superType);
 		if (clsDetails != null) {
 			int k = 0;
 			for (ArgType parentType : clsDetails.getParents()) {
-				k += addSuperType(root, superTypesMap, endTypes, parentType);
+				k += addSuperType(root, superTypes, endTypes, parentType);
 			}
 			if (k == 0) {
 				endTypes.add(superType.getObject());

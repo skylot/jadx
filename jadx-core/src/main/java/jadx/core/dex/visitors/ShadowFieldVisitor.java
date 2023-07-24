@@ -3,8 +3,10 @@ package jadx.core.dex.visitors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -107,8 +109,14 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 
 	private static List<FieldNode> collectAllInstanceFields(ClassNode cls) {
 		List<FieldNode> fieldsList = new ArrayList<>();
+		Set<ClassNode> visited = new HashSet<>();
 		ClassNode currentClass = cls;
 		while (currentClass != null) {
+			if (!visited.add(currentClass)) {
+				String msg = "Found 'super' loop in classes: " + visited;
+				visited.forEach(c -> c.addWarnComment(msg));
+				return fieldsList;
+			}
 			for (FieldNode field : currentClass.getFields()) {
 				if (!field.getAccessFlags().isStatic()) {
 					fieldsList.add(field);
