@@ -14,8 +14,11 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.BackgroundExecutor;
+import jadx.gui.logs.LogOptions;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.SystemInfo;
@@ -200,10 +203,13 @@ public class QuarkManager {
 	}
 
 	private void runCommand(List<String> cmd) throws Exception {
-		LOG.debug("Running command: {}", String.join(" ", cmd));
-		Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+		UiUtils.uiRun(() -> mainWindow.showLogViewer(LogOptions.forLevel(Level.INFO)));
+		LOG.info("Running command: {}", String.join(" ", cmd));
+		ProcessBuilder builder = new ProcessBuilder(cmd);
+		builder.redirectErrorStream(true);
+		Process process = builder.start();
 		try (BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-			buf.lines().forEach(msg -> LOG.debug("# {}", msg));
+			buf.lines().forEach(msg -> LOG.info("# {}", msg));
 		} finally {
 			process.waitFor();
 		}
