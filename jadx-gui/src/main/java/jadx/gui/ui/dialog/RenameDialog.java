@@ -40,6 +40,7 @@ import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JRenameNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
@@ -51,6 +52,7 @@ import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.pkgs.JRenamePackage;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.gui.utils.ui.NodeLabel;
 
@@ -250,6 +252,9 @@ public class RenameDialog extends JDialog {
 		nodeLabel.setIcon(node.getIcon());
 		if (node instanceof JNode) {
 			nodeLabel.disableHtml(((JNode) node).disableHtml());
+		} else if (node instanceof JRenamePackage) {
+			// TODO: get from JRenameNode directly
+			nodeLabel.disableHtml(!node.getTitle().equals(JPackage.PACKAGE_DEFAULT_HTML_STR));
 		}
 		lbl.setLabelFor(nodeLabel);
 

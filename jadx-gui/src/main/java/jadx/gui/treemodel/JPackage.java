@@ -133,6 +133,15 @@ public class JPackage extends JNode {
 	}
 
 	@Override
+	public boolean disableHtml() {
+		if (name.isEmpty()) {
+			// show PACKAGE_DEFAULT_HTML_STR for empty package
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public String makeLongString() {
 		return pkg.getFullName();
 	}
