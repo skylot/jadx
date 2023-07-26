@@ -8,7 +8,7 @@ import java.util.Locale
 plugins {
 	id("com.github.ben-manes.versions") version "0.47.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.18"
-	id("com.diffplug.spotless") version "6.19.0"
+	id("com.diffplug.spotless") version "6.20.0"
 }
 
 val jadxVersion by extra { System.getenv("JADX_VERSION") ?: "dev" }
@@ -34,9 +34,7 @@ allprojects {
 			commonFormatOptions()
 		}
 		kotlin {
-			ktlint()
-				.setUseExperimental(false)
-				.editorConfigOverride(mapOf("indent_style" to "tab"))
+			ktlint().editorConfigOverride(mapOf("indent_style" to "tab"))
 			commonFormatOptions()
 		}
 		kotlinGradle {

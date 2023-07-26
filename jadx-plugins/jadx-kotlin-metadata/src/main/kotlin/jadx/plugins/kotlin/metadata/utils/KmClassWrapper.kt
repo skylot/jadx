@@ -2,6 +2,7 @@ package jadx.plugins.kotlin.metadata.utils
 
 import jadx.core.dex.nodes.ClassNode
 import kotlinx.metadata.KmClass
+import kotlinx.metadata.isData
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
 // don't expose kotlinx.metadata.* types ?
@@ -20,7 +21,7 @@ class KmClassWrapper private constructor(
 		KotlinMetadataUtils.mapCompanion(cls, kmCls)
 
 	fun isDataClass() =
-		KotlinUtils.isDataClass(kmCls)
+		kmCls.isData
 
 	// does not require metadata, may be useful for plain java ?
 	fun parseToString() =
@@ -34,7 +35,7 @@ class KmClassWrapper private constructor(
 
 		fun ClassNode.getWrapper(): KmClassWrapper? {
 			val metadata = getKotlinClassMetadata()
-			val kmCls = (metadata as? KotlinClassMetadata.Class)?.toKmClass() ?: return null
+			val kmCls = (metadata as? KotlinClassMetadata.Class)?.kmClass ?: return null
 			return KmClassWrapper(this, kmCls)
 		}
 	}

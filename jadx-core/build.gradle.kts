@@ -8,7 +8,7 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.10.1")
 
 	// TODO: move resources decoding to separate plugin module
-	implementation("com.android.tools.build:aapt2-proto:8.0.2-9289358")
+	implementation("com.android.tools.build:aapt2-proto:8.1.0-10154469")
 	implementation("com.google.protobuf:protobuf-java:3.23.4") // forcing latest version
 
 	testImplementation("org.apache.commons:commons-lang3:3.12.0")

@@ -39,7 +39,7 @@ public class DecompilePassWrapper extends AbstractVisitor implements IPassWrappe
 		try {
 			return decompilePass.visit(cls);
 		} catch (Throwable e) {
-			LOG.error("Error in decompile pass init: {}", this, e);
+			LOG.error("Error in decompile pass: {}, class: {}", this, cls, e);
 			return false;
 		}
 	}
@@ -49,7 +49,7 @@ public class DecompilePassWrapper extends AbstractVisitor implements IPassWrappe
 		try {
 			decompilePass.visit(mth);
 		} catch (Throwable e) {
-			LOG.error("Error in decompile pass: {}", this, e);
+			LOG.error("Error in decompile pass: {}, method: {}", this, mth, e);
 		}
 	}
 

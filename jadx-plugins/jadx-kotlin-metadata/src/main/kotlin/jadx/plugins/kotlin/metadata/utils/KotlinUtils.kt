@@ -11,15 +11,9 @@ import jadx.core.dex.nodes.FieldNode
 import jadx.core.dex.nodes.MethodNode
 import jadx.plugins.kotlin.metadata.model.MethodRename
 import jadx.plugins.kotlin.metadata.model.ToStringRename
-import kotlinx.metadata.Flag
-import kotlinx.metadata.KmClass
 import java.util.Locale
 
 object KotlinUtils {
-
-	fun isDataClass(kmCls: KmClass): Boolean {
-		return Flag.Class.IS_DATA(kmCls.flags)
-	}
 
 	fun parseToString(cls: ClassNode): ToStringRename? {
 		val mthToString = cls.searchMethodByShortId(Consts.MTH_TOSTRING_SIGNATURE)
