@@ -1,5 +1,6 @@
 package jadx.gui.ui.codearea;
 
+import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -10,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -39,10 +41,12 @@ public class SearchBar extends JToolBar {
 	private static final Icon ICON_UP = UiUtils.openSvgIcon("ui/top");
 	private static final Icon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
 	private static final Icon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
+	private static final int MAX_RESULT_COUNT = 999;
 
 	private RSyntaxTextArea rTextArea;
 
 	private final JTextField searchField;
+	private final JLabel resultCountLabel;
 	private final JToggleButton markAllCB;
 	private final JToggleButton regexCB;
 	private final JToggleButton wholeWordCB;
@@ -77,6 +81,12 @@ public class SearchBar extends JToolBar {
 		add(searchField);
 
 		ActionListener forwardListener = e -> search(1);
+
+		resultCountLabel = new JLabel();
+		resultCountLabel.setBorder(new EmptyBorder(0, 10, 0, 10));
+		resultCountLabel.setForeground(Color.GRAY);
+		add(resultCountLabel);
+		setResultCount(0);
 
 		matchCaseCB = new JToggleButton();
 		matchCaseCB.setIcon(ICON_MATCH);
@@ -151,6 +161,7 @@ public class SearchBar extends JToolBar {
 		if (searchText == null
 				|| searchText.length() == 0
 				|| rTextArea.getText() == null) {
+			setResultCount(0);
 			return;
 		}
 
@@ -165,7 +176,10 @@ public class SearchBar extends JToolBar {
 		context.setRegularExpression(regex);
 		context.setSearchForward(forward);
 		context.setWholeWord(wholeWord);
-		context.setMarkAll(markAllCB.isSelected());
+
+		// We enable Mark All even if the corresponding toggle button is off,
+		// this is a bit hackish, but it's the only way to count matches through SearchEngine
+		context.setMarkAll(true);
 
 		// TODO hack: move cursor before previous search for not jump to next occurrence
 		if (direction == 0 && !notFound) {
@@ -181,6 +195,15 @@ public class SearchBar extends JToolBar {
 		}
 
 		SearchResult result = SearchEngine.find(rTextArea, context);
+
+		setResultCount(result.getMarkedCount());
+
+		// Clear the highlighted results if Mark All is disabled
+		if (!markAllCB.isSelected()) {
+			context.setMarkAll(false);
+			SearchEngine.markAll(rTextArea, context);
+		}
+
 		notFound = !result.wasFound();
 		if (notFound) {
 			int pos = SearchEngine.getNextMatchPos(searchText, rTextArea.getText(), forward, matchCase, wholeWord);
@@ -195,5 +218,13 @@ public class SearchBar extends JToolBar {
 			searchField.putClientProperty("JComponent.outline", "");
 		}
 		searchField.repaint();
+	}
+
+	private void setResultCount(int count) {
+		boolean exceedsLimit = count > MAX_RESULT_COUNT;
+		String plusSign = exceedsLimit ? "+" : "";
+		count = exceedsLimit ? MAX_RESULT_COUNT : count;
+
+		resultCountLabel.setText(NLS.str("search.results", plusSign, count));
 	}
 }
