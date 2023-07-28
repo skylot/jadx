@@ -1,15 +1,9 @@
 package jadx.gui.ui.codearea;
 
-import jadx.core.utils.StringUtils;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.UiUtils;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rtextarea.SearchContext;
-import org.fife.ui.rtextarea.SearchEngine;
-import org.fife.ui.rtextarea.SearchResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.awt.Color;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -19,10 +13,18 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
-import java.awt.Color;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.SearchContext;
+import org.fife.ui.rtextarea.SearchEngine;
+import org.fife.ui.rtextarea.SearchResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.core.utils.StringUtils;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.UiUtils;
 
 public class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
@@ -220,8 +222,8 @@ public class SearchBar extends JToolBar {
 
 	private void setResultCount(int count) {
 		boolean exceedsLimit = count > MAX_RESULT_COUNT;
-		String plusSign = exceedsLimit? "+": "";
-		count = exceedsLimit? MAX_RESULT_COUNT: count;
+		String plusSign = exceedsLimit ? "+" : "";
+		count = exceedsLimit ? MAX_RESULT_COUNT : count;
 
 		resultCountLabel.setText(NLS.str("search.results", plusSign, count));
 	}
