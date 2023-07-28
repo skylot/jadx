@@ -34,8 +34,9 @@ public class AndroidManifestParser {
 	@Nullable
 	public JavaClass getMainActivity(List<JavaClass> allClasses) {
 		final String mainActivityName = getMainActivityName();
-		if (mainActivityName == null)
+		if (mainActivityName == null) {
 			return null;
+		}
 
 		return allClasses.stream()
 				.filter(javaClass -> javaClass.getFullName().equals(mainActivityName))
@@ -118,8 +119,9 @@ public class AndroidManifestParser {
 	}
 
 	public static Document parseAndroidManifest(ResourceFile androidManifest) {
-		if (androidManifest == null)
+		if (androidManifest == null) {
 			return null;
+		}
 
 		// TODO: taken from ExportGradleProject.java: also use this function there ?
 		Document androidManifestDocument;
