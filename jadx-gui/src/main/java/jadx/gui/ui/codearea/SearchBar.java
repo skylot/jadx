@@ -222,6 +222,7 @@ public class SearchBar extends JToolBar {
 		boolean exceedsLimit = count > MAX_RESULT_COUNT;
 		String plusSign = exceedsLimit? "+": "";
 		count = exceedsLimit? MAX_RESULT_COUNT: count;
-		resultCountLabel.setText(plusSign + count + " results");
+
+		resultCountLabel.setText(NLS.str("search.results", plusSign, count));
 	}
 }
