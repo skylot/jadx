@@ -65,6 +65,7 @@ application {
 		"-Dawt.useSystemAAFontSettings=lcd",
 		"-Dswing.aatext=true",
 		"-Djava.util.Arrays.useLegacyMergeSort=true",
+		"-Djdk.util.zip.disableZip64ExtraFieldValidation=true", // disable zip checks (#1962)
 		"-XX:+IgnoreUnrecognizedVMOptions",
 		"--add-opens=java.base/java.lang=ALL-UNNAMED", // for ktlint formatter
 	)

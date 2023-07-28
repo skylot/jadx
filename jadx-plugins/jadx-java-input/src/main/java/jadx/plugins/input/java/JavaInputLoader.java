@@ -101,7 +101,7 @@ public class JavaInputLoader {
 				}
 			});
 		} catch (Exception e) {
-			LOG.error("Failed to process zip file: {}", file.getAbsolutePath(), e);
+			LOG.error("Failed to process zip file: {}", name, e);
 		}
 		return result;
 	}

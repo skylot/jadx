@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+	<configuration default="false" name="jadx-gui" type="Application" factoryName="Application">
+		<option name="MAIN_CLASS_NAME" value="jadx.gui.JadxGUI"/>
+		<module name="jadx.jadx-gui.main"/>
+		<option name="PROGRAM_PARAMETERS" value="-v"/>
+		<option name="VM_PARAMETERS"
+				value="-Xms128M -XX:MaxRAMPercentage=70.0 -Dawt.useSystemAAFontSettings=lcd -Dswing.aatext=true -Djava.util.Arrays.useLegacyMergeSort=true -Djdk.util.zip.disableZip64ExtraFieldValidation=true -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED"/>
+		<method v="2">
+			<option name="Make" enabled="true"/>
+		</method>
+	</configuration>
+</component>

@@ -25,7 +25,11 @@ dependencies {
 application {
 	applicationName = "jadx"
 	mainClass.set("jadx.cli.JadxCLI")
-	applicationDefaultJvmArgs = listOf("-Xms256M", "-XX:MaxRAMPercentage=70.0")
+	applicationDefaultJvmArgs = listOf(
+		"-Xms256M",
+		"-XX:MaxRAMPercentage=70.0",
+		"-Djdk.util.zip.disableZip64ExtraFieldValidation=true", // disable zip checks (#1962)
+	)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")
 		include("NOTICE")
