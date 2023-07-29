@@ -18,7 +18,9 @@ import io.reactivex.annotations.Nullable;
 import jadx.api.JavaClass;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.XmlSecurity;
+import jadx.gui.JadxWrapper;
 
 public class AndroidManifestParser {
 	private final Document mXmlDocument;
@@ -31,17 +33,16 @@ public class AndroidManifestParser {
 		return mXmlDocument != null;
 	}
 
-	@Nullable
-	public JavaClass getMainActivity(List<JavaClass> allClasses) {
+	public JavaClass getMainActivity(JadxWrapper decompiler) {
 		final String mainActivityName = getMainActivityName();
 		if (mainActivityName == null) {
-			return null;
+			throw new JadxRuntimeException("Failed to get main activity name from manifest");
 		}
-
-		return allClasses.stream()
-				.filter(javaClass -> javaClass.getFullName().equals(mainActivityName))
-				.findFirst()
-				.orElseThrow(IllegalStateException::new);
+		JavaClass javaClass = decompiler.searchJavaClassByOrigClassName(mainActivityName);
+		if (javaClass == null) {
+			throw new JadxRuntimeException("Failed to find main activity class: " + mainActivityName);
+		}
+		return javaClass;
 	}
 
 	private String getMainActivityName() {

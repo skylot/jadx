@@ -1032,7 +1032,7 @@ public class MainWindow extends JFrame {
 
 		Action gotoMainActivityAction = new AbstractAction(NLS.str("menu.goto_main_activity"), ICON_MAIN_ACTIVITY) {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent ev) {
 				AndroidManifestParser parser = new AndroidManifestParser(getWrapper().getResources());
 				if (!parser.isResourceFound()) {
 					JOptionPane.showMessageDialog(MainWindow.this,
@@ -1041,17 +1041,16 @@ public class MainWindow extends JFrame {
 							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-
-				JavaClass mainActivityClass = parser.getMainActivity(getWrapper().getClasses());
-				if (mainActivityClass == null) {
+				try {
+					JavaClass mainActivityClass = parser.getMainActivity(getWrapper());
+					tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
+				} catch (Exception e) {
+					LOG.error("Main activity not found", e);
 					JOptionPane.showMessageDialog(MainWindow.this,
 							NLS.str("error_dialog.not_found", "Main Activity"),
 							NLS.str("error_dialog.title"),
 							JOptionPane.ERROR_MESSAGE);
-					return;
 				}
-
-				tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
 			}
 		};
 		gotoMainActivityAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.goto_main_activity"));
