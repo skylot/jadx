@@ -79,6 +79,7 @@ import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.events.IJadxEvents;
@@ -133,6 +134,7 @@ import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
+import jadx.gui.utils.AndroidManifestParser;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
@@ -167,6 +169,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_SEARCH = UiUtils.openSvgIcon("ui/find");
 	private static final ImageIcon ICON_FIND = UiUtils.openSvgIcon("ui/ejbFinderMethod");
 	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openSvgIcon("ui/usagesFinder");
+	private static final ImageIcon ICON_MAIN_ACTIVITY = UiUtils.openSvgIcon("ui/home");
 	private static final ImageIcon ICON_BACK = UiUtils.openSvgIcon("ui/left");
 	private static final ImageIcon ICON_FORWARD = UiUtils.openSvgIcon("ui/right");
 	private static final ImageIcon ICON_QUARK = UiUtils.openSvgIcon("ui/quark");
@@ -1027,6 +1030,33 @@ public class MainWindow extends JFrame {
 		commentSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_SEMICOLON,
 				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
+		Action gotoMainActivityAction = new AbstractAction(NLS.str("menu.goto_main_activity"), ICON_MAIN_ACTIVITY) {
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				AndroidManifestParser parser = new AndroidManifestParser(getWrapper().getResources());
+				if (!parser.isResourceFound()) {
+					JOptionPane.showMessageDialog(MainWindow.this,
+							NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
+							NLS.str("error_dialog.title"),
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				try {
+					JavaClass mainActivityClass = parser.getMainActivity(getWrapper());
+					tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
+				} catch (Exception e) {
+					LOG.error("Main activity not found", e);
+					JOptionPane.showMessageDialog(MainWindow.this,
+							NLS.str("error_dialog.not_found", "Main Activity"),
+							NLS.str("error_dialog.title"),
+							JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+		gotoMainActivityAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.goto_main_activity"));
+		gotoMainActivityAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_M,
+				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+
 		ActionHandler decompileAllAction = new ActionHandler(ev -> requestFullDecompilation());
 		decompileAllAction.setNameAndDesc(NLS.str("menu.decompile_all"));
 		decompileAllAction.setIcon(ICON_DECOMPILE_ALL);
@@ -1135,6 +1165,7 @@ public class MainWindow extends JFrame {
 		nav.add(textSearchAction);
 		nav.add(clsSearchAction);
 		nav.add(commentSearchAction);
+		nav.add(gotoMainActivityAction);
 		nav.addSeparator();
 		nav.add(backAction);
 		nav.add(forwardAction);
@@ -1199,6 +1230,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(textSearchAction);
 		toolbar.add(clsSearchAction);
 		toolbar.add(commentSearchAction);
+		toolbar.add(gotoMainActivityAction);
 		toolbar.addSeparator();
 		toolbar.add(backAction);
 		toolbar.add(forwardAction);
@@ -1220,6 +1252,7 @@ public class MainWindow extends JFrame {
 			textSearchAction.setEnabled(loaded);
 			clsSearchAction.setEnabled(loaded);
 			commentSearchAction.setEnabled(loaded);
+			gotoMainActivityAction.setEnabled(loaded);
 			backAction.setEnabled(loaded);
 			forwardAction.setEnabled(loaded);
 			syncAction.setEnabled(loaded);
