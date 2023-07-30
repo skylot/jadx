@@ -21,6 +21,7 @@ import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.codearea.BinaryContentPanel;
 import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.ImagePanel;
@@ -130,6 +131,9 @@ public class JResource extends JLoadableNode {
 		}
 		if (resFile.getType() == ResourceType.IMG) {
 			return new ImagePanel(tabbedPane, this);
+		}
+		if (getSyntaxByExtension(resFile.getDeobfName()) == null) {
+			return new BinaryContentPanel(tabbedPane, this);
 		}
 		return new CodeContentPanel(tabbedPane, this);
 	}
