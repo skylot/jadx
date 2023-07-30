@@ -1,7 +1,7 @@
 @file:Suppress("MayBeConstant", "unused")
 
 import jadx.plugins.script.runtime.JadxScriptInstance
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
  * Stubs for JadxScriptBaseClass script super class

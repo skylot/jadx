@@ -18,8 +18,8 @@ import jadx.plugins.script.runtime.data.Rename
 import jadx.plugins.script.runtime.data.Replace
 import jadx.plugins.script.runtime.data.Search
 import jadx.plugins.script.runtime.data.Stages
-import mu.KLogger
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
 const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
