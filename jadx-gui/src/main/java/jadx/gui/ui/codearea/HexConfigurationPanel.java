@@ -14,6 +14,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.plaf.ColorUIResource;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -103,9 +106,10 @@ public class HexConfigurationPanel extends JPanel {
 
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.gridx = 1;
+
 		JTextField textField = new JTextField();
 		textField.setEditable(false);
-		textField.setBackground(Color.WHITE);
+
 		add(textField, constraints);
 	}
 

@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.nio.charset.StandardCharsets;
 
 import javax.swing.border.EmptyBorder;
@@ -8,6 +9,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.apache.commons.lang3.StringUtils;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ public class HexArea extends AbstractCodeArea {
 		hexPreviewPanel = new HexPreviewPanel(config);
 
 		initView();
+		applyTheme();
 	}
 
 	@Override
@@ -59,6 +62,22 @@ public class HexArea extends AbstractCodeArea {
 	@Override
 	public void refresh() {
 
+	}
+
+	@Override
+	public void loadSettings() {
+		super.loadSettings();
+		applyTheme();
+	}
+
+	private void applyTheme() {
+		Font font = getContentPanel().getTabbedPane().getMainWindow().getSettings().getSmaliFont();
+		setFont(font);
+
+		Theme theme = contentPanel.getTabbedPane().getMainWindow().getEditorTheme();
+		if (hexPreviewPanel != null) {
+			hexPreviewPanel.applyTheme(theme, font);
+		}
 	}
 
 	private void initView() {

@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import javax.swing.JTextArea;
 import javax.swing.border.MatteBorder;
@@ -8,6 +9,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +20,8 @@ public class HexPreviewPanel extends JTextArea {
 	private final HexAreaConfiguration config;
 
 	private byte[] bytes = new byte[0];
+
+	private Color highlightColor = Color.YELLOW;
 	private boolean hasHighlight = false;
 
 	public HexPreviewPanel(HexAreaConfiguration configuration) {
@@ -57,7 +62,7 @@ public class HexPreviewPanel extends JTextArea {
 		startOffset += startOffset / config.bytesPerLine;
 		endOffset += endOffset / config.bytesPerLine;
 
-		Highlighter.HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+		Highlighter.HighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
 		try {
 			getHighlighter().addHighlight(startOffset, endOffset + 1, painter);
 		} catch (BadLocationException e) {
@@ -66,9 +71,24 @@ public class HexPreviewPanel extends JTextArea {
 		hasHighlight = true;
 	}
 
+	public void setHighlightColor(Color highlightColor) {
+		this.highlightColor = highlightColor;
+	}
+
+	public void setBorderColor(Color borderColor) {
+		setBorder(new MatteBorder(0, 2, 0, 0, borderColor));
+	}
+
+	public void applyTheme(Theme theme, Font font) {
+		setBackground(theme.bgColor);
+		setHighlightColor(theme.selectionFG);
+		setBorderColor(theme.gutterBorderColor);
+		setDisabledTextColor(theme.scheme.getStyle(SyntaxScheme.IDENTIFIER).foreground);
+		setFont(font);
+	}
+
 	private void initView() {
+		setEnabled(false);
 		setEditable(false);
-		setBackground(Color.WHITE);
-		setBorder(new MatteBorder(0, 2, 0, 0, Color.LIGHT_GRAY));
 	}
 }
