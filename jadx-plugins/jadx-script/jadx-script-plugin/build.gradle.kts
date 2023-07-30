@@ -10,7 +10,7 @@ dependencies {
 	implementation(kotlin("scripting-jvm"))
 	implementation(kotlin("scripting-jvm-host"))
 
-	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+	implementation("io.github.oshai:kotlin-logging-jvm:5.0.1")
 
 	testImplementation(project(":jadx-core"))
 }
