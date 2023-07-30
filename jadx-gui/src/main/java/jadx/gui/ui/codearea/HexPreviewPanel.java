@@ -81,7 +81,7 @@ public class HexPreviewPanel extends JTextArea {
 
 	public void applyTheme(Theme theme, Font font) {
 		setBackground(theme.bgColor);
-		setHighlightColor(theme.selectionFG);
+		setHighlightColor(theme.selectionBG);
 		setBorderColor(theme.gutterBorderColor);
 		setDisabledTextColor(theme.scheme.getStyle(SyntaxScheme.IDENTIFIER).foreground);
 		setFont(font);
