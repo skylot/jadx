@@ -35,9 +35,9 @@ public class HexConfigurationPanel extends JPanel {
 
 		setLayout(new GridBagLayout());
 		addValueFormat("Signed 8 bit", 1, b -> Integer.toString(b.get()));
-		addValueFormat("Unsigned 8 bit", 2, b -> Integer.toString(b.get() & 0xFF));
-		addValueFormat("Signed 16 bit", 4, b -> Short.toString(b.getShort()));
-		addValueFormat("Unsigned 16 bit", 4, b -> Integer.toString(b.getShort() & 0xFFFF));
+		addValueFormat("Unsigned 8 bit", 1, b -> Integer.toString(b.get() & 0xFF));
+		addValueFormat("Signed 16 bit", 2, b -> Short.toString(b.getShort()));
+		addValueFormat("Unsigned 16 bit", 2, b -> Integer.toString(b.getShort() & 0xFFFF));
 		addValueFormat("Float 32 bit", 4, b -> Float.toString(b.getFloat()));
 		addValueFormat("Signed 32 bit", 4, b -> Integer.toString(b.getInt()));
 		addValueFormat("Unsigned 32 bit", 4, b -> Integer.toUnsignedString(b.getInt()));
