@@ -71,17 +71,24 @@ public class HexArea extends AbstractCodeArea {
 
 	private void setBytes(byte[] bytes) {
 		this.bytes = bytes;
-		byte[] hexChars = new byte[bytes.length * 4 - 2];
-		for (int j = 0; j < bytes.length; j++) {
-			int v = bytes[j] & 0xFF;
-			hexChars[j * 4] = HEX_ARRAY[v >>> 4];
-			hexChars[j * 4 + 1] = HEX_ARRAY[v & 0x0F];
-			if (j != bytes.length - 1) {
-				hexChars[j * 4 + 2] = ' ';
-				hexChars[j * 4 + 3] = (byte) ((j % config.bytesPerLine == config.bytesPerLine - 1) ? '\n' : ' ');
+
+		String text;
+		if (bytes.length > 0) {
+			byte[] hexChars = new byte[bytes.length * 4 - 2];
+
+			for (int j = 0; j < bytes.length; j++) {
+				int v = bytes[j] & 0xFF;
+				hexChars[j * 4] = HEX_ARRAY[v >>> 4];
+				hexChars[j * 4 + 1] = HEX_ARRAY[v & 0x0F];
+				if (j != bytes.length - 1) {
+					hexChars[j * 4 + 2] = ' ';
+					hexChars[j * 4 + 3] = (byte) ((j % config.bytesPerLine == config.bytesPerLine - 1) ? '\n' : ' ');
+				}
 			}
+			text = new String(hexChars, StandardCharsets.UTF_8);
+		} else {
+			text = "";
 		}
-		String text = new String(hexChars, StandardCharsets.UTF_8);
 		setText(text);
 		hexPreviewPanel.setBytes(bytes);
 		hexConfigurationPanel.setBytes(bytes);
