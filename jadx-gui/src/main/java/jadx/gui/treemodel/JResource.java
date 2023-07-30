@@ -132,6 +132,9 @@ public class JResource extends JLoadableNode {
 		if (resFile.getType() == ResourceType.IMG) {
 			return new ImagePanel(tabbedPane, this);
 		}
+		if (resFile.getType() == ResourceType.LIB) {
+			return new BinaryContentPanel(tabbedPane, this, false);
+		}
 		if (getSyntaxByExtension(resFile.getDeobfName()) == null) {
 			return new BinaryContentPanel(tabbedPane, this);
 		}
@@ -276,7 +279,6 @@ public class JResource extends JLoadableNode {
 		switch (type) {
 			case CODE:
 			case FONT:
-			case LIB:
 			case MEDIA:
 				return false;
 
@@ -284,6 +286,7 @@ public class JResource extends JLoadableNode {
 			case XML:
 			case ARSC:
 			case IMG:
+			case LIB:
 			case UNKNOWN:
 				return true;
 		}
