@@ -44,11 +44,11 @@ abstract class JadxScriptTemplate(
 	fun getJadxInstance() = scriptInstance
 
 	fun println(message: Any?) {
-		log.info(message?.toString())
+		log.info { message }
 	}
 
 	fun print(message: Any?) {
-		log.info(message?.toString())
+		log.info { message }
 	}
 }
 
