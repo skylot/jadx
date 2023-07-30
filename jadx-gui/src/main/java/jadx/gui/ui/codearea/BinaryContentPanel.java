@@ -91,8 +91,8 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		} else if (selectedComponent instanceof JSplitPane) {
 			selectedPanel = (CodePanel) ((JSplitPane) selectedComponent).getLeftComponent();
 		} else {
-			throw new RuntimeException("tabbedPane.getSelectedComponent returned a Component " +
-					"of unexpected type " + selectedComponent);
+			throw new RuntimeException("tabbedPane.getSelectedComponent returned a Component "
+					+ "of unexpected type " + selectedComponent);
 		}
 		return selectedPanel;
 	}
