@@ -43,6 +43,11 @@ public class HexPreviewPanel extends JTextArea {
 		setText(sb.toString());
 	}
 
+	public void clearHighlights() {
+		hasHighlight = false;
+		getHighlighter().removeAllHighlights();
+	}
+
 	public void highlightBytes(int startOffset, int endOffset) {
 		if (hasHighlight) {
 			getHighlighter().removeAllHighlights();

@@ -159,9 +159,19 @@ public class HexArea extends AbstractCodeArea {
 		private void onTextCursorMoved(int dot, int mark) {
 			hexConfigurationPanel.setOffset(dot / 4);
 
-			int startOffset = Math.min(dot, mark) / 4;
-			int endOffset = Math.max(dot, mark) / 4;
-			if (endOffset > startOffset && Math.max(dot, mark) % 4 == 0) {
+			int startIndex = Math.min(dot, mark);
+			int endIndex = Math.max(dot, mark);
+			int startOffset = startIndex / 4;
+			int endOffset = endIndex / 4;
+			if (startIndex % 4 == 2 && endIndex == startIndex + 2) {
+				// Highlighted an empty space
+				hexPreviewPanel.clearHighlights();
+				return;
+			}
+			if (startOffset < endOffset && startIndex % 4 == 2) {
+				startOffset++;
+			}
+			if (endOffset > startOffset && endIndex % 4 == 0) {
 				endOffset--;
 			}
 			hexPreviewPanel.highlightBytes(startOffset, endOffset);
