@@ -11,6 +11,7 @@ import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.android.AndroidManifestParser;
 import jadx.core.utils.android.AppAttribute;
+import jadx.core.utils.android.ApplicationParams;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 

@@ -1,4 +1,4 @@
-package jadx.core.export;
+package jadx.core.utils.android;
 
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;

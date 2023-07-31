@@ -16,7 +16,6 @@ import org.xml.sax.InputSource;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
-import jadx.core.export.ApplicationParams;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.XmlSecurity;
