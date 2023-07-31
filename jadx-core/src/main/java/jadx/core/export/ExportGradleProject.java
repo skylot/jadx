@@ -94,17 +94,13 @@ public class ExportGradleProject {
 	}
 
 	private ApplicationParams getApplicationParams(ResourceFile androidManifest, ResContainer appStrings) {
-		System.out.println("INFO - androidManifest: " + androidManifest);
 		AndroidManifestParser parser = new AndroidManifestParser(androidManifest, appStrings,
 				AndroidManifestParser.APPLICATION_LABEL |
 						AndroidManifestParser.MIN_SDK_VERSION |
 						AndroidManifestParser.TARGET_SDK_VERSION |
 						AndroidManifestParser.VERSION_CODE |
 						AndroidManifestParser.VERSION_NAME);
-		System.out.println("INFO - manifest found: " + parser.isManifestFound());
-		ApplicationParams results = parser.getParseResults();
-		System.out.println("INFO - applicationLabel: " + results.getApplicationName());
-		return results;
+		return parser.getParseResults();
 	}
 
 	private Document parseXml(String xmlContent) {

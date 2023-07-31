@@ -86,7 +86,6 @@ public class AndroidManifestParser {
 		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
 
-		LOG.info("Flags: " + Integer.toString(parseFlags, 2));
 		if (hasFlag(APPLICATION_LABEL)) {
 			applicationLabel = getApplicationLabel();
 		}
@@ -120,14 +119,11 @@ public class AndroidManifestParser {
 
 	private String getApplicationLabel() {
 		Element application = (Element) androidManifest.getElementsByTagName("application").item(0);
-		LOG.info("application element: " + application);
 		if (application.hasAttribute("android:label")) {
 			String appLabelName = application.getAttribute("android:label");
-			LOG.info("appLabelName: " + appLabelName);
 			if (appLabelName.startsWith("@string")) {
 				appLabelName = appLabelName.split("/")[1];
 				NodeList strings = appStrings.getElementsByTagName("string");
-				LOG.info("strings size: " + strings.getLength());
 
 				for (int i = 0; i < strings.getLength(); i++) {
 					String stringName = strings.item(i)
@@ -135,7 +131,6 @@ public class AndroidManifestParser {
 							.getNamedItem("name")
 							.getNodeValue();
 
-					LOG.info("string name: " + stringName);
 					if (stringName.equals(appLabelName)) {
 						return strings.item(i).getTextContent();
 					}
