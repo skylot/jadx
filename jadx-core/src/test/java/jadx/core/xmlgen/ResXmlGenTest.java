@@ -196,7 +196,7 @@ class ResXmlGenTest {
 	}
 
 	private static String adaptLineEndings(String input) {
-		if (System.lineSeparator().equals("\n")){
+		if (System.lineSeparator().equals("\n")) {
 			return input; // no adaption necessary
 		}
 		return input.replaceAll(System.lineSeparator(), "\n");
