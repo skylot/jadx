@@ -41,16 +41,21 @@ public class ExportGradleTask implements Runnable {
 			throw new IllegalStateException("Could not find AndroidManifest.xml");
 		}
 
-		ResContainer strings = resources.stream()
+		List<ResContainer> resContainers = resources.stream()
 				.filter(resourceFile -> resourceFile.getType() == ResourceType.ARSC)
 				.findFirst()
 				.orElseThrow(IllegalStateException::new)
 				.loadContent()
-				.getSubFiles()
+				.getSubFiles();
+
+		ResContainer strings = resContainers
 				.stream()
 				.filter(resContainer -> resContainer.getName().contains("values/strings.xml"))
 				.findFirst()
-				.orElseThrow(IllegalStateException::new);
+				.orElseGet(() -> resContainers.stream()
+						.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
+						.findFirst()
+						.orElseThrow(IllegalStateException::new));
 
 		ExportGradleProject export = new ExportGradleProject(root, projectDir, androidManifest, strings);
 
