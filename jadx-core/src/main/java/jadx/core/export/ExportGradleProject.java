@@ -95,11 +95,11 @@ public class ExportGradleProject {
 
 	private ApplicationParams getApplicationParams(ResourceFile androidManifest, ResContainer appStrings) {
 		AndroidManifestParser parser = new AndroidManifestParser(androidManifest, appStrings,
-				AndroidManifestParser.APPLICATION_LABEL |
-						AndroidManifestParser.MIN_SDK_VERSION |
-						AndroidManifestParser.TARGET_SDK_VERSION |
-						AndroidManifestParser.VERSION_CODE |
-						AndroidManifestParser.VERSION_NAME);
+				AndroidManifestParser.APPLICATION_LABEL
+						| AndroidManifestParser.MIN_SDK_VERSION
+						| AndroidManifestParser.TARGET_SDK_VERSION
+						| AndroidManifestParser.VERSION_CODE
+						| AndroidManifestParser.VERSION_NAME);
 		return parser.getParseResults();
 	}
 

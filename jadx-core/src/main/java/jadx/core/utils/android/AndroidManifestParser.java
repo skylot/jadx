@@ -21,7 +21,7 @@ import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.XmlSecurity;
 
 public class AndroidManifestParser {
-	private final static Logger LOG = LoggerFactory.getLogger(AndroidManifestParser.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AndroidManifestParser.class);
 
 	public static final int APPLICATION_LABEL = 1;
 	public static final int MIN_SDK_VERSION = 1 << 1;
