@@ -2,23 +2,18 @@ package jadx.core.export;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilder;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
+import jadx.core.utils.android.ApplicationParams;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
-import jadx.core.xmlgen.XmlSecurity;
 
 public class ExportGradleProject {
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
@@ -32,9 +27,7 @@ public class ExportGradleProject {
 		this.root = root;
 		this.projectDir = projectDir;
 		this.appDir = new File(projectDir, "app");
-		this.applicationParams = getApplicationParams(
-				parseAndroidManifest(androidManifest),
-				parseAppStrings(appStrings));
+		this.applicationParams = getApplicationParams(androidManifest, appStrings);
 	}
 
 	public void generateGradleFiles() {
@@ -96,64 +89,13 @@ public class ExportGradleProject {
 		tmpl.add("additionalOptions", sb.toString());
 	}
 
-	private ApplicationParams getApplicationParams(Document androidManifest, Document appStrings) {
-		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
-		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
-		Element application = (Element) androidManifest.getElementsByTagName("application").item(0);
-
-		Integer versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
-		String versionName = manifest.getAttribute("android:versionName");
-		Integer minSdk = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
-		String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
-		Integer targetSdk = stringTargetSdk.isEmpty() ? minSdk : Integer.valueOf(stringTargetSdk);
-		String appName = "UNKNOWN";
-
-		if (application.hasAttribute("android:label")) {
-			String appLabelName = application.getAttribute("android:label");
-			if (appLabelName.startsWith("@string")) {
-				appLabelName = appLabelName.split("/")[1];
-				NodeList strings = appStrings.getElementsByTagName("string");
-
-				for (int i = 0; i < strings.getLength(); i++) {
-					String stringName = strings.item(i)
-							.getAttributes()
-							.getNamedItem("name")
-							.getNodeValue();
-
-					if (stringName.equals(appLabelName)) {
-						appName = strings.item(i).getTextContent();
-						break;
-					}
-				}
-			} else {
-				appName = appLabelName;
-			}
-		}
-		return new ApplicationParams(appName, minSdk, targetSdk, versionCode, versionName);
-	}
-
-	private Document parseXml(String xmlContent) {
-		try {
-			DocumentBuilder builder = XmlSecurity.getSecureDbf().newDocumentBuilder();
-			Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
-
-			document.getDocumentElement().normalize();
-
-			return document;
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Can not parse xml content", e);
-		}
-	}
-
-	private Document parseAppStrings(ResContainer appStrings) {
-		String content = appStrings.getText().getCodeStr();
-
-		return parseXml(content);
-	}
-
-	private Document parseAndroidManifest(ResourceFile androidManifest) {
-		String content = androidManifest.loadContent().getText().getCodeStr();
-
-		return parseXml(content);
+	private ApplicationParams getApplicationParams(ResourceFile androidManifest, ResContainer appStrings) {
+		AndroidManifestParser parser = new AndroidManifestParser(androidManifest, appStrings, EnumSet.of(
+				AppAttribute.APPLICATION_LABEL,
+				AppAttribute.MIN_SDK_VERSION,
+				AppAttribute.TARGET_SDK_VERSION,
+				AppAttribute.VERSION_CODE,
+				AppAttribute.VERSION_NAME));
+		return parser.parse();
 	}
 }

@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -89,6 +90,9 @@ import jadx.core.export.TemplateFile;
 import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
+import jadx.core.utils.android.ApplicationParams;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
@@ -134,7 +138,6 @@ import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
-import jadx.gui.utils.AndroidManifestParser;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
@@ -1033,8 +1036,10 @@ public class MainWindow extends JFrame {
 		Action gotoMainActivityAction = new AbstractAction(NLS.str("menu.goto_main_activity"), ICON_MAIN_ACTIVITY) {
 			@Override
 			public void actionPerformed(ActionEvent ev) {
-				AndroidManifestParser parser = new AndroidManifestParser(getWrapper().getResources());
-				if (!parser.isResourceFound()) {
+				AndroidManifestParser parser = new AndroidManifestParser(
+						AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
+						EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+				if (!parser.isManifestFound()) {
 					JOptionPane.showMessageDialog(MainWindow.this,
 							NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
 							NLS.str("error_dialog.title"),
@@ -1042,7 +1047,14 @@ public class MainWindow extends JFrame {
 					return;
 				}
 				try {
-					JavaClass mainActivityClass = parser.getMainActivity(getWrapper());
+					ApplicationParams results = parser.parse();
+					if (results.getMainActivityName() == null) {
+						throw new JadxRuntimeException("Failed to get main activity name from manifest");
+					}
+					JavaClass mainActivityClass = results.getMainActivity(getWrapper().getDecompiler());
+					if (mainActivityClass == null) {
+						throw new JadxRuntimeException("Failed to find main activity class: " + results.getMainActivityName());
+					}
 					tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
 				} catch (Exception e) {
 					LOG.error("Main activity not found", e);

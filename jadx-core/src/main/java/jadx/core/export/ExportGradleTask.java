@@ -7,6 +7,7 @@ import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.TaskBarrier;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.android.AndroidManifestParser;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
@@ -35,21 +36,26 @@ public class ExportGradleTask implements Runnable {
 
 	@Override
 	public void run() {
-		ResourceFile androidManifest = resources.stream()
-				.filter(resourceFile -> resourceFile.getType() == ResourceType.MANIFEST)
-				.findFirst()
-				.orElseThrow(IllegalStateException::new);
+		ResourceFile androidManifest = AndroidManifestParser.getAndroidManifest(resources);
+		if (androidManifest == null) {
+			throw new IllegalStateException("Could not find AndroidManifest.xml");
+		}
 
-		ResContainer strings = resources.stream()
+		List<ResContainer> resContainers = resources.stream()
 				.filter(resourceFile -> resourceFile.getType() == ResourceType.ARSC)
 				.findFirst()
 				.orElseThrow(IllegalStateException::new)
 				.loadContent()
-				.getSubFiles()
+				.getSubFiles();
+
+		ResContainer strings = resContainers
 				.stream()
-				.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
+				.filter(resContainer -> resContainer.getName().contains("values/strings.xml"))
 				.findFirst()
-				.orElseThrow(IllegalStateException::new);
+				.orElseGet(() -> resContainers.stream()
+						.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
+						.findFirst()
+						.orElseThrow(IllegalStateException::new));
 
 		ExportGradleProject export = new ExportGradleProject(root, projectDir, androidManifest, strings);
 
