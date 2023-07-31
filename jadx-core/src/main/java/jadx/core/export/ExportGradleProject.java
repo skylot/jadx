@@ -2,22 +2,15 @@ package jadx.core.export;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.android.AndroidManifestParser;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
-import jadx.core.xmlgen.XmlSecurity;
 
 public class ExportGradleProject {
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
