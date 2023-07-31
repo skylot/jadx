@@ -1,5 +1,8 @@
 package jadx.core.export;
 
+import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
+
 public class ApplicationParams {
 
 	private final String applicationLabel;
@@ -7,14 +10,16 @@ public class ApplicationParams {
 	private final Integer targetSdkVersion;
 	private final Integer versionCode;
 	private final String versionName;
+	private final String mainActivtiy;
 
 	public ApplicationParams(String applicationLabel, Integer minSdkVersion, Integer targetSdkVersion, Integer versionCode,
-			String versionName) {
+			String versionName, String mainActivtiy) {
 		this.applicationLabel = applicationLabel;
 		this.minSdkVersion = minSdkVersion;
 		this.targetSdkVersion = targetSdkVersion;
 		this.versionCode = versionCode;
 		this.versionName = versionName;
+		this.mainActivtiy = mainActivtiy;
 	}
 
 	public String getApplicationName() {
@@ -35,5 +40,13 @@ public class ApplicationParams {
 
 	public String getVersionName() {
 		return versionName;
+	}
+
+	public String getMainActivityName() {
+		return mainActivtiy;
+	}
+
+	public JavaClass getMainActivity(JadxDecompiler decompiler) {
+		return decompiler.searchJavaClassByOrigFullName(mainActivtiy);
 	}
 }
