@@ -3,12 +3,14 @@ package jadx.core.export;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 
@@ -87,12 +89,12 @@ public class ExportGradleProject {
 	}
 
 	private ApplicationParams getApplicationParams(ResourceFile androidManifest, ResContainer appStrings) {
-		AndroidManifestParser parser = new AndroidManifestParser(androidManifest, appStrings,
-				AndroidManifestParser.APPLICATION_LABEL
-						| AndroidManifestParser.MIN_SDK_VERSION
-						| AndroidManifestParser.TARGET_SDK_VERSION
-						| AndroidManifestParser.VERSION_CODE
-						| AndroidManifestParser.VERSION_NAME);
+		AndroidManifestParser parser = new AndroidManifestParser(androidManifest, appStrings, EnumSet.of(
+				AppAttribute.APPLICATION_LABEL,
+				AppAttribute.MIN_SDK_VERSION,
+				AppAttribute.TARGET_SDK_VERSION,
+				AppAttribute.VERSION_CODE,
+				AppAttribute.VERSION_NAME));
 		return parser.getParseResults();
 	}
 }

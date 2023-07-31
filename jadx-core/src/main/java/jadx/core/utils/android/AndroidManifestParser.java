@@ -1,6 +1,7 @@
 package jadx.core.utils.android;
 
 import java.io.StringReader;
+import java.util.EnumSet;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -23,32 +24,24 @@ import jadx.core.xmlgen.XmlSecurity;
 public class AndroidManifestParser {
 	private static final Logger LOG = LoggerFactory.getLogger(AndroidManifestParser.class);
 
-	public static final int APPLICATION_LABEL = 1;
-	public static final int MIN_SDK_VERSION = 1 << 1;
-	public static final int TARGET_SDK_VERSION = 1 << 2;
-	public static final int VERSION_CODE = 1 << 3;
-	public static final int VERSION_NAME = 1 << 4;
-	public static final int MAIN_ACTIVITY = 1 << 5;
-	public static final int ALL = 0xffffff;
-
 	private final Document androidManifest;
 	private final Document appStrings;
-	private final int parseFlags;
+	private final EnumSet<AppAttribute> parseAttrs;
 
 	private ApplicationParams applicationParams = null;
 
-	public AndroidManifestParser(ResourceFile androidManifestRes, int parseFlags) {
-		this(androidManifestRes, null, parseFlags);
+	public AndroidManifestParser(ResourceFile androidManifestRes, EnumSet<AppAttribute> parseAttrs) {
+		this(androidManifestRes, null, parseAttrs);
 	}
 
-	public AndroidManifestParser(ResourceFile androidManifestRes, ResContainer appStrings, int parseFlags) {
-		this.parseFlags = parseFlags;
+	public AndroidManifestParser(ResourceFile androidManifestRes, ResContainer appStrings, EnumSet<AppAttribute> parseAttrs) {
+		this.parseAttrs = parseAttrs;
 
 		this.androidManifest = parseAndroidManifest(androidManifestRes);
 		this.appStrings = parseAppStrings(appStrings);
 
 		if (isManifestFound()) {
-			checkFlags();
+			validateAttrs();
 			parseAttributes();
 		}
 	}
@@ -69,9 +62,9 @@ public class AndroidManifestParser {
 				.orElse(null);
 	}
 
-	private void checkFlags() {
-		if (hasFlag(APPLICATION_LABEL) && appStrings == null) {
-			throw new IllegalArgumentException("APPLICATION_LABEL flag requires non null appStrings");
+	private void validateAttrs() {
+		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL) && appStrings == null) {
+			throw new IllegalArgumentException("APPLICATION_LABEL attribute requires non null appStrings");
 		}
 	}
 
@@ -86,13 +79,13 @@ public class AndroidManifestParser {
 		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
 
-		if (hasFlag(APPLICATION_LABEL)) {
+		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL)) {
 			applicationLabel = getApplicationLabel();
 		}
-		if (hasFlag(MIN_SDK_VERSION)) {
+		if (parseAttrs.contains(AppAttribute.MIN_SDK_VERSION)) {
 			minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
 		}
-		if (hasFlag(TARGET_SDK_VERSION)) {
+		if (parseAttrs.contains(AppAttribute.TARGET_SDK_VERSION)) {
 			String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
 			if (!stringTargetSdk.isEmpty()) {
 				targetSdkVersion = Integer.valueOf(stringTargetSdk);
@@ -103,13 +96,13 @@ public class AndroidManifestParser {
 				targetSdkVersion = minSdkVersion;
 			}
 		}
-		if (hasFlag(VERSION_CODE)) {
+		if (parseAttrs.contains(AppAttribute.VERSION_CODE)) {
 			versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
 		}
-		if (hasFlag(VERSION_NAME)) {
+		if (parseAttrs.contains(AppAttribute.VERSION_NAME)) {
 			versionName = manifest.getAttribute("android:versionName");
 		}
-		if (hasFlag(MAIN_ACTIVITY)) {
+		if (parseAttrs.contains(AppAttribute.MAIN_ACTIVITY)) {
 			mainActivity = getMainActivityName();
 		}
 
@@ -141,10 +134,6 @@ public class AndroidManifestParser {
 		}
 
 		return "UNKNOWN";
-	}
-
-	private boolean hasFlag(int flag) {
-		return (parseFlags & flag) != 0;
 	}
 
 	private String getMainActivityName() {

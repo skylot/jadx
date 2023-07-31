@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -91,6 +92,7 @@ import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
@@ -1036,7 +1038,7 @@ public class MainWindow extends JFrame {
 			public void actionPerformed(ActionEvent ev) {
 				AndroidManifestParser parser = new AndroidManifestParser(
 						AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
-						AndroidManifestParser.MAIN_ACTIVITY);
+						EnumSet.of(AppAttribute.MAIN_ACTIVITY));
 				if (!parser.isManifestFound()) {
 					JOptionPane.showMessageDialog(MainWindow.this,
 							NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
