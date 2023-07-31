@@ -102,29 +102,4 @@ public class ExportGradleProject {
 						| AndroidManifestParser.VERSION_NAME);
 		return parser.getParseResults();
 	}
-
-	private Document parseXml(String xmlContent) {
-		try {
-			DocumentBuilder builder = XmlSecurity.getSecureDbf().newDocumentBuilder();
-			Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
-
-			document.getDocumentElement().normalize();
-
-			return document;
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Can not parse xml content", e);
-		}
-	}
-
-	private Document parseAppStrings(ResContainer appStrings) {
-		String content = appStrings.getText().getCodeStr();
-
-		return parseXml(content);
-	}
-
-	private Document parseAndroidManifest(ResourceFile androidManifest) {
-		String content = androidManifest.loadContent().getText().getCodeStr();
-
-		return parseXml(content);
-	}
 }
