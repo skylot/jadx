@@ -140,7 +140,7 @@ public class AndroidManifestParser {
 			}
 		}
 
-		return null;
+		return "UNKNOWN";
 	}
 
 	private boolean hasFlag(int flag) {
