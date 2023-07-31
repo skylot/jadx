@@ -223,6 +223,10 @@ public class AndroidManifestParser {
 	}
 
 	private static Document parseAndroidManifest(ResourceFile androidManifest) {
+		if (androidManifest == null) {
+			return null;
+		}
+
 		String content = androidManifest.loadContent().getText().getCodeStr();
 
 		return parseXml(content);
