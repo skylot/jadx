@@ -1046,8 +1046,8 @@ public class MainWindow extends JFrame {
 							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				ApplicationParams results = parser.getParseResults();
 				try {
+					ApplicationParams results = parser.parse();
 					if (results.getMainActivityName() == null) {
 						throw new JadxRuntimeException("Failed to get main activity name from manifest");
 					}

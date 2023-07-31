@@ -96,6 +96,6 @@ public class ExportGradleProject {
 				AppAttribute.TARGET_SDK_VERSION,
 				AppAttribute.VERSION_CODE,
 				AppAttribute.VERSION_NAME));
-		return parser.getParseResults();
+		return parser.parse();
 	}
 }

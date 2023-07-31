@@ -27,8 +27,6 @@ public class AndroidManifestParser {
 	private final Document appStrings;
 	private final EnumSet<AppAttribute> parseAttrs;
 
-	private ApplicationParams applicationParams = null;
-
 	public AndroidManifestParser(ResourceFile androidManifestRes, EnumSet<AppAttribute> parseAttrs) {
 		this(androidManifestRes, null, parseAttrs);
 	}
@@ -39,18 +37,11 @@ public class AndroidManifestParser {
 		this.androidManifest = parseAndroidManifest(androidManifestRes);
 		this.appStrings = parseAppStrings(appStrings);
 
-		if (isManifestFound()) {
-			validateAttrs();
-			parseAttributes();
-		}
+		validateAttrs();
 	}
 
 	public boolean isManifestFound() {
 		return androidManifest != null;
-	}
-
-	public ApplicationParams getParseResults() {
-		return applicationParams;
 	}
 
 	@Nullable
@@ -61,13 +52,21 @@ public class AndroidManifestParser {
 				.orElse(null);
 	}
 
+	public ApplicationParams parse() {
+		if (!isManifestFound()) {
+			throw new JadxRuntimeException("AndroidManifest.xml is missing");
+		}
+
+		return parseAttributes();
+	}
+
 	private void validateAttrs() {
 		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL) && appStrings == null) {
 			throw new IllegalArgumentException("APPLICATION_LABEL attribute requires non null appStrings");
 		}
 	}
 
-	private void parseAttributes() {
+	private ApplicationParams parseAttributes() {
 		String applicationLabel = null;
 		Integer minSdkVersion = null;
 		Integer targetSdkVersion = null;
@@ -105,7 +104,7 @@ public class AndroidManifestParser {
 			mainActivity = getMainActivityName();
 		}
 
-		applicationParams = new ApplicationParams(applicationLabel, minSdkVersion, targetSdkVersion, versionCode,
+		return new ApplicationParams(applicationLabel, minSdkVersion, targetSdkVersion, versionCode,
 				versionName, mainActivity);
 	}
 
