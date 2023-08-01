@@ -13,8 +13,12 @@ public class JadxGuiAction extends ActionHandler {
 
 	public JadxGuiAction(ActionModel actionModel, Runnable action) {
 		super(action);
-
 		this.actionModel = actionModel;
+
+		updateProperties();
+	}
+
+	private void updateProperties() {
 
 		if (actionModel.nameRes != null) {
 			setName(NLS.str(actionModel.nameRes));
@@ -27,8 +31,11 @@ public class JadxGuiAction extends ActionHandler {
 		}
 	}
 
-	public JadxGuiAction(ActionModel actionId, Consumer<ActionEvent> consumer) {
+	public JadxGuiAction(ActionModel actionModel, Consumer<ActionEvent> consumer) {
 		super(consumer);
+		this.actionModel = actionModel;
+
+		updateProperties();
 	}
 
 	public ActionModel getActionModel() {
