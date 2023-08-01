@@ -62,13 +62,16 @@ import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.plugins.PluginsSettings;
+import jadx.gui.settings.ui.shortcut.ShortcutEdit;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.ui.menu.ActionModel;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
@@ -126,6 +129,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(makeRenameGroup());
 		groups.add(new CacheSettingsGroup(this));
 		groups.add(makeAppearanceGroup());
+		groups.add(makeShortcutsGroup());
 		groups.add(makeSearchResGroup());
 		groups.add(makeProjectGroup());
 		groups.add(new PluginsSettings(mainWindow, settings).build());
@@ -372,6 +376,17 @@ public class JadxSettingsWindow extends JDialog {
 				}
 			}
 		});
+		return group;
+	}
+
+	private SettingsGroup makeShortcutsGroup() {
+		SettingsGroup group = new SettingsGroup("Shortcuts");
+		for (ActionModel actionModel : ActionModel.values()) {
+			Shortcut shortcut = settings.getShortcuts().get(actionModel);
+			ShortcutEdit edit = new ShortcutEdit(actionModel, this, settings);
+			edit.setShortcut(shortcut);
+			group.addRow(NLS.str(actionModel.nameRes), edit);
+		}
 		return group;
 	}
 
@@ -640,6 +655,7 @@ public class JadxSettingsWindow extends JDialog {
 		enableComponents(this, false);
 		SwingUtilities.invokeLater(() -> {
 			if (shouldReload()) {
+				mainWindow.getShortcutsController().loadSettings();
 				mainWindow.reopen();
 			}
 			if (!settings.getLangLocale().equals(prevLang)) {

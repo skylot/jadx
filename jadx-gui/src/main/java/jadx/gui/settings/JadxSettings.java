@@ -39,10 +39,13 @@ import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.ui.menu.ActionModel;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.shortcut.Shortcut;
+import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -73,6 +76,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
 	private boolean autoSaveProject = true;
+	private Map<ActionModel, Shortcut> shortcuts = ShortcutsController.getDefault();
 
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
@@ -440,6 +444,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setAutoSaveProject(boolean autoSaveProject) {
 		this.autoSaveProject = autoSaveProject;
+	}
+
+	public Map<ActionModel, Shortcut> getShortcuts() {
+		return shortcuts;
 	}
 
 	public void setExportAsGradleProject(boolean exportAsGradleProject) {
