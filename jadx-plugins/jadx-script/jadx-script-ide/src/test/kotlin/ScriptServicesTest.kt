@@ -29,7 +29,7 @@ class ScriptServicesTest {
 		val script = getSampleScript(name)
 		val idx = script.indexOf("jadx.log.info")
 		val completePos = idx + 7 // jadx.lo| <- complete 'log'
-		val curScript = script.removeRange(completePos, script.indexOf("\n", idx))
+		val curScript = script.substring(0, completePos)
 
 		val result = ScriptServices().complete(name, curScript, completePos)
 		println(result)

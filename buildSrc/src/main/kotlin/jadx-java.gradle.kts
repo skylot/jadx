@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
 	java
 	checkstyle
@@ -46,6 +48,10 @@ tasks {
 	test {
 		useJUnitPlatform()
 		maxParallelForks = Runtime.getRuntime().availableProcessors()
-		testLogging.showExceptions = true
+		testLogging {
+			showExceptions = true
+			exceptionFormat = TestExceptionFormat.FULL
+			showCauses = true
+		}
 	}
 }
