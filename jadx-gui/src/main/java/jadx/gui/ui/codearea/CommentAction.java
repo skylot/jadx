@@ -60,7 +60,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 			return;
 		}
 
-		if (JadxGuiAction.COMMAND.equals(e.getActionCommand())) {
+		if (JadxGuiAction.isSource(e)) {
 			showCommentDialog(getCommentRef(codeArea.getCaretPosition()));
 		} else {
 			showCommentDialog(this.actionComment);

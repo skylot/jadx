@@ -86,7 +86,7 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_F8)),
 	SCRIPT_SAVE(PLUGIN_SCRIPT, "script.save", "script.save", "ui/menu-saveall",
 			Shortcut.keyboard(KeyEvent.VK_S, UiUtils.ctrlButton())),
-	SCRIPT_AUTO_COMPLETE(PLUGIN_SCRIPT, null, null, null,
+	SCRIPT_AUTO_COMPLETE(PLUGIN_SCRIPT, "script.auto_complete", "script.auto_complete", null,
 			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
 
 	public final ActionCategory category;

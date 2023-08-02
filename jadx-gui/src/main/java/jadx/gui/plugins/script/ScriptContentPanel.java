@@ -95,8 +95,8 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 
 		runAction.setTargetComponent(scriptArea);
 
-		tabbedPane.getMainWindow().getShortcutsController().setShortcutImmediate(runAction);
-		tabbedPane.getMainWindow().getShortcutsController().setShortcutImmediate(saveAction);
+		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(runAction);
+		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(saveAction);
 
 		JButton save = saveAction.makeButton();
 		scriptArea.getScriptNode().addChangeListener(save::setEnabled);

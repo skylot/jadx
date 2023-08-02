@@ -43,9 +43,12 @@ public final class CodeArea extends AbstractCodeArea {
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	private @Nullable ICodeInfo cachedCodeInfo;
+	private final ShortcutsController shortcutsController;
 
 	CodeArea(ContentPanel contentPanel, JNode node) {
 		super(contentPanel, node);
+		this.shortcutsController = getMainWindow().getShortcutsController();
+
 		setSyntaxEditingStyle(node.getSyntaxName());
 		boolean isJavaCode = node instanceof JClass;
 		if (isJavaCode) {
@@ -342,6 +345,8 @@ public final class CodeArea extends AbstractCodeArea {
 
 	@Override
 	public void dispose() {
+		shortcutsController.unbindActionsForComponent(this);
+
 		super.dispose();
 		cachedCodeInfo = null;
 	}

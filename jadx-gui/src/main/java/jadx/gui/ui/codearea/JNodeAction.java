@@ -33,7 +33,7 @@ public abstract class JNodeAction extends CodeAreaAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (JadxGuiAction.COMMAND.equals(e.getActionCommand())) {
+		if (JadxGuiAction.isSource(e)) {
 			node = codeArea.getNodeUnderCaret();
 			if (isActionEnabled(node)) {
 				runAction(node);
@@ -52,9 +52,10 @@ public abstract class JNodeAction extends CodeAreaAction {
 		return codeArea;
 	}
 
+	@Override
 	public void dispose() {
+		super.dispose();
 		node = null;
-		codeArea = null;
 		for (PropertyChangeListener changeListener : getPropertyChangeListeners()) {
 			removePropertyChangeListener(changeListener);
 		}

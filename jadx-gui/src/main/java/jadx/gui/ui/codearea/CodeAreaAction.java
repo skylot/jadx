@@ -17,4 +17,8 @@ public class CodeAreaAction extends JadxGuiAction {
 		this.codeArea = codeArea;
 		setTargetComponent(codeArea);
 	}
+
+	public void dispose() {
+		codeArea = null;
+	}
 }

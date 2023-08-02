@@ -12,12 +12,13 @@ import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
 
 public class JadxGuiAction extends ActionHandler {
-	public static final String COMMAND = "JadxGuiAction.Command";
+	private static final String COMMAND = "JadxGuiAction.Command.%s";
 
 	private final ActionModel actionModel;
 	private final String id;
 	private JComponent targetComponent = null;
 	private KeyStroke addedKeyStroke = null;
+	private Shortcut shortcut;
 
 	public JadxGuiAction(ActionModel actionModel) {
 		super();
@@ -72,6 +73,7 @@ public class JadxGuiAction extends ActionHandler {
 	}
 
 	public void setShortcut(Shortcut shortcut) {
+		this.shortcut = shortcut;
 		if (shortcut != null) {
 			setKeyBinding(shortcut.toKeyStroke());
 		} else {
@@ -83,6 +85,10 @@ public class JadxGuiAction extends ActionHandler {
 		this.targetComponent = component;
 	}
 
+	public JComponent getTargetComponent() {
+		return targetComponent;
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (targetComponent != null && e.getSource() != targetComponent) {
@@ -90,6 +96,24 @@ public class JadxGuiAction extends ActionHandler {
 			return;
 		}
 		super.actionPerformed(e);
+	}
+
+	public void performAction() {
+		if (targetComponent != null && !targetComponent.isShowing()) {
+			return;
+		}
+
+		String shortcutType = "null";
+		if (shortcut != null) {
+			shortcutType = shortcut.getTypeString();
+		}
+		actionPerformed(new ActionEvent(targetComponent, ActionEvent.ACTION_PERFORMED,
+				String.format(COMMAND, shortcutType)));
+	}
+
+	public static boolean isSource(ActionEvent event) {
+		return event.getActionCommand() != null
+				&& event.getActionCommand().startsWith(String.format(COMMAND, ""));
 	}
 
 	@Override
@@ -104,9 +128,8 @@ public class JadxGuiAction extends ActionHandler {
 			if (addedKeyStroke != null) {
 				UiUtils.removeKeyBinding(targetComponent, addedKeyStroke, id);
 			}
+			UiUtils.addKeyBinding(targetComponent, keyStroke, id, this::performAction);
 			addedKeyStroke = keyStroke;
-			UiUtils.addKeyBinding(targetComponent, keyStroke, id, () -> actionPerformed(
-					new ActionEvent(targetComponent, ActionEvent.ACTION_PERFORMED, COMMAND)));
 		}
 	}
 }

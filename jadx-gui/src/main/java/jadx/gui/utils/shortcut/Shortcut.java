@@ -90,6 +90,15 @@ public class Shortcut {
 		return "NONE";
 	}
 
+	public String getTypeString() {
+		if (isKeyboard()) {
+			return "Keyboard";
+		} else if (isMouse()) {
+			return "Mouse";
+		}
+		return null;
+	}
+
 	private String mouseToString() {
 		return "MouseButton" + mouseButton;
 	}
