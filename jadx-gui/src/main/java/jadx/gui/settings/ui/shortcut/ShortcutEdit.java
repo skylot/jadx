@@ -7,6 +7,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -61,6 +62,32 @@ public class ShortcutEdit extends JPanel {
 		settingsWindow.needReload();
 	}
 
+	private boolean verifyShortcut(Shortcut shortcut) {
+		ActionModel otherAction = null;
+		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : settings.getShortcuts().entrySet()) {
+			if (shortcut.equals(shortcutEntry.getValue())) {
+				otherAction = shortcutEntry.getKey();
+				break;
+			}
+		}
+
+		if (otherAction != null) {
+			int dialogResult = JOptionPane.showConfirmDialog(
+					this,
+					NLS.str("msg.duplicate_shortcut",
+							shortcut,
+							NLS.str(otherAction.nameRes),
+							NLS.str(otherAction.category.nameRes)),
+					NLS.str("msg.warning_title"),
+					JOptionPane.YES_NO_OPTION);
+			if (dialogResult != 0) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private class TextField extends JTextField {
 		private Shortcut tempShortcut;
 
@@ -78,7 +105,7 @@ public class ShortcutEdit extends JPanel {
 					} else {
 						tempShortcut = null;
 					}
-				} else if (ev.getID() == KeyEvent.KEY_TYPED) {
+				} else if (ev.getID() == KeyEvent.KEY_RELEASED) {
 					removeFocus();
 				}
 				ev.consume();
@@ -93,9 +120,13 @@ public class ShortcutEdit extends JPanel {
 				@Override
 				public void focusLost(FocusEvent ev) {
 					if (tempShortcut != null) {
-						shortcut = tempShortcut;
+						if (verifyShortcut(tempShortcut)) {
+							shortcut = tempShortcut;
+							saveShortcut();
+						} else {
+							reload();
+						}
 						tempShortcut = null;
-						saveShortcut();
 					}
 				}
 			});

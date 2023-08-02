@@ -3,6 +3,7 @@ package jadx.gui.utils.shortcut;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.swing.KeyStroke;
@@ -105,5 +106,22 @@ public class Shortcut {
 			sb.append("UNDEFINED");
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Shortcut shortcut = (Shortcut) o;
+		return Objects.equals(keyCode, shortcut.keyCode)
+				&& Objects.equals(modifiers, shortcut.modifiers)
+				&& Objects.equals(mouseButton, shortcut.mouseButton);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(keyCode, modifiers, mouseButton);
 	}
 }
