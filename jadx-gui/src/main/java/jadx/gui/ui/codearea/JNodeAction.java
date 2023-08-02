@@ -32,8 +32,12 @@ public abstract class JNodeAction extends CodeAreaAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		node = codeArea.getNodeUnderCaret();
-		if (isActionEnabled(node)) {
+		if (JadxGuiAction.COMMAND.equals(e.getActionCommand())) {
+			node = codeArea.getNodeUnderCaret();
+			if (isActionEnabled(node)) {
+				runAction(node);
+			}
+		} else {
 			runAction(node);
 		}
 	}
