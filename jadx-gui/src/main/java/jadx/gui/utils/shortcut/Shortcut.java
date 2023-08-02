@@ -1,13 +1,13 @@
 package jadx.gui.utils.shortcut;
 
-import jadx.gui.utils.SystemInfo;
-
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.swing.KeyStroke;
+
+import jadx.gui.utils.SystemInfo;
 
 public class Shortcut {
 	private static final Set<Integer> FORBIDDEN_KEY_CODES = new HashSet<>(List.of(
@@ -73,8 +73,10 @@ public class Shortcut {
 	}
 
 	public KeyStroke toKeyStroke() {
-		return isKeyboard() ? KeyStroke.getKeyStroke(keyCode, modifiers,
-				modifiers != 0 && SystemInfo.IS_MAC) : null;
+		return isKeyboard()
+				? KeyStroke.getKeyStroke(keyCode, modifiers,
+						modifiers != 0 && SystemInfo.IS_MAC)
+				: null;
 	}
 
 	@Override
