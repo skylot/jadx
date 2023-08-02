@@ -1,5 +1,7 @@
 package jadx.gui.utils.shortcut;
 
+import jadx.gui.utils.SystemInfo;
+
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
@@ -71,7 +73,8 @@ public class Shortcut {
 	}
 
 	public KeyStroke toKeyStroke() {
-		return isKeyboard() ? KeyStroke.getKeyStroke(keyCode, modifiers) : null;
+		return isKeyboard() ? KeyStroke.getKeyStroke(keyCode, modifiers,
+				modifiers != 0 && SystemInfo.IS_MAC) : null;
 	}
 
 	@Override
