@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 
 /**
  * Add menu and key binding actions for JNode in code area
