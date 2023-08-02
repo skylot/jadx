@@ -105,6 +105,7 @@ public class ShortcutEdit extends JPanel {
 					} else {
 						tempShortcut = null;
 					}
+				} else if (ev.getID() == KeyEvent.KEY_RELEASED) {
 					removeFocus();
 				}
 				ev.consume();
