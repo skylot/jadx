@@ -80,7 +80,12 @@ public enum ActionModel {
 	XPOSED_COPY(CODE_AREA, "popup.xposed", "popup.xposed", null,
 			Shortcut.keyboard(KeyEvent.VK_Y)),
 	JSON_PRETTIFY(CODE_AREA, "popup.json_prettify", "popup.json_prettify", null,
-			null);
+			null),
+
+	SCRIPT_RUN(PLUGIN_SCRIPT, "script.run", "script.run", "ui/run",
+			Shortcut.keyboard(KeyEvent.VK_F8)),
+	SCRIPT_SAVE(PLUGIN_SCRIPT, "script.save", "script.save", "ui/menu-saveall",
+			Shortcut.keyboard(KeyEvent.VK_S, UiUtils.ctrlButton()));
 
 	public final ActionCategory category;
 	public final String nameRes;
