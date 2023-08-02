@@ -1,9 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.event.PopupMenuEvent;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,29 +24,24 @@ import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.dialog.CommentDialog;
+import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.menu.JadxGuiAction;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-import static javax.swing.KeyStroke.getKeyStroke;
-
-public class CommentAction extends AbstractAction implements DefaultPopupMenuListener {
+public class CommentAction extends CodeAreaAction implements DefaultPopupMenuListener {
 	private static final long serialVersionUID = 4753838562204629112L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
-	private final CodeArea codeArea;
 	private final boolean enabled;
 
 	private ICodeComment actionComment;
 
 	public CommentAction(CodeArea codeArea) {
-		super(NLS.str("popup.add_comment") + " (;)");
-		this.codeArea = codeArea;
+		super(ActionModel.CODE_COMMENT, codeArea);
 		this.enabled = codeArea.getNode() instanceof JClass;
-		if (enabled) {
-			UiUtils.addKeyBinding(codeArea, getKeyStroke(KeyEvent.VK_SEMICOLON, 0), "popup.add_comment",
-					() -> showCommentDialog(getCommentRef(codeArea.getCaretPosition())));
-		}
+		;
 	}
 
 	@Override
@@ -64,7 +57,15 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		showCommentDialog(this.actionComment);
+		if (!enabled) {
+			return;
+		}
+
+		if (JadxGuiAction.COMMAND.equals(e.getActionCommand())) {
+			showCommentDialog(getCommentRef(codeArea.getCaretPosition()));
+		} else {
+			showCommentDialog(this.actionComment);
+		}
 	}
 
 	private void showCommentDialog(ICodeComment codeComment) {

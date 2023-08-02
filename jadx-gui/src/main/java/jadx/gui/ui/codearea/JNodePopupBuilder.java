@@ -1,14 +1,18 @@
 package jadx.gui.ui.codearea;
 
-import javax.swing.Action;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuListener;
+
+import jadx.gui.ui.menu.JadxGuiAction;
+import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class JNodePopupBuilder {
 	private final JPopupMenu menu;
 	private final JNodePopupListener popupListener;
+	private final ShortcutsController shortcutsController;
 
-	public JNodePopupBuilder(CodeArea codeArea, JPopupMenu popupMenu) {
+	public JNodePopupBuilder(CodeArea codeArea, JPopupMenu popupMenu, ShortcutsController shortcutsController) {
+		this.shortcutsController = shortcutsController;
 		menu = popupMenu;
 		popupListener = new JNodePopupListener(codeArea);
 		popupMenu.addPopupMenuListener(popupListener);
@@ -19,11 +23,19 @@ public class JNodePopupBuilder {
 	}
 
 	public void add(JNodeAction nodeAction) {
+		// We set the shortcut immediately for two reasons
+		// - there might be multiple instances of this action with
+		// same ActionModel across different codeAreas, while
+		// ShortcutController only supports one instance
+		// - This action will be recreated when shortcuts are changed,
+		// so no need to bind it
+		shortcutsController.setShortcutImmediate(nodeAction);
 		menu.add(nodeAction);
 		popupListener.addActions(nodeAction);
 	}
 
-	public void add(Action action) {
+	public void add(JadxGuiAction action) {
+		shortcutsController.setShortcutImmediate(action);
 		menu.add(action);
 		if (action instanceof PopupMenuListener) {
 			menu.addPopupMenuListener((PopupMenuListener) action);

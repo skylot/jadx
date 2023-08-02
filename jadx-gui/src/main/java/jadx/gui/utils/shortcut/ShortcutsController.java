@@ -48,8 +48,21 @@ public class ShortcutsController {
 		return shortcuts.get(actionModel);
 	}
 
+	/*
+	 * Binds to an action and updates its shortcut every time loadSettings is called
+	 */
 	public void bind(JadxGuiAction action) {
 		boundActions.put(action.getActionModel(), action);
+	}
+
+	/*
+	 * Immediately sets the shortcut for an action
+	 */
+	public void setShortcutImmediate(JadxGuiAction action) {
+		Shortcut shortcut = shortcuts.get(action.getActionModel());
+		if (shortcut != null) {
+			action.setKeyBinding(shortcut.toKeyStroke());
+		}
 	}
 
 	public static Map<ActionModel, Shortcut> getDefault() {

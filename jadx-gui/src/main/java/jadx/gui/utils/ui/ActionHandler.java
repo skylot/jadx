@@ -24,6 +24,11 @@ public class ActionHandler extends AbstractAction {
 		this.consumer = consumer;
 	}
 
+	public ActionHandler() {
+		this.consumer = ev -> {
+		};
+	}
+
 	public void setName(String name) {
 		putValue(NAME, name);
 	}
