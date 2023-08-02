@@ -91,8 +91,8 @@ public class JadxGuiAction extends ActionHandler {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (targetComponent != null && e.getSource() != targetComponent) {
-			// We just add this keyStroke for visual appearance
+		if (targetComponent != null && e.getSource() != this) {
+			// We just added this keyStroke for visual appearance
 			return;
 		}
 		super.actionPerformed(e);
@@ -107,7 +107,7 @@ public class JadxGuiAction extends ActionHandler {
 		if (shortcut != null) {
 			shortcutType = shortcut.getTypeString();
 		}
-		actionPerformed(new ActionEvent(targetComponent, ActionEvent.ACTION_PERFORMED,
+		actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
 				String.format(COMMAND, shortcutType)));
 	}
 
