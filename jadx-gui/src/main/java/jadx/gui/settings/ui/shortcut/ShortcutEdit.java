@@ -19,7 +19,6 @@ import javax.swing.UIManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.ui.menu.ActionModel;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 

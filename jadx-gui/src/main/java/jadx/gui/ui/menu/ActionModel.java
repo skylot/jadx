@@ -80,8 +80,7 @@ public enum ActionModel {
 	XPOSED_COPY(CODE_AREA, "popup.xposed", "popup.xposed", null,
 			Shortcut.keyboard(KeyEvent.VK_Y)),
 	JSON_PRETTIFY(CODE_AREA, "popup.json_prettify", "popup.json_prettify", null,
-			null),
-			;
+			null);
 
 	public final ActionCategory category;
 	public final String nameRes;
