@@ -22,7 +22,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

@@ -2,8 +2,8 @@ package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRenameNode;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.dialog.RenameDialog;
-import jadx.gui.ui.menu.ActionModel;
 
 public final class RenameAction extends JNodeAction {
 	private static final long serialVersionUID = -4680872086148463289L;

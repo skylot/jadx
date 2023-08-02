@@ -13,8 +13,8 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.menu.ActionModel;
-import jadx.gui.ui.menu.JadxGuiAction;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 
 public class ShortcutsController {
 	private Map<ActionModel, Shortcut> shortcuts;

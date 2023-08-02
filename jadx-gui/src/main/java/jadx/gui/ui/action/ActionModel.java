@@ -1,4 +1,4 @@
-package jadx.gui.ui.menu;
+package jadx.gui.ui.action;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 
-import static jadx.gui.ui.menu.ActionCategory.*;
+import static jadx.gui.ui.action.ActionCategory.*;
 
 public enum ActionModel {
 	ABOUT(MENU_TOOLBAR, "menu.about", "menu.about", "ui/showInfos",

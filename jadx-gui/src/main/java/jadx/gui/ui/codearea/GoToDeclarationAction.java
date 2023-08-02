@@ -1,7 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.action.ActionModel;
 
 public final class GoToDeclarationAction extends JNodeAction {
 	private static final long serialVersionUID = -1186470538894941301L;

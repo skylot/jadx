@@ -2,8 +2,8 @@ package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
 
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.dialog.SearchDialog;
-import jadx.gui.ui.menu.ActionModel;
 
 public class CommentSearchAction extends CodeAreaAction {
 	private static final long serialVersionUID = -3646341661734961590L;

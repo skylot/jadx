@@ -2,8 +2,8 @@ package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.dialog.UsageDialog;
-import jadx.gui.ui.menu.ActionModel;
 
 public final class FindUsageAction extends JNodeAction {
 	private static final long serialVersionUID = 4692546569977976384L;

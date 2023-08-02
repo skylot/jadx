@@ -4,6 +4,8 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.shortcut.ShortcutsController;
 

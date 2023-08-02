@@ -1,4 +1,4 @@
-package jadx.gui.ui.menu;
+package jadx.gui.ui.action;
 
 import java.awt.event.ActionEvent;
 import java.util.function.Consumer;

@@ -1,4 +1,4 @@
-package jadx.gui.ui.menu;
+package jadx.gui.ui.action;
 
 public enum ActionCategory {
 	MENU_TOOLBAR("action_category.menu_toolbar"),

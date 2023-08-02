@@ -13,8 +13,8 @@ import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.settings.ui.SettingsGroup;
-import jadx.gui.ui.menu.ActionCategory;
-import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.action.ActionCategory;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.shortcut.Shortcut;
 

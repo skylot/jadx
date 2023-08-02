@@ -6,7 +6,7 @@ import java.beans.PropertyChangeListener;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.action.ActionModel;
 
 /**
  * Add menu and key binding actions for JNode in code area

@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.ui.action.ActionModel;
 
 public class JsonPrettifyAction extends JNodeAction {
 

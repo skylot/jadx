@@ -1,7 +1,7 @@
 package jadx.gui.ui.codearea;
 
-import jadx.gui.ui.menu.ActionModel;
-import jadx.gui.ui.menu.JadxGuiAction;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 
 public class CodeAreaAction extends JadxGuiAction {
 	protected transient CodeArea codeArea;
