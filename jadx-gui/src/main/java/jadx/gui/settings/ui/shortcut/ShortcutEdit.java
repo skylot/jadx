@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -18,6 +19,7 @@ import javax.swing.UIManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 
@@ -113,13 +115,24 @@ public class ShortcutEdit extends JPanel {
 						}
 
 						if (mouseButton <= MouseEvent.BUTTON3) {
-							// TODO show warning that this is a commonly used key
-							return;
+							int dialogResult = JOptionPane.showConfirmDialog(
+									this,
+									"This is a commonly used key, are you sure you would like " +
+											"to bind it to an action?",
+									"Warning",
+									JOptionPane.YES_NO_OPTION);
+							if (dialogResult != 0) {
+								((MouseEvent) event).consume();
+								tempShortcut = null;
+								removeFocus();
+								return;
+							}
 						}
 
-						shortcut = Shortcut.mouse(mouseButton);
-						reload();
-						saveShortcut();
+						((MouseEvent) event).consume();
+						tempShortcut = Shortcut.mouse(mouseButton);
+						refresh(tempShortcut);
+						removeFocus();
 					}
 				}
 			}, AWTEvent.MOUSE_EVENT_MASK);
