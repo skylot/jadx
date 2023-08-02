@@ -3,10 +3,8 @@ package jadx.gui.utils.shortcut;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,7 +23,7 @@ public class ShortcutsController {
 	private Map<ActionModel, Shortcut> shortcuts;
 	private final JadxSettings settings;
 
-	private final Map<ActionModel, List<JadxGuiAction>> boundActions = new HashMap<>();
+	private final Map<ActionModel, Set<JadxGuiAction>> boundActions = new HashMap<>();
 
 	private Set<ActionModel> mouseActions = null;
 
@@ -41,7 +39,7 @@ public class ShortcutsController {
 		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
 			ActionModel actionModel = shortcutEntry.getKey();
 			Shortcut shortcut = shortcutEntry.getValue();
-			List<JadxGuiAction> actions = boundActions.get(actionModel);
+			Set<JadxGuiAction> actions = boundActions.get(actionModel);
 			if (actions != null) {
 				for (JadxGuiAction action : actions) {
 					if (action != null) {
@@ -70,7 +68,7 @@ public class ShortcutsController {
 	 * Binds to an action and updates its shortcut every time loadSettings is called
 	 */
 	public void bind(JadxGuiAction action) {
-		boundActions.computeIfAbsent(action.getActionModel(), k -> new ArrayList<>());
+		boundActions.computeIfAbsent(action.getActionModel(), k -> new HashSet<>());
 		boundActions.get(action.getActionModel()).add(action);
 	}
 
@@ -109,10 +107,11 @@ public class ShortcutsController {
 			for (ActionModel actionModel : mouseActions) {
 				Shortcut shortcut = shortcuts.get(actionModel);
 				if (shortcut != null && shortcut.getMouseButton() == mouseButton) {
-					List<JadxGuiAction> actions = boundActions.get(actionModel);
+					Set<JadxGuiAction> actions = boundActions.get(actionModel);
 					if (actions != null) {
 						for (JadxGuiAction action : actions) {
 							if (action != null) {
+								System.out.println("INFO  - performing action " + action);
 								UiUtils.uiRun(action::performAction);
 							}
 						}
@@ -138,7 +137,7 @@ public class ShortcutsController {
 	public void unbindActionsForComponent(JComponent component) {
 		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
 			ActionModel actionModel = shortcutEntry.getKey();
-			List<JadxGuiAction> actions = boundActions.get(actionModel);
+			Set<JadxGuiAction> actions = boundActions.get(actionModel);
 			if (actions != null) {
 				actions.removeIf(action -> action != null && action.getTargetComponent() == component);
 			}
