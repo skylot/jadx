@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.KeyStroke;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.settings.JadxSettings;
@@ -46,6 +48,15 @@ public class ShortcutsController {
 	@Nullable
 	public Shortcut get(ActionModel actionModel) {
 		return shortcuts.get(actionModel);
+	}
+
+	public KeyStroke getKeyStroke(ActionModel actionModel) {
+		Shortcut shortcut = get(actionModel);
+		KeyStroke keyStroke = null;
+		if (shortcut != null) {
+			keyStroke = shortcut.toKeyStroke();
+		}
+		return keyStroke;
 	}
 
 	/*
