@@ -110,7 +110,7 @@ public class ShortcutEdit extends JPanel {
 					if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED) {
 						int mouseButton = mouseEvent.getButton();
 
-						if (mouseButton == MouseEvent.NOBUTTON) {
+						if (mouseButton <= MouseEvent.BUTTON1) {
 							return;
 						}
 
