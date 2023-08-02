@@ -41,7 +41,6 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	public CommentAction(CodeArea codeArea) {
 		super(ActionModel.CODE_COMMENT, codeArea);
 		this.enabled = codeArea.getNode() instanceof JClass;
-		;
 	}
 
 	@Override

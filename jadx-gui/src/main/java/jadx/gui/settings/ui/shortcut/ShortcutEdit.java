@@ -19,6 +19,7 @@ import javax.swing.UIManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.ui.menu.ActionModel;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 
@@ -116,9 +117,8 @@ public class ShortcutEdit extends JPanel {
 						if (mouseButton <= MouseEvent.BUTTON3) {
 							int dialogResult = JOptionPane.showConfirmDialog(
 									this,
-									"This is a commonly used key, are you sure you would like " +
-											"to bind it to an action?",
-									"Warning",
+									NLS.str("msg.common_mouse_shortcut"),
+									NLS.str("msg.warning_title"),
 									JOptionPane.YES_NO_OPTION);
 							if (dialogResult != 0) {
 								((MouseEvent) event).consume();
