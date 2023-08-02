@@ -48,12 +48,12 @@ public class ShortcutsSettingsGroup implements ISettingsGroup {
 	}
 
 	private SettingsGroup makeShortcutsGroup(ActionCategory category) {
-		SettingsGroup group = new SettingsGroup(NLS.str(category.nameRes));
+		SettingsGroup group = new SettingsGroup(category.getName());
 		for (ActionModel actionModel : ActionModel.select(category)) {
 			Shortcut shortcut = settings.getShortcuts().get(actionModel);
 			ShortcutEdit edit = new ShortcutEdit(actionModel, settingsWindow, settings);
 			edit.setShortcut(shortcut);
-			group.addRow(NLS.str(actionModel.nameRes), edit);
+			group.addRow(actionModel.getName(), edit);
 		}
 		return group;
 	}

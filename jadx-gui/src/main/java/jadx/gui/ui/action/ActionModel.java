@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.swing.ImageIcon;
+
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 
@@ -58,8 +61,12 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_L, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	BACK(MENU_TOOLBAR, "nav.back", "nav.back", "ui/left",
 			Shortcut.keyboard(KeyEvent.VK_ESCAPE)),
+	BACK_V(MENU_TOOLBAR, "nav.back", "nav.back", "ui/left",
+			null),
 	FORWARD(MENU_TOOLBAR, "nav.forward", "nav.forward", "ui/right",
 			Shortcut.keyboard(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK)),
+	FORWARD_V(MENU_TOOLBAR, "nav.forward", "nav.forward", "ui/right",
+			null),
 	QUARK(MENU_TOOLBAR, "menu.quark", "menu.quark", "ui/quark",
 			null),
 	OPEN_DEVICE(MENU_TOOLBAR, "debugger.process_selector", "debugger.process_selector", "ui/startDebugger",
@@ -89,11 +96,11 @@ public enum ActionModel {
 	SCRIPT_AUTO_COMPLETE(PLUGIN_SCRIPT, "script.auto_complete", "script.auto_complete", null,
 			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
 
-	public final ActionCategory category;
-	public final String nameRes;
-	public final String descRes;
-	public final String iconPath;
-	public final Shortcut defaultShortcut;
+	private final ActionCategory category;
+	private final String nameRes;
+	private final String descRes;
+	private final String iconPath;
+	private final Shortcut defaultShortcut;
 
 	ActionModel(ActionCategory category, String nameRes, String descRes, String iconPath, Shortcut defaultShortcut) {
 		this.category = category;
@@ -107,5 +114,38 @@ public enum ActionModel {
 		return Arrays.stream(values())
 				.filter(actionModel -> actionModel.category == category)
 				.collect(Collectors.toUnmodifiableList());
+	}
+
+	public ActionCategory getCategory() {
+		return category;
+	}
+
+	public String getName() {
+		if (nameRes != null) {
+			String name = NLS.str(nameRes);
+			if (name().endsWith("_V")) {
+				name = NLS.str("action.variant", name);
+			}
+			return name;
+		}
+		return null;
+	}
+
+	public String getDescription() {
+		if (descRes != null) {
+			return NLS.str(descRes);
+		}
+		return null;
+	}
+
+	public ImageIcon getIcon() {
+		if (iconPath != null) {
+			return UiUtils.openSvgIcon(iconPath);
+		}
+		return null;
+	}
+
+	public Shortcut getDefaultShortcut() {
+		return defaultShortcut;
 	}
 }

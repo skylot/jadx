@@ -84,7 +84,7 @@ public class ShortcutsController {
 	public static Map<ActionModel, Shortcut> getDefault() {
 		Map<ActionModel, Shortcut> shortcuts = new HashMap<>();
 		for (ActionModel actionModel : ActionModel.values()) {
-			shortcuts.put(actionModel, actionModel.defaultShortcut);
+			shortcuts.put(actionModel, actionModel.getDefaultShortcut());
 		}
 		return shortcuts;
 	}
@@ -111,7 +111,6 @@ public class ShortcutsController {
 					if (actions != null) {
 						for (JadxGuiAction action : actions) {
 							if (action != null) {
-								System.out.println("INFO  - performing action " + action);
 								UiUtils.uiRun(action::performAction);
 							}
 						}

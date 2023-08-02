@@ -127,6 +127,7 @@ import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
+import jadx.gui.ui.menu.HiddenMenuItem;
 import jadx.gui.ui.menu.JadxMenu;
 import jadx.gui.ui.menu.JadxMenuBar;
 import jadx.gui.ui.panel.ContentPanel;
@@ -987,7 +988,9 @@ public class MainWindow extends JFrame {
 				() -> showLogViewer(LogOptions.current()));
 		JadxGuiAction aboutAction = new JadxGuiAction(ActionModel.ABOUT, () -> new AboutDialog().setVisible(true));
 		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, tabbedPane::navBack);
+		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, tabbedPane::navBack);
 		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, tabbedPane::navForward);
+		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, tabbedPane::navForward);
 		JadxGuiAction quarkAction = new JadxGuiAction(ActionModel.QUARK,
 				() -> new QuarkDialog(MainWindow.this).setVisible(true));
 		JadxGuiAction openDeviceAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
@@ -1112,13 +1115,21 @@ public class MainWindow extends JFrame {
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
 
+		nav.add(new HiddenMenuItem(backVariantAction));
+		nav.add(new HiddenMenuItem(forwardVariantAction));
+
+		shortcutsController.bind(backVariantAction);
+		shortcutsController.bind(forwardVariantAction);
+
 		addLoadListener(loaded -> {
 			textSearchAction.setEnabled(loaded);
 			clsSearchAction.setEnabled(loaded);
 			commentSearchAction.setEnabled(loaded);
 			gotoMainActivityAction.setEnabled(loaded);
 			backAction.setEnabled(loaded);
+			backVariantAction.setEnabled(loaded);
 			forwardAction.setEnabled(loaded);
+			forwardVariantAction.setEnabled(loaded);
 			syncAction.setEnabled(loaded);
 			saveAllAction.setEnabled(loaded);
 			exportAction.setEnabled(loaded);

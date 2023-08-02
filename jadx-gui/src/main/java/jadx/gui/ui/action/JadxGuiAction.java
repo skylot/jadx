@@ -3,10 +3,10 @@ package jadx.gui.ui.action;
 import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
@@ -57,14 +57,17 @@ public class JadxGuiAction extends ActionHandler {
 			return;
 		}
 
-		if (actionModel.nameRes != null) {
-			setName(NLS.str(actionModel.nameRes));
+		String name = actionModel.getName();
+		String description = actionModel.getDescription();
+		ImageIcon icon = actionModel.getIcon();
+		if (name != null) {
+			setName(name);
 		}
-		if (actionModel.descRes != null) {
-			setShortDescription(NLS.str(actionModel.descRes));
+		if (description != null) {
+			setShortDescription(description);
 		}
-		if (actionModel.iconPath != null) {
-			setIcon(UiUtils.openSvgIcon(actionModel.iconPath));
+		if (icon != null) {
+			setIcon(icon);
 		}
 	}
 

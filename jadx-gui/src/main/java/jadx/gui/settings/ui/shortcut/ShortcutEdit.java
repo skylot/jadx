@@ -76,8 +76,8 @@ public class ShortcutEdit extends JPanel {
 					this,
 					NLS.str("msg.duplicate_shortcut",
 							shortcut,
-							NLS.str(otherAction.nameRes),
-							NLS.str(otherAction.category.nameRes)),
+							otherAction.getName(),
+							otherAction.getCategory().getName()),
 					NLS.str("msg.warning_title"),
 					JOptionPane.YES_NO_OPTION);
 			if (dialogResult != 0) {
