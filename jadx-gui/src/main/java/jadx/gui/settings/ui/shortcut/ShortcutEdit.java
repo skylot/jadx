@@ -65,7 +65,7 @@ public class ShortcutEdit extends JPanel {
 	private boolean verifyShortcut(Shortcut shortcut) {
 		ActionModel otherAction = null;
 		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : settings.getShortcuts().entrySet()) {
-			if (shortcut.equals(shortcutEntry.getValue())) {
+			if (actionModel != shortcutEntry.getKey() && shortcut.equals(shortcutEntry.getValue())) {
 				otherAction = shortcutEntry.getKey();
 				break;
 			}
