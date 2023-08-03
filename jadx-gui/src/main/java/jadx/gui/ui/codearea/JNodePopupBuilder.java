@@ -29,13 +29,17 @@ public class JNodePopupBuilder {
 		// ShortcutController only supports one instance
 		// - This action will be recreated when shortcuts are changed,
 		// so no need to bind it
-		shortcutsController.bindImmediate(nodeAction);
+		if (nodeAction.getActionModel() != null) {
+			shortcutsController.bindImmediate(nodeAction);
+		}
 		menu.add(nodeAction);
 		popupListener.addActions(nodeAction);
 	}
 
 	public void add(JadxGuiAction action) {
-		shortcutsController.bindImmediate(action);
+		if (action.getActionModel() != null) {
+			shortcutsController.bindImmediate(action);
+		}
 		menu.add(action);
 		if (action instanceof PopupMenuListener) {
 			menu.addPopupMenuListener((PopupMenuListener) action);
