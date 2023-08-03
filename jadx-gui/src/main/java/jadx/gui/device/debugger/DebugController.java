@@ -409,7 +409,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		for (RegisterObserver.Info info : list) {
 			RegTreeNode reg = cur.frame.getRegNodes().get(info.getSmaliRegNum());
 			if (info.isLoad()) {
-				applyDbgInfo(reg, info.getInfo());
+				applyDbgInfo(reg, info.getName(), info.getType());
 			} else {
 				reg.setAlias("");
 				reg.setAbsoluteType(false);
@@ -552,7 +552,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
 		}
-		if (frames.size() == 0) {
+		if (frames.isEmpty()) {
 			return null;
 		}
 		List<FrameNode> frameEleList = new ArrayList<>(frames.size());
@@ -671,7 +671,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	private void fetchAllRegisters(FrameNode frame) {
 		List<SmaliRegister> regs = cur.regAdapter.getInitializedList(frame.getCodeOffset());
 		for (SmaliRegister reg : regs) {
-			Entry<String, String> info = cur.regAdapter.getInfo(reg.getRuntimeRegNum(), frame.getCodeOffset());
+			RuntimeVarInfo info = cur.regAdapter.getInfo(reg.getRuntimeRegNum(), frame.getCodeOffset());
 			RegTreeNode regNode = frame.getRegNodes().get(reg.getRegNum());
 			if (info != null) {
 				applyDbgInfo(regNode, info);
@@ -680,9 +680,13 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 	}
 
-	private void applyDbgInfo(RegTreeNode rn, Entry<String, String> info) {
-		rn.setAlias(info.getKey());
-		rn.updateType(info.getValue());
+	private void applyDbgInfo(RegTreeNode rn, RuntimeVarInfo info) {
+		applyDbgInfo(rn, info.getName(), info.getType());
+	}
+
+	private void applyDbgInfo(RegTreeNode rn, String alias, String type) {
+		rn.setAlias(alias);
+		rn.updateType(type);
 		rn.setAbsoluteType(true);
 	}
 

@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +72,6 @@ import io.github.skylot.jdwp.JDWP.VirtualMachine.AllClassesWithGeneric.AllClasse
 import io.github.skylot.jdwp.JDWP.VirtualMachine.AllThreads.AllThreadsReplyData;
 import io.github.skylot.jdwp.JDWP.VirtualMachine.AllThreads.AllThreadsReplyDataThreads;
 import io.github.skylot.jdwp.JDWP.VirtualMachine.CreateString.CreateStringReplyData;
-import io.reactivex.annotations.NonNull;
 
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.gui.device.debugger.smali.RegisterInfo;
@@ -1292,7 +1292,7 @@ public class SmaliDebugger {
 			return gen;
 		}
 
-		@NonNull
+		@NotNull
 		@Override
 		public String getSignature() {
 			return this.slot.genericSignature.trim();
