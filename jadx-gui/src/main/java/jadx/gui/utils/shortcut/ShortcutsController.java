@@ -109,6 +109,7 @@ public class ShortcutsController {
 					if (actions != null) {
 						for (IShortcutAction action : actions) {
 							if (action != null) {
+								mouseEvent.consume();
 								UiUtils.uiRun(action::performAction);
 							}
 						}
