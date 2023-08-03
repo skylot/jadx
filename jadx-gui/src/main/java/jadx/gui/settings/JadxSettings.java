@@ -37,6 +37,7 @@ import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
+import jadx.gui.settings.data.ShortcutsMap;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.EditorTheme;
@@ -45,7 +46,6 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.shortcut.Shortcut;
-import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -76,7 +76,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
 	private boolean autoSaveProject = true;
-	private Map<ActionModel, Shortcut> shortcuts = ShortcutsController.getDefault();
+	private ShortcutsMap shortcuts = new ShortcutsMap();
 
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;

@@ -36,15 +36,13 @@ public class ShortcutsController {
 
 		indexMouseActions();
 
-		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
-			ActionModel actionModel = shortcutEntry.getKey();
-			Shortcut shortcut = shortcutEntry.getValue();
-			Set<JadxGuiAction> actions = boundActions.get(actionModel);
+		for (Map.Entry<ActionModel, Set<JadxGuiAction>> actionsEntry : boundActions.entrySet()) {
+			ActionModel actionModel = actionsEntry.getKey();
+			Set<JadxGuiAction> actions = actionsEntry.getValue();
+			Shortcut shortcut = get(actionModel);
 			if (actions != null) {
 				for (JadxGuiAction action : actions) {
-					if (action != null) {
-						action.setShortcut(shortcut);
-					}
+					action.setShortcut(shortcut);
 				}
 			}
 		}
@@ -58,7 +56,7 @@ public class ShortcutsController {
 	public KeyStroke getKeyStroke(ActionModel actionModel) {
 		Shortcut shortcut = get(actionModel);
 		KeyStroke keyStroke = null;
-		if (shortcut != null) {
+		if (shortcut != null && shortcut.isKeyboard()) {
 			keyStroke = shortcut.toKeyStroke();
 		}
 		return keyStroke;
@@ -77,7 +75,7 @@ public class ShortcutsController {
 	 */
 	public void bindImmediate(JadxGuiAction action) {
 		bind(action);
-		Shortcut shortcut = shortcuts.get(action.getActionModel());
+		Shortcut shortcut = get(action.getActionModel());
 		action.setShortcut(shortcut);
 	}
 

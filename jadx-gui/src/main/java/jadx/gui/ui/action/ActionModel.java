@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import io.reactivex.annotations.NonNull;
+
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
@@ -22,13 +24,13 @@ public enum ActionModel {
 	OPEN_PROJECT(MENU_TOOLBAR, "file.open_project", "file.open_project", "ui/projectDirectory",
 			Shortcut.keyboard(KeyEvent.VK_O, InputEvent.SHIFT_DOWN_MASK | UiUtils.ctrlButton())),
 	ADD_FILES(MENU_TOOLBAR, "file.add_files_action", "file.add_files_action", "ui/addFile",
-			null),
+			Shortcut.none()),
 	NEW_PROJECT(MENU_TOOLBAR, "file.new_project", "file.new_project", "ui/newFolder",
-			null),
+			Shortcut.none()),
 	SAVE_PROJECT(MENU_TOOLBAR, "file.save_project", "file.save_project", null,
-			null),
+			Shortcut.none()),
 	SAVE_PROJECT_AS(MENU_TOOLBAR, "file.save_project_as", "file.save_project_as", null,
-			null),
+			Shortcut.none()),
 	RELOAD(MENU_TOOLBAR, "file.reload", "file.reload", "ui/refresh",
 			Shortcut.keyboard(KeyEvent.VK_F5)),
 	LIVE_RELOAD(MENU_TOOLBAR, "file.live_reload", "file.live_reload_desc", null,
@@ -40,7 +42,7 @@ public enum ActionModel {
 	PREFS(MENU_TOOLBAR, "menu.preferences", "menu.preferences", "ui/settings",
 			Shortcut.keyboard(KeyEvent.VK_P, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	EXIT(MENU_TOOLBAR, "file.exit", "file.exit", "ui/exit",
-			null),
+			Shortcut.none()),
 	SYNC(MENU_TOOLBAR, "menu.sync", "menu.sync", "ui/pagination",
 			Shortcut.keyboard(KeyEvent.VK_T, UiUtils.ctrlButton())),
 	TEXT_SEARCH(MENU_TOOLBAR, "menu.text_search", "menu.text_search", "ui/find",
@@ -52,9 +54,9 @@ public enum ActionModel {
 	GOTO_MAIN_ACTIVITY(MENU_TOOLBAR, "menu.goto_main_activity", "menu.goto_main_activity", "ui/home",
 			Shortcut.keyboard(KeyEvent.VK_M, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	DECOMPILE_ALL(MENU_TOOLBAR, "menu.decompile_all", "menu.decompile_all", "ui/runAll",
-			null),
+			Shortcut.none()),
 	RESET_CACHE(MENU_TOOLBAR, "menu.reset_cache", "menu.reset_cache", "ui/reset",
-			null),
+			Shortcut.none()),
 	DEOBF(MENU_TOOLBAR, "menu.deobfuscation", "preferences.deobfuscation", "ui/helmChartLock",
 			Shortcut.keyboard(KeyEvent.VK_D, UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK)),
 	SHOW_LOG(MENU_TOOLBAR, "menu.log", "menu.log", "ui/logVerbose",
@@ -62,15 +64,15 @@ public enum ActionModel {
 	BACK(MENU_TOOLBAR, "nav.back", "nav.back", "ui/left",
 			Shortcut.keyboard(KeyEvent.VK_ESCAPE)),
 	BACK_V(MENU_TOOLBAR, "nav.back", "nav.back", "ui/left",
-			null),
+			Shortcut.none()),
 	FORWARD(MENU_TOOLBAR, "nav.forward", "nav.forward", "ui/right",
 			Shortcut.keyboard(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK)),
 	FORWARD_V(MENU_TOOLBAR, "nav.forward", "nav.forward", "ui/right",
-			null),
+			Shortcut.none()),
 	QUARK(MENU_TOOLBAR, "menu.quark", "menu.quark", "ui/quark",
-			null),
+			Shortcut.none()),
 	OPEN_DEVICE(MENU_TOOLBAR, "debugger.process_selector", "debugger.process_selector", "ui/startDebugger",
-			null),
+			Shortcut.none()),
 
 	FIND_USAGE(CODE_AREA, "popup.find_usage", "popup.find_usage", null,
 			Shortcut.keyboard(KeyEvent.VK_X)),
@@ -87,7 +89,7 @@ public enum ActionModel {
 	XPOSED_COPY(CODE_AREA, "popup.xposed", "popup.xposed", null,
 			Shortcut.keyboard(KeyEvent.VK_Y)),
 	JSON_PRETTIFY(CODE_AREA, "popup.json_prettify", "popup.json_prettify", null,
-			null),
+			Shortcut.none()),
 
 	SCRIPT_RUN(PLUGIN_SCRIPT, "script.run", "script.run", "ui/run",
 			Shortcut.keyboard(KeyEvent.VK_F8)),
@@ -145,6 +147,7 @@ public enum ActionModel {
 		return null;
 	}
 
+	@NonNull
 	public Shortcut getDefaultShortcut() {
 		return defaultShortcut;
 	}

@@ -18,7 +18,7 @@ public class Shortcut {
 			KeyEvent.SHIFT_DOWN_MASK));
 
 	private Integer keyCode = null;
-	private Integer modifiers = null;
+	private Integer modifiers = 0;
 	private Integer mouseButton = null;
 
 	private Shortcut() {
@@ -41,6 +41,10 @@ public class Shortcut {
 		return shortcut;
 	}
 
+	public static Shortcut none() {
+		return new Shortcut();
+	}
+
 	public Integer getKeyCode() {
 		return keyCode;
 	}
@@ -59,6 +63,10 @@ public class Shortcut {
 
 	public boolean isMouse() {
 		return mouseButton != null;
+	}
+
+	public boolean isNone() {
+		return !isMouse() && !isKeyboard();
 	}
 
 	public boolean isValidKeyboard() {

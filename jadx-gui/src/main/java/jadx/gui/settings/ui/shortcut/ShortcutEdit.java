@@ -7,7 +7,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -47,7 +46,7 @@ public class ShortcutEdit extends JPanel {
 		add(clearButton);
 
 		clearButton.addActionListener(e -> {
-			setShortcut(null);
+			setShortcut(Shortcut.none());
 			saveShortcut();
 		});
 	}
@@ -64,9 +63,9 @@ public class ShortcutEdit extends JPanel {
 
 	private boolean verifyShortcut(Shortcut shortcut) {
 		ActionModel otherAction = null;
-		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : settings.getShortcuts().entrySet()) {
-			if (actionModel != shortcutEntry.getKey() && shortcut.equals(shortcutEntry.getValue())) {
-				otherAction = shortcutEntry.getKey();
+		for (ActionModel a : ActionModel.values()) {
+			if (actionModel != a && shortcut.equals(settings.getShortcuts().get(a))) {
+				otherAction = a;
 				break;
 			}
 		}
@@ -173,7 +172,7 @@ public class ShortcutEdit extends JPanel {
 		}
 
 		private void refresh(Shortcut displayedShortcut) {
-			if (displayedShortcut == null) {
+			if (displayedShortcut == null || displayedShortcut.isNone()) {
 				setText("None");
 				setForeground(UIManager.getColor("TextArea.inactiveForeground"));
 				return;

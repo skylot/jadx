@@ -1,5 +1,7 @@
 package jadx.gui.plugins.script;
 
+import javax.swing.KeyStroke;
+
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +36,10 @@ public class ScriptCodeArea extends AbstractCodeArea {
 		provider.setAutoActivationRules(false, ".");
 		AutoCompletion ac = new AutoCompletion(provider);
 		ac.setListCellRenderer(new ScriptCompletionRenderer(settings));
-		ac.setTriggerKey(shortcutsController.getKeyStroke(ActionModel.SCRIPT_AUTO_COMPLETE));
+		KeyStroke keyStroke = shortcutsController.getKeyStroke(ActionModel.SCRIPT_AUTO_COMPLETE);
+		if (keyStroke != null) {
+			ac.setTriggerKey(keyStroke);
+		}
 		ac.setAutoActivationEnabled(true);
 		ac.setAutoCompleteSingleChoices(true);
 		ac.install(this);
