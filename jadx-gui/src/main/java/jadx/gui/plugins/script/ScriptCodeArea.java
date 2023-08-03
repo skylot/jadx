@@ -15,6 +15,7 @@ public class ScriptCodeArea extends AbstractCodeArea {
 
 	private final JInputScript scriptNode;
 	private final AutoCompletion autoCompletion;
+	private final ShortcutsController shortcutsController;
 
 	public ScriptCodeArea(ContentPanel contentPanel, JInputScript node) {
 		super(contentPanel, node);
@@ -24,12 +25,12 @@ public class ScriptCodeArea extends AbstractCodeArea {
 		setCodeFoldingEnabled(true);
 		setCloseCurlyBraces(true);
 
-		ShortcutsController shortcutsController = contentPanel.getTabbedPane().getMainWindow().getShortcutsController();
+		shortcutsController = contentPanel.getTabbedPane().getMainWindow().getShortcutsController();
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
-		autoCompletion = addAutoComplete(settings, shortcutsController);
+		autoCompletion = addAutoComplete(settings);
 	}
 
-	private AutoCompletion addAutoComplete(JadxSettings settings, ShortcutsController shortcutsController) {
+	private AutoCompletion addAutoComplete(JadxSettings settings) {
 		ScriptCompleteProvider provider = new ScriptCompleteProvider(this);
 		provider.setAutoActivationRules(false, ".");
 		JadxAutoCompletion ac = new JadxAutoCompletion(provider);
@@ -78,6 +79,7 @@ public class ScriptCodeArea extends AbstractCodeArea {
 
 	@Override
 	public void dispose() {
+		shortcutsController.unbindActionsForComponent(this);
 		autoCompletion.uninstall();
 		super.dispose();
 	}
