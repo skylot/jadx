@@ -46,7 +46,7 @@ public class JadxMenu extends JMenu {
 			}
 
 			Action action = item.getAction();
-			if (!(action instanceof JadxGuiAction)) {
+			if (!(action instanceof JadxGuiAction) || ((JadxGuiAction) action).getActionModel() == null) {
 				continue;
 			}
 

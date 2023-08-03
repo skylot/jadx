@@ -7,6 +7,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
@@ -72,6 +74,7 @@ public class JadxGuiAction extends ActionHandler
 		}
 	}
 
+	@Nullable
 	public ActionModel getActionModel() {
 		return actionModel;
 	}
