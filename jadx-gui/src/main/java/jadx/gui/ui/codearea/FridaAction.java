@@ -1,6 +1,5 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -23,18 +22,16 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-
-import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class FridaAction extends JNodeAction {
 	private static final Logger LOG = LoggerFactory.getLogger(FridaAction.class);
 	private static final long serialVersionUID = -3084073927621269039L;
 
 	public FridaAction(CodeArea codeArea) {
-		super(NLS.str("popup.frida") + " (f)", codeArea);
-		addKeyBinding(getKeyStroke(KeyEvent.VK_F, 0), "trigger frida");
+		super(ActionModel.FRIDA_COPY, codeArea);
 	}
 
 	@Override

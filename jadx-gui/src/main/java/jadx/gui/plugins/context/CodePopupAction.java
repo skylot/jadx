@@ -34,12 +34,14 @@ public class CodePopupAction {
 
 		public NodeAction(CodePopupAction data, CodeArea codeArea) {
 			super(data.name, codeArea);
+			setName(data.name);
+			setShortcutComponent(codeArea);
 			if (data.keyBinding != null) {
 				KeyStroke key = KeyStroke.getKeyStroke(data.keyBinding);
 				if (key == null) {
 					throw new IllegalArgumentException("Failed to parse key stroke: " + data.keyBinding);
 				}
-				addKeyBinding(key, data.name);
+				setKeyBinding(key);
 			}
 			this.data = data;
 		}

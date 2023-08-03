@@ -31,6 +31,7 @@ import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.ShortcutsController;
 
 /**
  * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
@@ -42,9 +43,12 @@ public final class CodeArea extends AbstractCodeArea {
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	private @Nullable ICodeInfo cachedCodeInfo;
+	private final ShortcutsController shortcutsController;
 
 	CodeArea(ContentPanel contentPanel, JNode node) {
 		super(contentPanel, node);
+		this.shortcutsController = getMainWindow().getShortcutsController();
+
 		setSyntaxEditingStyle(node.getSyntaxName());
 		boolean isJavaCode = node instanceof JClass;
 		if (isJavaCode) {
@@ -115,7 +119,8 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	private void addMenuItems() {
-		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
+		ShortcutsController shortcutsController = getMainWindow().getShortcutsController();
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu(), shortcutsController);
 		popup.addSeparator();
 		popup.add(new FindUsageAction(this));
 		popup.add(new GoToDeclarationAction(this));
@@ -143,7 +148,8 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	private void addMenuForJsonFile() {
-		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu());
+		ShortcutsController shortcutsController = getMainWindow().getShortcutsController();
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu(), shortcutsController);
 		popup.addSeparator();
 		popup.add(new JsonPrettifyAction(this));
 	}
@@ -339,6 +345,8 @@ public final class CodeArea extends AbstractCodeArea {
 
 	@Override
 	public void dispose() {
+		shortcutsController.unbindActionsForComponent(this);
+
 		super.dispose();
 		cachedCodeInfo = null;
 	}

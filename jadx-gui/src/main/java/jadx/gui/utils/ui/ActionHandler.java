@@ -1,7 +1,6 @@
 package jadx.gui.utils.ui;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
@@ -11,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.Shortcut;
 
 public class ActionHandler extends AbstractAction {
 
@@ -22,6 +22,11 @@ public class ActionHandler extends AbstractAction {
 
 	public ActionHandler(Consumer<ActionEvent> consumer) {
 		this.consumer = consumer;
+	}
+
+	public ActionHandler() {
+		this.consumer = ev -> {
+		};
 	}
 
 	public void setName(String name) {
@@ -58,7 +63,7 @@ public class ActionHandler extends AbstractAction {
 	public void addKeyBindToDescription() {
 		KeyStroke keyStroke = (KeyStroke) getValue(ACCELERATOR_KEY);
 		if (keyStroke != null) {
-			String keyText = KeyEvent.getKeyText(keyStroke.getKeyCode());
+			String keyText = Shortcut.keyboard(keyStroke.getKeyCode(), keyStroke.getModifiers()).toString();
 			String desc = (String) getValue(SHORT_DESCRIPTION);
 			setShortDescription(desc + " (" + keyText + ")");
 		}

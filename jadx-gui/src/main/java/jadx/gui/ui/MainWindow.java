@@ -1,6 +1,5 @@
 package jadx.gui.ui;
 
-import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -9,14 +8,12 @@ import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -45,10 +42,10 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -118,6 +115,8 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.EditorTheme;
@@ -128,6 +127,9 @@ import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
+import jadx.gui.ui.menu.HiddenMenuItem;
+import jadx.gui.ui.menu.JadxMenu;
+import jadx.gui.ui.menu.JadxMenuBar;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
@@ -141,18 +143,16 @@ import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
-import jadx.gui.utils.Icons;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
+import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
-import static javax.swing.KeyStroke.getKeyStroke;
 
 public class MainWindow extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
@@ -191,8 +191,8 @@ public class MainWindow extends JFrame {
 
 	private transient @NotNull JadxProject project;
 
-	private transient Action newProjectAction;
-	private transient Action saveProjectAction;
+	private transient JadxGuiAction newProjectAction;
+	private transient JadxGuiAction saveProjectAction;
 
 	private transient JPanel mainPanel;
 	private transient JSplitPane treeSplitPane;
@@ -227,7 +227,10 @@ public class MainWindow extends JFrame {
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 	private boolean loaded;
+	private boolean settingsOpen = false;
 
+	private ShortcutsController shortcutsController;
+	private JadxMenuBar menuBar;
 	private JMenu pluginsMenu;
 
 	private final transient RenameMappingsGui renameMappings;
@@ -240,6 +243,7 @@ public class MainWindow extends JFrame {
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
 		this.cacheManager = new CacheManager(settings);
+		this.shortcutsController = new ShortcutsController(settings);
 
 		resetCache();
 		FontUtils.registerBundledFonts();
@@ -247,8 +251,8 @@ public class MainWindow extends JFrame {
 		initUI();
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
-		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
+		shortcutsController.registerMouseEventListener(this);
 		loadSettings();
 
 		update();
@@ -472,6 +476,8 @@ public class MainWindow extends JFrame {
 		saveAll();
 		closeAll();
 		loadFiles(EMPTY_RUNNABLE);
+
+		menuBar.reloadShortcuts();
 	}
 
 	private void openProject(Path path, Runnable onFinish) {
@@ -865,99 +871,75 @@ public class MainWindow extends JFrame {
 		tree.requestFocus();
 	}
 
+	public void textSearch() {
+		ContentPanel panel = tabbedPane.getSelectedContentPanel();
+		if (panel instanceof AbstractCodeContentPanel) {
+			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
+			String preferText = codeArea.getSelectedText();
+			if (StringUtils.isEmpty(preferText)) {
+				preferText = codeArea.getWordUnderCaret();
+			}
+			if (!StringUtils.isEmpty(preferText)) {
+				SearchDialog.searchText(MainWindow.this, preferText);
+				return;
+			}
+		}
+		SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);
+	}
+
+	public void gotoMainActivity() {
+		AndroidManifestParser parser = new AndroidManifestParser(
+				AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
+				EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+		if (!parser.isManifestFound()) {
+			JOptionPane.showMessageDialog(MainWindow.this,
+					NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
+					NLS.str("error_dialog.title"),
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		try {
+			ApplicationParams results = parser.parse();
+			if (results.getMainActivityName() == null) {
+				throw new JadxRuntimeException("Failed to get main activity name from manifest");
+			}
+			JavaClass mainActivityClass = results.getMainActivity(getWrapper().getDecompiler());
+			if (mainActivityClass == null) {
+				throw new JadxRuntimeException("Failed to find main activity class: " + results.getMainActivityName());
+			}
+			tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
+		} catch (Exception e) {
+			LOG.error("Main activity not found", e);
+			JOptionPane.showMessageDialog(MainWindow.this,
+					NLS.str("error_dialog.not_found", "Main Activity"),
+					NLS.str("error_dialog.title"),
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 	private void initMenuAndToolbar() {
-		ActionHandler openAction = new ActionHandler(this::openFileDialog);
-		openAction.setNameAndDesc(NLS.str("file.open_action"));
-		openAction.setIcon(Icons.OPEN);
-		openAction.setKeyBinding(getKeyStroke(KeyEvent.VK_O, UiUtils.ctrlButton()));
+		JadxGuiAction openAction = new JadxGuiAction(ActionModel.OPEN, this::openFileDialog);
+		JadxGuiAction openProject = new JadxGuiAction(ActionModel.OPEN_PROJECT, this::openProjectDialog);
 
-		ActionHandler openProject = new ActionHandler(this::openProjectDialog);
-		openProject.setNameAndDesc(NLS.str("file.open_project"));
-		openProject.setIcon(Icons.OPEN_PROJECT);
-		openProject.setKeyBinding(getKeyStroke(KeyEvent.VK_O, InputEvent.SHIFT_DOWN_MASK | UiUtils.ctrlButton()));
+		JadxGuiAction addFilesAction = new JadxGuiAction(ActionModel.ADD_FILES, () -> addFiles());
+		newProjectAction = new JadxGuiAction(ActionModel.NEW_PROJECT, this::newProject);
+		saveProjectAction = new JadxGuiAction(ActionModel.SAVE_PROJECT, this::saveProject);
+		JadxGuiAction saveProjectAsAction = new JadxGuiAction(ActionModel.SAVE_PROJECT_AS, this::saveProjectAs);
+		JadxGuiAction reloadAction = new JadxGuiAction(ActionModel.RELOAD, () -> UiUtils.uiRun(this::reopen));
+		JadxGuiAction liveReloadAction = new JadxGuiAction(ActionModel.LIVE_RELOAD,
+				() -> updateLiveReload(!project.isEnableLiveReload()));
 
-		Action addFilesAction = new AbstractAction(NLS.str("file.add_files_action"), ICON_ADD_FILES) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addFiles();
-			}
-		};
-		addFilesAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.add_files_action"));
-
-		newProjectAction = new AbstractAction(NLS.str("file.new_project"), Icons.NEW_PROJECT) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				newProject();
-			}
-		};
-		newProjectAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.new_project"));
-
-		saveProjectAction = new AbstractAction(NLS.str("file.save_project")) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveProject();
-			}
-		};
-		saveProjectAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project"));
-
-		Action saveProjectAsAction = new AbstractAction(NLS.str("file.save_project_as")) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveProjectAs();
-			}
-		};
-		saveProjectAsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_project_as"));
-
-		ActionHandler reload = new ActionHandler(ev -> UiUtils.uiRun(this::reopen));
-		reload.setNameAndDesc(NLS.str("file.reload"));
-		reload.setIcon(ICON_RELOAD);
-		reload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, 0));
-
-		ActionHandler liveReload = new ActionHandler(ev -> updateLiveReload(!project.isEnableLiveReload()));
-		liveReload.setName(NLS.str("file.live_reload"));
-		liveReload.setShortDescription(NLS.str("file.live_reload_desc"));
-		liveReload.setKeyBinding(getKeyStroke(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK));
-
-		liveReloadMenuItem = new JCheckBoxMenuItem(liveReload);
+		liveReloadMenuItem = new JCheckBoxMenuItem(liveReloadAction);
 		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
-		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), Icons.SAVE_ALL) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveAll(false);
-			}
-		};
-		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
-		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton()));
+		JadxGuiAction saveAllAction = new JadxGuiAction(ActionModel.SAVE_ALL, () -> saveAll(false));
+		JadxGuiAction exportAction = new JadxGuiAction(ActionModel.EXPORT, () -> saveAll(true));
 
-		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveAll(true);
-			}
-		};
-		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
-		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
-
-		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
+		JMenu recentProjects = new JadxMenu(NLS.str("menu.recent_projects"), shortcutsController);
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(this, recentProjects));
 
-		Action prefsAction = new AbstractAction(NLS.str("menu.preferences"), ICON_PREF) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new JadxSettingsWindow(MainWindow.this, settings).setVisible(true);
-			}
-		};
-		prefsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.preferences"));
-		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
-				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
-
-		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_EXIT) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				closeWindow();
-			}
-		};
+		JadxGuiAction prefsAction = new JadxGuiAction(ActionModel.PREFS, this::openSettings);
+		JadxGuiAction exitAction = new JadxGuiAction(ActionModel.EXIT, this::closeWindow);
 
 		isFlattenPackage = settings.isFlattenPackage();
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
@@ -983,109 +965,17 @@ public class MainWindow extends JFrame {
 		dockLog.setState(settings.isDockLogViewer());
 		dockLog.addActionListener(event -> settings.setDockLogViewer(!settings.isDockLogViewer()));
 
-		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				syncWithEditor();
-			}
-		};
-		syncAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.sync"));
-		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, UiUtils.ctrlButton()));
-
-		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ContentPanel panel = tabbedPane.getSelectedContentPanel();
-				if (panel instanceof AbstractCodeContentPanel) {
-					AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
-					String preferText = codeArea.getSelectedText();
-					if (StringUtils.isEmpty(preferText)) {
-						preferText = codeArea.getWordUnderCaret();
-					}
-					if (!StringUtils.isEmpty(preferText)) {
-						SearchDialog.searchText(MainWindow.this, preferText);
-						return;
-					}
-				}
-				SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);
-			}
-		};
-		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
-		textSearchAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_F, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
-
-		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.CLASS);
-			}
-		};
-		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
-		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, UiUtils.ctrlButton()));
-
-		Action commentSearchAction = new AbstractAction(NLS.str("menu.comment_search"), ICON_COMMENT_SEARCH) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.COMMENT);
-			}
-		};
-		commentSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.comment_search"));
-		commentSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_SEMICOLON,
-				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
-
-		Action gotoMainActivityAction = new AbstractAction(NLS.str("menu.goto_main_activity"), ICON_MAIN_ACTIVITY) {
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				AndroidManifestParser parser = new AndroidManifestParser(
-						AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
-						EnumSet.of(AppAttribute.MAIN_ACTIVITY));
-				if (!parser.isManifestFound()) {
-					JOptionPane.showMessageDialog(MainWindow.this,
-							NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
-							NLS.str("error_dialog.title"),
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				try {
-					ApplicationParams results = parser.parse();
-					if (results.getMainActivityName() == null) {
-						throw new JadxRuntimeException("Failed to get main activity name from manifest");
-					}
-					JavaClass mainActivityClass = results.getMainActivity(getWrapper().getDecompiler());
-					if (mainActivityClass == null) {
-						throw new JadxRuntimeException("Failed to find main activity class: " + results.getMainActivityName());
-					}
-					tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
-				} catch (Exception e) {
-					LOG.error("Main activity not found", e);
-					JOptionPane.showMessageDialog(MainWindow.this,
-							NLS.str("error_dialog.not_found", "Main Activity"),
-							NLS.str("error_dialog.title"),
-							JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		};
-		gotoMainActivityAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.goto_main_activity"));
-		gotoMainActivityAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_M,
-				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
-
-		ActionHandler decompileAllAction = new ActionHandler(ev -> requestFullDecompilation());
-		decompileAllAction.setNameAndDesc(NLS.str("menu.decompile_all"));
-		decompileAllAction.setIcon(ICON_DECOMPILE_ALL);
-
-		ActionHandler resetCacheAction = new ActionHandler(ev -> resetCodeCache());
-		resetCacheAction.setNameAndDesc(NLS.str("menu.reset_cache"));
-		resetCacheAction.setIcon(Icons.RESET);
-
-		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleDeobfuscation();
-			}
-		};
-		deobfAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("preferences.deobfuscation"));
-		deobfAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_D, UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this::syncWithEditor);
+		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
+		JadxGuiAction clsSearchAction = new JadxGuiAction(ActionModel.CLASS_SEARCH,
+				() -> SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.CLASS));
+		JadxGuiAction commentSearchAction = new JadxGuiAction(ActionModel.COMMENT_SEARCH,
+				() -> SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.COMMENT));
+		JadxGuiAction gotoMainActivityAction = new JadxGuiAction(ActionModel.GOTO_MAIN_ACTIVITY,
+				this::gotoMainActivity);
+		JadxGuiAction decompileAllAction = new JadxGuiAction(ActionModel.DECOMPILE_ALL, this::requestFullDecompilation);
+		JadxGuiAction resetCacheAction = new JadxGuiAction(ActionModel.RESET_CACHE, this::resetCodeCache);
+		JadxGuiAction deobfAction = new JadxGuiAction(ActionModel.DEOBF, this::toggleDeobfuscation);
 
 		deobfToggleBtn = new JToggleButton(deobfAction);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
@@ -1094,54 +984,19 @@ public class MainWindow extends JFrame {
 		deobfMenuItem = new JCheckBoxMenuItem(deobfAction);
 		deobfMenuItem.setState(settings.isDeobfuscationOn());
 
-		ActionHandler showLog = new ActionHandler(ev -> showLogViewer(LogOptions.current()));
-		showLog.setNameAndDesc(NLS.str("menu.log"));
-		showLog.setIcon(ICON_LOG);
-		showLog.setKeyBinding(getKeyStroke(KeyEvent.VK_L, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+		JadxGuiAction showLogAction = new JadxGuiAction(ActionModel.SHOW_LOG,
+				() -> showLogViewer(LogOptions.current()));
+		JadxGuiAction aboutAction = new JadxGuiAction(ActionModel.ABOUT, () -> new AboutDialog().setVisible(true));
+		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, tabbedPane::navBack);
+		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, tabbedPane::navBack);
+		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, tabbedPane::navForward);
+		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, tabbedPane::navForward);
+		JadxGuiAction quarkAction = new JadxGuiAction(ActionModel.QUARK,
+				() -> new QuarkDialog(MainWindow.this).setVisible(true));
+		JadxGuiAction openDeviceAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
+				() -> new ADBDialog(MainWindow.this).setVisible(true));
 
-		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_INFO) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new AboutDialog().setVisible(true);
-			}
-		};
-
-		Action backAction = new AbstractAction(NLS.str("nav.back"), ICON_BACK) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tabbedPane.navBack();
-			}
-		};
-		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
-		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_ESCAPE, 0));
-
-		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tabbedPane.navForward();
-			}
-		};
-		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
-		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK, SystemInfo.IS_MAC));
-
-		Action quarkAction = new AbstractAction("Quark Engine", ICON_QUARK) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new QuarkDialog(MainWindow.this).setVisible(true);
-			}
-		};
-		quarkAction.putValue(Action.SHORT_DESCRIPTION, "Quark Engine");
-
-		Action openDeviceAction = new AbstractAction(NLS.str("debugger.process_selector"), ICON_DEBUGGER) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ADBDialog dialog = new ADBDialog(MainWindow.this);
-				dialog.setVisible(true);
-			}
-		};
-		openDeviceAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("debugger.process_selector"));
-
-		JMenu file = new JMenu(NLS.str("menu.file"));
+		JMenu file = new JadxMenu(NLS.str("menu.file"), shortcutsController);
 		file.setMnemonic(KeyEvent.VK_F);
 		file.add(openAction);
 		file.add(openProject);
@@ -1151,7 +1006,7 @@ public class MainWindow extends JFrame {
 		file.add(saveProjectAction);
 		file.add(saveProjectAsAction);
 		file.addSeparator();
-		file.add(reload);
+		file.add(reloadAction);
 		file.add(liveReloadMenuItem);
 		renameMappings.addMenuActions(file);
 		file.addSeparator();
@@ -1164,7 +1019,7 @@ public class MainWindow extends JFrame {
 		file.addSeparator();
 		file.add(exitAction);
 
-		JMenu view = new JMenu(NLS.str("menu.view"));
+		JMenu view = new JadxMenu(NLS.str("menu.view"), shortcutsController);
 		view.setMnemonic(KeyEvent.VK_V);
 		view.add(flatPkgMenuItem);
 		view.add(syncAction);
@@ -1172,7 +1027,7 @@ public class MainWindow extends JFrame {
 		view.add(alwaysSelectOpened);
 		view.add(dockLog);
 
-		JMenu nav = new JMenu(NLS.str("menu.navigation"));
+		JMenu nav = new JadxMenu(NLS.str("menu.navigation"), shortcutsController);
 		nav.setMnemonic(KeyEvent.VK_N);
 		nav.add(textSearchAction);
 		nav.add(clsSearchAction);
@@ -1182,11 +1037,11 @@ public class MainWindow extends JFrame {
 		nav.add(backAction);
 		nav.add(forwardAction);
 
-		pluginsMenu = new JMenu(NLS.str("menu.plugins"));
+		pluginsMenu = new JadxMenu(NLS.str("menu.plugins"), shortcutsController);
 		pluginsMenu.setMnemonic(KeyEvent.VK_P);
 		resetPluginsMenu();
 
-		JMenu tools = new JMenu(NLS.str("menu.tools"));
+		JMenu tools = new JadxMenu(NLS.str("menu.tools"), shortcutsController);
 		tools.setMnemonic(KeyEvent.VK_T);
 		tools.add(decompileAllAction);
 		tools.add(resetCacheAction);
@@ -1194,9 +1049,9 @@ public class MainWindow extends JFrame {
 		tools.add(quarkAction);
 		tools.add(openDeviceAction);
 
-		JMenu help = new JMenu(NLS.str("menu.help"));
+		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
-		help.add(showLog);
+		help.add(showLogAction);
 		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
@@ -1207,7 +1062,7 @@ public class MainWindow extends JFrame {
 		}
 		help.add(aboutAction);
 
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JadxMenuBar();
 		menuBar.add(file);
 		menuBar.add(view);
 		menuBar.add(nav);
@@ -1231,7 +1086,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(openAction);
 		toolbar.add(addFilesAction);
 		toolbar.addSeparator();
-		toolbar.add(reload);
+		toolbar.add(reloadAction);
 		toolbar.addSeparator();
 		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
@@ -1251,7 +1106,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(quarkAction);
 		toolbar.add(openDeviceAction);
 		toolbar.addSeparator();
-		toolbar.add(showLog);
+		toolbar.add(showLogAction);
 		toolbar.addSeparator();
 		toolbar.add(prefsAction);
 		toolbar.addSeparator();
@@ -1260,18 +1115,26 @@ public class MainWindow extends JFrame {
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
 
+		nav.add(new HiddenMenuItem(backVariantAction));
+		nav.add(new HiddenMenuItem(forwardVariantAction));
+
+		shortcutsController.bind(backVariantAction);
+		shortcutsController.bind(forwardVariantAction);
+
 		addLoadListener(loaded -> {
 			textSearchAction.setEnabled(loaded);
 			clsSearchAction.setEnabled(loaded);
 			commentSearchAction.setEnabled(loaded);
 			gotoMainActivityAction.setEnabled(loaded);
 			backAction.setEnabled(loaded);
+			backVariantAction.setEnabled(loaded);
 			forwardAction.setEnabled(loaded);
+			forwardVariantAction.setEnabled(loaded);
 			syncAction.setEnabled(loaded);
 			saveAllAction.setEnabled(loaded);
 			exportAction.setEnabled(loaded);
 			saveProjectAsAction.setEnabled(loaded);
-			reload.setEnabled(loaded);
+			reloadAction.setEnabled(loaded);
 			decompileAllAction.setEnabled(loaded);
 			deobfAction.setEnabled(loaded);
 			quarkAction.setEnabled(loaded);
@@ -1402,42 +1265,6 @@ public class MainWindow extends JFrame {
 		setTitle(DEFAULT_TITLE);
 	}
 
-	private void registerMouseNavigationButtons() {
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		toolkit.addAWTEventListener(event -> {
-			if (event instanceof MouseEvent) {
-				MouseEvent mouseEvent = (MouseEvent) event;
-				if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED) {
-					int rawButton = mouseEvent.getButton();
-					if (rawButton <= 3) {
-						return;
-					}
-					int button = remapMouseButton(rawButton);
-					switch (button) {
-						case 4:
-							tabbedPane.navBack();
-							break;
-						case 5:
-							tabbedPane.navForward();
-							break;
-					}
-				}
-			}
-		}, AWTEvent.MOUSE_EVENT_MASK);
-	}
-
-	private static int remapMouseButton(int rawButton) {
-		if (SystemInfo.IS_LINUX) {
-			if (rawButton == 6) {
-				return 4;
-			}
-			if (rawButton == 7) {
-				return 5;
-			}
-		}
-		return rawButton;
-	}
-
 	private static String[] getPathExpansion(TreePath path) {
 		List<String> pathList = new ArrayList<>();
 		while (path != null) {
@@ -1515,6 +1342,23 @@ public class MainWindow extends JFrame {
 		return editorTheme;
 	}
 
+	private void openSettings() {
+		settingsOpen = true;
+
+		JDialog settingsWindow = new JadxSettingsWindow(MainWindow.this, settings);
+		settingsWindow.setVisible(true);
+		settingsWindow.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				settingsOpen = false;
+			}
+		});
+	}
+
+	public boolean isSettingsOpen() {
+		return settingsOpen;
+	}
+
 	public void loadSettings() {
 		// queue update to not interrupt current UI tasks
 		UiUtils.uiRun(this::updateUiSettings);
@@ -1535,6 +1379,8 @@ public class MainWindow extends JFrame {
 		if (logPanel != null) {
 			logPanel.loadSettings();
 		}
+
+		shortcutsController.loadSettings();
 	}
 
 	private void closeWindow() {
@@ -1636,6 +1482,10 @@ public class MainWindow extends JFrame {
 	public JDebuggerPanel getDebuggerPanel() {
 		initDebuggerPanel();
 		return debuggerPanel;
+	}
+
+	public ShortcutsController getShortcutsController() {
+		return shortcutsController;
 	}
 
 	public void showDebuggerPanel() {

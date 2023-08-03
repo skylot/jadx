@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.utils.NLS;
+import jadx.gui.ui.action.ActionModel;
 
 public class JsonPrettifyAction extends JNodeAction {
 
@@ -14,7 +14,7 @@ public class JsonPrettifyAction extends JNodeAction {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 	public JsonPrettifyAction(CodeArea codeArea) {
-		super(NLS.str("popup.json_prettify"), codeArea);
+		super(ActionModel.JSON_PRETTIFY, codeArea);
 	}
 
 	@Override

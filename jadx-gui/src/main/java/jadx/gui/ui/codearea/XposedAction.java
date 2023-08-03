@@ -1,6 +1,5 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,18 +16,16 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-
-import static javax.swing.KeyStroke.getKeyStroke;
 
 public class XposedAction extends JNodeAction {
 	private static final Logger LOG = LoggerFactory.getLogger(XposedAction.class);
 	private static final long serialVersionUID = 2641585141624592578L;
 
 	public XposedAction(CodeArea codeArea) {
-		super(NLS.str("popup.xposed") + " (y)", codeArea);
-		addKeyBinding(getKeyStroke(KeyEvent.VK_Y, 0), "trigger xposed");
+		super(ActionModel.XPOSED_COPY, codeArea);
 	}
 
 	@Override

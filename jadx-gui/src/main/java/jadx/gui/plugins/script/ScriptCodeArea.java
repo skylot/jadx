@@ -1,23 +1,21 @@
 package jadx.gui.plugins.script;
 
-import java.awt.event.KeyEvent;
-
-import javax.swing.KeyStroke;
-
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.ICodeInfo;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JInputScript;
+import jadx.gui.ui.action.JadxAutoCompletion;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class ScriptCodeArea extends AbstractCodeArea {
 
 	private final JInputScript scriptNode;
 	private final AutoCompletion autoCompletion;
+	private final ShortcutsController shortcutsController;
 
 	public ScriptCodeArea(ContentPanel contentPanel, JInputScript node) {
 		super(contentPanel, node);
@@ -27,6 +25,7 @@ public class ScriptCodeArea extends AbstractCodeArea {
 		setCodeFoldingEnabled(true);
 		setCloseCurlyBraces(true);
 
+		shortcutsController = contentPanel.getTabbedPane().getMainWindow().getShortcutsController();
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
 		autoCompletion = addAutoComplete(settings);
 	}
@@ -34,12 +33,12 @@ public class ScriptCodeArea extends AbstractCodeArea {
 	private AutoCompletion addAutoComplete(JadxSettings settings) {
 		ScriptCompleteProvider provider = new ScriptCompleteProvider(this);
 		provider.setAutoActivationRules(false, ".");
-		AutoCompletion ac = new AutoCompletion(provider);
+		JadxAutoCompletion ac = new JadxAutoCompletion(provider);
 		ac.setListCellRenderer(new ScriptCompletionRenderer(settings));
-		ac.setTriggerKey(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
 		ac.setAutoActivationEnabled(true);
 		ac.setAutoCompleteSingleChoices(true);
 		ac.install(this);
+		shortcutsController.bindImmediate(ac);
 		return ac;
 	}
 
@@ -80,6 +79,7 @@ public class ScriptCodeArea extends AbstractCodeArea {
 
 	@Override
 	public void dispose() {
+		shortcutsController.unbindActionsForComponent(this);
 		autoCompletion.uninstall();
 		super.dispose();
 	}

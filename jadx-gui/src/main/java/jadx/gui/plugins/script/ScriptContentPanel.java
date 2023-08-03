@@ -29,13 +29,14 @@ import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.SearchBar;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 import jadx.plugins.script.ide.ScriptAnalyzeResult;
 import jadx.plugins.script.ide.ScriptServices;
@@ -89,15 +90,14 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 	}
 
 	private JPanel buildScriptActionsPanel() {
-		ActionHandler runAction = new ActionHandler(this::runScript);
-		runAction.setNameAndDesc(NLS.str("script.run"));
-		runAction.setIcon(Icons.RUN);
-		runAction.attachKeyBindingFor(scriptArea, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
+		JadxGuiAction runAction = new JadxGuiAction(ActionModel.SCRIPT_RUN, this::runScript);
+		JadxGuiAction saveAction = new JadxGuiAction(ActionModel.SCRIPT_SAVE, scriptArea::save);
 
-		ActionHandler saveAction = new ActionHandler(scriptArea::save);
-		saveAction.setNameAndDesc(NLS.str("script.save"));
-		saveAction.setIcon(Icons.SAVE_ALL);
-		saveAction.setKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_S, UiUtils.ctrlButton()));
+		runAction.setShortcutComponent(scriptArea);
+		saveAction.setShortcutComponent(scriptArea);
+
+		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(runAction);
+		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(saveAction);
 
 		JButton save = saveAction.makeButton();
 		scriptArea.getScriptNode().addChangeListener(save::setEnabled);

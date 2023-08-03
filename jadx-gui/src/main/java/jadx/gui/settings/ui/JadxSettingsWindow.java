@@ -62,6 +62,7 @@ import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.plugins.PluginsSettings;
+import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -126,6 +127,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(makeRenameGroup());
 		groups.add(new CacheSettingsGroup(this));
 		groups.add(makeAppearanceGroup());
+		groups.add(new ShortcutsSettingsGroup(this, settings));
 		groups.add(makeSearchResGroup());
 		groups.add(makeProjectGroup());
 		groups.add(new PluginsSettings(mainWindow, settings).build());
@@ -640,6 +642,7 @@ public class JadxSettingsWindow extends JDialog {
 		enableComponents(this, false);
 		SwingUtilities.invokeLater(() -> {
 			if (shouldReload()) {
+				mainWindow.getShortcutsController().loadSettings();
 				mainWindow.reopen();
 			}
 			if (!settings.getLangLocale().equals(prevLang)) {
