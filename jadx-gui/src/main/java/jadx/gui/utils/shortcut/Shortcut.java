@@ -18,7 +18,7 @@ public class Shortcut {
 			KeyEvent.SHIFT_DOWN_MASK));
 
 	private Integer keyCode = null;
-	private Integer modifiers = 0;
+	private Integer modifiers = null;
 	private Integer mouseButton = null;
 
 	private Shortcut() {
@@ -42,7 +42,11 @@ public class Shortcut {
 	}
 
 	public static Shortcut none() {
-		return new Shortcut();
+		Shortcut shortcut = new Shortcut();
+		// Must have at least one non-null attribute in order to be serialized
+		// otherwise will roll back to default Shortcut
+		shortcut.modifiers = 0;
+		return shortcut;
 	}
 
 	public Integer getKeyCode() {
