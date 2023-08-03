@@ -14,13 +14,14 @@ import javax.swing.KeyStroke;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.IShortcutAction;
 import jadx.gui.utils.UiUtils;
 
 public class ShortcutsController {
-	private Map<ActionModel, Shortcut> shortcuts;
+	private ShortcutsWrapper shortcuts;
 	private final JadxSettings settings;
 
 	private final Map<ActionModel, Set<IShortcutAction>> boundActions = new HashMap<>();
@@ -121,9 +122,8 @@ public class ShortcutsController {
 
 	private void indexMouseActions() {
 		mouseActions = new HashSet<>();
-		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
-			ActionModel actionModel = shortcutEntry.getKey();
-			Shortcut shortcut = shortcutEntry.getValue();
+		for (ActionModel actionModel : ActionModel.values()) {
+			Shortcut shortcut = shortcuts.get(actionModel);
 			if (shortcut != null && shortcut.isMouse()) {
 				mouseActions.add(actionModel);
 			} else {
@@ -133,8 +133,7 @@ public class ShortcutsController {
 	}
 
 	public void unbindActionsForComponent(JComponent component) {
-		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
-			ActionModel actionModel = shortcutEntry.getKey();
+		for (ActionModel actionModel : ActionModel.values()) {
 			Set<IShortcutAction> actions = boundActions.get(actionModel);
 			if (actions != null) {
 				actions.removeIf(action -> action != null && action.getShortcutComponent() == component);
