@@ -94,6 +94,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		JadxGuiAction saveAction = new JadxGuiAction(ActionModel.SCRIPT_SAVE, scriptArea::save);
 
 		runAction.setShortcutComponent(scriptArea);
+		saveAction.setShortcutComponent(scriptArea);
 
 		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(runAction);
 		tabbedPane.getMainWindow().getShortcutsController().bindImmediate(saveAction);
