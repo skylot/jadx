@@ -16,14 +16,14 @@ import org.jetbrains.annotations.Nullable;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
-import jadx.gui.ui.action.JadxGuiAction;
+import jadx.gui.ui.action.IShortcutAction;
 import jadx.gui.utils.UiUtils;
 
 public class ShortcutsController {
 	private Map<ActionModel, Shortcut> shortcuts;
 	private final JadxSettings settings;
 
-	private final Map<ActionModel, Set<JadxGuiAction>> boundActions = new HashMap<>();
+	private final Map<ActionModel, Set<IShortcutAction>> boundActions = new HashMap<>();
 
 	private Set<ActionModel> mouseActions = null;
 
@@ -36,12 +36,12 @@ public class ShortcutsController {
 
 		indexMouseActions();
 
-		for (Map.Entry<ActionModel, Set<JadxGuiAction>> actionsEntry : boundActions.entrySet()) {
+		for (Map.Entry<ActionModel, Set<IShortcutAction>> actionsEntry : boundActions.entrySet()) {
 			ActionModel actionModel = actionsEntry.getKey();
-			Set<JadxGuiAction> actions = actionsEntry.getValue();
+			Set<IShortcutAction> actions = actionsEntry.getValue();
 			Shortcut shortcut = get(actionModel);
 			if (actions != null) {
-				for (JadxGuiAction action : actions) {
+				for (IShortcutAction action : actions) {
 					action.setShortcut(shortcut);
 				}
 			}
@@ -65,7 +65,7 @@ public class ShortcutsController {
 	/*
 	 * Binds to an action and updates its shortcut every time loadSettings is called
 	 */
-	public void bind(JadxGuiAction action) {
+	public void bind(IShortcutAction action) {
 		boundActions.computeIfAbsent(action.getActionModel(), k -> new HashSet<>());
 		boundActions.get(action.getActionModel()).add(action);
 	}
@@ -73,7 +73,7 @@ public class ShortcutsController {
 	/*
 	 * Immediately sets the shortcut for an action
 	 */
-	public void bindImmediate(JadxGuiAction action) {
+	public void bindImmediate(IShortcutAction action) {
 		bind(action);
 		Shortcut shortcut = get(action.getActionModel());
 		action.setShortcut(shortcut);
@@ -105,9 +105,9 @@ public class ShortcutsController {
 			for (ActionModel actionModel : mouseActions) {
 				Shortcut shortcut = shortcuts.get(actionModel);
 				if (shortcut != null && shortcut.getMouseButton() == mouseButton) {
-					Set<JadxGuiAction> actions = boundActions.get(actionModel);
+					Set<IShortcutAction> actions = boundActions.get(actionModel);
 					if (actions != null) {
-						for (JadxGuiAction action : actions) {
+						for (IShortcutAction action : actions) {
 							if (action != null) {
 								UiUtils.uiRun(action::performAction);
 							}
@@ -134,9 +134,9 @@ public class ShortcutsController {
 	public void unbindActionsForComponent(JComponent component) {
 		for (Map.Entry<ActionModel, Shortcut> shortcutEntry : shortcuts.entrySet()) {
 			ActionModel actionModel = shortcutEntry.getKey();
-			Set<JadxGuiAction> actions = boundActions.get(actionModel);
+			Set<IShortcutAction> actions = boundActions.get(actionModel);
 			if (actions != null) {
-				actions.removeIf(action -> action != null && action.getTargetComponent() == component);
+				actions.removeIf(action -> action != null && action.getShortcutComponent() == component);
 			}
 		}
 	}

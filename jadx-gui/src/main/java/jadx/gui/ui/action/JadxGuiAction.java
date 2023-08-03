@@ -11,12 +11,13 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
 
-public class JadxGuiAction extends ActionHandler {
+public class JadxGuiAction extends ActionHandler
+		implements IShortcutAction {
 	private static final String COMMAND = "JadxGuiAction.Command.%s";
 
 	private final ActionModel actionModel;
 	private final String id;
-	private JComponent targetComponent = null;
+	private JComponent shortcutComponent = null;
 	private KeyStroke addedKeyStroke = null;
 	private Shortcut shortcut;
 
@@ -75,6 +76,7 @@ public class JadxGuiAction extends ActionHandler {
 		return actionModel;
 	}
 
+	@Override
 	public void setShortcut(Shortcut shortcut) {
 		this.shortcut = shortcut;
 		if (shortcut != null) {
@@ -84,25 +86,27 @@ public class JadxGuiAction extends ActionHandler {
 		}
 	}
 
-	public void setTargetComponent(JComponent component) {
-		this.targetComponent = component;
+	public void setShortcutComponent(JComponent component) {
+		this.shortcutComponent = component;
 	}
 
-	public JComponent getTargetComponent() {
-		return targetComponent;
+	@Override
+	public JComponent getShortcutComponent() {
+		return shortcutComponent;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (targetComponent != null && e.getSource() != this) {
+		if (shortcutComponent != null && e.getSource() != this) {
 			// We just added this keyStroke for visual appearance
 			return;
 		}
 		super.actionPerformed(e);
 	}
 
+	@Override
 	public void performAction() {
-		if (targetComponent != null && !targetComponent.isShowing()) {
+		if (shortcutComponent != null && !shortcutComponent.isShowing()) {
 			return;
 		}
 
@@ -121,7 +125,7 @@ public class JadxGuiAction extends ActionHandler {
 
 	@Override
 	public void setKeyBinding(KeyStroke keyStroke) {
-		if (targetComponent == null) {
+		if (shortcutComponent == null) {
 			super.setKeyBinding(keyStroke);
 		} else {
 			// We just set the keyStroke for it to appear in the menu item
@@ -129,9 +133,9 @@ public class JadxGuiAction extends ActionHandler {
 			super.setKeyBinding(keyStroke);
 
 			if (addedKeyStroke != null) {
-				UiUtils.removeKeyBinding(targetComponent, addedKeyStroke, id);
+				UiUtils.removeKeyBinding(shortcutComponent, addedKeyStroke, id);
 			}
-			UiUtils.addKeyBinding(targetComponent, keyStroke, id, this::performAction);
+			UiUtils.addKeyBinding(shortcutComponent, keyStroke, id, this::performAction);
 			addedKeyStroke = keyStroke;
 		}
 	}

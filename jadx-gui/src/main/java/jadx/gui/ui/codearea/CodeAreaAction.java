@@ -9,13 +9,13 @@ public class CodeAreaAction extends JadxGuiAction {
 	public CodeAreaAction(ActionModel actionModel, CodeArea codeArea) {
 		super(actionModel);
 		this.codeArea = codeArea;
-		setTargetComponent(codeArea);
+		setShortcutComponent(codeArea);
 	}
 
 	public CodeAreaAction(String id, CodeArea codeArea) {
 		super(id);
 		this.codeArea = codeArea;
-		setTargetComponent(codeArea);
+		setShortcutComponent(codeArea);
 	}
 
 	public void dispose() {
