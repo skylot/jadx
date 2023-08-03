@@ -34,6 +34,7 @@ public class CodePopupAction {
 
 		public NodeAction(CodePopupAction data, CodeArea codeArea) {
 			super(data.name, codeArea);
+			setName(data.name);
 			setShortcutComponent(codeArea);
 			if (data.keyBinding != null) {
 				KeyStroke key = KeyStroke.getKeyStroke(data.keyBinding);
