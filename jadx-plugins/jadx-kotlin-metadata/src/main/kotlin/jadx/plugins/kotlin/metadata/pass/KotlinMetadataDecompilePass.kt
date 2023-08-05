@@ -50,7 +50,7 @@ class KotlinMetadataDecompilePass(
 		val args = wrapper.getMethodArgs()
 		args.forEach { (_, list) ->
 			list.forEach { (rArg, alias) ->
-				// TODO comment not being added ?
+				// TODO: comment not being added?
 				RenameReasonAttr.forNode(rArg).append(METADATA_REASON)
 				rArg.name = alias
 			}

@@ -43,6 +43,14 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 		)
 	}
 
+	fun isPreparePassNeeded(): Boolean {
+		return isClassAlias
+	}
+
+	fun isDecompilePassNeeded(): Boolean {
+		return isMethodArgs || isFields || isCompanion || isDataClass || isToString || isGetters
+	}
+
 	companion object {
 		const val CLASS_ALIAS_OPT = "$PLUGIN_ID.class-alias"
 		const val METHOD_ARGS_OPT = "$PLUGIN_ID.method-args"
