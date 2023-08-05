@@ -1,7 +1,6 @@
 plugins {
-	id("jadx-library")
-
-	id("com.github.johnrengelman.shadow") version "8.1.1"
+	id("jadx-java")
+	id("java-library") // don't publish to maven
 }
 
 dependencies {
@@ -14,14 +13,5 @@ dependencies {
 
 	constraints {
 		runtimeOnly("org.ow2.asm:asm:9.5")
-	}
-}
-
-publishing {
-	publications {
-		create<MavenPublication>("maven") {
-			from(components["java"])
-			artifact(tasks["shadowJar"])
-		}
 	}
 }
