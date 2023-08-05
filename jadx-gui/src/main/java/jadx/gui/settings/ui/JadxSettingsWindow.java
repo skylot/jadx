@@ -37,7 +37,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,7 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
-import jadx.gui.settings.ui.plugins.PluginsSettings;
+import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
@@ -85,7 +84,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient LangLocale prevLang;
 
 	private transient boolean needReload = false;
-	private SettingsTree tree;
+	private transient SettingsTree tree;
 
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
@@ -95,7 +94,6 @@ public class JadxSettingsWindow extends JDialog {
 		this.prevLang = settings.getLangLocale();
 
 		initUI();
-		mainWindow.events().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, r -> UiUtils.uiRun(this::reloadUI));
 
 		setTitle(NLS.str("preferences.title"));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -106,16 +104,19 @@ public class JadxSettingsWindow extends JDialog {
 		if (!mainWindow.getSettings().loadWindowPos(this)) {
 			setSize(700, 800);
 		}
+		mainWindow.events().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, r -> UiUtils.uiRun(this::reloadUI));
+		mainWindow.events().addListener(JadxEvents.RELOAD_PROJECT, r -> UiUtils.uiRun(this::reloadUI));
 	}
 
 	private void reloadUI() {
-		TreePath selectionPath = tree.getSelectionPath();
-		mainWindow.getSettings().saveWindowPos(this);
+		int[] selection = tree.getSelectionRows();
 		getContentPane().removeAll();
 		initUI();
-		pack();
-		mainWindow.getSettings().loadWindowPos(this);
-		tree.setSelectionPath(selectionPath);
+		// wait for other events to process
+		UiUtils.uiRun(() -> {
+			tree.setSelectionRows(selection);
+			SwingUtilities.updateComponentTreeUI(this);
+		});
 	}
 
 	private void initUI() {
@@ -130,7 +131,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(new ShortcutsSettingsGroup(this, settings));
 		groups.add(makeSearchResGroup());
 		groups.add(makeProjectGroup());
-		groups.add(new PluginsSettings(mainWindow, settings).build());
+		groups.add(new PluginSettings(mainWindow, settings).build());
 		groups.add(makeOtherGroup());
 
 		tree = new SettingsTree();

@@ -2,19 +2,33 @@ package jadx.gui.settings.ui.plugins;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.plugins.JadxPluginInfo;
-
 abstract class BasePluginListNode {
 
-	public @Nullable String getTitle() {
+	public abstract String getTitle();
+
+	public abstract boolean hasDetails();
+
+	public String getPluginId() {
 		return null;
 	}
 
-	public JadxPluginInfo getPluginInfo() {
+	public String getDescription() {
+		return null;
+	}
+
+	public String getHomepage() {
+		return null;
+	}
+
+	public @Nullable String getLocationId() {
 		return null;
 	}
 
 	public @Nullable String getVersion() {
 		return null;
+	}
+
+	public PluginAction getAction() {
+		return PluginAction.NONE;
 	}
 }

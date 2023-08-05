@@ -17,7 +17,9 @@ import javax.swing.JTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.plugins.events.types.ReloadSettingsWindow;
+import ch.qos.logback.classic.Level;
+
+import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -26,33 +28,34 @@ import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.options.OptionType;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
+import jadx.gui.logs.LogOptions;
 import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.SettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.plugins.CollectPlugins;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.plugins.tools.JadxPluginsTools;
+import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.data.JadxPluginUpdate;
 
-public class PluginsSettings {
-	private static final Logger LOG = LoggerFactory.getLogger(PluginsSettings.class);
+public class PluginSettings {
+	private static final Logger LOG = LoggerFactory.getLogger(PluginSettings.class);
 
 	private final MainWindow mainWindow;
 	private final JadxSettings settings;
 
-	public PluginsSettings(MainWindow mainWindow, JadxSettings settings) {
+	public PluginSettings(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
 		this.settings = settings;
 	}
 
 	public ISettingsGroup build() {
-		List<PluginContext> list = new CollectPlugins(mainWindow).build();
-		ISettingsGroup pluginsGroup = new PluginsSettingsGroup(this, list);
-		for (PluginContext context : list) {
+		List<PluginContext> installedPlugins = new CollectPlugins(mainWindow).build();
+		ISettingsGroup pluginsGroup = new PluginSettingsGroup(this, mainWindow, installedPlugins);
+		for (PluginContext context : installedPlugins) {
 			ISettingsGroup pluginGroup = addPluginGroup(context);
 			if (pluginGroup != null) {
 				pluginsGroup.getSubGroups().add(pluginGroup);
@@ -62,7 +65,25 @@ public class PluginsSettings {
 	}
 
 	public void addPlugin() {
-		new InstallPluginDialog(mainWindow).setVisible(true);
+		new InstallPluginDialog(mainWindow, this).setVisible(true);
+	}
+
+	private void requestReload() {
+		mainWindow.events().send(ReloadProject.INSTANCE);
+	}
+
+	public void install(String locationId) {
+		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.installing"),
+				() -> {
+					try {
+						JadxPluginMetadata metadata = JadxPluginsTools.getInstance().install(locationId);
+						LOG.info("Plugin installed: {}", metadata);
+						requestReload();
+					} catch (Exception e) {
+						LOG.error("Install failed", e);
+						mainWindow.showLogViewer(LogOptions.forLevel(Level.ERROR));
+					}
+				});
 	}
 
 	public void uninstall(String pluginId) {
@@ -70,8 +91,7 @@ public class PluginsSettings {
 			boolean success = JadxPluginsTools.getInstance().uninstall(pluginId);
 			if (success) {
 				LOG.info("Uninstall complete");
-				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
-				UiUtils.uiRun(mainWindow::reopen);
+				requestReload();
 			} else {
 				LOG.warn("Uninstall failed");
 			}
@@ -83,8 +103,7 @@ public class PluginsSettings {
 			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
 			if (!updates.isEmpty()) {
 				LOG.info("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
-				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
-				UiUtils.uiRun(mainWindow::reopen);
+				requestReload();
 			} else {
 				LOG.info("No updates found");
 			}

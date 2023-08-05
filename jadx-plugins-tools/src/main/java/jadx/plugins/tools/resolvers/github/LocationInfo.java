@@ -2,7 +2,7 @@ package jadx.plugins.tools.resolvers.github;
 
 import org.jetbrains.annotations.Nullable;
 
-class LocationInfo {
+public class LocationInfo {
 	private final String owner;
 	private final String project;
 	private final String artifactPrefix;

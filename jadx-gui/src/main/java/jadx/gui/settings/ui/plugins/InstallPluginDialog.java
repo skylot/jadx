@@ -22,29 +22,25 @@ import org.slf4j.LoggerFactory;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import ch.qos.logback.classic.Level;
-
-import jadx.api.plugins.events.types.ReloadSettingsWindow;
-import jadx.gui.logs.LogOptions;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
-import jadx.plugins.tools.JadxPluginsTools;
-import jadx.plugins.tools.data.JadxPluginMetadata;
 
 public class InstallPluginDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(InstallPluginDialog.class);
 	private static final long serialVersionUID = 5304314264730563853L;
 
 	private final MainWindow mainWindow;
+	private final PluginSettings pluginsSettings;
 	private JTextField locationFld;
 
-	public InstallPluginDialog(MainWindow mainWindow) {
+	public InstallPluginDialog(MainWindow mainWindow, PluginSettings pluginsSettings) {
 		super(mainWindow, NLS.str("preferences.plugins.install"));
 		this.mainWindow = mainWindow;
+		this.pluginsSettings = pluginsSettings;
 		init();
 	}
 
@@ -121,20 +117,7 @@ public class InstallPluginDialog extends JDialog {
 	}
 
 	private void install() {
-		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.installing"),
-				() -> {
-					try {
-						JadxPluginMetadata metadata = JadxPluginsTools.getInstance().install(locationFld.getText());
-						LOG.info("Plugin installed: {}", metadata);
-					} catch (Exception e) {
-						LOG.error("Install failed", e);
-						mainWindow.showLogViewer(LogOptions.forLevel(Level.ERROR));
-					}
-				},
-				status -> {
-					mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
-					UiUtils.uiRun(mainWindow::reopen);
-				});
+		pluginsSettings.install(locationFld.getText());
 		dispose();
 	}
 }

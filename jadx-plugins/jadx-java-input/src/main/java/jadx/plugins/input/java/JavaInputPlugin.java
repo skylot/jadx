@@ -18,14 +18,9 @@ import jadx.plugins.input.java.utils.JavaClassParseException;
 
 public class JavaInputPlugin implements JadxPlugin {
 
-	public static final JadxPluginInfo PLUGIN_INFO = new JadxPluginInfo(
-			"java-input",
-			"JavaInput",
-			"Load .class and .jar files");
-
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return PLUGIN_INFO;
+		return new JadxPluginInfo("java-input", "Java Input", "Load .class and .jar files");
 	}
 
 	@Override

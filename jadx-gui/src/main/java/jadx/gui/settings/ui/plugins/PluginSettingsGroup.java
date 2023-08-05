@@ -9,6 +9,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -26,27 +28,36 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 
-import jadx.api.plugins.JadxPluginInfo;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.core.plugins.PluginContext;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 
-class PluginsSettingsGroup implements ISettingsGroup {
-	private final PluginsSettings pluginsSettings;
+class PluginSettingsGroup implements ISettingsGroup {
+	private static final Logger LOG = LoggerFactory.getLogger(PluginSettingsGroup.class);
+
+	private final PluginSettings pluginsSettings;
+	private final MainWindow mainWindow;
 	private final String title;
 	private final List<ISettingsGroup> subGroups = new ArrayList<>();
-	private final List<PluginContext> pluginsList;
+	private final List<PluginContext> installedPlugins;
 
-	private PluginListNode selectedPlugin;
 	private JPanel detailsPanel;
 
-	public PluginsSettingsGroup(PluginsSettings pluginsSettings, List<PluginContext> pluginsList) {
-		this.pluginsSettings = pluginsSettings;
+	public PluginSettingsGroup(PluginSettings pluginSettings, MainWindow mainWindow, List<PluginContext> installedPlugins) {
+		this.pluginsSettings = pluginSettings;
+		this.mainWindow = mainWindow;
 		this.title = NLS.str("preferences.plugins");
-		this.pluginsList = pluginsList;
+		this.installedPlugins = installedPlugins;
 	}
 
 	@Override
@@ -83,25 +94,27 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		installed.forEach(p -> installedMap.put(p.getPluginId(), p));
 
 		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + 3);
-		for (PluginContext plugin : pluginsList) {
-			nodes.add(new PluginListNode(plugin, installedMap.get(plugin.getPluginId())));
+		for (PluginContext plugin : installedPlugins) {
+			nodes.add(new InstalledPluginNode(plugin, installedMap.get(plugin.getPluginId())));
 		}
-		nodes.sort(Comparator.comparing(n -> n.getPluginInfo().getName()));
+		nodes.sort(Comparator.comparing(BasePluginListNode::getTitle));
 
 		DefaultListModel<BasePluginListNode> listModel = new DefaultListModel<>();
 		listModel.addElement(new TitleNode("Installed"));
 		nodes.stream().filter(n -> n.getVersion() != null).forEach(listModel::addElement);
 		listModel.addElement(new TitleNode("Bundled"));
 		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
-		// TODO: load external plugins list
-		// listModel.addElement(new TitleNode("Available"));
+		listModel.addElement(new TitleNode("Available"));
 
-		JList<BasePluginListNode> pluginsList = new JList<>(listModel);
-		pluginsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		pluginsList.setCellRenderer(new PluginsListCellRenderer(pluginsList));
-		pluginsList.addListSelectionListener(ev -> onSelection(pluginsList.getSelectedValue()));
+		JList<BasePluginListNode> pluginList = new JList<>(listModel);
+		pluginList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		pluginList.setCellRenderer(new PluginsListCellRenderer());
+		pluginList.addListSelectionListener(ev -> onSelection(pluginList.getSelectedValue()));
 
-		JScrollPane scrollPane = new JScrollPane(pluginsList);
+		loadAvailablePlugins(listModel, installedPlugins);
+
+		JScrollPane scrollPane = new JScrollPane(pluginList);
+		scrollPane.setMinimumSize(new Dimension(80, 120));
 
 		detailsPanel = new JPanel(new BorderLayout(5, 5));
 		detailsPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -113,7 +126,6 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		splitPanel.setBorder(BorderFactory.createEmptyBorder(10, 2, 2, 2));
 		splitPanel.setLeftComponent(scrollPane);
 		splitPanel.setRightComponent(detailsPanel);
-		splitPanel.setDividerLocation(0.4);
 
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(5, 5));
@@ -123,22 +135,45 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		return mainPanel;
 	}
 
+	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel, List<PluginContext> installedPlugins) {
+		List<AvailablePluginNode> list = new ArrayList<>();
+		mainWindow.getBackgroundExecutor().execute(
+				NLS.str("preferences.plugins.task.downloading_list"),
+				() -> {
+					List<JadxPluginMetadata> availablePlugins;
+					try {
+						availablePlugins = JadxPluginsList.getInstance().fetch();
+					} catch (Exception e) {
+						LOG.warn("Failed to load available plugins list", e);
+						return;
+					}
+					Set<String> installed = installedPlugins.stream().map(PluginContext::getPluginId).collect(Collectors.toSet());
+					for (JadxPluginMetadata availablePlugin : availablePlugins) {
+						if (!installed.contains(availablePlugin.getPluginId())) {
+							list.add(new AvailablePluginNode(availablePlugin));
+						}
+					}
+				},
+				status -> listModel.addAll(list));
+	}
+
 	private void onSelection(BasePluginListNode node) {
 		detailsPanel.removeAll();
-		JadxPluginInfo pluginInfo = node.getPluginInfo();
-		if (pluginInfo != null) {
-			JButton uninstallBtn = new JButton("Uninstall");
-			if (node.getVersion() != null) {
-				uninstallBtn.addActionListener(ev -> pluginsSettings.uninstall(pluginInfo.getPluginId()));
-			} else {
-				uninstallBtn.setEnabled(false);
-			}
-			JLabel nameLbl = new JLabel(pluginInfo.getName());
+		if (node.hasDetails()) {
+			JLabel nameLbl = new JLabel(node.getTitle());
 			Font baseFont = nameLbl.getFont();
 			nameLbl.setFont(baseFont.deriveFont(Font.BOLD, baseFont.getSize2D() + 2));
 
+			String desc;
+			String homepage = node.getHomepage();
+			if (StringUtils.notBlank(homepage)) {
+				desc = node.getDescription() + "\n\nHomepage: " + homepage;
+			} else {
+				desc = node.getDescription();
+			}
+
 			JTextPane descArea = new JTextPane();
-			descArea.setText(pluginInfo.getDescription());
+			descArea.setText(desc);
 			descArea.setFont(baseFont.deriveFont(baseFont.getSize2D() + 1));
 			descArea.setEditable(false);
 			descArea.setBorder(BorderFactory.createEmptyBorder());
@@ -149,12 +184,32 @@ class PluginsSettingsGroup implements ISettingsGroup {
 			top.setBorder(BorderFactory.createEmptyBorder(10, 2, 10, 2));
 			top.add(nameLbl);
 			top.add(Box.createHorizontalGlue());
-			top.add(uninstallBtn);
-
+			JButton actionBtn = makeActionButton(node);
+			if (actionBtn != null) {
+				top.add(actionBtn);
+			}
 			detailsPanel.add(top, BorderLayout.PAGE_START);
 			detailsPanel.add(descArea, BorderLayout.CENTER);
 		}
 		detailsPanel.updateUI();
+	}
+
+	private @Nullable JButton makeActionButton(BasePluginListNode node) {
+		switch (node.getAction()) {
+			case NONE:
+				return null;
+			case INSTALL: {
+				JButton installBtn = new JButton(NLS.str("preferences.plugins.install_btn"));
+				installBtn.addActionListener(ev -> pluginsSettings.install(node.getLocationId()));
+				return installBtn;
+			}
+			case UNINSTALL: {
+				JButton uninstallBtn = new JButton(NLS.str("preferences.plugins.uninstall_btn"));
+				uninstallBtn.addActionListener(ev -> pluginsSettings.uninstall(node.getPluginId()));
+				return uninstallBtn;
+			}
+		}
+		return null;
 	}
 
 	private static class PluginsListCellRenderer implements ListCellRenderer<BasePluginListNode> {
@@ -163,7 +218,7 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		private final JLabel versionLbl;
 		private final JLabel titleLbl;
 
-		public PluginsListCellRenderer(JList<BasePluginListNode> pluginsList) {
+		public PluginsListCellRenderer() {
 			panel = new JPanel();
 			panel.setOpaque(true);
 			panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
@@ -176,6 +231,7 @@ class PluginsSettingsGroup implements ISettingsGroup {
 			versionLbl.setOpaque(true);
 
 			panel.add(nameLbl);
+			panel.add(Box.createHorizontalStrut(20));
 			panel.add(Box.createHorizontalGlue());
 			panel.add(versionLbl);
 
@@ -187,13 +243,12 @@ class PluginsSettingsGroup implements ISettingsGroup {
 		@Override
 		public Component getListCellRendererComponent(JList<? extends BasePluginListNode> list,
 				BasePluginListNode value, int index, boolean isSelected, boolean cellHasFocus) {
-			String title = value.getTitle();
-			if (title != null) {
-				titleLbl.setText(title);
+			if (!value.hasDetails()) {
+				titleLbl.setText(value.getTitle());
 				return titleLbl;
 			}
-			nameLbl.setText(value.getPluginInfo().getName());
-			nameLbl.setToolTipText(value.getPluginInfo().getDescription());
+			nameLbl.setText(value.getTitle());
+			nameLbl.setToolTipText(value.getLocationId());
 			versionLbl.setText(Utils.getOrElse(value.getVersion(), ""));
 			if (isSelected) {
 				panel.setBackground(list.getSelectionBackground());

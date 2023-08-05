@@ -203,7 +203,7 @@ public class QuarkManager {
 	}
 
 	private void runCommand(List<String> cmd) throws Exception {
-		UiUtils.uiRun(() -> mainWindow.showLogViewer(LogOptions.forLevel(Level.INFO)));
+		mainWindow.showLogViewer(LogOptions.forLevel(Level.INFO));
 		LOG.info("Running command: {}", String.join(" ", cmd));
 		ProcessBuilder builder = new ProcessBuilder(cmd);
 		builder.redirectErrorStream(true);

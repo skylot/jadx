@@ -17,7 +17,7 @@ public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return new JadxPluginInfo("smali-input", "SmaliInput", "Load .smali files");
+		return new JadxPluginInfo("smali-input", "Smali Input", "Load .smali files");
 	}
 
 	@Override

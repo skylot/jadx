@@ -6,7 +6,7 @@ import java.util.Optional;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.resolvers.IJadxPluginResolver;
 
-import static jadx.plugins.tools.utils.PluginsUtils.removePrefix;
+import static jadx.plugins.tools.utils.PluginUtils.removePrefix;
 
 public class LocalFileResolver implements IJadxPluginResolver {
 	@Override

@@ -11,4 +11,9 @@ public class TitleNode extends BasePluginListNode {
 	public String getTitle() {
 		return title;
 	}
+
+	@Override
+	public boolean hasDetails() {
+		return false;
+	}
 }

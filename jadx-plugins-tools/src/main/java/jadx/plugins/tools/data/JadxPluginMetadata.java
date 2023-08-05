@@ -7,6 +7,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String pluginId;
 	private String name;
 	private String description;
+	private String homepage;
 	private @Nullable String version;
 	private String locationId;
 	private String resolverId;
@@ -42,6 +43,14 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(String homepage) {
+		this.homepage = homepage;
 	}
 
 	public String getLocationId() {

@@ -15,10 +15,7 @@ public class RaungInputPlugin implements JadxPlugin, JadxCodeInput {
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return new JadxPluginInfo(
-				"raung-input",
-				"RaungInput",
-				"Load .raung files");
+		return new JadxPluginInfo("raung-input", "Raung Input", "Load .raung files");
 	}
 
 	@Override

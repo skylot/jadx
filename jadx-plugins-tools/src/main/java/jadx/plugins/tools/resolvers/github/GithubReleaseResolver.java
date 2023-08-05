@@ -1,19 +1,8 @@
 package jadx.plugins.tools.resolvers.github;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import jadx.core.utils.ListUtils;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -21,16 +10,10 @@ import jadx.plugins.tools.resolvers.IJadxPluginResolver;
 import jadx.plugins.tools.resolvers.github.data.Asset;
 import jadx.plugins.tools.resolvers.github.data.Release;
 
-import static jadx.plugins.tools.utils.PluginsUtils.removePrefix;
+import static jadx.plugins.tools.utils.PluginUtils.removePrefix;
 
 public class GithubReleaseResolver implements IJadxPluginResolver {
-	private static final String GITHUB_API_URL = "https://api.github.com/";
 	private static final Pattern VERSION_PATTERN = Pattern.compile("v?\\d+\\.\\d+(\\.\\d+)?");
-
-	private static final Type RELEASE_TYPE = new TypeToken<Release>() {
-	}.getType();
-	private static final Type RELEASE_LIST_TYPE = new TypeToken<List<Release>>() {
-	}.getType();
 
 	@Override
 	public Optional<JadxPluginMetadata> resolve(String locationId) {
@@ -38,7 +21,7 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 		if (info == null) {
 			return Optional.empty();
 		}
-		Release release = fetchRelease(info);
+		Release release = GithubTools.fetchRelease(info);
 		List<Asset> assets = release.getAssets();
 		String releaseVersion = removePrefix(release.getName(), "v");
 		Asset asset = searchPluginAsset(assets, info.getArtifactPrefix(), releaseVersion);
@@ -83,7 +66,7 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 		if (exactAsset != null) {
 			return exactAsset;
 		}
-		// search without version
+		// search without version filter
 		Asset foundAsset = ListUtils.filterOnlyOne(assets, a -> {
 			String assetFileName = a.getName();
 			return assetFileName.startsWith(artifactPrefix) && assetFileName.endsWith(".jar");
@@ -100,42 +83,6 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 			return baseLocation;
 		}
 		return baseLocation + ':' + info.getArtifactPrefix();
-	}
-
-	private static Release fetchRelease(LocationInfo info) {
-		String projectUrl = GITHUB_API_URL + "repos/" + info.getOwner() + "/" + info.getProject();
-		String version = info.getVersion();
-		if (version == null) {
-			// get latest version
-			return get(projectUrl + "/releases/latest", RELEASE_TYPE);
-		}
-		// search version among all releases (by name)
-		List<Release> releases = get(projectUrl + "/releases", RELEASE_LIST_TYPE);
-		return releases.stream()
-				.filter(r -> r.getName().equals(version))
-				.findFirst()
-				.orElseThrow(() -> new RuntimeException("Release with version: " + version + " not found."
-						+ " Available versions: " + releases.stream().map(Release::getName).collect(Collectors.joining(", "))));
-	}
-
-	private static <T> T get(String url, Type type) {
-		HttpURLConnection con;
-		try {
-			con = (HttpURLConnection) URI.create(url).toURL().openConnection();
-			con.setRequestMethod("GET");
-			int code = con.getResponseCode();
-			if (code != 200) {
-				// TODO: support redirects?
-				throw new RuntimeException("Request failed, response: " + code + ", url: " + url);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException("Request failed, url: " + url, e);
-		}
-		try (Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8)) {
-			return new Gson().fromJson(reader, type);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to parse response, url: " + url, e);
-		}
 	}
 
 	@Override

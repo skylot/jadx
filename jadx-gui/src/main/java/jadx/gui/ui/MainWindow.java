@@ -81,6 +81,8 @@ import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.plugins.events.IJadxEvents;
+import jadx.api.plugins.events.JadxEvents;
+import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.export.TemplateFile;
@@ -107,7 +109,7 @@ import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
-import jadx.gui.settings.ui.plugins.InstallPluginDialog;
+import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
@@ -472,12 +474,14 @@ public class MainWindow extends JFrame {
 		return loadedFile.resolveSibling(fileName);
 	}
 
-	public synchronized void reopen() {
-		saveAll();
-		closeAll();
-		loadFiles(EMPTY_RUNNABLE);
+	public void reopen() {
+		synchronized (ReloadProject.INSTANCE) {
+			saveAll();
+			closeAll();
+			loadFiles(EMPTY_RUNNABLE);
 
-		menuBar.reloadShortcuts();
+			menuBar.reloadShortcuts();
+		}
 	}
 
 	private void openProject(Path path, Runnable onFinish) {
@@ -576,6 +580,7 @@ public class MainWindow extends JFrame {
 		initTree();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
+		events().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
 
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
 		backgroundExecutor.execute(NLS.str("progress.load"),
@@ -1519,11 +1524,13 @@ public class MainWindow extends JFrame {
 	}
 
 	public void showLogViewer(LogOptions logOptions) {
-		if (settings.isDockLogViewer()) {
-			showDockedLog(logOptions);
-		} else {
-			LogViewerDialog.open(this, logOptions);
-		}
+		UiUtils.uiRun(() -> {
+			if (settings.isDockLogViewer()) {
+				showDockedLog(logOptions);
+			} else {
+				LogViewerDialog.open(this, logOptions);
+			}
+		});
 	}
 
 	private void showDockedLog(LogOptions logOptions) {
@@ -1555,7 +1562,7 @@ public class MainWindow extends JFrame {
 
 	public void resetPluginsMenu() {
 		pluginsMenu.removeAll();
-		pluginsMenu.add(new ActionHandler(() -> new InstallPluginDialog(this).setVisible(true))
+		pluginsMenu.add(new ActionHandler(() -> new PluginSettings(this, settings).addPlugin())
 				.withNameAndDesc(NLS.str("preferences.plugins.install")));
 	}
 
