@@ -127,6 +127,7 @@ public class ClassNode extends NotificationAttrNode
 			}
 			initStaticValues(fields);
 			processAttributes(this);
+			processSpecialClasses(this);
 			buildCache();
 
 			// TODO: implement module attribute parsing
@@ -165,6 +166,15 @@ public class ClassNode extends NotificationAttrNode
 		this.generics = generics;
 		this.superClass = superClass;
 		this.interfaces = interfaces;
+	}
+
+	private static void processSpecialClasses(ClassNode cls) {
+		AccessInfo flags = cls.getAccessFlags();
+		if (flags.isSynthetic() && flags.isInterface() && flags.isAbstract()
+				&& cls.getName().equals("package-info")) {
+			cls.add(AFlag.PACKAGE_INFO);
+			cls.add(AFlag.DONT_RENAME);
+		}
 	}
 
 	private static void processAttributes(ClassNode cls) {

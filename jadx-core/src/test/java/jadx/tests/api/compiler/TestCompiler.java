@@ -20,6 +20,7 @@ import javax.tools.ToolProvider;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.IntegrationTest;
@@ -80,12 +81,16 @@ public class TestCompiler implements Closeable {
 		arguments.add(javaVerStr);
 		arguments.addAll(options.getArguments());
 
-		DiagnosticListener<? super JavaFileObject> diagnostic =
-				diagObj -> System.out.println("Compiler diagnostic: " + diagObj);
+		SimpleCodeWriter output = new SimpleCodeWriter();
+		DiagnosticListener<JavaFileObject> diagnostic = diagObj -> {
+			String msg = "Compiler diagnostic: " + diagObj;
+			output.startLine(msg);
+			System.out.println(msg);
+		};
 		Writer out = new PrintWriter(System.out);
 		CompilationTask compilerTask = compiler.getTask(out, fileManager, diagnostic, arguments, null, jfObjects);
 		if (Boolean.FALSE.equals(compilerTask.call())) {
-			throw new RuntimeException("Compilation failed");
+			throw new RuntimeException("Compilation failed: " + output);
 		}
 	}
 

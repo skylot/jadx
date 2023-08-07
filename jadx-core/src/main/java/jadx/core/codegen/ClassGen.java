@@ -96,16 +96,29 @@ public class ClassGen {
 	}
 
 	public ICodeInfo makeClass() throws CodegenException {
+		if (cls.contains(AFlag.PACKAGE_INFO)) {
+			return makePackageInfo();
+		}
 		ICodeWriter clsBody = cls.root().makeCodeWriter();
 		addClassCode(clsBody);
 
 		ICodeWriter clsCode = cls.root().makeCodeWriter();
+		addPackage(clsCode);
+		clsCode.newLine();
+		addImports(clsCode);
+		clsCode.add(clsBody);
+		return clsCode.finish();
+	}
+
+	private void addPackage(ICodeWriter clsCode) {
 		if (cls.getPackage().isEmpty()) {
 			clsCode.add("// default package");
 		} else {
 			clsCode.add("package ").add(cls.getPackage()).add(';');
 		}
-		clsCode.newLine();
+	}
+
+	private void addImports(ICodeWriter clsCode) {
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			List<ClassInfo> sortedImports = new ArrayList<>(imports);
@@ -122,8 +135,17 @@ public class ClassGen {
 			clsCode.newLine();
 			imports.clear();
 		}
-		clsCode.add(clsBody);
-		return clsCode.finish();
+	}
+
+	private ICodeInfo makePackageInfo() {
+		ICodeWriter code = cls.root().makeCodeWriter();
+		annotationGen.addForClass(code);
+		code.newLine();
+		code.attachDefinition(cls);
+		addPackage(code);
+		code.newLine();
+		addImports(code);
+		return code.finish();
 	}
 
 	public void addClassCode(ICodeWriter code) throws CodegenException {

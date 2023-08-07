@@ -32,7 +32,6 @@ public class TestArrayAccessReorder extends IntegrationTest {
 	@Test
 	public void test() {
 		noDebugInfo();
-		getArgs().setRawCFGOutput(true);
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("i++");

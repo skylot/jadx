@@ -44,6 +44,8 @@ public enum AFlag {
 	THIS,
 	SUPER,
 
+	PACKAGE_INFO,
+
 	/**
 	 * Mark Android resources class
 	 */

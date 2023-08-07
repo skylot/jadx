@@ -249,7 +249,6 @@ public class SimpleCodeWriter implements ICodeWriter {
 
 	@Override
 	public String getCodeStr() {
-		removeFirstEmptyLine();
 		return buf.toString();
 	}
 

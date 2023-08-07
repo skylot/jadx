@@ -81,6 +81,9 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private static void checkClassName(IAliasProvider aliasProvider, ClassNode cls, JadxArgs args) {
+		if (cls.contains(AFlag.DONT_RENAME)) {
+			return;
+		}
 		ClassInfo classInfo = cls.getClassInfo();
 		String clsName = classInfo.getAliasShortName();
 

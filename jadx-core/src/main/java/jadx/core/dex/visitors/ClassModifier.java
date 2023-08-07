@@ -50,6 +50,9 @@ public class ClassModifier extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
+		if (cls.contains(AFlag.PACKAGE_INFO)) {
+			return false;
+		}
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
