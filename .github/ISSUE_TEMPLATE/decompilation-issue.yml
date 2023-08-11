@@ -1,0 +1,40 @@
+name: Decompilation issue
+description: Create a report to help us improve jadx decompiler
+title: '[core] '
+labels:
+  - Core
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Checks before submit**
+        - check [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A) section on wiki
+        - try [latest unstable build](https://nightly.link/skylot/jadx/workflows/build-artifacts/master), maybe issue already fixed
+        - search existing issues by exception message
+  - type: textarea
+    id: details
+    attributes:
+      label: Issue details
+      placeholder: >-
+        Describe issue
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output or stacktrace
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: java
+  - type: textarea
+    id: sample
+    attributes:
+      label: Provide sample and class/method full name
+      description: |
+        - sample: attach or provide a link
+        - full name of class or method with issue
+        - other details which may help to reproduce issue
+  - type: input
+    id: jadx-version
+    attributes:
+      label: Jadx version

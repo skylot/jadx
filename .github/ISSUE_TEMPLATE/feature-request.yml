@@ -1,0 +1,13 @@
+name: Feature Request
+description: Suggest an idea for jadx
+title: '[feature] '
+labels:
+  - 'new feature'
+body:
+  - type: textarea
+    id: details
+    attributes:
+      label: Describe your idea
+      placeholder: Feature details
+    validations:
+      required: true

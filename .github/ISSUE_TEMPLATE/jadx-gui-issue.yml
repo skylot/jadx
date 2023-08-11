@@ -1,0 +1,43 @@
+name: jadx-gui issue
+description: Create a bug report about issue found in jadx-gui
+title: '[gui] '
+labels:
+  - GUI
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Checks before submit**
+        - check [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A) section on wiki
+        - try [latest unstable build](https://nightly.link/skylot/jadx/workflows/build-artifacts/master), maybe issue already fixed
+        - search existing issues by exception message
+  - type: textarea
+    id: details
+    attributes:
+      label: Issue details
+      placeholder: Describe issue and how to reproduce it
+    validations:
+      required: true
+  - type: input
+    id: jadx-version
+    attributes:
+      label: Jadx version
+      placeholder: check `Help->About`
+    validations:
+      required: true
+  - type: input
+    id: java-version
+    attributes:
+      label: Java version
+      placeholder: check `Help->About`
+    validations:
+      required: true
+  - type: checkboxes
+    id: os
+    attributes:
+      label: OS
+      options:
+        - label: Windows
+        - label: Linux
+        - label: macOS
