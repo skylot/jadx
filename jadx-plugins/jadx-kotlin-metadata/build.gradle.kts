@@ -9,7 +9,7 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.test.get().output)
-	testImplementation("org.apache.commons:commons-lang3:3.12.0")
+	testImplementation("org.apache.commons:commons-lang3:3.13.0")
 
 	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
 }

@@ -19,7 +19,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-script:jadx-script-plugin"))
 
 	implementation("com.beust:jcommander:1.82")
-	implementation("ch.qos.logback:logback-classic:1.4.8")
+	implementation("ch.qos.logback:logback-classic:1.4.11")
 }
 
 application {

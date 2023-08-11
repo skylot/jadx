@@ -632,7 +632,7 @@ public class MainWindow extends JFrame {
 
 	public void updateProject(@NotNull JadxProject jadxProject) {
 		this.project = jadxProject;
-		update();
+		UiUtils.uiRun(this::update);
 	}
 
 	public void update() {

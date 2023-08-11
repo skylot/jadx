@@ -14,7 +14,7 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.7")
 	compileOnly("org.jetbrains:annotations:24.0.1")
 
-	testImplementation("ch.qos.logback:logback-classic:1.4.8")
+	testImplementation("ch.qos.logback:logback-classic:1.4.11")
 	testImplementation("org.hamcrest:hamcrest-library:2.2")
 	testImplementation("org.mockito:mockito-core:5.4.0")
 	testImplementation("org.assertj:assertj-core:3.24.2")
