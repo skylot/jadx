@@ -18,16 +18,18 @@ public class RegisterObserver {
 
 	private Map<Long, List<Info>> infoMap;
 	private final List<SmaliRegisterMapping> regList;
+	private final ArtAdapter.IArtAdapter art;
 	private boolean hasDbgInfo = false;
 
-	private RegisterObserver() {
+	private RegisterObserver(ArtAdapter.IArtAdapter art) {
 		regList = new ArrayList<>();
 		infoMap = Collections.emptyMap();
+		this.art = art;
 	}
 
 	@NotNull
-	public static RegisterObserver merge(List<RuntimeVarInfo> rtRegs, List<SmaliRegister> smaliRegs) {
-		RegisterObserver adapter = new RegisterObserver();
+	public static RegisterObserver merge(List<RuntimeVarInfo> rtRegs, List<SmaliRegister> smaliRegs, ArtAdapter.IArtAdapter art) {
+		RegisterObserver adapter = new RegisterObserver(art);
 		adapter.hasDbgInfo = !rtRegs.isEmpty();
 		if (adapter.hasDbgInfo) {
 			adapter.infoMap = new HashMap<>();
@@ -91,7 +93,7 @@ public class RegisterObserver {
 		try {
 			return regList.get(regNum);
 		} catch (IndexOutOfBoundsException e) {
-			throw new RuntimeException(String.format("Register %d does not exist", regNum), e);
+			throw new RuntimeException(String.format("Register %d does not exist (%s)", regNum, art.getClass().getSimpleName()), e);
 		}
 	}
 

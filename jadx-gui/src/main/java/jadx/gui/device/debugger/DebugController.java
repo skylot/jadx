@@ -52,7 +52,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 
 	private JDebuggerPanel debuggerPanel;
 	private SmaliDebugger debugger;
-	private ArtAdapter.Debugger art;
+	private ArtAdapter.IArtAdapter art;
 	private final CurrentInfo cur = new CurrentInfo();
 
 	private BreakpointStore bpStore;
@@ -881,7 +881,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					cur.regAdapter = regAdaMap.computeIfAbsent(cur.mthFullID,
 							k -> RegisterObserver.merge(
 									getRuntimeDebugInfo(cur.frame),
-									getRegisterList()));
+									getSmaliRegisterList(), art));
 
 					if (cur.smali.getRegCount(cur.mthFullID) > 0) {
 						updateAllRegisters(cur.frame);
@@ -893,7 +893,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		});
 	}
 
-	private List<SmaliRegister> getRegisterList() {
+	private List<SmaliRegister> getSmaliRegisterList() {
 		int regCount = cur.smali.getRegCount(cur.mthFullID);
 		int paramStart = cur.smali.getParamRegStart(cur.mthFullID);
 		List<SmaliRegister> srs = cur.smali.getRegisterList(cur.mthFullID);
