@@ -1,48 +1,50 @@
 package jadx.gui.device.debugger;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import io.reactivex.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.device.debugger.SmaliDebugger.RuntimeVarInfo;
-import jadx.gui.device.debugger.smali.RegisterInfo;
 import jadx.gui.device.debugger.smali.SmaliRegister;
 
 public class RegisterObserver {
 
 	private Map<Long, List<Info>> infoMap;
-	private final List<Entry<SmaliRegister, List<RuntimeVarInfo>>> regList;
+	private final List<SmaliRegisterMapping> regList;
+	private final ArtAdapter.IArtAdapter art;
+	private final String mthFullID;
 	private boolean hasDbgInfo = false;
 
-	private RegisterObserver() {
-		regList = new ArrayList<>();
-		infoMap = Collections.emptyMap();
+	private RegisterObserver(ArtAdapter.IArtAdapter art, String mthFullID) {
+		this.regList = new ArrayList<>();
+		this.infoMap = Collections.emptyMap();
+		this.art = art;
+		this.mthFullID = mthFullID;
 	}
 
-	public static RegisterObserver merge(List<RuntimeVarInfo> rtRegs, List<SmaliRegister> smaliRegs) {
-		RegisterObserver adapter = new RegisterObserver();
-		adapter.hasDbgInfo = rtRegs.size() > 0;
+	@NotNull
+	public static RegisterObserver merge(List<RuntimeVarInfo> rtRegs, List<SmaliRegister> smaliRegs, ArtAdapter.IArtAdapter art,
+			String mthFullID) {
+		RegisterObserver adapter = new RegisterObserver(art, mthFullID);
+		adapter.hasDbgInfo = !rtRegs.isEmpty();
 		if (adapter.hasDbgInfo) {
 			adapter.infoMap = new HashMap<>();
 		}
 		for (SmaliRegister sr : smaliRegs) {
-			adapter.regList.add(new SimpleEntry<>(sr, Collections.emptyList()));
+			adapter.regList.add(new SmaliRegisterMapping(sr));
 		}
-		adapter.regList.sort(Comparator.comparingInt(r -> r.getKey().getRuntimeRegNum()));
+		adapter.regList.sort(Comparator.comparingInt(r -> r.getSmaliRegister().getRuntimeRegNum()));
 		for (RuntimeVarInfo rt : rtRegs) {
-			Entry<SmaliRegister, List<RuntimeVarInfo>> entry = adapter.regList.get(rt.getRegNum());
-			if (entry.getValue().isEmpty()) {
-				entry.setValue(new ArrayList<>());
-			}
-			entry.getValue().add(rt);
+			final SmaliRegisterMapping smaliRegMapping = adapter.getRegListEntry(rt.getRegNum());
+			final SmaliRegister smaliReg = smaliRegMapping.getSmaliRegister();
+			smaliRegMapping.addRuntimeVarInfo(rt);
 
 			String type = rt.getSignature();
 			if (type.isEmpty()) {
@@ -52,9 +54,8 @@ public class RegisterObserver {
 			if (at != null) {
 				type = at.toString();
 			}
-			Info load = new Info(entry.getKey().getRegNum(), true,
-					new SimpleEntry<>(rt.getName(), type));
-			Info unload = new Info(entry.getKey().getRegNum(), false, null);
+			Info load = new Info(smaliReg.getRegNum(), true, rt.getName(), type);
+			Info unload = new Info(smaliReg.getRegNum(), false, null, null);
 			adapter.infoMap.computeIfAbsent((long) rt.getStartOffset(), k -> new ArrayList<>())
 					.add(load);
 			adapter.infoMap.computeIfAbsent((long) rt.getEndOffset(), k -> new ArrayList<>())
@@ -63,33 +64,53 @@ public class RegisterObserver {
 		return adapter;
 	}
 
+	@NotNull
 	public List<SmaliRegister> getInitializedList(long codeOffset) {
 		List<SmaliRegister> ret = Collections.emptyList();
-		for (Entry<SmaliRegister, List<RuntimeVarInfo>> info : regList) {
-			if (info.getKey().isInitialized(codeOffset)) {
+		for (SmaliRegisterMapping smaliRegisterMapping : regList) {
+			if (smaliRegisterMapping.getSmaliRegister().isInitialized(codeOffset)) {
 				if (ret.isEmpty()) {
 					ret = new ArrayList<>();
 				}
-				ret.add(info.getKey());
+				ret.add(smaliRegisterMapping.getSmaliRegister());
 			}
 		}
 		return ret;
 	}
 
 	@Nullable
-	public Entry<String, String> getInfo(int runtimeNum, long codeOffset) {
-		Entry<SmaliRegister, List<RuntimeVarInfo>> list = regList.get(runtimeNum);
-		for (RegisterInfo info : list.getValue()) {
+	public RuntimeVarInfo getInfo(int runtimeNum, long codeOffset) {
+		SmaliRegisterMapping list = getRegListEntry(runtimeNum);
+		for (RuntimeVarInfo info : list.getRuntimeVarInfoList()) {
 			if (info.getStartOffset() > codeOffset) {
 				break;
 			}
 			if (info.isInitialized(codeOffset)) {
-				return new SimpleEntry<>(info.getName(), info.getType());
+				return info;
 			}
 		}
 		return null;
 	}
 
+	private SmaliRegisterMapping getRegListEntry(int regNum) {
+		try {
+			return regList.get(regNum);
+		} catch (IndexOutOfBoundsException e) {
+			throw new RuntimeException(
+					String.format("Register %d does not exist (size: %d).\n %s\n Method: %s",
+							regNum, regList.size(), buildDeviceInfo(), mthFullID),
+					e);
+		}
+	}
+
+	private String buildDeviceInfo() {
+		DebugSettings debugSettings = DebugSettings.INSTANCE;
+		return "Device: " + debugSettings.getDevice().getDeviceInfo()
+				+ ", Android: " + debugSettings.getVer()
+				+ ", ArtAdapter: " + art.getClass().getSimpleName();
+	}
+
+	@NotNull
 	public List<Info> getInfoAt(long codeOffset) {
 		if (hasDbgInfo) {
 			List<Info> list = infoMap.get(codeOffset);
@@ -100,15 +121,43 @@ public class RegisterObserver {
 		return Collections.emptyList();
 	}
 
+	public static class SmaliRegisterMapping {
+		private final SmaliRegister smaliRegister;
+
+		private List<RuntimeVarInfo> rtList = Collections.emptyList();
+
+		public SmaliRegisterMapping(SmaliRegister smaliRegister) {
+			this.smaliRegister = smaliRegister;
+		}
+
+		public SmaliRegister getSmaliRegister() {
+			return smaliRegister;
+		}
+
+		@NotNull
+		public List<RuntimeVarInfo> getRuntimeVarInfoList() {
+			return rtList;
+		}
+
+		public void addRuntimeVarInfo(RuntimeVarInfo rt) {
+			if (rtList.isEmpty()) {
+				rtList = new ArrayList<>();
+			}
+			rtList.add(rt);
+		}
+	}
+
 	public static class Info {
 		private final int smaliRegNum;
 		private final boolean load;
-		private final Entry<String, String> info;
+		private final String name;
+		private final String type;
 
-		private Info(int smaliRegNum, boolean load, Entry<String, String> info) {
+		private Info(int smaliRegNum, boolean load, String name, String type) {
 			this.smaliRegNum = smaliRegNum;
 			this.load = load;
-			this.info = info;
+			this.name = name;
+			this.type = type;
 		}
 
 		public int getSmaliRegNum() {
@@ -119,8 +168,12 @@ public class RegisterObserver {
 			return load;
 		}
 
-		public Entry<String, String> getInfo() {
-			return info;
+		public String getName() {
+			return name;
+		}
+
+		public String getType() {
+			return type;
 		}
 	}
 }

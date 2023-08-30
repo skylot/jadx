@@ -2,7 +2,7 @@ package jadx.gui.device.debugger;
 
 public class ArtAdapter {
 
-	public interface Debugger {
+	public interface IArtAdapter {
 		int getRuntimeRegNum(int smaliNum, int regCount, int paramStart);
 
 		boolean readNullObject();
@@ -10,7 +10,7 @@ public class ArtAdapter {
 		String typeForNull();
 	}
 
-	public static Debugger getAdapter(int androidReleaseVer) {
+	public static IArtAdapter getAdapter(int androidReleaseVer) {
 		if (androidReleaseVer <= 8) {
 			return new AndroidOreoAndBelow();
 		} else {
@@ -18,7 +18,7 @@ public class ArtAdapter {
 		}
 	}
 
-	public static class AndroidOreoAndBelow implements Debugger {
+	public static class AndroidOreoAndBelow implements IArtAdapter {
 		@Override
 		public int getRuntimeRegNum(int smaliNum, int regCount, int paramStart) {
 			int localRegCount = regCount - paramStart;
@@ -36,7 +36,7 @@ public class ArtAdapter {
 		}
 	}
 
-	public static class AndroidPieAndAbove implements Debugger {
+	public static class AndroidPieAndAbove implements IArtAdapter {
 		@Override
 		public int getRuntimeRegNum(int smaliNum, int regCount, int paramStart) {
 			return smaliNum;

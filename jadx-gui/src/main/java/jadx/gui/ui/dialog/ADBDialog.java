@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
+import jadx.gui.device.debugger.DebugSettings;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.device.protocol.ADBDeviceInfo;
@@ -51,15 +52,12 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.gui.device.protocol.ADBDevice.ForwardResult;
-
 public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.JDWPProcessListener {
 	private static final Logger LOG = LoggerFactory.getLogger(ADBDialog.class);
 
 	private static final long serialVersionUID = -1111111202102181630L;
 	private static final ImageIcon ICON_DEVICE = UiUtils.openSvgIcon("adb/androidDevice");
 	private static final ImageIcon ICON_PROCESS = UiUtils.openSvgIcon("adb/addToWatch");
-	private static DebugSetting debugSetter = null;
 
 	private final transient MainWindow mainWindow;
 	private transient Label tipLabel;
@@ -75,15 +73,12 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	public ADBDialog(MainWindow mainWindow) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
-		if (debugSetter == null) {
-			debugSetter = new DebugSetting();
-		}
 		initUI();
 		pathTextField.setText(mainWindow.getSettings().getAdbDialogPath());
 		hostTextField.setText(mainWindow.getSettings().getAdbDialogHost());
 		portTextField.setText(mainWindow.getSettings().getAdbDialogPort());
 
-		if (pathTextField.getText().equals("")) {
+		if (pathTextField.getText().isEmpty()) {
 			detectADBPath();
 		} else {
 			pathTextField.setText("");
@@ -329,7 +324,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			if (!setupArgs(deviceNode.device, pid, (String) node.getUserObject())) {
 				return;
 			}
-			if (debugSetter.isBeingDebugged()) {
+			if (DebugSettings.INSTANCE.isBeingDebugged()) {
 				if (JOptionPane.showConfirmDialog(mainWindow,
 						NLS.str("adb_dialog.being_debugged_msg"),
 						NLS.str("adb_dialog.being_debugged_title"),
@@ -347,23 +342,21 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private static boolean attachProcess(MainWindow mainWindow) {
-		if (debugSetter == null) {
-			return false;
-		}
-		debugSetter.clearForward();
-		String rst = debugSetter.forwardJDWP();
+		DebugSettings debugSettings = DebugSettings.INSTANCE;
+		debugSettings.clearForward();
+		String rst = debugSettings.forwardJDWP();
 		if (!rst.isEmpty()) {
 			UiUtils.showMessageBox(mainWindow, rst);
 			return false;
 		}
 		try {
 			return mainWindow.getDebuggerPanel().showDebugger(
-					debugSetter.name,
-					debugSetter.device.getDeviceInfo().getAdbHost(),
-					debugSetter.forwardTcpPort,
-					debugSetter.ver,
-					debugSetter.device,
-					debugSetter.pid);
+					debugSettings.getName(),
+					debugSettings.getDevice().getDeviceInfo().getAdbHost(),
+					debugSettings.getForwardTcpPort(),
+					debugSettings.getVer(),
+					debugSettings.getDevice(),
+					debugSettings.getPid());
 		} catch (Exception e) {
 			LOG.error("Failed to attach to process", e);
 			return false;
@@ -371,18 +364,17 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	public static boolean launchForDebugging(MainWindow mainWindow, String fullAppPath, boolean autoAttach) {
-		if (debugSetter != null) {
-			debugSetter.autoAttachPkg = autoAttach;
-			try {
-				int pid = debugSetter.device.launchApp(fullAppPath);
-				if (pid != -1) {
-					debugSetter.setPid(String.valueOf(pid))
-							.setName(fullAppPath);
-					return attachProcess(mainWindow);
-				}
-			} catch (Exception e) {
-				LOG.error("Failed to launch app", e);
+		DebugSettings debugSettings = DebugSettings.INSTANCE;
+		debugSettings.setAutoAttachPkg(autoAttach);
+		try {
+			int pid = debugSettings.getDevice().launchApp(fullAppPath);
+			if (pid != -1) {
+				debugSettings.setPid(String.valueOf(pid))
+						.setName(fullAppPath);
+				return attachProcess(mainWindow);
 			}
+		} catch (Exception e) {
+			LOG.error("Failed to launch app", e);
 		}
 		return false;
 	}
@@ -458,7 +450,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			procs = Collections.emptyList();
 		}
 		List<String> procList = new ArrayList<>(id.size());
-		if (procs.size() == 0) {
+		if (procs.isEmpty()) {
 			procList.addAll(id);
 		} else {
 			for (ADB.Process proc : procs) {
@@ -479,12 +471,13 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		SwingUtilities.invokeLater(() -> {
 			node.tNode.removeAllChildren();
 			DefaultMutableTreeNode foundNode = null;
+			DebugSettings debugSettings = DebugSettings.INSTANCE;
 			for (String procStr : procList) {
 				DefaultMutableTreeNode pnode = new DefaultMutableTreeNode(procStr);
 				node.tNode.add(pnode);
-				if (!debugSetter.expectPkg.isEmpty() && procStr.endsWith(debugSetter.expectPkg)) {
-					if (debugSetter.autoAttachPkg && debugSetter.device.equals(node.device)) {
-						debugSetter.set(node.device, debugSetter.ver, getPid(procStr), procStr);
+				if (!debugSettings.getExpectPkg().isEmpty() && procStr.endsWith(debugSettings.getExpectPkg())) {
+					if (debugSettings.isAutoAttachPkg() && debugSettings.getDevice().equals(node.device)) {
+						debugSettings.set(node.device, debugSettings.getVer(), getPid(procStr), procStr);
 						if (attachProcess(mainWindow)) {
 							dispose();
 							return;
@@ -504,7 +497,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private void launchApp() {
-		if (deviceNodes.size() == 0) {
+		if (deviceNodes.isEmpty()) {
 			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.no_devices"));
 			return;
 		}
@@ -533,13 +526,13 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		if (pkg.isEmpty()) {
 			return false;
 		}
-		debugSetter.expectPkg = " " + pkg;
+		DebugSettings.INSTANCE.setExpectPkg(" " + pkg);
 		for (int i = 0; i < procTreeRoot.getChildCount(); i++) {
 			DefaultMutableTreeNode rn = (DefaultMutableTreeNode) procTreeRoot.getChildAt(i);
 			for (int j = 0; j < rn.getChildCount(); j++) {
 				DefaultMutableTreeNode n = (DefaultMutableTreeNode) rn.getChildAt(j);
 				String pName = (String) n.getUserObject();
-				if (pName.endsWith(debugSetter.expectPkg)) {
+				if (pName.endsWith(DebugSettings.INSTANCE.getExpectPkg())) {
 					TreePath path = new TreePath(n.getPath());
 					procTree.scrollPathToVisible(path);
 					procTree.setSelectionPath(path);
@@ -594,7 +587,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			ver = "8";
 		}
 		ver = getMajorVer(ver);
-		debugSetter.set(device, Integer.parseInt(ver), pid, name);
+		DebugSettings.INSTANCE.set(device, Integer.parseInt(ver), pid, name);
 		return true;
 	}
 
@@ -604,108 +597,5 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			ver = ver.substring(0, pos);
 		}
 		return ver;
-	}
-
-	private class DebugSetting {
-		private static final int FORWARD_TCP_PORT = 33233;
-		private int ver;
-		private String pid;
-		private String name;
-		private ADBDevice device;
-		private int forwardTcpPort = FORWARD_TCP_PORT;
-		private String expectPkg = "";
-		private boolean autoAttachPkg = false;
-
-		private void set(ADBDevice device, int ver, String pid, String name) {
-			this.ver = ver;
-			this.pid = pid;
-			this.name = name;
-			this.device = device;
-			this.autoAttachPkg = false;
-			this.expectPkg = "";
-		}
-
-		private DebugSetting setPid(String pid) {
-			this.pid = pid;
-			return this;
-		}
-
-		private DebugSetting setName(String name) {
-			this.name = name;
-			return this;
-		}
-
-		private String forwardJDWP() {
-			int localPort = forwardTcpPort;
-			String resultDesc = "";
-			try {
-				do {
-					ForwardResult rst = device.forwardJDWP(localPort + "", pid);
-					if (rst.state == 0) {
-						forwardTcpPort = localPort;
-						return "";
-					}
-					if (rst.state == 1) {
-						if (rst.desc.contains("Only one usage of each socket address")) { // port is taken by other process
-							if (localPort < 65536) {
-								localPort++; // retry
-								continue;
-							}
-						}
-					}
-					resultDesc = rst.desc;
-					break;
-				} while (true);
-			} catch (Exception e) {
-				LOG.error("JDWP forward error", e);
-			}
-			if (StringUtils.isEmpty(resultDesc)) {
-				resultDesc = NLS.str("adb_dialog.forward_fail");
-			}
-			return resultDesc;
-		}
-
-		// we have to remove all ports that forwarding the jdwp:pid, otherwise our JDWP handshake may fail.
-		private void clearForward() {
-			String jdwpPid = " jdwp:" + pid;
-			String tcpPort = " tcp:" + forwardTcpPort;
-			try {
-				List<String> list = ADB.listForward(device.getDeviceInfo().getAdbHost(),
-						device.getDeviceInfo().getAdbPort());
-				for (String s : list) {
-					if (s.startsWith(device.getSerial()) && s.endsWith(jdwpPid) && !s.contains(tcpPort)) {
-						String[] fields = s.split("\\s+");
-						for (String field : fields) {
-							if (field.startsWith("tcp:")) {
-								try {
-									device.removeForward(field.substring("tcp:".length()));
-								} catch (Exception e) {
-									LOG.error("JDWP remove forward error", e);
-								}
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-				LOG.error("JDWP clear forward error", e);
-			}
-		}
-
-		private boolean isBeingDebugged() {
-			String jdwpPid = " jdwp:" + pid;
-			String tcpPort = " tcp:" + forwardTcpPort;
-			try {
-				List<String> list = ADB.listForward(device.getDeviceInfo().getAdbHost(),
-						device.getDeviceInfo().getAdbPort());
-				for (String s : list) {
-					if (s.startsWith(device.getSerial()) && s.endsWith(jdwpPid)) {
-						return !s.contains(tcpPort);
-					}
-				}
-			} catch (Exception e) {
-				LOG.error("ADB list forward error", e);
-			}
-			return false;
-		}
 	}
 }
