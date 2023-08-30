@@ -881,7 +881,9 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					cur.regAdapter = regAdaMap.computeIfAbsent(cur.mthFullID,
 							k -> RegisterObserver.merge(
 									getRuntimeDebugInfo(cur.frame),
-									getSmaliRegisterList(), art));
+									getSmaliRegisterList(),
+									art,
+									cur.mthFullID));
 
 					if (cur.smali.getRegCount(cur.mthFullID) > 0) {
 						updateAllRegisters(cur.frame);
