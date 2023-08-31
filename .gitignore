@@ -22,6 +22,7 @@ classes/
 idea/
 .gradle/
 node_modules/
+.vscode/
 
 jadx-output/
 *-tmp/
