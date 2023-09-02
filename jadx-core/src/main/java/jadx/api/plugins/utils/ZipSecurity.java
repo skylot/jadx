@@ -17,8 +17,17 @@ import org.slf4j.LoggerFactory;
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
 
-	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
-	private static final int MAX_SIZE_DIFF = 100;
+	/**
+	 * size of uncompressed zip entry shouldn't be bigger of compressed in
+	 * {@link #ZIP_BOMB_DETECTION_FACTOR} times
+	 */
+	private static final int ZIP_BOMB_DETECTION_FACTOR = 100;
+
+	/**
+	 * Zip entries that have an uncompressed size of less than {@link #ZIP_BOMB_MIN_UNCOMPRESSED_SIZE}
+	 * are considered safe
+	 */
+	private static final int ZIP_BOMB_MIN_UNCOMPRESSED_SIZE = 25 * 1024 * 1024;
 	private static final int MAX_ENTRIES_COUNT = 100_000;
 
 	private ZipSecurity() {
@@ -64,13 +73,11 @@ public class ZipSecurity {
 	public static boolean isZipBomb(ZipEntry entry) {
 		long compressedSize = entry.getCompressedSize();
 		long uncompressedSize = entry.getSize();
-		if (compressedSize < 0 || uncompressedSize < 0) {
-			LOG.error("Zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
-					compressedSize, uncompressedSize, entry.getName());
-			return true;
-		}
-		if (compressedSize * MAX_SIZE_DIFF < uncompressedSize) {
-			LOG.error("Zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
+		boolean invalidSize = (compressedSize < 0) || (uncompressedSize < 0);
+		boolean possibleZipBomb = (uncompressedSize >= ZIP_BOMB_MIN_UNCOMPRESSED_SIZE)
+				&& (compressedSize * ZIP_BOMB_DETECTION_FACTOR < uncompressedSize);
+		if (invalidSize || possibleZipBomb) {
+			LOG.error("Potential zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
 					compressedSize, uncompressedSize, entry.getName());
 			return true;
 		}
