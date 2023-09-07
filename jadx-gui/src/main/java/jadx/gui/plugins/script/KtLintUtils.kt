@@ -3,6 +3,8 @@ package jadx.gui.plugins.script
 import com.pinterest.ktlint.rule.engine.api.Code
 import com.pinterest.ktlint.rule.engine.api.EditorConfigOverride
 import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
+import com.pinterest.ktlint.rule.engine.core.api.editorconfig.CODE_STYLE_PROPERTY
+import com.pinterest.ktlint.rule.engine.core.api.editorconfig.CodeStyleValue
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.INDENT_STYLE_PROPERTY
 import com.pinterest.ktlint.ruleset.standard.StandardRuleSetProvider
 import org.ec4j.core.model.PropertyType
@@ -17,6 +19,7 @@ object KtLintUtils {
 		KtLintRuleEngine(
 			ruleProviders = StandardRuleSetProvider().getRuleProviders(),
 			editorConfigOverride = EditorConfigOverride.from(
+				CODE_STYLE_PROPERTY to CodeStyleValue.intellij_idea,
 				INDENT_STYLE_PROPERTY to PropertyType.IndentStyleValue.tab,
 			),
 		)

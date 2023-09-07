@@ -11,7 +11,7 @@ group = "io.github.skylot"
 version = jadxVersion
 
 dependencies {
-	implementation("org.slf4j:slf4j-api:2.0.7")
+	implementation("org.slf4j:slf4j-api:2.0.9")
 	compileOnly("org.jetbrains:annotations:24.0.1")
 
 	testImplementation("ch.qos.logback:logback-classic:1.4.11")

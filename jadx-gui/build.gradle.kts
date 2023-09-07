@@ -21,8 +21,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:0.50.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:0.50.0")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.0.0")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.0.0")
 
 	implementation("com.beust:jcommander:1.82")
 	implementation("ch.qos.logback:logback-classic:1.4.11")
@@ -32,9 +32,9 @@ dependencies {
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.2")
-	implementation("com.formdev:flatlaf-intellij-themes:3.2")
-	implementation("com.formdev:flatlaf-extras:3.2")
+	implementation("com.formdev:flatlaf:3.2.1")
+	implementation("com.formdev:flatlaf-intellij-themes:3.2.1")
+	implementation("com.formdev:flatlaf-extras:3.2.1")
 	implementation("com.formdev:svgSalamander:1.1.4")
 
 	implementation("com.google.code.gson:gson:2.10.1")
@@ -99,22 +99,22 @@ tasks.existing(CreateStartScripts::class) {
 }
 
 launch4j {
-	mainClassName = application.mainClass.get()
+	mainClassName.set(application.mainClass.get())
 	copyConfigurable.set(listOf<Any>())
 	setJarTask(tasks.shadowJar.get())
-	icon = "$projectDir/src/main/resources/logos/jadx-logo.ico"
-	outfile = "jadx-gui-$jadxVersion.exe"
-	copyright = "Skylot"
-	windowTitle = "jadx"
-	companyName = "jadx"
-	jreMinVersion = "11"
-	jvmOptions = application.applicationDefaultJvmArgs.toSet()
-	requires64Bit = true
-	initialHeapPercent = 5
-	maxHeapSize = 4096
-	maxHeapPercent = 70
-	downloadUrl = "https://www.oracle.com/java/technologies/downloads/#jdk17-windows"
-	bundledJrePath = if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%"
+	icon.set("$projectDir/src/main/resources/logos/jadx-logo.ico")
+	outfile.set("jadx-gui-$jadxVersion.exe")
+	copyright.set("Skylot")
+	windowTitle.set("jadx")
+	companyName.set("jadx")
+	jreMinVersion.set("11")
+	jvmOptions.set(application.applicationDefaultJvmArgs.toSet())
+	requires64Bit.set(true)
+	initialHeapPercent.set(5)
+	maxHeapSize.set(4096)
+	maxHeapPercent.set(70)
+	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk17-windows")
+	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
 }
 
 runtime {
@@ -144,7 +144,7 @@ val copyDistWinWithJre by tasks.registering(Copy::class) {
 	from(tasks.named("createExe").get().outputs) {
 		include("*.exe")
 	}
-	into(File(buildDir, "jadx-gui-$jadxVersion-with-jre-win"))
+	into(layout.buildDirectory.dir("jadx-gui-$jadxVersion-with-jre-win"))
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -155,7 +155,7 @@ val distWinWithJre by tasks.registering(Zip::class) {
 	from(copyDistWinWithJre.get().outputs) {
 		include("**/*")
 	}
-	into(buildDir)
+	into(layout.buildDirectory)
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 

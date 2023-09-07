@@ -6,7 +6,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import java.util.Locale
 
 plugins {
-	id("com.github.ben-manes.versions") version "0.47.0"
+	id("com.github.ben-manes.versions") version "0.48.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.18"
 	id("com.diffplug.spotless") version "6.21.0"
 }
@@ -149,6 +149,6 @@ val dist by tasks.registering {
 
 val cleanBuildDir by tasks.registering(Delete::class) {
 	group = "jadx"
-	delete(buildDir)
+	delete(layout.buildDirectory)
 }
 tasks.getByName("clean").dependsOn(cleanBuildDir)
