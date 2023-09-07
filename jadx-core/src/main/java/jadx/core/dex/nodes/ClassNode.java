@@ -351,8 +351,8 @@ public class ClassNode extends NotificationAttrNode
 			// manually added class
 			return;
 		}
-		unload();
 		clearAttributes();
+		unload();
 		root().getConstValues().removeForClass(this);
 		load(clsData, true);
 

@@ -7,6 +7,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
@@ -48,14 +49,11 @@ public class AttributeStorage {
 	}
 
 	public void add(IJadxAttribute attr) {
-		writeAttributes().put(attr.getAttrType(), attr);
+		writeAttributes(map -> map.put(attr.getAttrType(), attr));
 	}
 
 	public void add(List<IJadxAttribute> list) {
-		Map<IJadxAttrType<?>, IJadxAttribute> map = writeAttributes();
-		for (IJadxAttribute attr : list) {
-			map.put(attr.getAttrType(), attr);
-		}
+		writeAttributes(map -> list.forEach(attr -> map.put(attr.getAttrType(), attr)));
 	}
 
 	public <T> void add(IJadxAttrType<AttrList<T>> type, T obj) {
@@ -69,7 +67,9 @@ public class AttributeStorage {
 
 	public void addAll(AttributeStorage otherList) {
 		flags.addAll(otherList.flags);
-		writeAttributes().putAll(otherList.attributes);
+		if (!otherList.attributes.isEmpty()) {
+			writeAttributes(m -> m.putAll(otherList.attributes));
+		}
 	}
 
 	public boolean contains(AFlag flag) {
@@ -104,43 +104,42 @@ public class AttributeStorage {
 
 	public <T extends IJadxAttribute> void remove(IJadxAttrType<T> type) {
 		if (!attributes.isEmpty()) {
-			attributes.remove(type);
+			writeAttributes(map -> map.remove(type));
 		}
 	}
 
 	public void remove(IJadxAttribute attr) {
 		if (!attributes.isEmpty()) {
-			IJadxAttrType<? extends IJadxAttribute> type = attr.getAttrType();
-			IJadxAttribute a = attributes.get(type);
-			if (a == attr) {
-				attributes.remove(type);
-			}
+			writeAttributes(map -> {
+				IJadxAttrType<? extends IJadxAttribute> type = attr.getAttrType();
+				IJadxAttribute a = map.get(type);
+				if (a == attr) {
+					map.remove(type);
+				}
+			});
 		}
 	}
 
-	private Map<IJadxAttrType<?>, IJadxAttribute> writeAttributes() {
+	private void writeAttributes(Consumer<Map<IJadxAttrType<?>, IJadxAttribute>> mapConsumer) {
 		if (attributes.isEmpty()) {
 			attributes = new IdentityHashMap<>(5);
 		}
-		return attributes;
-	}
-
-	public void clear() {
-		flags.clear();
-		if (!attributes.isEmpty()) {
-			attributes.clear();
+		synchronized (this) {
+			mapConsumer.accept(attributes);
 		}
 	}
 
-	public synchronized void unloadAttributes() {
+	public void unloadAttributes() {
 		if (attributes.isEmpty()) {
 			return;
 		}
-		attributes.entrySet().removeIf(entry -> !entry.getValue().keepLoaded());
+		synchronized (this) {
+			attributes.entrySet().removeIf(entry -> !entry.getValue().keepLoaded());
+		}
 	}
 
 	public List<String> getAttributeStrings() {
-		int size = flags.size() + attributes.size() + attributes.size();
+		int size = flags.size() + attributes.size();
 		if (size == 0) {
 			return Collections.emptyList();
 		}

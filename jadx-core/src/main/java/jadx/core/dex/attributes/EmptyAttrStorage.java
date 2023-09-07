@@ -35,11 +35,6 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
-	public void clear() {
-		// ignore
-	}
-
-	@Override
 	public void remove(AFlag flag) {
 		// ignore
 	}

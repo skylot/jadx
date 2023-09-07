@@ -70,15 +70,4 @@ public class AttributeStorageTest {
 		assertThat(storage.contains(TEST), is(true));
 		assertThat(storage.get(TEST), is(attr));
 	}
-
-	@Test
-	public void clear() {
-		storage.add(SYNTHETIC);
-		storage.add(new TestAttr());
-		storage.clear();
-
-		assertThat(storage.contains(SYNTHETIC), is(false));
-		assertThat(storage.contains(TEST), is(false));
-		assertThat(storage.get(TEST), nullValue());
-	}
 }

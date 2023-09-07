@@ -136,8 +136,7 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public void clearAttributes() {
-		storage.clear();
-		unloadIfEmpty();
+		storage = EMPTY_ATTR_STORAGE;
 	}
 
 	/**
