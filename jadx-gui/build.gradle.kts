@@ -155,7 +155,7 @@ val distWinWithJre by tasks.registering(Zip::class) {
 	from(copyDistWinWithJre.get().outputs) {
 		include("**/*")
 	}
-	into(layout.buildDirectory)
+	into(layout.buildDirectory.asFile)
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
