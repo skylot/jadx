@@ -79,7 +79,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	public void changePkg(String aliasPkg) {
 		if (isInner()) {
-			throw new JadxRuntimeException("Can't change package for inner class");
+			throw new JadxRuntimeException("Can't change package for inner class: " + this);
 		}
 		if (!Objects.equals(getAliasPkg(), aliasPkg)) {
 			ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, getAliasShortName());

@@ -582,7 +582,7 @@ public class ClassNode extends NotificationAttrNode
 			clsInfo.changeShortName(newName);
 			return;
 		}
-		if (isInner()) {
+		if (clsInfo.isInner()) {
 			addWarn("Can't change package for inner class: " + this + " to " + newName);
 			return;
 		}
@@ -598,7 +598,7 @@ public class ClassNode extends NotificationAttrNode
 
 	private boolean changeClassNodePackage(String fullPkg) {
 		if (clsInfo.isInner()) {
-			throw new JadxRuntimeException("Can't change package for inner class");
+			throw new JadxRuntimeException("Can't change package for inner class: " + clsInfo);
 		}
 		if (fullPkg.equals(clsInfo.getAliasPkg())) {
 			return false;
@@ -618,7 +618,7 @@ public class ClassNode extends NotificationAttrNode
 
 	@Override
 	public void onParentPackageUpdate(PackageNode updatedPkg) {
-		if (isInner()) {
+		if (clsInfo.isInner()) {
 			return;
 		}
 		clsInfo.changePkg(packageNode.getAliasPkgInfo().getFullName());
