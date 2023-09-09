@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.zip.ZipEntry;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
+
+	private static final boolean DISABLE_CHECKS = Objects.equals(System.getenv("JADX_DISABLE_ZIP_SECURITY"), "true");
 
 	/**
 	 * size of uncompressed zip entry shouldn't be bigger of compressed in
@@ -33,44 +36,55 @@ public class ZipSecurity {
 	private ZipSecurity() {
 	}
 
-	private static boolean isInSubDirectoryInternal(File baseDir, File canonFile) {
-		if (canonFile == null) {
-			return false;
+	private static boolean isInSubDirectoryInternal(File baseDir, File file) {
+		File current = file;
+		while (true) {
+			if (current == null) {
+				return false;
+			}
+			if (current.equals(baseDir)) {
+				return true;
+			}
+			current = current.getParentFile();
 		}
-		if (canonFile.equals(baseDir)) {
-			return true;
-		}
-		return isInSubDirectoryInternal(baseDir, canonFile.getParentFile());
 	}
 
 	public static boolean isInSubDirectory(File baseDir, File file) {
+		if (DISABLE_CHECKS) {
+			return true;
+		}
 		try {
-			file = file.getCanonicalFile();
-			baseDir = baseDir.getCanonicalFile();
+			return isInSubDirectoryInternal(baseDir.getCanonicalFile(), file.getCanonicalFile());
 		} catch (IOException e) {
 			return false;
 		}
-		return isInSubDirectoryInternal(baseDir, file);
 	}
 
-	// checks that entry name contains no any traversals
-	// and prevents cases like "../classes.dex", to limit output only to the specified directory
+	/**
+	 * Checks that entry name contains no any traversals and prevents cases like "../classes.dex",
+	 * to limit output only to the specified directory
+	 */
 	public static boolean isValidZipEntryName(String entryName) {
+		if (DISABLE_CHECKS) {
+			return true;
+		}
 		try {
 			File currentPath = CommonFileUtils.CWD;
 			File canonical = new File(currentPath, entryName).getCanonicalFile();
 			if (isInSubDirectoryInternal(currentPath, canonical)) {
 				return true;
 			}
-			LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
-			return false;
 		} catch (Exception e) {
-			LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
-			return false;
+			// check failed
 		}
+		LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
+		return false;
 	}
 
 	public static boolean isZipBomb(ZipEntry entry) {
+		if (DISABLE_CHECKS) {
+			return false;
+		}
 		long compressedSize = entry.getCompressedSize();
 		long uncompressedSize = entry.getSize();
 		boolean invalidSize = (compressedSize < 0) || (uncompressedSize < 0);
@@ -90,6 +104,9 @@ public class ZipSecurity {
 	}
 
 	public static InputStream getInputStreamForEntry(ZipFile zipFile, ZipEntry entry) throws IOException {
+		if (DISABLE_CHECKS) {
+			return new BufferedInputStream(zipFile.getInputStream(entry));
+		}
 		InputStream in = zipFile.getInputStream(entry);
 		LimitedInputStream limited = new LimitedInputStream(in, entry.getSize());
 		return new BufferedInputStream(limited);
@@ -112,7 +129,7 @@ public class ZipSecurity {
 						return result;
 					}
 					entriesProcessed++;
-					if (entriesProcessed > MAX_ENTRIES_COUNT) {
+					if (!DISABLE_CHECKS && entriesProcessed > MAX_ENTRIES_COUNT) {
 						throw new IllegalStateException("Zip entries count limit exceeded: " + MAX_ENTRIES_COUNT
 								+ ", last entry: " + entry.getName());
 					}
