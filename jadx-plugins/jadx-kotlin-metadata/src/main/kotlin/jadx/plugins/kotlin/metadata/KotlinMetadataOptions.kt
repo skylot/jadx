@@ -1,11 +1,9 @@
 package jadx.plugins.kotlin.metadata
 
-import jadx.api.plugins.options.OptionDescription
-import jadx.api.plugins.options.impl.BaseOptionsParser
-import jadx.api.plugins.options.impl.JadxOptionDescription.booleanOption
+import jadx.api.plugins.options.impl.BasePluginOptionsBuilder
 import jadx.plugins.kotlin.metadata.KotlinMetadataPlugin.Companion.PLUGIN_ID
 
-class KotlinMetadataOptions : BaseOptionsParser() {
+class KotlinMetadataOptions : BasePluginOptionsBuilder() {
 	var isClassAlias: Boolean = true
 		private set
 	var isMethodArgs: Boolean = true
@@ -21,26 +19,41 @@ class KotlinMetadataOptions : BaseOptionsParser() {
 	var isGetters: Boolean = true
 		private set
 
-	override fun parseOptions() {
-		isClassAlias = getBooleanOption(CLASS_ALIAS_OPT, true)
-		isMethodArgs = getBooleanOption(METHOD_ARGS_OPT, true)
-		isFields = getBooleanOption(FIELDS_OPT, true)
-		isCompanion = getBooleanOption(COMPANION_OPT, true)
-		isDataClass = getBooleanOption(DATA_CLASS_OPT, true)
-		isToString = getBooleanOption(TO_STRING_OPT, true)
-		isGetters = getBooleanOption(GETTERS_OPT, true)
-	}
+	override fun registerOptions() {
+		boolOption(CLASS_ALIAS_OPT)
+			.description("rename class alias")
+			.defaultValue(true)
+			.setter { isClassAlias = it }
 
-	override fun getOptionsDescriptions(): List<OptionDescription> {
-		return listOf(
-			booleanOption(CLASS_ALIAS_OPT, "rename class alias", true),
-			booleanOption(METHOD_ARGS_OPT, "rename function arguments", true),
-			booleanOption(FIELDS_OPT, "rename fields", true),
-			booleanOption(COMPANION_OPT, "rename companion object", true),
-			booleanOption(DATA_CLASS_OPT, "add data class modifier", true),
-			booleanOption(TO_STRING_OPT, "rename fields using toString", true),
-			booleanOption(GETTERS_OPT, "rename simple getters to field names", true),
-		)
+		boolOption(METHOD_ARGS_OPT)
+			.description("rename function arguments")
+			.defaultValue(true)
+			.setter { isMethodArgs = it }
+
+		boolOption(FIELDS_OPT)
+			.description("rename fields")
+			.defaultValue(true)
+			.setter { isFields = it }
+
+		boolOption(COMPANION_OPT)
+			.description("rename companion object")
+			.defaultValue(true)
+			.setter { isCompanion = it }
+
+		boolOption(DATA_CLASS_OPT)
+			.description("add data class modifier")
+			.defaultValue(true)
+			.setter { isDataClass = it }
+
+		boolOption(TO_STRING_OPT)
+			.description("rename fields using toString")
+			.defaultValue(true)
+			.setter { isToString = it }
+
+		boolOption(GETTERS_OPT)
+			.description("rename simple getters to field names")
+			.defaultValue(true)
+			.setter { isGetters = it }
 	}
 
 	fun isPreparePassNeeded(): Boolean {

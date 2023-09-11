@@ -1,22 +1,18 @@
 package jadx.plugins.mappings;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
 
-import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
-import jadx.api.plugins.options.impl.BaseOptionsParser;
-import jadx.api.plugins.options.impl.JadxOptionDescription;
+import jadx.api.plugins.options.impl.BasePluginOptionsBuilder;
+import jadx.core.utils.ListUtils;
 
 import static jadx.plugins.mappings.RenameMappingsPlugin.PLUGIN_ID;
 
-public class RenameMappingsOptions extends BaseOptionsParser {
+public class RenameMappingsOptions extends BasePluginOptionsBuilder {
 
 	public static final String INVERT_OPT = PLUGIN_ID + ".invert";
 	public static final String FORMAT_OPT = PLUGIN_ID + ".format";
@@ -29,18 +25,21 @@ public class RenameMappingsOptions extends BaseOptionsParser {
 	private @Nullable MappingFormat format = null;
 
 	@Override
-	public void parseOptions() {
-		format = getOption(FORMAT_OPT, RenameMappingsOptions::parseMappingFormat, null);
-		invert = getBooleanOption(INVERT_OPT, false);
-	}
+	public void registerOptions() {
+		option(FORMAT_OPT, MappingFormat.class)
+				.description("mapping format")
+				.parser(RenameMappingsOptions::parseMappingFormat)
+				.formatter(v -> v == null ? "AUTO" : v.name())
+				.values(ListUtils.concat(null, MappingFormat.values()))
+				.defaultValue(null)
+				.flags(OptionFlag.PER_PROJECT, OptionFlag.DISABLE_IN_GUI)
+				.setter(v -> format = v);
 
-	@Override
-	public List<OptionDescription> getOptionsDescriptions() {
-		return Arrays.asList(
-				new JadxOptionDescription(FORMAT_OPT, "mapping format", "auto", getMappingFormats())
-						.withFlags(OptionFlag.PER_PROJECT, OptionFlag.DISABLE_IN_GUI),
-				JadxOptionDescription.booleanOption(INVERT_OPT, "invert mapping", false)
-						.withFlag(OptionFlag.PER_PROJECT));
+		boolOption(INVERT_OPT)
+				.description("invert mapping on load")
+				.defaultValue(false)
+				.flags(OptionFlag.PER_PROJECT)
+				.setter(v -> invert = v);
 	}
 
 	private static MappingFormat parseMappingFormat(String name) {
@@ -51,16 +50,7 @@ public class RenameMappingsOptions extends BaseOptionsParser {
 		return MappingFormat.valueOf(upName);
 	}
 
-	private static List<String> getMappingFormats() {
-		List<String> list = new ArrayList<>();
-		list.add("auto");
-		for (MappingFormat value : MappingFormat.values()) {
-			list.add(value.name());
-		}
-		return list;
-	}
-
-	public MappingFormat getFormat() {
+	public @Nullable MappingFormat getFormat() {
 		return format;
 	}
 

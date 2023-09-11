@@ -1,29 +1,17 @@
 package jadx.plugins.input.dex;
 
-import java.util.Collections;
-import java.util.List;
+import jadx.api.plugins.options.impl.BasePluginOptionsBuilder;
 
-import jadx.api.plugins.options.OptionDescription;
-import jadx.api.plugins.options.impl.BaseOptionsParser;
-import jadx.api.plugins.options.impl.JadxOptionDescription;
+public class DexInputOptions extends BasePluginOptionsBuilder {
 
-public class DexInputOptions extends BaseOptionsParser {
-
-	private static final String VERIFY_CHECKSUM_OPT = DexInputPlugin.PLUGIN_ID + ".verify-checksum";
-
-	private boolean verifyChecksum = true;
+	private boolean verifyChecksum;
 
 	@Override
-	public void parseOptions() {
-		verifyChecksum = getBooleanOption(VERIFY_CHECKSUM_OPT, true);
-	}
-
-	public List<OptionDescription> getOptionsDescriptions() {
-		return Collections.singletonList(
-				JadxOptionDescription.booleanOption(
-						VERIFY_CHECKSUM_OPT,
-						"verify dex file checksum before load",
-						true));
+	public void registerOptions() {
+		boolOption(DexInputPlugin.PLUGIN_ID + ".verify-checksum")
+				.description("verify dex file checksum before load")
+				.defaultValue(true)
+				.setter(v -> verifyChecksum = v);
 	}
 
 	public boolean isVerifyChecksum() {

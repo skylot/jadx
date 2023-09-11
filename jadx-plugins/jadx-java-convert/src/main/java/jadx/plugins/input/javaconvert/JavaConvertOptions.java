@@ -1,44 +1,29 @@
 package jadx.plugins.input.javaconvert;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import jadx.api.plugins.options.impl.BasePluginOptionsBuilder;
 
-import jadx.api.plugins.options.OptionDescription;
-import jadx.api.plugins.options.impl.BaseOptionsParser;
-import jadx.api.plugins.options.impl.JadxOptionDescription;
-import jadx.core.utils.files.FileUtils;
+import static jadx.plugins.input.javaconvert.JavaConvertPlugin.PLUGIN_ID;
 
-public class JavaConvertOptions extends BaseOptionsParser {
-
-	private static final String MODE_OPT = JavaConvertPlugin.PLUGIN_ID + ".mode";
-	private static final String D8_DESUGAR_OPT = JavaConvertPlugin.PLUGIN_ID + ".d8-desugar";
+public class JavaConvertOptions extends BasePluginOptionsBuilder {
 
 	public enum Mode {
 		DX, D8, BOTH
 	}
 
-	private Mode mode = Mode.BOTH;
-	private boolean d8Desugar = false;
+	private Mode mode;
+	private boolean d8Desugar;
 
 	@Override
-	public void parseOptions() {
-		mode = getOption(MODE_OPT, name -> Mode.valueOf(name.toUpperCase(Locale.ROOT)), Mode.BOTH);
-		d8Desugar = getBooleanOption(D8_DESUGAR_OPT, false);
-	}
+	public void registerOptions() {
+		enumOption(PLUGIN_ID + ".mode", Mode.values(), Mode::valueOf)
+				.description("convert mode")
+				.defaultValue(Mode.BOTH)
+				.setter(v -> mode = v);
 
-	@Override
-	public List<OptionDescription> getOptionsDescriptions() {
-		return Arrays.asList(
-				new JadxOptionDescription(
-						MODE_OPT,
-						"convert mode",
-						"both",
-						Arrays.asList("dx", "d8", "both")),
-				JadxOptionDescription.booleanOption(
-						D8_DESUGAR_OPT,
-						"use desugar in d8",
-						false));
+		boolOption(PLUGIN_ID + ".d8-desugar")
+				.description("use desugar in d8")
+				.defaultValue(false)
+				.setter(v -> d8Desugar = v);
 	}
 
 	public Mode getMode() {
@@ -47,9 +32,5 @@ public class JavaConvertOptions extends BaseOptionsParser {
 
 	public boolean isD8Desugar() {
 		return d8Desugar;
-	}
-
-	public String getOptionsHash() {
-		return FileUtils.md5Sum(mode + ":" + d8Desugar);
 	}
 }

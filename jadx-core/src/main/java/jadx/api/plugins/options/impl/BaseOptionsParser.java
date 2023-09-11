@@ -6,6 +6,10 @@ import java.util.function.Function;
 
 import jadx.api.plugins.options.JadxPluginOptions;
 
+/**
+ * Prefer {@link BasePluginOptionsBuilder} as a better way to init and parse options
+ */
+@Deprecated
 public abstract class BaseOptionsParser implements JadxPluginOptions {
 
 	protected Map<String, String> options;

@@ -32,7 +32,6 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	public void init(JadxPluginContext context) {
 		context.registerOptions(options);
 		context.addCodeInput(this);
-		context.registerInputsHashSupplier(options::getOptionsHash);
 	}
 
 	@Override

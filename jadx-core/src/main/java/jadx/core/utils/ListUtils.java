@@ -1,6 +1,7 @@
 package jadx.core.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -62,6 +63,13 @@ public class ListUtils {
 
 	public static <T> List<T> distinctList(List<T> list) {
 		return new ArrayList<>(new LinkedHashSet<>(list));
+	}
+
+	public static <T> List<T> concat(T first, T[] values) {
+		List<T> list = new ArrayList<>(1 + values.length);
+		list.add(first);
+		list.addAll(Arrays.asList(values));
+		return list;
 	}
 
 	/**
@@ -175,4 +183,5 @@ public class ListUtils {
 		}
 		return false;
 	}
+
 }
