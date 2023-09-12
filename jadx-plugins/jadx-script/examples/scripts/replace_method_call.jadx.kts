@@ -11,7 +11,6 @@ import jadx.core.dex.instructions.args.InsnArg
 import jadx.core.dex.instructions.args.InsnWrapArg
 import jadx.core.dex.instructions.args.RegisterArg
 
-
 val jadx = getJadxInstance()
 
 val mthSignature = "com.xshield.aa.iIiIiiiiII(Ljava/lang/String;)Ljava/lang/String;"

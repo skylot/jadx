@@ -1,13 +1,12 @@
-/*
- Rename method if specific string is found
-*/
+/**
+ * Rename method if specified string is found
+ */
 
 import jadx.api.plugins.input.insns.Opcode
 import jadx.core.dex.nodes.MethodNode
 
 val renamesMap = mapOf(
 	"specificString" to "newMethodName",
-	"AA6" to "aa6Method",
 )
 
 val jadx = getJadxInstance()

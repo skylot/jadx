@@ -1,4 +1,7 @@
-// instructions modification example
+/**
+ * Instructions modification example.
+ * Replace first arg with const string.
+ */
 
 import jadx.core.dex.instructions.ConstStringNode
 import jadx.core.dex.instructions.InvokeNode

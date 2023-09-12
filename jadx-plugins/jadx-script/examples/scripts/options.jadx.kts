@@ -25,6 +25,6 @@ jadx.gui.ifAvailable {
 
 fun printOptions() {
 	allOptions.forEach { opt ->
-		println("Option: '${opt.name}', id: '${opt.id}', value: '${opt.value}'")
+		log.info { "Option: '${opt.name}', id: '${opt.id}', value: '${opt.value}'" }
 	}
 }

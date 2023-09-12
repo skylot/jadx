@@ -20,10 +20,10 @@ jadx.rename.all { name ->
 
 // run some code after loading is finished
 jadx.afterLoad {
-	println("Loaded classes: ${jadx.classes.size}")
+	log.info { "Loaded classes: ${jadx.classes.size}" }
 	// print first class code
 	jadx.classes.firstOrNull()?.let { cls ->
-		println("Class: '${cls.name}'")
-		println(cls.code)
+		log.info { "Class: '${cls.name}'" }
+		log.info { cls.code }
 	}
 }

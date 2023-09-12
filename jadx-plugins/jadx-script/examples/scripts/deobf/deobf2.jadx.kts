@@ -1,4 +1,7 @@
-// animal deobfuscator ^_^
+/**
+ * Animal deobfuscator ^_^
+ */
+
 @file:DependsOn("com.github.javafaker:javafaker:1.0.2")
 
 import com.github.javafaker.Faker
@@ -21,6 +24,7 @@ jadx.rename.all { name, node ->
 			val alias = faker.name().firstName().cap() + faker.animal().name().cap()
 			makeUnique(prefix, alias)
 		}
+
 		else -> null
 	}
 }
@@ -33,7 +37,7 @@ fun makeUnique(prefix: Char, name: String): String {
 }
 
 jadx.afterLoad {
-	println("Renames count: ${usedNames.size + dups}, names: ${usedNames.size}, dups: $dups")
+	log.info { "Renames count: ${usedNames.size + dups}, names: ${usedNames.size}, dups: $dups" }
 }
 
 fun String.cap() = this.replaceFirstChar(Char::uppercaseChar)

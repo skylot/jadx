@@ -1,6 +1,6 @@
-/*
- Rename class and fields using strings from toString() method
-*/
+/**
+ * Rename class and fields using strings from toString() method
+ */
 
 import jadx.core.deobf.NameMapper
 import jadx.core.dex.attributes.AFlag
