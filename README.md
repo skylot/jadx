@@ -48,7 +48,7 @@ On Windows run `.bat` files with double-click\
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
 ### Install
-1. Arch linux ![Arch Linux package](https://img.shields.io/archlinux/v/community/any/jadx?label=)
+1. Arch linux ![Arch Linux package](https://img.shields.io/archlinux/v/extra/any/jadx?label=)
     ```bash
     sudo pacman -S jadx
     ```
