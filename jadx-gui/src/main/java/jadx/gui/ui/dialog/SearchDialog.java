@@ -595,7 +595,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void updateTableHighlight() {
 		String text = searchField.getText();
-		updateHighlightContext(text, !options.contains(IGNORE_CASE), options.contains(USE_REGEX));
+		updateHighlightContext(text, !options.contains(IGNORE_CASE), options.contains(USE_REGEX), false);
 		cache.setLastSearch(text);
 		cache.getLastSearchOptions().put(searchPreset, options);
 		if (!mainWindow.getSettings().isUseAutoSearch()) {

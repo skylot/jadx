@@ -160,7 +160,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 		Collections.sort(usageList);
 		resultsModel.addAll(usageList);
-		updateHighlightContext(node.getName(), true, false);
+		updateHighlightContext(node.getName(), true, false, true);
 		resultsTable.initColumnWidth();
 		resultsTable.updateTable();
 		updateProgressLabel(true);

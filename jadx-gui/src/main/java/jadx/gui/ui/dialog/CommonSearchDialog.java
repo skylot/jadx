@@ -112,10 +112,11 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	public void updateHighlightContext(String text, boolean caseSensitive, boolean regexp) {
+	public void updateHighlightContext(String text, boolean caseSensitive, boolean regexp, boolean wholeWord) {
 		updateTitle(text);
 		highlightContext = new SearchContext(text);
 		highlightContext.setMatchCase(caseSensitive);
+		highlightContext.setWholeWord(wholeWord);
 		highlightContext.setRegularExpression(regexp);
 		highlightContext.setMarkAll(true);
 	}
