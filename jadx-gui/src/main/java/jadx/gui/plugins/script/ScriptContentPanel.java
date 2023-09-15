@@ -144,8 +144,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 				scriptLog.error("Passes reload failed", e);
 			}
 		}, taskStatus -> {
-			tabbedPane.reloadInactiveTabs();
-			mainWindow.reloadTree();
+			mainWindow.passesReloaded();
 		});
 	}
 

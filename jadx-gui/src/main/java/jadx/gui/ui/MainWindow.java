@@ -97,6 +97,7 @@ import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.cache.manager.CacheManager;
 import jadx.gui.device.debugger.BreakpointManager;
+import jadx.gui.events.services.RenameService;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
@@ -580,7 +581,7 @@ public class MainWindow extends JFrame {
 		initTree();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
-		events().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
+		initEvents();
 
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
 		backgroundExecutor.execute(NLS.str("progress.load"),
@@ -591,6 +592,17 @@ public class MainWindow extends JFrame {
 					notifyLoadListeners(true);
 					update();
 				});
+	}
+
+	public void passesReloaded() {
+		initEvents(); // TODO: events reset on reload passes on script run
+		tabbedPane.reloadInactiveTabs();
+		reloadTree();
+	}
+
+	private void initEvents() {
+		events().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
+		RenameService.init(this);
 	}
 
 	public void updateLiveReload(boolean state) {

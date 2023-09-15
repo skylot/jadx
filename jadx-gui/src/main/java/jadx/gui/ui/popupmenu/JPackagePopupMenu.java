@@ -50,7 +50,7 @@ public class JPackagePopupMenu extends JPopupMenu {
 
 	private void rename(JRenamePackage pkg) {
 		LOG.debug("Renaming package: {}", pkg);
-		RenameDialog.rename(mainWindow, null, pkg);
+		RenameDialog.rename(mainWindow, pkg);
 	}
 
 	private JMenuItem makeExcludeItem(JPackage pkg) {

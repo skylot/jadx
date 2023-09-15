@@ -11,6 +11,11 @@ public class NodeRenamedByUser implements IJadxEvent {
 	private final String oldName;
 	private final String newName;
 
+	/**
+	 * Optional JRenameNode instance
+	 */
+	private Object renameNode;
+
 	public NodeRenamedByUser(ICodeNodeRef node, String oldName, String newName) {
 		this.node = node;
 		this.oldName = oldName;
@@ -27,6 +32,14 @@ public class NodeRenamedByUser implements IJadxEvent {
 
 	public String getNewName() {
 		return newName;
+	}
+
+	public Object getRenameNode() {
+		return renameNode;
+	}
+
+	public void setRenameNode(Object renameNode) {
+		this.renameNode = renameNode;
 	}
 
 	@Override

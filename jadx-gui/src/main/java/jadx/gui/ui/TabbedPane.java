@@ -429,8 +429,16 @@ public class TabbedPane extends JTabbedPane {
 			if (i == current) {
 				continue;
 			}
-			JNode node = ((ContentPanel) getComponentAt(i)).getNode();
+			ContentPanel oldPanel = (ContentPanel) getComponentAt(i);
+			EditorViewState viewState = null;
+			if (oldPanel instanceof IViewStateSupport) {
+				viewState = ((IViewStateSupport) oldPanel).getEditorViewState();
+			}
+			JNode node = oldPanel.getNode();
 			ContentPanel panel = node.getContentPanel(this);
+			if (viewState != null && panel instanceof IViewStateSupport) {
+				((IViewStateSupport) panel).restoreEditorViewState(viewState);
+			}
 			FocusManager.listen(panel);
 			tabsMap.put(node, panel);
 			setComponentAt(i, panel);

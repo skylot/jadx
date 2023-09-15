@@ -18,7 +18,7 @@ jadx.addPass(object : ScriptDecompilePass(jadx, "RenameParams") {
 		// parameter annotations stored in method attribute
 		mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS)?.let { paramsAttr ->
 			for ((paramNum, annAttr) in paramsAttr.paramList.withIndex()) {
-				val name = annAttr.get(annCls)?.values?.get(annParam)?.value as String
+				val name = annAttr?.get(annCls)?.values?.get(annParam)?.value as String?
 				if (NameMapper.isValidIdentifier(name)) {
 					mth.argRegs[paramNum].name = name
 					log.info { "Rename param $paramNum to $name in method $mth" }

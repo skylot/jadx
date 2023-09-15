@@ -3,7 +3,7 @@ package jadx.plugins.script.runtime.data
 import jadx.core.dex.nodes.ClassNode
 import jadx.plugins.script.runtime.JadxScriptInstance
 
-class Search(private val jadx: JadxScriptInstance) {
+class Search(jadx: JadxScriptInstance) {
 	private val dec = jadx.internalDecompiler
 
 	fun classByFullName(fullName: String): ClassNode? {

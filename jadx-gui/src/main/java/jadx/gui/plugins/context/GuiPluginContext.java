@@ -11,7 +11,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
+import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.plugins.events.IJadxEvents;
+import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.gui.JadxGuiSettings;
@@ -19,10 +24,12 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.plugins.PluginContext;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.UiUtils;
 
@@ -176,4 +183,45 @@ public class GuiPluginContext implements JadxGuiContext {
 		return true;
 	}
 
+	@Override
+	public void reloadActiveTab() {
+		UiUtils.uiRun(() -> {
+			CodeArea codeArea = getCodeArea();
+			if (codeArea != null) {
+				codeArea.refreshClass();
+			}
+		});
+	}
+
+	@Override
+	public void reloadAllTabs() {
+		UiUtils.uiRun(() -> {
+			for (ContentPanel contentPane : commonContext.getMainWindow().getTabbedPane().getTabs()) {
+				if (contentPane instanceof AbstractCodeContentPanel) {
+					AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPane).getCodeArea();
+					if (codeArea instanceof CodeArea) {
+						((CodeArea) codeArea).refreshClass();
+					}
+				}
+			}
+		});
+	}
+
+	@Override
+	public void applyNodeRename(ICodeNodeRef nodeRef) {
+		JadxDecompiler decompiler = commonContext.getMainWindow().getWrapper().getDecompiler();
+		JavaNode javaNode = decompiler.getJavaNodeByRef(nodeRef);
+		if (javaNode == null) {
+			throw new JadxRuntimeException("Failed to resolve node ref: " + nodeRef);
+		}
+		String newName;
+		if (javaNode instanceof JavaClass) {
+			// package can have alias
+			newName = javaNode.getFullName();
+		} else {
+			newName = javaNode.getName();
+		}
+		IJadxEvents events = commonContext.getMainWindow().events();
+		events.send(new NodeRenamedByUser(nodeRef, "", newName));
+	}
 }

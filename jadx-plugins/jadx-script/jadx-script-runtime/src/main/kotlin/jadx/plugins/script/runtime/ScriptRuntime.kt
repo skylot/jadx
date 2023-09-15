@@ -20,6 +20,7 @@ import jadx.plugins.script.runtime.data.Rename
 import jadx.plugins.script.runtime.data.Replace
 import jadx.plugins.script.runtime.data.Search
 import jadx.plugins.script.runtime.data.Stages
+import org.jetbrains.annotations.ApiStatus.Internal
 import java.io.File
 
 const val JADX_SCRIPT_LOG_PREFIX = "JadxScript:"
@@ -73,5 +74,5 @@ class JadxScriptInstance(
 	}
 
 	val internalDecompiler: JadxDecompiler
-		get() = decompiler
+		@Internal get() = decompiler
 }

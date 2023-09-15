@@ -25,6 +25,6 @@ public final class RenameAction extends JNodeAction {
 
 	@Override
 	public void runAction(JNode node) {
-		RenameDialog.rename(getCodeArea().getMainWindow(), getCodeArea().getNode(), (JRenameNode) node);
+		RenameDialog.rename(getCodeArea().getMainWindow(), (JRenameNode) node);
 	}
 }
