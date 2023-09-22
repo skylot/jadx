@@ -1,7 +1,7 @@
 plugins {
 	id("jadx-kotlin")
 	id("application")
-	id("edu.sc.seis.launch4j") version "3.0.4"
+	id("edu.sc.seis.launch4j") version "3.0.5"
 	id("com.github.johnrengelman.shadow") version "8.1.1"
 	id("org.beryx.runtime") version "1.13.0"
 }
