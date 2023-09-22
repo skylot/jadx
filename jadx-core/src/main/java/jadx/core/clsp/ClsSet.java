@@ -4,14 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,15 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -191,33 +184,6 @@ public class ClsSet {
 			try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(path))) {
 				save(outputStream);
 			}
-		} else if (outputName.endsWith(".jar")) {
-			Path temp = FileUtils.createTempFile(".zip");
-			Files.copy(path, temp, StandardCopyOption.REPLACE_EXISTING);
-
-			try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(path));
-					ZipInputStream in = new ZipInputStream(Files.newInputStream(temp))) {
-				String clst = CLST_PATH;
-				boolean clstReplaced = false;
-				ZipEntry entry = in.getNextEntry();
-				while (entry != null) {
-					String entryName = entry.getName();
-					ZipEntry copyEntry = new ZipEntry(entryName);
-					copyEntry.setLastModifiedTime(entry.getLastModifiedTime()); // preserve modified time
-					out.putNextEntry(copyEntry);
-					if (entryName.equals(clst)) {
-						save(out);
-						clstReplaced = true;
-					} else {
-						FileUtils.copyStream(in, out);
-					}
-					entry = in.getNextEntry();
-				}
-				if (!clstReplaced) {
-					out.putNextEntry(new ZipEntry(clst));
-					save(out);
-				}
-			}
 		} else {
 			throw new JadxRuntimeException("Unknown file format: " + outputName);
 		}
@@ -321,27 +287,6 @@ public class ClsSet {
 			writeArgType(out, argType.getArrayElement(), names);
 		} else {
 			throw new JadxRuntimeException("Cannot save type: " + argType);
-		}
-	}
-
-	private void load(File input) throws IOException, DecodeException {
-		String name = input.getName();
-		if (name.endsWith(CLST_EXTENSION)) {
-			try (InputStream inputStream = new FileInputStream(input)) {
-				load(inputStream);
-			}
-		} else if (name.endsWith(".jar")) {
-			ZipSecurity.readZipEntries(input, (entry, in) -> {
-				if (entry.getName().endsWith(CLST_EXTENSION)) {
-					try {
-						load(in);
-					} catch (Exception e) {
-						throw new JadxRuntimeException("Failed to load jadx class set");
-					}
-				}
-			});
-		} else {
-			throw new JadxRuntimeException("Unknown file format: " + name);
 		}
 	}
 

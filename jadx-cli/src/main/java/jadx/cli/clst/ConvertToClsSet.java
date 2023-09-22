@@ -23,7 +23,7 @@ public class ConvertToClsSet {
 	private static final Logger LOG = LoggerFactory.getLogger(ConvertToClsSet.class);
 
 	public static void usage() {
-		LOG.info("<output .jcst or .jar file> <several input dex or jar files> ");
+		LOG.info("<output .jcst file> <several input dex or jar files> ");
 		LOG.info("Arguments to update core.jcst: "
 				+ "<jadx root>/jadx-core/src/main/resources/clst/core.jcst "
 				+ "<sdk_root>/platforms/android-<api level>/android.jar"
