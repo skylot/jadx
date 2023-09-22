@@ -23,6 +23,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testCompileOnly("org.jetbrains:annotations:24.0.1")
+	
+	implementation("io.github.pixee:java-security-toolkit:1.0.7")
 }
 
 repositories {

@@ -1,5 +1,6 @@
 package jadx.core.clsp;
 
+import io.github.pixee.security.ZipSecurity;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -196,7 +197,7 @@ public class ClsSet {
 			Files.copy(path, temp, StandardCopyOption.REPLACE_EXISTING);
 
 			try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(path));
-					ZipInputStream in = new ZipInputStream(Files.newInputStream(temp))) {
+					ZipInputStream in = ZipSecurity.createHardenedInputStream(Files.newInputStream(temp))) {
 				String clst = CLST_PATH;
 				boolean clstReplaced = false;
 				ZipEntry entry = in.getNextEntry();

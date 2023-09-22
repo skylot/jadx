@@ -47,6 +47,8 @@ dependencies {
 	implementation("com.android.tools.build:apksig:8.1.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
+	implementation("io.github.pixee:java-security-toolkit:1.0.7")
+
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
 }
 
