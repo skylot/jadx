@@ -37,7 +37,7 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 
-	private static final boolean ATTR_NEW_LINE = false;
+	private static final boolean ATTR_NEW_LINE = true;
 
 	private final Map<Integer, String> resNames;
 	private Map<String, String> nsMap;
