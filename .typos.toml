@@ -1,0 +1,20 @@
+# Config for 'typos' spellchecker (https://github.com/crate-ci/typos)
+
+[default.extend-words]
+IPUT = "IPUT"
+Laf = "Laf"
+Darcula="Darcula"
+
+[default]
+extend-ignore-identifiers-re = [
+    "finaly", # intentional package name
+]
+
+[files]
+extend-exclude = [
+    "config/",
+    "jadx-core/src/main/resources/",
+    "jadx-core/src/test/",
+    "jadx-gui/src/main/resources/i18n/",
+    "!jadx-gui/src/main/resources/i18n/Messages_en_US.properties",
+]

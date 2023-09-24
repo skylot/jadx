@@ -36,7 +36,7 @@ public class SingleClassMode {
 				throw new JadxRuntimeException("Input class not found: " + singleClass);
 			}
 			if (clsForProcess.contains(AFlag.DONT_GENERATE)) {
-				throw new JadxRuntimeException("Input class can't be saved by currect jadx settings (marked as DONT_GENERATE)");
+				throw new JadxRuntimeException("Input class can't be saved by current jadx settings (marked as DONT_GENERATE)");
 			}
 			if (clsForProcess.isInner()) {
 				clsForProcess = clsForProcess.getTopParentClass();

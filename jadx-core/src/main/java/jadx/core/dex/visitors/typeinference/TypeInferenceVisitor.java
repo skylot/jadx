@@ -675,13 +675,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private boolean trySplitConstInsns(MethodNode mth) {
-		boolean constSplitted = false;
+		boolean constSplit = false;
 		for (SSAVar var : new ArrayList<>(mth.getSVars())) {
 			if (checkAndSplitConstInsn(mth, var)) {
-				constSplitted = true;
+				constSplit = true;
 			}
 		}
-		if (!constSplitted) {
+		if (!constSplit) {
 			return false;
 		}
 		InitCodeVariables.rerun(mth);
