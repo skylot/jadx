@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +39,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -89,29 +91,11 @@ class PluginSettingsGroup implements ISettingsGroup {
 		actionsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		actionsPanel.add(updateAllBtn);
 
-		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
-		Map<String, JadxPluginMetadata> installedMap = new HashMap<>(installed.size());
-		installed.forEach(p -> installedMap.put(p.getPluginId(), p));
-
-		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + 3);
-		for (PluginContext plugin : installedPlugins) {
-			nodes.add(new InstalledPluginNode(plugin, installedMap.get(plugin.getPluginId())));
-		}
-		nodes.sort(Comparator.comparing(BasePluginListNode::getTitle));
-
 		DefaultListModel<BasePluginListNode> listModel = new DefaultListModel<>();
-		listModel.addElement(new TitleNode("Installed"));
-		nodes.stream().filter(n -> n.getVersion() != null).forEach(listModel::addElement);
-		listModel.addElement(new TitleNode("Bundled"));
-		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
-		listModel.addElement(new TitleNode("Available"));
-
 		JList<BasePluginListNode> pluginList = new JList<>(listModel);
 		pluginList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		pluginList.setCellRenderer(new PluginsListCellRenderer());
 		pluginList.addListSelectionListener(ev -> onSelection(pluginList.getSelectedValue()));
-
-		loadAvailablePlugins(listModel, installedPlugins);
 
 		JScrollPane scrollPane = new JScrollPane(pluginList);
 		scrollPane.setMinimumSize(new Dimension(80, 120));
@@ -132,29 +116,57 @@ class PluginSettingsGroup implements ISettingsGroup {
 		mainPanel.setBorder(BorderFactory.createTitledBorder(title));
 		mainPanel.add(actionsPanel, BorderLayout.PAGE_START);
 		mainPanel.add(splitPanel, BorderLayout.CENTER);
+
+		applyData(listModel);
 		return mainPanel;
 	}
 
-	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel, List<PluginContext> installedPlugins) {
-		List<AvailablePluginNode> list = new ArrayList<>();
+	private void applyData(DefaultListModel<BasePluginListNode> listModel) {
+		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
+		Map<String, JadxPluginMetadata> installedMap = new HashMap<>(installed.size());
+		installed.forEach(p -> installedMap.put(p.getPluginId(), p));
+
+		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + 3);
+		for (PluginContext plugin : installedPlugins) {
+			nodes.add(new InstalledPluginNode(plugin, installedMap.get(plugin.getPluginId())));
+		}
+		nodes.sort(Comparator.comparing(BasePluginListNode::getTitle));
+
+		fillListModel(listModel, nodes, Collections.emptyList());
+		loadAvailablePlugins(listModel, nodes, installedPlugins);
+	}
+
+	private static void fillListModel(DefaultListModel<BasePluginListNode> listModel,
+			List<BasePluginListNode> nodes, List<AvailablePluginNode> available) {
+		listModel.clear();
+		listModel.addElement(new TitleNode("Installed"));
+		nodes.stream().filter(n -> n.getVersion() != null).forEach(listModel::addElement);
+		listModel.addElement(new TitleNode("Bundled"));
+		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
+		listModel.addElement(new TitleNode("Available"));
+		listModel.addAll(available);
+	}
+
+	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel,
+			List<BasePluginListNode> nodes, List<PluginContext> installedPlugins) {
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("preferences.plugins.task.downloading_list"),
 				() -> {
-					List<JadxPluginMetadata> availablePlugins;
 					try {
-						availablePlugins = JadxPluginsList.getInstance().fetch();
+						JadxPluginsList.getInstance().get(availablePlugins -> {
+							Set<String> installed = installedPlugins.stream()
+									.map(PluginContext::getPluginId)
+									.collect(Collectors.toSet());
+							List<AvailablePluginNode> availableNodes = availablePlugins.stream()
+									.filter(availablePlugin -> !installed.contains(availablePlugin.getPluginId()))
+									.map(AvailablePluginNode::new)
+									.collect(Collectors.toList());
+							UiUtils.uiRunAndWait(() -> fillListModel(listModel, nodes, availableNodes));
+						});
 					} catch (Exception e) {
 						LOG.warn("Failed to load available plugins list", e);
-						return;
 					}
-					Set<String> installed = installedPlugins.stream().map(PluginContext::getPluginId).collect(Collectors.toSet());
-					for (JadxPluginMetadata availablePlugin : availablePlugins) {
-						if (!installed.contains(availablePlugin.getPluginId())) {
-							list.add(new AvailablePluginNode(availablePlugin));
-						}
-					}
-				},
-				status -> listModel.addAll(list));
+				});
 	}
 
 	private void onSelection(BasePluginListNode node) {
