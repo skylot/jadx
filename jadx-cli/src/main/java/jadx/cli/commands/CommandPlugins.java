@@ -7,6 +7,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import jadx.cli.JCommanderWrapper;
+import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.data.JadxPluginUpdate;
@@ -22,6 +23,9 @@ public class CommandPlugins implements ICommand {
 
 	@Parameter(names = { "-l", "--list" }, description = "list installed plugins")
 	protected boolean list;
+
+	@Parameter(names = { "-a", "--available" }, description = "list available plugins")
+	protected boolean available;
 
 	@Parameter(names = { "-u", "--update" }, description = "update installed plugins")
 	protected boolean update;
@@ -67,9 +71,22 @@ public class CommandPlugins implements ICommand {
 		if (list) {
 			List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
 			System.out.println("Installed plugins: " + installed.size());
+			int i = 1;
 			for (JadxPluginMetadata plugin : installed) {
-				System.out.println("  " + plugin.getPluginId() + ":" + plugin.getVersion()
-						+ " - " + plugin.getName() + ": " + plugin.getDescription());
+				System.out.println(" " + (i++) + ") "
+						+ plugin.getPluginId() + " (" + plugin.getVersion() + ") - "
+						+ plugin.getName() + ": " + plugin.getDescription());
+			}
+		}
+
+		if (available) {
+			List<JadxPluginMetadata> availableList = JadxPluginsList.getInstance().get();
+			System.out.println("Available plugins: " + availableList.size());
+			int i = 1;
+			for (JadxPluginMetadata plugin : availableList) {
+				System.out.println(" " + (i++) + ") "
+						+ plugin.getName() + ": " + plugin.getDescription()
+						+ " (" + plugin.getLocationId() + ")");
 			}
 		}
 	}
