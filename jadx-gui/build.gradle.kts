@@ -40,11 +40,11 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.13.0")
 	implementation("org.apache.commons:commons-text:1.10.0")
-	implementation("commons-io:commons-io:2.13.0")
+	implementation("commons-io:commons-io:2.14.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.1.1")
+	implementation("com.android.tools.build:apksig:8.1.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
@@ -59,16 +59,18 @@ tasks.test {
 application {
 	applicationName = ("jadx-gui")
 	mainClass.set("jadx.gui.JadxGUI")
-	applicationDefaultJvmArgs = listOf(
-		"-Xms128M",
-		"-XX:MaxRAMPercentage=70.0",
-		"-Dawt.useSystemAAFontSettings=lcd",
-		"-Dswing.aatext=true",
-		"-Djava.util.Arrays.useLegacyMergeSort=true",
-		"-Djdk.util.zip.disableZip64ExtraFieldValidation=true", // disable zip checks (#1962)
-		"-XX:+IgnoreUnrecognizedVMOptions",
-		"--add-opens=java.base/java.lang=ALL-UNNAMED", // for ktlint formatter
-	)
+	applicationDefaultJvmArgs =
+		listOf(
+			"-Xms128M",
+			"-XX:MaxRAMPercentage=70.0",
+			"-Dawt.useSystemAAFontSettings=lcd",
+			"-Dswing.aatext=true",
+			"-Djava.util.Arrays.useLegacyMergeSort=true",
+			// disable zip checks (#1962)
+			"-Djdk.util.zip.disableZip64ExtraFieldValidation=true",
+			// needed for ktlint formatter
+			"-XX:+IgnoreUnrecognizedVMOptions", "--add-opens=java.base/java.lang=ALL-UNNAMED",
+		)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")
 		include("NOTICE")
@@ -91,9 +93,10 @@ tasks.shadowJar {
 
 tasks.existing(CreateStartScripts::class) {
 	doLast {
-		val newContent = windowsScript.readText()
-			.replace("java.exe", "javaw.exe")
-			.replace("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%", "start \"jadx-gui\" /B \"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")
+		val newContent =
+			windowsScript.readText()
+				.replace("java.exe", "javaw.exe")
+				.replace("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%", "start \"jadx-gui\" /B \"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")
 		windowsScript.writeText(newContent)
 	}
 }

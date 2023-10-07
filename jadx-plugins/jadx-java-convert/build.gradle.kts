@@ -9,5 +9,5 @@ dependencies {
 	implementation("com.jakewharton.android.repackaged:dalvik-dx:11.0.0_r3")
 	implementation("com.android.tools:r8:8.1.56")
 
-	implementation("org.ow2.asm:asm:9.5")
+	implementation("org.ow2.asm:asm:9.6")
 }
