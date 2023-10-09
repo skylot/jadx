@@ -1,9 +1,9 @@
 package jadx.plugins.mappings.load;
 
-import net.fabricmc.mappingio.tree.MappingTree;
-import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
-import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
-import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
+import net.fabricmc.mappingio.tree.MappingTreeView;
+import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
+import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;
+import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
 import jadx.api.plugins.pass.JadxPassInfo;
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo;
@@ -34,22 +34,22 @@ public class ApplyMappingsPass implements JadxPreparePass {
 		if (data == null) {
 			return;
 		}
-		MappingTree mappingTree = data.getMappings();
+		MappingTreeView mappingTree = data.getMappings();
 		process(root, mappingTree);
 		root.registerCodeDataUpdateListener(codeData -> process(root, mappingTree));
 	}
 
-	private void process(RootNode root, MappingTree mappingTree) {
+	private void process(RootNode root, MappingTreeView mappingTree) {
 		for (ClassNode cls : root.getClasses()) {
 			String clsRawName = cls.getClassInfo().getRawName().replace('.', '/');
-			ClassMapping mapping = mappingTree.getClass(clsRawName);
+			ClassMappingView mapping = mappingTree.getClass(clsRawName);
 			if (mapping != null) {
 				processClass(cls, mapping);
 			}
 		}
 	}
 
-	private static void processClass(ClassNode cls, ClassMapping classMapping) {
+	private static void processClass(ClassNode cls, ClassMappingView classMapping) {
 		String alias = classMapping.getDstName(0);
 		if (alias != null) {
 			cls.rename(alias.replace('/', '.'));
@@ -60,7 +60,7 @@ public class ApplyMappingsPass implements JadxPreparePass {
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String signature = TypeGen.signature(fieldInfo.getType());
-			FieldMapping fieldMapping = classMapping.getField(fieldInfo.getName(), signature);
+			FieldMappingView fieldMapping = classMapping.getField(fieldInfo.getName(), signature);
 			if (fieldMapping != null) {
 				processField(field, fieldMapping);
 			}
@@ -69,14 +69,14 @@ public class ApplyMappingsPass implements JadxPreparePass {
 			MethodInfo methodInfo = method.getMethodInfo();
 			String methodName = methodInfo.getName();
 			String methodDesc = methodInfo.getShortId().substring(methodName.length());
-			MethodMapping methodMapping = classMapping.getMethod(methodName, methodDesc);
+			MethodMappingView methodMapping = classMapping.getMethod(methodName, methodDesc);
 			if (methodMapping != null) {
 				processMethod(method, methodMapping);
 			}
 		}
 	}
 
-	private static void processField(FieldNode field, FieldMapping fieldMapping) {
+	private static void processField(FieldNode field, FieldMappingView fieldMapping) {
 		String alias = fieldMapping.getDstName(0);
 		if (alias != null) {
 			field.rename(alias);
@@ -87,7 +87,7 @@ public class ApplyMappingsPass implements JadxPreparePass {
 		}
 	}
 
-	private static void processMethod(MethodNode method, MethodMapping methodMapping) {
+	private static void processMethod(MethodNode method, MethodMappingView methodMapping) {
 		String alias = methodMapping.getDstName(0);
 		if (alias != null) {
 			method.rename(alias);

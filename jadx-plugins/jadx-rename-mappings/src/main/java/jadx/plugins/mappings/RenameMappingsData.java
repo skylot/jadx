@@ -2,7 +2,7 @@ package jadx.plugins.mappings;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
@@ -16,18 +16,18 @@ public class RenameMappingsData implements IJadxAttribute {
 		return root.getAttributes().get(DATA);
 	}
 
-	public static @Nullable MappingTree getTree(RootNode root) {
+	public static @Nullable MappingTreeView getTree(RootNode root) {
 		RenameMappingsData data = getData(root);
 		return data == null ? null : data.getMappings();
 	}
 
-	private final MappingTree mappings;
+	private final MappingTreeView mappings;
 
-	public RenameMappingsData(MappingTree mappings) {
+	public RenameMappingsData(MappingTreeView mappings) {
 		this.mappings = mappings;
 	}
 
-	public MappingTree getMappings() {
+	public MappingTreeView getMappings() {
 		return mappings;
 	}
 
