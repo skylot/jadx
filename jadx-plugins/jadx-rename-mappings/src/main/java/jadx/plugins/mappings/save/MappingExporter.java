@@ -24,6 +24,7 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.mappingio.tree.VisitOrder;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 import jadx.api.ICodeInfo;
@@ -255,7 +256,7 @@ public class MappingExporter {
 				}
 			}
 			// Write file
-			mappingTree.accept(MappingWriter.create(path, mappingFormat));
+			mappingTree.accept(MappingWriter.create(path, mappingFormat), VisitOrder.createByName());
 			mappingTree.visitEnd();
 		} catch (IOException e) {
 			LOG.error("Failed to save deobfuscation map file '{}'", path.toAbsolutePath(), e);
