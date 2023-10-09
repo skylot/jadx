@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,8 +22,10 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.mappingio.tree.VisitOrder;
+import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 import jadx.api.ICodeInfo;
 import jadx.api.data.ICodeComment;
@@ -52,19 +55,19 @@ public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
 
 	private final RootNode root;
-	private final @Nullable MappingTree loadedMappingTree;
+	private final @Nullable MappingTreeView loadedMappingTree;
 
 	public MappingExporter(RootNode root) {
 		this.root = root;
 		this.loadedMappingTree = RenameMappingsData.getTree(this.root);
 	}
 
-	private List<SimpleEntry<VarNode, Integer>> collectMethodVars(MethodNode methodNode) {
+	private List<Entry<VarNode, Entry<Integer, Integer>>> collectMethodVars(MethodNode methodNode) {
 		ICodeInfo codeInfo = methodNode.getTopParentClass().getCode();
 		int mthDefPos = methodNode.getDefPosition();
 		int mthLineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
 
-		List<SimpleEntry<VarNode, Integer>> vars = new ArrayList<>();
+		List<Entry<VarNode, Entry<Integer, Integer>>> vars = new ArrayList<>();
 		AtomicInteger lastOffset = new AtomicInteger(-1);
 		codeInfo.getCodeMetadata().searchDown(mthLineEndPos, (pos, ann) -> {
 			if (ann instanceof InsnCodeOffset) {
@@ -74,12 +77,17 @@ public class MappingExporter {
 				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
 				if (declRef instanceof VarNode) {
 					VarNode varNode = (VarNode) declRef;
-					if (!varNode.getMth().equals(methodNode)) {
-						// Stop if we've gone too far and have entered a different method
+					if (!varNode.getMth().equals(methodNode)) { // Stop if we've gone too far and have entered a different method
+						if (!vars.isEmpty()) {
+							vars.get(vars.size() - 1).getValue().setValue(declRef.getDefPosition() - 1);
+						}
 						return Boolean.TRUE;
 					}
 					if (lastOffset.get() != -1) {
-						vars.add(new SimpleEntry<VarNode, Integer>(varNode, lastOffset.get()));
+						if (!vars.isEmpty()) {
+							vars.get(vars.size() - 1).getValue().setValue(lastOffset.get() - 1);
+						}
+						vars.add(new SimpleEntry<VarNode, Entry<Integer, Integer>>(varNode, new SimpleEntry<>(lastOffset.get(), null)));
 					} else {
 						LOG.warn("Local variable not present in bytecode, skipping: "
 								+ methodNode.getMethodInfo().getRawFullId() + "#" + varNode.getName());
@@ -93,7 +101,7 @@ public class MappingExporter {
 	}
 
 	public void exportMappings(Path path, JadxCodeData codeData, MappingFormat mappingFormat) {
-		MemoryMappingTree mappingTree = new MemoryMappingTree();
+		VisitableMappingTree mappingTree = new MemoryMappingTree();
 		// Map < SrcName >
 		Set<String> mappedClasses = new HashSet<>();
 		// Map < DeclClass + ShortId >
@@ -102,7 +110,7 @@ public class MappingExporter {
 		Set<String> methodsWithMappedElements = new HashSet<>();
 		// Map < DeclClass + MethodShortId + CodeRef, NewName >
 		Map<String, String> mappedMethodArgsAndVars = new HashMap<>();
-		// Map < DeclClass + *ShortId + *CodeRef, Comment >
+		// Map < DeclClass [+ ShortId] [+ CodeRef], Comment >
 		Map<String, String> comments = new HashMap<>();
 
 		// We have to do this so we know for sure which elements are *manually* renamed
@@ -222,10 +230,12 @@ public class MappingExporter {
 						// Not checking for comments since method args can't have any
 					}
 					// Method vars
-					List<SimpleEntry<VarNode, Integer>> vars = collectMethodVars(mth);
-					for (SimpleEntry<VarNode, Integer> entry : vars) {
+					var vars = collectMethodVars(mth);
+					for (int i = 0; i < vars.size(); i++) {
+						var entry = vars.get(i);
 						VarNode var = entry.getKey();
-						int offset = entry.getValue();
+						int startOpIdx = entry.getValue().getKey();
+						int endOpIdx = entry.getValue().getValue();
 						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodVarLvIndex(var);
 						if (lvIndex == null) {
 							lvIndex = -1;
@@ -233,12 +243,12 @@ public class MappingExporter {
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, offset);
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, startOpIdx, endOpIdx);
 							mappingTree.visitDstName(MappedElementKind.METHOD_VAR, 0, mappedMethodArgsAndVars.get(key));
 						}
-						key = rawClassName + methodInfo.getShortId() + JadxCodeRef.forInsn(offset);
+						key = rawClassName + methodInfo.getShortId() + JadxCodeRef.forInsn(startOpIdx);
 						if (comments.containsKey(key)) {
-							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, offset);
+							visitMethodVar(mappingTree, classPath, methodName, methodDesc, lvtIndex, lvIndex, startOpIdx, endOpIdx);
 							mappingTree.visitComment(MappedElementKind.METHOD_VAR, comments.get(key));
 						}
 						lvtIndex++;
@@ -246,34 +256,32 @@ public class MappingExporter {
 				}
 			}
 			// Write file
-			MappingWriter writer = MappingWriter.create(path, mappingFormat);
-			mappingTree.accept(writer);
+			mappingTree.accept(MappingWriter.create(path, mappingFormat), VisitOrder.createByName());
 			mappingTree.visitEnd();
-			writer.close();
 		} catch (IOException e) {
 			LOG.error("Failed to save deobfuscation map file '{}'", path.toAbsolutePath(), e);
 		}
 	}
 
-	private void visitField(MemoryMappingTree tree, String classPath, String srcName, String srcDesc) {
+	private void visitField(VisitableMappingTree tree, String classPath, String srcName, String srcDesc) throws IOException {
 		tree.visitClass(classPath);
 		tree.visitField(srcName, srcDesc);
 	}
 
-	private void visitMethod(MemoryMappingTree tree, String classPath, String srcName, String srcDesc) {
+	private void visitMethod(VisitableMappingTree tree, String classPath, String srcName, String srcDesc) throws IOException {
 		tree.visitClass(classPath);
 		tree.visitMethod(srcName, srcDesc);
 	}
 
-	private void visitMethodArg(MemoryMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int argPosition,
-			int lvIndex) {
+	private void visitMethodArg(VisitableMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int argPosition,
+			int lvIndex) throws IOException {
 		visitMethod(tree, classPath, methodSrcName, methodSrcDesc);
 		tree.visitMethodArg(argPosition, lvIndex, null);
 	}
 
-	private void visitMethodVar(MemoryMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int lvtIndex,
-			int lvIndex, int startOpIdx) {
+	private void visitMethodVar(VisitableMappingTree tree, String classPath, String methodSrcName, String methodSrcDesc, int lvtIndex,
+			int lvIndex, int startOpIdx, int endOpIdx) throws IOException {
 		visitMethod(tree, classPath, methodSrcName, methodSrcDesc);
-		tree.visitMethodVar(lvtIndex, lvIndex, startOpIdx, null);
+		tree.visitMethodVar(lvtIndex, lvIndex, startOpIdx, endOpIdx, null);
 	}
 }
