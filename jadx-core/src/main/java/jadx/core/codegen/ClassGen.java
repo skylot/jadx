@@ -680,7 +680,7 @@ public class ClassGen {
 		}
 		// ignore classes from default package
 		if (extClsInfo.isDefaultPackage()) {
-			return shortName;
+			return fullName;
 		}
 		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
 			fullName = extClsInfo.getAliasNameWithoutPackage();
