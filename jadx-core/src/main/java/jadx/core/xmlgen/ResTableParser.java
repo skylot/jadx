@@ -281,14 +281,16 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		Map<Integer, Integer> entryOffsetMap = new LinkedHashMap<>(entryCount);
 		if (flagSparse) {
 			for (int i = 0; i < entryCount; i++) {
-				entryOffsetMap.put(is.readInt16(), is.readInt16());
+				int idx = is.readInt16();
+				int offset = is.readInt16() * 4; // The offset in ResTable_sparseTypeEntry::offset is stored divided by 4.
+				entryOffsetMap.put(idx, offset);
 			}
 		} else {
 			for (int i = 0; i < entryCount; i++) {
 				entryOffsetMap.put(i, is.readInt32());
 			}
 		}
-		is.checkPos(entriesStart, "Expected entry start");
+		is.checkPos(entriesStart, "Expected first entry start");
 		int processed = 0;
 		for (int index : entryOffsetMap.keySet()) {
 			int offset = entryOffsetMap.get(index);
@@ -299,6 +301,7 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 					LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - processed);
 					break;
 				}
+				is.checkPos(entriesStart + offset, "Expected start of entry " + index);
 				parseEntry(pkg, id, index, config.getQualifiers());
 			}
 			processed++;

@@ -61,15 +61,16 @@ public class RenameMappingsGui {
 
 	public void addMenuActions(JMenu menu) {
 		openMappingsMenu = new JMenu(NLS.str("file.open_mappings"));
-		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, true)).withNameAndDesc("Proguard (inverted)"));
-		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD, false)).withNameAndDesc("Proguard"));
+		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD_FILE, true))
+				.withNameAndDesc("Proguard (inverted)"));
+		openMappingsMenu.add(new ActionHandler(ev -> openMappings(MappingFormat.PROGUARD_FILE, false)).withNameAndDesc("Proguard"));
 
 		saveMappingsAction = new ActionHandler(this::saveMappings).withNameAndDesc(NLS.str("file.save_mappings"));
 
 		saveMappingsAsMenu = new JMenu(NLS.str("file.save_mappings_as"));
 
 		for (MappingFormat mappingFormat : MappingFormat.values()) {
-			if (mappingFormat != MappingFormat.PROGUARD) {
+			if (mappingFormat != MappingFormat.PROGUARD_FILE) {
 				openMappingsMenu.add(new ActionHandler(ev -> openMappings(mappingFormat, false))
 						.withNameAndDesc(mappingFormat.name));
 			}

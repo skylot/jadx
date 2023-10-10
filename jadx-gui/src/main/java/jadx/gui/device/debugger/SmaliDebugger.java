@@ -392,7 +392,7 @@ public class SmaliDebugger {
 
 	public interface MethodEntryListener {
 		/**
-		 * return ture to remove
+		 * return true to remove
 		 */
 		boolean entry(String mthSig);
 	}

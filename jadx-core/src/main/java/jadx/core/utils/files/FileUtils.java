@@ -236,12 +236,12 @@ public class FileUtils {
 
 	public static void writeFile(Path file, String data) throws IOException {
 		FileUtils.makeDirsForFile(file);
-		Files.write(file, data.getBytes(StandardCharsets.UTF_8),
+		Files.writeString(file, data, StandardCharsets.UTF_8,
 				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
 	public static String readFile(Path textFile) throws IOException {
-		return new String(Files.readAllBytes(textFile), StandardCharsets.UTF_8);
+		return Files.readString(textFile);
 	}
 
 	@NotNull

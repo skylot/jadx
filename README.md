@@ -85,8 +85,6 @@ commands (use '<command> --help' for command options):
 
 options:
   -d, --output-dir                    - output directory
-options:
-  -d, --output-dir                    - output directory
   -ds, --output-dir-src               - output directory for sources
   -dr, --output-dir-res               - output directory for resources
   -r, --no-res                        - do not decode resources

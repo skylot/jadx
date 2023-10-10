@@ -6,8 +6,9 @@ import java.util.Collections;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
-import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 import jadx.api.JadxArgs;
 import jadx.api.plugins.pass.JadxPassInfo;
@@ -33,14 +34,14 @@ public class LoadMappingsPass implements JadxPreparePass {
 
 	@Override
 	public void init(RootNode root) {
-		MappingTree mappings = loadMapping(root.getArgs());
+		MappingTreeView mappings = loadMapping(root.getArgs());
 		root.getAttributes().add(new RenameMappingsData(mappings));
 	}
 
-	private MappingTree loadMapping(JadxArgs args) {
+	private MappingTreeView loadMapping(JadxArgs args) {
 		try {
 			Path mappingsPath = args.getUserRenamesMappingsPath();
-			MemoryMappingTree mappingTree = new MemoryMappingTree();
+			VisitableMappingTree mappingTree = new MemoryMappingTree();
 			MappingReader.read(mappingsPath, options.getFormat(), mappingTree);
 			if (mappingTree.getSrcNamespace() == null) {
 				mappingTree.setSrcNamespace(MappingUtil.NS_SOURCE_FALLBACK);
@@ -53,7 +54,7 @@ public class LoadMappingsPass implements JadxPreparePass {
 								mappingTree.getDstNamespaces().size()));
 			}
 			if (options.isInvert()) {
-				MemoryMappingTree invertedMappingTree = new MemoryMappingTree();
+				VisitableMappingTree invertedMappingTree = new MemoryMappingTree();
 				String dstNamespace = mappingTree.getDstNamespaces().get(0);
 				mappingTree.accept(new MappingSourceNsSwitch(invertedMappingTree, dstNamespace));
 				return invertedMappingTree;

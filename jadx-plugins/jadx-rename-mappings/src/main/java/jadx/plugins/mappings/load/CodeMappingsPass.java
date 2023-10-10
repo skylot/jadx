@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.fabricmc.mappingio.tree.MappingTree;
-import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
-import net.fabricmc.mappingio.tree.MappingTree.MethodArgMapping;
-import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
+import net.fabricmc.mappingio.tree.MappingTreeView;
+import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
+import net.fabricmc.mappingio.tree.MappingTreeView.MethodArgMappingView;
+import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
 import jadx.api.plugins.pass.JadxPassInfo;
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo;
@@ -20,7 +20,7 @@ import jadx.plugins.mappings.RenameMappingsData;
 import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
 
 public class CodeMappingsPass implements JadxDecompilePass {
-	private Map<String, ClassMapping> clsRenamesMap;
+	private Map<String, ClassMappingView> clsRenamesMap;
 
 	@Override
 	public JadxPassInfo getInfo() {
@@ -36,14 +36,14 @@ public class CodeMappingsPass implements JadxDecompilePass {
 		if (data == null) {
 			return;
 		}
-		MappingTree mappingTree = data.getMappings();
+		MappingTreeView mappingTree = data.getMappings();
 		updateMappingsMap(mappingTree);
 		root.registerCodeDataUpdateListener(codeData -> updateMappingsMap(mappingTree));
 	}
 
 	@Override
 	public boolean visit(ClassNode cls) {
-		ClassMapping classMapping = getMapping(cls);
+		ClassMappingView classMapping = getMapping(cls);
 		if (classMapping != null) {
 			applyRenames(cls, classMapping);
 		}
@@ -55,7 +55,7 @@ public class CodeMappingsPass implements JadxDecompilePass {
 	public void visit(MethodNode mth) {
 	}
 
-	private static void applyRenames(ClassNode cls, ClassMapping classMapping) {
+	private static void applyRenames(ClassNode cls, ClassMappingView classMapping) {
 		for (MethodNode mth : cls.getMethods()) {
 			String methodName = mth.getMethodInfo().getName();
 			String methodDesc = mth.getMethodInfo().getShortId().substring(methodName.length());
@@ -63,12 +63,12 @@ public class CodeMappingsPass implements JadxDecompilePass {
 			if (ssaVars.isEmpty()) {
 				continue;
 			}
-			MethodMapping methodMapping = classMapping.getMethod(methodName, methodDesc);
+			MethodMappingView methodMapping = classMapping.getMethod(methodName, methodDesc);
 			if (methodMapping == null) {
 				continue;
 			}
 			// Method args
-			for (MethodArgMapping argMapping : methodMapping.getArgs()) {
+			for (MethodArgMappingView argMapping : methodMapping.getArgs()) {
 				Integer mappingLvIndex = argMapping.getLvIndex();
 				for (SSAVar ssaVar : ssaVars) {
 					Integer actualLvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(ssaVar, mth);
@@ -82,7 +82,7 @@ public class CodeMappingsPass implements JadxDecompilePass {
 		}
 	}
 
-	private ClassMapping getMapping(ClassNode cls) {
+	private ClassMappingView getMapping(ClassNode cls) {
 		if (clsRenamesMap == null || clsRenamesMap.isEmpty()) {
 			return null;
 		}
@@ -90,10 +90,10 @@ public class CodeMappingsPass implements JadxDecompilePass {
 		return clsRenamesMap.get(classPath);
 	}
 
-	private void updateMappingsMap(MappingTree mappings) {
+	private void updateMappingsMap(MappingTreeView mappings) {
 		clsRenamesMap = new HashMap<>();
-		for (ClassMapping cls : mappings.getClasses()) {
-			for (MethodMapping mth : cls.getMethods()) {
+		for (ClassMappingView cls : mappings.getClasses()) {
+			for (MethodMappingView mth : cls.getMethods()) {
 				if (!mth.getArgs().isEmpty() || !mth.getVars().isEmpty()) {
 					clsRenamesMap.put(cls.getSrcName(), cls);
 					break;
