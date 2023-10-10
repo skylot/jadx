@@ -2,6 +2,7 @@ package jadx.core.xmlgen;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -126,7 +127,7 @@ public class ProtoXMLParser {
 
 	private static String generateTagAttrName() {
 		final int length = 6;
-		Random r = new Random();
+		Random r = new SecureRandom();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 1; i <= length; i++) {
 			sb.append((char) (r.nextInt(26) + 'a'));
