@@ -21,8 +21,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.0.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.0.0")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.0.1")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.0.1")
 
 	implementation("com.beust:jcommander:1.82")
 	implementation("ch.qos.logback:logback-classic:1.4.11")
@@ -32,9 +32,9 @@ dependencies {
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.2.1")
-	implementation("com.formdev:flatlaf-intellij-themes:3.2.1")
-	implementation("com.formdev:flatlaf-extras:3.2.1")
+	implementation("com.formdev:flatlaf:3.2.2")
+	implementation("com.formdev:flatlaf-intellij-themes:3.2.2")
+	implementation("com.formdev:flatlaf-extras:3.2.2")
 	implementation("com.formdev:svgSalamander:1.1.4")
 
 	implementation("com.google.code.gson:gson:2.10.1")
