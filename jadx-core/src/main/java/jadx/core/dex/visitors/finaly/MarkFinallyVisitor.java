@@ -44,7 +44,6 @@ import jadx.core.utils.blocks.BlockPair;
 )
 public class MarkFinallyVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(MarkFinallyVisitor.class);
-	// private static final Logger LOG = LoggerFactory.getLogger(MarkFinallyVisitor.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -164,15 +163,22 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			mergeInnerTryBlocks = false;
 		}
 
-		// remove 'finally' from 'try' blocks, check all up paths on each exit (connected with finally exit)
+		// remove 'finally' from 'try' blocks,
+		// check all up paths on each exit (connected with 'finally' exit)
 		List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
 		BlockNode bottomBlock = BlockUtils.getBottomBlock(allHandler.getBlocks());
 		if (bottomBlock == null) {
+			if (Consts.DEBUG_FINALLY) {
+				LOG.warn("No bottom block for handler: {} and blocks: {}", allHandler, allHandler.getBlocks());
+			}
 			return false;
 		}
 		BlockNode bottomFinallyBlock = BlockUtils.followEmptyPath(bottomBlock);
 		BlockNode bottom = BlockUtils.getNextBlock(bottomFinallyBlock);
 		if (bottom == null) {
+			if (Consts.DEBUG_FINALLY) {
+				LOG.warn("Finally bottom block not found for: {} and: {}", bottomBlock, bottomFinallyBlock);
+			}
 			return false;
 		}
 		boolean found = false;
@@ -197,11 +203,14 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				}
 			}
 		}
+		if (!found) {
+			if (Consts.DEBUG_FINALLY) {
+				LOG.info("Dup not found for all handler: {}", allHandler);
+			}
+			return false;
+		}
 		if (Consts.DEBUG_FINALLY) {
 			LOG.debug("Result slices:\n{}", extractInfo);
-		}
-		if (!found) {
-			return false;
 		}
 		if (!checkSlices(extractInfo)) {
 			mth.addWarnComment("Finally extract failed");

@@ -1,8 +1,12 @@
 package jadx.core.dex.visitors.blocks;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +24,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
@@ -264,7 +269,7 @@ public class BlockProcessor extends AbstractVisitor {
 		if (mergeConstReturn(mth)) {
 			return true;
 		}
-		return splitReturnBlocks(mth);
+		return splitExitBlocks(mth);
 	}
 
 	private static boolean mergeConstReturn(MethodNode mth) {
@@ -478,10 +483,12 @@ public class BlockProcessor extends AbstractVisitor {
 		return false;
 	}
 
-	private static boolean splitReturnBlocks(MethodNode mth) {
+	private static boolean splitExitBlocks(MethodNode mth) {
 		boolean changed = false;
 		for (BlockNode preExitBlock : mth.getPreExitBlocks()) {
 			if (splitReturn(mth, preExitBlock)) {
+				changed = true;
+			} else if (splitThrow(mth, preExitBlock)) {
 				changed = true;
 			}
 		}
@@ -522,7 +529,7 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 		if (returnInsn.getArgsCount() == 1
 				&& returnBlock.getInstructions().size() == 1
-				&& !isReturnArgAssignInPred(preds, returnInsn)) {
+				&& !isArgAssignInPred(preds, returnInsn.getArg(0))) {
 			return false;
 		}
 
@@ -546,11 +553,67 @@ public class BlockProcessor extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean isReturnArgAssignInPred(List<BlockNode> preds, InsnNode returnInsn) {
-		InsnArg retArg = returnInsn.getArg(0);
-		if (retArg.isRegister()) {
-			RegisterArg arg = (RegisterArg) retArg;
-			int regNum = arg.getRegNum();
+	private static boolean splitThrow(MethodNode mth, BlockNode exitBlock) {
+		if (exitBlock.contains(AFlag.IGNORE_THROW_SPLIT)) {
+			return false;
+		}
+		List<BlockNode> preds = exitBlock.getPredecessors();
+		if (preds.size() < 2) {
+			return false;
+		}
+		InsnNode throwInsn = BlockUtils.getLastInsn(exitBlock);
+		if (throwInsn == null || throwInsn.getType() != InsnType.THROW) {
+			return false;
+		}
+		// split only for several exception handlers
+		// traverse predecessors to exception handler
+		Map<BlockNode, ExcHandlerAttr> handlersMap = new HashMap<>(preds.size());
+		Set<BlockNode> handlers = new HashSet<>(preds.size());
+		for (BlockNode pred : preds) {
+			BlockUtils.visitPredecessorsUntil(mth, pred, block -> {
+				ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
+				if (excHandlerAttr == null) {
+					return false;
+				}
+				boolean correctHandler = excHandlerAttr.getHandler().getBlocks().contains(block);
+				if (correctHandler && isArgAssignInPred(Collections.singletonList(block), throwInsn.getArg(0))) {
+					handlersMap.put(pred, excHandlerAttr);
+					handlers.add(block);
+				}
+				return correctHandler;
+			});
+		}
+		if (handlers.size() == 1) {
+			exitBlock.add(AFlag.IGNORE_THROW_SPLIT);
+			return false;
+		}
+
+		boolean first = true;
+		for (BlockNode pred : new ArrayList<>(preds)) {
+			if (first) {
+				first = false;
+			} else {
+				BlockNode newThrowBlock = BlockSplitter.startNewBlock(mth, -1);
+				newThrowBlock.add(AFlag.SYNTHETIC);
+				for (InsnNode oldInsn : exitBlock.getInstructions()) {
+					InsnNode copyInsn = oldInsn.copyWithoutSsa();
+					copyInsn.add(AFlag.SYNTHETIC);
+					newThrowBlock.getInstructions().add(copyInsn);
+				}
+				newThrowBlock.copyAttributesFrom(exitBlock);
+				ExcHandlerAttr excHandlerAttr = handlersMap.get(pred);
+				if (excHandlerAttr != null) {
+					excHandlerAttr.getHandler().addBlock(newThrowBlock);
+				}
+				BlockSplitter.replaceConnection(pred, exitBlock, newThrowBlock);
+			}
+		}
+		return true;
+	}
+
+	private static boolean isArgAssignInPred(List<BlockNode> preds, InsnArg arg) {
+		if (arg.isRegister()) {
+			int regNum = ((RegisterArg) arg).getRegNum();
 			for (BlockNode pred : preds) {
 				for (InsnNode insnNode : pred.getInstructions()) {
 					RegisterArg result = insnNode.getResult();

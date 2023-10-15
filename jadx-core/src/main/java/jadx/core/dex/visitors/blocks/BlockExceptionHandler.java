@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -283,14 +284,7 @@ public class BlockExceptionHandler {
 		boolean catchInTry = innerTryBlock.getBlocks().stream().anyMatch(isHandlersIntersects(outerTryBlock));
 		boolean blocksOutsideHandler = outerTryBlock.getBlocks().stream().anyMatch(b -> !handlerBlocks.contains(b));
 
-		boolean makeInner = catchInHandler && (catchInTry || blocksOutsideHandler);
-		if (makeInner && innerTryBlock.isAllHandler()) {
-			// inner try block can't have catch-all handler
-			outerTryBlock.setBlocks(Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks()));
-			innerTryBlock.clear();
-			return false;
-		}
-		if (makeInner) {
+		if (catchInHandler && (catchInTry || blocksOutsideHandler)) {
 			// convert to inner
 			List<BlockNode> mergedBlocks = Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks());
 			innerTryBlock.getHandlers().removeAll(outerTryBlock.getHandlers());
@@ -299,7 +293,8 @@ public class BlockExceptionHandler {
 			outerTryBlock.setBlocks(mergedBlocks);
 			return false;
 		}
-		if (innerTryBlock.getHandlers().containsAll(outerTryBlock.getHandlers())) {
+		Set<ExceptionHandler> innerHandlerSet = new HashSet<>(innerTryBlock.getHandlers());
+		if (innerHandlerSet.containsAll(outerTryBlock.getHandlers())) {
 			// merge
 			List<BlockNode> mergedBlocks = Utils.concatDistinct(outerTryBlock.getBlocks(), innerTryBlock.getBlocks());
 			List<ExceptionHandler> handlers = Utils.concatDistinct(outerTryBlock.getHandlers(), innerTryBlock.getHandlers());

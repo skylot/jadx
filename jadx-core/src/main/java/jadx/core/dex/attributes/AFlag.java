@@ -33,6 +33,7 @@ public enum AFlag {
 	EXC_TOP_SPLITTER,
 	EXC_BOTTOM_SPLITTER,
 	FINALLY_INSNS,
+	IGNORE_THROW_SPLIT,
 
 	SKIP_FIRST_ARG,
 	SKIP_ARG, // skip argument in invoke call

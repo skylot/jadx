@@ -512,22 +512,29 @@ public class BlockUtils {
 			bs.or(blocksToBitSet(mth, stopBlocks));
 		}
 		List<BlockNode> list = new ArrayList<>();
-		traversePredecessors(start, bs, list::add);
+		traversePredecessors(start, bs, block -> {
+			list.add(block);
+			return false;
+		});
 		return list;
 	}
 
+	public static void visitPredecessorsUntil(MethodNode mth, BlockNode start, Predicate<BlockNode> visitor) {
+		traversePredecessors(start, newBlocksBitSet(mth), visitor);
+	}
+
 	/**
-	 * Up BFS
+	 * Up BFS.
+	 * To stop return true from predicate
 	 */
-	private static void traversePredecessors(BlockNode start, BitSet visited, Consumer<BlockNode> visitor) {
+	private static void traversePredecessors(BlockNode start, BitSet visited, Predicate<BlockNode> visitor) {
 		Queue<BlockNode> queue = new ArrayDeque<>();
 		queue.add(start);
 		while (true) {
 			BlockNode current = queue.poll();
-			if (current == null) {
+			if (current == null || visitor.test(current)) {
 				return;
 			}
-			visitor.accept(current);
 			for (BlockNode next : current.getPredecessors()) {
 				int id = next.getId();
 				if (!visited.get(id)) {
