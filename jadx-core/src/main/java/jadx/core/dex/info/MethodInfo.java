@@ -106,6 +106,10 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		return declClass.getFullName() + '.' + name;
 	}
 
+	public String getAliasFullName() {
+		return declClass.getAliasFullName() + '.' + alias;
+	}
+
 	public String getFullId() {
 		return declClass.getFullName() + '.' + shortId;
 	}

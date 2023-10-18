@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -74,7 +75,9 @@ public class IfMakerHelper {
 		boolean badThen = isBadBranchBlock(info, thenBlock);
 		boolean badElse = isBadBranchBlock(info, elseBlock);
 		if (badThen && badElse) {
-			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getMergedBlocks(), mth);
+			if (Consts.DEBUG_RESTRUCTURE) {
+				LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getMergedBlocks(), mth);
+			}
 			return null;
 		}
 		if (badElse) {

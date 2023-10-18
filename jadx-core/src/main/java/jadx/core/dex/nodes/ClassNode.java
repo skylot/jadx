@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
@@ -56,6 +58,8 @@ import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends NotificationAttrNode
 		implements ILoadable, ICodeNode, IPackageUpdate, Comparable<ClassNode> {
+	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
+
 	private final RootNode root;
 	private final IClassData clsData;
 
@@ -381,6 +385,9 @@ public class ClassNode extends NotificationAttrNode
 		}
 		ICodeInfo codeInfo;
 		try {
+			if (Consts.DEBUG) {
+				LOG.debug("Decompiling class: {}", this);
+			}
 			codeInfo = root.getProcessClasses().generateCode(this);
 		} catch (Throwable e) {
 			addError("Code generation failed", e);

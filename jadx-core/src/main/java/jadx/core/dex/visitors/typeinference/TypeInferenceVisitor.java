@@ -182,7 +182,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		} catch (JadxOverflowException e) {
 			throw e;
 		} catch (Exception e) {
-			LOG.error("Failed to set immutable type for var: {}", ssaVar, e);
+			mth.addWarnComment("Failed to set immutable type for var: " + ssaVar, e);
 		}
 	}
 
@@ -192,7 +192,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		} catch (JadxOverflowException e) {
 			throw e;
 		} catch (Exception e) {
-			LOG.error("Failed to calculate best type for var: {}", ssaVar, e);
+			mth.addWarnComment("Failed to calculate best type for var: " + ssaVar, e);
 			return false;
 		}
 	}
@@ -201,7 +201,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
 		Set<ITypeBound> bounds = typeInfo.getBounds();
 		Optional<ArgType> bestTypeOpt = selectBestTypeFromBounds(bounds);
-		if (!bestTypeOpt.isPresent()) {
+		if (bestTypeOpt.isEmpty()) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.warn("Failed to select best type from bounds, count={} : ", bounds.size());
 				for (ITypeBound bound : bounds) {
@@ -456,6 +456,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return fixed;
 	}
 
+	@SuppressWarnings("RedundantIfStatement")
 	private boolean deduceType(MethodNode mth, SSAVar var) {
 		if (var.isTypeImmutable()) {
 			return false;

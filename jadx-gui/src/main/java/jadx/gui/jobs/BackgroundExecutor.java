@@ -309,7 +309,7 @@ public class BackgroundExecutor {
 			return "TaskWorker{status=" + status
 					+ ", jobsCount=" + jobsCount
 					+ ", jobsComplete=" + jobsComplete
-					+ ", time=" + time + '}';
+					+ ", time=" + time + "ms}";
 		}
 	}
 }

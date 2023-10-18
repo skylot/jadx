@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
@@ -26,6 +27,8 @@ import static jadx.core.dex.nodes.ProcessState.PROCESS_STARTED;
 
 public class ProcessClass {
 	private static final Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
+
+	private static final ICodeInfo NOT_GENERATED = new SimpleCodeInfo("");
 
 	private final List<IDexTreeVisitor> passes;
 
@@ -101,7 +104,8 @@ public class ProcessClass {
 		try {
 			if (cls.contains(AFlag.DONT_GENERATE)) {
 				process(cls, false);
-				return ICodeInfo.EMPTY;
+				LOG.warn("Requested code for class with DONT_GENERATE flag: {}", cls);
+				return NOT_GENERATED;
 			}
 			for (ClassNode depCls : cls.getDependencies()) {
 				process(depCls, false);
