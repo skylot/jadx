@@ -84,11 +84,9 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		this.node = Objects.requireNonNull(node);
 
 		setMarkOccurrences(false);
-		setEditable(node.isEditable());
-		setCodeFoldingEnabled(false);
 		setFadeCurrentLineHighlight(true);
-		setCloseCurlyBraces(true);
 		setAntiAliasingEnabled(true);
+		applyEditableProperties(node);
 		loadSettings();
 
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
@@ -104,6 +102,47 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		} else {
 			addCaretActions();
 			addFastCopyAction();
+		}
+	}
+
+	private void applyEditableProperties(JNode node) {
+		boolean editable = node.isEditable();
+		setEditable(editable);
+		setCodeFoldingEnabled(editable);
+		if (editable) {
+			setCloseCurlyBraces(true);
+			setCloseMarkupTags(true);
+			setAutoIndentEnabled(true);
+			setClearWhitespaceLinesEnabled(true);
+		}
+	}
+
+	@Override
+	protected JPopupMenu createPopupMenu() {
+		JPopupMenu menu = new JPopupMenu();
+		if (node.isEditable()) {
+			menu.add(createPopupMenuItem(getAction(UNDO_ACTION)));
+			menu.add(createPopupMenuItem(getAction(REDO_ACTION)));
+			menu.addSeparator();
+			menu.add(createPopupMenuItem(cutAction));
+			menu.add(createPopupMenuItem(copyAction));
+			menu.add(createPopupMenuItem(getAction(PASTE_ACTION)));
+			menu.add(createPopupMenuItem(getAction(DELETE_ACTION)));
+			menu.addSeparator();
+			menu.add(createPopupMenuItem(getAction(SELECT_ALL_ACTION)));
+		} else {
+			menu.add(createPopupMenuItem(copyAction));
+			menu.add(createPopupMenuItem(getAction(SELECT_ALL_ACTION)));
+		}
+		appendFoldingMenu(menu);
+		return menu;
+	}
+
+	@Override
+	protected void appendFoldingMenu(JPopupMenu popup) {
+		// append code folding popup menu entry only if enabled
+		if (isCodeFoldingEnabled()) {
+			super.appendFoldingMenu(popup);
 		}
 	}
 
@@ -280,6 +319,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public void setLoaded() {
 		this.loaded = true;
+		discardAllEdits(); // disable 'undo' action to empty state (before load)
 	}
 
 	/**
