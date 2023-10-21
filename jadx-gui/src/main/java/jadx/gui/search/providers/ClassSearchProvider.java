@@ -1,7 +1,6 @@
 package jadx.gui.search.providers;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -17,16 +16,7 @@ public final class ClassSearchProvider extends BaseSearchProvider {
 	private int clsNum = 0;
 
 	public ClassSearchProvider(MainWindow mw, SearchSettings searchSettings, List<JavaClass> classes) {
-		super(mw, searchSettings, filterClasses(classes));
-	}
-
-	/**
-	 * Collect top class with code
-	 */
-	private static List<JavaClass> filterClasses(List<JavaClass> classes) {
-		return classes.stream()
-				.filter(cls -> !cls.isInner() && !cls.isNoCode())
-				.collect(Collectors.toList());
+		super(mw, searchSettings, classes);
 	}
 
 	@Override

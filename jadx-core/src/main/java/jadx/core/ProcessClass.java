@@ -104,7 +104,6 @@ public class ProcessClass {
 		try {
 			if (cls.contains(AFlag.DONT_GENERATE)) {
 				process(cls, false);
-				LOG.warn("Requested code for class with DONT_GENERATE flag: {}", cls);
 				return NOT_GENERATED;
 			}
 			for (ClassNode depCls : cls.getDependencies()) {

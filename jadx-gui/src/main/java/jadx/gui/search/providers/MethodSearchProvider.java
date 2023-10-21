@@ -32,7 +32,7 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 			if (mthNum < methods.size()) {
 				MethodNode mth = methods.get(mthNum++);
 				if (checkMth(mth.getMethodInfo())) {
-					return convert(mth.getJavaNode());
+					return convert(mth);
 				}
 			} else {
 				clsNum++;

@@ -5,8 +5,8 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JavaClass;
-import jadx.api.JavaField;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
@@ -28,10 +28,10 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 				return null;
 			}
 			JavaClass cls = classes.get(clsNum);
-			List<JavaField> fields = cls.getFields();
+			List<FieldNode> fields = cls.getClassNode().getFields();
 			if (fldNum < fields.size()) {
-				JavaField fld = fields.get(fldNum++);
-				if (checkField(fld)) {
+				FieldNode fld = fields.get(fldNum++);
+				if (checkField(fld.getFieldInfo())) {
 					return convert(fld);
 				}
 			} else {
@@ -44,9 +44,10 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 		}
 	}
 
-	private boolean checkField(JavaField field) {
-		FieldInfo fieldInfo = field.getFieldNode().getFieldInfo();
-		return isMatch(fieldInfo.getName()) || isMatch(fieldInfo.getAlias());
+	private boolean checkField(FieldInfo fieldInfo) {
+		return isMatch(fieldInfo.getName())
+				|| isMatch(fieldInfo.getAlias())
+				|| isMatch(fieldInfo.getFullId());
 	}
 
 	@Override

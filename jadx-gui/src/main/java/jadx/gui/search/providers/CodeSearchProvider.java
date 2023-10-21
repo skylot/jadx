@@ -45,12 +45,14 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 				return null;
 			}
 			JavaClass cls = classes.get(clsNum);
-			if (!cls.getClassNode().isInner()) {
-				if (code == null) {
-					code = getClassCode(cls, codeCache);
-				}
-				JNode newResult = searchNext(cls, code);
+			String clsCode = code;
+			if (clsCode == null && !cls.isInner() && !cls.isNoCode()) {
+				clsCode = getClassCode(cls, codeCache);
+			}
+			if (clsCode != null) {
+				JNode newResult = searchNext(cls, clsCode);
 				if (newResult != null) {
+					code = clsCode;
 					return newResult;
 				}
 			}
