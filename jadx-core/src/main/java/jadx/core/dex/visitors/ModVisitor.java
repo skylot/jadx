@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +59,7 @@ import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.replaceInsn;
+import static jadx.core.utils.ListUtils.allMatch;
 
 /**
  * Visitor for modify method instructions
@@ -137,6 +139,11 @@ public class ModVisitor extends AbstractVisitor {
 
 					case ARITH:
 						processArith(mth, parentClass, (ArithNode) insn);
+						break;
+
+					case CMP_L:
+					case CMP_G:
+						inlineCMPInsns(mth, block, i, insn, remover);
 						break;
 
 					case CHECK_CAST:
@@ -345,6 +352,27 @@ public class ModVisitor extends AbstractVisitor {
 					f.addUseIn(mth);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Inline CMP instructions into 'if' to help conditions merging
+	 */
+	private static void inlineCMPInsns(MethodNode mth, BlockNode block, int i, InsnNode insn, InsnRemover remover) {
+		RegisterArg resArg = insn.getResult();
+		List<RegisterArg> useList = resArg.getSVar().getUseList();
+		if (allMatch(useList, use -> InsnUtils.isInsnType(use.getParentInsn(), InsnType.IF))) {
+			for (RegisterArg useArg : new ArrayList<>(useList)) {
+				InsnNode useInsn = useArg.getParentInsn();
+				if (useInsn != null) {
+					InsnArg wrapArg = InsnArg.wrapInsnIntoArg(insn.copyWithoutResult());
+					if (!useInsn.replaceArg(useArg, wrapArg)) {
+						mth.addWarnComment("Failed to inline CMP insn: " + insn + " into " + useInsn);
+						return;
+					}
+				}
+			}
+			remover.addAndUnbind(insn);
 		}
 	}
 

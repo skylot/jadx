@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.JadxError;
@@ -19,7 +20,7 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
-	private static final boolean PRINT_MTH_SIZE = true;
+	private static final boolean PRINT_MTH_SIZE = Consts.DEBUG;
 
 	private final Set<IAttributeNode> errorNodes = new HashSet<>();
 	private int errorsCount;
@@ -44,7 +45,9 @@ public class ErrorsCounter {
 
 		String msg = formatMsg(node, error);
 		if (PRINT_MTH_SIZE && node instanceof MethodNode) {
-			msg = "[" + ((MethodNode) node).getInsnsCount() + "] " + msg;
+			String mthSize = "[" + ((MethodNode) node).getInsnsCount() + "] ";
+			msg = mthSize + msg;
+			error = mthSize + error;
 		}
 		if (e == null) {
 			LOG.error(msg);
