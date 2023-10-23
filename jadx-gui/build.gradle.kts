@@ -32,10 +32,9 @@ dependencies {
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.2.2")
-	implementation("com.formdev:flatlaf-intellij-themes:3.2.2")
-	implementation("com.formdev:flatlaf-extras:3.2.2")
-	implementation("com.formdev:svgSalamander:1.1.4")
+	implementation("com.formdev:flatlaf:3.2.5")
+	implementation("com.formdev:flatlaf-intellij-themes:3.2.5")
+	implementation("com.formdev:flatlaf-extras:3.2.5")
 
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.13.0")
