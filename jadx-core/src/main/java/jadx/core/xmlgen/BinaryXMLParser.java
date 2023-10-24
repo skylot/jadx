@@ -70,6 +70,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
+		resourceIds = null;
 		is = new ParserStream(inputStream);
 		if (!isBinaryXml()) {
 			return ResourcesLoader.loadToCodeWriter(inputStream);
