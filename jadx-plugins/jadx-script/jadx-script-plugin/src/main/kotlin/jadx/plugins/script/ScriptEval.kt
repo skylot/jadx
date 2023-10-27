@@ -12,7 +12,10 @@ import kotlin.script.experimental.api.ScriptDiagnostic.Severity
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.constructorArgs
+import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.compilationCache
+import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
@@ -23,17 +26,22 @@ import kotlin.time.toDuration
 class ScriptEval {
 
 	companion object {
-		val scriptingHost = BasicJvmScriptingHost()
+		val scriptingHost = BasicJvmScriptingHost(
+			baseHostConfiguration = ScriptingHostConfiguration {
+				jvm {
+					compilationCache(ScriptCache().build())
+				}
+			},
+		)
 
 		val compileConf = createJvmCompilationConfigurationFromTemplate<JadxScriptTemplate>()
 
 		private val baseEvalConf = createJvmEvaluationConfigurationFromTemplate<JadxScriptTemplate>()
 
-		private fun buildEvalConf(scriptData: JadxScriptData): ScriptEvaluationConfiguration {
-			return ScriptEvaluationConfiguration(baseEvalConf) {
+		private fun buildEvalConf(scriptData: JadxScriptData) =
+			ScriptEvaluationConfiguration(baseEvalConf) {
 				constructorArgs(scriptData)
 			}
-		}
 	}
 
 	fun process(init: JadxPluginContext, scriptOptions: JadxScriptAllOptions): List<JadxScriptData> {
