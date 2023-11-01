@@ -131,6 +131,7 @@ options:
                                          'auto' - automatically select best name (default)
                                          'resources' - use resources names
                                          'code' - use R class fields names
+  --deobf-whitelist                   - list of ':' separated packages (suffix '.*') and class names that will not be deobfuscated
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                      - fix options (comma-separated list of):
                                          'case' - fix case sensitivity issues (according to --fs-case-sensitive option),

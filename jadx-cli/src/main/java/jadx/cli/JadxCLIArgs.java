@@ -137,6 +137,10 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
+	@Parameter(names = { "--deobf-whitelist}" }, description = "debfucation whitelist")
+	protected String deobfuscationWhitelist =
+			"android.support.v4.*:android.support.v7.*:android.support.v4.os.*:android.support.annotation.Px:androidx.core.os.*:androidx.annotation.Px";
+
 	@Parameter(
 			names = { "--deobf-cfg-file" },
 			description = "deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format),"
@@ -316,6 +320,7 @@ public class JadxCLIArgs {
 		args.setGeneratedRenamesMappingFileMode(generatedRenamesMappingFileMode);
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
+		args.setDeobfuscationWhitelist(deobfuscationWhitelist);
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
 		args.setResourceNameSource(resourceNameSource);
@@ -441,6 +446,10 @@ public class JadxCLIArgs {
 
 	public int getDeobfuscationMaxLength() {
 		return deobfuscationMaxLength;
+	}
+
+	public String getDeobfuscationWhitelist() {
+		return deobfuscationWhitelist;
 	}
 
 	public String getGeneratedRenamesMappingFile() {
