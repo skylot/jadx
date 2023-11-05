@@ -236,12 +236,29 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JButton editWhitelistedEntities = new JButton(NLS.str("preferences.excludedPackages.button"));
+		editWhitelistedEntities.addActionListener(event -> {
+
+			String oldEWhitelistedEntities = settings.getDeobfuscationWhitelist();
+			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.deobfuscation_whitelist.editDialog"),
+					settings.getDeobfuscationWhitelist());
+			if (result != null) {
+				settings.setExcludedPackages(result);
+				if (!oldEWhitelistedEntities.equals(result)) {
+					needReload();
+				}
+			}
+		});
+
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
 		deobfGroup.addRow(NLS.str("preferences.generated_renames_mapping_file_mode"), generatedRenamesMappingFileModeCB);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_whitelist"),
+				NLS.str("preferences.deobfuscation_whitelist.tooltip"), editWhitelistedEntities);
+
 		deobfGroup.end();
 
 		Collection<JComponent> connectedComponents = Arrays.asList(minLenSpinner, maxLenSpinner);

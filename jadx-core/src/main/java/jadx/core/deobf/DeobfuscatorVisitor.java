@@ -19,6 +19,8 @@ public class DeobfuscatorVisitor extends AbstractVisitor {
 		if (!args.isDeobfuscationOn()) {
 			return;
 		}
+		DeobfWhitelist whitelist = DeobfWhitelist.getWhitelist();
+		whitelist.init(root);
 		DeobfPresets mapping = DeobfPresets.build(root);
 		if (args.getGeneratedRenamesMappingFileMode().shouldRead()) {
 			if (mapping.load()) {
@@ -32,9 +34,11 @@ public class DeobfuscatorVisitor extends AbstractVisitor {
 	}
 
 	public static void process(RootNode root, IRenameCondition renameCondition, IAliasProvider aliasProvider) {
+		DeobfWhitelist whitelist = DeobfWhitelist.getWhitelist();
+
 		boolean pkgUpdated = false;
 		for (PackageNode pkg : root.getPackages()) {
-			if (renameCondition.shouldRename(pkg)) {
+			if (whitelist.shouldRename(pkg) && renameCondition.shouldRename(pkg)) {
 				String alias = aliasProvider.forPackage(pkg);
 				if (alias != null) {
 					pkg.rename(alias, false);

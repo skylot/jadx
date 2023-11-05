@@ -103,6 +103,8 @@ public class JadxArgs implements Closeable {
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
 
+	private String deobfuscationWhitelist = "";
+
 	/**
 	 * Nodes alias provider for deobfuscator and rename visitor
 	 */
@@ -434,6 +436,14 @@ public class JadxArgs implements Closeable {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
+	public String getDeobfuscationWhitelist() {
+		return this.deobfuscationWhitelist;
+	}
+
+	public void setDeobfuscationWhitelist(String deobfuscationWhitelist) {
+		this.deobfuscationWhitelist = deobfuscationWhitelist;
+	}
+
 	public File getGeneratedRenamesMappingFile() {
 		return generatedRenamesMappingFile;
 	}
@@ -714,6 +724,7 @@ public class JadxArgs implements Closeable {
 				+ ", extractFinally=" + extractFinally
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
+				+ ", deobfuscationWhitelist=" + deobfuscationWhitelist
 				+ ", escapeUnicode=" + escapeUnicode
 				+ ", replaceConsts=" + replaceConsts
 				+ ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers
