@@ -120,6 +120,7 @@ options:
   --deobf                             - activate deobfuscation
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
+  --deobf-whitelist                   - space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation, default: android.support.v4.* android.support.v7.* android.support.v4.os.* android.support.annotation.Px androidx.core.os.* androidx.annotation.Px
   --deobf-cfg-file                    - deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension
   --deobf-cfg-file-mode               - set mode for handling the JADX auto-generated names' deobfuscation map file:
                                          'read' - read if found, don't save (default)
@@ -131,7 +132,6 @@ options:
                                          'auto' - automatically select best name (default)
                                          'resources' - use resources names
                                          'code' - use R class fields names
-  --deobf-whitelist                   - list of ':' separated packages (suffix '.*') and class names that will not be deobfuscated
   --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                      - fix options (comma-separated list of):
                                          'case' - fix case sensitivity issues (according to --fs-case-sensitive option),

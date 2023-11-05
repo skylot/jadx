@@ -130,6 +130,14 @@ public class PackageNode extends LineAttrNode
 		}
 	}
 
+	public String getName() {
+		return pkgInfo.getName();
+	}
+
+	public String getFullName() {
+		return pkgInfo.getFullName();
+	}
+
 	public PackageInfo getPkgInfo() {
 		return pkgInfo;
 	}

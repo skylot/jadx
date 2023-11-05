@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.deobf.NameMapper;
-import jadx.core.deobf.TldHelper;
 
 public class BetterName {
 	private static final Logger LOG = LoggerFactory.getLogger(BetterName.class);
@@ -42,9 +41,6 @@ public class BetterName {
 		}
 		if (NameMapper.isValidIdentifier(str)) {
 			rating += 50;
-		}
-		if (TldHelper.contains(str)) {
-			rating += 20;
 		}
 		if (str.contains("_")) {
 			// rare in obfuscated names

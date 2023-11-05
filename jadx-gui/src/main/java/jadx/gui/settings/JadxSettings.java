@@ -369,6 +369,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
+	public void setDeobfuscationWhitelistStr(String value) {
+		this.deobfuscationWhitelistStr = value;
+	}
+
 	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode mode) {
 		this.generatedRenamesMappingFileMode = mode;
 	}

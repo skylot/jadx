@@ -32,7 +32,8 @@ import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.usage.IUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
-import jadx.core.deobf.DeobfCondition;
+import jadx.core.deobf.conditions.DeobfWhitelist;
+import jadx.core.deobf.conditions.JadxRenameConditions;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.files.FileUtils;
 
@@ -103,7 +104,10 @@ public class JadxArgs implements Closeable {
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
 
-	private String deobfuscationWhitelist = "";
+	/**
+	 * List of classes and packages (ends with '.*') to exclude from deobfuscation
+	 */
+	private List<String> deobfuscationWhitelist = DeobfWhitelist.DEFAULT_LIST;
 
 	/**
 	 * Nodes alias provider for deobfuscator and rename visitor
@@ -113,7 +117,7 @@ public class JadxArgs implements Closeable {
 	/**
 	 * Condition to rename node in deobfuscator
 	 */
-	private IRenameCondition renameCondition = new DeobfCondition();
+	private IRenameCondition renameCondition = JadxRenameConditions.buildDefault();
 
 	private boolean escapeUnicode = false;
 	private boolean replaceConsts = true;
@@ -436,11 +440,11 @@ public class JadxArgs implements Closeable {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	public String getDeobfuscationWhitelist() {
+	public List<String> getDeobfuscationWhitelist() {
 		return this.deobfuscationWhitelist;
 	}
 
-	public void setDeobfuscationWhitelist(String deobfuscationWhitelist) {
+	public void setDeobfuscationWhitelist(List<String> deobfuscationWhitelist) {
 		this.deobfuscationWhitelist = deobfuscationWhitelist;
 	}
 
@@ -678,7 +682,7 @@ public class JadxArgs implements Closeable {
 	public String makeCodeArgsHash(@Nullable JadxDecompiler decompiler) {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
-				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength
+				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength + deobfuscationWhitelist
 				+ resourceNameSource
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally

@@ -238,13 +238,13 @@ public class JadxSettingsWindow extends JDialog {
 
 		JButton editWhitelistedEntities = new JButton(NLS.str("preferences.excludedPackages.button"));
 		editWhitelistedEntities.addActionListener(event -> {
-
-			String oldEWhitelistedEntities = settings.getDeobfuscationWhitelist();
-			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.deobfuscation_whitelist.editDialog"),
-					settings.getDeobfuscationWhitelist());
+			String prevWhitelistedEntities = settings.getDeobfuscationWhitelistStr();
+			String result = JOptionPane.showInputDialog(this,
+					NLS.str("preferences.deobfuscation_whitelist.editDialog"),
+					prevWhitelistedEntities);
 			if (result != null) {
-				settings.setExcludedPackages(result);
-				if (!oldEWhitelistedEntities.equals(result)) {
+				settings.setDeobfuscationWhitelistStr(result);
+				if (!prevWhitelistedEntities.equals(result)) {
 					needReload();
 				}
 			}
