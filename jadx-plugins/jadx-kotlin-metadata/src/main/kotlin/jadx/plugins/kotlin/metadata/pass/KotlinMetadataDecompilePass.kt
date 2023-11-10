@@ -4,6 +4,7 @@ import jadx.api.plugins.input.data.AccessFlags
 import jadx.api.plugins.pass.JadxPassInfo
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo
 import jadx.api.plugins.pass.types.JadxDecompilePass
+import jadx.core.deobf.NameMapper
 import jadx.core.dex.attributes.AFlag
 import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.nodes.ClassNode
@@ -106,14 +107,14 @@ class KotlinMetadataDecompilePass(
 		val toString = wrapper.parseToString()
 		toString?.run {
 			clsAlias?.let { alias ->
-				if (AFlag.DONT_RENAME !in cls) {
+				if (NameMapper.isValidIdentifier(alias) && AFlag.DONT_RENAME !in cls) {
 					RenameReasonAttr.forNode(cls).append(TO_STRING_REASON)
 					cls.rename(alias)
 				}
 			}
 
 			fields.forEach { (field, alias) ->
-				if (AFlag.DONT_RENAME !in field) {
+				if (NameMapper.isValidIdentifier(alias) && AFlag.DONT_RENAME !in field) {
 					RenameReasonAttr.forNode(field).append(TO_STRING_REASON)
 					field.rename(alias)
 				}
