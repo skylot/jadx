@@ -17,7 +17,7 @@ dependencies {
 	// jadx-script autocomplete support
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-ide"))
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
-	implementation("org.jetbrains.kotlin:kotlin-scripting-common:1.9.10")
+	implementation(kotlin("scripting-common"))
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
@@ -38,12 +38,12 @@ dependencies {
 
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.13.0")
-	implementation("org.apache.commons:commons-text:1.10.0")
-	implementation("commons-io:commons-io:2.14.0")
+	implementation("org.apache.commons:commons-text:1.11.0")
+	implementation("commons-io:commons-io:2.15.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.1.2")
+	implementation("com.android.tools.build:apksig:8.1.3")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
