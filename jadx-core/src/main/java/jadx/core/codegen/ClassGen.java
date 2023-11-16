@@ -514,7 +514,7 @@ public class ClassGen {
 			}
 			code.add(';');
 			if (isFieldsPresents()) {
-				code.startLine();
+				code.newLine();
 			}
 		}
 	}
