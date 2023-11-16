@@ -173,6 +173,11 @@ Plugin options (-P<name>=<value>):
     - rename-mappings.format          - mapping format, values: [auto, TINY, TINY_2, ENIGMA, ENIGMA_DIR, MCP, SRG, TSRG, TSRG2, PROGUARD], default: auto
     - rename-mappings.invert          - invert mapping, values: [yes, no], default: no
 
+Environment variables:
+  JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
+  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
+  JADX_TMP_DIR - custom temp directory, using system by default
+
 Examples:
   jadx -d out classes.dex
   jadx --rename-flags "none" classes.dex

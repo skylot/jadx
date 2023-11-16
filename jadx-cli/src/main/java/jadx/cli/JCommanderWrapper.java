@@ -108,6 +108,11 @@ public class JCommanderWrapper<T> {
 		int maxNamesLen = printOptions(jc, out, true);
 		out.println(appendPluginOptions(maxNamesLen));
 		out.println();
+		out.println("Environment variables:");
+		out.println("  JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files");
+		out.println("  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)");
+		out.println("  JADX_TMP_DIR - custom temp directory, using system by default");
+		out.println();
 		out.println("Examples:");
 		out.println("  jadx -d out classes.dex");
 		out.println("  jadx --rename-flags \"none\" classes.dex");

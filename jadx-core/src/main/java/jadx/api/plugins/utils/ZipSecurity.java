@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.zip.ZipEntry;
@@ -15,10 +14,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
 
-	private static final boolean DISABLE_CHECKS = Objects.equals(System.getenv("JADX_DISABLE_ZIP_SECURITY"), "true");
+	private static final boolean DISABLE_CHECKS = Utils.getEnvVarBool("JADX_DISABLE_ZIP_SECURITY", false);
 
 	/**
 	 * size of uncompressed zip entry shouldn't be bigger of compressed in
@@ -31,7 +33,8 @@ public class ZipSecurity {
 	 * are considered safe
 	 */
 	private static final int ZIP_BOMB_MIN_UNCOMPRESSED_SIZE = 25 * 1024 * 1024;
-	private static final int MAX_ENTRIES_COUNT = 100_000;
+
+	private static final int MAX_ENTRIES_COUNT = Utils.getEnvVarInt("JADX_ZIP_MAX_ENTRIES_COUNT", 100_000);
 
 	private ZipSecurity() {
 	}
@@ -130,13 +133,13 @@ public class ZipSecurity {
 					}
 					entriesProcessed++;
 					if (!DISABLE_CHECKS && entriesProcessed > MAX_ENTRIES_COUNT) {
-						throw new IllegalStateException("Zip entries count limit exceeded: " + MAX_ENTRIES_COUNT
+						throw new JadxRuntimeException("Zip entries count limit exceeded: " + MAX_ENTRIES_COUNT
 								+ ", last entry: " + entry.getName());
 					}
 				}
 			}
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to process zip file: " + file.getAbsolutePath(), e);
+			throw new JadxRuntimeException("Failed to process zip file: " + file.getAbsolutePath(), e);
 		}
 		return null;
 	}
@@ -147,7 +150,7 @@ public class ZipSecurity {
 				try (InputStream in = getInputStreamForEntry(zip, entry)) {
 					visitor.accept(entry, in);
 				} catch (Exception e) {
-					throw new RuntimeException("Error process zip entry: " + entry.getName());
+					throw new JadxRuntimeException("Failed to process zip entry: " + entry.getName());
 				}
 			}
 			return null;

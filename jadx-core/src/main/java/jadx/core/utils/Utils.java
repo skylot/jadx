@@ -487,4 +487,20 @@ public class Utils {
 			throw new JadxRuntimeException("Thread interrupted");
 		}
 	}
+
+	public static boolean getEnvVarBool(String varName, boolean defValue) {
+		String strValue = System.getenv(varName);
+		if (strValue == null) {
+			return defValue;
+		}
+		return strValue.equalsIgnoreCase("true");
+	}
+
+	public static int getEnvVarInt(String varName, int defValue) {
+		String strValue = System.getenv(varName);
+		if (strValue == null) {
+			return defValue;
+		}
+		return Integer.parseInt(strValue);
+	}
 }
