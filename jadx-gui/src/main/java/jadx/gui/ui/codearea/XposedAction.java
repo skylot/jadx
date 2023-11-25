@@ -26,6 +26,7 @@ import jadx.gui.utils.UiUtils;
 public class XposedAction extends JNodeAction {
 	private static final Logger LOG = LoggerFactory.getLogger(XposedAction.class);
 	private static final long serialVersionUID = 2641585141624592578L;
+
 	private static final Map<String, String> PRIMITIVE_TYPE_MAPPING = Map.of(
 			"int", "Int",
 			"byte", "Byte",
@@ -34,8 +35,7 @@ public class XposedAction extends JNodeAction {
 			"float", "Float",
 			"double", "Double",
 			"char", "Char",
-			"boolean", "Boolean"
-	);
+			"boolean", "Boolean");
 
 	public XposedAction(CodeArea codeArea) {
 		super(ActionModel.XPOSED_COPY, codeArea);
@@ -100,7 +100,9 @@ public class XposedAction extends JNodeAction {
 		if (mthArgs.isEmpty()) {
 			return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName);
 		}
-		String params = mthArgs.stream().map(type -> (type.isGeneric() ? type.getObject() : type) + ".class, ").collect(Collectors.joining());
+		String params = mthArgs.stream()
+				.map(type -> (type.isGeneric() ? type.getObject() : type) + ".class, ")
+				.collect(Collectors.joining());
 		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + params);
 	}
 
@@ -109,7 +111,7 @@ public class XposedAction extends JNodeAction {
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
 		return String.format("ClassLoader classLoader = lpparam.classLoader;\n"
-						+ "Class<?> %sClass = classLoader.loadClass(\"%s\");",
+				+ "Class<?> %sClass = classLoader.loadClass(\"%s\");",
 				shortClassName, rawClassName);
 	}
 
@@ -118,8 +120,6 @@ public class XposedAction extends JNodeAction {
 		String isStatic = javaField.getAccessFlags().isStatic() ? "Static" : "";
 		String type = PRIMITIVE_TYPE_MAPPING.getOrDefault(javaField.getFieldNode().getType().toString(), "Object");
 		String xposedMethod = "XposedHelpers.get" + isStatic + type + "Field";
-		return String.format("%s(/*runtimeObject*/, \"%s\");",
-				xposedMethod, javaField.getName());
-
+		return String.format("%s(/*runtimeObject*/, \"%s\");", xposedMethod, javaField.getName());
 	}
 }
