@@ -55,7 +55,7 @@ public class ExportGradleTask implements Runnable {
 				.orElseGet(() -> resContainers.stream()
 						.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
 						.findFirst()
-						.orElseThrow(IllegalStateException::new));
+						.orElse(null));
 
 		ExportGradleProject export = new ExportGradleProject(root, projectDir, androidManifest, strings);
 
