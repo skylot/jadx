@@ -7,12 +7,8 @@ dependencies {
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
 
-	implementation("org.smali:smali:2.5.2") {
-		exclude(group = "junit", module = "junit") // ignore junit 4 transitive dependency
+	implementation("com.android.tools.smali:smali:3.0.3") {
 		exclude(group = "com.beust", module = "jcommander") // exclude old jcommander namespace
 	}
-	// force the latest version for smali
-	constraints {
-		implementation("com.google.guava:guava:30.1.1-jre")
-	}
+	implementation("com.google.guava:guava:32.1.3-jre") // force the latest version for smali
 }

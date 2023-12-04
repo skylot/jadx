@@ -27,7 +27,7 @@ dependencies {
 
 repositories {
 	mavenCentral()
-	// required for `aapt-proto` and `r8`
+	// required for: aapt-proto, r8, smali
 	google()
 }
 
