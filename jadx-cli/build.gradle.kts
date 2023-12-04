@@ -18,8 +18,8 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-kotlin-metadata"))
 	runtimeOnly(project(":jadx-plugins:jadx-script:jadx-script-plugin"))
 
-	implementation("com.beust:jcommander:1.82")
-	implementation("ch.qos.logback:logback-classic:1.4.11")
+	implementation("org.jcommander:jcommander:1.83")
+	implementation("ch.qos.logback:logback-classic:1.4.14")
 }
 
 application {
