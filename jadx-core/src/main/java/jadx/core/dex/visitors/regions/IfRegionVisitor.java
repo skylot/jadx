@@ -13,6 +13,7 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 
 import static jadx.core.utils.RegionUtils.insnsCount;
@@ -81,21 +82,23 @@ public class IfRegionVisitor extends AbstractVisitor {
 					return;
 				}
 			}
-			boolean lastRegion = RegionUtils.hasExitEdge(ifRegion);
-			if (elseSize == 1 && lastRegion && mth.isVoidReturn()) {
-				InsnNode lastElseInsn = RegionUtils.getLastInsn(ifRegion.getElseRegion());
-				if (lastElseInsn != null && lastElseInsn.getType() == InsnType.THROW) {
-					// move `throw` into `then` block
-					invertIfRegion(ifRegion);
-				} else {
-					// single return at method end will be removed later
+			if (elseSize == 1) {
+				boolean lastRegion = RegionUtils.hasExitEdge(ifRegion);
+				if (lastRegion && mth.isVoidReturn()) {
+					InsnNode lastElseInsn = RegionUtils.getLastInsn(ifRegion.getElseRegion());
+					if (InsnUtils.isInsnType(lastElseInsn, InsnType.THROW)) {
+						// move `throw` into `then` block
+						invertIfRegion(ifRegion);
+					} else {
+						// single return at method end will be removed later
+					}
+					return;
 				}
-				return;
+				if (thenSize > 2 && !(lastRegion && thenSize < 4 /* keep small code block inside else */)) {
+					invertIfRegion(ifRegion);
+					return;
+				}
 			}
-			if (!lastRegion) {
-				invertIfRegion(ifRegion);
-			}
-			return;
 		}
 		boolean thenExit = RegionUtils.hasExitBlock(ifRegion.getThenRegion());
 		boolean elseExit = RegionUtils.hasExitBlock(ifRegion.getElseRegion());
@@ -155,22 +158,32 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	private static boolean removeRedundantElseBlock(MethodNode mth, IfRegion ifRegion) {
-		if (ifRegion.getElseRegion() == null
-				|| ifRegion.contains(AFlag.ELSE_IF_CHAIN)
-				|| ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)) {
+		if (ifRegion.getElseRegion() == null) {
 			return false;
 		}
 		if (!RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
 			return false;
 		}
-		// code style check:
-		// will remove 'return;' from 'then' and 'else' with one instruction
-		// see #jadx.tests.integration.conditions.TestConditions9
-		if (mth.isVoidReturn()
-				&& insnsCount(ifRegion.getThenRegion()) == 2
-				&& insnsCount(ifRegion.getElseRegion()) == 2) {
-			return false;
+		InsnNode lastThanInsn = RegionUtils.getLastInsn(ifRegion.getThenRegion());
+		if (InsnUtils.isInsnType(lastThanInsn, InsnType.THROW)) {
+			// always omit else after 'throw'
+		} else {
+			// code style check:
+			// will remove 'return;' from 'then' and 'else' with one instruction
+			// see #jadx.tests.integration.conditions.TestConditions9
+			if (mth.isVoidReturn()) {
+				int thenSize = insnsCount(ifRegion.getThenRegion());
+				// keep small blocks with same or 'similar' size unchanged
+				if (thenSize < 5) {
+					int elseSize = insnsCount(ifRegion.getElseRegion());
+					int range = ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN) ? 4 : 2;
+					if (thenSize == elseSize || (thenSize * range > elseSize && thenSize < elseSize * range)) {
+						return false;
+					}
+				}
+			}
 		}
 		IRegion parent = ifRegion.getParent();
 		Region newRegion = new Region(parent);
