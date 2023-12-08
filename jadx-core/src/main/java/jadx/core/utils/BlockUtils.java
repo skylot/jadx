@@ -1148,7 +1148,12 @@ public class BlockUtils {
 	}
 
 	public static Map<BlockNode, BitSet> calcPostDominance(MethodNode mth) {
-		return calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getPreExitBlocks().get(0));
+		Map<BlockNode, BitSet> postDominanceMap = mth.getPostDominanceMap();
+		if (postDominanceMap == null) {
+			postDominanceMap = calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getPreExitBlocks().get(0));
+			mth.setPostDominanceMap(postDominanceMap);
+		}
+		return postDominanceMap;
 	}
 
 	public static Map<BlockNode, BitSet> calcPartialPostDominance(MethodNode mth, Collection<BlockNode> blockNodes, BlockNode exitBlock) {

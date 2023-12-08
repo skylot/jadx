@@ -1,8 +1,10 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +75,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private int blocksMaxCId;
 	private BlockNode enterBlock;
 	private BlockNode exitBlock;
+	private Map<BlockNode, BitSet> postDominanceMap;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopInfo> loops;
@@ -119,6 +122,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		blocks = null;
 		enterBlock = null;
 		exitBlock = null;
+		postDominanceMap = null;
 		region = null;
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
@@ -397,6 +401,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			return successors.get(0).equals(exitBlock);
 		}
 		return exitBlock.getPredecessors().contains(block);
+	}
+
+	public Map<BlockNode, BitSet> getPostDominanceMap() {
+		return postDominanceMap;
+	}
+
+	public void setPostDominanceMap(Map<BlockNode, BitSet> postDominanceMap) {
+		this.postDominanceMap = postDominanceMap;
 	}
 
 	public void registerLoop(LoopInfo loop) {
