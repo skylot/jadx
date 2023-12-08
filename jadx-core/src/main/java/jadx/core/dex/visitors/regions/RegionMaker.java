@@ -836,8 +836,27 @@ public class RegionMaker {
 		if (out != null) {
 			BitSet caseBlocks = BlockUtils.blocksToBitSet(mth, blocksMap.keySet());
 			caseBlocks.clear(out.getId());
+
+			// this is lazily computed, since not all switch cases require it
+			Map<BlockNode, BitSet> postDomMap = null;
+
 			for (BlockNode successor : block.getCleanSuccessors()) {
-				BlockNode fallThroughBlock = searchFallThroughCase(successor, out, caseBlocks);
+				BlockNode fallThroughBlock = null;
+
+				BitSet df = successor.getDomFrontier();
+				if (df.intersects(caseBlocks)) {
+					fallThroughBlock = getOneIntersectionBlock(out, caseBlocks, df);
+				} else {
+					if (postDomMap == null) {
+						Set<BlockNode> allPathsBlocks = BlockUtils.getAllPathsBlocks(block, out);
+						postDomMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);
+					}
+					BitSet pdoms = postDomMap.get(successor);
+					if (pdoms != null && pdoms.intersects(caseBlocks)) {
+						fallThroughBlock = getOneIntersectionBlock(out, caseBlocks, pdoms);
+					}
+				}
+
 				if (fallThroughBlock != null) {
 					fallThroughCases.put(successor, fallThroughBlock);
 				}
@@ -877,21 +896,6 @@ public class RegionMaker {
 
 		stack.pop();
 		return out;
-	}
-
-	@Nullable
-	private BlockNode searchFallThroughCase(BlockNode successor, BlockNode out, BitSet caseBlocks) {
-		BitSet df = successor.getDomFrontier();
-		if (df.intersects(caseBlocks)) {
-			return getOneIntersectionBlock(out, caseBlocks, df);
-		}
-		Set<BlockNode> allPathsBlocks = BlockUtils.getAllPathsBlocks(successor, out);
-		Map<BlockNode, BitSet> bitSetMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);
-		BitSet pdoms = bitSetMap.get(successor);
-		if (pdoms != null && pdoms.intersects(caseBlocks)) {
-			return getOneIntersectionBlock(out, caseBlocks, pdoms);
-		}
-		return null;
 	}
 
 	@Nullable
