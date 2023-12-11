@@ -6,9 +6,9 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import java.util.Locale
 
 plugins {
-	id("com.github.ben-manes.versions") version "0.49.0"
+	id("com.github.ben-manes.versions") version "0.50.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.18"
-	id("com.diffplug.spotless") version "6.22.0"
+	id("com.diffplug.spotless") version "6.23.3"
 }
 
 val jadxVersion by extra { System.getenv("JADX_VERSION") ?: "dev" }

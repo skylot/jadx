@@ -15,10 +15,11 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
-import org.jf.smali.Smali;
-import org.jf.smali.SmaliOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.android.tools.smali.smali.Smali;
+import com.android.tools.smali.smali.SmaliOptions;
 
 public class SmaliConvert implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliConvert.class);

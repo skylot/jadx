@@ -7,8 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jf.smali.Smali;
-import org.jf.smali.SmaliOptions;
+import com.android.tools.smali.smali.Smali;
+import com.android.tools.smali.smali.SmaliOptions;
 
 public class SmaliTestUtils {
 

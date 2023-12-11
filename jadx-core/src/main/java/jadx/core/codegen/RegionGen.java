@@ -32,7 +32,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
 import jadx.core.dex.regions.SynchronizedRegion;
@@ -147,15 +146,12 @@ public class RegionGen extends InsnGen {
 	 * Connect if-else-if block
 	 */
 	private boolean connectElseIf(ICodeWriter code, IContainer els) throws CodegenException {
-		if (els.contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
-			List<IContainer> subBlocks = ((Region) els).getSubBlocks();
-			if (subBlocks.size() == 1) {
-				IContainer elseBlock = subBlocks.get(0);
-				if (elseBlock instanceof IfRegion) {
-					declareVars(code, elseBlock);
-					makeIf((IfRegion) elseBlock, code, false);
-					return true;
-				}
+		if (els.contains(AFlag.ELSE_IF_CHAIN)) {
+			IContainer elseBlock = RegionUtils.getSingleSubBlock(els);
+			if (elseBlock instanceof IfRegion) {
+				declareVars(code, elseBlock);
+				makeIf((IfRegion) elseBlock, code, false);
+				return true;
 			}
 		}
 		return false;

@@ -36,8 +36,6 @@ public class AndroidManifestParser {
 
 		this.androidManifest = parseAndroidManifest(androidManifestRes);
 		this.appStrings = parseAppStrings(appStrings);
-
-		validateAttrs();
 	}
 
 	public boolean isManifestFound() {
@@ -58,12 +56,6 @@ public class AndroidManifestParser {
 		}
 
 		return parseAttributes();
-	}
-
-	private void validateAttrs() {
-		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL) && appStrings == null) {
-			throw new IllegalArgumentException("APPLICATION_LABEL attribute requires non null appStrings");
-		}
 	}
 
 	private ApplicationParams parseAttributes() {
@@ -113,6 +105,9 @@ public class AndroidManifestParser {
 		if (application.hasAttribute("android:label")) {
 			String appLabelName = application.getAttribute("android:label");
 			if (appLabelName.startsWith("@string")) {
+				if (appStrings == null) {
+					throw new IllegalArgumentException("APPLICATION_LABEL attribute requires non null appStrings");
+				}
 				appLabelName = appLabelName.split("/")[1];
 				NodeList strings = appStrings.getElementsByTagName("string");
 

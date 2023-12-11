@@ -324,6 +324,30 @@ public class RegionUtils {
 		}
 	}
 
+	public static IContainer getSingleSubBlock(IContainer container) {
+		if (container instanceof Region) {
+			List<IContainer> subBlocks = ((Region) container).getSubBlocks();
+			if (subBlocks.size() == 1) {
+				return ignoreSimpleRegionWrapper(subBlocks.get(0));
+			}
+		}
+		return null;
+	}
+
+	private static IContainer ignoreSimpleRegionWrapper(IContainer container) {
+		while (true) {
+			if (container instanceof Region) {
+				List<IContainer> subBlocks = ((Region) container).getSubBlocks();
+				if (subBlocks.size() != 1) {
+					return container;
+				}
+				container = subBlocks.get(0);
+			} else {
+				return container;
+			}
+		}
+	}
+
 	public static List<IContainer> getExcHandlersForRegion(IContainer region) {
 		TryCatchBlockAttr tb = region.get(AType.TRY_BLOCK);
 		if (tb != null) {

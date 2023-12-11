@@ -8,10 +8,10 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.10.1")
 
 	// TODO: move resources decoding to separate plugin module
-	implementation("com.android.tools.build:aapt2-proto:8.1.3-10154469")
+	implementation("com.android.tools.build:aapt2-proto:8.2.0-10154469")
 	implementation("com.google.protobuf:protobuf-java:3.25.1") // forcing latest version
 
-	testImplementation("org.apache.commons:commons-lang3:3.13.0")
+	testImplementation("org.apache.commons:commons-lang3:3.14.0")
 
 	testImplementation(project(":jadx-plugins:jadx-dex-input"))
 	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
