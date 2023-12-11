@@ -101,9 +101,18 @@ public class XposedAction extends JNodeAction {
 			return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName);
 		}
 		String params = mthArgs.stream()
-				.map(type -> (type.isGeneric() ? type.getObject() : type) + ".class, ")
+				.map(type -> fixTypeContent(type) + ".class, ")
 				.collect(Collectors.joining());
 		return String.format(xposedFormatStr, xposedMethod, rawClassName, methodName + params);
+	}
+
+	private String fixTypeContent(ArgType type) {
+		if (type.isGeneric()) {
+			return type.getObject();
+		} else if (type.isGenericType() && type.isObject() && type.isTypeKnown()) {
+			return "Object";
+		}
+		return type.toString();
 	}
 
 	private String generateClassSnippet(JClass jc) {
@@ -120,6 +129,6 @@ public class XposedAction extends JNodeAction {
 		String isStatic = javaField.getAccessFlags().isStatic() ? "Static" : "";
 		String type = PRIMITIVE_TYPE_MAPPING.getOrDefault(javaField.getFieldNode().getType().toString(), "Object");
 		String xposedMethod = "XposedHelpers.get" + isStatic + type + "Field";
-		return String.format("%s(/*runtimeObject*/, \"%s\");", xposedMethod, javaField.getName());
+		return String.format("%s(/*runtimeObject*/, \"%s\");", xposedMethod, javaField.getFieldNode().getFieldInfo().getName());
 	}
 }
