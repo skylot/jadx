@@ -16,6 +16,7 @@ public class JadxFiles {
 	public static final Path CACHES_LIST = Paths.get(CONFIG_DIR, "caches.json");
 
 	public static final Path CACHE_DIR = Paths.get(DIRS.cacheDir);
+	public static final Path PROJECTS_CACHE_DIR = CACHE_DIR.resolve("projects");
 
 	static {
 		FileUtils.makeDirs(Paths.get(CONFIG_DIR));

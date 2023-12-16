@@ -111,7 +111,7 @@ public class CacheManager {
 		if (Objects.equals(cacheDirValue, ".")) {
 			return buildLocalCacheDir(project);
 		}
-		Path cacheBaseDir = cacheDirValue == null ? JadxFiles.CACHE_DIR : Paths.get(cacheDirValue);
+		Path cacheBaseDir = cacheDirValue == null ? JadxFiles.PROJECTS_CACHE_DIR : Paths.get(cacheDirValue);
 		return cacheBaseDir.resolve(buildProjectUniqName(project));
 	}
 

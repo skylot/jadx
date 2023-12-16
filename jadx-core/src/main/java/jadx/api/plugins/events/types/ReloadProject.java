@@ -6,7 +6,7 @@ import jadx.api.plugins.events.JadxEvents;
 
 public class ReloadProject implements IJadxEvent {
 
-	public static final ReloadProject INSTANCE = new ReloadProject();
+	public static final ReloadProject EVENT = new ReloadProject();
 
 	private ReloadProject() {
 		// singleton
