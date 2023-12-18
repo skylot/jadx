@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.types.NodeRenamedByUser;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JRenameNode;
@@ -155,13 +156,15 @@ public class RenameDialog extends JDialog {
 		renamePane.setLayout(new FlowLayout(FlowLayout.LEFT));
 		renamePane.add(lbl);
 		renamePane.add(nodeLabel);
-		renamePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		renamePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
 
 		JPanel textPane = new JPanel();
 		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));
-		textPane.add(Box.createRigidArea(new Dimension(0, 5)));
 		textPane.add(renameField);
-		textPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		if (node instanceof JClass) {
+			textPane.add(new JLabel(NLS.str("rename_dialog.class_help")));
+		}
+		textPane.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
 
 		JPanel buttonPane = initButtonsPanel();
 
