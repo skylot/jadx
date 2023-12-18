@@ -30,7 +30,7 @@ jobs:
           arguments: dist copyExe
 
       - name: Save bundle artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
           # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip file
@@ -40,7 +40,7 @@ jobs:
           retention-days: 30
 
       - name: Save exe artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ format('jadx-gui-{0}-no-jre-win.exe', env.JADX_VERSION) }}
           path: build/*.exe
@@ -76,7 +76,7 @@ jobs:
           arguments: dist -PbundleJRE=true
 
       - name: Save exe bundle artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: jadx-gui/build/*-with-jre-win/*
