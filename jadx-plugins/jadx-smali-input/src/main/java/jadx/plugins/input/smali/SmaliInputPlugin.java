@@ -10,18 +10,19 @@ import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.dex.DexInputPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
 
 	private final DexInputPlugin dexInput = new DexInputPlugin();
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo("smali-input", "Smali Input", "Load .smali files");
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.addCodeInput(this);
 	}
 

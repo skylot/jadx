@@ -10,6 +10,7 @@ import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.dex.DexInputPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 
@@ -20,7 +21,7 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	private final JavaConvertLoader loader = new JavaConvertLoader(options);
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(
 				PLUGIN_ID,
 				"Java Convert",
@@ -29,7 +30,7 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.registerOptions(options);
 		context.addCodeInput(this);
 	}

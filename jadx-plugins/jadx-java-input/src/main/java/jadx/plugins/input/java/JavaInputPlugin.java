@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.JadxPlugin;
@@ -19,12 +20,12 @@ import jadx.plugins.input.java.utils.JavaClassParseException;
 public class JavaInputPlugin implements JadxPlugin {
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo("java-input", "Java Input", "Load .class and .jar files");
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.addCodeInput(JavaInputPlugin::loadClassFiles);
 	}
 

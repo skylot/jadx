@@ -12,6 +12,7 @@ import jadx.core.utils.files.FileUtils;
 import jadx.plugins.mappings.load.ApplyMappingsPass;
 import jadx.plugins.mappings.load.CodeMappingsPass;
 import jadx.plugins.mappings.load.LoadMappingsPass;
+import org.jetbrains.annotations.NotNull;
 
 public class RenameMappingsPlugin implements JadxPlugin {
 	public static final String PLUGIN_ID = "rename-mappings";
@@ -19,12 +20,12 @@ public class RenameMappingsPlugin implements JadxPlugin {
 	private final RenameMappingsOptions options = new RenameMappingsOptions();
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(PLUGIN_ID, "Rename Mappings", "various mappings support");
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.registerOptions(options);
 		JadxArgs args = context.getArgs();
 		if (args.getUserRenamesMappingsMode() == UserRenamesMappingsMode.IGNORE) {

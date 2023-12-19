@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.JadxPlugin;
@@ -22,12 +23,12 @@ public class DexInputPlugin implements JadxPlugin {
 	private final DexFileLoader loader = new DexFileLoader(options);
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(PLUGIN_ID, "Dex Input", "Load .dex and .apk files");
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.registerOptions(options);
 		context.addCodeInput(this::loadFiles);
 	}

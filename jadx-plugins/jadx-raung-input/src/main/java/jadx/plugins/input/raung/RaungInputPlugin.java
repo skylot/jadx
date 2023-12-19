@@ -10,16 +10,17 @@ import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.java.JavaInputPlugin;
+import org.jetbrains.annotations.NotNull;
 
 public class RaungInputPlugin implements JadxPlugin, JadxCodeInput {
 
 	@Override
-	public JadxPluginInfo getPluginInfo() {
+	public @NotNull JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo("raung-input", "Raung Input", "Load .raung files");
 	}
 
 	@Override
-	public void init(JadxPluginContext context) {
+	public void init(@NotNull JadxPluginContext context) {
 		context.addCodeInput(this);
 	}
 
