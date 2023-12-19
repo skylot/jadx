@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import jadx.api.plugins.CustomResourcesLoader;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -99,6 +100,7 @@ public final class JadxDecompiler implements Closeable {
 	private final JadxEventsImpl events = new JadxEventsImpl();
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
+	private final List<CustomResourcesLoader> customCustomResourcesLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
 
 	public JadxDecompiler() {
@@ -676,6 +678,15 @@ public final class JadxDecompiler implements Closeable {
 
 	public List<ICodeLoader> getCustomCodeLoaders() {
 		return customCodeLoaders;
+	}
+
+	public void addCustomResourcesLoader(CustomResourcesLoader loader) {
+		if (customCustomResourcesLoaders.contains(loader)) return;
+		customCustomResourcesLoaders.add(loader);
+	}
+
+	public List<CustomResourcesLoader> getCustomResourcesLoaders() {
+		return customCustomResourcesLoaders;
 	}
 
 	public void addCustomPass(JadxPass pass) {

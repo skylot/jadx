@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import jadx.api.plugins.CustomResourcesLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,6 +141,20 @@ public final class ResourcesLoader {
 		if (file == null || file.isDirectory()) {
 			return;
 		}
+
+		// Try to decode the resources with a custom decoder first
+		for (CustomResourcesLoader decoder : jadxRef.getCustomResourcesLoaders()) {
+			if (decoder.load(this, list, file)) {
+				LOG.debug("Custom decoder used for {}", file.getAbsolutePath());
+				return;
+			}
+		}
+
+		// If no custom decoder was able to decode the resources, use the default decoder
+		defaultLoadFile(list, file);
+	}
+
+	public void defaultLoadFile(List<ResourceFile> list, File file) {
 		if (FileUtils.isZipFile(file)) {
 			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
 				addEntry(list, file, entry);
