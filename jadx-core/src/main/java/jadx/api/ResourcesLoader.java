@@ -142,10 +142,10 @@ public final class ResourcesLoader {
 			return;
 		}
 
-		// Try to decode the resources with a custom decoder first
-		for (CustomResourcesLoader decoder : jadxRef.getCustomResourcesLoaders()) {
-			if (decoder.load(this, list, file)) {
-				LOG.debug("Custom decoder used for {}", file.getAbsolutePath());
+		// Try to load the resources with a custom loader first
+		for (CustomResourcesLoader loader : jadxRef.getCustomResourcesLoaders()) {
+			if (loader.load(this, list, file)) {
+				LOG.debug("Custom loader used for {}", file.getAbsolutePath());
 				return;
 			}
 		}
