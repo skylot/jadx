@@ -3,8 +3,6 @@ package jadx.plugins.input.javaconvert;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
@@ -22,7 +20,7 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	private final JavaConvertLoader loader = new JavaConvertLoader(options);
 
 	@Override
-	public @NotNull JadxPluginInfo getPluginInfo() {
+	public JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(
 				PLUGIN_ID,
 				"Java Convert",
@@ -31,13 +29,13 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	}
 
 	@Override
-	public void init(@NotNull JadxPluginContext context) {
+	public void init(JadxPluginContext context) {
 		context.registerOptions(options);
 		context.addCodeInput(this);
 	}
 
 	@Override
-	public @NotNull ICodeLoader loadFiles(@NotNull List<Path> input) {
+	public ICodeLoader loadFiles(List<Path> input) {
 		ConvertResult result = loader.process(input);
 		if (result.isEmpty()) {
 			result.close();

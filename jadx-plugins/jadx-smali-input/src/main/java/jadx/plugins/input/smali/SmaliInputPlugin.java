@@ -3,8 +3,6 @@ package jadx.plugins.input.smali;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
@@ -18,17 +16,17 @@ public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
 	private final DexInputPlugin dexInput = new DexInputPlugin();
 
 	@Override
-	public @NotNull JadxPluginInfo getPluginInfo() {
+	public JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo("smali-input", "Smali Input", "Load .smali files");
 	}
 
 	@Override
-	public void init(@NotNull JadxPluginContext context) {
+	public void init(JadxPluginContext context) {
 		context.addCodeInput(this);
 	}
 
 	@Override
-	public @NotNull ICodeLoader loadFiles(@NotNull List<Path> input) {
+	public ICodeLoader loadFiles(List<Path> input) {
 		SmaliConvert convert = new SmaliConvert();
 		if (!convert.execute(input)) {
 			return EmptyCodeLoader.INSTANCE;

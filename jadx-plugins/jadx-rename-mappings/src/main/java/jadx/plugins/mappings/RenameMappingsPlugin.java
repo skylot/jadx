@@ -3,8 +3,6 @@ package jadx.plugins.mappings;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.jetbrains.annotations.NotNull;
-
 import jadx.api.JadxArgs;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.JadxPlugin;
@@ -21,12 +19,12 @@ public class RenameMappingsPlugin implements JadxPlugin {
 	private final RenameMappingsOptions options = new RenameMappingsOptions();
 
 	@Override
-	public @NotNull JadxPluginInfo getPluginInfo() {
+	public JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo(PLUGIN_ID, "Rename Mappings", "various mappings support");
 	}
 
 	@Override
-	public void init(@NotNull JadxPluginContext context) {
+	public void init(JadxPluginContext context) {
 		context.registerOptions(options);
 		JadxArgs args = context.getArgs();
 		if (args.getUserRenamesMappingsMode() == UserRenamesMappingsMode.IGNORE) {
