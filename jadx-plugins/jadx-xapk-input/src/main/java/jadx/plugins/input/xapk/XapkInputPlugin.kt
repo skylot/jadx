@@ -11,15 +11,15 @@ class XapkInputPlugin : JadxPlugin {
 	internal var dexInputPlugin: DexInputPlugin? = null
 
 	override fun getPluginInfo() = JadxPluginInfo(
-			"xapk-input",
-			"XAPK Input",
-			"Load .xapk files"
+		"xapk-input",
+		"XAPK Input",
+		"Load .xapk files",
 	)
 
 	override fun init(context: JadxPluginContext) {
 		dexInputPlugin = context.decompiler.pluginManager.allPluginContexts
-				.map { it.plugin }
-				.firstOrNull { it is DexInputPlugin } as? DexInputPlugin
+			.map { it.plugin }
+			.firstOrNull { it is DexInputPlugin } as? DexInputPlugin
 
 		context.addCodeInput(codeInput)
 		context.decompiler.addCustomResourcesLoader(resourcesLoader)

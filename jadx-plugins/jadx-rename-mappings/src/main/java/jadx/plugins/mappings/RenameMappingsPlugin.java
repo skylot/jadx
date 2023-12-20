@@ -3,6 +3,8 @@ package jadx.plugins.mappings;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.jetbrains.annotations.NotNull;
+
 import jadx.api.JadxArgs;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.plugins.JadxPlugin;
@@ -12,7 +14,6 @@ import jadx.core.utils.files.FileUtils;
 import jadx.plugins.mappings.load.ApplyMappingsPass;
 import jadx.plugins.mappings.load.CodeMappingsPass;
 import jadx.plugins.mappings.load.LoadMappingsPass;
-import org.jetbrains.annotations.NotNull;
 
 public class RenameMappingsPlugin implements JadxPlugin {
 	public static final String PLUGIN_ID = "rename-mappings";

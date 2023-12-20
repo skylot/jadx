@@ -1,11 +1,12 @@
 package jadx.api.plugins;
 
-import jadx.api.ResourceFile;
-import jadx.api.ResourcesLoader;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import jadx.api.ResourceFile;
+import jadx.api.ResourcesLoader;
 
 public interface CustomResourcesLoader {
 	/**

@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import jadx.api.plugins.CustomResourcesLoader;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -29,6 +28,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
+import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.input.ICodeLoader;
@@ -681,7 +681,8 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	public void addCustomResourcesLoader(CustomResourcesLoader loader) {
-		if (customCustomResourcesLoaders.contains(loader)) return;
+		if (customCustomResourcesLoaders.contains(loader))
+			return;
 		customCustomResourcesLoaders.add(loader);
 	}
 

@@ -1,8 +1,9 @@
 package jadx.api.plugins;
 
+import org.jetbrains.annotations.NotNull;
+
 import jadx.api.plugins.pass.types.JadxAfterLoadPass;
 import jadx.api.plugins.pass.types.JadxPreparePass;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Base interface for all jadx plugins

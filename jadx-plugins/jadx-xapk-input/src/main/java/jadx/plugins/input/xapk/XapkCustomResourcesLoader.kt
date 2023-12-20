@@ -22,7 +22,7 @@ class XapkCustomResourcesLoader : CustomResourcesLoader {
 					}
 					loader.defaultLoadFile(list, tmpFile)
 					// TODO: how to handle tmpFile deletion?
-//					CommonFileUtils.safeDeleteFile(tmpFile)
+// 					CommonFileUtils.safeDeleteFile(tmpFile)
 				}
 			}
 		}

@@ -10,7 +10,7 @@ import java.nio.file.Path
 import java.util.zip.ZipFile
 
 class XapkCustomCodeInput(
-		private val plugin: XapkInputPlugin,
+	private val plugin: XapkInputPlugin,
 ) : JadxCodeInput {
 	override fun loadFiles(input: List<Path>): ICodeLoader {
 		val dexInputPlugin = plugin.dexInputPlugin ?: return EmptyCodeLoader.INSTANCE
