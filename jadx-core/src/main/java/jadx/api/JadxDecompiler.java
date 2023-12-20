@@ -172,6 +172,7 @@ public final class JadxDecompiler implements Closeable {
 	public void close() {
 		reset();
 		closeInputs();
+		closeLoaders();
 		args.close();
 	}
 
@@ -184,6 +185,17 @@ public final class JadxDecompiler implements Closeable {
 			}
 		});
 		loadedInputs.clear();
+	}
+
+	private void closeLoaders() {
+		for (CustomResourcesLoader resourcesLoader : customCustomResourcesLoaders) {
+			try {
+				resourcesLoader.close();
+			} catch (Exception e) {
+				LOG.error("Failed to close resource loader: " + resourcesLoader, e);
+			}
+		}
+		customCustomResourcesLoaders.clear();
 	}
 
 	private void loadPlugins() {
@@ -681,8 +693,9 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	public void addCustomResourcesLoader(CustomResourcesLoader loader) {
-		if (customCustomResourcesLoaders.contains(loader))
+		if (customCustomResourcesLoaders.contains(loader)) {
 			return;
+		}
 		customCustomResourcesLoaders.add(loader);
 	}
 

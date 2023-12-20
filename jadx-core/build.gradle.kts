@@ -18,7 +18,6 @@ dependencies {
 	testRuntimeOnly(project(":jadx-plugins:jadx-java-convert"))
 	testRuntimeOnly(project(":jadx-plugins:jadx-java-input"))
 	testRuntimeOnly(project(":jadx-plugins:jadx-raung-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-xapk-input"))
 
 	testImplementation("org.eclipse.jdt:ecj") {
 		version {

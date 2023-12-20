@@ -32,7 +32,6 @@ public class DexFileLoader {
 
 	public DexFileLoader(DexInputOptions options) {
 		this.options = options;
-		resetDexUniqId();
 	}
 
 	public List<DexReader> collectDexFiles(List<Path> pathsList) {

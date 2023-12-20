@@ -1,12 +1,13 @@
 package jadx.api.plugins;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.List;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourcesLoader;
 
-public interface CustomResourcesLoader {
+public interface CustomResourcesLoader extends Closeable {
 	/**
 	 * Load resources from file to list of ResourceFile
 	 *

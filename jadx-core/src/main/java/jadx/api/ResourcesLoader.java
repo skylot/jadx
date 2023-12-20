@@ -151,13 +151,13 @@ public final class ResourcesLoader {
 		}
 
 		// If no custom decoder was able to decode the resources, use the default decoder
-		defaultLoadFile(list, file);
+		defaultLoadFile(list, file, "");
 	}
 
-	public void defaultLoadFile(List<ResourceFile> list, File file) {
+	public void defaultLoadFile(List<ResourceFile> list, File file, String subDir) {
 		if (FileUtils.isZipFile(file)) {
 			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
-				addEntry(list, file, entry);
+				addEntry(list, file, entry, subDir);
 				return null;
 			});
 		} else {
@@ -166,13 +166,13 @@ public final class ResourcesLoader {
 		}
 	}
 
-	private void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry) {
+	public void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry, String subDir) {
 		if (entry.isDirectory()) {
 			return;
 		}
 		String name = entry.getName();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, name, type);
+		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, subDir + name, type);
 		if (rf != null) {
 			rf.setZipRef(new ZipRef(zipFile, name));
 			list.add(rf);
