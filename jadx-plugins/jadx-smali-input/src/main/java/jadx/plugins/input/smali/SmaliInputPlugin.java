@@ -27,7 +27,7 @@ public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
 	}
 
 	@Override
-	public ICodeLoader loadFiles(List<Path> input) {
+	public @NotNull ICodeLoader loadFiles(@NotNull List<Path> input) {
 		SmaliConvert convert = new SmaliConvert();
 		if (!convert.execute(input)) {
 			return EmptyCodeLoader.INSTANCE;

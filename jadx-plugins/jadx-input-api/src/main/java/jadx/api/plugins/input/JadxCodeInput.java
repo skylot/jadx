@@ -1,8 +1,10 @@
 package jadx.api.plugins.input;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 import java.util.List;
 
 public interface JadxCodeInput {
-	ICodeLoader loadFiles(List<Path> input);
+	@NotNull ICodeLoader loadFiles(@NotNull List<Path> input);
 }

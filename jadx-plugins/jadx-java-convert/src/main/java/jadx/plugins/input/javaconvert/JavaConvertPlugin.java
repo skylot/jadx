@@ -36,7 +36,7 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	}
 
 	@Override
-	public ICodeLoader loadFiles(List<Path> input) {
+	public @NotNull ICodeLoader loadFiles(@NotNull List<Path> input) {
 		ConvertResult result = loader.process(input);
 		if (result.isEmpty()) {
 			result.close();
