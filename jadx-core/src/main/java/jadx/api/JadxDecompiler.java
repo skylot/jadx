@@ -28,6 +28,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
+import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.input.ICodeLoader;
@@ -99,6 +100,7 @@ public final class JadxDecompiler implements Closeable {
 	private final JadxEventsImpl events = new JadxEventsImpl();
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
+	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
 
 	public JadxDecompiler() {
@@ -170,6 +172,7 @@ public final class JadxDecompiler implements Closeable {
 	public void close() {
 		reset();
 		closeInputs();
+		closeLoaders();
 		args.close();
 	}
 
@@ -182,6 +185,17 @@ public final class JadxDecompiler implements Closeable {
 			}
 		});
 		loadedInputs.clear();
+	}
+
+	private void closeLoaders() {
+		for (CustomResourcesLoader resourcesLoader : customResourcesLoaders) {
+			try {
+				resourcesLoader.close();
+			} catch (Exception e) {
+				LOG.error("Failed to close resource loader: " + resourcesLoader, e);
+			}
+		}
+		customResourcesLoaders.clear();
 	}
 
 	private void loadPlugins() {
@@ -676,6 +690,17 @@ public final class JadxDecompiler implements Closeable {
 
 	public List<ICodeLoader> getCustomCodeLoaders() {
 		return customCodeLoaders;
+	}
+
+	public void addCustomResourcesLoader(CustomResourcesLoader loader) {
+		if (customResourcesLoaders.contains(loader)) {
+			return;
+		}
+		customResourcesLoaders.add(loader);
+	}
+
+	public List<CustomResourcesLoader> getCustomResourcesLoaders() {
+		return customResourcesLoaders;
 	}
 
 	public void addCustomPass(JadxPass pass) {
