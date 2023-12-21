@@ -10,5 +10,5 @@ dependencies {
 	implementation("com.android.tools.smali:smali:3.0.3") {
 		exclude(group = "com.beust", module = "jcommander") // exclude old jcommander namespace
 	}
-	implementation("com.google.guava:guava:32.1.3-jre") // force the latest version for smali
+	implementation("com.google.guava:guava:33.0.0-jre") // force the latest version for smali
 }

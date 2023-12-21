@@ -21,8 +21,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.0.1")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.0.1")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.1.0")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.1.0")
 
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.4.14")
