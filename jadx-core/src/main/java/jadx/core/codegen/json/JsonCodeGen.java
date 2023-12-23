@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -77,11 +76,14 @@ public class JsonCodeGen {
 		}
 		jsonCls.setType(getClassTypeStr(cls));
 		jsonCls.setAccessFlags(cls.getAccessFlags().rawValue());
-		if (!Objects.equals(cls.getSuperClass(), ArgType.OBJECT)) {
-			jsonCls.setSuperClass(getTypeAlias(cls.getSuperClass()));
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null
+				&& !superClass.equals(ArgType.OBJECT)
+				&& !cls.contains(AFlag.REMOVE_SUPER_CLASS)) {
+			jsonCls.setSuperClass(getTypeAlias(classGen, superClass));
 		}
 		if (!cls.getInterfaces().isEmpty()) {
-			jsonCls.setInterfaces(Utils.collectionMap(cls.getInterfaces(), this::getTypeAlias));
+			jsonCls.setInterfaces(Utils.collectionMap(cls.getInterfaces(), clsType -> getTypeAlias(classGen, clsType)));
 		}
 
 		ICodeWriter cw = new SimpleCodeWriter();
@@ -148,8 +150,8 @@ public class JsonCodeGen {
 				jsonMth.setAlias(mth.getAlias());
 			}
 			jsonMth.setSignature(mth.getMethodInfo().getShortId());
-			jsonMth.setReturnType(getTypeAlias(mth.getReturnType()));
-			jsonMth.setArguments(Utils.collectionMap(mth.getMethodInfo().getArgumentsTypes(), this::getTypeAlias));
+			jsonMth.setReturnType(getTypeAlias(classGen, mth.getReturnType()));
+			jsonMth.setArguments(Utils.collectionMap(mth.getMethodInfo().getArgumentsTypes(), clsType -> getTypeAlias(classGen, clsType)));
 
 			MethodGen mthGen = new MethodGen(classGen, mth);
 			ICodeWriter cw = new AnnotatedCodeWriter();
@@ -205,15 +207,10 @@ public class JsonCodeGen {
 		return codeLines;
 	}
 
-	private String getTypeAlias(ArgType clsType) {
-		if (Objects.equals(clsType, ArgType.OBJECT)) {
-			return ArgType.OBJECT.getObject();
-		}
-		if (clsType.isObject()) {
-			ClassInfo classInfo = ClassInfo.fromType(root, clsType);
-			return classInfo.getAliasFullName();
-		}
-		return clsType.toString();
+	private String getTypeAlias(ClassGen classGen, ArgType clsType) {
+		ICodeWriter code = new SimpleCodeWriter();
+		classGen.useType(code, clsType);
+		return code.getCodeStr();
 	}
 
 	private String getClassTypeStr(ClassNode cls) {
