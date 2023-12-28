@@ -1,7 +1,9 @@
 package jadx.plugins.tools.data;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class JadxInstalledPlugins {
 
@@ -23,5 +25,11 @@ public class JadxInstalledPlugins {
 
 	public void setInstalled(List<JadxPluginMetadata> installed) {
 		this.installed = installed;
+	}
+
+	public void addInstalled(List<JadxPluginMetadata> installed) {
+		Set<JadxPluginMetadata> installedSet = new LinkedHashSet<>(this.installed);
+		installedSet.addAll(installed);
+		this.installed = new ArrayList<>(installedSet);
 	}
 }

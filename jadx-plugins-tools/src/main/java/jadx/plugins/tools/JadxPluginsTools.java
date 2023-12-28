@@ -58,6 +58,7 @@ public class JadxPluginsTools {
 
 	public List<JadxPluginUpdate> updateAll() {
 		JadxInstalledPlugins plugins = loadPluginsJson();
+		plugins.addInstalled(JadxPluginsList.getInstance().get());
 		int size = plugins.getInstalled().size();
 		List<JadxPluginUpdate> updates = new ArrayList<>(size);
 		List<JadxPluginMetadata> newList = new ArrayList<>(size);

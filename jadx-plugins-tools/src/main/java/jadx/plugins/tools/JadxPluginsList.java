@@ -25,6 +25,7 @@ import jadx.plugins.tools.resolvers.github.LocationInfo;
 import jadx.plugins.tools.resolvers.github.data.Asset;
 import jadx.plugins.tools.resolvers.github.data.Release;
 import jadx.plugins.tools.utils.PluginUtils;
+import jadx.plugins.tools.resolvers.github.GithubReleaseResolver;
 
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_LIST_CACHE;
 
@@ -132,6 +133,7 @@ public class JadxPluginsList {
 	private static List<JadxPluginMetadata> loadListBundle(Path tmpListFile) {
 		Gson gson = new Gson();
 		List<JadxPluginMetadata> entries = new ArrayList<>();
+
 		ZipSecurity.readZipEntries(tmpListFile.toFile(), (entry, in) -> {
 			if (entry.getName().endsWith(".json")) {
 				try (Reader reader = new InputStreamReader(in)) {
@@ -141,6 +143,11 @@ public class JadxPluginsList {
 				}
 			}
 		});
+
+		for (JadxPluginMetadata plugin : entries) {
+			plugin.setResolverId(new GithubReleaseResolver().id());
+		}
+
 		return entries;
 	}
 }

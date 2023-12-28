@@ -17,6 +17,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
+import jadx.plugins.tools.JadxPluginsTools;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);
@@ -42,6 +43,8 @@ public class JadxGUI {
 				mw.init();
 				registerOpenFileHandler(mw);
 			});
+
+			JadxPluginsTools.getInstance().updateAll();
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);
