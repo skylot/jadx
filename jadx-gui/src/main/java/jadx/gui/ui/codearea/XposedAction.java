@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
 
-import jadx.gui.settings.XposedCodegenLanguage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ import jadx.api.JavaMethod;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.settings.XposedCodegenLanguage;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -88,25 +88,25 @@ public class XposedAction extends JNodeAction {
 		String rawClassName = javaMethod.getDeclaringClass().getRawName();
 		String javaXposedFormatStr =
 				"XposedHelpers.%s(\"%s\", classLoader, %snew XC_MethodHook() {\n"
-				+ "    @Override\n"
-				+ "    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {\n"
-				+ "        super.beforeHookedMethod(param);\n"
-				+ "    }\n"
-				+ "    @Override\n"
-				+ "    protected void afterHookedMethod(MethodHookParam param) throws Throwable {\n"
-				+ "        super.afterHookedMethod(param);\n"
-				+ "    }\n"
-				+ "});";
+						+ "    @Override\n"
+						+ "    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {\n"
+						+ "        super.beforeHookedMethod(param);\n"
+						+ "    }\n"
+						+ "    @Override\n"
+						+ "    protected void afterHookedMethod(MethodHookParam param) throws Throwable {\n"
+						+ "        super.afterHookedMethod(param);\n"
+						+ "    }\n"
+						+ "});";
 		String kotlinXposedFormatStr =
 				"XposedHelpers.%s(\"%s\", classLoader, %sobject : XC_MethodHook() {\n" +
-				"    override fun beforeHookedMethod(param: MethodHookParam) {\n" +
-				"        super.beforeHookedMethod(param)\n" +
-				"    }\n" +
-				"\n" +
-				"    override fun afterHookedMethod(param: MethodHookParam) {\n" +
-				"        super.afterHookedMethod(param)\n" +
-				"    }\n" +
-				"})";
+						"    override fun beforeHookedMethod(param: MethodHookParam) {\n" +
+						"        super.beforeHookedMethod(param)\n" +
+						"    }\n" +
+						"\n" +
+						"    override fun afterHookedMethod(param: MethodHookParam) {\n" +
+						"        super.afterHookedMethod(param)\n" +
+						"    }\n" +
+						"})";
 
 		XposedCodegenLanguage language = getLanguage();
 		String xposedFormatStr;
@@ -147,10 +147,10 @@ public class XposedAction extends JNodeAction {
 
 		String javaXposedFormatStr =
 				"ClassLoader classLoader = lpparam.classLoader;\n" +
-				"Class<?> %sClass = classLoader.loadClass(\"%s\");";
+						"Class<?> %sClass = classLoader.loadClass(\"%s\");";
 		String kotlinXposedFormatStr =
 				"val classLoader = lpparam.classLoader\n" +
-				"val %sClass = classLoader.loadClass(\"%s\")";
+						"val %sClass = classLoader.loadClass(\"%s\")";
 
 		XposedCodegenLanguage language = getLanguage();
 		String xposedFormatStr;
