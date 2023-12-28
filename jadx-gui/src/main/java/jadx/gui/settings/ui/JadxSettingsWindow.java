@@ -38,6 +38,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import jadx.gui.settings.XposedCodegenLanguage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -622,6 +623,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<XposedCodegenLanguage> xposedCodegenLanguage = new JComboBox<>(XposedCodegenLanguage.getEntries().toArray(new XposedCodegenLanguage[0]));
+		xposedCodegenLanguage.setSelectedItem(settings.getXposedCodegenLanguage());
+		xposedCodegenLanguage.addActionListener(e -> {
+			settings.setXposedCodegenLanguage((XposedCodegenLanguage) xposedCodegenLanguage.getSelectedItem());
+			mainWindow.loadSettings();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
 		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
@@ -629,6 +637,7 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
+		group.addRow(NLS.str("preferences.xposed_codegen_language"), xposedCodegenLanguage);
 		return group;
 	}
 
