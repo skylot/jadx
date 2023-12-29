@@ -98,15 +98,15 @@ public class XposedAction extends JNodeAction {
 						+ "    }\n"
 						+ "});";
 		String kotlinXposedFormatStr =
-				"XposedHelpers.%s(\"%s\", classLoader, %sobject : XC_MethodHook() {\n" +
-						"    override fun beforeHookedMethod(param: MethodHookParam) {\n" +
-						"        super.beforeHookedMethod(param)\n" +
-						"    }\n" +
-						"\n" +
-						"    override fun afterHookedMethod(param: MethodHookParam) {\n" +
-						"        super.afterHookedMethod(param)\n" +
-						"    }\n" +
-						"})";
+				"XposedHelpers.%s(\"%s\", classLoader, %sobject : XC_MethodHook() {\n"
+						+ "    override fun beforeHookedMethod(param: MethodHookParam) {\n"
+						+ "        super.beforeHookedMethod(param)\n"
+						+ "    }\n"
+						+ "\n"
+						+ "    override fun afterHookedMethod(param: MethodHookParam) {\n"
+						+ "        super.afterHookedMethod(param)\n"
+						+ "    }\n"
+						+ "})";
 
 		XposedCodegenLanguage language = getLanguage();
 		String xposedFormatStr;
