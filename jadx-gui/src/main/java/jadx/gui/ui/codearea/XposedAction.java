@@ -146,11 +146,11 @@ public class XposedAction extends JNodeAction {
 		String shortClassName = javaClass.getName();
 
 		String javaXposedFormatStr =
-				"ClassLoader classLoader = lpparam.classLoader;\n" +
-						"Class<?> %sClass = classLoader.loadClass(\"%s\");";
+				"ClassLoader classLoader = lpparam.classLoader;\n"
+						+ "Class<?> %sClass = classLoader.loadClass(\"%s\");";
 		String kotlinXposedFormatStr =
-				"val classLoader = lpparam.classLoader\n" +
-						"val %sClass = classLoader.loadClass(\"%s\")";
+				"val classLoader = lpparam.classLoader\n"
+						+ "val %sClass = classLoader.loadClass(\"%s\")";
 
 		XposedCodegenLanguage language = getLanguage();
 		String xposedFormatStr;
