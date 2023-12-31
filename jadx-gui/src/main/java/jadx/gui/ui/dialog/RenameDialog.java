@@ -15,6 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +43,11 @@ public class RenameDialog extends JDialog {
 	private transient JButton renameBtn;
 
 	public static boolean rename(MainWindow mainWindow, JRenameNode node) {
-		RenameDialog renameDialog = new RenameDialog(mainWindow, node);
-		UiUtils.uiRun(() -> renameDialog.setVisible(true));
-		UiUtils.uiRun(renameDialog::initRenameField); // wait for UI events to propagate
+		SwingUtilities.invokeLater(() -> {
+			RenameDialog renameDialog = new RenameDialog(mainWindow, node);
+			renameDialog.initRenameField();
+			renameDialog.setVisible(true);
+		});
 		return true;
 	}
 
