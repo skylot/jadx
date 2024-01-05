@@ -15,6 +15,7 @@ import jadx.api.JavaMethod;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.settings.XposedCodegenLanguage;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -85,16 +86,40 @@ public class XposedAction extends JNodeAction {
 			methodName = "\"" + mth.getMethodInfo().getName() + "\", ";
 		}
 		String rawClassName = javaMethod.getDeclaringClass().getRawName();
-		String xposedFormatStr = "XposedHelpers.%s(\"%s\", classLoader, %snew XC_MethodHook() {\n"
-				+ "    @Override\n"
-				+ "    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {\n"
-				+ "        super.beforeHookedMethod(param);\n"
-				+ "    }\n"
-				+ "    @Override\n"
-				+ "    protected void afterHookedMethod(MethodHookParam param) throws Throwable {\n"
-				+ "        super.afterHookedMethod(param);\n"
-				+ "    }\n"
-				+ "});";
+		String javaXposedFormatStr =
+				"XposedHelpers.%s(\"%s\", classLoader, %snew XC_MethodHook() {\n"
+						+ "    @Override\n"
+						+ "    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {\n"
+						+ "        super.beforeHookedMethod(param);\n"
+						+ "    }\n"
+						+ "    @Override\n"
+						+ "    protected void afterHookedMethod(MethodHookParam param) throws Throwable {\n"
+						+ "        super.afterHookedMethod(param);\n"
+						+ "    }\n"
+						+ "});";
+		String kotlinXposedFormatStr =
+				"XposedHelpers.%s(\"%s\", classLoader, %sobject : XC_MethodHook() {\n"
+						+ "    override fun beforeHookedMethod(param: MethodHookParam) {\n"
+						+ "        super.beforeHookedMethod(param)\n"
+						+ "    }\n"
+						+ "\n"
+						+ "    override fun afterHookedMethod(param: MethodHookParam) {\n"
+						+ "        super.afterHookedMethod(param)\n"
+						+ "    }\n"
+						+ "})";
+
+		XposedCodegenLanguage language = getLanguage();
+		String xposedFormatStr;
+		switch (language) {
+			case JAVA:
+				xposedFormatStr = javaXposedFormatStr;
+				break;
+			case KOTLIN:
+				xposedFormatStr = kotlinXposedFormatStr;
+				break;
+			default:
+				throw new JadxRuntimeException("Invalid Xposed code generation language: " + language);
+		}
 
 		List<ArgType> mthArgs = mth.getArgTypes();
 		if (mthArgs.isEmpty()) {
@@ -119,9 +144,28 @@ public class XposedAction extends JNodeAction {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
-		return String.format("ClassLoader classLoader = lpparam.classLoader;\n"
-				+ "Class<?> %sClass = classLoader.loadClass(\"%s\");",
-				shortClassName, rawClassName);
+
+		String javaXposedFormatStr =
+				"ClassLoader classLoader = lpparam.classLoader;\n"
+						+ "Class<?> %sClass = classLoader.loadClass(\"%s\");";
+		String kotlinXposedFormatStr =
+				"val classLoader = lpparam.classLoader\n"
+						+ "val %sClass = classLoader.loadClass(\"%s\")";
+
+		XposedCodegenLanguage language = getLanguage();
+		String xposedFormatStr;
+		switch (language) {
+			case JAVA:
+				xposedFormatStr = javaXposedFormatStr;
+				break;
+			case KOTLIN:
+				xposedFormatStr = kotlinXposedFormatStr;
+				break;
+			default:
+				throw new JadxRuntimeException("Invalid Xposed code generation language: " + language);
+		}
+
+		return String.format(xposedFormatStr, shortClassName, rawClassName);
 	}
 
 	private String generateFieldSnippet(JField jf) {
@@ -129,6 +173,29 @@ public class XposedAction extends JNodeAction {
 		String isStatic = javaField.getAccessFlags().isStatic() ? "Static" : "";
 		String type = PRIMITIVE_TYPE_MAPPING.getOrDefault(javaField.getFieldNode().getType().toString(), "Object");
 		String xposedMethod = "XposedHelpers.get" + isStatic + type + "Field";
-		return String.format("%s(/*runtimeObject*/, \"%s\");", xposedMethod, javaField.getFieldNode().getFieldInfo().getName());
+
+		String javaXposedFormatStr =
+				"%s(/*runtimeObject*/, \"%s\");";
+		String kotlinXposedFormatStr =
+				"%s(/*runtimeObject*/, \"%s\")";
+
+		XposedCodegenLanguage language = getLanguage();
+		String xposedFormatStr;
+		switch (language) {
+			case JAVA:
+				xposedFormatStr = javaXposedFormatStr;
+				break;
+			case KOTLIN:
+				xposedFormatStr = kotlinXposedFormatStr;
+				break;
+			default:
+				throw new JadxRuntimeException("Invalid Xposed code generation language: " + language);
+		}
+
+		return String.format(xposedFormatStr, xposedMethod, javaField.getFieldNode().getFieldInfo().getName());
+	}
+
+	private XposedCodegenLanguage getLanguage() {
+		return getCodeArea().getMainWindow().getSettings().getXposedCodegenLanguage();
 	}
 }
