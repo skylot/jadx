@@ -21,8 +21,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.1.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.1.0")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.1.1")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.1.1")
 
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.4.14")
@@ -32,9 +32,9 @@ dependencies {
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.2.5")
-	implementation("com.formdev:flatlaf-intellij-themes:3.2.5")
-	implementation("com.formdev:flatlaf-extras:3.2.5")
+	implementation("com.formdev:flatlaf:3.3")
+	implementation("com.formdev:flatlaf-intellij-themes:3.3")
+	implementation("com.formdev:flatlaf-extras:3.3")
 
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.14.0")
@@ -43,7 +43,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.2.0")
+	implementation("com.android.tools.build:apksig:8.2.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
