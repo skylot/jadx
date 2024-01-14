@@ -644,14 +644,13 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void removeUnreachableBlocks(MethodNode mth) {
-		Set<BlockNode> toRemove = null;
+		Set<BlockNode> toRemove = new LinkedHashSet<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				toRemove = new LinkedHashSet<>();
 				BlockSplitter.collectSuccessors(block, mth.getEnterBlock(), toRemove);
 			}
 		}
-		if (toRemove == null || toRemove.isEmpty()) {
+		if (toRemove.isEmpty()) {
 			return;
 		}
 
