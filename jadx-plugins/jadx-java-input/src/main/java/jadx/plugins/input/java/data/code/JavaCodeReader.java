@@ -70,12 +70,11 @@ public class JavaCodeReader implements ICodeReader {
 			if (insnInfo == null) {
 				throw new JavaClassParseException("Unknown opcode: 0x" + Integer.toHexString(opcode));
 			}
-			insn.setInsnInfo(insnInfo);
+			insn.setOpcodeUnit(opcode);
 			insn.setInsnInfo(insnInfo);
 			insn.setRegsCount(insnInfo.getRegsCount());
 			insn.setOpcode(insnInfo.getApiOpcode());
 			insn.setPayloadSize(insnInfo.getPayloadSize());
-			insn.setOpcodeUnit(opcode);
 			insn.setPayload(null);
 
 			state.onInsn(offset);

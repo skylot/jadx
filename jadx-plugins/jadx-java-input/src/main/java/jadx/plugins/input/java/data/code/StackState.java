@@ -44,6 +44,14 @@ public class StackState {
 		return SVType.NARROW;
 	}
 
+	public int insert(int at, SVType type) {
+		int p = pos - at;
+		System.arraycopy(stack, p, stack, p + 1, at);
+		stack[p] = type;
+		pos++;
+		return p;
+	}
+
 	public int push(SVType type) {
 		int p = ++pos;
 		if (checkStackIndex(p)) {

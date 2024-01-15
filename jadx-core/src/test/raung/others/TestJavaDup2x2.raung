@@ -1,0 +1,24 @@
+.version 45.3
+.class others/TestJavaDup2x2
+
+.auto frames
+
+.method public static test([D)V
+    aload 0
+    iconst_0
+    aload 0
+    iconst_1
+    aload 0
+    iconst_2
+    aload 0
+    iconst_3
+    ldc2_w 127.5
+    dup2_x2
+    dastore
+    dup2_x2
+    dastore
+    dup2_x2
+    dastore
+    dastore
+	return
+.end method

@@ -158,21 +158,8 @@ public class JavaInsnsRegister {
 				s.peek(1).push(0, s.peekType(1));
 			}
 		});
-		register(arr, 0x5d, "dup2_x1", 0, 10, Opcode.MOVE_MULTI,
-				s -> {
-					if (s.peekType(0) == NARROW) {
-						s.push(0, NARROW).peekFrom(2, 1)
-								.push(2, NARROW).peekFrom(2, 3)
-								.peekFrom(2, 4).peekFrom(4, 5)
-								.peekFrom(3, 6).peekFrom(0, 7)
-								.peekFrom(4, 8).peekFrom(1, 9);
-					} else {
-						s.insn().setRegsCount(6);
-						s.push(0, WIDE).peekFrom(1, 1)
-								.peekFrom(1, 2).peekFrom(2, 3)
-								.peekFrom(2, 4).peekFrom(0, 5);
-					}
-				});
+		register(arr, 0x5d, "dup2_x1", 0, 10, Opcode.MOVE_MULTI, JavaInsnsRegister::dup2x1);
+		register(arr, 0x5e, "dup2_x2", 0, 12, Opcode.MOVE_MULTI, JavaInsnsRegister::dup2x2);
 		register(arr, 0x5f, "swap", 0, 6, Opcode.MOVE_MULTI,
 				s -> s.peekFrom(-1, 0).peekFrom(1, 1)
 						.peekFrom(1, 2).peekFrom(0, 3)
@@ -307,6 +294,44 @@ public class JavaInsnsRegister {
 		register(arr, 0xc7, "ifnonnull", 2, 1, Opcode.IF_NEZ, zeroCmp());
 
 		register(arr, 0xc8, "goto_w", 4, 0, Opcode.GOTO, s -> s.jump(s.reader().readS4()));
+	}
+
+	private static void dup2x1(CodeDecodeState s) {
+		if (s.peekType(0) == NARROW) {
+			s.insert(2, NARROW);
+			s.insert(2, NARROW);
+			s.peekFrom(0, 0).peekFrom(2, 1);
+			s.peekFrom(1, 2).peekFrom(3, 3);
+			s.peekFrom(2, 4).peekFrom(4, 5);
+			s.peekFrom(3, 6).peekFrom(0, 7);
+			s.peekFrom(4, 8).peekFrom(1, 9);
+		} else {
+			s.insn().setRegsCount(6);
+			s.insert(2, WIDE);
+			s.peekFrom(0, 0).peekFrom(1, 1);
+			s.peekFrom(1, 2).peekFrom(2, 3);
+			s.peekFrom(2, 4).peekFrom(0, 5);
+		}
+	}
+
+	private static void dup2x2(CodeDecodeState s) {
+		if (s.peekType(0) == NARROW) {
+			s.insert(2, NARROW);
+			s.insert(2, NARROW);
+			s.peekFrom(0, 0).peekFrom(2, 1);
+			s.peekFrom(1, 2).peekFrom(3, 3);
+			s.peekFrom(2, 4).peekFrom(4, 5);
+			s.peekFrom(3, 6).peekFrom(5, 7);
+			s.peekFrom(4, 8).peekFrom(0, 9);
+			s.peekFrom(5, 10).peekFrom(1, 11);
+		} else {
+			s.insn().setRegsCount(8);
+			s.insert(2, WIDE);
+			s.peekFrom(0, 0).peekFrom(1, 1);
+			s.peekFrom(1, 2).peekFrom(2, 3);
+			s.peekFrom(2, 4).peekFrom(3, 5);
+			s.peekFrom(3, 6).peekFrom(0, 7);
+		}
 	}
 
 	private static IJavaInsnDecoder newArrayMulti() {
