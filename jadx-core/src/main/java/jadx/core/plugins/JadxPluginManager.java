@@ -25,6 +25,7 @@ public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
 
 	private final JadxDecompiler decompiler;
+	private final JadxPluginsData pluginsData;
 	private final SortedSet<PluginContext> allPlugins = new TreeSet<>();
 	private final SortedSet<PluginContext> resolvedPlugins = new TreeSet<>();
 	private final Map<String, String> provideSuggestions = new TreeMap<>();
@@ -33,6 +34,7 @@ public class JadxPluginManager {
 
 	public JadxPluginManager(JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
+		this.pluginsData = new JadxPluginsData(decompiler, this);
 	}
 
 	/**
@@ -58,7 +60,7 @@ public class JadxPluginManager {
 	}
 
 	private PluginContext addPlugin(JadxPlugin plugin) {
-		PluginContext pluginContext = new PluginContext(decompiler, plugin);
+		PluginContext pluginContext = new PluginContext(decompiler, pluginsData, plugin);
 		LOG.debug("Loading plugin: {}", pluginContext);
 		if (!allPlugins.add(pluginContext)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginContext + ", class " + plugin.getClass());

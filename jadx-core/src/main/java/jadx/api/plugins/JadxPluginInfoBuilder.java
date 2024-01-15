@@ -11,12 +11,16 @@ public class JadxPluginInfoBuilder {
 	private String homepage = "";
 	private @Nullable String provides;
 
-	public JadxPluginInfoBuilder() {
+	/**
+	 * Start building method
+	 */
+	public static JadxPluginInfoBuilder pluginId(String pluginId) {
+		JadxPluginInfoBuilder builder = new JadxPluginInfoBuilder();
+		builder.pluginId = Objects.requireNonNull(pluginId);
+		return builder;
 	}
 
-	public JadxPluginInfoBuilder pluginId(String pluginId) {
-		this.pluginId = Objects.requireNonNull(pluginId);
-		return this;
+	private JadxPluginInfoBuilder() {
 	}
 
 	public JadxPluginInfoBuilder name(String name) {

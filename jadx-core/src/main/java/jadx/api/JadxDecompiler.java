@@ -46,6 +46,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleTask;
 import jadx.core.plugins.JadxPluginManager;
+import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
@@ -147,10 +148,16 @@ public final class JadxDecompiler implements Closeable {
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		long start = System.currentTimeMillis();
-		for (JadxCodeInput codeLoader : pluginManager.getCodeInputs()) {
-			ICodeLoader loader = codeLoader.loadFiles(inputFiles);
-			if (loader != null && !loader.isEmpty()) {
-				loadedInputs.add(loader);
+		for (PluginContext plugin : pluginManager.getResolvedPluginContexts()) {
+			for (JadxCodeInput codeLoader : plugin.getCodeInputs()) {
+				try {
+					ICodeLoader loader = codeLoader.loadFiles(inputFiles);
+					if (loader != null && !loader.isEmpty()) {
+						loadedInputs.add(loader);
+					}
+				} catch (Exception e) {
+					throw new JadxRuntimeException("Failed to load code for plugin: " + plugin, e);
+				}
 			}
 		}
 		loadedInputs.addAll(customCodeLoaders);

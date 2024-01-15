@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.plugins.data.IJadxPlugins;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
@@ -32,10 +33,18 @@ public interface JadxPluginContext {
 	void registerInputsHashSupplier(Supplier<String> supplier);
 
 	/**
+	 * Access to jadx-gui specific methods
+	 */
+	@Nullable
+	JadxGuiContext getGuiContext();
+
+	/**
 	 * Subscribe and send events
 	 */
 	IJadxEvents events();
 
-	@Nullable
-	JadxGuiContext getGuiContext();
+	/**
+	 * Access to registered plugins and runtime data
+	 */
+	IJadxPlugins plugins();
 }
