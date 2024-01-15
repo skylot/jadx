@@ -5,5 +5,5 @@ plugins {
 dependencies {
 	api(project(":jadx-core"))
 
-	implementation("io.github.skylot:raung-asm:0.1.0")
+	implementation("io.github.skylot:raung-asm:0.1.1")
 }

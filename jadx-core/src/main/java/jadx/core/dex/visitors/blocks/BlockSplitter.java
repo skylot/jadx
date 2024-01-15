@@ -28,7 +28,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockSplitter extends AbstractVisitor {
 
-	// leave these instructions alone in block node
+	/**
+	 * Leave these instructions alone in the block node
+	 */
 	private static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
 			InsnType.RETURN,
 			InsnType.IF,
@@ -42,6 +44,18 @@ public class BlockSplitter extends AbstractVisitor {
 		return SEPARATE_INSNS.contains(insnType);
 	}
 
+	/**
+	 * Split without connecting to the next block
+	 */
+	private static final Set<InsnType> SPLIT_WITHOUT_CONNECT = EnumSet.of(
+			InsnType.RETURN,
+			InsnType.THROW,
+			InsnType.GOTO,
+			InsnType.IF,
+			InsnType.SWITCH,
+			InsnType.JAVA_JSR,
+			InsnType.JAVA_RET);
+
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
@@ -54,6 +68,10 @@ public class BlockSplitter extends AbstractVisitor {
 		addTempConnectionsForExcHandlers(mth, blocksMap);
 
 		expandMoveMulti(mth);
+		if (mth.contains(AFlag.RESOLVE_JAVA_JSR)) {
+			ResolveJavaJSR.process(mth);
+		}
+
 		removeJumpAttr(mth);
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
@@ -88,27 +106,16 @@ public class BlockSplitter extends AbstractVisitor {
 				curBlock = connectNewBlock(mth, curBlock, insnOffset);
 			} else {
 				InsnType prevType = prevInsn.getType();
-				switch (prevType) {
-					case RETURN:
-					case THROW:
-					case GOTO:
-					case IF:
-					case SWITCH:
-						// split without connect to next block
-						curBlock = startNewBlock(mth, insnOffset);
-						break;
-
-					default:
-						if (isSeparate(prevType)
-								|| isSeparate(insn.getType())
-								|| insn.contains(AFlag.TRY_ENTER)
-								|| prevInsn.contains(AFlag.TRY_LEAVE)
-								|| insn.contains(AType.EXC_HANDLER)
-								|| isSplitByJump(prevInsn, insn)
-								|| isDoWhile(blocksMap, curBlock, insn)) {
-							curBlock = connectNewBlock(mth, curBlock, insnOffset);
-						}
-						break;
+				if (SPLIT_WITHOUT_CONNECT.contains(prevType)) {
+					curBlock = startNewBlock(mth, insnOffset);
+				} else if (isSeparate(prevType)
+						|| isSeparate(insn.getType())
+						|| insn.contains(AFlag.TRY_ENTER)
+						|| prevInsn.contains(AFlag.TRY_LEAVE)
+						|| insn.contains(AType.EXC_HANDLER)
+						|| isSplitByJump(prevInsn, insn)
+						|| isDoWhile(blocksMap, curBlock, insn)) {
+					curBlock = connectNewBlock(mth, curBlock, insnOffset);
 				}
 			}
 			blocksMap.put(insnOffset, curBlock);
@@ -199,6 +206,33 @@ public class BlockSplitter extends AbstractVisitor {
 			toInsns.add(insn.copyWithoutSsa());
 		}
 		to.copyAttributesFrom(from);
+	}
+
+	static List<BlockNode> copyBlocksTree(MethodNode mth, List<BlockNode> blocks) {
+		List<BlockNode> copyBlocks = new ArrayList<>(blocks.size());
+		Map<BlockNode, BlockNode> map = new HashMap<>();
+		for (BlockNode block : blocks) {
+			BlockNode newBlock = startNewBlock(mth, block.getStartOffset());
+			copyBlockData(block, newBlock);
+			copyBlocks.add(newBlock);
+			map.put(block, newBlock);
+		}
+		for (BlockNode block : blocks) {
+			BlockNode newBlock = getNewBlock(block, map);
+			for (BlockNode successor : block.getSuccessors()) {
+				BlockNode newSuccessor = getNewBlock(successor, map);
+				BlockSplitter.connect(newBlock, newSuccessor);
+			}
+		}
+		return copyBlocks;
+	}
+
+	private static BlockNode getNewBlock(BlockNode block, Map<BlockNode, BlockNode> map) {
+		BlockNode newBlock = map.get(block);
+		if (newBlock == null) {
+			throw new JadxRuntimeException("Copy blocks tree failed. Missing block for connection: " + block);
+		}
+		return newBlock;
 	}
 
 	static void replaceTarget(BlockNode source, BlockNode oldTarget, BlockNode newTarget) {

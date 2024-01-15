@@ -104,4 +104,6 @@ public enum AFlag {
 	CLASS_UNLOADED, // class was completely unloaded
 
 	DONT_UNLOAD_CLASS, // don't unload class after code generation (only for tests and debug!)
+
+	RESOLVE_JAVA_JSR,
 }

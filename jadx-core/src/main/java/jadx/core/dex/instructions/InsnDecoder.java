@@ -15,6 +15,7 @@ import jadx.api.plugins.input.insns.custom.IArrayPayload;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
 import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.info.FieldInfo;
@@ -23,6 +24,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.java.JsrNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -331,6 +333,16 @@ public class InsnDecoder {
 
 			case GOTO:
 				return new GotoNode(insn.getTarget());
+
+			case JAVA_JSR:
+				method.add(AFlag.RESOLVE_JAVA_JSR);
+				JsrNode jsr = new JsrNode(insn.getTarget());
+				jsr.setResult(InsnArg.reg(insn, 0, ArgType.UNKNOWN_INT));
+				return jsr;
+
+			case JAVA_RET:
+				method.add(AFlag.RESOLVE_JAVA_JSR);
+				return insn(InsnType.JAVA_RET, null, InsnArg.reg(insn, 0, ArgType.UNKNOWN_INT));
 
 			case THROW:
 				return insn(InsnType.THROW, null, InsnArg.reg(insn, 0, ArgType.THROWABLE));

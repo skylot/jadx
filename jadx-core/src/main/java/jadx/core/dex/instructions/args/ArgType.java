@@ -69,6 +69,8 @@ public abstract class ArgType {
 	public static final ArgType INT_BOOLEAN = unknown(PrimitiveType.INT, PrimitiveType.BOOLEAN);
 	public static final ArgType BYTE_BOOLEAN = unknown(PrimitiveType.BYTE, PrimitiveType.BOOLEAN);
 
+	public static final ArgType UNKNOWN_INT = unknown(PrimitiveType.INT);
+
 	protected int hash;
 
 	private static ArgType primitive(PrimitiveType stype) {

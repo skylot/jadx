@@ -253,6 +253,8 @@ public class JavaInsnsRegister {
 		register(arr, 0xa6, "if_acmpne", 2, 2, Opcode.IF_NE, cmp());
 
 		register(arr, 0xa7, "goto", 2, 0, Opcode.GOTO, s -> s.jump(s.s2()));
+		register(arr, 0xa8, "jsr", 2, 1, Opcode.JAVA_JSR, s -> s.push(0).jump(s.s2()));
+		register(arr, 0xa9, "ret", 1, 1, Opcode.JAVA_RET, s -> s.local(0, s.u1()));
 
 		register(arr, 0xaa, "tableswitch", -1, 1, Opcode.PACKED_SWITCH, new TableSwitchDecoder());
 		register(arr, 0xab, "lookupswitch", -1, 1, Opcode.SPARSE_SWITCH, new LookupSwitchDecoder());
@@ -294,6 +296,7 @@ public class JavaInsnsRegister {
 		register(arr, 0xc7, "ifnonnull", 2, 1, Opcode.IF_NEZ, zeroCmp());
 
 		register(arr, 0xc8, "goto_w", 4, 0, Opcode.GOTO, s -> s.jump(s.reader().readS4()));
+		register(arr, 0xc9, "jsr_w", 4, 1, Opcode.JAVA_JSR, s -> s.push(0).jump(s.reader().readS4()));
 	}
 
 	private static void dup2x1(CodeDecodeState s) {

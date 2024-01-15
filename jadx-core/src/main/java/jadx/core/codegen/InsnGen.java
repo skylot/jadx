@@ -51,6 +51,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.java.JsrNode;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -631,6 +632,17 @@ public class InsnGen {
 					addArg(code, insn.getArg(i + 1));
 					code.add("; ");
 				}
+				break;
+
+			case JAVA_JSR:
+				fallbackOnlyInsn(insn);
+				code.add("jsr -> ").add(MethodGen.getLabelName(((JsrNode) insn).getTarget()));
+				break;
+
+			case JAVA_RET:
+				fallbackOnlyInsn(insn);
+				code.add("ret ");
+				addArg(code, insn.getArg(0));
 				break;
 
 			default:

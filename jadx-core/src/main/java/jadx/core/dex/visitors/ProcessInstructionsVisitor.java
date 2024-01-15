@@ -15,6 +15,7 @@ import jadx.core.dex.instructions.SwitchData;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.java.JsrNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
@@ -71,6 +72,14 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 
 				case GOTO:
 					addJump(mth, insnByOffset, offset, ((GotoNode) insn).getTarget());
+					break;
+
+				case JAVA_JSR:
+					addJump(mth, insnByOffset, offset, ((JsrNode) insn).getTarget());
+					int onRet = getNextInsnOffset(insnByOffset, offset);
+					if (onRet != -1) {
+						addJump(mth, insnByOffset, offset, onRet);
+					}
 					break;
 
 				case INVOKE:

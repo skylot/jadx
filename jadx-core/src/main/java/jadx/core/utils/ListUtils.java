@@ -49,6 +49,14 @@ public class ListUtils {
 		return list.get(list.size() - 1);
 	}
 
+	public static <T> @Nullable T removeLast(List<T> list) {
+		int size = list.size();
+		if (size == 0) {
+			return null;
+		}
+		return list.remove(size - 1);
+	}
+
 	public static <T extends Comparable<T>> List<T> distinctMergeSortedLists(List<T> first, List<T> second) {
 		if (first.isEmpty()) {
 			return second;
