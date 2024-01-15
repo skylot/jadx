@@ -68,7 +68,8 @@ application {
 			// disable zip checks (#1962)
 			"-Djdk.util.zip.disableZip64ExtraFieldValidation=true",
 			// needed for ktlint formatter
-			"-XX:+IgnoreUnrecognizedVMOptions", "--add-opens=java.base/java.lang=ALL-UNNAMED",
+			"-XX:+IgnoreUnrecognizedVMOptions",
+			"--add-opens=java.base/java.lang=ALL-UNNAMED",
 		)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")

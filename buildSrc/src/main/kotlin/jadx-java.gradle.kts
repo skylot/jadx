@@ -16,7 +16,7 @@ dependencies {
 
 	testImplementation("ch.qos.logback:logback-classic:1.4.14")
 	testImplementation("org.hamcrest:hamcrest-library:2.2")
-	testImplementation("org.mockito:mockito-core:5.8.0")
+	testImplementation("org.mockito:mockito-core:5.9.0")
 	testImplementation("org.assertj:assertj-core:3.25.1")
 
 	testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
