@@ -25,6 +25,7 @@ import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
 import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
+import jadx.core.dex.attributes.nodes.RegionRefAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.attributes.nodes.SpecialEdgeAttr;
@@ -94,6 +95,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<>();
 	public static final AType<IMethodDetails> METHOD_DETAILS = new AType<>();
 	public static final AType<GenericInfoAttr> GENERIC_INFO = new AType<>();
+	public static final AType<RegionRefAttr> REGION_REF = new AType<>();
 
 	// register
 	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();

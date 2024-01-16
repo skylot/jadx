@@ -22,6 +22,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+import jadx.core.dex.attributes.nodes.RegionRefAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchInsn;
@@ -827,6 +828,7 @@ public class RegionMaker {
 		}
 
 		SwitchRegion sw = new SwitchRegion(currentRegion, block);
+		insn.addAttr(new RegionRefAttr(sw));
 		currentRegion.getSubBlocks().add(sw);
 		stack.push(sw);
 		stack.addExit(out);

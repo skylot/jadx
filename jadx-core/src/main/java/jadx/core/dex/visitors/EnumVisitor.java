@@ -63,7 +63,7 @@ import static jadx.core.utils.InsnUtils.getWrappedInsn;
 		runAfter = {
 				CodeShrinkVisitor.class, // all possible instructions already inlined
 				ModVisitor.class,
-				ReSugarCode.class,
+				ReplaceNewArray.class, // values array normalized
 				IfRegionVisitor.class, // ternary operator inlined
 				CheckRegions.class // regions processing finished
 		},
