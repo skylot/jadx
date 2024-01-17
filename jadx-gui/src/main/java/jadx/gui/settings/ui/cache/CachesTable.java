@@ -1,19 +1,18 @@
 package jadx.gui.settings.ui.cache;
 
 import java.awt.Dimension;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.file.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +101,7 @@ public class CachesTable extends JTable {
 		try {
 			Path dir = Paths.get(cacheDir);
 			if (Files.isDirectory(dir)) {
-				BigInteger size = PathUtils.sizeOfDirectoryAsBigInteger(dir);
+				long size = calcSizeOfDirectory(dir);
 				row.setUsage(FileUtils.byteCountToDisplaySize(size));
 			} else {
 				row.setUsage("not found");
@@ -110,6 +109,27 @@ public class CachesTable extends JTable {
 		} catch (Exception e) {
 			LOG.warn("Failed to calculate size of directory: {}", cacheDir, e);
 			row.setUsage("error");
+		}
+	}
+
+	private static long calcSizeOfDirectory(Path dir) {
+		try (Stream<Path> stream = Files.walk(dir)) {
+			long blockSize = Files.getFileStore(dir).getBlockSize();
+			return stream.mapToLong(p -> {
+				if (Files.isRegularFile(p)) {
+					try {
+						long fileSize = Files.size(p);
+						// ceil round to blockSize
+						return (fileSize / blockSize + 1L) * blockSize;
+					} catch (Exception e) {
+						LOG.error("Failed to get file size: {}", p, e);
+					}
+				}
+				return 0;
+			}).sum();
+		} catch (Exception e) {
+			LOG.error("Failed to calculate directory size: {}", dir, e);
+			return 0;
 		}
 	}
 
