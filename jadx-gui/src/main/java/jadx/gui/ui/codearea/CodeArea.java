@@ -68,7 +68,7 @@ public final class CodeArea extends AbstractCodeArea {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.isControlDown() || jumpOnDoubleClick(e)) {
-					navToDecl(e.getPoint(), codeLinkGenerator);
+					navToDecl(e.getPoint());
 				}
 			}
 		});
@@ -82,10 +82,9 @@ public final class CodeArea extends AbstractCodeArea {
 		return e.getClickCount() == 2 && getMainWindow().getSettings().isJumpOnDoubleClick();
 	}
 
-	@SuppressWarnings("deprecation")
-	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
-		int offs = viewToModel(point);
-		JNode node = getJNodeAtOffset(codeLinkGenerator.getLinkSourceOffset(offs));
+	private void navToDecl(Point point) {
+		int offs = viewToModel2D(point);
+		JNode node = getJNodeAtOffset(adjustOffsetForWordToken(offs));
 		if (node != null) {
 			contentPanel.getTabbedPane().codeJump(node);
 		}
@@ -154,16 +153,15 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.add(new JsonPrettifyAction(this));
 	}
 
-	public int adjustOffsetForToken(@Nullable Token token) {
+	/**
+	 * Search start of word token at specified offset
+	 *
+	 * @return -1 if no word token found
+	 */
+	public int adjustOffsetForWordToken(int offset) {
+		Token token = getWordTokenAtOffset(offset);
 		if (token == null) {
 			return -1;
-		}
-		// fast skip
-		if (token.length() == 1) {
-			char ch = token.getTextArray()[token.getTextOffset()];
-			if (ch == '.' || ch == ',' || ch == ';') {
-				return -1;
-			}
 		}
 		int type = token.getType();
 		if (node instanceof JClass) {
@@ -208,25 +206,13 @@ public final class CodeArea extends AbstractCodeArea {
 	@Nullable
 	public JNode getNodeUnderCaret() {
 		int caretPos = getCaretPosition();
-		Token token = modelToToken(caretPos);
-		if (token == null) {
-			return null;
-		}
-		int start = adjustOffsetForToken(token);
-		if (start == -1) {
-			start = caretPos;
-		}
-		return getJNodeAtOffset(start);
+		return getJNodeAtOffset(adjustOffsetForWordToken(caretPos));
 	}
 
 	@Nullable
 	public JNode getEnclosingNodeUnderCaret() {
 		int caretPos = getCaretPosition();
-		Token token = modelToToken(caretPos);
-		if (token == null) {
-			return null;
-		}
-		int start = adjustOffsetForToken(token);
+		int start = adjustOffsetForWordToken(caretPos);
 		if (start == -1) {
 			start = caretPos;
 		}
@@ -236,15 +222,13 @@ public final class CodeArea extends AbstractCodeArea {
 	@Nullable
 	public JNode getNodeUnderMouse() {
 		Point pos = UiUtils.getMousePosition(this);
-		int offset = adjustOffsetForToken(viewToToken(pos));
-		return getJNodeAtOffset(offset);
+		return getJNodeAtOffset(adjustOffsetForWordToken(viewToModel2D(pos)));
 	}
 
 	@Nullable
 	public JNode getEnclosingNodeUnderMouse() {
 		Point pos = UiUtils.getMousePosition(this);
-		int offset = adjustOffsetForToken(viewToToken(pos));
-		return getEnclosingJNodeAtOffset(offset);
+		return getEnclosingJNodeAtOffset(adjustOffsetForWordToken(viewToModel2D(pos)));
 	}
 
 	@Nullable
@@ -281,6 +265,9 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	public JavaNode getClosestJavaNode(int offset) {
+		if (offset == -1) {
+			return null;
+		}
 		try {
 			return getJadxWrapper().getDecompiler().getClosestJavaNode(getCodeInfo(), offset);
 		} catch (Exception e) {
@@ -290,6 +277,9 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	public JavaNode getEnclosingJavaNode(int offset) {
+		if (offset == -1) {
+			return null;
+		}
 		try {
 			return getJadxWrapper().getDecompiler().getEnclosingNode(getCodeInfo(), offset);
 		} catch (Exception e) {
