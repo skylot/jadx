@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.types.NodeRenamedByUser;
+import jadx.core.utils.Utils;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
@@ -98,19 +99,23 @@ public class RenameDialog extends JDialog {
 			return;
 		}
 		String oldName = node.getName();
-		if (newName.isEmpty()) {
+		String newNodeName;
+		boolean reset = newName.isEmpty();
+		if (reset) {
 			node.removeAlias();
-			sendRenameEvent(oldName, node.getJavaNode().getName());
+			newNodeName = Utils.getOrElse(node.getJavaNode().getName(), "");
 		} else {
-			sendRenameEvent(oldName, newName);
+			newNodeName = newName;
 		}
+		sendRenameEvent(oldName, newNodeName, reset);
 		dispose();
 	}
 
-	private void sendRenameEvent(String oldName, String newName) {
+	private void sendRenameEvent(String oldName, String newName, boolean reset) {
 		ICodeNodeRef nodeRef = node.getJavaNode().getCodeNodeRef();
 		NodeRenamedByUser event = new NodeRenamedByUser(nodeRef, oldName, newName);
 		event.setRenameNode(node);
+		event.setResetName(reset);
 		mainWindow.events().send(event);
 	}
 

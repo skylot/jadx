@@ -106,7 +106,7 @@ public class CodeRenameVisitor extends AbstractVisitor {
 		if (clsRenamesMap == null) {
 			return Collections.emptyList();
 		}
-		List<ICodeRename> clsComments = clsRenamesMap.get(cls.getClassInfo().getFullName());
+		List<ICodeRename> clsComments = clsRenamesMap.get(cls.getClassInfo().getRawName());
 		if (clsComments == null) {
 			return Collections.emptyList();
 		}
