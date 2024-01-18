@@ -175,7 +175,6 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			errorService.clearErrors();
 			errorService.addCompilerIssues(issues);
 			errorService.addLintErrors(lintErrs);
-			errorService.apply();
 			if (!success) {
 				resultLabel.setText("Compile issues: " + issues.size());
 				showScriptLog();
@@ -184,6 +183,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 			} else {
 				resultLabel.setText("OK");
 			}
+			errorService.apply();
 			return success;
 		} catch (Throwable e) {
 			scriptLog.error("Failed to check code", e);
