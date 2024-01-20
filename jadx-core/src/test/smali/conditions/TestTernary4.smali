@@ -133,8 +133,6 @@
     .catchall {:try_start_14 .. :try_end_50} :catchall_4e
 
     throw p1
-
-    return-void
 .end method
 
 .method private getValueObject(Ljava/lang/String;)Ljava/lang/Object;
