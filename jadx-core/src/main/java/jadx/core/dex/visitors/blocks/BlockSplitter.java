@@ -455,7 +455,6 @@ public class BlockSplitter extends AbstractVisitor {
 			successor.getPredecessors().remove(block);
 		}
 		block.add(AFlag.REMOVE);
-		block.getInstructions().clear();
 		block.getPredecessors().clear();
 		block.getSuccessors().clear();
 	}
