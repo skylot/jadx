@@ -664,6 +664,26 @@ public class BlockProcessor extends AbstractVisitor {
 		mth.getBasicBlocks().removeAll(toRemove);
 	}
 
+	public static void removeUnreachableBlock(BlockNode blockToRemove, MethodNode mth) {
+		Set<BlockNode> toRemove = new LinkedHashSet<>();
+		if (blockToRemove.getPredecessors().isEmpty() && blockToRemove != mth.getEnterBlock()) {
+			BlockSplitter.collectSuccessors(blockToRemove, mth.getEnterBlock(), toRemove);
+		}
+
+		if (toRemove.isEmpty()) {
+			return;
+		}
+
+		long notEmptyBlocks = toRemove.stream().filter(block -> !block.getInstructions().isEmpty()).count();
+		if (notEmptyBlocks != 0) {
+			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
+			mth.addWarnComment("Unreachable blocks removed: " + notEmptyBlocks + ", instructions: " + insnsCount);
+		}
+
+		toRemove.forEach(BlockSplitter::detachBlock);
+		mth.getBasicBlocks().removeAll(toRemove);
+	}
+
 	private static void clearBlocksState(MethodNode mth) {
 		mth.getBasicBlocks().forEach(block -> {
 			block.remove(AType.LOOP);

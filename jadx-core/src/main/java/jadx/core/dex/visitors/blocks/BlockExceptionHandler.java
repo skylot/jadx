@@ -65,6 +65,10 @@ public class BlockExceptionHandler {
 			removeMonitorExitFromExcHandler(mth, eh);
 		}
 		BlockProcessor.removeMarkedBlocks(mth);
+
+		List<BlockNode> sorted = new ArrayList<>(mth.getBasicBlocks().size());
+		BlockUtils.dfsVisit(mth, sorted::add);
+		removeUnusedExcHandlers(mth, tryBlocks, sorted);
 		return true;
 	}
 
@@ -585,5 +589,28 @@ public class BlockExceptionHandler {
 			return first.compareTo(second);
 		}
 		return r;
+	}
+
+	/**
+	 * Remove excHandlers that were not used when connecting.
+	 * Check first if the blocks are unreachable.
+	 */
+	private static void removeUnusedExcHandlers(MethodNode mth, List<TryCatchBlockAttr> tryBlocks, List<BlockNode> blocks) {
+		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
+			boolean notProcessed = true;
+			BlockNode handlerBlock = eh.getHandlerBlock();
+			if (blocks.contains(handlerBlock)) {
+				continue;
+			}
+			for (TryCatchBlockAttr tcb : tryBlocks) {
+				if (tcb.getHandlers().contains(handlerBlock)) {
+					notProcessed = false;
+					break;
+				}
+			}
+			if (notProcessed) {
+				BlockProcessor.removeUnreachableBlock(handlerBlock, mth);
+			}
+		}
 	}
 }
