@@ -654,13 +654,14 @@ public class BlockProcessor extends AbstractVisitor {
 			return;
 		}
 
-		toRemove.forEach(BlockSplitter::detachBlock);
-		mth.getBasicBlocks().removeAll(toRemove);
 		long notEmptyBlocks = toRemove.stream().filter(block -> !block.getInstructions().isEmpty()).count();
 		if (notEmptyBlocks != 0) {
 			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
 			mth.addWarnComment("Unreachable blocks removed: " + notEmptyBlocks + ", instructions: " + insnsCount);
 		}
+
+		toRemove.forEach(BlockSplitter::detachBlock);
+		mth.getBasicBlocks().removeAll(toRemove);
 	}
 
 	private static void clearBlocksState(MethodNode mth) {
