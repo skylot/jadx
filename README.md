@@ -100,6 +100,7 @@ options:
                                          'simple' - simplified instructions (linear, with goto's)
                                          'fallback' - raw instructions without modifications
   --show-bad-code                     - show inconsistent code (incorrectly decompiled)
+  --no-xml-pretty-print               - do not prettify XML
   --no-imports                        - disable use of imports, always write entire package name
   --no-debug-info                     - disable debug info parsing and processing
   --add-debug-lines                   - add comments with debug line numbers if available

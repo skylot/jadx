@@ -124,6 +124,8 @@ public class JadxArgs implements Closeable {
 	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
+	private boolean skipXmlPrettyPrint = false;
+
 	private boolean fsCaseSensitive;
 
 	public enum RenameEnum {
@@ -512,6 +514,14 @@ public class JadxArgs implements Closeable {
 		this.exportAsGradleProject = exportAsGradleProject;
 	}
 
+	public boolean isSkipXmlPrettyPrint() {
+		return skipXmlPrettyPrint;
+	}
+
+	public void setSkipXmlPrettyPrint(boolean skipXmlPrettyPrint) {
+		this.skipXmlPrettyPrint = skipXmlPrettyPrint;
+	}
+
 	public boolean isFsCaseSensitive() {
 		return fsCaseSensitive;
 	}
@@ -733,6 +743,7 @@ public class JadxArgs implements Closeable {
 				+ ", replaceConsts=" + replaceConsts
 				+ ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers
 				+ ", exportAsGradleProject=" + exportAsGradleProject
+				+ ", skipXmlPrettyPrint=" + skipXmlPrettyPrint
 				+ ", fsCaseSensitive=" + fsCaseSensitive
 				+ ", renameFlags=" + renameFlags
 				+ ", outputFormat=" + outputFormat

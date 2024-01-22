@@ -37,8 +37,6 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 
-	private static final boolean ATTR_NEW_LINE = true;
-
 	private final Map<Integer, String> resNames;
 	private Map<String, String> nsMap;
 	private Set<String> nsMapGenerated;
@@ -59,8 +57,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	private Map<String, ClassNode> classNameCache;
 
+	private final boolean attrNewLine;
+
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.attrNewLine = !rootNode.getArgs().isSkipXmlPrettyPrint();
 		try {
 			ConstStorage constStorage = rootNode.getConstValues();
 			resNames = constStorage.getResourcesNames();
@@ -279,7 +280,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				writer.add("=\"").add(StringUtils.escapeXML(entry.getKey())).add('"');
 			}
 		}
-		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
+		boolean attrNewLine = attributeCount != 1 && this.attrNewLine;
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i, attrNewLine);
 		}
