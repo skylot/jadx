@@ -81,6 +81,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--show-bad-code" }, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
+	@Parameter(names = { "--no-xml-pretty-print" }, description = "do not prettify XML")
+	protected boolean skipXmlPrettyPrint = false;
+
 	@Parameter(names = { "--no-imports" }, description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
@@ -331,6 +334,7 @@ public class JadxCLIArgs {
 		args.setEscapeUnicode(escapeUnicode);
 		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
+		args.setSkipXmlPrettyPrint(skipXmlPrettyPrint);
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
 		args.setInsertDebugLines(addDebugLines);
@@ -502,6 +506,10 @@ public class JadxCLIArgs {
 
 	public boolean isExportAsGradleProject() {
 		return exportAsGradleProject;
+	}
+
+	public boolean isSkipXmlPrettyPrint() {
+		return skipXmlPrettyPrint;
 	}
 
 	public boolean isRenameCaseSensitive() {
