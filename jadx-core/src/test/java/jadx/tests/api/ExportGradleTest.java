@@ -13,7 +13,6 @@ import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxDecompilerTestUtils;
 import jadx.api.ResourceFile;
-import jadx.api.TaskBarrier;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.export.ExportGradleTask;
@@ -66,12 +65,11 @@ public abstract class ExportGradleTest {
 		final ResContainer androidManifestContainer = createResourceContainer(manifestFilename);
 		when(androidManifest.loadContent()).thenReturn(androidManifestContainer);
 		final ResContainer strings = createResourceContainer(stringsFileName);
-		TaskBarrier taskBarrier = new TaskBarrier();
 
-		final ExportGradleTask exportGradleTask = new ExportGradleTask(List.of(androidManifest), root, exportDir, taskBarrier);
+		final ExportGradleTask exportGradleTask = new ExportGradleTask(List.of(androidManifest), root, exportDir);
 		exportGradleTask.init();
-		assertThat(exportGradleTask.getSrcOutDir().exists());
-		assertThat(exportGradleTask.getResOutDir().exists());
+		assertThat(exportGradleTask.getSrcOutDir()).exists();
+		assertThat(exportGradleTask.getResOutDir()).exists();
 
 		final ExportGradleProject export =
 				new ExportGradleProject(root, exportDir, androidManifest, strings);
@@ -80,13 +78,13 @@ public abstract class ExportGradleTest {
 
 	protected String getAppGradleBuild() {
 		File appBuildGradle = new File(exportDir, "app/build.gradle");
-		assertThat(appBuildGradle.exists());
+		assertThat(appBuildGradle).exists();
 		return loadFileContent(appBuildGradle);
 	}
 
 	protected String getSettingsGradle() {
 		File settingsGradle = new File(exportDir, "settings.gradle");
-		assertThat(settingsGradle.exists());
+		assertThat(settingsGradle).exists();
 		return loadFileContent(settingsGradle);
 	}
 }

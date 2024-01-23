@@ -1,11 +1,11 @@
 package jadx.gui.jobs;
 
 import java.io.File;
-import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import jadx.api.ICodeCache;
+import jadx.api.utils.tasks.ITaskExecutor;
 import jadx.gui.JadxWrapper;
 import jadx.gui.cache.code.FixedCodeCache;
 import jadx.gui.ui.MainWindow;
@@ -32,11 +32,11 @@ public class ExportTask extends CancelableBackgroundTask {
 	}
 
 	@Override
-	public List<Runnable> scheduleJobs() {
+	public ITaskExecutor scheduleTasks() {
 		wrapCodeCache();
 		wrapper.getArgs().setRootDir(saveDir);
-		List<Runnable> saveTasks = wrapper.getSaveTasks();
-		this.timeLimit = DecompileTask.calcDecompileTimeLimit(saveTasks.size());
+		ITaskExecutor saveTasks = wrapper.getDecompiler().getSaveTaskExecutor();
+		this.timeLimit = DecompileTask.calcDecompileTimeLimit(saveTasks.getTasksCount());
 		return saveTasks;
 	}
 

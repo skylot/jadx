@@ -266,10 +266,6 @@ public class JadxWrapper {
 		return getDecompiler().getEnclosingNode(codeInfo, pos);
 	}
 
-	public List<Runnable> getSaveTasks() {
-		return getDecompiler().getSaveTasks();
-	}
-
 	public List<JavaPackage> getPackages() {
 		return getDecompiler().getPackages();
 	}

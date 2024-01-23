@@ -102,6 +102,7 @@ public class JadxCLI {
 		if (LogHelper.getLogLevel() == LogLevelEnum.QUIET) {
 			jadx.save();
 		} else {
+			LOG.info("processing ...");
 			jadx.save(500, (done, total) -> {
 				int progress = (int) (done * 100.0 / total);
 				System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);

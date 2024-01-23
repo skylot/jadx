@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.utils.tasks.ITaskExecutor;
+import jadx.core.utils.tasks.TaskExecutor;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.CancelableBackgroundTask;
 import jadx.gui.jobs.ITaskInfo;
@@ -98,8 +100,10 @@ public class SearchTask extends CancelableBackgroundTask {
 	}
 
 	@Override
-	public List<? extends Runnable> scheduleJobs() {
-		return jobs;
+	public ITaskExecutor scheduleTasks() {
+		TaskExecutor executor = new TaskExecutor();
+		executor.addParallelTasks(jobs);
+		return executor;
 	}
 
 	@Override

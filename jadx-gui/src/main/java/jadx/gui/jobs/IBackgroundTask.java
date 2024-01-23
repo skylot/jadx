@@ -1,18 +1,16 @@
 package jadx.gui.jobs;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
+
+import jadx.api.utils.tasks.ITaskExecutor;
 
 public interface IBackgroundTask extends Cancelable {
 
 	String getTitle();
 
-	/**
-	 * Jobs to run in parallel
-	 */
-	List<? extends Runnable> scheduleJobs();
+	ITaskExecutor scheduleTasks();
 
 	/**
 	 * Called on executor thread after the all jobs finished.

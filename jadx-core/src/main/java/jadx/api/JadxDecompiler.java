@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -36,6 +33,7 @@ import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.pass.types.JadxAfterLoadPass;
 import jadx.api.plugins.pass.types.JadxPassType;
+import jadx.api.utils.tasks.ITaskExecutor;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
@@ -52,6 +50,7 @@ import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.tasks.TaskExecutor;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ProtoXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
@@ -248,13 +247,12 @@ public final class JadxDecompiler implements Closeable {
 
 	@SuppressWarnings("BusyWait")
 	public void save(int intervalInMillis, ProgressListener listener) {
-		ThreadPoolExecutor ex = (ThreadPoolExecutor) getSaveExecutor();
-		ex.shutdown();
 		try {
-			long total = ex.getTaskCount();
-			while (ex.isTerminating()) {
-				long done = ex.getCompletedTaskCount();
-				listener.progress(done, total);
+			ITaskExecutor tasks = getSaveTaskExecutor();
+			tasks.execute();
+			long total = tasks.getTasksCount();
+			while (tasks.isRunning()) {
+				listener.progress(tasks.getProgress(), total);
 				Thread.sleep(intervalInMillis);
 			}
 		} catch (InterruptedException e) {
@@ -271,72 +269,64 @@ public final class JadxDecompiler implements Closeable {
 		save(false, true);
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private void save(boolean saveSources, boolean saveResources) {
-		ExecutorService ex = getSaveExecutor(saveSources, saveResources);
-		ex.shutdown();
-		try {
-			ex.awaitTermination(1, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			LOG.error("Save interrupted", e);
-			Thread.currentThread().interrupt();
-		}
+		ITaskExecutor executor = getSaveTasks(saveSources, saveResources);
+		executor.execute();
+		executor.awaitTermination();
 	}
 
-	public ExecutorService getSaveExecutor() {
-		return getSaveExecutor(!args.isSkipSources(), !args.isSkipResources());
-	}
-
-	public List<Runnable> getSaveTasks() {
+	public ITaskExecutor getSaveTaskExecutor() {
 		return getSaveTasks(!args.isSkipSources(), !args.isSkipResources());
 	}
 
-	private ExecutorService getSaveExecutor(boolean saveSources, boolean saveResources) {
-		int threadsCount = args.getThreadsCount();
-		LOG.debug("processing threads count: {}", threadsCount);
-		LOG.info("processing ...");
-		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
-		List<Runnable> tasks = getSaveTasks(saveSources, saveResources);
-		tasks.forEach(executor::execute);
-		return executor;
+	@Deprecated(forRemoval = true)
+	public ExecutorService getSaveExecutor() {
+		ITaskExecutor executor = getSaveTaskExecutor();
+		executor.execute();
+		return executor.getInternalExecutor();
 	}
 
-	private List<Runnable> getSaveTasks(boolean saveSources, boolean saveResources) {
+	@Deprecated(forRemoval = true)
+	public List<Runnable> getSaveTasks() {
+		return Collections.singletonList(this::save);
+	}
+
+	private TaskExecutor getSaveTasks(boolean saveSources, boolean saveResources) {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
 		File sourcesOutDir;
 		File resOutDir;
-		List<Runnable> tasks = new ArrayList<>();
-		TaskBarrier barrier = new TaskBarrier();
+		ExportGradleTask gradleExportTask;
 		if (args.isExportAsGradleProject()) {
-			ExportGradleTask gradleExportTask = new ExportGradleTask(resources, root, args.getOutDir(), barrier);
+			gradleExportTask = new ExportGradleTask(resources, root, args.getOutDir());
 			gradleExportTask.init();
 			sourcesOutDir = gradleExportTask.getSrcOutDir();
 			resOutDir = gradleExportTask.getResOutDir();
-			tasks.add(gradleExportTask);
 		} else {
 			sourcesOutDir = args.getOutDirSrc();
 			resOutDir = args.getOutDirRes();
+			gradleExportTask = null;
 		}
 
-		int taskCount = 0;
-		// save resources first because decompilation can hang or fail
+		TaskExecutor executor = new TaskExecutor();
+		executor.setThreadsCount(args.getThreadsCount());
 		if (saveResources) {
-			taskCount = appendResourcesSaveTasks(tasks, resOutDir, barrier);
+			// save resources first because decompilation can stop or fail
+			appendResourcesSaveTasks(executor, resOutDir);
 		}
 		if (saveSources) {
-			taskCount += appendSourcesSave(tasks, sourcesOutDir, barrier);
+			appendSourcesSave(executor, sourcesOutDir);
 		}
-		barrier.setUpBarrier(taskCount);
-
-		return tasks;
+		if (gradleExportTask != null) {
+			executor.addSequentialTask(gradleExportTask);
+		}
+		return executor;
 	}
 
-	private int appendResourcesSaveTasks(List<Runnable> tasks, File outDir, TaskBarrier barrier) {
-		int numResourceTasks = 0;
+	private void appendResourcesSaveTasks(ITaskExecutor executor, File outDir) {
 		if (args.isSkipFilesSave()) {
-			return 0;
+			return;
 		}
 		// process AndroidManifest.xml first to load complete resource ids table
 		for (ResourceFile resourceFile : getResources()) {
@@ -345,8 +335,10 @@ public final class JadxDecompiler implements Closeable {
 				break;
 			}
 		}
-
-		Set<String> inputFileNames = args.getInputFiles().stream().map(File::getAbsolutePath).collect(Collectors.toSet());
+		Set<String> inputFileNames = args.getInputFiles().stream()
+				.map(File::getAbsolutePath)
+				.collect(Collectors.toSet());
+		List<Runnable> tasks = new ArrayList<>();
 		for (ResourceFile resourceFile : getResources()) {
 			ResourceType resType = resourceFile.getType();
 			if (resType == ResourceType.MANIFEST) {
@@ -358,17 +350,41 @@ public final class JadxDecompiler implements Closeable {
 				// ignore resource made from input file
 				continue;
 			}
-			tasks.add(new ResourcesSaver(outDir, resourceFile, barrier));
-			numResourceTasks++;
+			tasks.add(new ResourcesSaver(outDir, resourceFile));
 		}
-		return numResourceTasks;
+		executor.addParallelTasks(tasks);
 	}
 
-	private int appendSourcesSave(List<Runnable> tasks, File outDir, TaskBarrier barrier) {
-		int numSourceTasks = 0;
-		Predicate<String> classFilter = args.getClassFilter();
+	private void appendSourcesSave(ITaskExecutor executor, File outDir) {
 		List<JavaClass> classes = getClasses();
-		List<JavaClass> processQueue = new ArrayList<>(classes.size());
+		List<JavaClass> processQueue = filterClasses(classes);
+		List<List<JavaClass>> batches;
+		try {
+			batches = decompileScheduler.buildBatches(processQueue);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Decompilation batches build failed", e);
+		}
+		List<Runnable> decompileTasks = new ArrayList<>(batches.size());
+		for (List<JavaClass> decompileBatch : batches) {
+			decompileTasks.add(() -> {
+				for (JavaClass cls : decompileBatch) {
+					try {
+						ClassNode clsNode = cls.getClassNode();
+						ICodeInfo code = clsNode.getCode();
+						SaveCode.save(outDir, clsNode, code);
+					} catch (Exception e) {
+						LOG.error("Error saving class: {}", cls, e);
+					}
+				}
+
+			});
+		}
+		executor.addParallelTasks(decompileTasks);
+	}
+
+	private List<JavaClass> filterClasses(List<JavaClass> classes) {
+		Predicate<String> classFilter = args.getClassFilter();
+		List<JavaClass> list = new ArrayList<>(classes.size());
 		for (JavaClass cls : classes) {
 			ClassNode clsNode = cls.getClassNode();
 			if (clsNode.contains(AFlag.DONT_GENERATE)) {
@@ -380,35 +396,9 @@ public final class JadxDecompiler implements Closeable {
 				}
 				continue;
 			}
-			processQueue.add(cls);
+			list.add(cls);
 		}
-		List<List<JavaClass>> batches;
-		try {
-			batches = decompileScheduler.buildBatches(processQueue);
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Decompilation batches build failed", e);
-		}
-		for (List<JavaClass> decompileBatch : batches) {
-			tasks.add(() -> {
-				try {
-					for (JavaClass cls : decompileBatch) {
-						try {
-							ClassNode clsNode = cls.getClassNode();
-							ICodeInfo code = clsNode.getCode();
-							SaveCode.save(outDir, clsNode, code);
-						} catch (Exception e) {
-							LOG.error("Error saving class: {}", cls, e);
-						}
-					}
-				} finally {
-					if (barrier != null) {
-						barrier.finishTask();
-					}
-				}
-			});
-			numSourceTasks++;
-		}
-		return numSourceTasks;
+		return list;
 	}
 
 	public List<JavaClass> getClasses() {
