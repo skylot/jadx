@@ -8,7 +8,7 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.10.1")
 
 	// TODO: move resources decoding to separate plugin module
-	implementation("com.android.tools.build:aapt2-proto:8.2.1-10154469")
+	implementation("com.android.tools.build:aapt2-proto:8.2.2-10154469")
 	implementation("com.google.protobuf:protobuf-java:3.25.2") // forcing latest version
 
 	testImplementation("org.apache.commons:commons-lang3:3.14.0")
@@ -25,7 +25,7 @@ dependencies {
 			strictly("[3.33, 3.34[") // from 3.34 compiled with Java 17
 		}
 	}
-	testImplementation("tools.profiler:async-profiler:2.9")
+	testImplementation("tools.profiler:async-profiler:3.0")
 }
 
 tasks.test {
