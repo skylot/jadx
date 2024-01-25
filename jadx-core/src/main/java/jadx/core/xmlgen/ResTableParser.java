@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
@@ -84,9 +85,14 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 
 	@Override
 	public void decode(InputStream inputStream) throws IOException {
+		long start = System.currentTimeMillis();
 		is = new ParserStream(inputStream);
 		decodeTableChunk();
 		resStorage.finish();
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Resource table parsed: size: {}, time: {}ms",
+					resStorage.size(), System.currentTimeMillis() - start);
+		}
 	}
 
 	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
@@ -356,20 +362,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings().get(typeId - 1);
 		String origKeyName = pkg.getKeyStrings().get(key);
-		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(typeName, resRef, origKeyName), config);
-		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
-		if (prevResEntry != null) {
-			newResEntry = newResEntry.copyWithId();
 
-			// rename also previous entry for consistency
-			ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
-			resStorage.replace(prevResEntry, replaceForPrevEntry);
-			resStorage.addRename(replaceForPrevEntry);
-		}
-		if (!Objects.equals(origKeyName, newResEntry.getKeyName())) {
-			resStorage.addRename(newResEntry);
-		}
-
+		ResourceEntry newResEntry = buildResourceEntry(pkg, config, resRef, typeName, origKeyName);
 		if ((flags & FLAG_COMPLEX) != 0 || size == 16) {
 			int parentRef = is.readInt32();
 			int count = is.readInt32();
@@ -382,7 +376,33 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		} else {
 			newResEntry.setSimpleValue(parseValue());
 		}
+	}
+
+	private static final ResourceEntry STUB_ENTRY = new ResourceEntry(-1, "stub", "stub", "stub", "");
+
+	private ResourceEntry buildResourceEntry(PackageChunk pkg, String config, int resRef, String typeName, String origKeyName) {
+		if (!ZipSecurity.isValidZipEntryName(origKeyName)) {
+			// malicious entry, ignore it
+			// can't return null here, return stub without adding it to storage
+			return STUB_ENTRY;
+		}
+
+		String resName = getResName(typeName, resRef, origKeyName);
+		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, resName, config);
+		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
+		if (prevResEntry != null) {
+			newResEntry = newResEntry.copyWithId();
+
+			// rename also previous entry for consistency
+			ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
+			resStorage.replace(prevResEntry, replaceForPrevEntry);
+			resStorage.addRename(replaceForPrevEntry);
+		}
+		if (!Objects.equals(origKeyName, newResEntry.getKeyName())) {
+			resStorage.addRename(newResEntry);
+		}
 		resStorage.add(newResEntry);
+		return newResEntry;
 	}
 
 	private String getResName(String typeName, int resRef, String origKeyName) {
