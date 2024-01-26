@@ -41,6 +41,7 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.ListUtils;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockExceptionHandler {
@@ -66,8 +67,8 @@ public class BlockExceptionHandler {
 		}
 		BlockProcessor.removeMarkedBlocks(mth);
 
-		List<BlockNode> sorted = new ArrayList<>(mth.getBasicBlocks().size());
-		BlockUtils.dfsVisit(mth, sorted::add);
+		BlockSet sorted = new BlockSet(mth);
+		BlockUtils.dfsVisit(mth, sorted::set);
 		removeUnusedExcHandlers(mth, tryBlocks, sorted);
 		return true;
 	}
@@ -595,11 +596,11 @@ public class BlockExceptionHandler {
 	 * Remove excHandlers that were not used when connecting.
 	 * Check first if the blocks are unreachable.
 	 */
-	private static void removeUnusedExcHandlers(MethodNode mth, List<TryCatchBlockAttr> tryBlocks, List<BlockNode> blocks) {
+	private static void removeUnusedExcHandlers(MethodNode mth, List<TryCatchBlockAttr> tryBlocks, BlockSet blocks) {
 		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
 			boolean notProcessed = true;
 			BlockNode handlerBlock = eh.getHandlerBlock();
-			if (blocks.contains(handlerBlock)) {
+			if (blocks.get(handlerBlock)) {
 				continue;
 			}
 			for (TryCatchBlockAttr tcb : tryBlocks) {
