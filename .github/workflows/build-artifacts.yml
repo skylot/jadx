@@ -25,7 +25,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: dist copyExe
 
@@ -71,7 +71,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: dist -PbundleJRE=true
 
