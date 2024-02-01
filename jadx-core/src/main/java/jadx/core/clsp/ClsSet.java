@@ -44,13 +44,16 @@ public class ClsSet {
 	private static final String CLST_PATH = "/clst/" + CLST_FILENAME;
 
 	private static final String JADX_CLS_SET_HEADER = "jadx-cst";
-	private static final int VERSION = 4;
+	private static final int VERSION = 5;
 
 	private static final String STRING_CHARSET = "US-ASCII";
 
 	private static final ArgType[] EMPTY_ARGTYPE_ARRAY = new ArgType[0];
+	private static final ArgType[] OBJECT_ARGTYPE_ARRAY = new ArgType[] { ArgType.OBJECT };
 
 	private final RootNode root;
+
+	private int androidApiLevel;
 
 	public ClsSet(RootNode root) {
 		this.root = root;
@@ -79,7 +82,8 @@ public class ClsSet {
 		if (LOG.isDebugEnabled()) {
 			long time = System.currentTimeMillis() - startTime;
 			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
-			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
+			LOG.debug("Clst file loaded in {}ms, android api: {}, classes: {}, methods: {}",
+					time, androidApiLevel, classes.length, methodsCount);
 		}
 	}
 
@@ -93,7 +97,7 @@ public class ClsSet {
 			cls.load();
 
 			ClspClassSource source = getClspClassSource(cls);
-			ClspClass nClass = new ClspClass(clsType, k, source);
+			ClspClass nClass = new ClspClass(clsType, k, cls.getAccessFlags().rawValue(), source);
 			if (names.put(clsRawName, nClass) != null) {
 				throw new JadxRuntimeException("Duplicate class: " + clsRawName);
 			}
@@ -151,7 +155,11 @@ public class ClsSet {
 			// cls is java.lang.Object
 			return EMPTY_ARGTYPE_ARRAY;
 		}
-		ArgType[] parents = new ArgType[1 + cls.getInterfaces().size()];
+		int interfacesCount = cls.getInterfaces().size();
+		if (interfacesCount == 0 && superClass == ArgType.OBJECT) {
+			return OBJECT_ARGTYPE_ARRAY;
+		}
+		ArgType[] parents = new ArgType[1 + interfacesCount];
 		parents[0] = superClass;
 		int k = 1;
 		for (ArgType iface : cls.getInterfaces()) {
@@ -193,10 +201,12 @@ public class ClsSet {
 		DataOutputStream out = new DataOutputStream(output);
 		out.writeBytes(JADX_CLS_SET_HEADER);
 		out.writeByte(VERSION);
+		out.writeInt(androidApiLevel);
 
 		Map<String, ClspClass> names = new HashMap<>(classes.length);
 		out.writeInt(classes.length);
 		for (ClspClass cls : classes) {
+			out.writeInt(cls.getAccFlags());
 			writeUnsignedByte(out, cls.getSource().ordinal());
 			String clsName = cls.getName();
 			writeString(out, clsName);
@@ -241,6 +251,10 @@ public class ClsSet {
 	private static void writeArgTypesArray(DataOutputStream out, @Nullable ArgType[] arr, Map<String, ClspClass> names) throws IOException {
 		if (arr == null) {
 			out.writeByte(-1);
+			return;
+		}
+		if (arr == OBJECT_ARGTYPE_ARRAY) {
+			out.writeByte(-2);
 			return;
 		}
 		int size = arr.length;
@@ -294,22 +308,22 @@ public class ClsSet {
 		try (DataInputStream in = new DataInputStream(new BufferedInputStream(input))) {
 			byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
 			int readHeaderLength = in.read(header);
-			int version = in.readByte();
 			if (readHeaderLength != JADX_CLS_SET_HEADER.length()
-					|| !JADX_CLS_SET_HEADER.equals(new String(header, STRING_CHARSET))
-					|| version != VERSION) {
+					|| !JADX_CLS_SET_HEADER.equals(new String(header, STRING_CHARSET))) {
 				throw new DecodeException("Wrong jadx class set header");
 			}
+			int version = in.readByte();
+			if (version != VERSION) {
+				throw new DecodeException("Wrong jadx class set version, got: " + version + ", expect: " + VERSION);
+			}
+			androidApiLevel = in.readInt();
 			int clsCount = in.readInt();
 			classes = new ClspClass[clsCount];
-			ClspClassSource[] clspClassSources = ClspClassSource.values();
 			for (int i = 0; i < clsCount; i++) {
-				int source = readUnsignedByte(in);
-				if (source < 0 || source > clspClassSources.length) {
-					throw new DecodeException("Wrong jadx source identifier");
-				}
+				int accFlags = in.readInt();
+				ClspClassSource clsSource = readClsSource(in);
 				String name = readString(in);
-				classes[i] = new ClspClass(ArgType.object(name), i, clspClassSources[source]);
+				classes[i] = new ClspClass(ArgType.object(name), i, accFlags, clsSource);
 			}
 			for (int i = 0; i < clsCount; i++) {
 				ClspClass nClass = classes[i];
@@ -319,6 +333,15 @@ public class ClsSet {
 				nClass.setMethods(readClsMethods(in, clsInfo));
 			}
 		}
+	}
+
+	private static ClspClassSource readClsSource(DataInputStream in) throws IOException, DecodeException {
+		int source = readUnsignedByte(in);
+		ClspClassSource[] clspClassSources = ClspClassSource.values();
+		if (source < 0 || source > clspClassSources.length) {
+			throw new DecodeException("Wrong jadx source identifier: " + source);
+		}
+		return clspClassSources[source];
 	}
 
 	private List<ClspMethod> readClsMethods(DataInputStream in, ClassInfo clsInfo) throws IOException {
@@ -366,26 +389,26 @@ public class ClsSet {
 	@Nullable
 	private ArgType[] readArgTypesArray(DataInputStream in) throws IOException {
 		int count = in.readByte();
-		if (count == -1) {
-			return null;
+		switch (count) {
+			case -1:
+				return null;
+			case -2:
+				return OBJECT_ARGTYPE_ARRAY;
+			case 0:
+				return EMPTY_ARGTYPE_ARRAY;
+			default:
+				ArgType[] arr = new ArgType[count];
+				for (int i = 0; i < count; i++) {
+					arr[i] = readArgType(in);
+				}
+				return arr;
 		}
-		if (count == 0) {
-			return EMPTY_ARGTYPE_ARRAY;
-		}
-		ArgType[] arr = new ArgType[count];
-		for (int i = 0; i < count; i++) {
-			arr[i] = readArgType(in);
-		}
-		return arr;
 	}
 
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
 		if (ordinal == -1) {
 			return null;
-		}
-		if (ordinal >= TypeEnum.values().length) {
-			throw new JadxRuntimeException("Incorrect ordinal for type enum: " + ordinal);
 		}
 		switch (TypeEnum.values()[ordinal]) {
 			case WILDCARD:
@@ -414,7 +437,7 @@ public class ClsSet {
 				return classes[in.readInt()].getClsType();
 
 			case ARRAY:
-				return ArgType.array(readArgType(in));
+				return ArgType.array(Objects.requireNonNull(readArgType(in)));
 
 			case PRIMITIVE:
 				char shortName = (char) in.readByte();
@@ -473,5 +496,13 @@ public class ClsSet {
 		for (ClspClass cls : classes) {
 			nameMap.put(cls.getName(), cls);
 		}
+	}
+
+	public int getAndroidApiLevel() {
+		return androidApiLevel;
+	}
+
+	public void setAndroidApiLevel(int androidApiLevel) {
+		this.androidApiLevel = androidApiLevel;
 	}
 }

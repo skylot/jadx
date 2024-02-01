@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.instructions.args.ArgType;
 
 /**
@@ -16,21 +17,17 @@ public class ClspClass {
 
 	private final ArgType clsType;
 	private final int id;
+	private final int accFlags;
 	private ArgType[] parents;
 	private Map<String, ClspMethod> methodsMap = Collections.emptyMap();
 	private List<ArgType> typeParameters = Collections.emptyList();
 
 	private ClspClassSource source;
 
-	public ClspClass(ArgType clsType, int id) {
+	public ClspClass(ArgType clsType, int id, int accFlags, ClspClassSource source) {
 		this.clsType = clsType;
 		this.id = id;
-		this.source = ClspClassSource.APP;
-	}
-
-	public ClspClass(ArgType clsType, int id, ClspClassSource source) {
-		this.clsType = clsType;
-		this.id = id;
+		this.accFlags = accFlags;
 		this.source = source;
 	}
 
@@ -44,6 +41,14 @@ public class ClspClass {
 
 	public int getId() {
 		return id;
+	}
+
+	public int getAccFlags() {
+		return accFlags;
+	}
+
+	public boolean isInterface() {
+		return AccessFlags.hasFlag(accFlags, AccessFlags.INTERFACE);
 	}
 
 	public ArgType[] getParents() {
