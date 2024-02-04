@@ -50,8 +50,8 @@ public class TestUnreachableCatch2 extends SmaliTest {
 
 	@Test
 	public void test() {
-		allowWarnInCode();
-		setFallback();
+		// TODO: result code not compilable because of 'break' after 'throw'
+		disableCompilation();
 		String code = getClassNode(UnusedExceptionHandlers1.class).getCode().toString();
 		assertThat(code, containsString("IOException"));
 	}
