@@ -79,7 +79,7 @@ public class TabComponent extends JPanel {
 
 		MouseAdapter clickAdapter = new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				if (SwingUtilities.isMiddleMouseButton(e)) {
 					tabbedPane.closeCodePanel(contentPanel);
 				} else if (SwingUtilities.isRightMouseButton(e)) {
