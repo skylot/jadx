@@ -432,7 +432,7 @@ public class ClassNode extends NotificationAttrNode
 		}
 		methods.forEach(MethodNode::unload);
 		innerClasses.forEach(ClassNode::unload);
-		fields.forEach(FieldNode::unloadAttributes);
+		fields.forEach(FieldNode::unload);
 		unloadAttributes();
 		setState(NOT_LOADED);
 		this.loadStage = LoadStage.NONE;

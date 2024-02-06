@@ -139,14 +139,12 @@ public abstract class AttrNode implements IAttributeNode {
 		storage = EMPTY_ATTR_STORAGE;
 	}
 
-	/**
-	 * Remove all attribute
-	 */
 	public void unloadAttributes() {
 		if (storage == EMPTY_ATTR_STORAGE) {
 			return;
 		}
 		storage.unloadAttributes();
+		storage.clearFlags();
 		unloadIfEmpty();
 	}
 

@@ -102,6 +102,10 @@ public class AttributeStorage {
 		flags.remove(flag);
 	}
 
+	public void clearFlags() {
+		flags.clear();
+	}
+
 	public <T extends IJadxAttribute> void remove(IJadxAttrType<T> type) {
 		if (!attributes.isEmpty()) {
 			writeAttributes(map -> map.remove(type));
