@@ -84,7 +84,7 @@ public class ProcessVariables extends AbstractVisitor {
 						if (insn.canRemoveResult()) {
 							// remove unused result
 							remove = true;
-						} else if (insn.isConstInsn()) {
+						} else if (canRemoveInsn(insn)) {
 							// remove whole insn
 							insn.add(AFlag.REMOVE);
 							insn.add(AFlag.DONT_GENERATE);
@@ -98,6 +98,22 @@ public class ProcessVariables extends AbstractVisitor {
 							}
 						}
 					}
+				}
+			}
+
+			/**
+			 * Remove insn if a result is not used
+			 */
+			private boolean canRemoveInsn(InsnNode insn) {
+				if (insn.isConstInsn()) {
+					return true;
+				}
+				switch (insn.getType()) {
+					case CAST:
+					case CHECK_CAST:
+						return true;
+					default:
+						return false;
 				}
 			}
 

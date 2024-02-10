@@ -89,7 +89,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 			return;
 		}
 		OptionalInt max = ssaVar.getUseList().stream().mapToInt(DebugInfoApplyVisitor::getInsnOffsetByArg).max();
-		if (!max.isPresent()) {
+		if (max.isEmpty()) {
 			return;
 		}
 		int startOffset = getInsnOffsetByArg(ssaVar.getAssign());

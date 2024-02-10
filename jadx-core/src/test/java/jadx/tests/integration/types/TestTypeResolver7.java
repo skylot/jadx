@@ -2,11 +2,9 @@ package jadx.tests.integration.types;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTypeResolver7 extends IntegrationTest {
 
@@ -37,10 +35,10 @@ public class TestTypeResolver7 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("use(b ? (Exception) getObj() : null);"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.oneOf(c -> c.containsOne("use(b ? (Exception) getObj() : null);"),
+						c -> c.containsOne("use(b ? (Exception) getObj() : (Exception) null);"));
 	}
 
 	@Test

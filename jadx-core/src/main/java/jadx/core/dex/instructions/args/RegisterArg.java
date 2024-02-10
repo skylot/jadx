@@ -216,6 +216,16 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	@Override
+	public String toShortString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("r").append(regNum);
+		if (sVar != null) {
+			sb.append('v').append(sVar.getVersion());
+		}
+		return sb.toString();
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(r").append(regNum);

@@ -26,6 +26,7 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
 		name = "Constants Inline",
@@ -73,8 +74,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				if (!constArg.isLiteral()) {
 					return;
 				}
-				long lit = ((LiteralArg) constArg).getLiteral();
-				if (lit == 0 && forbidNullInlines(sVar)) {
+				if (constArg.isZeroLiteral() && forbidNullInlines(sVar)) {
 					// all usages forbids inlining
 					return;
 				}
@@ -134,20 +134,15 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	}
 
 	private static boolean forbidNullArgInline(InsnNode insn, RegisterArg useArg) {
-		switch (insn.getType()) {
-			case MOVE:
-			case CAST:
-			case CHECK_CAST:
-				// result is null, chain checks
-				return forbidNullInlines(insn.getResult().getSVar());
-
-			default:
-				if (!canUseNull(insn, useArg)) {
-					useArg.add(AFlag.DONT_INLINE_CONST);
-					return true;
-				}
-				return false;
+		if (insn.getType() == InsnType.MOVE) {
+			// result is null, chain checks
+			return forbidNullInlines(insn.getResult().getSVar());
 		}
+		if (!canUseNull(insn, useArg)) {
+			useArg.add(AFlag.DONT_INLINE_CONST);
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean canUseNull(InsnNode insn, RegisterArg useArg) {
@@ -269,9 +264,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 					fieldNode.addUseIn(mth);
 				}
 			} else {
-				if (needExplicitCast(useInsn, litArg)) {
-					litArg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
-				}
+				addExplicitCast(useInsn, litArg);
 			}
 		} else {
 			if (!useInsn.replaceArg(arg, constArg.duplicate())) {
@@ -282,18 +275,33 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean needExplicitCast(InsnNode insn, LiteralArg arg) {
+	private static void addExplicitCast(InsnNode insn, LiteralArg arg) {
 		if (insn instanceof BaseInvokeNode) {
 			BaseInvokeNode callInsn = (BaseInvokeNode) insn;
 			MethodInfo callMth = callInsn.getCallMth();
-			int offset = callInsn.getFirstArgOffset();
-			int argIndex = insn.getArgIndex(arg);
-			ArgType argType = callMth.getArgumentsTypes().get(argIndex - offset);
-			if (argType.isPrimitive()) {
-				arg.setType(argType);
-				return argType.equals(ArgType.BYTE);
+			if (callInsn.getInstanceArg() == arg) {
+				// instance arg is null, force cast
+				if (!arg.isZeroLiteral()) {
+					throw new JadxRuntimeException("Unexpected instance arg in invoke");
+				}
+				ArgType castType = callMth.getDeclClass().getType();
+				InsnNode castInsn = new IndexInsnNode(InsnType.CAST, castType, 1);
+				castInsn.addArg(arg);
+				castInsn.add(AFlag.EXPLICIT_CAST);
+				InsnArg wrapCast = InsnArg.wrapArg(castInsn);
+				wrapCast.setType(castType);
+				insn.replaceArg(arg, wrapCast);
+			} else {
+				int offset = callInsn.getFirstArgOffset();
+				int argIndex = insn.getArgIndex(arg);
+				ArgType argType = callMth.getArgumentsTypes().get(argIndex - offset);
+				if (argType.isPrimitive()) {
+					arg.setType(argType);
+					if (argType.equals(ArgType.BYTE)) {
+						arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
+					}
+				}
 			}
 		}
-		return false;
 	}
 }

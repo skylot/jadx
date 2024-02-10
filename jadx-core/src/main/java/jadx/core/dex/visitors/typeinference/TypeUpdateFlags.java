@@ -1,7 +1,5 @@
 package jadx.core.dex.visitors.typeinference;
 
-import org.jetbrains.annotations.NotNull;
-
 public class TypeUpdateFlags {
 	private static final int ALLOW_WIDER = 1;
 	private static final int IGNORE_SAME = 2;
@@ -14,7 +12,6 @@ public class TypeUpdateFlags {
 
 	private final int flags;
 
-	@NotNull
 	private static TypeUpdateFlags build(int flags) {
 		return new TypeUpdateFlags(flags);
 	}

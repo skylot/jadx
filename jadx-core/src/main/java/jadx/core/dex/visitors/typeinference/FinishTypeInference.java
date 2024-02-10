@@ -30,4 +30,9 @@ public final class FinishTypeInference extends AbstractVisitor {
 			}
 		});
 	}
+
+	@Override
+	public String getName() {
+		return "FinishTypeInference";
+	}
 }

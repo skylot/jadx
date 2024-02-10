@@ -67,6 +67,7 @@ import jadx.core.dex.visitors.rename.SourceFileRename;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.FinishTypeInference;
+import jadx.core.dex.visitors.typeinference.FixTypesVisitor;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -141,7 +142,9 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
+		passes.add(new FixTypesVisitor());
 		passes.add(new FinishTypeInference());
+
 		if (args.getUseKotlinMethodsForVarNames() != JadxArgs.UseKotlinMethodsForVarNames.DISABLE) {
 			passes.add(new ProcessKotlinInternals());
 		}
@@ -216,6 +219,7 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
+		passes.add(new FixTypesVisitor());
 		passes.add(new FinishTypeInference());
 		passes.add(new CodeRenameVisitor());
 		passes.add(new DeboxingVisitor());

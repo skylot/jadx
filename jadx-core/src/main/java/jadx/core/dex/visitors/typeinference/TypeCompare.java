@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.CONFLICT;
+import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.CONFLICT_BY_GENERIC;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.EQUAL;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.NARROW;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.NARROW_BY_GENERIC;
@@ -264,6 +265,9 @@ public class TypeCompare {
 	private TypeCompareEnum compareGenericTypeWithObject(ArgType genericType, ArgType objType) {
 		if (objType.isGenericType()) {
 			return compareTypeVariables(genericType, objType);
+		}
+		if (objType.isWildcard()) {
+			return CONFLICT_BY_GENERIC;
 		}
 		boolean rootObject = objType.equals(ArgType.OBJECT);
 		List<ArgType> extendTypes = genericType.getExtendTypes();

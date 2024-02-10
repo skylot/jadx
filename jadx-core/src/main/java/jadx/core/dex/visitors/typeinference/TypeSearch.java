@@ -67,10 +67,9 @@ public class TypeSearch {
 		if (vars.isEmpty()) {
 			searchSuccess = true;
 		} else {
-			search(vars);
-			searchSuccess = fullCheck(vars);
+			searchSuccess = search(vars) && fullCheck(vars);
 			if (Consts.DEBUG_TYPE_INFERENCE && !searchSuccess) {
-				LOG.debug("Multi-variable search failed in {}", mth);
+				LOG.debug("Multi-variable search failed");
 			}
 		}
 		if (searchSuccess) {
@@ -110,7 +109,7 @@ public class TypeSearch {
 	private boolean search(List<TypeSearchVarInfo> vars) {
 		int len = vars.size();
 		if (Consts.DEBUG_TYPE_INFERENCE) {
-			LOG.debug("Run search for {} vars: ", len);
+			LOG.debug("Run multi-variable search for {} vars: ", len);
 			StringBuilder sb = new StringBuilder();
 			long count = 1;
 			for (TypeSearchVarInfo var : vars) {
@@ -120,7 +119,7 @@ public class TypeSearch {
 				count *= size;
 			}
 			sb.append(" = ").append(count);
-			LOG.debug(" > max iterations count = {}", sb);
+			LOG.debug(" max iterations count = {}", sb);
 		}
 
 		// prepare vars

@@ -1,20 +1,28 @@
 package jadx.tests.integration.types;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static java.util.Collections.emptyList;
 
 /**
  * Issue 1002
  * Insertion of additional cast (at use place) needed for successful type inference
  */
 public class TestTypeResolver16 extends SmaliTest {
-	// @formatter:off
-	/*
-		public final <T, K> List<T> test(List<? extends T> list, Set<? extends T> set, Function<? super T, ? extends K> function) {
-			checkParameterIsNotNull(function, "distinctBy");
+
+	@SuppressWarnings("unchecked")
+	public static class TestCls {
+
+		public final <T, K> List<T> test(List<? extends T> list,
+				Set<? extends T> set, Function<? super T, ? extends K> function) {
 			if (set != null) {
 				List<? extends T> union = list != null ? union(list, set, function) : null;
 				if (union != null) {
@@ -23,11 +31,24 @@ public class TestTypeResolver16 extends SmaliTest {
 			}
 			return list != null ? (List<T>) list : emptyList();
 		}
-	*/
-	// @formatter:on
+
+		public static <T, K> List<T> union(
+				Collection<? extends T> collection,
+				Iterable<? extends T> iterable,
+				Function<? super T, ? extends K> function) {
+			return null;
+		}
+	}
 
 	@Test
 	public void test() {
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("(List<T>) list");
+	}
+
+	@Test
+	public void testSmali() {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.containsOne("(List<T>) list");
