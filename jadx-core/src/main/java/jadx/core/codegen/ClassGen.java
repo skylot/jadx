@@ -421,18 +421,19 @@ public class ClassGen {
 		if (f.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
+		if (f.contains(JadxAttrType.ANNOTATION_LIST) || f.contains(AType.JADX_COMMENTS) || f.getFieldInfo().hasAlias()) {
+			code.newLine();
+		}
 		if (Consts.DEBUG_USAGE) {
 			addFieldUsageInfo(code, f);
+		}
+		if (f.getFieldInfo().hasAlias()) {
+			CodeGenUtils.addRenamedComment(code, f, f.getName());
 		}
 		CodeGenUtils.addComments(code, f);
 		annotationGen.addForField(code, f);
 
-		boolean addInfoComments = f.checkCommentsLevel(CommentsLevel.INFO);
-		if (f.getFieldInfo().hasAlias() && addInfoComments) {
-			code.newLine();
-			CodeGenUtils.addRenamedComment(code, f, f.getName());
-		}
-		code.startLine(f.getAccessFlags().makeString(addInfoComments));
+		code.startLine(f.getAccessFlags().makeString(f.checkCommentsLevel(CommentsLevel.INFO)));
 		useType(code, f.getType());
 		code.add(' ');
 		code.attachDefinition(f);
