@@ -310,15 +310,15 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeProjectGroup() {
-		JComboBox<JadxSettings.SAVE_OPTION> dropdown = new JComboBox<>(JadxSettings.SAVE_OPTION.values());
+		JComboBox<JadxSettings.SAVEOPTION> dropdown = new JComboBox<>(JadxSettings.SAVEOPTION.values());
 		dropdown.setSelectedItem(settings.getSaveOption());
 		dropdown.addActionListener(e -> {
-			settings.setSaveOption((JadxSettings.SAVE_OPTION) dropdown.getSelectedItem());
+			settings.setSaveOption((JadxSettings.SAVEOPTION) dropdown.getSelectedItem());
 			needReload();
 		});
 
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.project"));
-		group.addRow("Auto Save settings", dropdown);
+		group.addRow(NLS.str("preferences.saveOption"), dropdown);
 
 		return group;
 	}

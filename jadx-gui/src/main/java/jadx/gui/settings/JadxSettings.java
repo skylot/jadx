@@ -75,22 +75,19 @@ public class JadxSettings extends JadxCLIArgs {
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
-	private boolean autoSaveProject = true;
-	private boolean neverSave = false;
+	private SAVEOPTION saveOption = SAVEOPTION.ASK;
 
-	private SAVE_OPTION saveOption = SAVE_OPTION.ASK;
-
-	public enum SAVE_OPTION {
+	public enum SAVEOPTION {
 		ASK,
 		NEVER,
 		ALWAYS
 	}
 
-	public SAVE_OPTION getSaveOption() {
+	public SAVEOPTION getSaveOption() {
 		return saveOption;
 	}
 
-	public void setSaveOption(SAVE_OPTION saveOption) {
+	public void setSaveOption(SAVEOPTION saveOption) {
 		this.saveOption = saveOption;
 	}
 
@@ -463,22 +460,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setAutoStartJobs(boolean autoStartJobs) {
 		this.autoStartJobs = autoStartJobs;
-	}
-
-	public boolean isAutoSaveProject() {
-		return autoSaveProject;
-	}
-
-	public void setAutoSaveProject(boolean autoSaveProject) {
-		this.autoSaveProject = autoSaveProject;
-	}
-
-	public boolean isNeverSave() {
-		return neverSave;
-	}
-
-	public void setNeverSave(boolean neverSave) {
-		this.neverSave = neverSave;
 	}
 
 	public ShortcutsWrapper getShortcuts() {

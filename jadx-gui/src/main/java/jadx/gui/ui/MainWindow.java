@@ -631,17 +631,16 @@ public class MainWindow extends JFrame {
 		if (!project.isSaved() && !project.isInitial()) {
 			// Check if we saved settings that indicate what to do
 
-			if (settings.getSaveOption() == JadxSettings.SAVE_OPTION.NEVER) {
+			if (settings.getSaveOption() == JadxSettings.SAVEOPTION.NEVER) {
 				return true;
 			}
 
-			if (settings.getSaveOption() == JadxSettings.SAVE_OPTION.ALWAYS) {
+			if (settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {
 				saveProject();
 				return true;
 			}
 
-			// TODO: make option resetable through settings
-			JCheckBox remember = new JCheckBox("Remember my decision"); // TODO: use NLS
+			JCheckBox remember = new JCheckBox(NLS.str("confirm.remember"));
 			JLabel message = new JLabel(NLS.str("confirm.not_saved_message"));
 
 			JPanel inner = new JPanel(new BorderLayout());
@@ -658,13 +657,13 @@ public class MainWindow extends JFrame {
 			}
 			if (res == JOptionPane.YES_OPTION) {
 				if (remember.isSelected()) {
-					settings.setSaveOption(JadxSettings.SAVE_OPTION.ALWAYS);
+					settings.setSaveOption(JadxSettings.SAVEOPTION.ALWAYS);
 					settings.sync();
 				}
 				saveProject();
 			} else if (res == JOptionPane.NO_OPTION) {
 				if (remember.isSelected()) {
-					settings.setSaveOption(JadxSettings.SAVE_OPTION.NEVER);
+					settings.setSaveOption(JadxSettings.SAVEOPTION.NEVER);
 					settings.sync();
 				}
 			}
