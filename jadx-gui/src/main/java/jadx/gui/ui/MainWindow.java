@@ -37,7 +37,6 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import javax.imageio.plugins.tiff.GeoTIFFTagSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -60,7 +59,6 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -659,14 +657,13 @@ public class MainWindow extends JFrame {
 				return false;
 			}
 			if (res == JOptionPane.YES_OPTION) {
-				if(remember.isSelected()) {
+				if (remember.isSelected()) {
 					settings.setSaveOption(JadxSettings.SAVE_OPTION.ALWAYS);
 					settings.sync();
 				}
 				saveProject();
-			}
-			else if (res == JOptionPane.NO_OPTION) {
-				if(remember.isSelected()) {
+			} else if (res == JOptionPane.NO_OPTION) {
+				if (remember.isSelected()) {
 					settings.setSaveOption(JadxSettings.SAVE_OPTION.NEVER);
 					settings.sync();
 				}

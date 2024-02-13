@@ -78,7 +78,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean autoSaveProject = true;
 	private boolean neverSave = false;
 
-	private SAVE_OPTION	saveOption = SAVE_OPTION.ASK;
+	private SAVE_OPTION saveOption = SAVE_OPTION.ASK;
 
 	public enum SAVE_OPTION {
 		ASK,
@@ -86,16 +86,13 @@ public class JadxSettings extends JadxCLIArgs {
 		ALWAYS
 	}
 
-	public SAVE_OPTION getSaveOption()
-	{
+	public SAVE_OPTION getSaveOption() {
 		return saveOption;
 	}
 
-	public void setSaveOption(SAVE_OPTION saveOption)
-	{
+	public void setSaveOption(SAVE_OPTION saveOption) {
 		this.saveOption = saveOption;
 	}
-
 
 	private Map<ActionModel, Shortcut> shortcuts = new HashMap<>();
 
