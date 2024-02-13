@@ -56,7 +56,7 @@ public class SimpleModeHelper {
 					if (!block.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
 						startLabel.set(block.getId());
 					}
-					if (prev.getSuccessors().size() == 1 && !mth.isPreExitBlocks(prev)) {
+					if (prev.getSuccessors().size() == 1 && !mth.isPreExitBlock(prev)) {
 						endGoto.set(prev.getId());
 					}
 				}
@@ -68,7 +68,7 @@ public class SimpleModeHelper {
 			if (block.contains(AType.EXC_HANDLER)) {
 				startLabel.set(block.getId());
 			}
-			if (nextBlock == null && !mth.isPreExitBlocks(block)) {
+			if (nextBlock == null && !mth.isPreExitBlock(block)) {
 				endGoto.set(block.getId());
 			}
 			prev = block;
@@ -145,7 +145,7 @@ public class SimpleModeHelper {
 	// DFS sort blocks to reduce goto count
 	private List<BlockNode> getSortedBlocks() {
 		List<BlockNode> list = new ArrayList<>(mth.getBasicBlocks().size());
-		BlockUtils.dfsVisit(mth, list::add);
+		BlockUtils.visitDFS(mth, list::add);
 		return list;
 	}
 }

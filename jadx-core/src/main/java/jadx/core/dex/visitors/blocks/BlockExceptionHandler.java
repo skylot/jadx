@@ -68,7 +68,7 @@ public class BlockExceptionHandler {
 		BlockProcessor.removeMarkedBlocks(mth);
 
 		BlockSet sorted = new BlockSet(mth);
-		BlockUtils.dfsVisit(mth, sorted::set);
+		BlockUtils.visitDFS(mth, sorted::set);
 		removeUnusedExcHandlers(mth, tryBlocks, sorted);
 		return true;
 	}

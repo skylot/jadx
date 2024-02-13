@@ -1,10 +1,8 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +73,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private int blocksMaxCId;
 	private BlockNode enterBlock;
 	private BlockNode exitBlock;
-	private Map<BlockNode, BitSet> postDominanceMap;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopInfo> loops;
@@ -122,7 +119,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		blocks = null;
 		enterBlock = null;
 		exitBlock = null;
-		postDominanceMap = null;
 		region = null;
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
@@ -364,10 +360,13 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public void setBasicBlocks(List<BlockNode> blocks) {
 		this.blocks = blocks;
-		int i = 0;
-		for (BlockNode block : blocks) {
-			block.setId(i);
-			i++;
+		updateBlockIds(blocks);
+	}
+
+	public void updateBlockIds(List<BlockNode> blocks) {
+		int count = blocks.size();
+		for (int i = 0; i < count; i++) {
+			blocks.get(i).setId(i);
 		}
 	}
 
@@ -395,20 +394,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return exitBlock.getPredecessors();
 	}
 
-	public boolean isPreExitBlocks(BlockNode block) {
+	public boolean isPreExitBlock(BlockNode block) {
 		List<BlockNode> successors = block.getSuccessors();
 		if (successors.size() == 1) {
 			return successors.get(0).equals(exitBlock);
 		}
 		return exitBlock.getPredecessors().contains(block);
-	}
-
-	public Map<BlockNode, BitSet> getPostDominanceMap() {
-		return postDominanceMap;
-	}
-
-	public void setPostDominanceMap(Map<BlockNode, BitSet> postDominanceMap) {
-		this.postDominanceMap = postDominanceMap;
 	}
 
 	public void registerLoop(LoopInfo loop) {

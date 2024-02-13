@@ -199,7 +199,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add("color=red,");
 			}
 			dot.add("label=\"{");
-			dot.add(String.valueOf(block.getCId())).add("\\:\\ ");
+			dot.add(String.valueOf(block.getId())).add("\\:\\ ");
 			dot.add(InsnUtils.formatOffset(block.getStartOffset()));
 			if (!attrs.isEmpty()) {
 				dot.add('|').add(attrs);
@@ -208,6 +208,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add('|');
 				dot.startLine("doms: ").add(escape(block.getDoms()));
 				dot.startLine("\\lidom: ").add(escape(block.getIDom()));
+				dot.startLine("\\lpost-doms: ").add(escape(block.getPostDoms()));
+				dot.startLine("\\lpost-idom: ").add(escape(block.getIPostDom()));
 				dot.startLine("\\ldom-f: ").add(escape(block.getDomFrontier()));
 				dot.startLine("\\ldoms-on: ").add(escape(Utils.listToString(block.getDominatesOn())));
 				dot.startLine("\\l");
@@ -230,10 +232,10 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 			if (PRINT_DOMINATORS) {
 				for (BlockNode c : block.getDominatesOn()) {
-					conn.startLine(block.getCId() + " -> " + c.getCId() + "[color=green];");
+					conn.startLine(block.getId() + " -> " + c.getId() + "[color=green];");
 				}
 				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
-					conn.startLine("f_" + block.getCId() + " -> f_" + dom.getCId() + "[color=blue];");
+					conn.startLine("f_" + block.getId() + " -> f_" + dom.getId() + "[color=blue];");
 				}
 			}
 		}
@@ -273,7 +275,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		private String makeName(IContainer c) {
 			String name;
 			if (c instanceof BlockNode) {
-				name = "Node_" + ((BlockNode) c).getCId();
+				name = "Node_" + ((BlockNode) c).getId();
 			} else if (c instanceof IBlock) {
 				name = "Node_" + c.getClass().getSimpleName() + '_' + c.hashCode();
 			} else {
