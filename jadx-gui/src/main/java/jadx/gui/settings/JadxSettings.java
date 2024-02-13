@@ -77,6 +77,26 @@ public class JadxSettings extends JadxCLIArgs {
 	private String excludedPackages = "";
 	private boolean autoSaveProject = true;
 	private boolean neverSave = false;
+
+	private SAVE_OPTION	saveOption = SAVE_OPTION.ASK;
+
+	public enum SAVE_OPTION {
+		ASK,
+		NEVER,
+		ALWAYS
+	}
+
+	public SAVE_OPTION getSaveOption()
+	{
+		return saveOption;
+	}
+
+	public void setSaveOption(SAVE_OPTION saveOption)
+	{
+		this.saveOption = saveOption;
+	}
+
+
 	private Map<ActionModel, Shortcut> shortcuts = new HashMap<>();
 
 	@JadxSettingsAdapter.GsonExclude
@@ -121,11 +141,6 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean dockLogViewer = true;
 
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
-
-	// 0 = ask
-	// 1 = always save
-	// 2 = never save
-	public int alwaysSave = 0; // TODO Use enum
 
 	@JadxSettingsAdapter.GsonExclude
 	@Parameter(names = { "-sc", "--select-class" }, description = "GUI: Open the selected class and show the decompiled code")

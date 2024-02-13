@@ -37,6 +37,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import javax.imageio.plugins.tiff.GeoTIFFTagSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -630,8 +631,14 @@ public class MainWindow extends JFrame {
 
 	private boolean ensureProjectIsSaved() {
 		if (!project.isSaved() && !project.isInitial()) {
-			// Check if we have saved settings that indicate what to do
-			if (getSettings().isNeverSave()) {
+			// Check if we saved settings that indicate what to do
+
+			if (settings.getSaveOption() == JadxSettings.SAVE_OPTION.NEVER) {
+				return true;
+			}
+
+			if (settings.getSaveOption() == JadxSettings.SAVE_OPTION.ALWAYS) {
+				saveProject();
 				return true;
 			}
 
@@ -652,11 +659,16 @@ public class MainWindow extends JFrame {
 				return false;
 			}
 			if (res == JOptionPane.YES_OPTION) {
+				if(remember.isSelected()) {
+					settings.setSaveOption(JadxSettings.SAVE_OPTION.ALWAYS);
+					settings.sync();
+				}
 				saveProject();
 			}
 			else if (res == JOptionPane.NO_OPTION) {
 				if(remember.isSelected()) {
-					getSettings().setNeverSave(true);
+					settings.setSaveOption(JadxSettings.SAVE_OPTION.NEVER);
+					settings.sync();
 				}
 			}
 		}
