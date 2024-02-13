@@ -41,10 +41,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -57,6 +59,7 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
+import javax.swing.border.Border;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -627,9 +630,22 @@ public class MainWindow extends JFrame {
 
 	private boolean ensureProjectIsSaved() {
 		if (!project.isSaved() && !project.isInitial()) {
+			// Check if we have saved settings that indicate what to do
+			if (getSettings().isNeverSave()) {
+				return true;
+			}
+
+			// TODO: make option resetable through settings
+			JCheckBox remember = new JCheckBox("Remember my decision"); // TODO: use NLS
+			JLabel message = new JLabel(NLS.str("confirm.not_saved_message"));
+
+			JPanel inner = new JPanel(new BorderLayout());
+			inner.add(remember, BorderLayout.SOUTH);
+			inner.add(message, BorderLayout.NORTH);
+
 			int res = JOptionPane.showConfirmDialog(
 					this,
-					NLS.str("confirm.not_saved_message"),
+					inner,
 					NLS.str("confirm.not_saved_title"),
 					JOptionPane.YES_NO_CANCEL_OPTION);
 			if (res == JOptionPane.CANCEL_OPTION) {
@@ -637,6 +653,11 @@ public class MainWindow extends JFrame {
 			}
 			if (res == JOptionPane.YES_OPTION) {
 				saveProject();
+			}
+			else if (res == JOptionPane.NO_OPTION) {
+				if(remember.isSelected()) {
+					getSettings().setNeverSave(true);
+				}
 			}
 		}
 		return true;

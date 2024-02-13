@@ -310,12 +310,18 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeProjectGroup() {
+		// TODO: use one option with dropdown
 		JCheckBox autoSave = new JCheckBox();
 		autoSave.setSelected(settings.isAutoSaveProject());
 		autoSave.addItemListener(e -> settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));
 
+		JCheckBox neverSave = new JCheckBox();
+		neverSave.setSelected(settings.isNeverSave());
+		neverSave.addItemListener(e -> settings.setNeverSave(e.getStateChange() == ItemEvent.SELECTED));
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.project"));
 		group.addRow(NLS.str("preferences.autoSave"), autoSave);
+		group.addRow("Never save", neverSave);
 
 		return group;
 	}

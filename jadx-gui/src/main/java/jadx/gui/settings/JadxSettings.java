@@ -76,6 +76,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
 	private boolean autoSaveProject = true;
+	private boolean neverSave = false;
 	private Map<ActionModel, Shortcut> shortcuts = new HashMap<>();
 
 	@JadxSettingsAdapter.GsonExclude
@@ -120,6 +121,11 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean dockLogViewer = true;
 
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
+
+	// 0 = ask
+	// 1 = always save
+	// 2 = never save
+	public int alwaysSave = 0; // TODO Use enum
 
 	@JadxSettingsAdapter.GsonExclude
 	@Parameter(names = { "-sc", "--select-class" }, description = "GUI: Open the selected class and show the decompiled code")
@@ -453,6 +459,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setAutoSaveProject(boolean autoSaveProject) {
 		this.autoSaveProject = autoSaveProject;
+	}
+
+	public boolean isNeverSave() {
+		return neverSave;
+	}
+
+	public void setNeverSave(boolean neverSave) {
+		this.neverSave = neverSave;
 	}
 
 	public ShortcutsWrapper getShortcuts() {
