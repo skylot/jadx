@@ -7,7 +7,6 @@ import javax.swing.event.HyperlinkEvent;
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.Token;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(offset);
+			int sourceOffset = codeArea.adjustOffsetForWordToken(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
@@ -49,7 +48,7 @@ public class CodeLinkGenerator implements LinkGenerator {
 			if (!codeArea.getCodeInfo().hasMetadata()) {
 				return null;
 			}
-			int sourceOffset = getLinkSourceOffset(offset);
+			int sourceOffset = codeArea.adjustOffsetForWordToken(offset);
 			if (sourceOffset == -1) {
 				return null;
 			}
@@ -73,11 +72,6 @@ public class CodeLinkGenerator implements LinkGenerator {
 			LOG.error("isLinkAtOffset error", e);
 			return null;
 		}
-	}
-
-	public int getLinkSourceOffset(int offset) {
-		Token token = codeArea.modelToToken(offset);
-		return codeArea.adjustOffsetForToken(token);
 	}
 
 	@Nullable

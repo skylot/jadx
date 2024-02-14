@@ -71,6 +71,12 @@ public class ZipSecurity {
 		if (DISABLE_CHECKS) {
 			return true;
 		}
+		if (entryName.contains("..")) { // quick pre-check
+			if (entryName.contains("../") || entryName.contains("..\\")) {
+				LOG.error("Path traversal attack detected in entry: '{}'", entryName);
+				return false;
+			}
+		}
 		try {
 			File currentPath = CommonFileUtils.CWD;
 			File canonical = new File(currentPath, entryName).getCanonicalFile();

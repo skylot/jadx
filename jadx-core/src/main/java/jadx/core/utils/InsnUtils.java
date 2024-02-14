@@ -227,6 +227,14 @@ public class InsnUtils {
 		return null;
 	}
 
+	public static boolean isWrapped(InsnArg arg, InsnType insnType) {
+		if (arg != null && arg.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+			return wrapInsn.getType() == insnType;
+		}
+		return false;
+	}
+
 	public static boolean dontGenerateIfNotUsed(InsnNode insn) {
 		RegisterArg resArg = insn.getResult();
 		if (resArg != null) {

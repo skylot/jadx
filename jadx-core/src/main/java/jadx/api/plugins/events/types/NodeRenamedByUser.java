@@ -1,5 +1,7 @@
 package jadx.api.plugins.events.types;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
@@ -14,7 +16,12 @@ public class NodeRenamedByUser implements IJadxEvent {
 	/**
 	 * Optional JRenameNode instance
 	 */
-	private Object renameNode;
+	private @Nullable Object renameNode;
+
+	/**
+	 * Request reset name to original
+	 */
+	private boolean resetName = false;
 
 	public NodeRenamedByUser(ICodeNodeRef node, String oldName, String newName) {
 		this.node = node;
@@ -42,6 +49,14 @@ public class NodeRenamedByUser implements IJadxEvent {
 		this.renameNode = renameNode;
 	}
 
+	public boolean isResetName() {
+		return resetName;
+	}
+
+	public void setResetName(boolean resetName) {
+		this.resetName = resetName;
+	}
+
 	@Override
 	public JadxEventType<NodeRenamedByUser> getType() {
 		return JadxEvents.NODE_RENAMED_BY_USER;
@@ -49,6 +64,9 @@ public class NodeRenamedByUser implements IJadxEvent {
 
 	@Override
 	public String toString() {
-		return "NodeRenamedByUser{" + node + ", '" + oldName + "' -> '" + newName + "'}";
+		return "NodeRenamedByUser{" + node
+				+ ", '" + oldName + "' -> '" + newName + '\''
+				+ (resetName ? ", reset name" : "")
+				+ '}';
 	}
 }

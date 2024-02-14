@@ -64,7 +64,7 @@ public class CodePanel extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				searchBar.toggle();
+				searchBar.showAndFocus();
 			}
 		});
 		JMenuItem searchItem = new JMenuItem();

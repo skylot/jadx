@@ -60,6 +60,11 @@ public class MoveInlineVisitor extends AbstractVisitor {
 			}
 		}
 		SSAVar ssaVar = resultArg.getSVar();
+		if (ssaVar.getUseList().isEmpty()) {
+			// unused result
+			return true;
+		}
+
 		if (ssaVar.isUsedInPhi()) {
 			return false;
 			// TODO: review conditions of 'up' move inline (test TestMoveInline)

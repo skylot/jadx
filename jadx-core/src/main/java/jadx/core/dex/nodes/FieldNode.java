@@ -38,6 +38,10 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		this.accFlags = new AccessInfo(accessFlags, AFType.FIELD);
 	}
 
+	public void unload() {
+		unloadAttributes();
+	}
+
 	public void updateType(ArgType type) {
 		this.type = type;
 	}

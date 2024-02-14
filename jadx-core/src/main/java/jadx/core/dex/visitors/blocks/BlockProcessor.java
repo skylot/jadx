@@ -644,24 +644,38 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void removeUnreachableBlocks(MethodNode mth) {
-		Set<BlockNode> toRemove = null;
+		Set<BlockNode> toRemove = new LinkedHashSet<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				toRemove = new LinkedHashSet<>();
-				BlockSplitter.collectSuccessors(block, mth.getEnterBlock(), toRemove);
-			}
+			computeUnreachableFromBlock(toRemove, block, mth);
 		}
-		if (toRemove == null || toRemove.isEmpty()) {
+		removeFromMethod(toRemove, mth);
+	}
+
+	public static void removeUnreachableBlock(BlockNode blockToRemove, MethodNode mth) {
+		Set<BlockNode> toRemove = new LinkedHashSet<>();
+		computeUnreachableFromBlock(toRemove, blockToRemove, mth);
+		removeFromMethod(toRemove, mth);
+	}
+
+	private static void computeUnreachableFromBlock(Set<BlockNode> toRemove, BlockNode block, MethodNode mth) {
+		if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+			BlockSplitter.collectSuccessors(block, mth.getEnterBlock(), toRemove);
+		}
+	}
+
+	private static void removeFromMethod(Set<BlockNode> toRemove, MethodNode mth) {
+		if (toRemove.isEmpty()) {
 			return;
 		}
 
-		toRemove.forEach(BlockSplitter::detachBlock);
-		mth.getBasicBlocks().removeAll(toRemove);
 		long notEmptyBlocks = toRemove.stream().filter(block -> !block.getInstructions().isEmpty()).count();
 		if (notEmptyBlocks != 0) {
 			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
 			mth.addWarnComment("Unreachable blocks removed: " + notEmptyBlocks + ", instructions: " + insnsCount);
 		}
+
+		toRemove.forEach(BlockSplitter::detachBlock);
+		mth.getBasicBlocks().removeAll(toRemove);
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

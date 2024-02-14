@@ -149,10 +149,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	@AfterEach
 	public void after() throws IOException {
-		FileUtils.clearTempRootDir();
 		close(jadxDecompiler);
 		close(sourceCompiler);
 		close(decompiledCompiler);
+		FileUtils.clearTempRootDir();
 	}
 
 	private void close(Closeable closeable) throws IOException {

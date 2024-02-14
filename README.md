@@ -2,7 +2,7 @@
 
 ## JADX
 
-[![Build status](https://github.com/skylot/jadx/workflows/Build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3ABuild)
+![Build status](https://img.shields.io/github/actions/workflow/status/skylot/jadx/build-artifacts.yml)
 ![GitHub contributors](https://img.shields.io/github/contributors/skylot/jadx)
 ![GitHub all releases](https://img.shields.io/github/downloads/skylot/jadx/total)
 ![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
@@ -79,7 +79,7 @@ and also packed to `build/jadx-<version>.zip`
 
 ### Usage
 ```
-jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab)
+jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk)
 commands (use '<command> --help' for command options):
   plugins	  - manage jadx plugins
 
@@ -100,6 +100,7 @@ options:
                                          'simple' - simplified instructions (linear, with goto's)
                                          'fallback' - raw instructions without modifications
   --show-bad-code                     - show inconsistent code (incorrectly decompiled)
+  --no-xml-pretty-print               - do not prettify XML
   --no-imports                        - disable use of imports, always write entire package name
   --no-debug-info                     - disable debug info parsing and processing
   --add-debug-lines                   - add comments with debug line numbers if available

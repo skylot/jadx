@@ -15,8 +15,8 @@ import kotlin.script.experimental.api.ScriptDiagnostic;
 import kotlin.script.experimental.api.SourceCode;
 
 public class ScriptErrorService extends AbstractParser {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ScriptErrorService.class);
+
 	private final DefaultParseResult result;
 	private final ScriptCodeArea scriptArea;
 
@@ -39,6 +39,7 @@ public class ScriptErrorService extends AbstractParser {
 		scriptArea.removeParser(this);
 		scriptArea.addParser(this);
 		scriptArea.addNotify();
+		scriptArea.requestFocus();
 		jumpCaretToFirstError();
 	}
 
@@ -49,15 +50,15 @@ public class ScriptErrorService extends AbstractParser {
 		}
 		ParserNotice notice = parserNotices.get(0);
 		int offset = notice.getOffset();
-		if (offset != -1) {
-			scriptArea.setCaretPosition(offset);
-		} else {
+		if (offset == -1) {
 			try {
-				scriptArea.setCaretPosition(scriptArea.getLineStartOffset(notice.getLine()));
+				offset = scriptArea.getLineStartOffset(notice.getLine());
 			} catch (Exception e) {
 				LOG.error("Failed to jump to first error", e);
+				return;
 			}
 		}
+		scriptArea.scrollToPos(offset);
 	}
 
 	public void addCompilerIssues(List<ScriptDiagnostic> issues) {

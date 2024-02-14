@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeCache;
 import jadx.api.JavaClass;
+import jadx.api.utils.tasks.ITaskExecutor;
+import jadx.core.utils.tasks.TaskExecutor;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
@@ -44,6 +46,12 @@ public class DecompileTask extends CancelableBackgroundTask {
 	}
 
 	@Override
+	public ITaskExecutor scheduleTasks() {
+		TaskExecutor executor = new TaskExecutor();
+		executor.addParallelTasks(scheduleJobs());
+		return executor;
+	}
+
 	public List<Runnable> scheduleJobs() {
 		if (mainWindow.getCacheObject().isFullDecompilationFinished()) {
 			return Collections.emptyList();
@@ -60,6 +68,10 @@ public class DecompileTask extends CancelableBackgroundTask {
 			LOG.error("Decompile batches build error", e);
 			return Collections.emptyList();
 		}
+		return getJobs(batches);
+	}
+
+	private List<Runnable> getJobs(List<List<JavaClass>> batches) {
 		ICodeCache codeCache = wrapper.getArgs().getCodeCache();
 		List<Runnable> jobs = new ArrayList<>(batches.size());
 		for (List<JavaClass> batch : batches) {

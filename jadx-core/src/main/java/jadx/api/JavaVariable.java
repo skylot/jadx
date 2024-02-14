@@ -79,6 +79,7 @@ public class JavaVariable implements JavaNode {
 
 	@Override
 	public void removeAlias() {
+		varNode.setName(null);
 	}
 
 	@Override

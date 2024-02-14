@@ -124,8 +124,7 @@ public class CodeGenUtils {
 		code.startLine("/* renamed from: ").add(origName);
 		RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
 		if (renameReasonAttr != null) {
-			code.add("  reason: ");
-			code.add(renameReasonAttr.getDescription());
+			code.add(", reason: ").add(renameReasonAttr.getDescription());
 		}
 		code.add(" */");
 	}

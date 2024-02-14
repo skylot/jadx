@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.StringUtils;
 
 public class UserRenames {
 	private static final Logger LOG = LoggerFactory.getLogger(UserRenames.class);
@@ -57,7 +58,12 @@ public class UserRenames {
 			case FIELD:
 				FieldNode fieldNode = cls.searchFieldByShortId(nodeRef.getShortId());
 				if (fieldNode == null) {
-					LOG.warn("Field reference not found: {}", nodeRef);
+					String fieldName = StringUtils.getPrefix(nodeRef.getShortId(), ":");
+					String fieldSign = cls.getFields().stream()
+							.filter(f -> f.getFieldInfo().getName().equals(fieldName))
+							.map(f -> f.getFieldInfo().getShortId())
+							.collect(Collectors.joining());
+					LOG.warn("Field reference not found: {}. Fields with same name: {}", nodeRef, fieldSign);
 				} else {
 					fieldNode.rename(rename.getNewName());
 				}

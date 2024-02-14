@@ -189,4 +189,8 @@ public enum Opcode {
 
 	CONST_METHOD_HANDLE,
 	CONST_METHOD_TYPE,
+
+	// Java specific dynamic jump instructions
+	JAVA_JSR,
+	JAVA_RET,
 }

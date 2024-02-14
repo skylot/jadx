@@ -41,6 +41,7 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.ListUtils;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockExceptionHandler {
@@ -65,6 +66,10 @@ public class BlockExceptionHandler {
 			removeMonitorExitFromExcHandler(mth, eh);
 		}
 		BlockProcessor.removeMarkedBlocks(mth);
+
+		BlockSet sorted = new BlockSet(mth);
+		BlockUtils.dfsVisit(mth, sorted::set);
+		removeUnusedExcHandlers(mth, tryBlocks, sorted);
 		return true;
 	}
 
@@ -585,5 +590,28 @@ public class BlockExceptionHandler {
 			return first.compareTo(second);
 		}
 		return r;
+	}
+
+	/**
+	 * Remove excHandlers that were not used when connecting.
+	 * Check first if the blocks are unreachable.
+	 */
+	private static void removeUnusedExcHandlers(MethodNode mth, List<TryCatchBlockAttr> tryBlocks, BlockSet blocks) {
+		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
+			boolean notProcessed = true;
+			BlockNode handlerBlock = eh.getHandlerBlock();
+			if (blocks.get(handlerBlock)) {
+				continue;
+			}
+			for (TryCatchBlockAttr tcb : tryBlocks) {
+				if (tcb.getHandlers().contains(handlerBlock)) {
+					notProcessed = false;
+					break;
+				}
+			}
+			if (notProcessed) {
+				BlockProcessor.removeUnreachableBlock(handlerBlock, mth);
+			}
+		}
 	}
 }

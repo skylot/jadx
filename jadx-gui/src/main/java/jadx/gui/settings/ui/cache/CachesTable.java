@@ -1,10 +1,13 @@
 package jadx.gui.settings.ui.cache;
 
 import java.awt.Dimension;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -13,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.events.types.ReloadProject;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.gui.cache.manager.CacheManager;
@@ -95,9 +99,9 @@ public class CachesTable extends JTable {
 	private void calcSize(TableRow row) {
 		String cacheDir = row.getCacheEntry().getCache();
 		try {
-			File dir = new File(cacheDir);
-			if (dir.exists()) {
-				long size = FileUtils.sizeOfDirectory(dir);
+			Path dir = Paths.get(cacheDir);
+			if (Files.isDirectory(dir)) {
+				long size = calcSizeOfDirectory(dir);
 				row.setUsage(FileUtils.byteCountToDisplaySize(size));
 			} else {
 				row.setUsage("not found");
@@ -105,6 +109,27 @@ public class CachesTable extends JTable {
 		} catch (Exception e) {
 			LOG.warn("Failed to calculate size of directory: {}", cacheDir, e);
 			row.setUsage("error");
+		}
+	}
+
+	private static long calcSizeOfDirectory(Path dir) {
+		try (Stream<Path> stream = Files.walk(dir)) {
+			long blockSize = Files.getFileStore(dir).getBlockSize();
+			return stream.mapToLong(p -> {
+				if (Files.isRegularFile(p)) {
+					try {
+						long fileSize = Files.size(p);
+						// ceil round to blockSize
+						return (fileSize / blockSize + 1L) * blockSize;
+					} catch (Exception e) {
+						LOG.error("Failed to get file size: {}", p, e);
+					}
+				}
+				return 0;
+			}).sum();
+		} catch (Exception e) {
+			LOG.error("Failed to calculate directory size: {}", dir, e);
+			return 0;
 		}
 	}
 
@@ -130,7 +155,7 @@ public class CachesTable extends JTable {
 				status -> {
 					reloadData();
 					if (reload) {
-						mainWindow.reopen();
+						mainWindow.events().send(ReloadProject.EVENT);
 					}
 				});
 	}

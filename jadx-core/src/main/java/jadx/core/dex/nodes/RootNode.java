@@ -275,8 +275,9 @@ public class RootNode {
 		for (ResourceFile resource : resources) {
 			ResourceEntry resEntry = entryNames.get(resource.getOriginalName());
 			if (resEntry != null) {
-				resource.setAlias(resEntry);
-				renamedCount++;
+				if (resource.setAlias(resEntry)) {
+					renamedCount++;
+				}
 			}
 		}
 		if (LOG.isDebugEnabled()) {

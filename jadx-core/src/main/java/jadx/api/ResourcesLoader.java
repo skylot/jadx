@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -140,9 +141,23 @@ public final class ResourcesLoader {
 		if (file == null || file.isDirectory()) {
 			return;
 		}
+
+		// Try to load the resources with a custom loader first
+		for (CustomResourcesLoader loader : jadxRef.getCustomResourcesLoaders()) {
+			if (loader.load(this, list, file)) {
+				LOG.debug("Custom loader used for {}", file.getAbsolutePath());
+				return;
+			}
+		}
+
+		// If no custom decoder was able to decode the resources, use the default decoder
+		defaultLoadFile(list, file, "");
+	}
+
+	public void defaultLoadFile(List<ResourceFile> list, File file, String subDir) {
 		if (FileUtils.isZipFile(file)) {
 			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
-				addEntry(list, file, entry);
+				addEntry(list, file, entry, subDir);
 				return null;
 			});
 		} else {
@@ -151,13 +166,13 @@ public final class ResourcesLoader {
 		}
 	}
 
-	private void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry) {
+	public void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry, String subDir) {
 		if (entry.isDirectory()) {
 			return;
 		}
 		String name = entry.getName();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, name, type);
+		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, subDir + name, type);
 		if (rf != null) {
 			rf.setZipRef(new ZipRef(zipFile, name));
 			list.add(rf);

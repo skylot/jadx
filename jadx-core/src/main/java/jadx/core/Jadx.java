@@ -29,6 +29,7 @@ import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.ExtractFieldInit;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.FixAccessModifiers;
+import jadx.core.dex.visitors.FixSwitchOverEnum;
 import jadx.core.dex.visitors.GenericTypesVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
@@ -43,7 +44,7 @@ import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.dex.visitors.ProcessInstructionsVisitor;
 import jadx.core.dex.visitors.ProcessMethodsForInline;
-import jadx.core.dex.visitors.ReSugarCode;
+import jadx.core.dex.visitors.ReplaceNewArray;
 import jadx.core.dex.visitors.ShadowFieldVisitor;
 import jadx.core.dex.visitors.SignatureProcessor;
 import jadx.core.dex.visitors.SimplifyVisitor;
@@ -66,6 +67,7 @@ import jadx.core.dex.visitors.rename.SourceFileRename;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.FinishTypeInference;
+import jadx.core.dex.visitors.typeinference.FixTypesVisitor;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -140,7 +142,9 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
+		passes.add(new FixTypesVisitor());
 		passes.add(new FinishTypeInference());
+
 		if (args.getUseKotlinMethodsForVarNames() != JadxArgs.UseKotlinMethodsForVarNames.DISABLE) {
 			passes.add(new ProcessKotlinInternals());
 		}
@@ -154,7 +158,7 @@ public class Jadx {
 		passes.add(new AnonymousClassVisitor());
 		passes.add(new ModVisitor());
 		passes.add(new CodeShrinkVisitor());
-		passes.add(new ReSugarCode());
+		passes.add(new ReplaceNewArray());
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dump());
 		}
@@ -171,6 +175,7 @@ public class Jadx {
 		passes.add(new CheckRegions());
 
 		passes.add(new EnumVisitor());
+		passes.add(new FixSwitchOverEnum());
 		passes.add(new ExtractFieldInit());
 		passes.add(new FixAccessModifiers());
 		passes.add(new ClassModifier());
@@ -214,13 +219,13 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
+		passes.add(new FixTypesVisitor());
 		passes.add(new FinishTypeInference());
 		passes.add(new CodeRenameVisitor());
 		passes.add(new DeboxingVisitor());
 		passes.add(new ModVisitor());
 		passes.add(new CodeShrinkVisitor());
-		passes.add(new ReSugarCode());
-		passes.add(new CodeShrinkVisitor());
+		passes.add(new ReplaceNewArray());
 		passes.add(new SimplifyVisitor());
 		passes.add(new MethodVisitor("ForceGenerateAll", mth -> mth.remove(AFlag.DONT_GENERATE)));
 		if (args.isCfgOutput()) {

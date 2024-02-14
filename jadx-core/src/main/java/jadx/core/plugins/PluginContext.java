@@ -1,5 +1,7 @@
 package jadx.core.plugins;
 
+import java.io.Closeable;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,18 +15,24 @@ import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.data.IJadxPlugins;
+import jadx.api.plugins.data.JadxPluginRuntimeData;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
+import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
+import jadx.api.plugins.input.data.impl.MergeCodeLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.pass.JadxPass;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
-public class PluginContext implements JadxPluginContext, Comparable<PluginContext> {
+public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, Comparable<PluginContext> {
 	private final JadxDecompiler decompiler;
+	private final JadxPluginsData pluginsData;
 	private final JadxPlugin plugin;
 	private final JadxPluginInfo pluginInfo;
 	private @Nullable JadxGuiContext guiContext;
@@ -35,8 +43,9 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 
 	private boolean initialized;
 
-	PluginContext(JadxDecompiler decompiler, JadxPlugin plugin) {
+	PluginContext(JadxDecompiler decompiler, JadxPluginsData pluginsData, JadxPlugin plugin) {
 		this.decompiler = decompiler;
+		this.pluginsData = pluginsData;
 		this.plugin = plugin;
 		this.pluginInfo = plugin.getPluginInfo();
 	}
@@ -46,6 +55,7 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 		initialized = true;
 	}
 
+	@Override
 	public boolean isInitialized() {
 		return initialized;
 	}
@@ -70,6 +80,7 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 		this.codeInputs.add(codeInput);
 	}
 
+	@Override
 	public List<JadxCodeInput> getCodeInputs() {
 		return codeInputs;
 	}
@@ -89,6 +100,7 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 		this.inputsHashSupplier = supplier;
 	}
 
+	@Override
 	public String getInputsHash() {
 		if (inputsHashSupplier == null) {
 			return defaultOptionsHash();
@@ -128,20 +140,36 @@ public class PluginContext implements JadxPluginContext, Comparable<PluginContex
 		this.guiContext = guiContext;
 	}
 
-	public JadxPlugin getPlugin() {
+	@Override
+	public JadxPlugin getPluginInstance() {
 		return plugin;
 	}
 
+	@Override
 	public JadxPluginInfo getPluginInfo() {
 		return pluginInfo;
 	}
 
+	@Override
 	public String getPluginId() {
 		return pluginInfo.getPluginId();
 	}
 
-	public JadxPluginOptions getOptions() {
+	@Override
+	public @Nullable JadxPluginOptions getOptions() {
 		return options;
+	}
+
+	@Override
+	public IJadxPlugins plugins() {
+		return pluginsData;
+	}
+
+	@Override
+	public ICodeLoader loadCodeFiles(List<Path> files, @Nullable Closeable closeable) {
+		return new MergeCodeLoader(
+				Utils.collectionMap(codeInputs, codeInput -> codeInput.loadFiles(files)),
+				closeable);
 	}
 
 	@Override

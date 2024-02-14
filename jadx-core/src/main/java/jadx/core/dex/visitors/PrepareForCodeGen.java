@@ -25,7 +25,9 @@ import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -82,6 +84,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			removeParenthesis(block);
 			modifyArith(block);
 			checkConstUsage(block);
+			addNullCasts(mth, block);
 		}
 		moveConstructorInConstructor(mth);
 		collectFieldsUsageInAnnotations(mth, mth);
@@ -377,6 +380,29 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				List<EncodedValue> valueList = (List<EncodedValue>) encodedValue.getValue();
 				valueList.forEach(v -> checkEncodedValue(mth, v));
 				break;
+		}
+	}
+
+	private void addNullCasts(MethodNode mth, BlockNode block) {
+		for (InsnNode insn : block.getInstructions()) {
+			switch (insn.getType()) {
+				case INVOKE:
+					verifyNullCast(mth, ((InvokeNode) insn).getInstanceArg());
+					break;
+
+				case ARRAY_LENGTH:
+					verifyNullCast(mth, insn.getArg(0));
+					break;
+			}
+		}
+	}
+
+	private void verifyNullCast(MethodNode mth, InsnArg arg) {
+		if (arg != null && arg.isZeroConst()) {
+			ArgType castType = arg.getType();
+			IndexInsnNode castInsn = new IndexInsnNode(InsnType.CAST, castType, 1);
+			castInsn.addArg(InsnArg.lit(0, castType));
+			arg.wrapInstruction(mth, castInsn);
 		}
 	}
 }

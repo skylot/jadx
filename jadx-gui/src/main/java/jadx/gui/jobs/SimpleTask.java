@@ -5,6 +5,9 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.utils.tasks.ITaskExecutor;
+import jadx.core.utils.tasks.TaskExecutor;
+
 /**
  * Simple not cancelable task with memory check
  */
@@ -29,8 +32,10 @@ public class SimpleTask implements IBackgroundTask {
 	}
 
 	@Override
-	public List<Runnable> scheduleJobs() {
-		return jobs;
+	public ITaskExecutor scheduleTasks() {
+		TaskExecutor executor = new TaskExecutor();
+		executor.addParallelTasks(jobs);
+		return executor;
 	}
 
 	@Override

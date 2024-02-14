@@ -481,19 +481,28 @@ public class BlockUtils {
 		}
 	}
 
+	public static List<BlockNode> collectAllSuccessors(MethodNode mth, BlockNode startBlock, boolean clean) {
+		List<BlockNode> list = new ArrayList<>(mth.getBasicBlocks().size());
+		dfsVisit(mth, startBlock, clean, list::add);
+		return list;
+	}
+
 	public static void dfsVisit(MethodNode mth, Consumer<BlockNode> visitor) {
+		dfsVisit(mth, mth.getEnterBlock(), false, visitor);
+	}
+
+	private static void dfsVisit(MethodNode mth, BlockNode startBlock, boolean clean, Consumer<BlockNode> visitor) {
 		BitSet visited = newBlocksBitSet(mth);
 		Deque<BlockNode> queue = new ArrayDeque<>();
-		BlockNode enterBlock = mth.getEnterBlock();
-		queue.addLast(enterBlock);
-		visited.set(mth.getEnterBlock().getId());
+		queue.addLast(startBlock);
+		visited.set(startBlock.getId());
 		while (true) {
 			BlockNode current = queue.pollLast();
 			if (current == null) {
 				return;
 			}
 			visitor.accept(current);
-			List<BlockNode> successors = current.getSuccessors();
+			List<BlockNode> successors = clean ? current.getCleanSuccessors() : current.getSuccessors();
 			int count = successors.size();
 			for (int i = count - 1; i >= 0; i--) { // to preserve order in queue
 				BlockNode next = successors.get(i);

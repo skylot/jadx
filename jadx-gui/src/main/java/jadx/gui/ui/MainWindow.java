@@ -476,7 +476,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void reopen() {
-		synchronized (ReloadProject.INSTANCE) {
+		synchronized (ReloadProject.EVENT) {
 			saveAll();
 			closeAll();
 			loadFiles(EMPTY_RUNNABLE);
@@ -688,12 +688,25 @@ public class MainWindow extends JFrame {
 	}
 
 	public void resetCodeCache() {
-		Path cacheDir = project.getCacheDir();
-		project.resetCacheDir();
 		backgroundExecutor.execute(
 				NLS.str("preferences.cache.task.delete"),
-				() -> FileUtils.deleteDirIfExists(cacheDir),
-				status -> reopen());
+				() -> {
+					try {
+						getWrapper().getCurrentDecompiler().ifPresent(jadx -> {
+							try {
+								jadx.getArgs().getCodeCache().close();
+							} catch (Exception e) {
+								LOG.error("Failed to close code cache", e);
+							}
+						});
+						Path cacheDir = project.getCacheDir();
+						project.resetCacheDir();
+						FileUtils.deleteDirIfExists(cacheDir);
+					} catch (Exception e) {
+						LOG.error("Error during code cache reset", e);
+					}
+				},
+				status -> events().send(ReloadProject.EVENT));
 	}
 
 	public void cancelBackgroundJobs() {
@@ -1155,6 +1168,7 @@ public class MainWindow extends JFrame {
 			decompileAllAction.setEnabled(loaded);
 			deobfAction.setEnabled(loaded);
 			quarkAction.setEnabled(loaded);
+			resetCacheAction.setEnabled(loaded);
 			return false;
 		});
 	}

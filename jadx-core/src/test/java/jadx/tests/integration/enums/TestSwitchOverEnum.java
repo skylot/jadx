@@ -2,14 +2,11 @@ package jadx.tests.integration.enums;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
-public class TestSwitchOverEnum extends IntegrationTest {
+public class TestSwitchOverEnum extends SmaliTest {
 
 	public enum Count {
 		ONE, TWO, THREE
@@ -26,18 +23,29 @@ public class TestSwitchOverEnum extends IntegrationTest {
 	}
 
 	public void check() {
-		assertEquals(1, testEnum(Count.ONE));
-		assertEquals(2, testEnum(Count.TWO));
-		assertEquals(0, testEnum(Count.THREE));
+		assertThat(testEnum(Count.ONE)).isEqualTo(1);
+		assertThat(testEnum(Count.TWO)).isEqualTo(2);
+		assertThat(testEnum(Count.THREE)).isEqualTo(0);
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestSwitchOverEnum.class);
-		String code = cls.getCode().toString();
+		// remapping array placed in top class, place test also in top class
+		assertThat(getClassNode(TestSwitchOverEnum.class))
+				.code()
+				.countString(1, "synthetic")
+				.countString(2, "switch (c) {")
+				.countString(3, "case ONE:");
+	}
 
-		assertThat(code, countString(1, "synthetic"));
-		assertThat(code, countString(2, "switch (c) {"));
-		assertThat(code, countString(2, "case ONE:"));
+	/**
+	 * Java 21 compiler can omit a remapping array and use switch over ordinal directly
+	 */
+	@Test
+	public void testSmaliDirect() {
+		assertThat(getClassNodeFromSmaliFiles())
+				.code()
+				.containsOne("switch (v) {")
+				.containsOne("case ONE:");
 	}
 }

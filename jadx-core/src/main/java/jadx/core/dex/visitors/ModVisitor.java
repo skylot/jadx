@@ -389,6 +389,11 @@ public class ModVisitor extends AbstractVisitor {
 
 	private static void removeCheckCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
 		InsnArg castArg = insn.getArg(0);
+		if (castArg.isZeroLiteral()) {
+			// always keep cast for 'null'
+			insn.add(AFlag.EXPLICIT_CAST);
+			return;
+		}
 		ArgType castType = (ArgType) insn.getIndex();
 		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)) {
 			RegisterArg result = insn.getResult();

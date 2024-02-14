@@ -23,8 +23,9 @@ public class ConvertToClsSet {
 	private static final Logger LOG = LoggerFactory.getLogger(ConvertToClsSet.class);
 
 	public static void usage() {
-		LOG.info("<output .jcst file> <several input dex or jar files> ");
+		LOG.info("<android API level (number)> <output .jcst file> <several input dex or jar files> ");
 		LOG.info("Arguments to update core.jcst: "
+				+ "<android API level (number)> "
 				+ "<jadx root>/jadx-core/src/main/resources/clst/core.jcst "
 				+ "<sdk_root>/platforms/android-<api level>/android.jar"
 				+ "<sdk_root>/platforms/android-<api level>/optional/android.car.jar "
@@ -32,11 +33,12 @@ public class ConvertToClsSet {
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 2) {
+		if (args.length != 5) {
 			usage();
 			System.exit(1);
 		}
-		List<Path> inputPaths = Stream.of(args).map(Paths::get).collect(Collectors.toList());
+		int androidApiLevel = Integer.parseInt(args[0]);
+		List<Path> inputPaths = Stream.of(args).skip(1).map(Paths::get).collect(Collectors.toList());
 		Path output = inputPaths.remove(0);
 
 		JadxArgs jadxArgs = new JadxArgs();
@@ -57,6 +59,7 @@ public class ConvertToClsSet {
 			decompiler.load();
 			RootNode root = decompiler.getRoot();
 			ClsSet set = new ClsSet(root);
+			set.setAndroidApiLevel(androidApiLevel);
 			set.loadFrom(root);
 			set.save(output);
 

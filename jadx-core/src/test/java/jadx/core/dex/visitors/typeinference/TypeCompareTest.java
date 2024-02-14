@@ -140,6 +140,16 @@ public class TypeCompareTest {
 	}
 
 	@Test
+	public void compareGenericWildCards() {
+		// 'java.util.List<T>' and 'java.util.List<? extends T>'
+		ArgType listCls = object("java.util.List");
+		ArgType genericType = genericType("T");
+		ArgType genericList = generic(listCls, genericType);
+		ArgType genericExtendedList = generic(listCls, wildcard(genericType, WildcardBound.EXTENDS));
+		check(genericList, genericExtendedList, TypeCompareEnum.CONFLICT_BY_GENERIC);
+	}
+
+	@Test
 	public void compareGenericTypes() {
 		ArgType vType = genericType("V");
 		check(vType, OBJECT, TypeCompareEnum.NARROW);

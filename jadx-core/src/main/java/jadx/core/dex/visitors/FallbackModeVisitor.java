@@ -33,6 +33,7 @@ public class FallbackModeVisitor extends AbstractVisitor {
 					case RETURN:
 					case IF:
 					case GOTO:
+					case JAVA_JSR:
 					case MOVE:
 					case MOVE_EXCEPTION:
 					case ARITH: // ??

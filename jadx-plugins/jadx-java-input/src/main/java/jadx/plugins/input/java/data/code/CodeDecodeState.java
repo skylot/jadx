@@ -9,6 +9,7 @@ import jadx.plugins.input.java.data.DataReader;
 import jadx.plugins.input.java.data.JavaClassData;
 import jadx.plugins.input.java.data.code.StackState.SVType;
 
+@SuppressWarnings("UnusedReturnValue")
 public class CodeDecodeState {
 	private final JavaClassData clsData;
 	private final DataReader reader;
@@ -35,6 +36,7 @@ public class CodeDecodeState {
 			this.stack = stackState;
 		}
 		if (excHandlers.contains(offset)) {
+			clear();
 			stack.push(SVType.NARROW); // push exception
 			excHandler = true;
 		} else {
@@ -112,6 +114,10 @@ public class CodeDecodeState {
 		return this;
 	}
 
+	public int insert(int pos, SVType type) {
+		return stack.insert(pos, type);
+	}
+
 	public void discard() {
 		stack.pop();
 	}
@@ -124,8 +130,9 @@ public class CodeDecodeState {
 		}
 	}
 
-	public void clear() {
+	public CodeDecodeState clear() {
 		stack.clear();
+		return this;
 	}
 
 	public int push(String type) {

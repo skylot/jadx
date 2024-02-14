@@ -99,7 +99,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 						&& retInsn.getArg(0).isSameVar(firstInsn.getResult())
 						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0));
 			case SGET:
-				return mthRegs.size() == 0
+				return mthRegs.isEmpty()
 						&& retInsn.getArg(0).isSameVar(firstInsn.getResult());
 
 			case IPUT:
@@ -113,7 +113,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0));
 
 			case INVOKE:
-				return mthRegs.size() >= 1
+				return !mthRegs.isEmpty()
 						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0))
 						&& retInsn.getArg(0).isSameVar(firstInsn.getResult());
 			default:

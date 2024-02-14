@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -106,7 +107,7 @@ public class ClspGraph {
 	private void addClass(ClassNode cls) {
 		ArgType clsType = cls.getClassInfo().getType();
 		String rawName = clsType.getObject();
-		ClspClass clspClass = new ClspClass(clsType, -1);
+		ClspClass clspClass = new ClspClass(clsType, -1, cls.getAccessFlags().rawValue(), ClspClassSource.APP);
 		clspClass.setParents(ClsSet.makeParentsArray(cls));
 		nameMap.put(rawName, clspClass);
 	}
@@ -174,6 +175,8 @@ public class ClspGraph {
 		return result == null ? Collections.emptySet() : result;
 	}
 
+	private static final Set<String> OBJECT_SINGLE_SET = Collections.singleton(Consts.CLASS_OBJECT);
+
 	private void fillSuperTypesCache() {
 		Map<String, Set<String>> map = new HashMap<>(nameMap.size());
 		Set<String> tmpSet = new HashSet<>();
@@ -182,10 +185,25 @@ public class ClspGraph {
 			tmpSet.clear();
 			addSuperTypes(cls, tmpSet);
 			Set<String> result;
-			if (tmpSet.isEmpty()) {
-				result = Collections.emptySet();
-			} else {
-				result = new HashSet<>(tmpSet);
+			int size = tmpSet.size();
+			switch (size) {
+				case 0: {
+					result = Collections.emptySet();
+					break;
+				}
+				case 1: {
+					String supCls = tmpSet.iterator().next();
+					if (supCls.equals(Consts.CLASS_OBJECT)) {
+						result = OBJECT_SINGLE_SET;
+					} else {
+						result = Collections.singleton(supCls);
+					}
+					break;
+				}
+				default: {
+					result = new HashSet<>(tmpSet);
+					break;
+				}
 			}
 			map.put(cls.getName(), result);
 		}

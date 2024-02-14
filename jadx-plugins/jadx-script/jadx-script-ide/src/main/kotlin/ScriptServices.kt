@@ -49,31 +49,19 @@ class ScriptServices {
 	}
 
 	fun analyze(scriptName: String, code: String): ScriptAnalyzeResult {
-		// TODO: temp solution: analyze do not work with dependencies, use compile instead
 		val sourceCode = code.toScriptSource(scriptName)
-		if (code.contains("@file:DependsOn(")) {
-			val result = runBlocking {
-				ScriptEval().compile(sourceCode)
-			}
-			return ScriptAnalyzeResult(
-				success = !result.isError(),
-				issues = result.reports,
-				renderType = null,
-			)
-		} else {
-			val result = runBlocking {
-				val cursor = SourceCode.Position(0, 0) // not used
-				replCompiler.analyze(sourceCode, cursor, compileConf)
-			}
-			val analyzerResult = result.valueOrNull()
-			val issues = mutableListOf<ScriptDiagnostic>()
-			analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.let(issues::addAll)
-			issues.addAll(result.reports)
-			return ScriptAnalyzeResult(
-				success = !result.isError(),
-				issues = issues,
-				renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
-			)
+		val result = runBlocking {
+			val cursor = SourceCode.Position(0, 0) // not used
+			replCompiler.analyze(sourceCode, cursor, compileConf)
 		}
+		val analyzerResult = result.valueOrNull()
+		val issues = mutableListOf<ScriptDiagnostic>()
+		analyzerResult?.get(ReplAnalyzerResult.analysisDiagnostics)?.let(issues::addAll)
+		issues.addAll(result.reports)
+		return ScriptAnalyzeResult(
+			success = !result.isError(),
+			issues = issues,
+			renderType = analyzerResult?.get(ReplAnalyzerResult.renderedResultType),
+		)
 	}
 }

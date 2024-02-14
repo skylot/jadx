@@ -63,6 +63,10 @@ public class ResourceStorage {
 		renames.clear();
 	}
 
+	public int size() {
+		return list.size();
+	}
+
 	public Iterable<ResourceEntry> getResources() {
 		return list;
 	}

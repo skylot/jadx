@@ -58,6 +58,11 @@ public final class LiteralArg extends InsnArg {
 		return true;
 	}
 
+	@Override
+	public boolean isZeroLiteral() {
+		return literal == 0;
+	}
+
 	public boolean isInteger() {
 		switch (type.getPrimitiveType()) {
 			case INT:
@@ -123,6 +128,11 @@ public final class LiteralArg extends InsnArg {
 		}
 		LiteralArg that = (LiteralArg) o;
 		return literal == that.literal && getType().equals(that.getType());
+	}
+
+	@Override
+	public String toShortString() {
+		return Long.toString(literal);
 	}
 
 	@Override

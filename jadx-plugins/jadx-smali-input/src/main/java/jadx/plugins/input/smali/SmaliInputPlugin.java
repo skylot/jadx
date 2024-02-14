@@ -1,19 +1,13 @@
 package jadx.plugins.input.smali;
 
-import java.nio.file.Path;
-import java.util.List;
-
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
-import jadx.api.plugins.input.ICodeLoader;
-import jadx.api.plugins.input.JadxCodeInput;
+import jadx.api.plugins.data.JadxPluginRuntimeData;
 import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.plugins.input.dex.DexInputPlugin;
 
-public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
-
-	private final DexInputPlugin dexInput = new DexInputPlugin();
+public class SmaliInputPlugin implements JadxPlugin {
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
@@ -22,15 +16,13 @@ public class SmaliInputPlugin implements JadxPlugin, JadxCodeInput {
 
 	@Override
 	public void init(JadxPluginContext context) {
-		context.addCodeInput(this);
-	}
-
-	@Override
-	public ICodeLoader loadFiles(List<Path> input) {
-		SmaliConvert convert = new SmaliConvert();
-		if (!convert.execute(input)) {
-			return EmptyCodeLoader.INSTANCE;
-		}
-		return dexInput.loadFiles(convert.getDexFiles(), convert);
+		JadxPluginRuntimeData dexInput = context.plugins().getById(DexInputPlugin.PLUGIN_ID);
+		context.addCodeInput(input -> {
+			SmaliConvert convert = new SmaliConvert();
+			if (!convert.execute(input)) {
+				return EmptyCodeLoader.INSTANCE;
+			}
+			return dexInput.loadCodeFiles(convert.getDexFiles(), convert);
+		});
 	}
 }

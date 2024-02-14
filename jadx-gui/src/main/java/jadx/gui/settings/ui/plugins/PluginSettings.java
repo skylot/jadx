@@ -69,7 +69,7 @@ public class PluginSettings {
 	}
 
 	private void requestReload() {
-		mainWindow.events().send(ReloadProject.INSTANCE);
+		mainWindow.events().send(ReloadProject.EVENT);
 	}
 
 	public void install(String locationId) {

@@ -2,6 +2,7 @@ package jadx.core.dex.instructions;
 
 import java.util.Objects;
 
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
@@ -21,6 +22,10 @@ public class IndexInsnNode extends InsnNode {
 
 	public void updateIndex(Object index) {
 		this.index = index;
+	}
+
+	public ArgType getIndexAsType() {
+		return (ArgType) index;
 	}
 
 	@Override

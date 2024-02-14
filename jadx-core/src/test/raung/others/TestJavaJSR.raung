@@ -1,0 +1,49 @@
+.version 45.3
+.class others/TestJavaJSR
+
+.method public test(Ljava/net/URL;)Ljava/lang/String;
+    .throw java/io/IOException
+    .max stack 2
+    .max locals 6
+
+    .local 0 "this" Lothers/TestJavaJSR;
+    .local 1 "url" Ljava/net/URL;
+    .line 88
+    aload 1
+    invokevirtual java/net/URL openStream ()Ljava/io/InputStream;
+    astore 2
+  :L0
+    .local 2 "in" Ljava/io/InputStream;
+    .line 89
+    .line 90
+    aload 0
+    aload 2
+    invokevirtual others/TestJavaJSR call (Ljava/io/InputStream;)Ljava/lang/String;
+    astore 3
+    jsr :L3
+    aload 3
+    areturn
+  :L1
+    .catch all :L0 .. :L1 goto :L1
+    .line 89
+    astore 4
+    jsr :L3
+    aload 4
+    athrow
+  :L3
+    astore 5
+    .line 92
+    aload 2
+    invokevirtual java/io/InputStream close ()V
+    .line 89
+    ret 5
+.end method
+
+.method public call(Ljava/io/InputStream;)Ljava/lang/String;
+    .throw java/io/IOException
+    .max stack 1
+    .max locals 2
+
+    ldc ""
+    areturn
+.end method

@@ -61,7 +61,7 @@ public class RenameService {
 		try {
 			LOG.debug("Applying rename event: {}", event);
 			JRenameNode node = getRenameNode(event);
-			updateCodeRenames(set -> processRename(node, event.getNewName(), set));
+			updateCodeRenames(set -> processRename(node, event, set));
 			refreshState(node);
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
@@ -85,10 +85,10 @@ public class RenameService {
 		throw new JadxRuntimeException("Failed to resolve node: " + event.getNode());
 	}
 
-	private void processRename(JRenameNode node, String newName, Set<ICodeRename> renames) {
-		ICodeRename rename = node.buildCodeRename(newName, renames);
+	private void processRename(JRenameNode node, NodeRenamedByUser event, Set<ICodeRename> renames) {
+		ICodeRename rename = node.buildCodeRename(event.getNewName(), renames);
 		renames.remove(rename);
-		if (newName.isEmpty()) {
+		if (event.isResetName() || event.getNewName().isEmpty()) {
 			node.removeAlias();
 		} else {
 			renames.add(rename);

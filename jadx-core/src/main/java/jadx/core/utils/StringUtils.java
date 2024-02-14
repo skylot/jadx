@@ -374,6 +374,14 @@ public class StringUtils {
 		return str;
 	}
 
+	public static @Nullable String getPrefix(String str, String delim) {
+		int idx = str.indexOf(delim);
+		if (idx != -1) {
+			return str.substring(0, idx);
+		}
+		return null;
+	}
+
 	public static String getDateText() {
 		return new SimpleDateFormat("HH:mm:ss").format(new Date());
 	}

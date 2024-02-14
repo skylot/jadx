@@ -52,7 +52,8 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(ProcessKotlinInternals.class);
 
 	private static final String KOTLIN_INTERNAL_PKG = "kotlin.jvm.internal.";
-	private static final String KOTLIN_INTRINSICS_CLS = KOTLIN_INTERNAL_PKG + "Intrinsics";
+	private static final String KOTLIN_INTRINSICS_CLS_SHORT_NAME = "Intrinsics";
+	private static final String KOTLIN_INTRINSICS_CLS = KOTLIN_INTERNAL_PKG + KOTLIN_INTRINSICS_CLS_SHORT_NAME;
 	private static final String KOTLIN_VARNAME_SOURCE_MTH1 = "(Ljava/lang/Object;Ljava/lang/String;)V";
 	private static final String KOTLIN_VARNAME_SOURCE_MTH2 = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
 
@@ -194,7 +195,12 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 	}
 
 	private static boolean isKotlinIntrinsicsClass(ClassNode cls) {
-		if (!cls.getClassInfo().getFullName().startsWith(KOTLIN_INTERNAL_PKG)) {
+		ClassInfo clsInfo = cls.getClassInfo();
+		if (clsInfo.getAliasShortName().equals(KOTLIN_INTRINSICS_CLS_SHORT_NAME)
+				&& clsInfo.getAliasFullName().equals(KOTLIN_INTRINSICS_CLS)) {
+			return true;
+		}
+		if (!clsInfo.getFullName().startsWith(KOTLIN_INTERNAL_PKG)) {
 			return false;
 		}
 		if (cls.getMethods().size() < 5) {

@@ -74,13 +74,20 @@ public class ResourceFile {
 		this.zipRef = zipRef;
 	}
 
-	public void setAlias(ResourceEntry ri) {
-		int index = name.lastIndexOf('.');
-		deobfName = String.format("res/%s%s/%s%s",
-				ri.getTypeName(),
-				ri.getConfig(),
-				ri.getKeyName(),
-				index == -1 ? "" : name.substring(index));
+	public boolean setAlias(ResourceEntry ri) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("res/").append(ri.getTypeName()).append(ri.getConfig());
+		sb.append("/").append(ri.getKeyName());
+		int lastDot = name.lastIndexOf('.');
+		if (lastDot != -1) {
+			sb.append(name.substring(lastDot));
+		}
+		String alias = sb.toString();
+		if (!alias.equals(name)) {
+			deobfName = alias;
+			return true;
+		}
+		return false;
 	}
 
 	public ZipRef getZipRef() {

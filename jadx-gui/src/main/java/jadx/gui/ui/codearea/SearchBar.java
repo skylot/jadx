@@ -140,6 +140,24 @@ public class SearchBar extends JToolBar {
 		setVisible(false);
 	}
 
+	/*
+	 * Replicates IntelliJ's search bar behavior
+	 * 1.1. If the user has selected text, use that as the search text
+	 * 1.2. Otherwise, use the previous search text (or empty if none)
+	 * 2. Select all text in the search bar and give it focus
+	 */
+	public void showAndFocus() {
+		setVisible(true);
+
+		String selectedText = rTextArea.getSelectedText();
+		if (!StringUtils.isEmpty(selectedText)) {
+			searchField.setText(selectedText);
+		}
+
+		searchField.selectAll();
+		searchField.requestFocus();
+	}
+
 	public void toggle() {
 		boolean visible = !isVisible();
 		setVisible(visible);
@@ -149,8 +167,8 @@ public class SearchBar extends JToolBar {
 			if (!StringUtils.isEmpty(preferText)) {
 				searchField.setText(preferText);
 			}
-			searchField.requestFocus();
 			searchField.selectAll();
+			searchField.requestFocus();
 		} else {
 			rTextArea.requestFocus();
 		}

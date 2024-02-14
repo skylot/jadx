@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.cli.LogHelper.LogLevelEnum;
@@ -44,8 +45,8 @@ public class JadxCLI {
 		LogHelper.setLogLevelsForLoadingStage();
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
-		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
 		jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+		initCodeWriterProvider(jadxArgs);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
 			if (checkForErrors(jadx)) {
@@ -64,6 +65,18 @@ public class JadxCLI {
 			}
 		}
 		return 0;
+	}
+
+	private static void initCodeWriterProvider(JadxArgs jadxArgs) {
+		switch (jadxArgs.getOutputFormat()) {
+			case JAVA:
+				jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
+				break;
+			case JSON:
+				// needed for code offsets and source lines
+				jadxArgs.setCodeWriterProvider(AnnotatedCodeWriter::new);
+				break;
+		}
 	}
 
 	private static boolean checkForErrors(JadxDecompiler jadx) {
@@ -89,6 +102,7 @@ public class JadxCLI {
 		if (LogHelper.getLogLevel() == LogLevelEnum.QUIET) {
 			jadx.save();
 		} else {
+			LOG.info("processing ...");
 			jadx.save(500, (done, total) -> {
 				int progress = (int) (done * 100.0 / total);
 				System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);
