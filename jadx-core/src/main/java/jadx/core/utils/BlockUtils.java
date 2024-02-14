@@ -7,14 +7,13 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +36,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockUtils {
@@ -483,33 +483,37 @@ public class BlockUtils {
 
 	public static List<BlockNode> collectAllSuccessors(MethodNode mth, BlockNode startBlock, boolean clean) {
 		List<BlockNode> list = new ArrayList<>(mth.getBasicBlocks().size());
-		dfsVisit(mth, startBlock, clean, list::add);
+		Function<BlockNode, List<BlockNode>> nextFunc = clean ? BlockNode::getCleanSuccessors : BlockNode::getSuccessors;
+		visitDFS(mth, startBlock, nextFunc, list::add);
 		return list;
 	}
 
-	public static void dfsVisit(MethodNode mth, Consumer<BlockNode> visitor) {
-		dfsVisit(mth, mth.getEnterBlock(), false, visitor);
+	public static void visitDFS(MethodNode mth, Consumer<BlockNode> visitor) {
+		visitDFS(mth, mth.getEnterBlock(), BlockNode::getSuccessors, visitor);
 	}
 
-	private static void dfsVisit(MethodNode mth, BlockNode startBlock, boolean clean, Consumer<BlockNode> visitor) {
-		BitSet visited = newBlocksBitSet(mth);
+	public static void visitReverseDFS(MethodNode mth, Consumer<BlockNode> visitor) {
+		visitDFS(mth, mth.getExitBlock(), BlockNode::getPredecessors, visitor);
+	}
+
+	private static void visitDFS(MethodNode mth, BlockNode startBlock,
+			Function<BlockNode, List<BlockNode>> nextFunc, Consumer<BlockNode> visitor) {
+		BlockSet visited = new BlockSet(mth);
 		Deque<BlockNode> queue = new ArrayDeque<>();
 		queue.addLast(startBlock);
-		visited.set(startBlock.getId());
+		visited.set(startBlock);
 		while (true) {
 			BlockNode current = queue.pollLast();
 			if (current == null) {
 				return;
 			}
 			visitor.accept(current);
-			List<BlockNode> successors = clean ? current.getCleanSuccessors() : current.getSuccessors();
-			int count = successors.size();
+			List<BlockNode> nextBlocks = nextFunc.apply(current);
+			int count = nextBlocks.size();
 			for (int i = count - 1; i >= 0; i--) { // to preserve order in queue
-				BlockNode next = successors.get(i);
-				int nextId = next.getId();
-				if (!visited.get(nextId)) {
+				BlockNode next = nextBlocks.get(i);
+				if (!visited.checkAndSet(next)) {
 					queue.addLast(next);
-					visited.set(nextId);
 				}
 			}
 		}
@@ -1154,104 +1158,6 @@ public class BlockUtils {
 			}
 		}
 		return false;
-	}
-
-	public static Map<BlockNode, BitSet> calcPostDominance(MethodNode mth) {
-		return calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getPreExitBlocks().get(0));
-	}
-
-	public static Map<BlockNode, BitSet> calcPartialPostDominance(MethodNode mth, Collection<BlockNode> blockNodes, BlockNode exitBlock) {
-		int blocksCount = mth.getBasicBlocks().size();
-		Map<BlockNode, BitSet> map = new HashMap<>(blocksCount);
-
-		BitSet initSet = new BitSet(blocksCount);
-		for (BlockNode block : blockNodes) {
-			initSet.set(block.getId());
-		}
-
-		for (BlockNode block : blockNodes) {
-			BitSet postDoms = new BitSet(blocksCount);
-			postDoms.or(initSet);
-			map.put(block, postDoms);
-		}
-		BitSet exitBitSet = map.get(exitBlock);
-		exitBitSet.clear();
-		exitBitSet.set(exitBlock.getId());
-
-		BitSet domSet = new BitSet(blocksCount);
-		boolean changed;
-		do {
-			changed = false;
-			for (BlockNode block : blockNodes) {
-				if (block == exitBlock) {
-					continue;
-				}
-				BitSet d = map.get(block);
-				if (!changed) {
-					domSet.clear();
-					domSet.or(d);
-				}
-				for (BlockNode scc : block.getSuccessors()) {
-					BitSet scPDoms = map.get(scc);
-					if (scPDoms != null) {
-						d.and(scPDoms);
-					}
-				}
-				d.set(block.getId());
-				if (!changed && !d.equals(domSet)) {
-					changed = true;
-					map.put(block, d);
-				}
-			}
-		} while (changed);
-
-		blockNodes.forEach(block -> {
-			BitSet postDoms = map.get(block);
-			postDoms.clear(block.getId());
-			if (postDoms.isEmpty()) {
-				map.put(block, EmptyBitSet.EMPTY);
-			}
-		});
-		return map;
-	}
-
-	@Nullable
-	public static BlockNode calcImmediatePostDominator(MethodNode mth, BlockNode block) {
-		BlockNode oneSuccessor = Utils.getOne(block.getSuccessors());
-		if (oneSuccessor != null) {
-			return oneSuccessor;
-		}
-		return calcImmediatePostDominator(mth, block, calcPostDominance(mth));
-	}
-
-	@Nullable
-	public static BlockNode calcPartialImmediatePostDominator(MethodNode mth, BlockNode block,
-			Collection<BlockNode> blockNodes, BlockNode exitBlock) {
-		BlockNode oneSuccessor = Utils.getOne(block.getSuccessors());
-		if (oneSuccessor != null) {
-			return oneSuccessor;
-		}
-		Map<BlockNode, BitSet> pDomsMap = calcPartialPostDominance(mth, blockNodes, exitBlock);
-		return calcImmediatePostDominator(mth, block, pDomsMap);
-	}
-
-	@Nullable
-	public static BlockNode calcImmediatePostDominator(MethodNode mth, BlockNode block, Map<BlockNode, BitSet> postDomsMap) {
-		BlockNode oneSuccessor = Utils.getOne(block.getSuccessors());
-		if (oneSuccessor != null) {
-			return oneSuccessor;
-		}
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		BitSet postDoms = postDomsMap.get(block);
-		BitSet bs = copyBlocksBitSet(mth, postDoms);
-		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-			BlockNode pdomBlock = basicBlocks.get(i);
-			BitSet pdoms = postDomsMap.get(pdomBlock);
-			if (pdoms != null) {
-				bs.andNot(pdoms);
-			}
-		}
-		return bitSetToOneBlock(mth, bs);
 	}
 
 	public static BlockNode getTopSplitterForHandler(BlockNode handlerBlock) {

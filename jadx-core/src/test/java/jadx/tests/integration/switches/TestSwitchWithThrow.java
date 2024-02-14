@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class TestSwitchWithThrow extends IntegrationTest {
 
@@ -19,19 +20,19 @@ public class TestSwitchWithThrow extends IntegrationTest {
 					default:
 						throw new IllegalStateException("Other");
 				}
-			} else {
-				System.out.println("0");
-				return -1;
 			}
+			System.out.println("0");
+			return -1;
 		}
 
 		public void check() {
 			assertThat(test(0)).isEqualTo(-1);
-			// TODO: implement 'invoke-custom' support
-			// assertThat(catchThrowable(() -> test(1)))
-			// .isInstanceOf(IllegalStateException.class).hasMessageContaining("1");
-			// assertThat(catchThrowable(() -> test(3)))
-			// .isInstanceOf(IllegalStateException.class).hasMessageContaining("Other");
+			assertThat(catchThrowable(() -> test(1)))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("1");
+			assertThat(catchThrowable(() -> test(3)))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("Other");
 		}
 	}
 

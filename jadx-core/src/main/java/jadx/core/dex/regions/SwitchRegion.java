@@ -15,7 +15,12 @@ import jadx.core.utils.exceptions.CodegenException;
 
 public final class SwitchRegion extends AbstractRegion implements IBranchRegion {
 
-	public static final Object DEFAULT_CASE_KEY = new Object();
+	public static final Object DEFAULT_CASE_KEY = new Object() {
+		@Override
+		public String toString() {
+			return "default";
+		}
+	};
 
 	private final BlockNode header;
 

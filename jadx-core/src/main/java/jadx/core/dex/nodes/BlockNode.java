@@ -47,6 +47,11 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	private BitSet doms = EmptyBitSet.EMPTY;
 
 	/**
+	 * Post dominators, excluding self
+	 */
+	private BitSet postDoms = EmptyBitSet.EMPTY;
+
+	/**
 	 * Dominance frontier
 	 */
 	private BitSet domFrontier;
@@ -55,6 +60,11 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	 * Immediate dominator
 	 */
 	private BlockNode idom;
+
+	/**
+	 * Immediate post dominator
+	 */
+	private BlockNode iPostDom;
 
 	/**
 	 * Blocks on which dominates this block
@@ -165,6 +175,14 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		this.doms = doms;
 	}
 
+	public BitSet getPostDoms() {
+		return postDoms;
+	}
+
+	public void setPostDoms(BitSet postDoms) {
+		this.postDoms = postDoms;
+	}
+
 	public BitSet getDomFrontier() {
 		return domFrontier;
 	}
@@ -182,6 +200,14 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	public void setIDom(BlockNode idom) {
 		this.idom = idom;
+	}
+
+	public BlockNode getIPostDom() {
+		return iPostDom;
+	}
+
+	public void setIPostDom(BlockNode iPostDom) {
+		this.iPostDom = iPostDom;
 	}
 
 	public List<BlockNode> getDominatesOn() {
@@ -233,6 +259,6 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	@Override
 	public String toString() {
-		return "B:" + cid + ':' + InsnUtils.formatOffset(startOffset);
+		return "B:" + id + ':' + InsnUtils.formatOffset(startOffset);
 	}
 }

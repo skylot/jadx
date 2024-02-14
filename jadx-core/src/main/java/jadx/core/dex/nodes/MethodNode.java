@@ -360,10 +360,13 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public void setBasicBlocks(List<BlockNode> blocks) {
 		this.blocks = blocks;
-		int i = 0;
-		for (BlockNode block : blocks) {
-			block.setId(i);
-			i++;
+		updateBlockIds(blocks);
+	}
+
+	public void updateBlockIds(List<BlockNode> blocks) {
+		int count = blocks.size();
+		for (int i = 0; i < count; i++) {
+			blocks.get(i).setId(i);
 		}
 	}
 
@@ -391,7 +394,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return exitBlock.getPredecessors();
 	}
 
-	public boolean isPreExitBlocks(BlockNode block) {
+	public boolean isPreExitBlock(BlockNode block) {
 		List<BlockNode> successors = block.getSuccessors();
 		if (successors.size() == 1) {
 			return successors.get(0).equals(exitBlock);

@@ -3,8 +3,7 @@ package jadx.core.dex.visitors.blocks;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Function;
 
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -23,14 +22,14 @@ public class DominatorTree {
 
 	public static void compute(MethodNode mth) {
 		List<BlockNode> sorted = sortBlocks(mth);
-		BlockNode[] doms = build(sorted);
+		BlockNode[] doms = build(sorted, BlockNode::getPredecessors);
 		apply(sorted, doms);
 	}
 
 	private static List<BlockNode> sortBlocks(MethodNode mth) {
 		int blocksCount = mth.getBasicBlocks().size();
 		List<BlockNode> sorted = new ArrayList<>(blocksCount);
-		BlockUtils.dfsVisit(mth, sorted::add);
+		BlockUtils.visitDFS(mth, sorted::add);
 		if (sorted.size() != blocksCount) {
 			throw new JadxRuntimeException("Found unreachable blocks");
 		}
@@ -38,8 +37,7 @@ public class DominatorTree {
 		return sorted;
 	}
 
-	@NotNull
-	private static BlockNode[] build(List<BlockNode> sorted) {
+	static BlockNode[] build(List<BlockNode> sorted, Function<BlockNode, List<BlockNode>> predFunc) {
 		int blocksCount = sorted.size();
 		BlockNode[] doms = new BlockNode[blocksCount];
 		doms[0] = sorted.get(0);
@@ -48,7 +46,7 @@ public class DominatorTree {
 			changed = false;
 			for (int blockId = 1; blockId < blocksCount; blockId++) {
 				BlockNode b = sorted.get(blockId);
-				List<BlockNode> preds = b.getPredecessors();
+				List<BlockNode> preds = predFunc.apply(b);
 				int pickedPred = -1;
 				BlockNode newIDom = null;
 				for (BlockNode pred : preds) {
@@ -60,7 +58,7 @@ public class DominatorTree {
 					}
 				}
 				if (newIDom == null) {
-					throw new JadxRuntimeException("No predecessors for block: " + b);
+					throw new JadxRuntimeException("No immediate dominator for block: " + b);
 				}
 				for (BlockNode predBlock : preds) {
 					int predId = predBlock.getId();
@@ -110,7 +108,7 @@ public class DominatorTree {
 		}
 	}
 
-	private static BitSet collectDoms(BlockNode[] doms, BlockNode idom) {
+	static BitSet collectDoms(BlockNode[] doms, BlockNode idom) {
 		BitSet domBS = new BitSet(doms.length);
 		BlockNode nextIDom = idom;
 		while (true) {

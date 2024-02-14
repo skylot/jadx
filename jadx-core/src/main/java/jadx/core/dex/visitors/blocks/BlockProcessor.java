@@ -70,6 +70,8 @@ public class BlockProcessor extends AbstractVisitor {
 		registerLoops(mth);
 		processNestedLoops(mth);
 
+		PostDominatorTree.compute(mth);
+
 		updateCleanSuccessors(mth);
 		if (!mth.contains(AFlag.DISABLE_BLOCKS_LOCK)) {
 			mth.finishBasicBlocks();
