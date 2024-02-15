@@ -272,7 +272,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int idIndex = is.readInt16();
 		int classIndex = is.readInt16();
 		int styleIndex = is.readInt16();
-		if ("manifest".equals(currentTag) || writer.getIndent() == 0 || definedNamespaces.size() != nsMap.size()) {
+		if ("manifest".equals(currentTag) || definedNamespaces.size() != nsMap.size()) {
 			for (Map.Entry<String, String> entry : nsMap.entrySet()) {
 				if (!definedNamespaces.contains(entry.getKey())) {
 					definedNamespaces.add(entry.getKey());
