@@ -600,7 +600,7 @@ public class BlockExceptionHandler {
 		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
 			boolean notProcessed = true;
 			BlockNode handlerBlock = eh.getHandlerBlock();
-			if (blocks.get(handlerBlock)) {
+			if (handlerBlock == null || blocks.get(handlerBlock)) {
 				continue;
 			}
 			for (TryCatchBlockAttr tcb : tryBlocks) {
