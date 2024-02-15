@@ -41,10 +41,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -627,16 +629,43 @@ public class MainWindow extends JFrame {
 
 	private boolean ensureProjectIsSaved() {
 		if (!project.isSaved() && !project.isInitial()) {
+			// Check if we saved settings that indicate what to do
+
+			if (settings.getSaveOption() == JadxSettings.SAVEOPTION.NEVER) {
+				return true;
+			}
+
+			if (settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {
+				saveProject();
+				return true;
+			}
+
+			JCheckBox remember = new JCheckBox(NLS.str("confirm.remember"));
+			JLabel message = new JLabel(NLS.str("confirm.not_saved_message"));
+
+			JPanel inner = new JPanel(new BorderLayout());
+			inner.add(remember, BorderLayout.SOUTH);
+			inner.add(message, BorderLayout.NORTH);
+
 			int res = JOptionPane.showConfirmDialog(
 					this,
-					NLS.str("confirm.not_saved_message"),
+					inner,
 					NLS.str("confirm.not_saved_title"),
 					JOptionPane.YES_NO_CANCEL_OPTION);
 			if (res == JOptionPane.CANCEL_OPTION) {
 				return false;
 			}
 			if (res == JOptionPane.YES_OPTION) {
+				if (remember.isSelected()) {
+					settings.setSaveOption(JadxSettings.SAVEOPTION.ALWAYS);
+					settings.sync();
+				}
 				saveProject();
+			} else if (res == JOptionPane.NO_OPTION) {
+				if (remember.isSelected()) {
+					settings.setSaveOption(JadxSettings.SAVEOPTION.NEVER);
+					settings.sync();
+				}
 			}
 		}
 		return true;

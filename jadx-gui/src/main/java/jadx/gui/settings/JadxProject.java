@@ -258,7 +258,7 @@ public class JadxProject {
 
 	private void changed() {
 		JadxSettings settings = mainWindow.getSettings();
-		if (settings != null && settings.isAutoSaveProject()) {
+		if (settings != null && settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {
 			save();
 		} else {
 			saved = false;

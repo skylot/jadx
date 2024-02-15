@@ -75,7 +75,22 @@ public class JadxSettings extends JadxCLIArgs {
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 	private String excludedPackages = "";
-	private boolean autoSaveProject = true;
+	private SAVEOPTION saveOption = SAVEOPTION.ASK;
+
+	public enum SAVEOPTION {
+		ASK,
+		NEVER,
+		ALWAYS
+	}
+
+	public SAVEOPTION getSaveOption() {
+		return saveOption;
+	}
+
+	public void setSaveOption(SAVEOPTION saveOption) {
+		this.saveOption = saveOption;
+	}
+
 	private Map<ActionModel, Shortcut> shortcuts = new HashMap<>();
 
 	@JadxSettingsAdapter.GsonExclude
@@ -445,14 +460,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setAutoStartJobs(boolean autoStartJobs) {
 		this.autoStartJobs = autoStartJobs;
-	}
-
-	public boolean isAutoSaveProject() {
-		return autoSaveProject;
-	}
-
-	public void setAutoSaveProject(boolean autoSaveProject) {
-		this.autoSaveProject = autoSaveProject;
 	}
 
 	public ShortcutsWrapper getShortcuts() {
