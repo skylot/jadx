@@ -36,7 +36,6 @@ import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +107,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	private void applyEditableProperties(JNode node) {
 		boolean editable = node.isEditable();
 		setEditable(editable);
-		setCodeFoldingEnabled(editable);
 		if (editable) {
 			setCloseCurlyBraces(true);
 			setCloseMarkupTags(true);
@@ -337,7 +335,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		}
 	}
 
-	public abstract @NotNull ICodeInfo getCodeInfo();
+	public abstract ICodeInfo getCodeInfo();
 
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed

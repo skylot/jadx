@@ -61,6 +61,7 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 
 		setHyperlinksEnabled(true);
+		setCodeFoldingEnabled(true);
 		setLinkScanningMask(InputEvent.CTRL_DOWN_MASK);
 		CodeLinkGenerator codeLinkGenerator = new CodeLinkGenerator(this);
 		setLinkGenerator(codeLinkGenerator);
