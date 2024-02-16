@@ -9,7 +9,7 @@ dependencies {
 
 	// TODO: move resources decoding to separate plugin module
 	implementation("com.android.tools.build:aapt2-proto:8.2.2-10154469")
-	implementation("com.google.protobuf:protobuf-java:3.25.2") // forcing latest version
+	implementation("com.google.protobuf:protobuf-java:3.25.3") // forcing latest version
 
 	testImplementation("org.apache.commons:commons-lang3:3.14.0")
 

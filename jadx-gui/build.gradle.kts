@@ -28,7 +28,7 @@ dependencies {
 	implementation("ch.qos.logback:logback-classic:1.4.14")
 	implementation("dev.dirs:directories:26")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.3.4")
+	implementation("com.fifesoft:rsyntaxtextarea:3.4.0")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
