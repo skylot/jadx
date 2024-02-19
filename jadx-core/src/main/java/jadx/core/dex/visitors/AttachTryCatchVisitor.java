@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -16,16 +15,12 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.visitors.typeinference.TypeCompare;
-import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.ProcessInstructionsVisitor.getNextInsnOffset;
 
@@ -122,7 +117,6 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 		if (allHandlerOffset >= 0) {
 			Utils.addToList(list, createHandler(mth, insnByOffset, allHandlerOffset, null));
 		}
-		checkAndFilterHandlers(mth, list);
 		return list;
 	}
 
@@ -147,45 +141,6 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 		mth.addExceptionHandler(handler);
 		insn.addAttr(new ExcHandlerAttr(handler));
 		return handler;
-	}
-
-	private static void checkAndFilterHandlers(MethodNode mth, List<ExceptionHandler> list) {
-		if (list.size() <= 1) {
-			return;
-		}
-		// Remove shadowed handlers (with same or narrow type compared to previous)
-		TypeCompare typeCompare = mth.root().getTypeCompare();
-		Iterator<ExceptionHandler> it = list.iterator();
-		ArgType maxType = null;
-		while (it.hasNext()) {
-			ExceptionHandler handler = it.next();
-			ArgType maxCatch = maxCatchFromHandler(handler, typeCompare);
-			if (maxType == null) {
-				maxType = maxCatch;
-			} else {
-				TypeCompareEnum result = typeCompare.compareObjects(maxType, maxCatch);
-				if (result.isWiderOrEqual()) {
-					if (Consts.DEBUG_EXC_HANDLERS) {
-						LOG.debug("Removed shadowed catch handler: {}, from list: {}", handler, list);
-					}
-					it.remove();
-				}
-			}
-		}
-	}
-
-	private static ArgType maxCatchFromHandler(ExceptionHandler handler, TypeCompare typeCompare) {
-		List<ClassInfo> catchTypes = handler.getCatchTypes();
-		if (catchTypes.isEmpty()) {
-			return ArgType.THROWABLE;
-		}
-		if (catchTypes.size() == 1) {
-			return catchTypes.get(0).getType();
-		}
-		return catchTypes.stream()
-				.map(ClassInfo::getType)
-				.max(typeCompare.getComparator())
-				.orElseThrow(() -> new JadxRuntimeException("Failed to get max type from catch list: " + catchTypes));
 	}
 
 	private static InsnNode insertNOP(InsnNode[] insnByOffset, int offset) {
