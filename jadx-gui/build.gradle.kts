@@ -3,7 +3,7 @@ plugins {
 	id("application")
 	id("edu.sc.seis.launch4j") version "3.0.5"
 	id("com.github.johnrengelman.shadow") version "8.1.1"
-	id("org.beryx.runtime") version "1.13.0"
+	id("org.beryx.runtime") version "1.13.1"
 }
 
 dependencies {
@@ -25,16 +25,16 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.1.1")
 
 	implementation("org.jcommander:jcommander:1.83")
-	implementation("ch.qos.logback:logback-classic:1.4.14")
+	implementation("ch.qos.logback:logback-classic:1.5.0")
 	implementation("dev.dirs:directories:26")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.0")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.3")
-	implementation("com.formdev:flatlaf-intellij-themes:3.3")
-	implementation("com.formdev:flatlaf-extras:3.3")
+	implementation("com.formdev:flatlaf:3.4")
+	implementation("com.formdev:flatlaf-intellij-themes:3.4")
+	implementation("com.formdev:flatlaf-extras:3.4")
 
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.14.0")
