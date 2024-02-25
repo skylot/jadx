@@ -10,7 +10,7 @@ import javax.swing.JScrollPane;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.ui.ZoomActions;
 
 public final class HtmlPanel extends ContentPanel {

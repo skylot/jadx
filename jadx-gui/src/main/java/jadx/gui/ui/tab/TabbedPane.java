@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.ui.tab;
 
 import java.awt.Component;
 import java.awt.KeyEventDispatcher;
@@ -26,6 +26,7 @@ import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
@@ -35,6 +36,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
+import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -52,12 +54,17 @@ public class TabbedPane extends JTabbedPane {
 	private transient ContentPanel curTab;
 	private transient ContentPanel lastTab;
 
-	TabbedPane(MainWindow window) {
+	private transient TabDndController dnd;
+
+	public TabbedPane(MainWindow window) {
 		this.mainWindow = window;
 
 		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
 		addMouseWheelListener(event -> {
+			if (dnd != null && dnd.isDragging()) {
+				return;
+			}
 			int direction = event.getWheelRotation();
 			if (getTabCount() == 0 || direction == 0) {
 				return;
@@ -481,6 +488,14 @@ public class TabbedPane extends JTabbedPane {
 	@Nullable
 	public Component getFocusedComp() {
 		return FocusManager.getFocusedComp();
+	}
+
+	public TabDndController getDnd() {
+		return dnd;
+	}
+
+	public void setDnd(TabDndController dnd) {
+		this.dnd = dnd;
 	}
 
 	private static class FocusManager implements FocusListener {

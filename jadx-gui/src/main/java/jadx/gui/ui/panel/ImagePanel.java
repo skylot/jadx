@@ -17,8 +17,8 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.tab.TabbedPane;
 
 public class ImagePanel extends ContentPanel {
 	private static final long serialVersionUID = 4071356367073142688L;

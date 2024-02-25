@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.tab.TabbedPane;
 
 public abstract class ContentPanel extends JPanel {
 

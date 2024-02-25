@@ -10,7 +10,7 @@ import javax.swing.border.EmptyBorder;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.tab.TabbedPane;
 
 public class BinaryContentPanel extends AbstractCodeContentPanel {
 	private final transient CodePanel textCodePanel;

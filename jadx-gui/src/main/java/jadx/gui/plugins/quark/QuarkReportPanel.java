@@ -41,8 +41,8 @@ import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.ui.NodeLabel;
 
