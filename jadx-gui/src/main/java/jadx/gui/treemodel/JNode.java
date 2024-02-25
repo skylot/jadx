@@ -16,8 +16,8 @@ import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.tab.TabbedPane;
 
 public abstract class JNode extends DefaultMutableTreeNode implements Comparable<JNode> {
 

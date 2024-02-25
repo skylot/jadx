@@ -18,7 +18,7 @@ import javax.swing.border.TitledBorder;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;

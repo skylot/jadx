@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.IViewStateSupport;
+import jadx.gui.ui.tab.TabbedPane;
 
 public final class CodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport {
 	private static final long serialVersionUID = 5310536092010045565L;

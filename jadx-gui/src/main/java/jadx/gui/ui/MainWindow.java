@@ -140,6 +140,8 @@ import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
+import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
@@ -1304,6 +1306,7 @@ public class MainWindow extends JFrame {
 
 		tabbedPane = new TabbedPane(this);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
+		new TabDndController(tabbedPane);
 
 		rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		rightSplitPane.setTopComponent(tabbedPane);

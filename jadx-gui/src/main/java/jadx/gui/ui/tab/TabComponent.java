@@ -1,7 +1,12 @@
-package jadx.gui.ui;
+package jadx.gui.ui.tab;
 
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -20,6 +25,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.tab.dnd.TabDndGestureListener;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -42,6 +48,9 @@ public class TabComponent extends JPanel {
 
 	public void loadSettings() {
 		label.setFont(getLabelFont());
+		if (tabbedPane.getDnd() != null) {
+			tabbedPane.getDnd().loadSettings();
+		}
 	}
 
 	private Font getLabelFont() {
@@ -57,7 +66,7 @@ public class TabComponent extends JPanel {
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {
-			label.setToolTipText(toolTip);
+			setToolTipText(toolTip);
 		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 		label.setIcon(node.getIcon());
@@ -93,12 +102,26 @@ public class TabComponent extends JPanel {
 			}
 		};
 		addMouseListener(clickAdapter);
-		label.addMouseListener(clickAdapter);
-		closeBtn.addMouseListener(clickAdapter);
+		addListenerForDnd();
 
 		add(label);
 		add(closeBtn);
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+	}
+
+	private void addListenerForDnd() {
+		if (tabbedPane.getDnd() == null) {
+			return;
+		}
+		TabComponent comp = this;
+		DragGestureListener dgl = new TabDndGestureListener(tabbedPane.getDnd()) {
+			@Override
+			protected Point getDragOrigin(DragGestureEvent e) {
+				return SwingUtilities.convertPoint(comp, e.getDragOrigin(), tabbedPane);
+			}
+		};
+		DragSource.getDefaultDragSource()
+				.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, dgl);
 	}
 
 	private String buildTabTitle(JNode node) {

@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 import jadx.api.DecompilationMode;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.mode.JCodeMode;
 import jadx.gui.ui.panel.IViewStateSupport;
+import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
