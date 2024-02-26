@@ -78,7 +78,7 @@ public class DexFileLoader {
 
 	public DexReader loadDexReader(String fileName, byte[] content) {
 		if (options.isVerifyChecksum()) {
-			DexCheckSum.verify(content);
+			DexCheckSum.verify(content, fileName);
 		}
 		return new DexReader(getNextUniqId(), fileName, content);
 	}
