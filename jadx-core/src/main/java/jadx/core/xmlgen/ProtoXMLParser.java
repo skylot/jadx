@@ -3,8 +3,10 @@ package jadx.core.xmlgen;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.android.aapt.Resources.XmlAttribute;
 import com.android.aapt.Resources.XmlElement;
@@ -58,9 +60,12 @@ public class ProtoXMLParser extends CommonProtoParser {
 		for (int i = 0; i < e.getNamespaceDeclarationCount(); i++) {
 			decode(e.getNamespaceDeclaration(i));
 		}
+
+		Set<String> attrCache = new HashSet<>();
 		for (int i = 0; i < e.getAttributeCount(); i++) {
-			decode(e.getAttribute(i));
+			decode(e.getAttribute(i), attrCache);
 		}
+
 		if (e.getChildCount() > 0) {
 			writer.add('>');
 			writer.incIndent();
@@ -76,11 +81,13 @@ public class ProtoXMLParser extends CommonProtoParser {
 		}
 	}
 
-	private void decode(XmlAttribute a) {
-		writer.add(' ');
+	private void decode(XmlAttribute a, Set<String> attrCache) {
 		String name = getAttributeFullName(a);
+		if (XmlDeobf.isDuplicatedAttr(name, attrCache)) {
+			return;
+		}
 		String value = deobfClassName(getAttributeValue(a));
-		writer.add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
+		writer.add(' ').add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
 		memorizePackageName(name, value);
 	}
 
