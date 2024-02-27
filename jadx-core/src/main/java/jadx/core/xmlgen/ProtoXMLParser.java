@@ -10,14 +10,14 @@ import com.android.aapt.Resources.XmlAttribute;
 import com.android.aapt.Resources.XmlElement;
 import com.android.aapt.Resources.XmlNamespace;
 import com.android.aapt.Resources.XmlNode;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
+import jadx.core.xmlgen.entry.ValuesParser;
 
-public class ProtoXMLParser {
+public class ProtoXMLParser extends CommonProtoParser {
 	private Map<String, String> nsMap;
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
@@ -78,14 +78,46 @@ public class ProtoXMLParser {
 
 	private void decode(XmlAttribute a) {
 		writer.add(' ');
-		String namespace = a.getNamespaceUri();
-		if (!namespace.isEmpty()) {
-			writer.add(nsMap.get(namespace)).add(':');
-		}
-		String name = a.getName();
-		String value = deobfClassName(a.getValue());
+		String name = getAttributeFullName(a);
+		String value = deobfClassName(getAttributeValue(a));
 		writer.add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
 		memorizePackageName(name, value);
+	}
+
+	private String getAttributeFullName(XmlAttribute a) {
+		String namespaceUri = a.getNamespaceUri();
+		String namespace = null;
+		if (!namespaceUri.isEmpty()) {
+			namespace = nsMap.get(namespaceUri);
+		}
+
+		String attrName = a.getName();
+		if (attrName.isEmpty()) {
+			// some optimization tools clear the name because the Android platform doesn't need it
+			int resId = a.getResourceId();
+			String str = ValuesParser.getAndroidResMap().get(resId);
+			if (str != null) {
+				namespace = nsMap.get(ParserConstants.ANDROID_NS_URL);
+				// cut type before /
+				int typeEnd = str.indexOf('/');
+				if (typeEnd != -1) {
+					attrName = str.substring(typeEnd + 1);
+				} else {
+					attrName = str;
+				}
+			} else {
+				attrName = "_unknown_";
+			}
+		}
+
+		return namespace != null ? namespace + ":" + attrName : attrName;
+	}
+
+	private String getAttributeValue(XmlAttribute a) {
+		if (!a.getValue().isEmpty()) {
+			return a.getValue();
+		}
+		return parse(a.getCompiledItem());
 	}
 
 	private void decode(XmlNamespace n) {
@@ -134,8 +166,7 @@ public class ProtoXMLParser {
 		return sb.toString();
 	}
 
-	private XmlNode decodeProto(InputStream inputStream)
-			throws InvalidProtocolBufferException, IOException {
+	private XmlNode decodeProto(InputStream inputStream) throws IOException {
 		return XmlNode.parseFrom(XmlGenUtils.readData(inputStream));
 	}
 }
