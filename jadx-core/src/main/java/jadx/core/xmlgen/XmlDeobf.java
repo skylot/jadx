@@ -1,5 +1,7 @@
 package jadx.core.xmlgen;
 
+import java.util.Set;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.ClassInfo;
@@ -29,5 +31,9 @@ public class XmlDeobf {
 			return null;
 		}
 		return classInfo.getAliasFullName();
+	}
+
+	public static boolean isDuplicatedAttr(String attrFullName, Set<String> attrCache) {
+		return !attrCache.add(attrFullName);
 	}
 }
