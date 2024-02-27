@@ -95,8 +95,8 @@ public class ProtoXMLParser extends CommonProtoParser {
 		if (attrName.isEmpty()) {
 			// some optimization tools clear the name because the Android platform doesn't need it
 			int resId = a.getResourceId();
-			String str;
-			if (resId != 0 && (str = ValuesParser.getAndroidResMap().get(resId)) != null) {
+			String str = ValuesParser.getAndroidResMap().get(resId);
+			if (str != null) {
 				namespace = nsMap.get(ParserConstants.ANDROID_NS_URL);
 				// cut type before /
 				int typeEnd = str.indexOf('/');
