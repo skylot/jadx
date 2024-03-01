@@ -303,7 +303,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 		String shortNsName = null;
 		if (attributeNS != -1) {
-			shortNsName = getAttributeNS(attributeNS);
+			shortNsName = getAttributeNS(attributeNS, newLine);
 		}
 		String attrName = getValidTagAttributeName(getAttributeName(attributeName));
 		String attrFullName = shortNsName != null ? shortNsName + ":" + attrName : attrName;
@@ -340,7 +340,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		writer.add('"');
 	}
 
-	private String getAttributeNS(int attributeNS) {
+	private String getAttributeNS(int attributeNS, boolean newLine) {
 		String attrUrl = getString(attributeNS);
 		if (attrUrl == null || attrUrl.isEmpty()) {
 			if (isResInternalId(attributeNS)) {
@@ -351,12 +351,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		String attrName = nsMap.get(attrUrl);
 		if (attrName == null) {
-			attrName = generateNameForNS(attrUrl);
+			attrName = generateNameForNS(attrUrl, newLine);
 		}
 		return attrName;
 	}
 
-	private String generateNameForNS(String attrUrl) {
+	private String generateNameForNS(String attrUrl, boolean newLine) {
 		String attrName;
 		if (ANDROID_NS_URL.equals(attrUrl)) {
 			attrName = ANDROID_NS_VALUE;
@@ -371,6 +371,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 				}
 			}
+		}
+		if (newLine) {
+			writer.startLine().addIndent();
+		} else {
+			writer.add(' ');
 		}
 		writer.add("xmlns:").add(attrName).add("=\"").add(attrUrl).add("\" ");
 		return attrName;
