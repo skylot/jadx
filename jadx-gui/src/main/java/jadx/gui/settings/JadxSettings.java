@@ -41,6 +41,7 @@ import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
@@ -52,7 +53,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 30;
-	private static final int CURRENT_SETTINGS_VERSION = 19;
+	private static final int CURRENT_SETTINGS_VERSION = 20;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -133,6 +134,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private int treeWidth = 130;
 
 	private boolean dockLogViewer = true;
+
+	private TabDndGhostType tabDndGhostType = TabDndGhostType.OUTLINE;
 
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
 
@@ -749,6 +752,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.xposedCodegenLanguage = language;
 	}
 
+	public void setTabDndGhostType(TabDndGhostType tabDndGhostType) {
+		this.tabDndGhostType = tabDndGhostType;
+	}
+
+	public TabDndGhostType getTabDndGhostType() {
+		return this.tabDndGhostType;
+	}
+
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion <= 10) {
@@ -788,6 +799,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 18) {
 			xposedCodegenLanguage = XposedCodegenLanguage.JAVA;
+			fromVersion++;
+		}
+		if (fromVersion == 19) {
+			tabDndGhostType = TabDndGhostType.OUTLINE;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

@@ -10,10 +10,10 @@ public enum TabDndGhostType {
 	/**
 	 * Colored rect of tabs size is dragged along with cursor.
 	 */
-	COLORFUL_RECT,
+	OUTLINE,
 
 	/**
 	 * Only insert mark is rendered.
 	 */
-	NONE,
+	TARGET_MARK,
 }

@@ -34,20 +34,24 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 import javax.swing.UIManager;
 
+import jadx.gui.settings.JadxSettings;
+
 public class TabDndGhostPane extends JComponent {
 
 	private final TabDndController dnd;
 	private final Rectangle lineRect = new Rectangle();
 	private final Point location = new Point();
 	private transient BufferedImage ghostImage;
-	private TabDndGhostType tabDndGhostType = TabDndGhostType.COLORFUL_RECT;
+	private JadxSettings settings;
+	private TabDndGhostType tabDndGhostType = TabDndGhostType.OUTLINE;
 	private Dimension ghostSize;
 	private Color ghostColor;
 	private Insets insets;
 
-	protected TabDndGhostPane(TabDndController dnd) {
+	protected TabDndGhostPane(TabDndController dnd, JadxSettings settings) {
 		super();
 		this.dnd = dnd;
+		this.settings = settings;
 		loadSettings();
 	}
 
@@ -58,6 +62,8 @@ public class TabDndGhostPane extends JComponent {
 
 		Insets ins = UIManager.getInsets("TabbedPane.tabInsets");
 		insets = ins != null ? ins : new Insets(0, 0, 0, 0);
+
+		tabDndGhostType = settings.getTabDndGhostType();
 	}
 
 	public void setTargetRect(int x, int y, int width, int height) {
@@ -129,7 +135,7 @@ public class TabDndGhostPane extends JComponent {
 				g.drawImage(ghostImage, (int) x, (int) y, this);
 				break;
 			}
-			case COLORFUL_RECT: {
+			case OUTLINE: {
 				g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .2f));
 				if (ghostSize == null) {
 					return;
@@ -140,7 +146,7 @@ public class TabDndGhostPane extends JComponent {
 				g.fillRect((int) x, (int) y, ghostSize.width, ghostSize.height);
 				break;
 			}
-			case NONE:
+			case TARGET_MARK:
 				break;
 		}
 	}
