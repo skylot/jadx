@@ -1306,7 +1306,7 @@ public class MainWindow extends JFrame {
 
 		tabbedPane = new TabbedPane(this);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
-		new TabDndController(tabbedPane);
+		new TabDndController(tabbedPane, settings);
 
 		rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		rightSplitPane.setTopComponent(tabbedPane);

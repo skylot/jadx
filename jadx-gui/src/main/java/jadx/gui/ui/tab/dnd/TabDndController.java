@@ -41,6 +41,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.metal.MetalTabbedPaneUI;
 
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.tab.TabbedPane;
 
 public class TabDndController {
@@ -63,11 +64,11 @@ public class TabDndController {
 	protected Rectangle rectForward = new Rectangle();
 	private boolean isDragging = false;
 
-	public TabDndController(TabbedPane pane) {
+	public TabDndController(TabbedPane pane, JadxSettings settings) {
 		pane.setDnd(this);
 		this.pane = pane;
 
-		tabDndGhostPane = new TabDndGhostPane(this);
+		tabDndGhostPane = new TabDndGhostPane(this, settings);
 
 		new DropTarget(tabDndGhostPane, DnDConstants.ACTION_COPY_OR_MOVE, new TabDndTargetListener(this), true);
 		DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(pane,
@@ -244,11 +245,11 @@ public class TabDndController {
 					pane.setTabComponentAt(dragTabIndex, c);
 					break;
 				}
-				case COLORFUL_RECT: {
+				case OUTLINE: {
 					tabDndGhostPane.setGhostSize(d);
 					break;
 				}
-				case NONE:
+				case TARGET_MARK:
 					break;
 			}
 		}
