@@ -268,11 +268,11 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	@Nullable
 	public String getWordUnderCaret() {
 		String tmpTxt = getWordByPosition(getCaretPosition());
-        if (tmpTxt.startsWith("\"") && tmpTxt.endsWith("\"")) {
-            return tmpTxt.substring(1, tmpTxt.length() - 1);
-        } else {
-            return tmpTxt;
-        }
+		if (tmpTxt.startsWith("\"") && tmpTxt.endsWith("\"")) {
+			return tmpTxt.substring(1, tmpTxt.length() - 1);
+		} else {
+			return tmpTxt;
+		}
 	}
 
 	public @Nullable String getWordByPosition(int offset) {
