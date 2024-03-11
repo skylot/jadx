@@ -193,11 +193,6 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			die("NAMESPACE end is not 0x10 big");
 		}
 		int dataSize = is.readInt32();
-		if (dataSize > 0x18) {
-			LOG.warn("Invalid namespace size");
-		} else if (dataSize < 0x18) {
-			die("NAMESPACE header chunk is not 0x18 big");
-		}
 		int endLineNumber = is.readInt32();
 		int comment = is.readInt32();
 		int endPrefix = is.readInt32();
