@@ -1,6 +1,5 @@
 plugins {
-	id("jadx-java")
-	id("java-library") // don't publish to maven
+	id("jadx-library")
 }
 
 dependencies {
