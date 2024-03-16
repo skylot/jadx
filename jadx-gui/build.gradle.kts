@@ -21,11 +21,11 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.1.1")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.1.1")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.2.1")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.2.1")
 
 	implementation("org.jcommander:jcommander:1.83")
-	implementation("ch.qos.logback:logback-classic:1.5.0")
+	implementation("ch.qos.logback:logback-classic:1.5.3")
 	implementation("dev.dirs:directories:26")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.0")
@@ -43,7 +43,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.2.2")
+	implementation("com.android.tools.build:apksig:8.3.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
