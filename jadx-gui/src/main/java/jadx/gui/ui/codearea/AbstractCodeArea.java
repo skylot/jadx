@@ -272,10 +272,15 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public @Nullable String getWordByPosition(int offset) {
 		Token token = getWordTokenAtOffset(offset);
-		if (token != null) {
-			return token.getLexeme();
+		if (token == null) {
+			return null;
 		}
-		return null;
+		String str = token.getLexeme();
+		int len = str.length();
+		if (len > 2 && str.startsWith("\"") && str.endsWith("\"")) {
+			return str.substring(1, len - 1);
+		}
+		return str;
 	}
 
 	/**
