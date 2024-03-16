@@ -193,10 +193,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			die("NAMESPACE end is not 0x10 big");
 		}
 		int dataSize = is.readInt32();
-		if (dataSize > 0x18) {
-			LOG.warn("Invalid namespace size");
-		} else if (dataSize < 0x18) {
-			die("NAMESPACE header chunk is not 0x18 big");
+		if (dataSize != 0x18) {
+			LOG.warn("Invalid namespace end size");
 		}
 		int endLineNumber = is.readInt32();
 		int comment = is.readInt32();
@@ -246,7 +244,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			die("ELEMENT HEADER SIZE is not 0x10");
 		}
 		// TODO: Check element chunk size
-		is.readInt32();
+		long startPos = is.getPos();
+		int elementSize = is.readInt32();
 		int elementBegLineNumber = is.readInt32();
 		int comment = is.readInt32();
 		int startNS = is.readInt32();
@@ -290,6 +289,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		boolean attrNewLine = attributeCount != 1 && this.attrNewLine;
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i, attrNewLine, attrCache);
+		}
+		long endPos = is.getPos();
+		if (endPos - startPos + 0x4 < elementSize) {
+			is.skip(elementSize - (endPos - startPos + 0x4));
 		}
 	}
 
