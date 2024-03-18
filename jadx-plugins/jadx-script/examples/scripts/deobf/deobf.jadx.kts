@@ -1,3 +1,5 @@
+import jadx.api.plugins.options.OptionFlag.PER_PROJECT
+
 /**
  * Custom regexp deobfuscator
  */
@@ -7,10 +9,10 @@ jadx.args.isDeobfuscationOn = false
 jadx.args.renameFlags = emptySet()
 
 val regexOpt = jadx.options.registerString(
-	"regex",
-	"Apply rename for names matches regex",
+	name = "regex",
+	desc = "Apply rename for names matches regex",
 	defaultValue = "[Oo0]+",
-)
+).flags(PER_PROJECT)
 
 val regex = regexOpt.value.toRegex()
 var n = 0

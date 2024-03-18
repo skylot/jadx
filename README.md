@@ -8,16 +8,19 @@
 ![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
 ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://search.maven.org/search?q=g:io.github.skylot%20AND%20jadx)
+![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **jadx** - Dex to Java decompiler
 
 Command line and GUI tools for producing Java source code from Android Dex and Apk files
 
-:exclamation::exclamation::exclamation: Please note that in most cases **jadx** can't decompile all 100% of the code, so errors will occur. Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds
+> [!WARNING]
+> Please note that in most cases **jadx** can't decompile all 100% of the code, so errors will occur.<br />
+> Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds.
 
 **Main features:**
-- decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files
+- decompile Dalvik bytecode to Java code from APK, dex, aar, aab and zip files
 - decode `AndroidManifest.xml` and other resources from `resources.arsc`
 - deobfuscator included
 
@@ -79,7 +82,7 @@ and also packed to `build/jadx-<version>.zip`
 
 ### Usage
 ```
-jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk)
+jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .jadx.kts)
 commands (use '<command> --help' for command options):
   plugins	  - manage jadx plugins
 
@@ -171,8 +174,8 @@ Plugin options (-P<name>=<value>):
     - kotlin-metadata.to-string       - rename fields using toString, values: [yes, no], default: yes
     - kotlin-metadata.getters         - rename simple getters to field names, values: [yes, no], default: yes
  4) rename-mappings: various mappings support
-    - rename-mappings.format          - mapping format, values: [auto, TINY, TINY_2, ENIGMA, ENIGMA_DIR, MCP, SRG, TSRG, TSRG2, PROGUARD], default: auto
-    - rename-mappings.invert          - invert mapping, values: [yes, no], default: no
+    - rename-mappings.format          - mapping format, values: [AUTO, TINY_FILE, TINY_2_FILE, ENIGMA_FILE, ENIGMA_DIR, SRG_FILE, XSRG_FILE, CSRG_FILE, TSRG_FILE, TSRG_2_FILE, PROGUARD_FILE], default: AUTO
+    - rename-mappings.invert          - invert mapping on load, values: [yes, no], default: no
 
 Environment variables:
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
@@ -186,7 +189,7 @@ Examples:
   jadx --log-level ERROR app.apk
   jadx -Pdex-input.verify-checksum=no app.apk
 ```
-These options also worked on jadx-gui running from command line and override options from preferences dialog
+These options also work in jadx-gui running from command line and override options from preferences' dialog
 
 ### Troubleshooting
 Please check wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)

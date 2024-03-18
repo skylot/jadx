@@ -2,6 +2,7 @@ package jadx.plugins.script.runtime.data
 
 import jadx.api.plugins.options.JadxPluginOptions
 import jadx.api.plugins.options.OptionDescription
+import jadx.api.plugins.options.OptionFlag
 import jadx.api.plugins.options.OptionType
 import jadx.api.plugins.options.impl.JadxOptionDescription
 import jadx.plugins.script.runtime.JadxScriptInstance
@@ -29,6 +30,7 @@ class ScriptOptionDesc(
 class ScriptOption<T>(
 	val name: String,
 	val id: String,
+	val optData: ScriptOptionDesc,
 	private val getter: () -> T,
 ) {
 	private var validate: ((T) -> Boolean)? = null
@@ -48,6 +50,11 @@ class ScriptOption<T>(
 		validate = predicate
 		return this
 	}
+
+	fun flags(vararg flags: OptionFlag): ScriptOption<T> {
+		optData.flags += flags
+		return this
+	}
 }
 
 class JadxScriptOptions(
@@ -62,10 +69,10 @@ class JadxScriptOptions(
 		type: OptionType = OptionType.STRING,
 		convert: (String?) -> T,
 	): ScriptOption<T> {
-		val optDesc = ScriptOptionDesc(jadx.scriptName, name, desc, defaultValue, values, type)
-		options.descriptions.add(optDesc)
-		val optId = optDesc.name()
-		return ScriptOption(name, optId) { convert.invoke(options.values[optId]) }
+		val optData = ScriptOptionDesc(jadx.scriptName, name, desc, defaultValue, values, type)
+		options.descriptions.add(optData)
+		val optId = optData.name()
+		return ScriptOption(name, optId, optData) { convert.invoke(options.values[optId]) }
 	}
 
 	fun registerString(
