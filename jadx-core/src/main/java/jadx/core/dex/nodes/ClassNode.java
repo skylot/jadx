@@ -23,6 +23,8 @@ import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
@@ -312,6 +314,8 @@ public class ClassNode extends NotificationAttrNode
 		return decompile(true);
 	}
 
+	private static final Object DECOMPILE_WITH_MODE_SYNC = new Object();
+
 	/**
 	 * WARNING: Slow operation! Use with caution!
 	 */
@@ -320,15 +324,18 @@ public class ClassNode extends NotificationAttrNode
 		if (mode == baseMode) {
 			return decompile(true);
 		}
-		JadxArgs args = root.getArgs();
-		try {
-			unload();
-			args.setDecompilationMode(mode);
-			ProcessClass process = new ProcessClass(args);
-			process.initPasses(root);
-			return process.generateCode(this);
-		} finally {
-			args.setDecompilationMode(baseMode);
+		synchronized (DECOMPILE_WITH_MODE_SYNC) {
+			JadxArgs args = root.getArgs();
+			try {
+				unload();
+				args.setDecompilationMode(mode);
+				ProcessClass process = new ProcessClass(args);
+				process.initPasses(root);
+				return process.generateCode(this);
+			} finally {
+				args.setDecompilationMode(baseMode);
+				unload();
+			}
 		}
 	}
 
@@ -383,20 +390,44 @@ public class ClassNode extends NotificationAttrNode
 				return code;
 			}
 		}
-		ICodeInfo codeInfo;
-		try {
-			if (Consts.DEBUG) {
-				LOG.debug("Decompiling class: {}", this);
-			}
-			codeInfo = root.getProcessClasses().generateCode(this);
-		} catch (Throwable e) {
-			addError("Code generation failed", e);
-			codeInfo = new SimpleCodeInfo(Utils.getStackTrace(e));
-		}
+		ICodeInfo codeInfo = generateClassCode();
 		if (codeInfo != ICodeInfo.EMPTY) {
 			codeCache.add(clsRawName, codeInfo);
 		}
 		return codeInfo;
+	}
+
+	private ICodeInfo generateClassCode() {
+		try {
+			if (Consts.DEBUG) {
+				LOG.debug("Decompiling class: {}", this);
+			}
+			ICodeInfo codeInfo = root.getProcessClasses().generateCode(this);
+			processDefinitionAnnotations(codeInfo);
+			return codeInfo;
+		} catch (Throwable e) {
+			addError("Code generation failed", e);
+			return new SimpleCodeInfo(Utils.getStackTrace(e));
+		}
+	}
+
+	/**
+	 * Save node definition positions found in code
+	 */
+	private static void processDefinitionAnnotations(ICodeInfo codeInfo) {
+		Map<Integer, ICodeAnnotation> annotations = codeInfo.getCodeMetadata().getAsMap();
+		if (annotations.isEmpty()) {
+			return;
+		}
+		for (Map.Entry<Integer, ICodeAnnotation> entry : annotations.entrySet()) {
+			ICodeAnnotation ann = entry.getValue();
+			if (ann.getAnnType() == AnnType.DECLARATION) {
+				NodeDeclareRef declareRef = (NodeDeclareRef) ann;
+				int pos = entry.getKey();
+				declareRef.setDefPos(pos);
+				declareRef.getNode().setDefPosition(pos);
+			}
+		}
 	}
 
 	@Nullable

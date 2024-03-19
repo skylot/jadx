@@ -154,7 +154,6 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public ICodeInfo finish() {
-		processDefinitionAnnotations();
 		validateAnnotations();
 		String code = buf.toString();
 		buf = null;
@@ -164,18 +163,6 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	@Override
 	public Map<Integer, ICodeAnnotation> getRawAnnotations() {
 		return annotations;
-	}
-
-	private void processDefinitionAnnotations() {
-		if (!annotations.isEmpty()) {
-			annotations.forEach((k, v) -> {
-				if (v instanceof NodeDeclareRef) {
-					NodeDeclareRef declareRef = (NodeDeclareRef) v;
-					declareRef.setDefPos(k);
-					declareRef.getNode().setDefPosition(k);
-				}
-			});
-		}
 	}
 
 	private void validateAnnotations() {

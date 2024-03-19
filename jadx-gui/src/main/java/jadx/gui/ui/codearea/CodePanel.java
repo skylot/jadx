@@ -134,10 +134,22 @@ public class CodePanel extends JPanel {
 		codeScrollPane.setLineNumbersEnabled(true);
 	}
 
+	private static final LineNumberFormatter SIMPLE_LINE_FORMATTER = new LineNumberFormatter() {
+		@Override
+		public String format(int lineNumber) {
+			return Integer.toString(lineNumber);
+		}
+
+		@Override
+		public int getMaxLength(int maxLineNumber) {
+			return SourceLineFormatter.getNumberLength(maxLineNumber);
+		}
+	};
+
 	private synchronized void applyLineFormatter() {
 		LineNumberFormatter linesFormatter = useSourceLines
 				? new SourceLineFormatter(codeArea.getCodeInfo())
-				: LineNumberList.DEFAULT_LINE_NUMBER_FORMATTER;
+				: SIMPLE_LINE_FORMATTER;
 		codeScrollPane.getGutter().setLineNumberFormatter(linesFormatter);
 	}
 
@@ -170,15 +182,13 @@ public class CodePanel extends JPanel {
 	}
 
 	private void initLinesModeSwitch() {
-		if (canShowDebugLines()) {
-			MousePressedHandler lineModeSwitch = new MousePressedHandler(ev -> {
-				useSourceLines = !useSourceLines;
-				applyLineFormatter();
-			});
-			for (Component gutterComp : codeScrollPane.getGutter().getComponents()) {
-				if (gutterComp instanceof LineNumberList) {
-					gutterComp.addMouseListener(lineModeSwitch);
-				}
+		MousePressedHandler lineModeSwitch = new MousePressedHandler(ev -> {
+			useSourceLines = !useSourceLines;
+			applyLineFormatter();
+		});
+		for (Component gutterComp : codeScrollPane.getGutter().getComponents()) {
+			if (gutterComp instanceof LineNumberList) {
+				gutterComp.addMouseListener(lineModeSwitch);
 			}
 		}
 	}

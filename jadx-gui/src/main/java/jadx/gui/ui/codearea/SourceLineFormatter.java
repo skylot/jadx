@@ -32,8 +32,10 @@ public class SourceLineFormatter implements LineNumberFormatter {
 				.values().stream()
 				.mapToInt(Integer::intValue)
 				.max().orElse(1);
-		// maxLine can be anything including zero and negative numbers,
-		// so use safe 'stringify' method instead faster 'Math.log10'
-		return Integer.toString(maxLine).length();
+		return getNumberLength(maxLine);
+	}
+
+	public static int getNumberLength(int num) {
+		return num < 10 ? 1 : 1 + (int) Math.log10(num);
 	}
 }
