@@ -62,6 +62,10 @@ public class ResourceFile {
 		return deobfName != null ? deobfName : name;
 	}
 
+	public void setDeobfName(String resFullName) {
+		this.deobfName = resFullName;
+	}
+
 	public ResourceType getType() {
 		return type;
 	}
@@ -84,7 +88,7 @@ public class ResourceFile {
 		}
 		String alias = sb.toString();
 		if (!alias.equals(name)) {
-			deobfName = alias;
+			setDeobfName(alias);
 			return true;
 		}
 		return false;
