@@ -114,19 +114,19 @@ public class JadxProject {
 		} else {
 			Collections.sort(files);
 			data.setFiles(files);
-            StringJoiner joiner = new StringJoiner("_");
-            for (Path p : files) {
-				if (p.getFileName() == null) {
+			StringJoiner joiner = new StringJoiner("_");
+			for (Path p : files) {
+				Path fileNamePart = p.getFileName();
+				if (fileNamePart == null) {
 					joiner.add(p.toString());
 					continue;
 				}
-                String file = p.getFileName().toString();
-                if (!file.endsWith(".jadx.kts")) {
-                    String s = CommonFileUtils.removeFileExtension(file);
-                    joiner.add(s);
-                }
-            }
-            String joinedName = joiner.toString();
+				String fileName = fileNamePart.toString();
+				if (!fileName.endsWith(".jadx.kts")) {
+					joiner.add(CommonFileUtils.removeFileExtension(fileName));
+				}
+			}
+			String joinedName = joiner.toString();
 			name = StringUtils.abbreviate(joinedName, 100);
 		}
 		changed();
