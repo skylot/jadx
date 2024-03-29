@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -113,11 +114,15 @@ public class JadxProject {
 		} else {
 			Collections.sort(files);
 			data.setFiles(files);
-			String joinedName = files.stream()
-					.map(p -> p.getFileName().toString())
-					.filter(file -> !file.endsWith(".jadx.kts"))
-					.map(CommonFileUtils::removeFileExtension)
-					.collect(Collectors.joining("_"));
+            StringJoiner joiner = new StringJoiner("_");
+            for (Path p : files) {
+                String file = p.getFileName().toString();
+                if (!file.endsWith(".jadx.kts")) {
+                    String s = CommonFileUtils.removeFileExtension(file);
+                    joiner.add(s);
+                }
+            }
+            String joinedName = joiner.toString();
 			name = StringUtils.abbreviate(joinedName, 100);
 		}
 		changed();
