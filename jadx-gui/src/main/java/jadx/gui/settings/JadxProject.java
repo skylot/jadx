@@ -117,6 +117,7 @@ public class JadxProject {
             StringJoiner joiner = new StringJoiner("_");
             for (Path p : files) {
 				if (p.getFileName() == null) {
+					joiner.add(p.toString());
 					continue;
 				}
                 String file = p.getFileName().toString();
