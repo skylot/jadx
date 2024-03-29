@@ -116,6 +116,9 @@ public class JadxProject {
 			data.setFiles(files);
             StringJoiner joiner = new StringJoiner("_");
             for (Path p : files) {
+				if (p.getFileName() == null) {
+					continue;
+				}
                 String file = p.getFileName().toString();
                 if (!file.endsWith(".jadx.kts")) {
                     String s = CommonFileUtils.removeFileExtension(file);
