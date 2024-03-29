@@ -173,7 +173,11 @@ public class JRoot extends JNode {
 			return "File not open";
 		}
 		if (count == 1) {
-			return paths.get(0).getFileName().toString();
+			Path fileNamePath = paths.get(0).getFileName();
+			if (fileNamePath != null) {
+				return fileNamePath.toString();
+			}
+			return paths.get(0).toString();
 		}
 		return count + " files";
 	}

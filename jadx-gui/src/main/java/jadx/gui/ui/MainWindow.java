@@ -460,6 +460,9 @@ public class MainWindow extends JFrame {
 	}
 
 	private boolean openSingleFile(Path singleFile, Runnable onFinish) {
+		if (singleFile.getFileName() == null) {
+			return false;
+		}
 		String fileExtension = CommonFileUtils.getFileExtension(singleFile.getFileName().toString());
 		if (fileExtension != null && fileExtension.equalsIgnoreCase(JadxProject.PROJECT_EXTENSION)) {
 			openProject(singleFile, onFinish);
