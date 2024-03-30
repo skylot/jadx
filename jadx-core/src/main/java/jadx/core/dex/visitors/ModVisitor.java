@@ -44,6 +44,7 @@ import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -239,10 +240,10 @@ public class ModVisitor extends AbstractVisitor {
 		int[] keys = insn.getKeys();
 		int len = keys.length;
 		for (int k = 0; k < len; k++) {
-			FieldNode f = parentClass.getConstField(keys[k]);
+			IFieldInfoRef f = parentClass.getConstField(keys[k]);
 			if (f != null) {
 				insn.modifyKey(k, f);
-				f.addUseIn(mth);
+				addFieldUsage(f, mth);
 			}
 		}
 	}
@@ -313,7 +314,7 @@ public class ModVisitor extends AbstractVisitor {
 			}
 			return new EncodedValue(EncodedType.ENCODED_ARRAY, listVal);
 		}
-		FieldNode constField = parentCls.getConstField(encodedValue.getValue());
+		IFieldInfoRef constField = parentCls.getConstField(encodedValue.getValue());
 		if (constField != null) {
 			return new EncodedValue(EncodedType.ENCODED_FIELD, constField.getFieldInfo());
 		}
@@ -321,7 +322,7 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private static void replaceConst(MethodNode mth, ClassNode parentClass, BlockNode block, int i, InsnNode insn) {
-		FieldNode f;
+		IFieldInfoRef f;
 		if (insn.getType() == InsnType.CONST_STR) {
 			String s = ((ConstStringNode) insn).getString();
 			f = parentClass.getConstField(s);
@@ -335,7 +336,7 @@ public class ModVisitor extends AbstractVisitor {
 			InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 			inode.setResult(insn.getResult());
 			replaceInsn(mth, block, i, inode);
-			f.addUseIn(mth);
+			addFieldUsage(f, mth);
 		}
 	}
 
@@ -345,11 +346,11 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		InsnArg litArg = arithNode.getArg(1);
 		if (litArg.isLiteral()) {
-			FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) litArg);
+			IFieldInfoRef f = parentClass.getConstFieldByLiteralArg((LiteralArg) litArg);
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				if (arithNode.replaceArg(litArg, InsnArg.wrapArg(fGet))) {
-					f.addUseIn(mth);
+					addFieldUsage(f, mth);
 				}
 			}
 		}
@@ -566,11 +567,11 @@ public class ModVisitor extends AbstractVisitor {
 		InsnNode filledArr = new FilledNewArrayNode(elType, list.size());
 		filledArr.setResult(newArrayNode.getResult().duplicate());
 		for (LiteralArg arg : list) {
-			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(arg);
+			IFieldInfoRef f = mth.getParentClass().getConstFieldByLiteralArg(arg);
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				filledArr.addArg(InsnArg.wrapArg(fGet));
-				f.addUseIn(mth);
+				addFieldUsage(f, mth);
 			} else {
 				filledArr.addArg(arg.duplicate());
 			}
@@ -606,5 +607,11 @@ public class ModVisitor extends AbstractVisitor {
 			replaceInsn(mth, block, 0, moveInsn);
 		}
 		block.copyAttributeFrom(insn, AType.CODE_COMMENTS); // save comment
+	}
+
+	public static void addFieldUsage(IFieldInfoRef fieldData, MethodNode mth) {
+		if (fieldData instanceof FieldNode) {
+			((FieldNode) fieldData).addUseIn(mth);
+		}
 	}
 }

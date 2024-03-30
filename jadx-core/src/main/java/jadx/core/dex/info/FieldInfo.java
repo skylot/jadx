@@ -5,9 +5,10 @@ import java.util.Objects;
 import jadx.api.plugins.input.data.IFieldRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.RootNode;
 
-public final class FieldInfo {
+public final class FieldInfo implements IFieldInfoRef {
 
 	private final ClassInfo declClass;
 	private final String name;
@@ -74,6 +75,11 @@ public final class FieldInfo {
 
 	public boolean equalsNameAndType(FieldInfo other) {
 		return name.equals(other.name) && type.equals(other.type);
+	}
+
+	@Override
+	public FieldInfo getFieldInfo() {
+		return this;
 	}
 
 	@Override

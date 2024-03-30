@@ -257,7 +257,7 @@ public class ClassNode extends NotificationAttrNode
 		}
 		try {
 			// process const fields
-			root().getConstValues().processConstFields(this, staticFields);
+			root().getConstValues().processConstFields(staticFields);
 		} catch (Exception e) {
 			this.addWarnComment("Failed to load initial values for static fields", e);
 		}
@@ -513,17 +513,15 @@ public class ClassNode extends NotificationAttrNode
 		fields.add(fld);
 	}
 
-	public FieldNode getConstField(Object obj) {
+	public @Nullable IFieldInfoRef getConstField(Object obj) {
 		return getConstField(obj, true);
 	}
 
-	@Nullable
-	public FieldNode getConstField(Object obj, boolean searchGlobal) {
+	public @Nullable IFieldInfoRef getConstField(Object obj, boolean searchGlobal) {
 		return root().getConstValues().getConstField(this, obj, searchGlobal);
 	}
 
-	@Nullable
-	public FieldNode getConstFieldByLiteralArg(LiteralArg arg) {
+	public @Nullable IFieldInfoRef getConstFieldByLiteralArg(LiteralArg arg) {
 		return root().getConstValues().getConstFieldByLiteralArg(this, arg);
 	}
 

@@ -12,7 +12,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.ListUtils;
 
-public class FieldNode extends NotificationAttrNode implements ICodeNode {
+public class FieldNode extends NotificationAttrNode implements ICodeNode, IFieldInfoRef {
 
 	private final ClassNode parentClass;
 	private final FieldInfo fieldInfo;
@@ -46,6 +46,7 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 		this.type = type;
 	}
 
+	@Override
 	public FieldInfo getFieldInfo() {
 		return fieldInfo;
 	}

@@ -2,10 +2,8 @@ package jadx.core.dex.info;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,31 +16,32 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.RootNode;
 
 public class ConstStorage {
 
 	private static final class ValueStorage {
-		private final Map<Object, FieldNode> values = new ConcurrentHashMap<>();
+		private final Map<Object, IFieldInfoRef> values = new ConcurrentHashMap<>();
 		private final Set<Object> duplicates = new HashSet<>();
 
-		public Map<Object, FieldNode> getValues() {
+		public Map<Object, IFieldInfoRef> getValues() {
 			return values;
 		}
 
-		public FieldNode get(Object key) {
+		public IFieldInfoRef get(Object key) {
 			return values.get(key);
 		}
 
 		/**
 		 * @return true if this value is duplicated
 		 */
-		public boolean put(Object value, FieldNode fld) {
+		public boolean put(Object value, IFieldInfoRef fld) {
 			if (duplicates.contains(value)) {
 				values.remove(value);
 				return true;
 			}
-			FieldNode prev = values.put(value, fld);
+			IFieldInfoRef prev = values.put(value, fld);
 			if (prev != null) {
 				values.remove(value);
 				duplicates.add(value);
@@ -56,14 +55,13 @@ public class ConstStorage {
 		}
 
 		void removeForCls(ClassNode cls) {
-			Iterator<Entry<Object, FieldNode>> it = values.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<Object, FieldNode> entry = it.next();
-				FieldNode field = entry.getValue();
-				if (field.getParentClass().equals(cls)) {
-					it.remove();
+			values.entrySet().removeIf(entry -> {
+				IFieldInfoRef field = entry.getValue();
+				if (field instanceof FieldNode) {
+					return ((FieldNode) field).getParentClass().equals(cls);
 				}
-			}
+				return false;
+			});
 		}
 	}
 
@@ -77,16 +75,28 @@ public class ConstStorage {
 		this.replaceEnabled = args.isReplaceConsts();
 	}
 
-	public void processConstFields(ClassNode cls, List<FieldNode> staticFields) {
+	public void processConstFields(List<FieldNode> staticFields) {
 		if (!replaceEnabled || staticFields.isEmpty()) {
 			return;
 		}
 		for (FieldNode f : staticFields) {
 			Object value = getFieldConstValue(f);
 			if (value != null) {
-				addConstField(cls, f, value, f.getAccessFlags().isPublic());
+				addConstField(f, value, f.getAccessFlags().isPublic());
 			}
 		}
+	}
+
+	public void addConstField(FieldNode fld, Object value, boolean isPublic) {
+		if (isPublic) {
+			addGlobalConstField(fld, value);
+		} else {
+			getClsValues(fld.getParentClass()).put(value, fld);
+		}
+	}
+
+	public void addGlobalConstField(IFieldInfoRef fld, Object value) {
+		globalValues.put(value, fld);
 	}
 
 	public static @Nullable Object getFieldConstValue(FieldNode fld) {
@@ -105,20 +115,11 @@ public class ConstStorage {
 		globalValues.removeForCls(cls);
 	}
 
-	private void addConstField(ClassNode cls, FieldNode fld, Object value, boolean isPublic) {
-		if (isPublic) {
-			globalValues.put(value, fld);
-		} else {
-			getClsValues(cls).put(value, fld);
-		}
-	}
-
 	private ValueStorage getClsValues(ClassNode cls) {
 		return classes.computeIfAbsent(cls, c -> new ValueStorage());
 	}
 
-	@Nullable
-	public FieldNode getConstField(ClassNode cls, Object value, boolean searchGlobal) {
+	public @Nullable IFieldInfoRef getConstField(ClassNode cls, Object value, boolean searchGlobal) {
 		if (!replaceEnabled) {
 			return null;
 		}
@@ -137,7 +138,7 @@ public class ConstStorage {
 		while (current != null) {
 			ValueStorage classValues = classes.get(current);
 			if (classValues != null) {
-				FieldNode field = classValues.get(value);
+				IFieldInfoRef field = classValues.get(value);
 				if (field != null) {
 					if (foundInGlobal) {
 						return null;
@@ -182,8 +183,7 @@ public class ConstStorage {
 		return null;
 	}
 
-	@Nullable
-	public FieldNode getConstFieldByLiteralArg(ClassNode cls, LiteralArg arg) {
+	public @Nullable IFieldInfoRef getConstFieldByLiteralArg(ClassNode cls, LiteralArg arg) {
 		if (!replaceEnabled) {
 			return null;
 		}
@@ -225,7 +225,7 @@ public class ConstStorage {
 		return resourcesNames;
 	}
 
-	public Map<Object, FieldNode> getGlobalConstFields() {
+	public Map<Object, IFieldInfoRef> getGlobalConstFields() {
 		return globalValues.getValues();
 	}
 

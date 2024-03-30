@@ -22,6 +22,7 @@ import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.BetterName;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -417,7 +418,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		if (typeName.equals("style")) {
 			return origKeyName;
 		}
-		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
+		IFieldInfoRef fldRef = root.getConstValues().getGlobalConstFields().get(resRef);
+		FieldNode constField = fldRef instanceof FieldNode ? (FieldNode) fldRef : null;
 		String resAlias = getResAlias(resRef, origKeyName, constField);
 		resStorage.addRename(resRef, resAlias);
 		if (constField != null) {

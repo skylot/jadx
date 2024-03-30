@@ -18,7 +18,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.finaly.MarkFinallyVisitor;
@@ -82,7 +82,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			}
 			case CONST_STR: {
 				String s = ((ConstStringNode) insn).getString();
-				FieldNode f = mth.getParentClass().getConstField(s);
+				IFieldInfoRef f = mth.getParentClass().getConstField(s);
 				if (f == null) {
 					InsnNode copy = insn.copyWithoutResult();
 					constArg = InsnArg.wrapArg(copy);
@@ -90,7 +90,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 					InsnNode constGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 					constArg = InsnArg.wrapArg(constGet);
 					constArg.setType(ArgType.STRING);
-					onSuccess = () -> f.addUseIn(mth);
+					onSuccess = () -> ModVisitor.addFieldUsage(f, mth);
 				}
 				break;
 			}
@@ -251,7 +251,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				return false;
 			}
 			// arg replaced, made some optimizations
-			FieldNode fieldNode = null;
+			IFieldInfoRef fieldNode = null;
 			ArgType litArgType = litArg.getType();
 			if (litArgType.isTypeKnown()) {
 				fieldNode = mth.getParentClass().getConstFieldByLiteralArg(litArg);
@@ -261,7 +261,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			if (fieldNode != null) {
 				IndexInsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0);
 				if (litArg.wrapInstruction(mth, sgetInsn) != null) {
-					fieldNode.addUseIn(mth);
+					ModVisitor.addFieldUsage(fieldNode, mth);
 				}
 			} else {
 				addExplicitCast(useInsn, litArg);

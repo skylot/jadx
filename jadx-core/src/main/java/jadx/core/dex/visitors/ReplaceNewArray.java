@@ -16,7 +16,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
@@ -167,11 +167,11 @@ public class ReplaceNewArray extends AbstractVisitor {
 
 	private static InsnArg replaceConstInArg(MethodNode mth, InsnArg valueArg) {
 		if (valueArg.isLiteral()) {
-			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg((LiteralArg) valueArg);
+			IFieldInfoRef f = mth.getParentClass().getConstFieldByLiteralArg((LiteralArg) valueArg);
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				InsnArg arg = InsnArg.wrapArg(fGet);
-				f.addUseIn(mth);
+				ModVisitor.addFieldUsage(f, mth);
 				return arg;
 			}
 		}

@@ -170,18 +170,17 @@ public class AndroidResourcesUtils {
 	private static Map<Integer, FieldNode> fillResFieldsMap(ClassNode resCls) {
 		Map<Integer, FieldNode> resFieldsMap = new HashMap<>();
 		ConstStorage constStorage = resCls.root().getConstValues();
-		Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
-		for (Map.Entry<Object, FieldNode> entry : constFields.entrySet()) {
-			Object key = entry.getKey();
-			FieldNode field = entry.getValue();
-			AccessInfo accessFlags = field.getAccessFlags();
-			if (field.getType().equals(ArgType.INT)
-					&& accessFlags.isStatic()
-					&& accessFlags.isFinal()
+		constStorage.getGlobalConstFields().forEach((key, field) -> {
+			if (field.getFieldInfo().getType().equals(ArgType.INT)
+					&& field instanceof FieldNode
 					&& key instanceof Integer) {
-				resFieldsMap.put((Integer) key, field);
+				FieldNode fldNode = (FieldNode) field;
+				AccessInfo accessFlags = fldNode.getAccessFlags();
+				if (accessFlags.isStatic() && accessFlags.isFinal()) {
+					resFieldsMap.put((Integer) key, fldNode);
+				}
 			}
-		}
+		});
 		return resFieldsMap;
 	}
 }
