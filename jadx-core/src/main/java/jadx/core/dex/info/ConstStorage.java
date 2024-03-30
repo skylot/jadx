@@ -2,7 +2,6 @@ package jadx.core.dex.info;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,14 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
-import jadx.api.plugins.input.data.annotations.EncodedValue;
-import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.prepare.CollectConstValues;
 
 public class ConstStorage {
 
@@ -75,18 +73,6 @@ public class ConstStorage {
 		this.replaceEnabled = args.isReplaceConsts();
 	}
 
-	public void processConstFields(List<FieldNode> staticFields) {
-		if (!replaceEnabled || staticFields.isEmpty()) {
-			return;
-		}
-		for (FieldNode f : staticFields) {
-			Object value = getFieldConstValue(f);
-			if (value != null) {
-				addConstField(f, value, f.getAccessFlags().isPublic());
-			}
-		}
-	}
-
 	public void addConstField(FieldNode fld, Object value, boolean isPublic) {
 		if (isPublic) {
 			addGlobalConstField(fld, value);
@@ -99,15 +85,12 @@ public class ConstStorage {
 		globalValues.put(value, fld);
 	}
 
+	/**
+	 * Use method from CollectConstValues class
+	 */
+	@Deprecated
 	public static @Nullable Object getFieldConstValue(FieldNode fld) {
-		AccessInfo accFlags = fld.getAccessFlags();
-		if (accFlags.isStatic() && accFlags.isFinal()) {
-			EncodedValue constVal = fld.get(JadxAttrType.CONSTANT_VALUE);
-			if (constVal != null) {
-				return constVal.getValue();
-			}
-		}
-		return null;
+		return CollectConstValues.getFieldConstValue(fld);
 	}
 
 	public void removeForClass(ClassNode cls) {

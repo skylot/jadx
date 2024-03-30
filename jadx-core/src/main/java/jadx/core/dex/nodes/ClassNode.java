@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -248,18 +247,14 @@ public class ClassNode extends NotificationAttrNode
 		if (fields.isEmpty()) {
 			return;
 		}
-		List<FieldNode> staticFields = fields.stream().filter(FieldNode::isStatic).collect(Collectors.toList());
-		for (FieldNode f : staticFields) {
-			if (f.getAccessFlags().isFinal() && f.get(JadxAttrType.CONSTANT_VALUE) == null) {
-				// incorrect initialization will be removed if assign found in constructor
-				f.addAttr(EncodedValue.NULL);
+		// bytecode can omit field initialization to 0 (of any type)
+		// add explicit init to all static final fields
+		// incorrect initializations will be removed if assign found in class init
+		for (FieldNode fld : fields) {
+			AccessInfo accFlags = fld.getAccessFlags();
+			if (accFlags.isStatic() && accFlags.isFinal() && fld.get(JadxAttrType.CONSTANT_VALUE) == null) {
+				fld.addAttr(EncodedValue.NULL);
 			}
-		}
-		try {
-			// process const fields
-			root().getConstValues().processConstFields(staticFields);
-		} catch (Exception e) {
-			this.addWarnComment("Failed to load initial values for static fields", e);
 		}
 	}
 

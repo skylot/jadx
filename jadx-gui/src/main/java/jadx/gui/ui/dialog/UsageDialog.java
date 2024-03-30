@@ -19,8 +19,8 @@ import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.utils.CodeUtils;
-import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.visitors.prepare.CollectConstValues;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxSettings;
@@ -70,7 +70,7 @@ public class UsageDialog extends CommonSearchDialog {
 	private void prepareUsageData() {
 		if (mainWindow.getSettings().isReplaceConsts() && node instanceof JField) {
 			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
-			boolean constField = ConstStorage.getFieldConstValue(fld) != null;
+			boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
 			if (constField && !fld.getAccessFlags().isPrivate()) {
 				// run full decompilation to prepare for full code scan
 				mainWindow.requestFullDecompilation();
@@ -112,7 +112,7 @@ public class UsageDialog extends CommonSearchDialog {
 		}
 		if (node instanceof JField && mainWindow.getSettings().isReplaceConsts()) {
 			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
-			boolean constField = ConstStorage.getFieldConstValue(fld) != null;
+			boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
 			if (constField && !fld.getAccessFlags().isPrivate()) {
 				// search all classes to collect usage of replaced constants
 				map.put(fld.getJavaNode(), mainWindow.getWrapper().getIncludedClasses());
