@@ -1,6 +1,5 @@
 package jadx.core.xmlgen.entry;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.android.TextResMapFile;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.android.AndroidResourcesMap;
 import jadx.core.xmlgen.BinaryXMLStrings;
 import jadx.core.xmlgen.ParserConstants;
 import jadx.core.xmlgen.XmlGenUtils;
@@ -18,30 +16,12 @@ import jadx.core.xmlgen.XmlGenUtils;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
-	private static Map<Integer, String> androidResMap;
-
 	private final BinaryXMLStrings strings;
 	private final Map<Integer, String> resMap;
 
 	public ValuesParser(BinaryXMLStrings strings, Map<Integer, String> resMap) {
 		this.strings = strings;
 		this.resMap = resMap;
-		getAndroidResMap();
-	}
-
-	public static Map<Integer, String> getAndroidResMap() {
-		if (androidResMap == null) {
-			androidResMap = loadAndroidResMap();
-		}
-		return androidResMap;
-	}
-
-	private static Map<Integer, String> loadAndroidResMap() {
-		try (InputStream is = ValuesParser.class.getResourceAsStream("/android/res-map.txt")) {
-			return TextResMapFile.read(is);
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to load android resource file", e);
-		}
 	}
 
 	@Nullable
@@ -128,7 +108,7 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_REFERENCE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
-					String androidRi = androidResMap.get(data);
+					String androidRi = AndroidResourcesMap.getResName(data);
 					if (androidRi != null) {
 						return "@android:" + androidRi;
 					}
@@ -143,7 +123,7 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_ATTRIBUTE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
-					String androidRi = androidResMap.get(data);
+					String androidRi = AndroidResourcesMap.getResName(data);
 					if (androidRi != null) {
 						return "?android:" + androidRi;
 					}
@@ -178,7 +158,7 @@ public class ValuesParser extends ParserConstants {
 		if (ri != null) {
 			return ri.replace('/', '.');
 		} else {
-			String androidRi = androidResMap.get(ref);
+			String androidRi = AndroidResourcesMap.getResName(ref);
 			if (androidRi != null) {
 				return "android:" + androidRi.replace('/', '.');
 			}

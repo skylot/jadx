@@ -17,7 +17,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
-import jadx.core.xmlgen.entry.ValuesParser;
+import jadx.core.utils.android.AndroidResourcesMap;
 
 public class ProtoXMLParser extends CommonProtoParser {
 	private Map<String, String> nsMap;
@@ -102,7 +102,7 @@ public class ProtoXMLParser extends CommonProtoParser {
 		if (attrName.isEmpty()) {
 			// some optimization tools clear the name because the Android platform doesn't need it
 			int resId = a.getResourceId();
-			String str = ValuesParser.getAndroidResMap().get(resId);
+			String str = AndroidResourcesMap.getResName(resId);
 			if (str != null) {
 				namespace = nsMap.get(ParserConstants.ANDROID_NS_URL);
 				// cut type before /

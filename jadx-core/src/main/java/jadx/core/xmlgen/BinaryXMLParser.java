@@ -19,6 +19,7 @@ import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.android.AndroidResourcesMap;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
@@ -390,7 +391,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		// there is no entry uses the values form the XML string pool
 		if (resourceIds != null && 0 <= id && id < resourceIds.length) {
 			int resId = resourceIds[id];
-			String str = ValuesParser.getAndroidResMap().get(resId);
+			String str = AndroidResourcesMap.getResName(resId);
 			if (str != null) {
 				// cut type before /
 				int typeEnd = str.indexOf('/');
@@ -427,7 +428,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				}
 				writer.add(resName);
 			} else {
-				String androidResName = ValuesParser.getAndroidResMap().get(attrValData);
+				String androidResName = AndroidResourcesMap.getResName(attrValData);
 				if (androidResName != null) {
 					writer.add("@android:").add(androidResName);
 				} else if (attrValData == 0) {
