@@ -32,18 +32,18 @@ dependencies {
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.4")
-	implementation("com.formdev:flatlaf-intellij-themes:3.4")
-	implementation("com.formdev:flatlaf-extras:3.4")
+	implementation("com.formdev:flatlaf:3.4.1")
+	implementation("com.formdev:flatlaf-intellij-themes:3.4.1")
+	implementation("com.formdev:flatlaf-extras:3.4.1")
 
 	implementation("com.google.code.gson:gson:2.10.1")
 	implementation("org.apache.commons:commons-lang3:3.14.0")
 	implementation("org.apache.commons:commons-text:1.11.0")
-	implementation("commons-io:commons-io:2.15.1")
+	implementation("commons-io:commons-io:2.16.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.3.0")
+	implementation("com.android.tools.build:apksig:8.3.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
