@@ -1,0 +1,45 @@
+.version 52  # Java 8
+.class public interface abstract java8/TestLambdaInstance3
+.implements java/io/Serializable
+.implements java/util/function/Supplier
+.signature <R:Ljava/lang/Object;>Ljava/lang/Object;Ljava/io/Serializable;Ljava/util/function/Supplier<TR;>;
+.source "Function0.java"
+.annotation runtime Ljava/lang/FunctionalInterface;
+.end annotation
+
+
+.method public memoized()Ljava8/TestLambdaInstance3;
+    .signature ()Ljava8/TestLambdaInstance3<TR;>;
+    .max stack 2
+    .max locals 1
+
+    .local 0 "this" Ljava8/TestLambdaInstance3; Ljava8/TestLambdaInstance3<TR;>;
+    .line 197
+    aload 0
+    invokeinterface java8/TestLambdaInstance3 isMemoized ()Z
+    ifeq :L1
+    .line 198
+    aload 0
+    areturn
+  :L1
+    .line 200
+    .stack same
+    aload 0
+    invokestatic test/Lazy of (Ljava/util/function/Supplier;)Ltest/Lazy;
+    dup
+    invokevirtual java/lang/Object getClass ()Ljava/lang/Class;
+    pop
+    invokedynamic apply (Ltest/Lazy;)Ljava8/TestLambdaInstance3;
+        .handle invoke-static java/lang/invoke/LambdaMetafactory altMetafactory (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+        .arg 0 .methodtype ()Ljava/lang/Object;
+        .arg 1 .handle invoke-virtual test/Lazy get ()Ljava/lang/Object;
+        .arg 2 .methodtype ()Ljava/lang/Object;
+        .arg 3 7
+        .arg 4 1
+        .arg 5 Ltest/Memoized;
+        .arg 6 0
+    .end invokedynamic
+    checkcast test/Memoized
+    checkcast java8/TestLambdaInstance3
+    areturn
+.end method

@@ -936,7 +936,7 @@ public class InsnGen {
 		makeInlinedLambdaMethod(code, customNode, callMth);
 	}
 
-	private void makeRefLambda(ICodeWriter code, InvokeCustomNode customNode) {
+	private void makeRefLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
 		InsnNode callInsn = customNode.getCallInsn();
 		if (callInsn instanceof ConstructorInsn) {
 			MethodInfo callMth = ((ConstructorInsn) callInsn).getCallMth();
@@ -950,7 +950,7 @@ public class InsnGen {
 			if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {
 				useClass(code, callMth.getDeclClass());
 			} else {
-				code.add("this");
+				addArg(code, customNode.getArg(0));
 			}
 			code.add("::").add(callMth.getAlias());
 		}
