@@ -22,8 +22,7 @@ public class FixMultiEntryLoops {
 		}
 		List<SpecialEdgeAttr> specialEdges = mth.getAll(AType.SPECIAL_EDGE);
 		List<SpecialEdgeAttr> multiEntryLoops = specialEdges.stream()
-				.filter(e -> e.getType() == SpecialEdgeType.BACK_EDGE)
-				.filter(e -> !isSingleEntryLoop(e))
+				.filter(e -> e.getType() == SpecialEdgeType.BACK_EDGE && !isSingleEntryLoop(e))
 				.collect(Collectors.toList());
 		if (multiEntryLoops.isEmpty()) {
 			return false;
@@ -42,12 +41,21 @@ public class FixMultiEntryLoops {
 	}
 
 	private static boolean fixLoop(MethodNode mth, SpecialEdgeAttr backEdge, List<SpecialEdgeAttr> crossEdges) {
+		if (isHeaderSuccessorEntry(mth, backEdge, crossEdges)) {
+			return true;
+		}
+		if (isEndBlockEntry(mth, backEdge, crossEdges)) {
+			return true;
+		}
+		mth.addWarnComment("Unsupported multi-entry loop pattern (" + backEdge + "). Please report as a decompilation issue!!!");
+		return false;
+	}
+
+	private static boolean isHeaderSuccessorEntry(MethodNode mth, SpecialEdgeAttr backEdge, List<SpecialEdgeAttr> crossEdges) {
 		BlockNode header = backEdge.getEnd();
 		BlockNode headerIDom = header.getIDom();
 		SpecialEdgeAttr subEntry = ListUtils.filterOnlyOne(crossEdges, e -> e.getStart() == headerIDom);
-		if (subEntry == null || !isSupportedPattern(header, subEntry)) {
-			// TODO: for now only sub entry in header successor is supported
-			mth.addWarnComment("Unsupported multi-entry loop pattern (" + backEdge + "). Please submit an issue!!!");
+		if (subEntry == null || !ListUtils.isSingleElement(header.getSuccessors(), subEntry.getEnd())) {
 			return false;
 		}
 		BlockNode loopEnd = backEdge.getStart();
@@ -55,12 +63,28 @@ public class FixMultiEntryLoops {
 		BlockNode copyHeader = BlockSplitter.insertBlockBetween(mth, loopEnd, header);
 		BlockSplitter.copyBlockData(header, copyHeader);
 		BlockSplitter.replaceConnection(copyHeader, header, subEntryBlock);
-		mth.addDebugComment("Duplicate block to fix multi-entry loop: " + backEdge);
+		mth.addDebugComment("Duplicate block (" + header + ") to fix multi-entry loop: " + backEdge);
 		return true;
 	}
 
-	private static boolean isSupportedPattern(BlockNode header, SpecialEdgeAttr subEntry) {
-		return ListUtils.isSingleElement(header.getSuccessors(), subEntry.getEnd());
+	private static boolean isEndBlockEntry(MethodNode mth, SpecialEdgeAttr backEdge, List<SpecialEdgeAttr> crossEdges) {
+		BlockNode loopEnd = backEdge.getStart();
+		SpecialEdgeAttr subEntry = ListUtils.filterOnlyOne(crossEdges, e -> e.getEnd() == loopEnd);
+		if (subEntry == null) {
+			return false;
+		}
+		dupPath(mth, subEntry.getStart(), loopEnd, backEdge.getEnd());
+		mth.addDebugComment("Duplicate block (" + loopEnd + ") to fix multi-entry loop: " + backEdge);
+		return true;
+	}
+
+	/**
+	 * Duplicate 'center' block on path from 'start' to 'end'
+	 */
+	private static void dupPath(MethodNode mth, BlockNode start, BlockNode center, BlockNode end) {
+		BlockNode copyCenter = BlockSplitter.insertBlockBetween(mth, start, end);
+		BlockSplitter.copyBlockData(center, copyCenter);
+		BlockSplitter.removeConnection(start, center);
 	}
 
 	private static boolean isSingleEntryLoop(SpecialEdgeAttr e) {
@@ -75,21 +99,18 @@ public class FixMultiEntryLoops {
 	}
 
 	private static void detectSpecialEdges(MethodNode mth) {
-		List<BlockNode> blocks = mth.getBasicBlocks();
-		BlockColor[] colors = new BlockColor[blocks.size()];
+		BlockColor[] colors = new BlockColor[mth.getBasicBlocks().size()];
 		Arrays.fill(colors, BlockColor.WHITE);
-		colorDFS(mth, blocks, colors, mth.getEnterBlock().getId());
+		colorDFS(mth, colors, mth.getEnterBlock());
 	}
 
 	// TODO: transform to non-recursive form
-	private static void colorDFS(MethodNode mth, List<BlockNode> blocks, BlockColor[] colors, int cur) {
-		colors[cur] = BlockColor.GRAY;
-		BlockNode block = blocks.get(cur);
+	private static void colorDFS(MethodNode mth, BlockColor[] colors, BlockNode block) {
+		colors[block.getId()] = BlockColor.GRAY;
 		for (BlockNode v : block.getSuccessors()) {
-			int vId = v.getId();
-			switch (colors[vId]) {
+			switch (colors[v.getId()]) {
 				case WHITE:
-					colorDFS(mth, blocks, colors, vId);
+					colorDFS(mth, colors, v);
 					break;
 				case GRAY:
 					mth.addAttr(AType.SPECIAL_EDGE, new SpecialEdgeAttr(SpecialEdgeType.BACK_EDGE, block, v));
@@ -99,6 +120,6 @@ public class FixMultiEntryLoops {
 					break;
 			}
 		}
-		colors[cur] = BlockColor.BLACK;
+		colors[block.getId()] = BlockColor.BLACK;
 	}
 }
