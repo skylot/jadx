@@ -24,6 +24,7 @@ import jadx.core.codegen.json.cls.JsonClass;
 import jadx.core.codegen.json.cls.JsonCodeLine;
 import jadx.core.codegen.json.cls.JsonField;
 import jadx.core.codegen.json.cls.JsonMethod;
+import jadx.core.codegen.utils.CodeGenUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -31,7 +32,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 

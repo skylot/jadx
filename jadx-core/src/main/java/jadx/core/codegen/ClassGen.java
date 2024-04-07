@@ -26,6 +26,7 @@ import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.Consts;
+import jadx.core.codegen.utils.CodeGenUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.FieldInitInsnAttr;
@@ -45,7 +46,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.EncodedValueUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -421,7 +421,10 @@ public class ClassGen {
 		if (f.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		if (f.contains(JadxAttrType.ANNOTATION_LIST) || f.contains(AType.JADX_COMMENTS) || f.getFieldInfo().hasAlias()) {
+		if (f.contains(JadxAttrType.ANNOTATION_LIST)
+				|| f.contains(AType.JADX_COMMENTS)
+				|| f.contains(AType.CODE_COMMENTS)
+				|| f.getFieldInfo().hasAlias()) {
 			code.newLine();
 		}
 		if (Consts.DEBUG_USAGE) {

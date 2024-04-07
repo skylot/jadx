@@ -17,6 +17,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,6 +29,7 @@ import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.data.CommentStyle;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxCodeData;
@@ -101,6 +103,7 @@ public class CommentDialog extends JDialog {
 	private final transient boolean updateComment;
 
 	private transient JTextArea commentArea;
+	private transient JComboBox<CommentStyle> styleCombo;
 
 	public CommentDialog(CodeArea codeArea, ICodeComment comment, boolean updateComment) {
 		super(codeArea.getMainWindow());
@@ -120,7 +123,8 @@ public class CommentDialog extends JDialog {
 			}
 			return;
 		}
-		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(), comment.getCodeRef(), newCommentStr);
+		CommentStyle style = ((CommentStyle) styleCombo.getSelectedItem());
+		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(), comment.getCodeRef(), newCommentStr, style);
 		if (updateComment) {
 			updateCommentsData(codeArea, list -> {
 				list.remove(comment);
@@ -173,16 +177,31 @@ public class CommentDialog extends JDialog {
 		JScrollPane textAreaScrollPane = new JScrollPane(commentArea);
 		textAreaScrollPane.setAlignmentX(LEFT_ALIGNMENT);
 
+		styleCombo = new JComboBox<>(CommentStyle.values());
+		styleCombo.setSelectedItem(comment.getStyle());
+
 		JLabel commentLabel = new JLabel(NLS.str("comment_dialog.label"), SwingConstants.LEFT);
+		JLabel styleLabel = new JLabel(NLS.str("comment_dialog.style"), SwingConstants.LEFT);
 		JLabel usageLabel = new JLabel(NLS.str("comment_dialog.usage"), SwingConstants.LEFT);
 
-		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
-		mainPanel.add(commentLabel);
-		mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-		mainPanel.add(textAreaScrollPane);
-		mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-		mainPanel.add(usageLabel);
+		JPanel inputPanel = new JPanel();
+		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.PAGE_AXIS));
+		inputPanel.add(commentLabel);
+		inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPanel.add(textAreaScrollPane);
+		inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		inputPanel.add(usageLabel);
+
+		JPanel stylePanel = new JPanel();
+		stylePanel.setLayout(new BoxLayout(stylePanel, BoxLayout.LINE_AXIS));
+		stylePanel.setAlignmentX(LEFT_ALIGNMENT);
+		stylePanel.add(styleLabel);
+		stylePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		stylePanel.add(styleCombo);
+
+		JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+		mainPanel.add(inputPanel, BorderLayout.CENTER);
+		mainPanel.add(stylePanel, BorderLayout.PAGE_END);
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		JPanel buttonPane = initButtonsPanel();

@@ -2,6 +2,7 @@ package jadx.core.dex.attributes;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.core.codegen.utils.CodeComment;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
@@ -44,7 +45,7 @@ import jadx.core.dex.trycatch.TryCatchBlockAttr;
 public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 
 	// class, method, field, insn
-	public static final AType<AttrList<String>> CODE_COMMENTS = new AType<>();
+	public static final AType<AttrList<CodeComment>> CODE_COMMENTS = new AType<>();
 
 	// class, method, field
 	public static final AType<RenameReasonAttr> RENAME_REASON = new AType<>();

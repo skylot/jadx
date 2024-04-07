@@ -2,6 +2,8 @@ package jadx.core.dex.attributes.nodes;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
+import jadx.api.data.CommentStyle;
+import jadx.core.codegen.utils.CodeComment;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.ICodeNode;
@@ -25,7 +27,11 @@ public abstract class NotificationAttrNode extends LineAttrNode implements ICode
 	}
 
 	public void addCodeComment(String comment) {
-		addAttr(AType.CODE_COMMENTS, comment);
+		addAttr(AType.CODE_COMMENTS, new CodeComment(comment, CommentStyle.LINE));
+	}
+
+	public void addCodeComment(CommentStyle style, String comment) {
+		addAttr(AType.CODE_COMMENTS, new CodeComment(comment, style));
 	}
 
 	public void addWarnComment(String warn) {

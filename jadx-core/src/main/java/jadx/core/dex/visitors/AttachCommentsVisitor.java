@@ -14,6 +14,7 @@ import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeData;
 import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
+import jadx.core.codegen.utils.CodeComment;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -58,7 +59,7 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 			IJavaNodeRef nodeRef = comment.getNodeRef();
 			switch (nodeRef.getType()) {
 				case CLASS:
-					addComment(cls, comment.getComment());
+					addComment(cls, comment);
 					break;
 
 				case FIELD:
@@ -66,7 +67,7 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 					if (fieldNode == null) {
 						LOG.warn("Field reference not found: {}", nodeRef);
 					} else {
-						addComment(fieldNode, comment.getComment());
+						addComment(fieldNode, comment);
 					}
 					break;
 
@@ -77,7 +78,7 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 					} else {
 						IJavaCodeRef codeRef = comment.getCodeRef();
 						if (codeRef == null) {
-							addComment(methodNode, comment.getComment());
+							addComment(methodNode, comment);
 						} else {
 							processCustomAttach(methodNode, codeRef, comment);
 						}
@@ -101,7 +102,7 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		switch (attachType) {
 			case INSN: {
 				InsnNode insn = getInsnByOffset(mth, codeRef.getIndex());
-				addComment(insn, comment.getComment());
+				addComment(insn, comment);
 				break;
 			}
 			default:
@@ -109,11 +110,11 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void addComment(@Nullable IAttributeNode node, String comment) {
+	private static void addComment(@Nullable IAttributeNode node, ICodeComment comment) {
 		if (node == null) {
 			return;
 		}
-		node.addAttr(AType.CODE_COMMENTS, comment);
+		node.addAttr(AType.CODE_COMMENTS, new CodeComment(comment));
 	}
 
 	private List<ICodeComment> getCommentsData(ClassNode cls) {

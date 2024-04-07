@@ -3,6 +3,7 @@ package jadx.api.data.impl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.data.CommentStyle;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
@@ -13,15 +14,25 @@ public class JadxCodeComment implements ICodeComment {
 	@Nullable
 	private IJavaCodeRef codeRef;
 	private String comment;
+	private CommentStyle style = CommentStyle.LINE;
 
 	public JadxCodeComment(IJavaNodeRef nodeRef, String comment) {
 		this(nodeRef, null, comment);
 	}
 
+	public JadxCodeComment(IJavaNodeRef nodeRef, String comment, CommentStyle style) {
+		this(nodeRef, null, comment, style);
+	}
+
 	public JadxCodeComment(IJavaNodeRef nodeRef, @Nullable IJavaCodeRef codeRef, String comment) {
+		this(nodeRef, codeRef, comment, CommentStyle.LINE);
+	}
+
+	public JadxCodeComment(IJavaNodeRef nodeRef, @Nullable IJavaCodeRef codeRef, String comment, CommentStyle style) {
 		this.nodeRef = nodeRef;
 		this.codeRef = codeRef;
 		this.comment = comment;
+		this.style = style;
 	}
 
 	public JadxCodeComment() {
@@ -57,6 +68,15 @@ public class JadxCodeComment implements ICodeComment {
 	}
 
 	@Override
+	public CommentStyle getStyle() {
+		return style;
+	}
+
+	public void setStyle(CommentStyle style) {
+		this.style = style;
+	}
+
+	@Override
 	public int compareTo(@NotNull ICodeComment other) {
 		int cmpNodeRef = this.getNodeRef().compareTo(other.getNodeRef());
 		if (cmpNodeRef != 0) {
@@ -73,6 +93,7 @@ public class JadxCodeComment implements ICodeComment {
 		return "JadxCodeComment{" + nodeRef
 				+ ", ref=" + codeRef
 				+ ", comment='" + comment + '\''
+				+ ", style=" + style
 				+ '}';
 	}
 }

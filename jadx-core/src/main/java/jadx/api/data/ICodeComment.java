@@ -10,4 +10,6 @@ public interface ICodeComment extends Comparable<ICodeComment> {
 	IJavaCodeRef getCodeRef();
 
 	String getComment();
+
+	CommentStyle getStyle();
 }
