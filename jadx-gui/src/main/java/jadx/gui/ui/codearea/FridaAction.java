@@ -85,7 +85,7 @@ public final class FridaAction extends JNodeAction {
 		} else {
 			overload = "";
 		}
-		List<String> argNames = mth.collectArgsWithoutLoading().stream()
+		List<String> argNames = mth.collectArgNodes().stream()
 				.map(VarNode::getName).collect(Collectors.toList());
 		String args = String.join(", ", argNames);
 		String logArgs;

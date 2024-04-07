@@ -213,7 +213,7 @@ public class MappingExporter {
 					}
 					// Method args
 					int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-					List<VarNode> args = mth.collectArgsWithoutLoading();
+					List<VarNode> args = mth.collectArgNodes();
 					for (VarNode arg : args) {
 						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodArgLvIndex(arg);
 						if (lvIndex == null) {

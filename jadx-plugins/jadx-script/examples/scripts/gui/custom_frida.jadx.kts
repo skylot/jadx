@@ -60,7 +60,7 @@ fun generateMethodSnippet(mthNode: MethodNode): String {
 		""
 	}
 	val shortClassName = mthNode.parentClass.name
-	val argNames = mthNode.collectArgsWithoutLoading().map { a -> a.name }
+	val argNames = mthNode.collectArgNodes().map { a -> a.name }
 	val args = argNames.joinToString(separator = ", ")
 	val logArgs = if (argNames.isNotEmpty()) {
 		argNames.joinToString(separator = " + ', ' + ", prefix = " + ', ' + ") { p -> "'$p: ' + $p" }

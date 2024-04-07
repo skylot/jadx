@@ -253,7 +253,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return mthInfo.getReturnType().equals(ArgType.VOID);
 	}
 
-	public List<VarNode> collectArgsWithoutLoading() {
+	public List<VarNode> collectArgNodes() {
 		ICodeInfo codeInfo = getTopParentClass().getCode();
 		int mthDefPos = getDefPosition();
 		int lineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);

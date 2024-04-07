@@ -22,7 +22,7 @@ public class DalvikToJavaBytecodeUtils {
 		if (lvIndex != null) {
 			return lvIndex;
 		}
-		List<VarNode> args = mth.collectArgsWithoutLoading();
+		List<VarNode> args = mth.collectArgNodes();
 		for (VarNode arg : args) {
 			lvIndex = arg.getReg() - args.get(0).getReg() + (mth.getAccessFlags().isStatic() ? 0 : 1);
 			if (arg.equals(methodArg)) {
@@ -53,7 +53,7 @@ public class DalvikToJavaBytecodeUtils {
 			return lvIndex;
 		}
 		Integer lastArgLvIndex = mth.getAccessFlags().isStatic() ? -1 : 0;
-		List<VarNode> args = mth.collectArgsWithoutLoading();
+		List<VarNode> args = mth.collectArgNodes();
 		if (!args.isEmpty()) {
 			lastArgLvIndex = getMethodArgLvIndex(args.get(args.size() - 1));
 		}
@@ -86,7 +86,7 @@ public class DalvikToJavaBytecodeUtils {
 	public static Integer getMethodArgLvtIndex(VarNode methodArg) {
 		MethodNode mth = methodArg.getMth();
 		int lvtIndex = mth.getAccessFlags().isStatic() ? 0 : 1;
-		List<VarNode> args = mth.collectArgsWithoutLoading();
+		List<VarNode> args = mth.collectArgNodes();
 		for (VarNode arg : args) {
 			if (arg.equals(methodArg)) {
 				return lvtIndex;
