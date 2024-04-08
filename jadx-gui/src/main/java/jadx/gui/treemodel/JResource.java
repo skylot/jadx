@@ -12,7 +12,6 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
-import jadx.api.ICodeWriter;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
@@ -189,7 +188,7 @@ public class JResource extends JLoadableNode {
 						return ResourcesLoader.loadToCodeWriter(is);
 					});
 				} catch (Exception e) {
-					return new SimpleCodeInfo("Failed to load resource file:" + ICodeWriter.NL + Utils.getStackTrace(e));
+					return new SimpleCodeInfo("Failed to load resource file:\n" + Utils.getStackTrace(e));
 				}
 
 			case DECODED_DATA:

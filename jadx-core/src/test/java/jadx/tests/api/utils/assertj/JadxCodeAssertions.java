@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.assertj.core.api.AbstractStringAssert;
 
-import jadx.api.ICodeWriter;
 import jadx.tests.api.utils.TestUtils;
 
 public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions> {
@@ -53,7 +52,7 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		String indent = TestUtils.indent(commonIndent);
 		StringBuilder sb = new StringBuilder();
 		for (String line : lines) {
-			sb.append(ICodeWriter.NL);
+			sb.append('\n');
 			if (line.isEmpty()) {
 				// don't add common indent to empty lines
 				continue;
@@ -63,7 +62,7 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 			// check every line for easier debugging
 			contains(searchLine);
 		}
-		return containsOnlyOnce(sb.substring(ICodeWriter.NL.length()));
+		return containsOnlyOnce(sb.substring(1));
 	}
 
 	public JadxCodeAssertions removeBlockComments() {

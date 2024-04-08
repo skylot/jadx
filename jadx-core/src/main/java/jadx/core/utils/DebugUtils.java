@@ -136,7 +136,7 @@ public class DebugUtils {
 		ICodeWriter cw = new SimpleCodeWriter();
 		cw.startLine('|').add(mth.toString());
 		printRegion(mth, region, cw, "|  ", printInsns);
-		LOG.debug("{}{}", ICodeWriter.NL, cw.finish().getCodeStr());
+		LOG.debug("{}{}", '\n', cw.finish().getCodeStr());
 	}
 
 	private static void printRegion(MethodNode mth, IRegion region, ICodeWriter cw, String indent, boolean printInsns) {
@@ -182,7 +182,7 @@ public class DebugUtils {
 				ig.makeInsn(insn, code);
 				String codeStr = code.getCodeStr();
 
-				List<String> insnStrings = Stream.of(codeStr.split(ICodeWriter.NL))
+				List<String> insnStrings = Stream.of(codeStr.split("\\R"))
 						.filter(StringUtils::notBlank)
 						.map(s -> "|> " + s)
 						.collect(Collectors.toList());
@@ -204,7 +204,7 @@ public class DebugUtils {
 
 	private static void printWithAttributes(ICodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
 		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + ' ' + attrNode.getAttributesString();
-		List<String> attrStrings = Stream.of(str.split(ICodeWriter.NL))
+		List<String> attrStrings = Stream.of(str.split("\\R"))
 				.filter(StringUtils::notBlank)
 				.collect(Collectors.toList());
 		Iterator<String> it = attrStrings.iterator();

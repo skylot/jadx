@@ -2,7 +2,6 @@ package jadx.core.dex.attributes.nodes;
 
 import java.util.List;
 
-import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
@@ -26,6 +25,6 @@ public class LocalVarsDebugInfoAttr implements IJadxAttribute {
 
 	@Override
 	public String toString() {
-		return "Debug Info:" + ICodeWriter.NL + "  " + Utils.listToString(localVars, ICodeWriter.NL + "  ");
+		return "Debug Info:\n  " + Utils.listToString(localVars, "\n  ");
 	}
 }

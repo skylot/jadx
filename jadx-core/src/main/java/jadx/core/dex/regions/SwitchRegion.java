@@ -96,7 +96,7 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 		for (CaseInfo caseInfo : cases) {
 			List<String> keyStrings = Utils.collectionMap(caseInfo.getKeys(),
 					k -> k == DEFAULT_CASE_KEY ? "default" : k.toString());
-			sb.append(ICodeWriter.NL).append(" case ")
+			sb.append("\n case ")
 					.append(Utils.listToString(keyStrings))
 					.append(" -> ").append(caseInfo.getContainer());
 		}

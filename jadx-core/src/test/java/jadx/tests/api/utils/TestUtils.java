@@ -4,7 +4,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import jadx.NotYetImplementedExtension;
 import jadx.api.CommentsLevel;
-import jadx.api.ICodeWriter;
+import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -23,18 +23,14 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestUtils {
 
 	public static String indent() {
-		return ICodeWriter.INDENT_STR;
+		return JadxArgs.DEFAULT_INDENT_STR;
 	}
 
 	public static String indent(int indent) {
 		if (indent == 1) {
-			return ICodeWriter.INDENT_STR;
+			return JadxArgs.DEFAULT_INDENT_STR;
 		}
-		StringBuilder sb = new StringBuilder(indent * ICodeWriter.INDENT_STR.length());
-		for (int i = 0; i < indent; i++) {
-			sb.append(ICodeWriter.INDENT_STR);
-		}
-		return sb.toString();
+		return Utils.strRepeat(JadxArgs.DEFAULT_INDENT_STR, indent);
 	}
 
 	public static int count(String string, String substring) {

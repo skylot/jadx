@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
-import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
@@ -186,7 +185,7 @@ public abstract class BaseExternalTest extends TestUtils {
 	}
 
 	protected int getCommentStartPos(ICodeInfo codeInfo, int pos) {
-		String emptyLine = ICodeWriter.NL + ICodeWriter.NL;
+		String emptyLine = "\n\n";
 		int emptyLinePos = codeInfo.getCodeStr().lastIndexOf(emptyLine, pos);
 		return emptyLinePos == -1 ? pos : emptyLinePos + emptyLine.length();
 	}

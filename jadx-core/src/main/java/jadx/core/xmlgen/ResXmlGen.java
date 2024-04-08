@@ -11,6 +11,7 @@ import java.util.Set;
 
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
+import jadx.api.JadxArgs;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.utils.StringUtils;
 import jadx.core.xmlgen.entry.ProtoValue;
@@ -48,7 +49,7 @@ public class ResXmlGen {
 		this.vp = vp;
 	}
 
-	public List<ResContainer> makeResourcesXml() {
+	public List<ResContainer> makeResourcesXml(JadxArgs args) {
 		Map<String, ICodeWriter> contMap = new HashMap<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (SKIP_RES_TYPES.contains(ri.getTypeName())) {
@@ -57,7 +58,7 @@ public class ResXmlGen {
 			String fn = getFileName(ri);
 			ICodeWriter cw = contMap.get(fn);
 			if (cw == null) {
-				cw = new SimpleCodeWriter();
+				cw = new SimpleCodeWriter(args);
 				cw.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 				cw.startLine("<resources>");
 				cw.incIndent();

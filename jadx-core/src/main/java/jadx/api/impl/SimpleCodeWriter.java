@@ -14,36 +14,37 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.utils.Utils;
 
 /**
- * CodeWriter implementation without meta information support (only strings builder)
+ * CodeWriter implementation without meta information support
  */
 public class SimpleCodeWriter implements ICodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleCodeWriter.class);
-
-	private static final String[] INDENT_CACHE = {
-			"",
-			INDENT_STR,
-			INDENT_STR + INDENT_STR,
-			INDENT_STR + INDENT_STR + INDENT_STR,
-			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
-			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
-	};
 
 	protected StringBuilder buf = new StringBuilder();
 	protected String indentStr = "";
 	protected int indent = 0;
 
-	private final boolean insertLineNumbers;
-
-	public SimpleCodeWriter() {
-		this.insertLineNumbers = false;
-	}
+	protected final boolean insertLineNumbers;
+	protected final String singleIndentStr;
+	protected final String newLineStr;
 
 	public SimpleCodeWriter(JadxArgs args) {
 		this.insertLineNumbers = args.isInsertDebugLines();
+		this.singleIndentStr = args.getCodeIndentStr();
+		this.newLineStr = args.getCodeNewLineStr();
 		if (insertLineNumbers) {
 			incIndent(3);
 			add(indentStr);
 		}
+	}
+
+	/**
+	 * Constructor with JadxArgs should be used.
+	 */
+	@Deprecated
+	public SimpleCodeWriter() {
+		this.insertLineNumbers = false;
+		this.singleIndentStr = JadxArgs.DEFAULT_INDENT_STR;
+		this.newLineStr = JadxArgs.DEFAULT_INDENT_STR;
 	}
 
 	@Override
@@ -96,8 +97,8 @@ public class SimpleCodeWriter implements ICodeWriter {
 
 	@Override
 	public SimpleCodeWriter addMultiLine(String str) {
-		if (str.contains(NL)) {
-			buf.append(str.replace(NL, NL + indentStr));
+		if (str.contains(newLineStr)) {
+			buf.append(str.replace(newLineStr, newLineStr + indentStr));
 		} else {
 			buf.append(str);
 		}
@@ -130,12 +131,12 @@ public class SimpleCodeWriter implements ICodeWriter {
 
 	@Override
 	public SimpleCodeWriter addIndent() {
-		add(INDENT_STR);
+		add(singleIndentStr);
 		return this;
 	}
 
 	protected void addLine() {
-		buf.append(NL);
+		buf.append(newLineStr);
 	}
 
 	protected SimpleCodeWriter addLineIndent() {
@@ -144,12 +145,7 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	private void updateIndent() {
-		int curIndent = indent;
-		if (curIndent < INDENT_CACHE.length) {
-			this.indentStr = INDENT_CACHE[curIndent];
-		} else {
-			this.indentStr = Utils.strRepeat(INDENT_STR, curIndent);
-		}
+		this.indentStr = Utils.strRepeat(singleIndentStr, indent);
 	}
 
 	@Override
@@ -219,17 +215,17 @@ public class SimpleCodeWriter implements ICodeWriter {
 
 	@Override
 	public ICodeInfo finish() {
-		removeFirstEmptyLine();
-		String code = buf.toString();
+		String code = getStringWithoutFirstEmptyLine();
 		buf = null;
 		return new SimpleCodeInfo(code);
 	}
 
-	protected void removeFirstEmptyLine() {
-		int len = NL.length();
-		if (buf.length() > len && buf.substring(0, len).equals(NL)) {
-			buf.delete(0, len);
+	private String getStringWithoutFirstEmptyLine() {
+		int len = newLineStr.length();
+		if (buf.length() > len && buf.substring(0, len).equals(newLineStr)) {
+			return buf.substring(len);
 		}
+		return buf.toString();
 	}
 
 	@Override

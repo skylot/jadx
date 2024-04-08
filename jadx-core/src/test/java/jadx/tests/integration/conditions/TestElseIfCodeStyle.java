@@ -2,7 +2,6 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.api.ICodeWriter;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -32,6 +31,6 @@ public class TestElseIfCodeStyle extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.doesNotContain("!\"c\".equals(str)")
-				.doesNotContain("{" + ICodeWriter.NL + indent(2) + "} else {"); // no empty `then` block
+				.doesNotContain("{\n" + indent(2) + "} else {"); // no empty `then` block
 	}
 }

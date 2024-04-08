@@ -3,7 +3,6 @@ package jadx.core.dex.attributes.nodes;
 import java.util.ArrayList;
 import java.util.List;
 
-import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.PhiInsn;
@@ -33,7 +32,7 @@ public class PhiListAttr implements IJadxAttribute {
 			}
 		}
 		for (PhiInsn phiInsn : list) {
-			sb.append(ICodeWriter.NL).append("  ").append(phiInsn);
+			sb.append('\n').append("  ").append(phiInsn);
 		}
 		return sb.toString();
 	}

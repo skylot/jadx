@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -563,9 +562,9 @@ public class InsnNode extends LineAttrNode {
 			return false;
 		}
 		// wrap args
-		String separator = ICodeWriter.NL + "  ";
+		String separator = "\n  ";
 		sb.append(separator).append(Utils.listToString(arguments, separator));
-		sb.append(ICodeWriter.NL);
+		sb.append('\n');
 		return true;
 	}
 

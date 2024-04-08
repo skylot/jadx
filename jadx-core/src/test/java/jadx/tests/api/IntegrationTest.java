@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeInfo;
-import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
@@ -141,10 +140,14 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
-		args.setFsCaseSensitive(false); // use same value on all systems
 		args.setCommentsLevel(CommentsLevel.DEBUG);
 		args.setDeobfuscationOn(false);
 		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
+
+		// use the same values on all systems
+		args.setFsCaseSensitive(false);
+		args.setCodeNewLineStr("\n");
+		args.setCodeIndentStr(JadxArgs.DEFAULT_INDENT_STR);
 	}
 
 	@AfterEach
@@ -315,7 +318,7 @@ public abstract class IntegrationTest extends TestUtils {
 	private void printCodeWithLineNumbers(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
 		Map<Integer, Integer> lineMapping = code.getCodeMetadata().getLineMapping();
-		String[] lines = codeStr.split(ICodeWriter.NL);
+		String[] lines = codeStr.split("\\R");
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
 			int curLine = i + 1;
@@ -332,8 +335,9 @@ public abstract class IntegrationTest extends TestUtils {
 		String codeStr = code.getCodeStr();
 		ICodeMetadata metadata = code.getCodeMetadata();
 		int lineStartPos = 0;
-		int newLineLen = ICodeWriter.NL.length();
-		for (String line : codeStr.split(ICodeWriter.NL)) {
+		String newLineStr = args.getCodeNewLineStr();
+		int newLineLen = newLineStr.length();
+		for (String line : codeStr.split(newLineStr)) {
 			Object ann = metadata.getAt(lineStartPos);
 			String offsetStr = "";
 			if (ann instanceof InsnCodeOffset) {

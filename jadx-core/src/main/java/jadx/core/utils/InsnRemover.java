@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.ICodeWriter;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
@@ -147,9 +146,9 @@ public class InsnRemover {
 			return;
 		}
 		throw new JadxRuntimeException("Can't remove SSA var: " + ssaVar + ", still in use, count: " + useCount
-				+ ", list:" + ICodeWriter.NL + "  " + ssaVar.getUseList().stream()
+				+ ", list:\n  " + ssaVar.getUseList().stream()
 						.map(arg -> arg + " from " + arg.getParentInsn())
-						.collect(Collectors.joining(ICodeWriter.NL + "  ")));
+						.collect(Collectors.joining("\n  ")));
 	}
 
 	public static void unbindArgUsage(@Nullable MethodNode mth, InsnArg arg) {
@@ -183,9 +182,9 @@ public class InsnRemover {
 			}
 			if (!found && Consts.DEBUG_WITH_ERRORS) {
 				throw new JadxRuntimeException("Can't remove insn:"
-						+ ICodeWriter.NL + "  " + rem
-						+ ICodeWriter.NL + " not found in list:"
-						+ ICodeWriter.NL + "  " + Utils.listToString(insns, ICodeWriter.NL + "  "));
+						+ "\n  " + rem
+						+ "\n not found in list:"
+						+ "\n  " + Utils.listToString(insns, "\n  "));
 			}
 		}
 	}

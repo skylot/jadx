@@ -13,10 +13,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeWriter;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.api.utils.CodeUtils;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.ISearchProvider;
 import jadx.gui.search.SearchSettings;
@@ -95,8 +95,8 @@ public class ResourceSearchProvider implements ISearchProvider {
 		if (newPos == -1) {
 			return null;
 		}
-		int lineStart = content.lastIndexOf(ICodeWriter.NL, newPos) + ICodeWriter.NL.length();
-		int lineEnd = content.indexOf(ICodeWriter.NL, newPos + searchString.length());
+		int lineStart = 1 + CodeUtils.getNewLinePosBefore(content, newPos);
+		int lineEnd = CodeUtils.getNewLinePosAfter(content, newPos);
 		int end = lineEnd == -1 ? content.length() : lineEnd;
 		String line = content.substring(lineStart, end);
 		this.pos = end;

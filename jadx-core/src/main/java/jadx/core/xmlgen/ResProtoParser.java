@@ -31,7 +31,7 @@ public class ResProtoParser extends CommonProtoParser implements IResParser {
 		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
-		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
 		return ResContainer.resourceTable("res", xmlFiles, content);
 	}
 

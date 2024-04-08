@@ -55,7 +55,14 @@ public class Utils {
 		return 'L' + obj.replace('.', '/') + ';';
 	}
 
+	@SuppressWarnings("StringRepeatCanBeUsed")
 	public static String strRepeat(String str, int count) {
+		if (count < 1) {
+			return "";
+		}
+		if (count == 1) {
+			return str;
+		}
 		StringBuilder sb = new StringBuilder(str.length() * count);
 		for (int i = 0; i < count; i++) {
 			sb.append(str);

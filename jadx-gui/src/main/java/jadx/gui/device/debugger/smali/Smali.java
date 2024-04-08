@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.JadxArgs;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.AccessFlagsScope;
 import jadx.api.plugins.input.data.ICatch;
@@ -787,7 +788,7 @@ public class Smali {
 		int lineStart = getInsnColStart();
 		lineStart += CODE_OFFSET_COLUMN_WIDTH + 1 + 1; // plus 1s for space and the ':'
 		String basicIndent = new String(new byte[lineStart]).replace("\0", " ");
-		String indent = SmaliWriter.INDENT_STR + basicIndent;
+		String indent = JadxArgs.DEFAULT_INDENT_STR + basicIndent;
 		int[] keys = payload.getKeys();
 		int[] targets = payload.getTargets();
 		Integer switchOffset = line.payloadOffsetMap.get(insn.getOffset());

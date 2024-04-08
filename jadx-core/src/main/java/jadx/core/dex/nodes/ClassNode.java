@@ -18,10 +18,10 @@ import org.slf4j.LoggerFactory;
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
-import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.plugins.input.data.IClassData;
@@ -831,33 +831,29 @@ public class ClassNode extends NotificationAttrNode
 
 	public String getDisassembledCode() {
 		if (smali == null) {
-			StringBuilder sb = new StringBuilder();
-			getDisassembledCode(sb);
-			sb.append(ICodeWriter.NL);
+			SimpleCodeWriter code = new SimpleCodeWriter(root.getArgs());
+			getDisassembledCode(code);
 			Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
 			getInnerAndInlinedClassesRecursive(allInlinedClasses);
 			for (ClassNode innerClass : allInlinedClasses) {
-				innerClass.getDisassembledCode(sb);
-				sb.append(ICodeWriter.NL);
+				innerClass.getDisassembledCode(code);
 			}
-			smali = sb.toString();
+			smali = code.finish().getCodeStr();
 		}
 		return smali;
 	}
 
-	protected void getDisassembledCode(StringBuilder sb) {
+	protected void getDisassembledCode(SimpleCodeWriter code) {
 		if (clsData == null) {
-			sb.append(String.format("###### Class %s is created by jadx", getFullName()));
+			code.startLine(String.format("###### Class %s is created by jadx", getFullName()));
 			return;
 		}
-		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
-		sb.append(ICodeWriter.NL);
+		code.startLine(String.format("###### Class %s (%s)", getFullName(), getRawName()));
 		try {
-			sb.append(clsData.getDisassembledCode());
+			code.startLine(clsData.getDisassembledCode());
 		} catch (Throwable e) {
-			sb.append("Failed to disassemble class:");
-			sb.append(ICodeWriter.NL);
-			sb.append(Utils.getStackTrace(e));
+			code.startLine("Failed to disassemble class:");
+			code.startLine(Utils.getStackTrace(e));
 		}
 	}
 

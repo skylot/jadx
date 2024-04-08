@@ -2,8 +2,6 @@ package jadx.tests.api.utils;
 
 import org.hamcrest.Matcher;
 
-import jadx.api.ICodeWriter;
-
 public class JadxMatchers {
 
 	public static Matcher<String> countString(int count, String substring) {
@@ -17,7 +15,7 @@ public class JadxMatchers {
 	public static Matcher<String> containsLines(String... lines) {
 		StringBuilder sb = new StringBuilder();
 		for (String line : lines) {
-			sb.append(line).append(ICodeWriter.NL);
+			sb.append(line).append('\n');
 		}
 		return countString(1, sb.toString());
 	}
@@ -30,7 +28,7 @@ public class JadxMatchers {
 				sb.append(indent);
 				sb.append(line);
 			}
-			sb.append(ICodeWriter.NL);
+			sb.append('\n');
 		}
 		return countString(1, sb.toString());
 	}

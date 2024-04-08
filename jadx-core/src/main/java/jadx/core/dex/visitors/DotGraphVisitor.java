@@ -319,8 +319,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					.replace("\"", "\\\"")
 					.replace("-", "\\-")
 					.replace("|", "\\|")
-					.replace(ICodeWriter.NL, NL)
-					.replace("\n", NL);
+					.replaceAll("\\R", NL);
 		}
 	}
 }

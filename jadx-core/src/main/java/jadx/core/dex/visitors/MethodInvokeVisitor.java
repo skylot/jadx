@@ -8,7 +8,6 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeWriter;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
@@ -290,10 +289,10 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		if (Consts.DEBUG_OVERLOADED_CASTS) {
 			// TODO: try to minimize casts count
 			parentMth.addDebugComment("Failed to find minimal casts for resolve overloaded methods, cast all args instead"
-					+ ICodeWriter.NL + " method: " + mthDetails
-					+ ICodeWriter.NL + " arg types: " + compilerVarTypes
-					+ ICodeWriter.NL + " candidates:"
-					+ ICodeWriter.NL + "  " + Utils.listToString(overloadedMethods, ICodeWriter.NL + "  "));
+					+ "\n method: " + mthDetails
+					+ "\n arg types: " + compilerVarTypes
+					+ "\n candidates:"
+					+ "\n  " + Utils.listToString(overloadedMethods, "\n  "));
 		}
 		// not resolved -> cast all args
 		return mthDetails.getArgTypes();

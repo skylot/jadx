@@ -3,7 +3,6 @@ package jadx.core.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
@@ -96,13 +95,13 @@ public class DebugChecks {
 		if (resArg == reg) {
 			if (sVar.getAssignInsn() != insn) {
 				throw new JadxRuntimeException("Incorrect assign in ssa var: " + sVar
-						+ ICodeWriter.NL + " expected: " + sVar.getAssignInsn()
-						+ ICodeWriter.NL + " got: " + insn);
+						+ "\n expected: " + sVar.getAssignInsn()
+						+ "\n got: " + insn);
 			}
 		} else {
 			if (!Utils.containsInListByRef(useList, reg)) {
 				throw new JadxRuntimeException("Incorrect use list in ssa var: " + sVar + ", register not listed."
-						+ ICodeWriter.NL + " insn: " + insn);
+						+ "\n insn: " + insn);
 			}
 		}
 		for (RegisterArg useArg : useList) {
@@ -177,7 +176,7 @@ public class DebugChecks {
 			BlockNode parentInsnBlock = BlockUtils.getBlockByInsn(mth, parentInsn);
 			if (parentInsnBlock == null) {
 				throw new JadxRuntimeException("Parent insn not found in blocks tree for: " + reg
-						+ ICodeWriter.NL + " insn: " + parentInsn);
+						+ "\n insn: " + parentInsn);
 			}
 		}
 	}

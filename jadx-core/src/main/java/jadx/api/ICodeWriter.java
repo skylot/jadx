@@ -8,8 +8,6 @@ import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 
 public interface ICodeWriter {
-	String NL = System.getProperty("line.separator");
-	String INDENT_STR = "    ";
 
 	boolean isMetadataSupported();
 

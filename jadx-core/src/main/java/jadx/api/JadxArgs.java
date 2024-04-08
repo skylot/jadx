@@ -42,6 +42,9 @@ public class JadxArgs implements Closeable {
 
 	public static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
+	public static final String DEFAULT_NEW_LINE_STR = System.lineSeparator();
+	public static final String DEFAULT_INDENT_STR = "    ";
+
 	public static final String DEFAULT_OUT_DIR = "jadx-output";
 	public static final String DEFAULT_SRC_DIR = "sources";
 	public static final String DEFAULT_RES_DIR = "resources";
@@ -143,6 +146,10 @@ public class JadxArgs implements Closeable {
 	private DecompilationMode decompilationMode = DecompilationMode.AUTO;
 
 	private ICodeData codeData;
+
+	private String codeNewLineStr = DEFAULT_NEW_LINE_STR;
+
+	private String codeIndentStr = DEFAULT_INDENT_STR;
 
 	private CommentsLevel commentsLevel = CommentsLevel.INFO;
 
@@ -620,6 +627,22 @@ public class JadxArgs implements Closeable {
 
 	public void setCodeData(ICodeData codeData) {
 		this.codeData = codeData;
+	}
+
+	public String getCodeIndentStr() {
+		return codeIndentStr;
+	}
+
+	public void setCodeIndentStr(String codeIndentStr) {
+		this.codeIndentStr = codeIndentStr;
+	}
+
+	public String getCodeNewLineStr() {
+		return codeNewLineStr;
+	}
+
+	public void setCodeNewLineStr(String codeNewLineStr) {
+		this.codeNewLineStr = codeNewLineStr;
 	}
 
 	public CommentsLevel getCommentsLevel() {
