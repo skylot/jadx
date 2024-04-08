@@ -9,29 +9,33 @@ public enum CommentStyle {
 	 */
 	LINE("// ", "// ", ""),
 
+	// @formatter:off
 	/**
 	 * <pre>
 	 * /*
 	 *  * comment
-	 * *&#47;
+	 *  *&#47;
 	 * </pre>
 	 */
-	BLOCK("/*\n ", " ", "\n */"),
+	// @formatter:on
+	BLOCK("/*\n * ", " * ", "\n */"),
 
 	/**
 	 * <pre>
 	 * /* comment *&#47;
 	 * </pre>
 	 */
-	BLOCK_CONDENSED("/* ", " ", " */"),
+	BLOCK_CONDENSED("/* ", " * ", " */"),
 
+	// @formatter:off
 	/**
 	 * <pre>
 	 * /**
 	 *  * comment
-	 * *&#47;
+	 *  *&#47;
 	 * </pre>
 	 */
+	// @formatter:on
 	JAVADOC("/**\n * ", " * ", "\n */"),
 
 	/**

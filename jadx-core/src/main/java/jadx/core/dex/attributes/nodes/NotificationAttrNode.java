@@ -30,7 +30,7 @@ public abstract class NotificationAttrNode extends LineAttrNode implements ICode
 		addAttr(AType.CODE_COMMENTS, new CodeComment(comment, CommentStyle.LINE));
 	}
 
-	public void addCodeComment(CommentStyle style, String comment) {
+	public void addCodeComment(String comment, CommentStyle style) {
 		addAttr(AType.CODE_COMMENTS, new CodeComment(comment, style));
 	}
 
