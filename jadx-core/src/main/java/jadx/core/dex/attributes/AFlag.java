@@ -106,4 +106,5 @@ public enum AFlag {
 	DONT_UNLOAD_CLASS, // don't unload class after code generation (only for tests and debug!)
 
 	RESOLVE_JAVA_JSR,
+	COMPUTE_POST_DOM,
 }

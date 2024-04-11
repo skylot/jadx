@@ -2,15 +2,24 @@ package jadx.core.utils.blocks;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.EmptyBitSet;
 
 public class BlockSet {
+
+	public static BlockSet from(MethodNode mth, Collection<BlockNode> blocks) {
+		BlockSet newBS = new BlockSet(mth);
+		newBS.set(blocks);
+		return newBS;
+	}
 
 	private final MethodNode mth;
 	private final BitSet bs;
@@ -28,11 +37,48 @@ public class BlockSet {
 		bs.set(block.getId());
 	}
 
+	public void set(Collection<BlockNode> blocks) {
+		blocks.forEach(this::set);
+	}
+
 	public boolean checkAndSet(BlockNode block) {
 		int id = block.getId();
 		boolean state = bs.get(id);
 		bs.set(id);
 		return state;
+	}
+
+	public boolean intersects(List<BlockNode> blocks) {
+		for (BlockNode block : blocks) {
+			if (get(block)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public BlockSet intersect(List<BlockNode> blocks) {
+		BlockSet input = from(mth, blocks);
+		BlockSet result = new BlockSet(mth);
+		BitSet resultBS = result.bs;
+		resultBS.or(this.bs);
+		resultBS.and(input.bs);
+		return result;
+	}
+
+	public boolean isEmpty() {
+		return bs.cardinality() == 0;
+	}
+
+	public int size() {
+		return bs.cardinality();
+	}
+
+	public @Nullable BlockNode getOne() {
+		if (bs.cardinality() == 1) {
+			return mth.getBasicBlocks().get(bs.nextSetBit(0));
+		}
+		return null;
 	}
 
 	public void forEach(Consumer<? super BlockNode> consumer) {

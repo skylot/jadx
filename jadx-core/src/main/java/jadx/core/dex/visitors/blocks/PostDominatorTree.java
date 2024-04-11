@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
@@ -12,6 +13,9 @@ import jadx.core.utils.EmptyBitSet;
 public class PostDominatorTree {
 
 	public static void compute(MethodNode mth) {
+		if (!mth.contains(AFlag.COMPUTE_POST_DOM)) {
+			return;
+		}
 		try {
 			int mthBlocksCount = mth.getBasicBlocks().size();
 			List<BlockNode> sorted = new ArrayList<>(mthBlocksCount);
@@ -57,6 +61,9 @@ public class PostDominatorTree {
 				}
 				mth.addInfoComment("Infinite loop detected, blocks: " + blocksDelta + ", insns: " + insnsCount);
 			}
+		} catch (Throwable e) {
+			// show error as a warning because this info not always used
+			mth.addWarnComment("Failed to build post-dominance tree", e);
 		} finally {
 			// revert block ids change
 			mth.updateBlockIds(mth.getBasicBlocks());

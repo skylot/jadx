@@ -331,6 +331,17 @@ public class BlockExceptionHandler {
 			return false;
 		}
 		BlockNode bottom = searchBottomBlock(mth, blocks);
+		BlockNode splitReturn;
+		if (bottom != null && bottom.isReturnBlock()) {
+			if (Consts.DEBUG_EXC_HANDLERS) {
+				LOG.debug("TryCatch #{} bottom block ({}) is return, split", tryCatchBlock.id(), bottom);
+			}
+			splitReturn = bottom;
+			bottom = BlockSplitter.blockSplitTop(mth, bottom);
+			bottom.add(AFlag.SYNTHETIC);
+		} else {
+			splitReturn = null;
+		}
 		if (Consts.DEBUG_EXC_HANDLERS) {
 			LOG.debug("TryCatch #{} split: top {}, bottom: {}", tryCatchBlock.id(), top, bottom);
 		}
@@ -349,6 +360,18 @@ public class BlockExceptionHandler {
 			bottomSplitterBlock.add(AFlag.EXC_BOTTOM_SPLITTER);
 			bottomSplitterBlock.add(AFlag.SYNTHETIC);
 			BlockSplitter.connect(bottom, bottomSplitterBlock);
+			if (splitReturn != null) {
+				// redirect handler to return block instead synthetic split block to avoid self-loop
+				BlockSet bottomPreds = BlockSet.from(mth, bottom.getPredecessors());
+				for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {
+					if (bottomPreds.intersects(handler.getBlocks())) {
+						BlockNode lastBlock = bottomPreds.intersect(handler.getBlocks()).getOne();
+						if (lastBlock != null) {
+							BlockSplitter.replaceConnection(lastBlock, bottom, splitReturn);
+						}
+					}
+				}
+			}
 		}
 
 		if (Consts.DEBUG_EXC_HANDLERS) {

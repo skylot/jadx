@@ -521,6 +521,7 @@ public class InsnDecoder {
 		if (payload != null) {
 			swInsn.attachSwitchData(new SwitchData((ISwitchPayload) payload), insn.getTarget());
 		}
+		method.add(AFlag.COMPUTE_POST_DOM);
 		return swInsn;
 	}
 
