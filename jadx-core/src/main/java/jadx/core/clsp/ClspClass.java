@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.intellij.lang.annotations.MagicConstant;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.instructions.args.ArgType;
 
@@ -49,6 +51,10 @@ public class ClspClass {
 
 	public boolean isInterface() {
 		return AccessFlags.hasFlag(accFlags, AccessFlags.INTERFACE);
+	}
+
+	public boolean hasAccFlag(@MagicConstant(flagsFromClass = AccessFlags.class) int flags) {
+		return AccessFlags.hasFlag(accFlags, flags);
 	}
 
 	public ArgType[] getParents() {

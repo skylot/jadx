@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +13,10 @@ import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.VarNode;
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.core.clsp.ClspClass;
 import jadx.core.codegen.utils.CodeGenUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -21,6 +24,7 @@ import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
@@ -268,23 +272,36 @@ public class RegionGen extends InsnGen {
 
 	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) throws CodegenException {
 		if (k instanceof FieldNode) {
-			FieldNode fn = (FieldNode) k;
-			if (fn.getParentClass().isEnum()) {
-				code.add(fn.getAlias());
-			} else {
-				staticField(code, fn.getFieldInfo());
-				if (mth.checkCommentsLevel(CommentsLevel.INFO)) {
-					// print original value, sometimes replaced with incorrect field
-					EncodedValue constVal = fn.get(JadxAttrType.CONSTANT_VALUE);
-					if (constVal != null && constVal.getValue() != null) {
-						code.add(" /* ").add(constVal.getValue().toString()).add(" */");
-					}
-				}
-			}
+			FieldNode fld = (FieldNode) k;
+			useField(code, fld.getFieldInfo(), fld);
+		} else if (k instanceof FieldInfo) {
+			useField(code, (FieldInfo) k, null);
 		} else if (k instanceof Integer) {
 			code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
 		} else {
 			throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
+		}
+	}
+
+	private void useField(ICodeWriter code, FieldInfo fldInfo, @Nullable FieldNode fld) throws CodegenException {
+		boolean isEnum;
+		if (fld != null) {
+			isEnum = fld.getParentClass().isEnum();
+		} else {
+			ClspClass clsDetails = root.getClsp().getClsDetails(fldInfo.getDeclClass().getType());
+			isEnum = clsDetails != null && clsDetails.hasAccFlag(AccessFlags.ENUM);
+		}
+		if (isEnum) {
+			code.add(fldInfo.getAlias());
+			return;
+		}
+		staticField(code, fldInfo);
+		if (fld != null && mth.checkCommentsLevel(CommentsLevel.INFO)) {
+			// print original value, sometimes replaced with incorrect field
+			EncodedValue constVal = fld.get(JadxAttrType.CONSTANT_VALUE);
+			if (constVal != null && constVal.getValue() != null) {
+				code.add(" /* ").add(constVal.getValue().toString()).add(" */");
+			}
 		}
 	}
 
