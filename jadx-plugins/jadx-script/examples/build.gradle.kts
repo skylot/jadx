@@ -8,7 +8,7 @@ dependencies {
 	implementation(kotlin("stdlib-common"))
 	implementation(kotlin("script-runtime"))
 
-	implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
+	implementation("io.github.oshai:kotlin-logging-jvm:6.0.4")
 
 	// script context support in IDE is poor, use stubs and manual imports for now
 	// kotlinScriptDef(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
