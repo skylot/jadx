@@ -402,7 +402,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 			}
 			if (!stringArgFound) {
-				mth.addDebugComment("TODO: convert one arg to string using `String.valueOf()`, args: " + args);
+				String argStr = Utils.listToString(args, InsnArg::toShortString);
+				mth.addDebugComment("TODO: convert one arg to string using `String.valueOf()`, args: " + argStr);
 				return null;
 			}
 
@@ -625,7 +626,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 			for (int i = 1; i < argsCount; i++) {
 				concat.addArg(wrap.getArg(i));
 			}
-			return ArithNode.oneArgOp(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
+			InsnArg concatArg = InsnArg.wrapArg(concat);
+			concatArg.setType(ArgType.STRING);
+			return ArithNode.oneArgOp(ArithOp.ADD, fArg, concatArg);
 		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}

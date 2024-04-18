@@ -132,6 +132,10 @@ public abstract class InsnArg extends Typed {
 		}
 		InsnArg arg = wrapInsnIntoArg(insn);
 		InsnArg oldArg = parent.getArg(i);
+		if (arg.getType() == ArgType.UNKNOWN) {
+			// restore arg type if wrapped insn missing result
+			arg.setType(oldArg.getType());
+		}
 		parent.setArg(i, arg);
 		InsnRemover.unbindArgUsage(mth, oldArg);
 		if (unbind) {

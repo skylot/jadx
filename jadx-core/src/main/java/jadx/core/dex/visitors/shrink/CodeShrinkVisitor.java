@@ -3,7 +3,6 @@ package jadx.core.dex.visitors.shrink;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,12 +63,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		List<WrapInfo> wrapList = new ArrayList<>();
 		for (ArgsInfo argsInfo : argsList) {
 			List<RegisterArg> args = argsInfo.getArgs();
-			if (!args.isEmpty()) {
-				ListIterator<RegisterArg> it = args.listIterator(args.size());
-				while (it.hasPrevious()) {
-					RegisterArg arg = it.previous();
-					checkInline(mth, block, insnList, wrapList, argsInfo, arg);
-				}
+			for (int i = args.size() - 1; i >= 0; i--) {
+				RegisterArg arg = args.get(i);
+				checkInline(mth, block, insnList, wrapList, argsInfo, arg);
 			}
 		}
 		if (!wrapList.isEmpty()) {

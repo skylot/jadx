@@ -1,7 +1,5 @@
 package jadx.core.dex.instructions.args;
 
-import java.util.Objects;
-
 import org.jetbrains.annotations.NotNull;
 
 import jadx.core.dex.instructions.ConstStringNode;
@@ -75,10 +73,18 @@ public final class InsnWrapArg extends InsnArg {
 	}
 
 	@Override
-	public String toString() {
-		if (wrappedInsn.getType() == InsnType.CONST_STR && Objects.equals(type, ArgType.STRING)) {
+	public String toShortString() {
+		if (wrappedInsn.getType() == InsnType.CONST_STR) {
 			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
 		}
-		return "(wrap: " + type + " : " + wrappedInsn + ')';
+		return "(wrap:" + type + ":" + wrappedInsn.getType() + ')';
+	}
+
+	@Override
+	public String toString() {
+		if (wrappedInsn.getType() == InsnType.CONST_STR) {
+			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
+		}
+		return "(wrap:" + type + ":" + wrappedInsn + ')';
 	}
 }
