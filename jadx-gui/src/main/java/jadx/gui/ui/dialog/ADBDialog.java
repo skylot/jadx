@@ -69,6 +69,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	private transient JTree procTree;
 	private Socket deviceSocket;
 	private transient List<DeviceNode> deviceNodes = new ArrayList<>();
+	private transient DeviceNode lastSelectedDeviceNode;
 
 	public ADBDialog(MainWindow mainWindow) {
 		super(mainWindow);
@@ -144,6 +145,15 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					setIcon(ICON_PROCESS);
 				}
 				return c;
+			}
+		});
+
+		procTree.addTreeSelectionListener(event -> {
+			Object selectedNode = procTree.getLastSelectedPathComponent();
+			if (selectedNode instanceof DeviceTreeNode) {
+				lastSelectedDeviceNode = deviceNodes.stream()
+						.filter(item -> item.tNode == selectedNode)
+						.findFirst().orElse(null);
 			}
 		});
 
@@ -511,7 +521,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			return;
 		}
 		String fullName = pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
-		ADBDevice device = deviceNodes.get(0).device; // TODO: if multiple devices presented should let user select the one they desire.
+
+		ADBDevice device = (lastSelectedDeviceNode == null) ? deviceNodes.get(0).device : lastSelectedDeviceNode.device;
 		if (device != null) {
 			try {
 				device.launchApp(fullName);
