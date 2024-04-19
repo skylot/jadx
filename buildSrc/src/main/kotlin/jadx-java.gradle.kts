@@ -11,10 +11,10 @@ group = "io.github.skylot"
 version = jadxVersion
 
 dependencies {
-	implementation("org.slf4j:slf4j-api:2.0.12")
+	implementation("org.slf4j:slf4j-api:2.0.13")
 	compileOnly("org.jetbrains:annotations:24.1.0")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.4")
+	testImplementation("ch.qos.logback:logback-classic:1.5.6")
 	testImplementation("org.hamcrest:hamcrest-library:2.2")
 	testImplementation("org.mockito:mockito-core:5.11.0")
 	testImplementation("org.assertj:assertj-core:3.25.3")
