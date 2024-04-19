@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -29,6 +31,8 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -69,6 +73,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	private transient JTree procTree;
 	private Socket deviceSocket;
 	private transient List<DeviceNode> deviceNodes = new ArrayList<>();
+	private Pattern deviceStringParserPattern =
+			Pattern.compile("(.*)\\s\\[serial:\\s(.*)\\]\\s\\[state:\\s(.*)\\]", Pattern.CASE_INSENSITIVE);
+	private DeviceNode lastSelectedDeviceNode;
 
 	public ADBDialog(MainWindow mainWindow) {
 		super(mainWindow);
@@ -144,6 +151,26 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					setIcon(ICON_PROCESS);
 				}
 				return c;
+			}
+		});
+
+		procTree.addTreeSelectionListener(new TreeSelectionListener() {
+			String deviceName = null;
+			String deviceSerial = null;
+			String deviceState = null;
+
+			@Override
+			public void valueChanged(TreeSelectionEvent e) {
+				DefaultMutableTreeNode lastSelectedNode = (DefaultMutableTreeNode) procTree.getLastSelectedPathComponent();
+				String deviceString = lastSelectedNode.getUserObject().toString();
+				Matcher deviceStringParserMatcher = deviceStringParserPattern.matcher(deviceString);
+				if (deviceStringParserMatcher.find()) {
+					deviceName = deviceStringParserMatcher.group(1);
+					deviceSerial = deviceStringParserMatcher.group(2);
+					deviceState = deviceStringParserMatcher.group(3);
+					lastSelectedDeviceNode =
+							deviceNodes.stream().filter(item -> item.device.getSerial().equals(deviceSerial)).findFirst().orElse(null);
+				}
 			}
 		});
 
@@ -511,7 +538,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			return;
 		}
 		String fullName = pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
-		ADBDevice device = deviceNodes.get(0).device; // TODO: if multiple devices presented should let user select the one they desire.
+
+		ADBDevice device = (lastSelectedDeviceNode == null) ? deviceNodes.get(0).device : lastSelectedDeviceNode.device;
 		if (device != null) {
 			try {
 				device.launchApp(fullName);
