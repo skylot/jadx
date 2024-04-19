@@ -13,6 +13,7 @@ import java.io.File;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,14 +39,17 @@ import javax.swing.tree.TreeSelectionModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
+import jadx.core.utils.android.ApplicationParams;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.device.debugger.DebugSettings;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.device.protocol.ADBDevice;
 import jadx.gui.device.protocol.ADBDeviceInfo;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.utils.NLS;
@@ -511,18 +515,35 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.no_devices"));
 			return;
 		}
-		JClass cls = DbgUtils.searchMainActivity(mainWindow);
-		String pkg = DbgUtils.searchPackageName(mainWindow);
-		if (pkg.isEmpty() || cls == null) {
-			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.msg_read_mani_fail"));
+		JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
+		String appPkg = decompiler.getRoot().getAppPackage();
+		if (appPkg == null) {
+			UiUtils.errorMessage(mainWindow, NLS.str("error_dialog.not_found", "App package"));
 			return;
 		}
-		if (scrollToProcNode(pkg)) {
+		if (scrollToProcNode(appPkg)) {
 			return;
 		}
-		String fullName = pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
 
-		ADBDevice device = (lastSelectedDeviceNode == null) ? deviceNodes.get(0).device : lastSelectedDeviceNode.device;
+		AndroidManifestParser parser = new AndroidManifestParser(
+				AndroidManifestParser.getAndroidManifest(decompiler.getResources()),
+				EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+		if (!parser.isManifestFound()) {
+			UiUtils.errorMessage(mainWindow, NLS.str("error_dialog.not_found", "AndroidManifest.xml"));
+			return;
+		}
+		ApplicationParams results = parser.parse();
+		if (results.getMainActivityName() == null) {
+			UiUtils.errorMessage(mainWindow, NLS.str("adb_dialog.msg_read_mani_fail"));
+			return;
+		}
+		JavaClass mainActivityClass = results.getMainActivity(decompiler);
+		if (mainActivityClass == null) {
+			UiUtils.errorMessage(mainWindow, NLS.str("error_dialog.not_found", "Main activity class"));
+			return;
+		}
+		String fullName = appPkg + "/" + mainActivityClass.getClassNode().getClassInfo().getFullName();
+		ADBDevice device = lastSelectedDeviceNode == null ? deviceNodes.get(0).device : lastSelectedDeviceNode.device;
 		if (device != null) {
 			try {
 				device.launchApp(fullName);
