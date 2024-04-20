@@ -113,11 +113,12 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	}
 
 	private void stopAtOnCreate() {
-		JClass mainActivity = DbgUtils.searchMainActivity(debuggerPanel.getMainWindow());
-		if (mainActivity == null) {
+		DbgUtils.AppData appData = DbgUtils.parseAppData(debuggerPanel.getMainWindow());
+		if (appData == null) {
 			debuggerPanel.log("Failed to set breakpoint at onCreate, you have to do it yourself.");
 			return;
 		}
+		JClass mainActivity = DbgUtils.getJClass(appData.getMainActivityCls(), debuggerPanel.getMainWindow());
 		lazyQueue.execute(() -> openMainActivityTab(mainActivity));
 		String clsSig = DbgUtils.getRawFullName(mainActivity);
 		try {
@@ -217,15 +218,11 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 
 	@Override
 	public String getProcessName() {
-		String pkg = DbgUtils.searchPackageName(debuggerPanel.getMainWindow());
-		if (pkg.isEmpty()) {
+		DbgUtils.AppData appData = DbgUtils.parseAppData(debuggerPanel.getMainWindow());
+		if (appData == null) {
 			return "";
 		}
-		JClass cls = DbgUtils.searchMainActivity(debuggerPanel.getMainWindow());
-		if (cls == null) {
-			return "";
-		}
-		return pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
+		return appData.getProcessName();
 	}
 
 	private RuntimeType castType(ArgType type) {

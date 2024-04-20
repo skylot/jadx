@@ -196,11 +196,9 @@ public class AndroidManifestParser {
 
 	private static Document parseXml(String xmlContent) {
 		try {
-			DocumentBuilder builder = XmlSecurity.getSecureDbf().newDocumentBuilder();
+			DocumentBuilder builder = XmlSecurity.getDBF().newDocumentBuilder();
 			Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
-
 			document.getDocumentElement().normalize();
-
 			return document;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Can not parse xml content", e);
@@ -211,9 +209,7 @@ public class AndroidManifestParser {
 		if (appStrings == null) {
 			return null;
 		}
-
 		String content = appStrings.getText().getCodeStr();
-
 		return parseXml(content);
 	}
 
@@ -221,9 +217,7 @@ public class AndroidManifestParser {
 		if (androidManifest == null) {
 			return null;
 		}
-
 		String content = androidManifest.loadContent().getText().getCodeStr();
-
 		return parseXml(content);
 	}
 }

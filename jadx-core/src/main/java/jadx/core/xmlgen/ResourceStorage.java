@@ -76,7 +76,7 @@ public class ResourceStorage {
 	}
 
 	public void setAppPackage(String appPackage) {
-		this.appPackage = appPackage;
+		this.appPackage = XmlSecurity.verifyAppPackage(appPackage);
 	}
 
 	public Map<Integer, String> getResourcesNames() {

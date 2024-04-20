@@ -1,6 +1,7 @@
 package jadx.gui.device.debugger;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,15 +10,19 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
-import jadx.api.ResourceFile;
-import jadx.api.ResourceType;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.utils.android.AndroidManifestParser;
+import jadx.core.utils.android.AppAttribute;
+import jadx.core.utils.android.ApplicationParams;
 import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public class DbgUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DbgUtils.class);
@@ -99,83 +104,70 @@ public class DbgUtils {
 		return null;
 	}
 
+	public static JClass getJClass(JavaClass cls, MainWindow mainWindow) {
+		return mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
+	}
+
 	public static ClassNode getClassNodeBySig(String clsSig, MainWindow mainWindow) {
 		clsSig = DbgUtils.classSigToFullName(clsSig);
 		return mainWindow.getWrapper().getDecompiler().searchClassNodeByOrigFullName(clsSig);
 	}
 
-	public static String searchPackageName(MainWindow mainWindow) {
-		String content = getManifestContent(mainWindow);
-		int pos = content.indexOf("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
-		if (pos > -1) {
-			pos = content.lastIndexOf(">", pos);
-			if (pos > -1) {
-				pos = content.indexOf(" package=\"", pos);
-				if (pos > -1) {
-					pos += " package=\"".length();
-					return content.substring(pos, content.indexOf("\"", pos));
-				}
-			}
-		}
-		return "";
-	}
-
-	/**
-	 * @return the Activity class for android.intent.action.MAIN.
-	 */
-	@Nullable
-	public static JClass searchMainActivity(MainWindow mainWindow) {
-		String content = getManifestContent(mainWindow);
-		int pos; // current position
-		int actionPos = 0; // last found action's index
-		String actionTag = "<action android:name=\"android.intent.action.MAIN\"";
-		int actionTagLen = 0; // beginning offset. suggested length set after first iteration
-		while (actionPos > -1) {
-			pos = content.indexOf(actionTag, actionPos + actionTagLen);
-			actionPos = pos;
-			int activityPos = content.lastIndexOf("<activity ", pos);
-			if (activityPos > -1) {
-				int aliasPos = content.lastIndexOf("<activity-alias ", pos);
-				boolean isAnAlias = aliasPos > -1 && aliasPos > activityPos;
-				String classPathAttribute = " android:" + (isAnAlias ? "targetActivity" : "name") + "=\"";
-				pos = content.indexOf(classPathAttribute, isAnAlias ? aliasPos : activityPos);
-				if (pos > -1) {
-					pos += classPathAttribute.length();
-					String classFullName = content.substring(pos, content.indexOf("\"", pos));
-					// in case the MainActivity class has been renamed before, we need raw name.
-					JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
-					JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
-					if (jNode != null) {
-						return jNode.getRootClass();
-					}
-				}
-			}
-			if (actionTagLen == 0) {
-				actionTagLen = actionTag.length();
-			}
-		}
-		return null;
-	}
-
-	// TODO: parse AndroidManifest.xml instead of looking for keywords
-	private static String getManifestContent(MainWindow mainWindow) {
-		try {
-			ResourceFile androidManifest = mainWindow.getWrapper().getResources()
-					.stream()
-					.filter(res -> res.getType() == ResourceType.MANIFEST)
-					.findFirst()
-					.orElse(null);
-
-			if (androidManifest != null) {
-				return androidManifest.loadContent().getText().getCodeStr();
-			}
-		} catch (Exception e) {
-			LOG.error("AndroidManifest.xml search error", e);
-		}
-		return "";
-	}
-
 	public static boolean isPrintableChar(int c) {
 		return 32 <= c && c <= 126;
+	}
+
+	public static final class AppData {
+		private final String appPackage;
+		private final JavaClass mainActivityCls;
+
+		public AppData(String appPackage, JavaClass mainActivityCls) {
+			this.appPackage = appPackage;
+			this.mainActivityCls = mainActivityCls;
+		}
+
+		public String getAppPackage() {
+			return appPackage;
+		}
+
+		public JavaClass getMainActivityCls() {
+			return mainActivityCls;
+		}
+
+		public String getProcessName() {
+			return appPackage + '/' + mainActivityCls.getClassNode().getClassInfo().getFullName();
+		}
+	}
+
+	public static @Nullable AppData parseAppData(MainWindow mw) {
+		JadxDecompiler decompiler = mw.getWrapper().getDecompiler();
+		String appPkg = decompiler.getRoot().getAppPackage();
+		if (appPkg == null) {
+			UiUtils.errorMessage(mw, NLS.str("error_dialog.not_found", "App package"));
+			return null;
+		}
+		AndroidManifestParser parser = new AndroidManifestParser(
+				AndroidManifestParser.getAndroidManifest(decompiler.getResources()),
+				EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+		if (!parser.isManifestFound()) {
+			UiUtils.errorMessage(mw, NLS.str("error_dialog.not_found", "AndroidManifest.xml"));
+			return null;
+		}
+		ApplicationParams results = parser.parse();
+		String mainActivityName = results.getMainActivityName();
+		if (mainActivityName == null) {
+			UiUtils.errorMessage(mw, NLS.str("adb_dialog.msg_read_mani_fail"));
+			return null;
+		}
+		if (!NameMapper.isValidFullIdentifier(mainActivityName)) {
+			UiUtils.errorMessage(mw, "Invalid main activity name");
+			return null;
+		}
+		JavaClass mainActivityClass = results.getMainActivity(decompiler);
+		if (mainActivityClass == null) {
+			UiUtils.errorMessage(mw, NLS.str("error_dialog.not_found", "Main activity class"));
+			return null;
+		}
+		return new AppData(appPkg, mainActivityClass);
 	}
 }
