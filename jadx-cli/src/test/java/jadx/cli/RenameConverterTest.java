@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.api.JadxArgs.RenameEnum;
 import jadx.cli.JadxCLIArgs.RenameConverter;
+import jadx.core.utils.exceptions.JadxArgsValidateException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,7 +39,7 @@ public class RenameConverterTest {
 
 	@Test
 	public void wrong() {
-		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+		JadxArgsValidateException thrown = assertThrows(JadxArgsValidateException.class,
 				() -> converter.convert("wrong"),
 				"Expected convert() to throw, but it didn't");
 

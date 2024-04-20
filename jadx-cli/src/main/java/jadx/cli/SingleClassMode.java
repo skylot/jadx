@@ -12,6 +12,7 @@ import jadx.api.JadxDecompiler;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.SaveCode;
+import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
@@ -33,10 +34,10 @@ public class SingleClassMode {
 						.findFirst().orElse(null);
 			}
 			if (clsForProcess == null) {
-				throw new JadxRuntimeException("Input class not found: " + singleClass);
+				throw new JadxArgsValidateException("Input class not found: " + singleClass);
 			}
 			if (clsForProcess.contains(AFlag.DONT_GENERATE)) {
-				throw new JadxRuntimeException("Input class can't be saved by current jadx settings (marked as DONT_GENERATE)");
+				throw new JadxArgsValidateException("Input class can't be saved by current jadx settings (marked as DONT_GENERATE)");
 			}
 			if (clsForProcess.isInner()) {
 				clsForProcess = clsForProcess.getTopParentClass();
@@ -52,7 +53,7 @@ public class SingleClassMode {
 			if (size == 1) {
 				clsForProcess = classes.get(0);
 			} else {
-				throw new JadxRuntimeException("Found " + size + " classes, single class output can't be used");
+				throw new JadxArgsValidateException("Found " + size + " classes, single class output can't be used");
 			}
 		}
 		ICodeInfo codeInfo;
