@@ -44,7 +44,7 @@ public class SimpleCodeWriter implements ICodeWriter {
 	public SimpleCodeWriter() {
 		this.insertLineNumbers = false;
 		this.singleIndentStr = JadxArgs.DEFAULT_INDENT_STR;
-		this.newLineStr = JadxArgs.DEFAULT_INDENT_STR;
+		this.newLineStr = JadxArgs.DEFAULT_NEW_LINE_STR;
 	}
 
 	@Override
