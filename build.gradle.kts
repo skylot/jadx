@@ -89,6 +89,10 @@ val copyArtifacts by tasks.registering(Copy::class) {
 		include("**/*.jar")
 		rename("jadx-gui-(.*)-all.jar", "jadx-$1-all.jar")
 	}
+	from(layout.projectDirectory) {
+		include("README.md")
+		include("LICENSE")
+	}
 	into(layout.buildDirectory.dir("jadx"))
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
