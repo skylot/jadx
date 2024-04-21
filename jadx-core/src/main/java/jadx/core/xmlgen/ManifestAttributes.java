@@ -199,7 +199,7 @@ public class ManifestAttributes {
 		return null;
 	}
 
-	public void updateAttributes(IResParser parser) {
+	public void updateAttributes(IResTableParser parser) {
 		appAttrMap.clear();
 
 		ResourceStorage resStorage = parser.getResStorage();

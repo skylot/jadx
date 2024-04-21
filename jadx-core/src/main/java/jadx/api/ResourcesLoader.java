@@ -11,12 +11,15 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import jadx.api.plugins.resources.IResContainerFactory;
+import jadx.api.plugins.resources.IResTableParserProvider;
+import jadx.api.plugins.resources.ResTableBinaryParserProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
-import jadx.api.plugins.CustomResourcesLoader;
+import jadx.api.plugins.resources.CustomResourcesLoader;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -24,8 +27,7 @@ import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
-import jadx.core.xmlgen.ResProtoParser;
-import jadx.core.xmlgen.ResTableParser;
+import jadx.core.xmlgen.ResTableBinaryParser;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
@@ -36,8 +38,12 @@ public final class ResourcesLoader {
 
 	private final JadxDecompiler jadxRef;
 
+	private final static List<IResTableParserProvider> resTableParserProviders = new ArrayList<>();
+	private final static List<IResContainerFactory> resContainerFactories = new ArrayList<>();
+
 	ResourcesLoader(JadxDecompiler jadxRef) {
 		this.jadxRef = jadxRef;
+		addResTableParserProvider(new ResTableBinaryParserProvider());
 	}
 
 	List<ResourceFile> load() {
@@ -51,6 +57,22 @@ public final class ResourcesLoader {
 
 	public interface ResourceDecoder<T> {
 		T decode(long size, InputStream is) throws IOException;
+	}
+
+	public static void addResTableParserProvider(IResTableParserProvider parser) {
+		resTableParserProviders.add(parser);
+	}
+
+	public static void addResContainerFactory(IResContainerFactory parser) {
+		resContainerFactories.add(parser);
+	}
+
+	public static List<IResTableParserProvider> getResTableParserProviders() {
+		return resTableParserProviders;
+	}
+
+	public static List<IResContainerFactory> getResContainerFactories() {
+		return resContainerFactories;
 	}
 
 	public static <T> T decodeStream(ResourceFile rf, ResourceDecoder<T> decoder) throws JadxException {
@@ -95,24 +117,24 @@ public final class ResourcesLoader {
 	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
 			InputStream inputStream) throws IOException {
 		RootNode root = jadxRef.getRoot();
-		switch (rf.getType()) {
+		ResourceType type = rf.getType();
+
+		for (IResContainerFactory customFactory : getResContainerFactories()) {
+			ResContainer resContainer = customFactory.create(root, rf, inputStream);
+			if (resContainer != null) {
+				return resContainer;
+			}
+		}
+
+		switch (type) {
 			case MANIFEST:
 			case XML: {
-				ICodeInfo content;
-				if (root.isProto()) {
-					content = jadxRef.getProtoXmlParser().parse(inputStream);
-				} else {
-					content = jadxRef.getBinaryXmlParser().parse(inputStream);
-				}
+				ICodeInfo content  = jadxRef.getBinaryXmlParser().parse(inputStream);
 				return ResContainer.textResource(rf.getDeobfName(), content);
 			}
 
 			case ARSC:
-				if (root.isProto()) {
-					return new ResProtoParser(root).decodeFiles(inputStream);
-				} else {
-					return new ResTableParser(root).decodeFiles(inputStream);
-				}
+				return new ResTableBinaryParser(root).decodeFiles(inputStream);
 
 			case IMG:
 				return decodeImage(rf, inputStream);

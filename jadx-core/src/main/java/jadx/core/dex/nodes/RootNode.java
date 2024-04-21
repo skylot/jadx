@@ -54,7 +54,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.xmlgen.IResParser;
+import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ManifestAttributes;
 import jadx.core.xmlgen.ResDecoder;
 import jadx.core.xmlgen.ResourceStorage;
@@ -210,7 +210,7 @@ public class RootNode {
 			return;
 		}
 		try {
-			IResParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> ResDecoder.decode(this, arsc, is));
+			IResTableParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> ResDecoder.decode(this, arsc, is));
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
@@ -221,7 +221,7 @@ public class RootNode {
 		}
 	}
 
-	private void updateManifestAttribMap(IResParser parser) {
+	private void updateManifestAttribMap(IResTableParser parser) {
 		ManifestAttributes manifestAttributes = ManifestAttributes.getInstance();
 		manifestAttributes.updateAttributes(parser);
 	}
@@ -257,7 +257,7 @@ public class RootNode {
 		}
 	}
 
-	private void updateObfuscatedFiles(IResParser parser, List<ResourceFile> resources) {
+	private void updateObfuscatedFiles(IResTableParser parser, List<ResourceFile> resources) {
 		if (args.isSkipResources()) {
 			return;
 		}

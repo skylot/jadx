@@ -25,7 +25,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
-import jadx.api.plugins.CustomResourcesLoader;
+import jadx.api.plugins.resources.CustomResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.input.ICodeLoader;
@@ -52,7 +52,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.tasks.TaskExecutor;
 import jadx.core.xmlgen.BinaryXMLParser;
-import jadx.core.xmlgen.ProtoXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
@@ -94,7 +93,6 @@ public final class JadxDecompiler implements Closeable {
 	private List<ResourceFile> resources;
 
 	private BinaryXMLParser binaryXmlParser;
-	private ProtoXMLParser protoXmlParser;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 	private final JadxEventsImpl events = new JadxEventsImpl();
@@ -170,7 +168,6 @@ public final class JadxDecompiler implements Closeable {
 		classes = null;
 		resources = null;
 		binaryXmlParser = null;
-		protoXmlParser = null;
 		events.reset();
 	}
 
@@ -474,13 +471,6 @@ public final class JadxDecompiler implements Closeable {
 			binaryXmlParser = new BinaryXMLParser(root);
 		}
 		return binaryXmlParser;
-	}
-
-	synchronized ProtoXMLParser getProtoXmlParser() {
-		if (protoXmlParser == null) {
-			protoXmlParser = new ProtoXMLParser(root);
-		}
-		return protoXmlParser;
 	}
 
 	/**

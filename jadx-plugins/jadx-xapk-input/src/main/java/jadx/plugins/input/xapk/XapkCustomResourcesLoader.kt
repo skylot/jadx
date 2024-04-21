@@ -2,7 +2,7 @@ package jadx.plugins.input.xapk
 
 import jadx.api.ResourceFile
 import jadx.api.ResourcesLoader
-import jadx.api.plugins.CustomResourcesLoader
+import jadx.api.plugins.resources.CustomResourcesLoader
 import jadx.api.plugins.utils.CommonFileUtils
 import jadx.api.plugins.utils.ZipSecurity
 import java.io.File

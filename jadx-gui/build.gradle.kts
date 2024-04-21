@@ -14,6 +14,9 @@ dependencies {
 	// import mappings
 	implementation(project(":jadx-plugins:jadx-rename-mappings"))
 
+	// proto-resources support
+	implementation(project(":jadx-plugins:jadx-res-proto-input"))
+
 	// jadx-script autocomplete support
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-ide"))
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
