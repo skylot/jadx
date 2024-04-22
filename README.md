@@ -178,6 +178,7 @@ Plugin options (-P<name>=<value>):
     - rename-mappings.invert          - invert mapping on load, values: [yes, no], default: no
 
 Environment variables:
+  JADX_DISABLE_XML_SECURITY - set to 'true' to disable all security checks for XML files
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
   JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
   JADX_TMP_DIR - custom temp directory, using system by default

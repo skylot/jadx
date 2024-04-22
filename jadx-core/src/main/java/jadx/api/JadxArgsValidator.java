@@ -28,12 +28,6 @@ public class JadxArgsValidator {
 		if (inputFiles.isEmpty() && jadx.getCustomCodeLoaders().isEmpty()) {
 			throw new JadxArgsValidateException("Please specify input file");
 		}
-		for (File inputFile : inputFiles) {
-			String fileName = inputFile.getName();
-			if (fileName.startsWith("--")) {
-				throw new JadxArgsValidateException("Unknown argument: " + fileName);
-			}
-		}
 		for (File file : inputFiles) {
 			checkFile(file);
 		}

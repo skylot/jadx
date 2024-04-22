@@ -11,6 +11,7 @@ public class SmaliWriter extends SimpleCodeWriter {
 	private final ClassNode cls;
 
 	public SmaliWriter(ClassNode cls) {
+		super(cls.root().getArgs());
 		this.cls = cls;
 	}
 

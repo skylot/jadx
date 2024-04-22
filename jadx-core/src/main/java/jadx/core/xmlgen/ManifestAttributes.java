@@ -86,7 +86,7 @@ public class ManifestAttributes {
 			if (xmlStream == null) {
 				throw new JadxRuntimeException(xml + " not found in classpath");
 			}
-			DocumentBuilder dBuilder = XmlSecurity.getSecureDbf().newDocumentBuilder();
+			DocumentBuilder dBuilder = XmlSecurity.getDBF().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Xml load error, file: " + xml, e);

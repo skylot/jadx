@@ -29,7 +29,7 @@ import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.core.deobf.conditions.DeobfWhitelist;
-import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxCLIArgs {
@@ -287,14 +287,13 @@ public class JadxCLIArgs {
 			System.out.println(JadxDecompiler.getVersion());
 			return false;
 		}
-		try {
-			if (threadsCount <= 0) {
-				throw new JadxException("Threads count must be positive, got: " + threadsCount);
+		if (threadsCount <= 0) {
+			throw new JadxArgsValidateException("Threads count must be positive, got: " + threadsCount);
+		}
+		for (String fileName : files) {
+			if (fileName.startsWith("-")) {
+				throw new JadxArgsValidateException("Unknown option: " + fileName);
 			}
-		} catch (JadxException e) {
-			System.err.println("ERROR: " + e.getMessage());
-			jcw.printUsage();
-			return false;
 		}
 		return true;
 	}
@@ -559,8 +558,8 @@ public class JadxCLIArgs {
 			for (String s : value.split(",")) {
 				try {
 					set.add(RenameEnum.valueOf(s.trim().toUpperCase(Locale.ROOT)));
-				} catch (IllegalArgumentException e) {
-					throw new IllegalArgumentException(
+				} catch (Exception e) {
+					throw new JadxArgsValidateException(
 							'\'' + s + "' is unknown for parameter " + paramName
 									+ ", possible values are " + enumValuesString(RenameEnum.values()));
 				}
@@ -625,7 +624,7 @@ public class JadxCLIArgs {
 			try {
 				return parse.apply(stringAsEnumName(value));
 			} catch (Exception e) {
-				throw new IllegalArgumentException(
+				throw new JadxArgsValidateException(
 						'\'' + value + "' is unknown, possible values are: " + enumValuesString(values.get()));
 			}
 		}
