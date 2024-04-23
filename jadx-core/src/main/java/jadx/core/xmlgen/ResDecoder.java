@@ -14,7 +14,7 @@ public class ResDecoder {
 
 	public static IResTableParser decode(RootNode root, ResourceFile resFile, InputStream is) throws IOException {
 		if (resFile.getType() != ResourceType.ARSC) {
-			throw new IllegalArgumentException("Unexpected resource type for decode: " + resFile.getType() + ", expect ARSC");
+			throw new IllegalArgumentException("Unexpected resource type for decode: " + resFile.getType() + ", expect '.pb'/'.arsc'");
 		}
 
 		IResTableParser parser = null;

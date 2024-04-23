@@ -206,7 +206,7 @@ public class RootNode {
 	public void loadResources(List<ResourceFile> resources) {
 		ResourceFile arsc = getResourceFile(resources);
 		if (arsc == null) {
-			LOG.debug("'.arsc' file not found");
+			LOG.debug("'resources.pb'/'.arsc' file not found");
 			return;
 		}
 		try {
@@ -217,7 +217,7 @@ public class RootNode {
 				updateManifestAttribMap(parser);
 			}
 		} catch (Exception e) {
-			LOG.error("Failed to parse '.arsc' file", e);
+			LOG.error("Failed to parse 'resources.pb'/'.arsc' file", e);
 		}
 	}
 

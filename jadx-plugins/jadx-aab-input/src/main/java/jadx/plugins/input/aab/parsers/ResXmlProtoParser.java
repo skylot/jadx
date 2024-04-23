@@ -31,9 +31,11 @@ public class ResXmlProtoParser extends CommonProtoParser {
 	private final RootNode rootNode;
 	private String currentTag;
 	private String appPackageName;
+	private final boolean isPrettyPrint;
 
 	public ResXmlProtoParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.isPrettyPrint = !rootNode.getArgs().isSkipXmlPrettyPrint();
 	}
 
 	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
@@ -60,14 +62,9 @@ public class ResXmlProtoParser extends CommonProtoParser {
 		tag = getValidTagAttributeName(tag);
 		currentTag = tag;
 		writer.startLine('<').add(tag);
-		for (int i = 0; i < e.getNamespaceDeclarationCount(); i++) {
-			decode(e.getNamespaceDeclaration(i));
-		}
 
-		Set<String> attrCache = new HashSet<>();
-		for (int i = 0; i < e.getAttributeCount(); i++) {
-			decode(e.getAttribute(i), attrCache);
-		}
+		decodeNamespaces(e);
+		decodeAttributes(e);
 
 		if (e.getChildCount() > 0) {
 			writer.add('>');
@@ -80,18 +77,67 @@ public class ResXmlProtoParser extends CommonProtoParser {
 			writer.decIndent();
 			writer.startLine("</").add(tag).add('>');
 		} else {
-			writer.add("/>");
+			writer.add(" />");
 		}
 	}
 
-	private void decode(XmlAttribute a, Set<String> attrCache) {
+	private void decodeNamespaces(XmlElement e) {
+		int nsCount = e.getNamespaceDeclarationCount();
+		boolean newLine = nsCount != 1 && isPrettyPrint;
+		if (nsCount > 0) {
+			writer.add(' ');
+		}
+		for (int i = 0; i < nsCount; i++) {
+			decodeNamespace(e.getNamespaceDeclaration(i), newLine, i == nsCount - 1);
+		}
+	}
+
+	private void decodeNamespace(XmlNamespace n, boolean newLine, boolean isLastElement) {
+		String prefix = n.getPrefix();
+		String uri = n.getUri();
+		nsMap.put(uri, prefix);
+		writer.add("xmlns:").add(prefix).add("=\"").add(uri).add('"');
+		if (isLastElement) {
+			return;
+		}
+		if (newLine) {
+			writer.startLine().addIndent();
+		} else {
+			writer.add(' ');
+		}
+	}
+
+	private void decodeAttributes(XmlElement e) {
+		int attrsCount = e.getAttributeCount();
+		boolean newLine = attrsCount != 1 && isPrettyPrint;
+		if (attrsCount > 0) {
+			writer.add(' ');
+			if (isPrettyPrint) {
+				writer.startLine().addIndent();
+			}
+		}
+		Set<String> attrCache = new HashSet<>();
+		for (int i = 0; i < attrsCount; i++) {
+			decodeAttribute(e.getAttribute(i), attrCache, newLine, i == attrsCount - 1);
+		}
+	}
+
+	private void decodeAttribute(XmlAttribute a, Set<String> attrCache, boolean newLine, boolean isLastElement) {
 		String name = getAttributeFullName(a);
 		if (XmlDeobf.isDuplicatedAttr(name, attrCache)) {
 			return;
 		}
 		String value = deobfClassName(getAttributeValue(a));
-		writer.add(' ').add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
+		writer.add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
 		memorizePackageName(name, value);
+		if (isLastElement) {
+			return;
+		}
+		if (newLine) {
+			writer.startLine().addIndent();
+		} else {
+			writer.add(' ');
+		}
 	}
 
 	private String getAttributeFullName(XmlAttribute a) {
@@ -128,13 +174,6 @@ public class ResXmlProtoParser extends CommonProtoParser {
 			return a.getValue();
 		}
 		return parse(a.getCompiledItem());
-	}
-
-	private void decode(XmlNamespace n) {
-		String prefix = n.getPrefix();
-		String uri = n.getUri();
-		nsMap.put(uri, prefix);
-		writer.add(" xmlns:").add(prefix).add("=\"").add(uri).add('"');
 	}
 
 	private void memorizePackageName(String attrName, String attrValue) {

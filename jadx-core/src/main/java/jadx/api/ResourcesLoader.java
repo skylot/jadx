@@ -19,7 +19,6 @@ import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.resources.CustomResourcesLoader;
 import jadx.api.plugins.resources.IResContainerFactory;
 import jadx.api.plugins.resources.IResTableParserProvider;
-import jadx.api.plugins.resources.ResTableBinaryParserProvider;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -28,6 +27,7 @@ import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableBinaryParser;
+import jadx.core.xmlgen.ResTableBinaryParserProvider;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
