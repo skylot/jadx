@@ -64,6 +64,14 @@ public abstract class BasePluginOptionsBuilder implements JadxPluginOptions {
 						.parser(v -> v));
 	}
 
+	public OptionBuilder<Integer> intOption(String name) {
+		return addOption(
+				new OptionData<Integer>(name)
+						.type(OptionType.NUMBER)
+						.formatter(Object::toString)
+						.parser(Integer::parseInt));
+	}
+
 	public <E extends Enum<?>> OptionBuilder<E> enumOption(String name, E[] values, Function<String, E> valueOf) {
 		return addOption(
 				new OptionData<E>(name)

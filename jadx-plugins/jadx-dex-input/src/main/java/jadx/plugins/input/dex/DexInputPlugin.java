@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,7 @@ import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.data.impl.EmptyCodeLoader;
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.plugins.input.dex.utils.IDexData;
 
 public class DexInputPlugin implements JadxPlugin {
 	public static final String PLUGIN_ID = "dex-input";
@@ -56,5 +58,12 @@ public class DexInputPlugin implements JadxPlugin {
 		} catch (Exception e) {
 			throw new DexException("Failed to read input stream", e);
 		}
+	}
+
+	public ICodeLoader loadDexData(List<IDexData> list) {
+		List<DexReader> readers = list.stream()
+				.map(data -> loader.loadDexReader(data.getFileName(), data.getContent()))
+				.collect(Collectors.toList());
+		return new DexLoadResult(readers, null);
 	}
 }
