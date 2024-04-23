@@ -1,5 +1,7 @@
 package jadx.plugins.input.res.proto;
 
+import com.android.aapt.ConfigurationOuterClass;
+import com.android.bundle.Config;
 import jadx.api.ResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
@@ -13,7 +15,7 @@ public class ResProtoPlugin implements JadxPlugin {
 		return new JadxPluginInfo(
 				PLUGIN_ID,
 				"Protobuf-encoded Resources Input",
-				"Loads .pb and .xml (protobuf-encoded) files."
+				"Loads and protobuf-encoded XML and resource table files (used in AAB)."
 		);
 	}
 

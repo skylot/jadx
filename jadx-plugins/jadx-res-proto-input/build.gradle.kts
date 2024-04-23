@@ -11,4 +11,5 @@ dependencies {
 			require("3.25.3") // version 4 conflict with `aapt2-proto`
 		}
 	}
+	implementation("com.android.tools.build:bundletool:1.15.6")
 }

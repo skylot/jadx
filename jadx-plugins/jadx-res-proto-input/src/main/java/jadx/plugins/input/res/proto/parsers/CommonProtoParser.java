@@ -1,4 +1,4 @@
-package jadx.plugins.input.res.proto;
+package jadx.plugins.input.res.proto.parsers;
 
 import java.util.ArrayList;
 import java.util.List;
