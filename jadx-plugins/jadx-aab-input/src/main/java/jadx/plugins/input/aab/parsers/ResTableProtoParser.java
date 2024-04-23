@@ -1,4 +1,4 @@
-package jadx.plugins.input.res.proto.parsers;
+package jadx.plugins.input.aab.parsers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ public class ResTableProtoParser extends CommonProtoParser implements IResTableP
 	}
 
 	@Override
-	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
+	public synchronized ResContainer decodeFiles(InputStream inputStream) throws IOException {
 		decode(inputStream);
 		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);

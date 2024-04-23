@@ -1,4 +1,4 @@
-package jadx.plugins.input.res.proto.parsers;
+package jadx.plugins.input.aab.parsers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +18,9 @@ import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesMap;
+import jadx.core.xmlgen.XMLChar;
 import jadx.core.xmlgen.XmlDeobf;
 import jadx.core.xmlgen.XmlGenUtils;
-import jadx.core.xmlgen.XMLChar;
 
 public class ResXmlProtoParser extends CommonProtoParser {
 	private Map<String, String> nsMap;

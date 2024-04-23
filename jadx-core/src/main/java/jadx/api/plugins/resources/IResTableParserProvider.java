@@ -1,9 +1,10 @@
 package jadx.api.plugins.resources;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.IResTableParser;
-import org.jetbrains.annotations.Nullable;
 
 public interface IResTableParserProvider {
 	@Nullable

@@ -11,15 +11,15 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import jadx.api.plugins.resources.IResContainerFactory;
-import jadx.api.plugins.resources.IResTableParserProvider;
-import jadx.api.plugins.resources.ResTableBinaryParserProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.resources.CustomResourcesLoader;
+import jadx.api.plugins.resources.IResContainerFactory;
+import jadx.api.plugins.resources.IResTableParserProvider;
+import jadx.api.plugins.resources.ResTableBinaryParserProvider;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -38,8 +38,8 @@ public final class ResourcesLoader {
 
 	private final JadxDecompiler jadxRef;
 
-	private final static List<IResTableParserProvider> resTableParserProviders = new ArrayList<>();
-	private final static List<IResContainerFactory> resContainerFactories = new ArrayList<>();
+	private static final List<IResTableParserProvider> RES_TABLE_PARSER_PROVIDERS = new ArrayList<>();
+	private static final List<IResContainerFactory> RES_CONTAINER_FACTORIES = new ArrayList<>();
 
 	ResourcesLoader(JadxDecompiler jadxRef) {
 		this.jadxRef = jadxRef;
@@ -60,19 +60,19 @@ public final class ResourcesLoader {
 	}
 
 	public static void addResTableParserProvider(IResTableParserProvider parser) {
-		resTableParserProviders.add(parser);
+		RES_TABLE_PARSER_PROVIDERS.add(parser);
 	}
 
 	public static void addResContainerFactory(IResContainerFactory parser) {
-		resContainerFactories.add(parser);
+		RES_CONTAINER_FACTORIES.add(parser);
 	}
 
 	public static List<IResTableParserProvider> getResTableParserProviders() {
-		return resTableParserProviders;
+		return RES_TABLE_PARSER_PROVIDERS;
 	}
 
 	public static List<IResContainerFactory> getResContainerFactories() {
-		return resContainerFactories;
+		return RES_CONTAINER_FACTORIES;
 	}
 
 	public static <T> T decodeStream(ResourceFile rf, ResourceDecoder<T> decoder) throws JadxException {
@@ -129,7 +129,7 @@ public final class ResourcesLoader {
 		switch (type) {
 			case MANIFEST:
 			case XML: {
-				ICodeInfo content  = jadxRef.getBinaryXmlParser().parse(inputStream);
+				ICodeInfo content = jadxRef.getBinaryXmlParser().parse(inputStream);
 				return ResContainer.textResource(rf.getDeobfName(), content);
 			}
 

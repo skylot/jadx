@@ -1,11 +1,12 @@
-package jadx.plugins.input.res.proto;
+package jadx.plugins.input.aab;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ResourceFile;
 import jadx.api.plugins.resources.IResTableParserProvider;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.IResTableParser;
-import jadx.plugins.input.res.proto.parsers.ResTableProtoParser;
-import org.jetbrains.annotations.Nullable;
+import jadx.plugins.input.aab.parsers.ResTableProtoParser;
 
 public class ResTableProtoParserProvider implements IResTableParserProvider {
 	private static ResTableProtoParser parser = null;

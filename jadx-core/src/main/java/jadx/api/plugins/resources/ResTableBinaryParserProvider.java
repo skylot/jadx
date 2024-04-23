@@ -1,10 +1,11 @@
 package jadx.api.plugins.resources;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.ResourceFile;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ResTableBinaryParser;
-import org.jetbrains.annotations.Nullable;
 
 public class ResTableBinaryParserProvider implements IResTableParserProvider {
 	private static IResTableParser parser = null;

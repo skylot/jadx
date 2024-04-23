@@ -1,4 +1,4 @@
-package jadx.plugins.input.res.proto.parsers;
+package jadx.plugins.input.aab.parsers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +92,7 @@ public class CommonProtoParser extends ParserConstants {
 	protected String parse(ConfigurationOuterClass.Configuration c) {
 		char[] language = c.getLocale().toCharArray();
 		if (language.length == 0) {
-			language = new char[]{'\00'};
+			language = new char[] { '\00' };
 		}
 		short mcc = (short) c.getMcc();
 		short mnc = (short) c.getMnc();
@@ -117,11 +117,11 @@ public class CommonProtoParser extends ParserConstants {
 		c.getScreenLayoutSize(); // unknown field
 		c.getProduct(); // unknown field
 
-		return new EntryConfig(mcc, mnc, language, new char[]{'\00'},
+		return new EntryConfig(mcc, mnc, language, new char[] { '\00' },
 				orientation, touchscreen, density, keyboard, navigation,
 				inputFlags, screenWidth, screenHeight, sdkVersion,
 				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
-				screenHeightDp, new char[]{'\00'}, new char[]{'\00'}, screenLayout2,
+				screenHeightDp, new char[] { '\00' }, new char[] { '\00' }, screenLayout2,
 				colorMode, false, size).getQualifiers();
 	}
 
