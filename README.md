@@ -57,7 +57,8 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
   ```bash
   sudo pacman -S jadx
   ```
-- macOS [![homebrew version](https://img.shields.io/homebrew/v/jadx)](https://formulae.brew.sh/formula/jadx)
+- macOS
+  [![homebrew version](https://img.shields.io/homebrew/v/jadx)](https://formulae.brew.sh/formula/jadx)
   ```bash
   brew install jadx
   ```
