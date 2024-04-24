@@ -11,8 +11,8 @@ import jadx.core.xmlgen.ResContainer;
 
 /**
  * Factory for {@link ResContainer}. Can be used in plugins via
- * {@code ResourcesLoader.addResContainerFactory()}
- * to implement content parsing in files with different formats.
+ * {@code ResourcesLoader.addResContainerFactory()} to implement content parsing in files with
+ * different formats.
  */
 public interface IResContainerFactory {
 
