@@ -51,18 +51,22 @@ On Windows run `.bat` files with double-click\
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
 ### Install
-1. Arch linux ![Arch Linux package](https://img.shields.io/archlinux/v/extra/any/jadx?label=)
-    ```bash
-    sudo pacman -S jadx
-    ```
-2. macOS ![homebrew version](https://img.shields.io/homebrew/v/jadx?label=)
-    ```bash
-    brew install jadx
-    ```
-3. [Flathub ![Flathub](https://img.shields.io/flathub/v/com.github.skylot.jadx?label=)](https://flathub.org/apps/details/com.github.skylot.jadx)
-   ```bash
-   flatpak install flathub com.github.skylot.jadx
-   ```
+- Arch Linux
+  [![Arch Linux package](https://img.shields.io/archlinux/v/extra/any/jadx)](https://archlinux.org/packages/extra/any/jadx/)
+  [![AUR Version](https://img.shields.io/aur/version/jadx-git)](https://aur.archlinux.org/packages/jadx-git)
+  ```bash
+  sudo pacman -S jadx
+  ```
+- macOS
+  [![homebrew version](https://img.shields.io/homebrew/v/jadx)](https://formulae.brew.sh/formula/jadx)
+  ```bash
+  brew install jadx
+  ```
+- Flathub
+  [![Flathub Version](https://img.shields.io/flathub/v/com.github.skylot.jadx)](https://flathub.org/apps/com.github.skylot.jadx)
+  ```bash
+  flatpak install flathub com.github.skylot.jadx
+  ```
 
 ### Use jadx as a library
 You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
