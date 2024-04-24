@@ -111,6 +111,7 @@ launch4j {
 	windowTitle.set("jadx")
 	companyName.set("jadx")
 	jreMinVersion.set("11")
+	chdir.set("")
 	jvmOptions.set(application.applicationDefaultJvmArgs.toSet())
 	requires64Bit.set(true)
 	initialHeapPercent.set(5)
