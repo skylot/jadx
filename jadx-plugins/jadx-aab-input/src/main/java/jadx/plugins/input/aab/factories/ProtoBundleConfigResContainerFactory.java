@@ -3,12 +3,12 @@ package jadx.plugins.input.aab.factories;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jadx.api.JadxDecompiler;
 import org.jetbrains.annotations.Nullable;
 
 import com.android.bundle.Config;
 
 import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.resources.IResContainerFactory;

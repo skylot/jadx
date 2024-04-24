@@ -3,10 +3,9 @@ package jadx.plugins.input.aab.factories;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jadx.api.JadxDecompiler;
-import jadx.core.dex.nodes.RootNode;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.plugins.resources.IResContainerFactory;
