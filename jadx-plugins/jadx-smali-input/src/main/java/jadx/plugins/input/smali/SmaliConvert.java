@@ -1,79 +1,100 @@
 package jadx.plugins.input.smali;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.tools.smali.smali.Smali;
 import com.android.tools.smali.smali.SmaliOptions;
 
-public class SmaliConvert implements Closeable {
+import jadx.plugins.input.dex.utils.IDexData;
+import jadx.plugins.input.dex.utils.SimpleDexData;
+
+public class SmaliConvert {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliConvert.class);
 
-	@Nullable
-	private Path tmpDex;
+	private final List<IDexData> dexData = new ArrayList<>();
 
-	public boolean execute(List<Path> input) {
+	public boolean execute(List<Path> input, SmaliInputOptions options) {
 		List<Path> smaliFiles = filterSmaliFiles(input);
 		if (smaliFiles.isEmpty()) {
 			return false;
 		}
-		LOG.debug("Compiling smali files: {}", smaliFiles.size());
-		try {
-			this.tmpDex = Files.createTempFile("jadx-", ".dex");
-			if (compileSmali(tmpDex, smaliFiles)) {
-				return true;
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			collectSystemErrors(out, () -> compile(smaliFiles, options));
+			boolean success = out.size() == 0;
+			if (!success) {
+				LOG.error("Smali error:\n{}", out);
 			}
 		} catch (Exception e) {
 			LOG.error("Smali process error", e);
 		}
-		close();
-		return false;
+		return !dexData.isEmpty();
 	}
 
-	private static boolean compileSmali(Path output, List<Path> inputFiles) throws IOException {
-		SmaliOptions options = new SmaliOptions();
-		options.outputDexFile = output.toAbsolutePath().toString();
-		options.verboseErrors = true;
-		options.apiLevel = 27; // TODO: add as plugin option
+	@SuppressWarnings("ResultOfMethodCallIgnored")
+	private void compile(List<Path> inputFiles, SmaliInputOptions options) {
+		SmaliOptions smaliOptions = new SmaliOptions();
+		smaliOptions.apiLevel = options.getApiLevel();
+		smaliOptions.verboseErrors = true;
+		smaliOptions.allowOdexOpcodes = false;
+		smaliOptions.printTokens = false;
 
-		List<String> inputFileNames = inputFiles.stream()
-				.map(p -> p.toAbsolutePath().toString())
-				.distinct()
-				.collect(Collectors.toList());
-
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			boolean result = collectSystemErrors(out, () -> Smali.assemble(options, inputFileNames));
-			if (!result) {
-				LOG.error("Smali compilation error:\n{}", out);
+		int threads = options.getThreads();
+		LOG.debug("Compiling smali files: {}, threads: {}", inputFiles.size(), threads);
+		long start = System.currentTimeMillis();
+		if (threads == 1) {
+			for (Path inputFile : inputFiles) {
+				assemble(inputFile, smaliOptions);
 			}
-			return result;
+		} else {
+			try {
+				ExecutorService executor = Executors.newFixedThreadPool(threads);
+				for (Path inputFile : inputFiles) {
+					executor.execute(() -> assemble(inputFile, smaliOptions));
+				}
+				executor.shutdown();
+				executor.awaitTermination(1, TimeUnit.DAYS);
+			} catch (InterruptedException e) {
+				LOG.error("Smali compile interrupted", e);
+			}
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Smali compile done in: {}ms", System.currentTimeMillis() - start);
 		}
 	}
 
-	private static boolean collectSystemErrors(OutputStream out, Callable<Boolean> exec) {
+	private void assemble(Path inputFile, SmaliOptions smaliOptions) {
+		String fileName = inputFile.toAbsolutePath().toString();
+		try (Reader reader = Files.newBufferedReader(inputFile)) {
+			byte[] assemble = SmaliUtils.assemble(reader, smaliOptions);
+			dexData.add(new SimpleDexData(fileName, assemble));
+		} catch (Exception e) {
+			throw new RuntimeException("Fail to compile: " + fileName, e);
+		}
+	}
+
+	private static void collectSystemErrors(OutputStream out, Runnable exec) {
 		PrintStream systemErr = System.err;
 		try (PrintStream err = new PrintStream(out)) {
 			System.setErr(err);
 			try {
-				return exec.call();
+				exec.run();
 			} catch (Exception e) {
 				e.printStackTrace(err);
-				return false;
 			}
 		} finally {
 			System.setErr(systemErr);
@@ -87,21 +108,7 @@ public class SmaliConvert implements Closeable {
 				.collect(Collectors.toList());
 	}
 
-	public List<Path> getDexFiles() {
-		if (tmpDex == null) {
-			return Collections.emptyList();
-		}
-		return Collections.singletonList(tmpDex);
-	}
-
-	@Override
-	public void close() {
-		try {
-			if (tmpDex != null) {
-				Files.deleteIfExists(tmpDex);
-			}
-		} catch (Exception e) {
-			LOG.error("Failed to remove tmp dex file: {}", tmpDex, e);
-		}
+	public List<IDexData> getDexData() {
+		return dexData;
 	}
 }
