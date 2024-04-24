@@ -10,6 +10,7 @@ import jadx.plugins.input.aab.parsers.ResTableProtoParser;
 
 public class ResTableProtoParserProvider implements IResTableParserProvider {
 	private static ResTableProtoParser parser = null;
+	private RootNode root;
 
 	@Nullable
 	public synchronized IResTableParser getInstance(RootNode root, ResourceFile resFile) {
@@ -17,8 +18,9 @@ public class ResTableProtoParserProvider implements IResTableParserProvider {
 		if (!fileName.endsWith("resources.pb")) {
 			return null;
 		}
-		if (parser == null) {
+		if (parser == null || this.root != root) { // Recompilation creates new RootNode.
 			parser = new ResTableProtoParser(root);
+			this.root = root;
 		}
 		return parser;
 	}

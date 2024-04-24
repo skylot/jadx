@@ -11,8 +11,9 @@ dependencies {
 			require("3.25.3") // version 4 conflict with `aapt2-proto`
 		}
 	}
+
 	implementation("com.android.tools.build:bundletool:1.15.6") {
-		// All of this is unnecessary for parsing BundleConfig.pb
+		// All of this is unnecessary for parsing BundleConfig.pb except for protobuf
 		exclude(group = "com.android.tools.build")
 		exclude(group = "com.google.protobuf")
 		exclude(group = "com.google.guava")

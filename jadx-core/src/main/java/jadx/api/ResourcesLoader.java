@@ -120,7 +120,7 @@ public final class ResourcesLoader {
 		ResourceType type = rf.getType();
 
 		for (IResContainerFactory customFactory : getResContainerFactories()) {
-			ResContainer resContainer = customFactory.create(root, rf, inputStream);
+			ResContainer resContainer = customFactory.create(jadxRef, rf, inputStream);
 			if (resContainer != null) {
 				return resContainer;
 			}
