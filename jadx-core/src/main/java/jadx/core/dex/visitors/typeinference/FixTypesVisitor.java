@@ -153,7 +153,8 @@ public final class FixTypesVisitor extends AbstractVisitor {
 			return false;
 		}
 		ArgType candidateType = bestTypeOpt.get();
-		TypeUpdateResult result = typeUpdate.apply(mth, ssaVar, candidateType);
+		TypeUpdateParam param = new TypeUpdateParam(mth, ssaVar, candidateType);
+		TypeUpdateResult result = typeUpdate.apply(param);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
@@ -180,7 +181,8 @@ public final class FixTypesVisitor extends AbstractVisitor {
 			return false;
 		}
 		for (ArgType candidateType : types) {
-			TypeUpdateResult result = typeUpdate.apply(mth, var, candidateType);
+			TypeUpdateParam param = new TypeUpdateParam(mth, var, candidateType);
+			TypeUpdateResult result = typeUpdate.apply(param);
 			if (result == TypeUpdateResult.CHANGED) {
 				return true;
 			}
@@ -286,7 +288,8 @@ public final class FixTypesVisitor extends AbstractVisitor {
 	private boolean checkRawType(MethodNode mth, SSAVar var, ArgType objType) {
 		if (objType.isObject() && objType.containsGeneric()) {
 			ArgType rawType = objType.isGenericType() ? ArgType.OBJECT : ArgType.object(objType.getObject());
-			TypeUpdateResult result = typeUpdate.applyWithWiderAllow(mth, var, rawType);
+			TypeUpdateParam param = new TypeUpdateParam(mth, var, rawType);
+			TypeUpdateResult result = typeUpdate.applyWithWiderAllow(param);
 			return result == TypeUpdateResult.CHANGED;
 		}
 		return false;
@@ -669,7 +672,8 @@ public final class FixTypesVisitor extends AbstractVisitor {
 		for (ArgType objType : objTypes) {
 			for (String ancestor : clsp.getSuperTypes(objType.getObject())) {
 				ArgType ancestorType = ArgType.object(ancestor);
-				TypeUpdateResult result = typeUpdate.applyWithWiderAllow(mth, var, ancestorType);
+				TypeUpdateParam param = new TypeUpdateParam(mth, var, ancestorType);
+				TypeUpdateResult result = typeUpdate.applyWithWiderAllow(param);
 				if (result == TypeUpdateResult.CHANGED) {
 					return true;
 				}

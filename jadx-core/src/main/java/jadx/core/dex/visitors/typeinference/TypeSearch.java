@@ -97,7 +97,8 @@ public class TypeSearch {
 		}
 		boolean applySuccess = true;
 		for (TypeSearchVarInfo var : updatedVars) {
-			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(mth, var.getVar(), var.getCurrentType());
+			TypeUpdateParam param = new TypeUpdateParam(mth, var.getVar(), var.getCurrentType());
+			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(param);
 			if (res == TypeUpdateResult.REJECT) {
 				mth.addDebugComment("Multi-variable search result rejected for " + var);
 				applySuccess = false;
