@@ -18,7 +18,6 @@ public interface IResContainerFactory {
 
 	/**
 	 * Checks if resource file is of expected format and tries to parse its content.
-	 *
 	 * @return {@link ResContainer} if file is of expected format, {@code null} otherwise.
 	 */
 	@Nullable

@@ -16,7 +16,6 @@ public interface IResTableParserProvider {
 
 	/**
 	 * Checks file format and provides the instance if the format is expected.
-	 *
 	 * @return {@link IResTableParser} if resource table is of expected format, {@code null} otherwise.
 	 */
 	@Nullable
