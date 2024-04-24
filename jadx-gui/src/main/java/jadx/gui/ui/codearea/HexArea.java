@@ -15,7 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.ResourcesLoader;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.UiUtils;
 
@@ -48,7 +51,18 @@ public class HexArea extends AbstractCodeArea {
 
 	@Override
 	public void load() {
-		byte[] bytes = binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.UTF_8);
+		byte[] bytes = null;
+		if (binaryNode instanceof JResource) {
+			JResource jResource = ((JResource) binaryNode);
+			try {
+				bytes = ResourcesLoader.decodeStream(jResource.getResFile(), (size, is) -> is.readAllBytes());
+			} catch (JadxException e) {
+				LOG.error("Failed to directly load resource binary data {}: {}", jResource.getName(), e.getMessage());
+			}
+		}
+		if (bytes == null) {
+			bytes = binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.UTF_8);
+		}
 		setBytes(bytes);
 		if (getBytes().length > 0) {
 			// We set the caret after the first byte to prevent it from being highlighted
