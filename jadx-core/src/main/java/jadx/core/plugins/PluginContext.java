@@ -26,6 +26,7 @@ import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.pass.JadxPass;
+import jadx.api.plugins.resources.IResourcesLoader;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -129,6 +130,11 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	@Override
 	public IJadxEvents events() {
 		return decompiler.events();
+	}
+
+	@Override
+	public IResourcesLoader getResourcesLoader() {
+		return decompiler.getResourcesLoader();
 	}
 
 	@Override

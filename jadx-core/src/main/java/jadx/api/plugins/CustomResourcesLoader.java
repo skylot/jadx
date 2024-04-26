@@ -1,4 +1,4 @@
-package jadx.api.plugins.resources;
+package jadx.api.plugins;
 
 import java.io.Closeable;
 import java.io.File;

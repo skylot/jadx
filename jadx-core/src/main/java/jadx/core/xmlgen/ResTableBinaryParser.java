@@ -97,9 +97,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	}
 
 	@Override
-	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
-		decode(inputStream);
-
+	public ResContainer decodeFiles() {
 		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 

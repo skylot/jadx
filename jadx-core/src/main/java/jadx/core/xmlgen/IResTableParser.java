@@ -7,7 +7,7 @@ public interface IResTableParser {
 
 	void decode(InputStream inputStream) throws IOException;
 
-	ResContainer decodeFiles(InputStream inputStream) throws IOException;
+	ResContainer decodeFiles();
 
 	ResourceStorage getResStorage();
 

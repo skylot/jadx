@@ -56,7 +56,6 @@ import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ManifestAttributes;
-import jadx.core.xmlgen.ResDecoder;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
@@ -93,7 +92,6 @@ public class RootNode {
 	private String appPackage;
 	@Nullable
 	private ClassNode appResClass;
-	private boolean isProto;
 
 	/**
 	 * Optional decompiler reference
@@ -109,7 +107,6 @@ public class RootNode {
 		this.typeUpdate = new TypeUpdate(this);
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
-		this.isProto = args.getInputFiles().size() > 0 && args.getInputFiles().get(0).getName().toLowerCase().endsWith(".aab");
 	}
 
 	public void init() {
@@ -203,14 +200,14 @@ public class RootNode {
 		rawClsMap.put(clsNode.getRawName(), clsNode);
 	}
 
-	public void loadResources(List<ResourceFile> resources) {
+	public void loadResources(ResourcesLoader resLoader, List<ResourceFile> resources) {
 		ResourceFile arsc = getResourceFile(resources);
 		if (arsc == null) {
-			LOG.debug("'resources.pb'/'.arsc' file not found");
+			LOG.debug("'resources.arsc' or 'resources.pb' file not found");
 			return;
 		}
 		try {
-			IResTableParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> ResDecoder.decode(this, arsc, is));
+			IResTableParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> resLoader.decodeTable(arsc, is));
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
@@ -713,10 +710,6 @@ public class RootNode {
 
 	public AttributeStorage getAttributes() {
 		return attributes;
-	}
-
-	public boolean isProto() {
-		return isProto;
 	}
 
 	public GradleInfoStorage getGradleInfoStorage() {

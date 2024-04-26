@@ -1,9 +1,9 @@
 package jadx.plugins.input.aab;
 
-import jadx.api.ResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.resources.IResourcesLoader;
 import jadx.plugins.input.aab.factories.ProtoBundleConfigResContainerFactory;
 import jadx.plugins.input.aab.factories.ProtoTableResContainerFactory;
 import jadx.plugins.input.aab.factories.ProtoXmlResContainerFactory;
@@ -21,11 +21,12 @@ public class AabInputPlugin implements JadxPlugin {
 
 	@Override
 	public synchronized void init(JadxPluginContext context) {
+		IResourcesLoader resourcesLoader = context.getResourcesLoader();
 		ResTableProtoParserProvider tableParserProvider = new ResTableProtoParserProvider();
-		ResourcesLoader.addResTableParserProvider(tableParserProvider);
+		resourcesLoader.addResTableParserProvider(tableParserProvider);
 
-		ResourcesLoader.addResContainerFactory(new ProtoTableResContainerFactory(tableParserProvider));
-		ResourcesLoader.addResContainerFactory(new ProtoXmlResContainerFactory());
-		ResourcesLoader.addResContainerFactory(new ProtoBundleConfigResContainerFactory());
+		resourcesLoader.addResContainerFactory(new ProtoTableResContainerFactory(tableParserProvider));
+		resourcesLoader.addResContainerFactory(new ProtoXmlResContainerFactory());
+		resourcesLoader.addResContainerFactory(new ProtoBundleConfigResContainerFactory());
 	}
 }

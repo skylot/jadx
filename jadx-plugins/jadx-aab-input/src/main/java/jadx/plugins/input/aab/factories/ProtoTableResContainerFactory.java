@@ -5,7 +5,6 @@ import java.io.InputStream;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.plugins.resources.IResContainerFactory;
@@ -21,15 +20,14 @@ public class ProtoTableResContainerFactory implements IResContainerFactory {
 	}
 
 	@Override
-	@Nullable
-	public ResContainer create(JadxDecompiler jadxRef, ResourceFile resFile, InputStream inputStream) throws IOException {
+	public @Nullable ResContainer create(ResourceFile resFile, InputStream inputStream) throws IOException {
 		if (!resFile.getOriginalName().endsWith(".pb") || resFile.getType() != ResourceType.ARSC) {
 			return null;
 		}
-		IResTableParser parser = provider.getInstance(jadxRef.getRoot(), resFile);
+		IResTableParser parser = provider.getParser(resFile);
 		if (parser == null) {
 			return null;
 		}
-		return parser.decodeFiles(inputStream);
+		return parser.decodeFiles();
 	}
 }

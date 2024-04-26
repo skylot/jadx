@@ -42,8 +42,7 @@ public class ResTableProtoParser extends CommonProtoParser implements IResTableP
 	}
 
 	@Override
-	public synchronized ResContainer decodeFiles(InputStream inputStream) throws IOException {
-		decode(inputStream);
+	public synchronized ResContainer decodeFiles() {
 		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);

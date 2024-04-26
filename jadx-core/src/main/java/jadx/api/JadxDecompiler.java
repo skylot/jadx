@@ -25,6 +25,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.metadata.annotations.VarRef;
+import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.input.ICodeLoader;
@@ -32,7 +33,6 @@ import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.pass.types.JadxAfterLoadPass;
 import jadx.api.plugins.pass.types.JadxPassType;
-import jadx.api.plugins.resources.CustomResourcesLoader;
 import jadx.api.utils.tasks.ITaskExecutor;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
@@ -96,6 +96,7 @@ public final class JadxDecompiler implements Closeable {
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 	private final JadxEventsImpl events = new JadxEventsImpl();
+	private final ResourcesLoader resourcesLoader = new ResourcesLoader(this);
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
@@ -122,7 +123,7 @@ public final class JadxDecompiler implements Closeable {
 		root.mergePasses(customPasses);
 		root.loadClasses(loadedInputs);
 		root.initClassPath();
-		root.loadResources(getResources());
+		root.loadResources(resourcesLoader, getResources());
 		root.runPreDecompileStage();
 		root.initPasses();
 		loadFinished();
@@ -427,7 +428,7 @@ public final class JadxDecompiler implements Closeable {
 			if (root == null) {
 				return Collections.emptyList();
 			}
-			resources = new ResourcesLoader(this).load();
+			resources = resourcesLoader.load(root);
 		}
 		return resources;
 	}
@@ -692,6 +693,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public void addCustomPass(JadxPass pass) {
 		customPasses.computeIfAbsent(pass.getPassType(), l -> new ArrayList<>()).add(pass);
+	}
+
+	public ResourcesLoader getResourcesLoader() {
+		return resourcesLoader;
 	}
 
 	@Override
