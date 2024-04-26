@@ -83,7 +83,8 @@ public class FileDialogWrapper {
 
 			case ADD:
 				title = NLS.str("file.add_files_action");
-				fileExtList = OPEN_FILES_EXTS;
+				fileExtList = new ArrayList<>(OPEN_FILES_EXTS);
+				fileExtList.add("aab");
 				selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
 				currentDir = mainWindow.getSettings().getLastOpenFilePath();
 				isOpen = true;

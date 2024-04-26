@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.android.TextResMapFile;
-import jadx.core.xmlgen.ResTableParser;
+import jadx.core.xmlgen.ResTableBinaryParser;
 
 /**
  * Utility class for convert '.arsc' to simple text file with mapping id to resource name
@@ -54,7 +54,7 @@ public class ConvertArscFile {
 		rewritesCount = 0;
 		for (Path resFile : inputPaths) {
 			LOG.info("Processing {}", resFile);
-			ResTableParser resTableParser = new ResTableParser(root, true);
+			ResTableBinaryParser resTableParser = new ResTableBinaryParser(root, true);
 			if (resFile.getFileName().toString().endsWith(".jar")) {
 				// Load resources.arsc from android.jar
 				try (ZipFile zip = new ZipFile(resFile.toFile())) {

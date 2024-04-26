@@ -199,13 +199,18 @@ public class ManifestAttributes {
 		return null;
 	}
 
-	public void updateAttributes(IResParser parser) {
+	public void updateAttributes(IResTableParser parser) {
 		appAttrMap.clear();
 
 		ResourceStorage resStorage = parser.getResStorage();
 		ValuesParser vp = new ValuesParser(parser.getStrings(), resStorage.getResourcesNames());
 
 		for (ResourceEntry ri : resStorage.getResources()) {
+			if (ri.getProtoValue() != null) {
+				// Aapt proto decoder resolves attributes by itself.
+				continue;
+			}
+
 			if (ri.getTypeName().equals("attr") && ri.getNamedValues().size() > 1) {
 				RawNamedValue first = ri.getNamedValues().get(0);
 				MAttrType attrTyp;

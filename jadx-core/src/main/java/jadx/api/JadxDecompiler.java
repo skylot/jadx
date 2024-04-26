@@ -52,7 +52,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.tasks.TaskExecutor;
 import jadx.core.xmlgen.BinaryXMLParser;
-import jadx.core.xmlgen.ProtoXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
@@ -94,10 +93,10 @@ public final class JadxDecompiler implements Closeable {
 	private List<ResourceFile> resources;
 
 	private BinaryXMLParser binaryXmlParser;
-	private ProtoXMLParser protoXmlParser;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 	private final JadxEventsImpl events = new JadxEventsImpl();
+	private final ResourcesLoader resourcesLoader = new ResourcesLoader(this);
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
@@ -124,7 +123,7 @@ public final class JadxDecompiler implements Closeable {
 		root.mergePasses(customPasses);
 		root.loadClasses(loadedInputs);
 		root.initClassPath();
-		root.loadResources(getResources());
+		root.loadResources(resourcesLoader, getResources());
 		root.runPreDecompileStage();
 		root.initPasses();
 		loadFinished();
@@ -170,7 +169,6 @@ public final class JadxDecompiler implements Closeable {
 		classes = null;
 		resources = null;
 		binaryXmlParser = null;
-		protoXmlParser = null;
 		events.reset();
 	}
 
@@ -430,7 +428,7 @@ public final class JadxDecompiler implements Closeable {
 			if (root == null) {
 				return Collections.emptyList();
 			}
-			resources = new ResourcesLoader(this).load();
+			resources = resourcesLoader.load(root);
 		}
 		return resources;
 	}
@@ -474,13 +472,6 @@ public final class JadxDecompiler implements Closeable {
 			binaryXmlParser = new BinaryXMLParser(root);
 		}
 		return binaryXmlParser;
-	}
-
-	synchronized ProtoXMLParser getProtoXmlParser() {
-		if (protoXmlParser == null) {
-			protoXmlParser = new ProtoXMLParser(root);
-		}
-		return protoXmlParser;
 	}
 
 	/**
@@ -702,6 +693,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public void addCustomPass(JadxPass pass) {
 		customPasses.computeIfAbsent(pass.getPassType(), l -> new ArrayList<>()).add(pass);
+	}
+
+	public ResourcesLoader getResourcesLoader() {
+		return resourcesLoader;
 	}
 
 	@Override

@@ -18,6 +18,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-kotlin-metadata"))
 	runtimeOnly(project(":jadx-plugins:jadx-script:jadx-script-plugin"))
 	runtimeOnly(project(":jadx-plugins:jadx-xapk-input"))
+	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
 
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.5.6")

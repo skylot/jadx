@@ -17,30 +17,42 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.CustomResourcesLoader;
+import jadx.api.plugins.resources.IResContainerFactory;
+import jadx.api.plugins.resources.IResTableParserProvider;
+import jadx.api.plugins.resources.IResourcesLoader;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.xmlgen.BinaryXMLParser;
+import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ResContainer;
-import jadx.core.xmlgen.ResProtoParser;
-import jadx.core.xmlgen.ResTableParser;
+import jadx.core.xmlgen.ResTableBinaryParserProvider;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
 
 // TODO: move to core package
-public final class ResourcesLoader {
+public final class ResourcesLoader implements IResourcesLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesLoader.class);
 
 	private final JadxDecompiler jadxRef;
 
+	private final List<IResTableParserProvider> resTableParserProviders = new ArrayList<>();
+	private final List<IResContainerFactory> resContainerFactories = new ArrayList<>();
+
+	private BinaryXMLParser binaryXmlParser;
+
 	ResourcesLoader(JadxDecompiler jadxRef) {
 		this.jadxRef = jadxRef;
+		this.resTableParserProviders.add(new ResTableBinaryParserProvider());
 	}
 
-	List<ResourceFile> load() {
+	List<ResourceFile> load(RootNode root) {
+		init(root);
 		List<File> inputFiles = jadxRef.getArgs().getInputFiles();
 		List<ResourceFile> list = new ArrayList<>(inputFiles.size());
 		for (File file : inputFiles) {
@@ -49,8 +61,35 @@ public final class ResourcesLoader {
 		return list;
 	}
 
+	private void init(RootNode root) {
+		for (IResTableParserProvider resTableParserProvider : resTableParserProviders) {
+			try {
+				resTableParserProvider.init(root);
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed to init res table provider: " + resTableParserProvider);
+			}
+		}
+		for (IResContainerFactory resContainerFactory : resContainerFactories) {
+			try {
+				resContainerFactory.init(root);
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed to init res container factory: " + resContainerFactory);
+			}
+		}
+	}
+
 	public interface ResourceDecoder<T> {
 		T decode(long size, InputStream is) throws IOException;
+	}
+
+	@Override
+	public void addResContainerFactory(IResContainerFactory resContainerFactory) {
+		resContainerFactories.add(resContainerFactory);
+	}
+
+	@Override
+	public void addResTableParserProvider(IResTableParserProvider resTableParserProvider) {
+		resTableParserProviders.add(resTableParserProvider);
 	}
 
 	public static <T> T decodeStream(ResourceFile rf, ResourceDecoder<T> decoder) throws JadxException {
@@ -82,7 +121,8 @@ public final class ResourcesLoader {
 
 	static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf) {
 		try {
-			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is));
+			ResourcesLoader resLoader = jadxRef.getResourcesLoader();
+			return decodeStream(rf, (size, is) -> resLoader.loadContent(rf, is));
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
 			ICodeWriter cw = jadxRef.getRoot().makeCodeWriter();
@@ -92,34 +132,46 @@ public final class ResourcesLoader {
 		}
 	}
 
-	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
-			InputStream inputStream) throws IOException {
-		RootNode root = jadxRef.getRoot();
-		switch (rf.getType()) {
-			case MANIFEST:
-			case XML: {
-				ICodeInfo content;
-				if (root.isProto()) {
-					content = jadxRef.getProtoXmlParser().parse(inputStream);
-				} else {
-					content = jadxRef.getBinaryXmlParser().parse(inputStream);
-				}
-				return ResContainer.textResource(rf.getDeobfName(), content);
+	private ResContainer loadContent(ResourceFile resFile, InputStream inputStream) throws IOException {
+		for (IResContainerFactory customFactory : resContainerFactories) {
+			ResContainer resContainer = customFactory.create(resFile, inputStream);
+			if (resContainer != null) {
+				return resContainer;
 			}
+		}
+		switch (resFile.getType()) {
+			case MANIFEST:
+			case XML:
+				ICodeInfo content = loadBinaryXmlParser().parse(inputStream);
+				return ResContainer.textResource(resFile.getDeobfName(), content);
 
 			case ARSC:
-				if (root.isProto()) {
-					return new ResProtoParser(root).decodeFiles(inputStream);
-				} else {
-					return new ResTableParser(root).decodeFiles(inputStream);
-				}
+				return decodeTable(resFile, inputStream).decodeFiles();
 
 			case IMG:
-				return decodeImage(rf, inputStream);
+				return decodeImage(resFile, inputStream);
 
 			default:
-				return ResContainer.resourceFileLink(rf);
+				return ResContainer.resourceFileLink(resFile);
 		}
+	}
+
+	public IResTableParser decodeTable(ResourceFile resFile, InputStream is) throws IOException {
+		if (resFile.getType() != ResourceType.ARSC) {
+			throw new IllegalArgumentException("Unexpected resource type for decode: " + resFile.getType() + ", expect '.pb'/'.arsc'");
+		}
+		IResTableParser parser = null;
+		for (IResTableParserProvider provider : resTableParserProviders) {
+			parser = provider.getParser(resFile);
+			if (parser != null) {
+				break;
+			}
+		}
+		if (parser == null) {
+			throw new JadxRuntimeException("Unknown type of resource file: " + resFile.getOriginalName());
+		}
+		parser.decode(is);
+		return parser;
 	}
 
 	private static ResContainer decodeImage(ResourceFile rf, InputStream inputStream) {
@@ -183,5 +235,12 @@ public final class ResourcesLoader {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);
 		return new SimpleCodeInfo(baos.toString("UTF-8"));
+	}
+
+	private synchronized BinaryXMLParser loadBinaryXmlParser() {
+		if (binaryXmlParser == null) {
+			binaryXmlParser = new BinaryXMLParser(jadxRef.getRoot());
+		}
+		return binaryXmlParser;
 	}
 }

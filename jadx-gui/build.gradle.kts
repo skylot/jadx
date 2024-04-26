@@ -85,6 +85,7 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+	isZip64 = true
 	mergeServiceFiles()
 	manifest {
 		from(project.tasks.jar.get().manifest)

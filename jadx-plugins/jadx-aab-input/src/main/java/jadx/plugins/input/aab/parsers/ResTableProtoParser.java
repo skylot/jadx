@@ -1,4 +1,4 @@
-package jadx.core.xmlgen;
+package jadx.plugins.input.aab.parsers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,25 +14,22 @@ import com.android.aapt.Resources.Value;
 import jadx.api.ICodeInfo;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.xmlgen.BinaryXMLStrings;
+import jadx.core.xmlgen.IResTableParser;
+import jadx.core.xmlgen.ResContainer;
+import jadx.core.xmlgen.ResXmlGen;
+import jadx.core.xmlgen.ResourceStorage;
+import jadx.core.xmlgen.XmlGenUtils;
 import jadx.core.xmlgen.entry.ProtoValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class ResProtoParser extends CommonProtoParser implements IResParser {
+public class ResTableProtoParser extends CommonProtoParser implements IResTableParser {
 	private final RootNode root;
 	private final ResourceStorage resStorage = new ResourceStorage();
 
-	public ResProtoParser(RootNode root) {
+	public ResTableProtoParser(RootNode root) {
 		this.root = root;
-	}
-
-	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
-		decode(inputStream);
-		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
-		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
-		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
-		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
-		return ResContainer.resourceTable("res", xmlFiles, content);
 	}
 
 	@Override
@@ -42,6 +39,15 @@ public class ResProtoParser extends CommonProtoParser implements IResParser {
 			parse(p);
 		}
 		resStorage.finish();
+	}
+
+	@Override
+	public synchronized ResContainer decodeFiles() {
+		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
+		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
+		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
+		return ResContainer.resourceTable("res", xmlFiles, content);
 	}
 
 	private void parse(Package p) {

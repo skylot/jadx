@@ -3,9 +3,11 @@ package jadx.core.xmlgen;
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface IResParser {
+public interface IResTableParser {
 
 	void decode(InputStream inputStream) throws IOException;
+
+	ResContainer decodeFiles();
 
 	ResourceStorage getResStorage();
 

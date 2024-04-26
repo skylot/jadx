@@ -12,6 +12,7 @@ import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.pass.JadxPass;
+import jadx.api.plugins.resources.IResourcesLoader;
 
 public interface JadxPluginContext {
 
@@ -31,6 +32,11 @@ public interface JadxPluginContext {
 	 * calculated by default implementations.
 	 */
 	void registerInputsHashSupplier(Supplier<String> supplier);
+
+	/**
+	 * Customize resource loading
+	 */
+	IResourcesLoader getResourcesLoader();
 
 	/**
 	 * Access to jadx-gui specific methods

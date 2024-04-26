@@ -1,4 +1,4 @@
-package jadx.core.xmlgen;
+package jadx.plugins.input.aab.parsers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +18,11 @@ import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesMap;
+import jadx.core.xmlgen.XMLChar;
+import jadx.core.xmlgen.XmlDeobf;
+import jadx.core.xmlgen.XmlGenUtils;
 
-public class ProtoXMLParser extends CommonProtoParser {
+public class ResXmlProtoParser extends CommonProtoParser {
 	private Map<String, String> nsMap;
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
@@ -28,9 +31,11 @@ public class ProtoXMLParser extends CommonProtoParser {
 	private final RootNode rootNode;
 	private String currentTag;
 	private String appPackageName;
+	private final boolean isPrettyPrint;
 
-	public ProtoXMLParser(RootNode rootNode) {
+	public ResXmlProtoParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.isPrettyPrint = !rootNode.getArgs().isSkipXmlPrettyPrint();
 	}
 
 	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
@@ -57,14 +62,9 @@ public class ProtoXMLParser extends CommonProtoParser {
 		tag = getValidTagAttributeName(tag);
 		currentTag = tag;
 		writer.startLine('<').add(tag);
-		for (int i = 0; i < e.getNamespaceDeclarationCount(); i++) {
-			decode(e.getNamespaceDeclaration(i));
-		}
 
-		Set<String> attrCache = new HashSet<>();
-		for (int i = 0; i < e.getAttributeCount(); i++) {
-			decode(e.getAttribute(i), attrCache);
-		}
+		decodeNamespaces(e);
+		decodeAttributes(e);
 
 		if (e.getChildCount() > 0) {
 			writer.add('>');
@@ -77,18 +77,67 @@ public class ProtoXMLParser extends CommonProtoParser {
 			writer.decIndent();
 			writer.startLine("</").add(tag).add('>');
 		} else {
-			writer.add("/>");
+			writer.add(" />");
 		}
 	}
 
-	private void decode(XmlAttribute a, Set<String> attrCache) {
+	private void decodeNamespaces(XmlElement e) {
+		int nsCount = e.getNamespaceDeclarationCount();
+		boolean newLine = nsCount != 1 && isPrettyPrint;
+		if (nsCount > 0) {
+			writer.add(' ');
+		}
+		for (int i = 0; i < nsCount; i++) {
+			decodeNamespace(e.getNamespaceDeclaration(i), newLine, i == nsCount - 1);
+		}
+	}
+
+	private void decodeNamespace(XmlNamespace n, boolean newLine, boolean isLastElement) {
+		String prefix = n.getPrefix();
+		String uri = n.getUri();
+		nsMap.put(uri, prefix);
+		writer.add("xmlns:").add(prefix).add("=\"").add(uri).add('"');
+		if (isLastElement) {
+			return;
+		}
+		if (newLine) {
+			writer.startLine().addIndent();
+		} else {
+			writer.add(' ');
+		}
+	}
+
+	private void decodeAttributes(XmlElement e) {
+		int attrsCount = e.getAttributeCount();
+		boolean newLine = attrsCount != 1 && isPrettyPrint;
+		if (attrsCount > 0) {
+			writer.add(' ');
+			if (isPrettyPrint) {
+				writer.startLine().addIndent();
+			}
+		}
+		Set<String> attrCache = new HashSet<>();
+		for (int i = 0; i < attrsCount; i++) {
+			decodeAttribute(e.getAttribute(i), attrCache, newLine, i == attrsCount - 1);
+		}
+	}
+
+	private void decodeAttribute(XmlAttribute a, Set<String> attrCache, boolean newLine, boolean isLastElement) {
 		String name = getAttributeFullName(a);
 		if (XmlDeobf.isDuplicatedAttr(name, attrCache)) {
 			return;
 		}
 		String value = deobfClassName(getAttributeValue(a));
-		writer.add(' ').add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
+		writer.add(name).add("=\"").add(StringUtils.escapeXML(value)).add('\"');
 		memorizePackageName(name, value);
+		if (isLastElement) {
+			return;
+		}
+		if (newLine) {
+			writer.startLine().addIndent();
+		} else {
+			writer.add(' ');
+		}
 	}
 
 	private String getAttributeFullName(XmlAttribute a) {
@@ -104,7 +153,7 @@ public class ProtoXMLParser extends CommonProtoParser {
 			int resId = a.getResourceId();
 			String str = AndroidResourcesMap.getResName(resId);
 			if (str != null) {
-				namespace = nsMap.get(ParserConstants.ANDROID_NS_URL);
+				namespace = nsMap.get(ANDROID_NS_URL);
 				// cut type before /
 				int typeEnd = str.indexOf('/');
 				if (typeEnd != -1) {
@@ -125,13 +174,6 @@ public class ProtoXMLParser extends CommonProtoParser {
 			return a.getValue();
 		}
 		return parse(a.getCompiledItem());
-	}
-
-	private void decode(XmlNamespace n) {
-		String prefix = n.getPrefix();
-		String uri = n.getUri();
-		nsMap.put(uri, prefix);
-		writer.add(" xmlns:").add(prefix).add("=\"").add(uri).add('"');
 	}
 
 	private void memorizePackageName(String attrName, String attrValue) {

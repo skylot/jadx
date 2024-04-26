@@ -32,8 +32,8 @@ import jadx.core.xmlgen.entry.RawValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-public class ResTableParser extends CommonBinaryParser implements IResParser {
-	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
+public class ResTableBinaryParser extends CommonBinaryParser implements IResTableParser {
+	private static final Logger LOG = LoggerFactory.getLogger(ResTableBinaryParser.class);
 
 	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d_]+");
 
@@ -75,11 +75,11 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 	private final ResourceStorage resStorage = new ResourceStorage();
 	private BinaryXMLStrings strings;
 
-	public ResTableParser(RootNode root) {
+	public ResTableBinaryParser(RootNode root) {
 		this(root, false);
 	}
 
-	public ResTableParser(RootNode root, boolean useRawResNames) {
+	public ResTableBinaryParser(RootNode root, boolean useRawResNames) {
 		this.root = root;
 		this.useRawResName = useRawResNames;
 	}
@@ -96,9 +96,8 @@ public class ResTableParser extends CommonBinaryParser implements IResParser {
 		}
 	}
 
-	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
-		decode(inputStream);
-
+	@Override
+	public ResContainer decodeFiles() {
 		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 

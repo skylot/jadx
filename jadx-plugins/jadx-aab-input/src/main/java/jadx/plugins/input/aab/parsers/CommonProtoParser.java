@@ -1,4 +1,4 @@
-package jadx.core.xmlgen;
+package jadx.plugins.input.aab.parsers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,10 +6,12 @@ import java.util.List;
 import com.android.aapt.ConfigurationOuterClass;
 import com.android.aapt.Resources;
 
+import jadx.core.xmlgen.ParserConstants;
+import jadx.core.xmlgen.XmlGenUtils;
 import jadx.core.xmlgen.entry.EntryConfig;
 import jadx.core.xmlgen.entry.ProtoValue;
 
-public class CommonProtoParser {
+public class CommonProtoParser extends ParserConstants {
 	protected ProtoValue parse(Resources.Style s) {
 		List<ProtoValue> namedValues = new ArrayList<>(s.getEntryCount());
 		String parent = s.getParent().getName();
