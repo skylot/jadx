@@ -20,8 +20,8 @@ jobs:
 
       - name: Set jadx version
         run: |
-          JADX_LAST_TAG=$(git describe --abbrev=0 --tags)
-          JADX_VERSION="${JADX_LAST_TAG:1}.$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:8}"
+          JADX_REV=$(git rev-list --count HEAD)
+          JADX_VERSION="r${JADX_REV}.${GITHUB_SHA:0:7}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
@@ -37,7 +37,7 @@ jobs:
           # Upload unpacked files for now
           path: build/jadx/**/*
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 14
 
       - name: Save exe artifact
         uses: actions/upload-artifact@v4
@@ -45,7 +45,7 @@ jobs:
           name: ${{ format('jadx-gui-{0}-no-jre-win.exe', env.JADX_VERSION) }}
           path: build/*.exe
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 14
 
   build-win-bundle:
     runs-on: windows-latest
@@ -57,7 +57,7 @@ jobs:
       - name: Set up JDK
         uses: oracle-actions/setup-java@v1
         with:
-          release: 17
+          release: 21
 
       - name: Print Java version
         shell: bash
@@ -66,8 +66,8 @@ jobs:
       - name: Set jadx version
         shell: bash
         run: |
-          JADX_LAST_TAG=$(git describe --abbrev=0 --tags)
-          JADX_VERSION="${JADX_LAST_TAG:1}.$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:8}"
+          JADX_REV=$(git rev-list --count HEAD)
+          JADX_VERSION="r${JADX_REV}.${GITHUB_SHA:0:7}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
@@ -81,4 +81,4 @@ jobs:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: jadx-gui/build/*-with-jre-win/*
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 14
