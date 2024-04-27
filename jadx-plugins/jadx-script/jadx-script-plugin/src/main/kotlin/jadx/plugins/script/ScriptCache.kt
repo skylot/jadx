@@ -1,6 +1,6 @@
 package jadx.plugins.script
 
-import dev.dirs.ProjectDirectories
+import jadx.commons.app.JadxCommonFiles
 import java.io.File
 import java.security.MessageDigest
 import kotlin.script.experimental.api.CompiledScript
@@ -61,8 +61,7 @@ class ScriptCache {
 	}
 
 	private fun getCacheDir(): File {
-		val dirs = ProjectDirectories.from("io.github", "skylot", "jadx")
-		val cacheBaseDir = File(dirs.cacheDir, "scripts")
+		val cacheBaseDir = JadxCommonFiles.getCacheDir().resolve("scripts").toFile()
 		cacheBaseDir.mkdirs()
 		return cacheBaseDir
 	}

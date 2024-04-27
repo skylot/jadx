@@ -10,6 +10,7 @@ dependencies {
 	implementation(project(":jadx-core"))
 	implementation(project(":jadx-cli"))
 	implementation(project(":jadx-plugins-tools"))
+	implementation(project(":jadx-commons:jadx-app-commons"))
 
 	// import mappings
 	implementation(project(":jadx-plugins:jadx-rename-mappings"))
@@ -26,7 +27,6 @@ dependencies {
 
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.5.6")
-	implementation("dev.dirs:directories:26")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.0")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))

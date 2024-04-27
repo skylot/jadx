@@ -185,6 +185,8 @@ Environment variables:
   JADX_DISABLE_XML_SECURITY - set to 'true' to disable all security checks for XML files
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
   JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
+  JADX_CONFIG_DIR - custom config directory, using system by default
+  JADX_CACHE_DIR - custom cache directory, using system by default
   JADX_TMP_DIR - custom temp directory, using system by default
 
 Examples:

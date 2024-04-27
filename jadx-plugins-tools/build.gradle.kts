@@ -5,6 +5,7 @@ plugins {
 dependencies {
 	api(project(":jadx-core"))
 
-	implementation("dev.dirs:directories:26")
+	implementation(project(":jadx-commons:jadx-app-commons"))
+
 	implementation("com.google.code.gson:gson:2.10.1")
 }
