@@ -1,27 +1,15 @@
 package jadx.core.deobf.conditions;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.Utils;
 
 public class DeobfWhitelist extends AbstractDeobfCondition {
-
-	public static final List<String> DEFAULT_LIST = Arrays.asList(
-			"android.support.v4.*",
-			"android.support.v7.*",
-			"android.support.v4.os.*",
-			"android.support.annotation.Px",
-			"androidx.core.os.*",
-			"androidx.annotation.Px");
-
-	public static final String DEFAULT_STR = Utils.listToString(DEFAULT_LIST, " ");
-
 	private final Set<String> packages = new HashSet<>();
 	private final Set<String> classes = new HashSet<>();
 
@@ -42,7 +30,8 @@ public class DeobfWhitelist extends AbstractDeobfCondition {
 
 	@Override
 	public Action check(PackageNode pkg) {
-		if (packages.contains(pkg.getPkgInfo().getFullName())) {
+		String pkgName = pkg.getPkgInfo().getFullName();
+		if (packages.stream().anyMatch(pattern -> pattern.equals(pkgName) || pkgName.startsWith(pattern + "."))) {
 			return Action.FORBID_RENAME;
 		}
 		return Action.NO_ACTION;
@@ -53,6 +42,16 @@ public class DeobfWhitelist extends AbstractDeobfCondition {
 		if (classes.contains(cls.getClassInfo().getFullName())) {
 			return Action.FORBID_RENAME;
 		}
-		return Action.NO_ACTION;
+		return check(cls.getPackageNode());
+	}
+
+	@Override
+	public Action check(FieldNode fld) {
+		return check(fld.getParentClass());
+	}
+
+	@Override
+	public Action check(MethodNode mth) {
+		return check(mth.getParentClass());
 	}
 }

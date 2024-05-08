@@ -28,7 +28,6 @@ import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
-import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 
@@ -146,7 +145,7 @@ public class JadxCLIArgs {
 			names = { "--deobf-whitelist" },
 			description = "space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation"
 	)
-	protected String deobfuscationWhitelistStr = DeobfWhitelist.DEFAULT_STR;
+	protected String deobfuscationWhitelistStr = "";
 
 	@Parameter(
 			names = { "--deobf-cfg-file" },

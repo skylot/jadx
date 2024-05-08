@@ -128,7 +128,7 @@ options:
   --deobf                             - activate deobfuscation
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
-  --deobf-whitelist                   - space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation, default: android.support.v4.* android.support.v7.* android.support.v4.os.* android.support.annotation.Px androidx.core.os.* androidx.annotation.Px
+  --deobf-whitelist                   - space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation
   --deobf-cfg-file                    - deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension
   --deobf-cfg-file-mode               - set mode for handling the JADX auto-generated names' deobfuscation map file:
                                          'read' - read if found, don't save (default)
