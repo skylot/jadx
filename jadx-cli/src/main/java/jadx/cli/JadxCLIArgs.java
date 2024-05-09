@@ -136,7 +136,7 @@ public class JadxCLIArgs {
 	protected boolean deobfuscationOn = false;
 
 	@Parameter(names = { "--deobf-min" }, description = "min length of name, renamed if shorter")
-	protected int deobfuscationMinLength = 3;
+	protected int deobfuscationMinLength = 2;
 
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;

@@ -126,7 +126,7 @@ options:
                                          'read-and-autosave-before-closing' - read and autosave before exiting the app or closing the project
                                          'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)
   --deobf                             - activate deobfuscation
-  --deobf-min                         - min length of name, renamed if shorter, default: 3
+  --deobf-min                         - min length of name, renamed if shorter, default: 2
   --deobf-max                         - max length of name, renamed if longer, default: 64
   --deobf-whitelist                   - space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation
   --deobf-cfg-file                    - deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format), default: same dir and name as input file with '.jobf' extension
