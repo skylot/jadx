@@ -1,13 +1,14 @@
 package jadx.gui.ui.filedialog;
 
+import java.io.File;
+
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.File;
 
 /**
  * Custom file filter for filtering files with multiple extensions.
  * It overcomes the limitation of {@link FileNameExtensionFilter},
- * which treats only the last file extension split by dots as the 
+ * which treats only the last file extension split by dots as the
  * file extension, and does not support multiple extensions such as
  * {@code .jadx.kts}.
  */
