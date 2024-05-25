@@ -123,8 +123,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		long start = is.getPos();
 		is.checkInt16(RES_TABLE_PACKAGE_TYPE, "Not a table chunk");
 		int headerSize = is.readInt16();
-		if (headerSize != 0x011c && headerSize != 0x0120) {
-			die("Unexpected package header size");
+		if (headerSize < 0x011c) {
+			die("Package header size too small");
 		}
 		long size = is.readUInt32();
 		long endPos = start + size;
@@ -138,10 +138,12 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		long keyStringsOffset = start + is.readInt32();
 		/* int lastPublicKey = */
 		is.readInt32();
-		if (headerSize == 0x0120) {
+
+		if (headerSize >= 0x0120) {
 			/* int typeIdOffset = */
 			is.readInt32();
 		}
+		is.skipToPos(start + headerSize, "package header end");
 
 		BinaryXMLStrings typeStrings = null;
 		if (typeStringsOffset != 0) {
