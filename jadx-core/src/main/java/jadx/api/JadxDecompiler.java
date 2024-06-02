@@ -118,7 +118,6 @@ public final class JadxDecompiler implements Closeable {
 		loadInputFiles();
 
 		root = new RootNode(args);
-		root.init();
 		root.setDecompilerRef(this);
 		root.mergePasses(customPasses);
 		root.loadClasses(loadedInputs);

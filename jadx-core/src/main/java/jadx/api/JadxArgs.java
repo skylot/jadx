@@ -32,6 +32,7 @@ import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.usage.IUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
+import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.deobf.conditions.JadxRenameConditions;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.files.FileUtils;
@@ -109,7 +110,7 @@ public class JadxArgs implements Closeable {
 	/**
 	 * List of classes and packages (ends with '.*') to exclude from deobfuscation
 	 */
-	private List<String> deobfuscationWhitelist = new ArrayList<>();
+	private List<String> deobfuscationWhitelist = new ArrayList<>(DeobfWhitelist.DEFAULT_LIST);
 
 	/**
 	 * Nodes alias provider for deobfuscator and rename visitor

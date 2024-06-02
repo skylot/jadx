@@ -35,6 +35,7 @@ import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
+import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.ShortcutsWrapper;
@@ -53,7 +54,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 30;
-	private static final int CURRENT_SETTINGS_VERSION = 20;
+	private static final int CURRENT_SETTINGS_VERSION = 21;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -803,6 +804,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 19) {
 			tabDndGhostType = TabDndGhostType.OUTLINE;
+			fromVersion++;
+		}
+		if (fromVersion == 20) {
+			deobfuscationWhitelistStr = DeobfWhitelist.DEFAULT_STR;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

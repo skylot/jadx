@@ -28,6 +28,7 @@ import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 
@@ -136,7 +137,7 @@ public class JadxCLIArgs {
 	protected boolean deobfuscationOn = false;
 
 	@Parameter(names = { "--deobf-min" }, description = "min length of name, renamed if shorter")
-	protected int deobfuscationMinLength = 2;
+	protected int deobfuscationMinLength = 3;
 
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
@@ -145,7 +146,7 @@ public class JadxCLIArgs {
 			names = { "--deobf-whitelist" },
 			description = "space separated list of classes (full name) and packages (ends with '.*') to exclude from deobfuscation"
 	)
-	protected String deobfuscationWhitelistStr = "";
+	protected String deobfuscationWhitelistStr = DeobfWhitelist.DEFAULT_STR;
 
 	@Parameter(
 			names = { "--deobf-cfg-file" },

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.core.deobf.DeobfuscatorVisitor;
+import jadx.core.deobf.InitRenameProviders;
 import jadx.core.deobf.SaveDeobfMapping;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.visitors.AnonymousClassVisitor;
@@ -102,6 +103,7 @@ public class Jadx {
 		passes.add(new CollectConstValues());
 
 		// rename and deobfuscation
+		passes.add(new InitRenameProviders());
 		passes.add(new DeobfuscatorVisitor());
 		passes.add(new SourceFileRename());
 		passes.add(new RenameVisitor());
