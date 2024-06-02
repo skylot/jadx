@@ -109,15 +109,6 @@ public class RootNode {
 		this.typeUtils = new TypeUtils(this);
 	}
 
-	public void init() {
-		if (args.isDeobfuscationOn() || !args.getRenameFlags().isEmpty()) {
-			args.getAliasProvider().init(this);
-		}
-		if (args.isDeobfuscationOn()) {
-			args.getRenameCondition().init(this);
-		}
-	}
-
 	public void loadClasses(List<ICodeLoader> loadedInputs) {
 		for (ICodeLoader codeLoader : loadedInputs) {
 			codeLoader.visitClasses(cls -> {

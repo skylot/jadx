@@ -110,7 +110,7 @@ public class JadxArgs implements Closeable {
 	/**
 	 * List of classes and packages (ends with '.*') to exclude from deobfuscation
 	 */
-	private List<String> deobfuscationWhitelist = DeobfWhitelist.DEFAULT_LIST;
+	private List<String> deobfuscationWhitelist = new ArrayList<>(DeobfWhitelist.DEFAULT_LIST);
 
 	/**
 	 * Nodes alias provider for deobfuscator and rename visitor
