@@ -131,6 +131,6 @@ object JadxUpdate {
 	}
 
 	interface IUpdateCallback {
-		fun onUpdate(r: Release?)
+		fun onUpdate(r: Release)
 	}
 }
