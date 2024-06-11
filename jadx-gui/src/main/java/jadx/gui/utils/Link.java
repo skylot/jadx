@@ -20,13 +20,20 @@ public class Link extends JLabel {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Link.class);
 
-	private final String url;
+	private String url;
+
+	public Link() {
+		super();
+		init();
+	}
 
 	public Link(String text, String url) {
 		super(text);
-		this.url = url;
-		setText(text);
-		setToolTipText("Open " + url + " in your browser");
+		init();
+		setUrl(url);
+	}
+
+	private void init() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		this.addMouseListener(new MouseAdapter() {
 			@Override
@@ -34,6 +41,11 @@ public class Link extends JLabel {
 				browse();
 			}
 		});
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+		setToolTipText("Open " + url + " in your browser");
 	}
 
 	private void browse() {
