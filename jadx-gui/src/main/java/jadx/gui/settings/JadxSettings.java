@@ -53,7 +53,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 30;
-	private static final int CURRENT_SETTINGS_VERSION = 20;
+	private static final int CURRENT_SETTINGS_VERSION = 21;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -127,6 +127,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean jumpOnDoubleClick = true;
 
 	private XposedCodegenLanguage xposedCodegenLanguage = XposedCodegenLanguage.JAVA;
+	private JadxUpdateChannel jadxUpdateChannel = JadxUpdateChannel.STABLE;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -752,6 +753,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.xposedCodegenLanguage = language;
 	}
 
+	public JadxUpdateChannel getJadxUpdateChannel() {
+		return jadxUpdateChannel;
+	}
+
+	public void setJadxUpdateChannel(JadxUpdateChannel channel) {
+		this.jadxUpdateChannel = channel;
+	}
+
 	public void setTabDndGhostType(TabDndGhostType tabDndGhostType) {
 		this.tabDndGhostType = tabDndGhostType;
 	}
@@ -803,6 +812,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 19) {
 			tabDndGhostType = TabDndGhostType.OUTLINE;
+			fromVersion++;
+		}
+		if (fromVersion == 20) {
+			jadxUpdateChannel = JadxUpdateChannel.STABLE;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

@@ -145,8 +145,6 @@ import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
-import jadx.gui.update.JadxUpdate.IUpdateCallback;
-import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
@@ -311,15 +309,18 @@ public class MainWindow extends JFrame {
 		if (!settings.isCheckForUpdates()) {
 			return;
 		}
-		JadxUpdate.check(new IUpdateCallback() {
-			@Override
-			public void onUpdate(Release r) {
-				SwingUtilities.invokeLater(() -> {
-					updateLink.setText(NLS.str("menu.update_label", r.getName()));
-					updateLink.setVisible(true);
-				});
+		JadxUpdate.check(settings.getJadxUpdateChannel(), release -> SwingUtilities.invokeLater(() -> {
+			switch (settings.getJadxUpdateChannel()) {
+				case STABLE:
+					updateLink.setUrl(JadxUpdate.JADX_RELEASES_URL);
+					break;
+				case UNSTABLE:
+					updateLink.setUrl(JadxUpdate.JADX_ARTIFACTS_URL);
+					break;
 			}
-		});
+			updateLink.setText(NLS.str("menu.update_label", release.getName()));
+			updateLink.setVisible(true);
+		}));
 	}
 
 	public void openFileDialog() {
@@ -1142,7 +1143,7 @@ public class MainWindow extends JFrame {
 		flatPkgButton.addActionListener(flatPkgAction);
 		flatPkgButton.setToolTipText(NLS.str("menu.flatten"));
 
-		updateLink = new Link("", JadxUpdate.JADX_RELEASES_URL);
+		updateLink = new Link();
 		updateLink.setVisible(false);
 
 		JToolBar toolbar = new JToolBar();
