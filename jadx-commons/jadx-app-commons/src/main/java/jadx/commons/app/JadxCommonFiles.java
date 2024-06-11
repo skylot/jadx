@@ -3,6 +3,7 @@ package jadx.commons.app;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -35,20 +36,20 @@ public class JadxCommonFiles {
 
 		public void init() {
 			try {
-				configDir = loadEnvDir("JADX_CONFIG_DIR");
-				cacheDir = loadEnvDir("JADX_CACHE_DIR");
+				configDir = loadEnvDir("JADX_CONFIG_DIR", pd -> pd.configDir);
+				cacheDir = loadEnvDir("JADX_CACHE_DIR", pd -> pd.cacheDir);
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to init common directories", e);
 			}
 		}
 
-		private Path loadEnvDir(String envVar) throws IOException {
+		private Path loadEnvDir(String envVar, Function<ProjectDirectories, String> dirFunc) throws IOException {
 			String envDir = JadxCommonEnv.get(envVar, null);
 			String dirStr;
 			if (envDir != null) {
 				dirStr = envDir;
 			} else {
-				dirStr = loadDirs().configDir;
+				dirStr = dirFunc.apply(loadDirs());
 			}
 			Path path = Path.of(dirStr).toAbsolutePath();
 			Files.createDirectories(path);
