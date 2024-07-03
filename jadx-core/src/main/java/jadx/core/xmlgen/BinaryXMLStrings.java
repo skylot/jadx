@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BinaryXMLStrings {
+	public static final String INVALID_STRING_PLACEHOLDER = "⟨STRING_DECODE_ERROR⟩";
 	private final int stringCount;
 
 	private final long stringsStart;
@@ -40,6 +41,10 @@ public class BinaryXMLStrings {
 			return cached;
 		}
 
+		if (id * 4 >= buffer.limit() - 3) {
+			return INVALID_STRING_PLACEHOLDER;
+		}
+
 		long offset = stringsStart + buffer.getInt(id * 4);
 		String extracted;
 		if (isUtf8) {
@@ -63,7 +68,7 @@ public class BinaryXMLStrings {
 
 	private static String extractString8(byte[] strArray, int offset) {
 		if (offset >= strArray.length) {
-			return "STRING_DECODE_ERROR";
+			return INVALID_STRING_PLACEHOLDER;
 		}
 		int start = offset + skipStrLen8(strArray, offset);
 		int len = strArray[start++];
@@ -78,6 +83,10 @@ public class BinaryXMLStrings {
 	}
 
 	private static String extractString16(byte[] strArray, int offset) {
+		if (offset + 2 >= strArray.length) {
+			return INVALID_STRING_PLACEHOLDER;
+		}
+
 		int len = strArray.length;
 		int start = offset + skipStrLen16(strArray, offset);
 		int end = start;

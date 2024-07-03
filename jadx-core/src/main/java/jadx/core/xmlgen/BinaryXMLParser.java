@@ -265,9 +265,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			die("startNS's attributeStart is not 0x14");
 		}
 		int attributeSize = is.readInt16();
-		if (attributeSize != 0x14) {
-			die("startNS's attributeSize is not 0x14");
+		if (attributeSize < 0x14) {
+			die("startNS's attributeSize is less than 0x14");
 		}
+
 		int attributeCount = is.readInt16();
 		int idIndex = is.readInt16();
 		int classIndex = is.readInt16();
@@ -289,7 +290,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		Set<String> attrCache = new HashSet<>();
 		boolean attrNewLine = attributeCount != 1 && this.attrNewLine;
 		for (int i = 0; i < attributeCount; i++) {
-			parseAttribute(i, attrNewLine, attrCache);
+			parseAttribute(i, attrNewLine, attrCache, attributeSize);
 		}
 		long endPos = is.getPos();
 		if (endPos - startPos + 0x4 < elementSize) {
@@ -297,13 +298,15 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 	}
 
-	private void parseAttribute(int i, boolean newLine, Set<String> attrCache) throws IOException {
+	private void parseAttribute(int i, boolean newLine, Set<String> attrCache, int attributeSize) throws IOException {
 		int attributeNS = is.readInt32();
 		int attributeName = is.readInt32();
 		int attributeRawValue = is.readInt32();
 		is.skip(3);
 		int attrValDataType = is.readInt8();
 		int attrValData = is.readInt32();
+
+		is.skip(attributeSize - 0x14);
 
 		String shortNsName = null;
 		if (attributeNS != -1) {
