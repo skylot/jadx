@@ -41,7 +41,7 @@ public class BinaryXMLStrings {
 			return cached;
 		}
 
-		if (id*4 >= buffer.limit() - 3) {
+		if (id * 4 >= buffer.limit() - 3) {
 			return INVALID_STRING_PLACEHOLDER;
 		}
 

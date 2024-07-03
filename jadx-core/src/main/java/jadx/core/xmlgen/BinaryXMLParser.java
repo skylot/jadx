@@ -306,7 +306,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int attrValDataType = is.readInt8();
 		int attrValData = is.readInt32();
 
-		is.skip(attributeSize-0x14);
+		is.skip(attributeSize - 0x14);
 
 		String shortNsName = null;
 		if (attributeNS != -1) {
