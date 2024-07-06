@@ -441,7 +441,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				}
 			}
 		} else {
-			String str = valuesParser.decodeValue(attrValDataType, attrValData);
+			String str;
+			try {
+				str = valuesParser.decodeValue(attrValDataType, attrValData);
+			} catch (JadxRuntimeException e) {
+				LOG.error("Failed to decode attribute value of \"{}\"", attrFullName, e);
+				str = null;
+			}
 			memorizePackageName(attrFullName, str);
 			if (isDeobfCandidateAttr(attrFullName)) {
 				str = deobfClassName(str);
