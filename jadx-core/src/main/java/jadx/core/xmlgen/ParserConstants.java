@@ -12,7 +12,7 @@ public class ParserConstants {
 	protected static final String ANDROID_NS_VALUE = "android";
 
 	/**
-	 * Chunk types
+	 * Chunk types as defined in frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h (AOSP)
 	 */
 	protected static final int RES_NULL_TYPE = 0x0000;
 	protected static final int RES_STRING_POOL_TYPE = 0x0001;
