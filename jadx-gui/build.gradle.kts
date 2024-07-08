@@ -88,7 +88,7 @@ tasks.shadowJar {
 	isZip64 = true
 	mergeServiceFiles()
 	manifest {
-		from(project.tasks.jar.get().manifest)
+		from(tasks.jar.get().manifest)
 	}
 }
 
@@ -105,7 +105,7 @@ tasks.existing(CreateStartScripts::class) {
 launch4j {
 	mainClassName.set(application.mainClass.get())
 	copyConfigurable.set(listOf<Any>())
-	setJarTask(tasks.shadowJar.get())
+	dontWrapJar.set(true)
 	icon.set("$projectDir/src/main/resources/logos/jadx-logo.ico")
 	outfile.set("jadx-gui-$jadxVersion.exe")
 	copyright.set("Skylot")
@@ -118,8 +118,9 @@ launch4j {
 	initialHeapPercent.set(5)
 	maxHeapSize.set(4096)
 	maxHeapPercent.set(70)
-	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk17-windows")
+	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk21-windows")
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
+	classpath.set(tasks.getByName("shadowJar").outputs.files.map { "%EXEDIR%/lib/${it.name}" }.toSortedSet())
 }
 
 runtime {
@@ -139,33 +140,52 @@ runtime {
 	}
 }
 
-val copyDistWinWithJre by tasks.registering(Copy::class) {
-	group = "jadx"
-	dependsOn(tasks.named("runtime"), tasks.named("createExe"))
-	from(runtime.jreDir) {
-		include("**/*")
-		into("jre")
+val copyDistWin by tasks.registering(Copy::class) {
+	description = "Copy files for Windows bundle"
+
+	val libTask = tasks.getByName("shadowJar")
+	dependsOn(libTask)
+	from(libTask.outputs) {
+		include("*.jar")
+		into("lib")
 	}
-	from(tasks.named("createExe").get().outputs) {
+	val exeTask = tasks.getByName("createExe")
+	dependsOn(exeTask)
+	from(exeTask.outputs) {
 		include("*.exe")
 	}
-	into(layout.buildDirectory.dir("jadx-gui-$jadxVersion-with-jre-win"))
+	into(layout.buildDirectory.dir("jadx-gui-win"))
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val distWinWithJre by tasks.registering(Zip::class) {
-	group = "jadx"
-	dependsOn(copyDistWinWithJre)
-	archiveFileName.set("jadx-gui-$jadxVersion-with-jre-win.zip")
-	from(copyDistWinWithJre.get().outputs) {
+val copyDistWinWithJre by tasks.registering(Copy::class) {
+	description = "Copy files for Windows with JRE bundle"
+
+	val jreTask = tasks.runtime.get()
+	dependsOn(jreTask)
+	from(jreTask.jreDir) {
 		include("**/*")
+		into("jre")
 	}
-	into(layout.buildDirectory.asFile)
+	val libTask = tasks.getByName("shadowJar")
+	dependsOn(libTask)
+	from(libTask.outputs) {
+		include("*.jar")
+		into("lib")
+	}
+	val exeTask = tasks.getByName("createExe")
+	dependsOn(exeTask)
+	from(exeTask.outputs) {
+		include("*.exe")
+	}
+	into(layout.buildDirectory.dir("jadx-gui-with-jre-win"))
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 val addNewNLSLines by tasks.registering(JavaExec::class) {
-	group = "jadx"
+	group = "jadx-dev"
+	description = "Utility task to add new/missing translation lines"
+
 	classpath = sourceSets.main.get().runtimeClasspath
 	mainClass.set("jadx.gui.utils.tools.NLSAddNewLines")
 }

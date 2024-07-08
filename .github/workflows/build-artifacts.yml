@@ -24,10 +24,11 @@ jobs:
           JADX_VERSION="r${JADX_REV}.${GITHUB_SHA:0:7}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
-      - name: Build with Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: dist copyExe
+
+      - name: Build
+        run: ./gradlew dist distWin
 
       - name: Save bundle artifact
         uses: actions/upload-artifact@v4
@@ -39,11 +40,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Save exe artifact
+      - name: Save Windows bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ format('jadx-gui-{0}-no-jre-win.exe', env.JADX_VERSION) }}
-          path: build/*.exe
+          name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
+          # Upload unpacked files for now
+          path: jadx-gui/build/jadx-gui-win/*
           if-no-files-found: error
           retention-days: 14
 
@@ -70,15 +72,17 @@ jobs:
           JADX_VERSION="r${JADX_REV}.${GITHUB_SHA:0:7}"
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
-      - name: Build with Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: dist -PbundleJRE=true
 
-      - name: Save exe bundle artifact
+      - name: Build
+        run: ./gradlew dist -PbundleJRE=true
+
+      - name: Save Windows with JRE bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
-          path: jadx-gui/build/*-with-jre-win/*
+          # Upload unpacked files for now
+          path: jadx-gui/build/jadx-gui-with-jre-win/*
           if-no-files-found: error
           retention-days: 14
