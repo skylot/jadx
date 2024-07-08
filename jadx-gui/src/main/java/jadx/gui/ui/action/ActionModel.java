@@ -51,7 +51,7 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_N, UiUtils.ctrlButton())),
 	COMMENT_SEARCH(MENU_TOOLBAR, "menu.comment_search", "menu.comment_search", "ui/usagesFinder",
 			Shortcut.keyboard(KeyEvent.VK_SEMICOLON, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
-	GO_TO_MAIN_ACTIVITY(MENU_TOOLBAR, "menu.goto_main_activity", "menu.goto_main_activity", "ui/home",
+	GO_TO_MAIN_ACTIVITY(MENU_TOOLBAR, "menu.go_to_main_activity", "menu.go_to_main_activity", "ui/home",
 			Shortcut.keyboard(KeyEvent.VK_M, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	GO_TO_APPLICATION(MENU_TOOLBAR, "menu.go_to_application", "menu.go_to_application", "ui/application",
 			Shortcut.keyboard(KeyEvent.VK_A, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
