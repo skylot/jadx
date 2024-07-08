@@ -65,6 +65,7 @@ public class AndroidManifestParser {
 		Integer versionCode = null;
 		String versionName = null;
 		String mainActivity = null;
+		String application = null;
 
 		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
@@ -95,9 +96,12 @@ public class AndroidManifestParser {
 		if (parseAttrs.contains(AppAttribute.MAIN_ACTIVITY)) {
 			mainActivity = getMainActivityName();
 		}
+		if (parseAttrs.contains(AppAttribute.APPLICATION)) {
+			application = getApplicationName();
+		}
 
 		return new ApplicationParams(applicationLabel, minSdkVersion, targetSdkVersion, versionCode,
-				versionName, mainActivity);
+				versionName, mainActivity, application);
 	}
 
 	private String getApplicationLabel() {
@@ -135,6 +139,14 @@ public class AndroidManifestParser {
 			mainActivityName = getMainActivityNameThroughActivityAliasTag();
 		}
 		return mainActivityName;
+	}
+
+	private String getApplicationName() {
+		Element application = (Element) androidManifest.getElementsByTagName("application").item(0);
+		if (application.hasAttribute("android:name")) {
+			return application.getAttribute("android:name");
+		}
+		return null;
 	}
 
 	private String getMainActivityNameThroughActivityAliasTag() {
