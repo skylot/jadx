@@ -7,4 +7,5 @@ public enum AppAttribute {
 	VERSION_CODE,
 	VERSION_NAME,
 	MAIN_ACTIVITY,
+	APPLICATION,
 }

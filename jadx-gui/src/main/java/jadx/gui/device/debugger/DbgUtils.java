@@ -154,7 +154,7 @@ public class DbgUtils {
 			return null;
 		}
 		ApplicationParams results = parser.parse();
-		String mainActivityName = results.getMainActivityName();
+		String mainActivityName = results.getMainActivity();
 		if (mainActivityName == null) {
 			UiUtils.errorMessage(mw, NLS.str("adb_dialog.msg_read_mani_fail"));
 			return null;
@@ -163,7 +163,7 @@ public class DbgUtils {
 			UiUtils.errorMessage(mw, "Invalid main activity name");
 			return null;
 		}
-		JavaClass mainActivityClass = results.getMainActivity(decompiler);
+		JavaClass mainActivityClass = results.getMainActivityJavaClass(decompiler);
 		if (mainActivityClass == null) {
 			UiUtils.errorMessage(mw, NLS.str("error_dialog.not_found", "Main activity class"));
 			return null;
