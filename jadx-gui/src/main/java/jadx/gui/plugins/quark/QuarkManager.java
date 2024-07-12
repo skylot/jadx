@@ -151,6 +151,7 @@ public class QuarkManager {
 		List<String> cmd = new ArrayList<>();
 		cmd.add(getCommand("pip3"));
 		cmd.add("install");
+		cmd.add("setuptools");
 		cmd.add("quark-engine");
 		cmd.add("--upgrade");
 		try {
@@ -212,6 +213,10 @@ public class QuarkManager {
 			buf.lines().forEach(msg -> LOG.info("# {}", msg));
 		} finally {
 			process.waitFor();
+		}
+		if (process.exitValue() != 0) {
+			throw new RuntimeException("Execution failed (exit code " + process.exitValue() + ") - command "
+					+ String.join(" ", cmd) + "\nPlease see command log output what was going wrong.");
 		}
 	}
 
