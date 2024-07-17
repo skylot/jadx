@@ -92,7 +92,7 @@ tasks.shadowJar {
 	}
 }
 
-tasks.existing(CreateStartScripts::class) {
+tasks.startShadowScripts {
 	doLast {
 		val newContent =
 			windowsScript.readText()
