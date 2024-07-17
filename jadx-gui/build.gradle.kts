@@ -1,7 +1,7 @@
 plugins {
 	id("jadx-kotlin")
 	id("application")
-	id("edu.sc.seis.launch4j") version "3.0.5"
+	id("edu.sc.seis.launch4j") version "3.0.6"
 	id("com.github.johnrengelman.shadow") version "8.1.1"
 	id("org.beryx.runtime") version "1.13.1"
 }
@@ -22,28 +22,28 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.2.1")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.2.1")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.3.1")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.3.1")
 
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.5.6")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.4.0")
+	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.4.1")
-	implementation("com.formdev:flatlaf-intellij-themes:3.4.1")
-	implementation("com.formdev:flatlaf-extras:3.4.1")
+	implementation("com.formdev:flatlaf:3.5")
+	implementation("com.formdev:flatlaf-intellij-themes:3.5")
+	implementation("com.formdev:flatlaf-extras:3.5")
 
-	implementation("com.google.code.gson:gson:2.10.1")
+	implementation("com.google.code.gson:gson:2.11.0")
 	implementation("org.apache.commons:commons-lang3:3.14.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
 	implementation("commons-io:commons-io:2.16.1")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.3.2")
+	implementation("com.android.tools.build:apksig:8.5.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)

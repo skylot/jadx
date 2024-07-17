@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	api(project(":jadx-plugins:jadx-input-api"))
 
-	implementation("com.google.code.gson:gson:2.10.1")
+	implementation("com.google.code.gson:gson:2.11.0")
 
 	testImplementation("org.apache.commons:commons-lang3:3.14.0")
 
