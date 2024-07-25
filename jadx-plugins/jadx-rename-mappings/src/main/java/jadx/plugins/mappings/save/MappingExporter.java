@@ -3,16 +3,12 @@ package jadx.plugins.mappings.save;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,17 +23,12 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitOrder;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
-import jadx.api.ICodeInfo;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaNodeRef.RefType;
 import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.InsnCodeOffset;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarNode;
-import jadx.api.utils.CodeUtils;
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.ClassInfo;
@@ -50,6 +41,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.mappings.RenameMappingsData;
 import jadx.plugins.mappings.utils.DalvikToJavaBytecodeUtils;
+import jadx.plugins.mappings.utils.VariablesUtils;
 
 public class MappingExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(MappingExporter.class);
@@ -60,44 +52,6 @@ public class MappingExporter {
 	public MappingExporter(RootNode root) {
 		this.root = root;
 		this.loadedMappingTree = RenameMappingsData.getTree(this.root);
-	}
-
-	private List<Entry<VarNode, Entry<Integer, Integer>>> collectMethodVars(MethodNode methodNode) {
-		ICodeInfo codeInfo = methodNode.getTopParentClass().getCode();
-		int mthDefPos = methodNode.getDefPosition();
-		int mthLineEndPos = CodeUtils.getLineEndForPos(codeInfo.getCodeStr(), mthDefPos);
-
-		List<Entry<VarNode, Entry<Integer, Integer>>> vars = new ArrayList<>();
-		AtomicInteger lastOffset = new AtomicInteger(-1);
-		codeInfo.getCodeMetadata().searchDown(mthLineEndPos, (pos, ann) -> {
-			if (ann instanceof InsnCodeOffset) {
-				lastOffset.set(((InsnCodeOffset) ann).getOffset());
-			}
-			if (ann instanceof NodeDeclareRef) {
-				ICodeNodeRef declRef = ((NodeDeclareRef) ann).getNode();
-				if (declRef instanceof VarNode) {
-					VarNode varNode = (VarNode) declRef;
-					if (!varNode.getMth().equals(methodNode)) { // Stop if we've gone too far and have entered a different method
-						if (!vars.isEmpty()) {
-							vars.get(vars.size() - 1).getValue().setValue(declRef.getDefPosition() - 1);
-						}
-						return Boolean.TRUE;
-					}
-					if (lastOffset.get() != -1) {
-						if (!vars.isEmpty()) {
-							vars.get(vars.size() - 1).getValue().setValue(lastOffset.get() - 1);
-						}
-						vars.add(new SimpleEntry<VarNode, Entry<Integer, Integer>>(varNode, new SimpleEntry<>(lastOffset.get(), null)));
-					} else {
-						LOG.warn("Local variable not present in bytecode, skipping: "
-								+ methodNode.getMethodInfo().getRawFullId() + "#" + varNode.getName());
-					}
-					lastOffset.set(-1);
-				}
-			}
-			return null;
-		});
-		return vars;
 	}
 
 	public void exportMappings(Path path, JadxCodeData codeData, MappingFormat mappingFormat) {
@@ -142,14 +96,6 @@ public class MappingExporter {
 		}
 
 		try {
-			if (mappingFormat.hasSingleFile()) {
-				FileUtils.deleteFileIfExists(path);
-				FileUtils.makeDirsForFile(path);
-				Files.createFile(path);
-			} else {
-				FileUtils.makeDirs(path);
-			}
-
 			String srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
 			String dstNamespace = MappingUtil.NS_TARGET_FALLBACK;
 
@@ -230,16 +176,11 @@ public class MappingExporter {
 						// Not checking for comments since method args can't have any
 					}
 					// Method vars
-					var vars = collectMethodVars(mth);
-					for (int i = 0; i < vars.size(); i++) {
-						var entry = vars.get(i);
-						VarNode var = entry.getKey();
-						int startOpIdx = entry.getValue().getKey();
-						int endOpIdx = entry.getValue().getValue();
-						Integer lvIndex = DalvikToJavaBytecodeUtils.getMethodVarLvIndex(var);
-						if (lvIndex == null) {
-							lvIndex = -1;
-						}
+					for (VariablesUtils.VarInfo info : VariablesUtils.collect(mth)) {
+						VarNode var = info.getVar();
+						int startOpIdx = info.getStartOpIdx();
+						int endOpIdx = info.getEndOpIdx();
+						int lvIndex = DalvikToJavaBytecodeUtils.getMethodVarLvIndex(var);
 						String key = rawClassName + methodInfo.getShortId()
 								+ JadxCodeRef.forVar(var.getReg(), var.getSsa());
 						if (mappedMethodArgsAndVars.containsKey(key)) {
@@ -255,10 +196,18 @@ public class MappingExporter {
 					}
 				}
 			}
+			// write file as late as possible because a mapping collection can fail with exception
+			if (mappingFormat.hasSingleFile()) {
+				FileUtils.deleteFileIfExists(path);
+				FileUtils.makeDirsForFile(path);
+				Files.createFile(path);
+			} else {
+				FileUtils.makeDirs(path);
+			}
 			// Write file
 			mappingTree.accept(MappingWriter.create(path, mappingFormat), VisitOrder.createByName());
 			mappingTree.visitEnd();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOG.error("Failed to save deobfuscation map file '{}'", path.toAbsolutePath(), e);
 		}
 	}

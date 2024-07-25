@@ -46,7 +46,7 @@ public class DalvikToJavaBytecodeUtils {
 
 	// Method vars
 
-	public static Integer getMethodVarLvIndex(VarNode methodVar) {
+	public static int getMethodVarLvIndex(VarNode methodVar) {
 		MethodNode mth = methodVar.getMth();
 		Integer lvIndex = getMethodVarLvIndexViaSsaVars(methodVar.getReg(), mth);
 		if (lvIndex != null) {
