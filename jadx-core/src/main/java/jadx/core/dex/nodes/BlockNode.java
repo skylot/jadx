@@ -226,6 +226,10 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		return contains(AFlag.RETURN);
 	}
 
+	public boolean isMthExitBlock() {
+		return contains(AFlag.MTH_EXIT_BLOCK);
+	}
+
 	public boolean isEmpty() {
 		return instructions.isEmpty();
 	}

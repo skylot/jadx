@@ -627,7 +627,7 @@ public class BlockExceptionHandler {
 				continue;
 			}
 			for (TryCatchBlockAttr tcb : tryBlocks) {
-				if (tcb.getHandlers().contains(handlerBlock)) {
+				if (tcb.getHandlers().contains(eh)) {
 					notProcessed = false;
 					break;
 				}

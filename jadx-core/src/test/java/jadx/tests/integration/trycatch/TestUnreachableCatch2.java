@@ -10,14 +10,13 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@SuppressWarnings("CommentedOutCode")
 public class TestUnreachableCatch2 extends SmaliTest {
 
+	@SuppressWarnings({ "unused", "DataFlowIssue" })
 	public static class UnusedExceptionHandlers1 implements AutoCloseable {
-		public static void doSomething(final Object unused1, final Object[] array, final Object o1,
+		public static void test(final Object unused1, final Object[] array, final Object o1,
 				final Object o2, final Object unused2) {
 			for (final Object item : array) {
 				ByteBuffer buffer = null;
@@ -25,10 +24,10 @@ public class TestUnreachableCatch2 extends SmaliTest {
 					try (final FileInputStream fis = new FileInputStream(u.getFilename())) {
 						final FileChannel fileChannel = fis.getChannel();
 						buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, 42);
-					} catch (final IOException e) {
+					} catch (IOException e) {
 						// ignore
 					}
-				} catch (final IOException e) {
+				} catch (IOException e) {
 					// ignore
 				}
 			}
@@ -50,9 +49,12 @@ public class TestUnreachableCatch2 extends SmaliTest {
 
 	@Test
 	public void test() {
-		// TODO: result code not compilable because of 'break' after 'throw'
+		// TODO: result code not compilable because 'try' block split into 2 block and 'fis' var become
+		// uninitialized
 		disableCompilation();
-		String code = getClassNode(UnusedExceptionHandlers1.class).getCode().toString();
-		assertThat(code, containsString("IOException"));
+		assertThat(getClassNode(UnusedExceptionHandlers1.class))
+				.code()
+				.doesNotContain("break;")
+				.countString(2, "} catch (IOException e");
 	}
 }

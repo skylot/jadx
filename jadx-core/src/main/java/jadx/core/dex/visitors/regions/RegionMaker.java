@@ -445,8 +445,9 @@ public class RegionMaker {
 		List<BlockNode> simplePath = BlockUtils.buildSimplePath(exit);
 		if (!simplePath.isEmpty()) {
 			BlockNode lastBlock = simplePath.get(simplePath.size() - 1);
-			if (lastBlock.contains(AFlag.RETURN)
-					|| lastBlock.getSuccessors().isEmpty()) {
+			if (lastBlock.isMthExitBlock()
+					|| lastBlock.isReturnBlock()
+					|| mth.isPreExitBlock(lastBlock)) {
 				return false;
 			}
 		}
