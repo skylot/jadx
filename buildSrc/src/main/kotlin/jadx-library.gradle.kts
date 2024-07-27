@@ -42,7 +42,7 @@ publishing {
 					developer {
 						id.set("skylot")
 						name.set("Skylot")
-						email.set("skylot@gmail.com")
+						email.set(project.properties["libEmail"].toString())
 						url.set("https://github.com/skylot")
 					}
 				}
