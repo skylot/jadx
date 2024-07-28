@@ -12,7 +12,7 @@ dependencies {
 		}
 	}
 
-	implementation("com.android.tools.build:bundletool:1.17.0") {
+	implementation("com.android.tools.build:bundletool:1.17.1") {
 		// All of this is unnecessary for parsing BundleConfig.pb except for protobuf
 		exclude(group = "com.android.tools.build")
 		exclude(group = "com.google.protobuf")

@@ -28,7 +28,7 @@ dependencies {
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.5.6")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
+	implementation("com.fifesoft:rsyntaxtextarea:3.5.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
@@ -37,7 +37,7 @@ dependencies {
 	implementation("com.formdev:flatlaf-extras:3.5")
 
 	implementation("com.google.code.gson:gson:2.11.0")
-	implementation("org.apache.commons:commons-lang3:3.14.0")
+	implementation("org.apache.commons:commons-lang3:3.15.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
 	implementation("commons-io:commons-io:2.16.1")
 
