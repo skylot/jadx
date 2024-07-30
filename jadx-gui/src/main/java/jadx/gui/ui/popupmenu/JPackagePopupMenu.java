@@ -107,7 +107,9 @@ public class JPackagePopupMenu extends JPopupMenu {
 	private static void saveJPackage(JPackage pkg, Path savePath, JClassExportType exportType) {
 		Path subSavePath = savePath.resolve(pkg.getName());
 		try {
-			Files.createDirectory(subSavePath);
+			if (!Files.isDirectory(subSavePath)) {
+				Files.createDirectory(subSavePath);
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
