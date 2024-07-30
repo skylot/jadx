@@ -52,4 +52,9 @@ public class JCodeMode extends JNode {
 	public String getSyntaxName() {
 		return SyntaxConstants.SYNTAX_STYLE_JAVA;
 	}
+
+	@Override
+	public String getName() {
+		return jCls.getName();
+	}
 }

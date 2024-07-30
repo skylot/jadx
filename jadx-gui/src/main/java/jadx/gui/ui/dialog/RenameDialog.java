@@ -53,12 +53,17 @@ public class RenameDialog extends JDialog {
 	}
 
 	public static JPopupMenu buildRenamePopup(MainWindow mainWindow, JRenameNode node) {
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(buildRenamePopupMenuItem(mainWindow, node));
+		return menu;
+	}
+
+	public static JMenuItem buildRenamePopupMenuItem(MainWindow mainWindow, JRenameNode node) {
 		JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
 		jmi.addActionListener(action -> RenameDialog.rename(mainWindow, node));
 		jmi.setEnabled(node.canRename());
-		JPopupMenu menu = new JPopupMenu();
-		menu.add(jmi);
-		return menu;
+
+		return jmi;
 	}
 
 	private RenameDialog(MainWindow mainWindow, JRenameNode node) {
