@@ -4,8 +4,7 @@ public enum JClassExportType {
 	Code("java"),
 	Smali("smali"),
 	Simple("java"),
-	Fallback("java"),
-	;
+	Fallback("java");
 
 	final String extension;
 

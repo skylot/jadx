@@ -83,8 +83,8 @@ public class JResourcePopupMenu extends JPopupMenu {
 		Path selectedPath = selectedPaths.get(0);
 		Path savePath;
 		// Append file extension if missing
-		if (extension != null &&
-				!selectedPath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(extension)) {
+		if (extension != null
+				&& !selectedPath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(extension)) {
 			savePath = selectedPath.resolveSibling(selectedPath.getFileName() + "." + extension);
 		} else {
 			savePath = selectedPath;
