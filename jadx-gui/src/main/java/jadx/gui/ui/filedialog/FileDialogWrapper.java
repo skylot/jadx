@@ -115,6 +115,13 @@ public class FileDialogWrapper {
 				isOpen = true;
 				currentDir = mainWindow.getSettings().getLastOpenFilePath();
 				break;
+
+			case EXPORT_NODE:
+				isOpen = false;
+				title = NLS.str("file.export_node");
+				currentDir = mainWindow.getSettings().getLastSaveFilePath();
+				selectionMode = JFileChooser.FILES_ONLY;
+				break;
 		}
 	}
 

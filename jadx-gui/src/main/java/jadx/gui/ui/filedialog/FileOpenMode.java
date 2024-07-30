@@ -7,5 +7,6 @@ public enum FileOpenMode {
 	SAVE_PROJECT,
 	EXPORT,
 	CUSTOM_SAVE,
-	CUSTOM_OPEN
+	CUSTOM_OPEN,
+	EXPORT_NODE,
 }
