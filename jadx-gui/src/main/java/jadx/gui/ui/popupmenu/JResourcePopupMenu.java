@@ -7,7 +7,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -15,9 +14,6 @@ import java.util.Locale;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import jadx.core.utils.files.FileUtils;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,9 +90,9 @@ public class JResourcePopupMenu extends JPopupMenu {
 			savePath = selectedPath;
 		}
 
-
 		return savePath;
 	}
+
 	private Path getSaveDirPath(JResource resource) {
 		FileDialogWrapper fileDialog = new FileDialogWrapper(mainWindow, FileOpenMode.EXPORT_NODE_FOLDER);
 
@@ -105,7 +101,7 @@ public class JResourcePopupMenu extends JPopupMenu {
 			return null;
 		}
 
-        return selectedPaths.get(0);
+		return selectedPaths.get(0);
 	}
 
 	private static void saveJResource(JResource resource, Path savePath, boolean comingFromDialog) {
@@ -129,7 +125,7 @@ public class JResourcePopupMenu extends JPopupMenu {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		for (JResource subResource: resource.getSubNodes()) {
+		for (JResource subResource : resource.getSubNodes()) {
 			saveJResource(subResource, subSavePath, false);
 		}
 	}
