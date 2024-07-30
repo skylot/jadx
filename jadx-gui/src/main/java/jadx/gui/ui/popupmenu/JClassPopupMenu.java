@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -43,28 +42,22 @@ public class JClassPopupMenu extends JPopupMenu {
 	private JMenuItem makeExportSubMenu(JClass jClass) {
 		JMenu exportSubMenu = new JMenu(NLS.str("popup.export"));
 
-		JNode jClassSimple = new JCodeMode(jClass, DecompilationMode.SIMPLE);
-		JNode jClassFallback = new JCodeMode(jClass, DecompilationMode.FALLBACK);
-
-		exportSubMenu.add(makeExportMenuItem(jClass, NLS.str("tabs.code"), "java",
-				(cls) -> cls.getCodeInfo().getCodeStr()));
-		exportSubMenu.add(makeExportMenuItem(jClass, NLS.str("tabs.smali"), "smali",
-				JClass::getSmali));
-		exportSubMenu.add(makeExportMenuItem(jClassSimple, "Simple", "java",
-				(cls) -> cls.getCodeInfo().getCodeStr()));
-		exportSubMenu.add(makeExportMenuItem(jClassFallback, "Fallback", "java",
-				(cls) -> cls.getCodeInfo().getCodeStr()));
+		exportSubMenu.add(makeExportMenuItem(jClass, NLS.str("tabs.code"), JClassExportType.Code));
+		exportSubMenu.add(makeExportMenuItem(jClass, NLS.str("tabs.smali"), JClassExportType.Smali));
+		exportSubMenu.add(makeExportMenuItem(jClass, "Simple", JClassExportType.Simple));
+		exportSubMenu.add(makeExportMenuItem(jClass, "Fallback", JClassExportType.Fallback));
 
 		return exportSubMenu;
 	}
 
-	public <T extends JNode> JMenuItem makeExportMenuItem(T jClass, String label, String extension, Function<T, String> getCode) {
+	public JMenuItem makeExportMenuItem(JClass jClass, String label, JClassExportType exportType) {
+		// , Function<T, String> getCode
 		JMenuItem exportMenuItem = new JMenuItem(label);
 		exportMenuItem.addActionListener(event -> {
-			String fileName = jClass.getName() + "." + extension;
+			String fileName = jClass.getName() + "." + exportType.extension;
 
 			FileDialogWrapper fileDialog = new FileDialogWrapper(mainWindow, FileOpenMode.EXPORT_NODE);
-			fileDialog.setFileExtList(Collections.singletonList(extension));
+			fileDialog.setFileExtList(Collections.singletonList(exportType.extension));
 			Path currentDir = fileDialog.getCurrentDir();
 			if (currentDir != null) {
 				fileDialog.setSelectedFile(currentDir.resolve(fileName));
@@ -78,22 +71,42 @@ public class JClassPopupMenu extends JPopupMenu {
 			Path selectedPath = selectedPaths.get(0);
 			Path savePath;
 			// Append file extension if missing
-			if (extension != null &&
-					!selectedPath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(extension)) {
-				savePath = selectedPath.resolveSibling(selectedPath.getFileName() + "." + extension);
+			if (!selectedPath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(exportType.extension)) {
+				savePath = selectedPath.resolveSibling(selectedPath.getFileName() + "." + exportType.extension);
 			} else {
 				savePath = selectedPath;
 			}
 
-			try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
-				writer.write(getCode.apply(jClass));
-			} catch (Exception e) {
-				throw new RuntimeException("Error saving project", e);
-			}
+			saveJClass(jClass, savePath, exportType);
 
 			LOG.info("Done saving " + savePath);
 		});
 
 		return exportMenuItem;
+	}
+
+	public static void saveJClass(JClass jClass, Path savePath, JClassExportType exportType) {
+		try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
+			writer.write(getCode(jClass, exportType));
+		} catch (Exception e) {
+			throw new RuntimeException("Error saving project", e);
+		}
+	}
+
+	private static String getCode(JClass jClass, JClassExportType exportType) {
+		switch (exportType) {
+			case Code:
+				return jClass.getCodeInfo().getCodeStr();
+			case Smali:
+				return jClass.getSmali();
+			case Simple:
+				JNode jClassSimple = new JCodeMode(jClass, DecompilationMode.SIMPLE);
+				return jClassSimple.getCodeInfo().getCodeStr();
+			case Fallback:
+				JNode jClassFallback = new JCodeMode(jClass, DecompilationMode.FALLBACK);
+				return jClassFallback.getCodeInfo().getCodeStr();
+			default:
+				throw new RuntimeException("Unsupported JClassExportType " + exportType);
+		}
 	}
 }
