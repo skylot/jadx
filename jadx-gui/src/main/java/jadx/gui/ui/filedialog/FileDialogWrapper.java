@@ -122,6 +122,13 @@ public class FileDialogWrapper {
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				selectionMode = JFileChooser.FILES_ONLY;
 				break;
+
+			case EXPORT_NODE_FOLDER:
+				isOpen = true;
+				title = NLS.str("file.save_all_msg");
+				currentDir = mainWindow.getSettings().getLastSaveFilePath();
+				selectionMode = JFileChooser.DIRECTORIES_ONLY;
+				break;
 		}
 	}
 

@@ -9,4 +9,5 @@ public enum FileOpenMode {
 	CUSTOM_SAVE,
 	CUSTOM_OPEN,
 	EXPORT_NODE,
+	EXPORT_NODE_FOLDER,
 }
