@@ -30,7 +30,6 @@ import javax.swing.SwingUtilities;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.kotlin.com.intellij.openapi.util.SystemInfoRt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -396,8 +395,8 @@ public class UiUtils {
 	}
 
 	public static boolean isXToolkit() {
-		return SystemInfoRt.isUnix
-				&& !SystemInfoRt.isMac
+		return SystemInfo.IS_UNIX
+				&& !SystemInfo.IS_MAC
 				&& "sun.awt.X11.XToolkit".equals(Toolkit.getDefaultToolkit().getClass().getName());
 	}
 

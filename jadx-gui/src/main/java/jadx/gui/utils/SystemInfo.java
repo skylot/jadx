@@ -17,6 +17,7 @@ public class SystemInfo {
 	public static final boolean IS_WINDOWS = LOWER_OS_NAME.startsWith("windows");
 	public static final boolean IS_MAC = LOWER_OS_NAME.startsWith("mac");
 	public static final boolean IS_LINUX = LOWER_OS_NAME.startsWith("linux");
+	public static final boolean IS_UNIX = !IS_WINDOWS;
 
 	private SystemInfo() {
 	}
