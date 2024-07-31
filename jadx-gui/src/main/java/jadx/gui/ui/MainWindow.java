@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -250,6 +251,7 @@ public class MainWindow extends JFrame {
 		this.cacheManager = new CacheManager(settings);
 		this.shortcutsController = new ShortcutsController(settings);
 
+		Toolkit.getDefaultToolkit().getSystemEventQueue().push(new JadxEventQueue());
 		resetCache();
 		FontUtils.registerBundledFonts();
 		setEditorTheme(settings.getEditorThemePath());

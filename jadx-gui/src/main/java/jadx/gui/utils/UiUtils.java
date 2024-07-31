@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.kotlin.com.intellij.openapi.util.SystemInfoRt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -392,6 +393,12 @@ public class UiUtils {
 		if (SwingUtilities.isEventDispatchThread()) {
 			LOG.warn("Expect background thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
 		}
+	}
+
+	public static boolean isXToolkit() {
+		return SystemInfoRt.isUnix
+				&& !SystemInfoRt.isMac
+				&& "sun.awt.X11.XToolkit".equals(Toolkit.getDefaultToolkit().getClass().getName());
 	}
 
 	@TestOnly
