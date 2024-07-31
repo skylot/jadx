@@ -7,6 +7,7 @@ public class TabViewState {
 	private int caret;
 	private ViewPoint view;
 	boolean active;
+	boolean pinned;
 
 	public String getType() {
 		return type;
@@ -54,5 +55,13 @@ public class TabViewState {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public boolean isPinned() {
+		return pinned;
+	}
+
+	public void setPinned(boolean pinned) {
+		this.pinned = pinned;
 	}
 }

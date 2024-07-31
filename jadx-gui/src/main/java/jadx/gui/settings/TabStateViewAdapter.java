@@ -29,6 +29,7 @@ public class TabStateViewAdapter {
 		tvs.setCaret(viewState.getCaretPos());
 		tvs.setView(new ViewPoint(viewState.getViewPoint()));
 		tvs.setActive(viewState.isActive());
+		tvs.setPinned(viewState.isPinned());
 		return tvs;
 	}
 
@@ -41,6 +42,7 @@ public class TabStateViewAdapter {
 			}
 			EditorViewState viewState = new EditorViewState(node, tvs.getSubPath(), tvs.getCaret(), tvs.getView().toPoint());
 			viewState.setActive(tvs.isActive());
+			viewState.setPinned(tvs.isPinned());
 			return viewState;
 		} catch (Exception e) {
 			LOG.error("Failed to load tab state: " + tvs, e);

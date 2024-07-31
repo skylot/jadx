@@ -343,6 +343,7 @@ public class TabbedPane extends JTabbedPane {
 				viewState = new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO);
 			}
 			viewState.setActive(panel == selected);
+			viewState.setPinned(panel.isPinned());
 			states.add(viewState);
 		}
 		return states;
@@ -355,6 +356,13 @@ public class TabbedPane extends JTabbedPane {
 		}
 		if (viewState.isActive()) {
 			setSelectedComponent(contentPanel);
+		}
+		if (contentPanel != null) {
+			contentPanel.setPinned(viewState.isPinned());
+			Component tabComponent = getTabComponentAt(indexOfComponent(contentPanel));
+			if (tabComponent instanceof TabComponent) {
+				((TabComponent) tabComponent).updateCloseOrPinButton();
+			}
 		}
 	}
 

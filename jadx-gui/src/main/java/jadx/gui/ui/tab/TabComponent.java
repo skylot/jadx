@@ -118,11 +118,11 @@ public class TabComponent extends JPanel {
 		addListenerForDnd();
 
 		add(label);
-		showCloseOrPinButton();
+		updateCloseOrPinButton();
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 	}
 
-	private void showCloseOrPinButton() {
+	public void updateCloseOrPinButton() {
 		if (contentPanel.isPinned()) {
 			if (closeBtn.isShowing()) {
 				remove(closeBtn);
@@ -143,7 +143,7 @@ public class TabComponent extends JPanel {
 
 	private void togglePin() {
 		contentPanel.setPinned(!contentPanel.isPinned());
-		showCloseOrPinButton();
+		updateCloseOrPinButton();
 		if (contentPanel.isPinned()) {
 			tabbedPane.advanceTab(this);
 		}
