@@ -190,7 +190,7 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 		}
 
-		String pinTitle = contentPanel.isPinned() ? "Unpin" : "Pin";
+		String pinTitle = contentPanel.isPinned() ? NLS.str("tabs.unpin") : NLS.str("tabs.pin");
 		JMenuItem pinTab = new JMenuItem(pinTitle);
 		pinTab.addActionListener(e -> togglePin());
 		menu.add(pinTab);
