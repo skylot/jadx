@@ -190,10 +190,12 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 		}
 
-		String pinTitle = contentPanel.isPinned() ? NLS.str("tabs.unpin") : NLS.str("tabs.pin");
-		JMenuItem pinTab = new JMenuItem(pinTitle);
-		pinTab.addActionListener(e -> togglePin());
-		menu.add(pinTab);
+		if (contentPanel.canBePinned()) {
+			String pinTitle = contentPanel.isPinned() ? NLS.str("tabs.unpin") : NLS.str("tabs.pin");
+			JMenuItem pinTab = new JMenuItem(pinTitle);
+			pinTab.addActionListener(e -> togglePin());
+			menu.add(pinTab);
+		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
 		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel, true));

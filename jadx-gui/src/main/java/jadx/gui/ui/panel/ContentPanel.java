@@ -59,6 +59,10 @@ public abstract class ContentPanel extends JPanel {
 		this.pinned = pinned;
 	}
 
+	public boolean canBePinned() {
+		return true;
+	}
+
 	public void dispose() {
 		tabbedPane = null;
 		node = null;
