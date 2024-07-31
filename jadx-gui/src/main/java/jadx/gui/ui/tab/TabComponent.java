@@ -97,13 +97,13 @@ public class TabComponent extends JPanel {
 		closeBtn.setFocusable(false);
 		closeBtn.setBorder(null);
 		closeBtn.setBorderPainted(false);
-		closeBtn.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
+		closeBtn.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel, true));
 
 		MouseAdapter clickAdapter = new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (SwingUtilities.isMiddleMouseButton(e)) {
-					tabbedPane.closeCodePanel(contentPanel);
+					tabbedPane.closeCodePanel(contentPanel, true);
 				} else if (SwingUtilities.isRightMouseButton(e)) {
 					JPopupMenu menu = createTabPopupMenu(contentPanel);
 					menu.show(e.getComponent(), e.getX(), e.getY());
@@ -196,7 +196,10 @@ public class TabComponent extends JPanel {
 		menu.add(pinTab);
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
-		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
+		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel, true));
+		if (contentPanel.isPinned()) {
+			closeTab.setEnabled(false);
+		}
 		menu.add(closeTab);
 
 		List<ContentPanel> tabs = tabbedPane.getTabs();
@@ -205,7 +208,7 @@ public class TabComponent extends JPanel {
 			closeOther.addActionListener(e -> {
 				for (ContentPanel panel : tabs) {
 					if (panel != contentPanel) {
-						tabbedPane.closeCodePanel(panel);
+						tabbedPane.closeCodePanel(panel, true);
 					}
 				}
 			});
