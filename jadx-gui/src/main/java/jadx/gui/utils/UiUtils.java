@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
@@ -12,6 +13,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +26,12 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.TestOnly;
@@ -294,6 +299,31 @@ public class UiUtils {
 		Point pos = MouseInfo.getPointerInfo().getLocation();
 		SwingUtilities.convertPointFromScreen(pos, comp);
 		return pos;
+	}
+
+	public static TreeNode getTreeNodeUnderMouse(JTree tree, MouseEvent mouseEvent) {
+		TreePath path = tree.getClosestPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+		if (path == null) {
+			return null;
+		}
+		// allow 'closest' path only at the right of the item row
+		Rectangle pathBounds = tree.getPathBounds(path);
+		if (pathBounds != null) {
+			int y = mouseEvent.getY();
+			if (y < pathBounds.y || y > (pathBounds.y + pathBounds.height)) {
+				return null;
+			}
+			if (mouseEvent.getX() < pathBounds.x) {
+				// exclude expand/collapse events
+				return null;
+			}
+		}
+		Object obj = path.getLastPathComponent();
+		if (obj instanceof TreeNode) {
+			tree.setSelectionPath(path);
+			return (TreeNode) obj;
+		}
+		return null;
 	}
 
 	public static String getEnvVar(String varName, String defValue) {

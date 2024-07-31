@@ -49,6 +49,8 @@ public class TabbedPane extends JTabbedPane {
 
 	private final transient MainWindow mainWindow;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
+
+	private final ArrayList<ITabStatesListener> tabStatesListeners = new ArrayList<>();
 	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
@@ -358,10 +360,14 @@ public class TabbedPane extends JTabbedPane {
 			setSelectedComponent(contentPanel);
 		}
 		if (contentPanel != null) {
-			contentPanel.setPinned(viewState.isPinned());
-			Component tabComponent = getTabComponentAt(indexOfComponent(contentPanel));
-			if (tabComponent instanceof TabComponent) {
-				((TabComponent) tabComponent).updateCloseOrPinButton();
+			boolean pinned = viewState.isPinned();
+			contentPanel.setPinned(pinned);
+			Component component = getTabComponentAt(indexOfComponent(contentPanel));
+			if (component instanceof TabComponent) {
+				TabComponent tabComponent = (TabComponent) component;
+				JNode node = contentPanel.getNode();
+				tabComponent.updateCloseOrPinButton();
+				tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
 			}
 		}
 	}
@@ -414,10 +420,37 @@ public class TabbedPane extends JTabbedPane {
 		selectTab(tabComponent.getContentPanel());
 	}
 
+	public void notifyTabStateChange(TabComponent tabComponent, boolean pinChange) {
+		if (pinChange) {
+			JNode node = tabComponent.getContentPanel().getNode();
+			boolean pinned = tabComponent.getContentPanel().isPinned();
+			tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
+		}
+	}
+
+	public void addTabStateListener(ITabStatesListener listener) {
+		tabStatesListeners.add(listener);
+	}
+
+	public void removeTabStateListener(ITabStatesListener listener) {
+		tabStatesListeners.remove(listener);
+	}
+
 	public List<ContentPanel> getTabs() {
 		List<ContentPanel> list = new ArrayList<>(getTabCount());
 		for (int i = 0; i < getTabCount(); i++) {
 			list.add((ContentPanel) getComponentAt(i));
+		}
+		return list;
+	}
+
+	public List<ContentPanel> getPinnedTabs() {
+		List<ContentPanel> list = new ArrayList<>(getTabCount());
+		for (int i = 0; i < getTabCount(); i++) {
+			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
+			if (contentPanel.isPinned()) {
+				list.add(contentPanel);
+			}
 		}
 		return list;
 	}

@@ -7,7 +7,6 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -140,6 +139,7 @@ import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
+import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.StartPageNode;
@@ -203,6 +203,7 @@ public class MainWindow extends JFrame {
 	private transient JSplitPane treeSplitPane;
 	private transient JSplitPane rightSplitPane;
 	private transient JSplitPane bottomSplitPane;
+	private transient JSplitPane quickTabsAndCodeSplitPane;
 
 	private JTree tree;
 	private DefaultTreeModel treeModel;
@@ -228,6 +229,7 @@ public class MainWindow extends JFrame {
 	private transient IssuesPanel issuesPanel;
 	private transient @Nullable LogPanel logPanel;
 	private transient @Nullable JDebuggerPanel debuggerPanel;
+	private transient @Nullable QuickTabsTree quickTabsTree;
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
@@ -887,27 +889,11 @@ public class MainWindow extends JFrame {
 
 	@Nullable
 	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
-		TreePath path = tree.getClosestPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-		if (path == null) {
-			return null;
+		TreeNode treeNode = UiUtils.getTreeNodeUnderMouse(tree, mouseEvent);
+		if (treeNode instanceof JNode) {
+			return (JNode) treeNode;
 		}
-		// allow 'closest' path only at the right of the item row
-		Rectangle pathBounds = tree.getPathBounds(path);
-		if (pathBounds != null) {
-			int y = mouseEvent.getY();
-			if (y < pathBounds.y || y > (pathBounds.y + pathBounds.height)) {
-				return null;
-			}
-			if (mouseEvent.getX() < pathBounds.x) {
-				// exclude expand/collapse events
-				return null;
-			}
-		}
-		Object obj = path.getLastPathComponent();
-		if (obj instanceof JNode) {
-			tree.setSelectionPath(path);
-			return (JNode) obj;
-		}
+
 		return null;
 	}
 
@@ -1060,6 +1046,17 @@ public class MainWindow extends JFrame {
 		dockLog.setState(settings.isDockLogViewer());
 		dockLog.addActionListener(event -> settings.setDockLogViewer(!settings.isDockLogViewer()));
 
+		JCheckBoxMenuItem dockQuickTabs = new JCheckBoxMenuItem(NLS.str("menu.dock_quick_tabs"));
+		dockQuickTabs.setState(settings.isDockQuickTabs());
+		dockQuickTabs.addActionListener(event -> {
+			boolean visible = quickTabsTree == null;
+			setQuickTabsVisibility(visible);
+			settings.setDockQuickTabs(visible);
+		});
+		if (dockQuickTabs.getState()) {
+			setQuickTabsVisibility(true);
+		}
+
 		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this::syncWithEditor);
 		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
 		JadxGuiAction clsSearchAction = new JadxGuiAction(ActionModel.CLASS_SEARCH,
@@ -1123,6 +1120,7 @@ public class MainWindow extends JFrame {
 		view.add(heapUsageBarMenuItem);
 		view.add(alwaysSelectOpened);
 		view.add(dockLog);
+		view.add(dockQuickTabs);
 
 		JMenu nav = new JadxMenu(NLS.str("menu.navigation"), shortcutsController);
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -1347,8 +1345,13 @@ public class MainWindow extends JFrame {
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		new TabDndController(tabbedPane, settings);
 
+		quickTabsAndCodeSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		quickTabsAndCodeSplitPane.setResizeWeight(0.15);
+		quickTabsAndCodeSplitPane.setDividerSize(0);
+		quickTabsAndCodeSplitPane.setRightComponent(tabbedPane);
+
 		rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		rightSplitPane.setTopComponent(tabbedPane);
+		rightSplitPane.setTopComponent(quickTabsAndCodeSplitPane);
 		rightSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 
 		treeSplitPane.setRightComponent(rightSplitPane);
@@ -1480,6 +1483,9 @@ public class MainWindow extends JFrame {
 		tabbedPane.loadSettings();
 		if (logPanel != null) {
 			logPanel.loadSettings();
+		}
+		if (quickTabsTree != null) {
+			quickTabsTree.loadSettings();
 		}
 
 		shortcutsController.loadSettings();
@@ -1651,6 +1657,22 @@ public class MainWindow extends JFrame {
 		logPanel.dispose();
 		logPanel = null;
 		rightSplitPane.setBottomComponent(null);
+	}
+
+	private void setQuickTabsVisibility(boolean visible) {
+		if (visible) {
+			if (quickTabsTree == null) {
+				quickTabsTree = new QuickTabsTree(this);
+			}
+
+			quickTabsAndCodeSplitPane.setLeftComponent(quickTabsTree);
+			quickTabsAndCodeSplitPane.setDividerSize(5);
+		} else {
+			quickTabsAndCodeSplitPane.setLeftComponent(null);
+			quickTabsAndCodeSplitPane.setDividerSize(0);
+
+			quickTabsTree = null;
+		}
 	}
 
 	public JMenu getPluginsMenu() {

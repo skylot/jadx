@@ -136,6 +136,8 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean dockLogViewer = true;
 
+	private boolean dockQuickTabs = false;
+
 	private TabDndGhostType tabDndGhostType = TabDndGhostType.OUTLINE;
 
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
@@ -742,7 +744,16 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setDockLogViewer(boolean dockLogViewer) {
 		this.dockLogViewer = dockLogViewer;
-		partialSync(settings -> this.dockLogViewer = dockLogViewer);
+		partialSync(settings -> settings.dockLogViewer = dockLogViewer);
+	}
+
+	public boolean isDockQuickTabs() {
+		return dockQuickTabs;
+	}
+
+	public void setDockQuickTabs(boolean dockQuickTabs) {
+		this.dockQuickTabs = dockQuickTabs;
+		partialSync(settings -> settings.dockQuickTabs = dockQuickTabs);
 	}
 
 	public XposedCodegenLanguage getXposedCodegenLanguage() {

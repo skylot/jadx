@@ -147,6 +147,7 @@ public class TabComponent extends JPanel {
 		if (contentPanel.isPinned()) {
 			tabbedPane.advanceTab(this);
 		}
+		tabbedPane.notifyTabStateChange(this, true);
 	}
 
 	private void addListenerForDnd() {
