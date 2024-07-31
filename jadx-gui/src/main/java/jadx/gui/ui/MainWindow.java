@@ -250,6 +250,7 @@ public class MainWindow extends JFrame {
 		this.cacheManager = new CacheManager(settings);
 		this.shortcutsController = new ShortcutsController(settings);
 
+		JadxEventQueue.register();
 		resetCache();
 		FontUtils.registerBundledFonts();
 		setEditorTheme(settings.getEditorThemePath());

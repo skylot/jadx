@@ -394,6 +394,12 @@ public class UiUtils {
 		}
 	}
 
+	public static boolean isXToolkit() {
+		return SystemInfo.IS_UNIX
+				&& !SystemInfo.IS_MAC
+				&& "sun.awt.X11.XToolkit".equals(Toolkit.getDefaultToolkit().getClass().getName());
+	}
+
 	@TestOnly
 	public static void debugTimer(int periodInSeconds, Runnable action) {
 		if (!LOG.isDebugEnabled()) {
