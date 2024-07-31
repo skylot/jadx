@@ -9,10 +9,13 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 
 abstract class QuickTabsParentNode extends QuickTabsBaseNode {
+	private final TabbedPane tabbedPane;
 	private final Map<JNode, QuickTabsChildNode> childrenMap = new HashMap<>();
 
 	protected QuickTabsParentNode(TabbedPane tabbedPane) {
 		super();
+
+		this.tabbedPane = tabbedPane;
 	}
 
 	public void addJNode(JNode node) {
@@ -34,6 +37,10 @@ abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 
 	public QuickTabsChildNode getQuickTabsNode(JNode node) {
 		return childrenMap.get(node);
+	}
+
+	public TabbedPane getTabbedPane() {
+		return tabbedPane;
 	}
 
 	abstract String getTitle();

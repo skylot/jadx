@@ -455,8 +455,28 @@ public class TabbedPane extends JTabbedPane {
 		return list;
 	}
 
+	public List<TabComponent> getPinnedTabComponents() {
+		List<TabComponent> list = new ArrayList<>(getTabCount());
+		for (int i = 0; i < getTabCount(); i++) {
+			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
+			if (contentPanel.isPinned()) {
+				list.add((TabComponent) getTabComponentAt(i));
+			}
+		}
+		return list;
+	}
+
 	public @Nullable ContentPanel getTabByNode(JNode node) {
 		return tabsMap.get(node);
+	}
+
+	public @Nullable TabComponent getTabComponentByNode(JNode node) {
+		Component component = getTabComponentAt(indexOfComponent(getTabByNode(node)));
+		if (!(component instanceof TabComponent)) {
+			return null;
+		}
+
+		return (TabComponent) component;
 	}
 
 	private @Nullable ContentPanel getContentPanel(JNode node) {
@@ -471,6 +491,10 @@ public class TabbedPane extends JTabbedPane {
 		FocusManager.listen(newPanel);
 		addContentPanel(newPanel);
 		return newPanel;
+	}
+
+	public void unpinAll() {
+		getPinnedTabComponents().forEach(TabComponent::togglePin);
 	}
 
 	public void refresh(JNode node) {

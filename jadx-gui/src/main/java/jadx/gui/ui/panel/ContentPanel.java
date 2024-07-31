@@ -59,8 +59,8 @@ public abstract class ContentPanel extends JPanel {
 		this.pinned = pinned;
 	}
 
-	public boolean canBePinned() {
-		return true;
+	public boolean isPinnable() {
+		return node.isPinnable();
 	}
 
 	public void dispose() {

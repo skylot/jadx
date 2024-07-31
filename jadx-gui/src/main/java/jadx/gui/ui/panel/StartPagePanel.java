@@ -124,9 +124,4 @@ public class StartPagePanel extends ContentPanel {
 	@Override
 	public void loadSettings() {
 	}
-
-	@Override
-	public boolean canBePinned() {
-		return false;
-	}
 }

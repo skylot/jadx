@@ -141,7 +141,7 @@ public class TabComponent extends JPanel {
 		}
 	}
 
-	private void togglePin() {
+	public void togglePin() {
 		contentPanel.setPinned(!contentPanel.isPinned());
 		updateCloseOrPinButton();
 		if (contentPanel.isPinned()) {
@@ -191,11 +191,15 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 		}
 
-		if (contentPanel.canBePinned()) {
+		if (contentPanel.isPinnable()) {
 			String pinTitle = contentPanel.isPinned() ? NLS.str("tabs.unpin") : NLS.str("tabs.pin");
 			JMenuItem pinTab = new JMenuItem(pinTitle);
 			pinTab.addActionListener(e -> togglePin());
 			menu.add(pinTab);
+
+			JMenuItem unpinAll = new JMenuItem(NLS.str("tabs.unpin_all"));
+			unpinAll.addActionListener(e -> tabbedPane.unpinAll());
+			menu.add(unpinAll);
 		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
