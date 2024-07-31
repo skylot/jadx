@@ -24,8 +24,8 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
-import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.popupmenu.JClassPopupMenu;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.Icons;
@@ -130,7 +130,7 @@ public class JClass extends JLoadableNode implements JRenameNode {
 
 	@Override
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
-		return RenameDialog.buildRenamePopup(mainWindow, this);
+		return new JClassPopupMenu(mainWindow, this);
 	}
 
 	@Override
