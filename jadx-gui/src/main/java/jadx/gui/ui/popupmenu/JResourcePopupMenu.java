@@ -60,7 +60,7 @@ public class JResourcePopupMenu extends JPopupMenu {
 
 			saveJResource(resource, savePath, true);
 
-			LOG.info("Done saving " + savePath);
+			LOG.info("Done saving {}", savePath);
 		});
 		return exportMenu;
 	}

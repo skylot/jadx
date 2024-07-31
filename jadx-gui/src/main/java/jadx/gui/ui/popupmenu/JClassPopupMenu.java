@@ -51,7 +51,6 @@ public class JClassPopupMenu extends JPopupMenu {
 	}
 
 	public JMenuItem makeExportMenuItem(JClass jClass, String label, JClassExportType exportType) {
-		// , Function<T, String> getCode
 		JMenuItem exportMenuItem = new JMenuItem(label);
 		exportMenuItem.addActionListener(event -> {
 			String fileName = jClass.getName() + "." + exportType.extension;
@@ -79,7 +78,7 @@ public class JClassPopupMenu extends JPopupMenu {
 
 			saveJClass(jClass, savePath, exportType);
 
-			LOG.info("Done saving " + savePath);
+			LOG.info("Done saving {}", savePath);
 		});
 
 		return exportMenuItem;
