@@ -3,11 +3,12 @@ package jadx.gui.ui.tab;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.JPopupMenu;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 
-abstract class QuickTabsParentNode extends DefaultMutableTreeNode {
+abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 	private final Map<JNode, QuickTabsChildNode> childrenMap = new HashMap<>();
 
 	protected QuickTabsParentNode(TabbedPane tabbedPane) {
@@ -40,5 +41,10 @@ abstract class QuickTabsParentNode extends DefaultMutableTreeNode {
 	@Override
 	public String toString() {
 		return getTitle();
+	}
+
+	@Override
+	JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return super.onTreePopupMenu(mainWindow);
 	}
 }

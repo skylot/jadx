@@ -1,10 +1,11 @@
 package jadx.gui.ui.tab;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.JPopupMenu;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 
-public class QuickTabsChildNode extends DefaultMutableTreeNode {
+public class QuickTabsChildNode extends QuickTabsBaseNode {
 	private final JNode node;
 
 	public QuickTabsChildNode(JNode node) {
@@ -18,5 +19,10 @@ public class QuickTabsChildNode extends DefaultMutableTreeNode {
 
 	public JNode getJNode() {
 		return node;
+	}
+
+	@Override
+	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
+		return getJNode().onTreePopupMenu(mainWindow);
 	}
 }

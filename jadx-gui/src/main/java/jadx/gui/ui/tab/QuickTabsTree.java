@@ -19,7 +19,6 @@ import javax.swing.tree.TreeNode;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.Icons;
 import jadx.gui.utils.UiUtils;
 
 public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSelectionListener {
@@ -74,12 +73,12 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	private void triggerRightClickAction(MouseEvent e) {
 		TreeNode treeNode = UiUtils.getTreeNodeUnderMouse(this, e);
-		if (!(treeNode instanceof QuickTabsChildNode)) {
+		if (!(treeNode instanceof QuickTabsBaseNode)) {
 			return;
 		}
 
-		QuickTabsChildNode childNode = (QuickTabsChildNode) treeNode;
-		JPopupMenu menu = childNode.getJNode().onTreePopupMenu(mainWindow);
+		QuickTabsBaseNode quickTabsNode = (QuickTabsBaseNode) treeNode;
+		JPopupMenu menu = quickTabsNode.onTreePopupMenu(mainWindow);
 		if (menu != null) {
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
@@ -148,11 +147,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row,
 				boolean hasFocus) {
 			Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-			if (value instanceof QuickTabsChildNode) {
-				QuickTabsChildNode childNode = (QuickTabsChildNode) value;
-				setIcon(childNode.getJNode().getIcon());
-			} else if (value instanceof QuickTabsPinParentNode) {
-				setIcon(Icons.PIN);
+			if (value instanceof QuickTabsBaseNode) {
+				QuickTabsBaseNode quickTabsNode = (QuickTabsBaseNode) value;
+				setIcon(quickTabsNode.getIcon());
 			}
 			return c;
 		}
