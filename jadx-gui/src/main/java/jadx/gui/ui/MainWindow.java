@@ -1671,7 +1671,10 @@ public class MainWindow extends JFrame {
 			quickTabsAndCodeSplitPane.setLeftComponent(null);
 			quickTabsAndCodeSplitPane.setDividerSize(0);
 
-			quickTabsTree = null;
+			if (quickTabsTree != null) {
+				quickTabsTree.dispose();
+				quickTabsTree = null;
+			}
 		}
 	}
 

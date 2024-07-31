@@ -135,6 +135,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		setFont(largerFont);
 	}
 
+	public void dispose() {
+		mainWindow.getTabbedPane().removeTabStateListener(this);
+	}
+
 	private class Root extends DefaultMutableTreeNode {
 
 	}
