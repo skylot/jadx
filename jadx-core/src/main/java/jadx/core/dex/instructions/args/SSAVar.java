@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -292,10 +293,19 @@ public class SSAVar implements Comparable<SSAVar> {
 		StringBuilder sb = new StringBuilder();
 		sb.append('r').append(regNum).append('v').append(version);
 		if (!names.isEmpty()) {
-			sb.append(", names: ").append(names);
+			String orderedNames = names.stream()
+					.sorted()
+					.collect(Collectors.joining(", ", "[", "]"));
+
+			sb.append(", names: ").append(orderedNames);
 		}
 		if (!types.isEmpty()) {
-			sb.append(", types: ").append(types);
+			String orderedTypes = types.stream()
+					.map(String::valueOf)
+					.sorted()
+					.collect(Collectors.joining(", ", "[", "]"));
+
+			sb.append(", types: ").append(orderedTypes);
 		}
 		return sb.toString();
 	}
