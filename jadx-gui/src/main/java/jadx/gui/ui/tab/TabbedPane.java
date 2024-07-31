@@ -386,9 +386,24 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeCodePanel(ContentPanel contentPanel) {
+		closeCodePanel(contentPanel, false);
+	}
+
+	public void closeCodePanel(ContentPanel contentPanel, boolean considerPins) {
+		if (considerPins && contentPanel.isPinned()) {
+			return;
+		}
+
 		tabsMap.remove(contentPanel.getNode());
 		remove(contentPanel);
 		contentPanel.dispose();
+	}
+
+	public void advanceTab(TabComponent tabComponent) {
+		remove(tabComponent.getContentPanel());
+		add(tabComponent.getContentPanel(), 0);
+		setTabComponentAt(0, tabComponent);
+		selectTab(tabComponent.getContentPanel());
 	}
 
 	public List<ContentPanel> getTabs() {
@@ -464,8 +479,12 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeAllTabs() {
+		closeAllTabs(false);
+	}
+
+	public void closeAllTabs(boolean considerPins) {
 		for (ContentPanel panel : getTabs()) {
-			closeCodePanel(panel);
+			closeCodePanel(panel, considerPins);
 		}
 	}
 

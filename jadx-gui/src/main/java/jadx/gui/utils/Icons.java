@@ -15,6 +15,11 @@ public class Icons {
 
 	public static final ImageIcon SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
 
+	public static final ImageIcon PIN = UiUtils.openSvgIcon("nodes/pin");
+	public static final ImageIcon PIN_DARK = UiUtils.openSvgIcon("nodes/pin_dark");
+	public static final ImageIcon PIN_HOVERED = UiUtils.openSvgIcon("nodes/pinHovered");
+	public static final ImageIcon PIN_HOVERED_DARK = UiUtils.openSvgIcon("nodes/pinHovered_dark");
+
 	public static final ImageIcon STATIC = openSvgIcon("nodes/staticMark");
 	public static final ImageIcon FINAL = openSvgIcon("nodes/finalMark");
 

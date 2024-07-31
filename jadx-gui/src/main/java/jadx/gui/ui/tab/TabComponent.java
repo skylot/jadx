@@ -38,6 +38,8 @@ public class TabComponent extends JPanel {
 	private final ContentPanel contentPanel;
 
 	private JLabel label;
+	private JButton pinBtn;
+	private JButton closeBtn;
 
 	public TabComponent(TabbedPane tabbedPane, ContentPanel contentPanel) {
 		this.tabbedPane = tabbedPane;
@@ -74,7 +76,18 @@ public class TabComponent extends JPanel {
 			((JEditableNode) node).addChangeListener(c -> label.setText(buildTabTitle(node)));
 		}
 
-		final JButton closeBtn = new JButton();
+		pinBtn = new JButton();
+		pinBtn.setIcon(Icons.PIN);
+		pinBtn.setRolloverIcon(Icons.PIN_HOVERED);
+		pinBtn.setRolloverEnabled(true);
+		pinBtn.setOpaque(false);
+		pinBtn.setUI(new BasicButtonUI());
+		pinBtn.setContentAreaFilled(false);
+		pinBtn.setBorder(null);
+		pinBtn.setBorderPainted(false);
+		pinBtn.addActionListener(e -> togglePin());
+
+		closeBtn = new JButton();
 		closeBtn.setIcon(Icons.CLOSE_INACTIVE);
 		closeBtn.setRolloverIcon(Icons.CLOSE);
 		closeBtn.setRolloverEnabled(true);
@@ -105,8 +118,35 @@ public class TabComponent extends JPanel {
 		addListenerForDnd();
 
 		add(label);
-		add(closeBtn);
+		showCloseOrPinButton();
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+	}
+
+	private void showCloseOrPinButton() {
+		if (contentPanel.isPinned()) {
+			if (closeBtn.isShowing()) {
+				remove(closeBtn);
+			}
+			if (!pinBtn.isShowing()) {
+				add(pinBtn);
+			}
+		}
+		if (!contentPanel.isPinned()) {
+			if (pinBtn.isShowing()) {
+				remove(pinBtn);
+			}
+			if (!closeBtn.isShowing()) {
+				add(closeBtn);
+			}
+		}
+	}
+
+	private void togglePin() {
+		contentPanel.setPinned(!contentPanel.isPinned());
+		showCloseOrPinButton();
+		if (contentPanel.isPinned()) {
+			tabbedPane.advanceTab(this);
+		}
 	}
 
 	private void addListenerForDnd() {
@@ -150,6 +190,11 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 		}
 
+		String pinTitle = contentPanel.isPinned() ? "Unpin" : "Pin";
+		JMenuItem pinTab = new JMenuItem(pinTitle);
+		pinTab.addActionListener(e -> togglePin());
+		menu.add(pinTab);
+
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
 		closeTab.addActionListener(e -> tabbedPane.closeCodePanel(contentPanel));
 		menu.add(closeTab);
@@ -167,7 +212,7 @@ public class TabComponent extends JPanel {
 			menu.add(closeOther);
 
 			JMenuItem closeAll = new JMenuItem(NLS.str("tabs.closeAll"));
-			closeAll.addActionListener(e -> tabbedPane.closeAllTabs());
+			closeAll.addActionListener(e -> tabbedPane.closeAllTabs(true));
 			menu.add(closeAll);
 
 			if (contentPanel != ListUtils.last(tabs)) {
@@ -180,7 +225,7 @@ public class TabComponent extends JPanel {
 								pastCurrentPanel = true;
 							}
 						} else {
-							tabbedPane.closeCodePanel(panel);
+							tabbedPane.closeCodePanel(panel, true);
 						}
 					}
 				});
@@ -211,5 +256,9 @@ public class TabComponent extends JPanel {
 			return jClass.getFullName();
 		}
 		return node.getName();
+	}
+
+	public ContentPanel getContentPanel() {
+		return contentPanel;
 	}
 }
