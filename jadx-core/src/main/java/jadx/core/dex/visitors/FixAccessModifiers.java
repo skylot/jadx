@@ -3,6 +3,7 @@ package jadx.core.dex.visitors;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -86,8 +87,12 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (!accessFlags.isPublic()) {
 			// if class is used in inlinable method => make it public
 			for (MethodNode useMth : cls.getUseInMth()) {
-				boolean canInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) || useMth.contains(AType.METHOD_INLINE);
-				if (canInline && !useMth.getUseIn().isEmpty()) {
+				MethodInlineAttr inlineAttr = useMth.get(AType.METHOD_INLINE);
+				boolean isInline = inlineAttr != null && !inlineAttr.notNeeded();
+				boolean isCandidateForInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE);
+
+				boolean mostLikelyInline = isInline || isCandidateForInline;
+				if (mostLikelyInline && !useMth.getUseIn().isEmpty()) {
 					return AccessFlags.PUBLIC;
 				}
 			}
