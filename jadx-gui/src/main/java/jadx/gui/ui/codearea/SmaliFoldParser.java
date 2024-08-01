@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,27 +94,31 @@ public class SmaliFoldParser implements FoldParser {
 
 	private List<Integer> getClassStartOffsets(String text) {
 		List<Integer> startOffsets = new ArrayList<>();
-		visitPatternEndOffsets(text, CLASS_LINE_PATTERN, startOffsets::add);
+		Matcher matcher = CLASS_LINE_PATTERN.matcher(text);
+		while (matcher.find()) {
+			int startOffset = matcher.start();
+			startOffsets.add(startOffset);
+		}
 		return startOffsets;
 	}
 
 	private NavigableSet<Integer> getStartMethodStartOffsets(String text) {
 		NavigableSet<Integer> startOffsets = new TreeSet<>();
-		visitPatternEndOffsets(text, STARTMETHOD_LINE_PATTERN, startOffsets::add);
+		Matcher matcher = STARTMETHOD_LINE_PATTERN.matcher(text);
+		while (matcher.find()) {
+			int startOffset = matcher.start();
+			startOffsets.add(startOffset);
+		}
 		return startOffsets;
 	}
 
 	private NavigableSet<Integer> getEndMethodEndOffsets(String text) {
 		NavigableSet<Integer> endOffsets = new TreeSet<>();
-		visitPatternEndOffsets(text, ENDMETHOD_LINE_PATTERN, endOffsets::add);
-		return endOffsets;
-	}
-
-	private static void visitPatternEndOffsets(String text, Pattern pattern, Consumer<Integer> visitor) {
-		Matcher matcher = pattern.matcher(text);
+		Matcher matcher = ENDMETHOD_LINE_PATTERN.matcher(text);
 		while (matcher.find()) {
-			int offset = matcher.end();
-			visitor.accept(offset);
+			int endOffset = matcher.end();
+			endOffsets.add(endOffset);
 		}
+		return endOffsets;
 	}
 }
