@@ -12,6 +12,7 @@ public class EditorViewState {
 	private final Point viewPoint;
 	private final String subPath;
 	private boolean active;
+	private boolean pinned;
 
 	public EditorViewState(JNode node, String subPath, int caretPos, Point viewPoint) {
 		this.node = node;
@@ -42,6 +43,14 @@ public class EditorViewState {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public boolean isPinned() {
+		return pinned;
+	}
+
+	public void setPinned(boolean pinned) {
+		this.pinned = pinned;
 	}
 
 	@Override

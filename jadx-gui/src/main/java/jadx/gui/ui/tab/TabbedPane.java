@@ -49,6 +49,8 @@ public class TabbedPane extends JTabbedPane {
 
 	private final transient MainWindow mainWindow;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
+
+	private final ArrayList<ITabStatesListener> tabStatesListeners = new ArrayList<>();
 	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
@@ -343,6 +345,7 @@ public class TabbedPane extends JTabbedPane {
 				viewState = new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO);
 			}
 			viewState.setActive(panel == selected);
+			viewState.setPinned(panel.isPinned());
 			states.add(viewState);
 		}
 		return states;
@@ -355,6 +358,17 @@ public class TabbedPane extends JTabbedPane {
 		}
 		if (viewState.isActive()) {
 			setSelectedComponent(contentPanel);
+		}
+		if (contentPanel != null) {
+			boolean pinned = viewState.isPinned();
+			contentPanel.setPinned(pinned);
+			Component component = getTabComponentAt(indexOfComponent(contentPanel));
+			if (component instanceof TabComponent) {
+				TabComponent tabComponent = (TabComponent) component;
+				JNode node = contentPanel.getNode();
+				tabComponent.updateCloseOrPinButton();
+				tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
+			}
 		}
 	}
 
@@ -386,9 +400,40 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeCodePanel(ContentPanel contentPanel) {
+		closeCodePanel(contentPanel, false);
+	}
+
+	public void closeCodePanel(ContentPanel contentPanel, boolean considerPins) {
+		if (considerPins && contentPanel.isPinned()) {
+			return;
+		}
+
 		tabsMap.remove(contentPanel.getNode());
 		remove(contentPanel);
 		contentPanel.dispose();
+	}
+
+	public void advanceTab(TabComponent tabComponent) {
+		remove(tabComponent.getContentPanel());
+		add(tabComponent.getContentPanel(), 0);
+		setTabComponentAt(0, tabComponent);
+		selectTab(tabComponent.getContentPanel());
+	}
+
+	public void notifyTabStateChange(TabComponent tabComponent, boolean pinChange) {
+		if (pinChange) {
+			JNode node = tabComponent.getContentPanel().getNode();
+			boolean pinned = tabComponent.getContentPanel().isPinned();
+			tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
+		}
+	}
+
+	public void addTabStateListener(ITabStatesListener listener) {
+		tabStatesListeners.add(listener);
+	}
+
+	public void removeTabStateListener(ITabStatesListener listener) {
+		tabStatesListeners.remove(listener);
 	}
 
 	public List<ContentPanel> getTabs() {
@@ -399,8 +444,39 @@ public class TabbedPane extends JTabbedPane {
 		return list;
 	}
 
+	public List<ContentPanel> getPinnedTabs() {
+		List<ContentPanel> list = new ArrayList<>(getTabCount());
+		for (int i = 0; i < getTabCount(); i++) {
+			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
+			if (contentPanel.isPinned()) {
+				list.add(contentPanel);
+			}
+		}
+		return list;
+	}
+
+	public List<TabComponent> getPinnedTabComponents() {
+		List<TabComponent> list = new ArrayList<>(getTabCount());
+		for (int i = 0; i < getTabCount(); i++) {
+			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
+			if (contentPanel.isPinned()) {
+				list.add((TabComponent) getTabComponentAt(i));
+			}
+		}
+		return list;
+	}
+
 	public @Nullable ContentPanel getTabByNode(JNode node) {
 		return tabsMap.get(node);
+	}
+
+	public @Nullable TabComponent getTabComponentByNode(JNode node) {
+		Component component = getTabComponentAt(indexOfComponent(getTabByNode(node)));
+		if (!(component instanceof TabComponent)) {
+			return null;
+		}
+
+		return (TabComponent) component;
 	}
 
 	private @Nullable ContentPanel getContentPanel(JNode node) {
@@ -415,6 +491,10 @@ public class TabbedPane extends JTabbedPane {
 		FocusManager.listen(newPanel);
 		addContentPanel(newPanel);
 		return newPanel;
+	}
+
+	public void unpinAll() {
+		getPinnedTabComponents().forEach(TabComponent::togglePin);
 	}
 
 	public void refresh(JNode node) {
@@ -464,8 +544,12 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeAllTabs() {
+		closeAllTabs(false);
+	}
+
+	public void closeAllTabs(boolean considerPins) {
 		for (ContentPanel panel : getTabs()) {
-			closeCodePanel(panel);
+			closeCodePanel(panel, considerPins);
 		}
 	}
 

@@ -68,6 +68,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return javaNode.getName();
 	}
 
+	public boolean isPinnable() {
+		return true;
+	}
+
 	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		return null;
 	}

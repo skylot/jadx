@@ -15,6 +15,7 @@ public abstract class ContentPanel extends JPanel {
 
 	protected TabbedPane tabbedPane;
 	protected JNode node;
+	private boolean pinned;
 
 	protected ContentPanel(TabbedPane panel, JNode jnode) {
 		tabbedPane = panel;
@@ -48,6 +49,18 @@ public abstract class ContentPanel extends JPanel {
 
 	public JadxSettings getSettings() {
 		return tabbedPane.getMainWindow().getSettings();
+	}
+
+	public boolean isPinned() {
+		return pinned;
+	}
+
+	public void setPinned(boolean pinned) {
+		this.pinned = pinned;
+	}
+
+	public boolean isPinnable() {
+		return node.isPinnable();
 	}
 
 	public void dispose() {
