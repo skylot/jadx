@@ -4,32 +4,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.folding.Fold;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
 import org.fife.ui.rsyntaxtextarea.folding.FoldType;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SmaliFoldParser implements FoldParser {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliFoldParser.class);
 
-	private static final Pattern CLASS_LINE_PATTERN =
-			Pattern.compile("^\\.class\\b", Pattern.MULTILINE);
-	private static final Pattern ENDMETHOD_LINE_PATTERN =
-			Pattern.compile("^\\.end method\\b", Pattern.MULTILINE);
-	private static final Pattern STARTMETHOD_LINE_PATTERN =
-			Pattern.compile("^\\.method\\b", Pattern.MULTILINE);
+	private static final Pattern CLASS_LINE_PATTERN = Pattern.compile("^\\.class\\b", Pattern.MULTILINE);
+	private static final Pattern ENDMETHOD_LINE_PATTERN = Pattern.compile("^\\.end method\\b", Pattern.MULTILINE);
+	private static final Pattern STARTMETHOD_LINE_PATTERN = Pattern.compile("^\\.method\\b", Pattern.MULTILINE);
+
+	public static void register() {
+		FoldParserManager.get().addFoldParserMapping(AbstractCodeArea.SYNTAX_STYLE_SMALI, new SmaliFoldParser());
+	}
+
+	private SmaliFoldParser() {
+	}
 
 	@Override
 	public List<Fold> getFolds(RSyntaxTextArea textArea) {
-		ArrayList<Fold> classFolds = new ArrayList<>();
+		List<Fold> classFolds = new ArrayList<>();
 		String text = textArea.getText();
 
 		List<Integer> classStartOffsets = getClassStartOffsets(text);
@@ -49,86 +53,69 @@ public class SmaliFoldParser implements FoldParser {
 			// Get the last ".end method" before next .class or end of file
 			Integer endOffset = endMethodEndOffsets.floor(classLimit);
 			if (endOffset != null) {
-				LOG.info("Found smali class at " + startOffset + ", " + endOffset);
-
 				Fold classFold = createFold(textArea, startOffset, endOffset);
-				classFolds.add(classFold);
+				if (classFold != null) {
+					classFolds.add(classFold);
 
-				// Start looking for .method after .class definition
-				Integer startMethodStartOffset = startMethodStartOffsets.ceiling(startOffset);
-				while (startMethodStartOffset != null && startMethodStartOffset < endOffset) {
-					Integer endMethodEndOffset = endMethodEndOffsets.ceiling(startMethodStartOffset);
-					if (endMethodEndOffset != null) {
-						LOG.info("Found smali method at " + startMethodStartOffset + ", " + endMethodEndOffset);
-						addFold(classFold, startMethodStartOffset, endMethodEndOffset);
+					// Start looking for .method after .class definition
+					Integer startMethodStartOffset = startMethodStartOffsets.ceiling(startOffset);
+					while (startMethodStartOffset != null && startMethodStartOffset < endOffset) {
+						Integer endMethodEndOffset = endMethodEndOffsets.ceiling(startMethodStartOffset);
+						if (endMethodEndOffset != null) {
+							addFold(classFold, startMethodStartOffset, endMethodEndOffset);
+						}
+						// Look for next .method starting from last .end method
+						startMethodStartOffset = startMethodStartOffsets.ceiling(endMethodEndOffset);
 					}
-					// Look for next .method starting from last .end method
-					startMethodStartOffset = startMethodStartOffsets.ceiling(endMethodEndOffset);
 				}
 			}
 		}
-
 		return classFolds;
 	}
 
-	public static void register() {
-		FoldParserManager.get().addFoldParserMapping(AbstractCodeArea.SYNTAX_STYLE_SMALI, new SmaliFoldParser());
-	}
-
-	private static Fold createFold(RSyntaxTextArea textArea, int startOffset, int endOffset) {
-		Fold fold = null;
+	private static @Nullable Fold createFold(RSyntaxTextArea textArea, int startOffset, int endOffset) {
 		try {
-			fold = new Fold(FoldType.CODE, textArea, startOffset);
+			Fold fold = new Fold(FoldType.CODE, textArea, startOffset);
 			fold.setEndOffset(endOffset);
-		} catch (BadLocationException e) {
-			LOG.warn("Code folding smali resulted in {} : {}", e.getClass().getSimpleName(), e.getMessage());
+			return fold;
+		} catch (Exception e) {
+			LOG.error("Failed to create code fold", e);
+			return null;
 		}
-		return fold;
 	}
 
 	private static void addFold(Fold parent, int startOffset, int endOffset) {
-		Fold fold;
 		try {
-			fold = parent.createChild(FoldType.CODE, startOffset);
+			Fold fold = parent.createChild(FoldType.CODE, startOffset);
 			fold.setEndOffset(endOffset);
-		} catch (BadLocationException e) {
-			LOG.warn("Code folding smali resulted in {} : {}", e.getClass().getSimpleName(), e.getMessage());
+		} catch (Exception e) {
+			LOG.error("Failed to add code fold", e);
 		}
 	}
 
 	private List<Integer> getClassStartOffsets(String text) {
-		ArrayList<Integer> startOffsets = new ArrayList<>();
-
-		Matcher matcher = CLASS_LINE_PATTERN.matcher(text);
-		while (matcher.find()) {
-			int startOffset = matcher.start();
-			startOffsets.add(startOffset);
-		}
-
+		List<Integer> startOffsets = new ArrayList<>();
+		visitPatternEndOffsets(text, CLASS_LINE_PATTERN, startOffsets::add);
 		return startOffsets;
 	}
 
 	private NavigableSet<Integer> getStartMethodStartOffsets(String text) {
 		NavigableSet<Integer> startOffsets = new TreeSet<>();
-
-		Matcher matcher = STARTMETHOD_LINE_PATTERN.matcher(text);
-		while (matcher.find()) {
-			int startOffset = matcher.end();
-			startOffsets.add(startOffset);
-		}
-
+		visitPatternEndOffsets(text, STARTMETHOD_LINE_PATTERN, startOffsets::add);
 		return startOffsets;
 	}
 
 	private NavigableSet<Integer> getEndMethodEndOffsets(String text) {
 		NavigableSet<Integer> endOffsets = new TreeSet<>();
-
-		Matcher matcher = ENDMETHOD_LINE_PATTERN.matcher(text);
-		while (matcher.find()) {
-			int endOffset = matcher.end();
-			endOffsets.add(endOffset);
-		}
-
+		visitPatternEndOffsets(text, ENDMETHOD_LINE_PATTERN, endOffsets::add);
 		return endOffsets;
+	}
+
+	private static void visitPatternEndOffsets(String text, Pattern pattern, Consumer<Integer> visitor) {
+		Matcher matcher = pattern.matcher(text);
+		while (matcher.find()) {
+			int offset = matcher.end();
+			visitor.accept(offset);
+		}
 	}
 }
