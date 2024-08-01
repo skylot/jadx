@@ -75,7 +75,7 @@ public class SmaliFoldParser implements FoldParser {
 		FoldParserManager.get().addFoldParserMapping(AbstractCodeArea.SYNTAX_STYLE_SMALI, new SmaliFoldParser());
 	}
 
-	public static Fold createFold(RSyntaxTextArea textArea, int startOffset, int endOffset) {
+	private static Fold createFold(RSyntaxTextArea textArea, int startOffset, int endOffset) {
 		Fold fold = null;
 		try {
 			fold = new Fold(FoldType.CODE, textArea, startOffset);
@@ -86,7 +86,7 @@ public class SmaliFoldParser implements FoldParser {
 		return fold;
 	}
 
-	public static void addFold(Fold parent, int startOffset, int endOffset) {
+	private static void addFold(Fold parent, int startOffset, int endOffset) {
 		Fold fold;
 		try {
 			fold = parent.createChild(FoldType.CODE, startOffset);
