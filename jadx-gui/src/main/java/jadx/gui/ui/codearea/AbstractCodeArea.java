@@ -12,6 +12,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
@@ -77,6 +78,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	protected JNode node;
 
 	protected volatile boolean loaded = false;
+	private int foldingMenuIndex;
 
 	public AbstractCodeArea(ContentPanel contentPanel, JNode node) {
 		this.contentPanel = contentPanel;
@@ -132,8 +134,33 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			menu.add(createPopupMenuItem(copyAction));
 			menu.add(createPopupMenuItem(getAction(SELECT_ALL_ACTION)));
 		}
+		foldingMenuIndex = menu.getComponentCount();
 		appendFoldingMenu(menu);
 		return menu;
+	}
+
+	@Override
+	public void setCodeFoldingEnabled(boolean enabled) {
+		boolean oldCodeFoldingEnabled = isCodeFoldingEnabled();
+		super.setCodeFoldingEnabled(enabled);
+		if (enabled && !oldCodeFoldingEnabled) {
+			JPopupMenu popup = getPopupMenu();
+			// RTextArea.appendFoldingMenu() add the menu to the end, but we want to add it
+			// to foldingMenuIndex, so we remove all components starting from foldingMenuIndex,
+			// call RTextArea.appendFoldingMenu(), and add the components back
+			ArrayList<Component> componentBackup = new ArrayList<>();
+			for (int i = getPopupMenu().getComponentCount() - 1; i >= foldingMenuIndex; i--) {
+				componentBackup.add(getPopupMenu().getComponent(i));
+				popup.remove(i);
+			}
+			appendFoldingMenu(popup);
+			for (Component component : componentBackup) {
+				popup.add(component);
+			}
+			componentBackup.clear();
+		} else if (!enabled && oldCodeFoldingEnabled) {
+			throw new JadxRuntimeException("Cannot disable code folding once enabled");
+		}
 	}
 
 	@Override
