@@ -71,6 +71,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		} else {
 			throw new JadxRuntimeException("Unexpected TokenMakerFactory instance: " + tokenMakerFactory.getClass());
 		}
+
+		SmaliFoldParser.register();
 	}
 
 	protected ContentPanel contentPanel;

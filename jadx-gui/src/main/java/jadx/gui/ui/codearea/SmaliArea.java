@@ -65,6 +65,8 @@ public final class SmaliArea extends AbstractCodeArea {
 		super(contentPanel, node);
 		this.textNode = new TextNode(node.getName());
 
+		setCodeFoldingEnabled(true);
+
 		cbUseSmaliV2 = new JCheckBoxMenuItem(NLS.str("popup.bytecode_col"),
 				shouldUseSmaliPrinterV2());
 		cbUseSmaliV2.setAction(new AbstractAction(NLS.str("popup.bytecode_col")) {
