@@ -149,8 +149,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			// to foldingMenuIndex, so we remove all components starting from foldingMenuIndex,
 			// call RTextArea.appendFoldingMenu(), and add the components back
 			ArrayList<Component> componentBackup = new ArrayList<>();
-			for (int i = getPopupMenu().getComponentCount() - 1; i >= foldingMenuIndex; i--) {
-				componentBackup.add(getPopupMenu().getComponent(i));
+			for (int i = popup.getComponentCount() - 1; i >= foldingMenuIndex; i--) {
+				componentBackup.add(0, popup.getComponent(i));
 				popup.remove(i);
 			}
 			appendFoldingMenu(popup);
