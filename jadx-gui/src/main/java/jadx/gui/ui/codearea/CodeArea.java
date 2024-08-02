@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 
+import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
@@ -53,7 +54,6 @@ public final class CodeArea extends AbstractCodeArea {
 		boolean isJavaCode = node instanceof JClass;
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));
-			addMenuItems();
 		}
 
 		if (node instanceof JResource && node.makeString().endsWith(".json")) {
@@ -118,9 +118,18 @@ public final class CodeArea extends AbstractCodeArea {
 		setText(getCodeInfo().getCodeStr());
 	}
 
-	private void addMenuItems() {
+	@Override
+	protected JPopupMenu createPopupMenu() {
+		JPopupMenu popup = super.createPopupMenu();
+		if (node instanceof JClass) {
+			appendCodeMenuItems(popup);
+		}
+		return popup;
+	}
+
+	private void appendCodeMenuItems(JPopupMenu popupMenu) {
 		ShortcutsController shortcutsController = getMainWindow().getShortcutsController();
-		JNodePopupBuilder popup = new JNodePopupBuilder(this, getPopupMenu(), shortcutsController);
+		JNodePopupBuilder popup = new JNodePopupBuilder(this, popupMenu, shortcutsController);
 		popup.addSeparator();
 		popup.add(new FindUsageAction(this));
 		popup.add(new GoToDeclarationAction(this));
@@ -133,7 +142,7 @@ public final class CodeArea extends AbstractCodeArea {
 		getMainWindow().getWrapper().getGuiPluginsContext().appendPopupMenus(this, popup);
 
 		// move caret on mouse right button click
-		popup.getMenu().addPopupMenuListener(new DefaultPopupMenuListener() {
+		popupMenu.addPopupMenuListener(new DefaultPopupMenuListener() {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				CodeArea codeArea = CodeArea.this;
