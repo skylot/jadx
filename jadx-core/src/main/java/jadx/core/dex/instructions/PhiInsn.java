@@ -43,6 +43,9 @@ public final class PhiInsn extends InsnNode {
 		if (blockBinds.contains(pred)) {
 			throw new JadxRuntimeException("Duplicate predecessors in PHI insn: " + pred + ", " + this);
 		}
+		if (pred == null) {
+			throw new JadxRuntimeException("Null bind block in PHI insn: " + this);
+		}
 		super.addArg(arg);
 		blockBinds.add(pred);
 	}

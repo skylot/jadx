@@ -435,6 +435,23 @@ public class BlockUtils {
 	}
 
 	/**
+	 * Return predecessor on path from 'pathStart' block
+	 */
+	public static @Nullable BlockNode getPrevBlockOnPath(BlockNode block, BlockNode pathStart) {
+		List<BlockNode> preds = block.getPredecessors();
+		if (preds.contains(pathStart)) {
+			return pathStart;
+		}
+		Set<BlockNode> path = getAllPathsBlocks(pathStart, block);
+		for (BlockNode p : preds) {
+			if (path.contains(p)) {
+				return p;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Visit blocks on any path from start to end.
 	 * Only one path will be visited!
 	 */

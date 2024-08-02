@@ -6,6 +6,7 @@ import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -18,6 +19,7 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
 		name = "ConstructorVisitor",
@@ -33,9 +35,6 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		if (replaceInvoke(mth)) {
 			MoveInlineVisitor.moveInline(mth);
-		}
-		if (mth.contains(AFlag.RERUN_SSA_TRANSFORM)) {
-			SSATransform.rerun(mth);
 		}
 	}
 
@@ -75,7 +74,8 @@ public class ConstructorVisitor extends AbstractVisitor {
 			if (assignInsn != null) {
 				if (assignInsn.getType() == InsnType.CONSTRUCTOR) {
 					// arg already used in another constructor instruction
-					mth.add(AFlag.RERUN_SSA_TRANSFORM);
+					// insert new PHI insn to merge these branched constructors results
+					instanceArg = insertPhiInsn(mth, block, instanceArg, ((ConstructorInsn) assignInsn));
 				} else {
 					InsnNode newInstInsn = removeAssignChain(mth, assignInsn, remover, InsnType.NEW_INSTANCE);
 					if (newInstInsn != null) {
@@ -97,6 +97,31 @@ public class ConstructorVisitor extends AbstractVisitor {
 			BlockUtils.replaceInsn(mth, block, indexInBlock, co);
 		}
 		return true;
+	}
+
+	private static RegisterArg insertPhiInsn(MethodNode mth, BlockNode curBlock,
+			RegisterArg instArg, ConstructorInsn otherCtr) {
+		BlockNode otherBlock = BlockUtils.getBlockByInsn(mth, otherCtr);
+		if (otherBlock == null) {
+			throw new JadxRuntimeException("Block not found by insn: " + otherCtr);
+		}
+		BlockNode crossBlock = BlockUtils.getPathCross(mth, curBlock, otherBlock);
+		if (crossBlock == null) {
+			throw new JadxRuntimeException("Path cross not found for blocks: " + curBlock + " and " + otherBlock);
+		}
+		RegisterArg newResArg = instArg.duplicateWithNewSSAVar(mth);
+		RegisterArg useArg = otherCtr.getResult();
+		RegisterArg otherResArg = useArg.duplicateWithNewSSAVar(mth);
+
+		PhiInsn phiInsn = SSATransform.addPhi(mth, crossBlock, useArg.getRegNum());
+		phiInsn.setResult(useArg.duplicate());
+		phiInsn.bindArg(newResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, curBlock));
+		phiInsn.bindArg(otherResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, otherBlock));
+		phiInsn.rebindArgs();
+
+		otherCtr.setResult(otherResArg.duplicate());
+		otherCtr.rebindArgs();
+		return newResArg;
 	}
 
 	private static boolean canRemoveConstructor(MethodNode mth, ConstructorInsn co) {
