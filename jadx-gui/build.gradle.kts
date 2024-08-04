@@ -70,6 +70,12 @@ application {
 			// needed for ktlint formatter
 			"-XX:+IgnoreUnrecognizedVMOptions",
 			"--add-opens=java.base/java.lang=ALL-UNNAMED",
+			// flags to fix UI ghosting (#2225)
+			"-Dsun.java2d.noddraw=true",
+			"-Dsun.java2d.d3d=false",
+			"-Dsun.java2d.ddforcevram=true",
+			"-Dsun.java2d.ddblit=false",
+			"-Dswing.useflipBufferStrategy=True",
 		)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")
