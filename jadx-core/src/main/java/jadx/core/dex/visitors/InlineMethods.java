@@ -59,12 +59,17 @@ public class InlineMethods extends AbstractVisitor {
 		}
 		MethodNode callMth = (MethodNode) callMthDetails;
 		try {
-			// TODO: sort inner classes process order by dependencies!
 			MethodInlineAttr mia = MarkMethodsForInline.process(callMth);
 			if (mia == null) {
-				// method not yet loaded => will retry at codegen stage
-				callMth.getParentClass().reloadAtCodegenStage();
-				return;
+				// method is not yet loaded => force process
+				mth.addDebugComment("Class process forced to load method for inline: " + callMth);
+				mth.root().getProcessClasses().forceProcess(callMth.getParentClass());
+				// run check again
+				mia = MarkMethodsForInline.process(callMth);
+				if (mia == null) {
+					mth.addWarnComment("Failed to check method for inline after forced process" + callMth);
+					return;
+				}
 			}
 			if (mia.notNeeded()) {
 				return;

@@ -125,6 +125,22 @@ public class ProcessClass {
 		}
 	}
 
+	/**
+	 * Load and process class without its deps
+	 */
+	public void forceProcess(ClassNode cls) {
+		ClassNode topParentClass = cls.getTopParentClass();
+		if (topParentClass != cls) {
+			forceProcess(topParentClass);
+			return;
+		}
+		try {
+			process(cls, false);
+		} catch (Throwable e) {
+			throw new JadxRuntimeException("Failed to process class: " + cls.getFullName(), e);
+		}
+	}
+
 	public void initPasses(RootNode root) {
 		for (IDexTreeVisitor pass : passes) {
 			try {
