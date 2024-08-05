@@ -28,7 +28,7 @@ public class QuickTabsChildNode extends QuickTabsBaseNode {
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		JPopupMenu menu = node.onTreePopupMenu(mainWindow);
 
-		if (node.isPinnable()) {
+		if (node.supportsQuickTabs()) {
 			if (menu == null) {
 				menu = new JPopupMenu();
 			}

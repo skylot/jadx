@@ -68,7 +68,7 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return javaNode.getName();
 	}
 
-	public boolean isPinnable() {
+	public boolean supportsQuickTabs() {
 		return true;
 	}
 

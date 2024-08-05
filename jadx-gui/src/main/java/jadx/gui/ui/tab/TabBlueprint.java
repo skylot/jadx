@@ -32,6 +32,6 @@ public class TabBlueprint {
 	}
 
 	public boolean isPinnable() {
-		return node.isPinnable();
+		return node.supportsQuickTabs();
 	}
 }

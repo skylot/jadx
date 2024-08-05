@@ -34,7 +34,7 @@ public class StartPageNode extends JNode {
 	}
 
 	@Override
-	public boolean isPinnable() {
+	public boolean supportsQuickTabs() {
 		return false;
 	}
 }

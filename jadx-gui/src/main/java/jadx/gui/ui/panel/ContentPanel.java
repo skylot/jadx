@@ -50,8 +50,8 @@ public abstract class ContentPanel extends JPanel {
 		return tabbedPane.getMainWindow().getSettings();
 	}
 
-	public boolean isPinnable() {
-		return getNode().isPinnable();
+	public boolean supportsQuickTabs() {
+		return getNode().supportsQuickTabs();
 	}
 
 	public void dispose() {

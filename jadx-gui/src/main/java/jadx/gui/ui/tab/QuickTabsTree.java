@@ -26,6 +26,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	private final MainWindow mainWindow;
 	private final DefaultTreeModel treeModel;
 
+	private final QuickTabsOpenParentNode openParentNode;
 	private final QuickTabsParentNode pinParentNode;
 
 	public QuickTabsTree(MainWindow mainWindow) {
@@ -35,7 +36,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 		Root root = new Root();
 		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabsController());
+		openParentNode = new QuickTabsOpenParentNode(mainWindow.getTabsController());
+		fillOpenParentNode();
 		fillPinParentNode();
+		root.add(openParentNode);
 		root.add(pinParentNode);
 
 		treeModel = new DefaultTreeModel(root);
@@ -98,6 +102,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		return false;
 	}
 
+	private void fillOpenParentNode() {
+		mainWindow.getTabsController().getOpenTabs().forEach(this::onTabOpen);
+	}
+
 	private void fillPinParentNode() {
 		mainWindow.getTabsController().getPinnedTabs().forEach(this::onTabPinChange);
 	}
@@ -156,7 +164,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabOpen(TabBlueprint blueprint) {
-
+		if (blueprint.getNode().supportsQuickTabs()) {
+			addJNode(openParentNode, blueprint.getNode());
+		}
 	}
 
 	@Override
@@ -166,6 +176,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabClose(TabBlueprint blueprint) {
+		removeJNode(openParentNode, blueprint.getNode());
 		removeJNode(pinParentNode, blueprint.getNode());
 	}
 
