@@ -238,7 +238,7 @@ public class TabComponent extends JPanel {
 					for (ContentPanel panel : contentPanels) {
 						if (!pastCurrentPanel) {
 							if (panel == contentPanel) {
-							pastCurrentPanel = true;
+								pastCurrentPanel = true;
 							}
 						} else {
 							tabsController.closeTab(panel.getNode(), true);
