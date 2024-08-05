@@ -56,10 +56,11 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 	}
 
 	@Override
-	public EditorViewState getEditorViewState() {
+	public void saveEditorViewState(EditorViewState viewState) {
 		int caretPos = codePanel.getCodeArea().getCaretPosition();
 		Point viewPoint = codePanel.getCodeScrollPane().getViewport().getViewPosition();
-		return new EditorViewState(getNode(), "", caretPos, viewPoint);
+		viewState.setCaretPos(caretPos);
+		viewState.setViewPoint(viewPoint);
 	}
 
 	@Override

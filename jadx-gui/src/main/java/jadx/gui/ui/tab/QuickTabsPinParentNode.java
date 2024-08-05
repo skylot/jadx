@@ -9,8 +9,8 @@ import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 
 public class QuickTabsPinParentNode extends QuickTabsParentNode {
-	protected QuickTabsPinParentNode(TabbedPane tabbedPane) {
-		super(tabbedPane);
+	protected QuickTabsPinParentNode(TabsController tabsController) {
+		super(tabsController);
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class QuickTabsPinParentNode extends QuickTabsParentNode {
 
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem unpinAll = new JMenuItem(NLS.str("tabs.unpin_all"));
-		unpinAll.addActionListener(e -> getTabbedPane().unpinAll());
+		unpinAll.addActionListener(e -> getTabsController().unpinAllTabs());
 		menu.add(unpinAll);
 
 		return menu;

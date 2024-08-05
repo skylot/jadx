@@ -19,6 +19,7 @@ import javax.swing.tree.TreeNode;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.UiUtils;
 
 public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSelectionListener {
@@ -30,10 +31,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	public QuickTabsTree(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 
-		mainWindow.getTabbedPane().addTabStateListener(this);
+		mainWindow.getTabsController().addListener(this);
 
 		Root root = new Root();
-		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabbedPane());
+		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabsController());
 		fillPinParentNode();
 		root.add(pinParentNode);
 
@@ -98,7 +99,34 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	private void fillPinParentNode() {
-		mainWindow.getTabbedPane().getPinnedTabs().forEach((contentPanel) -> pinParentNode.addJNode(contentPanel.getNode()));
+		mainWindow.getTabsController().getPinnedTabs().forEach(this::onTabPinChange);
+	}
+
+	private void clearParentNode(QuickTabsParentNode parentNode) {
+		int[] childIndices = new int[parentNode.getChildCount()];
+		Object[] objects = new Object[parentNode.getChildCount()];
+		for (int i = 0; i < childIndices.length; i++) {
+			childIndices[i] = i;
+			objects[i] = parentNode.getChildAt(i);
+		}
+		parentNode.removeAllNodes();
+		treeModel.nodesWereRemoved(parentNode, childIndices, objects);
+	}
+
+	private void addJNode(QuickTabsParentNode parentNode, JNode node) {
+		if (parentNode.addJNode(node)) {
+			treeModel.nodesWereInserted(parentNode, new int[] { parentNode.getChildCount() - 1 });
+		}
+	}
+
+	private void removeJNode(QuickTabsParentNode parentNode, JNode node) {
+		QuickTabsChildNode child = parentNode.getQuickTabsNode(node);
+		if (child != null) {
+			int removedIndex = parentNode.getIndex(child);
+			if (parentNode.removeJNode(node)) {
+				treeModel.nodesWereRemoved(parentNode, new int[] { removedIndex }, new Object[] { child });
+			}
+		}
 	}
 
 	@Override
@@ -108,22 +136,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 			if (selectedNode instanceof QuickTabsChildNode) {
 				QuickTabsChildNode childNode = (QuickTabsChildNode) selectedNode;
 				JNode jNode = childNode.getJNode();
-				TabbedPane tabbedPane = mainWindow.getTabbedPane();
-				tabbedPane.selectTab(tabbedPane.getTabByNode(jNode));
-			}
-		}
-	}
 
-	@Override
-	public void onTabPinChange(JNode node, boolean pinned) {
-		if (pinned) {
-			pinParentNode.addJNode(node);
-			treeModel.nodesWereInserted(pinParentNode, new int[] { pinParentNode.getChildCount() - 1 });
-		} else {
-			QuickTabsChildNode child = pinParentNode.getQuickTabsNode(node);
-			int removedIndex = pinParentNode.getIndex(child);
-			pinParentNode.removeJNode(node);
-			treeModel.nodesWereRemoved(pinParentNode, new int[] { removedIndex }, new Object[] { child });
+				TabsController tabsController = mainWindow.getTabsController();
+				tabsController.selectTab(jNode);
+			}
 		}
 	}
 
@@ -135,7 +151,52 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	public void dispose() {
-		mainWindow.getTabbedPane().removeTabStateListener(this);
+		mainWindow.getTabsController().removeListener(this);
+	}
+
+	@Override
+	public void onTabOpen(TabBlueprint blueprint) {
+
+	}
+
+	@Override
+	public void onTabSelect(TabBlueprint blueprint) {
+
+	}
+
+	@Override
+	public void onTabClose(TabBlueprint blueprint) {
+		removeJNode(pinParentNode, blueprint.getNode());
+	}
+
+	@Override
+	public void onTabPositionFirst(TabBlueprint blueprint) {
+
+	}
+
+	@Override
+	public void onTabPinChange(TabBlueprint blueprint) {
+		JNode node = blueprint.getNode();
+		if (blueprint.isPinned()) {
+			addJNode(pinParentNode, node);
+		} else {
+			removeJNode(pinParentNode, node);
+		}
+	}
+
+	@Override
+	public void onTabBookmarkChange(TabBlueprint blueprint) {
+
+	}
+
+	@Override
+	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
+
+	}
+
+	@Override
+	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
+
 	}
 
 	private class Root extends DefaultMutableTreeNode {
