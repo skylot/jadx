@@ -67,7 +67,6 @@ public class TabComponent extends JPanel {
 		setOpaque(false);
 
 		JNode node = getNode();
-		TabBlueprint blueprint = getBlueprint();
 		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
