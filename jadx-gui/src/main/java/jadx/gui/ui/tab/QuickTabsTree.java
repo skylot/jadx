@@ -36,21 +36,18 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		mainWindow.getTabsController().addListener(this);
 
 		Root root = new Root();
+		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabsController());
+		openParentNode = new QuickTabsOpenParentNode(mainWindow.getTabsController());
+		bookmarkParentNode = new QuickTabsBookmarkParentNode(mainWindow.getTabsController());
+		root.add(openParentNode);
+		root.add(pinParentNode);
+		root.add(bookmarkParentNode);
+
 		treeModel = new DefaultTreeModel(root);
 		setModel(treeModel);
 		setCellRenderer(new CellRenderer());
 		setRootVisible(false);
 		setShowsRootHandles(true);
-
-		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabsController());
-		openParentNode = new QuickTabsOpenParentNode(mainWindow.getTabsController());
-		bookmarkParentNode = new QuickTabsBookmarkParentNode(mainWindow.getTabsController());
-		fillOpenParentNode();
-		fillPinParentNode();
-		fillBookmarkParentNode();
-		root.add(openParentNode);
-		root.add(pinParentNode);
-		root.add(bookmarkParentNode);
 
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -78,6 +75,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		});
 
 		loadSettings();
+
+		fillOpenParentNode();
+		fillPinParentNode();
+		fillBookmarkParentNode();
 	}
 
 	private void triggerRightClickAction(MouseEvent e) {
