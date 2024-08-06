@@ -135,6 +135,7 @@ public class TabsController {
 		if (blueprint.isBookmarked() != bookmarked) {
 			blueprint.setBookmarked(bookmarked);
 			listeners.forEach(l -> l.onTabBookmarkChange(blueprint));
+			removeTabIfNotReferenced(blueprint);
 		}
 	}
 
@@ -147,6 +148,12 @@ public class TabsController {
 		if (blueprint != null && blueprint.isHidden() != hidden) {
 			blueprint.setHidden(hidden);
 			listeners.forEach(l -> l.onTabVisibilityChange(blueprint));
+		}
+	}
+
+	private void removeTabIfNotReferenced(TabBlueprint blueprint) {
+		if (blueprint.isHidden() && !blueprint.isReferenced()) {
+			tabsMap.remove(blueprint.getNode());
 		}
 	}
 
