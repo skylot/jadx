@@ -147,12 +147,14 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 	}
 
 	@Override
-	public EditorViewState getEditorViewState() {
+	public void saveEditorViewState(EditorViewState viewState) {
 		CodePanel codePanel = (CodePanel) areaTabbedPane.getSelectedComponent();
 		int caretPos = codePanel.getCodeArea().getCaretPosition();
 		Point viewPoint = codePanel.getCodeScrollPane().getViewport().getViewPosition();
 		String subPath = codePanel == javaCodePanel ? "java" : "smali";
-		return new EditorViewState(getNode(), subPath, caretPos, viewPoint);
+		viewState.setSubPath(subPath);
+		viewState.setCaretPos(caretPos);
+		viewState.setViewPoint(viewPoint);
 	}
 
 	@Override

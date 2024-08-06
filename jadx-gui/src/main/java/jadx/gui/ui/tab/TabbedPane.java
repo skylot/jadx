@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -42,15 +43,15 @@ import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public class TabbedPane extends JTabbedPane {
+public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	private static final long serialVersionUID = -8833600618794570904L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 
 	private final transient MainWindow mainWindow;
+	private final transient TabsController controller;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
 
-	private final ArrayList<ITabStatesListener> tabStatesListeners = new ArrayList<>();
 	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
@@ -58,9 +59,11 @@ public class TabbedPane extends JTabbedPane {
 
 	private transient TabDndController dnd;
 
-	public TabbedPane(MainWindow window) {
+	public TabbedPane(MainWindow window, TabsController controller) {
 		this.mainWindow = window;
+		this.controller = controller;
 
+		controller.addListener(this);
 		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
 		addMouseWheelListener(event -> {
@@ -299,10 +302,7 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void selectTab(ContentPanel contentPanel) {
-		setSelectedComponent(contentPanel);
-		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
-			mainWindow.syncWithEditor();
-		}
+		controller.selectTab(contentPanel.getNode());
 	}
 
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {
@@ -332,44 +332,6 @@ public class TabbedPane extends JTabbedPane {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
-	}
-
-	public List<EditorViewState> getEditorViewStates() {
-		ContentPanel selected = getSelectedContentPanel();
-		List<EditorViewState> states = new ArrayList<>();
-		for (ContentPanel panel : getTabs()) {
-			EditorViewState viewState;
-			if (panel instanceof IViewStateSupport) {
-				viewState = ((IViewStateSupport) panel).getEditorViewState();
-			} else {
-				viewState = new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO);
-			}
-			viewState.setActive(panel == selected);
-			viewState.setPinned(panel.isPinned());
-			states.add(viewState);
-		}
-		return states;
-	}
-
-	public void restoreEditorViewState(EditorViewState viewState) {
-		ContentPanel contentPanel = getContentPanel(viewState.getNode());
-		if (contentPanel instanceof IViewStateSupport) {
-			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
-		}
-		if (viewState.isActive()) {
-			setSelectedComponent(contentPanel);
-		}
-		if (contentPanel != null) {
-			boolean pinned = viewState.isPinned();
-			contentPanel.setPinned(pinned);
-			Component component = getTabComponentAt(indexOfComponent(contentPanel));
-			if (component instanceof TabComponent) {
-				TabComponent tabComponent = (TabComponent) component;
-				JNode node = contentPanel.getNode();
-				tabComponent.updateCloseOrPinButton();
-				tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
-			}
-		}
 	}
 
 	public void navBack() {
@@ -404,64 +366,13 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void closeCodePanel(ContentPanel contentPanel, boolean considerPins) {
-		if (considerPins && contentPanel.isPinned()) {
-			return;
-		}
-
-		tabsMap.remove(contentPanel.getNode());
-		remove(contentPanel);
-		contentPanel.dispose();
-	}
-
-	public void advanceTab(TabComponent tabComponent) {
-		remove(tabComponent.getContentPanel());
-		add(tabComponent.getContentPanel(), 0);
-		setTabComponentAt(0, tabComponent);
-		selectTab(tabComponent.getContentPanel());
-	}
-
-	public void notifyTabStateChange(TabComponent tabComponent, boolean pinChange) {
-		if (pinChange) {
-			JNode node = tabComponent.getContentPanel().getNode();
-			boolean pinned = tabComponent.getContentPanel().isPinned();
-			tabStatesListeners.forEach(l -> l.onTabPinChange(node, pinned));
-		}
-	}
-
-	public void addTabStateListener(ITabStatesListener listener) {
-		tabStatesListeners.add(listener);
-	}
-
-	public void removeTabStateListener(ITabStatesListener listener) {
-		tabStatesListeners.remove(listener);
+		controller.closeTab(contentPanel.getNode(), considerPins);
 	}
 
 	public List<ContentPanel> getTabs() {
 		List<ContentPanel> list = new ArrayList<>(getTabCount());
 		for (int i = 0; i < getTabCount(); i++) {
 			list.add((ContentPanel) getComponentAt(i));
-		}
-		return list;
-	}
-
-	public List<ContentPanel> getPinnedTabs() {
-		List<ContentPanel> list = new ArrayList<>(getTabCount());
-		for (int i = 0; i < getTabCount(); i++) {
-			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
-			if (contentPanel.isPinned()) {
-				list.add(contentPanel);
-			}
-		}
-		return list;
-	}
-
-	public List<TabComponent> getPinnedTabComponents() {
-		List<TabComponent> list = new ArrayList<>(getTabCount());
-		for (int i = 0; i < getTabCount(); i++) {
-			ContentPanel contentPanel = (ContentPanel) getComponentAt(i);
-			if (contentPanel.isPinned()) {
-				list.add((TabComponent) getTabComponentAt(i));
-			}
 		}
 		return list;
 	}
@@ -480,21 +391,8 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private @Nullable ContentPanel getContentPanel(JNode node) {
-		ContentPanel panel = getTabByNode(node);
-		if (panel != null) {
-			return panel;
-		}
-		ContentPanel newPanel = node.getContentPanel(this);
-		if (newPanel == null) {
-			return null;
-		}
-		FocusManager.listen(newPanel);
-		addContentPanel(newPanel);
-		return newPanel;
-	}
-
-	public void unpinAll() {
-		getPinnedTabComponents().forEach(TabComponent::togglePin);
+		controller.openTab(node);
+		return getTabByNode(node);
 	}
 
 	public void refresh(JNode node) {
@@ -517,19 +415,18 @@ public class TabbedPane extends JTabbedPane {
 				continue;
 			}
 			ContentPanel oldPanel = (ContentPanel) getComponentAt(i);
-			EditorViewState viewState = null;
-			if (oldPanel instanceof IViewStateSupport) {
-				viewState = ((IViewStateSupport) oldPanel).getEditorViewState();
+			TabBlueprint tab = controller.getTabByNode(oldPanel.getNode());
+			if (tab == null) {
+				continue;
 			}
+			EditorViewState viewState = controller.getEditorViewState(tab);
 			JNode node = oldPanel.getNode();
 			ContentPanel panel = node.getContentPanel(this);
-			if (viewState != null && panel instanceof IViewStateSupport) {
-				((IViewStateSupport) panel).restoreEditorViewState(viewState);
-			}
 			FocusManager.listen(panel);
 			tabsMap.put(node, panel);
 			setComponentAt(i, panel);
 			setTabComponentAt(i, makeTabComponent(panel));
+			controller.restoreEditorViewState(viewState);
 		}
 		fireStateChanged();
 	}
@@ -580,6 +477,123 @@ public class TabbedPane extends JTabbedPane {
 
 	public void setDnd(TabDndController dnd) {
 		this.dnd = dnd;
+	}
+
+	@Override
+	public void onTabOpen(TabBlueprint blueprint) {
+		if (blueprint.isHidden()) {
+			return;
+		}
+		ContentPanel newPanel = blueprint.getNode().getContentPanel(this);
+		FocusManager.listen(newPanel);
+		addContentPanel(newPanel);
+	}
+
+	@Override
+	public void onTabSelect(TabBlueprint blueprint) {
+		ContentPanel contentPanel = getContentPanel(blueprint.getNode());
+		setSelectedComponent(contentPanel);
+		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
+			mainWindow.syncWithEditor();
+		}
+	}
+
+	@Override
+	public void onTabClose(TabBlueprint blueprint) {
+		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		if (contentPanel == null) {
+			return;
+		}
+		tabsMap.remove(contentPanel.getNode());
+		remove(contentPanel);
+		contentPanel.dispose();
+	}
+
+	@Override
+	public void onTabPositionFirst(TabBlueprint blueprint) {
+		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		if (contentPanel == null) {
+			return;
+		}
+		setTabPosition(contentPanel, 0);
+	}
+
+	private void setTabPosition(ContentPanel contentPanel, int position) {
+		TabComponent tabComponent = getTabComponentByNode(contentPanel.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		remove(contentPanel);
+		add(contentPanel, position);
+		setTabComponentAt(position, tabComponent);
+	}
+
+	@Override
+	public void onTabPinChange(TabBlueprint blueprint) {
+		TabComponent tabComponent = getTabComponentByNode(blueprint.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		tabComponent.updateCloseOrPinButton();
+	}
+
+	@Override
+	public void onTabBookmarkChange(TabBlueprint blueprint) {
+		TabComponent tabComponent = getTabComponentByNode(blueprint.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		tabComponent.updateBookmarkIcon();
+	}
+
+	@Override
+	public void onTabVisibilityChange(TabBlueprint blueprint) {
+		if (!blueprint.isHidden() && !tabsMap.containsKey(blueprint.getNode())) {
+			onTabOpen(blueprint);
+		}
+		if (blueprint.isHidden() && tabsMap.containsKey(blueprint.getNode())) {
+			onTabClose(blueprint);
+		}
+	}
+
+	@Override
+	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
+		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		if (contentPanel instanceof IViewStateSupport) {
+			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
+		}
+	}
+
+	@Override
+	public void onTabsRestoreDone() {
+	}
+
+	@Override
+	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
+		ArrayList<TabBlueprint> newBlueprints = new ArrayList<>();
+		for (ContentPanel contentPanel : getTabs()) {
+			Optional<TabBlueprint> blueprintFindResult = blueprints.stream()
+					.filter(b -> b.getNode() == contentPanel.getNode())
+					.findFirst();
+			if (blueprintFindResult.isPresent()) {
+				TabBlueprint blueprint = blueprintFindResult.get();
+				blueprints.remove(blueprint);
+				newBlueprints.add(blueprint);
+			}
+		}
+		// Add back hidden tabs
+		newBlueprints.addAll(blueprints);
+
+		blueprints.clear();
+		blueprints.addAll(newBlueprints);
+	}
+
+	@Override
+	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
+		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		if (contentPanel instanceof IViewStateSupport) {
+			((IViewStateSupport) contentPanel).saveEditorViewState(viewState);
+		}
 	}
 
 	private static class FocusManager implements FocusListener {

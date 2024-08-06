@@ -28,20 +28,37 @@ public class QuickTabsChildNode extends QuickTabsBaseNode {
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		JPopupMenu menu = node.onTreePopupMenu(mainWindow);
 
-		if (node.isPinnable()) {
-			if (menu == null) {
-				menu = new JPopupMenu();
-			}
-
-			JMenuItem unpinAction = new JMenuItem(NLS.str("tabs.unpin"));
-			unpinAction.addActionListener(e -> {
-				TabComponent tabComponent = mainWindow.getTabbedPane().getTabComponentByNode(node);
-				if (tabComponent != null) {
-					tabComponent.togglePin();
+		if (node.supportsQuickTabs()) {
+			if (getParent() instanceof QuickTabsPinParentNode) {
+				if (menu == null) {
+					menu = new JPopupMenu();
 				}
-			});
-			menu.add(unpinAction, 0);
-			menu.add(new JPopupMenu.Separator(), 1);
+
+				JMenuItem closeAction = new JMenuItem(NLS.str("tabs.close"));
+				closeAction.addActionListener(e -> mainWindow.getTabsController().closeTab(node, true));
+				menu.add(closeAction, 0);
+				menu.add(new JPopupMenu.Separator(), 1);
+			}
+			if (getParent() instanceof QuickTabsPinParentNode) {
+				if (menu == null) {
+					menu = new JPopupMenu();
+				}
+
+				JMenuItem unpinAction = new JMenuItem(NLS.str("tabs.unpin"));
+				unpinAction.addActionListener(e -> mainWindow.getTabsController().setTabPinned(node, false));
+				menu.add(unpinAction, 0);
+				menu.add(new JPopupMenu.Separator(), 1);
+			}
+			if (getParent() instanceof QuickTabsBookmarkParentNode) {
+				if (menu == null) {
+					menu = new JPopupMenu();
+				}
+
+				JMenuItem unbookmarkAction = new JMenuItem(NLS.str("tabs.unbookmark"));
+				unbookmarkAction.addActionListener(e -> mainWindow.getTabsController().setTabBookmarked(node, false));
+				menu.add(unbookmarkAction, 0);
+				menu.add(new JPopupMenu.Separator(), 1);
+			}
 		}
 
 		return menu;

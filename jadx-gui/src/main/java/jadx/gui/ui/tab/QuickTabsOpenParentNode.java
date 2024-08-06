@@ -8,19 +8,19 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 
-public class QuickTabsPinParentNode extends QuickTabsParentNode {
-	protected QuickTabsPinParentNode(TabsController tabsController) {
+public class QuickTabsOpenParentNode extends QuickTabsParentNode {
+	protected QuickTabsOpenParentNode(TabsController tabsController) {
 		super(tabsController);
 	}
 
 	@Override
 	public String getTitle() {
-		return NLS.str("tree.pinned_tabs");
+		return NLS.str("tree.open_tabs");
 	}
 
 	@Override
 	Icon getIcon() {
-		return Icons.PIN;
+		return Icons.FOLDER;
 	}
 
 	@Override
@@ -30,9 +30,9 @@ public class QuickTabsPinParentNode extends QuickTabsParentNode {
 		}
 
 		JPopupMenu menu = new JPopupMenu();
-		JMenuItem unpinAll = new JMenuItem(NLS.str("tabs.unpin_all"));
-		unpinAll.addActionListener(e -> getTabsController().unpinAllTabs());
-		menu.add(unpinAll);
+		JMenuItem closeAll = new JMenuItem(NLS.str("tabs.closeAll"));
+		closeAll.addActionListener(e -> getTabsController().closeAllTabs(true));
+		menu.add(closeAll);
 
 		return menu;
 	}

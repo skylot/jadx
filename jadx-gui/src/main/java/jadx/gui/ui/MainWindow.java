@@ -141,6 +141,7 @@ import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.ui.tab.TabsController;
 import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
@@ -208,6 +209,7 @@ public class MainWindow extends JFrame {
 	private JTree tree;
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
+	private TabsController tabsController;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
 	private transient boolean treeReloading;
@@ -370,6 +372,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveProject() {
+		saveOpenTabs();
 		if (!project.isSaveFileSelected()) {
 			saveProjectAs();
 		} else {
@@ -563,7 +566,7 @@ public class MainWindow extends JFrame {
 		resetCache();
 		LogCollector.getInstance().reset();
 		wrapper.close();
-		tabbedPane.closeAllTabs();
+		tabsController.forceCloseAllTabs();
 		UiUtils.resetClipboardOwner();
 		System.gc();
 		update();
@@ -1342,7 +1345,8 @@ public class MainWindow extends JFrame {
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
 		treeSplitPane.setLeftComponent(leftPane);
 
-		tabbedPane = new TabbedPane(this);
+		tabsController = new TabsController(this);
+		tabbedPane = new TabbedPane(this, tabsController);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		new TabDndController(tabbedPane, settings);
 
@@ -1512,7 +1516,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveOpenTabs() {
-		project.saveOpenTabs(tabbedPane.getEditorViewStates());
+		project.saveOpenTabs(tabsController.getEditorViewStates());
 	}
 
 	private void restoreOpenTabs(List<EditorViewState> openTabs) {
@@ -1521,8 +1525,9 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		for (EditorViewState viewState : openTabs) {
-			tabbedPane.restoreEditorViewState(viewState);
+			tabsController.restoreEditorViewState(viewState);
 		}
+		tabsController.notifyRestoreEditorViewStateDone();
 	}
 
 	private void preLoadOpenTabs(List<EditorViewState> openTabs) {
@@ -1570,6 +1575,10 @@ public class MainWindow extends JFrame {
 
 	public TabbedPane getTabbedPane() {
 		return tabbedPane;
+	}
+
+	public TabsController getTabsController() {
+		return tabsController;
 	}
 
 	public JadxSettings getSettings() {

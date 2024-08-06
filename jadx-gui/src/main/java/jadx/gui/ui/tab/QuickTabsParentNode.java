@@ -9,38 +9,44 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 
 abstract class QuickTabsParentNode extends QuickTabsBaseNode {
-	private final TabbedPane tabbedPane;
+	private final TabsController tabsController;
 	private final Map<JNode, QuickTabsChildNode> childrenMap = new HashMap<>();
 
-	protected QuickTabsParentNode(TabbedPane tabbedPane) {
+	protected QuickTabsParentNode(TabsController tabsController) {
 		super();
 
-		this.tabbedPane = tabbedPane;
+		this.tabsController = tabsController;
 	}
 
-	public void addJNode(JNode node) {
+	public boolean addJNode(JNode node) {
 		if (childrenMap.containsKey(node)) {
-			return;
+			return false;
 		}
 		QuickTabsChildNode childNode = new QuickTabsChildNode(node);
 		childrenMap.put(node, childNode);
 		add(childNode);
+		return true;
 	}
 
-	public void removeJNode(JNode node) {
+	public boolean removeJNode(JNode node) {
 		QuickTabsChildNode childNode = childrenMap.remove(node);
 		if (childNode == null) {
-			return;
+			return false;
 		}
 		remove(childNode);
+		return true;
+	}
+
+	public void removeAllNodes() {
+		removeAllChildren();
 	}
 
 	public QuickTabsChildNode getQuickTabsNode(JNode node) {
 		return childrenMap.get(node);
 	}
 
-	public TabbedPane getTabbedPane() {
-		return tabbedPane;
+	public TabsController getTabsController() {
+		return tabsController;
 	}
 
 	abstract String getTitle();

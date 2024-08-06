@@ -4,7 +4,7 @@ import jadx.gui.ui.codearea.EditorViewState;
 
 public interface IViewStateSupport {
 
-	EditorViewState getEditorViewState();
+	void saveEditorViewState(EditorViewState viewState);
 
 	void restoreEditorViewState(EditorViewState viewState);
 }
