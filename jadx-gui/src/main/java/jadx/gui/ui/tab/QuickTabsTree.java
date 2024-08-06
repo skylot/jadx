@@ -26,8 +26,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	private final MainWindow mainWindow;
 	private final DefaultTreeModel treeModel;
 
-	private final QuickTabsOpenParentNode openParentNode;
+	private final QuickTabsParentNode openParentNode;
 	private final QuickTabsParentNode pinParentNode;
+	private final QuickTabsParentNode bookmarkParentNode;
 
 	public QuickTabsTree(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -37,10 +38,13 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		Root root = new Root();
 		pinParentNode = new QuickTabsPinParentNode(mainWindow.getTabsController());
 		openParentNode = new QuickTabsOpenParentNode(mainWindow.getTabsController());
+		bookmarkParentNode = new QuickTabsBookmarkParentNode(mainWindow.getTabsController());
 		fillOpenParentNode();
 		fillPinParentNode();
+		fillBookmarkParentNode();
 		root.add(openParentNode);
 		root.add(pinParentNode);
+		root.add(bookmarkParentNode);
 
 		treeModel = new DefaultTreeModel(root);
 		setModel(treeModel);
@@ -96,7 +100,8 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 		if (pressedNode instanceof QuickTabsChildNode) {
 			QuickTabsChildNode childNode = (QuickTabsChildNode) pressedNode;
-			return mainWindow.getTabbedPane().showNode(childNode.getJNode());
+			mainWindow.getTabsController().selectTab(childNode.getJNode());
+			return true;
 		}
 
 		return false;
@@ -108,6 +113,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	private void fillPinParentNode() {
 		mainWindow.getTabsController().getPinnedTabs().forEach(this::onTabPinChange);
+	}
+
+	private void fillBookmarkParentNode() {
+		mainWindow.getTabsController().getBookmarkedTabs().forEach(this::onTabBookmarkChange);
 	}
 
 	private void clearParentNode(QuickTabsParentNode parentNode) {
@@ -164,7 +173,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabOpen(TabBlueprint blueprint) {
-		if (blueprint.getNode().supportsQuickTabs()) {
+		if (!blueprint.isHidden() && blueprint.getNode().supportsQuickTabs()) {
 			addJNode(openParentNode, blueprint.getNode());
 		}
 	}
@@ -178,6 +187,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	public void onTabClose(TabBlueprint blueprint) {
 		removeJNode(openParentNode, blueprint.getNode());
 		removeJNode(pinParentNode, blueprint.getNode());
+		removeJNode(bookmarkParentNode, blueprint.getNode());
 	}
 
 	@Override
@@ -197,7 +207,22 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabBookmarkChange(TabBlueprint blueprint) {
+		JNode node = blueprint.getNode();
+		if (blueprint.isBookmarked()) {
+			addJNode(bookmarkParentNode, node);
+		} else {
+			removeJNode(bookmarkParentNode, node);
+		}
+	}
 
+	@Override
+	public void onTabVisibilityChange(TabBlueprint blueprint) {
+		JNode node = blueprint.getNode();
+		if (!blueprint.isHidden()) {
+			addJNode(openParentNode, node);
+		} else {
+			removeJNode(openParentNode, node);
+		}
 	}
 
 	@Override

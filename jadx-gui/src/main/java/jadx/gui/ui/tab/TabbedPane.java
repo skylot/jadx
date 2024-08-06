@@ -480,6 +480,9 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	@Override
 	public void onTabOpen(TabBlueprint blueprint) {
+		if (blueprint.isHidden()) {
+			return;
+		}
 		ContentPanel newPanel = blueprint.getNode().getContentPanel(this);
 		FocusManager.listen(newPanel);
 		addContentPanel(newPanel);
@@ -537,6 +540,16 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	@Override
 	public void onTabBookmarkChange(TabBlueprint blueprint) {
 
+	}
+
+	@Override
+	public void onTabVisibilityChange(TabBlueprint blueprint) {
+		if (!blueprint.isHidden() && !tabsMap.containsKey(blueprint.getNode())) {
+			onTabOpen(blueprint);
+		}
+		if (blueprint.isHidden() && tabsMap.containsKey(blueprint.getNode())) {
+			onTabClose(blueprint);
+		}
 	}
 
 	@Override

@@ -15,6 +15,8 @@ public interface ITabStatesListener {
 
 	void onTabBookmarkChange(TabBlueprint blueprint);
 
+	void onTabVisibilityChange(TabBlueprint blueprint);
+
 	void onTabRestore(TabBlueprint blueprint, EditorViewState viewState);
 
 	void onTabSave(TabBlueprint blueprint, EditorViewState viewState);

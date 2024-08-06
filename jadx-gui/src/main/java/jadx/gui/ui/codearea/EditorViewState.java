@@ -15,6 +15,8 @@ public class EditorViewState {
 	private boolean active;
 
 	private boolean pinned;
+	private boolean bookmarked;
+	private boolean hidden;
 
 	public EditorViewState(JNode node) {
 		this(node, "", 0, EditorViewState.ZERO);
@@ -69,6 +71,22 @@ public class EditorViewState {
 
 	public void setPinned(boolean pinned) {
 		this.pinned = pinned;
+	}
+
+	public boolean isBookmarked() {
+		return bookmarked;
+	}
+
+	public void setBookmarked(boolean bookmarked) {
+		this.bookmarked = bookmarked;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
 	}
 
 	@Override

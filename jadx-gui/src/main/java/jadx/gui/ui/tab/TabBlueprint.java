@@ -6,6 +6,7 @@ public class TabBlueprint {
 	private final JNode node;
 	private boolean pinned;
 	private boolean bookmarked;
+	private boolean hidden;
 
 	public TabBlueprint(JNode node) {
 		this.node = node;
@@ -31,7 +32,19 @@ public class TabBlueprint {
 		this.bookmarked = bookmarked;
 	}
 
-	public boolean isPinnable() {
+	public boolean supportsQuickTabs() {
 		return node.supportsQuickTabs();
+	}
+
+	public boolean isReferenced() {
+		return isBookmarked();
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
 	}
 }

@@ -565,7 +565,7 @@ public class MainWindow extends JFrame {
 		resetCache();
 		LogCollector.getInstance().reset();
 		wrapper.close();
-		tabsController.closeAllTabs();
+		tabsController.forceCloseAllTabs();
 		UiUtils.resetClipboardOwner();
 		System.gc();
 		update();

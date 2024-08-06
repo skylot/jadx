@@ -153,6 +153,11 @@ public class TabComponent extends JPanel {
 		}
 	}
 
+	private void toggleBookmark() {
+		boolean bookmarked = !getBlueprint().isBookmarked();
+		tabsController.setTabBookmarked(getNode(), bookmarked);
+	}
+
 	private void addListenerForDnd() {
 		if (tabbedPane.getDnd() == null) {
 			return;
@@ -194,7 +199,7 @@ public class TabComponent extends JPanel {
 			menu.addSeparator();
 		}
 
-		if (getBlueprint().isPinnable()) {
+		if (getBlueprint().supportsQuickTabs()) {
 			String pinTitle = getBlueprint().isPinned() ? NLS.str("tabs.unpin") : NLS.str("tabs.pin");
 			JMenuItem pinTab = new JMenuItem(pinTitle);
 			pinTab.addActionListener(e -> togglePin());
@@ -203,6 +208,15 @@ public class TabComponent extends JPanel {
 			JMenuItem unpinAll = new JMenuItem(NLS.str("tabs.unpin_all"));
 			unpinAll.addActionListener(e -> tabsController.unpinAllTabs());
 			menu.add(unpinAll);
+
+			String bookmarkTitle = getBlueprint().isBookmarked() ? NLS.str("tabs.unbookmark") : NLS.str("tabs.bookmark");
+			JMenuItem bookmarkTab = new JMenuItem(bookmarkTitle);
+			bookmarkTab.addActionListener(e -> toggleBookmark());
+			menu.add(bookmarkTab);
+
+			JMenuItem unbookmarkAll = new JMenuItem(NLS.str("tabs.unbookmark_all"));
+			unbookmarkAll.addActionListener(e -> tabsController.unbookmarkAllTabs());
+			menu.add(unbookmarkAll);
 		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
