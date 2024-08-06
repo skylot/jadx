@@ -129,7 +129,7 @@ public class TextStandardActions {
 
 		boolean enabled = textComponent.isEnabled();
 		boolean editable = textComponent.isEditable();
-		boolean nonempty = !(textComponent.getText() == null || textComponent.getText().equals(""));
+		boolean nonempty = !(textComponent.getText() == null || textComponent.getText().isEmpty());
 		boolean marked = textComponent.getSelectedText() != null;
 		boolean pasteAvailable = Toolkit.getDefaultToolkit().getSystemClipboard()
 				.getContents(null).isDataFlavorSupported(DataFlavor.stringFlavor);

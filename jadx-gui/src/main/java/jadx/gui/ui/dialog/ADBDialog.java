@@ -390,7 +390,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 
 	private String getPid(String nodeText) {
 		if (nodeText.startsWith("[pid:")) {
-			int pos = nodeText.indexOf("]", "[pid:".length());
+			int pos = nodeText.indexOf(']', "[pid:".length());
 			if (pos != -1) {
 				return nodeText.substring("[pid:".length(), pos).trim();
 			}
@@ -600,7 +600,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private String getMajorVer(String ver) {
-		int pos = ver.indexOf(".");
+		int pos = ver.indexOf('.');
 		if (pos != -1) {
 			ver = ver.substring(0, pos);
 		}
