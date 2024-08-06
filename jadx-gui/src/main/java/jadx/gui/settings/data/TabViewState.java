@@ -10,7 +10,6 @@ public class TabViewState {
 	boolean pinned;
 	boolean bookmarked;
 	boolean hidden;
-	int tabbedPaneIndex = -1;
 
 	public String getType() {
 		return type;
@@ -82,13 +81,5 @@ public class TabViewState {
 
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
-	}
-
-	public int getTabbedPaneIndex() {
-		return tabbedPaneIndex;
-	}
-
-	public void setTabbedPaneIndex(int tabbedPaneIndex) {
-		this.tabbedPaneIndex = tabbedPaneIndex;
 	}
 }

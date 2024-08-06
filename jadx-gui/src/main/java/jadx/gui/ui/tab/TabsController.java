@@ -216,8 +216,10 @@ public class TabsController {
 	}
 
 	public List<EditorViewState> getEditorViewStates() {
+		ArrayList<TabBlueprint> reorderedTabs = new ArrayList<>(tabsMap.values());
+		listeners.forEach(l -> l.onTabsReorder(reorderedTabs));
 		List<EditorViewState> states = new ArrayList<>();
-		for (TabBlueprint blueprint : getTabs()) {
+		for (TabBlueprint blueprint : reorderedTabs) {
 			states.add(getEditorViewState(blueprint));
 		}
 		return states;

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -50,7 +51,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	private final transient MainWindow mainWindow;
 	private final transient TabsController controller;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
-	private final transient ArrayList<EditorViewState> pendingViewStatesReorder = new ArrayList<>();
 
 	private final transient JumpManager jumps = new JumpManager();
 
@@ -562,26 +562,30 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (contentPanel instanceof IViewStateSupport) {
 			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
 		}
-		pendingViewStatesReorder.add(viewState);
 	}
 
 	@Override
 	public void onTabsRestoreDone() {
-		// Iterate through reorderedViewStates in reverse order and
-		// add every found instance to index 0
-		pendingViewStatesReorder
-				.stream()
-				.sorted((v1, v2) -> Integer.compare(v2.getTabbedPaneIndex(), v1.getTabbedPaneIndex()))
-				.forEach(viewState -> {
-					ContentPanel contentPanel = getTabByNode(viewState.getNode());
-					if (contentPanel != null) {
-						setTabPosition(contentPanel, 0);
-					} else {
-						LOG.warn("No ContentPanel with node " + viewState.getNode());
-					}
-				});
+	}
 
-		pendingViewStatesReorder.clear();
+	@Override
+	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
+		ArrayList<TabBlueprint> newBlueprints = new ArrayList<>();
+		for (ContentPanel contentPanel : getTabs()) {
+			Optional<TabBlueprint> blueprintFindResult = blueprints.stream()
+					.filter(b -> b.getNode() == contentPanel.getNode())
+					.findFirst();
+			if (blueprintFindResult.isPresent()) {
+				TabBlueprint blueprint = blueprintFindResult.get();
+				blueprints.remove(blueprint);
+				newBlueprints.add(blueprint);
+			}
+		}
+		// Add back hidden tabs
+		newBlueprints.addAll(blueprints);
+
+		blueprints.clear();
+		blueprints.addAll(newBlueprints);
 	}
 
 	@Override
@@ -589,9 +593,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel instanceof IViewStateSupport) {
 			((IViewStateSupport) contentPanel).saveEditorViewState(viewState);
-		}
-		if (contentPanel != null) {
-			viewState.setTabbedPaneIndex(indexOfComponent(contentPanel));
 		}
 	}
 

@@ -32,7 +32,6 @@ public class TabStateViewAdapter {
 		tvs.setPinned(viewState.isPinned());
 		tvs.setBookmarked(viewState.isBookmarked());
 		tvs.setHidden(viewState.isHidden());
-		tvs.setTabbedPaneIndex(viewState.getTabbedPaneIndex());
 		return tvs;
 	}
 
@@ -48,7 +47,6 @@ public class TabStateViewAdapter {
 			viewState.setPinned(tvs.isPinned());
 			viewState.setBookmarked(tvs.isBookmarked());
 			viewState.setHidden(tvs.isHidden());
-			viewState.setTabbedPaneIndex(tvs.getTabbedPaneIndex());
 			return viewState;
 		} catch (Exception e) {
 			LOG.error("Failed to load tab state: " + tvs, e);

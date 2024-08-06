@@ -17,7 +17,6 @@ public class EditorViewState {
 	private boolean pinned;
 	private boolean bookmarked;
 	private boolean hidden;
-	private int tabbedPaneIndex = -1;
 
 	public EditorViewState(JNode node) {
 		this(node, "", 0, EditorViewState.ZERO);
@@ -88,14 +87,6 @@ public class EditorViewState {
 
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
-	}
-
-	public int getTabbedPaneIndex() {
-		return tabbedPaneIndex;
-	}
-
-	public void setTabbedPaneIndex(int tabbedPaneIndex) {
-		this.tabbedPaneIndex = tabbedPaneIndex;
 	}
 
 	@Override

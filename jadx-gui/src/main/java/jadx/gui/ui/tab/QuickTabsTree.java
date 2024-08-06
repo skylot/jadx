@@ -6,6 +6,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
@@ -233,6 +234,11 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabsRestoreDone() {
+
+	}
+
+	@Override
+	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
 
 	}
 
