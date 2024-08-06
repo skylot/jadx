@@ -54,6 +54,14 @@ public class OverlayIcon implements Icon {
 		icons.add(icon);
 	}
 
+	public void remove(Icon icon) {
+		icons.remove(icon);
+	}
+
+	public void clear() {
+		icons.clear();
+	}
+
 	public List<Icon> getIcons() {
 		return icons;
 	}

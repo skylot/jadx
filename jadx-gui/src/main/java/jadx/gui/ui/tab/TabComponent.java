@@ -29,6 +29,7 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.dnd.TabDndGestureListener;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.NodeLabel;
 
@@ -39,6 +40,7 @@ public class TabComponent extends JPanel {
 	private final TabsController tabsController;
 	private final ContentPanel contentPanel;
 
+	private OverlayIcon icon;
 	private JLabel label;
 	private JButton pinBtn;
 	private JButton closeBtn;
@@ -67,6 +69,8 @@ public class TabComponent extends JPanel {
 		setOpaque(false);
 
 		JNode node = getNode();
+		icon = new OverlayIcon(node.getIcon());
+
 		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
@@ -74,7 +78,8 @@ public class TabComponent extends JPanel {
 			setToolTipText(toolTip);
 		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-		label.setIcon(node.getIcon());
+		label.setIcon(icon);
+		updateBookmarkIcon();
 		if (node instanceof JEditableNode) {
 			((JEditableNode) node).addChangeListener(c -> label.setText(buildTabTitle(node)));
 		}
@@ -140,6 +145,14 @@ public class TabComponent extends JPanel {
 			if (!closeBtn.isShowing()) {
 				add(closeBtn);
 			}
+		}
+	}
+
+	public void updateBookmarkIcon() {
+		icon.clear();
+
+		if (getBlueprint().isBookmarked()) {
+			icon.add(Icons.BOOKMARK_OVERLAY_DARK);
 		}
 	}
 

@@ -539,7 +539,11 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	@Override
 	public void onTabBookmarkChange(TabBlueprint blueprint) {
-
+		TabComponent tabComponent = getTabComponentByNode(blueprint.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		tabComponent.updateBookmarkIcon();
 	}
 
 	@Override
