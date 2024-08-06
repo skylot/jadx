@@ -15,7 +15,7 @@ public class QuickTabsBookmarkParentNode extends QuickTabsParentNode {
 
 	@Override
 	public String getTitle() {
-		return "Bookmarked Tabs";
+		return NLS.str("tree.bookmarked_tabs");
 	}
 
 	@Override
