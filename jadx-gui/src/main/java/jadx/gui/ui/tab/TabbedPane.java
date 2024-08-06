@@ -569,8 +569,8 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
-		ArrayList<TabBlueprint> newBlueprints = new ArrayList<>();
+	public void onTabsReorder(List<TabBlueprint> blueprints) {
+		List<TabBlueprint> newBlueprints = new ArrayList<>();
 		for (ContentPanel contentPanel : getTabs()) {
 			Optional<TabBlueprint> blueprintFindResult = blueprints.stream()
 					.filter(b -> b.getNode() == contentPanel.getNode())

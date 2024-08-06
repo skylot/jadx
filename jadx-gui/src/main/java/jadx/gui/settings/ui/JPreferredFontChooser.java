@@ -4,6 +4,7 @@ import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class JPreferredFontChooser extends JFontChooser {
 			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			Set<String> fontSet = new HashSet<>();
 			Collections.addAll(fontSet, env.getAvailableFontFamilyNames());
-			ArrayList<String> found = new ArrayList<>(PREFERRED_FONTS.length);
+			List<String> found = new ArrayList<>(PREFERRED_FONTS.length);
 			for (String font : PREFERRED_FONTS) {
 				if (fontSet.contains(font)) {
 					found.add(font);

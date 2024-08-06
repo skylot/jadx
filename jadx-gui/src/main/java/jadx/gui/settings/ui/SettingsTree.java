@@ -1,6 +1,5 @@
 package jadx.gui.settings.ui;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +51,7 @@ public class SettingsTree extends JTree {
 	}
 
 	private static void setNodeExpandedState(JTree tree, TreeNode node, boolean expanded) {
-		ArrayList<? extends TreeNode> list = Collections.list(node.children());
+		List<? extends TreeNode> list = Collections.list(node.children());
 		for (TreeNode treeNode : list) {
 			setNodeExpandedState(tree, treeNode, expanded);
 		}

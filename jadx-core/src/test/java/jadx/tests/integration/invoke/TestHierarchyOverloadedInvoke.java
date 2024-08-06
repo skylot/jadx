@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.is;
 
 public class TestHierarchyOverloadedInvoke extends IntegrationTest {
 
+	@SuppressWarnings("IllegalType")
 	public static class TestCls {
 		static int c = 0;
 		B b = new B();

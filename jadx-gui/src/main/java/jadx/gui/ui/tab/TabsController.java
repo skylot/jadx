@@ -15,7 +15,7 @@ import jadx.gui.ui.codearea.EditorViewState;
 public class TabsController {
 	private final transient MainWindow mainWindow;
 	private final Map<JNode, TabBlueprint> tabsMap = new HashMap<>();
-	private final ArrayList<ITabStatesListener> listeners = new ArrayList<>();
+	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
 
@@ -223,7 +223,7 @@ public class TabsController {
 	}
 
 	public List<EditorViewState> getEditorViewStates() {
-		ArrayList<TabBlueprint> reorderedTabs = new ArrayList<>(tabsMap.values());
+		List<TabBlueprint> reorderedTabs = new ArrayList<>(tabsMap.values());
 		listeners.forEach(l -> l.onTabsReorder(reorderedTabs));
 		List<EditorViewState> states = new ArrayList<>();
 		for (TabBlueprint blueprint : reorderedTabs) {

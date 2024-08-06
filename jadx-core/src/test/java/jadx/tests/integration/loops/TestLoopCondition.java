@@ -1,5 +1,7 @@
 package jadx.tests.integration.loops;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -11,7 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestLoopCondition extends IntegrationTest {
 
 	public static class TestCls {
-		public void test(java.util.ArrayList<String> list) {
+		public void test(List<String> list) {
 			for (int i = 0; i != 16 && i < 255; i++) {
 				list.set(i, "ABC");
 				if (i == 128) {

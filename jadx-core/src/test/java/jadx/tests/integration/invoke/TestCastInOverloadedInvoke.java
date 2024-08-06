@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.is;
 
 public class TestCastInOverloadedInvoke extends IntegrationTest {
 
+	@SuppressWarnings("IllegalType")
 	public static class TestCls {
 		int c = 0;
 

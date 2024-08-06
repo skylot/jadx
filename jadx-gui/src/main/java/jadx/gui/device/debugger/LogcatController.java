@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,7 +25,7 @@ public class LogcatController {
 	private Timer timer;
 	private final String timezone;
 	private LogcatInfo recent = null;
-	private ArrayList<LogcatInfo> events = new ArrayList<>();
+	private List<LogcatInfo> events = new ArrayList<>();
 	private LogcatFilter filter = new LogcatFilter(null, null);
 	private String status = "null";
 
@@ -163,8 +164,8 @@ public class LogcatController {
 	}
 
 	public class LogcatFilter {
-		private final ArrayList<Integer> pid;
-		private ArrayList<Byte> msgType = new ArrayList<Byte>() {
+		private final List<Integer> pid;
+		private List<Byte> msgType = new ArrayList<>() {
 			{
 				add((byte) 1);
 				add((byte) 2);
@@ -239,8 +240,8 @@ public class LogcatController {
 			return false;
 		}
 
-		public ArrayList<LogcatInfo> getFilteredList(ArrayList<LogcatInfo> inInfoList) {
-			ArrayList<LogcatInfo> outInfoList = new ArrayList<LogcatInfo>();
+		public List<LogcatInfo> getFilteredList(List<LogcatInfo> inInfoList) {
+			List<LogcatInfo> outInfoList = new ArrayList<>();
 			inInfoList.forEach((inInfo) -> {
 				if (doFilter(inInfo)) {
 					outInfoList.add(inInfo);

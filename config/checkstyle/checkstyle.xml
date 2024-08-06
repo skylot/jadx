@@ -120,7 +120,10 @@
 
 		<module name="SuppressWarningsHolder"/>
 
-		<module name="IllegalType"/>
+		<module name="IllegalType">
+			<property name="illegalClassNames" value="java.util.ArrayList, java.util.HashMap, java.util.HashSet,
+				 java.util.LinkedHashMap, java.util.LinkedHashSet, java.util.TreeMap, java.util.TreeSet"/>
+		</module>
 		<module name="IllegalImport">
 			<property name="illegalClasses" value="jadx.core.utils.DebugUtils"/>
 		</module>
@@ -128,7 +131,8 @@
 			<property name="id" value="printstacktrace"/>
 			<property name="format" value="\.printStackTrace\(\)"/>
 			<property name="ignoreComments" value="true"/>
-			<property name="message" value="Using Throwable.printStackTrace() is forbidden. Use logger to print exception"/>
+			<property name="message"
+					  value="Using Throwable.printStackTrace() is forbidden. Use logger to print exception"/>
 		</module>
 	</module>
 
