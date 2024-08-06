@@ -154,6 +154,7 @@ public class TabComponent extends JPanel {
 		if (getBlueprint().isBookmarked()) {
 			icon.add(Icons.BOOKMARK_OVERLAY_DARK);
 		}
+		label.repaint();
 	}
 
 	private void togglePin() {
