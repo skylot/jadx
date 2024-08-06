@@ -1,6 +1,7 @@
 package jadx.gui.ui.tab;
 
 import javax.swing.Icon;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import jadx.gui.ui.MainWindow;
@@ -24,6 +25,15 @@ public class QuickTabsOpenParentNode extends QuickTabsParentNode {
 
 	@Override
 	JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
-		return null;
+		if (getChildCount() == 0) {
+			return null;
+		}
+
+		JPopupMenu menu = new JPopupMenu();
+		JMenuItem closeAll = new JMenuItem(NLS.str("tabs.closeAll"));
+		closeAll.addActionListener(e -> getTabsController().closeAllTabs(true));
+		menu.add(closeAll);
+
+		return menu;
 	}
 }
