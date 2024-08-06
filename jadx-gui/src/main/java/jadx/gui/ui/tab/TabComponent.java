@@ -156,7 +156,7 @@ public class TabComponent extends JPanel {
 		}
 	}
 
-	public void togglePin() {
+	private void togglePin() {
 		boolean pinned = !getBlueprint().isPinned();
 		tabsController.setTabPinned(getNode(), pinned);
 
