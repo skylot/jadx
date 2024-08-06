@@ -372,6 +372,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveProject() {
+		saveOpenTabs();
 		if (!project.isSaveFileSelected()) {
 			saveProjectAs();
 		} else {
