@@ -1527,6 +1527,7 @@ public class MainWindow extends JFrame {
 		for (EditorViewState viewState : openTabs) {
 			tabsController.restoreEditorViewState(viewState);
 		}
+		tabsController.notifyRestoreEditorViewStateDone();
 	}
 
 	private void preLoadOpenTabs(List<EditorViewState> openTabs) {

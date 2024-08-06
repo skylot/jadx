@@ -232,6 +232,11 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	@Override
+	public void onTabsRestoreDone() {
+
+	}
+
+	@Override
 	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
 
 	}

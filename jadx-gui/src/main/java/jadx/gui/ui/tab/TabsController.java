@@ -211,6 +211,10 @@ public class TabsController {
 		}
 	}
 
+	public void notifyRestoreEditorViewStateDone() {
+		listeners.forEach(ITabStatesListener::onTabsRestoreDone);
+	}
+
 	public List<EditorViewState> getEditorViewStates() {
 		List<EditorViewState> states = new ArrayList<>();
 		for (TabBlueprint blueprint : getTabs()) {

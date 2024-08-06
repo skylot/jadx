@@ -19,5 +19,7 @@ public interface ITabStatesListener {
 
 	void onTabRestore(TabBlueprint blueprint, EditorViewState viewState);
 
+	void onTabsRestoreDone();
+
 	void onTabSave(TabBlueprint blueprint, EditorViewState viewState);
 }
