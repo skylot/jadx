@@ -288,7 +288,7 @@ public class MainWindow extends JFrame {
 
 	private void processCommandLineArgs() {
 		if (settings.getFiles().isEmpty()) {
-			tabbedPane.showNode(new StartPageNode());
+			tabsController.selectTab(new StartPageNode());
 		} else {
 			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
@@ -306,7 +306,7 @@ public class MainWindow extends JFrame {
 						NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			tabbedPane.codeJump(cacheObject.getNodeCache().makeFrom(javaNode));
+			tabsController.codeJump(cacheObject.getNodeCache().makeFrom(javaNode));
 		}
 	}
 
@@ -517,7 +517,7 @@ public class MainWindow extends JFrame {
 
 	private void loadFiles(Runnable onFinish) {
 		if (project.getFilePaths().isEmpty()) {
-			tabbedPane.showNode(new StartPageNode());
+			tabsController.selectTab(new StartPageNode());
 			return;
 		}
 		AtomicReference<Exception> wrapperException = new AtomicReference<>();
@@ -864,15 +864,17 @@ public class MainWindow extends JFrame {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
-					return tabbedPane.showNode(res);
+					tabsController.selectTab(res);
+					return true;
 				}
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				if (node.getRootClass() != null) {
-					tabbedPane.codeJump(node);
+					tabsController.codeJump(node);
 					return true;
 				}
-				return tabbedPane.showNode(node);
+				tabsController.selectTab(node);
+				return true;
 			}
 		} catch (Exception e) {
 			LOG.error("Content loading error", e);
@@ -962,7 +964,7 @@ public class MainWindow extends JFrame {
 			if (mainActivityClass == null) {
 				throw new JadxRuntimeException("Failed to find main activity class: " + results.getMainActivity());
 			}
-			tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
+			tabsController.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
 		} catch (Exception e) {
 			LOG.error("Main activity not found", e);
 			JOptionPane.showMessageDialog(MainWindow.this,
@@ -992,7 +994,7 @@ public class MainWindow extends JFrame {
 			if (applicationClass == null) {
 				throw new JadxRuntimeException("Failed to find application class: " + results.getApplication());
 			}
-			tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(applicationClass));
+			tabsController.codeJump(getCacheObject().getNodeCache().makeFrom(applicationClass));
 		} catch (Exception e) {
 			LOG.error("Application not found", e);
 			JOptionPane.showMessageDialog(MainWindow.this,

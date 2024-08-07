@@ -117,7 +117,7 @@ public class QuarkReportPanel extends ContentPanel {
 					Object node = getNodeUnderMouse(tree, event);
 					if (node instanceof MethodTreeNode) {
 						JMethod method = ((MethodTreeNode) node).getJMethod();
-						tabbedPane.codeJump(method);
+						tabbedPane.getTabsController().codeJump(method);
 					}
 				}
 			}
@@ -159,7 +159,7 @@ public class QuarkReportPanel extends ContentPanel {
 
 	@Override
 	public void loadSettings() {
-		Font settingsFont = getTabbedPane().getMainWindow().getSettings().getFont();
+		Font settingsFont = getMainWindow().getSettings().getFont();
 		this.font = settingsFont.deriveFont(settingsFont.getSize2D() + 1.f);
 		this.boldFont = font.deriveFont(Font.BOLD);
 		header.setFont(font);
@@ -279,7 +279,7 @@ public class QuarkReportPanel extends ContentPanel {
 			String[] parts = removeQuotes(descr).split(" ", 3);
 			String cls = Utils.cleanObjectName(parts[0].replace('$', '.'));
 			String mth = parts[1] + parts[2].replace(" ", "");
-			MainWindow mainWindow = getTabbedPane().getMainWindow();
+			MainWindow mainWindow = getMainWindow();
 			JadxWrapper wrapper = mainWindow.getWrapper();
 			JavaClass javaClass = wrapper.searchJavaClassByRawName(cls);
 			if (javaClass == null) {

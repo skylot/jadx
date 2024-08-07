@@ -114,7 +114,7 @@ public class QuarkManager {
 			root.replaceCustomNode(quarkNode);
 			root.update();
 			mainWindow.reloadTree();
-			mainWindow.getTabbedPane().showNode(quarkNode);
+			mainWindow.getTabsController().selectTab(quarkNode);
 		} catch (Exception e) {
 			UiUtils.errorMessage(mainWindow, "Failed to load Quark report.");
 			LOG.error("Failed to load Quark report.", e);

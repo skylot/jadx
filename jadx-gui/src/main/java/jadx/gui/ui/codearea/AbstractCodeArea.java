@@ -90,7 +90,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		applyEditableProperties(node);
 		loadSettings();
 
-		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
+		JadxSettings settings = contentPanel.getMainWindow().getSettings();
 		setLineWrap(settings.isCodeAreaLineWrap());
 
 		ZoomActions.register(this, settings, this::loadSettings);
@@ -147,7 +147,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	private void appendWrapLineMenu(JPopupMenu popupMenu) {
-		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
+		JadxSettings settings = contentPanel.getMainWindow().getSettings();
 		popupMenu.addSeparator();
 		JCheckBoxMenuItem wrapItem = new JCheckBoxMenuItem(NLS.str("popup.line_wrap"), getLineWrap());
 		wrapItem.setAction(new AbstractAction(NLS.str("popup.line_wrap")) {
@@ -378,7 +378,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public void loadSettings() {
-		loadCommonSettings(contentPanel.getTabbedPane().getMainWindow(), this);
+		loadCommonSettings(contentPanel.getMainWindow(), this);
 	}
 
 	public void scrollToPos(int pos) {

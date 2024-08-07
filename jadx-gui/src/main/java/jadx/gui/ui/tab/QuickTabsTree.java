@@ -6,7 +6,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
@@ -21,6 +21,7 @@ import javax.swing.tree.TreeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
 
 public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSelectionListener {
@@ -186,6 +187,16 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	@Override
+	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+
+	}
+
+	@Override
+	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
+
+	}
+
+	@Override
 	public void onTabClose(TabBlueprint blueprint) {
 		removeJNode(openParentNode, blueprint.getNode());
 		removeJNode(pinParentNode, blueprint.getNode());
@@ -238,7 +249,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	@Override
-	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
+	public void onTabsReorder(List<TabBlueprint> blueprints) {
 
 	}
 

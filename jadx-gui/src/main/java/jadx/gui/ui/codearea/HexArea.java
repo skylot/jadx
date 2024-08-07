@@ -85,10 +85,10 @@ public class HexArea extends AbstractCodeArea {
 	}
 
 	private void applyTheme() {
-		Font font = getContentPanel().getTabbedPane().getMainWindow().getSettings().getSmaliFont();
+		Font font = getContentPanel().getMainWindow().getSettings().getSmaliFont();
 		setFont(font);
 
-		Theme theme = contentPanel.getTabbedPane().getMainWindow().getEditorTheme();
+		Theme theme = contentPanel.getMainWindow().getEditorTheme();
 		if (hexPreviewPanel != null) {
 			hexPreviewPanel.applyTheme(theme, font);
 		}
