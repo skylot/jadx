@@ -52,7 +52,7 @@ import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.panel.ProgressPanel;
-import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.ui.tab.TabsController;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
@@ -67,7 +67,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
 	private static final long serialVersionUID = 8939332306115370276L;
 
-	protected final transient TabbedPane tabbedPane;
+	protected final transient TabsController tabsController;
 	protected final transient CacheObject cache;
 	protected final transient MainWindow mainWindow;
 	protected final transient Font codeFont;
@@ -84,7 +84,7 @@ public abstract class CommonSearchDialog extends JFrame {
 
 	public CommonSearchDialog(MainWindow mainWindow, String title) {
 		this.mainWindow = mainWindow;
-		this.tabbedPane = mainWindow.getTabbedPane();
+		this.tabsController = mainWindow.getTabsController();
 		this.cache = mainWindow.getCacheObject();
 		this.codeFont = mainWindow.getSettings().getFont();
 		this.windowTitle = title;
@@ -145,9 +145,9 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected void openItem(JNode node) {
 		if (node instanceof JResSearchNode) {
 			JumpPosition jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getPos());
-			tabbedPane.codeJump(jmpPos);
+			tabsController.codeJump(jmpPos);
 		} else {
-			tabbedPane.codeJump(node);
+			tabsController.codeJump(node);
 		}
 		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
 			dispose();

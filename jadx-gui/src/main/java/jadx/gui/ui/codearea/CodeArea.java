@@ -87,7 +87,7 @@ public final class CodeArea extends AbstractCodeArea {
 		int offs = viewToModel2D(point);
 		JNode node = getJNodeAtOffset(adjustOffsetForWordToken(offs));
 		if (node != null) {
-			contentPanel.getTabbedPane().codeJump(node);
+			contentPanel.getTabsController().codeJump(node);
 		}
 	}
 
@@ -332,7 +332,7 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	public MainWindow getMainWindow() {
-		return contentPanel.getTabbedPane().getMainWindow();
+		return contentPanel.getMainWindow();
 	}
 
 	public JadxWrapper getJadxWrapper() {

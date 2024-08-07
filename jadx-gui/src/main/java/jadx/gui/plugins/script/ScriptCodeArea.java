@@ -25,8 +25,8 @@ public class ScriptCodeArea extends AbstractCodeArea {
 		setCodeFoldingEnabled(true);
 		setCloseCurlyBraces(true);
 
-		shortcutsController = contentPanel.getTabbedPane().getMainWindow().getShortcutsController();
-		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
+		shortcutsController = contentPanel.getMainWindow().getShortcutsController();
+		JadxSettings settings = contentPanel.getMainWindow().getSettings();
 		autoCompletion = addAutoComplete(settings);
 	}
 

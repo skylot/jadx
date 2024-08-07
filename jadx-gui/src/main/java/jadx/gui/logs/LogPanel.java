@@ -23,7 +23,7 @@ import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
-import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.tab.TabBlueprint;
 import jadx.gui.utils.NLS;
 
 public class LogPanel extends JPanel {
@@ -141,9 +141,9 @@ public class LogPanel extends JPanel {
 	}
 
 	private @Nullable String getCurrentScriptName() {
-		ContentPanel selectedCodePanel = mainWindow.getTabbedPane().getSelectedContentPanel();
-		if (selectedCodePanel != null) {
-			JNode node = selectedCodePanel.getNode();
+		TabBlueprint selectedTab = mainWindow.getTabsController().getSelectedTab();
+		if (selectedTab != null) {
+			JNode node = selectedTab.getNode();
 			if (node instanceof JInputScript) {
 				return node.getName();
 			}

@@ -21,6 +21,7 @@ import javax.swing.tree.TreeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
 
 public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSelectionListener {
@@ -182,6 +183,16 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
+
+	}
+
+	@Override
+	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+
+	}
+
+	@Override
+	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
 
 	}
 

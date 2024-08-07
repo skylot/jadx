@@ -12,6 +12,6 @@ public final class GoToDeclarationAction extends JNodeAction {
 
 	@Override
 	public void runAction(JNode node) {
-		getCodeArea().getContentPanel().getTabbedPane().codeJump(node);
+		getCodeArea().getContentPanel().getTabsController().codeJump(node);
 	}
 }

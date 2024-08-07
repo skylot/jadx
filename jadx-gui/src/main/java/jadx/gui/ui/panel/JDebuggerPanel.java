@@ -445,7 +445,7 @@ public class JDebuggerPanel extends JPanel {
 	}
 
 	public void scrollToSmaliLine(JClass cls, int pos, boolean debugMode) {
-		SwingUtilities.invokeLater(() -> getMainWindow().getTabbedPane().smaliJump(cls, pos, debugMode));
+		SwingUtilities.invokeLater(() -> getMainWindow().getTabsController().smaliJump(cls, pos, debugMode));
 	}
 
 	public void resetAllDebuggingInfo() {

@@ -74,7 +74,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JadxSettings settings = getContentPanel().getTabbedPane().getMainWindow().getSettings();
+				JadxSettings settings = getContentPanel().getMainWindow().getSettings();
 				settings.setSmaliAreaShowBytecode(!settings.getSmaliAreaShowBytecode());
 				contentPanel.getTabbedPane().getTabs().forEach(v -> {
 					if (v instanceof ClassCodeContentPanel) {
@@ -127,7 +127,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	public void scrollToDebugPos(int pos) {
-		getContentPanel().getTabbedPane().getMainWindow()
+		getContentPanel().getMainWindow()
 				.getSettings().setSmaliAreaShowBytecode(true); // don't sync when it's set programmatically.
 		cbUseSmaliV2.setState(shouldUseSmaliPrinterV2());
 		if (!(model instanceof DebugModel)) {
@@ -151,7 +151,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	private boolean shouldUseSmaliPrinterV2() {
-		return getContentPanel().getTabbedPane().getMainWindow().getSettings().getSmaliAreaShowBytecode();
+		return getContentPanel().getMainWindow().getSettings().getSmaliAreaShowBytecode();
 	}
 
 	private abstract class SmaliModel {
@@ -177,7 +177,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	private class NormalModel extends SmaliModel {
 
 		public NormalModel() {
-			Theme theme = getContentPanel().getTabbedPane().getMainWindow().getEditorTheme();
+			Theme theme = getContentPanel().getMainWindow().getEditorTheme();
 			setSyntaxScheme(theme.scheme);
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
@@ -323,16 +323,16 @@ public final class SmaliArea extends AbstractCodeArea {
 
 			public SmaliV2Style(SmaliArea smaliArea) {
 				super(true);
-				curTheme = smaliArea.getContentPanel().getTabbedPane().getMainWindow().getEditorTheme();
+				curTheme = smaliArea.getContentPanel().getMainWindow().getEditorTheme();
 				updateTheme();
 			}
 
 			public Font getFont() {
-				return getContentPanel().getTabbedPane().getMainWindow().getSettings().getSmaliFont();
+				return getContentPanel().getMainWindow().getSettings().getSmaliFont();
 			}
 
 			public boolean refreshTheme() {
-				Theme theme = getContentPanel().getTabbedPane().getMainWindow().getEditorTheme();
+				Theme theme = getContentPanel().getMainWindow().getEditorTheme();
 				boolean refresh = theme != curTheme;
 				if (refresh) {
 					curTheme = theme;
