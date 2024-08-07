@@ -20,6 +20,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -113,9 +114,13 @@ public class MarkMethodsForInline extends AbstractVisitor {
 						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0));
 
 			case INVOKE:
-				return !mthRegs.isEmpty()
-						&& firstInsn.getArg(0).isSameVar(mthRegs.get(0))
-						&& retInsn.getArg(0).isSameVar(firstInsn.getResult());
+				if (!retInsn.getArg(0).isSameVar(firstInsn.getResult())) {
+					return false;
+				}
+
+				return ListUtils.orderedEquals(
+						mth.getArgRegs(), firstInsn.getArguments(),
+						(mthArg, insnArg) -> insnArg.isSameVar(mthArg));
 			default:
 				return false;
 		}

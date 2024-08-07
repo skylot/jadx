@@ -30,6 +30,7 @@ public class InsnNode extends LineAttrNode {
 
 	private RegisterArg result;
 	private final List<InsnArg> arguments;
+	private final List<InsnArg> unmodifiableArgs;
 	protected int offset;
 
 	public InsnNode(InsnType type, int argsCount) {
@@ -39,6 +40,7 @@ public class InsnNode extends LineAttrNode {
 	public InsnNode(InsnType type, List<InsnArg> args) {
 		this.insnType = type;
 		this.arguments = args;
+		this.unmodifiableArgs = Collections.unmodifiableList(arguments);
 		this.offset = -1;
 		for (InsnArg arg : args) {
 			attachArg(arg);
@@ -91,8 +93,8 @@ public class InsnNode extends LineAttrNode {
 		return result;
 	}
 
-	public Iterable<InsnArg> getArguments() {
-		return arguments;
+	public List<InsnArg> getArguments() {
+		return unmodifiableArgs;
 	}
 
 	public int getArgsCount() {
