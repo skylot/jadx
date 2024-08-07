@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -569,14 +568,12 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabsReorder(ArrayList<TabBlueprint> blueprints) {
-		ArrayList<TabBlueprint> newBlueprints = new ArrayList<>();
+	public void onTabsReorder(List<TabBlueprint> blueprints) {
+		List<TabBlueprint> newBlueprints = new ArrayList<>(blueprints.size());
+
 		for (ContentPanel contentPanel : getTabs()) {
-			Optional<TabBlueprint> blueprintFindResult = blueprints.stream()
-					.filter(b -> b.getNode() == contentPanel.getNode())
-					.findFirst();
-			if (blueprintFindResult.isPresent()) {
-				TabBlueprint blueprint = blueprintFindResult.get();
+			TabBlueprint blueprint = controller.getTabByNode(contentPanel.getNode());
+			if (blueprint != null) {
 				blueprints.remove(blueprint);
 				newBlueprints.add(blueprint);
 			}

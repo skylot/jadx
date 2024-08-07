@@ -1,6 +1,6 @@
 package jadx.gui.ui.tab;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import jadx.gui.ui.codearea.EditorViewState;
 
@@ -23,7 +23,7 @@ public interface ITabStatesListener {
 
 	void onTabsRestoreDone();
 
-	void onTabsReorder(ArrayList<TabBlueprint> blueprints);
+	void onTabsReorder(List<TabBlueprint> blueprints);
 
 	void onTabSave(TabBlueprint blueprint, EditorViewState viewState);
 }
