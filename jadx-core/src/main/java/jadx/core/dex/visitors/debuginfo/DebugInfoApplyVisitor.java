@@ -33,6 +33,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
+import jadx.core.dex.visitors.typeinference.TypeUpdateParam;
 import jadx.core.dex.visitors.typeinference.TypeUpdateResult;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -134,7 +135,8 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	public static boolean applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
-		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderIgnoreUnknown(mth, ssaVar, type);
+		TypeUpdateParam param = new TypeUpdateParam(mth, ssaVar, type);
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderIgnoreUnknown(param);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);

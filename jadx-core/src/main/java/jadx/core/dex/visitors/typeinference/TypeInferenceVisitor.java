@@ -106,7 +106,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		try {
 			ArgType immutableType = ssaVar.getImmutableType();
 			if (immutableType != null) {
-				TypeUpdateResult result = typeUpdate.applyWithWiderIgnSame(mth, ssaVar, immutableType);
+				TypeUpdateParam param = new TypeUpdateParam(mth, ssaVar, immutableType);
+				TypeUpdateResult result = typeUpdate.applyWithWiderIgnSame(param);
 				if (Consts.DEBUG_TYPE_INFERENCE && result == TypeUpdateResult.REJECT) {
 					LOG.info("Reject initial immutable type {} for {}", immutableType, ssaVar);
 				}
@@ -142,7 +143,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return;
 		}
 		ArgType candidateType = bestTypeOpt.get();
-		TypeUpdateResult result = typeUpdate.apply(mth, ssaVar, candidateType);
+		TypeUpdateParam param = new TypeUpdateParam(mth, ssaVar, candidateType);
+		TypeUpdateResult result = typeUpdate.apply(param);
 		if (Consts.DEBUG_TYPE_INFERENCE && result == TypeUpdateResult.REJECT) {
 			if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
 				LOG.info("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
