@@ -71,7 +71,7 @@ object JadxScriptConfiguration : ScriptCompilationConfiguration({
 	isStandalone(true)
 
 	// forcing compiler to not use modules while building script classpath
-	// because shadow jar remove all modules-info.class (https://github.com/johnrengelman/shadow/issues/710)
+	// because shadow jar remove all modules-info.class (https://github.com/GradleUp/shadow/issues/710)
 	compilerOptions.append("-Xjdk-release=1.8")
 })
 
