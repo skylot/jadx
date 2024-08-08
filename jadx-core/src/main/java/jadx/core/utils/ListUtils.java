@@ -14,7 +14,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ListUtils {
@@ -33,31 +32,22 @@ public class ListUtils {
 		return first.containsAll(second);
 	}
 
-	public static <T, U> boolean orderedEquals(
-			@NotNull List<T> list1,
-			@NotNull List<U> list2,
-			@NotNull BiPredicate<T, U> comparer) {
-
+	public static <T, U> boolean orderedEquals(List<T> list1, List<U> list2, BiPredicate<T, U> comparer) {
 		if (list1 == list2) {
 			return true;
 		}
-
 		if (list1.size() != list2.size()) {
 			return false;
 		}
-
 		final Iterator<T> iter1 = list1.iterator();
 		final Iterator<U> iter2 = list2.iterator();
-
 		while (iter1.hasNext() && iter2.hasNext()) {
 			final T item1 = iter1.next();
 			final U item2 = iter2.next();
-
 			if (!comparer.test(item1, item2)) {
 				return false;
 			}
 		}
-
 		return !iter1.hasNext() && !iter2.hasNext();
 	}
 

@@ -43,18 +43,22 @@ public class MarkMethodsForInline extends AbstractVisitor {
 	 */
 	@Nullable
 	public static MethodInlineAttr process(MethodNode mth) {
-		MethodInlineAttr mia = mth.get(AType.METHOD_INLINE);
-		if (mia != null) {
-			return mia;
-		}
-		if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
-			if (mth.getBasicBlocks() == null) {
-				return null;
+		try {
+			MethodInlineAttr mia = mth.get(AType.METHOD_INLINE);
+			if (mia != null) {
+				return mia;
 			}
-			MethodInlineAttr inlined = inlineMth(mth);
-			if (inlined != null) {
-				return inlined;
+			if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
+				if (mth.getBasicBlocks() == null) {
+					return null;
+				}
+				MethodInlineAttr inlined = inlineMth(mth);
+				if (inlined != null) {
+					return inlined;
+				}
 			}
+		} catch (Exception e) {
+			mth.addWarnComment("Method inline analysis failed", e);
 		}
 		return MethodInlineAttr.inlineNotNeeded(mth);
 	}
@@ -117,9 +121,8 @@ public class MarkMethodsForInline extends AbstractVisitor {
 				if (!retInsn.getArg(0).isSameVar(firstInsn.getResult())) {
 					return false;
 				}
-
 				return ListUtils.orderedEquals(
-						mth.getArgRegs(), firstInsn.getArguments(),
+						mth.getArgRegs(), firstInsn.getArgList(),
 						(mthArg, insnArg) -> insnArg.isSameVar(mthArg));
 			default:
 				return false;
