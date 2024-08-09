@@ -249,8 +249,11 @@ public class BlockUtils {
 				|| type == InsnType.CONTINUE;
 	}
 
-	@Nullable
-	public static BlockNode getBlockByInsn(MethodNode mth, @Nullable InsnNode insn) {
+	public static @Nullable BlockNode getBlockByInsn(MethodNode mth, @Nullable InsnNode insn) {
+		return getBlockByInsn(mth, insn, mth.getBasicBlocks());
+	}
+
+	public static @Nullable BlockNode getBlockByInsn(MethodNode mth, @Nullable InsnNode insn, List<BlockNode> blocks) {
 		if (insn == null) {
 			return null;
 		}
@@ -260,7 +263,7 @@ public class BlockUtils {
 		if (insn.contains(AFlag.WRAPPED)) {
 			return getBlockByWrappedInsn(mth, insn);
 		}
-		for (BlockNode bn : mth.getBasicBlocks()) {
+		for (BlockNode bn : blocks) {
 			if (blockContains(bn, insn)) {
 				return bn;
 			}
