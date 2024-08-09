@@ -56,11 +56,11 @@ class CustomFileChooser extends JFileChooser {
 		data.setCurrentDir(getCurrentDirectory().toPath());
 		File[] selectedFiles = getSelectedFiles();
 		if (selectedFiles.length != 0) {
-			return FileUtils.toPaths(selectedFiles);
+			return FileUtils.toPathsWithTrim(selectedFiles);
 		}
 		File chosenFile = getSelectedFile();
 		if (chosenFile != null) {
-			return Collections.singletonList(chosenFile.toPath());
+			return Collections.singletonList(FileUtils.toPathWithTrim(chosenFile));
 		}
 		return Collections.emptyList();
 	}

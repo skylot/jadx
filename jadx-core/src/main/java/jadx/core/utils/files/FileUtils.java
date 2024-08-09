@@ -343,6 +343,18 @@ public class FileUtils {
 		return Stream.of(files).map(File::toPath).collect(Collectors.toList());
 	}
 
+	public static List<Path> toPathsWithTrim(File[] files) {
+		return Stream.of(files).map(FileUtils::toPathWithTrim).collect(Collectors.toList());
+	}
+
+	public static Path toPathWithTrim(File file) {
+		return Path.of(file.getPath().stripTrailing());
+	}
+
+	public static Path toPathWithTrim(String file) {
+		return Path.of(file.stripTrailing());
+	}
+
 	public static List<Path> fileNamesToPaths(List<String> fileNames) {
 		return fileNames.stream().map(Paths::get).collect(Collectors.toList());
 	}
