@@ -115,8 +115,8 @@ public class ConstructorVisitor extends AbstractVisitor {
 
 		PhiInsn phiInsn = SSATransform.addPhi(mth, crossBlock, useArg.getRegNum());
 		phiInsn.setResult(useArg.duplicate());
-		phiInsn.bindArg(newResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, curBlock));
-		phiInsn.bindArg(otherResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, otherBlock));
+		phiInsn.bindArg(newResArg.duplicate(), BlockUtils.getPrevBlockOnPath(mth, crossBlock, curBlock));
+		phiInsn.bindArg(otherResArg.duplicate(), BlockUtils.getPrevBlockOnPath(mth, crossBlock, otherBlock));
 		phiInsn.rebindArgs();
 
 		otherCtr.setResult(otherResArg.duplicate());

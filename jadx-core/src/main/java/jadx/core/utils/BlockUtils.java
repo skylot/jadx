@@ -37,6 +37,7 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.blocks.BlockSet;
+import jadx.core.utils.blocks.DFSIteration;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockUtils {
@@ -437,18 +438,21 @@ public class BlockUtils {
 	/**
 	 * Return predecessor on path from 'pathStart' block
 	 */
-	public static @Nullable BlockNode getPrevBlockOnPath(BlockNode block, BlockNode pathStart) {
-		List<BlockNode> preds = block.getPredecessors();
-		if (preds.contains(pathStart)) {
+	public static @Nullable BlockNode getPrevBlockOnPath(MethodNode mth, BlockNode block, BlockNode pathStart) {
+		BlockSet preds = BlockSet.from(mth, block.getPredecessors());
+		if (preds.get(pathStart)) {
 			return pathStart;
 		}
-		Set<BlockNode> path = getAllPathsBlocks(pathStart, block);
-		for (BlockNode p : preds) {
-			if (path.contains(p)) {
-				return p;
+		DFSIteration dfs = new DFSIteration(mth, pathStart, BlockNode::getCleanSuccessors);
+		while (true) {
+			BlockNode next = dfs.next();
+			if (next == null) {
+				return null;
+			}
+			if (preds.get(next)) {
+				return next;
 			}
 		}
-		return null;
 	}
 
 	/**
@@ -515,24 +519,13 @@ public class BlockUtils {
 
 	private static void visitDFS(MethodNode mth, BlockNode startBlock,
 			Function<BlockNode, List<BlockNode>> nextFunc, Consumer<BlockNode> visitor) {
-		BlockSet visited = new BlockSet(mth);
-		Deque<BlockNode> queue = new ArrayDeque<>();
-		queue.addLast(startBlock);
-		visited.set(startBlock);
+		DFSIteration dfsIteration = new DFSIteration(mth, startBlock, nextFunc);
 		while (true) {
-			BlockNode current = queue.pollLast();
-			if (current == null) {
+			BlockNode next = dfsIteration.next();
+			if (next == null) {
 				return;
 			}
-			visitor.accept(current);
-			List<BlockNode> nextBlocks = nextFunc.apply(current);
-			int count = nextBlocks.size();
-			for (int i = count - 1; i >= 0; i--) { // to preserve order in queue
-				BlockNode next = nextBlocks.get(i);
-				if (!visited.checkAndSet(next)) {
-					queue.addLast(next);
-				}
-			}
+			visitor.accept(next);
 		}
 	}
 
