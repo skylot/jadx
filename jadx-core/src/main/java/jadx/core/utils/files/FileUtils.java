@@ -348,11 +348,11 @@ public class FileUtils {
 	}
 
 	public static Path toPathWithTrim(File file) {
-		return Path.of(file.getPath().stripTrailing());
+		return toPathWithTrim(file.getPath());
 	}
 
 	public static Path toPathWithTrim(String file) {
-		return Path.of(file.stripTrailing());
+		return Path.of(file.trim());
 	}
 
 	public static List<Path> fileNamesToPaths(List<String> fileNames) {
