@@ -142,7 +142,7 @@ public class UsageInfoVisitor extends AbstractVisitor {
 				IMethodRef mthRef;
 				ICustomPayload payload = insnData.getPayload();
 				if (payload != null) {
-					mthRef = ((IMethodRef) payload);
+					mthRef = (IMethodRef) payload;
 				} else {
 					mthRef = insnData.getIndexAsMethod();
 				}

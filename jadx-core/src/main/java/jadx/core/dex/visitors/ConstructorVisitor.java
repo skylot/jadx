@@ -69,7 +69,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		co.inheritMetadata(inv);
 
-		RegisterArg instanceArg = ((RegisterArg) inv.getArg(0));
+		RegisterArg instanceArg = (RegisterArg) inv.getArg(0);
 		instanceArg.getSVar().removeUse(instanceArg);
 		if (co.isNewInstance()) {
 			InsnNode assignInsn = instanceArg.getAssignInsn();

@@ -165,7 +165,7 @@ public class ShadowFieldVisitor extends AbstractVisitor {
 		switch (insn.getType()) {
 			case IPUT:
 			case IGET:
-				return ((FieldInfo) ((IndexInsnNode) insn).getIndex());
+				return (FieldInfo) ((IndexInsnNode) insn).getIndex();
 			default:
 				return null;
 		}

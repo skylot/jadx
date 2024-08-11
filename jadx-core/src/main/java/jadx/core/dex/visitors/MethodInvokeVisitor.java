@@ -187,7 +187,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 						arg.setType(castType);
 						arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
 					} else if (InsnUtils.isWrapped(arg, InsnType.CHECK_CAST)) {
-						IndexInsnNode wrapInsn = ((IndexInsnNode) ((InsnWrapArg) arg).getWrapInsn());
+						IndexInsnNode wrapInsn = (IndexInsnNode) ((InsnWrapArg) arg).getWrapInsn();
 						wrapInsn.updateIndex(castType);
 					} else {
 						if (Consts.DEBUG_TYPE_INFERENCE) {

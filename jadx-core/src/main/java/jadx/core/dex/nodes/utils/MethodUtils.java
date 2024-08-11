@@ -51,7 +51,7 @@ public class MethodUtils {
 	public MethodNode resolveMethod(BaseInvokeNode invokeNode) {
 		IMethodDetails methodDetails = getMethodDetails(invokeNode);
 		if (methodDetails instanceof MethodNode) {
-			return ((MethodNode) methodDetails);
+			return (MethodNode) methodDetails;
 		}
 		return null;
 	}

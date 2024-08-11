@@ -22,7 +22,7 @@ public class InsnDataUtils {
 		}
 		ICustomPayload payload = insnData.getPayload();
 		if (payload != null) {
-			return ((ICallSite) payload);
+			return (ICallSite) payload;
 		}
 		return insnData.getIndexAsCallSite();
 	}
@@ -34,7 +34,7 @@ public class InsnDataUtils {
 		}
 		ICustomPayload payload = insnData.getPayload();
 		if (payload != null) {
-			return ((IMethodRef) payload);
+			return (IMethodRef) payload;
 		}
 		return insnData.getIndexAsMethod();
 	}
