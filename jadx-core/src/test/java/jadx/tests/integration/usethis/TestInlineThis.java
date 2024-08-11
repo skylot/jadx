@@ -2,13 +2,8 @@ package jadx.tests.integration.usethis;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestInlineThis extends IntegrationTest {
 
@@ -27,15 +22,13 @@ public class TestInlineThis extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("something")));
-		assertThat(code, not(containsString("something.method()")));
-		assertThat(code, not(containsString("something.field")));
-		assertThat(code, not(containsString("= this")));
-
-		assertThat(code, containsOne("this.field = 123;"));
-		assertThat(code, containsOne("method();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("something")
+				.doesNotContain("something.method()")
+				.doesNotContain("something.field")
+				.doesNotContain("= this")
+				.containsOne("this.field = 123;")
+				.containsOne("method();");
 	}
 }

@@ -2,12 +2,8 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestInnerClass extends IntegrationTest {
 
@@ -20,13 +16,12 @@ public class TestInnerClass extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("Inner {"));
-		assertThat(code, containsString("Inner2 extends Thread {"));
-		assertThat(code, not(containsString("super();")));
-		assertThat(code, not(containsString("this$")));
-		assertThat(code, not(containsString("/* synthetic */")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("Inner {")
+				.contains("Inner2 extends Thread {")
+				.doesNotContain("super();")
+				.doesNotContain("this$")
+				.doesNotContain("/* synthetic */");
 	}
 }

@@ -2,12 +2,10 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestInnerAssign extends IntegrationTest {
 
@@ -33,9 +31,9 @@ public class TestInnerAssign extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(runTest(""), is("bad, str: "));
-			assertThat(runTest("1234"), is("good, len: 4, str: 1234"));
-			assertThat(runTest("1234567"), is("bad, str: 1234567"));
+			assertThat(runTest("")).isEqualTo("bad, str: ");
+			assertThat(runTest("1234")).isEqualTo("good, len: 4, str: 1234");
+			assertThat(runTest("1234567")).isEqualTo("bad, str: 1234567");
 		}
 	}
 
@@ -43,10 +41,9 @@ public class TestInnerAssign extends IntegrationTest {
 	public void test() {
 		noDebugInfo();
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("str.length()"));
-		assertThat(code, containsOne("System.out.println(\"done\");"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("str.length()")
+				.containsOne("System.out.println(\"done\");");
 	}
 }

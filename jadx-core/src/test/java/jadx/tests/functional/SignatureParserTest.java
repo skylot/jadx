@@ -18,13 +18,10 @@ import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.outerGeneric;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 
 class SignatureParserTest {
 
@@ -39,7 +36,7 @@ class SignatureParserTest {
 	}
 
 	private static void checkType(String str, ArgType type) {
-		assertThat(new SignatureParser(str).consumeType(), is(type));
+		assertThat(new SignatureParser(str).consumeType()).isEqualTo(type);
 	}
 
 	@Test
@@ -57,17 +54,17 @@ class SignatureParserTest {
 	public void testInnerGeneric() {
 		String signature = "La<TV;>.LinkedHashIterator<Lb$c<Ls;TV;>;>;";
 		String objectStr = new SignatureParser(signature).consumeType().getObject();
-		assertThat(objectStr, is("a$LinkedHashIterator"));
+		assertThat(objectStr).isEqualTo("a$LinkedHashIterator");
 	}
 
 	@Test
 	public void testNestedInnerGeneric() {
 		String signature = "La<TV;>.I.X;";
 		ArgType result = new SignatureParser(signature).consumeType();
-		assertThat(result.getObject(), is("a$I$X"));
+		assertThat(result.getObject()).isEqualTo("a$I$X");
 		// nested 'outerGeneric' objects
 		ArgType obj = generic("La;", genericType("V"));
-		assertThat(result, equalTo(outerGeneric(outerGeneric(obj, object("I")), object("X"))));
+		assertThat(result).isEqualTo(outerGeneric(outerGeneric(obj, object("I")), object("X")));
 	}
 
 	@Test
@@ -76,11 +73,11 @@ class SignatureParserTest {
 		String signature = "Lsome/long/pkg/ba<Lsome/pkg/s;>.some/long/pkg/bb<Lsome/pkg/p;Lsome/pkg/n;>;";
 		ArgType result = new SignatureParser(signature).consumeType();
 		System.out.println(result);
-		assertThat(result.getObject(), is("some.long.pkg.ba$some.long.pkg.bb"));
+		assertThat(result.getObject()).isEqualTo("some.long.pkg.ba$some.long.pkg.bb");
 		ArgType baseObj = generic("Lsome/long/pkg/ba;", object("Lsome/pkg/s;"));
 		ArgType innerObj = generic("Lsome/long/pkg/bb;", object("Lsome/pkg/p;"), object("Lsome/pkg/n;"));
 		ArgType obj = outerGeneric(baseObj, innerObj);
-		assertThat(result, equalTo(obj));
+		assertThat(result).isEqualTo(obj);
 	}
 
 	@Test
@@ -104,7 +101,7 @@ class SignatureParserTest {
 	private static void checkWildcards(String w, ArgType... types) {
 		ArgType parsedType = new SignatureParser("La<" + w + ">;").consumeType();
 		ArgType expectedType = generic("La;", types);
-		assertThat(parsedType, is(expectedType));
+		assertThat(parsedType).isEqualTo(expectedType);
 	}
 
 	@Test
@@ -124,25 +121,25 @@ class SignatureParserTest {
 			List<ArgType> list = (List<ArgType>) objs[i + 1];
 			expectedList.add(ArgType.genericType(typeVar, list));
 		}
-		assertThat(genericsList, is(expectedList));
+		assertThat(genericsList).isEqualTo(expectedList);
 	}
 
 	@Test
 	public void testMethodArgs() {
 		List<ArgType> argTypes = new SignatureParser("(Ljava/util/List<*>;)V").consumeMethodArgs(1);
 
-		assertThat(argTypes, hasSize(1));
-		assertThat(argTypes.get(0), is(generic("Ljava/util/List;", wildcard())));
+		assertThat(argTypes).hasSize(1);
+		assertThat(argTypes.get(0)).isEqualTo(generic("Ljava/util/List;", wildcard()));
 	}
 
 	@Test
 	public void testMethodArgs2() {
 		List<ArgType> argTypes = new SignatureParser("(La/b/C<TT;>.d/E;)V").consumeMethodArgs(1);
 
-		assertThat(argTypes, hasSize(1));
+		assertThat(argTypes).hasSize(1);
 		ArgType argType = argTypes.get(0);
-		assertThat(argType.getObject().indexOf('/'), is(-1));
-		assertThat(argType, is(outerGeneric(generic("La/b/C;", genericType("T")), object("d.E"))));
+		assertThat(argType.getObject().indexOf('/')).isEqualTo(-1);
+		assertThat(argType).isEqualTo(outerGeneric(generic("La/b/C;", genericType("T")), object("d.E")));
 	}
 
 	@Test

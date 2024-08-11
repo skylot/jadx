@@ -196,7 +196,7 @@ public final class JadxDecompiler implements Closeable {
 			try {
 				resourcesLoader.close();
 			} catch (Exception e) {
-				LOG.error("Failed to close resource loader: " + resourcesLoader, e);
+				LOG.error("Failed to close resource loader: {}", resourcesLoader, e);
 			}
 		}
 		customResourcesLoaders.clear();

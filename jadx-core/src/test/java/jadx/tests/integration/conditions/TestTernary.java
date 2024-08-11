@@ -2,12 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTernary extends IntegrationTest {
 
@@ -30,12 +27,11 @@ public class TestTernary extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("else")));
-		assertThat(code, containsString("return a != 2;"));
-		assertThat(code, containsString("checkTrue(a == 3)"));
-		assertThat(code, containsString("return a > 0 ? a : (a + 2) * 3;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("else")
+				.contains("return a != 2;")
+				.contains("checkTrue(a == 3)")
+				.contains("return a > 0 ? a : (a + 2) * 3;");
 	}
 }

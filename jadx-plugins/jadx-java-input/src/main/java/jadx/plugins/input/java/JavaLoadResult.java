@@ -34,7 +34,7 @@ public class JavaLoadResult implements ICodeLoader {
 			try {
 				consumer.accept(reader.loadClassData());
 			} catch (Exception e) {
-				LOG.error("Failed to load class data for file: " + reader.getFileName(), e);
+				LOG.error("Failed to load class data for file: {}", reader.getFileName(), e);
 			}
 		}
 	}

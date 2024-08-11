@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestUnreachableCatch2 extends SmaliTest {
 

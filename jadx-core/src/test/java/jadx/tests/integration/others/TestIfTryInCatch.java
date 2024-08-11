@@ -2,12 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIfTryInCatch extends IntegrationTest {
 
@@ -48,11 +45,10 @@ public class TestIfTryInCatch extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(2, "try {"));
-		assertThat(code, containsOne("if ("));
-		assertThat(code, countString(2, "return f();"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(2, "try {")
+				.containsOne("if (")
+				.countString(2, "return f();");
 	}
 }

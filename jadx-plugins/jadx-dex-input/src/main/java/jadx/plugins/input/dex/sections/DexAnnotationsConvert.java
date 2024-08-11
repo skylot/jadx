@@ -67,7 +67,7 @@ public class DexAnnotationsConvert {
 						attributes.add(new InnerClassesAttr(Collections.singletonMap(cls, innerClsInfo)));
 					}
 				} catch (Exception e) {
-					LOG.warn("Failed to parse annotation: " + annotation, e);
+					LOG.warn("Failed to parse annotation: {}", annotation, e);
 				}
 				break;
 
@@ -109,7 +109,7 @@ public class DexAnnotationsConvert {
 						attributes.add(new MethodParametersAttr(list));
 					}
 				} catch (Exception e) {
-					LOG.warn("Failed to parse annotation: " + annotation, e);
+					LOG.warn("Failed to parse annotation: {}", annotation, e);
 				}
 				break;
 		}

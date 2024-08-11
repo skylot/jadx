@@ -2,7 +2,7 @@ package jadx.core.utils.log;
 
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class LogUtilsTest {
 

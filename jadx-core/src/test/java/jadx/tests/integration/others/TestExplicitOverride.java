@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestExplicitOverride extends SmaliTest {
 	@Test
 	public void test() {
-		String code = getClassNodeFromSmali().getCode().getCodeStr();
-		assertThat(code, countString(1, "@Override"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.countString(1, "@Override");
 	}
 }

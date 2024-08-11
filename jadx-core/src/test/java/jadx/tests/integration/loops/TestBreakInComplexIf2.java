@@ -5,12 +5,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestBreakInComplexIf2 extends IntegrationTest {
 
@@ -34,26 +31,24 @@ public class TestBreakInComplexIf2 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(Arrays.asList("x", "y", "skip", "z", "a")), is(3));
-			assertThat(test(Arrays.asList("x", "skip", "")), is(1));
-			assertThat(test(Arrays.asList("skip", "y", "12345")), is(1));
+			assertThat(test(Arrays.asList("x", "y", "skip", "z", "a"))).isEqualTo(3);
+			assertThat(test(Arrays.asList("x", "skip", ""))).isEqualTo(1);
+			assertThat(test(Arrays.asList("skip", "y", "12345"))).isEqualTo(1);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(2, "break;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(2, "break;");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(2, "break;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(2, "break;");
 	}
 }

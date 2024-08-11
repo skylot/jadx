@@ -2,11 +2,9 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestInnerClassFakeSyntheticConstructor extends SmaliTest {
 
@@ -29,10 +27,9 @@ public class TestInnerClassFakeSyntheticConstructor extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmali("inner/TestInnerClassFakeSyntheticConstructor", "jadx.tests.inner.TestCls");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("TestCls(String a) {"));
+		assertThat(getClassNodeFromSmali("inner/TestInnerClassFakeSyntheticConstructor", "jadx.tests.inner.TestCls"))
+				.code()
+				.containsOne("TestCls(String a) {");
 		// and must compile
 	}
 }

@@ -10,10 +10,11 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
 
+import static jadx.core.dex.instructions.args.ArgType.OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.STRING;
+import static jadx.core.dex.instructions.args.ArgType.isCastNeeded;
 import static jadx.core.dex.instructions.args.ArgType.object;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JadxClasspathTest {
 
@@ -36,12 +37,12 @@ public class JadxClasspathTest {
 		ArgType objExc = object(JAVA_LANG_EXCEPTION);
 		ArgType objThr = object(JAVA_LANG_THROWABLE);
 
-		assertTrue(clsp.isImplements(JAVA_LANG_EXCEPTION, JAVA_LANG_THROWABLE));
-		assertFalse(clsp.isImplements(JAVA_LANG_THROWABLE, JAVA_LANG_EXCEPTION));
+		assertThat(clsp.isImplements(JAVA_LANG_EXCEPTION, JAVA_LANG_THROWABLE)).isTrue();
+		assertThat(clsp.isImplements(JAVA_LANG_THROWABLE, JAVA_LANG_EXCEPTION)).isFalse();
 
-		assertFalse(ArgType.isCastNeeded(root, objExc, objThr));
-		assertTrue(ArgType.isCastNeeded(root, objThr, objExc));
+		assertThat(isCastNeeded(root, objExc, objThr)).isFalse();
+		assertThat(isCastNeeded(root, objThr, objExc)).isTrue();
 
-		assertTrue(ArgType.isCastNeeded(root, ArgType.OBJECT, STRING));
+		assertThat(isCastNeeded(root, OBJECT, STRING)).isTrue();
 	}
 }

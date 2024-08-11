@@ -17,10 +17,10 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 class PassMergeTest {

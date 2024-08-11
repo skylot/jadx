@@ -1,4 +1,4 @@
-.class public LTestReservedNames;
+.class public Lnames/TestReservedNames;
 .super Ljava/lang/Object;
 .source "TestReservedNames.java"
 
@@ -26,7 +26,7 @@
 
     .prologue
     .line 8
-    iget-object v0, p0, LTestReservedNames;->do:Ljava/lang/String;
+    iget-object v0, p0, Lnames/TestReservedNames;->do:Ljava/lang/String;
 
     return-object v0
 .end method

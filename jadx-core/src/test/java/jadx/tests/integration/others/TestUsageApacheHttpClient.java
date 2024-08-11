@@ -1,10 +1,11 @@
 package jadx.tests.integration.others;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestUsageApacheHttpClient extends SmaliTest {
 
@@ -23,6 +24,6 @@ public class TestUsageApacheHttpClient extends SmaliTest {
 	public void test() {
 		disableCompilation();
 		ClassNode cls = getClassNodeFromSmali();
-		Assertions.assertTrue(cls.root().getGradleInfoStorage().isUseApacheHttpLegacy());
+		assertThat(cls.root().getGradleInfoStorage().isUseApacheHttpLegacy()).isTrue();
 	}
 }

@@ -2,12 +2,9 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestAnonymousClass2 extends IntegrationTest {
 
@@ -48,14 +45,13 @@ public class TestAnonymousClass2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("synthetic")));
-		assertThat(code, not(containsString("AnonymousClass_")));
-		assertThat(code, containsString("f = 1;"));
-		assertThat(code, containsString("f = i;"));
-		assertThat(code, not(containsString("Inner obj = ;")));
-		assertThat(code, containsString("Inner.this;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("synthetic")
+				.doesNotContain("AnonymousClass_")
+				.contains("f = 1;")
+				.contains("f = i;")
+				.doesNotContain("Inner obj = ;")
+				.contains("Inner.this;");
 	}
 }

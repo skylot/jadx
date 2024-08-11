@@ -2,13 +2,10 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestSwitchReturnFromCase2 extends IntegrationTest {
 
@@ -26,18 +23,17 @@ public class TestSwitchReturnFromCase2 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test(2));
-			assertTrue(test(3));
-			assertTrue(test(15));
-			assertFalse(test(1));
+			assertThat(test(2)).isTrue();
+			assertThat(test(3)).isTrue();
+			assertThat(test(15)).isTrue();
+			assertThat(test(1)).isFalse();
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("switch (a % 4) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("switch (a % 4) {");
 	}
 }

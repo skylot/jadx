@@ -68,7 +68,7 @@ public class TestInput {
 				3,
 				(file, attr) -> file.getFileName().toString().equalsIgnoreCase("AndroidManifest.xml"))
 				.collect(Collectors.toList());
-		assertThat(files.isEmpty()).isFalse();
+		assertThat(files).isNotEmpty();
 	}
 
 	private void decompile(String tmpDirName, String... inputSamples) throws URISyntaxException, IOException {

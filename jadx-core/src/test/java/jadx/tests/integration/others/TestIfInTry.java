@@ -5,12 +5,8 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestIfInTry extends IntegrationTest {
 
@@ -41,15 +37,14 @@ public class TestIfInTry extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (a != 0) {"));
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, countString(2, "try {"));
-		assertThat(code, countString(3, "f()"));
-		assertThat(code, containsOne("return 1;"));
-		assertThat(code, containsOne("} catch (IOException e"));
-		assertThat(code, containsOne("return -1;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (a != 0) {")
+				.containsOne("} catch (Exception e) {")
+				.countString(2, "try {")
+				.countString(3, "f()")
+				.containsOne("return 1;")
+				.containsOne("} catch (IOException e")
+				.containsOne("return -1;");
 	}
 }

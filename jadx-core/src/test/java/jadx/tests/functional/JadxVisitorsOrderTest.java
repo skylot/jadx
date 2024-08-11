@@ -14,8 +14,7 @@ import jadx.core.Jadx;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class JadxVisitorsOrderTest {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxVisitorsOrderTest.class);
@@ -32,7 +31,7 @@ public class JadxVisitorsOrderTest {
 		for (String str : errors) {
 			LOG.error(str);
 		}
-		assertThat(errors, empty());
+		assertThat(errors).isEmpty();
 	}
 
 	private static List<String> check(List<IDexTreeVisitor> passes) {

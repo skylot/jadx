@@ -2,11 +2,8 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestSpecialValues extends IntegrationTest {
 
@@ -46,18 +43,15 @@ public class TestSpecialValues extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne(
-				"Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, Float.MIN_VALUE, Float.MAX_VALUE, Float.MIN_NORMAL"));
-
-		assertThat(code, containsOne("Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, "
-				+ "Double.MIN_VALUE, Double.MAX_VALUE, Double.MIN_NORMAL"));
-
-		assertThat(code, containsOne("Short.MIN_VALUE, Short.MAX_VALUE"));
-		assertThat(code, containsOne("Byte.MIN_VALUE, Byte.MAX_VALUE"));
-		assertThat(code, containsOne("Integer.MIN_VALUE, Integer.MAX_VALUE"));
-		assertThat(code, containsOne("Long.MIN_VALUE, Long.MAX_VALUE"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne(
+						"Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, Float.MIN_VALUE, Float.MAX_VALUE, Float.MIN_NORMAL")
+				.containsOne("Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, "
+						+ "Double.MIN_VALUE, Double.MAX_VALUE, Double.MIN_NORMAL")
+				.containsOne("Short.MIN_VALUE, Short.MAX_VALUE")
+				.containsOne("Byte.MIN_VALUE, Byte.MAX_VALUE")
+				.containsOne("Integer.MIN_VALUE, Integer.MAX_VALUE")
+				.containsOne("Long.MIN_VALUE, Long.MAX_VALUE");
 	}
 }

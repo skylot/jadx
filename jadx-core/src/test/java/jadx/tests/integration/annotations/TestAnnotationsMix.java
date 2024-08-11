@@ -10,15 +10,11 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static java.lang.Thread.State.TERMINATED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestAnnotationsMix extends IntegrationTest {
 
@@ -29,18 +25,18 @@ public class TestAnnotationsMix extends IntegrationTest {
 			new Thread();
 
 			Method err = cls.getMethod("error");
-			assertTrue(err.getExceptionTypes().length > 0);
-			assertSame(err.getExceptionTypes()[0], Exception.class);
+			assertThat(err.getExceptionTypes().length > 0).isTrue();
+			assertThat(err.getExceptionTypes()[0]).isSameAs(Exception.class);
 
 			Method d = cls.getMethod("depr", String[].class);
-			assertTrue(d.getAnnotations().length > 0);
-			assertSame(d.getAnnotations()[0].annotationType(), Deprecated.class);
+			assertThat(d.getAnnotations().length > 0).isTrue();
+			assertThat(d.getAnnotations()[0].annotationType()).isSameAs(Deprecated.class);
 
 			Method ma = cls.getMethod("test", String[].class);
-			assertTrue(ma.getAnnotations().length > 0);
+			assertThat(ma.getAnnotations().length > 0).isTrue();
 			MyAnnotation a = (MyAnnotation) ma.getAnnotations()[0];
-			assertEquals(7, a.num());
-			assertSame(Thread.State.TERMINATED, a.state());
+			assertThat(a.num()).isEqualTo(7);
+			assertThat(a.state()).isSameAs(TERMINATED);
 			return true;
 		}
 
@@ -101,10 +97,9 @@ public class TestAnnotationsMix extends IntegrationTest {
 	@Test
 	public void test() {
 		// useDexInput();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("int i = false;")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("int i = false;");
 	}
 
 	@Test
@@ -115,10 +110,9 @@ public class TestAnnotationsMix extends IntegrationTest {
 
 	@Test
 	public void testDeclaration() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("Thread thread = new Thread();")));
-		assertThat(code, containsString("new Thread();"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("Thread thread = new Thread();")
+				.contains("new Thread();");
 	}
 }

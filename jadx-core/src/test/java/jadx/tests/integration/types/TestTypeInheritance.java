@@ -2,11 +2,8 @@ package jadx.tests.integration.types;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTypeInheritance extends IntegrationTest {
 
@@ -48,13 +45,12 @@ public class TestTypeInheritance extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("IBase impl;"));
-		assertThat(code, containsOne("impl = new A();"));
-		assertThat(code, containsOne("B b = new B();"));
-		assertThat(code, containsOne("impl = b;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("IBase impl;")
+				.containsOne("impl = new A();")
+				.containsOne("B b = new B();")
+				.containsOne("impl = b;");
 	}
 
 	@Test

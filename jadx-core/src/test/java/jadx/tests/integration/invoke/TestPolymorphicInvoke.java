@@ -12,7 +12,7 @@ import jadx.tests.api.extensions.profiles.TestProfile;
 import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestPolymorphicInvoke extends SmaliTest {
 
@@ -27,7 +27,7 @@ public class TestPolymorphicInvoke extends SmaliTest {
 				MethodHandle methodHandle = MethodHandles.lookup().findVirtual(TestCls.class, "func", methodType);
 				return (String) methodHandle.invoke(this, 1, 2);
 			} catch (Throwable e) {
-				fail(e);
+				fail("", e);
 				return null;
 			}
 		}

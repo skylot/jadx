@@ -2,20 +2,17 @@ package jadx.tests.integration.arrays;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFillArrayData extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliFiles("TestCls");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("jArr[0] = 1;"));
-		assertThat(code, containsString("jArr[1] = 2;"));
+		assertThat(getClassNodeFromSmaliFiles("TestCls"))
+				.code()
+				.contains("jArr[0] = 1;")
+				.contains("jArr[1] = 2;");
 	}
 }

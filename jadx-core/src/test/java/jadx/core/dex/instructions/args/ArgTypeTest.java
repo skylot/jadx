@@ -1,33 +1,30 @@
 package jadx.core.dex.instructions.args;
 
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.core.dex.instructions.args.ArgType.WildcardBound.SUPER;
+import static jadx.core.dex.instructions.args.ArgType.generic;
+import static jadx.core.dex.instructions.args.ArgType.genericType;
+import static jadx.core.dex.instructions.args.ArgType.wildcard;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class ArgTypeTest {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ArgTypeTest.class);
 
 	@Test
 	public void testEqualsOfGenericTypes() {
 		ArgType first = ArgType.generic("java.lang.List", ArgType.STRING);
 		ArgType second = ArgType.generic("Ljava/lang/List;", ArgType.STRING);
 
-		assertEquals(first, second);
+		assertThat(first).isEqualTo(second);
 	}
 
 	@Test
 	void testContainsGenericType() {
-		ArgType wildcard = ArgType.wildcard(ArgType.genericType("T"), ArgType.WildcardBound.SUPER);
-		assertTrue(wildcard.containsTypeVariable());
+		ArgType wildcard = wildcard(genericType("T"), SUPER);
+		assertThat(wildcard.containsTypeVariable()).isTrue();
 
-		ArgType type = ArgType.generic("java.lang.List", wildcard);
-		assertTrue(type.containsTypeVariable());
+		ArgType type = generic("java.lang.List", wildcard);
+		assertThat(type.containsTypeVariable()).isTrue();
 	}
 
 	@Test
@@ -36,11 +33,11 @@ class ArgTypeTest {
 		ArgType base = ArgType.generic("java.util.Map", genericTypes);
 
 		ArgType genericInner = ArgType.outerGeneric(base, ArgType.generic("Entry", genericTypes));
-		assertThat(genericInner.toString(), is("java.util.Map<K, V>$Entry<K, V>"));
-		assertTrue(genericInner.containsTypeVariable());
+		assertThat(genericInner.toString()).isEqualTo("java.util.Map<K, V>$Entry<K, V>");
+		assertThat(genericInner.containsTypeVariable()).isTrue();
 
 		ArgType genericInner2 = ArgType.outerGeneric(base, ArgType.object("Entry"));
-		assertThat(genericInner2.toString(), is("java.util.Map<K, V>$Entry"));
-		assertTrue(genericInner2.containsTypeVariable());
+		assertThat(genericInner2.toString()).isEqualTo("java.util.Map<K, V>$Entry");
+		assertThat(genericInner2.containsTypeVariable()).isTrue();
 	}
 }

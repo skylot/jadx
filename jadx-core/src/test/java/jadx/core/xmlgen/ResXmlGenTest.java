@@ -13,7 +13,7 @@ import jadx.core.xmlgen.entry.RawValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ResXmlGenTest {
 	private final JadxArgs args = new JadxArgs();
@@ -34,14 +34,14 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/attrs.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/attrs.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\" format=\"dimension\">\n"
 				+ "    </attr>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -56,15 +56,15 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/attrs.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/attrs.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\">\n"
 				+ "        <enum name=\"android:string.aerr_wait\" value=\"1\" />\n"
 				+ "    </attr>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -79,15 +79,15 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/attrs.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/attrs.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\">\n"
 				+ "        <flag name=\"android:string.aerr_wait\" value=\"1\" />\n"
 				+ "    </attr>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -102,14 +102,14 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/attrs.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/attrs.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\" format=\"integer\" min=\"1\">\n"
 				+ "    </attr>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -127,17 +127,17 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/styles.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/styles.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <style name=\"JadxGui\" parent=\"\">\n"
 				+ "        <item name=\"android:windowBackground\">@android:color/transparent</item>\n"
 				+ "    </style>\n"
 				+ "    <style name=\"JadxGui.Dialog\" parent=\"@style/JadxGui\">\n"
 				+ "    </style>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -154,13 +154,13 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/strings.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/strings.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <string name=\"app_name\">Jadx Decompiler App</string>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -177,13 +177,13 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/strings.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/strings.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <string name=\"app_name\" formatted=\"false\">%s at %s</string>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 
 	@Test
@@ -200,14 +200,14 @@ class ResXmlGenTest {
 		ResXmlGen resXmlGen = new ResXmlGen(resStorage, vp);
 		List<ResContainer> files = resXmlGen.makeResourcesXml(args);
 
-		assertEquals(1, files.size());
-		assertEquals("res/values/arrays.xml", files.get(0).getName());
+		assertThat(files).hasSize(1);
+		assertThat(files.get(0).getName()).isEqualTo("res/values/arrays.xml");
 		String input = files.get(0).getText().toString();
-		assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <array name=\"single_quote_escape_sample\">\n"
 				+ "        <item>Let\\'s go</item>\n"
 				+ "    </array>\n"
-				+ "</resources>", input);
+				+ "</resources>");
 	}
 }

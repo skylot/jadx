@@ -2,13 +2,9 @@ package jadx.tests.integration.annotations;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestAnnotations extends IntegrationTest {
 
@@ -48,18 +44,15 @@ public class TestAnnotations extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("@A(a = 255)")));
-		assertThat(code, containsOne("@A(a = -1)"));
-		assertThat(code, containsOne("@A(a = -253)"));
-		assertThat(code, containsOne("@A(a = -11253)"));
-		assertThat(code, containsOne("@V(false)"));
-		assertThat(code, not(containsString("@D()")));
-		assertThat(code, containsOne("@D"));
-
-		assertThat(code, containsOne("int a();"));
-		assertThat(code, containsOne("float value() default 1.1f;"));
+		assertThat(getClassNode(TestCls.class)).code()
+				.doesNotContain("@A(a = 255)")
+				.containsOne("@A(a = -1)")
+				.containsOne("@A(a = -253)")
+				.containsOne("@A(a = -11253)")
+				.containsOne("@V(false)")
+				.doesNotContain("@D()")
+				.containsOne("@D")
+				.containsOne("int a();")
+				.containsOne("float value() default 1.1f;");
 	}
 }

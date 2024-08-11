@@ -2,12 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestConditions extends IntegrationTest {
 
@@ -19,10 +16,9 @@ public class TestConditions extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("(!a || !b) && !c")));
-		assertThat(code, containsString("return (a && b) || c;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("(!a || !b) && !c")
+				.contains("return (a && b) || c;");
 	}
 }

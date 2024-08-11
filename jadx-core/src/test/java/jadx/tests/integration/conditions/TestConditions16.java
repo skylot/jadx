@@ -2,13 +2,10 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestConditions16 extends IntegrationTest {
 
@@ -18,18 +15,17 @@ public class TestConditions16 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test(-1, 1));
-			assertTrue(test(1, -1));
-			assertTrue(test(29, 3));
-			assertFalse(test(2, 2));
+			assertThat(test(-1, 1)).isTrue();
+			assertThat(test(1, -1)).isTrue();
+			assertThat(test(29, 3)).isTrue();
+			assertThat(test(2, 2)).isFalse();
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return a < 0 || (b % 2 != 0 && a > 28) || b < 0;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return a < 0 || (b % 2 != 0 && a > 28) || b < 0;");
 	}
 }

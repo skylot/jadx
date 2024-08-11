@@ -5,11 +5,9 @@ import java.time.DateTimeException;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchMultiException extends IntegrationTest {
 
@@ -26,11 +24,10 @@ public class TestTryCatchMultiException extends IntegrationTest {
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
 		String catchExcVarName = "e";
-		assertThat(code, containsOne("} catch (ProviderException | DateTimeException " + catchExcVarName + ") {"));
-		assertThat(code, containsOne("throw new RuntimeException(" + catchExcVarName + ");"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("} catch (ProviderException | DateTimeException " + catchExcVarName + ") {")
+				.containsOne("throw new RuntimeException(" + catchExcVarName + ");");
 	}
 }

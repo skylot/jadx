@@ -2,12 +2,9 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestComplexWhileLoop extends IntegrationTest {
 
@@ -31,9 +28,8 @@ public class TestComplexWhileLoop extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("for (int at = 0; at < len; at = endAt) {")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("for (int at = 0; at < len; at = endAt) {");
 	}
 }

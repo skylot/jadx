@@ -123,7 +123,7 @@ public class FileUtils {
 			try {
 				deleteDir(dir);
 			} catch (Exception e) {
-				LOG.error("Failed to delete dir: " + dir.toAbsolutePath(), e);
+				LOG.error("Failed to delete dir: {}", dir.toAbsolutePath(), e);
 			}
 		}
 	}

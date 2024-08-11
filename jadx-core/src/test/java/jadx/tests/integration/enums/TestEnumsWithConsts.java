@@ -2,11 +2,9 @@ package jadx.tests.integration.enums;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsLines;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestEnumsWithConsts extends IntegrationTest {
 
@@ -28,14 +26,13 @@ public class TestEnumsWithConsts extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsLines(1, "public enum Direction {",
-				indent(1) + "NORTH,",
-				indent(1) + "SOUTH,",
-				indent(1) + "EAST,",
-				indent(1) + "WEST",
-				"}"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsLines(1, "public enum Direction {",
+						indent(1) + "NORTH,",
+						indent(1) + "SOUTH,",
+						indent(1) + "EAST,",
+						indent(1) + "WEST",
+						"}");
 	}
 }

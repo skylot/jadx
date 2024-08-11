@@ -8,14 +8,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.ssa.LiveVarAnalysis;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestNameAssign2 extends IntegrationTest {
 
@@ -56,9 +53,8 @@ public class TestNameAssign2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("int id;")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("int id;");
 	}
 }

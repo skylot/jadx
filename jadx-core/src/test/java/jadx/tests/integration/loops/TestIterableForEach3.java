@@ -4,11 +4,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestIterableForEach3 extends IntegrationTest {
 
@@ -33,11 +30,10 @@ public class TestIterableForEach3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("for (T s : set) {"));
-		assertThat(code, containsOne("if (str.length() == 0) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("for (T s : set) {")
+				.containsOne("if (str.length() == 0) {");
 		// TODO move return outside 'if'
 	}
 

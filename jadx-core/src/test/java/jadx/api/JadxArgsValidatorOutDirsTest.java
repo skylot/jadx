@@ -7,8 +7,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.files.FileUtils;
 
 import static jadx.core.utils.files.FileUtils.toFile;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class JadxArgsValidatorOutDirsTest {
 
@@ -59,9 +58,9 @@ public class JadxArgsValidatorOutDirsTest {
 	private void checkOutDirs(String outDir, String srcDir, String resDir) {
 		JadxArgsValidator.validate(new JadxDecompiler(args));
 		LOG.debug("Got dirs: out={}, src={}, res={}", args.getOutDir(), args.getOutDirSrc(), args.getOutDirRes());
-		assertThat(args.getOutDir(), is(toFile(outDir)));
-		assertThat(args.getOutDirSrc(), is(toFile(srcDir)));
-		assertThat(args.getOutDirRes(), is(toFile(resDir)));
+		assertThat(args.getOutDir()).isEqualTo(toFile(outDir));
+		assertThat(args.getOutDirSrc()).isEqualTo(toFile(srcDir));
+		assertThat(args.getOutDirRes()).isEqualTo(toFile(resDir));
 	}
 
 	private JadxArgs makeArgs() {

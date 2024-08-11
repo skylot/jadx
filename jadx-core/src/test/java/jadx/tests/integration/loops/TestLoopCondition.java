@@ -4,11 +4,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestLoopCondition extends IntegrationTest {
 
@@ -26,10 +23,9 @@ public class TestLoopCondition extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("list.set(i, \"ABC\")"));
-		assertThat(code, containsOne("list.set(i, \"DEF\")"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("list.set(i, \"ABC\")")
+				.containsOne("list.set(i, \"DEF\")");
 	}
 }

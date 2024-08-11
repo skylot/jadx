@@ -2,12 +2,10 @@ package jadx.tests.integration.arrays;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestRedundantType extends IntegrationTest {
 
@@ -20,10 +18,9 @@ public class TestRedundantType extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return new byte[]{10, 11, 12};"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return new byte[]{10, 11, 12};");
 	}
 
 	public static class TestByte {
@@ -40,14 +37,13 @@ public class TestRedundantType extends IntegrationTest {
 
 	@Test
 	public void testByte() {
-		ClassNode cls = getClassNode(TestByte.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("arr[10] = 126"));
-		assertThat(code, containsString("arr[20] = Byte.MAX_VALUE"));
-		assertThat(code, containsString("arr[30] = Byte.MIN_VALUE"));
-		assertThat(code, containsString("arr[40] = -127"));
-		assertEquals(-127, new TestByte().method()[40]);
+		JadxAssertions.assertThat(getClassNode(TestByte.class))
+				.code()
+				.contains("arr[10] = 126")
+				.contains("arr[20] = Byte.MAX_VALUE")
+				.contains("arr[30] = Byte.MIN_VALUE")
+				.contains("arr[40] = -127");
+		assertThat(new TestByte().method()[40]).isEqualTo((byte) -127);
 	}
 
 	public static class TestShort {
@@ -64,13 +60,12 @@ public class TestRedundantType extends IntegrationTest {
 
 	@Test
 	public void testShort() {
-		ClassNode cls = getClassNode(TestShort.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("arr[10] = 32766"));
-		assertThat(code, containsString("arr[20] = Short.MAX_VALUE"));
-		assertThat(code, containsString("arr[30] = Short.MIN_VALUE"));
-		assertThat(code, containsString("arr[40] = -32767"));
-		assertEquals(-32767, new TestShort().method()[40]);
+		JadxAssertions.assertThat(getClassNode(TestShort.class))
+				.code()
+				.contains("arr[10] = 32766")
+				.contains("arr[20] = Short.MAX_VALUE")
+				.contains("arr[30] = Short.MIN_VALUE")
+				.contains("arr[40] = -32767");
+		assertThat(new TestShort().method()[40]).isEqualTo((short) -32767);
 	}
 }

@@ -2,12 +2,10 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestConditionInLoop extends IntegrationTest {
 
@@ -26,27 +24,25 @@ public class TestConditionInLoop extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(5, 9), is(115));
-			assertThat(test(8, 23), is(1015807));
+			assertThat(test(5, 9)).isEqualTo(115);
+			assertThat(test(8, 23)).isEqualTo(1015807);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("for (int i = a; i < b; i++) {"));
-		assertThat(code, containsOne("c += 2;"));
-		assertThat(code, containsOne("c *= 2;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("for (int i = a; i < b; i++) {")
+				.containsOne("c += 2;")
+				.containsOne("c *= 2;");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("while"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("while");
 	}
 }

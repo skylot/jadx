@@ -3,14 +3,12 @@ package jadx.cli;
 import java.util.Collections;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static jadx.core.utils.Utils.newConstStringMap;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JadxCLIArgsTest {
 
@@ -18,38 +16,38 @@ public class JadxCLIArgsTest {
 
 	@Test
 	public void testInvertedBooleanOption() {
-		assertThat(parse("--no-replace-consts").isReplaceConsts(), is(false));
-		assertThat(parse("").isReplaceConsts(), is(true));
+		assertThat(parse("--no-replace-consts").isReplaceConsts()).isFalse();
+		assertThat(parse("").isReplaceConsts()).isTrue();
 	}
 
 	@Test
 	public void testEscapeUnicodeOption() {
-		assertThat(parse("--escape-unicode").isEscapeUnicode(), is(true));
-		assertThat(parse("").isEscapeUnicode(), is(false));
+		assertThat(parse("--escape-unicode").isEscapeUnicode()).isTrue();
+		assertThat(parse("").isEscapeUnicode()).isFalse();
 	}
 
 	@Test
 	public void testSrcOption() {
-		assertThat(parse("--no-src").isSkipSources(), is(true));
-		assertThat(parse("-s").isSkipSources(), is(true));
-		assertThat(parse("").isSkipSources(), is(false));
+		assertThat(parse("--no-src").isSkipSources()).isTrue();
+		assertThat(parse("-s").isSkipSources()).isTrue();
+		assertThat(parse("").isSkipSources()).isFalse();
 	}
 
 	@Test
 	public void testOptionsOverride() {
-		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports(), is(false));
-		assertThat(override(new JadxCLIArgs(), "--no-debug-info").isDebugInfo(), is(false));
-		assertThat(override(new JadxCLIArgs(), "").isUseImports(), is(true));
+		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports()).isFalse();
+		assertThat(override(new JadxCLIArgs(), "--no-debug-info").isDebugInfo()).isFalse();
+		assertThat(override(new JadxCLIArgs(), "").isUseImports()).isTrue();
 
 		JadxCLIArgs args = new JadxCLIArgs();
 		args.useImports = false;
-		assertThat(override(args, "--no-imports").isUseImports(), is(false));
+		assertThat(override(args, "--no-imports").isUseImports()).isFalse();
 		args.debugInfo = false;
-		assertThat(override(args, "--no-debug-info").isDebugInfo(), is(false));
+		assertThat(override(args, "--no-debug-info").isDebugInfo()).isFalse();
 
 		args = new JadxCLIArgs();
 		args.useImports = false;
-		assertThat(override(args, "").isUseImports(), is(false));
+		assertThat(override(args, "").isUseImports()).isFalse();
 	}
 
 	@Test
@@ -83,7 +81,7 @@ public class JadxCLIArgsTest {
 		JadxCLIArgs args = new JadxCLIArgs();
 		args.pluginOptions = baseMap;
 		Map<String, String> resultMap = override(args, providedArgs).getPluginOptions();
-		assertThat(resultMap, Matchers.equalTo(expectedMap));
+		assertThat(resultMap).isEqualTo(expectedMap);
 	}
 
 	private JadxCLIArgs parse(String... args) {
@@ -91,15 +89,15 @@ public class JadxCLIArgsTest {
 	}
 
 	private JadxCLIArgs parse(JadxCLIArgs jadxArgs, String... args) {
-		boolean res = jadxArgs.processArgs(args);
-		assertThat(res, is(true));
-		LOG.info("Jadx args: {}", jadxArgs.toJadxArgs());
-		return jadxArgs;
+		return check(jadxArgs, jadxArgs.processArgs(args));
 	}
 
 	private JadxCLIArgs override(JadxCLIArgs jadxArgs, String... args) {
-		boolean res = jadxArgs.overrideProvided(args);
-		assertThat(res, is(true));
+		return check(jadxArgs, jadxArgs.overrideProvided(args));
+	}
+
+	private static JadxCLIArgs check(JadxCLIArgs jadxArgs, boolean res) {
+		assertThat(res).isTrue();
 		LOG.info("Jadx args: {}", jadxArgs.toJadxArgs());
 		return jadxArgs;
 	}

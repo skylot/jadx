@@ -4,12 +4,9 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatch6 extends IntegrationTest {
 
@@ -38,24 +35,22 @@ public class TestTryCatch6 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test(new Object()));
+			assertThat(test(new Object())).isTrue();
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try {");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try {");
 	}
 }

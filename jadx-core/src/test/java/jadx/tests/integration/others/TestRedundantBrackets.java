@@ -2,12 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestRedundantBrackets extends IntegrationTest {
 
@@ -47,24 +44,20 @@ public class TestRedundantBrackets extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("(-1)")));
-		assertThat(code, not(containsString("return;")));
-
-		assertThat(code, containsString("if (obj instanceof String) {"));
-		assertThat(code, containsString("return ((String) obj).length();"));
-		assertThat(code, containsString("a + b < 10"));
-		assertThat(code, containsString("(a & b) != 0"));
-		assertThat(code, containsString("if (num == 4 || num == 6 || num == 8 || num == 10)"));
-
-		assertThat(code, containsString("a[1] = n * 2;"));
-		assertThat(code, containsString("a[n - 1] = 1;"));
-
-		// argument type not changed to String
-		assertThat(code, containsString("public int method2(Object obj) {"));
-		// cast not eliminated
-		assertThat(code, containsString("((String) obj).length()"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("(-1)")
+				.doesNotContain("return;")
+				.contains("if (obj instanceof String) {")
+				.contains("return ((String) obj).length();")
+				.contains("a + b < 10")
+				.contains("(a & b) != 0")
+				.contains("if (num == 4 || num == 6 || num == 8 || num == 10)")
+				.contains("a[1] = n * 2;")
+				.contains("a[n - 1] = 1;")
+				.contains("public int method2(Object obj) {")
+				// argument type isn't changed to String
+				// cast not eliminated
+				.contains("((String) obj).length()");
 	}
 }

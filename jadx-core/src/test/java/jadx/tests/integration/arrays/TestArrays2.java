@@ -2,12 +2,9 @@ package jadx.tests.integration.arrays;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArrays2 extends IntegrationTest {
 	public static class TestCls {
@@ -27,16 +24,15 @@ public class TestArrays2 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test4(4), instanceOf(byte[].class));
+			assertThat(test4(4)).isInstanceOf(byte[].class);
 		}
 	}
 
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("new int[]{1, 2}"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("new int[]{1, 2}");
 	}
 }

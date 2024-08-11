@@ -8,9 +8,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttributeStorage;
 
 import static jadx.core.dex.attributes.AFlag.SYNTHETIC;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class AttributeStorageTest {
 	private AttributeStorage storage;
@@ -23,14 +21,14 @@ public class AttributeStorageTest {
 	@Test
 	public void testAdd() {
 		storage.add(SYNTHETIC);
-		assertThat(storage.contains(SYNTHETIC), is(true));
+		assertThat(storage.contains(SYNTHETIC)).isTrue();
 	}
 
 	@Test
 	public void testRemove() {
 		storage.add(SYNTHETIC);
 		storage.remove(SYNTHETIC);
-		assertThat(storage.contains(SYNTHETIC), is(false));
+		assertThat(storage.contains(SYNTHETIC)).isFalse();
 	}
 
 	public static final AType<TestAttr> TEST = new AType<>();
@@ -47,8 +45,8 @@ public class AttributeStorageTest {
 		TestAttr attr = new TestAttr();
 		storage.add(attr);
 
-		assertThat(storage.contains(TEST), is(true));
-		assertThat(storage.get(TEST), is(attr));
+		assertThat(storage.contains(TEST)).isTrue();
+		assertThat(storage.get(TEST)).isEqualTo(attr);
 	}
 
 	@Test
@@ -57,8 +55,8 @@ public class AttributeStorageTest {
 		storage.add(attr);
 		storage.remove(attr);
 
-		assertThat(storage.contains(TEST), is(false));
-		assertThat(storage.get(TEST), nullValue());
+		assertThat(storage.contains(TEST)).isFalse();
+		assertThat(storage.get(TEST)).isNull();
 	}
 
 	@Test
@@ -67,7 +65,7 @@ public class AttributeStorageTest {
 		storage.add(attr);
 		storage.remove(new TestAttr());
 
-		assertThat(storage.contains(TEST), is(true));
-		assertThat(storage.get(TEST), is(attr));
+		assertThat(storage.contains(TEST)).isTrue();
+		assertThat(storage.get(TEST)).isEqualTo(attr);
 	}
 }

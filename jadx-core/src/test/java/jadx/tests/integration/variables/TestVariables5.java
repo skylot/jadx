@@ -6,7 +6,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestVariables5 extends IntegrationTest {
 
@@ -36,7 +35,7 @@ public class TestVariables5 extends IntegrationTest {
 		public void check() {
 			setEnabled(false);
 			testIfInLoop();
-			assertTrue(enabled);
+			assertThat(enabled).isTrue();
 		}
 	}
 

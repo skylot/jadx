@@ -2,13 +2,9 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSequentialLoops2 extends IntegrationTest {
 
@@ -41,23 +37,21 @@ public class TestSequentialLoops2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(2, "while ("));
-		assertThat(code, containsString("break;"));
-		assertThat(code, containsOne("return c"));
-		assertThat(code, countString(2, "<= 127"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(2, "while (")
+				.contains("break;")
+				.containsOne("return c")
+				.countString(2, "<= 127");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(2, "while ("));
-		assertThat(code, containsString("break;"));
-		assertThat(code, countString(2, "<= 127"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(2, "while (")
+				.contains("break;")
+				.countString(2, "<= 127");
 	}
 }

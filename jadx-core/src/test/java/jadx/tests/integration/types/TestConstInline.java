@@ -2,11 +2,9 @@ package jadx.tests.integration.types;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestConstInline extends SmaliTest {
 	// @formatter:off
@@ -32,10 +30,9 @@ public class TestConstInline extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPkg("types", "TestConstInline");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("list = null;"));
-		assertThat(code, containsOne("str = null;"));
+		assertThat(getClassNodeFromSmaliWithPkg("types", "TestConstInline"))
+				.code()
+				.containsOne("list = null;")
+				.containsOne("str = null;");
 	}
 }

@@ -2,11 +2,9 @@ package jadx.tests.integration.debuginfo;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestVariablesNames extends SmaliTest {
 	// @formatter:off
@@ -41,12 +39,11 @@ public class TestVariablesNames extends SmaliTest {
 	 */
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("debuginfo", "TestVariablesNames");
-		String code = cls.getCode().toString();
-
-		// TODO: don't use current variables naming in tests
-		assertThat(code, containsOne("f1(str);"));
-		assertThat(code, containsOne("f2(i2, \"i\" + i2);"));
-		assertThat(code, containsOne("f3(d, \"d\" + d);"));
+		assertThat(getClassNodeFromSmaliWithPath("debuginfo", "TestVariablesNames"))
+				.code()
+				// TODO: don't use current variables naming in tests
+				.containsOne("f1(str);")
+				.containsOne("f2(i2, \"i\" + i2);")
+				.containsOne("f3(d, \"d\" + d);");
 	}
 }

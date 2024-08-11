@@ -1,13 +1,11 @@
 package jadx.tests.integration.inline;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTernaryCast extends IntegrationTest {
 
@@ -17,17 +15,16 @@ public class TestTernaryCast extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(true, "a", "b"), Matchers.is("a"));
-			assertThat(test(false, "a", "b"), Matchers.is("b"));
+			assertThat(test(true, "a", "b")).isEqualTo("a");
+			assertThat(test(false, "a", "b")).isEqualTo("b");
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return (String) (b ? obj : cs);"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return (String) (b ? obj : cs);");
 	}
 
 	@Test

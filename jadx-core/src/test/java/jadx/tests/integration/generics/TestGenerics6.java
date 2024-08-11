@@ -4,11 +4,8 @@ import java.util.Collection;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestGenerics6 extends IntegrationTest {
 
@@ -37,10 +34,9 @@ public class TestGenerics6 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("for (A a : as) {"));
-		assertThat(code, containsOne("for (I i : is) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("for (A a : as) {")
+				.containsOne("for (I i : is) {");
 	}
 }

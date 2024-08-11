@@ -2,13 +2,10 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestTryCatchInIf extends IntegrationTest {
 
@@ -34,20 +31,19 @@ public class TestTryCatchInIf extends IntegrationTest {
 		}
 
 		public void check() {
-			assertNull(test("n", null));
-			assertEquals("n=7", test("n", "7"));
-			assertEquals("n=77", test("n", "0x" + Integer.toHexString(77)));
-			assertEquals("Failed to parse number", test("n", "abc"));
-			assertEquals("Failed to parse number", test("n", "0xabX"));
+			assertThat(test("n", null)).isNull();
+			assertThat(test("n", "7")).isEqualTo("n=7");
+			assertThat(test("n", "0x" + Integer.toHexString(77))).isEqualTo("n=77");
+			assertThat(test("n", "abc")).isEqualTo("Failed to parse number");
+			assertThat(test("n", "0xabX")).isEqualTo("Failed to parse number");
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("} catch (NumberFormatException e) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try {")
+				.containsOne("} catch (NumberFormatException e) {");
 	}
 }

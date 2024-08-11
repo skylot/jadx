@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestNestedLoops5 extends IntegrationTest {
 
@@ -27,7 +27,7 @@ public class TestNestedLoops5 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertEquals(7, testFor());
+			assertThat(testFor()).isEqualTo(7);
 		}
 	}
 

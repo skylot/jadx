@@ -2,11 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestInsnsBeforeSuper extends SmaliTest {
 	// @formatter:off
@@ -34,9 +32,8 @@ public class TestInsnsBeforeSuper extends SmaliTest {
 	@Test
 	public void test() {
 		allowWarnInCode();
-		ClassNode cls = getClassNodeFromSmaliFiles("B");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("checkNull(str);"));
+		assertThat(getClassNodeFromSmaliFiles("B"))
+				.code()
+				.containsOne("checkNull(str);");
 	}
 }

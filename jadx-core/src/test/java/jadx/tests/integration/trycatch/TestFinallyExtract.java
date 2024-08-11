@@ -2,14 +2,10 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestFinallyExtract extends IntegrationTest {
 
@@ -36,30 +32,33 @@ public class TestFinallyExtract extends IntegrationTest {
 
 		public void check() {
 			test();
-			assertEquals(1, result);
+			assertThat(result).isEqualTo(1);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("} finally {")
+				.doesNotContain("if (0 == 0) {")
 
-		assertThat(code, containsOne("} finally {"));
-		assertThat(code, not(containsString("if (0 == 0) {")));
-
-		assertThat(code, containsOne("boolean success = false;"));
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("success = true;"));
-		assertThat(code, containsOne("return value;"));
-		assertThat(code, containsOne("if (!success) {"));
+				.containsOne("boolean success = false;")
+				.containsOne("try {")
+				.containsOne("success = true;")
+				.containsOne("return value;")
+				.containsOne("if (!success) {");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("this.result++;")
+				.containsOne("} catch (Throwable th) {")
+				.containsOne("this.result -= 2;")
+				.containsOne("throw th;");
 
 		// java compiler optimization: 'success' variable completely removed and no code duplication:
 		// @formatter:off
@@ -76,10 +75,5 @@ public class TestFinallyExtract extends IntegrationTest {
 		    }
 		*/
 		// @formatter:on
-
-		assertThat(code, containsOne("this.result++;"));
-		assertThat(code, containsOne("} catch (Throwable th) {"));
-		assertThat(code, containsOne("this.result -= 2;"));
-		assertThat(code, containsOne("throw th;"));
 	}
 }

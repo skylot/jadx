@@ -7,11 +7,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTryCatchFinally8 extends IntegrationTest {
 
@@ -45,22 +42,20 @@ public class TestTryCatchFinally8 extends IntegrationTest {
 	@Test
 	@NotYetImplemented("Fix merged catch blocks (shared code between catches)")
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("try {"));
-		assertThat(code, containsString("} catch (IOException e) {"));
-		assertThat(code, containsString("} finally {"));
-		assertThat(code, containsString("file.delete();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("try {")
+				.contains("} catch (IOException e) {")
+				.contains("} finally {")
+				.contains("file.delete();");
 	}
 
 	@Test
 	public void test2() {
 		disableCompilation();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("output = new FileOutputStream(file);"));
-		assertThat(code, containsString("} catch (IOException e) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("output = new FileOutputStream(file);")
+				.contains("} catch (IOException e) {");
 	}
 }

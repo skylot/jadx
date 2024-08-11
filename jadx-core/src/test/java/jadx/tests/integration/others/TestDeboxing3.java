@@ -6,11 +6,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestDeboxing3 extends IntegrationTest {
 
@@ -39,10 +36,9 @@ public class TestDeboxing3 extends IntegrationTest {
 	public void test() {
 		noDebugInfo();
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("l = 900000L;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("l = 900000L;");
 	}
 
 	@Test
@@ -50,10 +46,9 @@ public class TestDeboxing3 extends IntegrationTest {
 	public void testFull() {
 		noDebugInfo();
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("Pair<Long, String> pair = this.cache.get(id);"));
-		assertThat(code, containsOne("return pair.first + l > System.currentTimeMillis();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("Pair<Long, String> pair = this.cache.get(id);")
+				.containsOne("return pair.first + l > System.currentTimeMillis();");
 	}
 }

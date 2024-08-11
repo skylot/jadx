@@ -2,14 +2,11 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestTryCatchFinally7 extends IntegrationTest {
 
@@ -37,8 +34,8 @@ public class TestTryCatchFinally7 extends IntegrationTest {
 
 		public void check() {
 			f = 0;
-			assertTrue(test(null));
-			assertEquals(1, f);
+			assertThat(test(null)).isTrue();
+			assertThat(f).isEqualTo(1);
 
 			f = 0;
 			try {
@@ -46,28 +43,25 @@ public class TestTryCatchFinally7 extends IntegrationTest {
 			} catch (AssertionError e) {
 				// pass
 			}
-			assertEquals(1, f);
+			assertThat(f).isEqualTo(1);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("try {"));
-		assertThat(code, containsString("exc(obj);"));
-		assertThat(code, containsString("} catch (Exception e) {"));
-
-		assertThat(code, not(containsString("throw th;")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("try {")
+				.contains("exc(obj);")
+				.contains("} catch (Exception e) {")
+				.doesNotContain("throw th;");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("throw th;")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("throw th;");
 	}
 }

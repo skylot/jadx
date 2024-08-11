@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:printstacktrace")
 public class TestTryCatchFinally extends IntegrationTest {
@@ -34,8 +33,8 @@ public class TestTryCatchFinally extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test("a"));
-			assertTrue(test(null));
+			assertThat(test("a")).isTrue();
+			assertThat(test(null)).isTrue();
 		}
 	}
 

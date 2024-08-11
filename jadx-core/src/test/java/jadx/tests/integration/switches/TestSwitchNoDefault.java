@@ -2,10 +2,9 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSwitchNoDefault extends IntegrationTest {
 
@@ -32,10 +31,9 @@ public class TestSwitchNoDefault extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertEquals(4, count(code, "break;"));
-		assertEquals(1, count(code, "System.out.println(s);"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(4, "break;")
+				.containsOne("System.out.println(s);");
 	}
 }

@@ -2,12 +2,9 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSwitchLabels extends IntegrationTest {
 	public static class TestCls {
@@ -37,29 +34,24 @@ public class TestSwitchLabels extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("case CONST_ABC"));
-		assertThat(code, containsString("return CONST_CDE;"));
-
-		cls.addInnerClass(getClassNode(TestCls.Inner.class));
-		assertThat(code, not(containsString("case CONST_CDE_PRIVATE")));
-		assertThat(code, containsString(".CONST_ABC;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("case CONST_ABC")
+				.contains("return CONST_CDE;")
+				.doesNotContain("case CONST_CDE_PRIVATE")
+				.contains(".CONST_ABC;");
 	}
 
 	@Test
 	public void testWithDisabledConstReplace() {
 		getArgs().setReplaceConsts(false);
-
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-		assertThat(code, not(containsString("case CONST_ABC")));
-		assertThat(code, containsString("case 2748"));
-		assertThat(code, not(containsString("return CONST_CDE;")));
-		assertThat(code, containsString("return 3294;"));
-
-		cls.addInnerClass(getClassNode(TestCls.Inner.class));
-		assertThat(code, not(containsString("case CONST_CDE_PRIVATE")));
-		assertThat(code, not(containsString(".CONST_ABC;")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("case CONST_ABC")
+				.contains("case 2748")
+				.doesNotContain("return CONST_CDE;")
+				.contains("return 3294;")
+				.doesNotContain("case CONST_CDE_PRIVATE")
+				.doesNotContain(".CONST_ABC;");
 	}
 }

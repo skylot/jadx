@@ -9,10 +9,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIssue13a extends IntegrationTest {
 
@@ -94,10 +91,10 @@ public class TestIssue13a extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		for (int i = 1; i <= 7; i++) {
-			assertThat(code, containsOne("'" + i + '\''));
+			assertThat(code).containsOne("'" + i + '\'');
 		}
 
 		// TODO: add additional checks
-		assertThat(code, not(containsString("Throwable")));
+		assertThat(code).doesNotContain("Throwable");
 	}
 }

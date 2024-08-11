@@ -34,7 +34,7 @@ import static jadx.core.dex.instructions.args.ArgType.generic;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
-import static org.assertj.core.api.Assertions.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 @ExtendWith(NotYetImplementedExtension.class)
 public class TypeCompareTest {

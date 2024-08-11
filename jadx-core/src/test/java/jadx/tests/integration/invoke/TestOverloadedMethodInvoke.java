@@ -2,14 +2,10 @@ package jadx.tests.integration.invoke;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestOverloadedMethodInvoke extends IntegrationTest {
 
@@ -41,20 +37,19 @@ public class TestOverloadedMethodInvoke extends IntegrationTest {
 
 		public void check() {
 			test(null, new Exception());
-			assertEquals(23212, c);
+			assertThat(c).isEqualTo(23212);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public void test(Throwable th, Exception e) {"));
-		assertThat(code, containsOne("method(e, 10);"));
-		assertThat(code, containsOne("method(th, 100);"));
-		assertThat(code, containsOne("method((Throwable) e, 1000);"));
-		assertThat(code, containsOne("method((Exception) th, 10000);"));
-		assertThat(code, not(containsString("(Exception) e")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public void test(Throwable th, Exception e) {")
+				.containsOne("method(e, 10);")
+				.containsOne("method(th, 100);")
+				.containsOne("method((Throwable) e, 1000);")
+				.containsOne("method((Exception) th, 10000);")
+				.doesNotContain("(Exception) e");
 	}
 }

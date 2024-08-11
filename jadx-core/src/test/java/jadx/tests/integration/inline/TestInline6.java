@@ -2,12 +2,8 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestInline6 extends IntegrationTest {
 
@@ -24,10 +20,9 @@ public class TestInline6 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("System.out.println(System.nanoTime() - start);"));
-		assertThat(code, not(containsString("System.out.println(System.nanoTime() - System.nanoTime());")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("System.out.println(System.nanoTime() - start);")
+				.doesNotContain("System.out.println(System.nanoTime() - System.nanoTime());");
 	}
 }

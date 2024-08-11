@@ -2,13 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 @SuppressWarnings("IfCanBeSwitch")
 public class TestElseIf extends IntegrationTest {
@@ -35,16 +31,14 @@ public class TestElseIf extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("} else if (str.equals(\"b\")) {"));
-		assertThat(code, containsOne("} else {"));
-		assertThat(code, containsOne("int r;"));
-		assertThat(code, containsOne("r = 1;"));
-		assertThat(code, containsOne("r = -1;"));
-		// no ternary operator
-		assertThat(code, not(containsString(" ? ")));
-		assertThat(code, not(containsString(" : ")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("} else if (str.equals(\"b\")) {")
+				.containsOne("} else {")
+				.containsOne("int r;")
+				.containsOne("r = 1;")
+				.containsOne("r = -1;")
+				.doesNotContain(" ? ")
+				.doesNotContain(" : "); // no ternary operator
 	}
 }

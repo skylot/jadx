@@ -2,12 +2,10 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestSwitchInLoop extends IntegrationTest {
 	public static class TestCls {
@@ -25,20 +23,19 @@ public class TestSwitchInLoop extends IntegrationTest {
 		}
 
 		public void check() {
-			assertEquals(1, test(1));
+			assertThat(test(1)).isEqualTo(1);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("switch (k) {"));
-		assertThat(code, containsOne("case 0:"));
-		assertThat(code, containsOne("return a;"));
-		assertThat(code, containsOne("default:"));
-		assertThat(code, containsOne("a++;"));
-		assertThat(code, containsOne("k >>= 1;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("switch (k) {")
+				.containsOne("case 0:")
+				.containsOne("return a;")
+				.containsOne("default:")
+				.containsOne("a++;")
+				.containsOne("k >>= 1;");
 	}
 }

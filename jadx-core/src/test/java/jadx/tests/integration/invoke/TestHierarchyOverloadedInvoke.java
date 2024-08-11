@@ -5,12 +5,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestHierarchyOverloadedInvoke extends IntegrationTest {
 
@@ -62,30 +61,28 @@ public class TestHierarchyOverloadedInvoke extends IntegrationTest {
 
 		public void check() {
 			test();
-			assertThat(c, is(10 + 100));
+			assertThat(c).isEqualTo(10 + 100);
 
 			c = 0;
 			test2("str");
-			assertThat(c, is(1));
+			assertThat(c).isEqualTo(1);
 
 			c = 0;
 			test3();
-			assertThat(c, is(111));
+			assertThat(c).isEqualTo(111);
 
 			c = 0;
 			test4();
-			assertThat(c, is(12));
+			assertThat(c).isEqualTo(12);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("b.call(new ArrayList<>());"));
-		assertThat(code, containsOne("b.call((List<String>) new ArrayList());"));
-
-		assertThat(code, containsOne("b.call((String) obj);"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("b.call(new ArrayList<>());")
+				.containsOne("b.call((List<String>) new ArrayList());")
+				.containsOne("b.call((String) obj);");
 	}
 }

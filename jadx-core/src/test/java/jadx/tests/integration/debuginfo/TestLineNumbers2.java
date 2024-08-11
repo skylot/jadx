@@ -7,7 +7,7 @@ import jadx.tests.api.IntegrationTest;
 import jadx.tests.api.extensions.profiles.TestProfile;
 import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestLineNumbers2 extends IntegrationTest {
 
@@ -39,9 +39,9 @@ public class TestLineNumbers2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String linesMapStr = cls.getCode().getCodeMetadata().getLineMapping().toString();
 		if (isJavaInput()) {
-			assertEquals("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 18=27, 21=30, 22=31}", linesMapStr);
+			assertThat(linesMapStr).isEqualTo("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 18=27, 21=30, 22=31}");
 		} else {
-			assertEquals("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 17=27, 19=27, 22=30, 23=31}", linesMapStr);
+			assertThat(linesMapStr).isEqualTo("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 17=27, 19=27, 22=30, 23=31}");
 		}
 	}
 }

@@ -1,16 +1,12 @@
 package jadx.tests.integration.others;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestDeboxing4 extends IntegrationTest {
 
@@ -21,9 +17,9 @@ public class TestDeboxing4 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(null), Matchers.is(false));
-			assertThat(test(0), Matchers.is(false));
-			assertThat(test(1), Matchers.is(true));
+			assertThat(test(null)).isFalse();
+			assertThat(test(0)).isFalse();
+			assertThat(test(1)).isTrue();
 		}
 	}
 
@@ -31,10 +27,9 @@ public class TestDeboxing4 extends IntegrationTest {
 	public void test() {
 		noDebugInfo();
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("return 1.equals(num);")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("return 1.equals(num);");
 	}
 
 	@Test
@@ -42,9 +37,8 @@ public class TestDeboxing4 extends IntegrationTest {
 	public void testInline() {
 		noDebugInfo();
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return ((Integer) 1).equals(i);"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return ((Integer) 1).equals(i);");
 	}
 }

@@ -5,9 +5,8 @@ import org.junit.jupiter.api.Test;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.info.AccessInfo.AFType;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccessInfoTest {
 
@@ -16,17 +15,17 @@ public class AccessInfoTest {
 		AccessInfo accessInfo = new AccessInfo(AccessFlags.PROTECTED | AccessFlags.STATIC, AFType.METHOD);
 		AccessInfo result = accessInfo.changeVisibility(AccessFlags.PUBLIC);
 
-		assertThat(result.isPublic(), is(true));
-		assertThat(result.isPrivate(), is(false));
-		assertThat(result.isProtected(), is(false));
+		assertThat(result.isPublic()).isTrue();
+		assertThat(result.isPrivate()).isFalse();
+		assertThat(result.isProtected()).isFalse();
 
-		assertThat(result.isStatic(), is(true));
+		assertThat(result.isStatic()).isTrue();
 	}
 
 	@Test
 	public void changeVisibilityNoOp() {
 		AccessInfo accessInfo = new AccessInfo(AccessFlags.PUBLIC, AFType.METHOD);
 		AccessInfo result = accessInfo.changeVisibility(AccessFlags.PUBLIC);
-		assertSame(accessInfo, result);
+		assertThat(result).isSameAs(accessInfo);
 	}
 }

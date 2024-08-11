@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.export.TemplateFile;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TemplateFileTest {
 
@@ -21,9 +20,9 @@ public class TemplateFileTest {
 		String res = tmpl.build();
 		System.out.println(res);
 
-		assertThat(res, containsString("applicationId 'SOME_ID'"));
-		assertThat(res, containsString("targetSdkVersion 2"));
-		assertThat(res, containsString("versionCode 3"));
-		assertThat(res, containsString("versionName \"1.2.3\""));
+		assertThat(res).contains("applicationId 'SOME_ID'");
+		assertThat(res).contains("targetSdkVersion 2");
+		assertThat(res).contains("versionCode 3");
+		assertThat(res).contains("versionName \"1.2.3\"");
 	}
 }

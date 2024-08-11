@@ -2,12 +2,8 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestClassGen extends IntegrationTest {
 
@@ -25,15 +21,13 @@ public class TestClassGen extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("public interface I {"));
-		assertThat(code, containsString(indent(2) + "int test();"));
-		assertThat(code, not(containsString("public int test();")));
-		assertThat(code, containsString(indent(2) + "int test3();"));
-
-		assertThat(code, containsString("public static abstract class A {"));
-		assertThat(code, containsString(indent(2) + "public abstract int test2();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("public interface I {")
+				.contains(indent(2) + "int test();")
+				.doesNotContain("public int test();")
+				.contains(indent(2) + "int test3();")
+				.contains("public static abstract class A {")
+				.contains(indent(2) + "public abstract int test2();");
 	}
 }

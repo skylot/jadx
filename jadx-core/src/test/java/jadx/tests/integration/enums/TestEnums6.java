@@ -1,11 +1,11 @@
 package jadx.tests.integration.enums;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestEnums6 extends IntegrationTest {
 
@@ -30,8 +30,8 @@ public class TestEnums6 extends IntegrationTest {
 		}
 
 		public void check() {
-			Assertions.assertThat(TestCls.Numbers.ZERO.getN()).isEqualTo(0);
-			Assertions.assertThat(TestCls.Numbers.ONE.getN()).isEqualTo(1);
+			assertThat(TestCls.Numbers.ZERO.getN()).isEqualTo(0);
+			assertThat(TestCls.Numbers.ONE.getN()).isEqualTo(1);
 		}
 	}
 

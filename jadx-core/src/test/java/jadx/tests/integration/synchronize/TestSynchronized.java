@@ -2,13 +2,8 @@ package jadx.tests.integration.synchronize;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestSynchronized extends IntegrationTest {
 
@@ -30,17 +25,15 @@ public class TestSynchronized extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("synchronized (this) {")));
-		assertThat(code, containsOne("public synchronized boolean test1() {"));
-		assertThat(code, containsOne("return this.f"));
-		assertThat(code, containsOne("synchronized (this.o) {"));
-
-		assertThat(code, not(containsString(indent(3) + ';')));
-		assertThat(code, not(containsString("try {")));
-		assertThat(code, not(containsString("} catch (Throwable th) {")));
-		assertThat(code, not(containsString("throw th;")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("synchronized (this) {")
+				.containsOne("public synchronized boolean test1() {")
+				.containsOne("return this.f")
+				.containsOne("synchronized (this.o) {")
+				.doesNotContain(indent(3) + ';')
+				.doesNotContain("try {")
+				.doesNotContain("} catch (Throwable th) {")
+				.doesNotContain("throw th;");
 	}
 }

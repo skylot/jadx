@@ -2,12 +2,10 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestTryCatchInLoop extends IntegrationTest {
 
@@ -38,16 +36,15 @@ public class TestTryCatchInLoop extends IntegrationTest {
 
 		public void check() {
 			test();
-			assertEquals(3, c);
+			assertThat(c).isEqualTo(3);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("break;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("} catch (Exception e) {")
+				.containsOne("break;");
 	}
 }

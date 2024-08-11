@@ -2,12 +2,10 @@ package jadx.tests.integration.enums;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestInnerEnums extends IntegrationTest {
 
@@ -52,18 +50,17 @@ public class TestInnerEnums extends IntegrationTest {
 		}
 
 		public void check() {
-			assertEquals(1, Numbers.ONE.getNum());
-			assertEquals(Numbers.NumString.ONE, Numbers.ONE.getNumStr());
-			assertEquals("one", Numbers.ONE.getName());
+			assertThat(Numbers.ONE.getNum()).isEqualTo(1);
+			assertThat(Numbers.ONE.getNumStr()).isEqualTo(Numbers.NumString.ONE);
+			assertThat(Numbers.ONE.getName()).isEqualTo("one");
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("ONE((byte) 1, NumString.ONE)"));
-		assertThat(code, containsOne("ONE(\"one\")"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("ONE((byte) 1, NumString.ONE)")
+				.containsOne("ONE(\"one\")");
 	}
 }

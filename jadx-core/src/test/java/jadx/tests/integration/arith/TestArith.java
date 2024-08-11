@@ -3,11 +3,10 @@ package jadx.tests.integration.arith;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArith extends IntegrationTest {
 
@@ -33,35 +32,33 @@ public class TestArith extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		assertThat(getClassNode(TestCls.class))
+				.code();
 	}
 
 	@Test
 	@NotYetImplemented
 	public void test2() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("a += 2;"));
-		assertThat(code, containsString("a++;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("a += 2;")
+				.contains("a++;");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		assertThat(getClassNode(TestCls.class))
+				.code();
 	}
 
 	@Test
 	@NotYetImplemented
 	public void testNoDebug2() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("i += 2;"));
-		assertThat(code, containsString("i++;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("i += 2;")
+				.contains("i++;");
 	}
 }

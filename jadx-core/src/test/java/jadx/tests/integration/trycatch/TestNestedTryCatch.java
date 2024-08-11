@@ -2,12 +2,8 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestNestedTryCatch extends IntegrationTest {
 
@@ -28,14 +24,13 @@ public class TestNestedTryCatch extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("try {"));
-		assertThat(code, containsString("Thread.sleep(1L);"));
-		assertThat(code, containsString("Thread.sleep(2L);"));
-		assertThat(code, containsString("} catch (InterruptedException e) {"));
-		assertThat(code, containsString("} catch (Exception e2) {"));
-		assertThat(code, not(containsString("return")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("try {")
+				.contains("Thread.sleep(1L);")
+				.contains("Thread.sleep(2L);")
+				.contains("} catch (InterruptedException e) {")
+				.contains("} catch (Exception e2) {")
+				.doesNotContain("return");
 	}
 }

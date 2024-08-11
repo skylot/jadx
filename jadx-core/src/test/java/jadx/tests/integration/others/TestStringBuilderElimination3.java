@@ -2,13 +2,10 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestStringBuilderElimination3 extends IntegrationTest {
 
@@ -23,11 +20,10 @@ public class TestStringBuilderElimination3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return \"result = \" + a;"));
-		assertThat(code, not(containsString("new StringBuilder()")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return \"result = \" + a;")
+				.doesNotContain("new StringBuilder()");
 	}
 
 	public static class TestClsNegative {
@@ -48,16 +44,15 @@ public class TestStringBuilderElimination3 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(), is("before = first, after = second"));
+			assertThat(test()).isEqualTo("before = first, after = second");
 		}
 	}
 
 	@Test
 	public void testNegative() {
-		ClassNode cls = getClassNode(TestClsNegative.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return sb.toString();"));
-		assertThat(code, containsString("new StringBuilder()"));
+		JadxAssertions.assertThat(getClassNode(TestClsNegative.class))
+				.code()
+				.contains("return sb.toString();")
+				.contains("new StringBuilder()");
 	}
 }

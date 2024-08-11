@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestLocalVarCollideWithPackage extends SmaliTest {
 	//@formatter:off
@@ -47,8 +45,9 @@ public class TestLocalVarCollideWithPackage extends SmaliTest {
 		ClassNode firstA = searchCls(clsList, "first.A");
 		String code = firstA.getCode().toString();
 
-		assertThat(code, containsString("second.A.call();"));
-		assertThat(code, not(containsString("Second second = new Second();")));
+		assertThat(code)
+				.contains("second.A.call();")
+				.doesNotContain("Second second = new Second();");
 	}
 
 	@Test

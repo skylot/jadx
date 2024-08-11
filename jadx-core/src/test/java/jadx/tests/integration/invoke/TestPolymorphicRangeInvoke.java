@@ -10,7 +10,7 @@ import jadx.tests.api.extensions.profiles.TestProfile;
 import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestPolymorphicRangeInvoke extends IntegrationTest {
 
@@ -27,7 +27,7 @@ public class TestPolymorphicRangeInvoke extends IntegrationTest {
 				MethodHandle methodHandle = lookup.findVirtual(TestCls.class, "func2", methodType);
 				return (String) methodHandle.invoke(this, 10, 20, 30, 40, 50, 60);
 			} catch (Throwable e) {
-				fail(e);
+				fail("", e);
 				return null;
 			}
 		}

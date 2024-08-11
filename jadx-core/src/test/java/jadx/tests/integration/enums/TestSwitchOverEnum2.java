@@ -2,12 +2,10 @@ package jadx.tests.integration.enums;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestSwitchOverEnum2 extends IntegrationTest {
 
@@ -41,17 +39,16 @@ public class TestSwitchOverEnum2 extends IntegrationTest {
 	}
 
 	public void check() {
-		assertEquals(21, testEnum(Count.ONE, Animal.DOG));
+		assertThat(testEnum(Count.ONE, Animal.DOG)).isEqualTo(21);
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestSwitchOverEnum2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(1, "synthetic"));
-		assertThat(code, countString(2, "switch (c) {"));
-		assertThat(code, countString(2, "case ONE:"));
-		assertThat(code, countString(2, "case DOG:"));
+		assertThat(getClassNode(TestSwitchOverEnum2.class))
+				.code()
+				.countString(1, "synthetic")
+				.countString(2, "switch (c) {")
+				.countString(2, "case ONE:")
+				.countString(2, "case DOG:");
 	}
 }

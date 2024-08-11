@@ -5,12 +5,9 @@ import java.net.URL;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsLines;
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFieldInitInTryCatch extends IntegrationTest {
 
@@ -55,35 +52,32 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public static final URL A;"));
-		assertThat(code, containsOne("A = new URL(\"http://www.example.com/\");"));
-		assertThat(code, containsLines(2,
-				"try {",
-				indent(1) + "A = new URL(\"http://www.example.com/\");",
-				"} catch (MalformedURLException e) {"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public static final URL A;")
+				.containsOne("A = new URL(\"http://www.example.com/\");")
+				.containsLines(2,
+						"try {",
+						indent(1) + "A = new URL(\"http://www.example.com/\");",
+						"} catch (MalformedURLException e) {");
 	}
 
 	@Test
 	public void test2() {
-		ClassNode cls = getClassNode(TestCls2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsLines(2,
-				"try {",
-				indent(1) + "A = new URL[]{new URL(\"http://www.example.com/\")};",
-				"} catch (MalformedURLException e) {"));
+		assertThat(getClassNode(TestCls2.class))
+				.code()
+				.containsLines(2,
+						"try {",
+						indent(1) + "A = new URL[]{new URL(\"http://www.example.com/\")};",
+						"} catch (MalformedURLException e) {");
 	}
 
 	@Test
 	public void test3() {
-		ClassNode cls = getClassNode(TestCls3.class);
-		String code = cls.getCode().toString();
-
-		// don't move code from try/catch
-		assertThat(code, containsOne("public static final String[] A;"));
-		assertThat(code, containsOne("A = new String[]{\"a\"};"));
+		assertThat(getClassNode(TestCls3.class))
+				.code()
+				// don't move code from try/catch
+				.containsOne("public static final String[] A;")
+				.containsOne("A = new String[]{\"a\"};");
 	}
 }

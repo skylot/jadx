@@ -2,20 +2,17 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArithConst extends SmaliTest {
 
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNodeFromSmaliWithPath("arith", "TestArithConst");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return i + CONST_INT;"));
+		assertThat(getClassNodeFromSmaliWithPath("arith", "TestArithConst"))
+				.code()
+				.containsOne("return i + CONST_INT;");
 	}
 }

@@ -23,9 +23,7 @@ import jadx.core.utils.DebugChecks;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.utils.TestUtils;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public abstract class BaseExternalTest extends TestUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);
@@ -82,7 +80,7 @@ public abstract class BaseExternalTest extends TestUtils {
 				}
 			}
 		}
-		assertThat("No classes processed", processed, greaterThan(0));
+		assertThat(processed).as("No classes processed").isGreaterThan(0);
 	}
 
 	private boolean processCls(@Nullable String mthPattern, ClassNode classNode) {
@@ -192,6 +190,6 @@ public abstract class BaseExternalTest extends TestUtils {
 
 	private void printErrorReport(JadxDecompiler jadx) {
 		jadx.printErrorsReport();
-		assertThat(jadx.getErrorsCount(), is(0));
+		assertThat(jadx.getErrorsCount()).isEqualTo(0);
 	}
 }

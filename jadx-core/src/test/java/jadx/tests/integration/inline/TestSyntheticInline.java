@@ -2,12 +2,9 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSyntheticInline extends IntegrationTest {
 
@@ -35,18 +32,17 @@ public class TestSyntheticInline extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("synthetic")
+				.doesNotContain("access$")
+				.doesNotContain("x0")
+				.contains("f = v;")
+				.contains("return TestSyntheticInline$TestCls.this.f;")
 
-		assertThat(code, not(containsString("synthetic")));
-		assertThat(code, not(containsString("access$")));
-		assertThat(code, not(containsString("x0")));
-		assertThat(code, containsString("f = v;"));
-
-		// assertThat(code, containsString("return f;"));
-		// assertThat(code, containsString("return func();"));
-		// Temporary solution
-		assertThat(code, containsString("return TestSyntheticInline$TestCls.this.f;"));
-		assertThat(code, containsString("return TestSyntheticInline$TestCls.this.func();"));
+				// .contains("return f;");
+				// .contains("return func();");
+				// Temporary solution
+				.contains("return TestSyntheticInline$TestCls.this.func();");
 	}
 }

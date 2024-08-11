@@ -5,11 +5,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestOuterGeneric extends IntegrationTest {
 
@@ -60,13 +57,12 @@ public class TestOuterGeneric extends IntegrationTest {
 	@NotYetImplemented("Instance constructor for inner classes")
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("A<String> a = new A<>();"));
-		assertThat(code, containsOne("A<String>.B<Exception> b = a.new B<Exception>();"));
-		assertThat(code, containsOne("A<String>.C c = a.new C();"));
-		assertThat(code, containsOne("use(new A<Set<String>>().new C());"));
-		assertThat(code, containsOne("D.E e = d.new E();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("A<String> a = new A<>();")
+				.containsOne("A<String>.B<Exception> b = a.new B<Exception>();")
+				.containsOne("A<String>.C c = a.new C();")
+				.containsOne("use(new A<Set<String>>().new C());")
+				.containsOne("D.E e = d.new E();");
 	}
 }

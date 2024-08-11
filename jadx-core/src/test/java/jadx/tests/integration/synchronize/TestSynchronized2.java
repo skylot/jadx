@@ -3,12 +3,8 @@ package jadx.tests.integration.synchronize;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestSynchronized2 extends IntegrationTest {
 
@@ -21,11 +17,10 @@ public class TestSynchronized2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("private static synchronized boolean test(Object obj) {"));
-		assertThat(code, containsString("obj.toString() != null;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("private static synchronized boolean test(Object obj) {")
+				.contains("obj.toString() != null;");
 	}
 
 	@Test
@@ -33,10 +28,9 @@ public class TestSynchronized2 extends IntegrationTest {
 	public void test2() {
 		useDexInput(); // java bytecode don't add exception handlers
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return obj.toString() != null;"));
-		assertThat(code, not(containsString("synchronized (")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return obj.toString() != null;")
+				.doesNotContain("synchronized (");
 	}
 }

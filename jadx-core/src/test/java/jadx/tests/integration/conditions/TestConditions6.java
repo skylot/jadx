@@ -4,12 +4,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConditions6 extends IntegrationTest {
 
@@ -24,10 +20,9 @@ public class TestConditions6 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return l1.size() == 0;"));
-		assertThat(code, not(containsString("else")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return l1.size() == 0;")
+				.doesNotContain("else");
 	}
 }

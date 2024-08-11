@@ -2,13 +2,9 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestInline7 extends SmaliTest {
 
@@ -31,11 +27,10 @@ public class TestInline7 extends SmaliTest {
 	@Test
 	public void test() {
 		disableCompilation();
-		ClassNode cls = getClassNodeFromSmaliWithPkg("inline", "TestInline7");
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("Bundle arguments;")));
-		assertThat(code, containsOne("Bundle arguments = getArguments();"));
-		assertThat(code, containsOne("@Nullable Bundle bundle"));
+		assertThat(getClassNodeFromSmaliWithPkg("inline", "TestInline7"))
+				.code()
+				.doesNotContain("Bundle arguments;")
+				.containsOne("Bundle arguments = getArguments();")
+				.containsOne("@Nullable Bundle bundle");
 	}
 }

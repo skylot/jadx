@@ -2,12 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 /**
  * Test the StringBuilder simplification part of {@link SimplifyVisitor}
@@ -26,9 +23,9 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	@Test
 	public void test1() {
-		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls1.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("return \"[init]a1c201.02.0true\";"));
+		JadxAssertions.assertThat(getClassNode(TestCls1.class))
+				.code()
+				.contains("return \"[init]a1c201.02.0true\";");
 	}
 
 	public static class TestCls2 {
@@ -48,9 +45,9 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	@Test
 	public void test2() {
-		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls2.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("return \"[init]a1c121.02.0true\";"));
+		JadxAssertions.assertThat(getClassNode(TestCls2.class))
+				.code()
+				.contains("return \"[init]a1c121.02.0true\";");
 	}
 
 	public static class TestClsStringUtilsReverse {
@@ -65,9 +62,9 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	@Test
 	public void test3() {
-		ClassNode cls = getClassNode(TestClsStringUtilsReverse.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("return new StringBuilder(str).reverse().toString();"));
+		JadxAssertions.assertThat(getClassNode(TestClsStringUtilsReverse.class))
+				.code()
+				.contains("return new StringBuilder(str).reverse().toString();");
 	}
 
 	public static class TestClsChainWithDelete {
@@ -79,8 +76,8 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	@Test
 	public void testChainWithDelete() {
-		ClassNode cls = getClassNode(TestClsChainWithDelete.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("return new StringBuilder(\"[init]\").append(\"a1\").delete(1, 2).toString();"));
+		JadxAssertions.assertThat(getClassNode(TestClsChainWithDelete.class))
+				.code()
+				.contains("return new StringBuilder(\"[init]\").append(\"a1\").delete(1, 2).toString();");
 	}
 }
