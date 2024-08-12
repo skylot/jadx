@@ -864,6 +864,10 @@ public class RegionMaker {
 		// works if no fallthrough cases and no returns inside switch
 		BitSet outs = BlockUtils.newBlocksBitSet(mth);
 		for (BlockNode s : block.getCleanSuccessors()) {
+			if (s.contains(AFlag.LOOP_END)) {
+				// loop end dom frontier is loop start, ignore it
+				continue;
+			}
 			outs.or(s.getDomFrontier());
 		}
 		outs.clear(block.getId());
