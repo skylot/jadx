@@ -168,6 +168,11 @@ public class JadxArgs implements Closeable {
 	 */
 	private boolean skipFilesSave = false;
 
+	/**
+	 * Run additional expensive checks to verify internal invariants and info integrity
+	 */
+	private boolean runDebugChecks = false;
+
 	private Map<String, String> pluginOptions = new HashMap<>();
 
 	private JadxPluginLoader pluginLoader = new JadxBasePluginLoader();
@@ -683,6 +688,14 @@ public class JadxArgs implements Closeable {
 
 	public void setSkipFilesSave(boolean skipFilesSave) {
 		this.skipFilesSave = skipFilesSave;
+	}
+
+	public boolean isRunDebugChecks() {
+		return runDebugChecks;
+	}
+
+	public void setRunDebugChecks(boolean runDebugChecks) {
+		this.runDebugChecks = runDebugChecks;
 	}
 
 	public Map<String, String> getPluginOptions() {

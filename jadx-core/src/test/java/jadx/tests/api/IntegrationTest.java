@@ -51,7 +51,6 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.DebugChecks;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -62,9 +61,9 @@ import jadx.tests.api.compiler.JavaUtils;
 import jadx.tests.api.compiler.TestCompiler;
 import jadx.tests.api.utils.TestUtils;
 
-import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.apache.commons.lang3.StringUtils.rightPad;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public abstract class IntegrationTest extends TestUtils {
@@ -114,11 +113,6 @@ public abstract class IntegrationTest extends TestUtils {
 	 */
 	private boolean forceDecompiledCheck = false;
 
-	static {
-		// enable debug checks
-		DebugChecks.checksEnabled = true;
-	}
-
 	protected JadxDecompiler jadxDecompiler;
 
 	@BeforeEach
@@ -137,6 +131,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setCommentsLevel(CommentsLevel.DEBUG);
 		args.setDeobfuscationOn(false);
 		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
+		args.setRunDebugChecks(true);
 
 		// use the same values on all systems
 		args.setFsCaseSensitive(false);

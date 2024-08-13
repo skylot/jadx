@@ -1,11 +1,14 @@
 package jadx.core.utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -17,26 +20,37 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.dex.visitors.PrepareForCodeGen;
-import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
- * Check invariants and information consistency for registers and SSA variables
+ * Check invariants and information consistency for blocks, instructions, registers, SSA variables.
+ * These checks are very expensive and executed only in tests.
  */
 public class DebugChecks {
 
-	public static boolean /* not final! */ checksEnabled = false;
+	private static final Set<String> IGNORE_CHECKS = new HashSet<>(List.of(
+			"PrepareForCodeGen",
+			"RenameVisitor",
+			"DotGraphVisitor"));
 
-	public static void runChecksAfterVisitor(MethodNode mth, IDexTreeVisitor visitor) {
-		Class<? extends IDexTreeVisitor> visitorCls = visitor.getClass();
-		if (visitorCls == PrepareForCodeGen.class || visitorCls == RenameVisitor.class) {
-			return;
+	public static List<IDexTreeVisitor> insertPasses(List<IDexTreeVisitor> passes) {
+		int size = passes.size();
+		List<IDexTreeVisitor> list = new ArrayList<>(size * 2);
+		for (IDexTreeVisitor pass : passes) {
+			list.add(pass);
+			String name = pass.getName();
+			if (!IGNORE_CHECKS.contains(name)) {
+				list.add(new DebugChecksPass(name));
+			}
 		}
+		return list;
+	}
+
+	public static void runChecksAfterVisitor(MethodNode mth, String visitor) {
 		try {
 			checkMethod(mth);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Debug check failed after visitor: " + visitorCls.getSimpleName(), e);
+			throw new JadxRuntimeException("Debug check failed after visitor: " + visitor, e);
 		}
 	}
 
@@ -71,6 +85,16 @@ public class DebugChecks {
 			for (RegisterArg arg : ternaryInsn.getCondition().getRegisterArgs()) {
 				checkVar(mth, insn, arg);
 			}
+		} else if (insn instanceof IfNode) {
+			IfNode ifNode = (IfNode) insn;
+			checkBlock(mth, ifNode.getThenBlock());
+			checkBlock(mth, ifNode.getElseBlock());
+		}
+	}
+
+	private static void checkBlock(MethodNode mth, BlockNode block) {
+		if (!mth.getBasicBlocks().contains(block)) {
+			throw new JadxRuntimeException("Block not registered in method: " + block);
 		}
 	}
 

@@ -37,6 +37,7 @@ import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.api.usage.IUsageInfoData;
 import jadx.core.Consts;
+import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -324,7 +325,7 @@ public class ClassNode extends NotificationAttrNode
 			try {
 				unload();
 				args.setDecompilationMode(mode);
-				ProcessClass process = new ProcessClass(args);
+				ProcessClass process = new ProcessClass(Jadx.getPassesList(args));
 				process.initPasses(root);
 				return process.generateCode(this);
 			} finally {

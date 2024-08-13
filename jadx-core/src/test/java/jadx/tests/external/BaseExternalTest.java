@@ -19,7 +19,6 @@ import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.DebugChecks;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.utils.TestUtils;
 
@@ -37,7 +36,6 @@ public abstract class BaseExternalTest extends TestUtils {
 	}
 
 	protected JadxArgs prepare(File input) {
-		DebugChecks.checksEnabled = false;
 		JadxArgs args = new JadxArgs();
 		args.getInputFiles().add(input);
 		args.setOutDir(new File("../jadx-external-tests-tmp"));
