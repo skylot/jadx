@@ -139,6 +139,7 @@ import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
+import jadx.gui.ui.tab.NavigationController;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
@@ -210,6 +211,7 @@ public class MainWindow extends JFrame {
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabsController tabsController;
+	private NavigationController navController;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
 	private transient boolean treeReloading;
@@ -783,6 +785,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void clearTree() {
+		navController.reset();
 		tabbedPane.reset();
 		treeRoot = null;
 		treeModel.setRoot(null);
@@ -1087,10 +1090,10 @@ public class MainWindow extends JFrame {
 		JadxGuiAction showLogAction = new JadxGuiAction(ActionModel.SHOW_LOG,
 				() -> showLogViewer(LogOptions.current()));
 		JadxGuiAction aboutAction = new JadxGuiAction(ActionModel.ABOUT, () -> new AboutDialog().setVisible(true));
-		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, tabbedPane::navBack);
-		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, tabbedPane::navBack);
-		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, tabbedPane::navForward);
-		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, tabbedPane::navForward);
+		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, navController::navBack);
+		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, navController::navBack);
+		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, navController::navForward);
+		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, navController::navForward);
 		JadxGuiAction quarkAction = new JadxGuiAction(ActionModel.QUARK,
 				() -> new QuarkDialog(MainWindow.this).setVisible(true));
 		JadxGuiAction openDeviceAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
@@ -1348,6 +1351,7 @@ public class MainWindow extends JFrame {
 		treeSplitPane.setLeftComponent(leftPane);
 
 		tabsController = new TabsController(this);
+		navController = new NavigationController(this);
 		tabbedPane = new TabbedPane(this, tabsController);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		new TabDndController(tabbedPane, settings);
@@ -1581,6 +1585,10 @@ public class MainWindow extends JFrame {
 
 	public TabsController getTabsController() {
 		return tabsController;
+	}
+
+	public NavigationController getNavController() {
+		return navController;
 	}
 
 	public JadxSettings getSettings() {

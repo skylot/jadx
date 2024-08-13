@@ -32,7 +32,6 @@ import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.ui.tab.dnd.TabDndController;
-import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
 
@@ -44,8 +43,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	private final transient MainWindow mainWindow;
 	private final transient TabsController controller;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
-
-	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
 	private transient ContentPanel lastTab;
@@ -215,11 +212,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	private void saveJump(JumpPosition pos) {
-		JumpPosition curPos = getCurrentPosition();
-		if (curPos != null) {
-			jumps.addPosition(curPos);
-			jumps.addPosition(pos);
-		}
+		mainWindow.getNavController().saveJump(pos);
 	}
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
@@ -274,26 +267,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
-	}
-
-	public void navBack() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(getCurrentPosition());
-		}
-		JumpPosition pos = jumps.getPrev();
-		if (pos != null) {
-			showCode(pos);
-		}
-	}
-
-	public void navForward() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(getCurrentPosition());
-		}
-		JumpPosition pos = jumps.getNext();
-		if (pos != null) {
-			showCode(pos);
-		}
 	}
 
 	private void addContentPanel(ContentPanel contentPanel) {
@@ -402,7 +375,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	public void reset() {
 		closeAllTabs();
 		tabsMap.clear();
-		jumps.reset();
 		curTab = null;
 		lastTab = null;
 		FocusManager.reset();
