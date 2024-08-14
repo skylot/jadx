@@ -2,13 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConditions9 extends IntegrationTest {
 
@@ -24,13 +19,12 @@ public class TestConditions9 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (!a || (b >= 0 && b <= 11)) {"));
-		assertThat(code, containsOne("System.out.println('1');"));
-		assertThat(code, containsOne("} else {"));
-		assertThat(code, containsOne("System.out.println('2');"));
-		assertThat(code, not(containsString("return;")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (!a || (b >= 0 && b <= 11)) {")
+				.containsOne("System.out.println('1');")
+				.containsOne("} else {")
+				.containsOne("System.out.println('2');")
+				.doesNotContain("return;");
 	}
 }

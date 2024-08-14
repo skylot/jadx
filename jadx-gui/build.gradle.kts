@@ -2,7 +2,7 @@ plugins {
 	id("jadx-kotlin")
 	id("application")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.github.johnrengelman.shadow") version "8.1.1"
+	id("com.gradleup.shadow") version "8.3.0"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -28,16 +28,16 @@ dependencies {
 	implementation("org.jcommander:jcommander:1.83")
 	implementation("ch.qos.logback:logback-classic:1.5.6")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.5.1")
+	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.5")
-	implementation("com.formdev:flatlaf-intellij-themes:3.5")
-	implementation("com.formdev:flatlaf-extras:3.5")
+	implementation("com.formdev:flatlaf:3.5.1")
+	implementation("com.formdev:flatlaf-intellij-themes:3.5.1")
+	implementation("com.formdev:flatlaf-extras:3.5.1")
 
 	implementation("com.google.code.gson:gson:2.11.0")
-	implementation("org.apache.commons:commons-lang3:3.15.0")
+	implementation("org.apache.commons:commons-lang3:3.16.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
 	implementation("commons-io:commons-io:2.16.1")
 

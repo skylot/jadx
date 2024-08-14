@@ -6,13 +6,8 @@ import java.util.Scanner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTryCatchFinally9 extends IntegrationTest {
 
@@ -33,13 +28,12 @@ public class TestTryCatchFinally9 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("JADX INFO: finally extract failed")));
-		assertThat(code, not(containsString(indent() + "throw ")));
-		assertThat(code, containsOne("} finally {"));
-		assertThat(code, containsOne("if (input != null) {"));
-		assertThat(code, containsOne("input.close();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("JADX INFO: finally extract failed")
+				.doesNotContain(indent() + "throw ")
+				.containsOne("} finally {")
+				.containsOne("if (input != null) {")
+				.containsOne("input.close();");
 	}
 }

@@ -2,13 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConditions12 extends IntegrationTest {
 
@@ -54,16 +49,15 @@ public class TestConditions12 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (quality >= 10 && raw != 0) {"));
-		assertThat(code, containsOne("} else if (raw == 0 || quality < 6 || !qualityReading) {"));
-		assertThat(code, containsOne("if (quality < 30) {"));
-		assertThat(code, containsOne("if (quality >= 10) {"));
-		assertThat(code, containsOne("if (raw > 0) {"));
-		assertThat(code, containsOne("if (quality >= 30 && autoStop) {"));
-		assertThat(code, containsOne("if (!autoStop && lastValidRaw > -1 && quality < 10) {"));
-		assertThat(code, not(containsString("return")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (quality >= 10 && raw != 0) {")
+				.containsOne("} else if (raw == 0 || quality < 6 || !qualityReading) {")
+				.containsOne("if (quality < 30) {")
+				.containsOne("if (quality >= 10) {")
+				.containsOne("if (raw > 0) {")
+				.containsOne("if (quality >= 30 && autoStop) {")
+				.containsOne("if (!autoStop && lastValidRaw > -1 && quality < 10) {")
+				.doesNotContain("return");
 	}
 }

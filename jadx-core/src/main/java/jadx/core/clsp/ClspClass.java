@@ -24,7 +24,7 @@ public class ClspClass {
 	private Map<String, ClspMethod> methodsMap = Collections.emptyMap();
 	private List<ArgType> typeParameters = Collections.emptyList();
 
-	private ClspClassSource source;
+	private final ClspClassSource source;
 
 	public ClspClass(ArgType clsType, int id, int accFlags, ClspClassSource source) {
 		this.clsType = clsType;

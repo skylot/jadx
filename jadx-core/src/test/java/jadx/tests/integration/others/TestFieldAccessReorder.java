@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFieldAccessReorder extends IntegrationTest {
 	public static class TestCls {
@@ -22,7 +22,7 @@ public class TestFieldAccessReorder extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test());
+			assertThat(test()).isTrue();
 		}
 	}
 

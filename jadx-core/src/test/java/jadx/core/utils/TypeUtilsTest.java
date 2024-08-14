@@ -11,9 +11,7 @@ import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class TypeUtilsTest {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeUtilsTest.class);
@@ -30,10 +28,10 @@ class TypeUtilsTest {
 	public void testReplaceGenericsWithWildcards() {
 		// check classpath graph
 		List<ArgType> classGenerics = root.getTypeUtils().getClassGenerics(ArgType.object("java.util.ArrayList"));
-		assertThat(classGenerics, hasSize(1));
+		assertThat(classGenerics).hasSize(1);
 		ArgType genericInfo = classGenerics.get(0);
-		assertThat(genericInfo.getObject(), is("E"));
-		assertThat(genericInfo.getExtendTypes(), hasSize(0));
+		assertThat(genericInfo.getObject()).isEqualTo("E");
+		assertThat(genericInfo.getExtendTypes()).hasSize(0);
 
 		// prepare input
 		ArgType instanceType = ArgType.generic("java.util.ArrayList", ArgType.OBJECT);
@@ -47,6 +45,6 @@ class TypeUtilsTest {
 		LOG.debug("result: {}", result);
 
 		ArgType expected = ArgType.generic("java.util.List", ArgType.wildcard(ArgType.OBJECT, ArgType.WildcardBound.SUPER));
-		assertThat(result, is(expected));
+		assertThat(result).isEqualTo(expected);
 	}
 }

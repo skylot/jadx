@@ -8,13 +8,8 @@ import java.io.OutputStream;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTryWithResources extends SmaliTest {
 
@@ -30,10 +25,9 @@ public class TestTryWithResources extends SmaliTest {
 	@Test
 	@NotYetImplemented
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try ("));
-		assertThat(code, not(containsString("close()")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try (")
+				.doesNotContain("close()");
 	}
 }

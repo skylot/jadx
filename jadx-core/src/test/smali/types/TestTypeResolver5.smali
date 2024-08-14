@@ -1,13 +1,10 @@
-.class public LTestTypeResolver5;
+.class public Ltypes/TestTypeResolver5;
 .super Landroid/content/Context;
 .source "SourceFile"
 
 
-# static fields
 .field public static final EXTERNAL_SOURCE:Ljava/lang/String; = "externalsource"
-
 .field public static final IS_APPBOY_CAMPAIGN:Ljava/lang/String; = "appBoyCampaign"
-
 .field public static final IS_NEWS_FEED:Ljava/lang/String; = "isNewsFeed"
 
 
@@ -87,17 +84,17 @@
     invoke-direct {v2, p0}, Landroid/webkit/WebView;-><init>(Landroid/content/Context;)V
 
     .line 66
-    invoke-direct {p0, v2, p1}, LTestTypeResolver5;->runJavaScriptForCampaign(Landroid/webkit/WebView;Landroid/os/Bundle;)V
+    invoke-direct {p0, v2, p1}, Ltypes/TestTypeResolver5;->runJavaScriptForCampaign(Landroid/webkit/WebView;Landroid/os/Bundle;)V
 
     .line 70
     :cond_1
     if-eqz v0, :cond_4
 
     .line 72
-    invoke-direct {p0, p1}, LTestTypeResolver5;->startHomeActivity(Landroid/os/Bundle;)V
+    invoke-direct {p0, p1}, Ltypes/TestTypeResolver5;->startHomeActivity(Landroid/os/Bundle;)V
 
     .line 73
-    invoke-virtual {p0}, LTestTypeResolver5;->finish()V
+    invoke-virtual {p0}, Ltypes/TestTypeResolver5;->finish()V
 
     .line 80
     :goto_2
@@ -119,7 +116,7 @@
 
     .line 74
     :cond_4
-    invoke-virtual {p0}, LTestTypeResolver5;->isTaskRoot()Z
+    invoke-virtual {p0}, Ltypes/TestTypeResolver5;->isTaskRoot()Z
 
     move-result v0
 
@@ -129,13 +126,13 @@
 
     .line 76
     :cond_5
-    invoke-direct {p0, p1}, LTestTypeResolver5;->openSplash(Landroid/os/Bundle;)V
+    invoke-direct {p0, p1}, Ltypes/TestTypeResolver5;->openSplash(Landroid/os/Bundle;)V
 
     goto :goto_2
 
     .line 78
     :cond_6
-    invoke-virtual {p0}, LTestTypeResolver5;->finish()V
+    invoke-virtual {p0}, Ltypes/TestTypeResolver5;->finish()V
 
     goto :goto_2
 .end method

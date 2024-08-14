@@ -48,6 +48,7 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.export.GradleInfoStorage;
 import jadx.core.utils.CacheStorage;
+import jadx.core.utils.DebugChecks;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.PassMerge;
 import jadx.core.utils.StringUtils;
@@ -64,10 +65,6 @@ public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final JadxArgs args;
-	private final List<IDexTreeVisitor> preDecompilePasses;
-	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
-
-	private final ProcessClass processClasses;
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
@@ -78,6 +75,7 @@ public class RootNode {
 	private final TypeUtils typeUtils;
 	private final AttributeStorage attributes = new AttributeStorage();
 
+	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
 	private final GradleInfoStorage gradleInfoStorage = new GradleInfoStorage();
 
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
@@ -87,11 +85,12 @@ public class RootNode {
 	private final Map<String, PackageNode> pkgMap = new HashMap<>();
 	private final List<PackageNode> packages = new ArrayList<>();
 
+	private List<IDexTreeVisitor> preDecompilePasses;
+	private ProcessClass processClasses;
+
 	private ClspGraph clsp;
-	@Nullable
-	private String appPackage;
-	@Nullable
-	private ClassNode appResClass;
+	private @Nullable String appPackage;
+	private @Nullable ClassNode appResClass;
 
 	/**
 	 * Optional decompiler reference
@@ -101,7 +100,7 @@ public class RootNode {
 	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
-		this.processClasses = new ProcessClass(args);
+		this.processClasses = new ProcessClass(Jadx.getPassesList(args));
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
@@ -320,6 +319,11 @@ public class RootNode {
 				.merge(customPasses.get(JadxPreparePass.TYPE), p -> new PreparePassWrapper((JadxPreparePass) p));
 		new PassMerge(processClasses.getPasses())
 				.merge(customPasses.get(JadxDecompilePass.TYPE), p -> new DecompilePassWrapper((JadxDecompilePass) p));
+
+		if (args.isRunDebugChecks()) {
+			preDecompilePasses = DebugChecks.insertPasses(preDecompilePasses);
+			processClasses = new ProcessClass(DebugChecks.insertPasses(processClasses.getPasses()));
+		}
 	}
 
 	public void runPreDecompileStage() {

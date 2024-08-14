@@ -2,11 +2,8 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestLoopInTry extends IntegrationTest {
 
@@ -38,16 +35,15 @@ public class TestLoopInTry extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("if (b) {"));
-		assertThat(code, containsOne("throw new Exception();"));
-		assertThat(code, containsOne("while (f()) {"));
-		assertThat(code, containsOne("s();"));
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("return 1;"));
-		assertThat(code, containsOne("return 0;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try {")
+				.containsOne("if (b) {")
+				.containsOne("throw new Exception();")
+				.containsOne("while (f()) {")
+				.containsOne("s();")
+				.containsOne("} catch (Exception e) {")
+				.containsOne("return 1;")
+				.containsOne("return 0;");
 	}
 }

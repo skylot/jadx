@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Issue #962

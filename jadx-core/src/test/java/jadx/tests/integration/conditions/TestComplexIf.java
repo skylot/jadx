@@ -2,11 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestComplexIf extends SmaliTest {
 
@@ -32,10 +30,9 @@ public class TestComplexIf extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPkg("conditions", "TestComplexIf");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (this.a.equals(\"GT-P6200\") || this.a.equals(\"GT-P6210\") || this.a.equals(\"A100\") "
-				+ "|| this.a.equals(\"A101\") || this.a.equals(\"LIFETAB_S786X\") || this.a.equals(\"VS890 4G\")) {"));
+		assertThat(getClassNodeFromSmaliWithPkg("conditions", "TestComplexIf"))
+				.code()
+				.containsOne("if (this.a.equals(\"GT-P6200\") || this.a.equals(\"GT-P6210\") || this.a.equals(\"A100\") "
+						+ "|| this.a.equals(\"A101\") || this.a.equals(\"LIFETAB_S786X\") || this.a.equals(\"VS890 4G\")) {");
 	}
 }

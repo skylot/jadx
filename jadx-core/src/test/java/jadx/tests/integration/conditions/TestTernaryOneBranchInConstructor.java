@@ -2,13 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTernaryOneBranchInConstructor extends IntegrationTest {
 
@@ -23,12 +18,11 @@ public class TestTernaryOneBranchInConstructor extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("this(str == null ? 0 : i);"));
-		assertThat(code, not(containsString("//")));
-		assertThat(code, not(containsString("call moved to the top of the method")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("this(str == null ? 0 : i);")
+				.doesNotContain("//")
+				.doesNotContain("call moved to the top of the method");
 	}
 
 	public static class TestCls2 {
@@ -43,10 +37,9 @@ public class TestTernaryOneBranchInConstructor extends IntegrationTest {
 	@Test
 	public void test2() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("this(i == 1 ? str : \"\", i == 0 ? \"\" : str);"));
-		assertThat(code, not(containsString("//")));
+		JadxAssertions.assertThat(getClassNode(TestCls2.class))
+				.code()
+				.containsOne("this(i == 1 ? str : \"\", i == 0 ? \"\" : str);")
+				.doesNotContain("//");
 	}
 }

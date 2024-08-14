@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.within;
 
 public class TestFloatValue extends IntegrationTest {
 
@@ -17,7 +17,7 @@ public class TestFloatValue extends IntegrationTest {
 		}
 
 		public void check() {
-			assertEquals(0.275f, test()[0], 0.0001f);
+			assertThat(test()[0]).isCloseTo(0.275f, within(0.0001f));
 		}
 	}
 

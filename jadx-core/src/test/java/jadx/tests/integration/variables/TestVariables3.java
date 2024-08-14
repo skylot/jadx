@@ -2,11 +2,8 @@ package jadx.tests.integration.variables;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestVariables3 extends IntegrationTest {
 
@@ -25,13 +22,12 @@ public class TestVariables3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("int i;"));
-		assertThat(code, containsString("i = 2;"));
-		assertThat(code, containsString("i = 3;"));
-		assertThat(code, containsString("s = null;"));
-		assertThat(code, containsString("return s + \" \" + i;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("int i;")
+				.contains("i = 2;")
+				.contains("i = 3;")
+				.contains("s = null;")
+				.contains("return s + \" \" + i;");
 	}
 }

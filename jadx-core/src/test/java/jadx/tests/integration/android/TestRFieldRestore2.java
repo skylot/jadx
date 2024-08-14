@@ -5,11 +5,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestRFieldRestore2 extends IntegrationTest {
 
@@ -29,8 +26,8 @@ public class TestRFieldRestore2 extends IntegrationTest {
 		map.put(2131230730, "id.Button");
 		setResMap(map);
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-		assertThat(code, containsOne("R.id.Button;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("R.id.Button;");
 	}
 }

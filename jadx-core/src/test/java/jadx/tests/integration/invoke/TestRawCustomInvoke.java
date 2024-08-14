@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestRawCustomInvoke extends SmaliTest {
 
@@ -34,7 +34,7 @@ public class TestRawCustomInvoke extends SmaliTest {
 						MethodType.methodType(String.class, Integer.TYPE, Double.TYPE))
 								.dynamicInvoker().invoke(1, 2.0d);
 			} catch (Throwable e) {
-				fail(e);
+				fail("", e);
 				return null;
 			}
 		}

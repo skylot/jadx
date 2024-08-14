@@ -2,13 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestDeboxing2 extends IntegrationTest {
 
@@ -21,28 +17,25 @@ public class TestDeboxing2 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(null), is(0L));
-			assertThat(test(0L), is(0L));
-			assertThat(test(7L), is(7L));
+			assertThat(test(null)).isEqualTo(0L);
+			assertThat(test(0L)).isEqualTo(0L);
+			assertThat(test(7L)).isEqualTo(7L);
 		}
 	}
 
 	@Test
 	public void test() {
 		noDebugInfo();
-
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("long test(Long l)"));
-		assertThat(code, containsOne("if (l == null) {"));
-		assertThat(code, containsOne("l = 0L;"));
-
-		// checks for 'check' method
-		assertThat(code, containsOne("test(null)"));
-		assertThat(code, containsOne("test(0L)"));
-		assertThat(code, countString(2, "is(0L)"));
-		assertThat(code, containsOne("test(7L)"));
-		assertThat(code, containsOne("is(7L)"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("long test(Long l)")
+				.containsOne("if (l == null) {")
+				.containsOne("l = 0L;")
+				.containsOne("test(null)")
+				.containsOne("test(0L)")
+				// checks for 'check' method
+				.countString(2, "isEqualTo(0L)")
+				.containsOne("test(7L)")
+				.containsOne("isEqualTo(7L)");
 	}
 }

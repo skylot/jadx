@@ -2,12 +2,9 @@ package jadx.tests.integration.types;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestPrimitivesInIf extends IntegrationTest {
 
@@ -21,26 +18,24 @@ public class TestPrimitivesInIf extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(test("1"));
+			assertThat(test("1")).isTrue();
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("short sh = Short.parseShort(str);"));
-		assertThat(code, containsOne("int i = Integer.parseInt(str);"));
-		assertThat(code, containsOne("return sh == i;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("short sh = Short.parseShort(str);")
+				.containsOne("int i = Integer.parseInt(str);")
+				.containsOne("return sh == i;");
 	}
 
 	@Test
 	public void test2() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("short parseShort = Short.parseShort(str);"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("short parseShort = Short.parseShort(str);");
 	}
 }

@@ -2,13 +2,9 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestGetterInlineNegative extends SmaliTest {
 
@@ -34,10 +30,9 @@ public class TestGetterInlineNegative extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmali();
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString(indent() + "field;")));
-		assertThat(code, containsOne("return field;"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.doesNotContain(indent() + "field;")
+				.containsOne("return field;");
 	}
 }

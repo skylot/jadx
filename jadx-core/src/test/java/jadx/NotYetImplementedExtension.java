@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 
 public class NotYetImplementedExtension implements AfterTestExecutionCallback, TestExecutionExceptionHandler {
 
-	private Set<Method> knownFailedMethods = new HashSet<>();
+	private final Set<Method> knownFailedMethods = new HashSet<>();
 
 	@Override
 	public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
@@ -24,7 +24,7 @@ public class NotYetImplementedExtension implements AfterTestExecutionCallback, T
 	public void afterTestExecution(ExtensionContext context) throws Exception {
 		if (!knownFailedMethods.contains(context.getTestMethod().get())
 				&& isNotYetImplemented(context)
-				&& !context.getExecutionException().isPresent()) {
+				&& context.getExecutionException().isEmpty()) {
 			throw new AssertionError("Test "
 					+ context.getTestClass().get().getName() + '.' + context.getTestMethod().get().getName()
 					+ " is marked as @NotYetImplemented, but passes!");

@@ -2,11 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchStartOnMove extends SmaliTest {
 	// @formatter:off
@@ -25,11 +23,10 @@ public class TestTryCatchStartOnMove extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchStartOnMove");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("System.out.println(\"Failed call for \" + str"));
+		assertThat(getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchStartOnMove"))
+				.code()
+				.containsOne("try {")
+				.containsOne("} catch (Exception e) {")
+				.containsOne("System.out.println(\"Failed call for \" + str");
 	}
 }

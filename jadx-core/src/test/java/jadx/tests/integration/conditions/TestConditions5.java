@@ -2,12 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConditions5 extends IntegrationTest {
 
@@ -37,13 +33,12 @@ public class TestConditions5 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("if (a1 == null) {"));
-		assertThat(code, containsString("if (a2 != null) {"));
-		assertThat(code, containsString("throw new AssertionError(a1 + \" != \" + a2);"));
-		assertThat(code, not(containsString("if (a1.equals(a2)) {")));
-		assertThat(code, containsString("} else if (!a1.equals(a2)) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("if (a1 == null) {")
+				.contains("if (a2 != null) {")
+				.contains("throw new AssertionError(a1 + \" != \" + a2);")
+				.doesNotContain("if (a1.equals(a2)) {")
+				.contains("} else if (!a1.equals(a2)) {");
 	}
 }

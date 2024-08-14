@@ -58,6 +58,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 	}
 
 	@Override
+	public String getName() {
+		return "DotGraphVisitor";
+	}
+
+	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
 			return;

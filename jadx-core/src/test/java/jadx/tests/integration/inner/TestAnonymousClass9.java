@@ -5,13 +5,8 @@ import java.util.concurrent.FutureTask;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestAnonymousClass9 extends IntegrationTest {
 
@@ -35,11 +30,10 @@ public class TestAnonymousClass9 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("c = new Callable<String>() {"));
-		assertThat(code, containsOne("return new FutureTask<String>(this.c) {"));
-		assertThat(code, not(containsString("synthetic")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("c = new Callable<String>() {")
+				.containsOne("return new FutureTask<String>(this.c) {")
+				.doesNotContain("synthetic");
 	}
 }

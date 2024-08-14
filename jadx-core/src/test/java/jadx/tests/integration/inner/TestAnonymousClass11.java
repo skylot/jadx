@@ -4,13 +4,8 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestAnonymousClass11 extends IntegrationTest {
 
@@ -53,11 +48,10 @@ public class TestAnonymousClass11 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("System.out.println(\"a\" + a);"));
-		assertThat(code, containsOne("print(a);"));
-		assertThat(code, not(containsString("synthetic")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("System.out.println(\"a\" + a);")
+				.containsOne("print(a);")
+				.doesNotContain("synthetic");
 	}
 }

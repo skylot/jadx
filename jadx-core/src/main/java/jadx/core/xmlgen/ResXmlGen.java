@@ -256,7 +256,7 @@ public class ResXmlGen {
 			cw.add(" formatted=\"false\"");
 		}
 
-		if (valueStr.equals("")) {
+		if (valueStr.isEmpty()) {
 			cw.add(" />");
 		} else {
 			cw.add('>');

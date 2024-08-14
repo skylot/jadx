@@ -7,12 +7,8 @@ import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestAnnotationsRenameDef extends IntegrationTest {
 
@@ -35,11 +31,10 @@ public class TestAnnotationsRenameDef extends IntegrationTest {
 		// force rename 'value' method
 		args.setDeobfuscationMinLength(20);
 
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("public @interface "));
-		assertThat(code, not(containsString("int value();")));
-		assertThat(code, not(containsString("(5)")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("public @interface ")
+				.doesNotContain("int value();")
+				.doesNotContain("(5)");
 	}
 }

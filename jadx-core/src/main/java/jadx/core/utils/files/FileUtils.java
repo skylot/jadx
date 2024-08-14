@@ -123,7 +123,7 @@ public class FileUtils {
 			try {
 				deleteDir(dir);
 			} catch (Exception e) {
-				LOG.error("Failed to delete dir: " + dir.toAbsolutePath(), e);
+				LOG.error("Failed to delete dir: {}", dir.toAbsolutePath(), e);
 			}
 		}
 	}
@@ -341,6 +341,18 @@ public class FileUtils {
 
 	public static List<Path> toPaths(File[] files) {
 		return Stream.of(files).map(File::toPath).collect(Collectors.toList());
+	}
+
+	public static List<Path> toPathsWithTrim(File[] files) {
+		return Stream.of(files).map(FileUtils::toPathWithTrim).collect(Collectors.toList());
+	}
+
+	public static Path toPathWithTrim(File file) {
+		return toPathWithTrim(file.getPath());
+	}
+
+	public static Path toPathWithTrim(String file) {
+		return Path.of(file.trim());
 	}
 
 	public static List<Path> fileNamesToPaths(List<String> fileNames) {

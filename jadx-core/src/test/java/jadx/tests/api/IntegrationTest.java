@@ -51,7 +51,6 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.DebugChecks;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -64,14 +63,8 @@ import jadx.tests.api.utils.TestUtils;
 
 import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.apache.commons.lang3.StringUtils.rightPad;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public abstract class IntegrationTest extends TestUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
@@ -120,11 +113,6 @@ public abstract class IntegrationTest extends TestUtils {
 	 */
 	private boolean forceDecompiledCheck = false;
 
-	static {
-		// enable debug checks
-		DebugChecks.checksEnabled = true;
-	}
-
 	protected JadxDecompiler jadxDecompiler;
 
 	@BeforeEach
@@ -143,6 +131,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setCommentsLevel(CommentsLevel.DEBUG);
 		args.setDeobfuscationOn(false);
 		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
+		args.setRunDebugChecks(true);
 
 		// use the same values on all systems
 		args.setFsCaseSensitive(false);
@@ -179,7 +168,7 @@ public abstract class IntegrationTest extends TestUtils {
 	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			List<File> files = compileClass(clazz);
-			assertThat("File list is empty", files, not(empty()));
+			assertThat(files).as("File list is empty").isNotEmpty();
 			return getClassNodeFromFiles(files, clazz.getName());
 		} catch (Exception e) {
 			LOG.error("Failed to get class node", e);
@@ -190,10 +179,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	public List<ClassNode> getClassNodes(Class<?>... classes) {
 		try {
-			assertThat("Class list is empty", classes, not(emptyArray()));
+			assertThat(classes).as("Class list is empty").isNotEmpty();
 			List<File> srcFiles = Stream.of(classes).map(this::getSourceFileForClass).collect(Collectors.toList());
 			List<File> clsFiles = compileSourceFiles(srcFiles);
-			assertThat("Class files list is empty", clsFiles, not(empty()));
+			assertThat(clsFiles).as("Class files list is empty").isNotEmpty();
 			return decompileFiles(clsFiles);
 		} catch (Exception e) {
 			LOG.error("Failed to get class node", e);
@@ -207,9 +196,9 @@ public abstract class IntegrationTest extends TestUtils {
 		RootNode root = JadxInternalAccess.getRoot(jadxDecompiler);
 
 		ClassNode cls = root.resolveClass(clsName);
-		assertThat("Class not found: " + clsName, cls, notNullValue());
+		assertThat(cls).as("Class not found: " + clsName).isNotNull();
 		if (removeParentClassOnInput) {
-			assertThat(clsName, is(cls.getClassInfo().getFullName()));
+			assertThat(clsName).isEqualTo(cls.getClassInfo().getFullName());
 		} else {
 			LOG.info("Convert back to top level: {}", cls);
 			cls.getTopParentClass().decompile(); // keep correct process order
@@ -477,7 +466,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Object invoke(TestCompiler compiler, String clsFullName, String method) throws Exception {
-		assertNotNull(compiler, "compiler not ready");
+		assertThat(compiler).as("compiler not ready").isNotNull();
 		return compiler.invoke(clsFullName, method, new Class<?>[] {}, new Object[] {});
 	}
 

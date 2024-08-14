@@ -2,13 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConditions13 extends IntegrationTest {
 
@@ -29,13 +24,12 @@ public class TestConditions13 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (quality >= 10 && raw != 0) {"));
-		assertThat(code, containsOne("System.out.println(\"OK\" + raw);"));
-		assertThat(code, containsOne("qualityReading = false;"));
-		assertThat(code, containsOne("} else if (raw == 0 || quality < 6 || !qualityReading) {"));
-		assertThat(code, not(containsString("return")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (quality >= 10 && raw != 0) {")
+				.containsOne("System.out.println(\"OK\" + raw);")
+				.containsOne("qualityReading = false;")
+				.containsOne("} else if (raw == 0 || quality < 6 || !qualityReading) {")
+				.doesNotContain("return");
 	}
 }

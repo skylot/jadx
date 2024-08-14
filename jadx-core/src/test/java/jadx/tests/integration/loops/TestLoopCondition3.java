@@ -2,11 +2,8 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestLoopCondition3 extends IntegrationTest {
 
@@ -31,11 +28,10 @@ public class TestLoopCondition3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("while (a < 12) {"));
-		assertThat(code, containsOne("if (b + a < 9 && b < 8) {"));
-		assertThat(code, containsOne("if (b >= 2 && a > -1 && b < 6) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("while (a < 12) {")
+				.containsOne("if (b + a < 9 && b < 8) {")
+				.containsOne("if (b >= 2 && a > -1 && b < 6) {");
 	}
 }

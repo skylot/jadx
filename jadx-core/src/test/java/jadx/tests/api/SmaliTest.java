@@ -14,8 +14,8 @@ import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class SmaliTest extends IntegrationTest {
 
@@ -88,7 +88,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		}
 		File smaliDir = getSmaliDir(smaliFilesDir);
 		String[] smaliFileNames = smaliDir.list((dir, name) -> name.endsWith(".smali"));
-		assertThat("Smali files not found in " + smaliDir, smaliFileNames, notNullValue());
+		assertThat(smaliFileNames).as("Smali files not found in " + smaliDir).isNotNull();
 		return Stream.of(smaliFileNames)
 				.map(file -> new File(smaliDir, file))
 				.collect(Collectors.toList());

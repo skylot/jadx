@@ -62,6 +62,11 @@ import jadx.core.utils.exceptions.JadxException;
 public class PrepareForCodeGen extends AbstractVisitor {
 
 	@Override
+	public String getName() {
+		return "PrepareForCodeGen";
+	}
+
+	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		if (cls.root().getArgs().isDebugInfo()) {
 			setClassSourceLine(cls);

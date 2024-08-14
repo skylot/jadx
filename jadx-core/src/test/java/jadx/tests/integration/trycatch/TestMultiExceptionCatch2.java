@@ -5,11 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 @SuppressWarnings("checkstyle:printstacktrace")
 public class TestMultiExceptionCatch2 extends IntegrationTest {
@@ -36,12 +33,11 @@ public class TestMultiExceptionCatch2 extends IntegrationTest {
 	}
 
 	private void commonChecks() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {"));
-		assertThat(code, containsOne("e.printStackTrace();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("try {")
+				.containsOne("} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {")
+				.containsOne("e.printStackTrace();");
 
 		// TODO: store vararg attribute for methods from classpath
 		// assertThat(code, containsOne("constructor.newInstance();"));

@@ -9,10 +9,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestReturnSourceLine extends IntegrationTest {
 
@@ -73,9 +71,9 @@ public class TestReturnSourceLine extends IntegrationTest {
 	private static void checkLine(String[] lines, ICodeInfo cw, LineAttrNode node, int offset, String str) {
 		int nodeDefLine = CodeUtils.getLineNumForPos(cw.getCodeStr(), node.getDefPosition(), "\n");
 		int decompiledLine = nodeDefLine + offset;
-		assertThat(lines[decompiledLine - 1], containsOne(str));
+		assertThat(lines[decompiledLine - 1]).containsOne(str);
 		Integer sourceLine = cw.getCodeMetadata().getLineMapping().get(decompiledLine);
-		assertNotNull(sourceLine);
-		assertEquals(node.getSourceLine() + offset, (int) sourceLine);
+		assertThat(sourceLine).isNotNull();
+		assertThat((int) sourceLine).isEqualTo(node.getSourceLine() + offset);
 	}
 }

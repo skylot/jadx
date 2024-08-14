@@ -1,4 +1,4 @@
-.class Lcom/github/skylot/testasync/MyAsync;
+.class Linner/TestInnerClassSyntheticRename;
 .super Landroid/os/AsyncTask;
 
 
@@ -39,7 +39,7 @@
         }
     .end annotation
 
-    const-string p1, "MyAsync"
+    const-string p1, "TestCls"
 
     const-string v0, "doInBackground"
 
@@ -61,7 +61,7 @@
         }
     .end annotation
 
-    const-string p1, "MyAsync"
+    const-string p1, "TestCls"
 
     const-string v0, "onPostExecute"
 
@@ -75,7 +75,7 @@
 
     check-cast p1, [Landroid/net/Uri;
 
-    invoke-virtual {p0, p1}, Lcom/github/skylot/testasync/MyAsync;->a([Landroid/net/Uri;)Ljava/util/List;
+    invoke-virtual {p0, p1}, Linner/TestInnerClassSyntheticRename;->a([Landroid/net/Uri;)Ljava/util/List;
 
     move-result-object p1
 
@@ -87,7 +87,7 @@
 
     check-cast p1, Ljava/util/List;
 
-    invoke-virtual {p0, p1}, Lcom/github/skylot/testasync/MyAsync;->a(Ljava/util/List;)V
+    invoke-virtual {p0, p1}, Linner/TestInnerClassSyntheticRename;->a(Ljava/util/List;)V
 
     return-void
 .end method

@@ -2,11 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestCmpOp extends IntegrationTest {
 
@@ -50,17 +47,15 @@ public class TestCmpOp extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return a > 3.0f;"));
-		assertThat(code, containsString("return b < 2.0f;"));
-		assertThat(code, containsString("return c == 1.0f;"));
-		assertThat(code, containsString("return d != 0.0f;"));
-		assertThat(code, containsString("return e >= -1.0f;"));
-		assertThat(code, containsString("return f <= -2.0f;"));
-		assertThat(code, containsString("return 4.0f > g;"));
-		assertThat(code, containsString("return 5 < h;"));
-		assertThat(code, containsString("return 6.5d < i;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return a > 3.0f;")
+				.contains("return b < 2.0f;")
+				.contains("return c == 1.0f;")
+				.contains("return d != 0.0f;")
+				.contains("return e >= -1.0f;")
+				.contains("return f <= -2.0f;")
+				.contains("return 4.0f > g;")
+				.contains("return 5 < h;").contains("return 6.5d < i;");
 	}
 }

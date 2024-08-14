@@ -2,12 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestNestedIf extends IntegrationTest {
 
@@ -33,14 +30,13 @@ public class TestNestedIf extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (this.a0) {"));
-		assertThat(code, containsOne("if (this.a1 == 0 || this.a2 == 0) {"));
-		assertThat(code, containsOne("} else if (this.a3 == 0 || this.a4 == 0) {"));
-		assertThat(code, countString(2, "return false;"));
-		assertThat(code, containsOne("test1();"));
-		assertThat(code, containsOne("return true;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (this.a0) {")
+				.containsOne("if (this.a1 == 0 || this.a2 == 0) {")
+				.containsOne("} else if (this.a3 == 0 || this.a4 == 0) {")
+				.countString(2, "return false;")
+				.containsOne("test1();")
+				.containsOne("return true;");
 	}
 }

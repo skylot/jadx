@@ -2,13 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestDefConstructorNotRemoved extends IntegrationTest {
 
@@ -50,11 +46,10 @@ public class TestDefConstructorNotRemoved extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("super();")));
-		assertThat(code, not(containsString("static {")));
-		assertThat(code, containsOne("public B() {"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("super();")
+				.doesNotContain("static {")
+				.containsOne("public B() {");
 	}
 }

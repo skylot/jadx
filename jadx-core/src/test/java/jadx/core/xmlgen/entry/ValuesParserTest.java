@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.utils.android.AndroidResourcesMap;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class ValuesParserTest {
 

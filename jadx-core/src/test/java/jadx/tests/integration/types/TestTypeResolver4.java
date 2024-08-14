@@ -4,12 +4,10 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTypeResolver4 extends IntegrationTest {
 
@@ -32,16 +30,15 @@ public class TestTypeResolver4 extends IntegrationTest {
 
 		public void check() {
 			String test = test(("1234" + "utfstr\0\0" + "4567").getBytes(), 4);
-			assertThat(test, is("utfstr"));
+			assertThat(test).isEqualTo("utfstr");
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("(strArray[end] != 0 || strArray[end + 1] != 0)"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("(strArray[end] != 0 || strArray[end + 1] != 0)");
 	}
 
 	@Test

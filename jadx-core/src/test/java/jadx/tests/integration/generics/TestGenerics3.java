@@ -4,11 +4,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestGenerics3 extends IntegrationTest {
 
@@ -29,12 +26,11 @@ public class TestGenerics3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("mthExtendsArray(List<? extends byte[]> list)"));
-		assertThat(code, containsString("mthSuperArray(List<? super int[]> list)"));
-		assertThat(code, containsString("mthSuperInteger(List<? super Integer> list)"));
-		assertThat(code, containsString("mthExtendsString(List<? super String> list)"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("mthExtendsArray(List<? extends byte[]> list)")
+				.contains("mthSuperArray(List<? super int[]> list)")
+				.contains("mthSuperInteger(List<? super Integer> list)")
+				.contains("mthExtendsString(List<? super String> list)");
 	}
 }

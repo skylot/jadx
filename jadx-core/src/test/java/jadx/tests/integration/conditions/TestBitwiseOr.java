@@ -2,11 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestBitwiseOr extends IntegrationTest {
 
@@ -24,10 +21,9 @@ public class TestBitwiseOr extends IntegrationTest {
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (this.a || this.b) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("if (this.a || this.b) {");
 	}
 
 	public static class TestCls2 {
@@ -44,10 +40,9 @@ public class TestBitwiseOr extends IntegrationTest {
 	@Test
 	public void test2() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (!this.a && !this.b) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls2.class))
+				.code()
+				.containsOne("if (!this.a && !this.b) {");
 	}
 
 	public static class TestCls3 {
@@ -64,10 +59,9 @@ public class TestBitwiseOr extends IntegrationTest {
 	@Test
 	public void test3() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls3.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (!this.a && !this.b) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls3.class))
+				.code()
+				.containsOne("if (!this.a && !this.b) {");
 	}
 
 	public static class TestCls4 {
@@ -84,9 +78,8 @@ public class TestBitwiseOr extends IntegrationTest {
 	@Test
 	public void test4() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls4.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (this.a || this.b) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls4.class))
+				.code()
+				.containsOne("if (this.a || this.b) {");
 	}
 }

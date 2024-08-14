@@ -23,12 +23,12 @@ class TestJRenamePackage {
 	private void valid(String name) {
 		assertThat(JRenamePackage.isValidPackageName(name))
 				.as("expect valid: %s", name)
-				.isEqualTo(true);
+				.isTrue();
 	}
 
 	private void invalid(String name) {
 		assertThat(JRenamePackage.isValidPackageName(name))
 				.as("expect invalid: %s", name)
-				.isEqualTo(false);
+				.isFalse();
 	}
 }

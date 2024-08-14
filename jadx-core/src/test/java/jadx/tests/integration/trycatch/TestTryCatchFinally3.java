@@ -10,9 +10,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestTryCatchFinally3 extends IntegrationTest {
 
@@ -35,15 +33,12 @@ public class TestTryCatchFinally3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("for (IDexTreeVisitor visitor : passes) {"));
-
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("LOG.error(\"Class process exception: {}\", cls, e);"));
-
-		assertThat(code, containsOne("} finally {"));
-		assertThat(code, containsOne("cls.unload();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("for (IDexTreeVisitor visitor : passes) {")
+				.containsOne("} catch (Exception e) {")
+				.containsOne("LOG.error(\"Class process exception: {}\", cls, e);")
+				.containsOne("} finally {")
+				.containsOne("cls.unload();");
 	}
 }

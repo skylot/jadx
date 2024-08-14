@@ -2,14 +2,10 @@ package jadx.tests.integration.types;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestConstTypeInference extends IntegrationTest {
 
@@ -40,21 +36,20 @@ public class TestConstTypeInference extends IntegrationTest {
 
 		public void check() {
 			TestCls seven = new TestCls(7);
-			assertEquals(seven, seven);
-			assertNotEquals(seven, null);
+			assertThat(seven).isEqualTo(seven);
+			assertThat(seven).isNotEqualTo(null);
 
 			TestCls six = new TestCls(6);
-			assertNotEquals(seven, six);
+			assertThat(six).isNotEqualTo(seven);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("obj == this"));
-		assertThat(code, anyOf(containsOne("obj == null"), containsOne("obj != null")));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("obj == this")
+				.containsOneOf("obj == null", "obj != null");
 	}
 
 	@Test

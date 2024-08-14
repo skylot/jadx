@@ -8,13 +8,10 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestAnnotationsRename extends IntegrationTest {
 
@@ -33,17 +30,16 @@ public class TestAnnotationsRename extends IntegrationTest {
 		public void check() throws NoSuchMethodException {
 			Method test = TestCls.class.getDeclaredMethod("test");
 			A annotation = test.getAnnotation(A.class);
-			assertThat(annotation.x(), is(5));
+			assertThat(annotation.x()).isEqualTo(5);
 		}
 	}
 
 	@Test
 	public void test() {
 		enableDeobfuscation();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("public @interface "));
-		assertThat(code, not(containsString("(x = 5)")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("public @interface ")
+				.doesNotContain("(x = 5)");
 	}
 }

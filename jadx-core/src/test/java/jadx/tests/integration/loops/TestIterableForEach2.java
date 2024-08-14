@@ -5,11 +5,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestIterableForEach2 extends IntegrationTest {
 
@@ -42,11 +39,10 @@ public class TestIterableForEach2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("for (Authorization auth : service.getAuthorizations()) {"));
-		assertThat(code, containsOne("if (isValid(auth)) {"));
-		assertThat(code, containsOne("return auth.getToken();"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("for (Authorization auth : service.getAuthorizations()) {")
+				.containsOne("if (isValid(auth)) {")
+				.containsOne("return auth.getToken();");
 	}
 }

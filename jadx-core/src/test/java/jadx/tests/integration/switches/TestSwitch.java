@@ -2,12 +2,9 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSwitch extends IntegrationTest {
 	public static class TestCls {
@@ -40,14 +37,12 @@ public class TestSwitch extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("case '/':"));
-		assertThat(code, containsString(indent(5) + "break;"));
-		assertThat(code, containsString(indent(4) + "default:"));
-
-		assertEquals(1, count(code, "i++"));
-		assertEquals(4, count(code, "break;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("case '/':")
+				.contains(indent(5) + "break;")
+				.contains(indent(4) + "default:")
+				.containsOne("i++")
+				.countString(4, "break;");
 	}
 }

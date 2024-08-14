@@ -957,7 +957,7 @@ public class Smali {
 				} else if (obj instanceof Integer) {
 					innerMap.put(tip, ((int) obj) + 1);
 				} else if (obj instanceof List) {
-					if (!extra.equals("")) {
+					if (!extra.isEmpty()) {
 						List<String> extras = (List<String>) obj;
 						extras.add(extra);
 					}

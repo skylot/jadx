@@ -2,12 +2,9 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArithNot extends SmaliTest {
 	// @formatter:off
@@ -27,11 +24,10 @@ public class TestArithNot extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("arith", "TestArithNot");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return ~a;"));
-		assertThat(code, containsString("return ~b;"));
-		assertThat(code, not(containsString("^")));
+		assertThat(getClassNodeFromSmaliWithPath("arith", "TestArithNot"))
+				.code()
+				.contains("return ~a;")
+				.contains("return ~b;")
+				.doesNotContain("^");
 	}
 }

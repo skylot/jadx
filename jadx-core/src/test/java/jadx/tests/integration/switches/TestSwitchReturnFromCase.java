@@ -2,13 +2,8 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestSwitchReturnFromCase extends IntegrationTest {
 
@@ -43,18 +38,15 @@ public class TestSwitchReturnFromCase extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("switch (a % 10) {"));
-
-		// case 5: removed
-		assertEquals(5, count(code, "case "));
-		assertEquals(3, count(code, "break;"));
-
-		assertThat(code, containsOne("s = \"1\";"));
-		assertThat(code, containsOne("s = \"2\";"));
-		assertThat(code, containsOne("s = \"4\";"));
-		assertThat(code, containsOne("s = \"5\";"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("switch (a % 10) {")
+				// case 5: removed
+				.countString(5, "case ")
+				.countString(3, "break;")
+				.containsOne("s = \"1\";")
+				.containsOne("s = \"2\";")
+				.containsOne("s = \"4\";")
+				.containsOne("s = \"5\";");
 	}
 }

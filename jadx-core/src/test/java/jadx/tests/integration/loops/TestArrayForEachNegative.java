@@ -2,12 +2,10 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
+import jadx.api.CommentsLevel;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArrayForEachNegative extends IntegrationTest {
 
@@ -47,13 +45,11 @@ public class TestArrayForEachNegative extends IntegrationTest {
 	@Test
 	public void test() {
 		disableCompilation();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		// Remove all comments - as the comment created by CodeGenUtils.addInputFileInfo
-		// always contains a colon
-		code = code.replaceAll("/\\*.*?\\*/", "");
-
-		assertThat(code, not(containsString(":")));
+		// Remove all comments - as the comment created by CodeGenUtils.addInputFileInfo always contains a
+		// colon
+		getArgs().setCommentsLevel(CommentsLevel.NONE);
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain(":");
 	}
 }

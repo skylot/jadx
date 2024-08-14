@@ -25,7 +25,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.IntegrationTest;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestCompiler implements Closeable {
 	private final CompilerOptions options;
@@ -115,7 +115,7 @@ public class TestCompiler implements Closeable {
 			Class<?> cls = getClass(clsFullName);
 			Method mth = getMethod(cls, methodName, types);
 			Object inst = cls.getConstructor().newInstance();
-			assertNotNull(mth, "Failed to get method " + methodName + '(' + Arrays.toString(types) + ')');
+			assertThat(mth).as("Failed to get method " + methodName + '(' + Arrays.toString(types) + ')').isNotNull();
 			return mth.invoke(inst, args);
 		} catch (Throwable e) {
 			IntegrationTest.rethrow("Invoke error for method: " + methodName, e);

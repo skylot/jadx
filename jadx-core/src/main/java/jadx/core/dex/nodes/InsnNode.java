@@ -95,6 +95,10 @@ public class InsnNode extends LineAttrNode {
 		return arguments;
 	}
 
+	public List<InsnArg> getArgList() {
+		return arguments;
+	}
+
 	public int getArgsCount() {
 		return arguments.size();
 	}

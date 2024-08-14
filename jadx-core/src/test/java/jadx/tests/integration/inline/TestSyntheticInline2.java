@@ -2,12 +2,10 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSyntheticInline2 extends IntegrationTest {
 
@@ -43,20 +41,17 @@ public class TestSyntheticInline2 extends IntegrationTest {
 	@Test
 	public void test() {
 		disableCompilation(); // strange java compiler bug
-		ClassNode cls = getClassNode(TestCls.class); // Base class in unknown
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("synthetic")));
-		assertThat(code, not(containsString("access$")));
-		assertThat(code, containsString("TestSyntheticInline2$TestCls.this.call();"));
-		assertThat(code, containsString("TestSyntheticInline2$TestCls.super.call();"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("synthetic")
+				.doesNotContain("access$").contains("TestSyntheticInline2$TestCls.this.call();")
+				.contains("TestSyntheticInline2$TestCls.super.call();");
 	}
 
 	@Test
 	public void testTopClass() {
-		ClassNode cls = getClassNode(TestSyntheticInline2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString(indent(1) + "TestCls.super.call();"));
+		JadxAssertions.assertThat(getClassNode(TestSyntheticInline2.class))
+				.code()
+				.contains(indent(1) + "TestCls.super.call();");
 	}
 }

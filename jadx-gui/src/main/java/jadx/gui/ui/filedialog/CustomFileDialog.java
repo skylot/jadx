@@ -37,10 +37,10 @@ class CustomFileDialog {
 		File[] selectedFiles = fileDialog.getFiles();
 		if (!Utils.isEmpty(selectedFiles)) {
 			data.setCurrentDir(Paths.get(fileDialog.getDirectory()));
-			return FileUtils.toPaths(selectedFiles);
+			return FileUtils.toPathsWithTrim(selectedFiles);
 		}
 		if (fileDialog.getFile() != null) {
-			return Collections.singletonList(Paths.get(fileDialog.getFile()));
+			return Collections.singletonList(FileUtils.toPathWithTrim(fileDialog.getFile()));
 		}
 		return Collections.emptyList();
 	}

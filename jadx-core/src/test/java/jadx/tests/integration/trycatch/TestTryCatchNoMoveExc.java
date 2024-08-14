@@ -2,11 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchNoMoveExc extends SmaliTest {
 	// @formatter:off
@@ -24,11 +22,10 @@ public class TestTryCatchNoMoveExc extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchNoMoveExc");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("if (autoCloseable != null) {"));
-		assertThat(code, containsOne("try {"));
-		assertThat(code, containsOne("autoCloseable.close();"));
+		assertThat(getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchNoMoveExc"))
+				.code()
+				.containsOne("if (autoCloseable != null) {")
+				.containsOne("try {")
+				.containsOne("autoCloseable.close();");
 	}
 }

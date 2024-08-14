@@ -2,12 +2,10 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFieldInit3 extends IntegrationTest {
 
@@ -37,21 +35,20 @@ public class TestFieldInit3 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(new B().field, is(7));
-			assertThat(new C().field, is(9));
-			assertThat(new C().other, is(11));
-			assertThat(new D().field, is(4));
+			assertThat(new B().field).isEqualTo(7);
+			assertThat(new C().field).isEqualTo(9);
+			assertThat(new C().other).isEqualTo(11);
+			assertThat(new D().field).isEqualTo(4);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public int field = 4;"));
-		assertThat(code, containsOne("field = 7;"));
-		assertThat(code, containsOne("field = 9;"));
-		assertThat(code, containsOne("public int other = 11;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public int field = 4;")
+				.containsOne("field = 7;")
+				.containsOne("field = 9;")
+				.containsOne("public int other = 11;");
 	}
 }

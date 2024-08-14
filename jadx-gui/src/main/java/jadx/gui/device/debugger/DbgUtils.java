@@ -54,9 +54,9 @@ public class DbgUtils {
 	}
 
 	public static String[] sepClassAndMthSig(String fullSig) {
-		int pos = fullSig.indexOf("(");
+		int pos = fullSig.indexOf('(');
 		if (pos != -1) {
-			pos = fullSig.lastIndexOf(".", pos);
+			pos = fullSig.lastIndexOf('.', pos);
 			if (pos != -1) {
 				String[] sigs = new String[2];
 				sigs[0] = fullSig.substring(0, pos);

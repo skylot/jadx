@@ -4,15 +4,10 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIndexedLoop extends IntegrationTest {
 
@@ -42,30 +37,28 @@ public class TestIndexedLoop extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(null), nullValue());
-			assertThat(test(new File[] {}), nullValue());
+			assertThat(test(null)).isNull();
+			assertThat(test(new File[] {})).isNull();
 
 			File file = new File("f");
-			assertThat(test(new File[] { new File("a"), file }), is(file));
+			assertThat(test(new File[] { new File("a"), file })).isEqualTo(file);
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("for (File file :")));
-		assertThat(code, containsOne("for (int i = 0; i < length; i++) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("for (File file :")
+				.containsOne("for (int i = 0; i < length; i++) {");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("for (File file :")));
-		assertThat(code, containsOne("for (int i = 0; i < length; i++) {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("for (File file :")
+				.containsOne("for (int i = 0; i < length; i++) {");
 	}
 }

@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.deobf.NameMapper;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class NameMapperTest {
 
@@ -23,7 +22,7 @@ public class NameMapperTest {
 				"a.b.C9"
 		};
 		for (String validName : validNames) {
-			assertThat(NameMapper.isValidFullIdentifier(validName), is(true));
+			assertThat(NameMapper.isValidFullIdentifier(validName)).isTrue();
 		}
 	}
 
@@ -38,7 +37,7 @@ public class NameMapperTest {
 				"b..C",
 		};
 		for (String invalidName : invalidNames) {
-			assertThat(NameMapper.isValidFullIdentifier(invalidName), is(false));
+			assertThat(NameMapper.isValidFullIdentifier(invalidName)).isFalse();
 		}
 	}
 }

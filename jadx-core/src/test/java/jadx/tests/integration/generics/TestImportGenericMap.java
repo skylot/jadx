@@ -2,12 +2,11 @@ package jadx.tests.integration.generics;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.integration.generics.TestImportGenericMap.SuperClass.NotToImport;
+import static jadx.tests.integration.generics.TestImportGenericMap.SuperClass.ToImport;
 
 public class TestImportGenericMap extends IntegrationTest {
 
@@ -28,12 +27,9 @@ public class TestImportGenericMap extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(SuperClass.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString(
-				"import " + SuperClass.ToImport.class.getName().replace("$ToImport", ".ToImport") + ';'));
-		assertThat(code, not(containsString(
-				"import " + SuperClass.NotToImport.class.getName().replace("NotToImport", ".NotToImport") + ';')));
+		JadxAssertions.assertThat(getClassNode(SuperClass.class))
+				.code()
+				.contains("import " + ToImport.class.getName().replace("$ToImport", ".ToImport") + ';')
+				.doesNotContain("import " + NotToImport.class.getName().replace("NotToImport", ".NotToImport") + ';');
 	}
 }

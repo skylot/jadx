@@ -2,12 +2,8 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestInline3 extends IntegrationTest {
 
@@ -28,13 +24,11 @@ public class TestInline3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("this(b1, b2, 0, 0, 0);"));
-		assertThat(code, containsString("super(a, a);"));
-		assertThat(code, not(containsString("super(a, a).this$0")));
-
-		assertThat(code, containsString("public class A extends TestInline3$TestCls {"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("this(b1, b2, 0, 0, 0);")
+				.contains("super(a, a);")
+				.doesNotContain("super(a, a).this$0")
+				.contains("public class A extends TestInline3$TestCls {");
 	}
 }

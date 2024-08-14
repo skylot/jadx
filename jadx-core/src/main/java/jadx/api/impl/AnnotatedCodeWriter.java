@@ -62,7 +62,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 			buf.append(cw.getCodeStr());
 			return this;
 		}
-		AnnotatedCodeWriter code = ((AnnotatedCodeWriter) cw);
+		AnnotatedCodeWriter code = (AnnotatedCodeWriter) cw;
 		line--;
 		int startPos = getLength();
 		for (Map.Entry<Integer, ICodeAnnotation> entry : code.annotations.entrySet()) {

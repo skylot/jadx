@@ -2,12 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 @SuppressWarnings("CommentedOutCode")
 public class TestUnreachableCatch extends SmaliTest {
@@ -60,11 +57,9 @@ public class TestUnreachableCatch extends SmaliTest {
 	public void test() {
 		disableCompilation();
 		allowWarnInCode();
-
-		ClassNode cls = getClassNodeFromSmali();
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("IOException"));
-		assertThat(code, containsString("Collections.unmodifiableMap"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.contains("IOException")
+				.contains("Collections.unmodifiableMap");
 	}
 }

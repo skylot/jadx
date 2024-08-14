@@ -20,7 +20,7 @@ public final class TypeBoundFieldGetAssign implements ITypeBoundDynamic {
 	public TypeBoundFieldGetAssign(RootNode root, IndexInsnNode getNode, ArgType initType) {
 		this.root = root;
 		this.getNode = getNode;
-		this.fieldInfo = ((FieldInfo) getNode.getIndex());
+		this.fieldInfo = (FieldInfo) getNode.getIndex();
 		this.initType = initType;
 	}
 

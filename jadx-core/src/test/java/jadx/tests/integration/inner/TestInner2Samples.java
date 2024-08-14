@@ -2,13 +2,8 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestInner2Samples extends IntegrationTest {
 
@@ -66,11 +61,10 @@ public class TestInner2Samples extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestInner2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("setD(\"d\");"));
-		assertThat(code, not(containsString("synthetic")));
-		assertThat(code, not(containsString("access$")));
+		JadxAssertions.assertThat(getClassNode(TestInner2.class))
+				.code()
+				.containsOne("setD(\"d\");")
+				.doesNotContain("synthetic")
+				.doesNotContain("access$");
 	}
 }

@@ -2,11 +2,9 @@ package jadx.tests.integration.android;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 @SuppressWarnings("TypeName")
 public class TestRFieldAccess extends IntegrationTest {
@@ -25,8 +23,8 @@ public class TestRFieldAccess extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestRFieldAccess.class);
-		String code = cls.getCode().toString();
-		assertThat(code, countString(2, "return R.id.BUTTON_01;"));
+		assertThat(getClassNode(TestRFieldAccess.class))
+				.code()
+				.countString(2, "return R.id.BUTTON_01;");
 	}
 }

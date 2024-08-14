@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestEnumWithFields extends SmaliTest {
 
@@ -25,10 +25,10 @@ public class TestEnumWithFields extends SmaliTest {
 		}
 
 		public void check() {
-			assertEquals(0, SearchTimeout.DISABLED.sec);
-			assertEquals(0, SearchTimeout.DEFAULT.sec);
-			assertEquals(2, SearchTimeout.TWO_SECONDS.sec);
-			assertEquals(5, SearchTimeout.MAX.sec);
+			assertThat(SearchTimeout.DISABLED.sec).isEqualTo(0);
+			assertThat(SearchTimeout.DEFAULT.sec).isEqualTo(0);
+			assertThat(SearchTimeout.TWO_SECONDS.sec).isEqualTo(2);
+			assertThat(SearchTimeout.MAX.sec).isEqualTo(5);
 		}
 	}
 

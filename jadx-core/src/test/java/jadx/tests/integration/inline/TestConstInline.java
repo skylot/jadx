@@ -2,13 +2,8 @@ package jadx.tests.integration.inline;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestConstInline extends IntegrationTest {
 
@@ -28,11 +23,10 @@ public class TestConstInline extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return f(0);"));
-		assertThat(code, containsOne("return false;"));
-		assertThat(code, not(containsString(" = ")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return f(0);")
+				.containsOne("return false;")
+				.doesNotContain(" = ");
 	}
 }

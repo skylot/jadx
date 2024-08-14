@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,10 +18,10 @@ import org.junit.jupiter.api.Test;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Paths.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TestI18n {
 
@@ -34,10 +33,10 @@ public class TestI18n {
 
 	@BeforeAll
 	public static void init() {
-		i18nPath = Paths.get("src/main/resources/i18n");
-		assertTrue(Files.exists(i18nPath));
-		guiJavaPath = Paths.get("src/main/java");
-		assertTrue(Files.exists(guiJavaPath));
+		i18nPath = get("src/main/resources/i18n");
+		assertThat(exists(i18nPath)).isTrue();
+		guiJavaPath = get("src/main/java");
+		assertThat(exists(guiJavaPath)).isTrue();
 	}
 
 	@Test
@@ -52,20 +51,22 @@ public class TestI18n {
 
 	@Test
 	public void filesExactlyMatch() throws IOException {
-		Files.list(i18nPath).forEach(p -> {
-			List<String> lines;
-			try {
-				lines = Files.readAllLines(p);
-				if (reference == null) {
-					reference = lines;
-					referenceName = p.getFileName().toString();
-				} else {
-					compareToReference(p);
+		try (Stream<Path> list = Files.list(i18nPath)) {
+			list.forEach(p -> {
+				List<String> lines;
+				try {
+					lines = Files.readAllLines(p);
+					if (reference == null) {
+						reference = lines;
+						referenceName = p.getFileName().toString();
+					} else {
+						compareToReference(p);
+					}
+				} catch (IOException e) {
+					Assertions.fail("Error " + e.getMessage());
 				}
-			} catch (IOException e) {
-				Assertions.fail("Error " + e.getMessage());
-			}
-		});
+			});
+		}
 	}
 
 	private void compareToReference(Path path) throws IOException {
@@ -99,27 +100,21 @@ public class TestI18n {
 		try (Reader reader = Files.newBufferedReader(i18nPath.resolve("Messages_en_US.properties"))) {
 			properties.load(reader);
 		}
-
 		Set<String> keys = new HashSet<>();
 		for (Object key : properties.keySet()) {
 			keys.add("\"" + key + '"');
 		}
-
-		Files.walk(guiJavaPath).filter(p -> Files.isRegularFile(p)).forEach(p -> {
-			try {
-				List<String> lines = Files.readAllLines(p);
-				for (String line : lines) {
-					for (Iterator<String> it = keys.iterator(); it.hasNext();) {
-						if (line.contains(it.next())) {
-							it.remove();
-						}
+		try (Stream<Path> walk = Files.walk(guiJavaPath)) {
+			walk.filter(Files::isRegularFile).forEach(p -> {
+				try {
+					for (String line : Files.readAllLines(p)) {
+						keys.removeIf(line::contains);
 					}
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		});
-
-		assertThat("keys not used", keys, empty());
+			});
+		}
+		assertThat(keys).as("keys not used").isEmpty();
 	}
 }

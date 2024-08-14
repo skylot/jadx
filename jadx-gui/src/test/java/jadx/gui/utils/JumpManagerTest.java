@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.gui.treemodel.TextNode;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class JumpManagerTest {
 	private JumpManager jm;
@@ -19,25 +17,25 @@ class JumpManagerTest {
 
 	@Test
 	public void testEmptyHistory() {
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), nullValue());
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isNull();
 	}
 
 	@Test
 	public void testEmptyHistory2() {
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), nullValue());
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), nullValue());
-		assertThat(jm.getPrev(), nullValue());
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isNull();
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isNull();
+		assertThat(jm.getPrev()).isNull();
 	}
 
 	@Test
 	public void testOneElement() {
 		jm.addPosition(makeJumpPos());
 
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), nullValue());
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isNull();
 	}
 
 	@Test
@@ -47,10 +45,10 @@ class JumpManagerTest {
 		JumpPosition pos2 = makeJumpPos();
 		jm.addPosition(pos2);
 
-		assertThat(jm.getPrev(), sameInstance(pos1));
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), sameInstance(pos2));
-		assertThat(jm.getNext(), nullValue());
+		assertThat(jm.getPrev()).isSameAs(pos1);
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isSameAs(pos2);
+		assertThat(jm.getNext()).isNull();
 	}
 
 	@Test
@@ -61,15 +59,15 @@ class JumpManagerTest {
 		JumpPosition pos2 = makeJumpPos();
 		jm.addPosition(pos2);
 		// 1 - 2@
-		assertThat(jm.getPrev(), sameInstance(pos1));
+		assertThat(jm.getPrev()).isSameAs(pos1);
 		// 1@ - 2
 		JumpPosition pos3 = makeJumpPos();
 		jm.addPosition(pos3);
 		// 1 - 3@
-		assertThat(jm.getNext(), nullValue());
-		assertThat(jm.getPrev(), sameInstance(pos1));
+		assertThat(jm.getNext()).isNull();
+		assertThat(jm.getPrev()).isSameAs(pos1);
 		// 1@ - 3
-		assertThat(jm.getNext(), sameInstance(pos3));
+		assertThat(jm.getNext()).isSameAs(pos3);
 	}
 
 	@Test
@@ -86,25 +84,25 @@ class JumpManagerTest {
 		JumpPosition pos4 = makeJumpPos();
 		jm.addPosition(pos4);
 		// 1 - 2 - 3 - 4@
-		assertThat(jm.getPrev(), sameInstance(pos3));
+		assertThat(jm.getPrev()).isSameAs(pos3);
 		// 1 - 2 - 3@ - 4
-		assertThat(jm.getPrev(), sameInstance(pos2));
+		assertThat(jm.getPrev()).isSameAs(pos2);
 		// 1 - 2@ - 3 - 4
 		JumpPosition pos5 = makeJumpPos();
 		jm.addPosition(pos5);
 		// 1 - 2 - 5@
-		assertThat(jm.getNext(), nullValue());
-		assertThat(jm.getNext(), nullValue());
-		assertThat(jm.getPrev(), sameInstance(pos2));
+		assertThat(jm.getNext()).isNull();
+		assertThat(jm.getNext()).isNull();
+		assertThat(jm.getPrev()).isSameAs(pos2);
 		// 1 - 2@ - 5
-		assertThat(jm.getPrev(), sameInstance(pos1));
+		assertThat(jm.getPrev()).isSameAs(pos1);
 		// 1@ - 2 - 5
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), sameInstance(pos2));
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isSameAs(pos2);
 		// 1 - 2@ - 5
-		assertThat(jm.getNext(), sameInstance(pos5));
+		assertThat(jm.getNext()).isSameAs(pos5);
 		// 1 - 2 - 5@
-		assertThat(jm.getNext(), nullValue());
+		assertThat(jm.getNext()).isNull();
 	}
 
 	@Test
@@ -113,8 +111,8 @@ class JumpManagerTest {
 		jm.addPosition(pos);
 		jm.addPosition(pos);
 
-		assertThat(jm.getPrev(), nullValue());
-		assertThat(jm.getNext(), nullValue());
+		assertThat(jm.getPrev()).isNull();
+		assertThat(jm.getNext()).isNull();
 	}
 
 	private JumpPosition makeJumpPos() {

@@ -24,7 +24,7 @@ import jadx.gui.utils.NLS;
 public class TabsController {
 	private final transient MainWindow mainWindow;
 	private final Map<JNode, TabBlueprint> tabsMap = new HashMap<>();
-	private final ArrayList<ITabStatesListener> listeners = new ArrayList<>();
+	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
 

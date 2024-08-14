@@ -18,7 +18,7 @@ import static jadx.core.dex.instructions.args.ArgType.generic;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.outerGeneric;
-import static org.assertj.core.api.Assertions.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class TypeUtilsTest {
 	private TypeUtils typeUtils;

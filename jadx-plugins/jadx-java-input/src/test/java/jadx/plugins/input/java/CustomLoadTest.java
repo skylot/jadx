@@ -19,7 +19,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.plugins.input.ICodeLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 class CustomLoadTest {
 
@@ -98,7 +98,7 @@ class CustomLoadTest {
 				.satisfiesOnlyOnce(cls -> assertThat(cls.getName()).isEqualTo("HelloWorld"))
 				.satisfiesOnlyOnce(cls -> {
 					assertThat(cls.getName()).isEqualTo("HelloInner");
-					assertThat(cls.getCode()).isEqualTo(""); // no code for moved inner class
+					assertThat(cls.getCode()).isEmpty(); // no code for moved inner class
 				});
 
 		assertThat(jadx.getClasses())
@@ -115,7 +115,7 @@ class CustomLoadTest {
 			jadx.addCustomCodeLoader(codeLoader);
 			jadx.load();
 		} catch (Exception e) {
-			fail(e);
+			fail("Failed to load sample", e);
 		}
 	}
 
@@ -123,7 +123,7 @@ class CustomLoadTest {
 		try {
 			return Paths.get(ClassLoader.getSystemResource("samples/" + name).toURI());
 		} catch (Exception e) {
-			return fail(e);
+			return fail("Failed to load sample", e);
 		}
 	}
 }

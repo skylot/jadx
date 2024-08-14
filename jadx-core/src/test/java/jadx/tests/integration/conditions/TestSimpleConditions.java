@@ -2,11 +2,8 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestSimpleConditions extends IntegrationTest {
 
@@ -22,10 +19,9 @@ public class TestSimpleConditions extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return (a[0] && a[1] && a[2]) || (a[3] && a[4]);"));
-		assertThat(code, containsString("return a[0] || a[1] || a[2] || a[3];"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return (a[0] && a[1] && a[2]) || (a[3] && a[4]);")
+				.contains("return a[0] || a[1] || a[2] || a[3];");
 	}
 }

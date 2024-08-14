@@ -12,8 +12,8 @@ import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class RaungTest extends IntegrationTest {
 
@@ -53,7 +53,7 @@ public abstract class RaungTest extends IntegrationTest {
 		String raungFilesDir = pkg + File.separatorChar + testDir + File.separatorChar;
 		File raungDir = getRaungDir(raungFilesDir);
 		String[] raungFileNames = raungDir.list((dir, name) -> name.endsWith(".raung"));
-		assertThat("Raung files not found in " + raungDir, raungFileNames, notNullValue());
+		assertThat(raungFileNames).as("Raung files not found in " + raungDir).isNotNull();
 		return Stream.of(raungFileNames)
 				.map(file -> new File(raungDir, file))
 				.collect(Collectors.toList());

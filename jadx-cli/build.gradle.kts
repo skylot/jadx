@@ -3,7 +3,7 @@ plugins {
 	id("application")
 
 	// use shadow only for application scripts, jar will be copied from jadx-gui
-	id("com.github.johnrengelman.shadow") version "8.1.1"
+	id("com.gradleup.shadow") version "8.3.0"
 }
 
 dependencies {

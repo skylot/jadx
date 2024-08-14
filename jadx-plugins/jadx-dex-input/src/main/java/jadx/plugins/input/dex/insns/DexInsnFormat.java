@@ -95,7 +95,7 @@ public abstract class DexInsnFormat {
 			regs[0] = byte1(opcodeUnit);
 
 			long literal = in.readShort();
-			literal <<= (byte0(opcodeUnit) == DexOpcodes.CONST_HIGH16) ? 16 : 48;
+			literal <<= byte0(opcodeUnit) == DexOpcodes.CONST_HIGH16 ? 16 : 48;
 			insn.setLiteral(literal);
 		}
 	};

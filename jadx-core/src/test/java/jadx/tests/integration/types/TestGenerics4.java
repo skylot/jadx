@@ -3,11 +3,8 @@ package jadx.tests.integration.types;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestGenerics4 extends IntegrationTest {
 
@@ -40,21 +37,18 @@ public class TestGenerics4 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public static class ObjIList implements IList<Object> {"));
-
-		assertThat(code, containsOne("Inner<Object> inner = new Inner<>();"));
-		assertThat(code, containsOne("inner.overload((IList<? super Object>) new ObjIList());"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public static class ObjIList implements IList<Object> {")
+				.containsOne("Inner<Object> inner = new Inner<>();")
+				.containsOne("inner.overload((IList<? super Object>) new ObjIList());");
 	}
 
 	@NotYetImplemented
 	@Test
 	public void testOmitCast() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("inner.overload(new ObjIList());"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("inner.overload(new ObjIList());");
 	}
 }

@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestCastInOverloadedAccessor extends SmaliTest {
 	static class X {
@@ -34,8 +33,9 @@ public class TestCastInOverloadedAccessor extends SmaliTest {
 
 	@Test
 	public void test() {
-		String code = getClassNode(X.class).getCode().getCodeStr();
-		assertThat(code, containsOne("outerMethod(\"\")"));
-		assertThat(code, containsOne("outerMethod(\"\", \"\")"));
+		assertThat(getClassNode(X.class))
+				.code()
+				.containsOne("outerMethod(\"\")")
+				.containsOne("outerMethod(\"\", \"\")");
 	}
 }

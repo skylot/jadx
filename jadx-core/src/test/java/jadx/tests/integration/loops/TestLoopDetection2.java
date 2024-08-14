@@ -2,13 +2,8 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestLoopDetection2 extends IntegrationTest {
 
@@ -30,11 +25,10 @@ public class TestLoopDetection2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("int c = a + b;"));
-		assertThat(code, containsOne("for (int i = a; i < b; i++) {"));
-		assertThat(code, not(containsString("c_2")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("int c = a + b;")
+				.containsOne("for (int i = a; i < b; i++) {")
+				.doesNotContain("c_2");
 	}
 }

@@ -33,7 +33,7 @@ public class JadxCommentsAttr implements IJadxAttribute {
 	private final Map<CommentsLevel, List<String>> comments = new EnumMap<>(CommentsLevel.class);
 
 	public void add(CommentsLevel level, String comment) {
-		comments.computeIfAbsent(level, (l) -> new ArrayList<>()).add(comment);
+		comments.computeIfAbsent(level, l -> new ArrayList<>()).add(comment);
 	}
 
 	public List<String> formatAndFilter(CommentsLevel level) {

@@ -2,13 +2,9 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSwitchSimple extends IntegrationTest {
 
@@ -38,14 +34,12 @@ public class TestSwitchSimple extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertEquals(5, count(code, "break;"));
-		assertEquals(1, count(code, "System.out.println(s);"));
-		assertEquals(1, count(code, "System.out.println(\"Not Reach\");"));
-
-		assertThat(code, not(containsString("switch ((a % 4)) {")));
-		assertThat(code, containsString("switch (a % 4) {"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(5, "break;")
+				.containsOne("System.out.println(s);")
+				.containsOne("System.out.println(\"Not Reach\");")
+				.doesNotContain("switch ((a % 4)) {")
+				.contains("switch (a % 4) {");
 	}
 }

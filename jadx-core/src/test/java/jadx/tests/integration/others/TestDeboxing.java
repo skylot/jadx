@@ -2,13 +2,10 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestDeboxing extends IntegrationTest {
 
@@ -50,12 +47,12 @@ public class TestDeboxing extends IntegrationTest {
 			// don't mind weird comparisons
 			// need to get primitive without using boxing or literal
 			// otherwise will get same result after decompilation
-			assertThat(testInt(), is(Integer.sum(0, 1)));
-			assertThat(testBoolean(), is(Boolean.TRUE));
-			assertThat(testByte(), is(Byte.parseByte("2")));
-			assertThat(testShort(), is(Short.parseShort("3")));
-			assertThat(testChar(), is("c".charAt(0)));
-			assertThat(testLong(), is(Long.valueOf("4")));
+			assertThat(testInt()).isEqualTo(Integer.sum(0, 1));
+			assertThat(testBoolean()).isEqualTo(Boolean.TRUE);
+			assertThat(testByte()).isEqualTo(Byte.parseByte("2"));
+			assertThat(testShort()).isEqualTo(Short.parseShort("3"));
+			assertThat(testChar()).isEqualTo("c".charAt(0));
+			assertThat(testLong()).isEqualTo(Long.valueOf("4"));
 			testConstInline();
 		}
 	}
@@ -63,15 +60,14 @@ public class TestDeboxing extends IntegrationTest {
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return 1;"));
-		assertThat(code, containsOne("return true;"));
-		assertThat(code, containsOne("return (byte) 2;"));
-		assertThat(code, containsOne("return (short) 3;"));
-		assertThat(code, containsOne("return 'c';"));
-		assertThat(code, containsOne("return 4L;"));
-		assertThat(code, countString(2, "use(true);"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return 1;")
+				.containsOne("return true;")
+				.containsOne("return (byte) 2;")
+				.containsOne("return (short) 3;")
+				.containsOne("return 'c';")
+				.containsOne("return 4L;")
+				.countString(2, "use(true);");
 	}
 }

@@ -2,12 +2,8 @@ package jadx.tests.integration.generics;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestGenericsMthOverride extends IntegrationTest {
 
@@ -48,14 +44,12 @@ public class TestGenericsMthOverride extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public Y method(X x) {"));
-		assertThat(code, containsOne("public Y method(Object x) {"));
-		assertThat(code, containsOne("public Y method(Exception x) {"));
-		assertThat(code, containsOne("public Object method(Object x) {"));
-
-		assertThat(code, countString(4, "@Override"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public Y method(X x) {")
+				.containsOne("public Y method(Object x) {")
+				.containsOne("public Y method(Exception x) {")
+				.containsOne("public Object method(Object x) {")
+				.countString(4, "@Override");
 	}
 }

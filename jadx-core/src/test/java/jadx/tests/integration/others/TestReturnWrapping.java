@@ -2,11 +2,8 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestReturnWrapping extends IntegrationTest {
 	public static class TestCls {
@@ -48,13 +45,11 @@ public class TestReturnWrapping extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("return 255;"));
-		assertThat(code, containsString("return arg0 + 1;"));
-		assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i);"));
-		assertThat(code, containsString("return arg0 + 2;"));
-		assertThat(code, containsString("arg0 -= 951;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.contains("return 255;")
+				.contains("return arg0 + 1;").contains("return i > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i);")
+				.contains("return arg0 + 2;")
+				.contains("arg0 -= 951;");
 	}
 }

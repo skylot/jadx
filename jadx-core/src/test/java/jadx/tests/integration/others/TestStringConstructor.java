@@ -4,11 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestStringConstructor extends IntegrationTest {
 
@@ -18,10 +15,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("abc"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("abc");
 	}
 
 	public static class TestCls2 {
@@ -30,10 +26,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void test2() {
-		ClassNode cls = getClassNode(TestCls2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("new String(\"abc\".getBytes(), StandardCharsets.UTF_8)"));
+		JadxAssertions.assertThat(getClassNode(TestCls2.class))
+				.code()
+				.containsOne("new String(\"abc\".getBytes(), StandardCharsets.UTF_8)");
 	}
 
 	public static class TestCls3 {
@@ -42,10 +37,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void test3() {
-		ClassNode cls = getClassNode(TestCls3.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("\\u0001\\u0002\\u0003abc"));
+		JadxAssertions.assertThat(getClassNode(TestCls3.class))
+				.code()
+				.containsOne("\\u0001\\u0002\\u0003abc");
 	}
 
 	public static class TestCls4 {
@@ -54,10 +48,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void test4() {
-		ClassNode cls = getClassNode(TestCls4.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("\\u0001\\u0002\\u0003abc"));
+		JadxAssertions.assertThat(getClassNode(TestCls4.class))
+				.code()
+				.containsOne("\\u0001\\u0002\\u0003abc");
 	}
 
 	public static class TestCls5 {
@@ -66,10 +59,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void test5() {
-		ClassNode cls = getClassNode(TestCls5.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("{1, 2, 3, 'a', 'b'}"));
+		JadxAssertions.assertThat(getClassNode(TestCls5.class))
+				.code()
+				.containsOne("{1, 2, 3, 'a', 'b'}");
 	}
 
 	public static class TestClsNegative {
@@ -78,10 +70,9 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void testNegative() {
-		ClassNode cls = getClassNode(TestClsNegative.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("tag = new String();"));
+		JadxAssertions.assertThat(getClassNode(TestClsNegative.class))
+				.code()
+				.containsOne("tag = new String();");
 	}
 
 	public static class TestClsNegative2 {
@@ -91,9 +82,8 @@ public class TestStringConstructor extends IntegrationTest {
 
 	@Test
 	public void testNegative2() {
-		ClassNode cls = getClassNode(TestClsNegative2.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("tag = new String(new byte[]{31, this.b});"));
+		JadxAssertions.assertThat(getClassNode(TestClsNegative2.class))
+				.code()
+				.containsOne("tag = new String(new byte[]{31, this.b});");
 	}
 }

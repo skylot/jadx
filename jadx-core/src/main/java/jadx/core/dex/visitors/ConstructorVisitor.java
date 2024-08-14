@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors;
 
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.codegen.TypeGen;
@@ -67,7 +69,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		co.inheritMetadata(inv);
 
-		RegisterArg instanceArg = ((RegisterArg) inv.getArg(0));
+		RegisterArg instanceArg = (RegisterArg) inv.getArg(0);
 		instanceArg.getSVar().removeUse(instanceArg);
 		if (co.isNewInstance()) {
 			InsnNode assignInsn = instanceArg.getAssignInsn();
@@ -107,7 +109,20 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		BlockNode crossBlock = BlockUtils.getPathCross(mth, curBlock, otherBlock);
 		if (crossBlock == null) {
-			throw new JadxRuntimeException("Path cross not found for blocks: " + curBlock + " and " + otherBlock);
+			// no path cross => PHI insn not needed
+			// use new SSA var on usage from current path
+			RegisterArg newResArg = instArg.duplicateWithNewSSAVar(mth);
+			List<BlockNode> pathBlocks = BlockUtils.collectAllSuccessors(mth, curBlock, true);
+			for (RegisterArg useReg : instArg.getSVar().getUseList()) {
+				InsnNode parentInsn = useReg.getParentInsn();
+				if (parentInsn != null) {
+					BlockNode useBlock = BlockUtils.getBlockByInsn(mth, parentInsn, pathBlocks);
+					if (useBlock != null) {
+						parentInsn.replaceArg(useReg, newResArg.duplicate());
+					}
+				}
+			}
+			return newResArg;
 		}
 		RegisterArg newResArg = instArg.duplicateWithNewSSAVar(mth);
 		RegisterArg useArg = otherCtr.getResult();
@@ -115,8 +130,8 @@ public class ConstructorVisitor extends AbstractVisitor {
 
 		PhiInsn phiInsn = SSATransform.addPhi(mth, crossBlock, useArg.getRegNum());
 		phiInsn.setResult(useArg.duplicate());
-		phiInsn.bindArg(newResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, curBlock));
-		phiInsn.bindArg(otherResArg.duplicate(), BlockUtils.getPrevBlockOnPath(crossBlock, otherBlock));
+		phiInsn.bindArg(newResArg.duplicate(), BlockUtils.getPrevBlockOnPath(mth, crossBlock, curBlock));
+		phiInsn.bindArg(otherResArg.duplicate(), BlockUtils.getPrevBlockOnPath(mth, crossBlock, otherBlock));
 		phiInsn.rebindArgs();
 
 		otherCtr.setResult(otherResArg.duplicate());

@@ -99,7 +99,7 @@ public class SmaliInsnFormat {
 	}
 
 	private InsnFormatter noArgsInsn(String name) {
-		return (fi) -> fi.getCodeWriter().add(name);
+		return fi -> fi.getCodeWriter().add(name);
 	}
 
 	private String literal(InsnFormatterInfo fi) {

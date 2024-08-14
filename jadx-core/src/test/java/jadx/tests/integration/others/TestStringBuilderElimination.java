@@ -2,12 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestStringBuilderElimination extends IntegrationTest {
 
@@ -25,13 +22,11 @@ public class TestStringBuilderElimination extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(MyException.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("MyException(String str, Exception e) {"));
-		assertThat(code, containsString("super(\"msg:\" + str, e);"));
-
-		assertThat(code, not(containsString("new StringBuilder")));
-		assertThat(code, containsString("System.out.println(\"k=\" + k);"));
+		assertThat(getClassNode(MyException.class))
+				.code()
+				.contains("MyException(String str, Exception e) {")
+				.contains("super(\"msg:\" + str, e);")
+				.doesNotContain("new StringBuilder")
+				.contains("System.out.println(\"k=\" + k);");
 	}
 }

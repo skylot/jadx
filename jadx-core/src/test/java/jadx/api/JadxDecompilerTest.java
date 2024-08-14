@@ -6,14 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.input.dex.DexInputPlugin;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class JadxDecompilerTest {
 
@@ -37,8 +35,8 @@ public class JadxDecompilerTest {
 				System.out.println(cls.getCode());
 			}
 
-			assertThat(jadx.getClasses(), Matchers.hasSize(3));
-			assertThat(jadx.getErrorsCount(), Matchers.is(0));
+			assertThat(jadx.getClasses()).hasSize(3);
+			assertThat(jadx.getErrorsCount()).isEqualTo(0);
 		}
 	}
 
@@ -51,8 +49,8 @@ public class JadxDecompilerTest {
 			for (JavaClass cls : jadx.getClasses()) {
 				System.out.println(cls.getCode());
 			}
-			assertThat(jadx.getClasses(), Matchers.hasSize(1));
-			assertThat(jadx.getErrorsCount(), Matchers.is(0));
+			assertThat(jadx.getClasses()).hasSize(1);
+			assertThat(jadx.getErrorsCount()).isEqualTo(0);
 		}
 	}
 
@@ -60,7 +58,7 @@ public class JadxDecompilerTest {
 
 	public static File getFileFromSampleDir(String fileName) {
 		URL resource = JadxDecompilerTest.class.getClassLoader().getResource(TEST_SAMPLES_DIR + fileName);
-		assertThat(resource, notNullValue());
+		assertThat(resource).isNotNull();
 		String pathStr = resource.getFile();
 		return new File(pathStr);
 	}

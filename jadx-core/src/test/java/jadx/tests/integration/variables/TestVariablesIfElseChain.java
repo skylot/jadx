@@ -2,12 +2,10 @@ package jadx.tests.integration.variables;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestVariablesIfElseChain extends IntegrationTest {
 
@@ -43,21 +41,20 @@ public class TestVariablesIfElseChain extends IntegrationTest {
 
 		public void check() {
 			test(0);
-			assertThat(used, is("zero"));
+			assertThat(used).isEqualTo("zero");
 			test(1);
-			assertThat(used, is("hit1"));
+			assertThat(used).isEqualTo("hit1");
 			test(2);
-			assertThat(used, is("hit2"));
-			assertThat(test(5), is("miss"));
+			assertThat(used).isEqualTo("hit2");
+			assertThat(test(5)).isEqualTo("miss");
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return \"miss\";"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return \"miss\";");
 		// and compilable
 	}
 }

@@ -2,13 +2,8 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
 public class TestArith3 extends IntegrationTest {
 
@@ -33,21 +28,19 @@ public class TestArith3 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("while (n + 4 < buffer.length) {"));
-		assertThat(code, containsOne(indent() + "n += len + 5;"));
-		assertThat(code, not(containsString("; n += len + 5) {")));
-		assertThat(code, not(containsString("default:")));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("while (n + 4 < buffer.length) {")
+				.containsOne(indent() + "n += len + 5;")
+				.doesNotContain("; n += len + 5) {")
+				.doesNotContain("default:");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("while ("));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("while (");
 	}
 }

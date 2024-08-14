@@ -2,12 +2,9 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestStaticFieldsInit extends IntegrationTest {
 
@@ -30,10 +27,9 @@ public class TestStaticFieldsInit extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("public static final String S2 = null;")));
-		assertThat(code, containsString("public static final String S3 = null;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("public static final String S2 = null;")
+				.contains("public static final String S3 = null;");
 	}
 }

@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.api.JadxArgs;
 import jadx.core.utils.StringUtils;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 class StringUtilsTest {
 
@@ -33,7 +32,7 @@ class StringUtilsTest {
 	}
 
 	private void checkStringUnescape(String input, String result) {
-		assertThat(stringUtils.unescapeString(input), is('"' + result + '"'));
+		assertThat(stringUtils.unescapeString(input)).isEqualTo('"' + result + '"');
 	}
 
 	@Test
@@ -45,11 +44,11 @@ class StringUtilsTest {
 		checkCharUnescape('\n', "\\n");
 		checkCharUnescape('\'', "\\'");
 
-		assertThat(stringUtils.unescapeChar('\0'), is("0"));
+		assertThat(stringUtils.unescapeChar('\0')).isEqualTo("0");
 	}
 
 	private void checkCharUnescape(char input, String result) {
-		assertThat(stringUtils.unescapeChar(input), is('\'' + result + '\''));
+		assertThat(stringUtils.unescapeChar(input)).isEqualTo('\'' + result + '\'');
 	}
 
 	@Test
@@ -60,6 +59,6 @@ class StringUtilsTest {
 	}
 
 	private void checkResStrValueEscape(String input, String result) {
-		assertThat(StringUtils.escapeResStrValue(input), is(result));
+		assertThat(StringUtils.escapeResStrValue(input)).isEqualTo(result);
 	}
 }

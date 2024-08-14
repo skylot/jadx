@@ -9,9 +9,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestLineNumbers extends IntegrationTest {
 
@@ -55,11 +53,11 @@ public class TestLineNumbers extends IntegrationTest {
 		FieldNode innerField = inner.searchFieldByName("innerField");
 
 		// check source lines (available only for instructions and methods)
-		int testClassLine = 18;
-		assertEquals(testClassLine + 3, func.getSourceLine());
-		assertEquals(testClassLine + 9, innerFunc.getSourceLine());
-		assertEquals(testClassLine + 12, innerFunc2.getSourceLine());
-		assertEquals(testClassLine + 20, innerFunc3.getSourceLine());
+		int testClassLine = 16;
+		assertThat(testClassLine + 3).isEqualTo(func.getSourceLine());
+		assertThat(testClassLine + 9).isEqualTo(innerFunc.getSourceLine());
+		assertThat(testClassLine + 12).isEqualTo(innerFunc2.getSourceLine());
+		assertThat(testClassLine + 20).isEqualTo(innerFunc3.getSourceLine());
 
 		// check decompiled lines
 		checkLine(code, field, "int field;");
@@ -73,6 +71,6 @@ public class TestLineNumbers extends IntegrationTest {
 
 	private static void checkLine(String code, LineAttrNode node, String str) {
 		String line = CodeUtils.getLineForPos(code, node.getDefPosition());
-		assertThat(line, containsString(str));
+		assertThat(line).contains(str);
 	}
 }

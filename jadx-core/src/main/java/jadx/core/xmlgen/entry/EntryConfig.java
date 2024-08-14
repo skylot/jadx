@@ -461,7 +461,7 @@ public class EntryConfig {
 
 	@Override
 	public String toString() {
-		return !getQualifiers().equals("") ? getQualifiers() : "[DEFAULT]";
+		return !getQualifiers().isEmpty() ? getQualifiers() : "[DEFAULT]";
 	}
 
 	@Override

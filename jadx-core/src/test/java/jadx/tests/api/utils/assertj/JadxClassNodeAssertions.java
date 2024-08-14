@@ -3,14 +3,13 @@ package jadx.tests.api.utils.assertj;
 import java.util.Map;
 
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.Assertions;
 
 import jadx.api.ICodeInfo;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeAssertions, ClassNode> {
@@ -21,14 +20,14 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 	public JadxCodeInfoAssertions decompile() {
 		isNotNull();
 		ICodeInfo codeInfo = actual.getCode();
-		Assertions.assertThat(codeInfo).isNotNull();
+		assertThat(codeInfo).isNotNull();
 		return new JadxCodeInfoAssertions(codeInfo);
 	}
 
 	public JadxCodeAssertions code() {
 		isNotNull();
 		ICodeInfo code = actual.getCode();
-		Assertions.assertThat(code).isNotNull();
+		assertThat(code).isNotNull();
 		String codeStr = code.getCodeStr();
 		assertThat(codeStr).isNotBlank();
 		return new JadxCodeAssertions(codeStr);
@@ -44,9 +43,9 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 	public JadxCodeAssertions reloadCode(IntegrationTest testInstance) {
 		isNotNull();
 		ICodeInfo code = actual.reloadCode();
-		Assertions.assertThat(code).isNotNull();
+		assertThat(code).isNotNull();
 		String codeStr = code.getCodeStr();
-		Assertions.assertThat(codeStr).isNotBlank();
+		assertThat(codeStr).isNotBlank();
 
 		JadxCodeAssertions codeAssertions = new JadxCodeAssertions(codeStr);
 		codeAssertions.print();
@@ -76,7 +75,7 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		int refPos = codePos + refOffset;
 		for (Map.Entry<Integer, ICodeAnnotation> entry : code.getCodeMetadata().getAsMap().entrySet()) {
 			if (entry.getKey() == refPos) {
-				Assertions.assertThat(entry.getValue()).isEqualTo(node);
+				assertThat(entry.getValue()).isEqualTo(node);
 				return this;
 			}
 		}

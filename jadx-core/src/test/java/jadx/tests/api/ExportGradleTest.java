@@ -18,7 +18,7 @@ import jadx.core.export.ExportGradleProject;
 import jadx.core.export.ExportGradleTask;
 import jadx.core.xmlgen.ResContainer;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

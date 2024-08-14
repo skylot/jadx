@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.api.JadxArgs;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
@@ -32,8 +31,8 @@ public class ProcessClass {
 
 	private final List<IDexTreeVisitor> passes;
 
-	public ProcessClass(JadxArgs args) {
-		this.passes = Jadx.getPassesList(args);
+	public ProcessClass(List<IDexTreeVisitor> passesList) {
+		this.passes = passesList;
 	}
 
 	@Nullable

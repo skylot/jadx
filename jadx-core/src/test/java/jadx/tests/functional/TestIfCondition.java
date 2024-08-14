@@ -18,8 +18,7 @@ import static jadx.core.dex.regions.conditions.IfCondition.Mode.OR;
 import static jadx.core.dex.regions.conditions.IfCondition.merge;
 import static jadx.core.dex.regions.conditions.IfCondition.not;
 import static jadx.core.dex.regions.conditions.IfCondition.simplify;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIfCondition {
 
@@ -46,10 +45,10 @@ public class TestIfCondition {
 		IfCondition c = makeCondition(IfOp.NE, a, LiteralArg.litFalse());
 		IfCondition simp = simplify(c);
 
-		assertThat(simp.getMode(), is(COMPARE));
+		assertThat(simp.getMode()).isEqualTo(COMPARE);
 		Compare compare = simp.getCompare();
-		assertThat(compare.getA(), is(a));
-		assertThat(compare.getB(), is(LiteralArg.litTrue()));
+		assertThat(compare.getA()).isEqualTo(a);
+		assertThat(compare.getB()).isEqualTo(LiteralArg.litTrue());
 	}
 
 	@Test
@@ -58,23 +57,23 @@ public class TestIfCondition {
 		IfCondition b = makeSimpleCondition();
 		IfCondition c = merge(Mode.OR, a, b);
 
-		assertThat(c.getMode(), is(OR));
-		assertThat(c.first(), is(a));
-		assertThat(c.second(), is(b));
+		assertThat(c.getMode()).isEqualTo(OR);
+		assertThat(c.first()).isEqualTo(a);
+		assertThat(c.second()).isEqualTo(b);
 	}
 
 	@Test
 	public void testSimplifyNot() {
 		// !(!a) => a
 		IfCondition a = not(not(makeSimpleCondition()));
-		assertThat(simplify(a), is(a));
+		assertThat(simplify(a)).isEqualTo(a);
 	}
 
 	@Test
 	public void testSimplifyNot2() {
 		// !(!a) => a
 		IfCondition a = not(makeNegCondition());
-		assertThat(simplify(a), is(a));
+		assertThat(simplify(a)).isEqualTo(a);
 	}
 
 	@Test
@@ -85,9 +84,9 @@ public class TestIfCondition {
 		IfCondition c = not(merge(Mode.OR, not(a), not(b)));
 		IfCondition simp = simplify(c);
 
-		assertThat(simp.getMode(), is(AND));
-		assertThat(simp.first(), is(a));
-		assertThat(simp.second(), is(b));
+		assertThat(simp.getMode()).isEqualTo(AND);
+		assertThat(simp.first()).isEqualTo(a);
+		assertThat(simp.second()).isEqualTo(b);
 	}
 
 	@Test
@@ -99,12 +98,12 @@ public class TestIfCondition {
 		IfCondition cond = merge(Mode.AND, merge(Mode.OR, not(a), not(b)), not(c));
 		IfCondition simp = simplify(cond);
 
-		assertThat(simp.getMode(), is(NOT));
+		assertThat(simp.getMode()).isEqualTo(NOT);
 		IfCondition f = simp.first();
-		assertThat(f.getMode(), is(OR));
-		assertThat(f.first().getMode(), is(AND));
-		assertThat(f.first().first(), is(a));
-		assertThat(f.first().second(), is(b));
-		assertThat(f.second(), is(c));
+		assertThat(f.getMode()).isEqualTo(OR);
+		assertThat(f.first().getMode()).isEqualTo(AND);
+		assertThat(f.first().first()).isEqualTo(a);
+		assertThat(f.first().second()).isEqualTo(b);
+		assertThat(f.second()).isEqualTo(c);
 	}
 }

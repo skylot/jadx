@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestBreakInLoop3 extends IntegrationTest {
 
@@ -47,7 +47,7 @@ public class TestBreakInLoop3 extends IntegrationTest {
 
 		public void check() {
 			writeMore("");
-			assertEquals("12135678", builder.toString());
+			assertThat(builder).hasToString("12135678");
 		}
 	}
 

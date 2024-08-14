@@ -2,11 +2,9 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestConditions21 extends SmaliTest {
 
@@ -29,9 +27,7 @@ public class TestConditions21 extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmali();
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("!list.isEmpty() && list.contains(this)"));
+		assertThat(getClassNodeFromSmali()).code()
+				.containsOne("!list.isEmpty() && list.contains(this)");
 	}
 }

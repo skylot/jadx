@@ -233,7 +233,7 @@ public class RegionMaker {
 		BlockNode out;
 		if (loopRegion.isConditionAtEnd()) {
 			BlockNode thenBlock = condInfo.getThenBlock();
-			out = (thenBlock == loop.getEnd() || thenBlock == loopStart) ? condInfo.getElseBlock() : thenBlock;
+			out = thenBlock == loop.getEnd() || thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;
 			out = BlockUtils.followEmptyPath(out);
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.ADDED_TO_REGION);
@@ -351,7 +351,7 @@ public class RegionMaker {
 			return true;
 		}
 		Optional<Edge> mainEdgeOpt = exitEdges.stream().filter(edge -> edge.getSource() == mainExitBlock).findFirst();
-		if (!mainEdgeOpt.isPresent()) {
+		if (mainEdgeOpt.isEmpty()) {
 			throw new JadxRuntimeException("Not found exit edge by exit block: " + mainExitBlock);
 		}
 		Edge mainExitEdge = mainEdgeOpt.get();
@@ -864,6 +864,10 @@ public class RegionMaker {
 		// works if no fallthrough cases and no returns inside switch
 		BitSet outs = BlockUtils.newBlocksBitSet(mth);
 		for (BlockNode s : block.getCleanSuccessors()) {
+			if (s.contains(AFlag.LOOP_END)) {
+				// loop end dom frontier is loop start, ignore it
+				continue;
+			}
 			outs.or(s.getDomFrontier());
 		}
 		outs.clear(block.getId());

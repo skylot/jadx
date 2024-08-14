@@ -8,17 +8,13 @@ import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIssue13b extends IntegrationTest {
 
 	public static class TestCls {
-
 		private static final String PROPERTIES_FILE = "";
 		private static final String TAG = "";
 		private final CountDownLatch mInitializedLatch = new CountDownLatch(1);
@@ -78,12 +74,10 @@ public class TestIssue13b extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, countString(4, "} catch ("));
-		assertThat(code, countString(3, "Log.e("));
-
-		assertThat(code, containsOne("Thread.currentThread().interrupt();"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.countString(4, "} catch (")
+				.countString(3, "Log.e(")
+				.containsOne("Thread.currentThread().interrupt();");
 	}
 }

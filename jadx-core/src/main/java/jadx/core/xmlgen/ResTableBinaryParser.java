@@ -273,7 +273,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		// to the value of the type bits in a resource identifier). 0 is invalid.
 		int id = is.readInt8();
 		int flags = is.readInt8(); // 0 or 1
-		boolean flagSparse = (flags == 1);
+		boolean flagSparse = flags == 1;
 
 		is.checkInt16(0, "type chunk, reserved");
 		int entryCount = is.readInt32();

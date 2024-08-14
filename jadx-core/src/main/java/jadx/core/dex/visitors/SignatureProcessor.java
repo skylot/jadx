@@ -202,7 +202,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			}
 			if (mthInfo.isConstructor() && !mthArgTypes.isEmpty() && !parsedArgTypes.isEmpty()) {
 				// add synthetic arg for outer class (see test TestGeneric8)
-				ArrayList<ArgType> newArgTypes = new ArrayList<>(parsedArgTypes);
+				List<ArgType> newArgTypes = new ArrayList<>(parsedArgTypes);
 				newArgTypes.add(0, mthArgTypes.get(0));
 				if (newArgTypes.size() == mthArgTypes.size()) {
 					return newArgTypes;

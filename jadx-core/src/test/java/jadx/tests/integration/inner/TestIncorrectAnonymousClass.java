@@ -2,12 +2,9 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestIncorrectAnonymousClass extends SmaliTest {
 
@@ -29,10 +26,9 @@ public class TestIncorrectAnonymousClass extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliFiles("TestCls");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("public final class AnonymousClass1 {"));
-		assertThat(code, countString(2, "new AnonymousClass1();"));
+		assertThat(getClassNodeFromSmaliFiles("TestCls"))
+				.code()
+				.containsOne("public final class AnonymousClass1 {")
+				.countString(2, "new AnonymousClass1();");
 	}
 }

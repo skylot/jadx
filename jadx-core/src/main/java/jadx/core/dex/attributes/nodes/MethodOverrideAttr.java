@@ -14,14 +14,14 @@ public class MethodOverrideAttr extends PinnedAttribute {
 	/**
 	 * All methods overridden by current method. Current method excluded, empty for base method.
 	 */
-	private List<IMethodDetails> overrideList;
+	private final List<IMethodDetails> overrideList;
 
 	/**
 	 * All method nodes from override hierarchy. Current method included.
 	 */
 	private SortedSet<MethodNode> relatedMthNodes;
 
-	private Set<IMethodDetails> baseMethods;
+	private final Set<IMethodDetails> baseMethods;
 
 	public MethodOverrideAttr(List<IMethodDetails> overrideList, SortedSet<MethodNode> relatedMthNodes, Set<IMethodDetails> baseMethods) {
 		this.overrideList = overrideList;

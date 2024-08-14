@@ -2,13 +2,10 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.utils.assertj.JadxAssertions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestBreakWithLabel extends IntegrationTest {
 
@@ -30,17 +27,16 @@ public class TestBreakWithLabel extends IntegrationTest {
 
 		public void check() {
 			int[][] testArray = { { 1, 2 }, { 3, 4 } };
-			assertTrue(test(testArray, 3));
-			assertFalse(test(testArray, 5));
+			assertThat(test(testArray, 3)).isTrue();
+			assertThat(test(testArray, 5)).isFalse();
 		}
 	}
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("loop0:"));
-		assertThat(code, containsOne("break loop0;"));
+		JadxAssertions.assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("loop0:")
+				.containsOne("break loop0;");
 	}
 }

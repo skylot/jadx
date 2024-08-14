@@ -137,7 +137,7 @@ public class ExcludePkgDialog extends JDialog {
 			String parent = "";
 			int last = 0;
 			do {
-				int pos = name.indexOf(".", last);
+				int pos = name.indexOf('.', last);
 				if (pos == -1) {
 					pos = name.length();
 				}
