@@ -138,9 +138,17 @@ public class BackgroundExecutor {
 					task.onDone(this);
 					// treat UI task operations as part of the task to not mix with others
 					UiUtils.uiRunAndWait(() -> {
-						progressPane.setVisible(false);
-						task.onFinish(this);
+						try {
+							progressPane.setVisible(false);
+							task.onFinish(this);
+						} catch (Throwable e) {
+							LOG.error("Task onFinish failed", e);
+							status = TaskStatus.ERROR;
+						}
 					});
+				} catch (Throwable e) {
+					LOG.error("Task onDone failed", e);
+					status = TaskStatus.ERROR;
 				} finally {
 					taskComplete(id);
 					progressPane.changeVisibility(this, false);
