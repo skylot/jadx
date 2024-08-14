@@ -1,12 +1,14 @@
 package jadx.gui.ui.tab;
 
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 
+/**
+ * TODO: Save jumps history into project file to restore after reload or reopen
+ */
 public class NavigationController implements ITabStatesListener {
 	private final transient MainWindow mainWindow;
 
@@ -14,101 +16,50 @@ public class NavigationController implements ITabStatesListener {
 
 	public NavigationController(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
-
 		mainWindow.getTabsController().addListener(this);
-	}
-
-	public void saveJump(JumpPosition pos) {
-		JumpPosition curPos = mainWindow.getTabbedPane().getCurrentPosition();
-		if (curPos != null) {
-			jumps.addPosition(curPos);
-			jumps.addPosition(pos);
-		}
 	}
 
 	public void navBack() {
 		if (jumps.size() > 1) {
 			jumps.updateCurPosition(mainWindow.getTabbedPane().getCurrentPosition());
 		}
-		JumpPosition pos = jumps.getPrev();
-		if (pos != null) {
-			mainWindow.getTabsController().codeJump(pos);
-		}
+		jump(jumps.getPrev());
 	}
 
 	public void navForward() {
 		if (jumps.size() > 1) {
 			jumps.updateCurPosition(mainWindow.getTabbedPane().getCurrentPosition());
 		}
-		JumpPosition pos = jumps.getNext();
+		jump(jumps.getNext());
+	}
+
+	private void jump(@Nullable JumpPosition pos) {
 		if (pos != null) {
 			mainWindow.getTabsController().codeJump(pos);
 		}
 	}
 
 	@Override
-	public void onTabOpen(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabSelect(TabBlueprint blueprint) {
-
-	}
-
-	@Override
 	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
-
+		if (position.equals(jumps.getCurrent())) {
+			// ignore self-initiated jumps
+			return;
+		}
+		saveCurrentPosition();
+		jumps.addPosition(position);
 	}
 
 	@Override
 	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
-
+		saveCurrentPosition();
+		// TODO: save smali jump
 	}
 
-	@Override
-	public void onTabClose(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabPositionFirst(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabPinChange(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabBookmarkChange(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabVisibilityChange(TabBlueprint blueprint) {
-
-	}
-
-	@Override
-	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
-
-	}
-
-	@Override
-	public void onTabsRestoreDone() {
-
-	}
-
-	@Override
-	public void onTabsReorder(List<TabBlueprint> blueprints) {
-
-	}
-
-	@Override
-	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
-
+	private void saveCurrentPosition() {
+		JumpPosition curPos = mainWindow.getTabbedPane().getCurrentPosition();
+		if (curPos != null) {
+			jumps.addPosition(curPos);
+		}
 	}
 
 	public void reset() {

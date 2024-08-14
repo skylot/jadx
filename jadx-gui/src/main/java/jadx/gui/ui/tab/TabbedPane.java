@@ -8,8 +8,10 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -206,15 +208,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		return controller;
 	}
 
-	private void codeJump(JumpPosition pos) {
-		saveJump(pos);
-		showCode(pos);
-	}
-
-	private void saveJump(JumpPosition pos) {
-		mainWindow.getNavController().saveJump(pos);
-	}
-
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
 		ContentPanel contentPanel = getContentPanel(jumpPos.getNode());
 		if (contentPanel != null) {
@@ -260,8 +253,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		smaliArea.requestFocus();
 	}
 
-	@Nullable
-	public JumpPosition getCurrentPosition() {
+	public @Nullable JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedContentPanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
@@ -297,7 +289,15 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	public @Nullable TabComponent getTabComponentByNode(JNode node) {
-		Component component = getTabComponentAt(indexOfComponent(getTabByNode(node)));
+		ContentPanel contentPanel = getTabByNode(node);
+		if (contentPanel == null) {
+			return null;
+		}
+		int index = indexOfComponent(contentPanel);
+		if (index == -1) {
+			return null;
+		}
+		Component component = getTabComponentAt(index);
 		if (!(component instanceof TabComponent)) {
 			return null;
 		}
@@ -399,22 +399,23 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			return;
 		}
 		ContentPanel newPanel = blueprint.getNode().getContentPanel(this);
-		FocusManager.listen(newPanel);
-		addContentPanel(newPanel);
+		if (newPanel != null) {
+			FocusManager.listen(newPanel);
+			addContentPanel(newPanel);
+		}
 	}
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
 		ContentPanel contentPanel = getContentPanel(blueprint.getNode());
-		setSelectedComponent(contentPanel);
-		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
-			mainWindow.syncWithEditor();
+		if (contentPanel != null) {
+			setSelectedComponent(contentPanel);
 		}
 	}
 
 	@Override
 	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
-		codeJump(position);
+		showCode(position);
 	}
 
 	@Override
@@ -492,21 +493,18 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabsRestoreDone() {
-	}
-
-	@Override
 	public void onTabsReorder(List<TabBlueprint> blueprints) {
 		List<TabBlueprint> newBlueprints = new ArrayList<>(blueprints.size());
 		for (ContentPanel contentPanel : getTabs()) {
 			TabBlueprint blueprint = controller.getTabByNode(contentPanel.getNode());
 			if (blueprint != null) {
-				blueprints.remove(blueprint);
 				newBlueprints.add(blueprint);
 			}
 		}
 		// Add back hidden tabs
-		newBlueprints.addAll(blueprints);
+		Set<TabBlueprint> set = new LinkedHashSet<>(blueprints);
+		newBlueprints.forEach(set::remove);
+		newBlueprints.addAll(set);
 
 		blueprints.clear();
 		blueprints.addAll(newBlueprints);

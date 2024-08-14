@@ -6,29 +6,44 @@ import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.JumpPosition;
 
 public interface ITabStatesListener {
-	void onTabOpen(TabBlueprint blueprint);
 
-	void onTabSelect(TabBlueprint blueprint);
+	default void onTabOpen(TabBlueprint blueprint) {
+	}
 
-	void onTabCodeJump(TabBlueprint blueprint, JumpPosition position);
+	default void onTabSelect(TabBlueprint blueprint) {
+	}
 
-	void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode);
+	default void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+	}
 
-	void onTabClose(TabBlueprint blueprint);
+	default void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
+	}
 
-	void onTabPositionFirst(TabBlueprint blueprint);
+	default void onTabClose(TabBlueprint blueprint) {
+	}
 
-	void onTabPinChange(TabBlueprint blueprint);
+	default void onTabPositionFirst(TabBlueprint blueprint) {
+	}
 
-	void onTabBookmarkChange(TabBlueprint blueprint);
+	default void onTabPinChange(TabBlueprint blueprint) {
+	}
 
-	void onTabVisibilityChange(TabBlueprint blueprint);
+	default void onTabBookmarkChange(TabBlueprint blueprint) {
+	}
 
-	void onTabRestore(TabBlueprint blueprint, EditorViewState viewState);
+	default void onTabVisibilityChange(TabBlueprint blueprint) {
+	}
 
-	void onTabsRestoreDone();
+	default void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
+	}
 
-	void onTabsReorder(List<TabBlueprint> blueprints);
+	default void onTabsRestoreDone() {
+	}
 
-	void onTabSave(TabBlueprint blueprint, EditorViewState viewState);
+	default void onTabsReorder(List<TabBlueprint> blueprints) {
+	}
+
+	default void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
+	}
+
 }

@@ -40,8 +40,7 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return null;
 	}
 
-	@Nullable
-	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
+	public @Nullable ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return null;
 	}
 

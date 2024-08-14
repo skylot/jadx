@@ -8,7 +8,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
@@ -22,13 +23,15 @@ import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 
 public class TabsController {
-	private final transient MainWindow mainWindow;
+	private static final Logger LOG = LoggerFactory.getLogger(TabsController.class);
+
+	private final MainWindow mainWindow;
 	private final Map<JNode, TabBlueprint> tabsMap = new HashMap<>();
 	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
 
-	private TabBlueprint selectedTab = null;
+	private @Nullable TabBlueprint selectedTab;
 
 	public TabsController(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -66,7 +69,6 @@ public class TabsController {
 			}
 			blueprint = newBlueprint;
 		}
-
 		setTabHiddenInternal(blueprint, hidden);
 		return blueprint;
 	}
@@ -74,7 +76,6 @@ public class TabsController {
 	public void selectTab(JNode node) {
 		TabBlueprint blueprint = openTab(node);
 		selectedTab = blueprint;
-
 		listeners.forEach(l -> l.onTabSelect(blueprint));
 	}
 
@@ -126,7 +127,7 @@ public class TabsController {
 	 */
 	public void codeJump(JumpPosition pos) {
 		if (selectedTab == null) {
-			Log.warn("Cannot codeJump because selectedTab is null");
+			LOG.warn("Cannot codeJump because selectedTab is null");
 			return;
 		}
 		listeners.forEach(l -> l.onTabCodeJump(selectedTab, pos));
@@ -287,6 +288,11 @@ public class TabsController {
 	}
 
 	public void notifyRestoreEditorViewStateDone() {
+		if (selectedTab == null && !tabsMap.isEmpty()) {
+			JNode node = tabsMap.values().iterator().next().getNode();
+			LOG.warn("No active tab found, select {}", node); // TODO: find the reason of this issue
+			selectTab(node);
+		}
 		listeners.forEach(ITabStatesListener::onTabsRestoreDone);
 	}
 

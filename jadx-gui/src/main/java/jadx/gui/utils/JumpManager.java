@@ -43,8 +43,7 @@ public class JumpManager {
 		return pos.equals(current);
 	}
 
-	@Nullable
-	private JumpPosition getCurrent() {
+	public @Nullable JumpPosition getCurrent() {
 		if (currentPos >= 0 && currentPos < list.size()) {
 			return list.get(currentPos);
 		}
