@@ -15,6 +15,7 @@ import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.utils.ClassUtils;
+import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -25,12 +26,14 @@ import jadx.core.utils.exceptions.JadxException;
 public class FixAccessModifiers extends AbstractVisitor {
 
 	private ClassUtils classUtils;
+	private MethodUtils methodUtils;
 
 	private boolean respectAccessModifiers;
 
 	@Override
 	public void init(RootNode root) {
 		this.classUtils = root.getClassUtils();
+		this.methodUtils = root.getMethodUtils();
 		this.respectAccessModifiers = root.getArgs().isRespectBytecodeAccModifiers();
 	}
 
@@ -103,11 +106,12 @@ public class FixAccessModifiers extends AbstractVisitor {
 		return -1;
 	}
 
-	private static int fixMethodVisibility(MethodNode mth) {
+	private int fixMethodVisibility(MethodNode mth) {
 		AccessInfo accessFlags = mth.getAccessFlags();
 		if (accessFlags.isPublic()) {
 			return -1;
 		}
+
 		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
 		if (overrideAttr != null && !overrideAttr.getOverrideList().isEmpty()) {
 			// visibility can't be weaker
@@ -117,17 +121,13 @@ public class FixAccessModifiers extends AbstractVisitor {
 				return parentAccInfo.getVisibility().rawValue();
 			}
 		}
-		if (mth.getUseIn().isEmpty()) {
-			return -1;
-		}
 
-		ClassNode thisTopParentCls = mth.getParentClass().getTopParentClass();
 		for (MethodNode useMth : mth.getUseIn()) {
-			ClassNode useInTPCls = useMth.getParentClass().getTopParentClass();
-			if (!useInTPCls.equals(thisTopParentCls)) {
+			if (!methodUtils.isAccessible(mth, useMth)) {
 				return AccessFlags.PUBLIC;
 			}
 		}
+
 		return -1;
 	}
 }
