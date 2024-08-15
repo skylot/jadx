@@ -1,0 +1,59 @@
+import datetime
+
+class JazzCashApp:
+    def __init__(self, phone_number, pin):
+        self.phone_number = phone_number
+        self.pin = pin
+        self.balance = 0
+        self.transaction_history = []
+
+    def check_balance(self):
+        return f"Your current balance is Rs. {self.balance}"
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.balance += amount
+            self._add_transaction("Deposit", amount)
+            return f"Successfully deposited Rs. {amount}"
+        return "Invalid deposit amount"
+
+    def withdraw(self, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            self._add_transaction("Withdrawal", -amount)
+            return f"Successfully withdrew Rs. {amount}"
+        return "Insufficient funds or invalid withdrawal amount"
+
+    def send_money(self, recipient, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            self._add_transaction(f"Sent to {recipient}", -amount)
+            return f"Successfully sent Rs. {amount} to {recipient}"
+        return "Insufficient funds or invalid amount"
+
+    def pay_bill(self, biller, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            self._add_transaction(f"Bill payment to {biller}", -amount)
+            return f"Successfully paid Rs. {amount} to {biller}"
+        return "Insufficient funds or invalid amount"
+
+    def _add_transaction(self, transaction_type, amount):
+        transaction = {
+            "type": transaction_type,
+            "amount": amount,
+            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.transaction_history.append(transaction)
+
+    def get_transaction_history(self):
+        return self.transaction_history
+
+# Example usage:
+app = JazzCashApp("03001234567", "1234")
+print(app.deposit(1000))
+print(app.check_balance())
+print(app.send_money("03009876543", 500))
+print(app.pay_bill("Electricity Company", 200))
+print(app.check_balance())
+print(app.get_transaction_history())
