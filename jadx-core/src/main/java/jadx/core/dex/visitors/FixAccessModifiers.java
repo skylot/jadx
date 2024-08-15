@@ -1,5 +1,8 @@
 package jadx.core.dex.visitors;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -11,6 +14,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.utils.ClassUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -20,10 +24,13 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class FixAccessModifiers extends AbstractVisitor {
 
+	private ClassUtils classUtils;
+
 	private boolean respectAccessModifiers;
 
 	@Override
 	public void init(RootNode root) {
+		this.classUtils = root.getClassUtils();
 		this.respectAccessModifiers = root.getArgs().isRespectBytecodeAccModifiers();
 	}
 
@@ -60,43 +67,39 @@ public class FixAccessModifiers extends AbstractVisitor {
 	}
 
 	private int fixClassVisibility(ClassNode cls) {
-		if (cls.getUseIn().isEmpty()) {
+		AccessInfo accessFlags = cls.getAccessFlags();
+		if (accessFlags.isPublic()) {
 			return -1;
 		}
-		AccessInfo accessFlags = cls.getAccessFlags();
-		if (accessFlags.isPrivate()) {
-			if (!cls.isInner()) {
+
+		if (cls.isTopClass() && (accessFlags.isPrivate() || accessFlags.isProtected())) {
+			return AccessFlags.PUBLIC;
+		}
+
+		for (ClassNode useCls : cls.getUseIn()) {
+			if (!classUtils.isAccessible(cls, useCls)) {
 				return AccessFlags.PUBLIC;
 			}
-			// check if private inner class is used outside
-			ClassNode topParentClass = cls.getTopParentClass();
-			for (ClassNode useCls : cls.getUseIn()) {
-				if (useCls.getTopParentClass() != topParentClass) {
-					return AccessFlags.PUBLIC;
-				}
-			}
 		}
-		if (accessFlags.isPackagePrivate()) {
-			String pkg = cls.getPackage();
-			for (ClassNode useCls : cls.getUseIn()) {
-				if (!useCls.getPackage().equals(pkg)) {
-					return AccessFlags.PUBLIC;
-				}
-			}
-		}
-		if (!accessFlags.isPublic()) {
-			// if class is used in inlinable method => make it public
-			for (MethodNode useMth : cls.getUseInMth()) {
-				MethodInlineAttr inlineAttr = useMth.get(AType.METHOD_INLINE);
-				boolean isInline = inlineAttr != null && !inlineAttr.notNeeded();
-				boolean isCandidateForInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE);
 
-				boolean mostLikelyInline = isInline || isCandidateForInline;
-				if (mostLikelyInline && !useMth.getUseIn().isEmpty()) {
-					return AccessFlags.PUBLIC;
+		for (MethodNode useMth : cls.getUseInMth()) {
+			MethodInlineAttr inlineAttr = useMth.get(AType.METHOD_INLINE);
+			boolean isInline = inlineAttr != null && !inlineAttr.notNeeded();
+			boolean isCandidateForInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE);
+
+			if (isInline || isCandidateForInline) {
+				Set<ClassNode> usedInClss = useMth.getUseIn().stream()
+						.map(MethodNode::getParentClass)
+						.collect(Collectors.toSet());
+
+				for (ClassNode useCls : usedInClss) {
+					if (!classUtils.isAccessible(cls, useCls)) {
+						return AccessFlags.PUBLIC;
+					}
 				}
 			}
 		}
+
 		return -1;
 	}
 

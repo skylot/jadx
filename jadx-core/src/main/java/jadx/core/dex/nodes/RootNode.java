@@ -40,6 +40,7 @@ import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.utils.ClassUtils;
 import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.DepthTraversal;
@@ -71,6 +72,7 @@ public class RootNode {
 	private final InfoStorage infoStorage = new InfoStorage();
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
+	private final ClassUtils classUtils;
 	private final MethodUtils methodUtils;
 	private final TypeUtils typeUtils;
 	private final AttributeStorage attributes = new AttributeStorage();
@@ -104,6 +106,7 @@ public class RootNode {
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
+		this.classUtils = new ClassUtils(this);
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
 	}
@@ -702,6 +705,10 @@ public class RootNode {
 
 	public ICodeCache getCodeCache() {
 		return args.getCodeCache();
+	}
+
+	public ClassUtils getClassUtils() {
+		return classUtils;
 	}
 
 	public MethodUtils getMethodUtils() {
