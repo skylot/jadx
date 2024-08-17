@@ -65,7 +65,6 @@ public class BlockSplitter extends AbstractVisitor {
 		Map<Integer, BlockNode> blocksMap = splitBasicBlocks(mth);
 		setupConnectionsFromJumps(mth, blocksMap);
 		initBlocksInTargetNodes(mth);
-		addTempConnectionsForExcHandlers(mth, blocksMap);
 
 		expandMoveMulti(mth);
 		if (mth.contains(AFlag.RESOLVE_JAVA_JSR)) {
@@ -76,6 +75,8 @@ public class BlockSplitter extends AbstractVisitor {
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
 		mth.getBasicBlocks().removeIf(BlockSplitter::removeEmptyBlock);
+
+		addTempConnectionsForExcHandlers(mth, blocksMap);
 		setupExitConnections(mth);
 
 		mth.unloadInsnArr();
@@ -257,10 +258,13 @@ public class BlockSplitter extends AbstractVisitor {
 
 	/**
 	 * Connect exception handlers to the throw block.
-	 * This temporary connection needed to build close to final dominators tree.
+	 * This temporary connection is necessary to build close to a final dominator tree.
 	 * Will be used and removed in {@code jadx.core.dex.visitors.blocks.BlockExceptionHandler}
 	 */
 	private static void addTempConnectionsForExcHandlers(MethodNode mth, Map<Integer, BlockNode> blocksMap) {
+		if (mth.isNoExceptionHandlers()) {
+			return;
+		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
 				CatchAttr catchAttr = insn.get(AType.EXC_CATCH);

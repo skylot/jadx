@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
+import jadx.core.dex.attributes.nodes.TmpEdgeAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
@@ -61,14 +63,14 @@ public class DebugChecks {
 		}
 		for (BlockNode block : basicBlocks) {
 			for (InsnNode insn : block.getInstructions()) {
-				checkInsn(mth, insn);
+				checkInsn(mth, block, insn);
 			}
 		}
 		checkSSAVars(mth);
 		// checkPHI(mth);
 	}
 
-	private static void checkInsn(MethodNode mth, InsnNode insn) {
+	private static void checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getResult() != null) {
 			checkVar(mth, insn, insn.getResult());
 		}
@@ -77,24 +79,45 @@ public class DebugChecks {
 				checkVar(mth, insn, (RegisterArg) arg);
 			} else if (arg.isInsnWrap()) {
 				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-				checkInsn(mth, wrapInsn);
+				checkInsn(mth, block, wrapInsn);
 			}
 		}
-		if (insn instanceof TernaryInsn) {
-			TernaryInsn ternaryInsn = (TernaryInsn) insn;
-			for (RegisterArg arg : ternaryInsn.getCondition().getRegisterArgs()) {
-				checkVar(mth, insn, arg);
-			}
-		} else if (insn instanceof IfNode) {
-			IfNode ifNode = (IfNode) insn;
-			checkBlock(mth, ifNode.getThenBlock());
-			checkBlock(mth, ifNode.getElseBlock());
+		switch (insn.getType()) {
+			case TERNARY:
+				TernaryInsn ternaryInsn = (TernaryInsn) insn;
+				for (RegisterArg arg : ternaryInsn.getCondition().getRegisterArgs()) {
+					checkVar(mth, insn, arg);
+				}
+				break;
+
+			case IF:
+				IfNode ifNode = (IfNode) insn;
+				if (!ifNode.getThenBlock().equals(ifNode.getElseBlock())) {
+					// exclude temp edges
+					int branches = (int) block.getSuccessors().stream().filter(b -> !hasTmpEdge(block, b)).count();
+					if (branches != 2) {
+						DebugUtils.dumpRaw(mth, "error");
+						throw new JadxRuntimeException(
+								"Incorrect if block successors count: " + branches + " (expect 2), block: " + block);
+					}
+				}
+				checkBlock(mth, ifNode.getThenBlock(), () -> "then block in if insn: " + ifNode);
+				checkBlock(mth, ifNode.getElseBlock(), () -> "else block in if insn: " + ifNode);
+				break;
 		}
 	}
 
-	private static void checkBlock(MethodNode mth, BlockNode block) {
+	private static boolean hasTmpEdge(BlockNode start, BlockNode end) {
+		TmpEdgeAttr tmpEdgeAttr = end.get(AType.TMP_EDGE);
+		if (tmpEdgeAttr == null) {
+			return false;
+		}
+		return tmpEdgeAttr.getBlock().equals(start);
+	}
+
+	private static void checkBlock(MethodNode mth, BlockNode block, Supplier<String> source) {
 		if (!mth.getBasicBlocks().contains(block)) {
-			throw new JadxRuntimeException("Block not registered in method: " + block);
+			throw new JadxRuntimeException("Block not registered in method: " + block + " from " + source.get());
 		}
 	}
 
