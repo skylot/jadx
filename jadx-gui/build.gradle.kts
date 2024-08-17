@@ -25,8 +25,8 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.3.1")
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.3.1")
 
-	implementation("org.jcommander:jcommander:1.83")
-	implementation("ch.qos.logback:logback-classic:1.5.6")
+	implementation("org.jcommander:jcommander:1.84")
+	implementation("ch.qos.logback:logback-classic:1.5.7")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))
@@ -43,7 +43,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.5.1")
+	implementation("com.android.tools.build:apksig:8.5.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)

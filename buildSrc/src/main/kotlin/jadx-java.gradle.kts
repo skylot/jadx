@@ -16,11 +16,11 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.16")
 	compileOnly("org.jetbrains:annotations:24.1.0")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.6")
+	testImplementation("ch.qos.logback:logback-classic:1.5.7")
 	testImplementation("org.assertj:assertj-core:3.26.3")
 	testImplementation("org.mockito:mockito-core:5.12.0")
 
-	testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testCompileOnly("org.jetbrains:annotations:24.1.0")
