@@ -86,6 +86,11 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode, IField
 		return type;
 	}
 
+	@Override
+	public ClassNode getDeclaringClass() {
+		return parentClass;
+	}
+
 	public ClassNode getParentClass() {
 		return parentClass;
 	}

@@ -24,11 +24,9 @@ import jadx.core.utils.Utils;
 
 public class MethodUtils {
 	private final RootNode root;
-	private final AccessCheckUtils accessCheckUtils;
 
 	public MethodUtils(RootNode rootNode) {
 		this.root = rootNode;
-		this.accessCheckUtils = new AccessCheckUtils(root);
 	}
 
 	@Nullable
@@ -172,9 +170,5 @@ public class MethodUtils {
 			return getMethodOriginDeclClass(bridgeAttr.getBridgeMth());
 		}
 		return mth.getMethodInfo().getDeclClass();
-	}
-
-	public boolean isAccessible(MethodNode mth, MethodNode callerMth) {
-		return accessCheckUtils.isAccessible(mth, callerMth);
 	}
 }

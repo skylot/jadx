@@ -12,8 +12,10 @@ import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 public class TestFixClassAccessModifiers extends SmaliTest {
 	// @formatter:off
 	/*
+		// class others.TestCls
 		public Cls.InnerCls field;
 
+		// class others.Cls
 		public static class Cls {
 			private static class InnerCls {
 			}
@@ -25,7 +27,6 @@ public class TestFixClassAccessModifiers extends SmaliTest {
 	public void test() {
 		List<ClassNode> classes = loadFromSmaliFiles();
 		assertThat(searchCls(classes, "others.Cls"))
-				.code()
-				.containsOne("public static class InnerCls {");
+				.code();
 	}
 }

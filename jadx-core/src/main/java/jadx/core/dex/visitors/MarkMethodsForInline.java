@@ -19,6 +19,7 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.fixaccessmodifiers.FixAccessModifiers;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxException;
