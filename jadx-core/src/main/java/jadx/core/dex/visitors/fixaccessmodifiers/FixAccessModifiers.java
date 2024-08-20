@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors;
+package jadx.core.dex.visitors.fixaccessmodifiers;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,8 +14,9 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.nodes.utils.ClassUtils;
-import jadx.core.dex.nodes.utils.MethodUtils;
+import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.JadxVisitor;
+import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -25,15 +26,13 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class FixAccessModifiers extends AbstractVisitor {
 
-	private ClassUtils classUtils;
-	private MethodUtils methodUtils;
+	private VisibilityUtils visibilityUtils;
 
 	private boolean respectAccessModifiers;
 
 	@Override
 	public void init(RootNode root) {
-		this.classUtils = root.getClassUtils();
-		this.methodUtils = root.getMethodUtils();
+		this.visibilityUtils = new VisibilityUtils(root);
 		this.respectAccessModifiers = root.getArgs().isRespectBytecodeAccModifiers();
 	}
 
@@ -42,10 +41,8 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (respectAccessModifiers) {
 			return true;
 		}
-		int newVisFlag = fixClassVisibility(cls);
-		if (newVisFlag != -1) {
-			changeVisibility(cls, newVisFlag);
-		}
+
+		fixClassVisibility(cls);
 		return true;
 	}
 
@@ -54,35 +51,25 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (respectAccessModifiers || mth.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		int newVisFlag = fixMethodVisibility(mth);
-		if (newVisFlag != -1) {
-			changeVisibility(mth, newVisFlag);
-		}
+
+		fixMethodVisibility(mth);
 	}
 
-	public static void changeVisibility(NotificationAttrNode node, int newVisFlag) {
-		AccessInfo accessFlags = node.getAccessFlags();
-		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
-		if (newAccFlags != accessFlags) {
-			node.setAccessFlags(newAccFlags);
-			node.addInfoComment("Access modifiers changed from: " + accessFlags.visibilityName());
-		}
-	}
-
-	private int fixClassVisibility(ClassNode cls) {
+	private void fixClassVisibility(ClassNode cls) {
 		AccessInfo accessFlags = cls.getAccessFlags();
-		if (accessFlags.isPublic()) {
-			return -1;
+		if (cls.isTopClass() && accessFlags.isPublic()) {
+			return;
 		}
 
 		if (cls.isTopClass() && (accessFlags.isPrivate() || accessFlags.isProtected())) {
-			return AccessFlags.PUBLIC;
+			changeVisibility(cls, AccessFlags.PUBLIC);
+			return;
 		}
 
 		for (ClassNode useCls : cls.getUseIn()) {
-			if (!classUtils.isAccessible(cls, useCls)) {
-				return AccessFlags.PUBLIC;
-			}
+			visibilityUtils.checkVisibility(cls, useCls, (node, visFlag) -> {
+				changeVisibility((NotificationAttrNode) node, visFlag);
+			});
 		}
 
 		for (MethodNode useMth : cls.getUseInMth()) {
@@ -96,38 +83,39 @@ public class FixAccessModifiers extends AbstractVisitor {
 						.collect(Collectors.toSet());
 
 				for (ClassNode useCls : usedInClss) {
-					if (!classUtils.isAccessible(cls, useCls)) {
-						return AccessFlags.PUBLIC;
-					}
+					visibilityUtils.checkVisibility(cls, useCls, (node, visFlag) -> {
+						changeVisibility((NotificationAttrNode) node, visFlag);
+					});
 				}
 			}
 		}
-
-		return -1;
 	}
 
-	private int fixMethodVisibility(MethodNode mth) {
+	private void fixMethodVisibility(MethodNode mth) {
 		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isPublic()) {
-			return -1;
-		}
-
 		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
 		if (overrideAttr != null && !overrideAttr.getOverrideList().isEmpty()) {
 			// visibility can't be weaker
 			IMethodDetails parentMD = overrideAttr.getOverrideList().get(0);
 			AccessInfo parentAccInfo = new AccessInfo(parentMD.getRawAccessFlags(), AccessInfo.AFType.METHOD);
 			if (accessFlags.isVisibilityWeakerThan(parentAccInfo)) {
-				return parentAccInfo.getVisibility().rawValue();
+				changeVisibility(mth, parentAccInfo.getVisibility().rawValue());
 			}
 		}
 
 		for (MethodNode useMth : mth.getUseIn()) {
-			if (!methodUtils.isAccessible(mth, useMth)) {
-				return AccessFlags.PUBLIC;
-			}
+			visibilityUtils.checkVisibility(mth, useMth, (node, visFlag) -> {
+				changeVisibility((NotificationAttrNode) node, visFlag);
+			});
 		}
+	}
 
-		return -1;
+	public static void changeVisibility(NotificationAttrNode node, int newVisFlag) {
+		AccessInfo accessFlags = node.getAccessFlags();
+		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
+		if (newAccFlags != accessFlags) {
+			node.setAccessFlags(newAccFlags);
+			node.addInfoComment("Access modifiers changed from: " + accessFlags.visibilityName());
+		}
 	}
 }

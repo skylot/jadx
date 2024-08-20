@@ -324,6 +324,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return mthInfo.getAlias();
 	}
 
+	@Override
+	public ClassNode getDeclaringClass() {
+		return parentClass;
+	}
+
 	public ClassNode getParentClass() {
 		return parentClass;
 	}

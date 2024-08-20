@@ -585,6 +585,11 @@ public class ClassNode extends NotificationAttrNode
 		return null;
 	}
 
+	@Override
+	public ClassNode getDeclaringClass() {
+		return isInner() ? parentClass : null;
+	}
+
 	public ClassNode getParentClass() {
 		return parentClass;
 	}

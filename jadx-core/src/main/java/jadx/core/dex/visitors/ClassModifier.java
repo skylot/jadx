@@ -32,6 +32,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.fixaccessmodifiers.FixAccessModifiers;
 import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
