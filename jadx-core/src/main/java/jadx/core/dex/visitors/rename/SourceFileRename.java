@@ -15,7 +15,6 @@ import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.utils.BetterName;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -61,14 +60,6 @@ public class SourceFileRename extends AbstractVisitor {
 	}
 
 	private static void applyRename(ClassNode cls, String alias) {
-		if (cls.getClassInfo().hasAlias()) {
-			// ignore source name if current alias is "better"
-			String currentAlias = cls.getAlias();
-			String betterName = BetterName.compareAndGet(alias, currentAlias);
-			if (betterName.equals(currentAlias)) {
-				return;
-			}
-		}
 		cls.getClassInfo().changeShortName(alias);
 		cls.addAttr(new RenameReasonAttr(cls).append("use source file name"));
 	}

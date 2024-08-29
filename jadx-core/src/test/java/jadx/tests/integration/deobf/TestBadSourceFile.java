@@ -34,7 +34,8 @@ public class TestBadSourceFile extends SmaliTest {
 		args.setDeobfuscationMinLength(100); // rename everything
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
-				.containsOne("class C0000b {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("class a {")
+				.containsOne("/* compiled from: a.java */")
+				.containsOne("/* renamed from: b, reason: use source file name */");
 	}
 }
