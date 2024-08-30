@@ -298,19 +298,30 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 	}
 
-	public JavaClass getJavaClassIfAtPos(int pos) {
+	public @Nullable JavaClass getJavaClassIfAtPos(int pos) {
 		try {
 			ICodeInfo codeInfo = getCodeInfo();
-			if (codeInfo.hasMetadata()) {
-				ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
-				if (ann != null && ann.getAnnType() == ICodeAnnotation.AnnType.CLASS) {
+			if (!codeInfo.hasMetadata()) {
+				return null;
+			}
+			ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
+			if (ann == null) {
+				return null;
+			}
+			switch (ann.getAnnType()) {
+				case CLASS:
 					return (JavaClass) getJadxWrapper().getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
-				}
+				case METHOD:
+					// use class from constructor call
+					JavaNode node = getJadxWrapper().getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
+					return node != null ? node.getDeclaringClass() : null;
+				default:
+					return null;
 			}
 		} catch (Exception e) {
 			LOG.error("Can't get java node by offset: {}", pos, e);
+			return null;
 		}
-		return null;
 	}
 
 	public void refreshClass() {
