@@ -179,7 +179,7 @@ public class GuiPluginContext implements JadxGuiContext {
 			return false;
 		}
 
-		commonContext.getMainWindow().getTabbedPane().codeJump(node);
+		commonContext.getMainWindow().getTabsController().codeJump(node);
 		return true;
 	}
 

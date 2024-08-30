@@ -8,10 +8,10 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -20,10 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.JavaClass;
-import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -38,9 +34,7 @@ import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.ui.tab.dnd.TabDndController;
-import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class TabbedPane extends JTabbedPane implements ITabStatesListener {
@@ -51,8 +45,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	private final transient MainWindow mainWindow;
 	private final transient TabsController controller;
 	private final transient Map<JNode, ContentPanel> tabsMap = new HashMap<>();
-
-	private final transient JumpManager jumps = new JumpManager();
 
 	private transient ContentPanel curTab;
 	private transient ContentPanel lastTab;
@@ -212,63 +204,8 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		return mainWindow;
 	}
 
-	/**
-	 * Jump to node definition
-	 */
-	public void codeJump(JNode node) {
-		JClass parentCls = node.getJParent();
-		if (parentCls != null) {
-			JavaClass cls = node.getJParent().getCls();
-			JavaClass origTopCls = cls.getOriginalTopParentClass();
-			JavaClass codeParent = cls.getTopParentClass();
-			if (!Objects.equals(codeParent, origTopCls)) {
-				JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
-				mainWindow.getBackgroundExecutor().execute(
-						NLS.str("progress.load"),
-						jumpCls::loadNode, // load code in background
-						status -> {
-							// search original node in jump class
-							codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
-								if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
-									ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
-									if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
-										codeJump(new JumpPosition(jumpCls, pos));
-										return true;
-									}
-								}
-								return null;
-							});
-						});
-				return;
-			}
-		}
-
-		// Not an inline node, jump normally
-		if (node.getPos() != 0 || node.getRootClass() == null) {
-			codeJump(new JumpPosition(node));
-			return;
-		}
-		// node need loading
-		mainWindow.getBackgroundExecutor().execute(
-				NLS.str("progress.load"),
-				() -> node.getRootClass().getCodeInfo(), // run heavy loading in background
-				status -> codeJump(new JumpPosition(node)));
-	}
-
-	/**
-	 * Prefer {@link TabbedPane#codeJump(JNode)} method
-	 */
-	public void codeJump(JumpPosition pos) {
-		saveJump(pos);
-		showCode(pos);
-	}
-
-	private void saveJump(JumpPosition pos) {
-		JumpPosition curPos = getCurrentPosition();
-		if (curPos != null) {
-			jumps.addPosition(curPos);
-			jumps.addPosition(pos);
-		}
+	public TabsController getTabsController() {
+		return controller;
 	}
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
@@ -278,15 +215,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			selectTab(contentPanel);
 		}
 		return contentPanel;
-	}
-
-	public boolean showNode(JNode node) {
-		final ContentPanel contentPanel = getContentPanel(node);
-		if (contentPanel == null) {
-			return false;
-		}
-		selectTab(contentPanel);
-		return true;
 	}
 
 	private void scrollToPos(ContentPanel contentPanel, int pos) {
@@ -305,7 +233,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		controller.selectTab(contentPanel.getNode());
 	}
 
-	public void smaliJump(JClass cls, int pos, boolean debugMode) {
+	private void smaliJump(JClass cls, int pos, boolean debugMode) {
 		ContentPanel panel = getTabByNode(cls);
 		if (panel == null) {
 			panel = showCode(new JumpPosition(cls, 1));
@@ -325,33 +253,12 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		smaliArea.requestFocus();
 	}
 
-	@Nullable
-	public JumpPosition getCurrentPosition() {
+	public @Nullable JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedContentPanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
-	}
-
-	public void navBack() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(getCurrentPosition());
-		}
-		JumpPosition pos = jumps.getPrev();
-		if (pos != null) {
-			showCode(pos);
-		}
-	}
-
-	public void navForward() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(getCurrentPosition());
-		}
-		JumpPosition pos = jumps.getNext();
-		if (pos != null) {
-			showCode(pos);
-		}
 	}
 
 	private void addContentPanel(ContentPanel contentPanel) {
@@ -382,7 +289,15 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	public @Nullable TabComponent getTabComponentByNode(JNode node) {
-		Component component = getTabComponentAt(indexOfComponent(getTabByNode(node)));
+		ContentPanel contentPanel = getTabByNode(node);
+		if (contentPanel == null) {
+			return null;
+		}
+		int index = indexOfComponent(contentPanel);
+		if (index == -1) {
+			return null;
+		}
+		Component component = getTabComponentAt(index);
 		if (!(component instanceof TabComponent)) {
 			return null;
 		}
@@ -460,7 +375,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	public void reset() {
 		closeAllTabs();
 		tabsMap.clear();
-		jumps.reset();
 		curTab = null;
 		lastTab = null;
 		FocusManager.reset();
@@ -485,16 +399,30 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			return;
 		}
 		ContentPanel newPanel = blueprint.getNode().getContentPanel(this);
-		FocusManager.listen(newPanel);
-		addContentPanel(newPanel);
+		if (newPanel != null) {
+			FocusManager.listen(newPanel);
+			addContentPanel(newPanel);
+		}
 	}
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
 		ContentPanel contentPanel = getContentPanel(blueprint.getNode());
-		setSelectedComponent(contentPanel);
-		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
-			mainWindow.syncWithEditor();
+		if (contentPanel != null) {
+			setSelectedComponent(contentPanel);
+		}
+	}
+
+	@Override
+	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+		showCode(position);
+	}
+
+	@Override
+	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
+		JNode node = blueprint.getNode();
+		if (node instanceof JClass) {
+			smaliJump((JClass) node, pos, debugMode);
 		}
 	}
 
@@ -565,24 +493,18 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabsRestoreDone() {
-	}
-
-	@Override
 	public void onTabsReorder(List<TabBlueprint> blueprints) {
-		List<TabBlueprint> newBlueprints = new ArrayList<>();
+		List<TabBlueprint> newBlueprints = new ArrayList<>(blueprints.size());
 		for (ContentPanel contentPanel : getTabs()) {
-			Optional<TabBlueprint> blueprintFindResult = blueprints.stream()
-					.filter(b -> b.getNode() == contentPanel.getNode())
-					.findFirst();
-			if (blueprintFindResult.isPresent()) {
-				TabBlueprint blueprint = blueprintFindResult.get();
-				blueprints.remove(blueprint);
+			TabBlueprint blueprint = controller.getTabByNode(contentPanel.getNode());
+			if (blueprint != null) {
 				newBlueprints.add(blueprint);
 			}
 		}
 		// Add back hidden tabs
-		newBlueprints.addAll(blueprints);
+		Set<TabBlueprint> set = new LinkedHashSet<>(blueprints);
+		newBlueprints.forEach(set::remove);
+		newBlueprints.addAll(set);
 
 		blueprints.clear();
 		blueprints.addAll(newBlueprints);

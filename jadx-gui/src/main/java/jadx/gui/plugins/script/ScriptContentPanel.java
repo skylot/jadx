@@ -232,7 +232,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 	}
 
 	private void showScriptLog() {
-		getTabbedPane().getMainWindow().showLogViewer(LogOptions.forScript(getNode().getName()));
+		getMainWindow().showLogViewer(LogOptions.forScript(getNode().getName()));
 	}
 
 	@Override

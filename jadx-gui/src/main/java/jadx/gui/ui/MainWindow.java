@@ -139,6 +139,8 @@ import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
+import jadx.gui.ui.tab.EditorSyncManager;
+import jadx.gui.ui.tab.NavigationController;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
@@ -195,6 +197,10 @@ public class MainWindow extends JFrame {
 	private final transient CacheManager cacheManager;
 	private final transient BackgroundExecutor backgroundExecutor;
 
+	private final TabsController tabsController;
+	private final NavigationController navController;
+	private final EditorSyncManager editorSyncManager;
+
 	private transient @NotNull JadxProject project;
 
 	private transient JadxGuiAction newProjectAction;
@@ -209,7 +215,6 @@ public class MainWindow extends JFrame {
 	private JTree tree;
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
-	private TabsController tabsController;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
 	private transient boolean treeReloading;
@@ -238,7 +243,7 @@ public class MainWindow extends JFrame {
 	private boolean loaded;
 	private boolean settingsOpen = false;
 
-	private ShortcutsController shortcutsController;
+	private final ShortcutsController shortcutsController;
 	private JadxMenuBar menuBar;
 	private JMenu pluginsMenu;
 
@@ -253,16 +258,19 @@ public class MainWindow extends JFrame {
 		this.renameMappings = new RenameMappingsGui(this);
 		this.cacheManager = new CacheManager(settings);
 		this.shortcutsController = new ShortcutsController(settings);
+		this.tabsController = new TabsController(this);
+		this.navController = new NavigationController(this);
 
 		JadxEventQueue.register();
 		resetCache();
 		FontUtils.registerBundledFonts();
 		setEditorTheme(settings.getEditorThemePath());
 		initUI();
+		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		initMenuAndToolbar();
 		UiUtils.setWindowIcons(this);
-		shortcutsController.registerMouseEventListener(this);
+		this.shortcutsController.registerMouseEventListener(this);
 		loadSettings();
 
 		update();
@@ -288,7 +296,7 @@ public class MainWindow extends JFrame {
 
 	private void processCommandLineArgs() {
 		if (settings.getFiles().isEmpty()) {
-			tabbedPane.showNode(new StartPageNode());
+			tabsController.selectTab(new StartPageNode());
 		} else {
 			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
@@ -306,7 +314,7 @@ public class MainWindow extends JFrame {
 						NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			tabbedPane.codeJump(cacheObject.getNodeCache().makeFrom(javaNode));
+			tabsController.codeJump(cacheObject.getNodeCache().makeFrom(javaNode));
 		}
 	}
 
@@ -517,7 +525,7 @@ public class MainWindow extends JFrame {
 
 	private void loadFiles(Runnable onFinish) {
 		if (project.getFilePaths().isEmpty()) {
-			tabbedPane.showNode(new StartPageNode());
+			tabsController.selectTab(new StartPageNode());
 			return;
 		}
 		AtomicReference<Exception> wrapperException = new AtomicReference<>();
@@ -562,6 +570,8 @@ public class MainWindow extends JFrame {
 	private void closeAll() {
 		notifyLoadListeners(false);
 		cancelBackgroundJobs();
+		navController.reset();
+		tabbedPane.reset();
 		clearTree();
 		resetCache();
 		LogCollector.getInstance().reset();
@@ -783,7 +793,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void clearTree() {
-		tabbedPane.reset();
 		treeRoot = null;
 		treeModel.setRoot(null);
 		treeModel.reload();
@@ -864,15 +873,17 @@ public class MainWindow extends JFrame {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
-					return tabbedPane.showNode(res);
+					tabsController.selectTab(res);
+					return true;
 				}
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				if (node.getRootClass() != null) {
-					tabbedPane.codeJump(node);
+					tabsController.codeJump(node);
 					return true;
 				}
-				return tabbedPane.showNode(node);
+				tabsController.selectTab(node);
+				return true;
 			}
 		} catch (Exception e) {
 			LOG.error("Content loading error", e);
@@ -901,12 +912,8 @@ public class MainWindow extends JFrame {
 		return null;
 	}
 
-	public void syncWithEditor() {
-		ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
-		if (selectedContentPanel == null) {
-			return;
-		}
-		JNode node = selectedContentPanel.getNode();
+	// TODO: extract tree component into new class
+	public void selectNodeInTree(JNode node) {
 		if (node.getParent() == null && treeRoot != null) {
 			// node not register in tree
 			node = treeRoot.searchNode(node);
@@ -962,7 +969,7 @@ public class MainWindow extends JFrame {
 			if (mainActivityClass == null) {
 				throw new JadxRuntimeException("Failed to find main activity class: " + results.getMainActivity());
 			}
-			tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
+			tabsController.codeJump(getCacheObject().getNodeCache().makeFrom(mainActivityClass));
 		} catch (Exception e) {
 			LOG.error("Main activity not found", e);
 			JOptionPane.showMessageDialog(MainWindow.this,
@@ -992,7 +999,7 @@ public class MainWindow extends JFrame {
 			if (applicationClass == null) {
 				throw new JadxRuntimeException("Failed to find application class: " + results.getApplication());
 			}
-			tabbedPane.codeJump(getCacheObject().getNodeCache().makeFrom(applicationClass));
+			tabsController.codeJump(getCacheObject().getNodeCache().makeFrom(applicationClass));
 		} catch (Exception e) {
 			LOG.error("Application not found", e);
 			JOptionPane.showMessageDialog(MainWindow.this,
@@ -1042,7 +1049,7 @@ public class MainWindow extends JFrame {
 		alwaysSelectOpened.addActionListener(event -> {
 			settings.setAlwaysSelectOpened(!settings.isAlwaysSelectOpened());
 			if (settings.isAlwaysSelectOpened()) {
-				this.syncWithEditor();
+				this.editorSyncManager.sync();
 			}
 		});
 
@@ -1061,7 +1068,7 @@ public class MainWindow extends JFrame {
 			setQuickTabsVisibility(true);
 		}
 
-		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this::syncWithEditor);
+		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this.editorSyncManager::sync);
 		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
 		JadxGuiAction clsSearchAction = new JadxGuiAction(ActionModel.CLASS_SEARCH,
 				() -> SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.CLASS));
@@ -1085,10 +1092,10 @@ public class MainWindow extends JFrame {
 		JadxGuiAction showLogAction = new JadxGuiAction(ActionModel.SHOW_LOG,
 				() -> showLogViewer(LogOptions.current()));
 		JadxGuiAction aboutAction = new JadxGuiAction(ActionModel.ABOUT, () -> new AboutDialog().setVisible(true));
-		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, tabbedPane::navBack);
-		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, tabbedPane::navBack);
-		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, tabbedPane::navForward);
-		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, tabbedPane::navForward);
+		JadxGuiAction backAction = new JadxGuiAction(ActionModel.BACK, navController::navBack);
+		JadxGuiAction backVariantAction = new JadxGuiAction(ActionModel.BACK_V, navController::navBack);
+		JadxGuiAction forwardAction = new JadxGuiAction(ActionModel.FORWARD, navController::navForward);
+		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, navController::navForward);
 		JadxGuiAction quarkAction = new JadxGuiAction(ActionModel.QUARK,
 				() -> new QuarkDialog(MainWindow.this).setVisible(true));
 		JadxGuiAction openDeviceAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
@@ -1345,7 +1352,6 @@ public class MainWindow extends JFrame {
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
 		treeSplitPane.setLeftComponent(leftPane);
 
-		tabsController = new TabsController(this);
 		tabbedPane = new TabbedPane(this, tabsController);
 		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		new TabDndController(tabbedPane, settings);
@@ -1579,6 +1585,10 @@ public class MainWindow extends JFrame {
 
 	public TabsController getTabsController() {
 		return tabsController;
+	}
+
+	public NavigationController getNavController() {
+		return navController;
 	}
 
 	public JadxSettings getSettings() {

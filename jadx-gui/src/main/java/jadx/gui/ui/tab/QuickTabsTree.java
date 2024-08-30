@@ -6,7 +6,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
@@ -20,7 +19,6 @@ import javax.swing.tree.TreeNode;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.UiUtils;
 
 public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSelectionListener {
@@ -181,20 +179,10 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	@Override
-	public void onTabSelect(TabBlueprint blueprint) {
-
-	}
-
-	@Override
 	public void onTabClose(TabBlueprint blueprint) {
 		removeJNode(openParentNode, blueprint.getNode());
 		removeJNode(pinParentNode, blueprint.getNode());
 		removeJNode(bookmarkParentNode, blueprint.getNode());
-	}
-
-	@Override
-	public void onTabPositionFirst(TabBlueprint blueprint) {
-
 	}
 
 	@Override
@@ -225,26 +213,6 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		} else {
 			removeJNode(openParentNode, node);
 		}
-	}
-
-	@Override
-	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
-
-	}
-
-	@Override
-	public void onTabsRestoreDone() {
-
-	}
-
-	@Override
-	public void onTabsReorder(List<TabBlueprint> blueprints) {
-
-	}
-
-	@Override
-	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
-
 	}
 
 	private class Root extends DefaultMutableTreeNode {

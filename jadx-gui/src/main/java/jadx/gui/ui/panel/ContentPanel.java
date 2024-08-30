@@ -7,7 +7,9 @@ import org.jetbrains.annotations.Nullable;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.ui.tab.TabsController;
 
 public abstract class ContentPanel extends JPanel {
 
@@ -25,6 +27,14 @@ public abstract class ContentPanel extends JPanel {
 
 	public TabbedPane getTabbedPane() {
 		return tabbedPane;
+	}
+
+	public TabsController getTabsController() {
+		return tabbedPane.getTabsController();
+	}
+
+	public MainWindow getMainWindow() {
+		return tabbedPane.getMainWindow();
 	}
 
 	public JNode getNode() {

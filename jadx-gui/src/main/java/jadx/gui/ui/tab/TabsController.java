@@ -4,22 +4,34 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaClass;
+import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
+import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.NLS;
 
 public class TabsController {
-	private final transient MainWindow mainWindow;
+	private static final Logger LOG = LoggerFactory.getLogger(TabsController.class);
+
+	private final MainWindow mainWindow;
 	private final Map<JNode, TabBlueprint> tabsMap = new HashMap<>();
 	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
 
-	private TabBlueprint selectedTab = null;
+	private @Nullable TabBlueprint selectedTab;
 
 	public TabsController(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -57,7 +69,6 @@ public class TabsController {
 			}
 			blueprint = newBlueprint;
 		}
-
 		setTabHiddenInternal(blueprint, hidden);
 		return blueprint;
 	}
@@ -65,8 +76,66 @@ public class TabsController {
 	public void selectTab(JNode node) {
 		TabBlueprint blueprint = openTab(node);
 		selectedTab = blueprint;
-
 		listeners.forEach(l -> l.onTabSelect(blueprint));
+	}
+
+	/**
+	 * Jump to node definition
+	 */
+	public void codeJump(JNode node) {
+		JClass parentCls = node.getJParent();
+		if (parentCls != null) {
+			JavaClass cls = node.getJParent().getCls();
+			JavaClass origTopCls = cls.getOriginalTopParentClass();
+			JavaClass codeParent = cls.getTopParentClass();
+			if (!Objects.equals(codeParent, origTopCls)) {
+				JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
+				mainWindow.getBackgroundExecutor().execute(
+						NLS.str("progress.load"),
+						jumpCls::loadNode, // load code in background
+						status -> {
+							// search original node in jump class
+							codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
+								if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+									ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
+									if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
+										codeJump(new JumpPosition(jumpCls, pos));
+										return true;
+									}
+								}
+								return null;
+							});
+						});
+				return;
+			}
+		}
+
+		// Not an inline node, jump normally
+		if (node.getPos() != 0 || node.getRootClass() == null) {
+			codeJump(new JumpPosition(node));
+			return;
+		}
+		// node need loading
+		mainWindow.getBackgroundExecutor().execute(
+				NLS.str("progress.load"),
+				() -> node.getRootClass().getCodeInfo(), // run heavy loading in background
+				status -> codeJump(new JumpPosition(node)));
+	}
+
+	/**
+	 * Prefer {@link TabsController#codeJump(JNode)} method
+	 */
+	public void codeJump(JumpPosition pos) {
+		if (selectedTab == null) {
+			LOG.warn("Cannot codeJump because selectedTab is null");
+			return;
+		}
+		listeners.forEach(l -> l.onTabCodeJump(selectedTab, pos));
+	}
+
+	public void smaliJump(JClass cls, int pos, boolean debugMode) {
+		TabBlueprint blueprint = openTab(cls);
+		listeners.forEach(l -> l.onTabSmaliJump(blueprint, pos, debugMode));
 	}
 
 	public void closeTab(JNode node) {
@@ -219,6 +288,11 @@ public class TabsController {
 	}
 
 	public void notifyRestoreEditorViewStateDone() {
+		if (selectedTab == null && !tabsMap.isEmpty()) {
+			JNode node = tabsMap.values().iterator().next().getNode();
+			LOG.warn("No active tab found, select {}", node); // TODO: find the reason of this issue
+			selectTab(node);
+		}
 		listeners.forEach(ITabStatesListener::onTabsRestoreDone);
 	}
 
