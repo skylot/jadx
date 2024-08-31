@@ -22,6 +22,7 @@ import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ICodeNode;
+import jadx.gui.jobs.SimpleTask;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
@@ -58,13 +59,21 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	}
 
 	@Override
+	public boolean canRename() {
+		return !cls.getClassNode().contains(AFlag.DONT_RENAME);
+	}
+
+	@Override
 	public void loadNode() {
 		getRootClass().load();
 	}
 
 	@Override
-	public boolean canRename() {
-		return !cls.getClassNode().contains(AFlag.DONT_RENAME);
+	public SimpleTask getLoadTask() {
+		JClass rootClass = getRootClass();
+		return new SimpleTask(NLS.str("progress.decompile"),
+				() -> rootClass.getCls().decompile(),
+				rootClass::load);
 	}
 
 	private synchronized void load() {

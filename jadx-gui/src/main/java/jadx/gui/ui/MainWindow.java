@@ -155,12 +155,11 @@ import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
-
-import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 
 public class MainWindow extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
@@ -455,11 +454,11 @@ public class MainWindow extends JFrame {
 	}
 
 	public void open(Path path) {
-		open(Collections.singletonList(path), EMPTY_RUNNABLE);
+		open(Collections.singletonList(path), UiUtils.EMPTY_RUNNABLE);
 	}
 
 	public void open(List<Path> paths) {
-		open(paths, EMPTY_RUNNABLE);
+		open(paths, UiUtils.EMPTY_RUNNABLE);
 	}
 
 	private void open(List<Path> paths, Runnable onFinish) {
@@ -501,7 +500,7 @@ public class MainWindow extends JFrame {
 		synchronized (ReloadProject.EVENT) {
 			saveAll();
 			closeAll();
-			loadFiles(EMPTY_RUNNABLE);
+			loadFiles(UiUtils.EMPTY_RUNNABLE);
 
 			menuBar.reloadShortcuts();
 		}
@@ -1166,6 +1165,8 @@ public class MainWindow extends JFrame {
 					ExceptionDialog.throwTestException();
 				}
 			});
+			help.add(new JCheckBoxMenuItem(new ActionHandler("UI WatchDog", UIWatchDog::toggle)));
+			UIWatchDog.onStart();
 		}
 		help.add(aboutAction);
 
@@ -1320,11 +1321,21 @@ public class MainWindow extends JFrame {
 				TreePath path = event.getPath();
 				Object node = path.getLastPathComponent();
 				if (node instanceof JLoadableNode) {
-					((JLoadableNode) node).loadNode();
-				}
-				if (!treeReloading) {
-					project.addTreeExpansion(getPathExpansion(event.getPath()));
-					update();
+					JLoadableNode treeNode = (JLoadableNode) node;
+					backgroundExecutor.execute(treeNode.getLoadTask());
+					// schedule update for expanded nodes in a tree
+					backgroundExecutor.execute(NLS.str("progress.load"),
+							UiUtils.EMPTY_RUNNABLE,
+							status -> {
+								if (!treeReloading) {
+									treeModel.nodeStructureChanged(treeNode);
+									project.addTreeExpansion(getPathExpansion(event.getPath()));
+								}
+							});
+				} else {
+					if (!treeReloading) {
+						project.addTreeExpansion(getPathExpansion(event.getPath()));
+					}
 				}
 			}
 

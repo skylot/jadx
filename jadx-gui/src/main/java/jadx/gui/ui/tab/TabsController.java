@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,8 @@ import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.gui.jobs.SimpleTask;
+import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -90,22 +93,7 @@ public class TabsController {
 			JavaClass codeParent = cls.getTopParentClass();
 			if (!Objects.equals(codeParent, origTopCls)) {
 				JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
-				mainWindow.getBackgroundExecutor().execute(
-						NLS.str("progress.load"),
-						jumpCls::loadNode, // load code in background
-						status -> {
-							// search original node in jump class
-							codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
-								if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
-									ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
-									if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
-										codeJump(new JumpPosition(jumpCls, pos));
-										return true;
-									}
-								}
-								return null;
-							});
-						});
+				loadCodeWithUIAction(jumpCls, () -> jumpToInnerClass(node, codeParent, jumpCls));
 				return;
 			}
 		}
@@ -120,6 +108,38 @@ public class TabsController {
 				NLS.str("progress.load"),
 				() -> node.getRootClass().getCodeInfo(), // run heavy loading in background
 				status -> codeJump(new JumpPosition(node)));
+
+		loadCodeWithUIAction(node.getRootClass(), () -> codeJump(new JumpPosition(node)));
+	}
+
+	private void loadCodeWithUIAction(JClass cls, Runnable action) {
+		SimpleTask loadTask = cls.getLoadTask();
+		mainWindow.getBackgroundExecutor().execute(
+				new SimpleTask(loadTask.getTitle(),
+						loadTask.getJobs(),
+						status -> {
+							Consumer<TaskStatus> onFinish = loadTask.getOnFinish();
+							if (onFinish != null) {
+								onFinish.accept(status);
+							}
+							action.run();
+						}));
+	}
+
+	/**
+	 * Search and jump to original node in jumpCls
+	 */
+	private void jumpToInnerClass(JNode node, JavaClass codeParent, JClass jumpCls) {
+		codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
+			if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
+				ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
+				if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
+					codeJump(new JumpPosition(jumpCls, pos));
+					return true;
+				}
+			}
+			return null;
+		});
 	}
 
 	/**

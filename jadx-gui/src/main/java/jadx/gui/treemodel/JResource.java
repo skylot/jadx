@@ -20,6 +20,8 @@ import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.SimpleTask;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.BinaryContentPanel;
 import jadx.gui.ui.codearea.CodeContentPanel;
@@ -96,6 +98,11 @@ public class JResource extends JLoadableNode {
 	public synchronized void loadNode() {
 		getCodeInfo();
 		update();
+	}
+
+	@Override
+	public synchronized IBackgroundTask getLoadTask() {
+		return new SimpleTask(NLS.str("progress.load"), this::getCodeInfo, this::update);
 	}
 
 	@Override

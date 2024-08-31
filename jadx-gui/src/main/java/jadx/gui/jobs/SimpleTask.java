@@ -1,5 +1,6 @@
 package jadx.gui.jobs;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -14,7 +15,15 @@ import jadx.core.utils.tasks.TaskExecutor;
 public class SimpleTask implements IBackgroundTask {
 	private final String title;
 	private final List<Runnable> jobs;
-	private final Consumer<TaskStatus> onFinish;
+	private final @Nullable Consumer<TaskStatus> onFinish;
+
+	public SimpleTask(String title, Runnable run) {
+		this(title, Collections.singletonList(run), null);
+	}
+
+	public SimpleTask(String title, Runnable run, Runnable onFinish) {
+		this(title, Collections.singletonList(run), s -> onFinish.run());
+	}
 
 	public SimpleTask(String title, List<Runnable> jobs) {
 		this(title, jobs, null);
@@ -29,6 +38,14 @@ public class SimpleTask implements IBackgroundTask {
 	@Override
 	public String getTitle() {
 		return title;
+	}
+
+	public List<Runnable> getJobs() {
+		return jobs;
+	}
+
+	public @Nullable Consumer<TaskStatus> getOnFinish() {
+		return onFinish;
 	}
 
 	@Override

@@ -63,6 +63,17 @@ public class UiUtils {
 	 */
 	public static final long MIN_FREE_MEMORY = calculateMinFreeMemory();
 
+	public static final Runnable EMPTY_RUNNABLE = new Runnable() {
+		@Override
+		public void run() {
+		}
+
+		@Override
+		public String toString() {
+			return "EMPTY_RUNNABLE";
+		}
+	};
+
 	private UiUtils() {
 	}
 

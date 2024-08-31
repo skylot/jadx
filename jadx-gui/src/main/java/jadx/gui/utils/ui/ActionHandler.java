@@ -24,6 +24,11 @@ public class ActionHandler extends AbstractAction {
 		this.consumer = consumer;
 	}
 
+	public ActionHandler(String name, Runnable action) {
+		this(action);
+		setName(name);
+	}
+
 	public ActionHandler() {
 		this.consumer = ev -> {
 		};
