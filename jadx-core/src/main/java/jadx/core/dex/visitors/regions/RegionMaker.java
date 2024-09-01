@@ -871,13 +871,14 @@ public class RegionMaker {
 			outs.or(s.getDomFrontier());
 		}
 		outs.clear(block.getId());
+		outs.clear(mth.getExitBlock().getId());
 		if (outs.isEmpty()) {
 			// switch already contains method exit
 			// add everything, out block not needed
 			return mth.getExitBlock();
 		}
 
-		BlockNode out;
+		BlockNode out = null;
 		if (outs.cardinality() == 1) {
 			// single exit
 			out = BlockUtils.bitSetToOneBlock(mth, outs);
@@ -886,23 +887,29 @@ public class RegionMaker {
 			// possible 'return', 'continue' or fallthrough in one of the cases
 			LoopInfo loop = mth.getLoopForBlock(block);
 			if (loop != null) {
-				outs.andNot(block.getPostDoms());
-				out = BlockUtils.bitSetToOneBlock(mth, outs);
-				if (out != null) {
-					insertContinueInSwitch(block, out, loop.getEnd());
-					if (out == loop.getStart()) {
-						// no other outs instead back edge to loop start
-						return null;
+				outs.andNot(loop.getStart().getPostDoms());
+				outs.andNot(loop.getEnd().getPostDoms());
+				BlockNode loopEnd = loop.getEnd();
+				if (outs.cardinality() == 2 && outs.get(loopEnd.getId())) {
+					// insert 'continue' for cases lead to loop end
+					// expect only 2 exits: loop end and switch out
+					List<BlockNode> outList = BlockUtils.bitSetToBlocks(mth, outs);
+					outList.remove(loopEnd);
+					BlockNode possibleOut = Utils.getOne(outList);
+					if (possibleOut != null && insertContinueInSwitch(block, possibleOut, loopEnd)) {
+						outs.clear(loopEnd.getId());
+						out = possibleOut;
 					}
 				}
-			} else {
-				outs.clear(mth.getExitBlock().getId());
+			}
+			if (out == null) {
 				BlockNode imPostDom = block.getIPostDom();
 				if (outs.get(imPostDom.getId())) {
-					return imPostDom;
+					out = imPostDom;
+				} else {
+					outs.andNot(block.getPostDoms());
+					out = BlockUtils.bitSetToOneBlock(mth, outs);
 				}
-				outs.andNot(block.getPostDoms());
-				out = BlockUtils.bitSetToOneBlock(mth, outs);
 			}
 		}
 		if (out != null && mth.isPreExitBlock(out)) {
@@ -994,7 +1001,8 @@ public class RegionMaker {
 		return newBlocksMap;
 	}
 
-	private void insertContinueInSwitch(BlockNode switchBlock, BlockNode switchOut, BlockNode loopEnd) {
+	private boolean insertContinueInSwitch(BlockNode switchBlock, BlockNode switchOut, BlockNode loopEnd) {
+		boolean inserted = false;
 		for (BlockNode caseBlock : switchBlock.getCleanSuccessors()) {
 			if (caseBlock.getDomFrontier().get(loopEnd.getId()) && caseBlock != switchOut) {
 				// search predecessor of loop end on path from this successor
@@ -1006,6 +1014,7 @@ public class RegionMaker {
 						if (list.contains(p)) {
 							if (p.isSynthetic()) {
 								p.getInstructions().add(new InsnNode(InsnType.CONTINUE, 0));
+								inserted = true;
 							}
 							break;
 						}
@@ -1013,6 +1022,7 @@ public class RegionMaker {
 				}
 			}
 		}
+		return inserted;
 	}
 
 	public IRegion processTryCatchBlocks(MethodNode mth) {

@@ -3,10 +3,12 @@ package jadx.tests.integration.switches;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestSwitchContinue extends IntegrationTest {
 
+	@SuppressWarnings({ "StringConcatenationInLoop", "DataFlowIssue" })
 	public static class TestCls {
 		public String test(int a) {
 			String s = "";
@@ -32,7 +34,7 @@ public class TestSwitchContinue extends IntegrationTest {
 
 	@Test
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
 				.contains("switch (a % 4) {")
 				.countString(4, "case ")
