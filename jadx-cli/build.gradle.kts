@@ -20,7 +20,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-xapk-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
 
-	implementation("org.jcommander:jcommander:1.84")
+	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.7")
 }
 

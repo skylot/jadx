@@ -25,7 +25,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.3.1")
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.3.1")
 
-	implementation("org.jcommander:jcommander:1.84")
+	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.7")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
@@ -37,13 +37,13 @@ dependencies {
 	implementation("com.formdev:flatlaf-extras:3.5.1")
 
 	implementation("com.google.code.gson:gson:2.11.0")
-	implementation("org.apache.commons:commons-lang3:3.16.0")
+	implementation("org.apache.commons:commons-lang3:3.17.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
 	implementation("commons-io:commons-io:2.16.1")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.5.2")
+	implementation("com.android.tools.build:apksig:8.6.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
