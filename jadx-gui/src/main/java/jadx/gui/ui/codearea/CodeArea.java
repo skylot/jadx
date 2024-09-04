@@ -26,6 +26,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.mode.JCodeMode;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
@@ -51,7 +52,7 @@ public final class CodeArea extends AbstractCodeArea {
 		this.shortcutsController = getMainWindow().getShortcutsController();
 
 		setSyntaxEditingStyle(node.getSyntaxName());
-		boolean isJavaCode = node instanceof JClass;
+		boolean isJavaCode = isCodeNode();
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));
 		}
@@ -77,6 +78,10 @@ public final class CodeArea extends AbstractCodeArea {
 		if (isJavaCode) {
 			addMouseMotionListener(new MouseHoverHighlighter(this, codeLinkGenerator));
 		}
+	}
+
+	public boolean isCodeNode() {
+		return node instanceof JClass || node instanceof JCodeMode;
 	}
 
 	private boolean jumpOnDoubleClick(MouseEvent e) {
@@ -174,7 +179,7 @@ public final class CodeArea extends AbstractCodeArea {
 			return -1;
 		}
 		int type = token.getType();
-		if (node instanceof JClass) {
+		if (isCodeNode()) {
 			if (type == TokenTypes.IDENTIFIER || type == TokenTypes.FUNCTION) {
 				return token.getOffset();
 			}

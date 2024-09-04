@@ -1165,8 +1165,9 @@ public class MainWindow extends JFrame {
 					ExceptionDialog.throwTestException();
 				}
 			});
-			help.add(new JCheckBoxMenuItem(new ActionHandler("UI WatchDog", UIWatchDog::toggle)));
-			UIWatchDog.onStart();
+			JCheckBoxMenuItem uiWatchDog = new JCheckBoxMenuItem(new ActionHandler("UI WatchDog", UIWatchDog::toggle));
+			uiWatchDog.setState(UIWatchDog.onStart());
+			help.add(uiWatchDog);
 		}
 		help.add(aboutAction);
 
@@ -1550,6 +1551,9 @@ public class MainWindow extends JFrame {
 	private void preLoadOpenTabs(List<EditorViewState> openTabs) {
 		UiUtils.notUiThreadGuard();
 		for (EditorViewState tabState : openTabs) {
+			if (tabState.isHidden()) {
+				continue;
+			}
 			JNode node = tabState.getNode();
 			try {
 				node.getCodeInfo();

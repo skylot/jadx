@@ -23,7 +23,6 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.JumpPosition;
-import jadx.gui.utils.NLS;
 
 public class TabsController {
 	private static final Logger LOG = LoggerFactory.getLogger(TabsController.class);
@@ -104,11 +103,6 @@ public class TabsController {
 			return;
 		}
 		// node need loading
-		mainWindow.getBackgroundExecutor().execute(
-				NLS.str("progress.load"),
-				() -> node.getRootClass().getCodeInfo(), // run heavy loading in background
-				status -> codeJump(new JumpPosition(node)));
-
 		loadCodeWithUIAction(node.getRootClass(), () -> codeJump(new JumpPosition(node)));
 	}
 

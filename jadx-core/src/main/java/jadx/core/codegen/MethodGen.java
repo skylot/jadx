@@ -269,7 +269,7 @@ public class MethodGen {
 		JadxArgs args = mth.root().getArgs();
 		switch (args.getDecompilationMode()) {
 			case AUTO:
-				if (classGen.isFallbackMode()) {
+				if (classGen.isFallbackMode() || mth.getRegion() == null) {
 					// TODO: try simple mode first
 					dumpInstructions(code);
 				} else {
