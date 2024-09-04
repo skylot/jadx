@@ -4,13 +4,14 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ParserStream {
 
-	protected static final Charset STRING_CHARSET_UTF16 = Charset.forName("UTF-16LE");
-	protected static final Charset STRING_CHARSET_UTF8 = Charset.forName("UTF-8");
+	protected static final Charset STRING_CHARSET_UTF16 = StandardCharsets.UTF_16LE;
+	protected static final Charset STRING_CHARSET_UTF8 = StandardCharsets.UTF_8;
 
 	private static final int[] EMPTY_INT_ARRAY = new int[0];
 	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
@@ -90,7 +91,7 @@ public class ParserStream {
 		long pos = input.skip(count);
 		while (pos < count) {
 			long skipped = input.skip(count - pos);
-			if (skipped == -1) {
+			if (skipped == 0) {
 				throw new IOException("No data, can't skip " + count + " bytes");
 			}
 			pos += skipped;

@@ -210,16 +210,11 @@ public class RootNode {
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
-				updateManifestAttribMap(parser);
+				ManifestAttributes.getInstance().updateAttributes(parser);
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse 'resources.pb'/'.arsc' file", e);
 		}
-	}
-
-	private void updateManifestAttribMap(IResTableParser parser) {
-		ManifestAttributes manifestAttributes = ManifestAttributes.getInstance();
-		manifestAttributes.updateAttributes(parser);
 	}
 
 	private @Nullable ResourceFile getResourceFile(List<ResourceFile> resources) {

@@ -72,7 +72,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	 */
 	private final boolean useRawResName;
 	private final RootNode root;
-	private final ResourceStorage resStorage = new ResourceStorage();
+
+	private ResourceStorage resStorage;
 	private BinaryXMLStrings strings;
 
 	public ResTableBinaryParser(RootNode root) {
@@ -88,6 +89,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	public void decode(InputStream inputStream) throws IOException {
 		long start = System.currentTimeMillis();
 		is = new ParserStream(inputStream);
+		resStorage = new ResourceStorage();
 		decodeTableChunk();
 		resStorage.finish();
 		if (LOG.isDebugEnabled()) {

@@ -9,19 +9,19 @@ import jadx.core.xmlgen.IResTableParser;
 import jadx.plugins.input.aab.parsers.ResTableProtoParser;
 
 public class ResTableProtoParserProvider implements IResTableParserProvider {
-	private ResTableProtoParser parser;
+	private RootNode root;
 
 	@Override
 	public void init(RootNode root) {
-		parser = new ResTableProtoParser(root);
+		this.root = root;
 	}
 
 	@Override
-	public synchronized @Nullable IResTableParser getParser(ResourceFile resFile) {
+	public @Nullable IResTableParser getParser(ResourceFile resFile) {
 		String fileName = resFile.getOriginalName();
 		if (!fileName.endsWith("resources.pb")) {
 			return null;
 		}
-		return parser;
+		return new ResTableProtoParser(root);
 	}
 }

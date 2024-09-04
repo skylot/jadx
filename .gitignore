@@ -28,6 +28,7 @@ jadx-output/
 *-tmp/
 **/tmp/
 *.jobf
+*.jadx
 
 *.class
 *.dump

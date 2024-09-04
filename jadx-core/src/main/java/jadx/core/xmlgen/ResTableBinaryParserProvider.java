@@ -7,19 +7,19 @@ import jadx.api.plugins.resources.IResTableParserProvider;
 import jadx.core.dex.nodes.RootNode;
 
 public class ResTableBinaryParserProvider implements IResTableParserProvider {
-	private IResTableParser parser;
+	private RootNode root;
 
 	@Override
 	public void init(RootNode root) {
-		parser = new ResTableBinaryParser(root);
+		this.root = root;
 	}
 
 	@Override
-	public synchronized @Nullable IResTableParser getParser(ResourceFile resFile) {
+	public @Nullable IResTableParser getParser(ResourceFile resFile) {
 		String fileName = resFile.getOriginalName();
 		if (!fileName.endsWith(".arsc")) {
 			return null;
 		}
-		return parser;
+		return new ResTableBinaryParser(root);
 	}
 }
