@@ -248,6 +248,7 @@ public class TabsController {
 		forceClose = true;
 		closeAllTabs();
 		forceClose = false;
+		selectedTab = null;
 	}
 
 	public boolean isForceClose() {
