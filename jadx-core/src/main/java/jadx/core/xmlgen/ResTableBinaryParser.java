@@ -274,8 +274,14 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		// The type identifier this chunk is holding. Type IDs start at 1 (corresponding
 		// to the value of the type bits in a resource identifier). 0 is invalid.
 		int id = is.readInt8();
-		int flags = is.readInt8(); // 0 or 1
-		boolean flagSparse = flags == 1;
+
+		int flags = is.readInt8();
+		boolean isSparse = (flags & FLAG_SPARSE) != 0;
+		boolean isOffset16 = (flags & FLAG_OFFSET16) != 0;
+
+		if (isOffset16) {
+			throw new JadxRuntimeException("16-bit entry offsets are not supported yet");
+		}
 
 		is.checkInt16(0, "type chunk, reserved");
 		int entryCount = is.readInt32();
@@ -289,7 +295,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 
 		Map<Integer, Integer> entryOffsetMap = new LinkedHashMap<>(entryCount);
-		if (flagSparse) {
+		if (isSparse) {
 			for (int i = 0; i < entryCount; i++) {
 				int idx = is.readInt16();
 				int offset = is.readInt16() * 4; // The offset in ResTable_sparseTypeEntry::offset is stored divided by 4.
@@ -357,7 +363,15 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
 		int size = is.readInt16();
+
 		int flags = is.readInt16();
+		boolean isComplex = (flags & FLAG_COMPLEX) != 0;
+		boolean isCompact = (flags & FLAG_COMPACT) != 0;
+
+		if (isCompact) {
+			throw new JadxRuntimeException("Compact resource entries are not supported yet");
+		}
+
 		int key = is.readInt32();
 		if (key == -1) {
 			return;
@@ -368,7 +382,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		String origKeyName = pkg.getKeyStrings().get(key);
 
 		ResourceEntry newResEntry = buildResourceEntry(pkg, config, resRef, typeName, origKeyName);
-		if ((flags & FLAG_COMPLEX) != 0 || size == 16) {
+		if (isComplex || size == 16) {
 			int parentRef = is.readInt32();
 			int count = is.readInt32();
 			newResEntry.setParentRef(parentRef);
