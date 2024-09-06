@@ -279,10 +279,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		boolean isSparse = (flags & FLAG_SPARSE) != 0;
 		boolean isOffset16 = (flags & FLAG_OFFSET16) != 0;
 
-		if (isOffset16) {
-			throw new JadxRuntimeException("16-bit entry offsets are not supported yet");
-		}
-
 		is.checkInt16(0, "type chunk, reserved");
 		int entryCount = is.readInt32();
 		long entriesStart = start + is.readInt32();
@@ -300,6 +296,12 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				int idx = is.readInt16();
 				int offset = is.readInt16() * 4; // The offset in ResTable_sparseTypeEntry::offset is stored divided by 4.
 				entryOffsetMap.put(idx, offset);
+			}
+		} else if (isOffset16) {
+			for (int i = 0; i < entryCount; i++) {
+				int offset = is.readInt16();
+				int realOffset = offset == 0xFFFF ? NO_ENTRY : offset * 4;
+				entryOffsetMap.put(i, realOffset);
 			}
 		} else {
 			for (int i = 0; i < entryCount; i++) {
