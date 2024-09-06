@@ -308,7 +308,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				entryOffsetMap.put(i, is.readInt32());
 			}
 		}
-		is.checkPos(entriesStart, "Expected first entry start");
+		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int processed = 0;
 		for (int index : entryOffsetMap.keySet()) {
 			int offset = entryOffsetMap.get(index);
@@ -365,16 +365,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
 		int size = is.readInt16();
-
 		int flags = is.readInt16();
 		boolean isComplex = (flags & FLAG_COMPLEX) != 0;
 		boolean isCompact = (flags & FLAG_COMPACT) != 0;
 
-		if (isCompact) {
-			throw new JadxRuntimeException("Compact resource entries are not supported yet");
-		}
-
-		int key = is.readInt32();
+		int key = isCompact ? size : is.readInt32();
 		if (key == -1) {
 			return;
 		}
@@ -384,7 +379,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		String origKeyName = pkg.getKeyStrings().get(key);
 
 		ResourceEntry newResEntry = buildResourceEntry(pkg, config, resRef, typeName, origKeyName);
-		if (isComplex || size == 16) {
+		if (isCompact) {
+			int dataType = flags >> 8;
+			int data = is.readInt32();
+			newResEntry.setSimpleValue(new RawValue(dataType, data));
+		} else if (isComplex || size == 16) {
 			int parentRef = is.readInt32();
 			int count = is.readInt32();
 			newResEntry.setParentRef(parentRef);
