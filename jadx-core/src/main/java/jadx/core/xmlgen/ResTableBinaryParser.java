@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -290,39 +288,40 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			LOG.warn("Invalid config flags detected: {}{}", typeName, config.getQualifiers());
 		}
 
-		Map<Integer, Integer> entryOffsetMap = new LinkedHashMap<>(entryCount);
+		List<EntryOffset> offsets = new ArrayList<>(entryCount);
 		if (isSparse) {
 			for (int i = 0; i < entryCount; i++) {
 				int idx = is.readInt16();
 				int offset = is.readInt16() * 4; // The offset in ResTable_sparseTypeEntry::offset is stored divided by 4.
-				entryOffsetMap.put(idx, offset);
+				offsets.add(new EntryOffset(idx, offset));
 			}
 		} else if (isOffset16) {
 			for (int i = 0; i < entryCount; i++) {
 				int offset = is.readInt16();
-				int realOffset = offset == 0xFFFF ? NO_ENTRY : offset * 4;
-				entryOffsetMap.put(i, realOffset);
+				if (offset != 0xFFFF) {
+					offsets.add(new EntryOffset(i, offset * 4));
+				}
 			}
 		} else {
 			for (int i = 0; i < entryCount; i++) {
-				entryOffsetMap.put(i, is.readInt32());
+				offsets.add(new EntryOffset(i, is.readInt32()));
 			}
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
-		int processed = 0;
-		for (int index : entryOffsetMap.keySet()) {
-			int offset = entryOffsetMap.get(index);
-			if (offset != NO_ENTRY) {
-				if (is.getPos() >= chunkEnd) {
-					// Certain resource obfuscated apps like com.facebook.orca have more entries defined
-					// than actually fit into the chunk size -> ignore the remaining entries
-					LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - processed);
-					break;
-				}
-				is.checkPos(entriesStart + offset, "Expected start of entry " + index);
-				parseEntry(pkg, id, index, config.getQualifiers());
+		for (EntryOffset entryOffset : offsets) {
+			int offset = entryOffset.getOffset();
+			if (offset == NO_ENTRY) {
+				continue;
 			}
-			processed++;
+			int index = entryOffset.getIdx();
+			if (is.getPos() >= chunkEnd) {
+				// Certain resource obfuscated apps like com.facebook.orca have more entries defined
+				// than actually fit into the chunk size -> ignore the remaining entries
+				LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - index);
+				break;
+			}
+			is.checkPos(entriesStart + offset, "Expected start of entry " + index);
+			parseEntry(pkg, id, index, config.getQualifiers());
 		}
 		if (chunkEnd > is.getPos()) {
 			// Skip remaining unknown data in this chunk (e.g. type 8 entries")
@@ -333,10 +332,29 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 	}
 
+	private static class EntryOffset {
+		private final int idx;
+		private final int offset;
+
+		private EntryOffset(int idx, int offset) {
+			this.idx = idx;
+			this.offset = offset;
+		}
+
+		public int getIdx() {
+			return idx;
+		}
+
+		public int getOffset() {
+			return offset;
+		}
+	}
+
 	private void parseOverlayTypeChunk(long chunkStart) throws IOException {
 		LOG.trace("parsing overlay type chunk starting at offset {}", chunkStart);
 		// read ResTable_overlayable_header
-		/* headerSize = */ is.readInt16(); // usually 1032 bytes
+		/* headerSize = */
+		is.readInt16(); // usually 1032 bytes
 		int chunkSize = is.readInt32(); // e.g. 1056 bytes
 		long expectedEndPos = chunkStart + chunkSize;
 		String name = is.readString16Fixed(256); // 512 bytes
@@ -349,7 +367,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	private void parseStagedAliasChunk(long chunkStart) throws IOException {
 		// read ResTable_staged_alias_header
 		LOG.trace("parsing staged alias chunk starting at offset {}", chunkStart);
-		/* headerSize = */ is.readInt16();
+		/* headerSize = */
+		is.readInt16();
 		int chunkSize = is.readInt32();
 		long expectedEndPos = chunkStart + chunkSize;
 		int count = is.readInt32();
