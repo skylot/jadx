@@ -111,6 +111,7 @@ public class CommonProtoParser extends ParserConstants {
 		byte screenLayout2 = (byte) (c.getLayoutDirectionValue() | c.getScreenRoundValue());
 		byte navigation = (byte) c.getNavigationValue();
 		byte inputFlags = (byte) (c.getKeysHiddenValue() | c.getNavHiddenValue());
+		byte grammaticalInflection = (byte) c.getGrammaticalGenderValue();
 		int size = c.getSerializedSize();
 		byte uiMode = (byte) (c.getUiModeNightValue() | c.getUiModeTypeValue());
 
@@ -119,7 +120,7 @@ public class CommonProtoParser extends ParserConstants {
 
 		return new EntryConfig(mcc, mnc, language, new char[] { '\00' },
 				orientation, touchscreen, density, keyboard, navigation,
-				inputFlags, screenWidth, screenHeight, sdkVersion,
+				inputFlags, grammaticalInflection, screenWidth, screenHeight, sdkVersion,
 				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
 				screenHeightDp, new char[] { '\00' }, new char[] { '\00' }, screenLayout2,
 				colorMode, false, size).getQualifiers();

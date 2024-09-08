@@ -547,7 +547,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		byte keyboard = (byte) is.readInt8();
 		byte navigation = (byte) is.readInt8();
 		byte inputFlags = (byte) is.readInt8();
-		is.readInt8(); // inputPad0
+		byte grammaticalInflection = (byte) is.readInt8();
 
 		short screenWidth = (short) is.readInt16();
 		short screenHeight = (short) is.readInt16();
@@ -590,7 +590,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		return new EntryConfig(mcc, mnc, language, country,
 				orientation, touchscreen, density, keyboard, navigation,
-				inputFlags, screenWidth, screenHeight, sdkVersion,
+				inputFlags, grammaticalInflection, screenWidth, screenHeight, sdkVersion,
 				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
 				screenHeightDp, localeScript, localeVariant, screenLayout2,
 				colorMode, false, size);

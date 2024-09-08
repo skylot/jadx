@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
  */
 
 public class EntryConfig {
+	private static final Logger LOG = LoggerFactory.getLogger(EntryConfig.class);
+
 	public final short mcc;
 	public final short mnc;
 
@@ -40,6 +42,7 @@ public class EntryConfig {
 	public final byte keyboard;
 	public final byte navigation;
 	public final byte inputFlags;
+	public final byte grammaticalInflection;
 
 	public final short screenWidth;
 	public final short screenHeight;
@@ -68,7 +71,7 @@ public class EntryConfig {
 	public EntryConfig(short mcc, short mnc, char[] language,
 			char[] region, byte orientation,
 			byte touchscreen, int density, byte keyboard, byte navigation,
-			byte inputFlags, short screenWidth, short screenHeight,
+			byte inputFlags, byte grammaticalInflection, short screenWidth, short screenHeight,
 			short sdkVersion, byte screenLayout, byte uiMode,
 			short smallestScreenWidthDp, short screenWidthDp,
 			short screenHeightDp, char[] localeScript, char[] localeVariant,
@@ -125,6 +128,7 @@ public class EntryConfig {
 		this.keyboard = keyboard;
 		this.navigation = navigation;
 		this.inputFlags = inputFlags;
+		this.grammaticalInflection = grammaticalInflection;
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		this.sdkVersion = sdkVersion;
@@ -172,6 +176,18 @@ public class EntryConfig {
 			}
 		}
 		ret.append(getLocaleString());
+
+		switch (grammaticalInflection) {
+			case GRAMMATICAL_GENDER_NEUTER:
+				ret.append("-neuter");
+				break;
+			case GRAMMATICAL_GENDER_FEMININE:
+				ret.append("-feminine");
+				break;
+			case GRAMMATICAL_GENDER_MASCULINE:
+				ret.append("-masculine");
+				break;
+		}
 
 		switch (screenLayout & MASK_LAYOUTDIR) {
 			case SCREENLAYOUT_LAYOUTDIR_RTL:
@@ -620,5 +636,8 @@ public class EntryConfig {
 	public static final byte COLOR_WIDE_YES = 0x2;
 	public static final byte COLOR_WIDE_MASK = 0x3;
 
-	private static final Logger LOG = LoggerFactory.getLogger(EntryConfig.class);
+	public static final byte GRAMMATICAL_GENDER_ANY = 0;
+	public static final byte GRAMMATICAL_GENDER_NEUTER = 1;
+	public static final byte GRAMMATICAL_GENDER_FEMININE = 2;
+	public static final byte GRAMMATICAL_GENDER_MASCULINE = 3;
 }
