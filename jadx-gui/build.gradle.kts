@@ -2,7 +2,7 @@ plugins {
 	id("jadx-kotlin")
 	id("application")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.0"
+	id("com.gradleup.shadow") version "8.3.1"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -26,7 +26,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.3.1")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.7")
+	implementation("ch.qos.logback:logback-classic:1.5.8")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))

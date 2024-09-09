@@ -9,10 +9,10 @@ repositories {
 }
 
 dependencies {
-	rewrite("org.openrewrite.recipe:rewrite-testing-frameworks:2.17.1")
-	rewrite("org.openrewrite.recipe:rewrite-logging-frameworks:2.12.2")
-	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.23.0")
-	rewrite("org.openrewrite.recipe:rewrite-static-analysis:1.15.0")
+	rewrite("org.openrewrite.recipe:rewrite-testing-frameworks:2.18.0")
+	rewrite("org.openrewrite.recipe:rewrite-logging-frameworks:2.13.0")
+	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.24.0")
+	rewrite("org.openrewrite.recipe:rewrite-static-analysis:1.16.0")
 }
 
 tasks {
