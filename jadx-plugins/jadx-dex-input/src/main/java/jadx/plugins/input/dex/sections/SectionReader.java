@@ -314,6 +314,10 @@ public class SectionReader {
 		return Leb128.readSignedLeb128(this);
 	}
 
+	public int size() {
+		return buf.capacity();
+	}
+
 	@Override
 	public String toString() {
 		return "SectionReader{buf=" + buf + ", offset=" + offset + '}';

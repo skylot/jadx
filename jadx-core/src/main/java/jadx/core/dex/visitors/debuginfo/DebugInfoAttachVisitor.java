@@ -21,6 +21,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.ListUtils;
+import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -40,6 +41,8 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 			if (debugInfo != null) {
 				processDebugInfo(mth, debugInfo);
 			}
+		} catch (InvalidDataException e) {
+			mth.addWarnComment(e.getMessage());
 		} catch (Exception e) {
 			mth.addWarnComment("Failed to parse debug info", e);
 		}

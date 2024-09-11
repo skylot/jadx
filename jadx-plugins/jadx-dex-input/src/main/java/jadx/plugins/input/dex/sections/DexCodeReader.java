@@ -16,6 +16,7 @@ import jadx.api.plugins.input.data.ITry;
 import jadx.api.plugins.input.data.impl.CatchData;
 import jadx.api.plugins.input.data.impl.TryData;
 import jadx.api.plugins.input.insns.InsnData;
+import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.plugins.input.dex.DexException;
 import jadx.plugins.input.dex.insns.DexInsnData;
 import jadx.plugins.input.dex.insns.DexInsnFormat;
@@ -111,6 +112,9 @@ public class DexCodeReader implements ICodeReader {
 		int debugOff = in.pos(8).readInt();
 		if (debugOff == 0) {
 			return null;
+		}
+		if (debugOff < 0 || debugOff > in.size()) {
+			throw new InvalidDataException("Invalid debug info offset");
 		}
 		int regsCount = getRegistersCount();
 		DebugInfoParser debugInfoParser = new DebugInfoParser(in, regsCount, getUnitsCount());
