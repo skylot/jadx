@@ -1,0 +1,16 @@
+.version 52  # Java 8
+.class public super others/TestClassImplementsSignature
+.signature <T:Ljava/lang/Object;>Ljava/lang/Object;Ljava/lang/Comparable<Lothers/TestClassImplementsSignature<LT;>;>;
+
+.field value Ljava/lang/Object;
+  .signature TT;
+.end field
+
+.method public <init>()V
+    .max stack 1
+    .max locals 1
+
+    aload 0
+    invokespecial java/lang/Object <init> ()V
+    return
+.end method

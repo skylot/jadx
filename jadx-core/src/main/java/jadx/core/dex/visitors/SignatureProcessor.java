@@ -48,21 +48,47 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		try {
 			List<ArgType> generics = sp.consumeGenericTypeParameters();
-			ArgType superClass = validateClsType(cls, sp.consumeType(), cls.getSuperClass());
-			List<ArgType> interfaces = cls.getInterfaces();
-			for (int i = 0; i < interfaces.size(); i++) {
-				ArgType type = sp.consumeType();
-				if (type != null) {
-					interfaces.set(i, validateClsType(cls, type, interfaces.get(i)));
-				} else {
-					break;
-				}
-			}
-			generics = fixTypeParamDeclarations(cls, generics, superClass, interfaces);
-			cls.updateGenericClsData(generics, superClass, interfaces);
+			ArgType superClass = processSuperType(cls, sp.consumeType());
+			List<ArgType> interfaces = processInterfaces(cls, sp.consumeTypeList());
+			List<ArgType> resultGenerics = fixTypeParamDeclarations(cls, generics, superClass, interfaces);
+			cls.updateGenericClsData(resultGenerics, superClass, interfaces);
 		} catch (Exception e) {
 			cls.addWarnComment("Failed to parse class signature: " + sp.getSignature(), e);
 		}
+	}
+
+	private ArgType processSuperType(ClassNode cls, ArgType parsedType) {
+		ArgType superType = cls.getSuperClass();
+		if (Objects.equals(parsedType.getObject(), cls.getClassInfo().getType().getObject())) {
+			cls.addWarnComment("Incorrect class signature: super class is equals to this class");
+			return superType;
+		}
+		return bestClsType(cls, parsedType, superType);
+	}
+
+	/**
+	 * Parse, validate and update class interfaces types.
+	 */
+	private List<ArgType> processInterfaces(ClassNode cls, List<ArgType> parsedTypes) {
+		List<ArgType> interfaces = cls.getInterfaces();
+		if (parsedTypes.isEmpty()) {
+			return interfaces;
+		}
+		int parsedCount = parsedTypes.size();
+		int interfacesCount = interfaces.size();
+		List<ArgType> result = new ArrayList<>(interfacesCount);
+		int count = Math.min(interfacesCount, parsedCount);
+		for (int i = 0; i < interfacesCount; i++) {
+			if (i < count) {
+				result.add(bestClsType(cls, parsedTypes.get(i), interfaces.get(i)));
+			} else {
+				result.add(interfaces.get(i));
+			}
+		}
+		if (interfacesCount < parsedCount) {
+			cls.addWarnComment("Unexpected interfaces in signature: " + parsedTypes.subList(interfacesCount, parsedCount));
+		}
+		return result;
 	}
 
 	/**
@@ -106,16 +132,22 @@ public class SignatureProcessor extends AbstractVisitor {
 		return null;
 	}
 
-	private ArgType validateClsType(ClassNode cls, ArgType candidateType, ArgType currentType) {
+	private ArgType bestClsType(ClassNode cls, ArgType candidateType, ArgType currentType) {
+		if (validateClsType(cls, candidateType)) {
+			return candidateType;
+		}
+		return currentType;
+	}
+
+	private boolean validateClsType(ClassNode cls, ArgType candidateType) {
+		if (candidateType == null) {
+			return false;
+		}
 		if (!candidateType.isObject()) {
-			cls.addWarnComment("Incorrect class signature, class is not object: " + SignatureParser.getSignature(cls));
-			return currentType;
+			cls.addWarnComment("Incorrect class signature, class is not an object: " + candidateType);
+			return false;
 		}
-		if (Objects.equals(candidateType.getObject(), cls.getClassInfo().getType().getObject())) {
-			cls.addWarnComment("Incorrect class signature, class is equals to this class: " + SignatureParser.getSignature(cls));
-			return currentType;
-		}
-		return candidateType;
+		return true;
 	}
 
 	private void parseFieldSignature(FieldNode field) {

@@ -169,6 +169,24 @@ public class SignatureParser {
 		throw new JadxRuntimeException("Can't parse type: " + debugString() + ", unexpected: " + ch);
 	}
 
+	public List<ArgType> consumeTypeList() {
+		List<ArgType> list = null;
+		while (true) {
+			ArgType type = consumeType();
+			if (type == null) {
+				break;
+			}
+			if (list == null) {
+				list = new ArrayList<>();
+			}
+			list.add(type);
+		}
+		if (list == null) {
+			return Collections.emptyList();
+		}
+		return list;
+	}
+
 	private ArgType consumeObjectType(boolean innerType) {
 		mark();
 		int ch;
