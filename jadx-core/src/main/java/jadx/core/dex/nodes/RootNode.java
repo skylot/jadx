@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -310,6 +311,12 @@ public class RootNode {
 	}
 
 	public void mergePasses(Map<JadxPassType, List<JadxPass>> customPasses) {
+		DecompilationMode mode = args.getDecompilationMode();
+		if (mode == DecompilationMode.FALLBACK || mode == DecompilationMode.SIMPLE) {
+			// for predefined modes ignore custom (and plugin) passes
+			return;
+		}
+
 		new PassMerge(preDecompilePasses)
 				.merge(customPasses.get(JadxPreparePass.TYPE), p -> new PreparePassWrapper((JadxPreparePass) p));
 		new PassMerge(processClasses.getPasses())
