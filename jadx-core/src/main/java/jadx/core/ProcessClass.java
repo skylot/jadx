@@ -140,6 +140,17 @@ public class ProcessClass {
 		}
 	}
 
+	/**
+	 * Generate code for class without processing its deps
+	 */
+	public @Nullable ICodeInfo forceGenerateCode(ClassNode cls) {
+		try {
+			return process(cls, true);
+		} catch (Throwable e) {
+			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
+		}
+	}
+
 	public void initPasses(RootNode root) {
 		for (IDexTreeVisitor pass : passes) {
 			try {

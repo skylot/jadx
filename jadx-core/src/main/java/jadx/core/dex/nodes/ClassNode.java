@@ -327,7 +327,8 @@ public class ClassNode extends NotificationAttrNode
 				args.setDecompilationMode(mode);
 				ProcessClass process = new ProcessClass(Jadx.getPassesList(args));
 				process.initPasses(root);
-				return process.generateCode(this);
+				ICodeInfo code = process.forceGenerateCode(this);
+				return Utils.getOrElse(code, ICodeInfo.EMPTY);
 			} finally {
 				args.setDecompilationMode(baseMode);
 				unload();
