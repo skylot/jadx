@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.insns.InsnIndexType;
 import jadx.api.plugins.input.insns.Opcode;
-import jadx.plugins.input.java.data.code.StackState.SVType;
+import jadx.plugins.input.java.data.attributes.stack.StackValueType;
 import jadx.plugins.input.java.data.code.decoders.IJavaInsnDecoder;
 import jadx.plugins.input.java.data.code.decoders.InvokeDecoder;
 import jadx.plugins.input.java.data.code.decoders.LoadConstDecoder;
@@ -12,8 +12,8 @@ import jadx.plugins.input.java.data.code.decoders.LookupSwitchDecoder;
 import jadx.plugins.input.java.data.code.decoders.TableSwitchDecoder;
 import jadx.plugins.input.java.data.code.decoders.WideDecoder;
 
-import static jadx.plugins.input.java.data.code.StackState.SVType.NARROW;
-import static jadx.plugins.input.java.data.code.StackState.SVType.WIDE;
+import static jadx.plugins.input.java.data.attributes.stack.StackValueType.NARROW;
+import static jadx.plugins.input.java.data.attributes.stack.StackValueType.WIDE;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class JavaInsnsRegister {
@@ -351,11 +351,11 @@ public class JavaInsnsRegister {
 		};
 	}
 
-	private static IJavaInsnDecoder oneRegWithResult(SVType type) {
+	private static IJavaInsnDecoder oneRegWithResult(StackValueType type) {
 		return s -> s.pop(1).push(0, type);
 	}
 
-	private static IJavaInsnDecoder twoRegsWithResult(SVType type) {
+	private static IJavaInsnDecoder twoRegsWithResult(StackValueType type) {
 		return s -> s.pop(2).pop(1).push(0, type);
 	}
 
@@ -387,7 +387,7 @@ public class JavaInsnsRegister {
 	private static void constInsn(JavaInsnInfo[] arr, int opcode, String name, Opcode apiOpcode, long literal) {
 		register(arr, opcode, name, 0, 1, apiOpcode, InsnIndexType.NONE, state -> {
 			state.insn().setLiteral(literal);
-			state.push(0, apiOpcode == Opcode.CONST_WIDE ? SVType.WIDE : NARROW);
+			state.push(0, apiOpcode == Opcode.CONST_WIDE ? StackValueType.WIDE : NARROW);
 		});
 	}
 

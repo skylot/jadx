@@ -4,9 +4,9 @@ import jadx.api.plugins.input.insns.Opcode;
 import jadx.plugins.input.java.data.ConstPoolReader;
 import jadx.plugins.input.java.data.ConstantType;
 import jadx.plugins.input.java.data.DataReader;
+import jadx.plugins.input.java.data.attributes.stack.StackValueType;
 import jadx.plugins.input.java.data.code.CodeDecodeState;
 import jadx.plugins.input.java.data.code.JavaInsnData;
-import jadx.plugins.input.java.data.code.StackState.SVType;
 import jadx.plugins.input.java.utils.JavaClassParseException;
 
 public class LoadConstDecoder implements IJavaInsnDecoder {
@@ -33,32 +33,32 @@ public class LoadConstDecoder implements IJavaInsnDecoder {
 			case FLOAT:
 				insn.setLiteral(constPoolReader.readU4());
 				insn.setOpcode(Opcode.CONST);
-				state.push(0, SVType.NARROW);
+				state.push(0, StackValueType.NARROW);
 				break;
 
 			case LONG:
 			case DOUBLE:
 				insn.setLiteral(constPoolReader.readU8());
 				insn.setOpcode(Opcode.CONST_WIDE);
-				state.push(0, SVType.WIDE);
+				state.push(0, StackValueType.WIDE);
 				break;
 
 			case STRING:
 				insn.setIndex(constPoolReader.readU2());
 				insn.setOpcode(Opcode.CONST_STRING);
-				state.push(0, SVType.NARROW);
+				state.push(0, StackValueType.NARROW);
 				break;
 
 			case UTF8:
 				insn.setIndex(index);
 				insn.setOpcode(Opcode.CONST_STRING);
-				state.push(0, SVType.NARROW);
+				state.push(0, StackValueType.NARROW);
 				break;
 
 			case CLASS:
 				insn.setIndex(index);
 				insn.setOpcode(Opcode.CONST_CLASS);
-				state.push(0, SVType.NARROW);
+				state.push(0, StackValueType.NARROW);
 				break;
 
 			default:

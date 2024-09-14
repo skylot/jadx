@@ -71,7 +71,11 @@ public class CheckCode extends AbstractVisitor {
 			}
 			insnNode.getRegisterArgs(list);
 			for (RegisterArg arg : list) {
-				if (arg.getRegNum() >= regsCount) {
+				int regNum = arg.getRegNum();
+				if (regNum < 0) {
+					throw new JadxRuntimeException("Incorrect negative register number in instruction: " + insnNode);
+				}
+				if (regNum >= regsCount) {
 					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode
 							+ ", expected to be less than " + regsCount);
 				}

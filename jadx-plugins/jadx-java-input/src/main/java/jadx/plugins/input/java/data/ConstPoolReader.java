@@ -103,7 +103,7 @@ public class ConstPoolReader {
 	}
 
 	private CallSite resolveMethodCallSite(int bootstrapMthIdx, int nameIdx, int descIdx) {
-		JavaBootstrapMethodsAttr bootstrapMethodsAttr = clsData.loadAttribute(data, JavaAttrType.BOOTSTRAP_METHODS);
+		JavaBootstrapMethodsAttr bootstrapMethodsAttr = clsData.loadClassAttribute(data, JavaAttrType.BOOTSTRAP_METHODS);
 		if (bootstrapMethodsAttr == null) {
 			throw new JavaClassParseException("Unexpected missing BootstrapMethods attribute");
 		}

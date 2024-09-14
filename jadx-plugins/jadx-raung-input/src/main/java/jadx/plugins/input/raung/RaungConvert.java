@@ -30,7 +30,7 @@ public class RaungConvert implements Closeable {
 			this.tmpJar = Files.createTempFile("jadx-raung-", ".jar");
 			RaungAsm.create()
 					.output(tmpJar)
-					.inputs(input)
+					.inputs(raungInputs)
 					.execute();
 			return true;
 		} catch (Exception e) {

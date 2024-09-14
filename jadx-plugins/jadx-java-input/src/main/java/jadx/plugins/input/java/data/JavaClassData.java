@@ -106,7 +106,7 @@ public class JavaClassData implements IClassData {
 		int accessFlags = reader.readU2();
 		int nameIdx = reader.readU2();
 		int typeIdx = reader.readU2();
-		JavaAttrStorage attributes = attributesReader.load(reader);
+		JavaAttrStorage attributes = attributesReader.loadAll(reader);
 
 		field.setAccessFlags(accessFlags);
 		field.setName(constPoolReader.getUtf8(nameIdx));
@@ -118,7 +118,7 @@ public class JavaClassData implements IClassData {
 		int accessFlags = reader.readU2();
 		int nameIdx = reader.readU2();
 		int descriptorIdx = reader.readU2();
-		JavaAttrStorage attributes = attributesReader.load(reader);
+		JavaAttrStorage attributes = attributesReader.loadAll(reader);
 
 		JavaMethodRef methodRef = method.getMethodRef();
 		methodRef.reset();
@@ -140,7 +140,7 @@ public class JavaClassData implements IClassData {
 	@Override
 	public List<IJadxAttribute> getAttributes() {
 		data.absPos(offsets.getAttributesOffset());
-		JavaAttrStorage attributes = attributesReader.load(data);
+		JavaAttrStorage attributes = attributesReader.loadAll(data);
 		int size = attributes.size();
 		if (size == 0) {
 			return Collections.emptyList();
@@ -153,9 +153,9 @@ public class JavaClassData implements IClassData {
 		return list;
 	}
 
-	public <T extends IJavaAttribute> T loadAttribute(DataReader reader, JavaAttrType<T> type) {
+	public <T extends IJavaAttribute> T loadClassAttribute(DataReader reader, JavaAttrType<T> type) {
 		reader.absPos(offsets.getAttributesOffset());
-		return attributesReader.loadOne(type, reader);
+		return attributesReader.loadOne(reader, type);
 	}
 
 	@Override

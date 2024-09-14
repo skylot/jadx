@@ -1,6 +1,5 @@
 package jadx.plugins.input.java.utils;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +21,7 @@ public class DisasmUtils {
 	}
 
 	private static String useRaung(byte[] bytes) {
-		return RaungDisasm.create()
-				.executeForInputStream(new ByteArrayInputStream(bytes));
+		return RaungDisasm.create().executeForBytes(bytes);
 	}
 
 	/**

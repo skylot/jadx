@@ -2,30 +2,33 @@ package jadx.plugins.input.java.data.code;
 
 import java.util.Arrays;
 
+import jadx.plugins.input.java.data.attributes.stack.StackFrame;
+import jadx.plugins.input.java.data.attributes.stack.StackValueType;
+
 public class StackState {
-
-	/**
-	 * Stack value type
-	 */
-	public enum SVType {
-		NARROW, // int, float, etc
-		WIDE, // long, double
-	}
-
 	private int pos = -1;
-	private final SVType[] stack;
+	private final StackValueType[] stack;
 
 	public StackState(int maxStack) {
-		this.stack = new SVType[maxStack];
+		this.stack = new StackValueType[maxStack];
 	}
 
-	private StackState(int pos, SVType[] stack) {
+	private StackState(int pos, StackValueType[] stack) {
 		this.pos = pos;
 		this.stack = stack;
 	}
 
 	public StackState copy() {
 		return new StackState(pos, Arrays.copyOf(stack, stack.length));
+	}
+
+	public StackState fillFromFrame(StackFrame frame) {
+		int stackSize = frame.getStackSize();
+		this.pos = stackSize - 1;
+		if (stackSize > 0) {
+			System.arraycopy(frame.getStackValueTypes(), 0, this.stack, 0, stackSize);
+		}
+		return this;
 	}
 
 	public int peek() {
@@ -36,15 +39,15 @@ public class StackState {
 		return pos - at;
 	}
 
-	public SVType peekTypeAt(int at) {
+	public StackValueType peekTypeAt(int at) {
 		int p = pos - at;
 		if (checkStackIndex(p)) {
 			return stack[p];
 		}
-		return SVType.NARROW;
+		return StackValueType.NARROW;
 	}
 
-	public int insert(int at, SVType type) {
+	public int insert(int at, StackValueType type) {
 		int p = pos - at;
 		System.arraycopy(stack, p, stack, p + 1, at);
 		stack[p] = type;
@@ -52,7 +55,7 @@ public class StackState {
 		return p;
 	}
 
-	public int push(SVType type) {
+	public int push(StackValueType type) {
 		int p = ++pos;
 		if (checkStackIndex(p)) {
 			stack[p] = type;

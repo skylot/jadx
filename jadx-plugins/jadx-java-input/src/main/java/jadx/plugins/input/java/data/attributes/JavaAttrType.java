@@ -9,6 +9,7 @@ import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.plugins.input.java.data.attributes.debuginfo.LineNumberTableAttr;
 import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarTypesAttr;
 import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarsAttr;
+import jadx.plugins.input.java.data.attributes.stack.StackMapTableReader;
 import jadx.plugins.input.java.data.attributes.types.CodeAttr;
 import jadx.plugins.input.java.data.attributes.types.ConstValueAttr;
 import jadx.plugins.input.java.data.attributes.types.IgnoredAttr;
@@ -21,6 +22,7 @@ import jadx.plugins.input.java.data.attributes.types.JavaMethodParametersAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaParamAnnsAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaSignatureAttr;
 import jadx.plugins.input.java.data.attributes.types.JavaSourceFileAttr;
+import jadx.plugins.input.java.data.attributes.types.StackMapTableAttr;
 
 public final class JavaAttrType<T extends IJavaAttribute> {
 
@@ -32,6 +34,7 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 	public static final JavaAttrType<ConstValueAttr> CONST_VALUE;
 
 	public static final JavaAttrType<CodeAttr> CODE;
+	public static final JavaAttrType<StackMapTableAttr> STACK_MAP_TABLE;
 	public static final JavaAttrType<LineNumberTableAttr> LINE_NUMBER_TABLE;
 	public static final JavaAttrType<LocalVarsAttr> LOCAL_VAR_TABLE;
 	public static final JavaAttrType<LocalVarTypesAttr> LOCAL_VAR_TYPE_TABLE;
@@ -51,9 +54,12 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 
 	public static final JavaAttrType<IgnoredAttr> DEPRECATED;
 	public static final JavaAttrType<IgnoredAttr> SYNTHETIC;
-	public static final JavaAttrType<IgnoredAttr> STACK_MAP_TABLE;
 	public static final JavaAttrType<IgnoredAttr> ENCLOSING_METHOD;
+
 	public static final JavaAttrType<IgnoredAttr> MODULE;
+	public static final JavaAttrType<IgnoredAttr> SOURCE_DEBUG_EXTENSION;
+	public static final JavaAttrType<IgnoredAttr> NEST_HOST;
+	public static final JavaAttrType<IgnoredAttr> NEST_MEMBERS;
 
 	static {
 		NAME_TO_TYPE_MAP = new HashMap<>();
@@ -79,17 +85,20 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 		SIGNATURE = bind("Signature", JavaSignatureAttr.reader());
 		EXCEPTIONS = bind("Exceptions", JavaExceptionsAttr.reader());
 		METHOD_PARAMETERS = bind("MethodParameters", JavaMethodParametersAttr.reader());
+		STACK_MAP_TABLE = bind("StackMapTable", new StackMapTableReader());
 
 		// ignored
 		DEPRECATED = bind("Deprecated", null); // duplicated by annotation
 		SYNTHETIC = bind("Synthetic", null); // duplicated by access flag
-		STACK_MAP_TABLE = bind("StackMapTable", null);
 		ENCLOSING_METHOD = bind("EnclosingMethod", null);
 
 		// TODO: not supported yet
 		RUNTIME_TYPE_ANNOTATIONS = bind("RuntimeVisibleTypeAnnotations", null);
 		BUILD_TYPE_ANNOTATIONS = bind("RuntimeInvisibleTypeAnnotations", null);
 		MODULE = bind("Module", null);
+		NEST_HOST = bind("NestHost", null);
+		NEST_MEMBERS = bind("NestMembers", null);
+		SOURCE_DEBUG_EXTENSION = bind("SourceDebugExtension", null);
 	}
 
 	private static <A extends IJavaAttribute> JavaAttrType<A> bind(String name, IJavaAttributeReader reader) {
@@ -127,6 +136,19 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 
 	public IJavaAttributeReader getReader() {
 		return reader;
+	}
+
+	@Override
+	public int hashCode() {
+		return id;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		return id == ((JavaAttrType<?>) o).id;
 	}
 
 	@Override

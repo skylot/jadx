@@ -1,0 +1,53 @@
+.version 52  # Java 8
+.class public super jbc/TestStackConvert
+
+.method public parseIntDefault(Ljava/lang/String;I)I
+    .max stack 3
+    .max locals 5
+
+  :L0
+    .local 0 "this" Ljbc/TestStackConvert;
+    .local 1 "num" Ljava/lang/String;
+    .local 2 "defaultNum" I
+    .line 13
+    aload 1
+    invokestatic java/lang/Integer parseInt (Ljava/lang/String;)I
+  :L1
+    .catch java/lang/NumberFormatException :L0 .. :L1 goto :L2
+    ireturn
+  :L3
+    .line 14
+    .stack full
+        stack 0 java/lang/NumberFormatException
+        local 0 jbc/TestStackConvert
+        local 1 java/lang/String
+        local 2 int
+        local 3 Top
+        local 4 java/lang/NumberFormatException
+    .end stack
+    astore 3
+    .local 3 "e" Ljava/lang/NumberFormatException;
+    .line 15
+    aload 3
+    invokevirtual java/lang/NumberFormatException printStackTrace ()V
+    .line 17
+    iload 2
+    .end local 3 # "e"
+    ireturn
+  :L2
+    .stack full
+        stack 0 java/lang/NumberFormatException
+        local 0 jbc/TestStackConvert
+        local 1 java/lang/String
+        local 2 int
+    .end stack
+    .end local 0 # "this"
+    .end local 1 # "num"
+    .end local 2 # "defaultNum"
+    astore 4
+    getstatic java/lang/System out Ljava/io/PrintStream;
+    ldc "Before println"
+    invokevirtual java/io/PrintStream println (Ljava/lang/String;)V
+    aload 4
+    goto :L3
+.end method

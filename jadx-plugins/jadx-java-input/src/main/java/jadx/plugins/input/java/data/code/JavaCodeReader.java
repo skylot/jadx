@@ -28,6 +28,7 @@ import jadx.plugins.input.java.data.attributes.debuginfo.JavaLocalVar;
 import jadx.plugins.input.java.data.attributes.debuginfo.LineNumberTableAttr;
 import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarTypesAttr;
 import jadx.plugins.input.java.data.attributes.debuginfo.LocalVarsAttr;
+import jadx.plugins.input.java.data.attributes.types.StackMapTableAttr;
 import jadx.plugins.input.java.data.code.trycatch.JavaSingleCatch;
 import jadx.plugins.input.java.data.code.trycatch.JavaTryData;
 import jadx.plugins.input.java.utils.JavaClassParseException;
@@ -52,11 +53,14 @@ public class JavaCodeReader implements ICodeReader {
 	@Override
 	public void visitInstructions(Consumer<InsnData> insnConsumer) {
 		Set<Integer> excHandlers = getExcHandlers();
+		jumpToCodeAttributes();
+		StackMapTableAttr stackMapTable = clsData.getAttributesReader().loadOne(reader, JavaAttrType.STACK_MAP_TABLE);
+
 		int maxStack = readMaxStack();
 		reader.skip(2);
 		int codeSize = reader.readU4();
 
-		CodeDecodeState state = new CodeDecodeState(clsData, reader, maxStack, excHandlers);
+		CodeDecodeState state = new CodeDecodeState(clsData, reader, maxStack, excHandlers, stackMapTable);
 		JavaInsnData insn = new JavaInsnData(state);
 		state.setInsn(insn);
 		int offset = 0;
@@ -116,15 +120,17 @@ public class JavaCodeReader implements ICodeReader {
 		return reader.absPos(codeOffset + 4).readU4();
 	}
 
+	private static final Set<JavaAttrType<?>> DEBUG_INFO_ATTRIBUTES = Set.of(
+			JavaAttrType.LINE_NUMBER_TABLE,
+			JavaAttrType.LOCAL_VAR_TABLE,
+			JavaAttrType.LOCAL_VAR_TYPE_TABLE);
+
 	@Override
 	@Nullable
 	public IDebugInfo getDebugInfo() {
 		int maxStack = readMaxStack();
-		reader.skip(2);
-		reader.skip(reader.readU4());
-		reader.skip(reader.readU2() * 8);
-
-		JavaAttrStorage attrs = clsData.getAttributesReader().load(reader);
+		jumpToCodeAttributes();
+		JavaAttrStorage attrs = clsData.getAttributesReader().loadMulti(reader, DEBUG_INFO_ATTRIBUTES);
 		LineNumberTableAttr linesAttr = attrs.get(JavaAttrType.LINE_NUMBER_TABLE);
 		LocalVarsAttr varsAttr = attrs.get(JavaAttrType.LOCAL_VAR_TABLE);
 		if (linesAttr == null && varsAttr == null) {
@@ -162,7 +168,7 @@ public class JavaCodeReader implements ICodeReader {
 
 	@Override
 	public List<ITry> getTries() {
-		skipToTries();
+		jumpToTries();
 		int excTableLen = reader.readU2();
 		if (excTableLen == 0) {
 			return Collections.emptyList();
@@ -212,7 +218,7 @@ public class JavaCodeReader implements ICodeReader {
 	}
 
 	private Set<Integer> getExcHandlers() {
-		skipToTries();
+		jumpToTries();
 		int excTableLen = reader.readU2();
 		if (excTableLen == 0) {
 			return Collections.emptySet();
@@ -227,9 +233,13 @@ public class JavaCodeReader implements ICodeReader {
 		return set;
 	}
 
-	private void skipToTries() {
+	private void jumpToTries() {
 		reader.absPos(codeOffset + 4);
-		int codeSize = reader.readU4();
-		reader.skip(codeSize);
+		reader.skip(reader.readU4()); // code length
+	}
+
+	private void jumpToCodeAttributes() {
+		jumpToTries();
+		reader.skip(reader.readU2() * 8); // exceptions table
 	}
 }

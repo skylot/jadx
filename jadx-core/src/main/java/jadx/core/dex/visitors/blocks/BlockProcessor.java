@@ -90,7 +90,7 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean deduplicateBlockInsns(BlockNode block) {
+	private static boolean deduplicateBlockInsns(MethodNode mth, BlockNode block) {
 		if (block.contains(AFlag.LOOP_START) || block.contains(AFlag.LOOP_END)) {
 			// search for same instruction at end of all predecessors blocks
 			List<BlockNode> predecessors = block.getPredecessors();
@@ -109,7 +109,7 @@ public class BlockProcessor extends AbstractVisitor {
 					List<InsnNode> insns = getLastInsns(predecessors.get(0), sameInsnCount);
 					insertAtStart(block, insns);
 					predecessors.forEach(pred -> getLastInsns(pred, sameInsnCount).clear());
-					LOG.debug("Move duplicate insns, count: {} to block {}", sameInsnCount, block);
+					mth.addDebugComment("Move duplicate insns, count: " + sameInsnCount + " to block " + block);
 					return true;
 				}
 			}
@@ -318,7 +318,7 @@ public class BlockProcessor extends AbstractVisitor {
 		boolean changed = false;
 		List<BlockNode> basicBlocks = mth.getBasicBlocks();
 		for (BlockNode basicBlock : basicBlocks) {
-			if (deduplicateBlockInsns(basicBlock)) {
+			if (deduplicateBlockInsns(mth, basicBlock)) {
 				changed = true;
 			}
 		}
