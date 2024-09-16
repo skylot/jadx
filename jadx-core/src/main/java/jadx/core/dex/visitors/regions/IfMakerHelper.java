@@ -120,8 +120,12 @@ public class IfMakerHelper {
 		List<BlockNode> preds = block.getPredecessors();
 		List<BlockNode> ifBlocks = info.getMergedBlocks();
 		for (BlockNode pred : preds) {
+			if (pred.contains(AFlag.LOOP_END)) {
+				// ignore loop back edge
+				continue;
+			}
 			BlockNode top = BlockUtils.skipSyntheticPredecessor(pred);
-			if (!ifBlocks.contains(top) && !top.contains(AFlag.LOOP_END)) {
+			if (!ifBlocks.contains(top)) {
 				return false;
 			}
 		}

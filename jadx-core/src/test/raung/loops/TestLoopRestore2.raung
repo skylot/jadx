@@ -1,0 +1,20 @@
+.version 45.3  # Java 1.1
+.class public super loops/TestLoopRestore2
+
+.method public test([I[I)V
+    .max stack 5
+    .max locals 6
+
+    iconst_0
+    istore 3
+    sipush 0
+    ifeq :L0
+    goto :L1
+  :L1
+    sipush 1
+    ifeq :L1
+    goto :L0
+  :L0
+    iinc 3 1
+    return
+.end method

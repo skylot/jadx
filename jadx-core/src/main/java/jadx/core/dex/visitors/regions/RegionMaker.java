@@ -182,7 +182,7 @@ public class RegionMaker {
 		Set<BlockNode> exitBlocksSet = loop.getExitNodes();
 
 		// set exit blocks scan order priority
-		// this can help if loop have several exits (after using 'break' or 'return' in loop)
+		// this can help if loop has several exits (after using 'break' or 'return' in loop)
 		List<BlockNode> exitBlocks = new ArrayList<>(exitBlocksSet.size());
 		BlockNode nextStart = getNextBlock(loopStart);
 		if (nextStart != null && exitBlocksSet.remove(nextStart)) {
@@ -299,10 +299,7 @@ public class RegionMaker {
 				// skip nested loop condition
 				continue;
 			}
-			BlockNode loopEnd = loop.getEnd();
-			boolean exitAtLoopEnd = block == loopEnd
-					|| (loopEnd.getInstructions().isEmpty() && ListUtils.isSingleElement(loopEnd.getPredecessors(), block));
-
+			boolean exitAtLoopEnd = isExitAtLoopEnd(block, loop);
 			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, exitAtLoopEnd);
 			boolean found;
 			if (block == loop.getStart() || exitAtLoopEnd
@@ -343,6 +340,18 @@ public class RegionMaker {
 		}
 		// no exit found => endless loop
 		return null;
+	}
+
+	private static boolean isExitAtLoopEnd(BlockNode exit, LoopInfo loop) {
+		BlockNode loopEnd = loop.getEnd();
+		if (exit == loopEnd) {
+			return true;
+		}
+		BlockNode loopStart = loop.getStart();
+		if (loopStart.getInstructions().isEmpty() && ListUtils.isSingleElement(loopStart.getSuccessors(), exit)) {
+			return false;
+		}
+		return loopEnd.getInstructions().isEmpty() && ListUtils.isSingleElement(loopEnd.getPredecessors(), exit);
 	}
 
 	private boolean checkLoopExits(LoopInfo loop, BlockNode mainExitBlock) {
