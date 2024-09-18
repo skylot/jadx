@@ -256,6 +256,7 @@ public class RegionGen extends InsnGen {
 			List<Object> keys = caseInfo.getKeys();
 			IContainer c = caseInfo.getContainer();
 			for (Object k : keys) {
+				// TODO: support switch over string
 				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
 					code.startLine("default:");
 				} else {
