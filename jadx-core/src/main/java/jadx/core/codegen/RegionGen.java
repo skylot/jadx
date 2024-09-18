@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import jadx.api.plugins.input.data.attributes.IJadxAttribute;
-import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IfNode;
@@ -261,9 +259,7 @@ public class RegionGen extends InsnGen {
 			}
 			InvokeNode wrapInsnInode = (InvokeNode) wrapInsn;
 			MethodInfo methodInfo = wrapInsnInode.getCallMth();
-			if (!(methodInfo.getName().equals("hashCode") && methodInfo.getReturnType() == ArgType.INT)) {
-				return false;
-			}
+			return methodInfo.getName().equals("hashCode") && methodInfo.getReturnType() == ArgType.INT;
 		}
 		return true;
 	}
@@ -315,7 +311,7 @@ public class RegionGen extends InsnGen {
 			if (!(wrapInsn instanceof InvokeNode))
 				continue;
             InvokeNode invokeNode = (InvokeNode) wrapInsn;
-			MethodInfo mth = invokeNode.getCallMth();
+//			MethodInfo mth = invokeNode.getCallMth();
 			InsnArg firstEqArgA = invokeNode.getArg(1);
 			String firstEqArg = null;
 			if (firstEqArgA.isInsnWrap()) {
