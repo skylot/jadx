@@ -5,6 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.regions.Region;
+import jadx.core.dex.regions.conditions.Compare;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,7 +249,24 @@ public class RegionGen extends InsnGen {
 		makeRegionIndent(code, cont.getRegion());
 		code.startLine('}');
 	}
-
+	private boolean isSwitchingOverStringHashCode(InsnArg arg, Object k) {
+		if (k instanceof Integer
+				&& arg instanceof InsnWrapArg
+				&& arg.getType() == ArgType.INT
+		) {
+			InsnWrapArg insnWrapArg = (InsnWrapArg) arg;
+			InsnNode wrapInsn = insnWrapArg.getWrapInsn();
+			if (!(wrapInsn instanceof InvokeNode)) {
+				return false;
+			}
+			InvokeNode wrapInsnInode = (InvokeNode) wrapInsn;
+			MethodInfo methodInfo = wrapInsnInode.getCallMth();
+			if (!(methodInfo.getName().equals("hashCode") && methodInfo.getReturnType() == ArgType.INT)) {
+				return false;
+			}
+		}
+		return true;
+	}
 	public void makeSwitch(SwitchRegion sw, ICodeWriter code) throws CodegenException {
 		SwitchInsn insn = (SwitchInsn) BlockUtils.getLastInsn(sw.getHeader());
 		Objects.requireNonNull(insn, "Switch insn not found in header");
@@ -259,6 +285,8 @@ public class RegionGen extends InsnGen {
 				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
 					code.startLine("default:");
 				} else {
+					if (isSwitchingOverStringHashCode(arg, k))
+							k = transformStringHashCodeFromCase((int) k, caseInfo);
 					code.startLine("case ");
 					addCaseKey(code, arg, k);
 					code.add(':');
@@ -270,6 +298,44 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
+	private String transformStringHashCodeFromCase(int hashCode, CaseInfo ci) throws CodegenException {
+		Region container = (Region) ci.getContainer();
+		for (IContainer ir : container.getSubBlocks()) {
+			if (!(ir instanceof IfRegion)) {
+				continue;
+			}
+			IfRegion ifRegion = (IfRegion) ir;
+			IfCondition ifCondition = ifRegion.getCondition();
+			assert ifCondition != null;
+			Compare compare = ifCondition.getCompare();
+			IfNode in = compare.getInsn();
+			InsnArg firstArg = in.getArg(0);
+			InsnWrapArg insnWrapArg = (InsnWrapArg) firstArg;
+			InsnNode wrapInsn = insnWrapArg.getWrapInsn();
+			if (!(wrapInsn instanceof InvokeNode))
+				continue;
+            InvokeNode invokeNode = (InvokeNode) wrapInsn;
+			MethodInfo mth = invokeNode.getCallMth();
+			InsnArg firstEqArgA = invokeNode.getArg(1);
+			String firstEqArg = null;
+			if (firstEqArgA.isInsnWrap()) {
+				InsnWrapArg firstEqArgAWrap = (InsnWrapArg) firstEqArgA;
+				InsnNode firstEqInsn = firstEqArgAWrap.getWrapInsn();
+				if (firstEqInsn instanceof ConstStringNode) {
+					firstEqArg = ((ConstStringNode) firstEqInsn).getString();
+				}
+			}
+//			if (!(mth.getName() == "equals"
+//					&& mth.getReturnType() == ArgType.BOOLEAN
+//					&& mth.getArgsCount() == 1
+//					&& mth.getArgumentsTypes().getFirst() == ArgType.STRING
+//			)) {
+//				continue;
+//			}
+			return firstEqArg;
+		}
+		throw new CodegenException("Unable to find the string value for the hashCode: " + hashCode);
+	}
 	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) throws CodegenException {
 		// TODO: support switch over string
 		if (k instanceof FieldNode) {
@@ -277,7 +343,12 @@ public class RegionGen extends InsnGen {
 			useField(code, fld.getFieldInfo(), fld);
 		} else if (k instanceof FieldInfo) {
 			useField(code, (FieldInfo) k, null);
-		} else if (k instanceof Integer) {
+		}
+		else if (k instanceof String) {
+			// HACK: I'm lazy...
+			code.add(String.format("\"%s\"", k));
+		}
+		else if (k instanceof Integer) {
 			code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
 		} else {
 			throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
