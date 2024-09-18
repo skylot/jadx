@@ -256,7 +256,6 @@ public class RegionGen extends InsnGen {
 			List<Object> keys = caseInfo.getKeys();
 			IContainer c = caseInfo.getContainer();
 			for (Object k : keys) {
-				// TODO: support switch over string
 				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
 					code.startLine("default:");
 				} else {
@@ -272,6 +271,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) throws CodegenException {
+		// TODO: support switch over string
 		if (k instanceof FieldNode) {
 			FieldNode fld = (FieldNode) k;
 			useField(code, fld.getFieldInfo(), fld);
