@@ -282,8 +282,9 @@ public class RegionGen extends InsnGen {
 				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
 					code.startLine("default:");
 				} else {
-					if (isSwitchingOverStringHashCode(arg, k))
+					if (isSwitchingOverStringHashCode(arg, k)) {
 						k = transformStringHashCodeFromCase((int) k, caseInfo);
+					}
 					code.startLine("case ");
 					addCaseKey(code, arg, k);
 					code.add(':');
@@ -309,8 +310,9 @@ public class RegionGen extends InsnGen {
 			InsnArg firstArg = in.getArg(0);
 			InsnWrapArg insnWrapArg = (InsnWrapArg) firstArg;
 			InsnNode wrapInsn = insnWrapArg.getWrapInsn();
-			if (!(wrapInsn instanceof InvokeNode))
+			if (!(wrapInsn instanceof InvokeNode)) {
 				continue;
+			}
 			InvokeNode invokeNode = (InvokeNode) wrapInsn;
 			// MethodInfo mth = invokeNode.getCallMth();
 			InsnArg firstEqArgA = invokeNode.getArg(1);
