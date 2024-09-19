@@ -21,18 +21,19 @@ public final class ClassSearchProvider extends BaseSearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		while (true) {
-			if (cancelable.isCanceled() || clsNum >= classes.size()) {
-				return null;
-			}
+		while (!cancelable.isCanceled() && clsNum < classes.size()) {
 			JavaClass curCls = classes.get(clsNum++);
 			if (checkCls(curCls)) {
 				return convert(curCls);
 			}
 		}
+		return null;
 	}
 
 	private boolean checkCls(JavaClass cls) {
+		if (searchSettings.getSearchPackage() != null && !cls.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
+			return false;
+		}
 		ClassInfo clsInfo = cls.getClassNode().getClassInfo();
 		return isMatch(clsInfo.getShortName())
 				|| isMatch(clsInfo.getFullName())

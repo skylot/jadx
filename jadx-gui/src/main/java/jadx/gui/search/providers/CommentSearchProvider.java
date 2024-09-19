@@ -51,10 +51,7 @@ public class CommentSearchProvider implements ISearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		while (true) {
-			if (cancelable.isCanceled()) {
-				return null;
-			}
+		while (!cancelable.isCanceled()) {
 			List<ICodeComment> comments = project.getCodeData().getComments();
 			if (progress >= comments.size()) {
 				return null;
@@ -65,6 +62,7 @@ public class CommentSearchProvider implements ISearchProvider {
 				return result;
 			}
 		}
+		return null;
 	}
 
 	@Nullable
@@ -73,6 +71,10 @@ public class CommentSearchProvider implements ISearchProvider {
 		if (all || searchSettings.isMatch(comment.getComment())) {
 			JNode refNode = getRefNode(comment);
 			if (refNode != null) {
+				if (searchSettings.getSearchPackage() != null
+						&& !refNode.getRootClass().getCls().getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
+					return null;
+				}
 				JClass activeCls = searchSettings.getActiveCls();
 				if (activeCls == null || Objects.equals(activeCls, refNode.getRootClass())) {
 					return getCommentNode(comment, refNode);

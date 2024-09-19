@@ -22,6 +22,7 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 	protected final ISearchMethod searchMth;
 	protected final String searchStr;
 	protected final List<JavaClass> classes;
+	protected final SearchSettings searchSettings;
 
 	public BaseSearchProvider(MainWindow mw, SearchSettings searchSettings, List<JavaClass> classes) {
 		this.nodeCache = mw.getCacheObject().getNodeCache();
@@ -29,6 +30,7 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		this.searchMth = searchSettings.getSearchMethod();
 		this.searchStr = searchSettings.getSearchString();
 		this.classes = classes;
+		this.searchSettings = searchSettings;
 	}
 
 	protected boolean isMatch(String str) {
