@@ -76,6 +76,22 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 		return !Objects.equals(parent, aliasParent);
 	}
 
+	public boolean isDescendantOf(JavaPackage ancestor) {
+		JavaPackage current = this;
+		while (current != null) {
+			if (ancestor.equals(current)) {
+				return true;
+			}
+
+			if (current.getPkgNode().getParentPkg() == null) {
+				current = null;
+			} else {
+				current = current.getPkgNode().getParentPkg().getJavaNode();
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public ICodeNodeRef getCodeNodeRef() {
 		return pkgNode;

@@ -252,6 +252,10 @@ public final class JavaClass implements JavaNode {
 		return cls.getPackage();
 	}
 
+	public JavaPackage getJavaPackage() {
+		return cls.getPackageNode().getJavaNode();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
