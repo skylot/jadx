@@ -4,9 +4,9 @@ import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.JavaPackage;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JResource;
-import jadx.api.JavaPackage;
 
 public class SearchSettings {
 

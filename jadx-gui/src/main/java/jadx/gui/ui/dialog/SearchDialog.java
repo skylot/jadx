@@ -416,14 +416,12 @@ public class SearchDialog extends CommonSearchDialog {
 					RxUtils.textFieldEnterPress(searchField),
 					RxUtils.textFieldChanges(packageField),
 					RxUtils.textFieldEnterPress(packageField),
-					searchEmitter.getFlowable()
-			));
+					searchEmitter.getFlowable()));
 		} else {
 			searchEvents = Flowable.merge(
 					RxUtils.textFieldEnterPress(searchField),
 					RxUtils.textFieldEnterPress(packageField),
-					searchEmitter.getFlowable()
-			);
+					searchEmitter.getFlowable());
 		}
 		searchDisposable = searchEvents
 				.debounce(50, TimeUnit.MILLISECONDS)
