@@ -1,5 +1,7 @@
 package jadx.gui;
 
+// dummy change
+
 import java.awt.Desktop;
 
 import javax.swing.SwingUtilities;
