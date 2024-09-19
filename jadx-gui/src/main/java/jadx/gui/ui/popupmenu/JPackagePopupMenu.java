@@ -21,6 +21,7 @@ import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.ExcludePkgDialog;
 import jadx.gui.ui.dialog.RenameDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.utils.NLS;
@@ -41,6 +42,7 @@ public class JPackagePopupMenu extends JPopupMenu {
 		add(makeExcludeItem());
 		add(makeRenameMenuItem(pkg));
 		add(makeExportSubMenu(pkg));
+		add(makeSearchItem(pkg));
 	}
 
 	private JMenuItem makeRenameMenuItem(JPackage pkg) {
@@ -131,5 +133,15 @@ public class JPackagePopupMenu extends JPopupMenu {
 				new ExcludePkgDialog(mainWindow).setVisible(true);
 			}
 		});
+	}
+
+	private JMenuItem makeSearchItem(JPackage pkg) {
+		JMenuItem searchItem = new JMenuItem(NLS.str("menu.text_search"));
+		searchItem.addActionListener(e -> {
+			String fullName = pkg.getPkg().getFullName();
+			LOG.debug("Searching package: {}", fullName);
+			SearchDialog.searchPackage(mainWindow, fullName);
+		});
+		return searchItem;
 	}
 }

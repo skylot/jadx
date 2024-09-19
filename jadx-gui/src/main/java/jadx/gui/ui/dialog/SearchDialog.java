@@ -97,6 +97,12 @@ public class SearchDialog extends CommonSearchDialog {
 		show(searchDialog, window);
 	}
 
+	public static void searchPackage(MainWindow window, String packageName) {
+		SearchDialog searchDialog = new SearchDialog(window, SearchPreset.TEXT, Collections.emptySet());
+		searchDialog.initSearchPackage = packageName;
+		show(searchDialog, window);
+	}
+
 	private static void show(SearchDialog searchDialog, MainWindow mw) {
 		mw.addLoadListener(loaded -> {
 			if (!loaded) {
