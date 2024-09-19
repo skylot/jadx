@@ -2,6 +2,7 @@ package jadx.gui.search.providers;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
@@ -29,7 +30,14 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		this.decompiler = mw.getWrapper().getDecompiler();
 		this.searchMth = searchSettings.getSearchMethod();
 		this.searchStr = searchSettings.getSearchString();
-		this.classes = classes;
+		if (searchSettings.getSearchPackage() != null) {
+			this.classes = classes
+					.stream()
+					.filter(c -> c.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage()))
+					.collect(Collectors.toList());
+		} else {
+			this.classes = classes;
+		}
 		this.searchSettings = searchSettings;
 	}
 

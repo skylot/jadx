@@ -23,13 +23,11 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		while (!cancelable.isCanceled() && clsNum < classes.size()) {
-			JavaClass cls = classes.get(clsNum);
-			if (searchSettings.getSearchPackage() != null && !cls.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
-				clsNum++;
-				mthNum = 0;
-				continue;
+		while (true) {
+			if (cancelable.isCanceled()) {
+				return null;
 			}
+			JavaClass cls = classes.get(clsNum);
 			List<MethodNode> methods = cls.getClassNode().getMethods();
 			if (mthNum < methods.size()) {
 				MethodNode mth = methods.get(mthNum++);
@@ -39,9 +37,11 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 			} else {
 				clsNum++;
 				mthNum = 0;
+				if (clsNum >= classes.size()) {
+					return null;
+				}
 			}
 		}
-		return null;
 	}
 
 	private boolean checkMth(MethodInfo mthInfo) {

@@ -40,14 +40,11 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		while (!cancelable.isCanceled() && clsNum < classes.size()) {
-			JavaClass cls = classes.get(clsNum);
-			if (searchSettings.getSearchPackage() != null && !cls.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
-				clsNum++;
-				pos = 0;
-				code = null;
-				continue;
+		while (true) {
+			if (cancelable.isCanceled() || clsNum >= classes.size()) {
+				return null;
 			}
+			JavaClass cls = classes.get(clsNum);
 			String clsCode = code;
 			if (clsCode == null && !cls.isInner() && !cls.isNoCode()) {
 				clsCode = getClassCode(cls, codeCache);
@@ -63,7 +60,6 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 			pos = 0;
 			code = null;
 		}
-		return null;
 	}
 
 	@Nullable

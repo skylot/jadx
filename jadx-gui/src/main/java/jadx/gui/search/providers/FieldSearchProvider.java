@@ -23,13 +23,11 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
-		while (!cancelable.isCanceled() && clsNum < classes.size()) {
-			JavaClass cls = classes.get(clsNum);
-			if (searchSettings.getSearchPackage() != null && !cls.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
-				clsNum++;
-				fldNum = 0;
-				continue;
+		while (true) {
+			if (cancelable.isCanceled()) {
+				return null;
 			}
+			JavaClass cls = classes.get(clsNum);
 			List<FieldNode> fields = cls.getClassNode().getFields();
 			if (fldNum < fields.size()) {
 				FieldNode fld = fields.get(fldNum++);
@@ -39,9 +37,11 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 			} else {
 				clsNum++;
 				fldNum = 0;
+				if (clsNum >= classes.size()) {
+					return null;
+				}
 			}
 		}
-		return null;
 	}
 
 	private boolean checkField(FieldInfo fieldInfo) {
