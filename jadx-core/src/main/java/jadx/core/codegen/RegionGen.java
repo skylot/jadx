@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import jadx.core.dex.instructions.IndexInsnNode;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -283,7 +284,11 @@ public class RegionGen extends InsnGen {
 					code.startLine("default:");
 				} else {
 					if (isSwitchingOverStringHashCode(arg, k)) {
-						k = transformStringHashCodeFromCase((int) k, caseInfo);
+						try {
+							k = transformStringHashCodeFromCase((int) k, caseInfo);
+						} catch (CodegenException e) {
+							code.startLine("// JADX WARNING: FAILED TO TRANSLATE TO STR:" + e);
+						}
 					}
 					code.startLine("case ");
 					addCaseKey(code, arg, k);
@@ -314,16 +319,18 @@ public class RegionGen extends InsnGen {
 				continue;
 			}
 			InvokeNode invokeNode = (InvokeNode) wrapInsn;
-			// MethodInfo mth = invokeNode.getCallMth();
 			InsnArg firstEqArgA = invokeNode.getArg(1);
-			String firstEqArg = null;
-			if (firstEqArgA.isInsnWrap()) {
-				InsnWrapArg firstEqArgAWrap = (InsnWrapArg) firstEqArgA;
-				InsnNode firstEqInsn = firstEqArgAWrap.getWrapInsn();
-				if (firstEqInsn instanceof ConstStringNode) {
-					firstEqArg = ((ConstStringNode) firstEqInsn).getString();
-				}
+			if (!(firstEqArgA instanceof InsnWrapArg)) {
+				continue;
 			}
+			InsnWrapArg firstEqArgAWrap = (InsnWrapArg) firstEqArgA;
+			InsnNode firstEqInsn = firstEqArgAWrap.getWrapInsn();
+			if (firstEqInsn instanceof ConstStringNode) {
+				return ((ConstStringNode) firstEqInsn).getString();
+			} else if (firstEqInsn instanceof IndexInsnNode) {
+				throw new CodegenException("Can't handle IndexInsnNode(s) yet!");
+			}
+			throw new CodegenException("Can't handle instruction: " + firstEqInsn);
 			// if (!(mth.getName() == "equals"
 			// && mth.getReturnType() == ArgType.BOOLEAN
 			// && mth.getArgsCount() == 1
@@ -331,7 +338,6 @@ public class RegionGen extends InsnGen {
 			// )) {
 			// continue;
 			// }
-			return firstEqArg;
 		}
 		throw new CodegenException("Unable to find the string value for the hashCode: " + hashCode);
 	}
