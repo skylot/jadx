@@ -6,22 +6,25 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JResource;
+import jadx.api.JavaPackage;
 
 public class SearchSettings {
 
 	private final String searchString;
 	private final boolean useRegex;
 	private final boolean ignoreCase;
+	private final JavaPackage searchPackage;
 
 	private JClass activeCls;
 	private JResource activeResource;
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
 
-	public SearchSettings(String searchString, boolean ignoreCase, boolean useRegex) {
+	public SearchSettings(String searchString, boolean ignoreCase, boolean useRegex, JavaPackage searchPackage) {
 		this.searchString = searchString;
 		this.useRegex = useRegex;
 		this.ignoreCase = ignoreCase;
+		this.searchPackage = searchPackage;
 	}
 
 	@Nullable
@@ -48,6 +51,10 @@ public class SearchSettings {
 
 	public boolean isIgnoreCase() {
 		return this.ignoreCase;
+	}
+
+	public JavaPackage getSearchPackage() {
+		return this.searchPackage;
 	}
 
 	public String getSearchString() {
