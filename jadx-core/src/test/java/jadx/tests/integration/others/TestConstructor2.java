@@ -15,6 +15,7 @@ public class TestConstructor2 extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmaliFiles())
 				.code()
-				.containsOne("A a = new A();");
+				.containsOne("A a = new A();")
+				.doesNotContain("return");
 	}
 }

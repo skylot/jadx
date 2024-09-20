@@ -14,6 +14,6 @@ public class TestConstructorBranched3 extends SmaliTest {
 		disableCompilation();
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.countString(4, "return new f(");
+				.countString(2, "return new f(");
 	}
 }

@@ -1,15 +1,14 @@
 package jadx.core.dex.visitors.debuginfo;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
-import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -20,7 +19,6 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
-import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -59,30 +57,44 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		if (lineMapping.isEmpty()) {
 			return;
 		}
-		Map<Integer, Integer> linesStat = new HashMap<>(); // count repeating lines
 		for (Map.Entry<Integer, Integer> entry : lineMapping.entrySet()) {
 			try {
-				Integer offset = entry.getKey();
-				InsnNode insn = insnArr[offset];
+				InsnNode insn = insnArr[entry.getKey()];
 				if (insn != null) {
-					int line = entry.getValue();
-					insn.setSourceLine(line);
-					if (insn.getType() != InsnType.NOP) {
-						linesStat.merge(line, 1, (v, one) -> v + 1);
-					}
+					insn.setSourceLine(entry.getValue());
 				}
 			} catch (Exception e) {
 				mth.addWarnComment("Error attach source line", e);
+				return;
 			}
 		}
-		// 3 here is allowed maximum for lines repeat,
-		// can occur in indexed 'for' loops (3 instructions with same line)
-		List<Map.Entry<Integer, Integer>> repeatingLines = ListUtils.filter(linesStat.entrySet(), p -> p.getValue() > 3);
-		if (repeatingLines.isEmpty()) {
-			mth.add(AFlag.USE_LINES_HINTS);
+		String ignoreReason = verifyDebugLines(lineMapping);
+		if (ignoreReason != null) {
+			mth.addDebugComment("Don't trust debug lines info. " + ignoreReason);
 		} else {
-			mth.addDebugComment("Don't trust debug lines info. Repeating lines: " + repeatingLines);
+			mth.add(AFlag.USE_LINES_HINTS);
 		}
+	}
+
+	private String verifyDebugLines(Map<Integer, Integer> lineMapping) {
+		// search min line in method
+		int minLine = lineMapping.values().stream().mapToInt(v -> v).min().orElse(Integer.MAX_VALUE);
+		if (minLine < 3) {
+			return "Lines numbers was adjusted: min line is " + minLine;
+		}
+
+		// count repeating lines
+		// 3 here is allowed maximum for line repeat count
+		// can occur in indexed 'for' loops (3 instructions with the same line)
+		var repeatingLines = lineMapping.values().stream()
+				.collect(Collectors.toMap(l -> l, l -> 1, Integer::sum))
+				.entrySet().stream()
+				.filter(p -> p.getValue() > 3)
+				.collect(Collectors.toList());
+		if (!repeatingLines.isEmpty()) {
+			return "Repeating lines: " + repeatingLines;
+		}
+		return null;
 	}
 
 	private void attachDebugInfo(MethodNode mth, List<ILocalVar> localVars, InsnNode[] insnArr) {
