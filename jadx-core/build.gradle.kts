@@ -26,4 +26,8 @@ dependencies {
 
 tasks.test {
 	exclude("**/tmp/*")
+
+	// disable cache to allow test's rerun,
+	// because most tests are integration and depends on plugins and environment
+	outputs.cacheIf { false }
 }
