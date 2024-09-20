@@ -25,8 +25,12 @@ public final class ConstructorInsn extends BaseInvokeNode {
 	}
 
 	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
+		this(mth, invoke, invoke.getCallMth());
+	}
+
+	public ConstructorInsn(MethodNode mth, InvokeNode invoke, MethodInfo callMth) {
 		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
-		this.callMth = invoke.getCallMth();
+		this.callMth = callMth;
 		this.callType = getCallType(mth, callMth.getDeclClass(), invoke.getArg(0));
 		int argsCount = invoke.getArgsCount();
 		for (int i = 1; i < argsCount; i++) {

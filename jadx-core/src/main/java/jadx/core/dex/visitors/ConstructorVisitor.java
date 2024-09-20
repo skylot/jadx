@@ -6,9 +6,13 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -59,10 +63,17 @@ public class ConstructorVisitor extends AbstractVisitor {
 
 	private static boolean processInvoke(MethodNode mth, BlockNode block, int indexInBlock, InsnRemover remover) {
 		InvokeNode inv = (InvokeNode) block.getInstructions().get(indexInBlock);
-		if (!inv.getCallMth().isConstructor()) {
+		MethodInfo callMth = inv.getCallMth();
+		if (!callMth.isConstructor()) {
 			return false;
 		}
-		ConstructorInsn co = new ConstructorInsn(mth, inv);
+		ArgType instType = searchInstanceType(inv);
+		if (instType != null && !instType.equals(callMth.getDeclClass().getType())) {
+			ClassInfo instCls = ClassInfo.fromType(mth.root(), instType);
+			callMth = MethodInfo.fromDetails(mth.root(), instCls, callMth.getName(),
+					callMth.getArgumentsTypes(), callMth.getReturnType());
+		}
+		ConstructorInsn co = new ConstructorInsn(mth, inv, callMth);
 		if (canRemoveConstructor(mth, co)) {
 			remover.addAndUnbind(inv);
 			return false;
@@ -99,6 +110,18 @@ public class ConstructorVisitor extends AbstractVisitor {
 			BlockUtils.replaceInsn(mth, block, indexInBlock, co);
 		}
 		return true;
+	}
+
+	private static @Nullable ArgType searchInstanceType(InvokeNode inv) {
+		InsnArg instanceArg = inv.getInstanceArg();
+		if (instanceArg == null || !instanceArg.isRegister()) {
+			return null;
+		}
+		InsnNode assignInsn = ((RegisterArg) instanceArg).getSVar().getAssignInsn();
+		if (assignInsn == null || assignInsn.getType() != InsnType.NEW_INSTANCE) {
+			return null;
+		}
+		return ((IndexInsnNode) assignInsn).getIndexAsType();
 	}
 
 	private static RegisterArg insertPhiInsn(MethodNode mth, BlockNode curBlock,
