@@ -16,6 +16,7 @@ public class CacheObject {
 	private String lastSearch;
 	private JNodeCache jNodeCache;
 	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
+	private String lastSearchPackage;
 
 	private List<List<JavaClass>> decompileBatches;
 	private PackageHelper packageHelper;
@@ -30,6 +31,7 @@ public class CacheObject {
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
 		lastSearchOptions = new HashMap<>();
+		lastSearchPackage = null;
 		decompileBatches = null;
 		packageHelper = null;
 		fullDecompilationFinished = false;
@@ -40,8 +42,17 @@ public class CacheObject {
 		return lastSearch;
 	}
 
+	@Nullable
+	public String getLastSearchPackage() {
+		return lastSearchPackage;
+	}
+
 	public void setLastSearch(String lastSearch) {
 		this.lastSearch = lastSearch;
+	}
+
+	public void setLastSearchPackage(String lastSearchPackage) {
+		this.lastSearchPackage = lastSearchPackage;
 	}
 
 	public JNodeCache getNodeCache() {

@@ -41,6 +41,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import jadx.api.JavaClass;
+import jadx.api.JavaPackage;
 import jadx.core.utils.ListUtils;
 import jadx.gui.jobs.ITaskInfo;
 import jadx.gui.jobs.ITaskProgress;
@@ -96,6 +97,12 @@ public class SearchDialog extends CommonSearchDialog {
 		show(searchDialog, window);
 	}
 
+	public static void searchPackage(MainWindow window, String packageName) {
+		SearchDialog searchDialog = new SearchDialog(window, SearchPreset.TEXT, Collections.emptySet());
+		searchDialog.initSearchPackage = packageName;
+		show(searchDialog, window);
+	}
+
 	private static void show(SearchDialog searchDialog, MainWindow mw) {
 		mw.addLoadListener(loaded -> {
 			if (!loaded) {
@@ -130,6 +137,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private transient Color searchFieldDefaultBgColor;
 
 	private transient JTextField searchField;
+	private transient JTextField packageField;
 
 	private transient @Nullable SearchTask searchTask;
 	private transient JButton loadAllButton;
@@ -142,6 +150,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private transient ChangeListener activeTabListener;
 
 	private transient String initSearchText = null;
+	private transient String initSearchPackage = null;
 
 	// temporal list for pending results
 	private final List<JNode> pendingResults = new ArrayList<>();
@@ -209,6 +218,10 @@ public class SearchDialog extends CommonSearchDialog {
 		if (searchText != null) {
 			searchField.setText(searchText);
 			searchField.selectAll();
+		}
+		String searchPackage = initSearchPackage != null ? initSearchPackage : cache.getLastSearchPackage();
+		if (searchPackage != null) {
+			packageField.setText(searchPackage);
 		}
 		searchField.requestFocus();
 		resultsTable.initColumnWidth();
@@ -278,10 +291,21 @@ public class SearchDialog extends CommonSearchDialog {
 		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.regex"), USE_REGEX));
 		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.active_tab"), SearchOptions.ACTIVE_TAB));
 
+		packageField = new JTextField();
+		packageField.setAlignmentX(LEFT_ALIGNMENT);
+		packageField.setPreferredSize(new Dimension(300, packageField.getPreferredSize().height));
+		TextStandardActions.attach(packageField);
+		packageField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+
+		JPanel searchPackageOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		searchPackageOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.limit_package")));
+		searchPackageOptions.add(packageField);
+
 		JPanel optionsPanel = new JPanel(new WrapLayout(WrapLayout.LEFT, 0, 0));
 		optionsPanel.setAlignmentX(LEFT_ALIGNMENT);
 		optionsPanel.add(searchInPanel);
 		optionsPanel.add(searchOptions);
+		optionsPanel.add(searchPackageOptions);
 
 		JPanel searchPane = new JPanel();
 		searchPane.setLayout(new BoxLayout(searchPane, BoxLayout.PAGE_AXIS));
@@ -387,15 +411,22 @@ public class SearchDialog extends CommonSearchDialog {
 		searchEmitter = new SearchEventEmitter();
 		Flowable<String> searchEvents;
 		if (mainWindow.getSettings().isUseAutoSearch()) {
-			searchEvents = Flowable.merge(RxUtils.textFieldChanges(searchField),
-					RxUtils.textFieldEnterPress(searchField), searchEmitter.getFlowable());
+			searchEvents = Flowable.merge(List.of(
+					RxUtils.textFieldChanges(searchField),
+					RxUtils.textFieldEnterPress(searchField),
+					RxUtils.textFieldChanges(packageField),
+					RxUtils.textFieldEnterPress(packageField),
+					searchEmitter.getFlowable()));
 		} else {
-			searchEvents = Flowable.merge(RxUtils.textFieldEnterPress(searchField), searchEmitter.getFlowable());
+			searchEvents = Flowable.merge(
+					RxUtils.textFieldEnterPress(searchField),
+					RxUtils.textFieldEnterPress(packageField),
+					searchEmitter.getFlowable());
 		}
 		searchDisposable = searchEvents
 				.debounce(50, TimeUnit.MILLISECONDS)
 				.observeOn(Schedulers.from(searchBackgroundExecutor))
-				.subscribe(this::search);
+				.subscribe(t -> this.search(searchField.getText()));
 	}
 
 	private void search(String text) {
@@ -427,7 +458,29 @@ public class SearchDialog extends CommonSearchDialog {
 		LOG.debug("Building search for '{}', options: {}", text, options);
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
-		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex);
+
+		// Find the JavaPackage for the searched package string
+		String packageText = packageField.getText();
+		JavaPackage searchPackage = null;
+		if (!packageText.isBlank()) {
+			searchPackage = mainWindow
+					.getWrapper()
+					.getPackages()
+					.stream()
+					.filter(p -> p.getFullName().equals(packageText))
+					.findFirst()
+					.orElse(null);
+			if (searchPackage == null) {
+				resultsInfoLabel.setText(NLS.str("search_dialog.package_not_found"));
+				packageField.setBackground(SEARCH_FIELD_ERROR_COLOR);
+				return null;
+			}
+		}
+		if (Objects.equals(packageField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
+			packageField.setBackground(searchFieldDefaultBgColor);
+		}
+
+		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex, searchPackage);
 		String error = searchSettings.prepare();
 		if (error == null) {
 			if (Objects.equals(searchField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
@@ -597,6 +650,7 @@ public class SearchDialog extends CommonSearchDialog {
 		String text = searchField.getText();
 		updateHighlightContext(text, !options.contains(IGNORE_CASE), options.contains(USE_REGEX), false);
 		cache.setLastSearch(text);
+		cache.setLastSearchPackage(packageField.getText());
 		cache.getLastSearchOptions().put(searchPreset, options);
 		if (!mainWindow.getSettings().isUseAutoSearch()) {
 			mainWindow.getProject().addToSearchHistory(text);
