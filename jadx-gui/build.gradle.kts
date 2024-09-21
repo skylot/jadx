@@ -2,7 +2,7 @@ plugins {
 	id("jadx-kotlin")
 	id("application")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.1"
+	id("com.gradleup.shadow") version "8.3.2"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -39,11 +39,11 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.11.0")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
-	implementation("commons-io:commons-io:2.16.1")
+	implementation("commons-io:commons-io:2.17.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.6.0")
+	implementation("com.android.tools.build:apksig:8.6.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)

@@ -11,7 +11,7 @@ repositories {
 dependencies {
 	rewrite("org.openrewrite.recipe:rewrite-testing-frameworks:2.18.0")
 	rewrite("org.openrewrite.recipe:rewrite-logging-frameworks:2.13.0")
-	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.24.0")
+	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.25.1")
 	rewrite("org.openrewrite.recipe:rewrite-static-analysis:1.16.0")
 }
 
