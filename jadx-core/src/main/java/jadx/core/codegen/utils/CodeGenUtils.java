@@ -135,10 +135,15 @@ public class CodeGenUtils {
 		}
 	}
 
-	public static void addInputFileInfo(ICodeWriter code, ClassNode node) {
-		if (node.getClsData() != null && node.checkCommentsLevel(CommentsLevel.INFO)) {
-			String inputFileName = node.getClsData().getInputFileName();
+	public static void addInputFileInfo(ICodeWriter code, ClassNode cls) {
+		if (cls.checkCommentsLevel(CommentsLevel.INFO) && cls.getClsData() != null) {
+			String inputFileName = cls.getClsData().getInputFileName();
 			if (inputFileName != null) {
+				ClassNode declCls = cls.getDeclaringClass();
+				if (declCls != null && inputFileName.equals(declCls.getClsData().getInputFileName())) {
+					// don't add same comment for inner classes
+					return;
+				}
 				code.startLine("/* loaded from: ").add(inputFileName).add(" */");
 			}
 		}
