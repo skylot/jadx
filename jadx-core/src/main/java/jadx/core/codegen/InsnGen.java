@@ -749,6 +749,7 @@ public class InsnGen {
 			code.attachAnnotation(refMth);
 			code.add("this");
 		} else {
+			boolean forceShortName = addOuterClassInstance(insn, code, callMth);
 			code.add("new ");
 			if (refMth == null || refMth.contains(AFlag.DONT_GENERATE)) {
 				// use class reference if constructor method is missing (default constructor)
@@ -756,7 +757,11 @@ public class InsnGen {
 			} else {
 				code.attachAnnotation(refMth);
 			}
-			mgen.getClassGen().addClsName(code, insn.getClassType());
+			if (forceShortName) {
+				mgen.getClassGen().addClsShortNameForced(code, insn.getClassType());
+			} else {
+				mgen.getClassGen().addClsName(code, insn.getClassType());
+			}
 			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);
 			if (genericInfoAttr != null) {
 				code.add('<');
@@ -775,6 +780,27 @@ public class InsnGen {
 			}
 		}
 		generateMethodArguments(code, insn, 0, callMth);
+	}
+
+	private boolean addOuterClassInstance(ConstructorInsn insn, ICodeWriter code, MethodNode callMth) throws CodegenException {
+		if (callMth == null || !callMth.contains(AFlag.SKIP_FIRST_ARG)) {
+			return false;
+		}
+		ClassNode ctrCls = callMth.getDeclaringClass();
+		if (!ctrCls.isInner() || insn.getArgsCount() == 0) {
+			return false;
+		}
+		InsnArg instArg = insn.getArg(0);
+		if (instArg.isThis()) {
+			return false;
+		}
+		// instance arg should be of an outer class type
+		if (!instArg.getType().equals(ctrCls.getDeclaringClass().getType())) {
+			return false;
+		}
+		addArgDot(code, instArg);
+		// can't use another dot, force short name of class
+		return true;
 	}
 
 	private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {

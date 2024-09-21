@@ -652,6 +652,13 @@ public class ClassGen {
 		code.add(clsName);
 	}
 
+	public void addClsShortNameForced(ICodeWriter code, ClassInfo classInfo) {
+		code.add(classInfo.getAliasShortName());
+		if (!isBothClassesInOneTopClass(cls.getClassInfo(), classInfo)) {
+			addImport(classInfo);
+		}
+	}
+
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
 		String fullName = extClsInfo.getAliasFullName();
 		if (fallback || !useImports) {
