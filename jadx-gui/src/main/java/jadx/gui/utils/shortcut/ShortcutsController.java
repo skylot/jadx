@@ -3,6 +3,8 @@ package jadx.gui.utils.shortcut;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,41 +14,42 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionCategory;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.IShortcutAction;
 import jadx.gui.utils.UiUtils;
 
 public class ShortcutsController {
-	private ShortcutsWrapper shortcuts;
+	private static final Logger LOG = LoggerFactory.getLogger(ShortcutsController.class);
+
 	private final JadxSettings settings;
+	private final Map<ActionModel, Set<IShortcutAction>> boundActions = new EnumMap<>(ActionModel.class);
+	private final Set<ActionModel> mouseActions = EnumSet.noneOf(ActionModel.class);
 
-	private final Map<ActionModel, Set<IShortcutAction>> boundActions = new HashMap<>();
-
-	private Set<ActionModel> mouseActions = null;
+	private ShortcutsWrapper shortcuts;
 
 	public ShortcutsController(JadxSettings settings) {
 		this.settings = settings;
 	}
 
 	public void loadSettings() {
-		this.shortcuts = settings.getShortcuts();
-
+		shortcuts = settings.getShortcuts();
 		indexMouseActions();
-
-		for (Map.Entry<ActionModel, Set<IShortcutAction>> actionsEntry : boundActions.entrySet()) {
-			ActionModel actionModel = actionsEntry.getKey();
-			Set<IShortcutAction> actions = actionsEntry.getValue();
-			Shortcut shortcut = get(actionModel);
+		boundActions.forEach((actionModel, actions) -> {
 			if (actions != null) {
+				Shortcut shortcut = get(actionModel);
 				for (IShortcutAction action : actions) {
 					action.setShortcut(shortcut);
 				}
 			}
-		}
+		});
 	}
 
 	@Nullable
@@ -56,17 +59,20 @@ public class ShortcutsController {
 
 	public KeyStroke getKeyStroke(ActionModel actionModel) {
 		Shortcut shortcut = get(actionModel);
-		KeyStroke keyStroke = null;
 		if (shortcut != null && shortcut.isKeyboard()) {
-			keyStroke = shortcut.toKeyStroke();
+			return shortcut.toKeyStroke();
 		}
-		return keyStroke;
+		return null;
 	}
 
-	/*
+	/**
 	 * Binds to an action and updates its shortcut every time loadSettings is called
 	 */
 	public void bind(IShortcutAction action) {
+		if (action.getShortcutComponent() == null) {
+			LOG.warn("No shortcut component in action: {}", action, new JadxRuntimeException());
+			return;
+		}
 		boundActions.computeIfAbsent(action.getActionModel(), k -> new HashSet<>());
 		boundActions.get(action.getActionModel()).add(action);
 	}
@@ -93,7 +99,6 @@ public class ShortcutsController {
 			if (mw.isSettingsOpen()) {
 				return;
 			}
-
 			if (!(event instanceof MouseEvent)) {
 				return;
 			}
@@ -101,7 +106,6 @@ public class ShortcutsController {
 			if (mouseEvent.getID() != MouseEvent.MOUSE_PRESSED) {
 				return;
 			}
-
 			int mouseButton = mouseEvent.getButton();
 			for (ActionModel actionModel : mouseActions) {
 				Shortcut shortcut = shortcuts.get(actionModel);
@@ -121,22 +125,33 @@ public class ShortcutsController {
 	}
 
 	private void indexMouseActions() {
-		mouseActions = new HashSet<>();
+		mouseActions.clear();
 		for (ActionModel actionModel : ActionModel.values()) {
 			Shortcut shortcut = shortcuts.get(actionModel);
 			if (shortcut != null && shortcut.isMouse()) {
 				mouseActions.add(actionModel);
-			} else {
-				mouseActions.remove(actionModel);
 			}
 		}
 	}
 
 	public void unbindActionsForComponent(JComponent component) {
-		for (ActionModel actionModel : ActionModel.values()) {
-			Set<IShortcutAction> actions = boundActions.get(actionModel);
+		for (Set<IShortcutAction> actions : boundActions.values()) {
 			if (actions != null) {
-				actions.removeIf(action -> action != null && action.getShortcutComponent() == component);
+				actions.removeIf(action -> action == null
+						|| action.getShortcutComponent() == null
+						|| action.getShortcutComponent() == component);
+			}
+		}
+	}
+
+	/**
+	 * Keep only actions bound to the main window.
+	 * Other actions will be added on demand.
+	 */
+	public void reset() {
+		for (ActionModel actionModel : ActionModel.values()) {
+			if (actionModel.getCategory() != ActionCategory.MENU_TOOLBAR) {
+				boundActions.remove(actionModel);
 			}
 		}
 	}

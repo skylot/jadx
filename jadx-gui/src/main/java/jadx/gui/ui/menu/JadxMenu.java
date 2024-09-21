@@ -1,6 +1,7 @@
 package jadx.gui.ui.menu;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
@@ -10,11 +11,18 @@ import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class JadxMenu extends JMenu {
+	// fake component to fill action shortcut component property
+	private static final JComponent JADX_MENU_COMPONENT = new JComponent() {
+		@Override
+		public String toString() {
+			return "JADX_MENU_COMPONENT";
+		}
+	};
+
 	private final ShortcutsController shortcutsController;
 
 	public JadxMenu(String name, ShortcutsController shortcutsController) {
 		super(name);
-
 		this.shortcutsController = shortcutsController;
 	}
 
@@ -33,7 +41,12 @@ public class JadxMenu extends JMenu {
 
 	public void bindAction(Action action) {
 		if (action instanceof JadxGuiAction) {
-			shortcutsController.bind((JadxGuiAction) action);
+			JadxGuiAction guiAction = (JadxGuiAction) action;
+			JComponent shortcutComponent = guiAction.getShortcutComponent();
+			if (shortcutComponent == null) {
+				guiAction.setShortcutComponent(JADX_MENU_COMPONENT);
+			}
+			shortcutsController.bind(guiAction);
 		}
 	}
 

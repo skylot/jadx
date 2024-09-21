@@ -13,8 +13,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
 
-public class JadxGuiAction extends ActionHandler
-		implements IShortcutAction {
+public class JadxGuiAction extends ActionHandler implements IShortcutAction {
 	private static final String COMMAND = "JadxGuiAction.Command.%s";
 
 	private final ActionModel actionModel;
@@ -24,7 +23,6 @@ public class JadxGuiAction extends ActionHandler
 	private Shortcut shortcut;
 
 	public JadxGuiAction(ActionModel actionModel) {
-		super();
 		this.actionModel = actionModel;
 		this.id = actionModel.name();
 
@@ -48,7 +46,6 @@ public class JadxGuiAction extends ActionHandler
 	}
 
 	public JadxGuiAction(String id) {
-		super();
 		this.actionModel = null;
 		this.id = id;
 
@@ -137,5 +134,10 @@ public class JadxGuiAction extends ActionHandler
 			UiUtils.addKeyBinding(shortcutComponent, keyStroke, id, this::performAction);
 			addedKeyStroke = keyStroke;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "JadxGuiAction{" + id + ", component: " + shortcutComponent + '}';
 	}
 }
