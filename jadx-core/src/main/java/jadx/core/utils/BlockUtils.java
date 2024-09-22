@@ -1202,4 +1202,48 @@ public class BlockUtils {
 		}
 		return block.get(AType.EXC_CATCH);
 	}
+
+	public static boolean isEqualPaths(BlockNode b1, BlockNode b2) {
+		if (b1 == b2) {
+			return true;
+		}
+		if (b1 == null || b2 == null) {
+			return false;
+		}
+		return isEqualReturnBlocks(b1, b2) || isEmptySyntheticPath(b1, b2);
+	}
+
+	private static boolean isEmptySyntheticPath(BlockNode b1, BlockNode b2) {
+		BlockNode n1 = followEmptyPath(b1);
+		BlockNode n2 = followEmptyPath(b2);
+		return n1 == n2 || isEqualReturnBlocks(n1, n2);
+	}
+
+	public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
+		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
+			return false;
+		}
+		List<InsnNode> b1Insns = b1.getInstructions();
+		List<InsnNode> b2Insns = b2.getInstructions();
+		if (b1Insns.size() != 1 || b2Insns.size() != 1) {
+			return false;
+		}
+		InsnNode i1 = b1Insns.get(0);
+		InsnNode i2 = b2Insns.get(0);
+		if (i1.getArgsCount() != i2.getArgsCount()) {
+			return false;
+		}
+		if (i1.getArgsCount() == 0) {
+			return true;
+		}
+		InsnArg firstArg = i1.getArg(0);
+		InsnArg secondArg = i2.getArg(0);
+		if (firstArg.isSameConst(secondArg)) {
+			return true;
+		}
+		if (i1.getSourceLine() != i2.getSourceLine()) {
+			return false;
+		}
+		return firstArg.equals(secondArg);
+	}
 }

@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors.regions;
+package jadx.core.dex.visitors.regions.maker;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -31,7 +31,7 @@ final class RegionStack {
 		IRegion region;
 
 		public State() {
-			exits = new HashSet<>(4);
+			exits = new HashSet<>();
 		}
 
 		private State(State c, IRegion region) {
@@ -111,6 +111,12 @@ final class RegionStack {
 
 	public int size() {
 		return stack.size();
+	}
+
+	public RegionStack clear() {
+		stack.clear();
+		curState = new State();
+		return this;
 	}
 
 	@Override

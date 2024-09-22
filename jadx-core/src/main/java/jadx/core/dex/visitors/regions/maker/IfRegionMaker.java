@@ -1,10 +1,11 @@
-package jadx.core.dex.visitors.regions;
+package jadx.core.dex.visitors.regions.maker;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,28 +13,133 @@ import org.slf4j.LoggerFactory;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfCondition;
-import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfInfo;
+import jadx.core.dex.regions.conditions.IfRegion;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.visitors.regions.RegionMaker.isEqualPaths;
-import static jadx.core.dex.visitors.regions.RegionMaker.isEqualReturnBlocks;
+import static jadx.core.utils.BlockUtils.isEqualPaths;
+import static jadx.core.utils.BlockUtils.isEqualReturnBlocks;
 import static jadx.core.utils.BlockUtils.isPathExists;
 
-public class IfMakerHelper {
-	private static final Logger LOG = LoggerFactory.getLogger(IfMakerHelper.class);
+final class IfRegionMaker {
+	private static final Logger LOG = LoggerFactory.getLogger(IfRegionMaker.class);
+	private final MethodNode mth;
+	private final RegionMaker regionMaker;
 
-	private IfMakerHelper() {
+	IfRegionMaker(MethodNode mth, RegionMaker regionMaker) {
+		this.mth = mth;
+		this.regionMaker = regionMaker;
+	}
+
+	BlockNode process(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
+		if (block.contains(AFlag.ADDED_TO_REGION)) {
+			// block already included in other 'if' region
+			return ifnode.getThenBlock();
+		}
+
+		IfInfo currentIf = makeIfInfo(mth, block);
+		if (currentIf == null) {
+			return null;
+		}
+		IfInfo mergedIf = mergeNestedIfNodes(currentIf);
+		if (mergedIf != null) {
+			currentIf = mergedIf;
+		} else {
+			// invert simple condition (compiler often do it)
+			currentIf = IfInfo.invert(currentIf);
+		}
+		IfInfo modifiedIf = restructureIf(mth, block, currentIf);
+		if (modifiedIf != null) {
+			currentIf = modifiedIf;
+		} else {
+			if (currentIf.getMergedBlocks().size() <= 1) {
+				return null;
+			}
+			currentIf = makeIfInfo(mth, block);
+			currentIf = restructureIf(mth, block, currentIf);
+			if (currentIf == null) {
+				// all attempts failed
+				return null;
+			}
+		}
+		confirmMerge(currentIf);
+
+		IfRegion ifRegion = new IfRegion(currentRegion);
+		ifRegion.updateCondition(currentIf);
+		currentRegion.getSubBlocks().add(ifRegion);
+
+		BlockNode outBlock = currentIf.getOutBlock();
+		stack.push(ifRegion);
+		stack.addExit(outBlock);
+
+		BlockNode thenBlock = currentIf.getThenBlock();
+		if (thenBlock == null) {
+			// empty then block, not normal, but maybe correct
+			ifRegion.setThenRegion(new Region(ifRegion));
+		} else {
+			ifRegion.setThenRegion(regionMaker.makeRegion(thenBlock));
+		}
+		BlockNode elseBlock = currentIf.getElseBlock();
+		if (elseBlock == null || stack.containsExit(elseBlock)) {
+			ifRegion.setElseRegion(null);
+		} else {
+			ifRegion.setElseRegion(regionMaker.makeRegion(elseBlock));
+		}
+
+		// insert edge insns in new 'else' branch
+		// TODO: make more common algorithm
+		if (ifRegion.getElseRegion() == null && outBlock != null) {
+			List<EdgeInsnAttr> edgeInsnAttrs = outBlock.getAll(AType.EDGE_INSN);
+			if (!edgeInsnAttrs.isEmpty()) {
+				Region elseRegion = new Region(ifRegion);
+				for (EdgeInsnAttr edgeInsnAttr : edgeInsnAttrs) {
+					if (edgeInsnAttr.getEnd().equals(outBlock)) {
+						addEdgeInsn(currentIf, elseRegion, edgeInsnAttr);
+					}
+				}
+				ifRegion.setElseRegion(elseRegion);
+			}
+		}
+
+		stack.pop();
+		return outBlock;
+	}
+
+	@NotNull
+	IfInfo buildIfInfo(LoopRegion loopRegion) {
+		IfInfo condInfo = makeIfInfo(mth, loopRegion.getHeader());
+		condInfo = searchNestedIf(condInfo);
+		confirmMerge(condInfo);
+		return condInfo;
+	}
+
+	private void addEdgeInsn(IfInfo ifInfo, Region region, EdgeInsnAttr edgeInsnAttr) {
+		BlockNode start = edgeInsnAttr.getStart();
+		boolean fromThisIf = false;
+		for (BlockNode ifBlock : ifInfo.getMergedBlocks()) {
+			if (ifBlock.getSuccessors().contains(start)) {
+				fromThisIf = true;
+				break;
+			}
+		}
+		if (!fromThisIf) {
+			return;
+		}
+		region.add(start);
 	}
 
 	@Nullable
@@ -262,7 +368,7 @@ public class IfMakerHelper {
 		return from.getCleanSuccessors().size() == 1 && from.getCleanSuccessors().contains(to);
 	}
 
-	private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
+	static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
 		MethodNode mth = first.getMth();
 		Set<BlockNode> skipBlocks = first.getSkipBlocks();
 		BlockNode thenBlock;
@@ -274,7 +380,7 @@ public class IfMakerHelper {
 			thenBlock = getBranchBlock(first.getThenBlock(), second.getThenBlock(), skipBlocks, mth);
 			elseBlock = second.getElseBlock();
 		}
-		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
+		IfCondition.Mode mergeOperation = followThenBranch ? IfCondition.Mode.AND : IfCondition.Mode.OR;
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
 		IfInfo result = new IfInfo(mth, condition, thenBlock, elseBlock);
 		result.merge(first, second);
