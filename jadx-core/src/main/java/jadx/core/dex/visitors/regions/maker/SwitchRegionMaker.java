@@ -15,6 +15,9 @@ import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.RegionRefAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchInsn;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -132,11 +135,6 @@ final class SwitchRegionMaker {
 		}
 		outs.clear(block.getId());
 		outs.clear(mth.getExitBlock().getId());
-		if (outs.isEmpty()) {
-			// switch already contains method exit
-			// add everything, out block not needed
-			return mth.getExitBlock();
-		}
 
 		BlockNode out = null;
 		if (outs.cardinality() == 1) {
@@ -161,6 +159,10 @@ final class SwitchRegionMaker {
 						out = possibleOut;
 					}
 				}
+				if (outs.isEmpty()) {
+					// all exits inside switch, keep inside to exit from loop
+					return mth.getExitBlock();
+				}
 			}
 			if (out == null) {
 				BlockNode imPostDom = block.getIPostDom();
@@ -177,6 +179,11 @@ final class SwitchRegionMaker {
 			out = mth.getExitBlock();
 		}
 		BlockNode imPostDom = block.getIPostDom();
+		if (out == null && imPostDom == mth.getExitBlock()) {
+			// all exits inside switch
+			// check if all returns are equals and should be treated as single out block
+			return allSameReturns(stack);
+		}
 		if (out != imPostDom && !mth.isPreExitBlock(imPostDom)) {
 			// stop other paths at common exit
 			stack.addExit(imPostDom);
@@ -195,6 +202,58 @@ final class SwitchRegionMaker {
 			throw new JadxRuntimeException("Failed to find switch 'out' block (already processed)");
 		}
 		return out;
+	}
+
+	private BlockNode allSameReturns(RegionStack stack) {
+		BlockNode exitBlock = mth.getExitBlock();
+		List<BlockNode> preds = exitBlock.getPredecessors();
+		int count = preds.size();
+		if (count == 1) {
+			return preds.get(0);
+		}
+		if (mth.getReturnType() == ArgType.VOID) {
+			for (BlockNode pred : preds) {
+				InsnNode insn = BlockUtils.getLastInsn(pred);
+				if (insn == null || insn.getType() != InsnType.RETURN) {
+					return exitBlock;
+				}
+			}
+		} else {
+			List<InsnArg> returnArgs = new ArrayList<>();
+			for (BlockNode pred : preds) {
+				InsnNode insn = BlockUtils.getLastInsn(pred);
+				if (insn == null || insn.getType() != InsnType.RETURN) {
+					return exitBlock;
+				}
+				returnArgs.add(insn.getArg(0));
+			}
+			InsnArg firstArg = returnArgs.get(0);
+			if (firstArg.isRegister()) {
+				RegisterArg reg = (RegisterArg) firstArg;
+				for (int i = 1; i < count; i++) {
+					InsnArg arg = returnArgs.get(1);
+					if (!arg.isRegister() || !((RegisterArg) arg).sameCodeVar(reg)) {
+						return exitBlock;
+					}
+				}
+			} else {
+				for (int i = 1; i < count; i++) {
+					InsnArg arg = returnArgs.get(1);
+					if (!arg.equals(firstArg)) {
+						return exitBlock;
+					}
+				}
+			}
+		}
+		// confirmed
+		stack.addExits(preds);
+		// ignore other returns
+		for (int i = 1; i < count; i++) {
+			BlockNode block = preds.get(i);
+			block.add(AFlag.REMOVE);
+			block.add(AFlag.ADDED_TO_REGION);
+		}
+		return preds.get(0);
 	}
 
 	/**

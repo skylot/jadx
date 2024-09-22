@@ -45,7 +45,7 @@ public class TestSwitch3 extends IntegrationTest {
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.countString(0, "break;")
-				.countString(3, "return;");
+				.countString(3, "break;")
+				.countString(0, "return;");
 	}
 }
