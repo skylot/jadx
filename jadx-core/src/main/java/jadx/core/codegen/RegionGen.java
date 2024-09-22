@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import jadx.core.dex.instructions.IndexInsnNode;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +26,15 @@ import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -37,10 +43,12 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.TryCatchRegion;
+import jadx.core.dex.regions.conditions.Compare;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.ForEachLoop;
@@ -241,6 +249,22 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
+	private boolean isSwitchingOverStringHashCode(InsnArg arg, Object k) {
+		if (k instanceof Integer
+				&& arg instanceof InsnWrapArg
+				&& arg.getType() == ArgType.INT) {
+			InsnWrapArg insnWrapArg = (InsnWrapArg) arg;
+			InsnNode wrapInsn = insnWrapArg.getWrapInsn();
+			if (!(wrapInsn instanceof InvokeNode)) {
+				return false;
+			}
+			InvokeNode wrapInsnInode = (InvokeNode) wrapInsn;
+			MethodInfo methodInfo = wrapInsnInode.getCallMth();
+			return methodInfo.getName().equals("hashCode") && methodInfo.getReturnType() == ArgType.INT;
+		}
+		return true;
+	}
+
 	public void makeSwitch(SwitchRegion sw, ICodeWriter code) throws CodegenException {
 		SwitchInsn insn = (SwitchInsn) BlockUtils.getLastInsn(sw.getHeader());
 		Objects.requireNonNull(insn, "Switch insn not found in header");
@@ -259,6 +283,13 @@ public class RegionGen extends InsnGen {
 				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
 					code.startLine("default:");
 				} else {
+					if (isSwitchingOverStringHashCode(arg, k)) {
+						try {
+							k = transformStringHashCodeFromCase((int) k, caseInfo);
+						} catch (CodegenException e) {
+							code.startLine("// JADX WARNING: FAILED TO TRANSLATE TO STR:" + e);
+						}
+					}
 					code.startLine("case ");
 					addCaseKey(code, arg, k);
 					code.add(':');
@@ -270,12 +301,57 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
+	private String transformStringHashCodeFromCase(int hashCode, CaseInfo ci) throws CodegenException {
+		Region container = (Region) ci.getContainer();
+		for (IContainer ir : container.getSubBlocks()) {
+			if (!(ir instanceof IfRegion)) {
+				continue;
+			}
+			IfRegion ifRegion = (IfRegion) ir;
+			IfCondition ifCondition = ifRegion.getCondition();
+			assert ifCondition != null;
+			Compare compare = ifCondition.getCompare();
+			IfNode in = compare.getInsn();
+			InsnArg firstArg = in.getArg(0);
+			InsnWrapArg insnWrapArg = (InsnWrapArg) firstArg;
+			InsnNode wrapInsn = insnWrapArg.getWrapInsn();
+			if (!(wrapInsn instanceof InvokeNode)) {
+				continue;
+			}
+			InvokeNode invokeNode = (InvokeNode) wrapInsn;
+			InsnArg firstEqArgA = invokeNode.getArg(1);
+			if (!(firstEqArgA instanceof InsnWrapArg)) {
+				continue;
+			}
+			InsnWrapArg firstEqArgAWrap = (InsnWrapArg) firstEqArgA;
+			InsnNode firstEqInsn = firstEqArgAWrap.getWrapInsn();
+			if (firstEqInsn instanceof ConstStringNode) {
+				return ((ConstStringNode) firstEqInsn).getString();
+			} else if (firstEqInsn instanceof IndexInsnNode) {
+				throw new CodegenException("Can't handle IndexInsnNode(s) yet!");
+			}
+			throw new CodegenException("Can't handle instruction: " + firstEqInsn);
+			// if (!(mth.getName() == "equals"
+			// && mth.getReturnType() == ArgType.BOOLEAN
+			// && mth.getArgsCount() == 1
+			// && mth.getArgumentsTypes().getFirst() == ArgType.STRING
+			// )) {
+			// continue;
+			// }
+		}
+		throw new CodegenException("Unable to find the string value for the hashCode: " + hashCode);
+	}
+
 	private void addCaseKey(ICodeWriter code, InsnArg arg, Object k) throws CodegenException {
+		// TODO: support switch over string
 		if (k instanceof FieldNode) {
 			FieldNode fld = (FieldNode) k;
 			useField(code, fld.getFieldInfo(), fld);
 		} else if (k instanceof FieldInfo) {
 			useField(code, (FieldInfo) k, null);
+		} else if (k instanceof String) {
+			// HACK: I'm lazy...
+			code.add(String.format("\"%s\"", k));
 		} else if (k instanceof Integer) {
 			code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
 		} else {
