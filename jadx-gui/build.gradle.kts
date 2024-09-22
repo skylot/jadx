@@ -45,6 +45,7 @@ dependencies {
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
 	implementation("com.android.tools.build:apksig:8.6.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
+	implementation("com.github.Dansoftowner:jSystemThemeDetector:3.6")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
 }
@@ -53,6 +54,12 @@ val jadxVersion: String by rootProject.extra
 
 tasks.test {
 	exclude("**/tmp/*")
+}
+
+repositories {
+	maven {
+		url = uri("https://jitpack.io/")
+	}
 }
 
 application {

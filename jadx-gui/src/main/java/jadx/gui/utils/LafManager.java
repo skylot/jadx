@@ -3,6 +3,8 @@ package jadx.gui.utils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.slf4j.Logger;
@@ -17,6 +19,8 @@ import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+// they misspelled it LOL
+import com.jthemedetecor.OsThemeDetector;
 
 import jadx.gui.settings.JadxSettings;
 
@@ -24,17 +28,49 @@ public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
 
 	public static final String SYSTEM_THEME_NAME = "default";
-	public static final String INITIAL_THEME_NAME = FlatLightLaf.NAME;
-
+	public static String OS_DARK_THEME_NAME = FlatDarculaLaf.NAME;
+	public static String OS_LIGHT_THEME_NAME = FlatLightLaf.NAME;
+	public static final String INITIAL_THEME_NAME = OS_LIGHT_THEME_NAME;
+	private static final OsThemeDetector detector = OsThemeDetector.getDetector();
 	private static final Map<String, String> THEMES_MAP = initThemesMap();
+		private static JadxSettings settings;
+	private static void trySetThemeFromOSTheme(boolean dark) {
+		try {
+			// Ensure that settings object is initialized
+			if (settings == null) {
+				LOG.error("Settings object is not initialized");
+				return;
+			}
+
+			// Ensure that themeName is correct
+			String themeName = dark ? OS_DARK_THEME_NAME : OS_LIGHT_THEME_NAME;
+			if (themeName == null || themeName.isEmpty()) {
+				LOG.error("Theme name is not set");
+				return;
+			}
+
+			// Set the look and feel
+			UIManager.setLookAndFeel(themeName);
+			settings.setLafTheme(SYSTEM_THEME_NAME);
+			updateLaf(settings);
+			LOG.info("Set LAF: {}", UIManager.getLookAndFeel().getName());
+		} catch (Exception e) {
+			// Log the exception to investigate the issue
+			LOG.error("Failed to set OS theme", e);
+		}
+	}
 
 	public static void init(JadxSettings settings) {
 		if (setupLaf(getThemeClass(settings))) {
 			return;
 		}
 		setupLaf(SYSTEM_THEME_NAME);
+		trySetThemeFromOSTheme(detector.isDark());
+		final OsThemeDetector detector = OsThemeDetector.getDetector();
+		detector.registerListener(isDark -> SwingUtilities.invokeLater(() -> trySetThemeFromOSTheme(isDark)));
 		settings.setLafTheme(SYSTEM_THEME_NAME);
 		settings.sync();
+		LafManager.settings = settings;
 	}
 
 	public static void updateLaf(JadxSettings settings) {
