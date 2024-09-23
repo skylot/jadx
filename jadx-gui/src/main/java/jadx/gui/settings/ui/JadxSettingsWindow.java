@@ -54,6 +54,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.settings.JadxSettings;
@@ -292,10 +293,10 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JCheckBox deobfSourceAlias = new JCheckBox();
-		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
-		deobfSourceAlias.addItemListener(e -> {
-			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
+		JComboBox<UseSourceNameAsClassNameAlias> useSourceNameAsClassNameAlias = new JComboBox<>(UseSourceNameAsClassNameAlias.values());
+		useSourceNameAsClassNameAlias.setSelectedItem(settings.getUseSourceNameAsClassNameAlias());
+		useSourceNameAsClassNameAlias.addActionListener(e -> {
+			settings.setUseSourceNameAsClassNameAlias((UseSourceNameAsClassNameAlias) useSourceNameAsClassNameAlias.getSelectedItem());
 			needReload();
 		});
 
@@ -303,7 +304,7 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
-		group.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
+		group.addRow(NLS.str("preferences.rename_use_source_name_as_class_name_alias"), useSourceNameAsClassNameAlias);
 		return group;
 	}
 

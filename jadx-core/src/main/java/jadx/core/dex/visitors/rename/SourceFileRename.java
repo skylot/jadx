@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.deobf.NameMapper;
@@ -18,6 +19,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BetterName;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SourceFileRename extends AbstractVisitor {
 
@@ -28,9 +30,11 @@ public class SourceFileRename extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) throws JadxException {
-		if (!root.getArgs().isUseSourceNameAsClassAlias()) {
+		final var useSourceName = root.getArgs().getUseSourceNameAsClassNameAlias();
+		if (useSourceName == UseSourceNameAsClassNameAlias.NEVER) {
 			return;
 		}
+
 		List<ClassNode> classes = root.getClasses();
 		Map<String, Boolean> canUseAlias = new HashMap<>();
 		for (ClassNode cls : classes) {
@@ -55,22 +59,34 @@ public class SourceFileRename extends AbstractVisitor {
 		for (ClsRename clsRename : renames) {
 			String alias = clsRename.getAlias();
 			if (canUseAlias.get(alias) == Boolean.TRUE) {
-				applyRename(clsRename.getCls(), alias);
+				applyRename(clsRename.getCls(), alias, useSourceName);
 			}
 		}
 	}
 
-	private static void applyRename(ClassNode cls, String alias) {
+	private static void applyRename(ClassNode cls, String alias, UseSourceNameAsClassNameAlias useSourceName) {
 		if (cls.getClassInfo().hasAlias()) {
-			// ignore source name if current alias is "better"
 			String currentAlias = cls.getAlias();
-			String betterName = BetterName.compareAndGet(alias, currentAlias);
+			String betterName = getBetterName(currentAlias, alias, useSourceName);
 			if (betterName.equals(currentAlias)) {
 				return;
 			}
 		}
 		cls.getClassInfo().changeShortName(alias);
 		cls.addAttr(new RenameReasonAttr(cls).append("use source file name"));
+	}
+
+	private static String getBetterName(String currentName, String sourceName, UseSourceNameAsClassNameAlias useSourceName) {
+		switch (useSourceName) {
+			case ALWAYS:
+				return sourceName;
+			case IF_BETTER:
+				return BetterName.compareAndGet(sourceName, currentName);
+			case NEVER:
+				return currentName;
+			default:
+				throw new JadxRuntimeException("Unhandled strategy: " + useSourceName);
+		}
 	}
 
 	private static @Nullable String getAliasFromSourceFile(ClassNode cls) {
