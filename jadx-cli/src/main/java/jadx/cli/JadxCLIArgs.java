@@ -27,6 +27,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
@@ -166,8 +167,15 @@ public class JadxCLIArgs {
 	)
 	protected GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
 
-	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
-	protected boolean deobfuscationUseSourceNameAsAlias = false;
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Parameter(
+			names = { "--deobf-use-sourcename" },
+			description = "use source file name as class name alias."
+					+ "\nDEPRECATED, use \"--use-source-name-as-class-name-alias\" instead",
+			hidden = true
+	)
+	@Deprecated
+	protected Boolean deobfuscationUseSourceNameAsAlias = null;
 
 	@Parameter(
 			names = { "--deobf-res-name-source" },
@@ -178,6 +186,16 @@ public class JadxCLIArgs {
 			converter = ResourceNameSourceConverter.class
 	)
 	protected ResourceNameSource resourceNameSource = ResourceNameSource.AUTO;
+
+	@Parameter(
+			names = { "--use-source-name-as-class-name-alias" },
+			description = "use source name as class name alias:"
+					+ "\n 'always' - always use source name if it's available"
+					+ "\n 'if-better' - use source name if it seems better than the current one"
+					+ "\n 'never' - never use source name, even if it's available",
+			converter = UseSourceNameAsClassNameConverter.class
+	)
+	protected UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias = null;
 
 	@Parameter(
 			names = { "--use-kotlin-methods-for-var-names" },
@@ -327,7 +345,7 @@ public class JadxCLIArgs {
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setDeobfuscationWhitelist(Arrays.asList(deobfuscationWhitelistStr.split(" ")));
-		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
+		args.setUseSourceNameAsClassNameAlias(getUseSourceNameAsClassNameAlias());
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
 		args.setResourceNameSource(resourceNameSource);
 		args.setEscapeUnicode(escapeUnicode);
@@ -467,8 +485,23 @@ public class JadxCLIArgs {
 		return generatedRenamesMappingFileMode;
 	}
 
+	public UseSourceNameAsClassNameAlias getUseSourceNameAsClassNameAlias() {
+		if (useSourceNameAsClassNameAlias != null) {
+			return useSourceNameAsClassNameAlias;
+		} else if (deobfuscationUseSourceNameAsAlias != null) {
+			// noinspection deprecation
+			return UseSourceNameAsClassNameAlias.create(deobfuscationUseSourceNameAsAlias);
+		} else {
+			return UseSourceNameAsClassNameAlias.getDefault();
+		}
+	}
+
+	/**
+	 * @deprecated Use {@link #getUseSourceNameAsClassNameAlias()} instead.
+	 */
+	@Deprecated
 	public boolean isDeobfuscationUseSourceNameAsAlias() {
-		return deobfuscationUseSourceNameAsAlias;
+		return getUseSourceNameAsClassNameAlias().toBoolean();
 	}
 
 	public ResourceNameSource getResourceNameSource() {
@@ -589,6 +622,12 @@ public class JadxCLIArgs {
 	public static class ResourceNameSourceConverter extends BaseEnumConverter<ResourceNameSource> {
 		public ResourceNameSourceConverter() {
 			super(ResourceNameSource::valueOf, ResourceNameSource::values);
+		}
+	}
+
+	public static class UseSourceNameAsClassNameConverter extends BaseEnumConverter<UseSourceNameAsClassNameAlias> {
+		public UseSourceNameAsClassNameConverter() {
+			super(UseSourceNameAsClassNameAlias::valueOf, UseSourceNameAsClassNameAlias::values);
 		}
 	}
 

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
+import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.args.UserRenamesMappingsMode;
 import jadx.api.data.ICodeData;
 import jadx.api.deobf.IAliasProvider;
@@ -98,7 +99,7 @@ public class JadxArgs implements Closeable {
 	private UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
 
 	private boolean deobfuscationOn = false;
-	private boolean useSourceNameAsClassAlias = false;
+	private UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.getDefault();
 
 	private File generatedRenamesMappingFile = null;
 	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
@@ -430,12 +431,29 @@ public class JadxArgs implements Closeable {
 		this.generatedRenamesMappingFileMode = mode;
 	}
 
-	public boolean isUseSourceNameAsClassAlias() {
-		return useSourceNameAsClassAlias;
+	public UseSourceNameAsClassNameAlias getUseSourceNameAsClassNameAlias() {
+		return useSourceNameAsClassNameAlias;
 	}
 
+	public void setUseSourceNameAsClassNameAlias(UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias) {
+		this.useSourceNameAsClassNameAlias = useSourceNameAsClassNameAlias;
+	}
+
+	/**
+	 * @deprecated Use {@link #getUseSourceNameAsClassNameAlias()} instead.
+	 */
+	@Deprecated
+	public boolean isUseSourceNameAsClassAlias() {
+		return getUseSourceNameAsClassNameAlias().toBoolean();
+	}
+
+	/**
+	 * @deprecated Use {@link #setUseSourceNameAsClassNameAlias(UseSourceNameAsClassNameAlias)} instead.
+	 */
+	@Deprecated
 	public void setUseSourceNameAsClassAlias(boolean useSourceNameAsClassAlias) {
-		this.useSourceNameAsClassAlias = useSourceNameAsClassAlias;
+		final var useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.create(useSourceNameAsClassAlias);
+		setUseSourceNameAsClassNameAlias(useSourceNameAsClassNameAlias);
 	}
 
 	public int getDeobfuscationMinLength() {
@@ -729,10 +747,11 @@ public class JadxArgs implements Closeable {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength + deobfuscationWhitelist
+				+ useSourceNameAsClassNameAlias
 				+ resourceNameSource
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
-				+ debugInfo + useSourceNameAsClassAlias + escapeUnicode + replaceConsts
+				+ debugInfo + escapeUnicode + replaceConsts
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
 				+ commentsLevel + useDxInput + integerFormat
 				+ "|" + buildPluginsHash(decompiler);
@@ -768,7 +787,7 @@ public class JadxArgs implements Closeable {
 				+ ", generatedRenamesMappingFile=" + generatedRenamesMappingFile
 				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
 				+ ", resourceNameSource=" + resourceNameSource
-				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
+				+ ", useSourceNameAsClassNameAlias=" + useSourceNameAsClassNameAlias
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
 				+ ", insertDebugLines=" + insertDebugLines
 				+ ", extractFinally=" + extractFinally

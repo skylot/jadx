@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.core.clsp.ClsSet;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
@@ -47,7 +48,7 @@ public class ConvertToClsSet {
 		// disable not needed passes executed at prepare stage
 		jadxArgs.setDeobfuscationOn(false);
 		jadxArgs.setRenameFlags(EnumSet.noneOf(JadxArgs.RenameEnum.class));
-		jadxArgs.setUseSourceNameAsClassAlias(false);
+		jadxArgs.setUseSourceNameAsClassNameAlias(UseSourceNameAsClassNameAlias.NEVER);
 		jadxArgs.setMoveInnerClasses(false);
 		jadxArgs.setInlineAnonymousClasses(false);
 		jadxArgs.setInlineMethods(false);
