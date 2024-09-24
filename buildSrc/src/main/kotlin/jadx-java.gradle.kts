@@ -14,16 +14,16 @@ version = jadxVersion
 
 dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.16")
-	compileOnly("org.jetbrains:annotations:24.1.0")
+	compileOnly("org.jetbrains:annotations:25.0.0")
 
 	testImplementation("ch.qos.logback:logback-classic:1.5.8")
 	testImplementation("org.assertj:assertj-core:3.26.3")
-	testImplementation("org.mockito:mockito-core:5.13.0")
+	testImplementation("org.mockito:mockito-core:5.14.0")
 
-	testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.11.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-	testCompileOnly("org.jetbrains:annotations:24.1.0")
+	testCompileOnly("org.jetbrains:annotations:25.0.0")
 }
 
 repositories {
