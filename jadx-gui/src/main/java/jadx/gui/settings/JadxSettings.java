@@ -466,6 +466,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.extractFinally = extractFinally;
 	}
 
+	public void setRestoreSwitchOverString(boolean restoreSwitchOverString) {
+		this.restoreSwitchOverString = restoreSwitchOverString;
+	}
+
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
 		this.fsCaseSensitive = fsCaseSensitive;
 	}

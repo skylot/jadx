@@ -3,10 +3,6 @@ package jadx.core.dex.instructions;
 import java.util.List;
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
@@ -17,6 +13,8 @@ import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
+import jadx.core.dex.attributes.nodes.CodeFeaturesAttr.CodeFeature;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -35,8 +33,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.input.InsnDataUtils;
 
 public class InsnDecoder {
-	private static final Logger LOG = LoggerFactory.getLogger(InsnDecoder.class);
-
 	private final MethodNode method;
 	private final RootNode root;
 
@@ -54,7 +50,7 @@ public class InsnDecoder {
 				rawInsn.decode();
 				insn = decode(rawInsn);
 			} catch (Exception e) {
-				method.addError("Failed to decode insn: " + rawInsn + ", method: " + method, e);
+				method.addError("Failed to decode insn: " + rawInsn, e);
 				insn = new InsnNode(InsnType.NOP, 0);
 				insn.addAttr(AType.JADX_ERROR, new JadxError("decode failed: " + e.getMessage(), e));
 			}
@@ -64,7 +60,6 @@ public class InsnDecoder {
 		return instructions;
 	}
 
-	@NotNull
 	protected InsnNode decode(InsnData insn) throws DecodeException {
 		switch (insn.getOpcode()) {
 			case NOP:
@@ -514,7 +509,6 @@ public class InsnDecoder {
 		}
 	}
 
-	@NotNull
 	private SwitchInsn makeSwitch(InsnData insn, boolean packed) {
 		SwitchInsn swInsn = new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), packed);
 		ICustomPayload payload = insn.getPayload();
@@ -522,6 +516,7 @@ public class InsnDecoder {
 			swInsn.attachSwitchData(new SwitchData((ISwitchPayload) payload), insn.getTarget());
 		}
 		method.add(AFlag.COMPUTE_POST_DOM);
+		CodeFeaturesAttr.add(method, CodeFeature.SWITCH);
 		return swInsn;
 	}
 

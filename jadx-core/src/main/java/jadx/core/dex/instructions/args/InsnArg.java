@@ -291,6 +291,16 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
+	public boolean isSameCodeVar(RegisterArg arg) {
+		if (arg == null) {
+			return false;
+		}
+		if (isRegister()) {
+			return ((RegisterArg) this).sameCodeVar(arg);
+		}
+		return false;
+	}
+
 	protected final <T extends InsnArg> T copyCommonParams(T copy) {
 		copy.copyAttributesFrom(this);
 		copy.setParentInsn(parentInsn);

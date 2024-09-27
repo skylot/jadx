@@ -62,6 +62,7 @@ import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
+import jadx.core.dex.visitors.regions.SwitchOverStringVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.rename.CodeRenameVisitor;
 import jadx.core.dex.visitors.rename.RenameVisitor;
@@ -170,6 +171,9 @@ public class Jadx {
 		// regions IR
 		passes.add(new RegionMakerVisitor());
 		passes.add(new IfRegionVisitor());
+		if (args.isRestoreSwitchOverString()) {
+			passes.add(new SwitchOverStringVisitor());
+		}
 		passes.add(new ReturnVisitor());
 		passes.add(new CleanRegions());
 

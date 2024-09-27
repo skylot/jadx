@@ -228,7 +228,7 @@ public class JCommanderWrapper<T> {
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				JadxPluginOptions options = context.getOptions();
 				if (options != null) {
-					if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen, k)) {
+					if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen)) {
 						k++;
 					}
 				}
@@ -240,12 +240,12 @@ public class JCommanderWrapper<T> {
 		return "\nPlugin options (-P<name>=<value>):" + sb;
 	}
 
-	private boolean appendPlugin(JadxPluginInfo pluginInfo, JadxPluginOptions options, StringBuilder out, int maxNamesLen, int k) {
+	private boolean appendPlugin(JadxPluginInfo pluginInfo, JadxPluginOptions options, StringBuilder out, int maxNamesLen) {
 		List<OptionDescription> descs = options.getOptionsDescriptions();
 		if (descs.isEmpty()) {
 			return false;
 		}
-		out.append("\n ").append(k).append(") ");
+		out.append("\n  ");
 		out.append(pluginInfo.getPluginId()).append(": ").append(pluginInfo.getDescription());
 		for (OptionDescription desc : descs) {
 			StringBuilder opt = new StringBuilder();

@@ -5,6 +5,7 @@ import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.codegen.utils.CodeComment;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
+import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
@@ -74,6 +75,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<MethodOverrideAttr> METHOD_OVERRIDE = new AType<>();
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
 	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
+	public static final AType<CodeFeaturesAttr> METHOD_CODE_FEATURES = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();

@@ -278,6 +278,8 @@ public class RegionGen extends InsnGen {
 			useField(code, (FieldInfo) k, null);
 		} else if (k instanceof Integer) {
 			code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
+		} else if (k instanceof String) {
+			code.add('\"').add((String) k).add('\"');
 		} else {
 			throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
 		}

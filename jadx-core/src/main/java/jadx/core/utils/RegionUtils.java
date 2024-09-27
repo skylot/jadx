@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -263,6 +264,12 @@ public class RegionUtils {
 		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
+	public static List<InsnNode> collectInsns(MethodNode mth, IContainer container) {
+		List<InsnNode> list = new ArrayList<>();
+		visitBlocks(mth, container, block -> list.addAll(block.getInstructions()));
+		return list;
+	}
+
 	public static boolean isEmpty(IContainer container) {
 		return !notEmpty(container);
 	}
@@ -508,5 +515,24 @@ public class RegionUtils {
 				visitor.accept(block);
 			}
 		});
+	}
+
+	public static void visitRegions(MethodNode mth, IContainer container, Predicate<IRegion> visitor) {
+		DepthRegionTraversal.traverse(mth, container, new AbstractRegionVisitor() {
+			@Override
+			public boolean enterRegion(MethodNode mth, IRegion region) {
+				return visitor.test(region);
+			}
+		});
+	}
+
+	public static @Nullable IContainer getNextContainer(MethodNode mth, IRegion region) {
+		IRegion parent = region.getParent();
+		List<IContainer> subBlocks = parent.getSubBlocks();
+		int index = subBlocks.indexOf(region);
+		if (index == -1 || index + 1 >= subBlocks.size()) {
+			return null;
+		}
+		return subBlocks.get(index + 1);
 	}
 }

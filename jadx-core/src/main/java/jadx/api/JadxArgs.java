@@ -128,6 +128,8 @@ public class JadxArgs implements Closeable {
 	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
+	private boolean restoreSwitchOverString = true;
+
 	private boolean skipXmlPrettyPrint = false;
 
 	private boolean fsCaseSensitive;
@@ -544,6 +546,14 @@ public class JadxArgs implements Closeable {
 		this.exportAsGradleProject = exportAsGradleProject;
 	}
 
+	public boolean isRestoreSwitchOverString() {
+		return restoreSwitchOverString;
+	}
+
+	public void setRestoreSwitchOverString(boolean restoreSwitchOverString) {
+		this.restoreSwitchOverString = restoreSwitchOverString;
+	}
+
 	public boolean isSkipXmlPrettyPrint() {
 		return skipXmlPrettyPrint;
 	}
@@ -751,7 +761,7 @@ public class JadxArgs implements Closeable {
 				+ resourceNameSource
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
-				+ debugInfo + escapeUnicode + replaceConsts
+				+ debugInfo + escapeUnicode + replaceConsts + restoreSwitchOverString
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
 				+ commentsLevel + useDxInput + integerFormat
 				+ "|" + buildPluginsHash(decompiler);
@@ -796,6 +806,7 @@ public class JadxArgs implements Closeable {
 				+ ", deobfuscationWhitelist=" + deobfuscationWhitelist
 				+ ", escapeUnicode=" + escapeUnicode
 				+ ", replaceConsts=" + replaceConsts
+				+ ", restoreSwitchOverString=" + restoreSwitchOverString
 				+ ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers
 				+ ", exportAsGradleProject=" + exportAsGradleProject
 				+ ", skipXmlPrettyPrint=" + skipXmlPrettyPrint

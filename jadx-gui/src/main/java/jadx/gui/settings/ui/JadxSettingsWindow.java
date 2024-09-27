@@ -550,6 +550,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox restoreSwitchOverString = new JCheckBox();
+		restoreSwitchOverString.setSelected(settings.isRestoreSwitchOverString());
+		restoreSwitchOverString.addItemListener(e -> {
+			settings.setRestoreSwitchOverString(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox fsCaseSensitive = new JCheckBox();
 		fsCaseSensitive.setSelected(settings.isFsCaseSensitive());
 		fsCaseSensitive.addItemListener(e -> {
@@ -595,6 +602,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.inlineKotlinLambdas"), inlineKotlinLambdas);
 		other.addRow(NLS.str("preferences.moveInnerClasses"), moveInnerClasses);
 		other.addRow(NLS.str("preferences.extractFinally"), extractFinally);
+		other.addRow(NLS.str("preferences.restoreSwitchOverString"), restoreSwitchOverString);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);

@@ -189,7 +189,10 @@ public class InsnRemover {
 		}
 	}
 
-	public static void remove(MethodNode mth, InsnNode insn) {
+	public static void remove(MethodNode mth, @Nullable InsnNode insn) {
+		if (insn == null) {
+			return;
+		}
 		if (insn.contains(AFlag.WRAPPED)) {
 			unbindInsn(mth, insn);
 			return;

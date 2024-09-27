@@ -109,6 +109,9 @@ public class JadxCLIArgs {
 	@Parameter(names = "--no-finally", description = "don't extract finally block")
 	protected boolean extractFinally = true;
 
+	@Parameter(names = "--no-restore-switch-over-string", description = "don't restore switch over string")
+	protected boolean restoreSwitchOverString = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -360,6 +363,7 @@ public class JadxCLIArgs {
 		args.setMoveInnerClasses(moveInnerClasses);
 		args.setAllowInlineKotlinLambda(allowInlineKotlinLambda);
 		args.setExtractFinally(extractFinally);
+		args.setRestoreSwitchOverString(restoreSwitchOverString);
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
@@ -451,6 +455,10 @@ public class JadxCLIArgs {
 
 	public boolean isExtractFinally() {
 		return extractFinally;
+	}
+
+	public boolean isRestoreSwitchOverString() {
+		return restoreSwitchOverString;
 	}
 
 	public Path getUserRenamesMappingsPath() {
