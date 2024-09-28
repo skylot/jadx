@@ -9,6 +9,7 @@ plugins {
 dependencies {
 	implementation(project(":jadx-core"))
 	implementation(project(":jadx-plugins-tools"))
+	implementation(project(":jadx-commons:jadx-app-commons"))
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-java-input"))

@@ -23,16 +23,17 @@ import jadx.api.impl.InMemoryCodeCache;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.usage.impl.EmptyUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
+import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.plugins.AppContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.cache.code.CodeStringCache;
 import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
 import jadx.gui.cache.usage.UsageInfoCache;
 import jadx.gui.plugins.context.CommonGuiPluginsContext;
-import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -67,7 +68,7 @@ public class JadxWrapper {
 				project.fillJadxArgs(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);
-				initGuiPluginsContext();
+				guiPluginsContext = initGuiPluginsContext(decompiler, mainWindow);
 				initUsageCache(jadxArgs);
 				decompiler.load();
 				initCodeCache();
@@ -139,12 +140,15 @@ public class JadxWrapper {
 		}
 	}
 
-	private void initGuiPluginsContext() {
-		guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
+	public static CommonGuiPluginsContext initGuiPluginsContext(JadxDecompiler decompiler, MainWindow mainWindow) {
+		CommonGuiPluginsContext guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
 		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
-			GuiPluginContext guiContext = guiPluginsContext.buildForPlugin(pluginContext);
-			pluginContext.setGuiContext(guiContext);
+			AppContext appContext = new AppContext();
+			appContext.setGuiContext(guiPluginsContext.buildForPlugin(pluginContext));
+			appContext.setFilesGetter(JadxFilesGetter.INSTANCE);
+			pluginContext.setAppContext(appContext);
 		});
+		return guiPluginsContext;
 	}
 
 	public CommonGuiPluginsContext getGuiPluginsContext() {

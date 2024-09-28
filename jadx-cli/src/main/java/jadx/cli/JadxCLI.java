@@ -9,6 +9,7 @@ import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.cli.LogHelper.LogLevelEnum;
+import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
@@ -46,6 +47,7 @@ public class JadxCLI {
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 		initCodeWriterProvider(jadxArgs);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();

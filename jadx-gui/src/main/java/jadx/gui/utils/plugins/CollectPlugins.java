@@ -9,8 +9,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
-import jadx.gui.plugins.context.CommonGuiPluginsContext;
-import jadx.gui.plugins.context.GuiPluginContext;
+import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
@@ -36,11 +35,7 @@ public class CollectPlugins {
 		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.load(new JadxExternalPluginsLoader());
-			CommonGuiPluginsContext guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
-			decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
-				GuiPluginContext guiContext = guiPluginsContext.buildForPlugin(pluginContext);
-				pluginContext.setGuiContext(guiContext);
-			});
+			JadxWrapper.initGuiPluginsContext(decompiler, mainWindow);
 			SortedSet<PluginContext> missingPlugins = new TreeSet<>();
 			for (PluginContext context : pluginManager.getAllPluginContexts()) {
 				if (!allPlugins.contains(context)) {

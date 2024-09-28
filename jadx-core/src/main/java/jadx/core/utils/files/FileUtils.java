@@ -168,6 +168,10 @@ public class FileUtils {
 		}
 	}
 
+	public static Path getTempRootDir() {
+		return TEMP_ROOT_DIR;
+	}
+
 	public static void deleteTempRootDir() {
 		deleteDirIfExists(TEMP_ROOT_DIR);
 	}

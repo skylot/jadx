@@ -122,8 +122,12 @@ public class JadxPluginManager {
 	}
 
 	public void init(SortedSet<PluginContext> pluginContexts) {
+		AppContext defAppContext = buildDefaultAppContext();
 		for (PluginContext context : pluginContexts) {
 			try {
+				if (context.getAppContext() == null) {
+					context.setAppContext(defAppContext);
+				}
 				context.init();
 			} catch (Exception e) {
 				throw new JadxRuntimeException("Failed to init plugin: " + context.getPluginId(), e);
@@ -135,6 +139,13 @@ public class JadxPluginManager {
 				verifyOptions(context, options);
 			}
 		}
+	}
+
+	private AppContext buildDefaultAppContext() {
+		AppContext appContext = new AppContext();
+		appContext.setGuiContext(null);
+		appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
+		return appContext;
 	}
 
 	private void verifyOptions(PluginContext pluginContext, JadxPluginOptions options) {

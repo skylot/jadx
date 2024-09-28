@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.plugins.data.IJadxFiles;
 import jadx.api.plugins.data.IJadxPlugins;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
@@ -53,4 +54,9 @@ public interface JadxPluginContext {
 	 * Access to registered plugins and runtime data
 	 */
 	IJadxPlugins plugins();
+
+	/**
+	 * Access to plugin specific files and directories
+	 */
+	IJadxFiles files();
 }

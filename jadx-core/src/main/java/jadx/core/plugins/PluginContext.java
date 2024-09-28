@@ -15,6 +15,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.data.IJadxFiles;
 import jadx.api.plugins.data.IJadxPlugins;
 import jadx.api.plugins.data.JadxPluginRuntimeData;
 import jadx.api.plugins.events.IJadxEvents;
@@ -27,6 +28,7 @@ import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.resources.IResourcesLoader;
+import jadx.core.plugins.files.JadxFilesData;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -36,7 +38,8 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	private final JadxPluginsData pluginsData;
 	private final JadxPlugin plugin;
 	private final JadxPluginInfo pluginInfo;
-	private @Nullable JadxGuiContext guiContext;
+
+	private AppContext appContext;
 
 	private final List<JadxCodeInput> codeInputs = new ArrayList<>();
 	private @Nullable JadxPluginOptions options;
@@ -137,13 +140,17 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return decompiler.getResourcesLoader();
 	}
 
-	@Override
-	public @Nullable JadxGuiContext getGuiContext() {
-		return guiContext;
+	public AppContext getAppContext() {
+		return appContext;
 	}
 
-	public void setGuiContext(JadxGuiContext guiContext) {
-		this.guiContext = guiContext;
+	public void setAppContext(AppContext appContext) {
+		this.appContext = appContext;
+	}
+
+	@Override
+	public @Nullable JadxGuiContext getGuiContext() {
+		return appContext.getGuiContext();
 	}
 
 	@Override
@@ -169,6 +176,11 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	@Override
 	public IJadxPlugins plugins() {
 		return pluginsData;
+	}
+
+	@Override
+	public IJadxFiles files() {
+		return new JadxFilesData(pluginInfo, appContext.getFilesGetter());
 	}
 
 	@Override

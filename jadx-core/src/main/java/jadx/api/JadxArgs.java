@@ -36,6 +36,8 @@ import jadx.core.deobf.DeobfAliasProvider;
 import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.deobf.conditions.JadxRenameConditions;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.files.IJadxFilesGetter;
+import jadx.core.plugins.files.TempFilesGetter;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxArgs implements Closeable {
@@ -165,6 +167,12 @@ public class JadxArgs implements Closeable {
 	}
 
 	private UseKotlinMethodsForVarNames useKotlinMethodsForVarNames = UseKotlinMethodsForVarNames.APPLY;
+
+	/**
+	 * Additional files structure info.
+	 * Defaults to tmp dirs.
+	 */
+	private IJadxFilesGetter filesGetter = TempFilesGetter.INSTANCE;
 
 	/**
 	 * Don't save files (can be using for performance testing)
@@ -708,6 +716,14 @@ public class JadxArgs implements Closeable {
 
 	public void setUseKotlinMethodsForVarNames(UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
 		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
+	}
+
+	public IJadxFilesGetter getFilesGetter() {
+		return filesGetter;
+	}
+
+	public void setFilesGetter(IJadxFilesGetter filesGetter) {
+		this.filesGetter = filesGetter;
 	}
 
 	public boolean isSkipFilesSave() {
