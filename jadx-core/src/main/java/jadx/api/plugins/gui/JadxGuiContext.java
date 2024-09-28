@@ -3,6 +3,7 @@ package jadx.api.plugins.gui;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +50,12 @@ public interface JadxGuiContext {
 	 * Access to GUI settings
 	 */
 	JadxGuiSettings settings();
+
+	/**
+	 * Main window component.
+	 * Can be used as a parent for creating new windows or dialogs.
+	 */
+	JFrame getMainFrame();
 
 	ICodeNodeRef getNodeUnderCaret();
 

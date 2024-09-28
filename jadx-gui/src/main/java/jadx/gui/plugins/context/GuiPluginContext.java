@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
@@ -52,6 +53,11 @@ public class GuiPluginContext implements JadxGuiContext {
 
 	public PluginContext getPluginContext() {
 		return pluginContext;
+	}
+
+	@Override
+	public JFrame getMainFrame() {
+		return commonContext.getMainWindow();
 	}
 
 	@Override
