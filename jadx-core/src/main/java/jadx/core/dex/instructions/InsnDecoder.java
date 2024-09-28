@@ -540,6 +540,7 @@ public class InsnDecoder {
 		for (int i = 1; i < regsCount; i++) {
 			newArr.addArg(InsnArg.typeImmutableReg(insn, i, ArgType.INT));
 		}
+		CodeFeaturesAttr.add(method, CodeFeature.NEW_ARRAY);
 		return newArr;
 	}
 

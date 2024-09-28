@@ -434,7 +434,7 @@ public class InsnGen {
 					code.add(']');
 				}
 				int dim = arrayType.getArrayDimension();
-				for (; k < dim - 1; k++) {
+				for (; k < dim; k++) {
 					code.add("[]");
 				}
 				break;

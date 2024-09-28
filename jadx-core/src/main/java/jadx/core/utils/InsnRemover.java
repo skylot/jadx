@@ -3,6 +3,7 @@ package jadx.core.utils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +73,16 @@ public class InsnRemover {
 			unbindInsns(mth, toRemove);
 			removeAll(instrList, toRemove);
 		}
+		toRemove.clear();
+	}
+
+	public void performForBlock(BlockNode block) {
+		if (toRemove.isEmpty()) {
+			return;
+		}
+		instrList = Objects.requireNonNull(block.getInstructions());
+		unbindInsns(mth, toRemove);
+		removeAll(instrList, toRemove);
 		toRemove.clear();
 	}
 

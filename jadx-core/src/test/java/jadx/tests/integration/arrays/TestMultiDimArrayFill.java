@@ -11,13 +11,7 @@ public class TestMultiDimArrayFill extends IntegrationTest {
 
 		public static Obj test(int a, int b) {
 			return new Obj(
-					new int[][] {
-							new int[] { 1 },
-							new int[] { 2 },
-							{ 3 },
-							new int[] { 4, 5 },
-							new int[0]
-					},
+					new int[][] { { 1 }, { 2 }, { 3 }, { 4, 5 }, new int[0] },
 					new int[] { a, a, a, a, b });
 		}
 

@@ -13,6 +13,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
@@ -299,6 +300,10 @@ public abstract class InsnArg extends Typed {
 			return ((RegisterArg) this).sameCodeVar(arg);
 		}
 		return false;
+	}
+
+	public boolean isUseVar(RegisterArg arg) {
+		return InsnUtils.containsVar(this, arg);
 	}
 
 	protected final <T extends InsnArg> T copyCommonParams(T copy) {

@@ -14,6 +14,11 @@ public class CodeFeaturesAttr implements IJadxAttribute {
 		 * Code contains switch instruction
 		 */
 		SWITCH,
+
+		/**
+		 * Code contains new-array instruction
+		 */
+		NEW_ARRAY,
 	}
 
 	public static boolean contains(MethodNode mth, CodeFeature feature) {

@@ -263,6 +263,36 @@ public class InsnUtils {
 		return false;
 	}
 
+	public static boolean containsVar(InsnNode insn, RegisterArg arg) {
+		if (insn == null) {
+			return false;
+		}
+		RegisterArg result = insn.getResult();
+		if (result != null && result.sameRegAndSVar(arg)) {
+			return true;
+		}
+		if (insn.getArgsCount() == 0) {
+			return false;
+		}
+		for (InsnArg insnArg : insn.getArguments()) {
+			if (containsVar(insnArg, arg)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean containsVar(InsnArg insnArg, RegisterArg arg) {
+		if (insnArg.isRegister()) {
+			return ((RegisterArg) insnArg).sameRegAndSVar(arg);
+		}
+		if (insnArg.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) insnArg).getWrapInsn();
+			return containsVar(wrapInsn, arg);
+		}
+		return false;
+	}
+
 	public static boolean contains(InsnNode insn, AFlag flag) {
 		return insn != null && insn.contains(flag);
 	}
