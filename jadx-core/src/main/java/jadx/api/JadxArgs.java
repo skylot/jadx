@@ -30,6 +30,9 @@ import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
 import jadx.api.plugins.loader.JadxBasePluginLoader;
 import jadx.api.plugins.loader.JadxPluginLoader;
+import jadx.api.security.IJadxSecurity;
+import jadx.api.security.JadxSecurityFlag;
+import jadx.api.security.impl.JadxSecurity;
 import jadx.api.usage.IUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
@@ -173,6 +176,11 @@ public class JadxArgs implements Closeable {
 	 * Defaults to tmp dirs.
 	 */
 	private IJadxFilesGetter filesGetter = TempFilesGetter.INSTANCE;
+
+	/**
+	 * Additional data validation and security checks
+	 */
+	private IJadxSecurity security = new JadxSecurity(JadxSecurityFlag.all());
 
 	/**
 	 * Don't save files (can be using for performance testing)
@@ -724,6 +732,14 @@ public class JadxArgs implements Closeable {
 
 	public void setFilesGetter(IJadxFilesGetter filesGetter) {
 		this.filesGetter = filesGetter;
+	}
+
+	public IJadxSecurity getSecurity() {
+		return security;
+	}
+
+	public void setSecurity(IJadxSecurity security) {
+		this.security = security;
 	}
 
 	public boolean isSkipFilesSave() {

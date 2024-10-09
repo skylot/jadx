@@ -342,7 +342,7 @@ public abstract class IntegrationTest extends TestUtils {
 		if (resMap.isEmpty()) {
 			return;
 		}
-		ResourceStorage resStorage = new ResourceStorage();
+		ResourceStorage resStorage = new ResourceStorage(root.getArgs().getSecurity());
 		for (Map.Entry<Integer, String> entry : resMap.entrySet()) {
 			Integer id = entry.getKey();
 			String name = entry.getValue();

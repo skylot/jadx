@@ -51,7 +51,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.tasks.TaskExecutor;
-import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
@@ -91,8 +90,6 @@ public final class JadxDecompiler implements Closeable {
 	private RootNode root;
 	private List<JavaClass> classes;
 	private List<ResourceFile> resources;
-
-	private BinaryXMLParser binaryXmlParser;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
 	private final JadxEventsImpl events = new JadxEventsImpl();
@@ -168,7 +165,6 @@ public final class JadxDecompiler implements Closeable {
 		root = null;
 		classes = null;
 		resources = null;
-		binaryXmlParser = null;
 		events.reset();
 	}
 
@@ -465,13 +461,6 @@ public final class JadxDecompiler implements Closeable {
 	@ApiStatus.Internal
 	public RootNode getRoot() {
 		return root;
-	}
-
-	synchronized BinaryXMLParser getBinaryXmlParser() {
-		if (binaryXmlParser == null) {
-			binaryXmlParser = new BinaryXMLParser(root);
-		}
-		return binaryXmlParser;
 	}
 
 	/**

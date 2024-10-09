@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import jadx.api.security.IJadxSecurity;
 import jadx.core.xmlgen.entry.ResourceEntry;
 
 public class ResourceStorage {
@@ -16,6 +17,8 @@ public class ResourceStorage {
 			.thenComparing(ResourceEntry::getKeyName);
 
 	private final List<ResourceEntry> list = new ArrayList<>();
+	private final IJadxSecurity security;
+
 	private String appPackage;
 
 	/**
@@ -27,6 +30,10 @@ public class ResourceStorage {
 	 * Preserve same name for same id across different configs
 	 */
 	private final Map<Integer, String> renames = new HashMap<>();
+
+	public ResourceStorage(IJadxSecurity security) {
+		this.security = security;
+	}
 
 	public void add(ResourceEntry resEntry) {
 		list.add(resEntry);
@@ -76,7 +83,7 @@ public class ResourceStorage {
 	}
 
 	public void setAppPackage(String appPackage) {
-		this.appPackage = XmlSecurity.verifyAppPackage(appPackage);
+		this.appPackage = security.verifyAppPackage(appPackage);
 	}
 
 	public Map<Integer, String> getResourcesNames() {

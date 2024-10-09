@@ -87,7 +87,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	public void decode(InputStream inputStream) throws IOException {
 		long start = System.currentTimeMillis();
 		is = new ParserStream(inputStream);
-		resStorage = new ResourceStorage();
+		resStorage = new ResourceStorage(root.getArgs().getSecurity());
 		decodeTableChunk();
 		resStorage.finish();
 		if (LOG.isDebugEnabled()) {
@@ -99,7 +99,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	@Override
 	public ResContainer decodeFiles() {
 		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
-		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
+		ResXmlGen resGen = new ResXmlGen(resStorage, vp, root.initManifestAttributes());
 
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());

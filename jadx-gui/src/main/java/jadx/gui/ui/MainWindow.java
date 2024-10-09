@@ -952,7 +952,8 @@ public class MainWindow extends JFrame {
 	public void goToMainActivity() {
 		AndroidManifestParser parser = new AndroidManifestParser(
 				AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
-				EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+				EnumSet.of(AppAttribute.MAIN_ACTIVITY),
+				getWrapper().getArgs().getSecurity());
 		if (!parser.isManifestFound()) {
 			JOptionPane.showMessageDialog(MainWindow.this,
 					NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
@@ -982,7 +983,8 @@ public class MainWindow extends JFrame {
 	public void goToApplication() {
 		AndroidManifestParser parser = new AndroidManifestParser(
 				AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
-				EnumSet.of(AppAttribute.APPLICATION));
+				EnumSet.of(AppAttribute.APPLICATION),
+				getWrapper().getArgs().getSecurity());
 		if (!parser.isManifestFound()) {
 			JOptionPane.showMessageDialog(MainWindow.this,
 					NLS.str("error_dialog.not_found", "AndroidManifest.xml"),

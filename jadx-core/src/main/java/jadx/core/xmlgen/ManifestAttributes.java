@@ -7,8 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -16,11 +14,17 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import jadx.api.security.IJadxSecurity;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
+// TODO: move to Android specific module!
+
+/**
+ * Load and store Android Manifest attributes specification
+ */
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
@@ -53,24 +57,12 @@ public class ManifestAttributes {
 		}
 	}
 
+	private final IJadxSecurity security;
 	private final Map<String, MAttr> attrMap = new HashMap<>();
-
 	private final Map<String, MAttr> appAttrMap = new HashMap<>();
 
-	private static ManifestAttributes instance;
-
-	public static ManifestAttributes getInstance() {
-		if (instance == null) {
-			try {
-				instance = new ManifestAttributes();
-			} catch (Exception e) {
-				LOG.error("Failed to create ManifestAttributes", e);
-			}
-		}
-		return instance;
-	}
-
-	private ManifestAttributes() {
+	public ManifestAttributes(IJadxSecurity security) {
+		this.security = security;
 		parseAll();
 	}
 
@@ -86,8 +78,7 @@ public class ManifestAttributes {
 			if (xmlStream == null) {
 				throw new JadxRuntimeException(xml + " not found in classpath");
 			}
-			DocumentBuilder dBuilder = XmlSecurity.getDBF().newDocumentBuilder();
-			doc = dBuilder.parse(xmlStream);
+			doc = security.parseXml(xmlStream);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Xml load error, file: " + xml, e);
 		}

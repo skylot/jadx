@@ -43,10 +43,12 @@ public class ResXmlGen {
 
 	private final ResourceStorage resStorage;
 	private final ValuesParser vp;
+	private final ManifestAttributes manifestAttributes;
 
-	public ResXmlGen(ResourceStorage resStorage, ValuesParser vp) {
+	public ResXmlGen(ResourceStorage resStorage, ValuesParser vp, ManifestAttributes manifestAttributes) {
 		this.resStorage = resStorage;
 		this.vp = vp;
+		this.manifestAttributes = manifestAttributes;
 	}
 
 	public List<ResContainer> makeResourcesXml(JadxArgs args) {
@@ -191,7 +193,7 @@ public class ResXmlGen {
 			if (dataType == ParserConstants.TYPE_INT_DEC && nameStr != null) {
 				try {
 					int intVal = Integer.parseInt(valueStr);
-					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
+					String newVal = manifestAttributes.decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
 					if (newVal != null) {
 						valueStr = newVal;
 					}
@@ -202,7 +204,7 @@ public class ResXmlGen {
 			if (dataType == ParserConstants.TYPE_INT_HEX && nameStr != null) {
 				try {
 					int intVal = Integer.decode(valueStr);
-					String newVal = ManifestAttributes.getInstance().decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
+					String newVal = manifestAttributes.decode(nameStr.replace("android:", "").replace("attr.", ""), intVal);
 					if (newVal != null) {
 						valueStr = newVal;
 					}

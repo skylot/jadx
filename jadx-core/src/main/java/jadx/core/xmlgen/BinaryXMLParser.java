@@ -23,20 +23,12 @@ import jadx.core.utils.android.AndroidResourcesMap;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-/*
- * TODO:
- * Don't die when error occurs
- * Check error cases, maybe checked const values are not always the same
- * Better error messages
- * What to do, when Binary XML Manifest is > size(int)?
- * Check for missing chunk size types
- * Implement missing data types
- * Use line numbers to recreate EXACT AndroidManifest
- * Check Element chunk size
- */
-
 public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
+
+	private final RootNode rootNode;
+	private final ManifestAttributes manifestAttributes;
+	private final boolean attrNewLine;
 
 	private final Map<Integer, String> resNames;
 	private Map<String, String> nsMap;
@@ -53,16 +45,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isOneLine = true;
 	private int namespaceDepth = 0;
 	private @Nullable int[] resourceIds;
-
-	private final RootNode rootNode;
 	private String appPackageName;
 
 	private Map<String, ClassNode> classNameCache;
 
-	private final boolean attrNewLine;
-
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
+		this.manifestAttributes = rootNode.initManifestAttributes();
 		this.attrNewLine = !rootNode.getArgs().isSkipXmlPrettyPrint();
 		try {
 			ConstStorage constStorage = rootNode.getConstValues();
@@ -325,7 +314,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			writer.add(' ');
 		}
 		writer.add(attrFullName).add("=\"");
-		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
+		String decodedAttr = manifestAttributes.decode(attrName, attrValData);
 		if (decodedAttr != null) {
 			memorizePackageName(attrName, decodedAttr);
 			if (isDeobfCandidateAttr(attrFullName)) {
@@ -419,8 +408,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		return "NOT_FOUND_STR_0x" + Integer.toHexString(strId);
 	}
 
-	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
-			String attrFullName) {
+	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData, String attrFullName) {
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
 			String resName = resNames.get(attrValData);

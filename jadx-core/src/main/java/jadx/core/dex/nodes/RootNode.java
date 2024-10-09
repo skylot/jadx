@@ -98,6 +98,8 @@ public class RootNode {
 	 */
 	private @Nullable JadxDecompiler decompiler;
 
+	private @Nullable ManifestAttributes manifestAttributes;
+
 	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
@@ -211,7 +213,7 @@ public class RootNode {
 			if (parser != null) {
 				processResources(parser.getResStorage());
 				updateObfuscatedFiles(parser, resources);
-				ManifestAttributes.getInstance().updateAttributes(parser);
+				initManifestAttributes().updateAttributes(parser);
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse 'resources.pb'/'.arsc' file", e);
@@ -720,5 +722,14 @@ public class RootNode {
 
 	public GradleInfoStorage getGradleInfoStorage() {
 		return gradleInfoStorage;
+	}
+
+	public synchronized ManifestAttributes initManifestAttributes() {
+		ManifestAttributes attrs = manifestAttributes;
+		if (attrs == null) {
+			attrs = new ManifestAttributes(args.getSecurity());
+			manifestAttributes = attrs;
+		}
+		return attrs;
 	}
 }

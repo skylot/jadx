@@ -148,7 +148,8 @@ public class DbgUtils {
 		}
 		AndroidManifestParser parser = new AndroidManifestParser(
 				AndroidManifestParser.getAndroidManifest(decompiler.getResources()),
-				EnumSet.of(AppAttribute.MAIN_ACTIVITY));
+				EnumSet.of(AppAttribute.MAIN_ACTIVITY),
+				decompiler.getArgs().getSecurity());
 		if (!parser.isManifestFound()) {
 			UiUtils.errorMessage(mw, NLS.str("error_dialog.not_found", "AndroidManifest.xml"));
 			return null;

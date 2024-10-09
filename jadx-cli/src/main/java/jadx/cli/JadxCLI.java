@@ -1,5 +1,7 @@
 package jadx.cli;
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,8 +10,11 @@ import jadx.api.JadxDecompiler;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
+import jadx.api.security.JadxSecurityFlag;
+import jadx.api.security.impl.JadxSecurity;
 import jadx.cli.LogHelper.LogLevelEnum;
 import jadx.cli.plugins.JadxFilesGetter;
+import jadx.commons.app.JadxCommonEnv;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
@@ -49,6 +54,7 @@ public class JadxCLI {
 		jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
 		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 		initCodeWriterProvider(jadxArgs);
+		applyEnvVars(jadxArgs);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
 			if (checkForErrors(jadx)) {
@@ -78,6 +84,22 @@ public class JadxCLI {
 				// needed for code offsets and source lines
 				jadxArgs.setCodeWriterProvider(AnnotatedCodeWriter::new);
 				break;
+		}
+	}
+
+	private static void applyEnvVars(JadxArgs jadxArgs) {
+		Set<JadxSecurityFlag> flags = JadxSecurityFlag.all();
+		boolean modified = false;
+		boolean disableXmlSecurity = JadxCommonEnv.getBool("JADX_DISABLE_XML_SECURITY", false);
+		if (disableXmlSecurity) {
+			flags.remove(JadxSecurityFlag.SECURE_XML_PARSER);
+			// TODO: not related to 'xml security', but kept for compatibility
+			flags.remove(JadxSecurityFlag.VERIFY_APP_PACKAGE);
+			modified = true;
+		}
+		// TODO: migrate 'ZipSecurity'
+		if (modified) {
+			jadxArgs.setSecurity(new JadxSecurity(flags));
 		}
 	}
 
