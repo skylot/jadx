@@ -1009,6 +1009,20 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	public void goToManifest() {
+		ResourceFile androidManifest = AndroidManifestParser.getAndroidManifest(getWrapper().getResources());
+		if (androidManifest == null) {
+			JOptionPane.showMessageDialog(MainWindow.this,
+					NLS.str("error_dialog.not_found", "AndroidManifest.xml"),
+					NLS.str("error_dialog.title"),
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		JResource res = new JResource(androidManifest, androidManifest.getDeobfName(), JResource.JResType.FILE);
+		tabsController.selectTab(res);
+	}
+
 	private void initMenuAndToolbar() {
 		JadxGuiAction openAction = new JadxGuiAction(ActionModel.OPEN, this::openFileDialog);
 		JadxGuiAction openProject = new JadxGuiAction(ActionModel.OPEN_PROJECT, this::openProjectDialog);
@@ -1078,6 +1092,7 @@ public class MainWindow extends JFrame {
 				this::goToMainActivity);
 		JadxGuiAction goToApplicationAction = new JadxGuiAction(ActionModel.GO_TO_APPLICATION,
 				this::goToApplication);
+		JadxGuiAction goToManifestAction = new JadxGuiAction(ActionModel.GO_TO_MANIFEST, this::goToManifest);
 		JadxGuiAction decompileAllAction = new JadxGuiAction(ActionModel.DECOMPILE_ALL, this::requestFullDecompilation);
 		JadxGuiAction resetCacheAction = new JadxGuiAction(ActionModel.RESET_CACHE, this::resetCodeCache);
 		JadxGuiAction deobfAction = new JadxGuiAction(ActionModel.DEOBF, this::toggleDeobfuscation);
@@ -1140,6 +1155,7 @@ public class MainWindow extends JFrame {
 		nav.add(commentSearchAction);
 		nav.add(goToMainActivityAction);
 		nav.add(goToApplicationAction);
+		nav.add(goToManifestAction);
 		nav.addSeparator();
 		nav.add(backAction);
 		nav.add(forwardAction);
@@ -1209,6 +1225,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(commentSearchAction);
 		toolbar.add(goToMainActivityAction);
 		toolbar.add(goToApplicationAction);
+		toolbar.add(goToManifestAction);
 		toolbar.addSeparator();
 		toolbar.add(backAction);
 		toolbar.add(forwardAction);
@@ -1238,6 +1255,7 @@ public class MainWindow extends JFrame {
 			commentSearchAction.setEnabled(loaded);
 			goToMainActivityAction.setEnabled(loaded);
 			goToApplicationAction.setEnabled(loaded);
+			goToManifestAction.setEnabled(loaded);
 			backAction.setEnabled(loaded);
 			backVariantAction.setEnabled(loaded);
 			forwardAction.setEnabled(loaded);
