@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ZipFile extends java.util.zip.ZipFile {
@@ -39,66 +40,70 @@ public class ZipFile extends java.util.zip.ZipFile {
 			return file;
 		}
 
-		var raFile = new RandomAccessFile(file, "r");
-		var endOfCDirOffset = findEndOfCentralDir(raFile);
-
-		raFile.seek(endOfCDirOffset + 0x10);
-		var cDirOffset = Integer.toUnsignedLong(Integer.reverseBytes(raFile.readInt()));
-		raFile.seek(endOfCDirOffset + 0x0a);
-		var cDirNumEntries = Short.toUnsignedLong(Short.reverseBytes(raFile.readShort()));
-
 		var cDirEntriesToFix = new ArrayList<Long>();
 		var localHeaders = new ArrayList<Long>();
+		List<Long> localHeaderToFix;
 
-		for (long i = 0, off = cDirOffset; i < cDirNumEntries; i++) {
-			var info = readHeader(raFile, off);
+		try (var raFile = new RandomAccessFile(file, "r")) {
+			var endOfCDirOffset = findEndOfCentralDir(raFile);
 
-			if (!info.validCompression()) {
-				cDirEntriesToFix.add(off);
+			raFile.seek(endOfCDirOffset + 0x10);
+			var cDirOffset = Integer.toUnsignedLong(Integer.reverseBytes(raFile.readInt()));
+			raFile.seek(endOfCDirOffset + 0x0a);
+			var cDirNumEntries = Short.toUnsignedLong(Short.reverseBytes(raFile.readShort()));
+
+			for (long i = 0, off = cDirOffset; i < cDirNumEntries; i++) {
+				var info = readHeader(raFile, off);
+
+				if (!info.validCompression()) {
+					cDirEntriesToFix.add(off);
+				}
+
+				raFile.seek(off + 0x2a);
+				localHeaders.add(Integer.toUnsignedLong(Integer.reverseBytes(raFile.readInt())));
+
+				off += info.dataOffset;
 			}
 
-			raFile.seek(off + 0x2a);
-			localHeaders.add(Integer.toUnsignedLong(Integer.reverseBytes(raFile.readInt())));
+			localHeaderToFix = localHeaders
+					.stream()
+					.filter(off -> !readHeaderVexxed(raFile, off).validCompression())
+					.collect(Collectors.toList());
 
-			off += info.dataOffset;
-		}
-
-		var localHeaderToFix = localHeaders
-				.stream()
-				.filter(off -> !readHeaderVexxed(raFile, off).validCompression())
-				.collect(Collectors.toList());
-
-		if (cDirEntriesToFix.isEmpty() && localHeaderToFix.isEmpty()) {
-			return file;
+			if (cDirEntriesToFix.isEmpty() && localHeaderToFix.isEmpty()) {
+				return file;
+			}
 		}
 
 		var newFile = copyFile(file);
-		var newRaFile = new RandomAccessFile(newFile, "rwd");
 
-		for (var off : cDirEntriesToFix) {
-			var info = readHeader(newRaFile, off);
+		try (var newRaFile = new RandomAccessFile(newFile, "rwd")) {
 
-			newRaFile.seek(off + 0x0a);
-			newRaFile.writeShort(0);
+			for (var off : cDirEntriesToFix) {
+				var info = readHeader(newRaFile, off);
 
-			newRaFile.seek(off + 0x14);
-			newRaFile.writeInt(Integer.reverseBytes((int) info.uncompressedSize));
+				newRaFile.seek(off + 0x0a);
+				newRaFile.writeShort(0);
 
-		}
+				newRaFile.seek(off + 0x14);
+				newRaFile.writeInt(Integer.reverseBytes((int) info.uncompressedSize));
 
-		for (var off : localHeaderToFix) {
-			var info = readHeader(newRaFile, off);
+			}
 
-			newRaFile.seek(off + 0x08);
-			newRaFile.writeShort(0);
+			for (var off : localHeaderToFix) {
+				var info = readHeader(newRaFile, off);
 
-			newRaFile.seek(off + 0x12);
-			newRaFile.writeInt(Integer.reverseBytes((int) info.uncompressedSize));
+				newRaFile.seek(off + 0x08);
+				newRaFile.writeShort(0);
 
-			newRaFile.seek(off + 0x1c);
-			newRaFile.writeShort(0);
+				newRaFile.seek(off + 0x12);
+				newRaFile.writeInt(Integer.reverseBytes((int) info.uncompressedSize));
 
-			moveBlockBack(newRaFile, off + info.dataOffset, info.uncompressedSize, info.extraLen);
+				newRaFile.seek(off + 0x1c);
+				newRaFile.writeShort(0);
+
+				moveBlockBack(newRaFile, off + info.dataOffset, info.uncompressedSize, info.extraLen);
+			}
 		}
 
 		return newFile;
