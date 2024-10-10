@@ -8,6 +8,7 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -120,7 +121,7 @@ public class ZipFile extends java.util.zip.ZipFile {
 	}
 
 	private static File copyFile(File file) throws IOException {
-		var newFile = File.createTempFile(file.getName(), ".apk");
+		var newFile = Files.createTempFile(file.getName(), ".apk").toFile();
 
 		try (var in = new FileInputStream(file)) {
 			try (var out = new FileOutputStream(newFile)) {
