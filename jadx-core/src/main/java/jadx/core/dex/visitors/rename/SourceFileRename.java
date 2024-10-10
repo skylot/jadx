@@ -81,7 +81,7 @@ public class SourceFileRename extends AbstractVisitor {
 			case ALWAYS:
 				return sourceName;
 			case IF_BETTER:
-				return BetterName.compareAndGet(sourceName, currentName);
+				return BetterName.getBetterClassName(sourceName, currentName);
 			case NEVER:
 				return currentName;
 			default:

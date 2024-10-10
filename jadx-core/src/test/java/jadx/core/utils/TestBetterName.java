@@ -7,12 +7,14 @@ import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestBetterName {
 
+	@Deprecated
 	@Test
 	public void test() {
 		expectFirst("color_main", "t0");
 		expectFirst("done", "oOo0oO0o");
 	}
 
+	@Deprecated
 	private void expectFirst(String first, String second) {
 		String best = BetterName.compareAndGet(first, second);
 		assertThat(best)

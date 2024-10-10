@@ -490,7 +490,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	public static String getBetterName(ResourceNameSource nameSource, String resName, String codeName) {
 		switch (nameSource) {
 			case AUTO:
-				return BetterName.compareAndGet(resName, codeName);
+				return BetterName.getBetterResourceName(resName, codeName);
 			case RESOURCES:
 				return resName;
 			case CODE:
