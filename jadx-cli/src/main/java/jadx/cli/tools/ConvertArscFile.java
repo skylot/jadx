@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.android.TextResMapFile;
+import jadx.core.utils.files.ZipFile;
 import jadx.core.xmlgen.ResTableBinaryParser;
 
 /**
