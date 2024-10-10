@@ -45,7 +45,31 @@ public class FileUtils {
 	public static final String JADX_TMP_INSTANCE_PREFIX = "jadx-instance-";
 	public static final String JADX_TMP_PREFIX = "jadx-tmp-";
 
+	private static Path tempRootDir = createTempRootDir();
+
 	private FileUtils() {
+		// utility class
+	}
+
+	public static synchronized Path updateTempRootDir(Path newTempRootDir) {
+		try {
+			Path dir = Files.createTempDirectory(newTempRootDir, JADX_TMP_INSTANCE_PREFIX);
+			tempRootDir = dir;
+			dir.toFile().deleteOnExit();
+			return dir;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to update temp root directory", e);
+		}
+	}
+
+	private static Path createTempRootDir() {
+		try {
+			Path dir = Files.createTempDirectory(JADX_TMP_INSTANCE_PREFIX);
+			dir.toFile().deleteOnExit();
+			return dir;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create temp root directory", e);
+		}
 	}
 
 	public static List<Path> expandDirs(List<Path> paths) {
@@ -150,40 +174,13 @@ public class FileUtils {
 		}
 	}
 
-	private static final Path TEMP_ROOT_DIR = createTempRootDir();
-
-	private static Path createTempRootDir() {
-		try {
-			String jadxTmpDir = System.getenv("JADX_TMP_DIR");
-			Path dir;
-			if (jadxTmpDir != null) {
-				dir = Files.createTempDirectory(Paths.get(jadxTmpDir), "jadx-instance-");
-			} else {
-				dir = Files.createTempDirectory(JADX_TMP_INSTANCE_PREFIX);
-			}
-			dir.toFile().deleteOnExit();
-			return dir;
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to create temp root directory", e);
-		}
-	}
-
-	public static Path getTempRootDir() {
-		return TEMP_ROOT_DIR;
-	}
-
 	public static void deleteTempRootDir() {
-		deleteDirIfExists(TEMP_ROOT_DIR);
-	}
-
-	public static void clearTempRootDir() {
-		deleteDirIfExists(TEMP_ROOT_DIR);
-		makeDirs(TEMP_ROOT_DIR);
+		deleteDirIfExists(tempRootDir);
 	}
 
 	public static Path createTempDir(String prefix) {
 		try {
-			Path dir = Files.createTempDirectory(TEMP_ROOT_DIR, prefix);
+			Path dir = Files.createTempDirectory(tempRootDir, prefix);
 			dir.toFile().deleteOnExit();
 			return dir;
 		} catch (Exception e) {
@@ -193,7 +190,7 @@ public class FileUtils {
 
 	public static Path createTempFile(String suffix) {
 		try {
-			Path path = Files.createTempFile(TEMP_ROOT_DIR, JADX_TMP_PREFIX, suffix);
+			Path path = Files.createTempFile(tempRootDir, JADX_TMP_PREFIX, suffix);
 			path.toFile().deleteOnExit();
 			return path;
 		} catch (Exception e) {

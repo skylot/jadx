@@ -12,12 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jadx.core.utils.files.FileUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,6 +27,9 @@ public class TestInput {
 		return true;
 	};
 
+	@TempDir
+	Path testDir;
+
 	@Test
 	public void testHelp() {
 		int result = JadxCLI.execute(new String[] { "--help" });
@@ -37,83 +38,68 @@ public class TestInput {
 
 	@Test
 	public void testDexInput() throws Exception {
-		decompile("dex", "samples/hello.dex");
+		decompile("samples/hello.dex");
 	}
 
 	@Test
 	public void testSmaliInput() throws Exception {
-		decompile("smali", "samples/HelloWorld.smali");
+		decompile("samples/HelloWorld.smali");
 	}
 
 	@Test
 	public void testClassInput() throws Exception {
-		decompile("class", "samples/HelloWorld.class");
+		decompile("samples/HelloWorld.class");
 	}
 
 	@Test
 	public void testMultipleInput() throws Exception {
-		decompile("multi", "samples/hello.dex", "samples/HelloWorld.smali");
+		decompile("samples/hello.dex", "samples/HelloWorld.smali");
 	}
 
 	@Test
 	public void testFallbackMode() throws Exception {
-		Path tempDir = FileUtils.createTempDir("fallback");
-		List<String> args = buildArgs(tempDir, "samples/hello.dex");
-		args.add(0, "-f");
-
-		int result = JadxCLI.execute(args.toArray(new String[0]));
+		int result = JadxCLI.execute(buildArgs(List.of("-f"), "samples/hello.dex"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectJavaFilesInDir(tempDir);
+		List<Path> files = collectJavaFilesInDir(testDir);
 		assertThat(files).hasSize(1);
 	}
 
 	@Test
 	public void testSimpleMode() throws Exception {
-		Path tempDir = FileUtils.createTempDir("simple");
-		List<String> args = buildArgs(tempDir, "samples/hello.dex");
-		args.add(0, "--decompilation-mode");
-		args.add(1, "simple");
-
-		int result = JadxCLI.execute(args.toArray(new String[0]));
+		int result = JadxCLI.execute(buildArgs(List.of("--decompilation-mode", "simple"), "samples/hello.dex"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectJavaFilesInDir(tempDir);
+		List<Path> files = collectJavaFilesInDir(testDir);
 		assertThat(files).hasSize(1);
 	}
 
 	@Test
 	public void testResourceOnly() throws Exception {
-		Path tempDir = FileUtils.createTempDir("resourceOnly");
-		List<String> args = buildArgs(tempDir, "samples/resources-only.apk");
-
-		int result = JadxCLI.execute(args.toArray(new String[0]));
+		int result = JadxCLI.execute(buildArgs(List.of(), "samples/resources-only.apk"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectFilesInDir(tempDir,
+		List<Path> files = collectFilesInDir(testDir,
 				path -> path.getFileName().toString().equalsIgnoreCase("AndroidManifest.xml"));
 		assertThat(files).isNotEmpty();
 	}
 
-	private void decompile(String tmpDirName, String... inputSamples) throws URISyntaxException, IOException {
-		Path tempDir = FileUtils.createTempDir(tmpDirName);
-		List<String> args = buildArgs(tempDir, inputSamples);
-
-		int result = JadxCLI.execute(args.toArray(new String[0]));
+	private void decompile(String... inputSamples) throws URISyntaxException, IOException {
+		int result = JadxCLI.execute(buildArgs(List.of(), inputSamples));
 		assertThat(result).isEqualTo(0);
-		List<Path> resultJavaFiles = collectJavaFilesInDir(tempDir);
+		List<Path> resultJavaFiles = collectJavaFilesInDir(testDir);
 		assertThat(resultJavaFiles).isNotEmpty();
 
 		// do not copy input files as resources
-		for (Path path : collectFilesInDir(tempDir, LOG_ALL_FILES)) {
+		for (Path path : collectFilesInDir(testDir, LOG_ALL_FILES)) {
 			for (String inputSample : inputSamples) {
 				assertThat(path.toAbsolutePath().toString()).doesNotContain(inputSample);
 			}
 		}
 	}
 
-	private List<String> buildArgs(Path tempDir, String... inputSamples) throws URISyntaxException {
-		List<String> args = new ArrayList<>();
+	private String[] buildArgs(List<String> options, String... inputSamples) throws URISyntaxException {
+		List<String> args = new ArrayList<>(options);
 		args.add("-v");
 		args.add("-d");
-		args.add(tempDir.toAbsolutePath().toString());
+		args.add(testDir.toAbsolutePath().toString());
 
 		for (String inputSample : inputSamples) {
 			URL resource = getClass().getClassLoader().getResource(inputSample);
@@ -121,7 +107,7 @@ public class TestInput {
 			String sampleFile = resource.toURI().getRawPath();
 			args.add(sampleFile);
 		}
-		return args;
+		return args.toArray(new String[0]);
 	}
 
 	private static List<Path> collectJavaFilesInDir(Path dir) throws IOException {
@@ -136,10 +122,5 @@ public class TestInput {
 					.filter(matcher::matches)
 					.collect(Collectors.toList());
 		}
-	}
-
-	@AfterAll
-	public static void cleanup() {
-		FileUtils.clearTempRootDir();
 	}
 }

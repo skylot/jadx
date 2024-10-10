@@ -3,8 +3,8 @@ package jadx.cli.plugins;
 import java.nio.file.Path;
 
 import jadx.commons.app.JadxCommonFiles;
+import jadx.commons.app.JadxTempFiles;
 import jadx.core.plugins.files.IJadxFilesGetter;
-import jadx.core.utils.files.FileUtils;
 
 public class JadxFilesGetter implements IJadxFilesGetter {
 
@@ -22,7 +22,7 @@ public class JadxFilesGetter implements IJadxFilesGetter {
 
 	@Override
 	public Path getTempDir() {
-		return FileUtils.getTempRootDir();
+		return JadxTempFiles.getTempRootDir();
 	}
 
 	private JadxFilesGetter() {

@@ -8,8 +8,8 @@ import java.net.URL;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.plugins.input.dex.DexInputPlugin;
 
@@ -17,15 +17,17 @@ import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class JadxDecompilerTest {
 
+	@TempDir
+	File testDir;
+
 	@Test
 	public void testExampleUsage() {
 		File sampleApk = getFileFromSampleDir("app-with-fake-dex.apk");
-		File outDir = FileUtils.createTempDir("jadx-usage-example").toFile();
 
 		// test simple apk loading
 		JadxArgs args = new JadxArgs();
 		args.getInputFiles().add(sampleApk);
-		args.setOutDir(outDir);
+		args.setOutDir(testDir);
 
 		try (JadxDecompiler jadx = new JadxDecompiler(args)) {
 			jadx.load();
@@ -59,11 +61,10 @@ public class JadxDecompilerTest {
 	@Test
 	public void testResourcesLoad() {
 		File sampleApk = getFileFromSampleDir("app-with-fake-dex.apk");
-		File outDir = FileUtils.createTempDir("jadx-usage-example-2").toFile();
 
 		JadxArgs args = new JadxArgs();
 		args.getInputFiles().add(sampleApk);
-		args.setOutDir(outDir);
+		args.setOutDir(testDir);
 		args.setSkipSources(true);
 		try (JadxDecompiler jadx = new JadxDecompiler(args)) {
 			jadx.load();

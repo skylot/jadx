@@ -1549,7 +1549,6 @@ public class MainWindow extends JFrame {
 		heapUsageBar.reset();
 		closeAll();
 
-		FileUtils.deleteTempRootDir();
 		dispose();
 		System.exit(0);
 	}

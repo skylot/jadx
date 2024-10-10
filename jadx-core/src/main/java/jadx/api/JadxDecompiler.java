@@ -111,6 +111,7 @@ public final class JadxDecompiler implements Closeable {
 		reset();
 		JadxArgsValidator.validate(this);
 		LOG.info("loading ...");
+		FileUtils.updateTempRootDir(args.getFilesGetter().getTempDir());
 		loadPlugins();
 		loadInputFiles();
 
@@ -174,6 +175,7 @@ public final class JadxDecompiler implements Closeable {
 		closeInputs();
 		closeLoaders();
 		args.close();
+		FileUtils.deleteTempRootDir();
 	}
 
 	private void closeInputs() {

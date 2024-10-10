@@ -337,14 +337,6 @@ public class UiUtils {
 		return null;
 	}
 
-	public static String getEnvVar(String varName, String defValue) {
-		String envVal = System.getenv(varName);
-		if (envVal == null) {
-			return defValue;
-		}
-		return envVal;
-	}
-
 	public static void showMessageBox(Component parent, String msg) {
 		JOptionPane.showMessageDialog(parent, msg);
 	}

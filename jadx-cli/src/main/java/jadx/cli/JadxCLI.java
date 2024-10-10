@@ -16,7 +16,6 @@ import jadx.cli.LogHelper.LogLevelEnum;
 import jadx.cli.plugins.JadxFilesGetter;
 import jadx.commons.app.JadxCommonEnv;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
-import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 public class JadxCLI {
@@ -33,7 +32,6 @@ public class JadxCLI {
 			LOG.error("Process error:", e);
 			result = 1;
 		} finally {
-			FileUtils.deleteTempRootDir();
 			System.exit(result);
 		}
 	}

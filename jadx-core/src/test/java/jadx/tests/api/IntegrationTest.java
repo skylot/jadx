@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +54,12 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.CompilerOptions;
 import jadx.tests.api.compiler.JavaUtils;
 import jadx.tests.api.compiler.TestCompiler;
+import jadx.tests.api.utils.TestFilesGetter;
 import jadx.tests.api.utils.TestUtils;
 
 import static org.apache.commons.lang3.StringUtils.leftPad;
@@ -115,6 +116,9 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected JadxDecompiler jadxDecompiler;
 
+	@TempDir
+	Path testDir;
+
 	@BeforeEach
 	public void init() {
 		this.compile = true;
@@ -124,7 +128,7 @@ public abstract class IntegrationTest extends TestUtils {
 		this.useJavaInput = null;
 
 		args = new JadxArgs();
-		args.setOutDir(new File("test-out-tmp"));
+		args.setOutDir(testDir.toFile());
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
@@ -132,6 +136,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setDeobfuscationOn(false);
 		args.setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode.IGNORE);
 		args.setRunDebugChecks(true);
+		args.setFilesGetter(new TestFilesGetter(testDir));
 
 		// use the same values on all systems
 		args.setFsCaseSensitive(false);
@@ -144,7 +149,6 @@ public abstract class IntegrationTest extends TestUtils {
 		close(jadxDecompiler);
 		close(sourceCompiler);
 		close(decompiledCompiler);
-		FileUtils.clearTempRootDir();
 	}
 
 	private void close(Closeable closeable) throws IOException {
@@ -154,7 +158,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public void setOutDirSuffix(String suffix) {
-		args.setOutDir(new File("test-out-" + suffix + "-tmp"));
+		args.setOutDir(new File(testDir.toFile(), suffix));
 	}
 
 	public String getTestName() {
@@ -499,7 +503,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private List<File> compileSourceFiles(List<File> compileFileList) throws IOException {
-		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
+		Path outTmp = Files.createTempDirectory(testDir, "jadx-tmp-classes");
 		sourceCompiler = new TestCompiler(compilerOptions);
 		List<File> files = sourceCompiler.compileFiles(compileFileList, outTmp);
 		if (saveTestJar) {
@@ -509,7 +513,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private void saveToJar(List<File> files, Path baseDir) throws IOException {
-		Path jarFile = Files.createTempFile("tests-" + getTestName() + '-', ".jar");
+		Path jarFile = Files.createTempFile(testDir, "tests-" + getTestName() + '-', ".jar");
 		try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(jarFile))) {
 			for (File file : files) {
 				Path fullPath = file.toPath();
