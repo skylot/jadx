@@ -55,6 +55,8 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_M, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	GO_TO_APPLICATION(MENU_TOOLBAR, "menu.go_to_application", "menu.go_to_application", "ui/application",
 			Shortcut.keyboard(KeyEvent.VK_A, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
+	GO_TO_ANDROID_MANIFEST(MENU_TOOLBAR, "menu.go_to_android_manifest", "menu.go_to_android_manifest", "ui/androidManifest",
+			Shortcut.none()),
 	DECOMPILE_ALL(MENU_TOOLBAR, "menu.decompile_all", "menu.decompile_all", "ui/runAll",
 			Shortcut.none()),
 	RESET_CACHE(MENU_TOOLBAR, "menu.reset_cache", "menu.reset_cache", "ui/reset",
