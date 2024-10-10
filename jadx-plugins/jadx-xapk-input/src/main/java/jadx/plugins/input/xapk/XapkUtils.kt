@@ -3,9 +3,9 @@ package jadx.plugins.input.xapk
 import com.google.gson.Gson
 import jadx.api.plugins.utils.ZipSecurity
 import jadx.core.utils.files.FileUtils
+import jadx.core.utils.files.ZipFile
 import java.io.File
 import java.io.InputStreamReader
-import java.util.zip.ZipFile
 
 object XapkUtils {
 	fun getManifest(file: File): XapkManifest? {

@@ -8,7 +8,6 @@ import java.util.Enumeration;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.ZipFile;
 
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
