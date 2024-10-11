@@ -19,6 +19,7 @@ public class NameMapper {
 
 	private static final Set<String> RESERVED_NAMES = new HashSet<>(
 			Arrays.asList(
+					"_",
 					"abstract",
 					"assert",
 					"boolean",
