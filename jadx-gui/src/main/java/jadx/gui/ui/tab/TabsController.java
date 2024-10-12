@@ -98,8 +98,13 @@ public class TabsController {
 		}
 
 		// Not an inline node, jump normally
-		if (node.getPos() != 0 || node.getRootClass() == null) {
+		if (node.getPos() > 0) {
 			codeJump(new JumpPosition(node));
+			return;
+		}
+		if (node.getRootClass() == null) {
+			// not a class, select tab without position scroll
+			selectTab(node);
 			return;
 		}
 		// node need loading
@@ -140,15 +145,15 @@ public class TabsController {
 	 * Prefer {@link TabsController#codeJump(JNode)} method
 	 */
 	public void codeJump(JumpPosition pos) {
-		if (selectedTab == null) {
-			LOG.warn("Cannot codeJump because selectedTab is null");
-			return;
+		if (selectedTab == null || selectedTab.getNode() != pos.getNode()) {
+			selectTab(pos.getNode());
 		}
 		listeners.forEach(l -> l.onTabCodeJump(selectedTab, pos));
 	}
 
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {
-		TabBlueprint blueprint = openTab(cls);
+		selectTab(cls);
+		TabBlueprint blueprint = getTabByNode(cls);
 		listeners.forEach(l -> l.onTabSmaliJump(blueprint, pos, debugMode));
 	}
 

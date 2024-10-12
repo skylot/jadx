@@ -877,12 +877,7 @@ public class MainWindow extends JFrame {
 					return true;
 				}
 			} else if (obj instanceof JNode) {
-				JNode node = (JNode) obj;
-				if (node.getRootClass() != null) {
-					tabsController.codeJump(node);
-					return true;
-				}
-				tabsController.selectTab(node);
+				tabsController.codeJump((JNode) obj);
 				return true;
 			}
 		} catch (Exception e) {
@@ -1022,7 +1017,7 @@ public class MainWindow extends JFrame {
 		}
 
 		JResource res = new JResource(androidManifest, androidManifest.getDeobfName(), JResource.JResType.FILE);
-		tabsController.selectTab(res);
+		tabsController.codeJump(res);
 	}
 
 	private void initMenuAndToolbar() {

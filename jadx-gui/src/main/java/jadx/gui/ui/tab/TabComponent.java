@@ -284,7 +284,7 @@ public class TabComponent extends JPanel {
 				JNode node = tab.getNode();
 				final String clsName = node.makeLongString();
 				JMenuItem item = new JMenuItem(clsName);
-				item.addActionListener(e -> tabsController.selectTab(node));
+				item.addActionListener(e -> tabsController.codeJump(node));
 				item.setIcon(node.getIcon());
 				menu.add(item);
 			}
