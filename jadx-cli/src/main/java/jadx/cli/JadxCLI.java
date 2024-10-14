@@ -22,26 +22,28 @@ public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
 	public static void main(String[] args) {
-		int result = 0;
+		int result = 1;
 		try {
 			result = execute(args);
-		} catch (JadxArgsValidateException e) {
-			LOG.error("Incorrect arguments: {}", e.getMessage());
-			result = 1;
-		} catch (Throwable e) {
-			LOG.error("Process error:", e);
-			result = 1;
 		} finally {
 			System.exit(result);
 		}
 	}
 
 	public static int execute(String[] args) {
-		JadxCLIArgs jadxArgs = new JadxCLIArgs();
-		if (jadxArgs.processArgs(args)) {
-			return processAndSave(jadxArgs);
+		try {
+			JadxCLIArgs jadxArgs = new JadxCLIArgs();
+			if (jadxArgs.processArgs(args)) {
+				return processAndSave(jadxArgs);
+			}
+			return 0;
+		} catch (JadxArgsValidateException e) {
+			LOG.error("Incorrect arguments: {}", e.getMessage());
+			return 1;
+		} catch (Throwable e) {
+			LOG.error("Process error:", e);
+			return 1;
 		}
-		return 0;
 	}
 
 	private static int processAndSave(JadxCLIArgs cliArgs) {
@@ -66,11 +68,11 @@ public class JadxCLI {
 			if (errorsCount != 0) {
 				jadx.printErrorsReport();
 				LOG.error("finished with errors, count: {}", errorsCount);
-			} else {
-				LOG.info("done");
+				return 1;
 			}
+			LOG.info("done");
+			return 0;
 		}
-		return 0;
 	}
 
 	private static void initCodeWriterProvider(JadxArgs jadxArgs) {

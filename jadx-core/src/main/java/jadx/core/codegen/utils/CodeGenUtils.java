@@ -140,7 +140,9 @@ public class CodeGenUtils {
 			String inputFileName = cls.getClsData().getInputFileName();
 			if (inputFileName != null) {
 				ClassNode declCls = cls.getDeclaringClass();
-				if (declCls != null && inputFileName.equals(declCls.getClsData().getInputFileName())) {
+				if (declCls != null
+						&& declCls.getClsData() != null
+						&& inputFileName.equals(declCls.getClsData().getInputFileName())) {
 					// don't add same comment for inner classes
 					return;
 				}

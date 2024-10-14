@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -34,6 +35,22 @@ public class TestInput {
 	public void testHelp() {
 		int result = JadxCLI.execute(new String[] { "--help" });
 		assertThat(result).isEqualTo(0);
+	}
+
+	@Test
+	public void testApkInput() throws Exception {
+		int result = JadxCLI.execute(buildArgs(List.of(), "samples/small.apk"));
+		assertThat(result).isEqualTo(0);
+		List<Path> resultFiles = collectAllFilesInDir(testDir);
+		printFiles(resultFiles);
+		assertThat(resultFiles)
+				.describedAs("check output files")
+				.map(p -> p.getFileName().toString())
+				.haveExactly(2, new Condition<>(f -> f.endsWith(".java"), "java classes"))
+				.haveExactly(9, new Condition<>(f -> f.endsWith(".xml"), "xml resources"))
+				.haveExactly(1, new Condition<>(f -> f.equals("classes.dex"), "dex"))
+				.haveExactly(1, new Condition<>(f -> f.equals("AndroidManifest.xml"), "manifest"))
+				.hasSize(13);
 	}
 
 	@Test
@@ -110,9 +127,24 @@ public class TestInput {
 		return args.toArray(new String[0]);
 	}
 
+	private void printFiles(List<Path> files) {
+		LOG.info("Output files (count: {}):", files.size());
+		for (Path file : files) {
+			LOG.info(" {}", testDir.relativize(file));
+		}
+	}
+
 	private static List<Path> collectJavaFilesInDir(Path dir) throws IOException {
 		PathMatcher javaMatcher = dir.getFileSystem().getPathMatcher("glob:**.java");
 		return collectFilesInDir(dir, javaMatcher);
+	}
+
+	private static List<Path> collectAllFilesInDir(Path dir) throws IOException {
+		try (Stream<Path> pathStream = Files.walk(dir)) {
+			return pathStream
+					.filter(Files::isRegularFile)
+					.collect(Collectors.toList());
+		}
 	}
 
 	private static List<Path> collectFilesInDir(Path dir, PathMatcher matcher) throws IOException {
