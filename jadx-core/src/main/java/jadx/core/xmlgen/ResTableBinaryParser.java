@@ -425,20 +425,26 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			return STUB_ENTRY;
 		}
 
-		String resName = getResName(typeName, resRef, origKeyName);
-		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, resName, config);
-		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
-		if (prevResEntry != null) {
-			newResEntry = newResEntry.copyWithId();
+		ResourceEntry newResEntry;
+		if (useRawResName) {
+			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, origKeyName, config);
+		} else {
+			String resName = getResName(typeName, resRef, origKeyName);
+			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, resName, config);
+			ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
+			if (prevResEntry != null) {
+				newResEntry = newResEntry.copyWithId();
 
-			// rename also previous entry for consistency
-			ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
-			resStorage.replace(prevResEntry, replaceForPrevEntry);
-			resStorage.addRename(replaceForPrevEntry);
+				// rename also previous entry for consistency
+				ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
+				resStorage.replace(prevResEntry, replaceForPrevEntry);
+				resStorage.addRename(replaceForPrevEntry);
+			}
+			if (!Objects.equals(origKeyName, newResEntry.getKeyName())) {
+				resStorage.addRename(newResEntry);
+			}
 		}
-		if (!Objects.equals(origKeyName, newResEntry.getKeyName())) {
-			resStorage.addRename(newResEntry);
-		}
+
 		resStorage.add(newResEntry);
 		return newResEntry;
 	}
