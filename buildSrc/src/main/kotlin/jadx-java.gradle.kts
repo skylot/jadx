@@ -8,6 +8,7 @@ plugins {
 }
 
 val jadxVersion: String by rootProject.extra
+val jadxBuildJavaVersion: Int? by rootProject.extra
 
 group = "io.github.skylot"
 version = jadxVersion
@@ -32,6 +33,11 @@ repositories {
 }
 
 java {
+	jadxBuildJavaVersion?.let { buildJavaVer ->
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(buildJavaVer)
+		}
+	}
 	sourceCompatibility = JavaVersion.VERSION_11
 	targetCompatibility = JavaVersion.VERSION_11
 }

@@ -1,8 +1,12 @@
-rootProject.name = "jadx"
+plugins {
+	id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+}
 
 if (!JavaVersion.current().isJava11Compatible) {
 	throw GradleException("Jadx requires at least Java 11 for build (current version is '${JavaVersion.current()}')")
 }
+
+rootProject.name = "jadx"
 
 include("jadx-core")
 include("jadx-cli")

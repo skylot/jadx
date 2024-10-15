@@ -15,6 +15,18 @@ val jadxVersion by extra { System.getenv("JADX_VERSION") ?: "dev" }
 println("jadx version: $jadxVersion")
 version = jadxVersion
 
+val jadxBuildJavaVersion by extra { getBuildJavaVersion() }
+
+fun getBuildJavaVersion(): Int? {
+	val envVarName = "JADX_BUILD_JAVA_VERSION"
+	val buildJavaVer = System.getenv(envVarName)?.toInt() ?: return null
+	if (buildJavaVer < 11) {
+		throw GradleException("'$envVarName' can't be set to lower than 11")
+	}
+	println("Set Java toolchain for jadx build to version '$buildJavaVer'")
+	return buildJavaVer
+}
+
 allprojects {
 	apply(plugin = "java")
 	apply(plugin = "checkstyle")
