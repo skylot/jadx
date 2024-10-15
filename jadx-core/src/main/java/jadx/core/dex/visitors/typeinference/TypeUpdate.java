@@ -26,7 +26,6 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -52,35 +51,35 @@ public final class TypeUpdate {
 	/**
 	 * Perform recursive type checking and type propagation for all related variables
 	 */
-	public TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
-		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_EMPTY);
+	public TypeUpdateResult apply(TypeUpdateParam params) {
+		return apply(params, TypeUpdateFlags.FLAGS_EMPTY);
 	}
 
 	/**
 	 * Allow wider types for apply from debug info and some special cases
 	 */
-	public TypeUpdateResult applyWithWiderAllow(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
-		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER);
+	public TypeUpdateResult applyWithWiderAllow(TypeUpdateParam params) {
+		return apply(params, TypeUpdateFlags.FLAGS_WIDER);
 	}
 
 	/**
 	 * Force type setting
 	 */
-	public TypeUpdateResult applyWithWiderIgnSame(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
-		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_SAME);
+	public TypeUpdateResult applyWithWiderIgnSame(TypeUpdateParam params) {
+		return apply(params, TypeUpdateFlags.FLAGS_WIDER_IGNORE_SAME);
 	}
 
-	public TypeUpdateResult applyWithWiderIgnoreUnknown(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
-		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_UNKNOWN);
+	public TypeUpdateResult applyWithWiderIgnoreUnknown(TypeUpdateParam params) {
+		return apply(params, TypeUpdateFlags.FLAGS_WIDER_IGNORE_UNKNOWN);
 	}
 
-	private TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
-		if (candidateType == null || !candidateType.isTypeKnown()) {
+	private TypeUpdateResult apply(TypeUpdateParam params, TypeUpdateFlags flags) {
+		if (params.getCandidateType() == null || !params.getCandidateType().isTypeKnown()) {
 			return REJECT;
 		}
 
-		TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags);
-		TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
+		TypeUpdateInfo updateInfo = new TypeUpdateInfo(params.getMethodNode(), flags);
+		TypeUpdateResult result = updateTypeChecked(updateInfo, params.getSSAVar().getAssign(), params.getCandidateType());
 		if (result == REJECT) {
 			return result;
 		}
@@ -88,7 +87,7 @@ public final class TypeUpdate {
 			return SAME;
 		}
 		if (Consts.DEBUG_TYPE_INFERENCE) {
-			LOG.debug("Applying type {} to {}:", candidateType, ssaVar.toShortString());
+			LOG.debug("Applying type {} to {}:", params.getCandidateType(), params.getSSAVar().toShortString());
 			updateInfo.getSortedUpdates().forEach(upd -> LOG.debug("  {} -> {} in {}",
 					upd.getType(), upd.getArg().toShortString(), upd.getArg().getParentInsn()));
 		}
