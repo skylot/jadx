@@ -67,8 +67,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 		setCodeFoldingEnabled(true);
 
-		cbUseSmaliV2 = new JCheckBoxMenuItem(NLS.str("popup.bytecode_col"),
-				shouldUseSmaliPrinterV2());
+		cbUseSmaliV2 = new JCheckBoxMenuItem(NLS.str("popup.bytecode_col"), shouldUseSmaliPrinterV2());
 		cbUseSmaliV2.setAction(new AbstractAction(NLS.str("popup.bytecode_col")) {
 			private static final long serialVersionUID = -1111111202103170737L;
 
@@ -116,7 +115,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	public JClass getJClass() {
-		return ((JClass) node);
+		return (JClass) node;
 	}
 
 	private void switchModel() {
@@ -127,8 +126,8 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	public void scrollToDebugPos(int pos) {
-		getContentPanel().getMainWindow()
-				.getSettings().setSmaliAreaShowBytecode(true); // don't sync when it's set programmatically.
+		// don't sync when it's set programmatically.
+		getContentPanel().getMainWindow().getSettings().setSmaliAreaShowBytecode(true);
 		cbUseSmaliV2.setState(shouldUseSmaliPrinterV2());
 		if (!(model instanceof DebugModel)) {
 			switchModel();
@@ -195,7 +194,6 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	private class DebugModel extends SmaliModel {
 		private KeyStroke bpShortcut;
-		private final String keyID = "set a break point";
 		private Gutter gutter;
 		private Object runningHighlightTag = null; // running line
 		private final SmaliV2Style smaliV2Style = new SmaliV2Style(SmaliArea.this);
@@ -231,11 +229,9 @@ public final class SmaliArea extends AbstractCodeArea {
 		public void unload() {
 			removePropertyChangeListener(listener);
 			removeLineHighlight(runningHighlightTag);
-			UiUtils.removeKeyBinding(SmaliArea.this, bpShortcut, keyID);
+			UiUtils.removeKeyBinding(SmaliArea.this, bpShortcut, "set a break point");
 			BreakpointManager.removeListener((JClass) node);
-			bpMap.forEach((k, v) -> {
-				v.remove();
-			});
+			bpMap.forEach((k, v) -> v.remove());
 		}
 
 		@Override
@@ -318,7 +314,6 @@ public final class SmaliArea extends AbstractCodeArea {
 		}
 
 		private class SmaliV2Style extends SyntaxScheme {
-
 			Theme curTheme;
 
 			public SmaliV2Style(SmaliArea smaliArea) {
@@ -364,7 +359,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 			@Override
 			public void restoreDefaults(Font baseFont, boolean fontStyles) {
-				// Note: it's a hook for continue using the editor theme, better don't remove it.
+				// Note: it's a hook for continuing using the editor theme, better don't remove it.
 			}
 		}
 
@@ -430,7 +425,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 							@Override
 							public void mousePressed(MouseEvent e) {
-								int offs = textArea.viewToModel(e.getPoint());
+								int offs = textArea.viewToModel2D(e.getPoint());
 								if (offs > -1) {
 									model.setBreakpoint(offs);
 								}
