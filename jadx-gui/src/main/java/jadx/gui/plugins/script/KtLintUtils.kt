@@ -3,6 +3,7 @@ package jadx.gui.plugins.script
 import com.pinterest.ktlint.rule.engine.api.Code
 import com.pinterest.ktlint.rule.engine.api.EditorConfigOverride
 import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
+import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.CODE_STYLE_PROPERTY
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.CodeStyleValue
 import com.pinterest.ktlint.rule.engine.core.api.editorconfig.INDENT_STYLE_PROPERTY
@@ -27,11 +28,11 @@ object KtLintUtils {
 
 	fun format(content: String): String {
 		val code = Code.fromSnippet(content, script = true)
-		return ktLint.format(code) { lintError, corrected ->
-			if (!corrected) {
-				LOG.warn("Format error: {}", lintError)
-			}
-		}
+		return ktLint.format(
+			code,
+			rerunAfterAutocorrect = true,
+			defaultAutocorrect = true,
+		) { AutocorrectDecision.ALLOW_AUTOCORRECT }
 	}
 
 	fun lint(content: String): List<JadxLintError> {
