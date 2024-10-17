@@ -666,10 +666,10 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
 		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
 		group.addRow(NLS.str("preferences.useAlternativeFileDialog"), useAltFileDialog);
-		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
 		group.addRow(NLS.str("preferences.xposed_codegen_language"), xposedCodegenLanguage);
+		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.update_channel"), updateChannel);
 		return group;
 	}

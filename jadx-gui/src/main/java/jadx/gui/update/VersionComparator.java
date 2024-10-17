@@ -14,10 +14,23 @@ public class VersionComparator {
 			return "";
 		}
 		String result = str.trim().toLowerCase();
+		if (result.startsWith("jadx-gui-")) {
+			result = result.substring(9);
+		}
+		if (result.startsWith("jadx-")) {
+			result = result.substring(5);
+		}
 		if (result.charAt(0) == 'v') {
 			result = result.substring(1);
 		}
-		// treat package version as part of version
+		if (result.charAt(0) == 'r') {
+			result = result.substring(1);
+			int dot = result.indexOf('.');
+			if (dot != -1) {
+				result = result.substring(0, dot);
+			}
+		}
+		// treat a package version as part of version
 		result = result.replace('-', '.');
 		return result;
 	}
@@ -50,8 +63,7 @@ public class VersionComparator {
 
 	private static boolean isZeroTail(String[] arr, int pos) {
 		for (int i = pos; i < arr.length; i++) {
-			String s = arr[i];
-			if (Integer.valueOf(s) != 0) {
+			if (Integer.parseInt(arr[i]) != 0) {
 				return false;
 			}
 		}

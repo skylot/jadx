@@ -27,6 +27,7 @@ dependencies {
 
 	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.11")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
 	implementation(files("libs/jfontchooser-1.0.5.jar"))

@@ -28,6 +28,11 @@ class VersionComparatorTest {
 		checkCompare("1.3.3.1-1", "1.3.3", 1);
 	}
 
+	@Test
+	public void testCompareUnstable() {
+		checkCompare("r2190.ce527ed", "jadx-r2299.742d30d", -1);
+	}
+
 	private static void checkCompare(String a, String b, int result) {
 		assertThat(VersionComparator.checkAndCompare(a, b))
 				.as("Compare %s and %s expect %d", a, b, result)
