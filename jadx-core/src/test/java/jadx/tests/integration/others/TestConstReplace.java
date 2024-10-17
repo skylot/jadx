@@ -22,9 +22,11 @@ public class TestConstReplace extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls).code().containsOne("return CONST_VALUE;");
 		MethodNode testMth = cls.searchMethodByShortName("test");
-		assertThat(testMth).isNotNull();
+		assertThat(testMth)
+				.code()
+				.print()
+				.containsOne("return CONST_VALUE;");
 
 		FieldNode constField = cls.searchFieldByName("CONST_VALUE");
 		assertThat(constField).isNotNull();

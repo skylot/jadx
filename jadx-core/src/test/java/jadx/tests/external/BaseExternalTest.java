@@ -1,7 +1,6 @@
 package jadx.tests.external;
 
 import java.io.File;
-import java.util.function.BiFunction;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,9 +12,6 @@ import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.api.metadata.ICodeAnnotation;
-import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -134,56 +130,13 @@ public abstract class BaseExternalTest extends TestUtils {
 		String dashLine = "======================================================================================";
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
-				String mthCode = cutMethodCode(codeInfo, mth);
-				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
+				LOG.info("Print method: {}\n{}\n{}\n{}",
+						mth.getMethodInfo().getShortId(),
 						dashLine,
-						mthCode,
+						mth.getCodeStr(),
 						dashLine);
 			}
 		}
-	}
-
-	private String cutMethodCode(ICodeInfo codeInfo, MethodNode mth) {
-		int startPos = getCommentStartPos(codeInfo, mth.getDefPosition());
-		int stopPos = getMethodEnd(mth, codeInfo);
-		return codeInfo.getCodeStr().substring(startPos, stopPos);
-	}
-
-	private int getMethodEnd(MethodNode mth, ICodeInfo codeInfo) {
-		// skip nested nodes DEF/END until first unpaired END annotation (end of this method)
-		Integer end = codeInfo.getCodeMetadata().searchDown(mth.getDefPosition() + 1, new BiFunction<>() {
-			int nested = 0;
-
-			@Override
-			public Integer apply(Integer pos, ICodeAnnotation ann) {
-				switch (ann.getAnnType()) {
-					case DECLARATION:
-						ICodeNodeRef node = ((NodeDeclareRef) ann).getNode();
-						switch (node.getAnnType()) {
-							case CLASS:
-							case METHOD:
-								nested++;
-								break;
-						}
-						break;
-
-					case END:
-						if (nested == 0) {
-							return pos;
-						}
-						nested--;
-						break;
-				}
-				return null;
-			}
-		});
-		return end != null ? end : codeInfo.getCodeStr().length();
-	}
-
-	protected int getCommentStartPos(ICodeInfo codeInfo, int pos) {
-		String emptyLine = "\n\n";
-		int emptyLinePos = codeInfo.getCodeStr().lastIndexOf(emptyLine, pos);
-		return emptyLinePos == -1 ? pos : emptyLinePos + emptyLine.length();
 	}
 
 	private void printErrorReport(JadxDecompiler jadx) {
