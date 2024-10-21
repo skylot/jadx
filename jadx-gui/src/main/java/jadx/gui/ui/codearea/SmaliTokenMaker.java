@@ -9,7 +9,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.*;
 
 /**
- * 用于Smali代码高亮
+ * SmaliTokenMaker
  * MartinKay@qq.com
  */
 
