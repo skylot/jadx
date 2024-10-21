@@ -47,8 +47,8 @@ public class CacheManager {
 	}
 
 	/**
-	 * If project cache is set -> check if cache entry exists for this project.
-	 * If not -> calculate new and add entry.
+	 * If project cache is set -&gt; check if cache entry exists for this project.
+	 * If not -&gt; calculate new and add entry.
 	 */
 	public Path getCacheDir(JadxProject project, @Nullable String cacheDirStr) {
 		if (cacheDirStr == null) {
