@@ -1,0 +1,1 @@
+jadx -d output_directory path_to_apk_file.apk
