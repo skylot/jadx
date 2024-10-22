@@ -38,6 +38,7 @@ import jadx.core.plugins.PluginContext;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.plugins.tools.JadxPluginsList;
@@ -141,10 +142,10 @@ class PluginSettingsGroup implements ISettingsGroup {
 		listModel.clear();
 		listModel.addElement(new TitleNode("Installed"));
 		nodes.stream().filter(n -> n.getVersion() != null).forEach(listModel::addElement);
-		listModel.addElement(new TitleNode("Bundled"));
-		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
 		listModel.addElement(new TitleNode("Available"));
 		listModel.addAll(available);
+		listModel.addElement(new TitleNode("Bundled"));
+		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
 	}
 
 	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel,
@@ -176,16 +177,15 @@ class PluginSettingsGroup implements ISettingsGroup {
 			Font baseFont = nameLbl.getFont();
 			nameLbl.setFont(baseFont.deriveFont(Font.BOLD, baseFont.getSize2D() + 2));
 
-			String desc;
+			JLabel homeLink = null;
 			String homepage = node.getHomepage();
 			if (StringUtils.notBlank(homepage)) {
-				desc = node.getDescription() + "\n\nHomepage: " + homepage;
-			} else {
-				desc = node.getDescription();
+				homeLink = new Link("Homepage: " + homepage, homepage);
+				homeLink.setHorizontalAlignment(SwingConstants.LEFT);
 			}
 
 			JTextPane descArea = new JTextPane();
-			descArea.setText(desc);
+			descArea.setText(node.getDescription());
 			descArea.setFont(baseFont.deriveFont(baseFont.getSize2D() + 1));
 			descArea.setEditable(false);
 			descArea.setBorder(BorderFactory.createEmptyBorder());
@@ -200,8 +200,22 @@ class PluginSettingsGroup implements ISettingsGroup {
 			if (actionBtn != null) {
 				top.add(actionBtn);
 			}
+
+			JPanel center = new JPanel();
+			center.setLayout(new BoxLayout(center, BoxLayout.PAGE_AXIS));
+			center.setBorder(BorderFactory.createEmptyBorder(10, 2, 10, 2));
+			center.add(descArea);
+			if (homeLink != null) {
+				JPanel link = new JPanel();
+				link.setLayout(new BoxLayout(link, BoxLayout.LINE_AXIS));
+				link.add(homeLink);
+				link.add(Box.createHorizontalGlue());
+				center.add(link);
+			}
+			center.add(Box.createVerticalGlue());
+
 			detailsPanel.add(top, BorderLayout.PAGE_START);
-			detailsPanel.add(descArea, BorderLayout.CENTER);
+			detailsPanel.add(center, BorderLayout.CENTER);
 		}
 		detailsPanel.updateUI();
 	}
@@ -241,15 +255,18 @@ class PluginSettingsGroup implements ISettingsGroup {
 			nameLbl.setOpaque(true);
 			versionLbl = new JLabel("");
 			versionLbl.setOpaque(true);
+			versionLbl.setPreferredSize(new Dimension(40, 10));
 
 			panel.add(nameLbl);
 			panel.add(Box.createHorizontalStrut(20));
 			panel.add(Box.createHorizontalGlue());
 			panel.add(versionLbl);
+			panel.add(Box.createHorizontalStrut(10));
 
 			titleLbl = new JLabel();
 			titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
 			titleLbl.setEnabled(false);
+			versionLbl.setPreferredSize(new Dimension(40, 10));
 		}
 
 		@Override
