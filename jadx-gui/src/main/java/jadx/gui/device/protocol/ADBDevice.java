@@ -123,7 +123,7 @@ public class ADBDevice {
 	}
 
 	/**
-	 * @Return binary output of logcat
+	 * @return binary output of logcat
 	 */
 	public byte[] getBinaryLogcat() throws IOException {
 
@@ -133,7 +133,7 @@ public class ADBDevice {
 	}
 
 	/**
-	 * @Return binary output of logcat after provided timestamp
+	 * @return binary output of logcat after provided timestamp
 	 *         Timestamp is in the format 09-08 02:18:03.131
 	 */
 	public byte[] getBinaryLogcat(String timestamp) throws IOException {
@@ -147,7 +147,7 @@ public class ADBDevice {
 	}
 
 	/**
-	 * @Return binary output of logcat -c
+	 * Binary output of logcat -c
 	 */
 	public void clearLogcat() throws IOException {
 		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());

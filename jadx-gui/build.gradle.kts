@@ -1,6 +1,7 @@
 plugins {
 	id("jadx-kotlin")
 	id("application")
+	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
 	id("com.gradleup.shadow") version "8.3.3"
 	id("org.beryx.runtime") version "1.13.1"

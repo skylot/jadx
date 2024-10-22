@@ -1,5 +1,6 @@
 plugins {
 	id("jadx-java")
+	id("jadx-library")
 	id("application")
 
 	// use shadow only for application scripts, jar will be copied from jadx-gui

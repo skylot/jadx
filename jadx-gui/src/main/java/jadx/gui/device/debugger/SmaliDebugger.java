@@ -533,7 +533,7 @@ public class SmaliDebugger {
 	/**
 	 * @param startIndex less than 0 means 0
 	 * @param len        less than or equals 0 means the maximum value 99 or the rest of the elements.
-	 * @return An entry, The key is the total length of this array when len is <= 0, otherwise 0,
+	 * @return An entry, The key is the total length of this array when len is &lt;= 0, otherwise 0,
 	 *         the value, if this array is an object array then it's object ids.
 	 */
 	public Entry<Integer, List<Long>> readArray(RuntimeValue reg, int startIndex, int len) throws SmaliDebuggerException {

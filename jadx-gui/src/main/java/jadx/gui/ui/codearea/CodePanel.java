@@ -39,7 +39,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.MousePressedHandler;
 
 /**
- * A panel combining a {@link SearchBar and a scollable {@link CodeArea}
+ * A panel combining a {@link SearchBar} and a scollable {@link CodeArea}
  */
 public class CodePanel extends JPanel {
 	private static final long serialVersionUID = 1117721869391885865L;
