@@ -114,7 +114,7 @@ public class AndroidResourcesUtils {
 		}
 		for (ResourceEntry resource : resStorage.getResources()) {
 			String resTypeName = resource.getTypeName();
-			String resName = resTypeName.equals("style") ? resource.getKeyName().replace('.', '_') : resource.getKeyName();
+			String resName = resource.getKeyName().replace('.', '_');
 
 			ResClsInfo typeClsInfo = innerClsMap.computeIfAbsent(
 					resTypeName,

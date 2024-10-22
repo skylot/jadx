@@ -3,12 +3,8 @@ package jadx.core.xmlgen;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -17,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.plugins.utils.ZipSecurity;
-import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IFieldInfoRef;
@@ -32,8 +27,6 @@ import jadx.core.xmlgen.entry.ValuesParser;
 
 public class ResTableBinaryParser extends CommonBinaryParser implements IResTableParser {
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableBinaryParser.class);
-
-	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d_]+");
 
 	private static final class PackageChunk {
 		private final int id;
@@ -154,7 +147,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		if (keyStringsOffset != 0) {
 			is.skipToPos(keyStringsOffset, "Expected keyStrings string pool");
 			keyStrings = parseStringPool();
-			deobfKeyStrings(keyStrings);
 		}
 
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
@@ -191,32 +183,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			}
 		}
 		return pkg;
-	}
-
-	private void deobfKeyStrings(BinaryXMLStrings keyStrings) {
-		int keysCount = keyStrings.size();
-		if (root.getArgs().isRenamePrintable()) {
-			for (int i = 0; i < keysCount; i++) {
-				String keyString = keyStrings.get(i);
-				if (!NameMapper.isAllCharsPrintable(keyString)) {
-					keyStrings.put(i, makeNewKeyName(i));
-				}
-			}
-		}
-		if (root.getArgs().isRenameValid()) {
-			Set<String> keySet = new HashSet<>(keysCount);
-			for (int i = 0; i < keysCount; i++) {
-				String keyString = keyStrings.get(i);
-				boolean isNew = keySet.add(keyString);
-				if (!isNew) {
-					keyStrings.put(i, makeNewKeyName(i));
-				}
-			}
-		}
-	}
-
-	private String makeNewKeyName(int idx) {
-		return String.format("jadx_deobf_0x%08x", idx);
 	}
 
 	@SuppressWarnings("unused")
@@ -429,7 +395,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		if (useRawResName) {
 			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, origKeyName, config);
 		} else {
-			String resName = getResName(typeName, resRef, origKeyName);
+			String resName = getResName(resRef, origKeyName);
 			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, resName, config);
 			ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 			if (prevResEntry != null) {
@@ -449,7 +415,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		return newResEntry;
 	}
 
-	private String getResName(String typeName, int resRef, String origKeyName) {
+	private String getResName(int resRef, String origKeyName) {
 		if (this.useRawResName) {
 			return origKeyName;
 		}
@@ -457,40 +423,38 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		if (renamedKey != null) {
 			return renamedKey;
 		}
-		// styles might contain dots in name, search for alias only for resources names
-		if (typeName.equals("style")) {
-			return origKeyName;
-		}
+
 		IFieldInfoRef fldRef = root.getConstValues().getGlobalConstFields().get(resRef);
 		FieldNode constField = fldRef instanceof FieldNode ? (FieldNode) fldRef : null;
-		String resAlias = getResAlias(resRef, origKeyName, constField);
-		resStorage.addRename(resRef, resAlias);
+
+		String newResName = getNewResName(resRef, origKeyName, constField);
+		if (!origKeyName.equals(newResName)) {
+			resStorage.addRename(resRef, newResName);
+		}
+
 		if (constField != null) {
-			constField.rename(resAlias);
+			final String newFieldName = ResNameUtils.convertToRFieldName(newResName);
+			constField.rename(newFieldName);
 			constField.add(AFlag.DONT_RENAME);
 		}
-		return resAlias;
+
+		return newResName;
 	}
 
-	private String getResAlias(int resRef, String origKeyName, @Nullable FieldNode constField) {
-		String name;
+	private String getNewResName(int resRef, String origKeyName, @Nullable FieldNode constField) {
+		String newResName;
 		if (constField == null || constField.getTopParentClass().isSynthetic()) {
-			name = origKeyName;
+			newResName = origKeyName;
 		} else {
-			name = getBetterName(root.getArgs().getResourceNameSource(), origKeyName, constField.getName());
+			newResName = getBetterName(root.getArgs().getResourceNameSource(), origKeyName, constField.getName());
 		}
-		Matcher matcher = VALID_RES_KEY_PATTERN.matcher(name);
-		if (matcher.matches()) {
-			return name;
+
+		if (root.getArgs().isRenameValid()) {
+			final boolean allowNonPrintable = !root.getArgs().isRenamePrintable();
+			newResName = ResNameUtils.sanitizeAsResourceName(newResName, String.format("_res_0x%08x", resRef), allowNonPrintable);
 		}
-		// Making sure origKeyName compliant with resource file name rules
-		String cleanedResName = cleanName(matcher);
-		String newResName = String.format("res_0x%08x", resRef);
-		if (cleanedResName.isEmpty()) {
-			return newResName;
-		}
-		// autogenerate key name, appended with cleaned origKeyName to be human-friendly
-		return newResName + "_" + cleanedResName.toLowerCase();
+
+		return newResName;
 	}
 
 	public static String getBetterName(ResourceNameSource nameSource, String resName, String codeName) {
@@ -505,19 +469,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			default:
 				throw new JadxRuntimeException("Unexpected ResourceNameSource value: " + nameSource);
 		}
-	}
-
-	private String cleanName(Matcher matcher) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		while (matcher.find()) {
-			if (!first) {
-				sb.append("_");
-			}
-			sb.append(matcher.group());
-			first = false;
-		}
-		return sb.toString();
 	}
 
 	private RawNamedValue parseValueMap() throws IOException {
