@@ -15,8 +15,6 @@ import javax.swing.SwingConstants;
 import jadx.api.plugins.gui.ISettingsGroup;
 
 public class SettingsGroup implements ISettingsGroup {
-	private static final long serialVersionUID = -6487309975896192544L;
-
 	private final String title;
 	private final JPanel panel;
 	private final JPanel gridPanel;
@@ -48,14 +46,14 @@ public class SettingsGroup implements ISettingsGroup {
 		c.gridx = 0;
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.LINE_START;
-		c.weightx = 0.8;
-		c.fill = GridBagConstraints.NONE;
+		c.weightx = 0.1;
+		c.fill = GridBagConstraints.LINE_START;
 		gridPanel.add(rowLbl, c);
 		c.gridx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.anchor = GridBagConstraints.CENTER;
-		c.weightx = 0.2;
-		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.LINE_START;
+		c.weightx = 0.7;
+		c.fill = GridBagConstraints.LINE_START;
 
 		if (tooltip != null) {
 			rowLbl.setToolTipText(tooltip);
