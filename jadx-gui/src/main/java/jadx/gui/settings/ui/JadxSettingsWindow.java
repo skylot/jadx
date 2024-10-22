@@ -44,8 +44,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import say.swing.JFontChooser;
-
 import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
@@ -63,6 +61,7 @@ import jadx.gui.settings.JadxUpdateChannel;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.XposedCodegenLanguage;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
+import jadx.gui.settings.ui.font.JadxFontDialog;
 import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
@@ -371,11 +370,9 @@ public class JadxSettingsWindow extends JDialog {
 		fontBtn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JFontChooser fontChooser = new JFontChooser();
-				fontChooser.setSelectedFont(settings.getFont());
-				int result = fontChooser.showDialog(JadxSettingsWindow.this);
-				if (result == JFontChooser.OK_OPTION) {
-					Font font = fontChooser.getSelectedFont();
+				Font font = new JadxFontDialog(JadxSettingsWindow.this, NLS.str("preferences.font"))
+						.select(settings.getFont(), false);
+				if (font != null) {
 					LOG.debug("Selected Font: {}", font);
 					settings.setFont(font);
 					mainWindow.loadSettings();
@@ -387,11 +384,9 @@ public class JadxSettingsWindow extends JDialog {
 		smaliFontBtn.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JFontChooser fontChooser = new JPreferredFontChooser();
-				fontChooser.setSelectedFont(settings.getSmaliFont());
-				int result = fontChooser.showDialog(JadxSettingsWindow.this);
-				if (result == JFontChooser.OK_OPTION) {
-					Font font = fontChooser.getSelectedFont();
+				Font font = new JadxFontDialog(JadxSettingsWindow.this, NLS.str("preferences.smali_font"))
+						.select(settings.getSmaliFont(), true);
+				if (font != null) {
 					LOG.debug("Selected Font: {} for smali", font);
 					settings.setSmaliFont(font);
 					mainWindow.loadSettings();

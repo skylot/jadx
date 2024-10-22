@@ -31,7 +31,7 @@ dependencies {
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
-	implementation(files("libs/jfontchooser-1.0.5.jar"))
+	implementation("org.drjekyll:fontchooser:3.1.0")
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
 	implementation("com.formdev:flatlaf:3.5.1")
