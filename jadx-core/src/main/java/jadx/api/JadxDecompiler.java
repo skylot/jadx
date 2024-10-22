@@ -178,7 +178,7 @@ public final class JadxDecompiler implements Closeable {
 		closeInputs();
 		closeLoaders();
 		args.close();
-		FileUtils.deleteTempRootDir();
+		FileUtils.clearTempRootDir();
 	}
 
 	private void closeInputs() {

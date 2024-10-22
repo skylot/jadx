@@ -152,7 +152,7 @@ public class FileUtils {
 		}
 	}
 
-	private static final SimpleFileVisitor<Path> FILE_DELETE_VISITOR = new SimpleFileVisitor<Path>() {
+	private static final SimpleFileVisitor<Path> FILE_DELETE_VISITOR = new SimpleFileVisitor<>() {
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 			Files.delete(file);
@@ -174,8 +174,30 @@ public class FileUtils {
 		}
 	}
 
-	public static void deleteTempRootDir() {
-		deleteDirIfExists(tempRootDir);
+	public static void clearTempRootDir() {
+		clearDir(tempRootDir);
+	}
+
+	public static void clearDir(Path clearDir) {
+		try {
+			Files.walkFileTree(clearDir, Collections.emptySet(), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					Files.delete(file);
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					if (!dir.equals(clearDir)) {
+						Files.delete(dir);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to clear directory " + clearDir, e);
+		}
 	}
 
 	public static Path createTempDir(String prefix) {
