@@ -54,7 +54,9 @@ class ResXmlGenTest {
 		ResourceStorage resStorage = new ResourceStorage(security);
 		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "attr", "size", "");
 		re.setNamedValues(
-				Lists.list(new RawNamedValue(16777216, new RawValue(16, 65536)), new RawNamedValue(17039620, new RawValue(16, 1))));
+				Lists.list(
+						new RawNamedValue(0x01000000, new RawValue(16, 65536)),
+						new RawNamedValue(0x01040000, new RawValue(16, 1))));
 		resStorage.add(re);
 
 		ValuesParser vp = new ValuesParser(null, resStorage.getResourcesNames());
@@ -67,7 +69,7 @@ class ResXmlGenTest {
 		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\">\n"
-				+ "        <enum name=\"android:string.aerr_wait\" value=\"1\" />\n"
+				+ "        <enum name=\"android:string.cancel\" value=\"1\" />\n"
 				+ "    </attr>\n"
 				+ "</resources>");
 	}
@@ -77,7 +79,9 @@ class ResXmlGenTest {
 		ResourceStorage resStorage = new ResourceStorage(security);
 		ResourceEntry re = new ResourceEntry(2130903103, "jadx.gui.app", "attr", "size", "");
 		re.setNamedValues(
-				Lists.list(new RawNamedValue(16777216, new RawValue(16, 131072)), new RawNamedValue(17039620, new RawValue(16, 1))));
+				Lists.list(
+						new RawNamedValue(0x01000000, new RawValue(16, 131072)),
+						new RawNamedValue(0x01040000, new RawValue(16, 1))));
 		resStorage.add(re);
 
 		ValuesParser vp = new ValuesParser(null, resStorage.getResourcesNames());
@@ -90,7 +94,7 @@ class ResXmlGenTest {
 		assertThat(input).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<resources>\n"
 				+ "    <attr name=\"size\">\n"
-				+ "        <flag name=\"android:string.aerr_wait\" value=\"1\" />\n"
+				+ "        <flag name=\"android:string.cancel\" value=\"1\" />\n"
 				+ "    </attr>\n"
 				+ "</resources>");
 	}
