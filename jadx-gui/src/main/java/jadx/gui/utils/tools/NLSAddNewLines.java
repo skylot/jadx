@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Automatically add new i18n lines from reference (EN) into others languages
+ * Automatically add new i18n lines from reference (EN) into other languages
  */
 public class NLSAddNewLines {
 	private static final Logger LOG = LoggerFactory.getLogger(NLSAddNewLines.class);
@@ -50,22 +50,25 @@ public class NLSAddNewLines {
 	private static void applyFix(List<String> refLines, Path path) throws IOException {
 		List<String> lines = Files.readAllLines(path);
 		int linesCount = lines.size();
-		if (refLines.size() <= linesCount) {
-			LOG.info("Skip {}, already fixed", path);
-			return;
-		}
 		boolean updated = false;
 		for (int i = 0; i < linesCount; i++) {
 			String line = lines.get(i);
 			String refLine = refLines.get(i);
-			if (!isSameKey(refLine, line)) {
+			if (isSameKey(refLine, line)) {
+				if (line.startsWith("#") && line.endsWith("=")) {
+					// add ref text if missing to simplify translation
+					lines.set(i, '#' + refLine);
+					updated = true;
+				}
+			} else {
 				if (refLine.isEmpty()) {
 					lines.add(i, "");
 				} else {
-					lines.add(i, "#" + refLine);
+					lines.add(i, '#' + refLine);
 				}
 				updated = true;
 			}
+
 		}
 		if (updated) {
 			LOG.info("Updating {}", path);
