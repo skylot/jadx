@@ -141,11 +141,11 @@ class PluginSettingsGroup implements ISettingsGroup {
 			List<BasePluginListNode> nodes, List<AvailablePluginNode> available) {
 		listModel.clear();
 		listModel.addElement(new TitleNode("Installed"));
-		nodes.stream().filter(n -> n.getVersion() != null).forEach(listModel::addElement);
+		nodes.stream().filter(n -> n.getAction() == PluginAction.UNINSTALL).forEach(listModel::addElement);
 		listModel.addElement(new TitleNode("Available"));
 		listModel.addAll(available);
 		listModel.addElement(new TitleNode("Bundled"));
-		nodes.stream().filter(n -> n.getVersion() == null).forEach(listModel::addElement);
+		nodes.stream().filter(n -> n.getAction() == PluginAction.NONE).forEach(listModel::addElement);
 	}
 
 	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel,
