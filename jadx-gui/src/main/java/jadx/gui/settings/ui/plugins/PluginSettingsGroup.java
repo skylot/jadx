@@ -7,9 +7,8 @@ import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,15 +51,15 @@ class PluginSettingsGroup implements ISettingsGroup {
 	private final MainWindow mainWindow;
 	private final String title;
 	private final List<ISettingsGroup> subGroups = new ArrayList<>();
-	private final List<PluginContext> installedPlugins;
+	private final List<PluginContext> collectedPlugins;
 
 	private JPanel detailsPanel;
 
-	public PluginSettingsGroup(PluginSettings pluginSettings, MainWindow mainWindow, List<PluginContext> installedPlugins) {
+	public PluginSettingsGroup(PluginSettings pluginSettings, MainWindow mainWindow, List<PluginContext> collectedPlugins) {
 		this.pluginsSettings = pluginSettings;
 		this.mainWindow = mainWindow;
 		this.title = NLS.str("preferences.plugins");
-		this.installedPlugins = installedPlugins;
+		this.collectedPlugins = collectedPlugins;
 	}
 
 	@Override
@@ -124,17 +123,21 @@ class PluginSettingsGroup implements ISettingsGroup {
 
 	private void applyData(DefaultListModel<BasePluginListNode> listModel) {
 		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
-		Map<String, JadxPluginMetadata> installedMap = new HashMap<>(installed.size());
-		installed.forEach(p -> installedMap.put(p.getPluginId(), p));
-
-		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + 3);
-		for (PluginContext plugin : installedPlugins) {
-			nodes.add(new InstalledPluginNode(plugin, installedMap.get(plugin.getPluginId())));
+		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + collectedPlugins.size());
+		Set<String> installedSet = new HashSet<>(installed.size());
+		for (JadxPluginMetadata pluginMetadata : installed) {
+			installedSet.add(pluginMetadata.getPluginId());
+			nodes.add(new InstalledPluginNode(pluginMetadata));
+		}
+		for (PluginContext plugin : collectedPlugins) {
+			if (!installedSet.contains(plugin.getPluginId())) {
+				nodes.add(new LoadedPluginNode(plugin));
+			}
 		}
 		nodes.sort(Comparator.comparing(BasePluginListNode::getTitle));
 
 		fillListModel(listModel, nodes, Collections.emptyList());
-		loadAvailablePlugins(listModel, nodes, installedPlugins);
+		loadAvailablePlugins(listModel, nodes, installedSet);
 	}
 
 	private static void fillListModel(DefaultListModel<BasePluginListNode> listModel,
@@ -149,17 +152,14 @@ class PluginSettingsGroup implements ISettingsGroup {
 	}
 
 	private void loadAvailablePlugins(DefaultListModel<BasePluginListNode> listModel,
-			List<BasePluginListNode> nodes, List<PluginContext> installedPlugins) {
+			List<BasePluginListNode> nodes, Set<String> installedSet) {
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("preferences.plugins.task.downloading_list"),
 				() -> {
 					try {
 						JadxPluginsList.getInstance().get(availablePlugins -> {
-							Set<String> installed = installedPlugins.stream()
-									.map(PluginContext::getPluginId)
-									.collect(Collectors.toSet());
 							List<AvailablePluginNode> availableNodes = availablePlugins.stream()
-									.filter(availablePlugin -> !installed.contains(availablePlugin.getPluginId()))
+									.filter(availablePlugin -> !installedSet.contains(availablePlugin.getPluginId()))
 									.map(AvailablePluginNode::new)
 									.collect(Collectors.toList());
 							UiUtils.uiRunAndWait(() -> fillListModel(listModel, nodes, availableNodes));
@@ -199,6 +199,17 @@ class PluginSettingsGroup implements ISettingsGroup {
 			JButton actionBtn = makeActionButton(node);
 			if (actionBtn != null) {
 				top.add(actionBtn);
+			}
+			if (node.getAction() == PluginAction.UNINSTALL) {
+				// TODO: allow disable bundled plugins
+				boolean disabled = node.isDisabled();
+				String statusChangeLabel = disabled
+						? NLS.str("preferences.plugins.enable_btn")
+						: NLS.str("preferences.plugins.disable_btn");
+				JButton statusBtn = new JButton(statusChangeLabel);
+				statusBtn.addActionListener(ev -> pluginsSettings.changeDisableStatus(node.getPluginId(), !disabled));
+				top.add(Box.createHorizontalStrut(10));
+				top.add(statusBtn);
 			}
 
 			JPanel center = new JPanel();
@@ -271,14 +282,19 @@ class PluginSettingsGroup implements ISettingsGroup {
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends BasePluginListNode> list,
-				BasePluginListNode value, int index, boolean isSelected, boolean cellHasFocus) {
-			if (!value.hasDetails()) {
-				titleLbl.setText(value.getTitle());
+				BasePluginListNode plugin, int index, boolean isSelected, boolean cellHasFocus) {
+			if (!plugin.hasDetails()) {
+				titleLbl.setText(plugin.getTitle());
 				return titleLbl;
 			}
-			nameLbl.setText(value.getTitle());
-			nameLbl.setToolTipText(value.getLocationId());
-			versionLbl.setText(Utils.getOrElse(value.getVersion(), ""));
+			nameLbl.setText(plugin.getTitle());
+			nameLbl.setToolTipText(plugin.getLocationId());
+			versionLbl.setText(Utils.getOrElse(plugin.getVersion(), ""));
+
+			boolean enabled = !plugin.isDisabled();
+			nameLbl.setEnabled(enabled);
+			versionLbl.setEnabled(enabled);
+
 			if (isSelected) {
 				panel.setBackground(list.getSelectionBackground());
 				nameLbl.setBackground(list.getSelectionBackground());

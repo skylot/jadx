@@ -77,17 +77,15 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
-import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadProject;
+import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.export.TemplateFile;
-import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidManifestParser;
@@ -99,6 +97,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.cache.manager.CacheManager;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.events.services.RenameService;
+import jadx.gui.events.types.JadxGuiEventsImpl;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
@@ -195,6 +194,7 @@ public class MainWindow extends JFrame {
 	private final transient CacheObject cacheObject;
 	private final transient CacheManager cacheManager;
 	private final transient BackgroundExecutor backgroundExecutor;
+	private final transient JadxGuiEventsImpl events = new JadxGuiEventsImpl();
 
 	private final TabsController tabsController;
 	private final NavigationController navController;
@@ -271,6 +271,7 @@ public class MainWindow extends JFrame {
 		UiUtils.setWindowIcons(this);
 		this.shortcutsController.registerMouseEventListener(this);
 		loadSettings();
+		initEvents();
 
 		update();
 		checkForUpdate();
@@ -500,9 +501,10 @@ public class MainWindow extends JFrame {
 		synchronized (ReloadProject.EVENT) {
 			saveAll();
 			closeAll();
-			loadFiles(UiUtils.EMPTY_RUNNABLE);
-
-			menuBar.reloadShortcuts();
+			loadFiles(() -> {
+				menuBar.reloadShortcuts();
+				events().send(ReloadSettingsWindow.INSTANCE);
+			});
 		}
 	}
 
@@ -525,6 +527,7 @@ public class MainWindow extends JFrame {
 	private void loadFiles(Runnable onFinish) {
 		if (project.getFilePaths().isEmpty()) {
 			tabsController.selectTab(new StartPageNode());
+			onFinish.run();
 			return;
 		}
 		AtomicReference<Exception> wrapperException = new AtomicReference<>();
@@ -605,7 +608,6 @@ public class MainWindow extends JFrame {
 		initTree();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
-		initEvents();
 
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
 		backgroundExecutor.execute(NLS.str("progress.load"),
@@ -619,13 +621,12 @@ public class MainWindow extends JFrame {
 	}
 
 	public void passesReloaded() {
-		initEvents(); // TODO: events reset on reload passes on script run
 		tabbedPane.reloadInactiveTabs();
 		reloadTree();
 	}
 
 	private void initEvents() {
-		events().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
+		events().global().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
 		RenameService.init(this);
 	}
 
@@ -1753,14 +1754,7 @@ public class MainWindow extends JFrame {
 		return cacheManager;
 	}
 
-	/**
-	 * Events instance if decompiler not yet available
-	 */
-	private final IJadxEvents fallbackEvents = new JadxEventsImpl();
-
-	public IJadxEvents events() {
-		return wrapper.getCurrentDecompiler()
-				.map(JadxDecompiler::events)
-				.orElse(fallbackEvents);
+	public JadxGuiEventsImpl events() {
+		return events;
 	}
 }

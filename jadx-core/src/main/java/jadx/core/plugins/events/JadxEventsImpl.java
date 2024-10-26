@@ -26,8 +26,20 @@ public class JadxEventsImpl implements IJadxEvents {
 	@Override
 	public <E extends IJadxEvent> void addListener(JadxEventType<E> eventType, Consumer<E> listener) {
 		manager.addListener(eventType, listener);
+		if (Consts.DEBUG_EVENTS) {
+			LOG.debug("add listener for: {}, stats: {}", eventType, manager.listenersDebugStats());
+		}
 	}
 
+	@Override
+	public <E extends IJadxEvent> void removeListener(JadxEventType<E> eventType, Consumer<E> listener) {
+		manager.removeListener(eventType, listener);
+		if (Consts.DEBUG_EVENTS) {
+			LOG.debug("remove listener for: {}, stats: {}", eventType, manager.listenersDebugStats());
+		}
+	}
+
+	@Override
 	public void reset() {
 		manager.reset();
 	}

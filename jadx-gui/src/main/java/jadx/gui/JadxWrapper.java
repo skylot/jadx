@@ -70,6 +70,8 @@ public class JadxWrapper {
 				decompiler = new JadxDecompiler(jadxArgs);
 				guiPluginsContext = initGuiPluginsContext(decompiler, mainWindow);
 				initUsageCache(jadxArgs);
+				decompiler.setEventsImpl(mainWindow.events());
+
 				decompiler.load();
 				initCodeCache();
 			}
@@ -157,6 +159,11 @@ public class JadxWrapper {
 
 	public void resetGuiPluginsContext() {
 		guiPluginsContext.reset();
+	}
+
+	public void reloadPasses() {
+		resetGuiPluginsContext();
+		decompiler.reloadPasses();
 	}
 
 	/**

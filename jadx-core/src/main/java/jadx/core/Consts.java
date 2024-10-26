@@ -10,7 +10,7 @@ public class Consts {
 	public static final boolean DEBUG_FINALLY = false;
 	public static final boolean DEBUG_ATTRIBUTES = false;
 	public static final boolean DEBUG_RESTRUCTURE = false;
-	public static final boolean DEBUG_EVENTS = true;
+	public static final boolean DEBUG_EVENTS = Jadx.isDevVersion();
 
 	public static final String CLASS_OBJECT = "java.lang.Object";
 	public static final String CLASS_STRING = "java.lang.String";

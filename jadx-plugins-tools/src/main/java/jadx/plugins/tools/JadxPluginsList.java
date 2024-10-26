@@ -28,9 +28,6 @@ import jadx.plugins.tools.utils.PluginUtils;
 
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_LIST_CACHE;
 
-/**
- * TODO: implement list caching (on disk) with check for new release
- */
 public class JadxPluginsList {
 	private static final JadxPluginsList INSTANCE = new JadxPluginsList();
 

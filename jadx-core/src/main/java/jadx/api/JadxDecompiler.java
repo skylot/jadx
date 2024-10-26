@@ -93,12 +93,13 @@ public final class JadxDecompiler implements Closeable {
 	private List<ResourceFile> resources;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
-	private final JadxEventsImpl events = new JadxEventsImpl();
 	private final ResourcesLoader resourcesLoader = new ResourcesLoader(this);
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
+
+	private IJadxEvents events = new JadxEventsImpl();
 
 	public JadxDecompiler() {
 		this(new JadxArgs());
@@ -664,6 +665,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public IJadxEvents events() {
 		return events;
+	}
+
+	public void setEventsImpl(IJadxEvents eventsImpl) {
+		this.events = eventsImpl;
 	}
 
 	public void addCustomCodeLoader(ICodeLoader customCodeLoader) {

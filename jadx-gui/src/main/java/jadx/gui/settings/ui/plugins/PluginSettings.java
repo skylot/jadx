@@ -53,9 +53,9 @@ public class PluginSettings {
 	}
 
 	public ISettingsGroup build() {
-		List<PluginContext> installedPlugins = new CollectPlugins(mainWindow).build();
-		ISettingsGroup pluginsGroup = new PluginSettingsGroup(this, mainWindow, installedPlugins);
-		for (PluginContext context : installedPlugins) {
+		List<PluginContext> collectedPlugins = new CollectPlugins(mainWindow).build();
+		ISettingsGroup pluginsGroup = new PluginSettingsGroup(this, mainWindow, collectedPlugins);
+		for (PluginContext context : collectedPlugins) {
 			ISettingsGroup pluginGroup = addPluginGroup(context);
 			if (pluginGroup != null) {
 				pluginsGroup.getSubGroups().add(pluginGroup);
@@ -98,6 +98,13 @@ public class PluginSettings {
 		});
 	}
 
+	public void changeDisableStatus(String pluginId, boolean disabled) {
+		mainWindow.getBackgroundExecutor().execute(
+				NLS.str("preferences.plugins.task.status"),
+				() -> JadxPluginsTools.getInstance().changeDisabledStatus(pluginId, disabled),
+				s -> requestReload());
+	}
+
 	void updateAll() {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.updating"), () -> {
 			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
@@ -113,7 +120,7 @@ public class PluginSettings {
 	private ISettingsGroup addPluginGroup(PluginContext context) {
 		JadxGuiContext guiContext = context.getGuiContext();
 		if (guiContext instanceof GuiPluginContext) {
-			GuiPluginContext pluginGuiContext = ((GuiPluginContext) guiContext);
+			GuiPluginContext pluginGuiContext = (GuiPluginContext) guiContext;
 			ISettingsGroup customSettingsGroup = pluginGuiContext.getCustomSettingsGroup();
 			if (customSettingsGroup != null) {
 				return customSettingsGroup;

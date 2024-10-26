@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import kotlin.script.experimental.api.ScriptDiagnostic;
 import kotlin.script.experimental.api.ScriptDiagnostic.Severity;
 
-import jadx.gui.JadxWrapper;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
@@ -137,9 +136,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 		MainWindow mainWindow = tabbedPane.getMainWindow();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("script.run"), () -> {
 			try {
-				JadxWrapper wrapper = mainWindow.getWrapper();
-				wrapper.resetGuiPluginsContext();
-				wrapper.getDecompiler().reloadPasses();
+				mainWindow.getWrapper().reloadPasses();
 			} catch (Exception e) {
 				scriptLog.error("Passes reload failed", e);
 			}

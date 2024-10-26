@@ -72,7 +72,7 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	}
 
 	private void loadInstalledPlugins(Map<Class<? extends JadxPlugin>, JadxPlugin> map, ClassLoader classLoader) {
-		List<Path> jars = JadxPluginsTools.getInstance().getAllPluginJars();
+		List<Path> jars = JadxPluginsTools.getInstance().getEnabledPluginJars();
 		for (Path jar : jars) {
 			classLoaders.add(loadFromJar(map, classLoader, jar));
 		}

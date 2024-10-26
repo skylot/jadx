@@ -12,6 +12,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String locationId;
 	private String resolverId;
 	private String jar;
+	private boolean disabled;
 
 	public String getPluginId() {
 		return pluginId;
@@ -75,6 +76,14 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 
 	public void setJar(String jar) {
 		this.jar = jar;
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	public void setDisabled(boolean disabled) {
+		this.disabled = disabled;
 	}
 
 	@Override

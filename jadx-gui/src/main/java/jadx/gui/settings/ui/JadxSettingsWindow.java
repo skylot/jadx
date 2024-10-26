@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -54,6 +55,7 @@ import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.plugins.events.JadxEvents;
+import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
@@ -85,6 +87,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient String startSettings;
 	private final transient String startSettingsHash;
 	private final transient LangLocale prevLang;
+	private final transient Consumer<ReloadSettingsWindow> reloadListener;
 
 	private transient boolean needReload = false;
 	private transient SettingsTree tree;
@@ -107,8 +110,8 @@ public class JadxSettingsWindow extends JDialog {
 		if (!mainWindow.getSettings().loadWindowPos(this)) {
 			setSize(700, 800);
 		}
-		mainWindow.events().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, r -> UiUtils.uiRun(this::reloadUI));
-		mainWindow.events().addListener(JadxEvents.RELOAD_PROJECT, r -> UiUtils.uiRun(this::reloadUI));
+		reloadListener = ev -> UiUtils.uiRun(this::reloadUI);
+		mainWindow.events().global().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, reloadListener);
 	}
 
 	private void reloadUI() {
@@ -773,6 +776,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	@Override
 	public void dispose() {
+		mainWindow.events().global().removeListener(JadxEvents.RELOAD_SETTINGS_WINDOW, reloadListener);
 		settings.saveWindowPos(this);
 		super.dispose();
 	}

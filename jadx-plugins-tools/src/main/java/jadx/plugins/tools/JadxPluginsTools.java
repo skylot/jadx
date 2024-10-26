@@ -124,6 +124,38 @@ public class JadxPluginsTools {
 		return list;
 	}
 
+	public List<Path> getEnabledPluginJars() {
+		List<Path> list = new ArrayList<>();
+		for (JadxPluginMetadata pluginMetadata : loadPluginsJson().getInstalled()) {
+			if (pluginMetadata.isDisabled()) {
+				continue;
+			}
+			list.add(INSTALLED_DIR.resolve(pluginMetadata.getJar()));
+		}
+		collectFromDir(list, DROPINS_DIR);
+		return list;
+	}
+
+	/**
+	 * Disable or enable plugin
+	 *
+	 * @return true if disabled status was changed
+	 */
+	public boolean changeDisabledStatus(String pluginId, boolean disabled) {
+		JadxInstalledPlugins data = loadPluginsJson();
+		JadxPluginMetadata plugin = data.getInstalled().stream()
+				.filter(p -> p.getPluginId().equals(pluginId))
+				.findFirst()
+				.orElseThrow(() -> new RuntimeException("Plugin not found: " + pluginId));
+		if (plugin.isDisabled() == disabled) {
+			return false;
+		}
+		plugin.setDisabled(disabled);
+		data.setUpdated(System.currentTimeMillis());
+		savePluginsJson(data);
+		return true;
+	}
+
 	private @Nullable JadxPluginMetadata update(JadxPluginMetadata plugin) {
 		IJadxPluginResolver resolver = ResolversRegistry.getById(plugin.getResolverId());
 		if (!resolver.isUpdateSupported()) {

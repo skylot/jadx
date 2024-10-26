@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +36,14 @@ public class JadxEventsManager {
 				.add((Consumer<IJadxEvent>) listener);
 	}
 
+	public synchronized <E extends IJadxEvent> boolean removeListener(JadxEventType<E> eventType, Consumer<E> listener) {
+		List<Consumer<IJadxEvent>> eventListeners = listeners.get(eventType);
+		if (eventListeners != null) {
+			return eventListeners.remove(listener);
+		}
+		return false;
+	}
+
 	public synchronized void send(IJadxEvent event) {
 		List<Consumer<IJadxEvent>> consumers = listeners.get(event.getType());
 		if (consumers != null) {
@@ -57,5 +66,13 @@ public class JadxEventsManager {
 				return new Thread(r, "jadx-events-thread-" + threadNumber.incrementAndGet());
 			}
 		};
+	}
+
+	public String listenersDebugStats() {
+		return listeners.entrySet()
+				.stream()
+				.filter(p -> !p.getValue().isEmpty())
+				.map(p -> p.getKey() + ":" + p.getValue().size())
+				.collect(Collectors.joining(", ", "[", "]"));
 	}
 }

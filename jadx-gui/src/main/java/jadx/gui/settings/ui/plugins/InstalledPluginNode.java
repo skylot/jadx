@@ -2,21 +2,18 @@ package jadx.gui.settings.ui.plugins;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.core.plugins.PluginContext;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 
 public class InstalledPluginNode extends BasePluginListNode {
-	private final PluginContext plugin;
 	private final JadxPluginMetadata metadata;
 
-	public InstalledPluginNode(PluginContext plugin, @Nullable JadxPluginMetadata metadata) {
-		this.plugin = plugin;
+	public InstalledPluginNode(JadxPluginMetadata metadata) {
 		this.metadata = metadata;
 	}
 
 	@Override
 	public @Nullable String getTitle() {
-		return plugin.getPluginInfo().getName();
+		return metadata.getName();
 	}
 
 	@Override
@@ -26,37 +23,36 @@ public class InstalledPluginNode extends BasePluginListNode {
 
 	@Override
 	public String getPluginId() {
-		return plugin.getPluginId();
+		return metadata.getPluginId();
 	}
 
 	@Override
 	public String getDescription() {
-		return plugin.getPluginInfo().getDescription();
+		return metadata.getDescription();
 	}
 
 	@Override
 	public String getHomepage() {
-		return plugin.getPluginInfo().getHomepage();
+		return metadata.getHomepage();
 	}
 
 	@Override
 	public PluginAction getAction() {
-		if (metadata != null) {
-			return PluginAction.UNINSTALL;
-		}
-		return PluginAction.NONE;
+		return PluginAction.UNINSTALL;
 	}
 
 	@Override
 	public @Nullable String getVersion() {
-		if (metadata != null) {
-			return metadata.getVersion();
-		}
-		return null;
+		return metadata.getVersion();
+	}
+
+	@Override
+	public boolean isDisabled() {
+		return metadata.isDisabled();
 	}
 
 	@Override
 	public String toString() {
-		return plugin.getPluginInfo().getName();
+		return metadata.getName();
 	}
 }

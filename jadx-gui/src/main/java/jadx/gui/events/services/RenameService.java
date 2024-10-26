@@ -48,7 +48,7 @@ public class RenameService {
 
 	public static void init(MainWindow mainWindow) {
 		RenameService renameService = new RenameService(mainWindow);
-		mainWindow.events().addListener(JadxEvents.NODE_RENAMED_BY_USER, renameService::process);
+		mainWindow.events().global().addListener(JadxEvents.NODE_RENAMED_BY_USER, renameService::process);
 	}
 
 	private final MainWindow mainWindow;

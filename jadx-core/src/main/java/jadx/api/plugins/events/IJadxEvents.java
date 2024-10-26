@@ -15,4 +15,15 @@ public interface IJadxEvents {
 	 * For public event types check {@link JadxEvents} class.
 	 */
 	<E extends IJadxEvent> void addListener(JadxEventType<E> eventType, Consumer<E> listener);
+
+	/**
+	 * Remove listener for specific event.
+	 * Listener should be same or equal object.
+	 */
+	<E extends IJadxEvent> void removeListener(JadxEventType<E> eventType, Consumer<E> listener);
+
+	/**
+	 * Clear all listeners.
+	 */
+	void reset();
 }

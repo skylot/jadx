@@ -28,6 +28,10 @@ abstract class BasePluginListNode {
 		return null;
 	}
 
+	public boolean isDisabled() {
+		return false;
+	}
+
 	public PluginAction getAction() {
 		return PluginAction.NONE;
 	}

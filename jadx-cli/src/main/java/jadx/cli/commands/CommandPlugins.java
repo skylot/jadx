@@ -33,6 +33,12 @@ public class CommandPlugins implements ICommand {
 	@Parameter(names = { "--uninstall" }, description = "uninstall plugin with pluginId")
 	protected String uninstall;
 
+	@Parameter(names = { "--disable" }, description = "disable plugin with pluginId")
+	protected String disable;
+
+	@Parameter(names = { "--enable" }, description = "enable plugin with pluginId")
+	protected String enable;
+
 	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
@@ -47,6 +53,10 @@ public class CommandPlugins implements ICommand {
 			jcw.printUsage(subCommander);
 			return;
 		}
+		if (!subCommander.getUnknownOptions().isEmpty()) {
+			System.out.println("Error: found unknown options: " + subCommander.getUnknownOptions());
+		}
+
 		if (install != null) {
 			installPlugin(install);
 		}
@@ -69,25 +79,53 @@ public class CommandPlugins implements ICommand {
 			}
 		}
 		if (list) {
-			List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
-			System.out.println("Installed plugins: " + installed.size());
-			int i = 1;
-			for (JadxPluginMetadata plugin : installed) {
-				System.out.println(" " + (i++) + ") "
-						+ plugin.getPluginId() + " (" + plugin.getVersion() + ") - "
-						+ plugin.getName() + ": " + plugin.getDescription());
-			}
+			printInstalledPlugins();
 		}
 
 		if (available) {
 			List<JadxPluginMetadata> availableList = JadxPluginsList.getInstance().get();
 			System.out.println("Available plugins: " + availableList.size());
-			int i = 1;
 			for (JadxPluginMetadata plugin : availableList) {
-				System.out.println(" " + (i++) + ") "
-						+ plugin.getName() + ": " + plugin.getDescription()
+				System.out.println(" - " + plugin.getName() + ": " + plugin.getDescription()
 						+ " (" + plugin.getLocationId() + ")");
 			}
+		}
+
+		if (disable != null) {
+			if (JadxPluginsTools.getInstance().changeDisabledStatus(disable, true)) {
+				System.out.println("Plugin '" + disable + "' disabled.");
+			} else {
+				System.out.println("Plugin '" + disable + "' already disabled.");
+			}
+		}
+		if (enable != null) {
+			if (JadxPluginsTools.getInstance().changeDisabledStatus(enable, false)) {
+				System.out.println("Plugin '" + enable + "' enabled.");
+			} else {
+				System.out.println("Plugin '" + enable + "' already enabled.");
+			}
+		}
+	}
+
+	private static void printInstalledPlugins() {
+		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
+		System.out.println("Installed plugins: " + installed.size());
+		for (JadxPluginMetadata plugin : installed) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(" - ");
+			sb.append(plugin.getPluginId());
+			String version = plugin.getVersion();
+			if (version != null) {
+				sb.append(" (").append(version).append(')');
+			}
+			if (plugin.isDisabled()) {
+				sb.append(" (disabled)");
+			}
+			sb.append(" - ");
+			sb.append(plugin.getName());
+			sb.append(": ");
+			sb.append(plugin.getDescription());
+			System.out.println(sb);
 		}
 	}
 
