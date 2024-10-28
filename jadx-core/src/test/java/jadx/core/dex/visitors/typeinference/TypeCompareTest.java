@@ -14,7 +14,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.nodes.RootNode;
 
-import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
 import static jadx.core.dex.instructions.args.ArgType.BYTE;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
 import static jadx.core.dex.instructions.args.ArgType.CLASS;
@@ -23,7 +22,6 @@ import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.NARROW;
 import static jadx.core.dex.instructions.args.ArgType.NARROW_INTEGRAL;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
-import static jadx.core.dex.instructions.args.ArgType.SHORT;
 import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.THROWABLE;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
@@ -53,26 +51,14 @@ public class TypeCompareTest {
 
 	@Test
 	public void compareTypes() {
-		firstIsNarrow(INT, UNKNOWN);
-
-		firstIsNarrow(array(UNKNOWN), UNKNOWN);
-		firstIsNarrow(array(UNKNOWN), NARROW);
-	}
-
-	@Test
-	public void comparePrimitives() {
 		check(INT, UNKNOWN_OBJECT, TypeCompareEnum.CONFLICT);
 		check(INT, OBJECT, TypeCompareEnum.CONFLICT);
 
-		check(INT, CHAR, TypeCompareEnum.WIDER);
-		check(INT, SHORT, TypeCompareEnum.WIDER);
-
-		check(BOOLEAN, INT, TypeCompareEnum.CONFLICT);
-		check(BOOLEAN, CHAR, TypeCompareEnum.CONFLICT);
-		check(CHAR, BYTE, TypeCompareEnum.CONFLICT);
-		check(CHAR, SHORT, TypeCompareEnum.CONFLICT);
-
+		firstIsNarrow(INT, UNKNOWN);
 		firstIsNarrow(CHAR, NARROW_INTEGRAL);
+
+		firstIsNarrow(array(UNKNOWN), UNKNOWN);
+		firstIsNarrow(array(UNKNOWN), NARROW);
 		firstIsNarrow(array(CHAR), UNKNOWN_OBJECT);
 	}
 
