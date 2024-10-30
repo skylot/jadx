@@ -243,9 +243,10 @@ public class TabComponent extends JPanel {
 		if (tabs.size() > 1) {
 			JMenuItem closeOther = new JMenuItem(NLS.str("tabs.closeOthers"));
 			closeOther.addActionListener(e -> {
+				JNode currentNode = getNode();
 				for (TabBlueprint tab : tabs) {
-					if (tab != getBlueprint()) {
-						tabsController.closeTab(getNode(), true);
+					if (tab.getNode() != currentNode) {
+						tabsController.closeTab(tab, true);
 					}
 				}
 			});
@@ -310,7 +311,6 @@ public class TabComponent extends JPanel {
 		if (blueprint == null) {
 			throw new JadxRuntimeException("TabComponent does not have a corresponding TabBlueprint");
 		}
-
 		return blueprint;
 	}
 

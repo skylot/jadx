@@ -163,16 +163,16 @@ public class TabsController {
 
 	public void closeTab(JNode node, boolean considerPins) {
 		TabBlueprint blueprint = getTabByNode(node);
-
-		if (blueprint == null) {
-			return;
+		if (blueprint != null) {
+			closeTab(blueprint, considerPins);
 		}
+	}
 
+	public void closeTab(TabBlueprint blueprint, boolean considerPins) {
 		if (forceClose) {
 			closeTabForce(blueprint);
 			return;
 		}
-
 		if (!considerPins || !blueprint.isPinned()) {
 			if (!blueprint.isReferenced()) {
 				closeTabForce(blueprint);
@@ -182,7 +182,7 @@ public class TabsController {
 		}
 	}
 
-	/*
+	/**
 	 * Removes Tab from everywhere
 	 */
 	private void closeTabForce(TabBlueprint blueprint) {
@@ -190,7 +190,7 @@ public class TabsController {
 		tabsMap.remove(blueprint.getNode());
 	}
 
-	/*
+	/**
 	 * Hides Tab from TabbedPane
 	 */
 	private void closeTabSoft(TabBlueprint blueprint) {
