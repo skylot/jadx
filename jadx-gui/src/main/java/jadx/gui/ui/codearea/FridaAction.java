@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
+import jadx.api.JavaMethod;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
@@ -57,7 +58,7 @@ public final class FridaAction extends JNodeAction {
 			return generateMethodSnippet((JMethod) node);
 		}
 		if (node instanceof JClass) {
-			return generateClassSnippet((JClass) node);
+			return generateClassAllMethodSnippet((JClass) node);
 		}
 		if (node instanceof JField) {
 			return generateFieldSnippet((JField) node);
@@ -66,7 +67,15 @@ public final class FridaAction extends JNodeAction {
 	}
 
 	private String generateMethodSnippet(JMethod jMth) {
-		MethodNode mth = jMth.getJavaMethod().getMethodNode();
+		return getMethodSnippet(jMth.getJavaMethod(), jMth.getJParent());
+	}
+
+	private String generateMethodSnippet(JavaMethod javaMethod, JClass jc) {
+		return getMethodSnippet(javaMethod, jc);
+	}
+
+	private String getMethodSnippet(JavaMethod javaMethod, JClass jc) {
+		MethodNode mth = javaMethod.getMethodNode();
 		MethodInfo methodInfo = mth.getMethodInfo();
 		String methodName;
 		String newMethodName;
@@ -95,7 +104,7 @@ public final class FridaAction extends JNodeAction {
 			logArgs = ": " + argNames.stream().map(arg -> arg + "=${" + arg + "}").collect(Collectors.joining(", "));
 		}
 		String shortClassName = mth.getParentClass().getAlias();
-		String classSnippet = generateClassSnippet(jMth.getJParent());
+		String classSnippet = generateClassSnippet(jc);
 		if (methodInfo.isConstructor() || methodInfo.getReturnType() == ArgType.VOID) {
 			// no return value
 			return classSnippet + "\n"
@@ -118,6 +127,15 @@ public final class FridaAction extends JNodeAction {
 		String rawClassName = StringEscapeUtils.escapeEcmaScript(javaClass.getRawName());
 		String shortClassName = javaClass.getName();
 		return String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
+	}
+
+	private String generateClassAllMethodSnippet(JClass jc) {
+		JavaClass javaClass = jc.getCls();
+		String result = "";
+		for (JavaMethod javaMethod : javaClass.getMethods()) {
+			result = result + generateMethodSnippet(javaMethod, jc) + "\n";
+		}
+		return result;
 	}
 
 	private String generateFieldSnippet(JField jf) {
