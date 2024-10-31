@@ -103,10 +103,10 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			// all checks passed, replace with new switch
 			IRegion parentRegion = switchRegion.getParent();
 			SwitchRegion replaceRegion = new SwitchRegion(parentRegion, switchRegion.getHeader());
-			replaceRegion.addDefaultCase(switchData.getDefaultCode());
 			for (CaseData caseData : switchData.getCases()) {
 				replaceRegion.addCase(Collections.unmodifiableList(caseData.getStrValues()), caseData.getCode());
 			}
+			replaceRegion.addDefaultCase(switchData.getDefaultCode());
 			if (!parentRegion.replaceSubBlock(switchRegion, replaceRegion)) {
 				mth.addWarnComment("Failed to restore switch over string. Please report as a decompilation issue");
 				return false;

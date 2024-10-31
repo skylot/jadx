@@ -4,13 +4,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.internal.Failures;
 
 import jadx.tests.api.utils.TestUtils;
 
+import static org.assertj.core.error.ShouldNotContainSubsequence.shouldNotContainSubsequence;
+
 public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions> {
+
+	private Failures failures = Failures.instance();
+
 	public JadxCodeAssertions(String code) {
 		super(code, JadxCodeAssertions.class);
 	}
@@ -63,6 +70,21 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 			contains(searchLine);
 		}
 		return containsOnlyOnce(sb.substring(1));
+	}
+
+	public JadxCodeAssertions doesNotContainSubsequence(CharSequence... values) {
+		final var regex = Arrays.stream(values)
+				.map(value -> Pattern.quote(value.toString()))
+				.collect(Collectors.joining(".*"));
+
+		final var pattern = Pattern.compile(regex, Pattern.DOTALL);
+
+		final var matcher = pattern.matcher(actual);
+		if (matcher.find()) {
+			throw failures.failure(info, shouldNotContainSubsequence(actual, values, matcher.start()));
+		}
+
+		return this;
 	}
 
 	public JadxCodeAssertions removeBlockComments() {
