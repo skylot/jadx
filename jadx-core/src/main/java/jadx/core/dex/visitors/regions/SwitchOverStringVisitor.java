@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.annotations.EncodedType;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
@@ -26,6 +28,7 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -217,8 +220,8 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 		for (SwitchRegion.CaseInfo caseInfo : codeSwitch.getCases()) {
 			CaseData prevCase = null;
 			for (Object key : caseInfo.getKeys()) {
-				if (key instanceof Integer) {
-					Integer intKey = (Integer) key;
+				final Integer intKey = unwrapIntKey(key);
+				if (intKey != null) {
 					CaseData caseData = casesMap.get(intKey);
 					if (caseData == null) {
 						return false;
@@ -244,6 +247,21 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 		switchData.setCodeSwitch(codeSwitch);
 		switchData.setNumArg(numArg);
 		return true;
+	}
+
+	private Integer unwrapIntKey(Object key) {
+		if (key instanceof Integer) {
+			return (Integer) key;
+		} else if (key instanceof FieldNode) {
+			final var encodedValue = ((FieldNode) key).get(JadxAttrType.CONSTANT_VALUE);
+			if (encodedValue != null && encodedValue.getType() == EncodedType.ENCODED_INT) {
+				return (Integer) encodedValue.getValue();
+			} else {
+				return null;
+			}
+		}
+
+		return null;
 	}
 
 	private static Map<InsnNode, String> collectEqualsInsns(MethodNode mth, SSAVar strVar) {
