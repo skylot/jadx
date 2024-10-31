@@ -46,6 +46,7 @@ public class TestSwitchOverStrings extends IntegrationTest {
 				.code()
 				.doesNotContain("case -603257287:")
 				.doesNotContain("c = ")
+				.doesNotContainSubsequence("default:", "case ")
 				.containsOne("case \"frewhyh\":")
 				.countString(5, "return ");
 	}
