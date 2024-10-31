@@ -18,4 +18,13 @@ public interface IJadxAttrType<T extends IJadxAttribute> {
 		return new IJadxAttrType<>() {
 		};
 	}
+
+	static <A extends IJadxAttribute> IJadxAttrType<A> create(String name) {
+		return new IJadxAttrType<>() {
+			@Override
+			public String toString() {
+				return name;
+			}
+		};
+	}
 }
