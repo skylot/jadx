@@ -1,7 +1,7 @@
 package jadx.cli;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.beust.jcommander.JCommander;
 
@@ -10,7 +10,7 @@ import jadx.cli.commands.ICommand;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 
 public class JadxCLICommands {
-	private static final Map<String, ICommand> COMMANDS_MAP = new TreeMap<>();
+	private static final Map<String, ICommand> COMMANDS_MAP = new LinkedHashMap<>();
 
 	static {
 		JadxCLICommands.register(new CommandPlugins());

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
@@ -113,6 +114,20 @@ public class JadxPluginsTools {
 
 	public List<JadxPluginMetadata> getInstalled() {
 		return loadPluginsJson().getInstalled();
+	}
+
+	/**
+	 * Return all loadable plugins info (including installed, bundled and dropins).
+	 * <br>
+	 * For only installed plugins prefer {@link jadx.plugins.tools.JadxPluginsTools#getInstalled}
+	 * method.
+	 */
+	public List<JadxPluginInfo> getAllPluginsInfo() {
+		try (JadxExternalPluginsLoader pluginsLoader = new JadxExternalPluginsLoader()) {
+			return pluginsLoader.load().stream()
+					.map(JadxPlugin::getPluginInfo)
+					.collect(Collectors.toList());
+		}
 	}
 
 	public List<Path> getAllPluginJars() {

@@ -1,12 +1,17 @@
 package jadx.cli.commands;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import jadx.api.plugins.JadxPluginInfo;
 import jadx.cli.JCommanderWrapper;
+import jadx.cli.LogHelper;
 import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -23,6 +28,9 @@ public class CommandPlugins implements ICommand {
 
 	@Parameter(names = { "-l", "--list" }, description = "list installed plugins")
 	protected boolean list;
+
+	@Parameter(names = { "--list-all" }, description = "list all plugins including bundled and dropins")
+	protected boolean listAll;
 
 	@Parameter(names = { "-a", "--available" }, description = "list available plugins")
 	protected boolean available;
@@ -53,8 +61,12 @@ public class CommandPlugins implements ICommand {
 			jcw.printUsage(subCommander);
 			return;
 		}
-		if (!subCommander.getUnknownOptions().isEmpty()) {
-			System.out.println("Error: found unknown options: " + subCommander.getUnknownOptions());
+		Set<String> unknownOptions = new HashSet<>(subCommander.getUnknownOptions());
+		boolean verbose = unknownOptions.remove("-v") || unknownOptions.remove("--verbose");
+		LogHelper.setLogLevel(verbose ? LogHelper.LogLevelEnum.DEBUG : LogHelper.LogLevelEnum.INFO);
+
+		if (!unknownOptions.isEmpty()) {
+			System.out.println("Error: found unknown options: " + unknownOptions);
 		}
 
 		if (install != null) {
@@ -79,7 +91,10 @@ public class CommandPlugins implements ICommand {
 			}
 		}
 		if (list) {
-			printInstalledPlugins();
+			printPlugins(JadxPluginsTools.getInstance().getInstalled());
+		}
+		if (listAll) {
+			printAllPlugins();
 		}
 
 		if (available) {
@@ -107,13 +122,11 @@ public class CommandPlugins implements ICommand {
 		}
 	}
 
-	private static void printInstalledPlugins() {
-		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
+	private static void printPlugins(List<JadxPluginMetadata> installed) {
 		System.out.println("Installed plugins: " + installed.size());
 		for (JadxPluginMetadata plugin : installed) {
 			StringBuilder sb = new StringBuilder();
-			sb.append(" - ");
-			sb.append(plugin.getPluginId());
+			sb.append(" - ").append(plugin.getPluginId());
 			String version = plugin.getVersion();
 			if (version != null) {
 				sb.append(" (").append(version).append(')');
@@ -121,11 +134,25 @@ public class CommandPlugins implements ICommand {
 			if (plugin.isDisabled()) {
 				sb.append(" (disabled)");
 			}
-			sb.append(" - ");
-			sb.append(plugin.getName());
-			sb.append(": ");
-			sb.append(plugin.getDescription());
+			sb.append(" - ").append(plugin.getName());
+			sb.append(": ").append(plugin.getDescription());
 			System.out.println(sb);
+		}
+	}
+
+	private static void printAllPlugins() {
+		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
+		printPlugins(installed);
+		Set<String> installedSet = installed.stream().map(JadxPluginMetadata::getPluginId).collect(Collectors.toSet());
+
+		List<JadxPluginInfo> plugins = JadxPluginsTools.getInstance().getAllPluginsInfo();
+		System.out.println("Other plugins: " + plugins.size());
+		for (JadxPluginInfo plugin : plugins) {
+			if (!installedSet.contains(plugin.getPluginId())) {
+				System.out.println(" - " + plugin.getPluginId()
+						+ " - " + plugin.getName()
+						+ ": " + plugin.getDescription());
+			}
 		}
 	}
 

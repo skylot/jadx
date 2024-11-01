@@ -85,7 +85,7 @@ public final class JadxDecompiler implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final JadxArgs args;
-	private final JadxPluginManager pluginManager = new JadxPluginManager(this);
+	private final JadxPluginManager pluginManager;
 	private final List<ICodeLoader> loadedInputs = new ArrayList<>();
 
 	private RootNode root;
@@ -93,7 +93,7 @@ public final class JadxDecompiler implements Closeable {
 	private List<ResourceFile> resources;
 
 	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler();
-	private final ResourcesLoader resourcesLoader = new ResourcesLoader(this);
+	private final ResourcesLoader resourcesLoader;
 
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
@@ -106,7 +106,9 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	public JadxDecompiler(JadxArgs args) {
-		this.args = args;
+		this.args = Objects.requireNonNull(args);
+		this.pluginManager = new JadxPluginManager(this);
+		this.resourcesLoader = new ResourcesLoader(this);
 	}
 
 	public void load() {

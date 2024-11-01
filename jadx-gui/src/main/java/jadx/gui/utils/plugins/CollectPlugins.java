@@ -33,7 +33,8 @@ public class CollectPlugins {
 				.ifPresent(decompiler -> allPlugins.addAll(decompiler.getPluginManager().getResolvedPluginContexts()));
 
 		// collect and init not loaded plugins in new temp context
-		try (JadxDecompiler decompiler = new JadxDecompiler(new JadxArgs())) {
+		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
+		try (JadxDecompiler decompiler = new JadxDecompiler(jadxArgs)) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.registerAddPluginListener(pluginContext -> {
 				AppContext appContext = new AppContext();

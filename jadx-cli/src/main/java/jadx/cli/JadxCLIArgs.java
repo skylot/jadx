@@ -264,6 +264,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-q", "--quiet" }, description = "turn off output (set --log-level to QUIET)")
 	protected boolean quiet = false;
 
+	@Parameter(names = { "--disable-plugins" }, description = "comma separated list of plugin ids to disable")
+	protected String disablePlugins = "";
+
 	@Parameter(names = { "--version" }, description = "print jadx version")
 	protected boolean printVersion = false;
 
@@ -370,6 +373,7 @@ public class JadxCLIArgs {
 		args.setIntegerFormat(integerFormat);
 		args.setUseDxInput(useDx);
 		args.setPluginOptions(pluginOptions);
+		args.setDisabledPlugins(Arrays.stream(disablePlugins.split(",")).map(String::trim).collect(Collectors.toSet()));
 		return args;
 	}
 
@@ -578,6 +582,10 @@ public class JadxCLIArgs {
 
 	public Map<String, String> getPluginOptions() {
 		return pluginOptions;
+	}
+
+	public String getDisablePlugins() {
+		return disablePlugins;
 	}
 
 	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {

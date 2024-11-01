@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,6 +194,8 @@ public class JadxArgs implements Closeable {
 	private boolean runDebugChecks = false;
 
 	private Map<String, String> pluginOptions = new HashMap<>();
+
+	private Set<String> disabledPlugins = new HashSet<>();
 
 	private JadxPluginLoader pluginLoader = new JadxBasePluginLoader();
 
@@ -764,6 +767,14 @@ public class JadxArgs implements Closeable {
 
 	public void setPluginOptions(Map<String, String> pluginOptions) {
 		this.pluginOptions = pluginOptions;
+	}
+
+	public Set<String> getDisabledPlugins() {
+		return disabledPlugins;
+	}
+
+	public void setDisabledPlugins(Set<String> disabledPlugins) {
+		this.disabledPlugins = disabledPlugins;
 	}
 
 	public JadxPluginLoader getPluginLoader() {

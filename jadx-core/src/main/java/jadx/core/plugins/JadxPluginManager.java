@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +28,7 @@ public class JadxPluginManager {
 
 	private final JadxDecompiler decompiler;
 	private final JadxPluginsData pluginsData;
+	private final Set<String> disabledPlugins;
 	private final SortedSet<PluginContext> allPlugins = new TreeSet<>();
 	private final SortedSet<PluginContext> resolvedPlugins = new TreeSet<>();
 	private final Map<String, String> provideSuggestions = new TreeMap<>();
@@ -35,6 +38,7 @@ public class JadxPluginManager {
 	public JadxPluginManager(JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
 		this.pluginsData = new JadxPluginsData(decompiler, this);
+		this.disabledPlugins = decompiler.getArgs().getDisabledPlugins();
 	}
 
 	/**
@@ -55,12 +59,19 @@ public class JadxPluginManager {
 	public void register(JadxPlugin plugin) {
 		Objects.requireNonNull(plugin);
 		PluginContext addedPlugin = addPlugin(plugin);
+		if (addedPlugin == null) {
+			LOG.debug("Can't register plugin, it was disabled: {}", plugin.getPluginInfo().getPluginId());
+			return;
+		}
 		LOG.debug("Register plugin: {}", addedPlugin.getPluginId());
 		resolve();
 	}
 
-	private PluginContext addPlugin(JadxPlugin plugin) {
+	private @Nullable PluginContext addPlugin(JadxPlugin plugin) {
 		PluginContext pluginContext = new PluginContext(decompiler, pluginsData, plugin);
+		if (disabledPlugins.contains(pluginContext.getPluginId())) {
+			return null;
+		}
 		LOG.debug("Loading plugin: {}", pluginContext);
 		if (!allPlugins.add(pluginContext)) {
 			throw new IllegalArgumentException("Duplicate plugin id: " + pluginContext + ", class " + plugin.getClass());
