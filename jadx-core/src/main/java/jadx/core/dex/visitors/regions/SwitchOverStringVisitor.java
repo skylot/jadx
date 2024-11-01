@@ -318,6 +318,9 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			if (ifInsn.getOp() == IfOp.NE && ifInsn.getArg(1).isTrue()) {
 				neg = true;
 			}
+			if (ifInsn.getOp() == IfOp.EQ && ifInsn.getArg(1).isFalse()) {
+				neg = true;
+			}
 			if (str != null) {
 				switchData.getToRemove().add(ifInsn);
 				switchData.getToRemove().addAll(ifRegion.getConditionBlocks());
