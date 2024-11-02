@@ -92,9 +92,6 @@ public class BlockProcessor extends AbstractVisitor {
 		PostDominatorTree.compute(mth);
 
 		updateCleanSuccessors(mth);
-		if (!mth.contains(AFlag.DISABLE_BLOCKS_LOCK)) {
-			mth.finishBasicBlocks();
-		}
 	}
 
 	static void updateCleanSuccessors(MethodNode mth) {
