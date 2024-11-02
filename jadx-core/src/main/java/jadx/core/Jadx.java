@@ -47,6 +47,7 @@ import jadx.core.dex.visitors.ReplaceNewArray;
 import jadx.core.dex.visitors.ShadowFieldVisitor;
 import jadx.core.dex.visitors.SignatureProcessor;
 import jadx.core.dex.visitors.SimplifyVisitor;
+import jadx.core.dex.visitors.blocks.BlockFinisher;
 import jadx.core.dex.visitors.blocks.BlockProcessor;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
@@ -131,6 +132,7 @@ public class Jadx {
 		// blocks IR
 		passes.add(new BlockSplitter());
 		passes.add(new BlockProcessor());
+		passes.add(new BlockFinisher());
 		if (args.isRawCFGOutput()) {
 			passes.add(DotGraphVisitor.dumpRaw());
 		}
