@@ -408,6 +408,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return exitBlock.getPredecessors().contains(block);
 	}
 
+	public void resetLoops() {
+		this.loops = new ArrayList<>();
+	}
+
 	public void registerLoop(LoopInfo loop) {
 		if (loops.isEmpty()) {
 			loops = new ArrayList<>(5);

@@ -94,6 +94,33 @@ public class BlockProcessor extends AbstractVisitor {
 		updateCleanSuccessors(mth);
 	}
 
+	/**
+	 * Recalculate all additional info attached to blocks:
+	 *
+	 * <pre>
+	 * - dominators
+	 * - dominance frontier
+	 * - post dominators (only if {@link AFlag#COMPUTE_POST_DOM} added to method)
+	 * - loops and nested loop info
+	 * </pre>
+	 *
+	 * This method should be called after changing a block tree in custom passes added before
+	 * {@link BlockFinisher}.
+	 */
+	public static void updateBlocksData(MethodNode mth) {
+		clearBlocksState(mth);
+		DominatorTree.compute(mth);
+		markLoops(mth);
+
+		DominatorTree.computeDominanceFrontier(mth);
+		registerLoops(mth);
+		processNestedLoops(mth);
+
+		PostDominatorTree.compute(mth);
+
+		updateCleanSuccessors(mth);
+	}
+
 	static void updateCleanSuccessors(MethodNode mth) {
 		mth.getBasicBlocks().forEach(BlockNode::updateCleanSuccessors);
 	}
@@ -245,6 +272,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void registerLoops(MethodNode mth) {
+		mth.resetLoops();
 		mth.getBasicBlocks().forEach(block -> {
 			if (block.contains(AFlag.LOOP_START)) {
 				block.getAll(AType.LOOP).forEach(mth::registerLoop);
