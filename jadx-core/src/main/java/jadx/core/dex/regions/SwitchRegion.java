@@ -58,12 +58,6 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 		cases.add(new CaseInfo(keysList, c));
 	}
 
-	public void addDefaultCase(IContainer c) {
-		if (c != null) {
-			cases.add(new CaseInfo(Collections.singletonList(DEFAULT_CASE_KEY), c));
-		}
-	}
-
 	public List<CaseInfo> getCases() {
 		return cases;
 	}
