@@ -106,10 +106,9 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			// all checks passed, replace with new switch
 			IRegion parentRegion = switchRegion.getParent();
 			SwitchRegion replaceRegion = new SwitchRegion(parentRegion, switchRegion.getHeader());
-			for (CaseData caseData : switchData.getCases()) {
-				replaceRegion.addCase(Collections.unmodifiableList(caseData.getStrValues()), caseData.getCode());
+			for (SwitchRegion.CaseInfo caseInfo : switchData.getNewCases()) {
+				replaceRegion.addCase(Collections.unmodifiableList(caseInfo.getKeys()), caseInfo.getContainer());
 			}
-			replaceRegion.addDefaultCase(switchData.getDefaultCode());
 			if (!parentRegion.replaceSubBlock(switchRegion, replaceRegion)) {
 				mth.addWarnComment("Failed to restore switch over string. Please report as a decompilation issue");
 				return false;
@@ -216,36 +215,53 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 					block -> switchData.getToRemove().add(block));
 		}
 
-		IContainer defaultContainer = null;
+		final var newCases = new ArrayList<SwitchRegion.CaseInfo>();
 		for (SwitchRegion.CaseInfo caseInfo : codeSwitch.getCases()) {
-			CaseData prevCase = null;
+			SwitchRegion.CaseInfo newCase = null;
 			for (Object key : caseInfo.getKeys()) {
 				final Integer intKey = unwrapIntKey(key);
 				if (intKey != null) {
-					CaseData caseData = casesMap.get(intKey);
+					final var caseData = casesMap.remove(intKey);
 					if (caseData == null) {
 						return false;
 					}
-					if (prevCase == null) {
-						caseData.setCode(caseInfo.getContainer());
-						prevCase = caseData;
+					if (newCase == null) {
+						final List<Object> keys = new ArrayList<>(caseData.getStrValues());
+						newCase = new SwitchRegion.CaseInfo(keys, caseInfo.getContainer());
 					} else {
 						// merge cases
-						prevCase.getStrValues().addAll(caseData.getStrValues());
-						caseData.setCodeNum(-1);
+						newCase.getKeys().addAll(caseData.getStrValues());
 					}
 				} else if (key == SwitchRegion.DEFAULT_CASE_KEY) {
-					defaultContainer = caseInfo.getContainer();
+					final var iterator = casesMap.entrySet().iterator();
+					while (iterator.hasNext()) {
+						final var caseData = iterator.next().getValue();
+						if (newCase == null) {
+							final List<Object> keys = new ArrayList<>(caseData.getStrValues());
+							newCase = new SwitchRegion.CaseInfo(keys, caseInfo.getContainer());
+						} else {
+							// merge cases
+							newCase.getKeys().addAll(caseData.getStrValues());
+						}
+
+						iterator.remove();
+					}
+
+					if (newCase == null) {
+						newCase = new SwitchRegion.CaseInfo(new ArrayList<>(), caseInfo.getContainer());
+					}
+
+					newCase.getKeys().add(SwitchRegion.DEFAULT_CASE_KEY);
 				} else {
 					return false;
 				}
 			}
+			newCases.add(newCase);
 		}
-		cases.removeIf(c -> c.getCodeNum() == -1);
 
-		switchData.setDefaultCode(defaultContainer);
 		switchData.setCodeSwitch(codeSwitch);
 		switchData.setNumArg(numArg);
+		switchData.setNewCases(newCases);
 		return true;
 	}
 
@@ -367,7 +383,7 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 		private final List<IAttributeNode> toRemove = new ArrayList<>();
 		private Map<InsnNode, String> strEqInsns;
 		private List<CaseData> cases;
-		private IContainer defaultCode;
+		private List<SwitchRegion.CaseInfo> newCases;
 		private SwitchRegion codeSwitch;
 		private RegisterArg numArg;
 
@@ -384,12 +400,12 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			this.cases = cases;
 		}
 
-		public IContainer getDefaultCode() {
-			return defaultCode;
+		public List<SwitchRegion.CaseInfo> getNewCases() {
+			return newCases;
 		}
 
-		public void setDefaultCode(IContainer defaultCode) {
-			this.defaultCode = defaultCode;
+		public void setNewCases(List<SwitchRegion.CaseInfo> cases) {
+			this.newCases = cases;
 		}
 
 		public MethodNode getMth() {
