@@ -30,13 +30,19 @@ public class GithubTools {
 			// get latest version
 			return get(projectUrl + "/releases/latest", RELEASE_TYPE);
 		}
-		// search version among all releases (by name)
-		List<Release> releases = get(projectUrl + "/releases", RELEASE_LIST_TYPE);
+		// search version in other releases (by name)
+		List<Release> releases = fetchReleases(info, 1, 50);
 		return releases.stream()
 				.filter(r -> r.getName().equals(version))
 				.findFirst()
 				.orElseThrow(() -> new RuntimeException("Release with version: " + version + " not found."
 						+ " Available versions: " + releases.stream().map(Release::getName).collect(Collectors.joining(", "))));
+	}
+
+	public static List<Release> fetchReleases(LocationInfo info, int page, int perPage) {
+		String projectUrl = GITHUB_API_URL + "repos/" + info.getOwner() + "/" + info.getProject();
+		String requestUrl = projectUrl + "/releases?page=" + page + "&per_page=" + perPage;
+		return get(requestUrl, RELEASE_LIST_TYPE);
 	}
 
 	private static <T> T get(String url, Type type) {

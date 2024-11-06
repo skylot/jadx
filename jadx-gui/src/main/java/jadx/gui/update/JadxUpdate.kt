@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jadx.api.JadxDecompiler
 import jadx.core.Jadx
+import jadx.core.plugins.versions.VersionComparator
 import jadx.gui.settings.JadxUpdateChannel
 import org.jetbrains.kotlin.konan.file.use
 import java.io.InputStreamReader

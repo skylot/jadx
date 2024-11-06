@@ -8,9 +8,10 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String name;
 	private String description;
 	private String homepage;
+	private @Nullable String requiredJadxVersion;
+
 	private @Nullable String version;
 	private String locationId;
-	private String resolverId;
 	private String jar;
 	private boolean disabled;
 
@@ -34,7 +35,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 		return version;
 	}
 
-	public void setVersion(String version) {
+	public void setVersion(@Nullable String version) {
 		this.version = version;
 	}
 
@@ -54,20 +55,20 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 		this.homepage = homepage;
 	}
 
+	public @Nullable String getRequiredJadxVersion() {
+		return requiredJadxVersion;
+	}
+
+	public void setRequiredJadxVersion(@Nullable String requiredJadxVersion) {
+		this.requiredJadxVersion = requiredJadxVersion;
+	}
+
 	public String getLocationId() {
 		return locationId;
 	}
 
 	public void setLocationId(String locationId) {
 		this.locationId = locationId;
-	}
-
-	public String getResolverId() {
-		return resolverId;
-	}
-
-	public void setResolverId(String resolverId) {
-		this.resolverId = resolverId;
 	}
 
 	public String getJar() {

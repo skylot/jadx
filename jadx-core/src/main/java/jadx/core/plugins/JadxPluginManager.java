@@ -21,6 +21,7 @@ import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
+import jadx.core.plugins.versions.VerifyRequiredVersion;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JadxPluginManager {
@@ -50,15 +51,16 @@ public class JadxPluginManager {
 
 	public void load(JadxPluginLoader pluginLoader) {
 		allPlugins.clear();
+		VerifyRequiredVersion verifyRequiredVersion = new VerifyRequiredVersion();
 		for (JadxPlugin plugin : pluginLoader.load()) {
-			addPlugin(plugin);
+			addPlugin(plugin, verifyRequiredVersion);
 		}
 		resolve();
 	}
 
 	public void register(JadxPlugin plugin) {
 		Objects.requireNonNull(plugin);
-		PluginContext addedPlugin = addPlugin(plugin);
+		PluginContext addedPlugin = addPlugin(plugin, new VerifyRequiredVersion());
 		if (addedPlugin == null) {
 			LOG.debug("Can't register plugin, it was disabled: {}", plugin.getPluginInfo().getPluginId());
 			return;
@@ -67,9 +69,15 @@ public class JadxPluginManager {
 		resolve();
 	}
 
-	private @Nullable PluginContext addPlugin(JadxPlugin plugin) {
+	private @Nullable PluginContext addPlugin(JadxPlugin plugin, VerifyRequiredVersion verifyRequiredVersion) {
 		PluginContext pluginContext = new PluginContext(decompiler, pluginsData, plugin);
 		if (disabledPlugins.contains(pluginContext.getPluginId())) {
+			return null;
+		}
+		String requiredJadxVersion = pluginContext.getPluginInfo().getRequiredJadxVersion();
+		if (!verifyRequiredVersion.isCompatible(requiredJadxVersion)) {
+			LOG.warn("Plugin '{}' not loaded: requires '{}' jadx version which it is not compatible with current: {}",
+					pluginContext, requiredJadxVersion, verifyRequiredVersion.getJadxVersion());
 			return null;
 		}
 		LOG.debug("Loading plugin: {}", pluginContext);

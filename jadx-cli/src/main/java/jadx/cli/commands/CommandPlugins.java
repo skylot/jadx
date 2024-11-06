@@ -12,6 +12,7 @@ import com.beust.jcommander.Parameters;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.cli.JCommanderWrapper;
 import jadx.cli.LogHelper;
+import jadx.core.utils.StringUtils;
 import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -20,32 +21,39 @@ import jadx.plugins.tools.data.JadxPluginUpdate;
 @Parameters(commandDescription = "manage jadx plugins")
 public class CommandPlugins implements ICommand {
 
-	@Parameter(names = { "-i", "--install" }, description = "install plugin with locationId")
+	@Parameter(names = { "-i", "--install" }, description = "install plugin with locationId", defaultValueDescription = "<locationId>")
 	protected String install;
 
-	@Parameter(names = { "-j", "--install-jar" }, description = "install plugin from jar file")
+	@Parameter(names = { "-j", "--install-jar" }, description = "install plugin from jar file", defaultValueDescription = "<path-to.jar>")
 	protected String installJar;
 
 	@Parameter(names = { "-l", "--list" }, description = "list installed plugins")
 	protected boolean list;
 
-	@Parameter(names = { "--list-all" }, description = "list all plugins including bundled and dropins")
-	protected boolean listAll;
-
-	@Parameter(names = { "-a", "--available" }, description = "list available plugins")
+	@Parameter(names = { "-a", "--available" }, description = "list available plugins from jadx-plugins-list (aka marketplace)")
 	protected boolean available;
 
 	@Parameter(names = { "-u", "--update" }, description = "update installed plugins")
 	protected boolean update;
 
-	@Parameter(names = { "--uninstall" }, description = "uninstall plugin with pluginId")
+	@Parameter(names = { "--uninstall" }, description = "uninstall plugin with pluginId", defaultValueDescription = "<pluginId>")
 	protected String uninstall;
 
-	@Parameter(names = { "--disable" }, description = "disable plugin with pluginId")
+	@Parameter(names = { "--disable" }, description = "disable plugin with pluginId", defaultValueDescription = "<pluginId>")
 	protected String disable;
 
-	@Parameter(names = { "--enable" }, description = "enable plugin with pluginId")
+	@Parameter(names = { "--enable" }, description = "enable plugin with pluginId", defaultValueDescription = "<pluginId>")
 	protected String enable;
+
+	@Parameter(names = { "--list-all" }, description = "list all plugins including bundled and dropins")
+	protected boolean listAll;
+
+	@Parameter(
+			names = { "--list-versions" },
+			description = "fetch latest versions of plugin from locationId (will download all artefacts, limited to 10)",
+			defaultValueDescription = "<locationId>"
+	)
+	protected String listVersions;
 
 	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
 	protected boolean printHelp = false;
@@ -55,6 +63,7 @@ public class CommandPlugins implements ICommand {
 		return "plugins";
 	}
 
+	@SuppressWarnings("UnnecessaryReturnStatement")
 	@Override
 	public void process(JCommanderWrapper<?> jcw, JCommander subCommander) {
 		if (printHelp) {
@@ -71,13 +80,16 @@ public class CommandPlugins implements ICommand {
 
 		if (install != null) {
 			installPlugin(install);
+			return;
 		}
 		if (installJar != null) {
 			installPlugin("file:" + installJar);
+			return;
 		}
 		if (uninstall != null) {
 			boolean uninstalled = JadxPluginsTools.getInstance().uninstall(uninstall);
 			System.out.println(uninstalled ? "Uninstalled" : "Plugin not found");
+			return;
 		}
 		if (update) {
 			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
@@ -89,14 +101,20 @@ public class CommandPlugins implements ICommand {
 					System.out.println("  " + update.getPluginId() + ": " + update.getOldVersion() + " -> " + update.getNewVersion());
 				}
 			}
+			return;
 		}
 		if (list) {
 			printPlugins(JadxPluginsTools.getInstance().getInstalled());
+			return;
 		}
 		if (listAll) {
 			printAllPlugins();
+			return;
 		}
-
+		if (listVersions != null) {
+			printVersions(listVersions, 10);
+			return;
+		}
 		if (available) {
 			List<JadxPluginMetadata> availableList = JadxPluginsList.getInstance().get();
 			System.out.println("Available plugins: " + availableList.size());
@@ -104,6 +122,7 @@ public class CommandPlugins implements ICommand {
 				System.out.println(" - " + plugin.getName() + ": " + plugin.getDescription()
 						+ " (" + plugin.getLocationId() + ")");
 			}
+			return;
 		}
 
 		if (disable != null) {
@@ -112,6 +131,7 @@ public class CommandPlugins implements ICommand {
 			} else {
 				System.out.println("Plugin '" + disable + "' already disabled.");
 			}
+			return;
 		}
 		if (enable != null) {
 			if (JadxPluginsTools.getInstance().changeDisabledStatus(enable, false)) {
@@ -119,6 +139,7 @@ public class CommandPlugins implements ICommand {
 			} else {
 				System.out.println("Plugin '" + enable + "' already enabled.");
 			}
+			return;
 		}
 	}
 
@@ -136,6 +157,26 @@ public class CommandPlugins implements ICommand {
 			}
 			sb.append(" - ").append(plugin.getName());
 			sb.append(": ").append(plugin.getDescription());
+			System.out.println(sb);
+		}
+	}
+
+	private void printVersions(String locationId, int limit) {
+		System.out.println("Loading ...");
+		List<JadxPluginMetadata> versions = JadxPluginsTools.getInstance().getVersionsByLocation(locationId, 1, limit);
+		if (versions.isEmpty()) {
+			System.out.println("No versions found");
+			return;
+		}
+		JadxPluginMetadata plugin = versions.get(0);
+		System.out.println("Versions for plugin id: " + plugin.getPluginId());
+		for (JadxPluginMetadata version : versions) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(" - ").append(version.getVersion());
+			String reqVer = version.getRequiredJadxVersion();
+			if (StringUtils.notBlank(reqVer)) {
+				sb.append(", require jadx: ").append(reqVer);
+			}
 			System.out.println(sb);
 		}
 	}

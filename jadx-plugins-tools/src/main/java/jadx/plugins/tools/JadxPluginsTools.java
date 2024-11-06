@@ -16,12 +16,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.core.Jadx;
+import jadx.core.plugins.versions.VerifyRequiredVersion;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.data.JadxInstalledPlugins;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -35,6 +41,8 @@ import static jadx.plugins.tools.utils.PluginFiles.INSTALLED_DIR;
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_JSON;
 
 public class JadxPluginsTools {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginsTools.class);
+
 	private static final JadxPluginsTools INSTANCE = new JadxPluginsTools();
 
 	public static JadxPluginsTools getInstance() {
@@ -45,16 +53,48 @@ public class JadxPluginsTools {
 	}
 
 	public JadxPluginMetadata install(String locationId) {
-		JadxPluginMetadata pluginMetadata = resolveMetadata(locationId);
-		install(pluginMetadata);
-		return pluginMetadata;
+		IJadxPluginResolver resolver = ResolversRegistry.getResolver(locationId);
+		boolean hasVersion = resolver.hasVersion(locationId);
+		if (hasVersion) {
+			JadxPluginMetadata pluginMetadata = resolver.resolve(locationId)
+					.orElseThrow(() -> new JadxRuntimeException("Failed to resolve plugin location: " + locationId));
+			fillMetadata(pluginMetadata);
+			install(pluginMetadata);
+			return pluginMetadata;
+		}
+		// try other versions in case latest is not compatible with current jadx
+		VerifyRequiredVersion verifyRequiredVersion = new VerifyRequiredVersion();
+		for (int i = 1; i <= 5; i++) {
+			try {
+				for (JadxPluginMetadata pluginMetadata : resolver.resolveVersions(locationId, i, 1)) {
+					fillMetadata(pluginMetadata);
+					if (verifyRequiredVersion.isCompatible(pluginMetadata.getRequiredJadxVersion())) {
+						install(pluginMetadata);
+						return pluginMetadata;
+					}
+				}
+			} catch (Exception e) {
+				LOG.warn("Failed to fetch plugin ({} version before latest)", i, e);
+			}
+		}
+		throw new JadxRuntimeException("Can't find compatible version to install");
 	}
 
 	public JadxPluginMetadata resolveMetadata(String locationId) {
-		JadxPluginMetadata pluginMetadata = ResolversRegistry.resolve(locationId)
+		IJadxPluginResolver resolver = ResolversRegistry.getResolver(locationId);
+		JadxPluginMetadata pluginMetadata = resolver.resolve(locationId)
 				.orElseThrow(() -> new RuntimeException("Failed to resolve locationId: " + locationId));
 		fillMetadata(pluginMetadata);
 		return pluginMetadata;
+	}
+
+	public List<JadxPluginMetadata> getVersionsByLocation(String locationId, int page, int perPage) {
+		IJadxPluginResolver resolver = ResolversRegistry.getResolver(locationId);
+		List<JadxPluginMetadata> list = resolver.resolveVersions(locationId, page, perPage);
+		for (JadxPluginMetadata pluginMetadata : list) {
+			fillMetadata(pluginMetadata);
+		}
+		return list;
 	}
 
 	public List<JadxPluginUpdate> updateAll() {
@@ -63,7 +103,12 @@ public class JadxPluginsTools {
 		List<JadxPluginUpdate> updates = new ArrayList<>(size);
 		List<JadxPluginMetadata> newList = new ArrayList<>(size);
 		for (JadxPluginMetadata plugin : plugins.getInstalled()) {
-			JadxPluginMetadata newVersion = update(plugin);
+			JadxPluginMetadata newVersion = null;
+			try {
+				newVersion = update(plugin);
+			} catch (Exception e) {
+				LOG.warn("Failed to update plugin: {}", plugin.getPluginId(), e);
+			}
 			if (newVersion != null) {
 				updates.add(new JadxPluginUpdate(plugin, newVersion));
 				newList.add(newVersion);
@@ -135,7 +180,7 @@ public class JadxPluginsTools {
 		for (JadxPluginMetadata pluginMetadata : loadPluginsJson().getInstalled()) {
 			list.add(INSTALLED_DIR.resolve(pluginMetadata.getJar()));
 		}
-		collectFromDir(list, DROPINS_DIR);
+		collectJarsFromDir(list, DROPINS_DIR);
 		return list;
 	}
 
@@ -147,7 +192,7 @@ public class JadxPluginsTools {
 			}
 			list.add(INSTALLED_DIR.resolve(pluginMetadata.getJar()));
 		}
-		collectFromDir(list, DROPINS_DIR);
+		collectJarsFromDir(list, DROPINS_DIR);
 		return list;
 	}
 
@@ -172,7 +217,7 @@ public class JadxPluginsTools {
 	}
 
 	private @Nullable JadxPluginMetadata update(JadxPluginMetadata plugin) {
-		IJadxPluginResolver resolver = ResolversRegistry.getById(plugin.getResolverId());
+		IJadxPluginResolver resolver = ResolversRegistry.getResolver(plugin.getLocationId());
 		if (!resolver.isUpdateSupported()) {
 			return null;
 		}
@@ -189,19 +234,28 @@ public class JadxPluginsTools {
 		return update;
 	}
 
-	public void install(JadxPluginMetadata metadata) {
+	private void install(JadxPluginMetadata metadata) {
+		String reqVersionStr = metadata.getRequiredJadxVersion();
+		if (!VerifyRequiredVersion.isJadxCompatible(reqVersionStr)) {
+			throw new JadxRuntimeException("Can't install plugin, required version: \"" + reqVersionStr + '\"'
+					+ " is not compatible with current jadx version: " + Jadx.getVersion());
+		}
+
 		String version = metadata.getVersion();
-		String fileName = metadata.getPluginId() + (version != null ? '-' + version : "") + ".jar";
+		String fileName = metadata.getPluginId() + (StringUtils.notBlank(version) ? '-' + version : "") + ".jar";
 		Path pluginJar = INSTALLED_DIR.resolve(fileName);
 		copyJar(Paths.get(metadata.getJar()), pluginJar);
 		metadata.setJar(INSTALLED_DIR.relativize(pluginJar).toString());
 
 		JadxInstalledPlugins plugins = loadPluginsJson();
 		// remove previous version jar
-		plugins.getInstalled().stream()
-				.filter(p -> p.getPluginId().equals(metadata.getPluginId()))
-				.forEach(this::deletePluginJar);
-		plugins.getInstalled().remove(metadata);
+		plugins.getInstalled().removeIf(p -> {
+			if (p.getPluginId().equals(metadata.getPluginId())) {
+				deletePluginJar(p);
+				return true;
+			}
+			return false;
+		});
 		plugins.getInstalled().add(metadata);
 		plugins.setUpdated(System.currentTimeMillis());
 		savePluginsJson(plugins);
@@ -227,6 +281,9 @@ public class JadxPluginsTools {
 			metadata.setName(pluginInfo.getName());
 			metadata.setDescription(pluginInfo.getDescription());
 			metadata.setHomepage(pluginInfo.getHomepage());
+			metadata.setRequiredJadxVersion(pluginInfo.getRequiredJadxVersion());
+		} catch (NoSuchMethodError e) {
+			throw new RuntimeException("Looks like plugin uses unknown API, try to update jadx version", e);
 		}
 	}
 
@@ -258,10 +315,14 @@ public class JadxPluginsTools {
 
 	private JadxInstalledPlugins loadPluginsJson() {
 		if (!Files.isRegularFile(PLUGINS_JSON)) {
-			return new JadxInstalledPlugins();
+			JadxInstalledPlugins plugins = new JadxInstalledPlugins();
+			plugins.setVersion(1);
+			return plugins;
 		}
 		try (Reader reader = Files.newBufferedReader(PLUGINS_JSON, StandardCharsets.UTF_8)) {
-			return buildGson().fromJson(reader, JadxInstalledPlugins.class);
+			JadxInstalledPlugins data = buildGson().fromJson(reader, JadxInstalledPlugins.class);
+			upgradePluginsData(data);
+			return data;
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to read file: " + PLUGINS_JSON);
 		}
@@ -284,7 +345,13 @@ public class JadxPluginsTools {
 		}
 	}
 
-	private static void collectFromDir(List<Path> list, Path dir) {
+	private void upgradePluginsData(JadxInstalledPlugins data) {
+		if (data.getVersion() == 0) {
+			data.setVersion(1);
+		}
+	}
+
+	private static void collectJarsFromDir(List<Path> list, Path dir) {
 		try (Stream<Path> files = Files.list(dir)) {
 			files.filter(p -> p.getFileName().toString().endsWith(".jar")).forEach(list::add);
 		} catch (IOException e) {

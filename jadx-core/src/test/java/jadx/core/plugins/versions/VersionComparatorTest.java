@@ -1,4 +1,4 @@
-package jadx.gui.update;
+package jadx.core.plugins.versions;
 
 import org.junit.jupiter.api.Test;
 

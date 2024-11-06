@@ -4,11 +4,14 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.plugins.versions.VerifyRequiredVersion;
+
 public class JadxPluginInfoBuilder {
 	private String pluginId;
 	private String name;
 	private String description;
 	private String homepage = "";
+	private @Nullable String requiredJadxVersion;
 	private @Nullable String provides;
 
 	/**
@@ -43,6 +46,11 @@ public class JadxPluginInfoBuilder {
 		return this;
 	}
 
+	public JadxPluginInfoBuilder requiredJadxVersion(String versions) {
+		this.requiredJadxVersion = versions;
+		return this;
+	}
+
 	public JadxPluginInfo build() {
 		Objects.requireNonNull(pluginId, "PluginId is required");
 		Objects.requireNonNull(name, "Name is required");
@@ -50,6 +58,11 @@ public class JadxPluginInfoBuilder {
 		if (provides == null) {
 			provides = pluginId;
 		}
-		return new JadxPluginInfo(pluginId, name, description, homepage, provides);
+		if (requiredJadxVersion != null) {
+			VerifyRequiredVersion.verify(requiredJadxVersion);
+		}
+		JadxPluginInfo pluginInfo = new JadxPluginInfo(pluginId, name, description, homepage, provides);
+		pluginInfo.setRequiredJadxVersion(requiredJadxVersion);
+		return pluginInfo;
 	}
 }

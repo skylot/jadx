@@ -1,16 +1,15 @@
 package jadx.plugins.tools.resolvers;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.Objects;
 
-import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.resolvers.file.LocalFileResolver;
 import jadx.plugins.tools.resolvers.github.GithubReleaseResolver;
 
 public class ResolversRegistry {
 
-	private static final Map<String, IJadxPluginResolver> RESOLVERS_MAP = new TreeMap<>();
+	private static final Map<String, IJadxPluginResolver> RESOLVERS_MAP = new HashMap<>();
 
 	static {
 		register(new LocalFileResolver());
@@ -21,14 +20,13 @@ public class ResolversRegistry {
 		RESOLVERS_MAP.put(resolver.id(), resolver);
 	}
 
-	public static Optional<JadxPluginMetadata> resolve(String locationId) {
-		for (IJadxPluginResolver resolver : RESOLVERS_MAP.values()) {
-			Optional<JadxPluginMetadata> result = resolver.resolve(locationId);
-			if (result.isPresent()) {
-				return result;
-			}
+	public static IJadxPluginResolver getResolver(String locationId) {
+		Objects.requireNonNull(locationId);
+		int sep = locationId.indexOf(':');
+		if (sep <= 0) {
+			throw new IllegalArgumentException("Malformed locationId: " + locationId);
 		}
-		return Optional.empty();
+		return getById(locationId.substring(0, sep));
 	}
 
 	public static IJadxPluginResolver getById(String resolverId) {

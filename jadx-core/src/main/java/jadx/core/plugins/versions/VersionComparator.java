@@ -1,4 +1,4 @@
-package jadx.gui.update;
+package jadx.core.plugins.versions;
 
 public class VersionComparator {
 
