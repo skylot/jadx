@@ -25,7 +25,6 @@ import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
@@ -109,11 +108,15 @@ public class ReplaceNewArray extends AbstractVisitor {
 		}
 		// collect put instructions sorted by array index
 		SortedMap<Long, InsnNode> arrPuts = new TreeMap<>();
+		InsnNode firstNotAPutUsage = null;
 		for (RegisterArg registerArg : useList) {
 			InsnNode parentInsn = registerArg.getParentInsn();
 			if (parentInsn == null
 					|| parentInsn.getType() != InsnType.APUT
 					|| !arrArg.sameRegAndSVar(parentInsn.getArg(0))) {
+				if (firstNotAPutUsage == null) {
+					firstNotAPutUsage = parentInsn;
+				}
 				continue;
 			}
 			Object constVal = InsnUtils.getConstValueByArg(mth.root(), parentInsn.getArg(1));
@@ -158,12 +161,23 @@ public class ReplaceNewArray extends AbstractVisitor {
 			remover.addAndUnbind(put);
 			prevIndex = index;
 		}
+		// add missing trailing zeros
+		for (long i = prevIndex + 1; i < len; i++) {
+			filledArr.addArg(InsnArg.lit(0, elemType));
+		}
 		remover.addAndUnbind(newArrayInsn);
 
+		// place new insn at last array put or before first usage
 		InsnNode lastPut = arrPuts.get(arrPuts.lastKey());
-		int replaceIndex = InsnList.getIndex(instructions, lastPut);
-		instructions.set(replaceIndex, filledArr);
-		BlockUtils.replaceInsn(mth, lastPut, filledArr);
+		int newInsnPos = InsnList.getIndex(instructions, lastPut);
+		if (firstNotAPutUsage != null) {
+			int idx = InsnList.getIndex(instructions, firstNotAPutUsage);
+			if (idx != -1) {
+				// TODO: check that all args already assigned
+				newInsnPos = Math.min(idx, newInsnPos);
+			}
+		}
+		instructions.add(newInsnPos, filledArr);
 		return true;
 	}
 
