@@ -1363,6 +1363,10 @@ public class SmaliTokenMaker extends AbstractJFlexCTokenMaker {
 		zzLexicalState = newState;
 	}
 
+	public final int yystate() {
+		return zzLexicalState;
+	}
+
 	/**
 	 * Returns the text matched by the current regular expression.
 	 */

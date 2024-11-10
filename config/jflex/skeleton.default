@@ -57,12 +57,12 @@
   private int yychar;
 
   /**
-   * the number of characters from the last newline up to the start of the 
+   * the number of characters from the last newline up to the start of the
    * matched text
    */
   private int yycolumn;
 
-  /** 
+  /**
    * zzAtBOL == true <=> the scanner is currently at the beginning of a line
    */
   private boolean zzAtBOL = true;
@@ -102,6 +102,9 @@
     zzLexicalState = newState;
   }
 
+  public final int yystate() {
+    return zzLexicalState;
+  }
 
   /**
    * Returns the text matched by the current regular expression.
@@ -112,12 +115,12 @@
 
 
   /**
-   * Returns the character at position <tt>pos</tt> from the 
-   * matched text. 
-   * 
+   * Returns the character at position <tt>pos</tt> from the
+   * matched text.
+   *
    * It is equivalent to yytext().charAt(pos), but faster
    *
-   * @param pos the position of the character to fetch. 
+   * @param pos the position of the character to fetch.
    *            A value from 0 to yylength()-1.
    *
    * @return the character at position pos
@@ -138,8 +141,8 @@
   /**
    * Reports an error that occured while scanning.
    *
-   * In a wellformed scanner (no or only correct usage of 
-   * yypushback(int) and a match-all fallback rule) this method 
+   * In a wellformed scanner (no or only correct usage of
+   * yypushback(int) and a match-all fallback rule) this method
    * will only be called with things that "Can't Possibly Happen".
    * If this method is called, something is seriously wrong
    * (e.g. a JFlex bug producing a faulty scanner etc.).
@@ -159,7 +162,7 @@
     }
 
 --- throws clause
-  } 
+  }
 
 
   /**
@@ -206,12 +209,12 @@
       zzAction = -1;
 
       zzCurrentPosL = zzCurrentPos = zzStartRead = zzMarkedPosL;
-  
+
 --- start admin (lexstate etc)
 
       zzForAction: {
         while (true) {
-    
+
 --- next input, line, col, char count, next transition, isFinal action
             zzAction = zzState;
             zzMarkedPosL = zzCurrentPosL;
@@ -226,11 +229,11 @@
 --- char count update
 
 --- actions
-        default: 
+        default:
           if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
             zzAtEOF = true;
 --- eofvalue
-          } 
+          }
           else {
 --- no match
           }

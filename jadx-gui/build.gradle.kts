@@ -3,7 +3,7 @@ plugins {
 	id("application")
 	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.3"
+	id("com.gradleup.shadow") version "8.3.5"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -23,20 +23,20 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.1")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.3.1")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.3.1")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.4.1")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.4.1")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.11")
+	implementation("ch.qos.logback:logback-classic:1.5.12")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.4.1")
+	implementation("com.fifesoft:rsyntaxtextarea:3.5.2")
 	implementation("org.drjekyll:fontchooser:3.1.0")
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 
-	implementation("com.formdev:flatlaf:3.5.1")
-	implementation("com.formdev:flatlaf-intellij-themes:3.5.1")
-	implementation("com.formdev:flatlaf-extras:3.5.1")
+	implementation("com.formdev:flatlaf:3.5.2")
+	implementation("com.formdev:flatlaf-intellij-themes:3.5.2")
+	implementation("com.formdev:flatlaf-extras:3.5.2")
 
 	implementation("com.google.code.gson:gson:2.11.0")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
@@ -45,7 +45,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.7.1")
+	implementation("com.android.tools.build:apksig:8.7.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)

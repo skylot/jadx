@@ -1,7 +1,7 @@
 /*
  * Generated on 11/22/21, 8:58 PM
  */
-package jadx.gui.ui.codeearea;
+package jadx.gui.ui.codearea;
 
 import java.io.*;
 import javax.swing.text.Segment;
@@ -9,7 +9,7 @@ import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.*;
 
 
-/**
+/*
  * 用于Smali代码高亮
  * MartinKay@qq.com
  */
@@ -172,7 +172,6 @@ import org.fife.ui.rsyntaxtextarea.*;
 		zzAtBOL  = true;
 		zzAtEOF  = false;
 	}
-
 
 %}
 
@@ -678,4 +677,3 @@ FLAG_ARRAY = (":array_"{SimpleName})
 	\n						{ addToken(start,zzStartRead-1, Token.COMMENT_EOL); addNullToken(); return firstToken; }
 	<<EOF>>					{ addToken(start,zzStartRead-1, Token.COMMENT_EOL); addNullToken(); return firstToken; }
 }
-
