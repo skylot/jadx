@@ -100,6 +100,13 @@ tasks.shadowJar {
 	}
 }
 
+// workaround to exclude shadowJar 'all' artifact from publishing to maven
+project.components.withType(AdhocComponentWithVariants::class.java).forEach { c ->
+	c.withVariantsFromConfiguration(project.configurations.shadowRuntimeElements.get()) {
+		skip()
+	}
+}
+
 tasks.startShadowScripts {
 	doLast {
 		val newContent =

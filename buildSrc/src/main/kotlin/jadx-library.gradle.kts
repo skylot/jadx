@@ -30,7 +30,7 @@ publishing {
 			}
 			pom {
 				name.set(project.name)
-				description.set("Dex to Java decompiler")
+				description.set(project.description ?: "Dex to Java decompiler")
 				url.set("https://github.com/skylot/jadx")
 				licenses {
 					license {
@@ -47,9 +47,9 @@ publishing {
 					}
 				}
 				scm {
-					connection .set("scm:git:git://github.com/skylot/jadx.git")
+					connection.set("scm:git:git://github.com/skylot/jadx.git")
 					developerConnection.set("scm:git:ssh://github.com:skylot/jadx.git")
-					url .set("https://github.com/skylot/jadx")
+					url.set("https://github.com/skylot/jadx")
 				}
 			}
 		}
