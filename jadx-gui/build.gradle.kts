@@ -136,11 +136,15 @@ launch4j {
 }
 
 runtime {
-	addOptions("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages")
+	addOptions("--strip-debug", "--compress", "zip-9", "--no-header-files", "--no-man-pages")
 	addModules(
 		"java.desktop",
 		"java.naming",
 		"java.xml",
+		// needed for "https" protocol to get plugins and updates
+		"jdk.crypto.cryptoki",
+		// add Unsafe class, used by GSON
+		"jdk.unsupported",
 	)
 	jpackage {
 		imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")
