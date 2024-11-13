@@ -4,14 +4,14 @@ import com.google.gson.annotations.SerializedName
 
 data class XapkManifest(
 	@SerializedName("xapk_version")
-	val xapkVersion: Int,
+	var xapkVersion: Int = 0,
 	@SerializedName("split_apks")
-	val splitApks: List<SplitApk>,
+	var splitApks: List<SplitApk> = listOf(),
 ) {
 	data class SplitApk(
 		@SerializedName("file")
-		val file: String,
+		var file: String = "",
 		@SerializedName("id")
-		val id: String,
+		var id: String = "",
 	)
 }

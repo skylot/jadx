@@ -141,10 +141,8 @@ runtime {
 		"java.desktop",
 		"java.naming",
 		"java.xml",
-		// needed for "https" protocol to get plugins and updates
+		// needed for "https" protocol to download plugins and updates
 		"jdk.crypto.cryptoki",
-		// add Unsafe class, used by GSON
-		"jdk.unsupported",
 	)
 	jpackage {
 		imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")

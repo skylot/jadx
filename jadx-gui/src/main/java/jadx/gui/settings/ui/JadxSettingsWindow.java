@@ -42,7 +42,6 @@ import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import jadx.api.CommentsLevel;
@@ -57,6 +56,7 @@ import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
+import jadx.core.utils.GsonUtils;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.JadxUpdateChannel;
@@ -747,7 +747,7 @@ public class JadxSettingsWindow extends JDialog {
 		settingsJson.remove("lastOpenFilePath");
 		settingsJson.remove("lastSaveFilePath");
 		settingsJson.remove("recentProjects");
-		String settingsText = new GsonBuilder().setPrettyPrinting().create().toJson(settingsJson);
+		String settingsText = GsonUtils.buildGson().toJson(settingsJson);
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		StringSelection selection = new StringSelection(settingsText);
 		clipboard.setContents(selection, selection);

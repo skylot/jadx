@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import jadx.api.JadxArgs;
 import jadx.core.codegen.json.mapping.JsonClsMapping;
@@ -24,14 +23,14 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
 public class JsonMappingGen {
 	private static final Logger LOG = LoggerFactory.getLogger(JsonMappingGen.class);
 
-	private static final Gson GSON = new GsonBuilder()
-			.setPrettyPrinting()
+	private static final Gson GSON = GsonUtils.defaultGsonBuilder()
 			.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
 			.disableHtmlEscaping()
 			.create();

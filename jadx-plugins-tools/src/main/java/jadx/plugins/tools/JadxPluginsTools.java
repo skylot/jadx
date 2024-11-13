@@ -19,9 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.core.Jadx;
@@ -36,6 +33,7 @@ import jadx.plugins.tools.resolvers.IJadxPluginResolver;
 import jadx.plugins.tools.resolvers.ResolversRegistry;
 import jadx.plugins.tools.utils.PluginUtils;
 
+import static jadx.core.utils.GsonUtils.buildGson;
 import static jadx.plugins.tools.utils.PluginFiles.DROPINS_DIR;
 import static jadx.plugins.tools.utils.PluginFiles.INSTALLED_DIR;
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_JSON;
@@ -305,12 +303,6 @@ public class JadxPluginsTools {
 		} catch (IOException e) {
 			// ignore
 		}
-	}
-
-	private static Gson buildGson() {
-		return new GsonBuilder()
-				.setPrettyPrinting()
-				.create();
 	}
 
 	private JadxInstalledPlugins loadPluginsJson() {

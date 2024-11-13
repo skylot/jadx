@@ -10,10 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import jadx.plugins.tools.resolvers.github.data.Release;
+
+import static jadx.core.utils.GsonUtils.buildGson;
 
 public class GithubTools {
 	private static final String GITHUB_API_URL = "https://api.github.com/";
@@ -59,7 +60,7 @@ public class GithubTools {
 			throw new RuntimeException("Request failed, url: " + url, e);
 		}
 		try (Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8)) {
-			return new Gson().fromJson(reader, type);
+			return buildGson().fromJson(reader, type);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to parse response, url: " + url, e);
 		}

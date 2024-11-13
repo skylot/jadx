@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
@@ -32,13 +31,13 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.GsonUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JsonCodeGen {
 
-	private static final Gson GSON = new GsonBuilder()
-			.setPrettyPrinting()
+	private static final Gson GSON = GsonUtils.defaultGsonBuilder()
 			.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
 			.disableHtmlEscaping()
 			.create();

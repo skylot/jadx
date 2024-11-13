@@ -15,7 +15,7 @@ class XapkCustomResourcesLoader : CustomResourcesLoader {
 		if (!XapkUtils.isSupported(manifest)) return false
 
 		val apkEntries = manifest.splitApks.map { it.file }.toHashSet()
-		ZipSecurity.visitZipEntries(file) { zip, entry ->
+		ZipSecurity.visitZipEntries<Any>(file) { zip, entry ->
 			if (apkEntries.contains(entry.name)) {
 				val tmpFile = ZipSecurity.getInputStreamForEntry(zip, entry).use {
 					CommonFileUtils.saveToTempFile(it, ".apk").toFile()

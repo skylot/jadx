@@ -15,9 +15,9 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonObject;
 
+import jadx.core.utils.GsonUtils;
 import jadx.gui.utils.PathTypeAdapter;
 import jadx.gui.utils.RectangleTypeAdapter;
 
@@ -34,7 +34,7 @@ public class JadxSettingsAdapter {
 					|| f.hasModifier(Modifier.PUBLIC)
 					|| f.hasModifier(Modifier.TRANSIENT)
 					|| f.hasModifier(Modifier.STATIC)
-					|| (f.getAnnotation(GsonExclude.class) != null);
+					|| f.getAnnotation(GsonExclude.class) != null;
 		}
 
 		@Override
@@ -42,12 +42,8 @@ public class JadxSettingsAdapter {
 			return false;
 		}
 	};
-	private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
-			.setExclusionStrategies(EXCLUDE_FIELDS)
-			.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
-			.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton())
-			.setPrettyPrinting();
-	private static final Gson GSON = GSON_BUILDER.create();
+
+	private static final Gson GSON = makeGsonBuilder().create();
 
 	private JadxSettingsAdapter() {
 	}
@@ -92,17 +88,18 @@ public class JadxSettingsAdapter {
 	}
 
 	public static void fill(JadxSettings settings, String jsonStr) {
-		populate(GSON_BUILDER, jsonStr, JadxSettings.class, settings);
+		GsonUtils.fillObjectFromJsonString(makeGsonBuilder(), settings, jsonStr);
 	}
 
-	private static <T> void populate(GsonBuilder builder, String json, Class<T> type, final T into) {
-		builder.registerTypeAdapter(type, (InstanceCreator<T>) t -> into)
-				.create()
-				.fromJson(json, type);
+	private static GsonBuilder makeGsonBuilder() {
+		return GsonUtils.defaultGsonBuilder()
+				.setExclusionStrategies(EXCLUDE_FIELDS)
+				.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
+				.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton());
 	}
 
 	/**
-	 * Annotation for specifying fields that should not be be saved/loaded
+	 * Annotation for specifying fields that should not be saved/loaded
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)

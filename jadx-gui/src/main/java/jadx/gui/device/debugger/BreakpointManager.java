@@ -22,17 +22,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.treemodel.JClass;
 
+import static jadx.core.utils.GsonUtils.buildGson;
+
 public class BreakpointManager {
 	private static final Logger LOG = LoggerFactory.getLogger(BreakpointManager.class);
 
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	private static final Gson GSON = buildGson();
 	private static final Type TYPE_TOKEN = new TypeToken<Map<String, List<FileBreakpoint>>>() {
 	}.getType();
 
@@ -159,9 +160,13 @@ public class BreakpointManager {
 	}
 
 	protected static class FileBreakpoint {
-		final String cls;
-		final String mth;
-		final long codeOffset;
+		public String cls;
+		public String mth;
+		public long codeOffset;
+
+		public FileBreakpoint() {
+			// needed for JSON deserialization
+		}
 
 		private FileBreakpoint(String cls, String mth, long codeOffset) {
 			this.cls = cls;

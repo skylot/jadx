@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import jadx.api.plugins.utils.ZipSecurity;
@@ -26,6 +25,7 @@ import jadx.plugins.tools.resolvers.github.data.Asset;
 import jadx.plugins.tools.resolvers.github.data.Release;
 import jadx.plugins.tools.utils.PluginUtils;
 
+import static jadx.core.utils.GsonUtils.buildGson;
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_LIST_CACHE;
 
 public class JadxPluginsList {
@@ -101,10 +101,6 @@ public class JadxPluginsList {
 		loadedList = listCache;
 	}
 
-	private static Gson buildGson() {
-		return new GsonBuilder().setPrettyPrinting().create();
-	}
-
 	private Release fetchLatestRelease() {
 		LocationInfo latest = new LocationInfo("jadx-decompiler", "jadx-plugins-list", "list", null);
 		Release release = GithubTools.fetchRelease(latest);
@@ -127,7 +123,7 @@ public class JadxPluginsList {
 	}
 
 	private static List<JadxPluginMetadata> loadListBundle(Path tmpListFile) {
-		Gson gson = new Gson();
+		Gson gson = buildGson();
 		List<JadxPluginMetadata> entries = new ArrayList<>();
 		ZipSecurity.readZipEntries(tmpListFile.toFile(), (entry, in) -> {
 			if (entry.getName().endsWith(".json")) {

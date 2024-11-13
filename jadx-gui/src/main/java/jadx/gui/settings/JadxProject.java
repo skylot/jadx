@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import jadx.api.JadxArgs;
 import jadx.api.data.ICodeComment;
@@ -34,7 +33,6 @@ import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.plugins.utils.CommonFileUtils;
-import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.cache.manager.CacheManager;
@@ -43,6 +41,9 @@ import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.RelativePathTypeAdapter;
+
+import static jadx.core.utils.GsonUtils.defaultGsonBuilder;
+import static jadx.core.utils.GsonUtils.interfaceReplace;
 
 public class JadxProject {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxProject.class);
@@ -335,13 +336,12 @@ public class JadxProject {
 	}
 
 	private static Gson buildGson(Path basePath) {
-		return new GsonBuilder()
+		return defaultGsonBuilder()
 				.registerTypeHierarchyAdapter(Path.class, new RelativePathTypeAdapter(basePath))
-				.registerTypeAdapter(ICodeComment.class, GsonUtils.interfaceReplace(JadxCodeComment.class))
-				.registerTypeAdapter(ICodeRename.class, GsonUtils.interfaceReplace(JadxCodeRename.class))
-				.registerTypeAdapter(IJavaNodeRef.class, GsonUtils.interfaceReplace(JadxNodeRef.class))
-				.registerTypeAdapter(IJavaCodeRef.class, GsonUtils.interfaceReplace(JadxCodeRef.class))
-				.setPrettyPrinting()
+				.registerTypeAdapter(ICodeComment.class, interfaceReplace(JadxCodeComment.class))
+				.registerTypeAdapter(ICodeRename.class, interfaceReplace(JadxCodeRename.class))
+				.registerTypeAdapter(IJavaNodeRef.class, interfaceReplace(JadxNodeRef.class))
+				.registerTypeAdapter(IJavaCodeRef.class, interfaceReplace(JadxCodeRef.class))
 				.create();
 	}
 

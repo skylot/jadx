@@ -322,7 +322,7 @@ public class MainWindow extends JFrame {
 		if (!settings.isCheckForUpdates()) {
 			return;
 		}
-		JadxUpdate.check(settings.getJadxUpdateChannel(), release -> SwingUtilities.invokeLater(() -> {
+		new JadxUpdate().check(settings.getJadxUpdateChannel(), release -> SwingUtilities.invokeLater(() -> {
 			switch (settings.getJadxUpdateChannel()) {
 				case STABLE:
 					updateLink.setUrl(JadxUpdate.JADX_RELEASES_URL);
