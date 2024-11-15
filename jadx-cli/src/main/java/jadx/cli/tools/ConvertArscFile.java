@@ -1,6 +1,5 @@
 package jadx.cli.tools;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -71,7 +70,7 @@ public class ConvertArscFile {
 				}
 			} else {
 				// Load resources.arsc from extracted file
-				try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(resFile))) {
+				try (InputStream inputStream = Files.newInputStream(resFile)) {
 					resTableParser.decode(inputStream);
 				}
 			}

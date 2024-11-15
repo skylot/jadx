@@ -18,6 +18,7 @@ public class ParserStream {
 
 	private final InputStream input;
 	private long readPos = 0;
+	private long markPos = 0;
 
 	public ParserStream(@NotNull InputStream inputStream) {
 		this.input = inputStream;
@@ -143,10 +144,12 @@ public class ParserStream {
 			throw new IOException("Mark not supported for input stream " + input.getClass());
 		}
 		input.mark(len);
+		markPos = readPos;
 	}
 
 	public void reset() throws IOException {
 		input.reset();
+		readPos = markPos;
 	}
 
 	public void readFully(byte[] b) throws IOException {
