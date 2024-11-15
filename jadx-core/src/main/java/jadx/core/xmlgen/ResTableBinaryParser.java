@@ -1,5 +1,6 @@
 package jadx.core.xmlgen;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	@Override
 	public void decode(InputStream inputStream) throws IOException {
 		long start = System.currentTimeMillis();
-		is = new ParserStream(inputStream);
+		is = new ParserStream(new BufferedInputStream(inputStream, 32768));
 		resStorage = new ResourceStorage(root.getArgs().getSecurity());
 		decodeTableChunk();
 		resStorage.finish();
@@ -234,6 +235,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		/* int size = */
 		long chunkSize = is.readUInt32();
 		long chunkEnd = start + chunkSize;
+		is.mark((int) chunkSize);
 
 		// The type identifier this chunk is holding. Type IDs start at 1 (corresponding
 		// to the value of the type bits in a resource identifier). 0 is invalid.
@@ -286,7 +288,12 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - index);
 				break;
 			}
-			is.checkPos(entriesStart + offset, "Expected start of entry " + index);
+			long entryStartOffset = entriesStart + offset;
+			if (entryStartOffset < is.getPos()) {
+				// workaround for issue #2343: if the entryStartOffset is located before our current position
+				is.reset();
+			}
+			is.skipToPos(entryStartOffset, "Expected start of entry " + index);
 			parseEntry(pkg, id, index, config.getQualifiers());
 		}
 		if (chunkEnd > is.getPos()) {
