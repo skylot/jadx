@@ -21,6 +21,7 @@ build/
 classes/
 idea/
 .gradle/
+.kotlin/
 node_modules/
 .vscode/
 
