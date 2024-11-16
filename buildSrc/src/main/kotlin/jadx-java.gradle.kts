@@ -45,6 +45,7 @@ java {
 tasks {
 	compileJava {
 		options.encoding = "UTF-8"
+		// options.compilerArgs = listOf("-Xlint:deprecation")
 	}
 	jar {
 		manifest {

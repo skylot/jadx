@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-
 plugins {
 	id("org.openrewrite.rewrite")
 }
@@ -9,10 +7,10 @@ repositories {
 }
 
 dependencies {
-	rewrite("org.openrewrite.recipe:rewrite-testing-frameworks:2.21.0")
-	rewrite("org.openrewrite.recipe:rewrite-logging-frameworks:2.15.1")
-	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.28.0")
-	rewrite("org.openrewrite.recipe:rewrite-static-analysis:1.19.0")
+	rewrite("org.openrewrite.recipe:rewrite-testing-frameworks:2.22.0")
+	rewrite("org.openrewrite.recipe:rewrite-logging-frameworks:2.16.0")
+	rewrite("org.openrewrite.recipe:rewrite-migrate-java:2.29.0")
+	rewrite("org.openrewrite.recipe:rewrite-static-analysis:1.20.0")
 }
 
 tasks {

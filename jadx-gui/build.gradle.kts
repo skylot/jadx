@@ -48,7 +48,7 @@ dependencies {
 	implementation("com.android.tools.build:apksig:8.7.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
-	testImplementation(project(":jadx-core").dependencyProject.sourceSets.getByName("test").output)
+	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
 }
 
 val jadxVersion: String by rootProject.extra
