@@ -41,7 +41,7 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.11.0")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
 	implementation("org.apache.commons:commons-text:1.12.0")
-	implementation("commons-io:commons-io:2.17.0")
+	implementation("commons-io:commons-io:2.18.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
