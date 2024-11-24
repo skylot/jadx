@@ -513,7 +513,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private void saveToJar(List<File> files, Path baseDir) throws IOException {
-		Path jarFile = Files.createTempFile(testDir, "tests-" + getTestName() + '-', ".jar");
+		Path jarFile = Files.createTempFile("tests-" + getTestName() + '-', ".jar");
 		try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(jarFile))) {
 			for (File file : files) {
 				Path fullPath = file.toPath();

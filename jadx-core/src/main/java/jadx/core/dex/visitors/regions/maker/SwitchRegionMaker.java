@@ -58,7 +58,7 @@ final class SwitchRegionMaker {
 		currentRegion.getSubBlocks().add(sw);
 		stack.push(sw);
 
-		BlockNode out = calcSwitchOut(block, stack);
+		BlockNode out = calcSwitchOut(block, insn, stack);
 		stack.addExit(out);
 
 		processFallThroughCases(sw, out, stack, blocksMap);
@@ -122,7 +122,7 @@ final class SwitchRegionMaker {
 		return BlockUtils.bitSetToOneBlock(mth, caseExits);
 	}
 
-	private @Nullable BlockNode calcSwitchOut(BlockNode block, RegionStack stack) {
+	private @Nullable BlockNode calcSwitchOut(BlockNode block, SwitchInsn insn, RegionStack stack) {
 		// union of case blocks dominance frontier
 		// works if no fallthrough cases and no returns inside switch
 		BitSet outs = BlockUtils.newBlocksBitSet(mth);
@@ -184,11 +184,9 @@ final class SwitchRegionMaker {
 			// check if all returns are equals and should be treated as single out block
 			return allSameReturns(stack);
 		}
-		if (out != imPostDom && !mth.isPreExitBlock(imPostDom)) {
-			// stop other paths at common exit
-			stack.addExit(imPostDom);
-		}
-		if (block.getCleanSuccessors().contains(imPostDom)) {
+		if (imPostDom == insn.getDefTargetBlock()
+				&& block.getCleanSuccessors().contains(imPostDom)
+				&& block.getDomFrontier().get(imPostDom.getId())) {
 			// add exit to stop on empty 'default' block
 			stack.addExit(imPostDom);
 		}
@@ -343,5 +341,4 @@ final class SwitchRegionMaker {
 		}
 		return inserted;
 	}
-
 }
