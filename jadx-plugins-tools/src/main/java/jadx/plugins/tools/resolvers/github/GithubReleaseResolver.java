@@ -10,8 +10,7 @@ import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.resolvers.IJadxPluginResolver;
 import jadx.plugins.tools.resolvers.github.data.Asset;
 import jadx.plugins.tools.resolvers.github.data.Release;
-
-import static jadx.plugins.tools.utils.PluginUtils.removePrefix;
+import jadx.plugins.tools.utils.PluginUtils;
 
 public class GithubReleaseResolver implements IJadxPluginResolver {
 	private static final Pattern VERSION_PATTERN = Pattern.compile("v?\\d+\\.\\d+(\\.\\d+)?");
@@ -47,8 +46,14 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 
 	private JadxPluginMetadata buildMetadata(Release release, LocationInfo info) {
 		List<Asset> assets = release.getAssets();
-		String releaseVersion = removePrefix(release.getName(), "v");
+		String releaseVersion = PluginUtils.removePrefix(release.getName(), "v");
 		Asset asset = searchPluginAsset(assets, info.getArtifactPrefix(), releaseVersion);
+		if (!asset.getName().contains(releaseVersion)) {
+			String assetVersion = PluginUtils.extractVersion(asset.getName());
+			if (assetVersion != null) {
+				releaseVersion = assetVersion;
+			}
+		}
 
 		JadxPluginMetadata metadata = new JadxPluginMetadata();
 		metadata.setVersion(releaseVersion);

@@ -5,6 +5,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jetbrains.annotations.Nullable;
 
 public class PluginUtils {
 
@@ -21,5 +25,20 @@ public class PluginUtils {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to download file: " + fileUrl, e);
 		}
+	}
+
+	private static final Pattern VERSION_LONG = Pattern.compile(".*v?(\\d+\\.\\d+\\.\\d+).*");
+	private static final Pattern VERSION_SHORT = Pattern.compile(".*v?(\\d+\\.\\d+).*");
+
+	public static @Nullable String extractVersion(String str) {
+		Matcher longMatcher = VERSION_LONG.matcher(str);
+		if (longMatcher.matches()) {
+			return longMatcher.group(1);
+		}
+		Matcher shortMatcher = VERSION_SHORT.matcher(str);
+		if (shortMatcher.matches()) {
+			return shortMatcher.group(1);
+		}
+		return null;
 	}
 }
