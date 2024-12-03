@@ -14,6 +14,7 @@ import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -279,12 +280,27 @@ public class ModVisitor extends AbstractVisitor {
 		if (cls.root().getArgs().isReplaceConsts()) {
 			replaceConstsInAnnotationForAttrNode(cls, cls);
 			cls.getFields().forEach(f -> replaceConstsInAnnotationForAttrNode(cls, f));
-			cls.getMethods().forEach(m -> replaceConstsInAnnotationForAttrNode(cls, m));
+			cls.getMethods().forEach((m) -> {
+				replaceConstsInAnnotationForAttrNode(cls, m);
+				replaceConstsInAnnotationForMethodParamsAttr(cls, m);
+			});
 		}
+	}
+
+	private void replaceConstsInAnnotationForMethodParamsAttr(ClassNode cls, MethodNode m) {
+		AnnotationMethodParamsAttr paramsAnnotation = m.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
+		if (paramsAnnotation == null) {
+			return;
+		}
+		paramsAnnotation.getParamList().forEach(annotationsList -> replaceConstsInAnnotationsAttr(cls, annotationsList));
 	}
 
 	private void replaceConstsInAnnotationForAttrNode(ClassNode parentCls, AttrNode attrNode) {
 		AnnotationsAttr annotationsList = attrNode.get(JadxAttrType.ANNOTATION_LIST);
+		replaceConstsInAnnotationsAttr(parentCls, annotationsList);
+	}
+
+	private void replaceConstsInAnnotationsAttr(ClassNode parentCls, AnnotationsAttr annotationsList) {
 		if (annotationsList == null) {
 			return;
 		}
