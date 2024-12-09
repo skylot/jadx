@@ -150,7 +150,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 		if (insnType == InsnType.INVOKE) {
 			InvokeNode invoke = (InvokeNode) insn;
 			MethodNode callMthNode = mth.root().resolveMethod(invoke.getCallMth());
-			if (callMthNode != null) {
+			if (callMthNode != null && !callMthNode.root().getArgs().isRespectBytecodeAccModifiers()) {
 				FixAccessModifiers.changeVisibility(callMthNode, newVisFlag);
 			}
 			return true;
