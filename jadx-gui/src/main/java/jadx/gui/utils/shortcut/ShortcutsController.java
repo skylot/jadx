@@ -3,10 +3,11 @@ package jadx.gui.utils.shortcut;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class ShortcutsController {
 
 	private final JadxSettings settings;
 	private final Map<ActionModel, Set<IShortcutAction>> boundActions = new EnumMap<>(ActionModel.class);
-	private final Set<ActionModel> mouseActions = EnumSet.noneOf(ActionModel.class);
+	private final Map<Integer, List<IShortcutAction>> mouseActions = new HashMap<>();
 
 	private ShortcutsWrapper shortcuts;
 
@@ -73,8 +74,7 @@ public class ShortcutsController {
 			LOG.warn("No shortcut component in action: {}", action, new JadxRuntimeException());
 			return;
 		}
-		boundActions.computeIfAbsent(action.getActionModel(), k -> new HashSet<>());
-		boundActions.get(action.getActionModel()).add(action);
+		boundActions.computeIfAbsent(action.getActionModel(), k -> new HashSet<>()).add(action);
 	}
 
 	/*
@@ -106,18 +106,12 @@ public class ShortcutsController {
 			if (mouseEvent.getID() != MouseEvent.MOUSE_PRESSED) {
 				return;
 			}
-			int mouseButton = mouseEvent.getButton();
-			for (ActionModel actionModel : mouseActions) {
-				Shortcut shortcut = shortcuts.get(actionModel);
-				if (shortcut != null && shortcut.getMouseButton() == mouseButton) {
-					Set<IShortcutAction> actions = boundActions.get(actionModel);
-					if (actions != null) {
-						for (IShortcutAction action : actions) {
-							if (action != null) {
-								mouseEvent.consume();
-								UiUtils.uiRun(action::performAction);
-							}
-						}
+			List<IShortcutAction> actions = mouseActions.get(mouseEvent.getButton());
+			if (actions != null) {
+				for (IShortcutAction action : actions) {
+					if (action != null) {
+						mouseEvent.consume();
+						UiUtils.uiRun(action::performAction);
 					}
 				}
 			}
@@ -129,7 +123,11 @@ public class ShortcutsController {
 		for (ActionModel actionModel : ActionModel.values()) {
 			Shortcut shortcut = shortcuts.get(actionModel);
 			if (shortcut != null && shortcut.isMouse()) {
-				mouseActions.add(actionModel);
+				Set<IShortcutAction> actions = boundActions.get(actionModel);
+				if (actions != null && !actions.isEmpty()) {
+					mouseActions.computeIfAbsent(shortcut.getMouseButton(), i -> new ArrayList<>())
+							.addAll(actions);
+				}
 			}
 		}
 	}

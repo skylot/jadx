@@ -12,7 +12,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class JadxMenu extends JMenu {
 	// fake component to fill action shortcut component property
-	private static final JComponent JADX_MENU_COMPONENT = new JComponent() {
+	public static final JComponent JADX_MENU_COMPONENT = new JComponent() {
 		@Override
 		public String toString() {
 			return "JADX_MENU_COMPONENT";

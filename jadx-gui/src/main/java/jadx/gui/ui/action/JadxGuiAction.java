@@ -9,12 +9,13 @@ import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.gui.ui.menu.JadxMenu;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
 import jadx.gui.utils.ui.ActionHandler;
 
 public class JadxGuiAction extends ActionHandler implements IShortcutAction {
-	private static final String COMMAND = "JadxGuiAction.Command.%s";
+	private static final String COMMAND_PREFIX = "JadxGuiAction.Command.";
 
 	private final ActionModel actionModel;
 	private final String id;
@@ -102,21 +103,20 @@ public class JadxGuiAction extends ActionHandler implements IShortcutAction {
 
 	@Override
 	public void performAction() {
-		if (shortcutComponent != null && !shortcutComponent.isShowing()) {
-			return;
+		if (shortcutComponent != null) {
+			if (shortcutComponent == JadxMenu.JADX_MENU_COMPONENT) {
+				// always enabled
+			} else if (!shortcutComponent.isShowing()) {
+				return;
+			}
 		}
-
-		String shortcutType = "null";
-		if (shortcut != null) {
-			shortcutType = shortcut.getTypeString();
-		}
-		actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-				String.format(COMMAND, shortcutType)));
+		String shortcutType = shortcut != null ? shortcut.getTypeString() : "null";
+		actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, COMMAND_PREFIX + shortcutType));
 	}
 
 	public static boolean isSource(ActionEvent event) {
-		return event.getActionCommand() != null
-				&& event.getActionCommand().startsWith(String.format(COMMAND, ""));
+		String command = event.getActionCommand();
+		return command != null && command.startsWith(COMMAND_PREFIX);
 	}
 
 	@Override
