@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	compileOnly(project(":jadx-core"))
 
-	implementation("com.android.tools.build:aapt2-proto:8.7.2-12006047")
+	implementation("com.android.tools.build:aapt2-proto:8.7.3-12006047")
 	implementation("com.google.protobuf:protobuf-java") {
 		version {
 			require("3.25.3") // version 4 conflict with `aapt2-proto`
