@@ -1,7 +1,9 @@
 package jadx.core.export;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -35,8 +37,23 @@ public class ExportGradleProject {
 			saveProjectBuildGradle();
 			saveApplicationBuildGradle();
 			saveSettingsGradle();
+			saveGradleProperties();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Gradle export failed", e);
+		}
+	}
+
+	private void saveGradleProperties() throws IOException {
+		GradleInfoStorage gradleInfo = root.getGradleInfoStorage();
+		/*
+		 * For Android Gradle Plugin >=8.0.0 the property "android.nonFinalResIds=false" has to be set in
+		 * "gradle.properties" when resource identifiers are used as constant expressions.
+		 */
+		if (gradleInfo.isNonFinalResIds()) {
+			File gradlePropertiesFile = new File(projectDir, "gradle.properties");
+			try (FileOutputStream fos = new FileOutputStream(gradlePropertiesFile)) {
+				fos.write("android.nonFinalResIds=false".getBytes(StandardCharsets.UTF_8));
+			}
 		}
 	}
 

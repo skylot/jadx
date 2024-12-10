@@ -67,4 +67,12 @@ public abstract class ExportGradleTest {
 	protected String getSettingsGradle() {
 		return loadFileContent(new File(exportDir, "settings.gradle"));
 	}
+
+	protected File getGradleProperiesFile() {
+		return new File(exportDir, "gradle.properties");
+	}
+
+	protected String getGradleProperies() {
+		return loadFileContent(getGradleProperiesFile());
+	}
 }
