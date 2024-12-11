@@ -290,7 +290,7 @@ public class RootNode {
 		List<ClassNode> updated = new ArrayList<>();
 		for (ClassNode cls : inner) {
 			ClassInfo clsInfo = cls.getClassInfo();
-			ClassNode parent = resolveClass(clsInfo.getParentClass());
+			ClassNode parent = resolveParentClass(clsInfo);
 			if (parent == null) {
 				clsMap.remove(clsInfo);
 				clsInfo.notInner(this);
@@ -480,6 +480,33 @@ public class RootNode {
 	@Nullable
 	public ClassNode resolveRawClass(String rawFullName) {
 		return rawClsMap.get(rawFullName);
+	}
+
+	/**
+	 * Find and correct the parent of an inner class.
+	 * <br>
+	 * Sometimes inner ClassInfo generated wrong parent info.
+	 * e.g. inner is `Cls$mth$1`, current parent = `Cls$mth`, real parent = `Cls`
+	 */
+	@Nullable
+	public ClassNode resolveParentClass(ClassInfo clsInfo) {
+		ClassInfo parentInfo = clsInfo.getParentClass();
+		ClassNode parentNode = resolveClass(parentInfo);
+		if (parentNode == null && parentInfo != null) {
+			String parClsName = parentInfo.getFullName();
+			// strip last part as method name
+			int sep = parClsName.lastIndexOf('.');
+			if (sep > 0 && sep != parClsName.length() - 1) {
+				String mthName = parClsName.substring(sep + 1);
+				String upperParClsName = parClsName.substring(0, sep);
+				ClassNode tmpParent = resolveClass(upperParClsName);
+				if (tmpParent != null && tmpParent.searchMethodByShortName(mthName) != null) {
+					parentNode = tmpParent;
+					clsInfo.convertToInner(parentNode);
+				}
+			}
+		}
+		return parentNode;
 	}
 
 	/**
