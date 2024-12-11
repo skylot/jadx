@@ -8,6 +8,8 @@ public class GradleInfoStorage {
 
 	private boolean useApacheHttpLegacy;
 
+	private boolean nonFinalResIds;
+
 	public boolean isVectorPathData() {
 		return vectorPathData;
 	}
@@ -30,5 +32,13 @@ public class GradleInfoStorage {
 
 	public void setUseApacheHttpLegacy(boolean useApacheHttpLegacy) {
 		this.useApacheHttpLegacy = useApacheHttpLegacy;
+	}
+
+	public boolean isNonFinalResIds() {
+		return nonFinalResIds;
+	}
+
+	public void setNonFinalResIds(boolean nonFinalResIds) {
+		this.nonFinalResIds = nonFinalResIds;
 	}
 }
