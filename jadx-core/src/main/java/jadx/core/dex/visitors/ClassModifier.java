@@ -86,8 +86,11 @@ public class ClassModifier extends AbstractVisitor {
 					ClassInfo clsInfo = ClassInfo.fromType(cls.root(), fldType);
 					ClassNode fieldsCls = cls.root().resolveClass(clsInfo);
 					ClassInfo parentClass = cls.getClassInfo().getParentClass();
-					if (fieldsCls != null
-							&& (inline || Objects.equals(parentClass, fieldsCls.getClassInfo()))) {
+					if (fieldsCls == null) {
+						continue;
+					}
+					boolean isParentInst = Objects.equals(parentClass, fieldsCls.getClassInfo());
+					if (inline || isParentInst) {
 						int found = 0;
 						for (MethodNode mth : cls.getMethods()) {
 							if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
@@ -95,7 +98,9 @@ public class ClassModifier extends AbstractVisitor {
 							}
 						}
 						if (found != 0) {
-							field.addAttr(new FieldReplaceAttr(fieldsCls.getClassInfo()));
+							if (isParentInst) {
+								field.addAttr(new FieldReplaceAttr(fieldsCls.getClassInfo()));
+							}
 							field.add(AFlag.DONT_GENERATE);
 						}
 					}
