@@ -176,8 +176,7 @@ public class ClassNode extends NotificationAttrNode
 
 	private static void processSpecialClasses(ClassNode cls) {
 		AccessInfo flags = cls.getAccessFlags();
-		if (flags.isSynthetic() && flags.isInterface() && flags.isAbstract()
-				&& cls.getName().equals("package-info")) {
+		if (flags.isInterface() && cls.getName().equals("package-info")) {
 			cls.add(AFlag.PACKAGE_INFO);
 			cls.add(AFlag.DONT_RENAME);
 		}

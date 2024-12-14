@@ -28,5 +28,7 @@ public class TestPackageInfoSupport extends SmaliTest {
 						"package special.pkg2;",
 						"",
 						"import org.jetbrains.annotations.ApiStatus;");
+		assertThat(searchCls(classes, "special.pkg3.package-info"))
+				.code().isEqualTo("\npackage special.pkg3;\n");
 	}
 }
