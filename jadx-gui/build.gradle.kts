@@ -47,6 +47,7 @@ dependencies {
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
 	implementation("com.android.tools.build:apksig:8.7.3")
 	implementation("io.github.skylot:jdwp:2.0.0")
+	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
 
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
 }
