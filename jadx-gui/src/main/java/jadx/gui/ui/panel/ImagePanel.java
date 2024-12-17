@@ -7,8 +7,9 @@ import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
 import javax.imageio.spi.IIORegistry;
 
-import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 import hu.kazocsaba.imageviewer.ImageViewer;
 
