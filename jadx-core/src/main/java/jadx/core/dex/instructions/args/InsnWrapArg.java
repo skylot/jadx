@@ -2,6 +2,7 @@ package jadx.core.dex.instructions.args;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
@@ -22,6 +23,12 @@ public final class InsnWrapArg extends InsnArg {
 
 	public InsnNode getWrapInsn() {
 		return wrappedInsn;
+	}
+
+	public InsnNode unWrapWithCopy() {
+		InsnNode copy = wrappedInsn.copyWithoutResult();
+		copy.remove(AFlag.WRAPPED);
+		return copy;
 	}
 
 	@Override

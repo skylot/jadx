@@ -46,7 +46,7 @@ public class InlineMethods extends AbstractVisitor {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == InsnType.INVOKE) {
-					processInvokeInsn(mth, block, ((InvokeNode) insn));
+					processInvokeInsn(mth, block, (InvokeNode) insn);
 				}
 			}
 		}
@@ -103,20 +103,24 @@ public class InlineMethods extends AbstractVisitor {
 			for (RegisterArg r : inlArgs) {
 				int regNum = r.getRegNum();
 				if (regNum >= regs.length) {
-					LOG.warn("Unknown register number {} in method call: {} from {}", r, callMth, mth);
-				} else {
-					InsnArg repl = regs[regNum];
-					if (repl == null) {
-						LOG.warn("Not passed register {} in method call: {} from {}", r, callMth, mth);
-					} else {
-						inlCopy.replaceArg(r, repl);
-					}
+					mth.addWarnComment("Unknown register number '" + r + "' in method call: " + callMth);
+					return;
+				}
+				InsnArg repl = regs[regNum];
+				if (repl == null) {
+					mth.addWarnComment("Not passed register '" + r + "' in method call: " + callMth);
+					return;
+				}
+				if (!inlCopy.replaceArg(r, repl.duplicate())) {
+					mth.addWarnComment("Failed to replace arg " + r + " for method inline: " + callMth);
+					return;
 				}
 			}
 		}
 		IMethodDetails methodDetailsAttr = inlCopy.get(AType.METHOD_DETAILS);
 		if (!BlockUtils.replaceInsn(mth, block, insn, inlCopy)) {
 			mth.addWarnComment("Failed to inline method: " + callMth);
+			return;
 		}
 		// replaceInsn replaces the attributes as well, make sure to preserve METHOD_DETAILS
 		if (methodDetailsAttr != null) {
