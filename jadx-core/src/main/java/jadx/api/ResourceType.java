@@ -11,7 +11,7 @@ public enum ResourceType {
 	XML(".xml"),
 	ARSC(".arsc"),
 	FONT(".ttf", ".otf"),
-	IMG(".png", ".gif", ".jpg"),
+	IMG(".png", ".gif", ".jpg", ".webp"),
 	MEDIA(".mp3", ".wav"),
 	LIB(".so"),
 	MANIFEST,

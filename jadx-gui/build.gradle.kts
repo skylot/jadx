@@ -33,6 +33,7 @@ dependencies {
 	implementation("com.fifesoft:rsyntaxtextarea:3.5.3")
 	implementation("org.drjekyll:fontchooser:3.1.0")
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
+	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer
 
 	implementation("com.formdev:flatlaf:3.5.4")
 	implementation("com.formdev:flatlaf-intellij-themes:3.5.4")
