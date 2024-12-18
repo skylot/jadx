@@ -5,11 +5,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 
 import javax.imageio.ImageIO;
-import javax.imageio.spi.IIORegistry;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
-import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 import hu.kazocsaba.imageviewer.ImageViewer;
 
@@ -23,11 +20,6 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.tab.TabbedPane;
 
 public class ImagePanel extends ContentPanel {
-
-	static {
-		// a plugin for support webp image
-		IIORegistry.getDefaultInstance().registerServiceProvider(new WebPImageReaderSpi());
-	}
 
 	private static final long serialVersionUID = 4071356367073142688L;
 
