@@ -23,7 +23,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.12")
+	implementation("ch.qos.logback:logback-classic:1.5.13")
 }
 
 application {

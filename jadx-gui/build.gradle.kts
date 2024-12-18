@@ -27,7 +27,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.5.0")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.12")
+	implementation("ch.qos.logback:logback-classic:1.5.13")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.5.3")
@@ -41,7 +41,7 @@ dependencies {
 
 	implementation("com.google.code.gson:gson:2.11.0")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
-	implementation("org.apache.commons:commons-text:1.12.0")
+	implementation("org.apache.commons:commons-text:1.13.0")
 	implementation("commons-io:commons-io:2.18.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
