@@ -20,7 +20,6 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.tab.TabbedPane;
 
 public class ImagePanel extends ContentPanel {
-
 	private static final long serialVersionUID = 4071356367073142688L;
 
 	public ImagePanel(TabbedPane panel, JResource res) {
