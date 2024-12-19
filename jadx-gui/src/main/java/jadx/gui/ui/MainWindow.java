@@ -441,14 +441,38 @@ public class MainWindow extends JFrame {
 		}
 		List<Path> inputs = project.getFilePaths();
 		inputs.add(scriptFile);
-		project.setFilePaths(inputs);
-		project.save();
-		reopen();
+		refreshTree(inputs);
 	}
 
 	public void removeInput(Path file) {
 		List<Path> inputs = project.getFilePaths();
 		inputs.remove(file);
+		refreshTree(inputs);
+	}
+
+	public void renameInput(Path file) {
+		String newName = JOptionPane.showInputDialog(this, NLS.str("message.enter_new_name"), file.getFileName().toString());
+		if (newName == null || newName.trim().isEmpty()) {
+			return;
+		}
+		Path targetPath = file.resolveSibling(newName);
+
+		boolean success = FileUtils.renameFile(file, targetPath);
+		if (success) {
+			List<Path> inputs = project.getFilePaths();
+			inputs.remove(file);
+			inputs.add(targetPath);
+
+			refreshTree(inputs);
+		} else {
+			JOptionPane.showMessageDialog(this,
+					NLS.str("message.could_not_rename"),
+					NLS.str("message.errorTitle"),
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void refreshTree(List<Path> inputs) {
 		project.setFilePaths(inputs);
 		project.save();
 		reopen();

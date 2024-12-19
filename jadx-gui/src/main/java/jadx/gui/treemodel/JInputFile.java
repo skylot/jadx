@@ -23,6 +23,7 @@ public class JInputFile extends JNode {
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(new SimpleMenuItem(NLS.str("popup.add_files"), mainWindow::addFiles));
 		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), () -> mainWindow.removeInput(filePath)));
+		menu.add(new SimpleMenuItem(NLS.str("popup.rename"), () -> mainWindow.renameInput(filePath)));
 		return menu;
 	}
 
