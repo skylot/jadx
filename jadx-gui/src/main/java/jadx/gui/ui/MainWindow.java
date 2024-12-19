@@ -462,6 +462,7 @@ public class MainWindow extends JFrame {
 			List<Path> inputs = project.getFilePaths();
 			inputs.remove(file);
 			inputs.add(targetPath);
+
 			refreshTree(inputs);
 		} else {
 			JOptionPane.showMessageDialog(this,
@@ -471,7 +472,7 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void refreshTree(List<Path> inputs){
+	private void refreshTree(List<Path> inputs) {
 		project.setFilePaths(inputs);
 		project.save();
 		reopen();
