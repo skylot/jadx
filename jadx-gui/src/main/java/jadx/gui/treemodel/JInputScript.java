@@ -66,6 +66,7 @@ public class JInputScript extends JEditableNode {
 		menu.add(new SimpleMenuItem(NLS.str("popup.add_scripts"), mainWindow::addFiles));
 		menu.add(new SimpleMenuItem(NLS.str("popup.new_script"), mainWindow::addNewScript));
 		menu.add(new SimpleMenuItem(NLS.str("popup.remove"), () -> mainWindow.removeInput(scriptPath)));
+		menu.add(new SimpleMenuItem(NLS.str("popup.rename"), () -> mainWindow.renameInput(scriptPath)));
 		return menu;
 	}
 

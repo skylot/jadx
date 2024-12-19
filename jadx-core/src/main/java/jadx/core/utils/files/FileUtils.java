@@ -10,12 +10,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
@@ -265,6 +268,20 @@ public class FileUtils {
 
 	public static String readFile(Path textFile) throws IOException {
 		return Files.readString(textFile);
+	}
+
+	public static boolean renameFile(Path sourcePath, Path targetPath) {
+		try {
+			Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+			return true;
+		} catch (NoSuchFileException e) {
+			LOG.error("File to rename not found {}", sourcePath, e);
+		} catch (FileAlreadyExistsException e) {
+			LOG.error("File with that name already exists {}", targetPath, e);
+		} catch (IOException e) {
+			LOG.error("Error renaming file {}", e.getMessage(), e);
+		}
+		return false;
 	}
 
 	@NotNull
