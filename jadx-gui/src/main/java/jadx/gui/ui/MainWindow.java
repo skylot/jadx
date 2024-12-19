@@ -445,6 +445,15 @@ public class MainWindow extends JFrame {
 	}
 
 	public void removeInput(Path file) {
+		int dialogResult = JOptionPane.showConfirmDialog(
+				this,
+				NLS.str("message.confirm_remove_script"),
+				NLS.str("msg.warning_title"),
+				JOptionPane.YES_NO_OPTION);
+		if (dialogResult == JOptionPane.NO_OPTION) {
+			return;
+		}
+
 		List<Path> inputs = project.getFilePaths();
 		inputs.remove(file);
 		refreshTree(inputs);
