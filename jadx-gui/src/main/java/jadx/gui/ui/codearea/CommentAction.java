@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
 
 import javax.swing.event.PopupMenuEvent;
 
@@ -13,6 +14,7 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.impl.JadxCodeComment;
+import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.metadata.ICodeAnnotation;
@@ -22,6 +24,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.gui.JadxWrapper;
+import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.JadxGuiAction;
@@ -35,6 +38,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
 	private final boolean enabled;
+	private boolean updateComment;
 
 	private ICodeComment actionComment;
 
@@ -47,10 +51,28 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 		if (enabled) {
 			ICodeComment codeComment = getCommentRef(UiUtils.getOffsetAtMousePosition(codeArea));
-			setEnabled(codeComment != null);
-			this.actionComment = codeComment;
+			if (codeComment != null) {
+				actionComment = getActionComment(codeComment);
+				setEnabled(true);
+			} else {
+				setActionModel(ActionModel.CODE_COMMENT);
+				setEnabled(false);
+			}
 		} else {
 			setEnabled(false);
+		}
+	}
+
+	private ICodeComment getActionComment(ICodeComment codeComment) {
+		ICodeComment exitsComment = searchForExistComment(codeArea, codeComment);
+		if (exitsComment != null) {
+			setActionModel(ActionModel.UPDATE_CODE_COMMENT);
+			updateComment = true;
+			return exitsComment;
+		} else {
+			setActionModel(ActionModel.CODE_COMMENT);
+			updateComment = false;
+			return codeComment;
 		}
 	}
 
@@ -61,7 +83,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 		}
 
 		if (JadxGuiAction.isSource(e)) {
-			showCommentDialog(getCommentRef(codeArea.getCaretPosition()));
+			showCommentDialog(getActionComment(getCommentRef(codeArea.getCaretPosition())));
 		} else {
 			showCommentDialog(this.actionComment);
 		}
@@ -72,7 +94,26 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 			UiUtils.showMessageBox(codeArea.getMainWindow(), NLS.str("msg.cant_add_comment"));
 			return;
 		}
-		CommentDialog.show(codeArea, codeComment);
+		CommentDialog.show(codeArea, codeComment, updateComment);
+	}
+
+	private static ICodeComment searchForExistComment(CodeArea codeArea, ICodeComment blankComment) {
+		try {
+			JadxProject project = codeArea.getProject();
+			JadxCodeData codeData = project.getCodeData();
+			if (codeData == null || codeData.getComments().isEmpty()) {
+				return null;
+			}
+			for (ICodeComment comment : codeData.getComments()) {
+				if (Objects.equals(comment.getNodeRef(), blankComment.getNodeRef())
+						&& Objects.equals(comment.getCodeRef(), blankComment.getCodeRef())) {
+					return comment;
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Error searching for exists comment", e);
+		}
+		return null;
 	}
 
 	/**
@@ -132,7 +173,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("Failed to add comment at: " + pos, e);
+			LOG.error("Failed to add comment at: {}", pos, e);
 		}
 		return null;
 	}
