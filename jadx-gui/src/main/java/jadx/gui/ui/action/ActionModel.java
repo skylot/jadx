@@ -84,8 +84,6 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_D)),
 	CODE_COMMENT(CODE_AREA, "popup.add_comment", "popup.add_comment", null,
 			Shortcut.keyboard(KeyEvent.VK_SEMICOLON)),
-	UPDATE_CODE_COMMENT(CODE_AREA, "popup.update_comment", "popup.update_comment", null,
-			Shortcut.keyboard(KeyEvent.VK_SEMICOLON)),
 	CODE_COMMENT_SEARCH(CODE_AREA, "popup.search_comment", "popup.search_comment", null,
 			Shortcut.keyboard(KeyEvent.VK_SEMICOLON, UiUtils.ctrlButton())),
 	CODE_RENAME(CODE_AREA, "popup.rename", "popup.rename", null,

@@ -37,10 +37,10 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	private static final long serialVersionUID = 4753838562204629112L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
-	private final boolean enabled;
-	private boolean updateComment;
 
-	private ICodeComment actionComment;
+	private final boolean enabled;
+	private @Nullable ICodeComment actionComment;
+	private boolean updateComment;
 
 	public CommentAction(CodeArea codeArea) {
 		super(ActionModel.CODE_COMMENT, codeArea);
@@ -49,31 +49,29 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-		if (enabled) {
-			ICodeComment codeComment = getCommentRef(UiUtils.getOffsetAtMousePosition(codeArea));
-			if (codeComment != null) {
-				actionComment = getActionComment(codeComment);
-				setEnabled(true);
-			} else {
-				setActionModel(ActionModel.CODE_COMMENT);
-				setEnabled(false);
-			}
+		if (enabled && updateCommentAction(UiUtils.getOffsetAtMousePosition(codeArea))) {
+			setNameAndDesc(updateComment ? NLS.str("popup.update_comment") : NLS.str("popup.add_comment"));
+			setEnabled(true);
 		} else {
 			setEnabled(false);
 		}
 	}
 
-	private ICodeComment getActionComment(ICodeComment codeComment) {
-		ICodeComment exitsComment = searchForExistComment(codeArea, codeComment);
-		if (exitsComment != null) {
-			setActionModel(ActionModel.UPDATE_CODE_COMMENT);
-			updateComment = true;
-			return exitsComment;
-		} else {
-			setActionModel(ActionModel.CODE_COMMENT);
-			updateComment = false;
-			return codeComment;
+	private boolean updateCommentAction(int pos) {
+		ICodeComment codeComment = getCommentRef(pos);
+		if (codeComment == null) {
+			actionComment = null;
+			return false;
 		}
+		ICodeComment exitsComment = searchForExistComment(codeComment);
+		if (exitsComment != null) {
+			actionComment = exitsComment;
+			updateComment = true;
+		} else {
+			actionComment = codeComment;
+			updateComment = false;
+		}
+		return true;
 	}
 
 	@Override
@@ -81,23 +79,17 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 		if (!enabled) {
 			return;
 		}
-
 		if (JadxGuiAction.isSource(e)) {
-			showCommentDialog(getActionComment(getCommentRef(codeArea.getCaretPosition())));
-		} else {
-			showCommentDialog(this.actionComment);
+			updateCommentAction(codeArea.getCaretPosition());
 		}
-	}
-
-	private void showCommentDialog(ICodeComment codeComment) {
-		if (codeComment == null) {
+		if (actionComment == null) {
 			UiUtils.showMessageBox(codeArea.getMainWindow(), NLS.str("msg.cant_add_comment"));
 			return;
 		}
-		CommentDialog.show(codeArea, codeComment, updateComment);
+		CommentDialog.show(codeArea, actionComment, updateComment);
 	}
 
-	private static ICodeComment searchForExistComment(CodeArea codeArea, ICodeComment blankComment) {
+	private @Nullable ICodeComment searchForExistComment(ICodeComment blankComment) {
 		try {
 			JadxProject project = codeArea.getProject();
 			JadxCodeData codeData = project.getCodeData();

@@ -43,7 +43,7 @@ public class CommentDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(CommentDialog.class);
 
 	public static void show(CodeArea codeArea, ICodeComment comment, boolean updateComment) {
-		var dialog = new CommentDialog(codeArea, comment, updateComment);
+		CommentDialog dialog = new CommentDialog(codeArea, comment, updateComment);
 		dialog.setVisible(true);
 	}
 

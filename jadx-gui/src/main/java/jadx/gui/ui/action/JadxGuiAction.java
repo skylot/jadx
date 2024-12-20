@@ -17,7 +17,7 @@ import jadx.gui.utils.ui.ActionHandler;
 public class JadxGuiAction extends ActionHandler implements IShortcutAction {
 	private static final String COMMAND_PREFIX = "JadxGuiAction.Command.";
 
-	private ActionModel actionModel;
+	private final ActionModel actionModel;
 	private final String id;
 	private JComponent shortcutComponent = null;
 	private KeyStroke addedKeyStroke = null;
@@ -50,11 +50,6 @@ public class JadxGuiAction extends ActionHandler implements IShortcutAction {
 		this.actionModel = null;
 		this.id = id;
 
-		updateProperties();
-	}
-
-	public void setActionModel(ActionModel actionModel) {
-		this.actionModel = actionModel;
 		updateProperties();
 	}
 
