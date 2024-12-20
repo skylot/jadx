@@ -3,14 +3,12 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -44,14 +42,8 @@ public class CommentDialog extends JDialog {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentDialog.class);
 
-	public static void show(CodeArea codeArea, ICodeComment blankComment) {
-		ICodeComment existComment = searchForExistComment(codeArea, blankComment);
-		Dialog dialog;
-		if (existComment != null) {
-			dialog = new CommentDialog(codeArea, existComment, true);
-		} else {
-			dialog = new CommentDialog(codeArea, blankComment, false);
-		}
+	public static void show(CodeArea codeArea, ICodeComment comment, boolean updateComment) {
+		CommentDialog dialog = new CommentDialog(codeArea, comment, updateComment);
 		dialog.setVisible(true);
 	}
 
@@ -77,25 +69,6 @@ public class CommentDialog extends JDialog {
 		} catch (Exception e) {
 			LOG.error("Failed to reload code", e);
 		}
-	}
-
-	private static ICodeComment searchForExistComment(CodeArea codeArea, ICodeComment blankComment) {
-		try {
-			JadxProject project = codeArea.getProject();
-			JadxCodeData codeData = project.getCodeData();
-			if (codeData == null || codeData.getComments().isEmpty()) {
-				return null;
-			}
-			for (ICodeComment comment : codeData.getComments()) {
-				if (Objects.equals(comment.getNodeRef(), blankComment.getNodeRef())
-						&& Objects.equals(comment.getCodeRef(), blankComment.getCodeRef())) {
-					return comment;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("Error searching for exists comment", e);
-		}
-		return null;
 	}
 
 	private final transient CodeArea codeArea;
@@ -217,7 +190,7 @@ public class CommentDialog extends JDialog {
 		}
 		pack();
 		if (!codeArea.getMainWindow().getSettings().loadWindowPos(this)) {
-			setSize(800, 140);
+			setSize(400, 340);
 		}
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
