@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import javax.swing.event.PopupMenuEvent;
 
+import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,12 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 		} else {
 			setEnabled(false);
 		}
+	}
+
+	@Override
+	public void popupMenuCanceled(PopupMenuEvent e) {
+		actionComment = null;
+		setEnabled(false);
 	}
 
 	private boolean updateCommentAction(int pos) {
@@ -151,8 +159,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 			}
 
 			// check if at comment above node definition
-			String lineStr = codeArea.getLineAt(pos).trim();
-			if (lineStr.startsWith("//") || lineStr.startsWith("/*")) {
+			if (isCommentLine(pos)) {
 				ICodeNodeRef nodeRef = metadata.searchDown(pos, (off, ann) -> {
 					if (off > pos && ann.getAnnType() == AnnType.DECLARATION) {
 						return ((NodeDeclareRef) ann).getNode();
@@ -168,5 +175,35 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 			LOG.error("Failed to add comment at: {}", pos, e);
 		}
 		return null;
+	}
+
+	/**
+	 * Check if all tokens are 'comment' in line at 'pos'
+	 */
+	private boolean isCommentLine(int pos) {
+		try {
+			int line = codeArea.getLineOfOffset(pos);
+			Token lineTokens = codeArea.getTokenListForLine(line);
+			boolean commentFound = false;
+			for (Token t = lineTokens; t != null; t = t.getNextToken()) {
+				if (t.isComment()) {
+					commentFound = true;
+				} else {
+					switch (t.getType()) {
+						case TokenTypes.WHITESPACE:
+						case TokenTypes.NULL:
+							// allowed tokens
+							break;
+
+						default:
+							return false;
+					}
+				}
+			}
+			return commentFound;
+		} catch (Exception e) {
+			LOG.warn("Failed to check for comment line", e);
+			return false;
+		}
 	}
 }
