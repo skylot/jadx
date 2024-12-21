@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -46,7 +45,7 @@ public class ExceptionDialog extends JDialog {
 	private static final String FMT_DETAIL_LENGTH = "-13";
 
 	public static void registerUncaughtExceptionHandler() {
-		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> showExceptionDialog(thread, ex));
+		Thread.setDefaultUncaughtExceptionHandler(ExceptionDialog::showExceptionDialog);
 	}
 
 	public static void showExceptionDialog(Thread thread, Throwable ex) {
@@ -78,7 +77,7 @@ public class ExceptionDialog extends JDialog {
 		try {
 			// TODO: Use ProcessHandle.current().info().commandLine() once min Java is 9+
 			List<String> args = ManagementFactory.getRuntimeMXBean().getInputArguments();
-			details.put("Program args", args.stream().collect(Collectors.joining(" ")));
+			details.put("Program args", String.join(" ", args));
 		} catch (Throwable t) {
 			LOG.error("failed to get program arguments", t);
 		}
@@ -89,7 +88,7 @@ public class ExceptionDialog extends JDialog {
 
 		String issueTitle;
 		try {
-			issueTitle = URLEncoder.encode(ex.toString(), StandardCharsets.UTF_8.toString());
+			issueTitle = URLEncoder.encode(ex.toString(), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			LOG.error("URL encoding of title failed", e);
 			issueTitle = ex.getClass().getSimpleName();
@@ -105,7 +104,7 @@ public class ExceptionDialog extends JDialog {
 
 		String issueBody;
 		try {
-			issueBody = URLEncoder.encode(body, StandardCharsets.UTF_8.toString());
+			issueBody = URLEncoder.encode(body, StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			LOG.error("URL encoding of body failed", e);
 			issueBody = "Please copy the displayed text in the Jadx error dialog and paste it here";
@@ -126,7 +125,7 @@ public class ExceptionDialog extends JDialog {
 		StringBuilder detailsTextBuilder = new StringBuilder();
 		details.forEach((key, value) -> detailsTextBuilder.append(String.format("%" + FMT_DETAIL_LENGTH + "s: %s\n", key, value)));
 
-		messageArea.setText(detailsTextBuilder.toString() + "\n" + stackTrace);
+		messageArea.setText(detailsTextBuilder + "\n" + stackTrace);
 
 		JPanel buttonPanel = new JPanel();
 		JButton exitButton = new JButton("Terminate Jadx");
