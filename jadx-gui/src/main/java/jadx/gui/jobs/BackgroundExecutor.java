@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.utils.tasks.ITaskExecutor;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ProgressPanel;
@@ -78,6 +79,15 @@ public class BackgroundExecutor {
 			LOG.error("Error terminating task executor", e);
 		} finally {
 			reset();
+		}
+	}
+
+	public synchronized void waitForComplete() {
+		try {
+			// add empty task and wait its completion
+			taskQueueExecutor.submit(UiUtils.EMPTY_RUNNABLE).get();
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to wait tasks completion", e);
 		}
 	}
 

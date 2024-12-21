@@ -456,13 +456,15 @@ public class ClassNode extends NotificationAttrNode
 		if (state == NOT_LOADED) {
 			return;
 		}
-		methods.forEach(MethodNode::unload);
-		innerClasses.forEach(ClassNode::unload);
-		fields.forEach(FieldNode::unload);
-		unloadAttributes();
-		setState(NOT_LOADED);
-		this.loadStage = LoadStage.NONE;
-		this.smali = null;
+		synchronized (clsInfo) { // decompilation sync
+			methods.forEach(MethodNode::unload);
+			innerClasses.forEach(ClassNode::unload);
+			fields.forEach(FieldNode::unload);
+			unloadAttributes();
+			setState(NOT_LOADED);
+			this.loadStage = LoadStage.NONE;
+			this.smali = null;
+		}
 	}
 
 	private void buildCache() {
