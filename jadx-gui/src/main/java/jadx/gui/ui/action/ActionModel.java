@@ -37,7 +37,7 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK)),
 	SAVE_ALL(MENU_TOOLBAR, "file.save_all", "file.save_all", "ui/menu-saveall",
 			Shortcut.keyboard(KeyEvent.VK_E, UiUtils.ctrlButton())),
-	EXPORT(MENU_TOOLBAR, "file.export_gradle", "file.export_gradle", "ui/export",
+	EXPORT(MENU_TOOLBAR, "file.export", "file.export", "ui/export",
 			Shortcut.keyboard(KeyEvent.VK_E, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	PREFS(MENU_TOOLBAR, "menu.preferences", "menu.preferences", "ui/settings",
 			Shortcut.keyboard(KeyEvent.VK_P, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),

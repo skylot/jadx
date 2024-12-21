@@ -20,6 +20,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -107,6 +108,7 @@ import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
+import jadx.gui.settings.ExportProjectProperties;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
@@ -126,6 +128,8 @@ import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
+import jadx.gui.ui.dialog.ExceptionDialog;
+import jadx.gui.ui.dialog.ExportProjectDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
@@ -160,7 +164,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements ExportProjectDialog.ExportProjectDialogListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
 
 	private static final String DEFAULT_TITLE = "jadx-gui";
@@ -798,23 +802,23 @@ public class MainWindow extends JFrame {
 		backgroundExecutor.cancelAll();
 	}
 
-	private void saveAll(boolean export) {
-		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.EXPORT);
-		List<Path> saveDirs = fileDialog.show();
-		if (saveDirs.isEmpty()) {
-			return;
-		}
+	private void exportProject() {
+		ExportProjectDialog dialog = new ExportProjectDialog(this, this);
+		dialog.setVisible(true);
+	}
+
+	private void saveAll(ExportProjectProperties exportProjectProperties) {
 		JadxArgs decompilerArgs = wrapper.getArgs();
-		decompilerArgs.setExportAsGradleProject(export);
-		if (export) {
+		decompilerArgs.setExportAsGradleProject(exportProjectProperties.isAsGradleMode());
+		if (exportProjectProperties.isAsGradleMode()) {
 			decompilerArgs.setSkipSources(false);
 			decompilerArgs.setSkipResources(false);
 		} else {
-			decompilerArgs.setSkipSources(settings.isSkipSources());
-			decompilerArgs.setSkipResources(settings.isSkipResources());
+			decompilerArgs.setSkipSources(exportProjectProperties.isSkipSources());
+			decompilerArgs.setSkipResources(exportProjectProperties.isSkipResources());
 		}
-		settings.setLastSaveFilePath(fileDialog.getCurrentDir());
-		backgroundExecutor.execute(new ExportTask(this, wrapper, saveDirs.get(0).toFile()));
+
+		backgroundExecutor.execute(new ExportTask(this, wrapper, new File(exportProjectProperties.getExportPath())));
 	}
 
 	public void initTree() {
@@ -1069,8 +1073,7 @@ public class MainWindow extends JFrame {
 		liveReloadMenuItem = new JCheckBoxMenuItem(liveReloadAction);
 		liveReloadMenuItem.setState(project.isEnableLiveReload());
 
-		JadxGuiAction saveAllAction = new JadxGuiAction(ActionModel.SAVE_ALL, () -> saveAll(false));
-		JadxGuiAction exportAction = new JadxGuiAction(ActionModel.EXPORT, () -> saveAll(true));
+		JadxGuiAction exportAction = new JadxGuiAction(ActionModel.EXPORT, this::exportProject);
 
 		JMenu recentProjects = new JadxMenu(NLS.str("menu.recent_projects"), shortcutsController);
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(this, recentProjects));
@@ -1161,7 +1164,6 @@ public class MainWindow extends JFrame {
 		file.add(liveReloadMenuItem);
 		renameMappings.addMenuActions(file);
 		file.addSeparator();
-		file.add(saveAllAction);
 		file.add(exportAction);
 		file.addSeparator();
 		file.add(recentProjects);
@@ -1245,7 +1247,6 @@ public class MainWindow extends JFrame {
 		toolbar.addSeparator();
 		toolbar.add(reloadAction);
 		toolbar.addSeparator();
-		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
 		toolbar.addSeparator();
 		toolbar.add(syncAction);
@@ -1292,7 +1293,6 @@ public class MainWindow extends JFrame {
 			forwardAction.setEnabled(loaded);
 			forwardVariantAction.setEnabled(loaded);
 			syncAction.setEnabled(loaded);
-			saveAllAction.setEnabled(loaded);
 			exportAction.setEnabled(loaded);
 			saveProjectAsAction.setEnabled(loaded);
 			reloadAction.setEnabled(loaded);
@@ -1789,5 +1789,10 @@ public class MainWindow extends JFrame {
 
 	public JadxGuiEventsImpl events() {
 		return events;
+	}
+
+	@Override
+	public void onProjectExportCalled(ExportProjectProperties exportProjectProperties) {
+		saveAll(exportProjectProperties);
 	}
 }
