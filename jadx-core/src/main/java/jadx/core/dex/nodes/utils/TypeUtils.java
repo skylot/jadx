@@ -226,6 +226,10 @@ public class TypeUtils {
 		for (int i = 0; i < genericParamsCount; i++) {
 			ArgType actualType = actualTypes.get(i);
 			ArgType typeVar = typeParameters.get(i);
+			if (typeVar.getExtendTypes() != null) {
+				// force short form (only type var name)
+				typeVar = ArgType.genericType(typeVar.getObject());
+			}
 			replaceMap.put(typeVar, actualType);
 		}
 		return replaceMap;
