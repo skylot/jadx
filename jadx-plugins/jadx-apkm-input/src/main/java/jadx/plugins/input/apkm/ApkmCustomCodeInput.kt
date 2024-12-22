@@ -4,8 +4,6 @@ import jadx.api.plugins.input.ICodeLoader
 import jadx.api.plugins.input.JadxCodeInput
 import jadx.api.plugins.utils.CommonFileUtils
 import jadx.api.plugins.utils.ZipSecurity
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
 

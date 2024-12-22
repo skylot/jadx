@@ -5,8 +5,6 @@ import jadx.api.ResourcesLoader
 import jadx.api.plugins.CustomResourcesLoader
 import jadx.api.plugins.utils.CommonFileUtils
 import jadx.api.plugins.utils.ZipSecurity
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.File
 
 class ApkmCustomResourcesLoader : CustomResourcesLoader {
