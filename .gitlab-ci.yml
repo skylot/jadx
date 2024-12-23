@@ -8,17 +8,7 @@ before_script:
 stages:
   - test
 
-java-11:
-  stage: test
-  image: eclipse-temurin:11
-  script: ./gradlew clean build dist distWin
-
-java-17:
-  stage: test
-  image: eclipse-temurin:17
-  script: ./gradlew clean build dist distWin
-
-java-21:
+build-test:
   stage: test
   image: eclipse-temurin:21
-  script: ./gradlew clean build dist distWin
+  script: JADX_BUILD_JAVA_VERSION=11 JADX_TEST_JAVA_VERSION=11 ./gradlew clean build dist distWin
