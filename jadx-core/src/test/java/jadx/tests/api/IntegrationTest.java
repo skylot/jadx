@@ -41,6 +41,8 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
+import jadx.api.JavaMethod;
+import jadx.api.JavaVariable;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.data.IJavaNodeRef;
 import jadx.api.data.impl.JadxCodeData;
@@ -48,6 +50,7 @@ import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.api.metadata.annotations.VarNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -645,5 +648,23 @@ public abstract class IntegrationTest extends TestUtils {
 			getArgs().setCodeData(codeData);
 		}
 		return codeData;
+	}
+
+	protected JavaClass toJavaClass(ClassNode cls) {
+		JavaClass javaClass = JadxInternalAccess.convertClassNode(jadxDecompiler, cls);
+		assertThat(javaClass).isNotNull();
+		return javaClass;
+	}
+
+	protected JavaMethod toJavaMethod(MethodNode mth) {
+		JavaMethod javaMethod = JadxInternalAccess.convertMethodNode(jadxDecompiler, mth);
+		assertThat(javaMethod).isNotNull();
+		return javaMethod;
+	}
+
+	protected JavaVariable toJavaVariable(VarNode varNode) {
+		JavaVariable javaVariable = (JavaVariable) jadxDecompiler.getJavaNodeByCodeAnnotation(null, varNode);
+		assertThat(javaVariable).isNotNull();
+		return javaVariable;
 	}
 }

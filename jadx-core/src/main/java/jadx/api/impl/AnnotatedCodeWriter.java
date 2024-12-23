@@ -11,7 +11,6 @@ import jadx.api.JadxArgs;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.api.metadata.annotations.VarRef;
 import jadx.core.utils.StringUtils;
 
 public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter {
@@ -151,7 +150,6 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public ICodeInfo finish() {
-		validateAnnotations();
 		String code = buf.toString();
 		buf = null;
 		return new AnnotatedCodeInfo(code, lineMap, annotations);
@@ -160,18 +158,5 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	@Override
 	public Map<Integer, ICodeAnnotation> getRawAnnotations() {
 		return annotations;
-	}
-
-	private void validateAnnotations() {
-		if (annotations.isEmpty()) {
-			return;
-		}
-		annotations.values().removeIf(v -> {
-			if (v.getAnnType() == ICodeAnnotation.AnnType.VAR_REF) {
-				VarRef varRef = (VarRef) v;
-				return varRef.getRefPos() == 0;
-			}
-			return false;
-		});
 	}
 }
