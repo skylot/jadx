@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -262,6 +263,18 @@ public final class IfCondition extends AttrNode {
 			}
 		}
 		return list;
+	}
+
+	public boolean replaceArg(InsnArg from, InsnArg to) {
+		if (mode == Mode.COMPARE) {
+			return compare.getInsn().replaceArg(from, to);
+		}
+		for (IfCondition arg : args) {
+			if (arg.replaceArg(from, to)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void visitInsns(Consumer<InsnNode> visitor) {

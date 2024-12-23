@@ -25,6 +25,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -82,51 +83,65 @@ public class InlineMethods extends AbstractVisitor {
 
 	private void inlineMethod(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, BlockNode block, InvokeNode insn) {
 		InsnNode inlCopy = mia.getInsn().copyWithoutResult();
-		RegisterArg resultArg = insn.getResult();
-		if (resultArg != null) {
-			inlCopy.setResult(resultArg.duplicate());
-		} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
-			// add fake result to make correct java expression (see test TestGetterInlineNegative)
-			inlCopy.setResult(mth.makeSyntheticRegArg(callMth.getReturnType(), "unused"));
-		}
-		if (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
-			// remap args
-			InsnArg[] regs = new InsnArg[callMth.getRegsCount()];
-			int[] regNums = mia.getArgsRegNums();
-			for (int i = 0; i < regNums.length; i++) {
-				InsnArg arg = insn.getArg(i);
-				regs[regNums[i]] = arg;
-			}
-			// replace args
-			List<RegisterArg> inlArgs = new ArrayList<>();
-			inlCopy.getRegisterArgs(inlArgs);
-			for (RegisterArg r : inlArgs) {
-				int regNum = r.getRegNum();
-				if (regNum >= regs.length) {
-					mth.addWarnComment("Unknown register number '" + r + "' in method call: " + callMth);
-					return;
+		if (replaceRegs(mth, callMth, mia, insn, inlCopy)) {
+			IMethodDetails methodDetailsAttr = inlCopy.get(AType.METHOD_DETAILS);
+			// replaceInsn replaces the attributes as well, make sure to preserve METHOD_DETAILS
+			if (BlockUtils.replaceInsn(mth, block, insn, inlCopy)) {
+				if (methodDetailsAttr != null) {
+					inlCopy.addAttr(methodDetailsAttr);
 				}
-				InsnArg repl = regs[regNum];
-				if (repl == null) {
-					mth.addWarnComment("Not passed register '" + r + "' in method call: " + callMth);
-					return;
-				}
-				if (!inlCopy.replaceArg(r, repl.duplicate())) {
-					mth.addWarnComment("Failed to replace arg " + r + " for method inline: " + callMth);
-					return;
-				}
+				updateUsageInfo(mth, callMth, mia.getInsn());
+				return;
 			}
 		}
-		IMethodDetails methodDetailsAttr = inlCopy.get(AType.METHOD_DETAILS);
-		if (!BlockUtils.replaceInsn(mth, block, insn, inlCopy)) {
-			mth.addWarnComment("Failed to inline method: " + callMth);
-			return;
+		mth.addWarnComment("Failed to inline method: " + callMth);
+		// undo changes to insn
+		InsnRemover.unbindInsn(mth, inlCopy);
+		insn.rebindArgs();
+	}
+
+	private boolean replaceRegs(MethodNode mth, MethodNode callMth, MethodInlineAttr mia, InvokeNode insn, InsnNode inlCopy) {
+		try {
+			if (!callMth.getMethodInfo().getArgumentsTypes().isEmpty()) {
+				// remap args
+				InsnArg[] regs = new InsnArg[callMth.getRegsCount()];
+				int[] regNums = mia.getArgsRegNums();
+				for (int i = 0; i < regNums.length; i++) {
+					InsnArg arg = insn.getArg(i);
+					regs[regNums[i]] = arg;
+				}
+				// replace args
+				List<RegisterArg> inlArgs = new ArrayList<>();
+				inlCopy.getRegisterArgs(inlArgs);
+				for (RegisterArg r : inlArgs) {
+					int regNum = r.getRegNum();
+					if (regNum >= regs.length) {
+						mth.addWarnComment("Unknown register number '" + r + "' in method call: " + callMth);
+						return false;
+					}
+					InsnArg repl = regs[regNum];
+					if (repl == null) {
+						mth.addWarnComment("Not passed register '" + r + "' in method call: " + callMth);
+						return false;
+					}
+					if (!inlCopy.replaceArg(r, repl.duplicate())) {
+						mth.addWarnComment("Failed to replace arg " + r + " for method inline: " + callMth);
+						return false;
+					}
+				}
+			}
+			RegisterArg resultArg = insn.getResult();
+			if (resultArg != null) {
+				inlCopy.setResult(resultArg.duplicate());
+			} else if (isAssignNeeded(mia.getInsn(), insn, callMth)) {
+				// add a fake result to make correct java expression (see test TestGetterInlineNegative)
+				inlCopy.setResult(mth.makeSyntheticRegArg(callMth.getReturnType(), "unused"));
+			}
+			return true;
+		} catch (Exception e) {
+			mth.addWarnComment("Method inline failed with exception", e);
+			return false;
 		}
-		// replaceInsn replaces the attributes as well, make sure to preserve METHOD_DETAILS
-		if (methodDetailsAttr != null) {
-			inlCopy.addAttr(methodDetailsAttr);
-		}
-		updateUsageInfo(mth, callMth, mia.getInsn());
 	}
 
 	private boolean isAssignNeeded(InsnNode inlineInsn, InvokeNode parentInsn, MethodNode callMthNode) {

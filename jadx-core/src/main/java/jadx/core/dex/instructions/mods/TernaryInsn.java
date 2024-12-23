@@ -59,6 +59,14 @@ public final class TernaryInsn extends InsnNode {
 		list.addAll(condition.getRegisterArgs());
 	}
 
+	@Override
+	public boolean replaceArg(InsnArg from, InsnArg to) {
+		if (super.replaceArg(from, to)) {
+			return true;
+		}
+		return condition.replaceArg(from, to);
+	}
+
 	public void visitInsns(Consumer<InsnNode> visitor) {
 		super.visitInsns(visitor);
 		condition.visitInsns(visitor);
