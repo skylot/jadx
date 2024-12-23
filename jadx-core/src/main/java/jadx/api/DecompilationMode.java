@@ -19,5 +19,18 @@ public enum DecompilationMode {
 	/**
 	 * Raw instructions without modifications
 	 */
-	FALLBACK
+	FALLBACK;
+
+	public boolean isSpecial() {
+		switch (this) {
+			case AUTO:
+			case RESTRUCTURE:
+				return false;
+			case SIMPLE:
+			case FALLBACK:
+				return true;
+			default:
+				throw new RuntimeException("Unexpected decompilation mode: " + this);
+		}
+	}
 }

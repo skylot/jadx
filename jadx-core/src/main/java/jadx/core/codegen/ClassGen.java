@@ -347,6 +347,10 @@ public class ClassGen {
 	 * Additional checks for inlined methods
 	 */
 	private boolean skipMethod(MethodNode mth) {
+		if (cls.root().getArgs().getDecompilationMode().isSpecial()) {
+			// show all methods for special decompilation modes
+			return false;
+		}
 		MethodInlineAttr inlineAttr = mth.get(AType.METHOD_INLINE);
 		if (inlineAttr == null || inlineAttr.notNeeded()) {
 			return false;
