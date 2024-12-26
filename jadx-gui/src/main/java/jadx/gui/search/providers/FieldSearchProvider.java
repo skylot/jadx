@@ -8,6 +8,7 @@ import jadx.api.JavaClass;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -31,8 +32,14 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 			List<FieldNode> fields = cls.getClassNode().getFields();
 			if (fldNum < fields.size()) {
 				FieldNode fld = fields.get(fldNum++);
-				if (checkField(fld.getFieldInfo())) {
-					return convert(fld);
+				MatchingPositions matchingPositions = checkField(fld.getFieldInfo());
+				if (matchingPositions != null) {
+					JNode node = convert(fld);
+					MatchingPositions highlightPositions = isMatch(node.makeLongString());
+					node.setHasHighlight(true);
+					node.setStart(highlightPositions.getStartMath());
+					node.setEnd(highlightPositions.getEndMath());
+					return node;
 				}
 			} else {
 				clsNum++;
@@ -44,10 +51,17 @@ public final class FieldSearchProvider extends BaseSearchProvider {
 		}
 	}
 
-	private boolean checkField(FieldInfo fieldInfo) {
-		return isMatch(fieldInfo.getName())
-				|| isMatch(fieldInfo.getAlias())
-				|| isMatch(fieldInfo.getFullId());
+	private MatchingPositions checkField(FieldInfo fieldInfo) {
+		MatchingPositions nameMatch = isMatch(fieldInfo.getName());
+		MatchingPositions aliasMatch = isMatch(fieldInfo.getAlias());
+		MatchingPositions fullIdMatch = isMatch(fieldInfo.getFullId());
+		if (nameMatch != null) {
+			return nameMatch;
+		}
+		if (aliasMatch != null) {
+			return aliasMatch;
+		}
+		return fullIdMatch;
 	}
 
 	@Override

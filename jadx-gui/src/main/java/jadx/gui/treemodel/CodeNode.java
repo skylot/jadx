@@ -14,11 +14,17 @@ public class CodeNode extends JNode {
 	private final transient String line;
 	private final transient int pos;
 
-	public CodeNode(JClass rootCls, JNode jNode, String lineStr, int pos) {
+	public CodeNode(JClass rootCls, JNode jNode, String lineStr, int pos, int start, int end) {
 		this.rootCls = rootCls;
 		this.jNode = jNode;
 		this.line = lineStr;
 		this.pos = pos;
+		this.start = start;
+		this.end = end;
+	}
+
+	public JNode getjNode() {
+		return jNode;
 	}
 
 	@Override

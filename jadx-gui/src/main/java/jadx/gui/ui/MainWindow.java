@@ -1,7 +1,6 @@
 package jadx.gui.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.Font;
@@ -62,7 +61,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -117,9 +115,9 @@ import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.treemodel.TreeCellRenderer;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -157,12 +155,12 @@ import jadx.gui.utils.ILoadListener;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.TreeUtils;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
-import jadx.gui.utils.ui.NodeLabel;
 
 public class MainWindow extends JFrame implements ExportProjectDialog.ExportProjectDialogListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
@@ -925,7 +923,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		JNode node = getJNodeUnderMouse(e);
+		JNode node = TreeUtils.getJNodeUnderMouse(tree, e);
 		if (node == null) {
 			return;
 		}
@@ -933,16 +931,6 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 		if (menu != null) {
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
-	}
-
-	@Nullable
-	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
-		TreeNode treeNode = UiUtils.getTreeNodeUnderMouse(tree, mouseEvent);
-		if (treeNode instanceof JNode) {
-			return (JNode) treeNode;
-		}
-
-		return null;
 	}
 
 	// TODO: extract tree component into new class
@@ -1327,7 +1315,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (SwingUtilities.isLeftMouseButton(e)) {
-					if (!nodeClickAction(getJNodeUnderMouse(e))) {
+					if (!nodeClickAction(TreeUtils.getJNodeUnderMouse(tree, e))) {
 						// click ignored -> switch to focusable mode
 						tree.setFocusable(true);
 						tree.requestFocus();
@@ -1345,27 +1333,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 				}
 			}
 		});
-		tree.setCellRenderer(new DefaultTreeCellRenderer() {
-			@Override
-			public Component getTreeCellRendererComponent(JTree tree,
-					Object value, boolean selected, boolean expanded,
-					boolean isLeaf, int row, boolean focused) {
-				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
-				if (value instanceof JNode) {
-					JNode jNode = (JNode) value;
-					NodeLabel.disableHtml(this, jNode.disableHtml());
-					setText(jNode.makeStringHtml());
-					setIcon(jNode.getIcon());
-					setToolTipText(jNode.getTooltip());
-				} else {
-					setToolTipText(null);
-				}
-				if (value instanceof JPackage) {
-					setEnabled(((JPackage) value).isEnabled());
-				}
-				return c;
-			}
-		});
+		tree.setCellRenderer(new TreeCellRenderer());
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
 			@Override
 			public void treeWillExpand(TreeExpansionEvent event) {

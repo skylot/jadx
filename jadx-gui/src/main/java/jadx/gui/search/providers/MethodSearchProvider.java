@@ -8,6 +8,7 @@ import jadx.api.JavaClass;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -31,8 +32,14 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 			List<MethodNode> methods = cls.getClassNode().getMethods();
 			if (mthNum < methods.size()) {
 				MethodNode mth = methods.get(mthNum++);
-				if (checkMth(mth.getMethodInfo())) {
-					return convert(mth);
+				MatchingPositions matchingPositions = checkMth(mth.getMethodInfo());
+				if (matchingPositions != null) {
+					JNode node = convert(mth);
+					MatchingPositions highlightPositions = isMatch(node.makeLongString());
+					node.setHasHighlight(true);
+					node.setStart(highlightPositions.getStartMath());
+					node.setEnd(highlightPositions.getEndMath());
+					return node;
 				}
 			} else {
 				clsNum++;
@@ -44,11 +51,21 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 		}
 	}
 
-	private boolean checkMth(MethodInfo mthInfo) {
-		return isMatch(mthInfo.getShortId())
-				|| isMatch(mthInfo.getAlias())
-				|| isMatch(mthInfo.getFullId())
-				|| isMatch(mthInfo.getAliasFullName());
+	private MatchingPositions checkMth(MethodInfo mthInfo) {
+		MatchingPositions shortIdMatch = isMatch(mthInfo.getShortId());
+		MatchingPositions aliasMatch = isMatch(mthInfo.getAlias());
+		MatchingPositions fullIdMatch = isMatch(mthInfo.getFullId());
+		MatchingPositions aliasFullMatch = isMatch(mthInfo.getAliasFullName());
+		if (shortIdMatch != null) {
+			return shortIdMatch;
+		}
+		if (aliasMatch != null) {
+			return aliasMatch;
+		}
+		if (fullIdMatch != null) {
+			return fullIdMatch;
+		}
+		return aliasFullMatch;
 	}
 
 	@Override
