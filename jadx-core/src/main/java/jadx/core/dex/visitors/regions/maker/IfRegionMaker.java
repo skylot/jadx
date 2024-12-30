@@ -178,6 +178,8 @@ final class IfRegionMaker {
 			info.setOutBlock(null);
 			return info;
 		}
+		// init outblock, which will be used in isBadBranchBlock to compare with branch block
+		info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
 		boolean badThen = isBadBranchBlock(info, thenBlock);
 		boolean badElse = isBadBranchBlock(info, elseBlock);
 		if (badThen && badElse) {
@@ -193,8 +195,6 @@ final class IfRegionMaker {
 			info = IfInfo.invert(info);
 			info = new IfInfo(info, elseBlock, null);
 			info.setOutBlock(thenBlock);
-		} else {
-			info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
 		}
 		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {
 			info.setOutBlock(null);
@@ -218,6 +218,10 @@ final class IfRegionMaker {
 					}
 				}
 			}
+		}
+		// if branch block itself is outblock
+		if (info.getOutBlock() != null) {
+			return block == info.getOutBlock();
 		}
 		return !allPathsFromIf(block, info);
 	}
