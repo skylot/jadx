@@ -761,18 +761,22 @@ public class BlockUtils {
 	/**
 	 * Return common cross block for input set.
 	 *
-	 * @return null if cross is a method exit block.
+	 * @return could be one of the giving blocks. null if cross is a method exit block.
 	 */
 	@Nullable
 	public static BlockNode getPathCross(MethodNode mth, Collection<BlockNode> blocks) {
 		BitSet domFrontBS = newBlocksBitSet(mth);
+		BitSet tmpBS = newBlocksBitSet(mth); // store block itself and its domFrontier
 		boolean first = true;
 		for (BlockNode b : blocks) {
+			tmpBS.clear();
+			tmpBS.set(b.getId());
+			tmpBS.or(b.getDomFrontier());
 			if (first) {
-				domFrontBS.or(b.getDomFrontier());
+				domFrontBS.or(tmpBS);
 				first = false;
 			} else {
-				domFrontBS.and(b.getDomFrontier());
+				domFrontBS.and(tmpBS);
 			}
 		}
 		domFrontBS.clear(mth.getExitBlock().getId());
