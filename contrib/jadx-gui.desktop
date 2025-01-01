@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=JADX GUI
+Comment=Dex to Java compiler
+Icon=jadx
+Exec=jadx-gui %f
+Terminal=false
+Type=Application
+Categories=Development;Java;
+Keywords=Java;Decompiler;
