@@ -10,6 +10,7 @@ import jadx.api.JavaNode;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.gui.search.ISearchMethod;
 import jadx.gui.search.ISearchProvider;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -41,8 +42,8 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		this.searchSettings = searchSettings;
 	}
 
-	protected boolean isMatch(String str) {
-		return searchMth.find(str, searchStr, 0) != -1;
+	protected MatchingPositions isMatch(String str) {
+		return searchMth.find(str, 0);
 	}
 
 	protected JNode convert(JavaNode node) {

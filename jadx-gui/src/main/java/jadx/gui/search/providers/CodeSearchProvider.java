@@ -14,6 +14,7 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.utils.CodeUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
@@ -64,18 +65,24 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 
 	@Nullable
 	private JNode searchNext(JavaClass javaClass, String clsCode) {
-		int newPos = searchMth.find(clsCode, searchStr, pos);
-		if (newPos == -1) {
+		MatchingPositions positions = searchMth.find(clsCode, pos);
+		if (positions == null) {
 			return null;
 		}
+		int newPos = positions.getStartMath();
 		int lineStart = 1 + CodeUtils.getNewLinePosBefore(clsCode, newPos);
 		int lineEnd = CodeUtils.getNewLinePosAfter(clsCode, newPos);
 		int end = lineEnd == -1 ? clsCode.length() : lineEnd;
-		String line = clsCode.substring(lineStart, end);
+		String line = clsCode.substring(lineStart, end).trim();
 		this.pos = end;
+
+		// build pos for highlight
+		MatchingPositions highlightPositions = searchMth.find(line, 0);
+		int startHighlight = highlightPositions.getStartMath();
+		int endHighlight = highlightPositions.getEndMath();
 		JClass rootCls = convert(javaClass);
 		JNode enclosingNode = getOrElse(getEnclosingNode(javaClass, end), rootCls);
-		return new CodeNode(rootCls, enclosingNode, line.trim(), newPos);
+		return new CodeNode(rootCls, enclosingNode, line, newPos, startHighlight, endHighlight);
 	}
 
 	private @Nullable JNode getEnclosingNode(JavaClass javaCls, int pos) {

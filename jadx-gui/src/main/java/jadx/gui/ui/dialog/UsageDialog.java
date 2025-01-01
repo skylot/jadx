@@ -23,6 +23,8 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.visitors.prepare.CollectConstValues;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.search.MatchingPositions;
+import jadx.gui.search.SearchSettings;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
@@ -141,7 +143,7 @@ public class UsageDialog extends CommonSearchDialog {
 		String code = codeInfo.getCodeStr();
 		JadxWrapper wrapper = mainWindow.getWrapper();
 		for (int pos : usePositions) {
-			String line = CodeUtils.getLineForPos(code, pos);
+			String line = CodeUtils.getLineForPos(code, pos).trim();
 			if (line.startsWith("import ")) {
 				continue;
 			}
@@ -149,26 +151,32 @@ public class UsageDialog extends CommonSearchDialog {
 			JavaNode enclosingNode = wrapper.getEnclosingNode(codeInfo, pos);
 			JClass rootJCls = nodeCache.makeFrom(topUseClass);
 			JNode usageJNode = enclosingNode == null ? rootJCls : nodeCache.makeFrom(enclosingNode);
-			usageList.add(new CodeNode(rootJCls, usageJNode, line.trim(), pos));
+
+			// build pos for highlight
+			SearchSettings searchSettings = new SearchSettings(node.getName(), false, true, false, null);
+			searchSettings.prepare();
+			MatchingPositions positions1 = searchSettings.getSearchMethod().find(line, 0);
+			int startHighlight = positions1.getStartMath();
+			int endHighlight = positions1.getEndMath();
+			usageList.add(new CodeNode(rootJCls, usageJNode, line, pos, startHighlight, endHighlight));
 		}
 	}
 
 	@Override
 	protected void loadFinished() {
-		resultsTable.setEnabled(true);
-		resultsModel.clear();
+		resultsTree.setEnabled(true);
+		resultsTree.clear();
 
 		Collections.sort(usageList);
-		resultsModel.addAll(usageList);
-		updateHighlightContext(node.getName(), true, false, true);
-		resultsTable.initColumnWidth();
-		resultsTable.updateTable();
+		resultsTree.addAll(usageList);
+		updateHighlightContext(node.getName());
+		resultsTree.updateTree();
 		updateProgressLabel(true);
 	}
 
 	@Override
 	protected void loadStart() {
-		resultsTable.setEnabled(false);
+		resultsTree.setEnabled(false);
 	}
 
 	private void initUI() {
@@ -187,7 +195,7 @@ public class UsageDialog extends CommonSearchDialog {
 		searchPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		initCommon();
-		JPanel resultsPanel = initResultsTable();
+		JPanel resultsPanel = initResultsTree();
 		JPanel buttonPane = initButtonsPanel();
 
 		JPanel contentPanel = new JPanel();

@@ -70,10 +70,8 @@ import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CODE;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.COMMENT;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.FIELD;
-import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.IGNORE_CASE;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.METHOD;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.RESOURCE;
-import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.USE_REGEX;
 
 public class SearchDialog extends CommonSearchDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
@@ -127,6 +125,7 @@ public class SearchDialog extends CommonSearchDialog {
 		COMMENT,
 
 		IGNORE_CASE,
+		WHOLE_WORD,
 		USE_REGEX,
 		ACTIVE_TAB
 	}
@@ -143,7 +142,6 @@ public class SearchDialog extends CommonSearchDialog {
 	private transient JButton loadAllButton;
 	private transient JButton loadMoreButton;
 	private transient JButton stopBtn;
-	private transient JButton sortBtn;
 
 	private transient Disposable searchDisposable;
 	private transient SearchEventEmitter searchEmitter;
@@ -178,7 +176,7 @@ public class SearchDialog extends CommonSearchDialog {
 		if (searchDisposable != null && !searchDisposable.isDisposed()) {
 			searchDisposable.dispose();
 		}
-		resultsModel.clear();
+		resultsTree.clear();
 		removeActiveTabListener();
 		searchBackgroundExecutor.execute(() -> {
 			stopSearchTask();
@@ -197,7 +195,7 @@ public class SearchDialog extends CommonSearchDialog {
 			case TEXT:
 				if (searchOptions.isEmpty()) {
 					searchOptions.add(SearchOptions.CODE);
-					searchOptions.add(IGNORE_CASE);
+					searchOptions.add(SearchOptions.IGNORE_CASE);
 				}
 				break;
 
@@ -225,7 +223,6 @@ public class SearchDialog extends CommonSearchDialog {
 			packageField.setText(searchPackage);
 		}
 		searchField.requestFocus();
-		resultsTable.initColumnWidth();
 
 		if (options.contains(COMMENT)) {
 			// show all comments on empty input
@@ -288,8 +285,9 @@ public class SearchDialog extends CommonSearchDialog {
 
 		JPanel searchOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.options")));
-		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.ignorecase"), IGNORE_CASE));
-		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.regex"), USE_REGEX));
+		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.ignorecase"), SearchOptions.IGNORE_CASE));
+		searchOptions.add(makeOptionsCheckBox(NLS.str("search.whole_word"), SearchOptions.WHOLE_WORD));
+		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.regex"), SearchOptions.USE_REGEX));
 		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.active_tab"), SearchOptions.ACTIVE_TAB));
 
 		packageField = new JTextField();
@@ -315,7 +313,7 @@ public class SearchDialog extends CommonSearchDialog {
 		searchPane.add(optionsPanel);
 
 		initCommon();
-		JPanel resultsPanel = initResultsTable();
+		JPanel resultsPanel = initResultsTree();
 		JPanel buttonPane = initButtonsPanel();
 
 		JPanel contentPanel = new JPanel();
@@ -362,25 +360,12 @@ public class SearchDialog extends CommonSearchDialog {
 		stopBtn.addActionListener(e -> pauseSearch());
 		stopBtn.setEnabled(false);
 
-		sortBtn = new JButton(NLS.str("search_dialog.sort_results"));
-		sortBtn.addActionListener(e -> {
-			synchronized (pendingResults) {
-				resultsModel.sort();
-				resultsTable.updateTable();
-			}
-		});
-		sortBtn.setEnabled(false);
-
 		resultsActionsPanel.add(loadAllButton);
 		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		resultsActionsPanel.add(loadMoreButton);
 		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		resultsActionsPanel.add(stopBtn);
-		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-		resultsActionsPanel.add(stopBtn);
 		super.addResultsActions(resultsActionsPanel);
-		resultsActionsPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-		resultsActionsPanel.add(sortBtn);
 	}
 
 	private class SearchEventEmitter {
@@ -457,8 +442,9 @@ public class SearchDialog extends CommonSearchDialog {
 			return null;
 		}
 		LOG.debug("Building search for '{}', options: {}", text, options);
-		boolean ignoreCase = options.contains(IGNORE_CASE);
-		boolean useRegex = options.contains(USE_REGEX);
+		boolean ignoreCase = options.contains(SearchOptions.IGNORE_CASE);
+		boolean wholeWord = options.contains(SearchOptions.WHOLE_WORD);
+		boolean useRegex = options.contains(SearchOptions.USE_REGEX);
 
 		// Find the JavaPackage for the searched package string
 		String packageText = packageField.getText();
@@ -481,7 +467,7 @@ public class SearchDialog extends CommonSearchDialog {
 			packageField.setBackground(searchFieldDefaultBgColor);
 		}
 
-		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex, searchPackage);
+		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, wholeWord, useRegex, searchPackage);
 		String error = searchSettings.prepare();
 		if (error == null) {
 			if (Objects.equals(searchField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
@@ -609,8 +595,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void resetSearch() {
 		UiUtils.uiThreadGuard();
-		resultsModel.clear();
-		resultsTable.updateTable();
+		resultsTree.clear();
 		synchronized (pendingResults) {
 			pendingResults.clear();
 		}
@@ -624,7 +609,6 @@ public class SearchDialog extends CommonSearchDialog {
 	private void prepareForSearch() {
 		UiUtils.uiThreadGuard();
 		stopBtn.setEnabled(true);
-		sortBtn.setEnabled(false);
 		showSearchState();
 		progressStartCommon();
 	}
@@ -641,15 +625,15 @@ public class SearchDialog extends CommonSearchDialog {
 		synchronized (pendingResults) {
 			UiUtils.uiThreadGuard();
 			Collections.sort(pendingResults);
-			resultsModel.addAll(pendingResults);
+			resultsTree.addAll(pendingResults);
 			pendingResults.clear();
-			resultsTable.updateTable();
+			resultsTree.updateTree();
 		}
 	}
 
 	private void updateTableHighlight() {
 		String text = searchField.getText();
-		updateHighlightContext(text, !options.contains(IGNORE_CASE), options.contains(USE_REGEX), false);
+		updateHighlightContext(text);
 		cache.setLastSearch(text);
 		cache.setLastSearchPackage(packageField.getText());
 		cache.getLastSearchOptions().put(searchPreset, options);
@@ -669,7 +653,7 @@ public class SearchDialog extends CommonSearchDialog {
 		UiUtils.uiRun(() -> progressInfoLabel.setText(text));
 	}
 
-	private void searchFinished(ITaskInfo status, Boolean complete) {
+	private void searchFinished(ITaskInfo status, boolean complete) {
 		UiUtils.uiThreadGuard();
 		LOG.debug("Search complete: {}, complete: {}", status, complete);
 		loadAllButton.setEnabled(!complete);
@@ -678,7 +662,6 @@ public class SearchDialog extends CommonSearchDialog {
 		progressFinishedCommon();
 		updateTable();
 		updateProgressLabel(complete);
-		sortBtn.setEnabled(resultsModel.getRowCount() != 0);
 	}
 
 	private void unloadTempData() {
@@ -703,14 +686,14 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	protected void loadFinished() {
-		resultsTable.setEnabled(true);
+		resultsTree.setEnabled(true);
 		searchField.setEnabled(true);
 		searchEmitter.emitSearch();
 	}
 
 	@Override
 	protected void loadStart() {
-		resultsTable.setEnabled(false);
+		resultsTree.setEnabled(false);
 		searchField.setEnabled(false);
 	}
 

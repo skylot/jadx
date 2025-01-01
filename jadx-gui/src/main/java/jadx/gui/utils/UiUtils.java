@@ -1,5 +1,6 @@
 package jadx.gui.utils;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.MouseInfo;
@@ -30,6 +31,7 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
@@ -146,6 +148,30 @@ public class UiUtils {
 
 	public static String escapeHtml(String str) {
 		return str.replace("<", "&lt;").replace(">", "&gt;");
+	}
+
+	public static String getThemeAccentColor() {
+		return toHexColor(UIManager.getColor("textHighlight"));
+	}
+
+	/**
+	 * Converts a given color to it's hexidecimal equivalent.
+	 *
+	 * @param color Color to get hexidecimal string from.
+	 * @return Hexidecimal string representing the given color, in the form "#abcdef".
+	 */
+	public static String toHexColor(final Color color) {
+		return "#" + colorToHexCode(color);
+	}
+
+	/**
+	 * Gets the RGB hex color code of the passed color.
+	 *
+	 * @param color The color to get a hex code from.
+	 * @return A lower-cased string of the RGB hex code of color.
+	 */
+	public static String colorToHexCode(final Color color) {
+		return String.format("%06x", color.getRGB() & 0xFFFFFF);
 	}
 
 	public static String typeStr(ArgType type) {

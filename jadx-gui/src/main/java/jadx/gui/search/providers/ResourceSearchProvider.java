@@ -19,6 +19,7 @@ import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.api.utils.CodeUtils;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.ISearchProvider;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
@@ -90,17 +91,22 @@ public class ResourceSearchProvider implements ISearchProvider {
 			LOG.error("Failed to load resource node content", e);
 			return null;
 		}
-		String searchString = searchSettings.getSearchString();
-		int newPos = searchSettings.getSearchMethod().find(content, searchString, pos);
-		if (newPos == -1) {
+		MatchingPositions positions = searchSettings.getSearchMethod().find(content, pos);
+		if (positions == null) {
 			return null;
 		}
+		int newPos = positions.getStartMath();
 		int lineStart = 1 + CodeUtils.getNewLinePosBefore(content, newPos);
 		int lineEnd = CodeUtils.getNewLinePosAfter(content, newPos);
 		int end = lineEnd == -1 ? content.length() : lineEnd;
-		String line = content.substring(lineStart, end);
+		int lineNumber = CodeUtils.getLineNumForPos(content, newPos, "\n");
+		String line = String.format("%d: %s", lineNumber, content.substring(lineStart, end).trim());
 		this.pos = end;
-		return new JResSearchNode(resNode, line.trim(), newPos);
+		// build pos for highlight
+		MatchingPositions highlightPositions = searchSettings.getSearchMethod().find(line, 0);
+		int startHighlight = highlightPositions.getStartMath();
+		int endHighlight = highlightPositions.getEndMath();
+		return new JResSearchNode(resNode, line, newPos, startHighlight, endHighlight);
 	}
 
 	private @Nullable JResource getNextResFile(Cancelable cancelable) {
