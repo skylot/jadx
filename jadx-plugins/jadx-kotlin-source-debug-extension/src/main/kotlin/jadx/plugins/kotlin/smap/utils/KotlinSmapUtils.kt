@@ -12,7 +12,7 @@ import kotlin.jvm.java
 
 object KotlinSmapUtils {
 
-	var LOG:Logger = LoggerFactory.getLogger(KotlinSmapUtils::class.java)
+	val LOG:Logger = LoggerFactory.getLogger(KotlinSmapUtils::class.java)
 
 	@JvmStatic
 	fun getClassAlias(cls: ClassNode): ClassAliasRename? {
