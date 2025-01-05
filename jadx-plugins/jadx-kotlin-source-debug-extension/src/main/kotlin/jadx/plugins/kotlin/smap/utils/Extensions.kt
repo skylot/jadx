@@ -10,7 +10,7 @@ import jadx.plugins.kotlin.smap.model.Constants
 import jadx.plugins.kotlin.smap.model.SMAP
 
 fun ClassNode.getSourceDebugExtension(): SMAP? {
-	val annotation: IAnnotation? = getAnnotation(Constants.KOTLIN_SOURCE_DEBUG_EXCEPTION)
+	val annotation: IAnnotation? = getAnnotation(Constants.KOTLIN_SOURCE_DEBUG_EXTENSION)
 	return annotation?.run {
 		val smapParser = SMAPParser.parseOrNull(getParamsAsList("value")?.get(0)?.value.toString())
 		return smapParser
