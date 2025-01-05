@@ -4,4 +4,3 @@ data class ClassAliasRename(
 	val pkg: String,
 	val name: String,
 )
-

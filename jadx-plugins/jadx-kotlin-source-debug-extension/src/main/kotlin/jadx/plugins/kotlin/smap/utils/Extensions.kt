@@ -22,4 +22,3 @@ private fun IAnnotation.getParamsAsList(paramName: String): List<EncodedValue>? 
 		?.takeIf { it.type == EncodedType.ENCODED_ARRAY && it.value is List<*> }
 	return encodedValue?.value?.let { it as List<EncodedValue> }
 }
-

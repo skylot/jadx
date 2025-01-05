@@ -8,7 +8,6 @@ class KotlinSmapOptions : BasePluginOptionsBuilder() {
 		private set
 
 	override fun registerOptions() {
-
 		boolOption(CLASS_ALIAS_SOURCE_DBG_OPT)
 			.description("rename class alias from SourceDebugExtension")
 			.defaultValue(false)

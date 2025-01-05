@@ -37,7 +37,8 @@ class FileMapping(val name: String, val path: String) {
 		SourceInfo(
 			name,
 			path,
-			lineMappings.fold(0) { result, mapping -> max(result, mapping.source + mapping.range - 1) })
+			lineMappings.fold(0) { result, mapping -> max(result, mapping.source + mapping.range - 1) },
+		)
 
 	fun mapNewLineNumber(source: Int, currentIndex: Int, callSite: SourcePosition?): Int {
 		// Save some space in the SMAP by reusing (or extending if it's the last one) the existing range.

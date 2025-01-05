@@ -6,7 +6,7 @@ import jadx.tests.api.utils.assertj.JadxAssertions.assertThat
 import jadx.tests.api.utils.assertj.JadxCodeAssertions
 import org.junit.jupiter.api.Test
 
-class TestSourceDebugExtension : SmaliTest()  {
+class TestSourceDebugExtension : SmaliTest() {
 
 	@Test
 	fun testRenameClass() {

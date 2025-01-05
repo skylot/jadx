@@ -12,7 +12,7 @@ import kotlin.jvm.java
 
 object KotlinSmapUtils {
 
-	val LOG:Logger = LoggerFactory.getLogger(KotlinSmapUtils::class.java)
+	val LOG: Logger = LoggerFactory.getLogger(KotlinSmapUtils::class.java)
 
 	@JvmStatic
 	fun getClassAlias(cls: ClassNode): ClassAliasRename? {
@@ -56,7 +56,7 @@ object KotlinSmapUtils {
 		}
 		val originClsInfo = originCls.classInfo
 		val originName = originClsInfo.shortName
-			if (originName == name || name.contains("$") ||
+		if (originName == name || name.contains("$") ||
 			!NameMapper.isValidIdentifier(name) || pkg.startsWith("java.")
 		) {
 			return null
@@ -69,6 +69,4 @@ object KotlinSmapUtils {
 			ClassAliasRename(pkg, name)
 		}
 	}
-
-
 }

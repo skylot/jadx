@@ -21,13 +21,13 @@ import jadx.plugins.kotlin.smap.model.KOTLIN_DEBUG_STRATA_NAME
 import jadx.plugins.kotlin.smap.model.KOTLIN_STRATA_NAME
 import jadx.plugins.kotlin.smap.model.SMAP
 
-
 object SMAPParser {
 	fun parseOrNull(mappingInfo: String): SMAP? =
-		if (mappingInfo.isNotEmpty())
+		if (mappingInfo.isNotEmpty()) {
 			parseStratum(mappingInfo, KOTLIN_STRATA_NAME, parseStratum(mappingInfo, KOTLIN_DEBUG_STRATA_NAME, null))
-		else
+		} else {
 			null
+		}
 
 	private class SMAPTokenizer(private val text: String, private val headerString: String) : Iterator<String> {
 

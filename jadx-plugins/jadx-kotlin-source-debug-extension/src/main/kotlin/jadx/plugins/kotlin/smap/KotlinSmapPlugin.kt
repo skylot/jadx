@@ -16,7 +16,7 @@ class KotlinSmapPlugin : JadxPlugin {
 	override fun init(context: JadxPluginContext) {
 		context.registerOptions(options)
 
-		if (options.isClassSourceDbg()){
+		if (options.isClassSourceDbg()) {
 			context.addPass(KotlinSourceDebugExtensionPass(options))
 		}
 	}
