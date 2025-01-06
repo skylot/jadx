@@ -18,6 +18,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-smali-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-rename-mappings"))
 	runtimeOnly(project(":jadx-plugins:jadx-kotlin-metadata"))
+	runtimeOnly(project(":jadx-plugins:jadx-kotlin-source-debug-extension"))
 	runtimeOnly(project(":jadx-plugins:jadx-script:jadx-script-plugin"))
 	runtimeOnly(project(":jadx-plugins:jadx-xapk-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
