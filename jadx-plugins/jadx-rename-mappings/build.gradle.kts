@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	api(project(":jadx-core"))
 
-	api("net.fabricmc:mapping-io:0.6.1") {
+	api("net.fabricmc:mapping-io:0.7.0") {
 		exclude("org.ow2.asm:asm")
 		exclude("net.fabricmc:tiny-remapper")
 	}

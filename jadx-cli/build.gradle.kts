@@ -25,7 +25,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-apkm-input"))
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.13")
+	implementation("ch.qos.logback:logback-classic:1.5.16")
 }
 
 application {

@@ -27,7 +27,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.5.0")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.13")
+	implementation("ch.qos.logback:logback-classic:1.5.16")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.5.3")
@@ -46,7 +46,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.7.3")
+	implementation("com.android.tools.build:apksig:8.8.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
