@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -49,8 +48,8 @@ public class TemplateFile {
 		this.template = in;
 	}
 
-	public void add(String name, @NotNull Object value) {
-		values.put(name, value.toString());
+	public void add(String name, @Nullable Object value) {
+		values.put(name, String.valueOf(value));
 	}
 
 	public String build() throws IOException {

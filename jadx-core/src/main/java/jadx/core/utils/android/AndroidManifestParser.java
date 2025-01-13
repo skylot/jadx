@@ -66,31 +66,37 @@ public class AndroidManifestParser {
 		String mainActivity = null;
 		String application = null;
 
+		@Nullable
 		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
+		@Nullable
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
 
 		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL)) {
 			applicationLabel = getApplicationLabel();
 		}
-		if (parseAttrs.contains(AppAttribute.MIN_SDK_VERSION)) {
-			minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
-		}
-		if (parseAttrs.contains(AppAttribute.TARGET_SDK_VERSION)) {
-			String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
-			if (!stringTargetSdk.isEmpty()) {
-				targetSdkVersion = Integer.valueOf(stringTargetSdk);
-			} else {
-				if (minSdkVersion == null) {
-					minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
+		if (usesSdk != null) {
+			if (parseAttrs.contains(AppAttribute.MIN_SDK_VERSION)) {
+				minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
+			}
+			if (parseAttrs.contains(AppAttribute.TARGET_SDK_VERSION)) {
+				String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
+				if (!stringTargetSdk.isEmpty()) {
+					targetSdkVersion = Integer.valueOf(stringTargetSdk);
+				} else {
+					if (minSdkVersion == null) {
+						minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
+					}
+					targetSdkVersion = minSdkVersion;
 				}
-				targetSdkVersion = minSdkVersion;
 			}
 		}
-		if (parseAttrs.contains(AppAttribute.VERSION_CODE)) {
-			versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
-		}
-		if (parseAttrs.contains(AppAttribute.VERSION_NAME)) {
-			versionName = manifest.getAttribute("android:versionName");
+		if (manifest != null) {
+			if (parseAttrs.contains(AppAttribute.VERSION_CODE)) {
+				versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
+			}
+			if (parseAttrs.contains(AppAttribute.VERSION_NAME)) {
+				versionName = manifest.getAttribute("android:versionName");
+			}
 		}
 		if (parseAttrs.contains(AppAttribute.MAIN_ACTIVITY)) {
 			mainActivity = getMainActivityName();
