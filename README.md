@@ -204,6 +204,24 @@ Examples:
 ```
 These options also work in jadx-gui running from command line and override options from preferences' dialog
 
+Usage for `plugins` command
+```
+usage: plugins [options]
+options:
+  -i, --install <locationId>      - install plugin with locationId
+  -j, --install-jar <path-to.jar> - install plugin from jar file
+  -l, --list                      - list installed plugins
+  -a, --available                 - list available plugins from jadx-plugins-list (aka marketplace)
+  -u, --update                    - update installed plugins
+  --uninstall <pluginId>          - uninstall plugin with pluginId
+  --disable <pluginId>            - disable plugin with pluginId
+  --enable <pluginId>             - enable plugin with pluginId
+  --list-all                      - list all plugins including bundled and dropins
+  --list-versions <locationId>    - fetch latest versions of plugin from locationId (will download all artefacts, limited to 10)
+  -h, --help                      - print this help
+```
+
+
 ### Troubleshooting
 Please check wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
 
