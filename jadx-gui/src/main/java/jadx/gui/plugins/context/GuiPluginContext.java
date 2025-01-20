@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -31,6 +32,7 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.utils.IconsCache;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.UiUtils;
 
@@ -119,6 +121,16 @@ public class GuiPluginContext implements JadxGuiContext {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public ImageIcon getSVGIcon(String name) {
+		try {
+			return IconsCache.getSVGIcon(name);
+		} catch (Exception e) {
+			LOG.error("Failed to load icon: {}", name, e);
+			return IconsCache.getSVGIcon("ui/error");
+		}
 	}
 
 	@Override

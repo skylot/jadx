@@ -3,6 +3,7 @@ package jadx.api.plugins.gui;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
@@ -56,6 +57,16 @@ public interface JadxGuiContext {
 	 * Can be used as a parent for creating new windows or dialogs.
 	 */
 	JFrame getMainFrame();
+
+	/**
+	 * Load SVG icon from jadx resources.
+	 * All available icons can be found in "jadx-gui/src/main/resources/icons".
+	 * Method is thread-safe.
+	 *
+	 * @param name short name in form: "category/iconName", example: "nodes/publicClass"
+	 * @return loaded and cached icon, if icon not found returns default icon: "ui/error"
+	 */
+	ImageIcon getSVGIcon(String name);
 
 	ICodeNodeRef getNodeUnderCaret();
 
