@@ -8,10 +8,12 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JavaClass;
+import jadx.gui.JadxWrapper;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.pkgs.PackageHelper;
 
 public class CacheObject {
+	private final JadxWrapper wrapper;
 
 	private String lastSearch;
 	private JNodeCache jNodeCache;
@@ -23,13 +25,14 @@ public class CacheObject {
 
 	private volatile boolean fullDecompilationFinished;
 
-	public CacheObject() {
+	public CacheObject(JadxWrapper wrapper) {
+		this.wrapper = wrapper;
 		reset();
 	}
 
 	public void reset() {
 		lastSearch = null;
-		jNodeCache = new JNodeCache();
+		jNodeCache = new JNodeCache(wrapper);
 		lastSearchOptions = new HashMap<>();
 		lastSearchPackage = null;
 		decompileBatches = null;

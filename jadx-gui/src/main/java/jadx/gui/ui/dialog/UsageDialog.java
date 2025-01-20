@@ -42,7 +42,19 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private transient List<CodeNode> usageList;
 
-	public UsageDialog(MainWindow mainWindow, JNode node) {
+	public static void open(MainWindow mainWindow, JNode node) {
+		UsageDialog usageDialog = new UsageDialog(mainWindow, node);
+		mainWindow.addLoadListener(loaded -> {
+			if (!loaded) {
+				usageDialog.dispose();
+				return true;
+			}
+			return false;
+		});
+		usageDialog.setVisible(true);
+	}
+
+	private UsageDialog(MainWindow mainWindow, JNode node) {
 		super(mainWindow, NLS.str("usage_dialog.title"));
 		this.node = node;
 

@@ -22,18 +22,15 @@ import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.gui.JadxGuiSettings;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.dialog.UsageDialog;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.IconsCache;
-import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.UiUtils;
 
 public class GuiPluginContext implements JadxGuiContext {
@@ -183,22 +180,17 @@ public class GuiPluginContext implements JadxGuiContext {
 
 	@Override
 	public boolean open(ICodeNodeRef ref) {
-		JNodeCache cache = commonContext.getMainWindow().getWrapper().getCache().getNodeCache();
-		JNode node;
-		if (ref instanceof ClassNode) {
-			node = cache.makeFrom(((ClassNode) ref).getJavaNode());
-		} else if (ref instanceof MethodNode) {
-			node = cache.makeFrom(((MethodNode) ref).getJavaNode());
-		} else if (ref instanceof FieldNode) {
-			node = cache.makeFrom(((FieldNode) ref).getJavaNode());
-		} else {
-			// Package node - cannot jump to it
-			// TODO: Var node - might be possible
-			return false;
-		}
-
-		commonContext.getMainWindow().getTabsController().codeJump(node);
+		commonContext.getMainWindow().getTabsController().codeJump(getJNodeFromRef(ref));
 		return true;
+	}
+
+	@Override
+	public void openUsageDialog(ICodeNodeRef ref) {
+		UsageDialog.open(commonContext.getMainWindow(), getJNodeFromRef(ref));
+	}
+
+	private JNode getJNodeFromRef(ICodeNodeRef ref) {
+		return commonContext.getMainWindow().getCacheObject().getNodeCache().makeFrom(ref);
 	}
 
 	@Override

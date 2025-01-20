@@ -8,7 +8,9 @@ import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
+import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -16,36 +18,48 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JVariable;
 
 public class JNodeCache {
+	private final JadxWrapper wrapper;
+	private final Map<ICodeNodeRef, JNode> cache = new ConcurrentHashMap<>();
 
-	private final Map<JavaNode, JNode> cache = new ConcurrentHashMap<>();
+	public JNodeCache(JadxWrapper wrapper) {
+		this.wrapper = wrapper;
+	}
+
+	public JNode makeFrom(ICodeNodeRef nodeRef) {
+		if (nodeRef == null) {
+			return null;
+		}
+		// don't use 'computeIfAbsent' method here, it will cause 'Recursive update' exception
+		JNode jNode = cache.get(nodeRef);
+		if (jNode == null || jNode.getJavaNode().getCodeNodeRef() != nodeRef) {
+			jNode = convert(nodeRef);
+			cache.put(nodeRef, jNode);
+		}
+		return jNode;
+	}
 
 	public JNode makeFrom(JavaNode javaNode) {
 		if (javaNode == null) {
 			return null;
 		}
-		// don't use 'computeIfAbsent' method here, it will cause 'Recursive update' exception
-		JNode jNode = cache.get(javaNode);
-		if (jNode == null || jNode.getJavaNode() != javaNode) {
-			jNode = convert(javaNode);
-			cache.put(javaNode, jNode);
-		}
-		return jNode;
+		return makeFrom(javaNode.getCodeNodeRef());
 	}
 
 	public JClass makeFrom(JavaClass javaCls) {
 		if (javaCls == null) {
 			return null;
 		}
-		JClass jCls = (JClass) cache.get(javaCls);
+		ICodeNodeRef nodeRef = javaCls.getCodeNodeRef();
+		JClass jCls = (JClass) cache.get(nodeRef);
 		if (jCls == null || jCls.getCls() != javaCls) {
 			jCls = convert(javaCls);
-			cache.put(javaCls, jCls);
+			cache.put(nodeRef, jCls);
 		}
 		return jCls;
 	}
 
 	public void remove(JavaNode javaNode) {
-		cache.remove(javaNode);
+		cache.remove(javaNode.getCodeNodeRef());
 	}
 
 	public void removeWholeClass(JavaClass javaCls) {
@@ -64,12 +78,17 @@ public class JNodeCache {
 		return new JClass(cls, makeFrom(parentCls));
 	}
 
+	private JNode convert(ICodeNodeRef nodeRef) {
+		JavaNode javaNode = wrapper.getDecompiler().getJavaNodeByRef(nodeRef);
+		return convert(javaNode);
+	}
+
 	private JNode convert(JavaNode node) {
 		if (node == null) {
 			return null;
 		}
 		if (node instanceof JavaClass) {
-			return convert(((JavaClass) node));
+			return convert((JavaClass) node);
 		}
 		if (node instanceof JavaMethod) {
 			return new JMethod((JavaMethod) node, makeFrom(node.getDeclaringClass()));

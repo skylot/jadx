@@ -254,9 +254,9 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
-		this.cacheObject = new CacheObject();
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
+		this.cacheObject = new CacheObject(wrapper);
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
 		this.cacheManager = new CacheManager(settings);

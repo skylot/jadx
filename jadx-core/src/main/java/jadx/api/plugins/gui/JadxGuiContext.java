@@ -84,6 +84,11 @@ public interface JadxGuiContext {
 	boolean open(ICodeNodeRef ref);
 
 	/**
+	 * Open usage dialog for a node
+	 */
+	void openUsageDialog(ICodeNodeRef ref);
+
+	/**
 	 * Reload code in active tab
 	 */
 	void reloadActiveTab();
