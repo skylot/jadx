@@ -156,7 +156,7 @@ public class CommandPlugins implements ICommand {
 				sb.append(" (disabled)");
 			}
 			sb.append(" - ").append(plugin.getName());
-			sb.append(": ").append(plugin.getDescription());
+			sb.append(": ").append(formatDescription(plugin.getDescription()));
 			System.out.println(sb);
 		}
 	}
@@ -192,9 +192,22 @@ public class CommandPlugins implements ICommand {
 			if (!installedSet.contains(plugin.getPluginId())) {
 				System.out.println(" - " + plugin.getPluginId()
 						+ " - " + plugin.getName()
-						+ ": " + plugin.getDescription());
+						+ ": " + formatDescription(plugin.getDescription()));
 			}
 		}
+	}
+
+	private static String formatDescription(String desc) {
+		if (desc.contains("\n")) {
+			// remove new lines
+			desc = desc.replaceAll("\\R+", " ");
+		}
+		int maxLen = 512;
+		if (desc.length() > maxLen) {
+			// truncate very long descriptions
+			desc = desc.substring(0, maxLen) + " ...";
+		}
+		return desc;
 	}
 
 	private void installPlugin(String locationId) {
