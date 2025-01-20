@@ -302,11 +302,18 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JSpinner repeatLimit = new JSpinner(new SpinnerNumberModel(settings.getSourceNameRepeatLimit(), 1, Integer.MAX_VALUE, 1));
+		repeatLimit.addChangeListener(e -> {
+			settings.setSourceNameRepeatLimit((Integer) repeatLimit.getValue());
+			needReload();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
 		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
 		group.addRow(NLS.str("preferences.rename_use_source_name_as_class_name_alias"), useSourceNameAsClassNameAlias);
+		group.addRow(NLS.str("preferences.rename_source_name_repeat_limit"), repeatLimit);
 		return group;
 	}
 

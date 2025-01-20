@@ -201,6 +201,12 @@ public class JadxCLIArgs {
 	protected UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias = null;
 
 	@Parameter(
+			names = { "--source-name-repeat-limit" },
+			description = "allow using source name if it appears less than a limit number"
+	)
+	protected int sourceNameRepeatLimit = 10;
+
+	@Parameter(
 			names = { "--use-kotlin-methods-for-var-names" },
 			description = "use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide",
 			converter = UseKotlinMethodsForVarNamesConverter.class
@@ -352,6 +358,7 @@ public class JadxCLIArgs {
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setDeobfuscationWhitelist(Arrays.asList(deobfuscationWhitelistStr.split(" ")));
 		args.setUseSourceNameAsClassNameAlias(getUseSourceNameAsClassNameAlias());
+		args.setSourceNameRepeatLimit(sourceNameRepeatLimit);
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
 		args.setResourceNameSource(resourceNameSource);
 		args.setEscapeUnicode(escapeUnicode);
@@ -506,6 +513,10 @@ public class JadxCLIArgs {
 		} else {
 			return UseSourceNameAsClassNameAlias.getDefault();
 		}
+	}
+
+	public int getSourceNameRepeatLimit() {
+		return sourceNameRepeatLimit;
 	}
 
 	/**

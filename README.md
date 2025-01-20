@@ -144,6 +144,7 @@ options:
                                            'always' - always use source name if it's available
                                            'if-better' - use source name if it seems better than the current one
                                            'never' - never use source name, even if it's available
+  --source-name-repeat-limit             - allow using source name if it appears less than a limit number, default: 10
   --use-kotlin-methods-for-var-names    - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                        - fix options (comma-separated list of):
                                            'case' - fix case sensitivity issues (according to --fs-case-sensitive option),

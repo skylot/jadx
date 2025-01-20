@@ -34,11 +34,15 @@ public class SourceFileRename extends AbstractVisitor {
 		if (useSourceName == UseSourceNameAsClassNameAlias.NEVER) {
 			return;
 		}
+		int repeatLimit = root.getArgs().getSourceNameRepeatLimit();
+		if (repeatLimit <= 1) {
+			return;
+		}
 
 		List<ClassNode> classes = root.getClasses();
-		Map<String, Boolean> canUseAlias = new HashMap<>();
+		Map<String, Integer> aliasUseCount = new HashMap<>();
 		for (ClassNode cls : classes) {
-			canUseAlias.put(cls.getClassInfo().getShortName(), Boolean.FALSE);
+			aliasUseCount.put(cls.getClassInfo().getShortName(), 1);
 		}
 		List<ClsRename> renames = new ArrayList<>();
 		for (ClassNode cls : classes) {
@@ -47,19 +51,17 @@ public class SourceFileRename extends AbstractVisitor {
 			}
 			String alias = getAliasFromSourceFile(cls);
 			if (alias != null) {
-				Boolean prev = canUseAlias.get(alias);
-				if (prev == null) {
-					canUseAlias.put(alias, Boolean.TRUE);
-					renames.add(new ClsRename(cls, alias));
-				} else if (prev == Boolean.TRUE) {
-					canUseAlias.put(alias, Boolean.FALSE);
+				int count = aliasUseCount.merge(alias, 1, Integer::sum);
+				if (count < repeatLimit) {
+					renames.add(new ClsRename(cls, alias, count));
 				}
 			}
 		}
 		for (ClsRename clsRename : renames) {
 			String alias = clsRename.getAlias();
-			if (canUseAlias.get(alias) == Boolean.TRUE) {
-				applyRename(clsRename.getCls(), alias, useSourceName);
+			Integer count = aliasUseCount.get(alias);
+			if (count < repeatLimit) {
+				applyRename(clsRename.getCls(), clsRename.buildAlias(), useSourceName);
 			}
 		}
 	}
@@ -112,10 +114,12 @@ public class SourceFileRename extends AbstractVisitor {
 	private static final class ClsRename {
 		private final ClassNode cls;
 		private final String alias;
+		private final int suffix;
 
-		private ClsRename(ClassNode cls, String alias) {
+		private ClsRename(ClassNode cls, String alias, int suffix) {
 			this.cls = cls;
 			this.alias = alias;
+			this.suffix = suffix;
 		}
 
 		public ClassNode getCls() {
@@ -126,9 +130,17 @@ public class SourceFileRename extends AbstractVisitor {
 			return alias;
 		}
 
+		public int getSuffix() {
+			return suffix;
+		}
+
+		public String buildAlias() {
+			return suffix < 2 ? alias : alias + suffix;
+		}
+
 		@Override
 		public String toString() {
-			return "ClsRename{" + cls + " -> '" + alias + "'}";
+			return "ClsRename{" + cls + " -> '" + alias + suffix + "'}";
 		}
 	}
 }

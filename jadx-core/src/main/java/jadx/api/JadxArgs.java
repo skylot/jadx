@@ -106,6 +106,7 @@ public class JadxArgs implements Closeable {
 
 	private boolean deobfuscationOn = false;
 	private UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.getDefault();
+	private int sourceNameRepeatLimit = 10;
 
 	private File generatedRenamesMappingFile = null;
 	private GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode = GeneratedRenamesMappingFileMode.getDefault();
@@ -460,6 +461,14 @@ public class JadxArgs implements Closeable {
 		this.useSourceNameAsClassNameAlias = useSourceNameAsClassNameAlias;
 	}
 
+	public int getSourceNameRepeatLimit() {
+		return sourceNameRepeatLimit;
+	}
+
+	public void setSourceNameRepeatLimit(int sourceNameRepeatLimit) {
+		this.sourceNameRepeatLimit = sourceNameRepeatLimit;
+	}
+
 	/**
 	 * @deprecated Use {@link #getUseSourceNameAsClassNameAlias()} instead.
 	 */
@@ -800,7 +809,7 @@ public class JadxArgs implements Closeable {
 		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength + deobfuscationWhitelist
-				+ useSourceNameAsClassNameAlias
+				+ useSourceNameAsClassNameAlias + sourceNameRepeatLimit
 				+ resourceNameSource
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
@@ -841,6 +850,7 @@ public class JadxArgs implements Closeable {
 				+ ", generatedRenamesMappingFileMode=" + generatedRenamesMappingFileMode
 				+ ", resourceNameSource=" + resourceNameSource
 				+ ", useSourceNameAsClassNameAlias=" + useSourceNameAsClassNameAlias
+				+ ", sourceNameRepeatLimit=" + sourceNameRepeatLimit
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
 				+ ", insertDebugLines=" + insertDebugLines
 				+ ", extractFinally=" + extractFinally

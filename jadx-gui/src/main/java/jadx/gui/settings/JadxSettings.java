@@ -406,6 +406,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.useSourceNameAsClassNameAlias = useSourceNameAsClassNameAlias;
 	}
 
+	public void setSourceNameRepeatLimit(int sourceNameRepeatLimit) {
+		this.sourceNameRepeatLimit = sourceNameRepeatLimit;
+	}
+
 	/**
 	 * @deprecated Use {@link #setUseSourceNameAsClassNameAlias(UseSourceNameAsClassNameAlias)} instead.
 	 */
