@@ -10,10 +10,13 @@ public class JResSearchNode extends JNode {
 	private final transient String text;
 	private final transient int pos;
 
-	public JResSearchNode(JResource resNode, String text, int pos) {
+	public JResSearchNode(JResource resNode, String text, int pos, int start, int end) {
 		this.pos = pos;
 		this.text = text;
 		this.resNode = resNode;
+		this.start = start;
+		this.end = end;
+		this.hasHighlight = true;
 	}
 
 	public JResource getResNode() {

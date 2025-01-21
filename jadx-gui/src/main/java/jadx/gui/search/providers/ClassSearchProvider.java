@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.JavaClass;
 import jadx.core.dex.info.ClassInfo;
 import jadx.gui.jobs.Cancelable;
+import jadx.gui.search.MatchingPositions;
 import jadx.gui.search.SearchSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -26,18 +27,34 @@ public final class ClassSearchProvider extends BaseSearchProvider {
 				return null;
 			}
 			JavaClass curCls = classes.get(clsNum++);
-			if (checkCls(curCls)) {
-				return convert(curCls);
+			MatchingPositions matchingPositions = checkCls(curCls);
+			if (matchingPositions != null) {
+				JNode node = convert(curCls);
+				MatchingPositions highlightPositions = isMatch(curCls.getFullName());
+				node.setHasHighlight(true);
+				node.setStart(highlightPositions.getStartMath());
+				node.setEnd(highlightPositions.getEndMath());
+				return node;
 			}
 		}
 	}
 
-	private boolean checkCls(JavaClass cls) {
+	private MatchingPositions checkCls(JavaClass cls) {
 		ClassInfo clsInfo = cls.getClassNode().getClassInfo();
-		return isMatch(clsInfo.getShortName())
-				|| isMatch(clsInfo.getFullName())
-				|| isMatch(clsInfo.getAliasFullName())
-				|| isMatch(clsInfo.getRawName());
+		MatchingPositions shortMatch = isMatch(clsInfo.getShortName());
+		MatchingPositions fullMatch = isMatch(clsInfo.getFullName());
+		MatchingPositions aliasMatch = isMatch(clsInfo.getAliasFullName());
+		MatchingPositions rawMatch = isMatch(clsInfo.getRawName());
+		if (shortMatch != null) {
+			return shortMatch;
+		}
+		if (fullMatch != null) {
+			return fullMatch;
+		}
+		if (aliasMatch != null) {
+			return aliasMatch;
+		}
+		return rawMatch;
 	}
 
 	@Override

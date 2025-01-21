@@ -28,8 +28,8 @@ public class PackageHelper {
 	private static final Comparator<JPackage> PKG_COMPARATOR = Comparator.comparing(JPackage::getName, String.CASE_INSENSITIVE_ORDER);
 
 	private final JadxWrapper wrapper;
-	private List<String> excludedPackages;
-	private JNodeCache nodeCache;
+	private static List<String> excludedPackages;
+	private static JNodeCache nodeCache;
 
 	private final Map<PackageInfo, JPackage> pkgInfoMap = new HashMap<>();
 
@@ -167,7 +167,7 @@ public class PackageHelper {
 		return jPkg;
 	}
 
-	private JPackage buildJPackage(JavaPackage javaPkg, boolean synthetic) {
+	public static JPackage buildJPackage(JavaPackage javaPkg, boolean synthetic) {
 		boolean pkgEnabled = isPkgEnabled(javaPkg.getRawFullName(), excludedPackages);
 		List<JClass> classes;
 		if (synthetic) {
