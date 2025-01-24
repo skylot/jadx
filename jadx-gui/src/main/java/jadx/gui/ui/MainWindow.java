@@ -862,8 +862,9 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 			return;
 		}
 		TreePath path = new TreePath(pathNodes);
+		String[] pathExpansion = getPathExpansion(path);
 		for (String[] expansion : treeExpansions) {
-			if (Arrays.equals(expansion, getPathExpansion(path))) {
+			if (Arrays.equals(expansion, pathExpansion)) {
 				tree.expandPath(path);
 				break;
 			}

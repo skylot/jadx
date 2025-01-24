@@ -5,12 +5,15 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -138,13 +141,20 @@ public class JadxProject {
 	}
 
 	public void addTreeExpansion(String[] expansion) {
+		data.getTreeExpansions().removeIf(arr -> Arrays.equals(arr, expansion));
 		data.getTreeExpansions().add(expansion);
-		changed();
 	}
 
 	public void removeTreeExpansion(String[] expansion) {
 		data.getTreeExpansions().removeIf(strings -> isParentOfExpansion(expansion, strings));
-		changed();
+	}
+
+	private void reduceTreeExpansions() {
+		// remove same entries before a project file save
+		// this is mostly needed for old projects ('add' guard don't work for existed entries)
+		Set<String[]> set = new TreeSet<>((a, b) -> Arrays.equals(a, b) ? 0 : Integer.compare(Arrays.hashCode(a), Arrays.hashCode(b)));
+		set.addAll(data.getTreeExpansions());
+		data.setTreeExpansions(new ArrayList<>(set));
 	}
 
 	private boolean isParentOfExpansion(String[] parent, String[] child) {
@@ -277,6 +287,10 @@ public class JadxProject {
 		mainWindow.updateProject(this);
 	}
 
+	private void onSave() {
+		reduceTreeExpansions();
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -300,6 +314,7 @@ public class JadxProject {
 	}
 
 	public void save() {
+		onSave();
 		Path savePath = getProjectPath();
 		if (savePath != null) {
 			Path basePath = savePath.toAbsolutePath().getParent();
