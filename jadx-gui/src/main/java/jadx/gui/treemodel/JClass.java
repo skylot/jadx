@@ -72,8 +72,9 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	public SimpleTask getLoadTask() {
 		JClass rootClass = getRootClass();
 		return new SimpleTask(NLS.str("progress.decompile"),
-				() -> rootClass.getCls().decompile(),
-				rootClass::load);
+				() -> rootClass.getCls().getClassNode().decompile(), // run decompilation in background
+				rootClass::load // load class internals and update UI
+		);
 	}
 
 	private synchronized void load() {
