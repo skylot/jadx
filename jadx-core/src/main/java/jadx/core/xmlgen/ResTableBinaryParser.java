@@ -240,19 +240,19 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		// The type identifier this chunk is holding. Type IDs start at 1 (corresponding
 		// to the value of the type bits in a resource identifier). 0 is invalid.
 		int id = is.readInt8();
+		String typeName = pkg.getTypeStrings().get(id - 1);
 
 		int flags = is.readInt8();
 		boolean isSparse = (flags & FLAG_SPARSE) != 0;
 		boolean isOffset16 = (flags & FLAG_OFFSET16) != 0;
 
-		is.checkInt16(0, "type chunk, reserved");
+		is.readInt16(); // ignore reserved value - should be zero but in some apps it is not zero; see #2402
 		int entryCount = is.readInt32();
 		long entriesStart = start + is.readInt32();
 
 		EntryConfig config = parseConfig();
 
 		if (config.isInvalid) {
-			String typeName = pkg.getTypeStrings().get(id - 1);
 			LOG.warn("Invalid config flags detected: {}{}", typeName, config.getQualifiers());
 		}
 
@@ -285,7 +285,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			if (is.getPos() >= chunkEnd) {
 				// Certain resource obfuscated apps like com.facebook.orca have more entries defined
 				// than actually fit into the chunk size -> ignore the remaining entries
-				LOG.warn("End of chunk reached - ignoring remaining {} entries", entryCount - index);
+				LOG.warn("End of chunk reached - ignoring remaining {} entries in type: {}", entryCount - index, typeName);
 				break;
 			}
 			long entryStartOffset = entriesStart + offset;
