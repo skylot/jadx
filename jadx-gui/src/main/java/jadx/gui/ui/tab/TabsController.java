@@ -85,6 +85,9 @@ public class TabsController {
 	 * Jump to node definition
 	 */
 	public void codeJump(JNode node) {
+		if (node == null) {
+			return;
+		}
 		JClass parentCls = node.getJParent();
 		if (parentCls != null) {
 			JavaClass cls = node.getJParent().getCls();

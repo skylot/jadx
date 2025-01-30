@@ -1,5 +1,6 @@
 package jadx.gui.treemodel;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.function.Predicate;
@@ -18,12 +19,18 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.utils.TreeUtils;
+import jadx.gui.utils.UiUtils;
 
 public abstract class JNode extends DefaultMutableTreeNode implements Comparable<JNode> {
 
 	private static final long serialVersionUID = -5154479091781041008L;
 
 	public abstract JClass getJParent();
+
+	protected int start = 0;
+	protected int end = 0;
+	protected boolean hasHighlight;
 
 	/**
 	 * Return top level JClass or self if already at top.
@@ -79,6 +86,11 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 
 	public String makeStringHtml() {
 		return makeString();
+	}
+
+	public String makeHighlightHtml() {
+		return TreeUtils.highlightString(makeLongString(), String.format("background:%s", UiUtils.getThemeAccentColor()),
+				Arrays.asList(start, end));
 	}
 
 	public String makeDescString() {
@@ -151,5 +163,29 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 	@Override
 	public String toString() {
 		return makeString();
+	}
+
+	public void setStart(int start) {
+		this.start = start;
+	}
+
+	public int getStart() {
+		return start;
+	}
+
+	public void setEnd(int end) {
+		this.end = end;
+	}
+
+	public int getEnd() {
+		return end;
+	}
+
+	public boolean isHasHighlight() {
+		return hasHighlight;
+	}
+
+	public void setHasHighlight(boolean hasHighlight) {
+		this.hasHighlight = hasHighlight;
 	}
 }

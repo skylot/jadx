@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -15,10 +14,10 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -28,17 +27,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rtextarea.SearchContext;
-import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -46,19 +39,31 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
+import jadx.api.ResourceType;
 import jadx.gui.logs.LogOptions;
+import jadx.gui.treemodel.CodeCommentNode;
+import jadx.gui.treemodel.CodeNode;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
+import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResSearchNode;
+import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.RefCommentNode;
+import jadx.gui.treemodel.SearchResultNode;
+import jadx.gui.treemodel.SearchTreeCellRenderer;
+import jadx.gui.treemodel.TextNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.tab.TabsController;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.TreeUtils;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.ui.NodeLabel;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -73,14 +78,12 @@ public abstract class CommonSearchDialog extends JFrame {
 	protected final transient Font codeFont;
 	protected final transient String windowTitle;
 
-	protected ResultsModel resultsModel;
-	protected ResultsTable resultsTable;
+	protected ResultsTree resultsTree;
+
 	protected JLabel resultsInfoLabel;
 	protected JLabel progressInfoLabel;
 	protected JLabel warnLabel;
 	protected ProgressPanel progressPane;
-
-	private SearchContext highlightContext;
 
 	public CommonSearchDialog(MainWindow mainWindow, String title) {
 		this.mainWindow = mainWindow;
@@ -112,17 +115,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 	}
 
-	public void updateHighlightContext(String text, boolean caseSensitive, boolean regexp, boolean wholeWord) {
+	public void updateHighlightContext(String text) {
 		updateTitle(text);
-		highlightContext = new SearchContext(text);
-		highlightContext.setMatchCase(caseSensitive);
-		highlightContext.setWholeWord(wholeWord);
-		highlightContext.setRegularExpression(regexp);
-		highlightContext.setMarkAll(true);
-	}
-
-	public void disableHighlight() {
-		highlightContext = null;
 	}
 
 	protected void registerInitOnOpen() {
@@ -134,12 +128,23 @@ public abstract class CommonSearchDialog extends JFrame {
 		});
 	}
 
-	protected void openSelectedItem() {
-		JNode node = getSelectedNode();
-		if (node == null) {
-			return;
+	protected void openSelectedItem(MouseEvent event) {
+		JNode node = getSelectedNode(event);
+		if (node instanceof SearchResultNode) {
+			SearchResultNode node1 = (SearchResultNode) node;
+			openItem(node1.getRealNode());
+		} else {
+			openItem(node);
 		}
-		openItem(node);
+	}
+
+	protected void openSelectedItem(@Nullable Object node) {
+		if (node instanceof SearchResultNode) {
+			SearchResultNode node1 = (SearchResultNode) node;
+			openItem(node1.getRealNode());
+		} else {
+			openItem((JNode) node);
+		}
 	}
 
 	protected void openItem(JNode node) {
@@ -155,17 +160,8 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	@Nullable
-	private JNode getSelectedNode() {
-		try {
-			int selectedId = resultsTable.getSelectedRow();
-			if (selectedId == -1 || selectedId >= resultsTable.getRowCount()) {
-				return null;
-			}
-			return (JNode) resultsModel.getValueAt(selectedId, 0);
-		} catch (Exception e) {
-			LOG.error("Failed to get results table selected object", e);
-			return null;
-		}
+	private JNode getSelectedNode(MouseEvent event) {
+		return TreeUtils.getJNodeUnderMouse(resultsTree, event);
 	}
 
 	@Override
@@ -184,9 +180,6 @@ public abstract class CommonSearchDialog extends JFrame {
 
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
-		JButton openBtn = new JButton(NLS.str("search_dialog.open"));
-		openBtn.addActionListener(event -> openSelectedItem());
-		getRootPane().setDefaultButton(openBtn);
 
 		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
 		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
@@ -203,55 +196,30 @@ public abstract class CommonSearchDialog extends JFrame {
 		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
-		buttonPane.add(openBtn);
-		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(cancelButton);
 		return buttonPane;
 	}
 
-	protected JPanel initResultsTable() {
-		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
-		resultsModel = new ResultsModel();
-		resultsModel.addTableModelListener(e -> updateProgressLabel(false));
+	protected JPanel initResultsTree() {
+		resultsTree = new ResultsTree();
+		resultsTree.setCellRenderer(new SearchTreeCellRenderer());
+		resultsTree.setDragEnabled(false);
+		resultsTree.setAutoscrolls(false);
+		resultsTree.setRootVisible(false);
 
-		resultsTable = new ResultsTable(resultsModel, renderer);
-		resultsTable.setShowHorizontalLines(false);
-		resultsTable.setDragEnabled(false);
-		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.setColumnSelectionAllowed(false);
-		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		resultsTable.setAutoscrolls(false);
-
-		resultsTable.setDefaultRenderer(Object.class, renderer);
-		Enumeration<TableColumn> columns = resultsTable.getColumnModel().getColumns();
-		while (columns.hasMoreElements()) {
-			TableColumn column = columns.nextElement();
-			column.setCellRenderer(renderer);
-		}
-
-		resultsTable.addMouseListener(new MouseAdapter() {
+		resultsTree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent evt) {
-				if (evt.getClickCount() == 2) {
-					openSelectedItem();
+				if (evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt)) {
+					openSelectedItem(evt);
 				}
 			}
 		});
-		resultsTable.addKeyListener(new KeyAdapter() {
+		resultsTree.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					openSelectedItem();
-				}
-			}
-		});
-		// override copy action to copy long string of node column
-		resultsTable.getActionMap().put("copy", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JNode selectedNode = getSelectedNode();
-				if (selectedNode != null) {
-					UiUtils.copyToClipboard(selectedNode.makeLongString());
+					openSelectedItem(resultsTree.getLeadSelectionPath());
 				}
 			}
 		});
@@ -260,7 +228,7 @@ public abstract class CommonSearchDialog extends JFrame {
 		warnLabel.setForeground(Color.RED);
 		warnLabel.setVisible(false);
 
-		JScrollPane scroll = new JScrollPane(resultsTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane scroll = new JScrollPane(resultsTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		resultsInfoLabel = new JLabel("");
 		resultsInfoLabel.setFont(mainWindow.getSettings().getFont());
@@ -296,7 +264,7 @@ public abstract class CommonSearchDialog extends JFrame {
 	}
 
 	protected void updateProgressLabel(boolean complete) {
-		int count = resultsModel.getRowCount();
+		int count = resultsTree.getFoundCount();
 		String statusText;
 		if (complete) {
 			statusText = NLS.str("search_dialog.results_complete", count);
@@ -310,193 +278,275 @@ public abstract class CommonSearchDialog extends JFrame {
 		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching") + "...");
 	}
 
-	protected static final class ResultsTable extends JTable {
-		private static final long serialVersionUID = 3901184054736618969L;
-		private final transient ResultsModel model;
-
-		public ResultsTable(ResultsModel resultsModel, ResultsTableCellRenderer renderer) {
-			super(resultsModel);
-			this.model = resultsModel;
-			setRowHeight(renderer.getMaxRowHeight());
-		}
-
-		public void initColumnWidth() {
-			int columnCount = getColumnCount();
-			int width = getParent().getWidth();
-			int colWidth = model.isAddDescColumn() ? width / 2 : width;
-			columnModel.getColumn(0).setPreferredWidth(colWidth);
-			for (int col = 1; col < columnCount; col++) {
-				columnModel.getColumn(col).setPreferredWidth(width);
-			}
-		}
-
-		public void updateTable() {
-			UiUtils.uiThreadGuard();
-			int rowCount = getRowCount();
-			if (rowCount == 0) {
-				updateUI();
-				return;
-			}
-			long start = System.currentTimeMillis();
-			int width = getParent().getWidth();
-			TableColumn firstColumn = columnModel.getColumn(0);
-			if (model.isAddDescColumn()) {
-				if (firstColumn.getWidth() > width * 0.8) {
-					// first column too big and hide second column, resize it
-					firstColumn.setPreferredWidth(width / 2);
-				}
-				TableColumn secondColumn = columnModel.getColumn(1);
-				int columnMaxWidth = width * 2; // set big enough size to skip per row check
-				if (secondColumn.getWidth() < columnMaxWidth) {
-					secondColumn.setPreferredWidth(columnMaxWidth);
-				}
-			} else {
-				firstColumn.setPreferredWidth(width);
-			}
-			updateUI();
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Update results table in {}ms, count: {}", System.currentTimeMillis() - start, rowCount);
-			}
-		}
-
-		@Override
-		public Object getValueAt(int row, int column) {
-			return model.getValueAt(row, column);
-		}
-	}
-
-	protected static final class ResultsModel extends AbstractTableModel {
-		private static final long serialVersionUID = -7821286846923903208L;
-		private static final String[] COLUMN_NAMES = { NLS.str("search_dialog.col_node"), NLS.str("search_dialog.col_code") };
-
+	protected static final class ResultsTree extends JTree {
 		private final transient List<JNode> rows = new ArrayList<>();
-		private transient boolean addDescColumn;
+		private final JNode treeRoot;
+		private final DefaultTreeModel treeModel;
+		private transient int foundCount;
 
-		public void addAll(Collection<? extends JNode> nodes) {
-			rows.addAll(nodes);
-			if (!addDescColumn) {
-				for (JNode row : rows) {
-					if (row.hasDescString()) {
-						addDescColumn = true;
-						break;
-					}
-				}
-			}
+		public ResultsTree() {
+			setShowsRootHandles(true);
+			treeRoot = new TextNode("");
+			treeModel = new DefaultTreeModel(treeRoot);
+			setModel(treeModel);
+		}
+
+		public void updateTree() {
+			addNodes();
+			treeModel.reload();
+			TreeUtils.expandAllNodes(this);
 		}
 
 		public void clear() {
-			addDescColumn = false;
+			foundCount = 0;
 			rows.clear();
+			treeRoot.removeAllChildren();
+			treeModel.reload();
 		}
 
 		public void sort() {
 			Collections.sort(rows);
+			updateTree();
 		}
 
-		public boolean isAddDescColumn() {
-			return addDescColumn;
-		}
-
-		@Override
-		public int getRowCount() {
-			return rows.size();
-		}
-
-		@Override
-		public int getColumnCount() {
-			return 2;
-		}
-
-		@Override
-		public String getColumnName(int index) {
-			return COLUMN_NAMES[index];
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			return rows.get(rowIndex);
-		}
-	}
-
-	protected final class ResultsTableCellRenderer implements TableCellRenderer {
-		private final NodeLabel label;
-		private final RSyntaxTextArea codeArea;
-		private final NodeLabel emptyLabel;
-		private final Color codeSelectedColor;
-		private final Color codeBackground;
-
-		public ResultsTableCellRenderer() {
-			codeArea = AbstractCodeArea.getDefaultArea(mainWindow);
-			codeArea.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-			codeArea.setRows(1);
-			codeBackground = codeArea.getBackground();
-			codeSelectedColor = codeArea.getSelectionColor();
-			label = new NodeLabel();
-			label.setOpaque(true);
-			label.setFont(codeArea.getFont());
-			label.setHorizontalAlignment(SwingConstants.LEFT);
-			emptyLabel = new NodeLabel();
-			emptyLabel.setOpaque(true);
-		}
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj,
-				boolean isSelected, boolean hasFocus, int row, int column) {
-			if (obj == null || table == null) {
-				return emptyLabel;
+		private void addNodes() {
+			if (rows.isEmpty()) {
+				return;
 			}
-			Component comp = makeCell((JNode) obj, column);
-			updateSelection(table, comp, column, isSelected);
-			return comp;
+			for (JNode row : rows) {
+				if (row instanceof JMethod) {
+					treeRoot.add(row);
+				}
+				if (row instanceof JField) {
+					treeRoot.add(row);
+				}
+				if (row instanceof JClass) {
+					JClass jClass = (JClass) row;
+					JPackage jPackage = findPackage(jClass);
+
+					// create new objects
+					JPackage existingPackage = findOrCreatePackage(jPackage);
+					JClass existingClass = findOrCreateClass(existingPackage, jClass);
+
+					existingPackage.add(existingClass);
+					treeRoot.add(existingPackage);
+				}
+				if (row instanceof CodeNode) {
+					CodeNode node = (CodeNode) row;
+					processCodeNode(node, null);
+				}
+				if (row instanceof JResSearchNode) {
+					JResSearchNode jResSearchNode = (JResSearchNode) row;
+					JResource jResource = jResSearchNode.getResNode();
+					// check if file node from resource table
+					JResource tableRes = isTableResource(jResource);
+					// file node
+					JResource newJResource = findOrCreateJResource(jResource);
+					SearchResultNode textNode =
+							new SearchResultNode(jResSearchNode.makeDescString(), row, jResSearchNode.getStart(), jResSearchNode.getEnd());
+
+					if (tableRes != null) {
+						newJResource = findOrCreateJResource(tableRes);
+						JResource subRes = findOrCreateSubJResource(jResource, newJResource);
+						subRes.add(textNode);
+						newJResource.add(subRes);
+					} else {
+						newJResource.add(textNode);
+					}
+					treeRoot.add(newJResource);
+				}
+				if (row instanceof CodeCommentNode | row instanceof RefCommentNode) {
+					processCodeNode(null, (RefCommentNode) row);
+				}
+			}
 		}
 
-		private void updateSelection(JTable table, Component comp, int column, boolean isSelected) {
-			if (column == 1) {
-				if (isSelected) {
-					comp.setBackground(codeSelectedColor);
+		public int getFoundCount() {
+			return foundCount;
+		}
+
+		public void addAll(Collection<? extends JNode> nodes) {
+			foundCount += nodes.size();
+			rows.clear();
+			rows.addAll(nodes);
+		}
+
+		private void processCodeNode(CodeNode codeNode, RefCommentNode codeCommentNode) {
+			JClass jClass = null;
+			JPackage jPackage = null;
+			JNode jMethod = null;
+			JNode addedNode = null;
+			if (codeNode != null) {
+				jClass = codeNode.getRootClass();
+				jPackage = (JPackage) jClass.getParent();
+				jMethod = codeNode.getjNode();
+				addedNode = new SearchResultNode(codeNode.makeDescString(), codeNode, codeNode.getStart(), codeNode.getEnd());
+			} else if (codeCommentNode != null) {
+				addedNode = new SearchResultNode(codeCommentNode.makeDescString(), codeCommentNode, 0, 0);
+				jMethod = codeCommentNode.getNode();
+				if (jMethod instanceof JClass) {
+					jClass = (JClass) jMethod;
 				} else {
-					comp.setBackground(codeBackground);
+					jClass = jMethod.getJParent();
 				}
+				jPackage = PackageHelper.buildJPackage(codeCommentNode.getRootClass().getCls().getJavaPackage(), false);
+			}
+			JNode parentClass = jMethod.getJParent();
+			// create new objects
+			JPackage existingPackage = findOrCreatePackage(jPackage);
+			JClass existingClass = findOrCreateClass(existingPackage, jClass);
+
+			Stack<JNode> stack = new Stack<>();
+			if (jMethod instanceof JClass) {
+				stack.push(jMethod);
+			}
+			while (parentClass != null) {
+				stack.push(parentClass);
+				parentClass = parentClass.getJParent();
+			}
+
+			while (!stack.isEmpty()) {
+				JNode currentClass = stack.pop();
+				JClass newParentClass = findOrCreateSubClass((JClass) currentClass, existingClass);
+
+				if (jMethod instanceof JMethod) {
+					if (currentClass == jMethod.getJParent()) {
+						JMethod existingMethod = findOrCreateMethod((JMethod) jMethod, newParentClass);
+						existingMethod.add(addedNode);
+					}
+				} else if (jMethod instanceof JField) {
+					JField jField = (JField) jMethod;
+					jField.add(addedNode);
+					JClass jClassField = jField.getRootClass();
+					newParentClass = findOrCreateSubClass(jClassField, newParentClass);
+					newParentClass.add(jField);
+				} else {
+					if (newParentClass.makeLongString().equals(jMethod.makeLongString())) {
+						newParentClass.add(addedNode);
+					}
+				}
+				existingClass = newParentClass;
+			}
+			treeRoot.add(existingPackage);
+		}
+
+		private JPackage findPackage(JNode jNode) {
+			JNode parentNode = (JNode) jNode.getParent();
+			JNode jNodeJParent = jNode.getJParent();
+			if (parentNode != null) {
+				return (JPackage) parentNode;
 			} else {
-				if (isSelected) {
-					comp.setBackground(table.getSelectionBackground());
-					comp.setForeground(table.getSelectionForeground());
-				} else {
-					comp.setBackground(table.getBackground());
-					comp.setForeground(table.getForeground());
+				return findPackage(jNodeJParent);
+			}
+		}
+
+		private JResource isTableResource(JNode jResource) {
+			if (jResource.getParent() instanceof JResource) {
+				JResource parent = (JResource) jResource.getParent();
+				if (parent != null) {
+					if (parent.getResFile() != null && parent.getResFile().getType() == ResourceType.ARSC) {
+						return parent;
+					} else {
+						return isTableResource((JNode) parent.getParent());
+					}
 				}
 			}
+			return null;
 		}
 
-		private Component makeCell(JNode node, int column) {
-			if (column == 0) {
-				label.disableHtml(node.disableHtml());
-				label.setText(node.makeLongStringHtml());
-				label.setToolTipText(node.getTooltip());
-				label.setIcon(node.getIcon());
-				return label;
+		private JPackage findOrCreatePackage(JPackage jPackage) {
+			for (int i = 0; i < treeRoot.getChildCount(); i++) {
+				if (treeRoot.getChildAt(i) instanceof JPackage) {
+					JPackage existingPackage = (JPackage) treeRoot.getChildAt(i);
+					if (existingPackage.getPkg().getFullName().equals(jPackage.getPkg().getFullName())) {
+						return existingPackage;
+					}
+				}
 			}
-			if (!node.hasDescString()) {
-				return emptyLabel;
-			}
-			codeArea.setSyntaxEditingStyle(node.getSyntaxName());
-			String descStr = node.makeDescString();
-			codeArea.setText(descStr);
-			codeArea.setColumns(descStr.length() + 1);
-			if (highlightContext != null) {
-				SearchEngine.markAll(codeArea, highlightContext);
-			}
-			return codeArea;
+
+			JPackage newPackage = new JPackage(
+					jPackage.getPkg(),
+					jPackage.isEnabled(),
+					jPackage.getClasses(),
+					jPackage.getSubPackages(),
+					jPackage.isSynthetic());
+			newPackage.setName(jPackage.getPkg().getFullName());
+			return newPackage;
 		}
 
-		public int getMaxRowHeight() {
-			label.setText("Text");
-			codeArea.setText("Text");
-			return Math.max(getCompHeight(label), getCompHeight(codeArea));
+		private JResource findOrCreateJResource(JResource jResource) {
+			for (int i = 0; i < treeRoot.getChildCount(); i++) {
+				if (treeRoot.getChildAt(i) instanceof JResource) {
+					JResource subChildren = (JResource) treeRoot.getChildAt(i);
+					if (subChildren.makeLongString().equals(jResource.makeLongString())) {
+						return subChildren;
+					}
+				}
+			}
+			return new JResource(jResource.getResFile(), jResource.getName(), jResource.getType());
 		}
 
-		private int getCompHeight(Component comp) {
-			return Math.max(comp.getHeight(), comp.getPreferredSize().height);
+		private JResource findOrCreateSubJResource(JResource jResource, JResource jParent) {
+			if (jParent.makeLongString().equals(jResource.makeLongString())) {
+				return jParent;
+			}
+			for (Iterator<TreeNode> iterator = jParent.children().asIterator(); iterator.hasNext();) {
+				JNode subChildren = (JNode) iterator.next();
+				if (subChildren instanceof JResource && subChildren.makeLongString().equals(jResource.makeLongString())) {
+					return (JResource) subChildren;
+				}
+			}
+			return new JResource(jResource.getResFile(), jResource.getName(), jResource.getType());
+		}
+
+		private JClass findOrCreateSubClass(JClass jClass, JClass jParent) {
+			if (jParent.makeLongString().equals(jClass.makeLongString())) {
+				return jParent;
+			}
+			for (Iterator<TreeNode> iterator = jParent.children().asIterator(); iterator.hasNext();) {
+				JNode subChildren = (JNode) iterator.next();
+				if (subChildren instanceof JClass && subChildren.makeLongString().equals(jClass.makeLongString())) {
+					return (JClass) subChildren;
+				}
+			}
+
+			JClass newClass = new JClass(jClass.getCls(), jClass.getJParent());
+			newClass.setStart(jClass.getStart());
+			newClass.setEnd(jClass.getEnd());
+			newClass.setHasHighlight(jClass.isHasHighlight());
+			jParent.add(newClass);
+			return newClass;
+		}
+
+		private JClass findOrCreateClass(JPackage jPackage, JClass jClass) {
+			for (Iterator<TreeNode> it = jPackage.children().asIterator(); it.hasNext();) {
+				JNode child = (JNode) it.next();
+				if (child instanceof JClass) {
+					if (child.makeLongString().equals(jClass.makeLongString())) {
+						return (JClass) child;
+					}
+				}
+			}
+
+			JClass newClass = new JClass(jClass.getCls(), jClass.getJParent());
+			newClass.setStart(jClass.getStart());
+			newClass.setEnd(jClass.getEnd());
+			newClass.setHasHighlight(jClass.isHasHighlight());
+			jPackage.add(newClass);
+			return newClass;
+		}
+
+		private JMethod findOrCreateMethod(JMethod jMethod, JClass jClass) {
+			for (Iterator<TreeNode> it = jClass.children().asIterator(); it.hasNext();) {
+				JNode child = (JNode) it.next();
+				if (child instanceof JMethod && child.makeLongString().equals(jMethod.makeLongString())) {
+					return (JMethod) child;
+				}
+			}
+
+			JMethod newMethod = new JMethod(jMethod.getJavaMethod(), jMethod.getJParent());
+			jClass.add(newMethod);
+			return newMethod;
 		}
 	}
 
