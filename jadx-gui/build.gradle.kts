@@ -3,7 +3,6 @@ plugins {
 	id("application")
 	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.5"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -93,22 +92,8 @@ tasks.jar {
 	}
 }
 
-tasks.shadowJar {
-	isZip64 = true
-	mergeServiceFiles()
-	manifest {
-		from(tasks.jar.get().manifest)
-	}
-}
-
-// workaround to exclude shadowJar 'all' artifact from publishing to maven
-project.components.withType(AdhocComponentWithVariants::class.java).forEach { c ->
-	c.withVariantsFromConfiguration(project.configurations.shadowRuntimeElements.get()) {
-		skip()
-	}
-}
-
-tasks.startShadowScripts {
+tasks.startScripts {
+	classpath = files("lib/*")
 	doLast {
 		val newContent =
 			windowsScript.readText()
@@ -133,7 +118,7 @@ launch4j {
 	requires64Bit.set(true)
 	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk21-windows")
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
-	classpath.set(tasks.getByName("shadowJar").outputs.files.map { "%EXEDIR%/lib/${it.name}" }.toSortedSet())
+	classpath.set(listOf("%EXEDIR%/lib/*"))
 }
 
 runtime {
@@ -158,11 +143,11 @@ runtime {
 val copyDistWin by tasks.registering(Copy::class) {
 	description = "Copy files for Windows bundle"
 
-	val libTask = tasks.getByName("shadowJar")
-	dependsOn(libTask)
-	from(libTask.outputs) {
-		include("*.jar")
-		into("lib")
+	val distTask = tasks.getByName("installDist")
+	dependsOn(distTask)
+	from(distTask.outputs) {
+		include("**/lib/*.jar")
+		includeEmptyDirs = false
 	}
 	val exeTask = tasks.getByName("createExe")
 	dependsOn(exeTask)
@@ -182,11 +167,11 @@ val copyDistWinWithJre by tasks.registering(Copy::class) {
 		include("**/*")
 		into("jre")
 	}
-	val libTask = tasks.getByName("shadowJar")
-	dependsOn(libTask)
-	from(libTask.outputs) {
-		include("*.jar")
-		into("lib")
+	val distTask = tasks.getByName("installDist")
+	dependsOn(distTask)
+	from(distTask.outputs) {
+		include("**/lib/*.jar")
+		includeEmptyDirs = false
 	}
 	val exeTask = tasks.getByName("createExe")
 	dependsOn(exeTask)

@@ -83,23 +83,12 @@ fun isNonStable(version: String): Boolean {
 }
 
 val copyArtifacts by tasks.registering(Copy::class) {
-	val jarCliPattern = "jadx-cli-(.*)-all.jar".toPattern()
-	from(tasks.getByPath(":jadx-cli:installShadowDist")) {
-		exclude("**/*.jar")
-		filter { line ->
-			jarCliPattern.matcher(line).replaceAll("jadx-$1-all.jar")
-				.replace("-jar \"\\\"\$CLASSPATH\\\"\"", "-cp \"\\\"\$CLASSPATH\\\"\" jadx.cli.JadxCLI")
-				.replace("-jar \"%CLASSPATH%\"", "-cp \"%CLASSPATH%\" jadx.cli.JadxCLI")
-		}
+	from(tasks.getByPath(":jadx-cli:installDist")) {
+		include("**/bin/*") // copy only scripts
 	}
-	val jarGuiPattern = "jadx-gui-(.*)-all.jar".toPattern()
-	from(tasks.getByPath(":jadx-gui:installShadowDist")) {
-		exclude("**/*.jar")
-		filter { line -> jarGuiPattern.matcher(line).replaceAll("jadx-$1-all.jar") }
-	}
-	from(tasks.getByPath(":jadx-gui:installShadowDist")) {
-		include("**/*.jar")
-		rename("jadx-gui-(.*)-all.jar", "jadx-$1-all.jar")
+	from(tasks.getByPath(":jadx-gui:installDist")) {
+		include("**/bin/*")
+		include("**/lib/*.jar")
 	}
 	from(layout.projectDirectory) {
 		include("README.md")

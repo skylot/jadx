@@ -2,9 +2,6 @@ plugins {
 	id("jadx-java")
 	id("jadx-library")
 	id("application")
-
-	// use shadow only for application scripts, jar will be copied from jadx-gui
-	id("com.gradleup.shadow") version "8.3.5"
 }
 
 dependencies {
@@ -45,7 +42,6 @@ application {
 	}
 }
 
-tasks.shadowJar {
-	// shadow jar not needed
-	configurations = listOf()
+tasks.startScripts {
+	classpath = files("lib/*")
 }
