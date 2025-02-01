@@ -110,11 +110,19 @@ project.components.withType(AdhocComponentWithVariants::class.java).forEach { c 
 
 tasks.startShadowScripts {
 	doLast {
-		val newContent =
+		val newWindowsScriptContent =
 			windowsScript.readText()
 				.replace("java.exe", "javaw.exe")
 				.replace("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%", "start \"jadx-gui\" /B \"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")
-		windowsScript.writeText(newContent)
+		// Add launch script path as a property
+		val newUnixScriptContent =
+			unixScript.readText()
+				.replace(
+					Regex("DEFAULT_JVM_OPTS=.+", RegexOption.MULTILINE),
+					{ result -> result.value + "\" \\\"-Djadx.launchScript.path=\$(realpath $0)\\\"\"" },
+				)
+		windowsScript.writeText(newWindowsScriptContent)
+		unixScript.writeText(newUnixScriptContent)
 	}
 }
 

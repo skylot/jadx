@@ -231,6 +231,16 @@ public class FileUtils {
 		}
 	}
 
+	public static Path createTempFileNonPrefixed(String fileName) {
+		try {
+			Path path = Files.createFile(tempRootDir.resolve(fileName));
+			path.toFile().deleteOnExit();
+			return path;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create non-prefixed temp file: " + fileName, e);
+		}
+	}
+
 	public static void copyStream(InputStream input, OutputStream output) throws IOException {
 		byte[] buffer = new byte[READ_BUFFER_SIZE];
 		while (true) {
@@ -264,6 +274,11 @@ public class FileUtils {
 		FileUtils.makeDirsForFile(file);
 		Files.writeString(file, data, StandardCharsets.UTF_8,
 				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+	}
+
+	public static void writeFile(Path file, InputStream is) throws IOException {
+		FileUtils.makeDirsForFile(file);
+		Files.copy(is, file, StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	public static String readFile(Path textFile) throws IOException {

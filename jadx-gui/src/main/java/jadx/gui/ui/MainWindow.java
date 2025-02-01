@@ -153,11 +153,13 @@ import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.DesktopEntryUtils;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
@@ -1186,6 +1188,9 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(showLogAction);
+		if (SystemInfo.IS_UNIX && !SystemInfo.IS_MAC) {
+			help.add(new JadxGuiAction(ActionModel.CREATE_DESKTOP_ENTRY, this::createDesktopEntry));
+		}
 		if (Jadx.isDevVersion()) {
 			help.add(new AbstractAction("Show sample error report") {
 				@Override
@@ -1722,6 +1727,16 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 			pluginsMenu.addSeparator();
 		}
 		pluginsMenu.add(item);
+	}
+
+	private void createDesktopEntry() {
+		if (DesktopEntryUtils.createDesktopEntry()) {
+			JOptionPane.showMessageDialog(this, NLS.str("message.desktop_entry_creation_success"),
+					NLS.str("message.success_title"), JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(this, NLS.str("message.desktop_entry_creation_error"),
+					NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	public RenameMappingsGui getRenameMappings() {
