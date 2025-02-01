@@ -27,10 +27,6 @@ public class JSources extends JNode {
 	public final void update() {
 		removeAllChildren();
 		PackageHelper packageHelper = wrapper.getCache().getPackageHelper();
-		if (packageHelper == null) {
-			packageHelper = new PackageHelper(wrapper);
-			wrapper.getCache().setPackageHelper(packageHelper);
-		}
 		List<JPackage> roots = packageHelper.getRoots(flatPackages);
 		for (JPackage rootPkg : roots) {
 			rootPkg.update();

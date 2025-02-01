@@ -14,29 +14,30 @@ import jadx.gui.utils.pkgs.PackageHelper;
 
 public class CacheObject {
 	private final JadxWrapper wrapper;
+	private final JNodeCache jNodeCache;
+	private final PackageHelper packageHelper;
 
 	private String lastSearch;
-	private JNodeCache jNodeCache;
 	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
 	private String lastSearchPackage;
 
 	private List<List<JavaClass>> decompileBatches;
-	private PackageHelper packageHelper;
 
 	private volatile boolean fullDecompilationFinished;
 
 	public CacheObject(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
+		this.jNodeCache = new JNodeCache(wrapper);
+		this.packageHelper = new PackageHelper(wrapper, jNodeCache);
 		reset();
 	}
 
 	public void reset() {
 		lastSearch = null;
-		jNodeCache = new JNodeCache(wrapper);
+		jNodeCache.reset();
 		lastSearchOptions = new HashMap<>();
 		lastSearchPackage = null;
 		decompileBatches = null;
-		packageHelper = null;
 		fullDecompilationFinished = false;
 	}
 
@@ -76,10 +77,6 @@ public class CacheObject {
 
 	public PackageHelper getPackageHelper() {
 		return packageHelper;
-	}
-
-	public void setPackageHelper(PackageHelper packageHelper) {
-		this.packageHelper = packageHelper;
 	}
 
 	public boolean isFullDecompilationFinished() {

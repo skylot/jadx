@@ -34,6 +34,9 @@ public class JField extends JNode implements JRenameNode {
 	private final transient JavaField field;
 	private final transient JClass jParent;
 
+	/**
+	 * Should be called only from JNodeCache!
+	 */
 	public JField(JavaField javaField, JClass jClass) {
 		this.field = javaField;
 		this.jParent = jClass;

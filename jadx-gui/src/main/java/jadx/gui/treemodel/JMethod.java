@@ -40,6 +40,9 @@ public class JMethod extends JNode implements JRenameNode {
 	private final transient JavaMethod mth;
 	private final transient JClass jParent;
 
+	/**
+	 * Should be called only from JNodeCache!
+	 */
 	public JMethod(JavaMethod javaMethod, JClass jClass) {
 		this.mth = javaMethod;
 		this.jParent = jClass;

@@ -1,5 +1,7 @@
 package jadx.gui.treemodel;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.Icon;
@@ -33,12 +35,19 @@ public class JPackage extends JNode {
 
 	private String name;
 
+	/**
+	 * Should be called only from JNodeCache!
+	 */
 	public JPackage(JavaPackage pkg, boolean enabled, List<JClass> classes, List<JPackage> subPackages, boolean synthetic) {
 		this.pkg = pkg;
 		this.enabled = enabled;
 		this.classes = classes;
 		this.subPackages = subPackages;
 		this.synthetic = synthetic;
+	}
+
+	public static JPackage makeTmpRoot() {
+		return new JPackage(null, true, Collections.emptyList(), new ArrayList<>(), true);
 	}
 
 	public void update() {

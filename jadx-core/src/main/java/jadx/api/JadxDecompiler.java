@@ -587,6 +587,8 @@ public final class JadxDecompiler implements Closeable {
 				return convertMethodNode((MethodNode) ann);
 			case FIELD:
 				return convertFieldNode((FieldNode) ann);
+			case PKG:
+				return convertPackageNode((PackageNode) ann);
 			case DECLARATION:
 				return getJavaNodeByCodeAnnotation(codeInfo, ((NodeDeclareRef) ann).getNode());
 			case VAR:

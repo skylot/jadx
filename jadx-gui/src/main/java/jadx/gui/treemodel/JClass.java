@@ -9,6 +9,7 @@ import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
@@ -30,6 +31,7 @@ import jadx.gui.ui.popupmenu.JClassPopupMenu;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.Icons;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -46,12 +48,18 @@ public class JClass extends JLoadableNode implements JRenameNode {
 
 	private final transient JavaClass cls;
 	private final transient JClass jParent;
+	private final transient JNodeCache nodeCache;
+
 	private transient boolean loaded;
 
-	public JClass(JavaClass cls, JClass parent) {
+	/**
+	 * Should be called only from JNodeCache!
+	 */
+	public JClass(JavaClass cls, JClass parent, JNodeCache nodeCache) {
 		this.cls = cls;
 		this.jParent = parent;
 		this.loaded = parent != null;
+		this.nodeCache = nodeCache;
 	}
 
 	public JavaClass getCls() {
@@ -69,7 +77,10 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	}
 
 	@Override
-	public SimpleTask getLoadTask() {
+	public synchronized @Nullable SimpleTask getLoadTask() {
+		if (loaded) {
+			return null;
+		}
 		JClass rootClass = getRootClass();
 		return new SimpleTask(NLS.str("progress.decompile"),
 				() -> rootClass.getCls().getClassNode().decompile(), // run decompilation in background
@@ -106,15 +117,15 @@ public class JClass extends JLoadableNode implements JRenameNode {
 			add(new TextNode(NLS.str("tree.loading")));
 		} else {
 			for (JavaClass javaClass : cls.getInnerClasses()) {
-				JClass innerCls = new JClass(javaClass, this);
+				JClass innerCls = nodeCache.makeFrom(javaClass);
 				add(innerCls);
 				innerCls.update();
 			}
 			for (JavaField f : cls.getFields()) {
-				add(new JField(f, this));
+				add(nodeCache.makeFrom(f));
 			}
 			for (JavaMethod m : cls.getMethods()) {
-				add(new JMethod(m, this));
+				add(nodeCache.makeFrom(m));
 			}
 		}
 	}

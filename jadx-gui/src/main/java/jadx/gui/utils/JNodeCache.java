@@ -1,5 +1,7 @@
 package jadx.gui.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -7,6 +9,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.api.JavaPackage;
 import jadx.api.JavaVariable;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -15,6 +18,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JVariable;
 
 public class JNodeCache {
@@ -38,6 +42,14 @@ public class JNodeCache {
 		return jNode;
 	}
 
+	public void put(ICodeNodeRef nodeRef, JNode jNode) {
+		cache.put(nodeRef, jNode);
+	}
+
+	public void put(JavaNode javaNode, JNode jNode) {
+		cache.put(javaNode.getCodeNodeRef(), jNode);
+	}
+
 	public JNode makeFrom(JavaNode javaNode) {
 		if (javaNode == null) {
 			return null;
@@ -58,6 +70,12 @@ public class JNodeCache {
 		return jCls;
 	}
 
+	public JPackage newJPackage(JavaPackage javaPkg, boolean synthetic, boolean pkgEnabled, List<JClass> classes) {
+		JPackage jPackage = new JPackage(javaPkg, pkgEnabled, classes, new ArrayList<>(), synthetic);
+		put(javaPkg, jPackage);
+		return jPackage;
+	}
+
 	public void remove(JavaNode javaNode) {
 		cache.remove(javaNode.getCodeNodeRef());
 	}
@@ -70,12 +88,16 @@ public class JNodeCache {
 		javaCls.getInlinedClasses().forEach(this::remove);
 	}
 
+	public void reset() {
+		cache.clear();
+	}
+
 	private JClass convert(JavaClass cls) {
 		JavaClass parentCls = cls.getDeclaringClass();
 		if (parentCls == cls) {
-			return new JClass(cls, null);
+			return new JClass(cls, null, this);
 		}
-		return new JClass(cls, makeFrom(parentCls));
+		return new JClass(cls, makeFrom(parentCls), this);
 	}
 
 	private JNode convert(ICodeNodeRef nodeRef) {
@@ -100,6 +122,9 @@ public class JNodeCache {
 			JavaVariable javaVar = (JavaVariable) node;
 			JMethod jMth = (JMethod) makeFrom(javaVar.getMth());
 			return new JVariable(jMth, javaVar);
+		}
+		if (node instanceof JavaPackage) {
+			throw new JadxRuntimeException("Unexpected JPackage (missing from cache): " + node);
 		}
 		throw new JadxRuntimeException("Unknown type for JavaNode: " + node.getClass());
 	}
