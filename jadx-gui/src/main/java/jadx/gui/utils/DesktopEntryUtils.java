@@ -1,9 +1,12 @@
 package jadx.gui.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -20,8 +23,18 @@ public class DesktopEntryUtils {
 			48, "jadx-logo-48px.png",
 			252, "jadx-logo.png",
 			256, "jadx-logo.png");
+	private static final Path XDG_DESKTOP_MENU_COMMAND_PATH = findExecutablePath("xdg-desktop-menu");
+	private static final Path XDG_ICON_RESOURCE_COMMAND_PATH = findExecutablePath("xdg-icon-resource");
 
 	public static boolean createDesktopEntry() {
+		if (XDG_DESKTOP_MENU_COMMAND_PATH == null) {
+			LOG.error("xdg-desktop-menu was not found in $PATH");
+			return false;
+		}
+		if (XDG_ICON_RESOURCE_COMMAND_PATH == null) {
+			LOG.error("xdg-icon-resource was not found in $PATH");
+			return false;
+		}
 		Path desktopTempFile = FileUtils.createTempFileNonPrefixed("jadx-gui.desktop");
 		Path iconTempFolder = FileUtils.createTempDir("logos");
 		LOG.debug("Creating desktop with temp files: {}, {}", desktopTempFile, iconTempFolder);
@@ -59,7 +72,8 @@ public class DesktopEntryUtils {
 
 	private static boolean installDesktopEntry(Path desktopTempFile) {
 		try {
-			ProcessBuilder desktopFileInstallCommand = new ProcessBuilder("xdg-desktop-menu", "install", desktopTempFile.toString());
+			ProcessBuilder desktopFileInstallCommand = new ProcessBuilder(Objects.requireNonNull(XDG_DESKTOP_MENU_COMMAND_PATH).toString(),
+					"install", desktopTempFile.toString());
 			Process process = desktopFileInstallCommand.start();
 			int statusCode = process.waitFor();
 			if (statusCode != 0) {
@@ -77,7 +91,8 @@ public class DesktopEntryUtils {
 	private static boolean installIcon(int size, Path iconPath) {
 		try {
 			ProcessBuilder iconInstallCommand =
-					new ProcessBuilder("xdg-icon-resource", "install", "--novendor", "--size", String.valueOf(size), iconPath.toString(),
+					new ProcessBuilder(Objects.requireNonNull(XDG_ICON_RESOURCE_COMMAND_PATH).toString(), "install", "--novendor", "--size",
+							String.valueOf(size), iconPath.toString(),
 							"jadx");
 			Process process = iconInstallCommand.start();
 			int statusCode = process.waitFor();
@@ -91,6 +106,16 @@ public class DesktopEntryUtils {
 		}
 		LOG.info("Successfully installed icon of size {}", size);
 		return true;
+	}
+
+	private static Path findExecutablePath(String executableName) {
+		for (String pathDirectory : System.getenv("PATH").split(File.pathSeparator)) {
+			Path path = Paths.get(pathDirectory, executableName);
+			if (path.toFile().isFile() && path.toFile().canExecute()) {
+				return path;
+			}
+		}
+		return null;
 	}
 
 	private static boolean writeDesktopFile(String launchScriptPath, Path desktopFilePath) {
