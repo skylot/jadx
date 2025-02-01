@@ -119,7 +119,7 @@ tasks.startShadowScripts {
 			unixScript.readText()
 				.replace(
 					Regex("DEFAULT_JVM_OPTS=.+", RegexOption.MULTILINE),
-					{ result -> result.value + "\" \\\"-Djadx.launchScript.path=\$(readlink -e -- $0)\\\"\"" },
+					{ result -> result.value + "\" \\\"-Djadx.launchScript.path=\$(realpath $0)\\\"\"" },
 				)
 		windowsScript.writeText(newWindowsScriptContent)
 		unixScript.writeText(newUnixScriptContent)
