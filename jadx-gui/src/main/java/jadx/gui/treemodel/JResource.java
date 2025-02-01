@@ -20,7 +20,6 @@ import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
-import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.BinaryContentPanel;
@@ -63,7 +62,7 @@ public class JResource extends JLoadableNode {
 
 	private transient volatile boolean loaded;
 	private transient List<JResource> subNodes = Collections.emptyList();
-	private transient ICodeInfo content;
+	private transient ICodeInfo content = ICodeInfo.EMPTY;
 
 	public JResource(ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
@@ -77,7 +76,7 @@ public class JResource extends JLoadableNode {
 		this.loaded = false;
 	}
 
-	public final void update() {
+	public synchronized void update() {
 		removeAllChildren();
 		if (Utils.isEmpty(subNodes)) {
 			if (type == JResType.DIR || type == JResType.ROOT
@@ -91,6 +90,10 @@ public class JResource extends JLoadableNode {
 				res.update();
 				add(res);
 			}
+			if (type != JResType.FILE) {
+				// no content, nothing to load
+				loaded = true;
+			}
 		}
 	}
 
@@ -101,7 +104,10 @@ public class JResource extends JLoadableNode {
 	}
 
 	@Override
-	public synchronized IBackgroundTask getLoadTask() {
+	public synchronized SimpleTask getLoadTask() {
+		if (loaded) {
+			return null;
+		}
 		return new SimpleTask(NLS.str("progress.load"), this::getCodeInfo, this::update);
 	}
 
@@ -314,6 +320,14 @@ public class JResource extends JLoadableNode {
 	@Override
 	public JClass getJParent() {
 		return null;
+	}
+
+	@Override
+	public String getID() {
+		if (type == JResType.ROOT) {
+			return "JResources";
+		}
+		return makeString();
 	}
 
 	@Override

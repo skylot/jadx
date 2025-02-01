@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
+import jadx.commons.app.JadxCommonEnv;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.StringUtils;
@@ -50,6 +51,8 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class UiUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);
+
+	public static final boolean JADX_GUI_DEBUG = JadxCommonEnv.getBool("JADX_GUI_DEBUG", false);
 
 	/**
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may

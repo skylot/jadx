@@ -45,6 +45,11 @@ public class JSources extends JNode {
 	}
 
 	@Override
+	public String getID() {
+		return "JSources";
+	}
+
+	@Override
 	public String makeString() {
 		return NLS.str("tree.sources_title");
 	}

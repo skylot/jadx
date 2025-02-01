@@ -27,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -102,7 +101,9 @@ import jadx.gui.events.types.JadxGuiEventsImpl;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
+import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
@@ -113,8 +114,8 @@ import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.settings.ui.plugins.PluginSettings;
+import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignature;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
@@ -199,6 +200,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 	private final transient CacheManager cacheManager;
 	private final transient BackgroundExecutor backgroundExecutor;
 	private final transient JadxGuiEventsImpl events = new JadxGuiEventsImpl();
+	private final transient TreeExpansionService treeExpansionService;
 
 	private final TabsController tabsController;
 	private final NavigationController navController;
@@ -271,6 +273,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
+		this.treeExpansionService = new TreeExpansionService(this, tree);
 		initMenuAndToolbar();
 		UiUtils.setWindowIcons(this);
 		this.shortcutsController.registerMouseEventListener(this);
@@ -603,6 +606,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 
 	private void saveAll() {
 		saveOpenTabs();
+		project.setTreeExpansions(treeExpansionService.save());
 		BreakpointManager.saveAndExit();
 	}
 
@@ -645,7 +649,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 		initTree();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
-
+		treeExpansionService.load(project.getTreeExpansions());
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				() -> preLoadOpenTabs(openTabs),
@@ -839,39 +843,12 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 	public void reloadTree() {
 		treeReloading = true;
 		treeUpdateListener.forEach(listener -> listener.accept(treeRoot));
-
 		treeModel.reload();
-		List<String[]> treeExpansions = project.getTreeExpansions();
-		if (!treeExpansions.isEmpty()) {
-			expand(treeRoot, treeExpansions);
-		} else {
-			tree.expandRow(1);
-		}
-
 		treeReloading = false;
 	}
 
 	public void rebuildPackagesTree() {
-		cacheObject.setPackageHelper(null);
 		treeRoot.update();
-	}
-
-	private void expand(TreeNode node, List<String[]> treeExpansions) {
-		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
-		if (pathNodes == null) {
-			return;
-		}
-		TreePath path = new TreePath(pathNodes);
-		String[] pathExpansion = getPathExpansion(path);
-		for (String[] expansion : treeExpansions) {
-			if (Arrays.equals(expansion, pathExpansion)) {
-				tree.expandPath(path);
-				break;
-			}
-		}
-		for (int i = node.getChildCount() - 1; i >= 0; i--) {
-			expand(node.getChildAt(i), treeExpansions);
-		}
 	}
 
 	private void toggleFlattenPackage() {
@@ -1216,6 +1193,8 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 					ExceptionDialog.throwTestException();
 				}
 			});
+		}
+		if (UiUtils.JADX_GUI_DEBUG) {
 			JCheckBoxMenuItem uiWatchDog = new JCheckBoxMenuItem(new ActionHandler("UI WatchDog", UIWatchDog::toggle));
 			uiWatchDog.setState(UIWatchDog.onStart());
 			help.add(uiWatchDog);
@@ -1374,19 +1353,14 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 				Object node = path.getLastPathComponent();
 				if (node instanceof JLoadableNode) {
 					JLoadableNode treeNode = (JLoadableNode) node;
-					backgroundExecutor.execute(treeNode.getLoadTask());
-					// schedule update for expanded nodes in a tree
-					backgroundExecutor.execute(NLS.str("progress.load"),
-							UiUtils.EMPTY_RUNNABLE,
-							status -> {
-								if (!treeReloading) {
-									treeModel.nodeStructureChanged(treeNode);
-									project.addTreeExpansion(getPathExpansion(event.getPath()));
-								}
-							});
-				} else {
-					if (!treeReloading) {
-						project.addTreeExpansion(getPathExpansion(event.getPath()));
+					IBackgroundTask loadTask = treeNode.getLoadTask();
+					if (loadTask != null) {
+						backgroundExecutor.execute(new TaskWithExtraOnFinish(loadTask,
+								status -> {
+									if (!treeReloading) {
+										treeModel.nodeStructureChanged(treeNode);
+									}
+								}));
 					}
 				}
 			}
@@ -1394,7 +1368,6 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 			@Override
 			public void treeWillCollapse(TreeExpansionEvent event) {
 				if (!treeReloading) {
-					project.removeTreeExpansion(getPathExpansion(event.getPath()));
 					update();
 				}
 			}
@@ -1442,35 +1415,6 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 		mainPanel.add(bottomSplitPane, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
-	}
-
-	private static String[] getPathExpansion(TreePath path) {
-		List<String> pathList = new ArrayList<>();
-		while (path != null) {
-			Object node = path.getLastPathComponent();
-			String name;
-			if (node instanceof JClass) {
-				name = ((JClass) node).getCls().getClassNode().getClassInfo().getFullName();
-			} else {
-				name = node.toString();
-			}
-			pathList.add(name);
-			path = path.getParentPath();
-		}
-		return pathList.toArray(new String[0]);
-	}
-
-	public static void getExpandedPaths(JTree tree, TreePath path, List<TreePath> list) {
-		if (tree.isExpanded(path)) {
-			list.add(path);
-
-			TreeNode node = (TreeNode) path.getLastPathComponent();
-			for (int i = node.getChildCount() - 1; i >= 0; i--) {
-				TreeNode n = node.getChildAt(i);
-				TreePath child = path.pathByAddingChild(n);
-				getExpandedPaths(tree, child, list);
-			}
-		}
 	}
 
 	public void setLocationAndPosition() {

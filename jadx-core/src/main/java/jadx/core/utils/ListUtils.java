@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -213,4 +214,14 @@ public class ListUtils {
 		return false;
 	}
 
+	public static <T> List<T> enumerationToList(Enumeration<T> enumeration) {
+		if (enumeration == null || enumeration == Collections.emptyEnumeration()) {
+			return Collections.emptyList();
+		}
+		List<T> list = new ArrayList<>();
+		while (enumeration.hasMoreElements()) {
+			list.add(enumeration.nextElement());
+		}
+		return list;
+	}
 }

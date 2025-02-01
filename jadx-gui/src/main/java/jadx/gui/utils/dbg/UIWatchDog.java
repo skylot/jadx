@@ -20,17 +20,12 @@ import jadx.gui.utils.UiUtils;
 public class UIWatchDog {
 	private static final Logger LOG = LoggerFactory.getLogger(UIWatchDog.class);
 
-	private static final boolean RUN_ON_START = true;
-
 	private static final int UI_MAX_DELAY_MS = 200;
 	private static final int CHECK_INTERVAL_MS = 50;
 
 	public static boolean onStart() {
-		if (RUN_ON_START) {
-			UiUtils.uiRun(UIWatchDog::toggle);
-			return true;
-		}
-		return false;
+		UiUtils.uiRunAndWait(UIWatchDog::toggle);
+		return INSTANCE.isEnabled();
 	}
 
 	public static synchronized void toggle() {
@@ -67,6 +62,10 @@ public class UIWatchDog {
 			enabled.set(true);
 			taskFuture = executor.submit(() -> start(uiThread));
 		}
+	}
+
+	private boolean isEnabled() {
+		return enabled.get();
 	}
 
 	@SuppressWarnings("BusyWait")

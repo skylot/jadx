@@ -5,15 +5,12 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -51,7 +48,6 @@ import static jadx.core.utils.GsonUtils.interfaceReplace;
 public class JadxProject {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxProject.class);
 
-	private static final int CURRENT_PROJECT_VERSION = 1;
 	public static final String PROJECT_EXTENSION = "jadx";
 
 	private static final int SEARCH_HISTORY_LIMIT = 30;
@@ -136,25 +132,13 @@ public class JadxProject {
 		changed();
 	}
 
-	public List<String[]> getTreeExpansions() {
-		return data.getTreeExpansions();
+	public void setTreeExpansions(List<String> list) {
+		data.setTreeExpansionsV2(list);
+		changed();
 	}
 
-	public void addTreeExpansion(String[] expansion) {
-		data.getTreeExpansions().removeIf(arr -> Arrays.equals(arr, expansion));
-		data.getTreeExpansions().add(expansion);
-	}
-
-	public void removeTreeExpansion(String[] expansion) {
-		data.getTreeExpansions().removeIf(strings -> isParentOfExpansion(expansion, strings));
-	}
-
-	private void reduceTreeExpansions() {
-		// remove same entries before a project file save
-		// this is mostly needed for old projects ('add' guard don't work for existed entries)
-		Set<String[]> set = new TreeSet<>((a, b) -> Arrays.equals(a, b) ? 0 : Integer.compare(Arrays.hashCode(a), Arrays.hashCode(b)));
-		set.addAll(data.getTreeExpansions());
-		data.setTreeExpansions(new ArrayList<>(set));
+	public List<String> getTreeExpansions() {
+		return data.getTreeExpansionsV2();
 	}
 
 	private boolean isParentOfExpansion(String[] parent, String[] child) {
@@ -287,10 +271,6 @@ public class JadxProject {
 		mainWindow.updateProject(this);
 	}
 
-	private void onSave() {
-		reduceTreeExpansions();
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -314,7 +294,6 @@ public class JadxProject {
 	}
 
 	public void save() {
-		onSave();
 		Path savePath = getProjectPath();
 		if (savePath != null) {
 			Path basePath = savePath.toAbsolutePath().getParent();
@@ -333,7 +312,6 @@ public class JadxProject {
 			project.data = loadProjectData(path);
 			project.saved = true;
 			project.setProjectPath(path);
-			project.upgrade();
 			return project;
 		} catch (Exception e) {
 			LOG.error("Error loading project", e);
@@ -358,21 +336,5 @@ public class JadxProject {
 				.registerTypeAdapter(IJavaNodeRef.class, interfaceReplace(JadxNodeRef.class))
 				.registerTypeAdapter(IJavaCodeRef.class, interfaceReplace(JadxCodeRef.class))
 				.create();
-	}
-
-	private void upgrade() {
-		int fromVersion = data.getProjectVersion();
-		if (fromVersion == CURRENT_PROJECT_VERSION) {
-			return;
-		}
-		LOG.debug("upgrade project settings from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
-		if (fromVersion == 0) {
-			fromVersion++;
-		}
-		if (fromVersion != CURRENT_PROJECT_VERSION) {
-			throw new JadxRuntimeException("Project update failed");
-		}
-		data.setProjectVersion(CURRENT_PROJECT_VERSION);
-		save();
 	}
 }

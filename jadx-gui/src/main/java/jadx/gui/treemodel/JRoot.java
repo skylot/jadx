@@ -162,6 +162,11 @@ public class JRoot extends JNode {
 	}
 
 	@Override
+	public String getID() {
+		return "JRoot";
+	}
+
+	@Override
 	public String makeString() {
 		JadxProject project = wrapper.getProject();
 		if (project.getProjectPath() != null) {

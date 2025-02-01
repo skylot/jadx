@@ -40,6 +40,11 @@ public class JInputScripts extends JNode {
 	}
 
 	@Override
+	public String getID() {
+		return "JInputScripts";
+	}
+
+	@Override
 	public String makeString() {
 		return NLS.str("tree.input_scripts");
 	}

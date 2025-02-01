@@ -2,11 +2,13 @@ package jadx.gui.treemodel;
 
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.function.Predicate;
 
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.core.utils.ListUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
@@ -48,7 +51,6 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 		return SyntaxConstants.SYNTAX_STYLE_NONE;
 	}
 
-	@NotNull
 	public ICodeInfo getCodeInfo() {
 		return ICodeInfo.EMPTY;
 	}
@@ -73,6 +75,15 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 
 	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		return null;
+	}
+
+	/**
+	 * JNode identifier.
+	 * Should be locale independent.
+	 * TODO: implement list or enum of custom tree nodes to allow extension from plugins
+	 */
+	public String getID() {
+		return makeString();
 	}
 
 	public abstract String makeString();
@@ -137,6 +148,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements Comparable
 			}
 		}
 		return null;
+	}
+
+	public List<TreeNode> childrenList() {
+		return ListUtils.enumerationToList(this.children());
 	}
 
 	private static final Comparator<JNode> COMPARATOR = Comparator

@@ -13,10 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.data.impl.JadxCodeData;
 
 public class ProjectData {
-
-	private int projectVersion = 1;
+	private int projectVersion = 2;
 	private List<Path> files = new ArrayList<>();
-	private List<String[]> treeExpansions = new ArrayList<>();
+	private List<String> treeExpansionsV2 = new ArrayList<>();
 	private JadxCodeData codeData = new JadxCodeData();
 	private List<TabViewState> openTabs = Collections.emptyList();
 	private @Nullable Path mappingsPath;
@@ -33,12 +32,12 @@ public class ProjectData {
 		this.files = Objects.requireNonNull(files);
 	}
 
-	public List<String[]> getTreeExpansions() {
-		return treeExpansions;
+	public List<String> getTreeExpansionsV2() {
+		return treeExpansionsV2;
 	}
 
-	public void setTreeExpansions(List<String[]> treeExpansions) {
-		this.treeExpansions = treeExpansions;
+	public void setTreeExpansionsV2(List<String> treeExpansionsV2) {
+		this.treeExpansionsV2 = treeExpansionsV2;
 	}
 
 	public JadxCodeData getCodeData() {

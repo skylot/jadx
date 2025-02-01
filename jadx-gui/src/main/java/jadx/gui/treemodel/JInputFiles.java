@@ -39,6 +39,11 @@ public class JInputFiles extends JNode {
 	}
 
 	@Override
+	public String getID() {
+		return "JInputFiles";
+	}
+
+	@Override
 	public String makeString() {
 		return NLS.str("tree.input_files");
 	}

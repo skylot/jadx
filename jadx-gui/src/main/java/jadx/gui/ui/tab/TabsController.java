@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -17,12 +16,13 @@ import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.gui.jobs.SimpleTask;
-import jadx.gui.jobs.TaskStatus;
+import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.UiUtils;
 
 public class TabsController {
 	private static final Logger LOG = LoggerFactory.getLogger(TabsController.class);
@@ -113,16 +113,12 @@ public class TabsController {
 
 	private void loadCodeWithUIAction(JClass cls, Runnable action) {
 		SimpleTask loadTask = cls.getLoadTask();
-		mainWindow.getBackgroundExecutor().execute(
-				new SimpleTask(loadTask.getTitle(),
-						loadTask.getJobs(),
-						status -> {
-							Consumer<TaskStatus> onFinish = loadTask.getOnFinish();
-							if (onFinish != null) {
-								onFinish.accept(status);
-							}
-							action.run();
-						}));
+		if (loadTask == null) {
+			// already loaded
+			UiUtils.uiRun(action);
+			return;
+		}
+		mainWindow.getBackgroundExecutor().execute(new TaskWithExtraOnFinish(loadTask, action));
 	}
 
 	/**

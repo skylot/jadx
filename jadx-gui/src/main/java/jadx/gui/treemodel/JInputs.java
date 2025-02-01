@@ -46,6 +46,11 @@ public class JInputs extends JNode {
 	}
 
 	@Override
+	public String getID() {
+		return "JInputs";
+	}
+
+	@Override
 	public String makeString() {
 		return NLS.str("tree.inputs_title");
 	}

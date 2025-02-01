@@ -6,7 +6,6 @@ import jadx.core.Jadx
 import jadx.core.plugins.versions.VersionComparator
 import jadx.core.utils.GsonUtils.buildGson
 import jadx.gui.settings.JadxUpdateChannel
-import org.jetbrains.kotlin.konan.file.use
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
