@@ -73,6 +73,8 @@ application {
 			// needed for ktlint formatter
 			"-XX:+IgnoreUnrecognizedVMOptions",
 			"--add-opens=java.base/java.lang=ALL-UNNAMED",
+			// Foreign API access for 'directories' library (Windows only)
+			"--enable-native-access=ALL-UNNAMED",
 			// flags to fix UI ghosting (#2225)
 			"-Dsun.java2d.noddraw=true",
 			"-Dsun.java2d.d3d=false",

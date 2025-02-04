@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-	implementation("dev.dirs:directories:26")
+	implementation("io.get-coursier.util:directories-jni:0.1.3")
 }

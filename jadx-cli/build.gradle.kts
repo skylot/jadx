@@ -37,6 +37,8 @@ application {
 			"-XX:MaxRAMPercentage=70.0",
 			// disable zip checks (#1962)
 			"-Djdk.util.zip.disableZip64ExtraFieldValidation=true",
+			// Foreign API access for 'directories' library (Windows only)
+			"--enable-native-access=ALL-UNNAMED",
 		)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")

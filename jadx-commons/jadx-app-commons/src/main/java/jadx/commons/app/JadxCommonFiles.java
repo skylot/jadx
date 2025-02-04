@@ -8,6 +8,9 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 import dev.dirs.ProjectDirectories;
+import dev.dirs.impl.Windows;
+import dev.dirs.impl.WindowsPowerShell;
+import dev.dirs.jni.WindowsJni;
 
 public class JadxCommonFiles {
 
@@ -58,9 +61,20 @@ public class JadxCommonFiles {
 
 		private synchronized ProjectDirectories loadDirs() {
 			if (dirs == null) {
-				dirs = ProjectDirectories.from("io.github", "skylot", "jadx");
+				dirs = ProjectDirectories.from("io.github", "skylot", "jadx", DirsLoader::getWinDirs);
 			}
 			return dirs;
+		}
+
+		/**
+		 * Return JNI or Foreign implementation
+		 */
+		private static Windows getWinDirs() {
+			Windows defSup = Windows.getDefaultSupplier().get();
+			if (defSup instanceof WindowsPowerShell) {
+				return new WindowsJni();
+			}
+			return defSup;
 		}
 
 		public Path getCacheDir() {
