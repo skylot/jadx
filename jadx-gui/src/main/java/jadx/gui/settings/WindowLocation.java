@@ -32,6 +32,21 @@ public class WindowLocation {
 	}
 
 	@Override
+	public int hashCode() {
+		return windowId.hashCode();
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (o instanceof WindowLocation) {
+			WindowLocation that = (WindowLocation) o;
+			return windowId.equals(that.windowId) && bounds.equals(that.bounds);
+		}
+		return false;
+
+	}
+
+	@Override
 	public String toString() {
 		return "WindowLocation{"
 				+ "id='" + windowId + '\''

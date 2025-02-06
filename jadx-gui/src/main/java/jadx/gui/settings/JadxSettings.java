@@ -261,8 +261,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void saveWindowPos(Window window) {
 		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
-		windowPos.put(pos.getWindowId(), pos);
-		partialSync(settings -> settings.windowPos = windowPos);
+		WindowLocation prevPos = windowPos.put(pos.getWindowId(), pos);
+		if (prevPos == null || !prevPos.equals(pos)) {
+			partialSync(settings -> settings.windowPos = windowPos);
+		}
 	}
 
 	public boolean loadWindowPos(Window window) {
