@@ -189,6 +189,7 @@ public class CommentDialog extends JDialog {
 			setTitle(NLS.str("comment_dialog.title.add"));
 		}
 		pack();
+		setMinimumSize(getSize());
 		if (!codeArea.getMainWindow().getSettings().loadWindowPos(this)) {
 			setSize(400, 340);
 		}
