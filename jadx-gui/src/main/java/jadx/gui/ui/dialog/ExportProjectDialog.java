@@ -7,6 +7,7 @@ import java.awt.event.ItemEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -14,16 +15,10 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.WindowConstants;
-
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.gui.settings.ExportProjectProperties;
 import jadx.gui.ui.MainWindow;
@@ -33,55 +28,35 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
-public class ExportProjectDialog extends JDialog {
+public class ExportProjectDialog extends CommonDialog {
 
-	public interface ExportProjectDialogListener {
-		void onProjectExportCalled(ExportProjectProperties exportProjectProperties);
-	}
-
-	private static final Logger LOG = LoggerFactory.getLogger(ExportProjectDialog.class);
-	private final ExportProjectDialogListener exportProjectDialogListener;
 	private final ExportProjectProperties exportProjectProperties = new ExportProjectProperties();
-	private final MainWindow mainWindow;
-	private JTextField pathField;
+	private final Consumer<ExportProjectProperties> exportListener;
 
-	public ExportProjectDialog(MainWindow mainWindow, ExportProjectDialogListener exportProjectDialogListener) {
+	public ExportProjectDialog(MainWindow mainWindow, Consumer<ExportProjectProperties> exportListener) {
 		super(mainWindow);
-		this.mainWindow = mainWindow;
-		this.exportProjectDialogListener = exportProjectDialogListener;
+		this.exportListener = exportListener;
 		initUI();
 	}
 
 	private void initUI() {
-
 		JPanel contentPane = makeContentPane();
-
 		JPanel buttonPane = initButtonsPanel();
-
 		Container container = getContentPane();
-		// contentPane.add(topPanel, BorderLayout.NORTH);
 		container.add(contentPane, BorderLayout.CENTER);
 		container.add(buttonPane, BorderLayout.PAGE_END);
 
 		setTitle(NLS.str("export_dialog.title"));
-
-		pack();
-		setSize(400, 250);
-		setLocationRelativeTo(mainWindow);
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
+		commonWindowInit();
 	}
 
 	private JPanel makeContentPane() {
-
-		JPanel mainPanel = new JPanel();
-
 		// top layout
 		JLabel label = new JLabel(NLS.str("export_dialog.save_path"));
 		JTextField pathField = new JTextField();
 		pathField.setText(mainWindow.getSettings().getLastSaveFilePath().toString());
 		pathField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> setExportProjectPath(pathField)));
-		new TextStandardActions(pathField);
+		TextStandardActions.attach(pathField);
 
 		JButton browseButton = makeEditorBrowseButton(pathField);
 
@@ -111,9 +86,9 @@ public class ExportProjectDialog extends JDialog {
 			skipSources.setEnabled(!isSelected);
 		});
 
+		exportOptionsPanel.add(exportAsGradleProject);
 		exportOptionsPanel.add(resourceDecode);
 		exportOptionsPanel.add(skipSources);
-		exportOptionsPanel.add(exportAsGradleProject);
 
 		// build group box layout
 		JPanel groupBoxPanel = new JPanel();
@@ -128,6 +103,7 @@ public class ExportProjectDialog extends JDialog {
 				.addComponent(exportOptionsPanel));
 
 		// main layout
+		JPanel mainPanel = new JPanel();
 		GroupLayout layout = new GroupLayout(mainPanel);
 		mainPanel.setLayout(layout);
 		layout.setAutoCreateGaps(true);
@@ -147,7 +123,6 @@ public class ExportProjectDialog extends JDialog {
 						.addComponent(pathField)
 						.addComponent(browseButton))
 				.addComponent(groupBoxPanel));
-
 		return mainPanel;
 	}
 
@@ -158,9 +133,7 @@ public class ExportProjectDialog extends JDialog {
 		}
 	}
 
-	@NotNull
 	protected JPanel initButtonsPanel() {
-
 		JButton cancelButton = new JButton(NLS.str("common_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
 
@@ -200,8 +173,7 @@ public class ExportProjectDialog extends JDialog {
 					NLS.str("message.errorTitle"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		exportProjectDialogListener.onProjectExportCalled(exportProjectProperties);
-		setVisible(false);
+		exportListener.accept(exportProjectProperties);
+		dispose();
 	}
-
 }

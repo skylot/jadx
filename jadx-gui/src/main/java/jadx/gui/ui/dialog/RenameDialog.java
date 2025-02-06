@@ -9,14 +9,12 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,15 +28,13 @@ import jadx.gui.treemodel.JRenameNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.pkgs.JRenamePackage;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.gui.utils.ui.NodeLabel;
 
-public class RenameDialog extends JDialog {
+public class RenameDialog extends CommonDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
 
-	private final transient MainWindow mainWindow;
 	private final transient JRenameNode node;
 	private transient JTextField renameField;
 	private transient JButton renameBtn;
@@ -68,7 +64,6 @@ public class RenameDialog extends JDialog {
 
 	private RenameDialog(MainWindow mainWindow, JRenameNode node) {
 		super(mainWindow);
-		this.mainWindow = mainWindow;
 		this.node = node.replace();
 		initUI();
 	}
@@ -161,6 +156,7 @@ public class RenameDialog extends JDialog {
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);
+		renameField.setFont(mainWindow.getSettings().getFont());
 		renameField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> checkNewName(renameField.getText())));
 		renameField.addActionListener(e -> rename());
 		new TextStandardActions(renameField);
@@ -187,20 +183,6 @@ public class RenameDialog extends JDialog {
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
 		setTitle(NLS.str("popup.rename"));
-		if (!mainWindow.getSettings().loadWindowPos(this)) {
-			setSize(800, 80);
-		}
-		// always pack (ignore saved windows sizes)
-		pack();
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.APPLICATION_MODAL);
-		UiUtils.addEscapeShortCutToDispose(this);
-	}
-
-	@Override
-	public void dispose() {
-		mainWindow.getSettings().saveWindowPos(this);
-		super.dispose();
+		commonWindowInit();
 	}
 }

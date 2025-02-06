@@ -4,12 +4,7 @@ public class ExportProjectProperties {
 	private boolean skipSources;
 	private boolean skipResources;
 	private boolean asGradleMode;
-	private boolean useGradleKts;
 	private String exportPath;
-
-	public ExportProjectProperties() {
-
-	}
 
 	public boolean isSkipSources() {
 		return skipSources;
@@ -33,14 +28,6 @@ public class ExportProjectProperties {
 
 	public void setAsGradleMode(boolean asGradleMode) {
 		this.asGradleMode = asGradleMode;
-	}
-
-	public boolean isUseGradleKts() {
-		return useGradleKts;
-	}
-
-	public void setUseGradleKts(boolean useGradleKts) {
-		this.useGradleKts = useGradleKts;
 	}
 
 	public String getExportPath() {

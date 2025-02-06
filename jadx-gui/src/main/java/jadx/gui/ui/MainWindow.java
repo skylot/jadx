@@ -167,7 +167,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.NodeLabel;
 
-public class MainWindow extends JFrame implements ExportProjectDialog.ExportProjectDialogListener {
+public class MainWindow extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
 
 	private static final String DEFAULT_TITLE = "jadx-gui";
@@ -809,7 +809,7 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 	}
 
 	private void exportProject() {
-		ExportProjectDialog dialog = new ExportProjectDialog(this, this);
+		ExportProjectDialog dialog = new ExportProjectDialog(this, this::saveAll);
 		dialog.setVisible(true);
 	}
 
@@ -823,8 +823,8 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 			decompilerArgs.setSkipSources(exportProjectProperties.isSkipSources());
 			decompilerArgs.setSkipResources(exportProjectProperties.isSkipResources());
 		}
-
-		backgroundExecutor.execute(new ExportTask(this, wrapper, new File(exportProjectProperties.getExportPath())));
+		File saveDir = new File(exportProjectProperties.getExportPath());
+		backgroundExecutor.execute(new ExportTask(this, wrapper, saveDir));
 	}
 
 	public void initTree() {
@@ -1749,10 +1749,5 @@ public class MainWindow extends JFrame implements ExportProjectDialog.ExportProj
 
 	public JadxGuiEventsImpl events() {
 		return events;
-	}
-
-	@Override
-	public void onProjectExportCalled(ExportProjectProperties exportProjectProperties) {
-		saveAll(exportProjectProperties);
 	}
 }

@@ -16,13 +16,11 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +33,8 @@ import jadx.gui.settings.JadxProject;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.UiUtils;
 
-public class CommentDialog extends JDialog {
+public class CommentDialog extends CommonDialog {
 	private static final long serialVersionUID = -1865682124935757528L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentDialog.class);
@@ -96,7 +93,7 @@ public class CommentDialog extends JDialog {
 			}
 			return;
 		}
-		CommentStyle style = ((CommentStyle) styleCombo.getSelectedItem());
+		CommentStyle style = (CommentStyle) styleCombo.getSelectedItem();
 		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(), comment.getCodeRef(), newCommentStr, style);
 		if (updateComment) {
 			updateCommentsData(codeArea, list -> {
@@ -122,7 +119,7 @@ public class CommentDialog extends JDialog {
 		commentArea = new JTextArea();
 		TextStandardActions.attach(commentArea);
 		commentArea.setEditable(true);
-		commentArea.setFont(codeArea.getMainWindow().getSettings().getFont());
+		commentArea.setFont(mainWindow.getSettings().getFont());
 		commentArea.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		commentArea.addKeyListener(new KeyAdapter() {
@@ -188,15 +185,7 @@ public class CommentDialog extends JDialog {
 		} else {
 			setTitle(NLS.str("comment_dialog.title.add"));
 		}
-		pack();
-		setMinimumSize(getSize());
-		if (!codeArea.getMainWindow().getSettings().loadWindowPos(this)) {
-			setSize(400, 340);
-		}
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.APPLICATION_MODAL);
-		UiUtils.addEscapeShortCutToDispose(this);
+		commonWindowInit();
 	}
 
 	protected JPanel initButtonsPanel() {
@@ -229,11 +218,5 @@ public class CommentDialog extends JDialog {
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(cancelButton);
 		return buttonPane;
-	}
-
-	@Override
-	public void dispose() {
-		codeArea.getMainWindow().getSettings().saveWindowPos(this);
-		super.dispose();
 	}
 }
