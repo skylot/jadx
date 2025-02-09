@@ -5,7 +5,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -133,25 +132,15 @@ public class JadxProject {
 	}
 
 	public void setTreeExpansions(List<String> list) {
+		if (list.equals(data.getTreeExpansionsV2())) {
+			return;
+		}
 		data.setTreeExpansionsV2(list);
 		changed();
 	}
 
 	public List<String> getTreeExpansions() {
 		return data.getTreeExpansionsV2();
-	}
-
-	private boolean isParentOfExpansion(String[] parent, String[] child) {
-		if (Arrays.equals(parent, child)) {
-			return true;
-		}
-		for (int i = child.length - parent.length; i > 0; i--) {
-			String[] arr = Arrays.copyOfRange(child, i, child.length);
-			if (Arrays.equals(parent, arr)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public JadxCodeData getCodeData() {
