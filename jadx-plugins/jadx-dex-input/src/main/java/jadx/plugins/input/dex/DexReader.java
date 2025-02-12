@@ -15,11 +15,11 @@ public class DexReader {
 	private final ByteBuffer buf;
 	private final DexHeader header;
 
-	public DexReader(int uniqId, String inputFileName, byte[] content) {
+	public DexReader(int uniqId, String inputFileName, byte[] content, int offset) {
 		this.uniqId = uniqId;
 		this.inputFileName = inputFileName;
 		this.buf = ByteBuffer.wrap(content);
-		this.header = new DexHeader(new SectionReader(this, 0));
+		this.header = new DexHeader(new SectionReader(this, offset));
 	}
 
 	public void visitClasses(Consumer<IClassData> consumer) {

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
+import jadx.plugins.input.dex.sections.DexHeaderV41;
 import jadx.plugins.input.dex.utils.DexCheckSum;
 
 public class DexFileLoader {
@@ -63,8 +64,7 @@ public class DexFileLoader {
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC) || fileName.endsWith(".dex")) {
 				in.reset();
 				byte[] content = readAllBytes(in);
-				DexReader dexReader = loadDexReader(fileName, content);
-				return Collections.singletonList(dexReader);
+				return loadDexReaders(fileName, content);
 			}
 			if (file != null) {
 				// allow only top level zip files
@@ -76,11 +76,32 @@ public class DexFileLoader {
 		}
 	}
 
-	public DexReader loadDexReader(String fileName, byte[] content) {
-		if (options.isVerifyChecksum()) {
-			DexCheckSum.verify(content, fileName);
+	public List<DexReader> loadDexReaders(String fileName, byte[] content) {
+		DexHeaderV41 dexHeaderV41 = DexHeaderV41.readIfPresent(content);
+		if (dexHeaderV41 != null) {
+			return DexHeaderV41.readSubDexOffsets(content, dexHeaderV41)
+					.stream()
+					.map(offset -> loadSingleDex(fileName, content, offset))
+					.collect(Collectors.toList());
 		}
-		return new DexReader(getNextUniqId(), fileName, content);
+		DexReader dexReader = loadSingleDex(fileName, content, 0);
+		return Collections.singletonList(dexReader);
+	}
+
+	private DexReader loadSingleDex(String fileName, byte[] content, int offset) {
+		if (options.isVerifyChecksum()) {
+			DexCheckSum.verify(fileName, content, offset);
+		}
+		return new DexReader(getNextUniqId(), fileName, content, offset);
+	}
+
+	/**
+	 * Since DEX v41, several sub DEX structures can be stored inside container of a single DEX file
+	 * Use {@link DexFileLoader#loadDexReaders(String, byte[])} instead.
+	 */
+	@Deprecated
+	public DexReader loadDexReader(String fileName, byte[] content) {
+		return loadSingleDex(fileName, content, 0);
 	}
 
 	private List<DexReader> collectDexFromZip(File file) {

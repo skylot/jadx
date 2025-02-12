@@ -3,7 +3,6 @@ package jadx.plugins.input.dex;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,8 +47,8 @@ public class DexInputPlugin implements JadxPlugin {
 
 	public ICodeLoader loadDex(byte[] content, @Nullable String fileName) {
 		String fileLabel = fileName == null ? "input.dex" : fileName;
-		DexReader dexReader = loader.loadDexReader(fileLabel, content);
-		return new DexLoadResult(Collections.singletonList(dexReader), null);
+		List<DexReader> dexReaders = loader.loadDexReaders(fileLabel, content);
+		return new DexLoadResult(dexReaders, null);
 	}
 
 	public ICodeLoader loadDexFromInputStream(InputStream in, @Nullable String fileLabel) {
@@ -62,7 +61,7 @@ public class DexInputPlugin implements JadxPlugin {
 
 	public ICodeLoader loadDexData(List<IDexData> list) {
 		List<DexReader> readers = list.stream()
-				.map(data -> loader.loadDexReader(data.getFileName(), data.getContent()))
+				.flatMap(data -> loader.loadDexReaders(data.getFileName(), data.getContent()).stream())
 				.collect(Collectors.toList());
 		return new DexLoadResult(readers, null);
 	}
