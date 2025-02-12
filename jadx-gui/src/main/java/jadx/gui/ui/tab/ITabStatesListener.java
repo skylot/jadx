@@ -2,18 +2,35 @@ package jadx.gui.ui.tab;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.JumpPosition;
 
+/**
+ * Tabbed pane events listener
+ */
 public interface ITabStatesListener {
 
+	/**
+	 * Tab added to tabbed pane without become active (selected)
+	 */
 	default void onTabOpen(TabBlueprint blueprint) {
 	}
 
+	/**
+	 * Tab become active (selected)
+	 */
 	default void onTabSelect(TabBlueprint blueprint) {
 	}
 
-	default void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+	/**
+	 * Caret position changes.
+	 *
+	 * @param prevPos previous caret position; can be null if unknown; can be from another tab
+	 * @param newPos  new caret position, node refer to jump target node
+	 */
+	default void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition newPos) {
 	}
 
 	default void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {

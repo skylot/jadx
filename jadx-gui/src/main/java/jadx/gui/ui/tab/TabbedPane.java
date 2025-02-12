@@ -211,8 +211,8 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
 		ContentPanel contentPanel = getContentPanel(jumpPos.getNode());
 		if (contentPanel != null) {
-			scrollToPos(contentPanel, jumpPos.getPos());
 			selectTab(contentPanel);
+			scrollToPos(contentPanel, jumpPos.getPos());
 		}
 		return contentPanel;
 	}
@@ -224,8 +224,8 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		}
 		if (contentPanel instanceof AbstractCodeContentPanel) {
 			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
-			codeArea.scrollToPos(pos);
 			codeArea.requestFocus();
+			codeArea.scrollToPos(pos);
 		}
 	}
 
@@ -414,7 +414,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
+	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition position) {
 		showCode(position);
 	}
 

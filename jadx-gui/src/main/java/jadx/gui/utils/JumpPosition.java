@@ -47,6 +47,6 @@ public class JumpPosition {
 
 	@Override
 	public String toString() {
-		return "Jump: " + node + " : " + pos;
+		return "Jump{" + node + ":" + pos + '}';
 	}
 }

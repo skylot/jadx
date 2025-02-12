@@ -37,6 +37,7 @@ public class TabsController {
 
 	public TabsController(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
+		// addListener(new LogTabStates());
 	}
 
 	public MainWindow getMainWindow() {
@@ -76,6 +77,10 @@ public class TabsController {
 	}
 
 	public void selectTab(JNode node) {
+		if (selectedTab != null && selectedTab.getNode() == node) {
+			// already selected
+			return;
+		}
 		TabBlueprint blueprint = openTab(node);
 		selectedTab = blueprint;
 		listeners.forEach(l -> l.onTabSelect(blueprint));
@@ -141,10 +146,11 @@ public class TabsController {
 	 * Prefer {@link TabsController#codeJump(JNode)} method
 	 */
 	public void codeJump(JumpPosition pos) {
+		JumpPosition currentPosition = mainWindow.getTabbedPane().getCurrentPosition();
 		if (selectedTab == null || selectedTab.getNode() != pos.getNode()) {
 			selectTab(pos.getNode());
 		}
-		listeners.forEach(l -> l.onTabCodeJump(selectedTab, pos));
+		listeners.forEach(l -> l.onTabCodeJump(selectedTab, currentPosition, pos));
 	}
 
 	public void smaliJump(JClass cls, int pos, boolean debugMode) {

@@ -20,16 +20,10 @@ public class NavigationController implements ITabStatesListener {
 	}
 
 	public void navBack() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(mainWindow.getTabbedPane().getCurrentPosition());
-		}
 		jump(jumps.getPrev());
 	}
 
 	public void navForward() {
-		if (jumps.size() > 1) {
-			jumps.updateCurPosition(mainWindow.getTabbedPane().getCurrentPosition());
-		}
 		jump(jumps.getNext());
 	}
 
@@ -40,26 +34,18 @@ public class NavigationController implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
-		if (position.equals(jumps.getCurrent())) {
+	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition newPos) {
+		if (newPos.equals(jumps.getCurrent())) {
 			// ignore self-initiated jumps
 			return;
 		}
-		saveCurrentPosition();
-		jumps.addPosition(position);
+		jumps.addPosition(prevPos);
+		jumps.addPosition(newPos);
 	}
 
 	@Override
 	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
-		saveCurrentPosition();
 		// TODO: save smali jump
-	}
-
-	private void saveCurrentPosition() {
-		JumpPosition curPos = mainWindow.getTabbedPane().getCurrentPosition();
-		if (curPos != null) {
-			jumps.addPosition(curPos);
-		}
 	}
 
 	public void reset() {

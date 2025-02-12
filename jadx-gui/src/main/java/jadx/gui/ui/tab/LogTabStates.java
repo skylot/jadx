@@ -2,6 +2,7 @@ package jadx.gui.ui.tab;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +26,8 @@ public class LogTabStates implements ITabStatesListener {
 	}
 
 	@Override
-	public void onTabCodeJump(TabBlueprint blueprint, JumpPosition position) {
-		LOG.debug("onTabCodeJump: blueprint={}, position={}", blueprint, position);
+	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition newPos) {
+		LOG.debug("onTabCodeJump: blueprint={}, prevPos={}, newPos={}", blueprint, prevPos, newPos);
 	}
 
 	@Override

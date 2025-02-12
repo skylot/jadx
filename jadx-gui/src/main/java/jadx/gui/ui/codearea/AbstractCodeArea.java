@@ -429,8 +429,12 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		SearchEngine.markAll(this, context);
 	}
 
-	public JumpPosition getCurrentPosition() {
-		return new JumpPosition(node, getCaretPosition());
+	public @Nullable JumpPosition getCurrentPosition() {
+		int pos = getCaretPosition();
+		if (pos == 0) {
+			return null;
+		}
+		return new JumpPosition(node, pos);
 	}
 
 	public int getLineStartFor(int pos) throws BadLocationException {
