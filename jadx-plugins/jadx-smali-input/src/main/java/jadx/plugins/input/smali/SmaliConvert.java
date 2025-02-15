@@ -1,11 +1,8 @@
 package jadx.plugins.input.smali;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
@@ -33,12 +30,8 @@ public class SmaliConvert {
 		if (smaliFiles.isEmpty()) {
 			return false;
 		}
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			collectSystemErrors(out, () -> compile(smaliFiles, options));
-			boolean success = out.size() == 0;
-			if (!success) {
-				LOG.error("Smali error:\n{}", out);
-			}
+		try {
+			compile(smaliFiles, options);
 		} catch (Exception e) {
 			LOG.error("Smali process error", e);
 		}
@@ -56,7 +49,7 @@ public class SmaliConvert {
 		int threads = options.getThreads();
 		LOG.debug("Compiling smali files: {}, threads: {}", inputFiles.size(), threads);
 		long start = System.currentTimeMillis();
-		if (threads == 1) {
+		if (threads == 1 || inputFiles.size() == 1) {
 			for (Path inputFile : inputFiles) {
 				assemble(inputFile, smaliOptions);
 			}
@@ -78,12 +71,12 @@ public class SmaliConvert {
 	}
 
 	private void assemble(Path inputFile, SmaliOptions smaliOptions) {
-		String fileName = inputFile.toAbsolutePath().toString();
-		try (Reader reader = Files.newBufferedReader(inputFile)) {
-			byte[] assemble = SmaliUtils.assemble(reader, smaliOptions);
-			dexData.add(new SimpleDexData(fileName, assemble));
+		Path path = inputFile.toAbsolutePath();
+		try {
+			byte[] dexContent = SmaliUtils.assemble(path.toFile(), smaliOptions);
+			dexData.add(new SimpleDexData(path.toString(), dexContent));
 		} catch (Exception e) {
-			throw new RuntimeException("Fail to compile: " + fileName, e);
+			LOG.error("Failed to assemble smali file: {}", path, e);
 		}
 	}
 
