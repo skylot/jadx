@@ -47,6 +47,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -107,6 +108,8 @@ import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
+import jadx.gui.plugins.context.CommonGuiPluginsContext;
+import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.ExportProjectProperties;
@@ -917,6 +920,16 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JPopupMenu menu = node.onTreePopupMenu(this);
+		CommonGuiPluginsContext pluginsContext = getWrapper().getGuiPluginsContext();
+		for (TreePopupMenuEntry entry : pluginsContext.getTreePopupMenuEntries()) {
+			JMenuItem menuItem = entry.buildEntry(node);
+			if (menuItem != null) {
+				if (menu == null) {
+					menu = new JPopupMenu();
+				}
+				menu.add(menuItem);
+			}
+		}
 		if (menu != null) {
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}

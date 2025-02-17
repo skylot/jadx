@@ -2,13 +2,16 @@ package jadx.api.plugins.gui;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 
 public interface JadxGuiContext {
@@ -34,6 +37,15 @@ public interface JadxGuiContext {
 			@Nullable Function<ICodeNodeRef, Boolean> enabled,
 			@Nullable String keyBinding,
 			Consumer<ICodeNodeRef> action);
+
+	/**
+	 * Add popup menu entry for tree node
+	 *
+	 * @param name         entry title
+	 * @param addPredicate check if entry should be added for provided node, called on popup creation
+	 */
+	@ApiStatus.Experimental
+	void addTreePopupMenuEntry(String name, Predicate<ITreeNode> addPredicate, Consumer<ITreeNode> action);
 
 	/**
 	 * Attach new key binding to main window

@@ -22,6 +22,7 @@ public class CommonGuiPluginsContext {
 	private final Map<PluginContext, GuiPluginContext> pluginsMap = new HashMap<>();
 
 	private final List<CodePopupAction> codePopupActionList = new ArrayList<>();
+	private final List<TreePopupMenuEntry> treePopupMenuEntries = new ArrayList<>();
 
 	public CommonGuiPluginsContext(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -39,6 +40,7 @@ public class CommonGuiPluginsContext {
 
 	public void reset() {
 		codePopupActionList.clear();
+		treePopupMenuEntries.clear();
 		mainWindow.resetPluginsMenu();
 	}
 
@@ -48,6 +50,10 @@ public class CommonGuiPluginsContext {
 
 	public List<CodePopupAction> getCodePopupActionList() {
 		return codePopupActionList;
+	}
+
+	public List<TreePopupMenuEntry> getTreePopupMenuEntries() {
+		return treePopupMenuEntries;
 	}
 
 	public void addMenuAction(String name, Runnable action) {
