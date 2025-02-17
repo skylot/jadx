@@ -6,7 +6,6 @@ import java.awt.event.MouseMotionAdapter;
 import javax.swing.text.Highlighter;
 
 import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SmartHighlightPainter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 		}
 		try {
 			Token token = codeArea.viewToToken(e.getPoint());
-			if (token == null || token.getType() != TokenTypes.IDENTIFIER) {
+			if (token == null) {
 				return false;
 			}
 			int tokenOffset = token.getOffset();
