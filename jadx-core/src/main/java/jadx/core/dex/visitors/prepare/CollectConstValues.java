@@ -11,11 +11,15 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
+import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "CollectConstValues",
-		desc = "Collect and store values from static final fields"
+		desc = "Collect and store values from static final fields",
+		runAfter = {
+				UsageInfoVisitor.class // check field usage (do not restore if used somewhere)
+		}
 )
 public class CollectConstValues extends AbstractVisitor {
 
@@ -44,12 +48,17 @@ public class CollectConstValues extends AbstractVisitor {
 
 	public static @Nullable Object getFieldConstValue(FieldNode fld) {
 		AccessInfo accFlags = fld.getAccessFlags();
-		if (accFlags.isStatic() && accFlags.isFinal()) {
-			EncodedValue constVal = fld.get(JadxAttrType.CONSTANT_VALUE);
-			if (constVal != null && constVal != EncodedValue.NULL) {
-				return constVal.getValue();
-			}
+		if (!accFlags.isStatic() || !accFlags.isFinal()) {
+			return null;
 		}
-		return null;
+		EncodedValue constVal = fld.get(JadxAttrType.CONSTANT_VALUE);
+		if (constVal == null || constVal == EncodedValue.NULL) {
+			return null;
+		}
+		if (!fld.getUseIn().isEmpty()) {
+			// field still used somewhere and not inlined by compiler, so we don't need to restore it
+			return null;
+		}
+		return constVal.getValue();
 	}
 }

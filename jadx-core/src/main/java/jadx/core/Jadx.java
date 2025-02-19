@@ -102,7 +102,6 @@ public class Jadx {
 		passes.add(new SignatureProcessor());
 		passes.add(new OverrideMethodVisitor());
 		passes.add(new AddAndroidConstants());
-		passes.add(new CollectConstValues());
 
 		// rename and deobfuscation
 		passes.add(new DeobfuscatorVisitor());
@@ -111,6 +110,7 @@ public class Jadx {
 		passes.add(new SaveDeobfMapping());
 
 		passes.add(new UsageInfoVisitor());
+		passes.add(new CollectConstValues());
 		passes.add(new ProcessAnonymous());
 		passes.add(new ProcessMethodsForInline());
 		return passes;
