@@ -656,6 +656,9 @@ public class MainWindow extends JFrame {
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
 		treeExpansionService.load(project.getTreeExpansions());
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
+		if (openTabs.isEmpty() && settings.isShowSummaryOnOpen()) {
+			openSummaryTab();
+		}
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				() -> preLoadOpenTabs(openTabs),
 				status -> {
@@ -1550,6 +1553,15 @@ public class MainWindow extends JFrame {
 
 		dispose();
 		System.exit(0);
+	}
+
+	private void openSummaryTab() {
+		for (JNode node : treeRoot.getCustomNodes()) {
+			if (node.getClass() == SummaryNode.class) {
+				tabsController.codeJump(node);
+				break;
+			}
+		}
 	}
 
 	private void saveOpenTabs() {

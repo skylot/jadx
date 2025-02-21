@@ -629,6 +629,10 @@ public class JadxSettingsWindow extends JDialog {
 		jumpOnDoubleClick.setSelected(settings.isJumpOnDoubleClick());
 		jumpOnDoubleClick.addItemListener(e -> settings.setJumpOnDoubleClick(e.getStateChange() == ItemEvent.SELECTED));
 
+		JCheckBox showSummaryOnOpen = new JCheckBox();
+		showSummaryOnOpen.setSelected(settings.isShowSummaryOnOpen());
+		showSummaryOnOpen.addItemListener(e -> settings.setShowSummaryOnOpen(e.getStateChange() == ItemEvent.SELECTED));
+
 		JCheckBox useAltFileDialog = new JCheckBox();
 		useAltFileDialog.setSelected(settings.isUseAlternativeFileDialog());
 		useAltFileDialog.addItemListener(e -> settings.setUseAlternativeFileDialog(e.getStateChange() == ItemEvent.SELECTED));
@@ -670,6 +674,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
 		group.addRow(NLS.str("preferences.jumpOnDoubleClick"), jumpOnDoubleClick);
+		group.addRow(NLS.str("preferences.showSummaryOnOpen"), showSummaryOnOpen);
 		group.addRow(NLS.str("preferences.useAlternativeFileDialog"), useAltFileDialog);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);

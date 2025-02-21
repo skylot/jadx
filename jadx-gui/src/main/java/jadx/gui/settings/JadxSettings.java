@@ -54,7 +54,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 30;
-	private static final int CURRENT_SETTINGS_VERSION = 22;
+	private static final int CURRENT_SETTINGS_VERSION = 23;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -127,6 +127,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private @Nullable String cacheDir = null; // null - default (system), "." - at project dir, other - custom
 
 	private boolean jumpOnDoubleClick = true;
+	private boolean showSummaryOnOpen = true;
 
 	private XposedCodegenLanguage xposedCodegenLanguage = XposedCodegenLanguage.JAVA;
 	private JadxUpdateChannel jadxUpdateChannel = JadxUpdateChannel.STABLE;
@@ -759,6 +760,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.jumpOnDoubleClick = jumpOnDoubleClick;
 	}
 
+	public boolean isShowSummaryOnOpen() {
+		return showSummaryOnOpen;
+	}
+
+	public void setShowSummaryOnOpen(boolean showSummaryOnOpen) {
+		this.showSummaryOnOpen = showSummaryOnOpen;
+	}
+
 	public boolean isDockLogViewer() {
 		return dockLogViewer;
 	}
@@ -852,6 +861,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 21) {
 			migrateUseSourceNameAsClassNameAlias();
+			fromVersion++;
+		}
+		if (fromVersion == 22) {
+			showSummaryOnOpen = true;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {
