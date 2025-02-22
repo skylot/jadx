@@ -234,7 +234,7 @@ public class TabComponent extends JPanel {
 		}
 
 		if (nodeFullName != null) {
-			JMenuItem revealTab = new JMenuItem(NLS.str("tabs.reveal_in_tree"));
+			JMenuItem revealTab = new JMenuItem(NLS.str("menu.sync"));
 			revealTab.addActionListener(e -> tabsController.getMainWindow().selectNodeInTree(getNode()));
 			menu.add(revealTab);
 			menu.addSeparator();
