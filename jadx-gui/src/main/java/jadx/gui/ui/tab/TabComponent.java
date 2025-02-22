@@ -231,6 +231,11 @@ public class TabComponent extends JPanel {
 			unbookmarkAll.addActionListener(e -> tabsController.unbookmarkAllTabs());
 			menu.add(unbookmarkAll);
 		}
+		if (nodeFullName != null ) {
+			JMenuItem revealTab = new JMenuItem(NLS.str("tabs.reveal_in_explorer"));
+			revealTab.addActionListener(e -> tabsController.getMainWindow().selectNodeInTree(getNode()));
+			menu.add(revealTab);
+		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
 		closeTab.addActionListener(e -> tabsController.closeTab(getNode(), true));
