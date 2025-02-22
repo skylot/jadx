@@ -4,9 +4,11 @@ import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 import jadx.gui.utils.UiUtils;
@@ -52,8 +54,12 @@ public class ActionHandler extends AbstractAction {
 		putValue(SHORT_DESCRIPTION, desc);
 	}
 
-	public void setIcon(ImageIcon icon) {
+	public void setIcon(Icon icon) {
 		putValue(SMALL_ICON, icon);
+	}
+
+	public void setSelected(boolean selected) {
+		putValue(SELECTED_KEY, selected);
 	}
 
 	public void setKeyBinding(KeyStroke keyStroke) {
@@ -82,5 +88,15 @@ public class ActionHandler extends AbstractAction {
 	public JButton makeButton() {
 		addKeyBindToDescription();
 		return new JButton(this);
+	}
+
+	public JToggleButton makeToggleButton() {
+		JToggleButton toggleButton = new JToggleButton(this);
+		toggleButton.setText("");
+		return toggleButton;
+	}
+
+	public JCheckBoxMenuItem makeCheckBoxMenuItem() {
+		return new JCheckBoxMenuItem(this);
 	}
 }

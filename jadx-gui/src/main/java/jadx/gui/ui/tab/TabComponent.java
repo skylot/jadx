@@ -25,6 +25,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.dnd.TabDndGestureListener;
 import jadx.gui.utils.Icons;
@@ -234,9 +237,11 @@ public class TabComponent extends JPanel {
 		}
 
 		if (nodeFullName != null) {
-			JMenuItem revealTab = new JMenuItem(NLS.str("menu.sync"));
-			revealTab.addActionListener(e -> tabsController.getMainWindow().selectNodeInTree(getNode()));
-			menu.add(revealTab);
+			MainWindow mainWindow = tabsController.getMainWindow();
+			JadxGuiAction selectInTree = new JadxGuiAction(ActionModel.SYNC, () -> mainWindow.selectNodeInTree(getNode()));
+			// attach shortcut without bind only to show current keybinding
+			selectInTree.setShortcut(mainWindow.getShortcutsController().get(ActionModel.SYNC));
+			menu.add(selectInTree);
 			menu.addSeparator();
 		}
 
