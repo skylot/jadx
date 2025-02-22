@@ -230,6 +230,14 @@ public class TabComponent extends JPanel {
 			JMenuItem unbookmarkAll = new JMenuItem(NLS.str("tabs.unbookmark_all"));
 			unbookmarkAll.addActionListener(e -> tabsController.unbookmarkAllTabs());
 			menu.add(unbookmarkAll);
+			menu.addSeparator();
+		}
+
+		if (nodeFullName != null) {
+			JMenuItem revealTab = new JMenuItem(NLS.str("menu.sync"));
+			revealTab.addActionListener(e -> tabsController.getMainWindow().selectNodeInTree(getNode()));
+			menu.add(revealTab);
+			menu.addSeparator();
 		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
