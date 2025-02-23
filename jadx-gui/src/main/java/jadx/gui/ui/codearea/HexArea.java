@@ -53,7 +53,7 @@ public class HexArea extends AbstractCodeArea {
 	public void load() {
 		byte[] bytes = null;
 		if (binaryNode instanceof JResource) {
-			JResource jResource = ((JResource) binaryNode);
+			JResource jResource = (JResource) binaryNode;
 			try {
 				bytes = ResourcesLoader.decodeStream(jResource.getResFile(), (size, is) -> is.readAllBytes());
 			} catch (JadxException e) {

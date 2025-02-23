@@ -1,5 +1,6 @@
 package jadx.api.security.impl;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Set;
 
@@ -12,14 +13,52 @@ import org.w3c.dom.Document;
 import jadx.api.security.IJadxSecurity;
 import jadx.api.security.JadxSecurityFlag;
 import jadx.core.deobf.NameMapper;
+import jadx.zip.IZipEntry;
+import jadx.zip.security.DisabledZipSecurity;
+import jadx.zip.security.IJadxZipSecurity;
+import jadx.zip.security.JadxZipSecurity;
+
+import static jadx.api.security.JadxSecurityFlag.SECURE_ZIP_READER;
 
 public class JadxSecurity implements IJadxSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSecurity.class);
 
 	private final Set<JadxSecurityFlag> flags;
+	private final IJadxZipSecurity zipSecurity;
 
 	public JadxSecurity(Set<JadxSecurityFlag> flags) {
 		this.flags = flags;
+		this.zipSecurity = flags.contains(SECURE_ZIP_READER) ? new JadxZipSecurity() : DisabledZipSecurity.INSTANCE;
+	}
+
+	public JadxSecurity(Set<JadxSecurityFlag> flags, IJadxZipSecurity zipSecurity) {
+		this.flags = flags;
+		this.zipSecurity = zipSecurity;
+	}
+
+	@Override
+	public boolean isValidEntry(IZipEntry entry) {
+		return zipSecurity.isValidEntry(entry);
+	}
+
+	@Override
+	public boolean isValidEntryName(String entryName) {
+		return zipSecurity.isValidEntryName(entryName);
+	}
+
+	@Override
+	public boolean isInSubDirectory(File baseDir, File file) {
+		return zipSecurity.isInSubDirectory(baseDir, file);
+	}
+
+	@Override
+	public boolean useLimitedDataStream() {
+		return zipSecurity.useLimitedDataStream();
+	}
+
+	@Override
+	public int getMaxEntriesCount() {
+		return zipSecurity.getMaxEntriesCount();
 	}
 
 	@Override

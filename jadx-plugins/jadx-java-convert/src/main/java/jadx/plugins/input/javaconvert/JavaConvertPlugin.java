@@ -17,9 +17,9 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 	public static final String PLUGIN_ID = "java-convert";
 
 	private final JavaConvertOptions options = new JavaConvertOptions();
-	private final JavaConvertLoader loader = new JavaConvertLoader(options);
 
 	private JadxPluginRuntimeData dexInput;
+	private JavaConvertLoader loader;
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
@@ -32,8 +32,9 @@ public class JavaConvertPlugin implements JadxPlugin, JadxCodeInput {
 
 	@Override
 	public void init(JadxPluginContext context) {
-		dexInput = context.plugins().getById(DexInputPlugin.PLUGIN_ID);
 		context.registerOptions(options);
+		dexInput = context.plugins().getById(DexInputPlugin.PLUGIN_ID);
+		loader = new JavaConvertLoader(options, context);
 		context.addCodeInput(this);
 	}
 

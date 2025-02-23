@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.args.ResourceNameSource;
-import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IFieldInfoRef;
@@ -392,7 +391,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	private static final ResourceEntry STUB_ENTRY = new ResourceEntry(-1, "stub", "stub", "stub", "");
 
 	private ResourceEntry buildResourceEntry(PackageChunk pkg, String config, int resRef, String typeName, String origKeyName) {
-		if (!ZipSecurity.isValidZipEntryName(origKeyName)) {
+		if (!root.getArgs().getSecurity().isValidEntryName(origKeyName)) {
 			// malicious entry, ignore it
 			// can't return null here, return stub without adding it to storage
 			return STUB_ENTRY;

@@ -1,19 +1,18 @@
 package jadx.plugins.input.apkm
 
-import jadx.api.plugins.utils.ZipSecurity
 import jadx.core.utils.GsonUtils.buildGson
 import jadx.core.utils.files.FileUtils
-import jadx.core.utils.files.ZipFile
+import jadx.zip.ZipReader
 import java.io.File
 import java.io.InputStreamReader
 
 object ApkmUtils {
-	fun getManifest(file: File): ApkmManifest? {
+	fun getManifest(file: File, zipReader: ZipReader): ApkmManifest? {
 		if (!FileUtils.isZipFile(file)) return null
 		try {
-			ZipFile(file).use { zip ->
-				val manifestEntry = zip.getEntry("info.json") ?: return null
-				return InputStreamReader(ZipSecurity.getInputStreamForEntry(zip, manifestEntry)).use {
+			zipReader.open(file).use { zip ->
+				val manifestEntry = zip.searchEntry("info.json") ?: return null
+				return InputStreamReader(manifestEntry.inputStream).use {
 					buildGson().fromJson(it, ApkmManifest::class.java)
 				}
 			}

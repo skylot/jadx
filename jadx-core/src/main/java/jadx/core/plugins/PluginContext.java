@@ -32,6 +32,7 @@ import jadx.core.plugins.files.JadxFilesData;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.zip.ZipReader;
 
 public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, Comparable<PluginContext> {
 	private final JadxDecompiler decompiler;
@@ -188,6 +189,11 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return new MergeCodeLoader(
 				Utils.collectionMap(codeInputs, codeInput -> codeInput.loadFiles(files)),
 				closeable);
+	}
+
+	@Override
+	public ZipReader getZipReader() {
+		return decompiler.getZipReader();
 	}
 
 	@Override

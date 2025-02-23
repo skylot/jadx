@@ -14,6 +14,7 @@ import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.pass.JadxPass;
 import jadx.api.plugins.resources.IResourcesLoader;
+import jadx.zip.ZipReader;
 
 public interface JadxPluginContext {
 
@@ -59,4 +60,9 @@ public interface JadxPluginContext {
 	 * Access to plugin specific files and directories
 	 */
 	IJadxFiles files();
+
+	/**
+	 * Custom jadx zip reader to fight tampering and provide additional security checks
+	 */
+	ZipReader getZipReader();
 }

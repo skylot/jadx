@@ -6,9 +6,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +19,19 @@ import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.resources.IResContainerFactory;
 import jadx.api.plugins.resources.IResTableParserProvider;
 import jadx.api.plugins.resources.IResourcesLoader;
-import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipFile;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableBinaryParserProvider;
+import jadx.zip.IZipEntry;
+import jadx.zip.ZipContent;
+import jadx.zip.ZipReader;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
@@ -101,21 +102,19 @@ public final class ResourcesLoader implements IResourcesLoader {
 					return decoder.decode(file.length(), inputStream);
 				}
 			} else {
-				try (ZipFile zipFile = new ZipFile(zipRef.getZipFile())) {
-					ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
+				ZipReader zipReader = rf.getDecompiler().getZipReader();
+				try (ZipContent content = zipReader.open(zipRef.getZipFile())) {
+					IZipEntry entry = content.searchEntry(zipRef.getEntryName());
 					if (entry == null) {
 						throw new IOException("Zip entry not found: " + zipRef);
 					}
-					if (!ZipSecurity.isValidZipEntry(entry)) {
-						return null;
-					}
-					try (InputStream inputStream = ZipSecurity.getInputStreamForEntry(zipFile, entry)) {
-						return decoder.decode(entry.getSize(), inputStream);
+					try (InputStream inputStream = entry.getInputStream()) {
+						return decoder.decode(entry.getUncompressedSize(), inputStream);
 					}
 				}
 			}
 		} catch (Exception e) {
-			throw new JadxException("Error decode: " + rf.getDeobfName(), e);
+			throw new JadxException("Error decode: " + rf.getOriginalName(), e);
 		}
 	}
 
@@ -208,7 +207,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 
 	public void defaultLoadFile(List<ResourceFile> list, File file, String subDir) {
 		if (FileUtils.isZipFile(file)) {
-			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
+			jadxRef.getZipReader().visitEntries(file, entry -> {
 				addEntry(list, file, entry, subDir);
 				return null;
 			});
@@ -218,7 +217,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 		}
 	}
 
-	public void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry, String subDir) {
+	public void addEntry(List<ResourceFile> list, File zipFile, IZipEntry entry, String subDir) {
 		if (entry.isDirectory()) {
 			return;
 		}
@@ -234,7 +233,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 	public static ICodeInfo loadToCodeWriter(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);
-		return new SimpleCodeInfo(baos.toString("UTF-8"));
+		return new SimpleCodeInfo(baos.toString(StandardCharsets.UTF_8));
 	}
 
 	private synchronized BinaryXMLParser loadBinaryXmlParser() {

@@ -4,7 +4,9 @@ import java.io.InputStream;
 
 import org.w3c.dom.Document;
 
-public interface IJadxSecurity {
+import jadx.zip.security.IJadxZipSecurity;
+
+public interface IJadxSecurity extends IJadxZipSecurity {
 
 	/**
 	 * Check if application package is safe

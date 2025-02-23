@@ -25,7 +25,14 @@ public class JavaInputPlugin implements JadxPlugin {
 
 	@Override
 	public void init(JadxPluginContext context) {
-		context.addCodeInput(JavaInputPlugin::loadClassFiles);
+		context.addCodeInput(inputFiles -> {
+			JavaInputLoader loader = new JavaInputLoader(context.getZipReader(), context.files().getPluginTempDir());
+			List<JavaClassReader> readers = loader.collectFiles(inputFiles);
+			if (readers.isEmpty()) {
+				return EmptyCodeLoader.INSTANCE;
+			}
+			return new JavaLoadResult(readers, null);
+		});
 	}
 
 	public static ICodeLoader loadClassFiles(List<Path> inputFiles) {

@@ -24,9 +24,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -276,6 +276,11 @@ public class FileUtils {
 				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
+	public static void writeFile(Path file, byte[] data) throws IOException {
+		FileUtils.makeDirsForFile(file);
+		Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+	}
+
 	public static void writeFile(Path file, InputStream is) throws IOException {
 		FileUtils.makeDirsForFile(file);
 		Files.copy(is, file, StandardCopyOption.REPLACE_EXISTING);
@@ -358,20 +363,18 @@ public class FileUtils {
 		return new String(hexChars, StandardCharsets.US_ASCII);
 	}
 
+	private static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };
+
 	public static boolean isZipFile(File file) {
 		try (InputStream is = new FileInputStream(file)) {
-			byte[] headers = new byte[4];
-			int read = is.read(headers, 0, 4);
-			if (read == headers.length) {
-				String headerString = bytesToHex(headers);
-				if (Objects.equals(headerString, "504b0304")) {
-					return true;
-				}
-			}
+			int len = ZIP_FILE_MAGIC.length;
+			byte[] headers = new byte[len];
+			int read = is.read(headers);
+			return read == len && Arrays.equals(headers, ZIP_FILE_MAGIC);
 		} catch (Exception e) {
-			LOG.error("Failed read zip file: {}", file.getAbsolutePath(), e);
+			LOG.error("Failed to read zip file: {}", file.getAbsolutePath(), e);
+			return false;
 		}
-		return false;
 	}
 
 	public static String getPathBaseName(Path file) {

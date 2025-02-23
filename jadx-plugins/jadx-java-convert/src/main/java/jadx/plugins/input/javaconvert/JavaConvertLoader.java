@@ -17,16 +17,22 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.utils.CommonFileUtils;
-import jadx.api.plugins.utils.ZipSecurity;
+import jadx.api.security.IJadxSecurity;
+import jadx.zip.ZipReader;
 
 public class JavaConvertLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaConvertLoader.class);
 
 	private final JavaConvertOptions options;
+	private final ZipReader zipReader;
+	private final IJadxSecurity security;
 
-	public JavaConvertLoader(JavaConvertOptions options) {
+	public JavaConvertLoader(JavaConvertOptions options, JadxPluginContext context) {
 		this.options = options;
+		this.zipReader = context.getZipReader();
+		this.security = context.getArgs().getSecurity();
 	}
 
 	public ConvertResult process(List<Path> input) {
@@ -64,8 +70,12 @@ public class JavaConvertLoader {
 			try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(jarFile))) {
 				for (Path file : clsFiles) {
 					String clsName = AsmUtils.getNameFromClassFile(file);
-					if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {
+					if (clsName == null) {
 						throw new IOException("Can't read class name from file: " + file);
+					}
+					if (!security.isValidEntryName(clsName)) {
+						LOG.warn("Skip class with invalid name: {}", clsName);
+						continue;
 					}
 					addFileToJar(jo, file, clsName + ".class");
 				}
@@ -82,7 +92,7 @@ public class JavaConvertLoader {
 		PathMatcher aarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.aar");
 		input.stream()
 				.filter(aarMatcher::matches)
-				.forEach(path -> ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
+				.forEach(path -> zipReader.readEntries(path.toFile(), (entry, in) -> {
 					try {
 						String entryName = entry.getName();
 						if (entryName.endsWith(".jar")) {
@@ -105,8 +115,8 @@ public class JavaConvertLoader {
 	}
 
 	private boolean repackAndConvertJar(ConvertResult result, Path path) throws Exception {
-		// check if jar need a full repackage
-		Boolean repackNeeded = ZipSecurity.visitZipEntries(path.toFile(), (zipFile, zipEntry) -> {
+		// check if jar needs a full repackaging
+		Boolean repackNeeded = zipReader.visitEntries(path.toFile(), zipEntry -> {
 			String entryName = zipEntry.getName();
 			if (zipEntry.isDirectory()) {
 				if (entryName.equals("BOOT-INF/")) {
@@ -131,7 +141,7 @@ public class JavaConvertLoader {
 		Path jarFile = Files.createTempFile("jadx-classes-", ".jar");
 		result.addTempPath(jarFile);
 		try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(jarFile))) {
-			ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
+			zipReader.readEntries(path.toFile(), (entry, in) -> {
 				try {
 					String entryName = entry.getName();
 					if (entryName.endsWith(".class")) {
@@ -142,10 +152,14 @@ public class JavaConvertLoader {
 						}
 						byte[] clsFileContent = CommonFileUtils.loadBytes(in);
 						String clsName = AsmUtils.getNameFromClassFile(clsFileContent);
-						if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {
+						if (clsName == null) {
 							throw new IOException("Can't read class name from file: " + entryName);
 						}
-						addJarEntry(jo, clsName + ".class", clsFileContent, entry.getLastModifiedTime());
+						if (!security.isValidEntryName(clsName)) {
+							LOG.warn("Ignore class with invalid name: {} from {}", clsName, entry);
+						} else {
+							addJarEntry(jo, clsName + ".class", clsFileContent, null);
+						}
 					} else if (entryName.endsWith(".jar")) {
 						Path tempJar = CommonFileUtils.saveToTempFile(in, ".jar");
 						result.addTempPath(tempJar);

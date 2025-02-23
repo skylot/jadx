@@ -18,10 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.utils.CommonFileUtils;
-import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
 import jadx.plugins.input.dex.sections.DexHeaderV41;
 import jadx.plugins.input.dex.utils.DexCheckSum;
+import jadx.zip.IZipEntry;
+import jadx.zip.ZipContent;
+import jadx.zip.ZipReader;
 
 public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
@@ -31,8 +33,14 @@ public class DexFileLoader {
 
 	private final DexInputOptions options;
 
+	private ZipReader zipReader = new ZipReader();
+
 	public DexFileLoader(DexInputOptions options) {
 		this.options = options;
+	}
+
+	public void setZipReader(ZipReader zipReader) {
+		this.zipReader = zipReader;
 	}
 
 	public List<DexReader> collectDexFiles(List<Path> pathsList) {
@@ -76,6 +84,13 @@ public class DexFileLoader {
 		}
 	}
 
+	private List<DexReader> loadFromZipEntry(byte[] content, String fileName) {
+		if (isStartWithBytes(content, DexConsts.DEX_FILE_MAGIC) || fileName.endsWith(".dex")) {
+			return loadDexReaders(fileName, content);
+		}
+		return Collections.emptyList();
+	}
+
 	public List<DexReader> loadDexReaders(String fileName, byte[] content) {
 		DexHeaderV41 dexHeaderV41 = DexHeaderV41.readIfPresent(content);
 		if (dexHeaderV41 != null) {
@@ -106,14 +121,25 @@ public class DexFileLoader {
 
 	private List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
-		try {
-			ZipSecurity.readZipEntries(file, (entry, in) -> {
+		try (ZipContent zip = zipReader.open(file)) {
+			for (IZipEntry entry : zip.getEntries()) {
+				if (entry.isDirectory()) {
+					continue;
+				}
 				try {
-					result.addAll(load(null, in, entry.getName()));
+					List<DexReader> readers;
+					if (entry.preferBytes()) {
+						readers = loadFromZipEntry(entry.getBytes(), entry.getName());
+					} else {
+						readers = load(null, entry.getInputStream(), entry.getName());
+					}
+					if (!readers.isEmpty()) {
+						result.addAll(readers);
+					}
 				} catch (Exception e) {
 					LOG.error("Failed to read zip entry: {}", entry, e);
 				}
-			});
+			}
 		} catch (Exception e) {
 			LOG.error("Failed to process zip file: {}", file.getAbsolutePath(), e);
 		}

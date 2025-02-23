@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.utils.CommonFileUtils;
-import jadx.api.plugins.utils.ZipSecurity;
+import jadx.core.plugins.files.TempFilesGetter;
+import jadx.core.utils.files.FileUtils;
+import jadx.zip.IZipEntry;
+import jadx.zip.ZipContent;
+import jadx.zip.ZipReader;
 
 public class JavaInputLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaInputLoader.class);
@@ -26,7 +31,23 @@ public class JavaInputLoader {
 	private static final byte[] JAVA_CLASS_FILE_MAGIC = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };
 	private static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };
 
+	private final ZipReader zipReader;
+	private final Path tempPath;
+
 	private int classUniqId = 1;
+
+	public JavaInputLoader(ZipReader zipReader, Path tempPath) {
+		this.zipReader = zipReader;
+		this.tempPath = tempPath;
+	}
+
+	/**
+	 * This will use zip reader with default options and ignore provided in jadx args
+	 */
+	@Deprecated
+	public JavaInputLoader() {
+		this(new ZipReader(), TempFilesGetter.INSTANCE.getTempDir());
+	}
 
 	public List<JavaClassReader> collectFiles(List<Path> inputFiles) {
 		return inputFiles.stream()
@@ -78,6 +99,23 @@ public class JavaInputLoader {
 		return Collections.emptyList();
 	}
 
+	private List<JavaClassReader> loadReaderFromZipEntry(byte[] content, String name, String parentFileName) throws IOException {
+		if (isStartWithBytes(content, JAVA_CLASS_FILE_MAGIC) || name.endsWith(".class")) {
+			String source = concatSource(parentFileName, name);
+			JavaClassReader reader = new JavaClassReader(getNextUniqId(), source, content);
+			return Collections.singletonList(reader);
+		}
+		if (isStartWithBytes(content, ZIP_FILE_MAGIC) || CommonFileUtils.isZipFileExt(name)) {
+			Path tempZip = Files.createTempFile(tempPath, "temp", ".zip");
+			FileUtils.writeFile(tempZip, content);
+			File zipFile = tempZip.toFile();
+			List<JavaClassReader> readers = collectFromZip(zipFile, concatSource(parentFileName, name));
+			CommonFileUtils.safeDeleteFile(zipFile);
+			return readers;
+		}
+		return Collections.emptyList();
+	}
+
 	private static String concatSource(@Nullable String parentFileName, String name) {
 		if (parentFileName == null) {
 			return name;
@@ -87,19 +125,28 @@ public class JavaInputLoader {
 
 	private List<JavaClassReader> collectFromZip(File file, String name) {
 		List<JavaClassReader> result = new ArrayList<>();
-		try {
-			ZipSecurity.readZipEntries(file, (entry, in) -> {
+		try (ZipContent zip = zipReader.open(file)) {
+			for (IZipEntry entry : zip.getEntries()) {
+				if (entry.isDirectory()) {
+					continue;
+				}
+				String entryName = entry.getName();
+				if (entryName.startsWith("META-INF/versions/")) {
+					// skip classes for different java versions
+					continue;
+				}
 				try {
-					String entryName = entry.getName();
-					if (entryName.startsWith("META-INF/versions/")) {
-						// skip classes for different java versions
-						return;
+					List<JavaClassReader> readers;
+					if (entry.preferBytes()) {
+						readers = loadReaderFromZipEntry(entry.getBytes(), entryName, name);
+					} else {
+						readers = loadReader(entry.getInputStream(), entryName, null, name);
 					}
-					result.addAll(loadReader(in, entryName, null, name));
+					result.addAll(readers);
 				} catch (Exception e) {
 					LOG.error("Failed to read zip entry: {}", entry, e);
 				}
-			});
+			}
 		} catch (Exception e) {
 			LOG.error("Failed to process zip file: {}", name, e);
 		}

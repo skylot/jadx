@@ -2,13 +2,13 @@ package jadx.core.dex.visitors;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
-import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -35,18 +35,15 @@ public class SaveCode {
 		if (codeStr.isEmpty()) {
 			return;
 		}
-		if (cls.root().getArgs().isSkipFilesSave()) {
+		JadxArgs args = cls.root().getArgs();
+		if (args.isSkipFilesSave()) {
 			return;
 		}
 		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls.root());
-		save(codeStr, dir, fileName);
-	}
-
-	public static void save(String code, File dir, String fileName) {
-		if (!ZipSecurity.isValidZipEntryName(fileName)) {
+		if (!args.getSecurity().isValidEntryName(fileName)) {
 			return;
 		}
-		save(code, new File(dir, fileName));
+		save(codeStr, new File(dir, fileName));
 	}
 
 	public static void save(ICodeInfo codeInfo, File file) {
@@ -55,7 +52,7 @@ public class SaveCode {
 
 	public static void save(String code, File file) {
 		File outFile = FileUtils.prepareFile(file);
-		try (PrintWriter out = new PrintWriter(outFile, "UTF-8")) {
+		try (PrintWriter out = new PrintWriter(outFile, StandardCharsets.UTF_8)) {
 			out.println(code);
 		} catch (Exception e) {
 			LOG.error("Save file error", e);

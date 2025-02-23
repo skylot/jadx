@@ -4,20 +4,22 @@ import jadx.api.ResourceFile
 import jadx.api.ResourcesLoader
 import jadx.api.plugins.CustomResourcesLoader
 import jadx.api.plugins.utils.CommonFileUtils
-import jadx.api.plugins.utils.ZipSecurity
+import jadx.zip.ZipReader
 import java.io.File
 
-class XapkCustomResourcesLoader : CustomResourcesLoader {
+class XapkCustomResourcesLoader(private val zipReader: ZipReader) : CustomResourcesLoader {
 	private val tmpFiles = mutableListOf<File>()
 
 	override fun load(loader: ResourcesLoader, list: MutableList<ResourceFile>, file: File): Boolean {
-		val manifest = XapkUtils.getManifest(file) ?: return false
+		if (!file.name.endsWith(".xapk")) return false
+
+		val manifest = XapkUtils.getManifest(file, zipReader) ?: return false
 		if (!XapkUtils.isSupported(manifest)) return false
 
 		val apkEntries = manifest.splitApks.map { it.file }.toHashSet()
-		ZipSecurity.visitZipEntries<Any>(file) { zip, entry ->
+		zipReader.visitEntries(file) { entry ->
 			if (apkEntries.contains(entry.name)) {
-				val tmpFile = ZipSecurity.getInputStreamForEntry(zip, entry).use {
+				val tmpFile = entry.inputStream.use {
 					CommonFileUtils.saveToTempFile(it, ".apk").toFile()
 				}
 				loader.defaultLoadFile(list, tmpFile, entry.name + "/")

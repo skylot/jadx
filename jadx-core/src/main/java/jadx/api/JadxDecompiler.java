@@ -50,9 +50,9 @@ import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipPatch;
 import jadx.core.utils.tasks.TaskExecutor;
 import jadx.core.xmlgen.ResourcesSaver;
+import jadx.zip.ZipReader;
 
 /**
  * Jadx API usage example:
@@ -87,6 +87,7 @@ public final class JadxDecompiler implements Closeable {
 	private final JadxArgs args;
 	private final JadxPluginManager pluginManager;
 	private final List<ICodeLoader> loadedInputs = new ArrayList<>();
+	private final ZipReader zipReader;
 
 	private RootNode root;
 	private List<JavaClass> classes;
@@ -109,6 +110,7 @@ public final class JadxDecompiler implements Closeable {
 		this.args = Objects.requireNonNull(args);
 		this.pluginManager = new JadxPluginManager(this);
 		this.resourcesLoader = new ResourcesLoader(this);
+		this.zipReader = new ZipReader(args.getSecurity());
 	}
 
 	public void load() {
@@ -145,9 +147,7 @@ public final class JadxDecompiler implements Closeable {
 
 	private void loadInputFiles() {
 		loadedInputs.clear();
-		List<File> inputs = ZipPatch.patchZipFiles(args.getInputFiles());
-		args.setInputFiles(inputs);
-		List<Path> inputPaths = Utils.collectionMap(inputs, File::toPath);
+		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		long start = System.currentTimeMillis();
 		for (PluginContext plugin : pluginManager.getResolvedPluginContexts()) {
@@ -333,7 +333,7 @@ public final class JadxDecompiler implements Closeable {
 		// process AndroidManifest.xml first to load complete resource ids table
 		for (ResourceFile resourceFile : getResources()) {
 			if (resourceFile.getType() == ResourceType.MANIFEST) {
-				new ResourcesSaver(outDir, resourceFile).run();
+				new ResourcesSaver(this, outDir, resourceFile).run();
 				break;
 			}
 		}
@@ -352,7 +352,7 @@ public final class JadxDecompiler implements Closeable {
 				// ignore resource made from input file
 				continue;
 			}
-			tasks.add(new ResourcesSaver(outDir, resourceFile));
+			tasks.add(new ResourcesSaver(this, outDir, resourceFile));
 		}
 		executor.addParallelTasks(tasks);
 	}
@@ -700,6 +700,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public ResourcesLoader getResourcesLoader() {
 		return resourcesLoader;
+	}
+
+	public ZipReader getZipReader() {
+		return zipReader;
 	}
 
 	@Override
