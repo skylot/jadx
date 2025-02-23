@@ -16,9 +16,9 @@ class ApkmCustomResourcesLoader : CustomResourcesLoader {
 		if (!ApkmUtils.isSupported(manifest)) return false
 
 		// Load all files ending with .apk
-		ZipSecurity.visitZipEntries<Any>(file) { zip, entry ->
+		ZipSecurity.visitZipEntries<Any>(file) { entry ->
 			if (entry.name.endsWith(".apk")) {
-				val tmpFile = ZipSecurity.getInputStreamForEntry(zip, entry).use {
+				val tmpFile = entry.inputStream.use {
 					CommonFileUtils.saveToTempFile(it, ".apk").toFile()
 				}
 				loader.defaultLoadFile(list, tmpFile, entry.name + "/")

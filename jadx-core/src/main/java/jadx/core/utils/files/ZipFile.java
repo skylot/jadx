@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Deprecated zip file wrapper
  */
+@Deprecated
 public class ZipFile extends java.util.zip.ZipFile {
 
 	public ZipFile(File file) throws IOException {

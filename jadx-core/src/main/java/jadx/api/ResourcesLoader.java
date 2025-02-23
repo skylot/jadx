@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,9 @@ import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipFile;
+import jadx.core.utils.zip.ZipContent;
+import jadx.core.utils.zip.ZipFileEntry;
+import jadx.core.utils.zip.ZipReader;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.IResTableParser;
 import jadx.core.xmlgen.ResContainer;
@@ -101,16 +102,16 @@ public final class ResourcesLoader implements IResourcesLoader {
 					return decoder.decode(file.length(), inputStream);
 				}
 			} else {
-				try (ZipFile zipFile = new ZipFile(zipRef.getZipFile())) {
-					ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
+				try (ZipContent content = ZipReader.open(zipRef.getZipFile())) {
+					ZipFileEntry entry = content.getFile(zipRef.getEntryName());
 					if (entry == null) {
 						throw new IOException("Zip entry not found: " + zipRef);
 					}
 					if (!ZipSecurity.isValidZipEntry(entry)) {
 						return null;
 					}
-					try (InputStream inputStream = ZipSecurity.getInputStreamForEntry(zipFile, entry)) {
-						return decoder.decode(entry.getSize(), inputStream);
+					try (InputStream inputStream = entry.getInputStream()) {
+						return decoder.decode(entry.getUncompressedSize(), inputStream);
 					}
 				}
 			}
@@ -208,7 +209,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 
 	public void defaultLoadFile(List<ResourceFile> list, File file, String subDir) {
 		if (FileUtils.isZipFile(file)) {
-			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
+			ZipSecurity.visitZipEntries(file, entry -> {
 				addEntry(list, file, entry, subDir);
 				return null;
 			});
@@ -218,7 +219,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 		}
 	}
 
-	public void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry, String subDir) {
+	public void addEntry(List<ResourceFile> list, File zipFile, ZipFileEntry entry, String subDir) {
 		if (entry.isDirectory()) {
 			return;
 		}

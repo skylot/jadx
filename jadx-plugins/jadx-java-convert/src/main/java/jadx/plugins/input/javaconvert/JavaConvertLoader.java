@@ -106,7 +106,7 @@ public class JavaConvertLoader {
 
 	private boolean repackAndConvertJar(ConvertResult result, Path path) throws Exception {
 		// check if jar need a full repackage
-		Boolean repackNeeded = ZipSecurity.visitZipEntries(path.toFile(), (zipFile, zipEntry) -> {
+		Boolean repackNeeded = ZipSecurity.visitZipEntries(path.toFile(), zipEntry -> {
 			String entryName = zipEntry.getName();
 			if (zipEntry.isDirectory()) {
 				if (entryName.equals("BOOT-INF/")) {
@@ -145,7 +145,7 @@ public class JavaConvertLoader {
 						if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {
 							throw new IOException("Can't read class name from file: " + entryName);
 						}
-						addJarEntry(jo, clsName + ".class", clsFileContent, entry.getLastModifiedTime());
+						addJarEntry(jo, clsName + ".class", clsFileContent, null);
 					} else if (entryName.endsWith(".jar")) {
 						Path tempJar = CommonFileUtils.saveToTempFile(in, ".jar");
 						result.addTempPath(tempJar);

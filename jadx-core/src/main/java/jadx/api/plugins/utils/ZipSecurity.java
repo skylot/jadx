@@ -4,9 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.ZipFile;
+import jadx.core.utils.zip.ZipContent;
+import jadx.core.utils.zip.ZipFileEntry;
+import jadx.core.utils.zip.ZipReader;
 
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
@@ -90,12 +92,12 @@ public class ZipSecurity {
 		return false;
 	}
 
-	public static boolean isZipBomb(ZipEntry entry) {
+	public static boolean isZipBomb(ZipFileEntry entry) {
 		if (DISABLE_CHECKS) {
 			return false;
 		}
 		long compressedSize = entry.getCompressedSize();
-		long uncompressedSize = entry.getSize();
+		long uncompressedSize = entry.getUncompressedSize();
 		boolean invalidSize = (compressedSize < 0) || (uncompressedSize < 0);
 		boolean possibleZipBomb = (uncompressedSize >= ZIP_BOMB_MIN_UNCOMPRESSED_SIZE)
 				&& (compressedSize * ZIP_BOMB_DETECTION_FACTOR < uncompressedSize);
@@ -107,7 +109,7 @@ public class ZipSecurity {
 		return false;
 	}
 
-	public static boolean isValidZipEntry(ZipEntry entry) {
+	public static boolean isValidZipEntry(ZipFileEntry entry) {
 		return isValidZipEntryName(entry.getName())
 				&& !isZipBomb(entry);
 	}
@@ -126,14 +128,12 @@ public class ZipSecurity {
 	 * Return not null value from visitor to stop iteration.
 	 */
 	@Nullable
-	public static <R> R visitZipEntries(File file, BiFunction<ZipFile, ZipEntry, R> visitor) {
-		try (ZipFile zip = new ZipFile(file)) {
-			Enumeration<? extends ZipEntry> entries = zip.entries();
+	public static <R> R visitZipEntries(File file, Function<ZipFileEntry, R> visitor) {
+		try (ZipContent content = ZipReader.open(file)) {
 			int entriesProcessed = 0;
-			while (entries.hasMoreElements()) {
-				ZipEntry entry = entries.nextElement();
+			for (ZipFileEntry entry : content.getFileEntries()) {
 				if (isValidZipEntry(entry)) {
-					R result = visitor.apply(zip, entry);
+					R result = visitor.apply(entry);
 					if (result != null) {
 						return result;
 					}
@@ -150,13 +150,13 @@ public class ZipSecurity {
 		return null;
 	}
 
-	public static void readZipEntries(File file, BiConsumer<ZipEntry, InputStream> visitor) {
-		visitZipEntries(file, (zip, entry) -> {
+	public static void readZipEntries(File file, BiConsumer<ZipFileEntry, InputStream> visitor) {
+		visitZipEntries(file, entry -> {
 			if (!entry.isDirectory()) {
-				try (InputStream in = getInputStreamForEntry(zip, entry)) {
+				try (InputStream in = entry.getInputStream()) {
 					visitor.accept(entry, in);
 				} catch (Exception e) {
-					throw new JadxRuntimeException("Failed to process zip entry: " + entry.getName());
+					throw new JadxRuntimeException("Failed to process zip entry: " + entry.getName(), e);
 				}
 			}
 			return null;

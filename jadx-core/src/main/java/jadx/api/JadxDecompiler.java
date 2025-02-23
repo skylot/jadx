@@ -50,7 +50,6 @@ import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipPatch;
 import jadx.core.utils.tasks.TaskExecutor;
 import jadx.core.xmlgen.ResourcesSaver;
 
@@ -145,9 +144,7 @@ public final class JadxDecompiler implements Closeable {
 
 	private void loadInputFiles() {
 		loadedInputs.clear();
-		List<File> inputs = ZipPatch.patchZipFiles(args.getInputFiles());
-		args.setInputFiles(inputs);
-		List<Path> inputPaths = Utils.collectionMap(inputs, File::toPath);
+		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		long start = System.currentTimeMillis();
 		for (PluginContext plugin : pluginManager.getResolvedPluginContexts()) {
