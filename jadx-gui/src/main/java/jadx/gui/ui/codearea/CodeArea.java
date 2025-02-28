@@ -186,6 +186,10 @@ public final class CodeArea extends AbstractCodeArea {
 			if (type == TokenTypes.ANNOTATION && token.length() > 1) {
 				return token.getOffset() + 1;
 			}
+			if (type == TokenTypes.RESERVED_WORD && token.length() == 6 && token.getLexeme().equals("static")) {
+				// maybe a class init method
+				return token.getOffset();
+			}
 		} else if (type == TokenTypes.MARKUP_TAG_ATTRIBUTE_VALUE) {
 			return token.getOffset() + 1; // skip quote at start (")
 		}

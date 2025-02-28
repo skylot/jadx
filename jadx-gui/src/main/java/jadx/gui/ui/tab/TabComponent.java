@@ -25,6 +25,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.dnd.TabDndGestureListener;
 import jadx.gui.utils.Icons;
@@ -230,6 +233,16 @@ public class TabComponent extends JPanel {
 			JMenuItem unbookmarkAll = new JMenuItem(NLS.str("tabs.unbookmark_all"));
 			unbookmarkAll.addActionListener(e -> tabsController.unbookmarkAllTabs());
 			menu.add(unbookmarkAll);
+			menu.addSeparator();
+		}
+
+		if (nodeFullName != null) {
+			MainWindow mainWindow = tabsController.getMainWindow();
+			JadxGuiAction selectInTree = new JadxGuiAction(ActionModel.SYNC, () -> mainWindow.selectNodeInTree(getNode()));
+			// attach shortcut without bind only to show current keybinding
+			selectInTree.setShortcut(mainWindow.getShortcutsController().get(ActionModel.SYNC));
+			menu.add(selectInTree);
+			menu.addSeparator();
 		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));

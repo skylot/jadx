@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
@@ -47,6 +46,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -107,6 +107,8 @@ import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
+import jadx.gui.plugins.context.CommonGuiPluginsContext;
+import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.ExportProjectProperties;
@@ -156,6 +158,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.DesktopEntryUtils;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.ILoadListener;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
@@ -175,26 +178,6 @@ public class MainWindow extends JFrame {
 	private static final double BORDER_RATIO = 0.15;
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
 	public static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
-
-	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
-	private static final ImageIcon ICON_RELOAD = UiUtils.openSvgIcon("ui/refresh");
-	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
-	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
-	private static final ImageIcon ICON_SYNC = UiUtils.openSvgIcon("ui/pagination");
-	private static final ImageIcon ICON_FLAT_PKG = UiUtils.openSvgIcon("ui/moduleGroup");
-	private static final ImageIcon ICON_SEARCH = UiUtils.openSvgIcon("ui/find");
-	private static final ImageIcon ICON_FIND = UiUtils.openSvgIcon("ui/ejbFinderMethod");
-	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openSvgIcon("ui/usagesFinder");
-	private static final ImageIcon ICON_MAIN_ACTIVITY = UiUtils.openSvgIcon("ui/home");
-	private static final ImageIcon ICON_BACK = UiUtils.openSvgIcon("ui/left");
-	private static final ImageIcon ICON_FORWARD = UiUtils.openSvgIcon("ui/right");
-	private static final ImageIcon ICON_QUARK = UiUtils.openSvgIcon("ui/quark");
-	private static final ImageIcon ICON_PREF = UiUtils.openSvgIcon("ui/settings");
-	private static final ImageIcon ICON_DEOBF = UiUtils.openSvgIcon("ui/helmChartLock");
-	private static final ImageIcon ICON_DECOMPILE_ALL = UiUtils.openSvgIcon("ui/runAll");
-	private static final ImageIcon ICON_LOG = UiUtils.openSvgIcon("ui/logVerbose");
-	private static final ImageIcon ICON_INFO = UiUtils.openSvgIcon("ui/showInfos");
-	private static final ImageIcon ICON_DEBUGGER = UiUtils.openSvgIcon("ui/startDebugger");
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -917,6 +900,16 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JPopupMenu menu = node.onTreePopupMenu(this);
+		CommonGuiPluginsContext pluginsContext = getWrapper().getGuiPluginsContext();
+		for (TreePopupMenuEntry entry : pluginsContext.getTreePopupMenuEntries()) {
+			JMenuItem menuItem = entry.buildEntry(node);
+			if (menuItem != null) {
+				if (menu == null) {
+					menu = new JPopupMenu();
+				}
+				menu.add(menuItem);
+			}
+		}
 		if (menu != null) {
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
@@ -1069,7 +1062,7 @@ public class MainWindow extends JFrame {
 		JadxGuiAction exitAction = new JadxGuiAction(ActionModel.EXIT, this::closeWindow);
 
 		isFlattenPackage = settings.isFlattenPackage();
-		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
+		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), Icons.FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
 		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
@@ -1092,16 +1085,15 @@ public class MainWindow extends JFrame {
 		dockLog.setState(settings.isDockLogViewer());
 		dockLog.addActionListener(event -> settings.setDockLogViewer(!settings.isDockLogViewer()));
 
-		JCheckBoxMenuItem dockQuickTabs = new JCheckBoxMenuItem(NLS.str("menu.dock_quick_tabs"));
-		dockQuickTabs.setState(settings.isDockQuickTabs());
-		dockQuickTabs.addActionListener(event -> {
+		ActionHandler quickTabsAction = new ActionHandler(ev -> {
 			boolean visible = quickTabsTree == null;
 			setQuickTabsVisibility(visible);
 			settings.setDockQuickTabs(visible);
 		});
-		if (dockQuickTabs.getState()) {
-			setQuickTabsVisibility(true);
-		}
+		quickTabsAction.setNameAndDesc(NLS.str("menu.dock_quick_tabs"));
+		quickTabsAction.setIcon(Icons.QUICK_TABS);
+		quickTabsAction.setSelected(settings.isDockQuickTabs());
+		setQuickTabsVisibility(settings.isDockQuickTabs());
 
 		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this.editorSyncManager::sync);
 		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
@@ -1161,12 +1153,14 @@ public class MainWindow extends JFrame {
 
 		JMenu view = new JadxMenu(NLS.str("menu.view"), shortcutsController);
 		view.setMnemonic(KeyEvent.VK_V);
+		view.add(quickTabsAction.makeCheckBoxMenuItem());
 		view.add(flatPkgMenuItem);
+		view.addSeparator();
 		view.add(syncAction);
-		view.add(heapUsageBarMenuItem);
 		view.add(alwaysSelectOpened);
+		view.addSeparator();
 		view.add(dockLog);
-		view.add(dockQuickTabs);
+		view.add(heapUsageBarMenuItem);
 
 		JMenu nav = new JadxMenu(NLS.str("menu.navigation"), shortcutsController);
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -1222,7 +1216,7 @@ public class MainWindow extends JFrame {
 		menuBar.add(help);
 		setJMenuBar(menuBar);
 
-		flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		flatPkgButton = new JToggleButton(Icons.FLAT_PKG);
 		flatPkgButton.setSelected(isFlattenPackage);
 		ActionListener flatPkgAction = e -> toggleFlattenPackage();
 		flatPkgMenuItem.addActionListener(flatPkgAction);
@@ -1243,6 +1237,7 @@ public class MainWindow extends JFrame {
 		toolbar.addSeparator();
 		toolbar.add(syncAction);
 		toolbar.add(flatPkgButton);
+		toolbar.add(quickTabsAction.makeToggleButton());
 		toolbar.addSeparator();
 		toolbar.add(textSearchAction);
 		toolbar.add(clsSearchAction);

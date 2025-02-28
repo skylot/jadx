@@ -3,6 +3,7 @@ package jadx.gui.plugins.context;
 import java.awt.Container;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.events.types.NodeRenamedByUser;
@@ -73,6 +75,11 @@ public class GuiPluginContext implements JadxGuiContext {
 	public void addPopupMenuAction(String name, @Nullable Function<ICodeNodeRef, Boolean> enabled,
 			@Nullable String keyBinding, Consumer<ICodeNodeRef> action) {
 		commonContext.getCodePopupActionList().add(new CodePopupAction(name, enabled, keyBinding, action));
+	}
+
+	@Override
+	public void addTreePopupMenuEntry(String name, Predicate<ITreeNode> addPredicate, Consumer<ITreeNode> action) {
+		commonContext.getTreePopupMenuEntries().add(new TreePopupMenuEntry(name, addPredicate, action));
 	}
 
 	@Override

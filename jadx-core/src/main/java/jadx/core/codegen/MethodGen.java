@@ -81,8 +81,9 @@ public class MethodGen {
 
 	public boolean addDefinition(ICodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
+			code.startLine();
 			code.attachDefinition(mth);
-			code.startLine("static");
+			code.add("static");
 			return true;
 		}
 		if (mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {

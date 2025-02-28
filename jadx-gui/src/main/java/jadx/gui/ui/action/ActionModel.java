@@ -43,7 +43,7 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_P, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	EXIT(MENU_TOOLBAR, "file.exit", "file.exit", "ui/exit",
 			Shortcut.none()),
-	SYNC(MENU_TOOLBAR, "menu.sync", "menu.sync", "ui/pagination",
+	SYNC(MENU_TOOLBAR, "menu.sync", "menu.sync", "ui/selectWeb",
 			Shortcut.keyboard(KeyEvent.VK_T, UiUtils.ctrlButton())),
 	TEXT_SEARCH(MENU_TOOLBAR, "menu.text_search", "menu.text_search", "ui/find",
 			Shortcut.keyboard(KeyEvent.VK_F, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
