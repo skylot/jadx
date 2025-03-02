@@ -23,6 +23,16 @@ public final class ZipFileEntry {
 		this.isDirectory = fileName.endsWith("/");
 	}
 
+	public boolean isSizesValid() {
+		if (compressedSize <= 0) {
+			return false;
+		}
+		if (uncompressedSize <= 0) {
+			return false;
+		}
+		return compressedSize <= uncompressedSize;
+	}
+
 	public String getName() {
 		return fileName;
 	}

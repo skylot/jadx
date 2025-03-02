@@ -26,7 +26,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public final class ZipReader {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipReader.class);
 
-	public static final EnumSet<Flags> DEFAULT_FLAGS = EnumSet.of(Flags.REPORT_TAMPERING);
+	public static final EnumSet<Flags> DEFAULT_FLAGS = EnumSet.noneOf(Flags.class);
 
 	public enum Flags {
 		/**
@@ -34,10 +34,6 @@ public final class ZipReader {
 		 * 'central directory' and 'end of central directory' entries
 		 */
 		IGNORE_CENTRAL_DIR_ENTRIES,
-		/**
-		 * TODO: not yet implemented
-		 */
-		VERIFY_CHECKSUM,
 
 		/**
 		 * Enable additional checks to verify zip data and report possible tampering
@@ -53,7 +49,7 @@ public final class ZipReader {
 		try {
 			return new ZipReader(zipFile, flags).open();
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to open zip file: " + zipFile.getAbsolutePath());
+			throw new JadxRuntimeException("Failed to open zip file: " + zipFile.getAbsolutePath(), e);
 		}
 	}
 
@@ -119,8 +115,7 @@ public final class ZipReader {
 			if (start == -1) {
 				return entries;
 			}
-			ZipFileEntry entry = loadFileEntry(start);
-			entries.add(entry);
+			entries.add(loadFileEntry(start));
 		}
 	}
 
@@ -152,13 +147,26 @@ public final class ZipReader {
 		int commentLen = buf.getShort();
 		buf.position(start + 42);
 		int fileEntryStart = buf.getInt();
+		int entryEnd = start + 46 + fileNameLen + extraFieldLen + commentLen;
 		ZipFileEntry entry = loadFileEntry(fileEntryStart);
 		if (verify) {
 			compareCDAndLFH(buf, start, entry);
 		}
-		int entryEnd = start + 46 + fileNameLen + extraFieldLen + commentLen;
-		buf.position(entryEnd); // skip to entry end
+		if (!entry.isSizesValid()) {
+			entry = fixEntryFromCD(entry, start);
+		}
+		buf.position(entryEnd);
 		return entry;
+	}
+
+	private ZipFileEntry fixEntryFromCD(ZipFileEntry entry, int start) {
+		ByteBuffer buf = byteBuffer;
+		buf.position(start + 10);
+		int comprMethod = buf.getShort();
+		buf.position(start + 20);
+		int comprSize = buf.getInt();
+		int unComprSize = buf.getInt();
+		return new ZipFileEntry(this, entry.getName(), entry.getDataStart(), comprMethod, comprSize, unComprSize);
 	}
 
 	private static void compareCDAndLFH(ByteBuffer buf, int start, ZipFileEntry entry) {
@@ -192,7 +200,7 @@ public final class ZipReader {
 		int extraFieldLen = buf.getShort();
 		String fileName = readString(fileNameLen);
 		int dataStart = start + 30 + fileNameLen + extraFieldLen;
-		buf.position(dataStart + comprSize); // skip to entry end
+		buf.position(dataStart + comprSize);
 		return new ZipFileEntry(this, fileName, dataStart, comprMethod, comprSize, unComprSize);
 	}
 
@@ -205,7 +213,7 @@ public final class ZipReader {
 	private int searchEndOfCDStart() {
 		ByteBuffer buf = byteBuffer;
 		int pos = buf.limit() - 22;
-		int minPos = pos - 0xffff;
+		int minPos = Math.max(0, pos - 0xffff);
 		while (true) {
 			buf.position(pos);
 			int sign = buf.getInt();
