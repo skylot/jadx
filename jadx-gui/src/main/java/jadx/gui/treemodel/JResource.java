@@ -348,11 +348,12 @@ public class JResource extends JLoadableNode {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		return name.equals(((JResource) o).name);
+		JResource other = (JResource) o;
+		return name.equals(other.name) && type.equals(other.type);
 	}
 
 	@Override
 	public int hashCode() {
-		return name.hashCode();
+		return name.hashCode() + 31 * type.ordinal();
 	}
 }
