@@ -33,7 +33,7 @@ public class DexFieldData implements IFieldData {
 	}
 
 	public void setParentClassType(String parentClassType) {
-		this.parentClassType = parentClassType;
+		this.parentClassType = parentClassType.intern();
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class DexFieldData implements IFieldData {
 	}
 
 	public void setType(String type) {
-		this.type = type;
+		this.type = type.intern();
 	}
 
 	@Override

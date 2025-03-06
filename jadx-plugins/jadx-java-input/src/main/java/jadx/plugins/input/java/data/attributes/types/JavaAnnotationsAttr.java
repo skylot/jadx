@@ -52,7 +52,7 @@ public class JavaAnnotationsAttr implements IJavaAttribute {
 		for (int j = 0; j < pairsCount; j++) {
 			String name = constPool.getUtf8(reader.readU2());
 			EncodedValue value = EncodedValueReader.read(clsData, reader);
-			pairs.put(name, value);
+			pairs.put(name.intern(), value);
 		}
 		return new JadxAnnotation(visibility, type, pairs);
 	}

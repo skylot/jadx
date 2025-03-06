@@ -225,7 +225,7 @@ public abstract class ArgType {
 		protected final String objName;
 
 		public ObjectType(String obj) {
-			this.objName = obj;
+			this.objName = obj.intern();
 			this.hash = objName.hashCode();
 		}
 

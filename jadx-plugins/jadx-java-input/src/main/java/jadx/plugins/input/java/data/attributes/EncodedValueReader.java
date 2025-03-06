@@ -36,15 +36,15 @@ public class EncodedValueReader {
 			case 'Z':
 				return new EncodedValue(EncodedType.ENCODED_BOOLEAN, 1 == constPool.getInt(reader.readU2()));
 			case 's':
-				return new EncodedValue(EncodedType.ENCODED_STRING, constPool.getUtf8(reader.readU2()));
+				return new EncodedValue(EncodedType.ENCODED_STRING, constPool.getUtf8(reader.readU2()).intern());
 
 			case 'e':
-				String cls = constPool.getUtf8(reader.readU2());
-				String name = constPool.getUtf8(reader.readU2());
+				String cls = constPool.getUtf8(reader.readU2()).intern();
+				String name = constPool.getUtf8(reader.readU2()).intern();
 				return new EncodedValue(EncodedType.ENCODED_ENUM, new JadxFieldRef(cls, name, cls));
 
 			case 'c':
-				return new EncodedValue(EncodedType.ENCODED_TYPE, constPool.getUtf8(reader.readU2()));
+				return new EncodedValue(EncodedType.ENCODED_TYPE, constPool.getUtf8(reader.readU2()).intern());
 
 			case '@':
 				return new EncodedValue(EncodedType.ENCODED_ANNOTATION,

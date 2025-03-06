@@ -15,7 +15,11 @@ public class EncodedValue extends PinnedAttribute {
 
 	public EncodedValue(EncodedType type, Object value) {
 		this.type = type;
-		this.value = value;
+		if (type == EncodedType.ENCODED_STRING) {
+			this.value = ((String) value).intern();
+		} else {
+			this.value = value;
+		}
 	}
 
 	public EncodedType getType() {

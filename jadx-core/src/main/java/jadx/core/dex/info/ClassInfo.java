@@ -171,11 +171,11 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			}
 		}
 		if (!innerCls) {
-			pkg = clsPkg;
+			pkg = clsPkg.intern();
 			parentClass = null;
 		}
-		this.name = clsName;
-		this.fullName = makeFullName();
+		this.name = clsName.intern();
+		this.fullName = makeFullName().intern();
 	}
 
 	private static String makeFullClsName(String pkg, String shortName, ClassInfo parentClass, boolean alias, boolean raw) {

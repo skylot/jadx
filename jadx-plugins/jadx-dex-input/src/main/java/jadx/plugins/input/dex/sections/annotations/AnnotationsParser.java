@@ -146,7 +146,7 @@ public class AnnotationsParser {
 		int size = in.readUleb128();
 		Map<String, EncodedValue> values = new LinkedHashMap<>(size);
 		for (int i = 0; i < size; i++) {
-			String name = ext.getString(in.readUleb128());
+			String name = ext.getString(in.readUleb128()).intern();
 			values.put(name, EncodedValueParser.parseValue(in, ext));
 		}
 		String type = ext.getType(typeIndex);

@@ -42,9 +42,9 @@ public class PackageInfo {
 	}
 
 	private PackageInfo(String fullName, @Nullable PackageInfo parentPkg, String name) {
-		this.fullName = fullName;
+		this.fullName = fullName.intern();
 		this.parentPkg = parentPkg;
-		this.name = name;
+		this.name = name.intern();
 	}
 
 	public boolean isRoot() {

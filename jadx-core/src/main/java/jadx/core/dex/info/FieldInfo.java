@@ -17,9 +17,9 @@ public final class FieldInfo implements IFieldInfoRef {
 
 	private FieldInfo(ClassInfo declClass, String name, ArgType type) {
 		this.declClass = declClass;
-		this.name = name;
+		this.name = name.intern();
 		this.type = type;
-		this.alias = name;
+		this.alias = name.intern();
 	}
 
 	public static FieldInfo from(RootNode root, ClassInfo declClass, String name, ArgType type) {

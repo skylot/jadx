@@ -114,7 +114,7 @@ public class DataReader {
 		}
 		List<String> list = new ArrayList<>(len);
 		for (int i = 0; i < len; i++) {
-			list.add(constPool.getClass(readU2()));
+			list.add(constPool.getClass(readU2()).intern());
 		}
 		return list;
 	}

@@ -9,7 +9,7 @@ public class JadxAnnotation implements IAnnotation {
 
 	public JadxAnnotation(AnnotationVisibility visibility, String type, Map<String, EncodedValue> values) {
 		this.visibility = visibility;
-		this.type = type;
+		this.type = type.intern();
 		this.values = values;
 	}
 

@@ -24,7 +24,7 @@ public class AnnotationsAttr extends PinnedAttribute {
 		Map<String, IAnnotation> annMap = new HashMap<>(annotationList.size());
 		for (IAnnotation ann : annotationList) {
 			if (ann.getVisibility() != AnnotationVisibility.SYSTEM) {
-				annMap.put(ann.getAnnotationClass(), ann);
+				annMap.put(ann.getAnnotationClass().intern(), ann);
 			}
 		}
 		if (annMap.isEmpty()) {
