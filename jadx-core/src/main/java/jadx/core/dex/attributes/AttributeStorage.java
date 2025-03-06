@@ -18,11 +18,18 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
- * Storage for different attribute types:
- * 1. flags - boolean attribute (set or not)
- * 2. attribute - class instance associated with attribute type.
+ * Storage for different attribute types:<br>
+ * 1. Flags - boolean attribute (set or not)<br>
+ * 2. Attributes - class instance ({@link IJadxAttribute}) associated with an attribute type
+ * ({@link IJadxAttrType})<br>
  */
 public class AttributeStorage {
+
+	public static AttributeStorage fromList(List<IJadxAttribute> list) {
+		AttributeStorage storage = new AttributeStorage();
+		storage.add(list);
+		return storage;
+	}
 
 	static {
 		int flagsCount = AFlag.values().length;
@@ -31,17 +38,14 @@ public class AttributeStorage {
 		}
 	}
 
+	private static final Map<IJadxAttrType<?>, IJadxAttribute> EMPTY_ATTRIBUTES = Collections.emptyMap();
+
 	private final Set<AFlag> flags;
 	private Map<IJadxAttrType<?>, IJadxAttribute> attributes;
 
 	public AttributeStorage() {
 		flags = EnumSet.noneOf(AFlag.class);
-		attributes = Collections.emptyMap();
-	}
-
-	public AttributeStorage(List<IJadxAttribute> attributesList) {
-		this();
-		add(attributesList);
+		attributes = EMPTY_ATTRIBUTES;
 	}
 
 	public void add(AFlag flag) {
@@ -125,11 +129,14 @@ public class AttributeStorage {
 	}
 
 	private void writeAttributes(Consumer<Map<IJadxAttrType<?>, IJadxAttribute>> mapConsumer) {
-		if (attributes.isEmpty()) {
-			attributes = new IdentityHashMap<>(5);
-		}
 		synchronized (this) {
+			if (attributes == EMPTY_ATTRIBUTES) {
+				attributes = new IdentityHashMap<>(2); // only 1 or 2 attributes added in most cases
+			}
 			mapConsumer.accept(attributes);
+			if (attributes.isEmpty()) {
+				attributes = EMPTY_ATTRIBUTES;
+			}
 		}
 	}
 
@@ -137,9 +144,7 @@ public class AttributeStorage {
 		if (attributes.isEmpty()) {
 			return;
 		}
-		synchronized (this) {
-			attributes.entrySet().removeIf(entry -> !entry.getValue().keepLoaded());
-		}
+		writeAttributes(map -> map.entrySet().removeIf(entry -> !entry.getValue().keepLoaded()));
 	}
 
 	public List<String> getAttributeStrings() {

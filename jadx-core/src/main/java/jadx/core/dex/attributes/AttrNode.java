@@ -12,7 +12,7 @@ import jadx.core.utils.Utils;
 
 public abstract class AttrNode implements IAttributeNode {
 
-	private static final AttributeStorage EMPTY_ATTR_STORAGE = new EmptyAttrStorage();
+	private static final AttributeStorage EMPTY_ATTR_STORAGE = EmptyAttrStorage.INSTANCE;
 
 	private AttributeStorage storage = EMPTY_ATTR_STORAGE;
 
@@ -35,6 +35,9 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public void addAttrs(List<IJadxAttribute> list) {
+		if (list.isEmpty()) {
+			return;
+		}
 		initStorage().add(list);
 	}
 

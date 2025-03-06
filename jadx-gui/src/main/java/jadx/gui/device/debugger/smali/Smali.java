@@ -185,16 +185,14 @@ public class Smali {
 			smali.startLine(String.format("###### Class %s is created by jadx", cls.getFullName()));
 			return;
 		}
-		AttributeStorage attributes = new AttributeStorage();
-		attributes.add(clsData.getAttributes());
-
+		AttributeStorage clsAttributes = AttributeStorage.fromList(clsData.getAttributes());
 		smali.startLine("Class: " + clsData.getType())
 				.startLine("AccessFlags: " + AccessFlags.format(clsData.getAccessFlags(), AccessFlagsScope.CLASS))
 				.startLine("SuperType: " + clsData.getSuperType())
 				.startLine("Interfaces: " + clsData.getInterfacesTypes())
-				.startLine("SourceFile: " + attributes.get(JadxAttrType.SOURCE_FILE));
+				.startLine("SourceFile: " + clsAttributes.get(JadxAttrType.SOURCE_FILE));
 
-		AnnotationsAttr annotationsAttr = attributes.get(JadxAttrType.ANNOTATION_LIST);
+		AnnotationsAttr annotationsAttr = clsAttributes.get(JadxAttrType.ANNOTATION_LIST);
 		if (annotationsAttr != null) {
 			Collection<IAnnotation> annos = annotationsAttr.getList();
 			if (!annos.isEmpty()) {
@@ -451,7 +449,8 @@ public class Smali {
 		smali.add(')');
 		smali.add(methodRef.getReturnType());
 
-		AnnotationsAttr annotationsAttr = new AttributeStorage(mth.getAttributes()).get(JadxAttrType.ANNOTATION_LIST);
+		AttributeStorage mthAttributes = AttributeStorage.fromList(mth.getAttributes());
+		AnnotationsAttr annotationsAttr = mthAttributes.get(JadxAttrType.ANNOTATION_LIST);
 		if (annotationsAttr != null && !annotationsAttr.isEmpty()) {
 			smali.incIndent();
 			writeAnnotations(smali, annotationsAttr.getList());
@@ -1074,7 +1073,7 @@ public class Smali {
 			field.accessFlag = AccessFlags.format(f.getAccessFlags(), FIELD);
 			field.name = f.getName();
 			field.type = f.getType();
-			field.attributes = new AttributeStorage(f.getAttributes());
+			field.attributes = AttributeStorage.fromList(f.getAttributes());
 			return field;
 		}
 	}
