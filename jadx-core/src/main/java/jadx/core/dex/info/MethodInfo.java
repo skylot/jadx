@@ -19,19 +19,17 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	private final List<ArgType> argTypes;
 	private final ClassInfo declClass;
 	private final String shortId;
-	private final String rawFullId;
 	private final int hash;
 
 	private String alias;
 
 	private MethodInfo(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
-		this.name = name;
-		this.alias = name;
+		this.name = name.intern();
+		this.alias = name.intern();
 		this.declClass = declClass;
 		this.argTypes = args;
 		this.retType = retType;
-		this.shortId = makeShortId(name, argTypes, retType);
-		this.rawFullId = declClass.makeRawFullName() + '.' + shortId;
+		this.shortId = makeShortId(name, argTypes, retType).intern();
 		this.hash = calcHashCode();
 	}
 
@@ -115,7 +113,7 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	}
 
 	public String getRawFullId() {
-		return rawFullId;
+		return declClass.makeRawFullName() + '.' + shortId;
 	}
 
 	/**
