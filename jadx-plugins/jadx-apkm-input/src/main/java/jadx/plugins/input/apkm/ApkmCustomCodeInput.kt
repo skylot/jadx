@@ -20,7 +20,7 @@ class ApkmCustomCodeInput(
 			// Load all files ending with .apk
 			ZipSecurity.visitZipEntries<Any>(file) { entry ->
 				if (entry.name.endsWith(".apk")) {
-					val tmpFile = entry.inputStream.use {
+					val tmpFile = ZipSecurity.getInputStreamForEntry(entry).use {
 						CommonFileUtils.saveToTempFile(it, ".apk").toFile()
 					}
 					apkFiles.add(tmpFile)

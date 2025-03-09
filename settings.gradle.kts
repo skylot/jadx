@@ -15,6 +15,7 @@ include("jadx-gui")
 include("jadx-plugins-tools")
 
 include("jadx-commons:jadx-app-commons")
+include("jadx-commons:jadx-zip")
 
 include("jadx-plugins:jadx-input-api")
 include("jadx-plugins:jadx-dex-input")

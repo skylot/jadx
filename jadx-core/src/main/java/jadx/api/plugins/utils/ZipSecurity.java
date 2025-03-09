@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -14,10 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.ZipFile;
-import jadx.core.utils.zip.ZipContent;
-import jadx.core.utils.zip.ZipFileEntry;
-import jadx.core.utils.zip.ZipReader;
+import jadx.zip.IZipEntry;
+import jadx.zip.ZipContent;
+import jadx.zip.ZipReader;
+import jadx.zip.parser.JadxZipEntry;
 
 public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
@@ -92,15 +93,15 @@ public class ZipSecurity {
 		return false;
 	}
 
-	public static boolean isZipBomb(ZipFileEntry entry) {
+	public static boolean isZipBomb(IZipEntry entry) {
 		if (DISABLE_CHECKS) {
 			return false;
 		}
 		long compressedSize = entry.getCompressedSize();
 		long uncompressedSize = entry.getUncompressedSize();
-		boolean invalidSize = (compressedSize < 0) || (uncompressedSize < 0);
-		boolean possibleZipBomb = (uncompressedSize >= ZIP_BOMB_MIN_UNCOMPRESSED_SIZE)
-				&& (compressedSize * ZIP_BOMB_DETECTION_FACTOR < uncompressedSize);
+		boolean invalidSize = compressedSize < 0 || uncompressedSize < 0;
+		boolean possibleZipBomb = uncompressedSize >= ZIP_BOMB_MIN_UNCOMPRESSED_SIZE
+				&& compressedSize * ZIP_BOMB_DETECTION_FACTOR < uncompressedSize;
 		if (invalidSize || possibleZipBomb) {
 			LOG.error("Potential zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
 					compressedSize, uncompressedSize, entry.getName());
@@ -109,11 +110,15 @@ public class ZipSecurity {
 		return false;
 	}
 
-	public static boolean isValidZipEntry(ZipFileEntry entry) {
+	public static boolean isValidZipEntry(IZipEntry entry) {
 		return isValidZipEntryName(entry.getName())
 				&& !isZipBomb(entry);
 	}
 
+	/**
+	 * Migrate to {@link ZipReader}
+	 */
+	@Deprecated
 	public static InputStream getInputStreamForEntry(ZipFile zipFile, ZipEntry entry) throws IOException {
 		if (DISABLE_CHECKS) {
 			return new BufferedInputStream(zipFile.getInputStream(entry));
@@ -123,15 +128,27 @@ public class ZipSecurity {
 		return new BufferedInputStream(limited);
 	}
 
+	public static InputStream getInputStreamForEntry(IZipEntry entry) {
+		if (DISABLE_CHECKS) {
+			return entry.getInputStream();
+		}
+		if (entry instanceof JadxZipEntry) {
+			// TODO: move zip security into 'jadx-zip' module
+			// uses bytes array instead input stream internally
+			return entry.getInputStream();
+		}
+		return new LimitedInputStream(entry.getInputStream(), entry.getUncompressedSize());
+	}
+
 	/**
-	 * Visit valid entries in zip file.
+	 * Visit valid entries in a zip file.
 	 * Return not null value from visitor to stop iteration.
 	 */
 	@Nullable
-	public static <R> R visitZipEntries(File file, Function<ZipFileEntry, R> visitor) {
+	public static <R> R visitZipEntries(File file, Function<IZipEntry, R> visitor) {
 		try (ZipContent content = ZipReader.open(file)) {
 			int entriesProcessed = 0;
-			for (ZipFileEntry entry : content.getFileEntries()) {
+			for (IZipEntry entry : content.getEntries()) {
 				if (isValidZipEntry(entry)) {
 					R result = visitor.apply(entry);
 					if (result != null) {
@@ -150,13 +167,13 @@ public class ZipSecurity {
 		return null;
 	}
 
-	public static void readZipEntries(File file, BiConsumer<ZipFileEntry, InputStream> visitor) {
+	public static void readZipEntries(File file, BiConsumer<IZipEntry, InputStream> visitor) {
 		visitZipEntries(file, entry -> {
 			if (!entry.isDirectory()) {
-				try (InputStream in = entry.getInputStream()) {
+				try (InputStream in = getInputStreamForEntry(entry)) {
 					visitor.accept(entry, in);
 				} catch (Exception e) {
-					throw new JadxRuntimeException("Failed to process zip entry: " + entry.getName(), e);
+					throw new JadxRuntimeException("Failed to process zip entry: " + entry, e);
 				}
 			}
 			return null;
