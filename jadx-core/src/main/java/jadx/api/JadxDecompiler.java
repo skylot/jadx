@@ -99,6 +99,7 @@ public final class JadxDecompiler implements Closeable {
 	private final List<ICodeLoader> customCodeLoaders = new ArrayList<>();
 	private final List<CustomResourcesLoader> customResourcesLoaders = new ArrayList<>();
 	private final Map<JadxPassType, List<JadxPass>> customPasses = new HashMap<>();
+	private final List<Closeable> closeableList = new ArrayList<>();
 
 	private IJadxEvents events = new JadxEventsImpl();
 
@@ -158,7 +159,7 @@ public final class JadxDecompiler implements Closeable {
 						loadedInputs.add(loader);
 					}
 				} catch (Exception e) {
-					throw new JadxRuntimeException("Failed to load code for plugin: " + plugin, e);
+					LOG.warn("Failed to load code for plugin: {}", plugin, e);
 				}
 			}
 		}
@@ -178,32 +179,26 @@ public final class JadxDecompiler implements Closeable {
 	@Override
 	public void close() {
 		reset();
-		closeInputs();
-		closeLoaders();
+		closeAll(loadedInputs);
+		closeAll(customCodeLoaders);
+		closeAll(customResourcesLoaders);
+		closeAll(closeableList);
 		args.close();
 		FileUtils.clearTempRootDir();
 	}
 
-	private void closeInputs() {
-		loadedInputs.forEach(load -> {
-			try {
-				load.close();
-			} catch (Exception e) {
-				LOG.error("Failed to close input", e);
+	private void closeAll(List<? extends Closeable> list) {
+		try {
+			for (Closeable closeable : list) {
+				try {
+					closeable.close();
+				} catch (Exception e) {
+					LOG.warn("Fail to close '{}'", closeable, e);
+				}
 			}
-		});
-		loadedInputs.clear();
-	}
-
-	private void closeLoaders() {
-		for (CustomResourcesLoader resourcesLoader : customResourcesLoaders) {
-			try {
-				resourcesLoader.close();
-			} catch (Exception e) {
-				LOG.error("Failed to close resource loader: {}", resourcesLoader, e);
-			}
+		} finally {
+			list.clear();
 		}
-		customResourcesLoaders.clear();
 	}
 
 	private void loadPlugins() {
@@ -704,6 +699,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public ZipReader getZipReader() {
 		return zipReader;
+	}
+
+	public void addCloseable(Closeable closeable) {
+		closeableList.add(closeable);
 	}
 
 	@Override

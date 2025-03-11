@@ -56,7 +56,7 @@ public class JRoot extends JNode {
 		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
 			String rfName;
-			if (rf.getZipRef() != null) {
+			if (rf.getZipEntry() != null) {
 				rfName = rf.getDeobfName();
 			} else {
 				rfName = new File(rf.getDeobfName()).getName();

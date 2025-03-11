@@ -12,6 +12,7 @@ import jadx.api.plugins.resources.IResContainerFactory;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.ResContainer;
 import jadx.plugins.input.aab.parsers.ResXmlProtoParser;
+import jadx.zip.IZipEntry;
 
 public class ProtoXmlResContainerFactory implements IResContainerFactory {
 	private ResXmlProtoParser xmlParser;
@@ -27,11 +28,11 @@ public class ProtoXmlResContainerFactory implements IResContainerFactory {
 		if (type != ResourceType.XML && type != ResourceType.MANIFEST) {
 			return null;
 		}
-		ResourceFile.ZipRef ref = resFile.getZipRef();
-		if (ref == null) {
+		IZipEntry zipEntry = resFile.getZipEntry();
+		if (zipEntry == null) {
 			return null;
 		}
-		boolean isFromAab = ref.getZipFile().getPath().contains(".aab");
+		boolean isFromAab = zipEntry.getZipFile().getPath().contains(".aab");
 		if (!isFromAab) {
 			return null;
 		}

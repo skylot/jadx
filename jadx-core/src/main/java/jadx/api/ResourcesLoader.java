@@ -13,7 +13,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.CustomResourcesLoader;
 import jadx.api.plugins.resources.IResContainerFactory;
@@ -31,7 +30,6 @@ import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableBinaryParserProvider;
 import jadx.zip.IZipEntry;
 import jadx.zip.ZipContent;
-import jadx.zip.ZipReader;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
@@ -40,21 +38,21 @@ import static jadx.core.utils.files.FileUtils.copyStream;
 public final class ResourcesLoader implements IResourcesLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesLoader.class);
 
-	private final JadxDecompiler jadxRef;
+	private final JadxDecompiler decompiler;
 
 	private final List<IResTableParserProvider> resTableParserProviders = new ArrayList<>();
 	private final List<IResContainerFactory> resContainerFactories = new ArrayList<>();
 
 	private BinaryXMLParser binaryXmlParser;
 
-	ResourcesLoader(JadxDecompiler jadxRef) {
-		this.jadxRef = jadxRef;
+	ResourcesLoader(JadxDecompiler decompiler) {
+		this.decompiler = decompiler;
 		this.resTableParserProviders.add(new ResTableBinaryParserProvider());
 	}
 
 	List<ResourceFile> load(RootNode root) {
 		init(root);
-		List<File> inputFiles = jadxRef.getArgs().getInputFiles();
+		List<File> inputFiles = decompiler.getArgs().getInputFiles();
 		List<ResourceFile> list = new ArrayList<>(inputFiles.size());
 		for (File file : inputFiles) {
 			loadFile(list, file);
@@ -95,22 +93,15 @@ public final class ResourcesLoader implements IResourcesLoader {
 
 	public static <T> T decodeStream(ResourceFile rf, ResourceDecoder<T> decoder) throws JadxException {
 		try {
-			ZipRef zipRef = rf.getZipRef();
-			if (zipRef == null) {
+			IZipEntry zipEntry = rf.getZipEntry();
+			if (zipEntry != null) {
+				try (InputStream inputStream = zipEntry.getInputStream()) {
+					return decoder.decode(zipEntry.getUncompressedSize(), inputStream);
+				}
+			} else {
 				File file = new File(rf.getOriginalName());
 				try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
 					return decoder.decode(file.length(), inputStream);
-				}
-			} else {
-				ZipReader zipReader = rf.getDecompiler().getZipReader();
-				try (ZipContent content = zipReader.open(zipRef.getZipFile())) {
-					IZipEntry entry = content.searchEntry(zipRef.getEntryName());
-					if (entry == null) {
-						throw new IOException("Zip entry not found: " + zipRef);
-					}
-					try (InputStream inputStream = entry.getInputStream()) {
-						return decoder.decode(entry.getUncompressedSize(), inputStream);
-					}
 				}
 			}
 		} catch (Exception e) {
@@ -194,7 +185,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 		}
 
 		// Try to load the resources with a custom loader first
-		for (CustomResourcesLoader loader : jadxRef.getCustomResourcesLoaders()) {
+		for (CustomResourcesLoader loader : decompiler.getCustomResourcesLoaders()) {
 			if (loader.load(this, list, file)) {
 				LOG.debug("Custom loader used for {}", file.getAbsolutePath());
 				return;
@@ -207,13 +198,19 @@ public final class ResourcesLoader implements IResourcesLoader {
 
 	public void defaultLoadFile(List<ResourceFile> list, File file, String subDir) {
 		if (FileUtils.isZipFile(file)) {
-			jadxRef.getZipReader().visitEntries(file, entry -> {
-				addEntry(list, file, entry, subDir);
-				return null;
-			});
+			try {
+				ZipContent zipContent = decompiler.getZipReader().open(file);
+				// do not close a zip now, entry content will be read later
+				decompiler.addCloseable(zipContent);
+				for (IZipEntry entry : zipContent.getEntries()) {
+					addEntry(list, file, entry, subDir);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to open zip file: " + file.getAbsolutePath(), e);
+			}
 		} else {
 			ResourceType type = ResourceType.getFileType(file.getAbsolutePath());
-			list.add(ResourceFile.createResourceFile(jadxRef, file, type));
+			list.add(ResourceFile.createResourceFile(decompiler, file, type));
 		}
 	}
 
@@ -223,9 +220,9 @@ public final class ResourcesLoader implements IResourcesLoader {
 		}
 		String name = entry.getName();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, subDir + name, type);
+		ResourceFile rf = ResourceFile.createResourceFile(decompiler, subDir + name, type);
 		if (rf != null) {
-			rf.setZipRef(new ZipRef(zipFile, name));
+			rf.setZipEntry(entry);
 			list.add(rf);
 		}
 	}
@@ -238,7 +235,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 
 	private synchronized BinaryXMLParser loadBinaryXmlParser() {
 		if (binaryXmlParser == null) {
-			binaryXmlParser = new BinaryXMLParser(jadxRef.getRoot());
+			binaryXmlParser = new BinaryXMLParser(decompiler.getRoot());
 		}
 		return binaryXmlParser;
 	}

@@ -2,38 +2,18 @@ package jadx.api;
 
 import java.io.File;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.zip.IZipEntry;
 
 public class ResourceFile {
-
-	public static final class ZipRef {
-		private final File zipFile;
-		private final String entryName;
-
-		public ZipRef(File zipFile, String entryName) {
-			this.zipFile = zipFile;
-			this.entryName = entryName;
-		}
-
-		public File getZipFile() {
-			return zipFile;
-		}
-
-		public String getEntryName() {
-			return entryName;
-		}
-
-		@Override
-		public String toString() {
-			return "ZipRef{" + zipFile + ", '" + entryName + "'}";
-		}
-	}
-
 	private final JadxDecompiler decompiler;
 	private final String name;
 	private final ResourceType type;
-	private ZipRef zipRef;
+
+	private @Nullable IZipEntry zipEntry;
 	private String deobfName;
 
 	public static ResourceFile createResourceFile(JadxDecompiler decompiler, File file, ResourceType type) {
@@ -73,10 +53,6 @@ public class ResourceFile {
 		return ResourcesLoader.loadContent(decompiler, this);
 	}
 
-	void setZipRef(ZipRef zipRef) {
-		this.zipRef = zipRef;
-	}
-
 	public boolean setAlias(ResourceEntry ri) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("res/").append(ri.getTypeName()).append(ri.getConfig());
@@ -93,8 +69,12 @@ public class ResourceFile {
 		return false;
 	}
 
-	public ZipRef getZipRef() {
-		return zipRef;
+	public @Nullable IZipEntry getZipEntry() {
+		return zipEntry;
+	}
+
+	void setZipEntry(@Nullable IZipEntry zipEntry) {
+		this.zipEntry = zipEntry;
 	}
 
 	public JadxDecompiler getDecompiler() {
