@@ -275,33 +275,33 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			}
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
+		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
 			if (offset == NO_ENTRY) {
 				continue;
 			}
-			int index = entryOffset.getIdx();
-			if (is.getPos() >= chunkEnd) {
-				// Certain resource obfuscated apps like com.facebook.orca have more entries defined
-				// than actually fit into the chunk size -> ignore the remaining entries
-				LOG.warn("End of chunk reached - ignoring remaining {} entries in type: {}", entryCount - index, typeName);
-				break;
-			}
 			long entryStartOffset = entriesStart + offset;
+			if (entryStartOffset >= chunkEnd) {
+				// Certain resource obfuscated apps like com.facebook.orca have more entries defined
+				// than actually fit into the chunk size -> ignore this entry
+				ignoredEoc++;
+				// LOG.debug("Pos is after chunk end: {} end {}", entryStartOffset, chunkEnd);
+				continue;
+			}
 			if (entryStartOffset < is.getPos()) {
 				// workaround for issue #2343: if the entryStartOffset is located before our current position
 				is.reset();
 			}
+			int index = entryOffset.getIdx();
 			is.skipToPos(entryStartOffset, "Expected start of entry " + index);
 			parseEntry(pkg, id, index, config.getQualifiers());
 		}
-		if (chunkEnd > is.getPos()) {
-			// Skip remaining unknown data in this chunk (e.g. type 8 entries")
-			long skipSize = chunkEnd - is.getPos();
-			LOG.debug("Unknown data at the end of type chunk encountered, skipping {} bytes and continuing at offset {}", skipSize,
-					chunkEnd);
-			is.skip(skipSize);
+		if (ignoredEoc > 0) {
+			// invalid = data offset is after the chunk end
+			LOG.warn("{} entries of type {} has been ignored (invalid offset)", ignoredEoc, typeName);
 		}
+		is.skipToPos(chunkEnd, "End of chunk");
 	}
 
 	private static class EntryOffset {
