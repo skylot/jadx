@@ -2,7 +2,12 @@ package jadx.core.xmlgen;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CommonBinaryParser extends ParserConstants {
+	private static final Logger LOG = LoggerFactory.getLogger(CommonBinaryParser.class);
+
 	protected ParserStream is;
 
 	protected BinaryXMLStrings parseStringPool() throws IOException {
@@ -12,10 +17,17 @@ public class CommonBinaryParser extends ParserConstants {
 
 	protected BinaryXMLStrings parseStringPoolNoType() throws IOException {
 		long start = is.getPos() - 2;
-		is.checkInt16(0x001c, "String pool header size not 0x001c");
+		int headerSize = is.readInt16();
+		if (headerSize != 0x1c) {
+			LOG.warn("Unexpected string pool header size: 0x{}, expected: 0x1C", Integer.toHexString(headerSize));
+		}
 		long size = is.readUInt32();
 		long chunkEnd = start + size;
 
+		return parseStringPoolNoSize(start, chunkEnd);
+	}
+
+	protected BinaryXMLStrings parseStringPoolNoSize(long start, long chunkEnd) throws IOException {
 		int stringCount = is.readInt32();
 		int styleCount = is.readInt32();
 		int flags = is.readInt32();
