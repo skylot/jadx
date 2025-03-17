@@ -142,6 +142,7 @@ public class JadxSettingsWindow extends JDialog {
 
 		tree = new SettingsTree();
 		tree.init(wrapGroupPanel, groups);
+		tree.setFocusable(true);
 		JScrollPane leftPane = new JScrollPane(tree);
 		leftPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 3, 3));
 

@@ -96,6 +96,7 @@ class PluginSettingsGroup implements ISettingsGroup {
 		pluginList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		pluginList.setCellRenderer(new PluginsListCellRenderer());
 		pluginList.addListSelectionListener(ev -> onSelection(pluginList.getSelectedValue()));
+		pluginList.setFocusable(true);
 
 		JScrollPane scrollPane = new JScrollPane(pluginList);
 		scrollPane.setMinimumSize(new Dimension(80, 120));
@@ -276,8 +277,7 @@ class PluginSettingsGroup implements ISettingsGroup {
 
 			titleLbl = new JLabel();
 			titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
-			titleLbl.setEnabled(false);
-			versionLbl.setPreferredSize(new Dimension(40, 10));
+			titleLbl.setPreferredSize(new Dimension(40, 10));
 		}
 
 		@Override
@@ -290,6 +290,7 @@ class PluginSettingsGroup implements ISettingsGroup {
 			nameLbl.setText(plugin.getTitle());
 			nameLbl.setToolTipText(plugin.getLocationId());
 			versionLbl.setText(Utils.getOrElse(plugin.getVersion(), ""));
+			panel.getAccessibleContext().setAccessibleName(plugin.getTitle());
 
 			boolean enabled = !plugin.isDisabled();
 			nameLbl.setEnabled(enabled);

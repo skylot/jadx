@@ -39,10 +39,18 @@ public class SettingsGroup implements ISettingsGroup {
 	}
 
 	public JLabel addRow(String label, String tooltip, JComponent comp) {
-		c.gridy = row++;
 		JLabel rowLbl = new JLabel(label);
 		rowLbl.setLabelFor(comp);
 		rowLbl.setHorizontalAlignment(SwingConstants.LEFT);
+		if (tooltip != null) {
+			rowLbl.setToolTipText(tooltip);
+			comp.setToolTipText(tooltip);
+		} else {
+			comp.setToolTipText(label);
+		}
+		comp.getAccessibleContext().setAccessibleName(label);
+
+		c.gridy = row++;
 		c.gridx = 0;
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.LINE_START;
@@ -55,10 +63,6 @@ public class SettingsGroup implements ISettingsGroup {
 		c.weightx = 0.7;
 		c.fill = GridBagConstraints.LINE_START;
 
-		if (tooltip != null) {
-			rowLbl.setToolTipText(tooltip);
-			comp.setToolTipText(tooltip);
-		}
 		gridPanel.add(comp, c);
 		comp.addPropertyChangeListener("enabled", evt -> rowLbl.setEnabled((boolean) evt.getNewValue()));
 		return rowLbl;
