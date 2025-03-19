@@ -14,16 +14,16 @@ group = "io.github.skylot"
 version = jadxVersion
 
 dependencies {
-	implementation("org.slf4j:slf4j-api:2.0.16")
-	compileOnly("org.jetbrains:annotations:26.0.1")
+	implementation("org.slf4j:slf4j-api:2.0.17")
+	compileOnly("org.jetbrains:annotations:26.0.2")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.16")
-	testImplementation("org.assertj:assertj-core:3.27.2")
+	testImplementation("ch.qos.logback:logback-classic:1.5.18")
+	testImplementation("org.assertj:assertj-core:3.27.3")
 
-	testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.12.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-	testCompileOnly("org.jetbrains:annotations:26.0.1")
+	testCompileOnly("org.jetbrains:annotations:26.0.2")
 }
 
 repositories {

@@ -3,7 +3,7 @@ plugins {
 	id("application")
 	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.5"
+	id("com.gradleup.shadow") version "8.3.6"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -20,17 +20,17 @@ dependencies {
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-ide"))
 	implementation(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
 	implementation(kotlin("scripting-common"))
-	implementation("com.fifesoft:autocomplete:3.3.1")
+	implementation("com.fifesoft:autocomplete:3.3.2")
 
 	// use KtLint for format and check jadx scripts
 	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.5.0")
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.5.0")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.16")
-	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+	implementation("ch.qos.logback:logback-classic:1.5.18")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.5")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.5.3")
+	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")
 	implementation("org.drjekyll:fontchooser:3.1.0")
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer
@@ -39,14 +39,14 @@ dependencies {
 	implementation("com.formdev:flatlaf-intellij-themes:3.5.4")
 	implementation("com.formdev:flatlaf-extras:3.5.4")
 
-	implementation("com.google.code.gson:gson:2.11.0")
+	implementation("com.google.code.gson:gson:2.12.1")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
 	implementation("org.apache.commons:commons-text:1.13.0")
 	implementation("commons-io:commons-io:2.18.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.8.0")
+	implementation("com.android.tools.build:apksig:8.9.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)

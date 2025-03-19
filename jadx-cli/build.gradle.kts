@@ -4,7 +4,7 @@ plugins {
 	id("application")
 
 	// use shadow only for application scripts, jar will be copied from jadx-gui
-	id("com.gradleup.shadow") version "8.3.5"
+	id("com.gradleup.shadow") version "8.3.6"
 }
 
 dependencies {
@@ -25,7 +25,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-apkm-input"))
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.16")
+	implementation("ch.qos.logback:logback-classic:1.5.18")
 }
 
 application {
