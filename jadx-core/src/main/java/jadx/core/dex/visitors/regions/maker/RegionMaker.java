@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors.regions.maker;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,6 +18,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
 import static jadx.core.utils.BlockUtils.getNextBlock;
@@ -30,7 +30,7 @@ public class RegionMaker {
 	private final IfRegionMaker ifMaker;
 	private final LoopRegionMaker loopMaker;
 
-	private final BitSet processedBlocks;
+	private final BlockSet processedBlocks;
 	private final int regionsLimit;
 
 	private int regionsCount;
@@ -40,9 +40,8 @@ public class RegionMaker {
 		this.stack = new RegionStack(mth);
 		this.ifMaker = new IfRegionMaker(mth, this);
 		this.loopMaker = new LoopRegionMaker(mth, this, ifMaker);
-		int blocksCount = mth.getBasicBlocks().size();
-		this.processedBlocks = new BitSet(blocksCount);
-		this.regionsLimit = blocksCount * 100;
+		this.processedBlocks = BlockSet.empty(mth);
+		this.regionsLimit = mth.getBasicBlocks().size() * 100;
 	}
 
 	public Region makeMthRegion() {
@@ -57,12 +56,10 @@ public class RegionMaker {
 			return region;
 		}
 
-		int startBlockId = startBlock.getId();
-		if (processedBlocks.get(startBlockId)) {
+		if (processedBlocks.addChecked(startBlock)) {
 			mth.addWarn("Removed duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
 			return region;
 		}
-		processedBlocks.set(startBlockId);
 
 		BlockNode next = startBlock;
 		while (next != null) {
@@ -159,10 +156,10 @@ public class RegionMaker {
 	}
 
 	boolean isProcessed(BlockNode block) {
-		return processedBlocks.get(block.getId());
+		return processedBlocks.contains(block);
 	}
 
 	void clearBlockProcessedState(BlockNode block) {
-		processedBlocks.clear(block.getId());
+		processedBlocks.remove(block);
 	}
 }

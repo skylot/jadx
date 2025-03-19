@@ -68,11 +68,11 @@ public abstract class ConditionRegion extends AbstractRegion implements IConditi
 	}
 
 	/**
-	 * Prefer way for update condition info
+	 * Preferred way to update condition info
 	 */
 	public void updateCondition(IfInfo info) {
 		this.condition = info.getCondition();
-		this.conditionBlocks = info.getMergedBlocks();
+		this.conditionBlocks = info.getMergedBlocks().toList();
 	}
 
 	public void updateCondition(IfCondition condition, List<BlockNode> conditionBlocks) {

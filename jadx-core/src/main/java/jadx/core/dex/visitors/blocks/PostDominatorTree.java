@@ -20,14 +20,14 @@ public class PostDominatorTree {
 			int mthBlocksCount = mth.getBasicBlocks().size();
 			List<BlockNode> sorted = new ArrayList<>(mthBlocksCount);
 			BlockUtils.visitReverseDFS(mth, sorted::add);
-			// temporary set block ids to match reverse sorted order
-			// save old ids for later remapping
+			// temporary set block positions to match reverse sorted order
+			// save old positions for later remapping
 			int blocksCount = sorted.size();
-			int[] ids = new int[mthBlocksCount];
+			int[] posMapping = new int[mthBlocksCount];
 			for (int i = 0; i < blocksCount; i++) {
-				ids[i] = sorted.get(i).getId();
+				posMapping[i] = sorted.get(i).getPos();
 			}
-			mth.updateBlockIds(sorted);
+			BlockNode.updateBlockPositions(sorted);
 
 			BlockNode[] postDoms = DominatorTree.build(sorted, BlockNode::getSuccessors);
 			BlockNode firstBlock = sorted.get(0);
@@ -43,8 +43,8 @@ public class PostDominatorTree {
 			for (int i = 1; i < blocksCount; i++) {
 				BlockNode block = sorted.get(i);
 				BitSet bs = new BitSet(blocksCount);
-				block.getPostDoms().stream().forEach(n -> bs.set(ids[n]));
-				bs.clear(ids[i]);
+				block.getPostDoms().stream().forEach(n -> bs.set(posMapping[n]));
+				bs.clear(posMapping[i]);
 				block.setPostDoms(bs);
 			}
 			// check for missing blocks in 'sorted' list
@@ -65,8 +65,8 @@ public class PostDominatorTree {
 			// show error as a warning because this info not always used
 			mth.addWarnComment("Failed to build post-dominance tree", e);
 		} finally {
-			// revert block ids change
-			mth.updateBlockIds(mth.getBasicBlocks());
+			// revert block positions change
+			mth.updateBlockPositions();
 		}
 	}
 }

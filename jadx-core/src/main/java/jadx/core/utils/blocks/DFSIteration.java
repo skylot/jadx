@@ -20,7 +20,7 @@ public class DFSIteration {
 		queue = new ArrayDeque<>();
 		visited = new BlockSet(mth);
 		queue.addLast(startBlock);
-		visited.set(startBlock);
+		visited.add(startBlock);
 	}
 
 	public @Nullable BlockNode next() {
@@ -32,7 +32,7 @@ public class DFSIteration {
 		int count = nextBlocks.size();
 		for (int i = count - 1; i >= 0; i--) { // to preserve order in queue
 			BlockNode next = nextBlocks.get(i);
-			if (!visited.checkAndSet(next)) {
+			if (!visited.addChecked(next)) {
 				queue.addLast(next);
 			}
 		}

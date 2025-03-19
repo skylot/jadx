@@ -29,6 +29,7 @@ import jadx.core.dex.regions.conditions.IfInfo;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.isEqualPaths;
@@ -228,7 +229,7 @@ final class IfRegionMaker {
 
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
 		List<BlockNode> preds = block.getPredecessors();
-		List<BlockNode> ifBlocks = info.getMergedBlocks();
+		BlockSet ifBlocks = info.getMergedBlocks();
 		for (BlockNode pred : preds) {
 			if (pred.contains(AFlag.LOOP_END)) {
 				// ignore loop back edge

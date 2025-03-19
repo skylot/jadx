@@ -89,7 +89,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 		public void process(MethodNode mth) {
 			dot.startLine("digraph \"CFG for");
-			dot.add(escape(mth.getParentClass() + "." + mth.getMethodInfo().getShortId()));
+			dot.add(escape(mth.getMethodInfo().getFullId()));
 			dot.add("\" {");
 
 			BlockNode enterBlock = mth.getEnterBlock();
@@ -204,7 +204,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add("color=red,");
 			}
 			dot.add("label=\"{");
-			dot.add(String.valueOf(block.getId())).add("\\:\\ ");
+			dot.add(String.valueOf(block.getCId())).add("\\:\\ ");
 			dot.add(InsnUtils.formatOffset(block.getStartOffset()));
 			if (!attrs.isEmpty()) {
 				dot.add('|').add(attrs);
@@ -237,10 +237,10 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 			if (PRINT_DOMINATORS) {
 				for (BlockNode c : block.getDominatesOn()) {
-					conn.startLine(block.getId() + " -> " + c.getId() + "[color=green];");
+					conn.startLine(block.getCId() + " -> " + c.getCId() + "[color=green];");
 				}
 				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
-					conn.startLine("f_" + block.getId() + " -> f_" + dom.getId() + "[color=blue];");
+					conn.startLine("f_" + block.getCId() + " -> f_" + dom.getCId() + "[color=blue];");
 				}
 			}
 		}
@@ -280,7 +280,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		private String makeName(IContainer c) {
 			String name;
 			if (c instanceof BlockNode) {
-				name = "Node_" + ((BlockNode) c).getId();
+				name = "Node_" + ((BlockNode) c).getCId();
 			} else if (c instanceof IBlock) {
 				name = "Node_" + c.getClass().getSimpleName() + '_' + c.hashCode();
 			} else {

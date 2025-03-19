@@ -68,7 +68,7 @@ public class BlockExceptionHandler {
 		BlockProcessor.removeMarkedBlocks(mth);
 
 		BlockSet sorted = new BlockSet(mth);
-		BlockUtils.visitDFS(mth, sorted::set);
+		BlockUtils.visitDFS(mth, sorted::add);
 		removeUnusedExcHandlers(mth, tryBlocks, sorted);
 		return true;
 	}
@@ -623,7 +623,7 @@ public class BlockExceptionHandler {
 		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
 			boolean notProcessed = true;
 			BlockNode handlerBlock = eh.getHandlerBlock();
-			if (handlerBlock == null || blocks.get(handlerBlock)) {
+			if (handlerBlock == null || blocks.contains(handlerBlock)) {
 				continue;
 			}
 			for (TryCatchBlockAttr tcb : tryBlocks) {

@@ -103,7 +103,7 @@ public class BlockProcessor extends AbstractVisitor {
 	 * - post dominators (only if {@link AFlag#COMPUTE_POST_DOM} added to method)
 	 * - loops and nested loop info
 	 * </pre>
-	 *
+	 * <p>
 	 * This method should be called after changing a block tree in custom passes added before
 	 * {@link BlockFinisher}.
 	 */
@@ -679,7 +679,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	public static void removeMarkedBlocks(MethodNode mth) {
-		mth.getBasicBlocks().removeIf(block -> {
+		boolean removed = mth.getBasicBlocks().removeIf(block -> {
 			if (block.contains(AFlag.REMOVE)) {
 				if (!block.getPredecessors().isEmpty() || !block.getSuccessors().isEmpty()) {
 					LOG.warn("Block {} not deleted, method: {}", block, mth);
@@ -693,6 +693,9 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 			return false;
 		});
+		if (removed) {
+			mth.updateBlockPositions();
+		}
 	}
 
 	private static void removeUnreachableBlocks(MethodNode mth) {
@@ -728,6 +731,7 @@ public class BlockProcessor extends AbstractVisitor {
 
 		toRemove.forEach(BlockSplitter::detachBlock);
 		mth.getBasicBlocks().removeAll(toRemove);
+		mth.updateBlockPositions();
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

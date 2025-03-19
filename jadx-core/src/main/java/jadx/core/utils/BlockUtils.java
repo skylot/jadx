@@ -443,7 +443,7 @@ public class BlockUtils {
 	 */
 	public static @Nullable BlockNode getPrevBlockOnPath(MethodNode mth, BlockNode block, BlockNode pathStart) {
 		BlockSet preds = BlockSet.from(mth, block.getPredecessors());
-		if (preds.get(pathStart)) {
+		if (preds.contains(pathStart)) {
 			return pathStart;
 		}
 		DFSIteration dfs = new DFSIteration(mth, pathStart, BlockNode::getCleanSuccessors);
@@ -452,7 +452,7 @@ public class BlockUtils {
 			if (next == null) {
 				return null;
 			}
-			if (preds.get(next)) {
+			if (preds.contains(next)) {
 				return next;
 			}
 		}

@@ -79,6 +79,7 @@ public class BlockSplitter extends AbstractVisitor {
 		addTempConnectionsForExcHandlers(mth, blocksMap);
 		setupExitConnections(mth);
 
+		mth.updateBlockPositions();
 		mth.unloadInsnArr();
 	}
 

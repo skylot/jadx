@@ -25,10 +25,9 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	private final int cid;
 
 	/**
-	 * ID linked to position in blocks list (easier to use BitSet)
-	 * TODO: rename to avoid confusion
+	 * Position in blocks list (easier to use BitSet)
 	 */
-	private int id;
+	private int pos;
 
 	/**
 	 * Offset in methods bytecode
@@ -71,9 +70,9 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	 */
 	private List<BlockNode> dominatesOn = new ArrayList<>(3);
 
-	public BlockNode(int cid, int id, int offset) {
+	public BlockNode(int cid, int pos, int offset) {
 		this.cid = cid;
-		this.id = id;
+		this.pos = pos;
 		this.startOffset = offset;
 	}
 
@@ -81,12 +80,20 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		return cid;
 	}
 
-	void setId(int id) {
-		this.id = id;
+	void setPos(int id) {
+		this.pos = id;
 	}
 
+	/**
+	 * Deprecated. Use {@link #getPos()}.
+	 */
+	@Deprecated
 	public int getId() {
-		return id;
+		return pos;
+	}
+
+	public int getPos() {
+		return pos;
 	}
 
 	public List<BlockNode> getPredecessors() {
@@ -103,6 +110,13 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	public void updateCleanSuccessors() {
 		cleanSuccessors = cleanSuccessors(this);
+	}
+
+	public static void updateBlockPositions(List<BlockNode> blocks) {
+		int count = blocks.size();
+		for (int i = 0; i < count; i++) {
+			blocks.get(i).setPos(i);
+		}
 	}
 
 	public void lock() {
@@ -161,7 +175,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	 * Check if 'block' dominated on this node
 	 */
 	public boolean isDominator(BlockNode block) {
-		return doms.get(block.getId());
+		return doms.get(block.getPos());
 	}
 
 	/**
@@ -236,7 +250,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	@Override
 	public int hashCode() {
-		return startOffset;
+		return cid;
 	}
 
 	@Override
@@ -248,7 +262,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 			return false;
 		}
 		BlockNode other = (BlockNode) obj;
-		return cid == other.cid && startOffset == other.startOffset;
+		return cid == other.cid;
 	}
 
 	@Override
@@ -258,11 +272,11 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 
 	@Override
 	public String baseString() {
-		return Integer.toString(id);
+		return Integer.toString(cid);
 	}
 
 	@Override
 	public String toString() {
-		return "B:" + id + ':' + InsnUtils.formatOffset(startOffset);
+		return "B:" + cid + ':' + InsnUtils.formatOffset(startOffset);
 	}
 }

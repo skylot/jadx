@@ -8,11 +8,12 @@ import java.util.Set;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.blocks.BlockSet;
 
 public final class IfInfo {
 	private final MethodNode mth;
 	private final IfCondition condition;
-	private final List<BlockNode> mergedBlocks;
+	private final BlockSet mergedBlocks;
 	private final BlockNode thenBlock;
 	private final BlockNode elseBlock;
 	private final Set<BlockNode> skipBlocks;
@@ -20,7 +21,7 @@ public final class IfInfo {
 	private BlockNode outBlock;
 
 	public IfInfo(MethodNode mth, IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
-		this(mth, condition, thenBlock, elseBlock, new ArrayList<>(), new HashSet<>(), new ArrayList<>());
+		this(mth, condition, thenBlock, elseBlock, BlockSet.empty(mth), new HashSet<>(), new ArrayList<>());
 	}
 
 	public IfInfo(IfInfo info, BlockNode thenBlock, BlockNode elseBlock) {
@@ -29,7 +30,7 @@ public final class IfInfo {
 	}
 
 	private IfInfo(MethodNode mth, IfCondition condition, BlockNode thenBlock, BlockNode elseBlock,
-			List<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks, List<InsnNode> forceInlineInsns) {
+			BlockSet mergedBlocks, Set<BlockNode> skipBlocks, List<InsnNode> forceInlineInsns) {
 		this.mth = mth;
 		this.condition = condition;
 		this.thenBlock = thenBlock;
@@ -56,7 +57,11 @@ public final class IfInfo {
 
 	@Deprecated
 	public BlockNode getFirstIfBlock() {
-		return mergedBlocks.get(0);
+		return mergedBlocks.getFirst();
+	}
+
+	public BlockSet getMergedBlocks() {
+		return mergedBlocks;
 	}
 
 	public MethodNode getMth() {
@@ -65,10 +70,6 @@ public final class IfInfo {
 
 	public IfCondition getCondition() {
 		return condition;
-	}
-
-	public List<BlockNode> getMergedBlocks() {
-		return mergedBlocks;
 	}
 
 	public Set<BlockNode> getSkipBlocks() {

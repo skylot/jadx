@@ -77,7 +77,7 @@ final class LoopRegionMaker {
 		loopRegion.updateCondition(condInfo);
 		// prevent if's merge with loop condition
 		condInfo.getMergedBlocks().forEach(b -> b.add(AFlag.ADDED_TO_REGION));
-		exitBlocks.removeAll(condInfo.getMergedBlocks());
+		exitBlocks.removeAll(condInfo.getMergedBlocks().toList());
 
 		if (!exitBlocks.isEmpty()) {
 			BlockNode loopExit = condInfo.getElseBlock();
