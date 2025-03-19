@@ -131,7 +131,7 @@ public abstract class BaseExternalTest extends TestUtils {
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
 				LOG.info("Print method: {}\n{}\n{}\n{}",
-						mth.getMethodInfo().getShortId(),
+						mth.getMethodInfo().getRawFullId(),
 						dashLine,
 						mth.getCodeStr(),
 						dashLine);

@@ -10,6 +10,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -1208,7 +1209,7 @@ public class BlockUtils {
 		if (b1 == null || b2 == null) {
 			return false;
 		}
-		return isEqualReturnBlocks(b1, b2) || isEmptySyntheticPath(b1, b2);
+		return isEqualReturnBlocks(b1, b2) || isEmptySyntheticPath(b1, b2) || isDuplicateBlockPath(b1, b2);
 	}
 
 	private static boolean isEmptySyntheticPath(BlockNode b1, BlockNode b2) {
@@ -1243,5 +1244,46 @@ public class BlockUtils {
 			return false;
 		}
 		return firstArg.equals(secondArg);
+	}
+
+	public static boolean isDuplicateBlockPath(BlockNode first, BlockNode second) {
+		if (first.getSuccessors().size() == 1 && second.getSuccessors().size() == 1
+				&& first.getSuccessors().get(0).equals(second.getSuccessors().get(0))) {
+			return isSameInsnsBlocks(first, second);
+		}
+		return false;
+	}
+
+	public static boolean isSameInsnsBlocks(BlockNode first, BlockNode second) {
+		List<InsnNode> firstInsns = first.getInstructions();
+		List<InsnNode> secondInsns = second.getInstructions();
+		if (firstInsns.size() != secondInsns.size()) {
+			return false;
+		}
+		int len = firstInsns.size();
+		for (int i = 0; i < len; i++) {
+			InsnNode firstInsn = firstInsns.get(i);
+			InsnNode secondInsn = secondInsns.get(i);
+			if (!isInsnDeepEquals(firstInsn, secondInsn)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean isInsnDeepEquals(InsnNode first, InsnNode second) {
+		if (first == second) {
+			return true;
+		}
+		return first.isSame(second)
+				&& Objects.equals(first.getArguments(), second.getArguments())
+				&& resultIsSameReg(first.getResult(), second.getResult());
+	}
+
+	private static boolean resultIsSameReg(RegisterArg first, RegisterArg second) {
+		if (first == null || second == null) {
+			return first == second;
+		}
+		return first.getRegNum() == second.getRegNum();
 	}
 }
