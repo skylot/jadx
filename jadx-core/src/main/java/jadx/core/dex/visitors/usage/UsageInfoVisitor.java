@@ -8,8 +8,14 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodRef;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationMethodParamsAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
@@ -20,19 +26,23 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.OverrideMethodVisitor;
+import jadx.core.dex.visitors.SignatureProcessor;
 import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.ListUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.input.InsnDataUtils;
 
 @JadxVisitor(
 		name = "UsageInfoVisitor",
 		desc = "Scan class and methods to collect usage info and class dependencies",
 		runAfter = {
+				SignatureProcessor.class, // use types with generics
 				OverrideMethodVisitor.class, // add method override as use
 				RenameVisitor.class // sort by alias name
 		}
@@ -80,19 +90,23 @@ public class UsageInfoVisitor extends AbstractVisitor {
 		}
 		for (FieldNode fieldNode : cls.getFields()) {
 			usageInfo.clsUse(cls, fieldNode.getType());
+			processAnnotations(fieldNode, usageInfo);
+			// TODO: process types from field 'constant value'
 		}
-		// TODO: process annotations and generics
+		// TODO: process generics
+		processAnnotations(cls, usageInfo);
 		for (MethodNode methodNode : cls.getMethods()) {
 			processMethod(methodNode, usageInfo);
 		}
 	}
 
 	private static void processMethod(MethodNode mth, UsageInfo usageInfo) {
-		ClassNode cls = mth.getParentClass();
-		usageInfo.clsUse(cls, mth.getReturnType());
-		for (ArgType argType : mth.getMethodInfo().getArgumentsTypes()) {
-			usageInfo.clsUse(cls, argType);
+		processMethodAnnotations(mth, usageInfo);
+		usageInfo.clsUse(mth, mth.getReturnType());
+		for (ArgType argType : mth.getArgTypes()) {
+			usageInfo.clsUse(mth, argType);
 		}
+		// TODO: process exception classes from 'throws'
 		try {
 			processInstructions(mth, usageInfo);
 		} catch (Exception e) {
@@ -166,6 +180,65 @@ public class UsageInfoVisitor extends AbstractVisitor {
 				}
 				break;
 			}
+		}
+	}
+
+	private static void processAnnotations(ICodeNode node, UsageInfo usageInfo) {
+		AnnotationsAttr annAttr = node.get(JadxAttrType.ANNOTATION_LIST);
+		processAnnotationAttr(node, annAttr, usageInfo);
+	}
+
+	private static void processMethodAnnotations(MethodNode mth, UsageInfo usageInfo) {
+		processAnnotations(mth, usageInfo);
+		AnnotationMethodParamsAttr paramsAttr = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
+		if (paramsAttr != null) {
+			for (AnnotationsAttr annAttr : paramsAttr.getParamList()) {
+				processAnnotationAttr(mth, annAttr, usageInfo);
+			}
+		}
+	}
+
+	private static void processAnnotationAttr(ICodeNode node, AnnotationsAttr annAttr, UsageInfo usageInfo) {
+		if (annAttr == null || annAttr.isEmpty()) {
+			return;
+		}
+		for (IAnnotation ann : annAttr.getList()) {
+			processAnnotation(node, ann, usageInfo);
+		}
+	}
+
+	private static void processAnnotation(ICodeNode node, IAnnotation ann, UsageInfo usageInfo) {
+		usageInfo.clsUse(node, ArgType.parse(ann.getAnnotationClass()));
+		for (EncodedValue value : ann.getValues().values()) {
+			processAnnotationValue(node, value, usageInfo);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void processAnnotationValue(ICodeNode node, EncodedValue value, UsageInfo usageInfo) {
+		Object obj = value.getValue();
+		switch (value.getType()) {
+			case ENCODED_TYPE:
+				usageInfo.clsUse(node, ArgType.parse((String) obj));
+				break;
+			case ENCODED_ENUM:
+			case ENCODED_FIELD:
+				if (obj instanceof IFieldRef) {
+					usageInfo.fieldUse(node, FieldInfo.fromRef(node.root(), (IFieldRef) obj));
+				} else if (obj instanceof FieldInfo) {
+					usageInfo.fieldUse(node, (FieldInfo) obj);
+				} else {
+					throw new JadxRuntimeException("Unexpected field type class: " + value.getClass());
+				}
+				break;
+			case ENCODED_ARRAY:
+				for (EncodedValue encodedValue : (List<EncodedValue>) obj) {
+					processAnnotationValue(node, encodedValue, usageInfo);
+				}
+				break;
+			case ENCODED_ANNOTATION:
+				processAnnotation(node, (IAnnotation) obj, usageInfo);
+				break;
 		}
 	}
 

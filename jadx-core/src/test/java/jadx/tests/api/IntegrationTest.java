@@ -53,6 +53,7 @@ import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -447,13 +448,23 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 	}
 
-	protected MethodNode getMethod(ClassNode cls, String method) {
+	protected MethodNode getMethod(ClassNode cls, String methodName) {
 		for (MethodNode mth : cls.getMethods()) {
-			if (mth.getName().equals(method)) {
+			if (mth.getName().equals(methodName)) {
 				return mth;
 			}
 		}
-		fail("Method not found " + method + " in class " + cls);
+		fail("Method not found " + methodName + " in class " + cls);
+		return null;
+	}
+
+	protected FieldNode getField(ClassNode cls, String fieldName) {
+		for (FieldNode fld : cls.getFields()) {
+			if (fld.getName().equals(fieldName)) {
+				return fld;
+			}
+		}
+		fail("Field not found " + fieldName + " in class " + cls);
 		return null;
 	}
 

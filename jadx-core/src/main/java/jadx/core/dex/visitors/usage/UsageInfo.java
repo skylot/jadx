@@ -10,11 +10,14 @@ import jadx.api.usage.IUsageInfoData;
 import jadx.api.usage.IUsageInfoVisitor;
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspClassSource;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.notEmpty;
 
@@ -71,6 +74,28 @@ public class UsageInfo implements IUsageInfoData {
 		processType(useType, depCls -> clsUse(mth, depCls));
 	}
 
+	public void clsUse(ICodeNode node, ArgType useType) {
+		Consumer<ClassNode> consumer;
+		switch (node.getAnnType()) {
+			case CLASS:
+				ClassNode cls = (ClassNode) node;
+				consumer = depCls -> clsUse(cls, depCls);
+				break;
+			case METHOD:
+				MethodNode mth = (MethodNode) node;
+				consumer = depCls -> clsUse(mth, depCls);
+				break;
+			case FIELD:
+				FieldNode fld = (FieldNode) node;
+				ClassNode fldCls = fld.getParentClass();
+				consumer = depCls -> clsUse(fldCls, depCls);
+				break;
+			default:
+				throw new JadxRuntimeException("Unexpected use type: " + node.getAnnType());
+		}
+		processType(useType, consumer);
+	}
+
 	public void clsUse(MethodNode mth, ClassNode useCls) {
 		ClassNode parentClass = mth.getParentClass();
 		clsUse(parentClass, useCls);
@@ -104,6 +129,23 @@ public class UsageInfo implements IUsageInfoData {
 		fieldUsage.add(useFld, mth);
 		// implicit usage
 		clsUse(mth, useFld.getType());
+	}
+
+	public void fieldUse(ICodeNode node, FieldInfo useFld) {
+		FieldNode fld = root.resolveField(useFld);
+		if (fld == null) {
+			return;
+		}
+		switch (node.getAnnType()) {
+			case CLASS:
+				// TODO: support "field in class" usage?
+				// now use field parent class for "class in class" usage
+				clsUse((ClassNode) node, fld.getParentClass());
+				break;
+			case METHOD:
+				fieldUse((MethodNode) node, fld);
+				break;
+		}
 	}
 
 	private void processType(ArgType type, Consumer<ClassNode> consumer) {
