@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dev.dirs.ProjectDirectories;
 import dev.dirs.impl.Windows;
@@ -13,6 +15,7 @@ import dev.dirs.impl.WindowsPowerShell;
 import dev.dirs.jni.WindowsJni;
 
 public class JadxCommonFiles {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxCommonFiles.class);
 
 	private static final Path CONFIG_DIR;
 	private static final Path CACHE_DIR;
@@ -60,10 +63,21 @@ public class JadxCommonFiles {
 		}
 
 		private synchronized ProjectDirectories loadDirs() {
-			if (dirs == null) {
-				dirs = ProjectDirectories.from("io.github", "skylot", "jadx", DirsLoader::getWinDirs);
+			ProjectDirectories currentDirs = dirs;
+			if (currentDirs != null) {
+				return currentDirs;
 			}
-			return dirs;
+			LOG.debug("Loading system dirs ...");
+			long start = System.currentTimeMillis();
+
+			ProjectDirectories loadedDirs = ProjectDirectories.from("io.github", "skylot", "jadx", DirsLoader::getWinDirs);
+
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Loaded system dirs ({}ms): config: {}, cache: {}",
+						System.currentTimeMillis() - start, loadedDirs.configDir, loadedDirs.cacheDir);
+			}
+			dirs = loadedDirs;
+			return loadedDirs;
 		}
 
 		/**

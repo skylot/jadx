@@ -24,7 +24,7 @@ public class JadxCLICommands {
 		COMMANDS_MAP.forEach(builder::addCommand);
 	}
 
-	public static boolean process(JCommanderWrapper<?> jcw, JCommander jc, String parsedCommand) {
+	public static boolean process(JCommanderWrapper jcw, JCommander jc, String parsedCommand) {
 		ICommand command = COMMANDS_MAP.get(parsedCommand);
 		if (command == null) {
 			throw new JadxArgsValidateException("Unknown command: " + parsedCommand

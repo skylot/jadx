@@ -154,6 +154,10 @@ public class JadxSettings extends JadxCLIArgs {
 		return jadxSettings;
 	}
 
+	public JadxSettings() {
+		this.logLevel = LogHelper.LogLevelEnum.INFO;
+	}
+
 	public void sync() {
 		JadxSettingsAdapter.store(this);
 	}
@@ -867,10 +871,5 @@ public class JadxSettings extends JadxCLIArgs {
 		if (deobfuscationUseSourceNameAsAlias != null) {
 			useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.create(deobfuscationUseSourceNameAsAlias);
 		}
-	}
-
-	@Override
-	protected JadxCLIArgs newInstance() {
-		return new JadxSettings();
 	}
 }

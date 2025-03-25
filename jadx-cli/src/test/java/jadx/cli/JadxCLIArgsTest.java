@@ -93,7 +93,16 @@ public class JadxCLIArgsTest {
 	}
 
 	private JadxCLIArgs override(JadxCLIArgs jadxArgs, String... args) {
-		return check(jadxArgs, jadxArgs.overrideProvided(args));
+		return check(jadxArgs, overrideProvided(jadxArgs, args));
+	}
+
+	private static boolean overrideProvided(JadxCLIArgs jadxArgs, String[] args) {
+		JCommanderWrapper jcw = new JCommanderWrapper(new JadxCLIArgs());
+		if (!jcw.parse(args)) {
+			return false;
+		}
+		jcw.overrideProvided(jadxArgs);
+		return jadxArgs.process(jcw);
 	}
 
 	private static JadxCLIArgs check(JadxCLIArgs jadxArgs, boolean res) {

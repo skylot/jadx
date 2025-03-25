@@ -27,7 +27,7 @@ import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
-public class JCommanderWrapper<T> {
+public class JCommanderWrapper {
 	private final JCommander jc;
 	private final JadxCLIArgs argsObj;
 
@@ -42,11 +42,21 @@ public class JCommanderWrapper<T> {
 	public boolean parse(String[] args) {
 		try {
 			jc.parse(args);
+			applyFiles(argsObj);
 			return true;
 		} catch (ParameterException e) {
 			System.err.println("Arguments parse error: " + e.getMessage());
 			printUsage();
 			return false;
+		}
+	}
+
+	public void overrideProvided(JadxCLIArgs obj) {
+		applyFiles(obj);
+		for (ParameterDescription parameter : jc.getParameters()) {
+			if (parameter.isAssigned()) {
+				overrideProperty(obj, parameter);
+			}
 		}
 	}
 
@@ -58,20 +68,21 @@ public class JCommanderWrapper<T> {
 		return JadxCLICommands.process(this, jc, parsedCommand);
 	}
 
-	public void overrideProvided(JadxCLIArgs obj) {
-		List<ParameterDescription> fieldsParams = jc.getParameters();
-		List<ParameterDescription> parameters = new ArrayList<>(1 + fieldsParams.size());
-		parameters.add(jc.getMainParameterValue());
-		parameters.addAll(fieldsParams);
-		for (ParameterDescription parameter : parameters) {
-			if (parameter.isAssigned()) {
-				// copy assigned field value to obj
-				Parameterized parameterized = parameter.getParameterized();
-				Object providedValue = parameterized.get(parameter.getObject());
-				Object newValue = mergeValues(parameterized.getType(), providedValue, () -> parameterized.get(obj));
-				parameterized.set(obj, newValue);
-			}
-		}
+	/**
+	 * The main parameter parsing doesn't work if accepting unknown options
+	 */
+	private void applyFiles(JadxCLIArgs argsObj) {
+		argsObj.setFiles(jc.getUnknownOptions());
+	}
+
+	/**
+	 * Override assigned field value to obj
+	 */
+	private static void overrideProperty(JadxCLIArgs obj, ParameterDescription parameter) {
+		Parameterized parameterized = parameter.getParameterized();
+		Object providedValue = parameterized.get(parameter.getObject());
+		Object newValue = mergeValues(parameterized.getType(), providedValue, () -> parameterized.get(obj));
+		parameterized.set(obj, newValue);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -83,10 +94,6 @@ public class JCommanderWrapper<T> {
 		}
 		// simple override
 		return value;
-	}
-
-	public List<String> getUnknownOptions() {
-		return jc.getUnknownOptions();
 	}
 
 	public void printUsage() {

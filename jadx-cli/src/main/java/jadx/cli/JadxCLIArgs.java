@@ -1,7 +1,6 @@
 package jadx.cli;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -36,7 +35,7 @@ import jadx.core.utils.files.FileUtils;
 public class JadxCLIArgs {
 
 	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)")
-	protected List<String> files = new ArrayList<>(1);
+	protected List<String> files;
 
 	@Parameter(names = { "-d", "--output-dir" }, description = "output directory")
 	protected String outDir;
@@ -283,29 +282,11 @@ public class JadxCLIArgs {
 	protected Map<String, String> pluginOptions = new HashMap<>();
 
 	public boolean processArgs(String[] args) {
-		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(this);
+		JCommanderWrapper jcw = new JCommanderWrapper(this);
 		return jcw.parse(args) && process(jcw);
 	}
 
-	/**
-	 * Set values only for options provided in cmd.
-	 * Used to merge saved options and options passed in command line.
-	 */
-	public boolean overrideProvided(String[] args) {
-		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(newInstance());
-		if (!jcw.parse(args)) {
-			return false;
-		}
-		jcw.overrideProvided(this);
-		return process(jcw);
-	}
-
-	protected JadxCLIArgs newInstance() {
-		return new JadxCLIArgs();
-	}
-
-	private boolean process(JCommanderWrapper<JadxCLIArgs> jcw) {
-		files.addAll(jcw.getUnknownOptions());
+	public boolean process(JCommanderWrapper jcw) {
 		if (jcw.processCommands()) {
 			return false;
 		}
@@ -386,6 +367,10 @@ public class JadxCLIArgs {
 
 	public List<String> getFiles() {
 		return files;
+	}
+
+	public void setFiles(List<String> files) {
+		this.files = files;
 	}
 
 	public String getOutDir() {

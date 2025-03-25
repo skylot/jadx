@@ -65,7 +65,7 @@ public class CommandPlugins implements ICommand {
 
 	@SuppressWarnings("UnnecessaryReturnStatement")
 	@Override
-	public void process(JCommanderWrapper<?> jcw, JCommander subCommander) {
+	public void process(JCommanderWrapper jcw, JCommander subCommander) {
 		if (printHelp) {
 			jcw.printUsage(subCommander);
 			return;

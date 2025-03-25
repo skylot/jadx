@@ -7,6 +7,7 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.cli.JCommanderWrapper;
 import jadx.cli.LogHelper;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
@@ -23,16 +24,19 @@ public class JadxGUI {
 
 	public static void main(String[] args) {
 		try {
-			LogCollector.register();
-			JadxSettings settings = JadxSettingsAdapter.load();
-			settings.setLogLevel(LogHelper.LogLevelEnum.INFO);
-			// overwrite loaded settings by command line arguments
-			if (!settings.overrideProvided(args)) {
+			JadxSettings cliArgs = new JadxSettings();
+			JCommanderWrapper jcw = new JCommanderWrapper(cliArgs);
+			if (!jcw.parse(args) || !cliArgs.process(jcw)) {
 				return;
 			}
-			LogHelper.initLogLevel(settings);
+			LogHelper.initLogLevel(cliArgs);
 			LogHelper.setLogLevelsForDecompileStage();
+			LogCollector.register();
 			printSystemInfo();
+
+			JadxSettings settings = JadxSettingsAdapter.load();
+			// overwrite loaded settings by command line arguments
+			jcw.overrideProvided(settings);
 
 			LafManager.init(settings);
 			NLS.setLocale(settings.getLangLocale());
