@@ -80,7 +80,7 @@ application {
 			"-Dsun.java2d.d3d=false",
 			"-Dsun.java2d.ddforcevram=true",
 			"-Dsun.java2d.ddblit=false",
-			"-Dswing.useflipBufferStrategy=True",
+			"-Dswing.useflipBufferStrategy=true",
 		)
 	applicationDistribution.from("$rootDir") {
 		include("README.md")
@@ -134,16 +134,28 @@ launch4j {
 	dontWrapJar.set(true)
 	icon.set("$projectDir/src/main/resources/logos/jadx-logo.ico")
 	outfile.set("jadx-gui-$jadxVersion.exe")
+	version.set(jadxVersion)
 	copyright.set("Skylot")
 	windowTitle.set("jadx")
 	companyName.set("jadx")
 	jreMinVersion.set("11")
-	chdir.set("")
-	jvmOptions.set(application.applicationDefaultJvmArgs.toSet())
+	jvmOptions.set(escapeJVMOptions())
 	requires64Bit.set(true)
 	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk21-windows")
+	supportUrl.set("https://github.com/skylot/jadx")
+
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
-	classpath.set(tasks.getByName("shadowJar").outputs.files.map { "%EXEDIR%/lib/${it.name}" }.toSortedSet())
+	classpath.set(tasks.getByName("shadowJar").outputs.files.map { "%EXEDIR%/lib/${it.name}" }.sorted().toList())
+	println("Launch4J classpath: ${classpath.get()}")
+
+	chdir.set("") // don't change current dir
+	libraryDir.set("") // don't add any libs
+}
+
+fun escapeJVMOptions(): List<String> {
+	return application.applicationDefaultJvmArgs
+		.toList()
+		.map { if (it.startsWith("-D")) "\"$it\"" else it }
 }
 
 runtime {
