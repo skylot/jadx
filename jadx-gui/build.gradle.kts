@@ -154,6 +154,7 @@ runtime {
 		"java.xml",
 		// needed for "https" protocol to download plugins and updates
 		"jdk.crypto.cryptoki",
+		"jdk.accessibility",
 	)
 	jpackage {
 		imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")
