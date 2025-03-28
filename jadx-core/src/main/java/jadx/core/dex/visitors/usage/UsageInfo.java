@@ -148,15 +148,19 @@ public class UsageInfo implements IUsageInfoData {
 		}
 	}
 
+	/**
+	 * Visit all class nodes found in subtypes of the provided type.
+	 */
 	private void processType(ArgType type, Consumer<ClassNode> consumer) {
-		if (type == null) {
+		if (type == null || type == ArgType.OBJECT) {
 			return;
 		}
 		if (type.isArray()) {
 			processType(type.getArrayRootElement(), consumer);
 			return;
 		}
-		if (type.isObject() && !type.isGenericType()) {
+		if (type.isObject()) {
+			// TODO: support custom handlers via API
 			ClspClass clsDetails = root.getClsp().getClsDetails(type);
 			if (clsDetails != null && clsDetails.getSource() == ClspClassSource.APACHE_HTTP_LEGACY_CLIENT) {
 				root.getGradleInfoStorage().setUseApacheHttpLegacy(true);
@@ -166,19 +170,30 @@ public class UsageInfo implements IUsageInfoData {
 				consumer.accept(clsNode);
 			}
 			List<ArgType> genericTypes = type.getGenericTypes();
-			if (type.isGeneric() && notEmpty(genericTypes)) {
+			if (notEmpty(genericTypes)) {
 				for (ArgType argType : genericTypes) {
 					processType(argType, consumer);
 				}
 			}
+			List<ArgType> extendTypes = type.getExtendTypes();
+			if (notEmpty(extendTypes)) {
+				for (ArgType extendType : extendTypes) {
+					processType(extendType, consumer);
+				}
+			}
+			ArgType wildcardType = type.getWildcardType();
+			if (wildcardType != null) {
+				processType(wildcardType, consumer);
+			}
+			// TODO: process 'outer' types (check TestOuterGeneric test)
 		}
 	}
 
-	private static <T extends Comparable<T>> List<T> sortedList(Set<T> deps) {
-		if (deps == null || deps.isEmpty()) {
+	private static <T extends Comparable<T>> List<T> sortedList(Set<T> nodes) {
+		if (nodes == null || nodes.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<T> list = new ArrayList<>(deps);
+		List<T> list = new ArrayList<>(nodes);
 		Collections.sort(list);
 		return list;
 	}

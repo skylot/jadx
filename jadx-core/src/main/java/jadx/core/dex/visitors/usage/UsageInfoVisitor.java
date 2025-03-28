@@ -88,12 +88,14 @@ public class UsageInfoVisitor extends AbstractVisitor {
 		for (ArgType interfaceType : cls.getInterfaces()) {
 			usageInfo.clsUse(cls, interfaceType);
 		}
+		for (ArgType genericTypeParameter : cls.getGenericTypeParameters()) {
+			usageInfo.clsUse(cls, genericTypeParameter);
+		}
 		for (FieldNode fieldNode : cls.getFields()) {
 			usageInfo.clsUse(cls, fieldNode.getType());
 			processAnnotations(fieldNode, usageInfo);
 			// TODO: process types from field 'constant value'
 		}
-		// TODO: process generics
 		processAnnotations(cls, usageInfo);
 		for (MethodNode methodNode : cls.getMethods()) {
 			processMethod(methodNode, usageInfo);
