@@ -75,7 +75,7 @@ public class PackageHelper {
 	private List<JPackage> prepareFlatPackages() {
 		List<JPackage> list = new ArrayList<>();
 		for (JavaPackage javaPkg : wrapper.getPackages()) {
-			if (javaPkg.isLeaf()) {
+			if (javaPkg.isLeaf() || !javaPkg.getClasses().isEmpty()) {
 				JPackage pkg = buildJPackage(javaPkg, false);
 				pkg.setName(javaPkg.getFullName());
 				list.add(pkg);
