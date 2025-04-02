@@ -166,6 +166,24 @@ public class ApkSignature extends JNode {
 				}
 				builder.append("</blockquote>");
 			}
+			if (!result.getV31SchemeSigners().isEmpty()) {
+				builder.append("<h2>");
+				builder.escape(NLS.str(result.isVerifiedUsingV31Scheme() ? sigSuccKey : sigFailKey, 31));
+				builder.append("</h2>\n");
+
+				builder.append("<blockquote>");
+				for (ApkVerifier.Result.V3SchemeSignerInfo signer : result.getV31SchemeSigners()) {
+					builder.append("<h3>");
+					builder.escape(NLS.str("apkSignature.signer"));
+					builder.append(" ");
+					builder.append(Integer.toString(signer.getIndex() + 1));
+					builder.append("</h3>");
+					writeCertificate(builder, signer.getCertificate());
+					writeIssues(builder, err, signer.getErrors());
+					writeIssues(builder, warn, signer.getWarnings());
+				}
+				builder.append("</blockquote>");
+			}
 			writeIssues(builder, warn, result.getWarnings());
 
 			this.content = new SimpleCodeInfo(builder.toString());
