@@ -1,0 +1,15 @@
+jadx-gui royallyrummy-131133.apk
+chip
+
+coin
+
+currency
+
+addChips
+
+balance
+
+updateChipsconst/16 v0, 999999   # Replaces default chip value
+keytool -genkey -v -keystore my-release-key.keystore -alias alias_name ...
+jarsigner -verbose -keystore my-release-key.keystore modded.apk alias_name
+adb install modded.apk
