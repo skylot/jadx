@@ -161,6 +161,10 @@ public class SignatureProcessor extends AbstractVisitor {
 			if (signatureType == null) {
 				return;
 			}
+			if (isNotGenericType(field.getFieldInfo().getType())) {
+				field.addWarnComment("Field that had annotation with different signature: " + signatureType);
+				return;
+			}
 			if (!validateInnerType(signatureType)) {
 				field.addWarnComment("Incorrect inner types in field signature: " + sp.getSignature());
 				return;
@@ -174,6 +178,40 @@ public class SignatureProcessor extends AbstractVisitor {
 		} catch (Exception e) {
 			cls.addWarnComment("Field signature parse error: " + field.getName(), e);
 		}
+	}
+
+	private boolean isNotGenericType(ArgType ty) {
+		if (ty.isPrimitive()) {
+			// Primitives do not get resolved to the annotation type, so we can just skip them altogether
+			return true;
+		}
+		String tyToString = ty.toString();
+		final String[] stdNonGenericTypes = {
+				"bool",
+				"byte",
+				"short",
+				"char",
+				"float",
+				"int",
+				"long",
+				"double",
+
+				"java.lang.String",
+				"java.lang.Boolean",
+				"java.lang.Byte",
+				"java.lang.Long",
+				"java.lang.Short",
+				"java.lang.Number",
+				"java.lang.CharSequence",
+				"java.lang.Double",
+				"java.lang.Float",
+		};
+		for (String genericType : stdNonGenericTypes) {
+			if (genericType.equals(tyToString)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void parseMethodSignature(MethodNode mth) {
