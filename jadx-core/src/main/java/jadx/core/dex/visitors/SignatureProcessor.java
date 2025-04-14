@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -167,7 +168,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			}
 			ArgType type = root.getTypeUtils().expandTypeVariables(cls, signatureType);
 			if (!validateParsedType(type, field.getType())) {
-				cls.addWarnComment("Incorrect field signature: " + sp.getSignature());
+				field.addInfoComment("Incorrect field signature: " + sp.getSignature());
 				return;
 			}
 			field.updateType(type);
@@ -256,7 +257,27 @@ public class SignatureProcessor extends AbstractVisitor {
 
 	private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
 		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
+		if (result == TypeCompareEnum.UNKNOWN
+				&& parsedType.isObject()
+				&& !validateFullClsName(parsedType.getObject())) {
+			// ignore external invalid class names: may be a reserved words or garbage
+			return false;
+		}
 		return result != TypeCompareEnum.CONFLICT;
+	}
+
+	private boolean validateFullClsName(String fullClsName) {
+		if (!NameMapper.isValidFullIdentifier(fullClsName)) {
+			return false;
+		}
+		if (fullClsName.indexOf('.') > 0) {
+			for (String namePart : fullClsName.split("\\.")) {
+				if (!NameMapper.isValidIdentifier(namePart)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private boolean validateInnerType(List<ArgType> types) {
