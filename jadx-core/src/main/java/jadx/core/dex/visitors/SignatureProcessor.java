@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -161,57 +162,19 @@ public class SignatureProcessor extends AbstractVisitor {
 			if (signatureType == null) {
 				return;
 			}
-			if (isNotGenericType(field.getFieldInfo().getType())) {
-				field.addWarnComment("Field that had annotation with different signature: " + signatureType);
-				return;
-			}
 			if (!validateInnerType(signatureType)) {
 				field.addWarnComment("Incorrect inner types in field signature: " + sp.getSignature());
 				return;
 			}
 			ArgType type = root.getTypeUtils().expandTypeVariables(cls, signatureType);
 			if (!validateParsedType(type, field.getType())) {
-				cls.addWarnComment("Incorrect field signature: " + sp.getSignature());
+				field.addInfoComment("Incorrect field signature: " + sp.getSignature());
 				return;
 			}
 			field.updateType(type);
 		} catch (Exception e) {
 			cls.addWarnComment("Field signature parse error: " + field.getName(), e);
 		}
-	}
-
-	private boolean isNotGenericType(ArgType ty) {
-		if (ty.isPrimitive()) {
-			// Primitives do not get resolved to the annotation type, so we can just skip them altogether
-			return true;
-		}
-		String tyToString = ty.toString();
-		final String[] stdNonGenericTypes = {
-				"bool",
-				"byte",
-				"short",
-				"char",
-				"float",
-				"int",
-				"long",
-				"double",
-
-				"java.lang.String",
-				"java.lang.Boolean",
-				"java.lang.Byte",
-				"java.lang.Long",
-				"java.lang.Short",
-				"java.lang.Number",
-				"java.lang.CharSequence",
-				"java.lang.Double",
-				"java.lang.Float",
-		};
-		for (String genericType : stdNonGenericTypes) {
-			if (genericType.equals(tyToString)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void parseMethodSignature(MethodNode mth) {
@@ -294,7 +257,27 @@ public class SignatureProcessor extends AbstractVisitor {
 
 	private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
 		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
+		if (result == TypeCompareEnum.UNKNOWN
+				&& parsedType.isObject()
+				&& !validateFullClsName(parsedType.getObject())) {
+			// ignore external invalid class names: may be a reserved words or garbage
+			return false;
+		}
 		return result != TypeCompareEnum.CONFLICT;
+	}
+
+	private boolean validateFullClsName(String fullClsName) {
+		if (!NameMapper.isValidFullIdentifier(fullClsName)) {
+			return false;
+		}
+		if (fullClsName.indexOf('.') > 0) {
+			for (String namePart : fullClsName.split("\\.")) {
+				if (!NameMapper.isValidIdentifier(namePart)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private boolean validateInnerType(List<ArgType> types) {
