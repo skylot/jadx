@@ -60,9 +60,24 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	private void loadFromClsLoader(Map<Class<? extends JadxPlugin>, JadxPlugin> map, ClassLoader classLoader) {
 		ServiceLoader.load(JadxPlugin.class, classLoader)
 				.stream()
-				.filter(p -> p.type().getClassLoader() == classLoader)
+				.filter(p -> isClassLoaderMatch(p.type().getClassLoader(), classLoader))
 				.filter(p -> !map.containsKey(p.type()))
 				.forEach(p -> map.put(p.type(), p.get()));
+	}
+
+	private boolean isClassLoaderMatch(ClassLoader pluginClassLoader, ClassLoader targetClassLoader) {
+		if (pluginClassLoader == targetClassLoader) {
+			return true;
+		}
+		// Check if the plugin's ClassLoader is a child of the target ClassLoader
+		ClassLoader parent = pluginClassLoader;
+		while (parent != null) {
+			if (parent == targetClassLoader) {
+				return true;
+			}
+			parent = parent.getParent();
+		}
+		return false;
 	}
 
 	private void loadInstalledPlugins(Map<Class<? extends JadxPlugin>, JadxPlugin> map) {
