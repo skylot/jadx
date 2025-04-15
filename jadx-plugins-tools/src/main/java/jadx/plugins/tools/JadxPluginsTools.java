@@ -25,7 +25,6 @@ import jadx.core.Jadx;
 import jadx.core.plugins.versions.VerifyRequiredVersion;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.data.JadxInstalledPlugins;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.data.JadxPluginUpdate;
@@ -260,15 +259,19 @@ public class JadxPluginsTools {
 	}
 
 	private void fillMetadata(JadxPluginMetadata metadata) {
-		Path tmpJar;
-		if (needDownload(metadata.getJar())) {
-			tmpJar = FileUtils.createTempFile("plugin.jar");
-			PluginUtils.downloadFile(metadata.getJar(), tmpJar);
-			metadata.setJar(tmpJar.toAbsolutePath().toString());
-		} else {
-			tmpJar = Paths.get(metadata.getJar());
+		try {
+			Path tmpJar;
+			if (needDownload(metadata.getJar())) {
+				tmpJar = Files.createTempFile(metadata.getName(), "plugin.jar");
+				PluginUtils.downloadFile(metadata.getJar(), tmpJar);
+				metadata.setJar(tmpJar.toAbsolutePath().toString());
+			} else {
+				tmpJar = Paths.get(metadata.getJar());
+			}
+			fillMetadataFromJar(metadata, tmpJar);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to fill plugin metadata, plugin: " + metadata.getPluginId(), e);
 		}
-		fillMetadataFromJar(metadata, tmpJar);
 	}
 
 	private void fillMetadataFromJar(JadxPluginMetadata metadata, Path jar) {

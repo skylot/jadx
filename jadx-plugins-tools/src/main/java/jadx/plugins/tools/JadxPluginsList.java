@@ -112,14 +112,21 @@ public class JadxPluginsList {
 	}
 
 	private JadxPluginListCache fetchBundle(Release release) {
-		Asset listAsset = release.getAssets().get(0);
-		Path tmpListFile = FileUtils.createTempFile("list.zip");
-		PluginUtils.downloadFile(listAsset.getDownloadUrl(), tmpListFile);
-
-		JadxPluginListCache listCache = new JadxPluginListCache();
-		listCache.setVersion(release.getName());
-		listCache.setList(loadListBundle(tmpListFile));
-		return listCache;
+		try {
+			Asset listAsset = release.getAssets().get(0);
+			Path tmpListFile = Files.createTempFile("plugins-list", ".zip");
+			try {
+				PluginUtils.downloadFile(listAsset.getDownloadUrl(), tmpListFile);
+				JadxPluginListCache listCache = new JadxPluginListCache();
+				listCache.setVersion(release.getName());
+				listCache.setList(loadListBundle(tmpListFile));
+				return listCache;
+			} finally {
+				Files.deleteIfExists(tmpListFile);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load plugin-list bundle for release:" + release.getName(), e);
+		}
 	}
 
 	private static List<JadxPluginMetadata> loadListBundle(Path tmpListFile) {

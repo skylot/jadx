@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.plugins.files.IJadxFilesGetter;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class FileUtils {
@@ -205,6 +206,11 @@ public class FileUtils {
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * Migrate to {@link IJadxFilesGetter} from jadx args to get temp dir
+	 */
+	@Deprecated
 	public static Path createTempDir(String prefix) {
 		try {
 			Path dir = Files.createTempDirectory(tempRootDir, prefix);
@@ -215,6 +221,11 @@ public class FileUtils {
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * Migrate to {@link IJadxFilesGetter} from jadx args to get temp dir
+	 */
+	@Deprecated
 	public static Path createTempFile(String suffix) {
 		try {
 			Path path = Files.createTempFile(tempRootDir, JADX_TMP_PREFIX, suffix);
@@ -225,6 +236,11 @@ public class FileUtils {
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * Prefer {@link IJadxFilesGetter} from jadx args to get temp dir
+	 */
+	@Deprecated
 	public static Path createTempFileNoDelete(String suffix) {
 		try {
 			return Files.createTempFile(Files.createTempDirectory("jadx-persist"), "jadx-", suffix);
@@ -233,6 +249,11 @@ public class FileUtils {
 		}
 	}
 
+	/**
+	 * Deprecated.
+	 * Migrate to {@link IJadxFilesGetter} from jadx args to get temp dir
+	 */
+	@Deprecated
 	public static Path createTempFileNonPrefixed(String fileName) {
 		try {
 			Path path = Files.createFile(tempRootDir.resolve(fileName));
