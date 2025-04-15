@@ -20,7 +20,7 @@ dependencies {
 	testImplementation("ch.qos.logback:logback-classic:1.5.18")
 	testImplementation("org.assertj:assertj-core:3.27.3")
 
-	testImplementation("org.junit.jupiter:junit-jupiter:5.12.1")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testCompileOnly("org.jetbrains:annotations:26.0.2")

@@ -6,7 +6,7 @@ dependencies {
 	api(project(":jadx-plugins:jadx-input-api"))
 	api(project(":jadx-commons:jadx-zip"))
 
-	implementation("com.google.code.gson:gson:2.12.1")
+	implementation("com.google.code.gson:gson:2.13.0")
 
 	testImplementation("org.apache.commons:commons-lang3:3.17.0")
 
@@ -22,7 +22,7 @@ dependencies {
 			strictly("[3.33, 3.34[") // from 3.34 compiled with Java 17
 		}
 	}
-	testImplementation("tools.profiler:async-profiler:3.0")
+	testImplementation("tools.profiler:async-profiler:4.0")
 }
 
 val jadxTestJavaVersion = getTestJavaVersion()

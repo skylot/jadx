@@ -9,7 +9,7 @@ dependencies {
 	implementation("com.android.tools.smali:smali-baksmali:3.0.9") {
 		exclude(group = "com.beust", module = "jcommander") // exclude old jcommander namespace
 	}
-	implementation("com.google.guava:guava:33.4.0-jre") // force the latest version for smali
+	implementation("com.google.guava:guava:33.4.8-jre") // force the latest version for smali
 
 	// compile smali files in tests
 	testImplementation("com.android.tools.smali:smali:3.0.9") {
