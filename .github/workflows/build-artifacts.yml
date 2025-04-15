@@ -61,7 +61,7 @@ jobs:
       - name: Set up JDK
         uses: oracle-actions/setup-java@v1
         with:
-          release: 23
+          release: 21
 
       - name: Print Java version
         shell: bash
