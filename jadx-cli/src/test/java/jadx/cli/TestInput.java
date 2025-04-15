@@ -13,10 +13,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.api.plugins.loader.JadxBasePluginLoader;
+import jadx.core.plugins.files.SingleDirFilesGetter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,17 +35,24 @@ public class TestInput {
 	@TempDir
 	Path testDir;
 
+	Path outputDir;
+
+	@BeforeEach
+	public void setUp() {
+		outputDir = testDir.resolve("output");
+	}
+
 	@Test
 	public void testHelp() {
-		int result = JadxCLI.execute(new String[] { "--help" });
+		int result = execJadxCli(new String[] { "--help" });
 		assertThat(result).isEqualTo(0);
 	}
 
 	@Test
 	public void testApkInput() throws Exception {
-		int result = JadxCLI.execute(buildArgs(List.of(), "samples/small.apk"));
+		int result = execJadxCli(buildArgs(List.of(), "samples/small.apk"));
 		assertThat(result).isEqualTo(0);
-		List<Path> resultFiles = collectAllFilesInDir(testDir);
+		List<Path> resultFiles = collectAllFilesInDir(outputDir);
 		printFiles(resultFiles);
 		assertThat(resultFiles)
 				.describedAs("check output files")
@@ -75,48 +86,56 @@ public class TestInput {
 
 	@Test
 	public void testFallbackMode() throws Exception {
-		int result = JadxCLI.execute(buildArgs(List.of("-f"), "samples/hello.dex"));
+		int result = execJadxCli(buildArgs(List.of("-f"), "samples/hello.dex"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectJavaFilesInDir(testDir);
+		List<Path> files = collectJavaFilesInDir(outputDir);
 		assertThat(files).hasSize(1);
 	}
 
 	@Test
 	public void testSimpleMode() throws Exception {
-		int result = JadxCLI.execute(buildArgs(List.of("--decompilation-mode", "simple"), "samples/hello.dex"));
+		int result = execJadxCli(buildArgs(List.of("--decompilation-mode", "simple"), "samples/hello.dex"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectJavaFilesInDir(testDir);
+		List<Path> files = collectJavaFilesInDir(outputDir);
 		assertThat(files).hasSize(1);
 	}
 
 	@Test
 	public void testResourceOnly() throws Exception {
-		int result = JadxCLI.execute(buildArgs(List.of(), "samples/resources-only.apk"));
+		int result = execJadxCli(buildArgs(List.of(), "samples/resources-only.apk"));
 		assertThat(result).isEqualTo(0);
-		List<Path> files = collectFilesInDir(testDir,
+		List<Path> files = collectFilesInDir(outputDir,
 				path -> path.getFileName().toString().equalsIgnoreCase("AndroidManifest.xml"));
 		assertThat(files).isNotEmpty();
 	}
 
 	private void decompile(String... inputSamples) throws URISyntaxException, IOException {
-		int result = JadxCLI.execute(buildArgs(List.of(), inputSamples));
+		int result = execJadxCli(buildArgs(List.of(), inputSamples));
 		assertThat(result).isEqualTo(0);
-		List<Path> resultJavaFiles = collectJavaFilesInDir(testDir);
+		List<Path> resultJavaFiles = collectJavaFilesInDir(outputDir);
 		assertThat(resultJavaFiles).isNotEmpty();
 
 		// do not copy input files as resources
-		for (Path path : collectFilesInDir(testDir, LOG_ALL_FILES)) {
+		for (Path path : collectFilesInDir(outputDir, LOG_ALL_FILES)) {
 			for (String inputSample : inputSamples) {
 				assertThat(path.toAbsolutePath().toString()).doesNotContain(inputSample);
 			}
 		}
 	}
 
+	private int execJadxCli(String[] args) {
+		return JadxCLI.execute(args, jadxArgs -> {
+			// don't use global config and plugins
+			jadxArgs.setFilesGetter(new SingleDirFilesGetter(testDir));
+			jadxArgs.setPluginLoader(new JadxBasePluginLoader());
+		});
+	}
+
 	private String[] buildArgs(List<String> options, String... inputSamples) throws URISyntaxException {
 		List<String> args = new ArrayList<>(options);
 		args.add("-v");
 		args.add("-d");
-		args.add(testDir.toAbsolutePath().toString());
+		args.add(outputDir.toAbsolutePath().toString());
 
 		for (String inputSample : inputSamples) {
 			URL resource = getClass().getClassLoader().getResource(inputSample);
@@ -130,7 +149,7 @@ public class TestInput {
 	private void printFiles(List<Path> files) {
 		LOG.info("Output files (count: {}):", files.size());
 		for (Path file : files) {
-			LOG.info(" {}", testDir.relativize(file));
+			LOG.info(" {}", outputDir.relativize(file));
 		}
 	}
 

@@ -178,7 +178,9 @@ public class FileUtils {
 	}
 
 	public static void clearTempRootDir() {
-		clearDir(tempRootDir);
+		if (Files.isDirectory(tempRootDir)) {
+			clearDir(tempRootDir);
+		}
 	}
 
 	public static void clearDir(Path clearDir) {
