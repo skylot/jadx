@@ -1,13 +1,11 @@
 package jadx.gui.utils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.JavaClass;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.pkgs.PackageHelper;
@@ -20,8 +18,6 @@ public class CacheObject {
 	private String lastSearch;
 	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
 	private String lastSearchPackage;
-
-	private List<List<JavaClass>> decompileBatches;
 
 	private volatile boolean fullDecompilationFinished;
 
@@ -37,7 +33,6 @@ public class CacheObject {
 		jNodeCache.reset();
 		lastSearchOptions = new HashMap<>();
 		lastSearchPackage = null;
-		decompileBatches = null;
 		fullDecompilationFinished = false;
 	}
 
@@ -65,14 +60,6 @@ public class CacheObject {
 
 	public Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> getLastSearchOptions() {
 		return lastSearchOptions;
-	}
-
-	public @Nullable List<List<JavaClass>> getDecompileBatches() {
-		return decompileBatches;
-	}
-
-	public void setDecompileBatches(List<List<JavaClass>> decompileBatches) {
-		this.decompileBatches = decompileBatches;
 	}
 
 	public PackageHelper getPackageHelper() {

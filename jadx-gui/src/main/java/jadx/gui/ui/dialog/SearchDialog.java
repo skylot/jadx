@@ -7,12 +7,14 @@ import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -62,6 +64,7 @@ import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.cache.ValueCache;
 import jadx.gui.utils.layout.WrapLayout;
 import jadx.gui.utils.rx.RxUtils;
 
@@ -159,6 +162,10 @@ public class SearchDialog extends CommonSearchDialog {
 	 * Use single thread to do all background work, so additional synchronisation not needed
 	 */
 	private final Executor searchBackgroundExecutor = Executors.newSingleThreadExecutor();
+
+	// save values between searches
+	private final ValueCache<String, List<JavaClass>> includedClsCache = new ValueCache<>();
+	private final ValueCache<List<JavaClass>, List<List<JavaClass>>> batchesCache = new ValueCache<>();
 
 	private SearchDialog(MainWindow mainWindow, SearchPreset preset, Set<SearchOptions> additionalOptions) {
 		super(mainWindow, NLS.str("menu.text_search"));
@@ -452,37 +459,16 @@ public class SearchDialog extends CommonSearchDialog {
 		if (text == null || options.isEmpty()) {
 			return null;
 		}
-		// allow empty text for comments search
+		// allow empty text for search in comments
 		if (text.isEmpty() && !options.contains(SearchOptions.COMMENT)) {
 			return null;
 		}
 		LOG.debug("Building search for '{}', options: {}", text, options);
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
-
-		// Find the JavaPackage for the searched package string
-		String packageText = packageField.getText();
-		JavaPackage searchPackage = null;
-		if (!packageText.isBlank()) {
-			searchPackage = mainWindow
-					.getWrapper()
-					.getPackages()
-					.stream()
-					.filter(p -> p.getFullName().equals(packageText))
-					.findFirst()
-					.orElse(null);
-			if (searchPackage == null) {
-				resultsInfoLabel.setText(NLS.str("search_dialog.package_not_found"));
-				packageField.setBackground(SEARCH_FIELD_ERROR_COLOR);
-				return null;
-			}
-		}
-		if (Objects.equals(packageField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
-			packageField.setBackground(searchFieldDefaultBgColor);
-		}
-
-		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex, searchPackage);
-		String error = searchSettings.prepare();
+		String searchPackageText = packageField.getText();
+		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex, searchPackageText);
+		String error = searchSettings.prepare(mainWindow);
 		if (error == null) {
 			if (Objects.equals(searchField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
 				searchField.setBackground(searchFieldDefaultBgColor);
@@ -500,7 +486,7 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private boolean buildSearch(SearchTask newSearchTask, String text, SearchSettings searchSettings) {
-		List<JavaClass> allClasses;
+		List<JavaClass> searchClasses;
 		if (options.contains(ACTIVE_TAB)) {
 			JumpPosition currentPos = mainWindow.getTabbedPane().getCurrentPosition();
 			if (currentPos == null) {
@@ -511,57 +497,67 @@ public class SearchDialog extends CommonSearchDialog {
 			if (currentNode instanceof JClass) {
 				JClass activeCls = currentNode.getRootClass();
 				searchSettings.setActiveCls(activeCls);
-				allClasses = Collections.singletonList(activeCls.getCls());
+				searchClasses = Collections.singletonList(activeCls.getCls());
 			} else if (currentNode instanceof JResource) {
 				searchSettings.setActiveResource((JResource) currentNode);
-				allClasses = Collections.emptyList();
+				searchClasses = Collections.emptyList();
 			} else {
 				resultsInfoLabel.setText("Can't search in current tab");
 				return false;
 			}
 		} else {
-			allClasses = mainWindow.getWrapper().getIncludedClassesWithInners();
+			searchClasses = includedClsCache.get(mainWindow.getSettings().getExcludedPackages(),
+					exc -> mainWindow.getWrapper().getIncludedClassesWithInners());
 		}
-		// allow empty text for comments search
+		JavaPackage searchPkg = searchSettings.getSearchPackage();
+		if (searchPkg != null) {
+			searchClasses = searchClasses.stream()
+					.filter(searchSettings::isInSearchPkg)
+					.collect(Collectors.toList());
+		}
 		if (text.isEmpty() && options.contains(SearchOptions.COMMENT)) {
-			newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
+			// allow empty text for comment search
+			newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings, searchClasses));
 			return true;
 		}
-		// using ordered execution for fast tasks
-		MergedSearchProvider merged = new MergedSearchProvider();
-		if (options.contains(CLASS)) {
-			merged.add(new ClassSearchProvider(mainWindow, searchSettings, allClasses));
-		}
-		if (options.contains(METHOD)) {
-			merged.add(new MethodSearchProvider(mainWindow, searchSettings, allClasses));
-		}
-		if (options.contains(FIELD)) {
-			merged.add(new FieldSearchProvider(mainWindow, searchSettings, allClasses));
-		}
-		if (options.contains(CODE)) {
-			int clsCount = allClasses.size();
-			if (clsCount == 1) {
-				newSearchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, allClasses));
-			} else if (clsCount > 1) {
-				List<List<JavaClass>> batches = mainWindow.getCacheObject().getDecompileBatches();
-				if (batches == null) {
-					List<JavaClass> topClasses = ListUtils.filter(allClasses, c -> !c.isInner());
-					batches = mainWindow.getWrapper().buildDecompileBatches(topClasses);
-					mainWindow.getCacheObject().setDecompileBatches(batches);
+		if (!searchClasses.isEmpty()) {
+			// using ordered execution for fast tasks
+			MergedSearchProvider merged = new MergedSearchProvider();
+			if (options.contains(CLASS)) {
+				merged.add(new ClassSearchProvider(mainWindow, searchSettings, searchClasses));
+			}
+			if (options.contains(METHOD)) {
+				merged.add(new MethodSearchProvider(mainWindow, searchSettings, searchClasses));
+			}
+			if (options.contains(FIELD)) {
+				merged.add(new FieldSearchProvider(mainWindow, searchSettings, searchClasses));
+			}
+			if (!merged.isEmpty()) {
+				merged.prepare();
+				newSearchTask.addProviderJob(merged);
+			}
+
+			if (options.contains(CODE)) {
+				int clsCount = searchClasses.size();
+				if (clsCount == 1) {
+					newSearchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, searchClasses, null));
+				} else if (clsCount > 1) {
+					List<JavaClass> topClasses = ListUtils.filter(searchClasses, c -> !c.isInner());
+					List<List<JavaClass>> batches = batchesCache.get(topClasses,
+							clsList -> mainWindow.getWrapper().buildDecompileBatches(clsList));
+					Set<JavaClass> includedClasses = new HashSet<>(topClasses);
+					for (List<JavaClass> batch : batches) {
+						newSearchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, batch, includedClasses));
+					}
 				}
-				for (List<JavaClass> batch : batches) {
-					newSearchTask.addProviderJob(new CodeSearchProvider(mainWindow, searchSettings, batch));
-				}
+			}
+			if (options.contains(COMMENT)) {
+				newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings, searchClasses));
 			}
 		}
 		if (options.contains(RESOURCE)) {
 			newSearchTask.addProviderJob(new ResourceSearchProvider(mainWindow, searchSettings, this));
 		}
-		if (options.contains(COMMENT)) {
-			newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings));
-		}
-		merged.prepare();
-		newSearchTask.addProviderJob(merged);
 		return true;
 	}
 

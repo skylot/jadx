@@ -1,7 +1,9 @@
 package jadx.gui.search.providers;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.swing.Icon;
 
@@ -39,14 +41,16 @@ public class CommentSearchProvider implements ISearchProvider {
 	private final CacheObject cacheObject;
 	private final JadxProject project;
 	private final SearchSettings searchSettings;
+	private final Set<JavaClass> searchClsSet;
 
 	private int progress = 0;
 
-	public CommentSearchProvider(MainWindow mw, SearchSettings searchSettings) {
+	public CommentSearchProvider(MainWindow mw, SearchSettings searchSettings, List<JavaClass> searchClasses) {
 		this.wrapper = mw.getWrapper();
 		this.cacheObject = mw.getCacheObject();
 		this.project = mw.getProject();
 		this.searchSettings = searchSettings;
+		this.searchClsSet = new HashSet<>(searchClasses);
 	}
 
 	@Override
@@ -70,17 +74,12 @@ public class CommentSearchProvider implements ISearchProvider {
 		boolean all = searchSettings.getSearchString().isEmpty();
 		if (all || searchSettings.isMatch(comment.getComment())) {
 			JNode refNode = getRefNode(comment);
-			if (refNode != null) {
-				if (searchSettings.getSearchPackage() != null
-						&& !refNode.getRootClass().getCls().getJavaPackage().isDescendantOf(searchSettings.getSearchPackage())) {
-					return null;
-				}
-				JClass activeCls = searchSettings.getActiveCls();
-				if (activeCls == null || Objects.equals(activeCls, refNode.getRootClass())) {
-					return getCommentNode(comment, refNode);
-				}
-			} else {
+			if (refNode == null) {
 				LOG.warn("Failed to get ref node for comment: {}", comment);
+				return null;
+			}
+			if (searchClsSet.contains(refNode.getRootClass().getCls())) {
+				return getCommentNode(comment, refNode);
 			}
 		}
 		return null;

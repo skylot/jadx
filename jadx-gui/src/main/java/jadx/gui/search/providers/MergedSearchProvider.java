@@ -22,6 +22,10 @@ public class MergedSearchProvider implements ISearchProvider {
 		list.add(provider);
 	}
 
+	public boolean isEmpty() {
+		return list.isEmpty();
+	}
+
 	public void prepare() {
 		current = list.isEmpty() ? -1 : 0;
 		total = list.stream().mapToInt(ISearchProvider::total).sum();

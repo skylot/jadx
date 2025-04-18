@@ -1,6 +1,7 @@
 package jadx.gui.search.providers;
 
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,34 +28,44 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 
 	private final ICodeCache codeCache;
 	private final JadxWrapper wrapper;
+	private final @Nullable Set<JavaClass> includedClasses;
 
 	private @Nullable String code;
 	private int clsNum = 0;
 	private int pos = 0;
 
-	public CodeSearchProvider(MainWindow mw, SearchSettings searchSettings, List<JavaClass> classes) {
+	public CodeSearchProvider(MainWindow mw, SearchSettings searchSettings,
+			List<JavaClass> classes, @Nullable Set<JavaClass> includedClasses) {
 		super(mw, searchSettings, classes);
 		this.codeCache = mw.getWrapper().getArgs().getCodeCache();
 		this.wrapper = mw.getWrapper();
+		this.includedClasses = includedClasses;
 	}
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
+		Set<JavaClass> inclCls = includedClasses;
 		while (true) {
 			if (cancelable.isCanceled() || clsNum >= classes.size()) {
 				return null;
 			}
+
 			JavaClass cls = classes.get(clsNum);
-			String clsCode = code;
-			if (clsCode == null && !cls.isInner() && !cls.isNoCode()) {
-				clsCode = getClassCode(cls, codeCache);
-			}
-			if (clsCode != null) {
-				JNode newResult = searchNext(cls, clsCode);
-				if (newResult != null) {
-					code = clsCode;
-					return newResult;
+			if (inclCls == null || inclCls.contains(cls)) {
+				String clsCode = code;
+				if (clsCode == null && !cls.isInner() && !cls.isNoCode()) {
+					clsCode = getClassCode(cls, codeCache);
 				}
+				if (clsCode != null) {
+					JNode newResult = searchNext(cls, clsCode);
+					if (newResult != null) {
+						code = clsCode;
+						return newResult;
+					}
+				}
+			} else {
+				// force decompilation for not included classes
+				cls.decompile();
 			}
 			clsNum++;
 			pos = 0;
@@ -62,8 +73,7 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 		}
 	}
 
-	@Nullable
-	private JNode searchNext(JavaClass javaClass, String clsCode) {
+	private @Nullable JNode searchNext(JavaClass javaClass, String clsCode) {
 		int newPos = searchMth.find(clsCode, searchStr, pos);
 		if (newPos == -1) {
 			return null;
@@ -99,9 +109,10 @@ public final class CodeSearchProvider extends BaseSearchProvider {
 			if (code != null) {
 				return code;
 			}
+			// start decompilation
 			return javaClass.getCode();
 		} catch (Exception e) {
-			LOG.warn("Failed to get class code: " + javaClass, e);
+			LOG.warn("Failed to get class code: {}", javaClass, e);
 			return "";
 		}
 	}

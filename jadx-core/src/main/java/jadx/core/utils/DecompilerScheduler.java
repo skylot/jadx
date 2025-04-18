@@ -28,7 +28,8 @@ public class DecompilerScheduler implements IDecompileScheduler {
 			long start = System.currentTimeMillis();
 			List<List<JavaClass>> result = internalBatches(classes);
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Build decompilation batches in {}ms", System.currentTimeMillis() - start);
+				LOG.debug("Build decompilation batches in {}ms for {} classes",
+						System.currentTimeMillis() - start, classes.size());
 			}
 			if (DEBUG_BATCHES) {
 				check(result, classes);
@@ -77,7 +78,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				result.add(batch);
 			}
 		}
-		if (mergedBatch.size() > 0) {
+		if (!mergedBatch.isEmpty()) {
 			result.add(mergedBatch);
 		}
 		if (DEBUG_BATCHES) {
