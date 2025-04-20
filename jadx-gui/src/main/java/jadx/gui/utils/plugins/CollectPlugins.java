@@ -1,7 +1,6 @@
 package jadx.gui.utils.plugins;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,12 +26,13 @@ public class CollectPlugins {
 		this.mainWindow = mainWindow;
 	}
 
-	public List<PluginContext> build() {
+	public CloseablePlugins build() {
 		SortedSet<PluginContext> allPlugins = new TreeSet<>();
 		mainWindow.getWrapper().getCurrentDecompiler()
 				.ifPresent(decompiler -> allPlugins.addAll(decompiler.getPluginManager().getResolvedPluginContexts()));
 
 		// collect and init not loaded plugins in new temp context
+		Runnable closeable = null;
 		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
 		try (JadxDecompiler decompiler = new JadxDecompiler(jadxArgs)) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
@@ -52,8 +52,9 @@ public class CollectPlugins {
 			if (!missingPlugins.isEmpty()) {
 				pluginManager.init(missingPlugins);
 				allPlugins.addAll(missingPlugins);
+				closeable = () -> pluginManager.unload(missingPlugins);
 			}
 		}
-		return new ArrayList<>(allPlugins);
+		return new CloseablePlugins(new ArrayList<>(allPlugins), closeable);
 	}
 }

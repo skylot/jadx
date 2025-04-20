@@ -170,6 +170,7 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	private void reset() {
+		unloadPlugins();
 		root = null;
 		classes = null;
 		resources = null;
@@ -213,6 +214,10 @@ public final class JadxDecompiler implements Closeable {
 					.map(p -> p.getInfo().getName()).collect(Collectors.toList());
 			LOG.debug("Loaded custom passes: {} {}", passes.size(), passes);
 		}
+	}
+
+	private void unloadPlugins() {
+		pluginManager.unloadResolved();
 	}
 
 	private void loadFinished() {

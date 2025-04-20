@@ -35,7 +35,9 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.SettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.plugins.CloseablePlugins;
 import jadx.gui.utils.plugins.CollectPlugins;
+import jadx.gui.utils.plugins.SettingsGroupPluginWrap;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -53,12 +55,12 @@ public class PluginSettings {
 	}
 
 	public ISettingsGroup build() {
-		List<PluginContext> collectedPlugins = new CollectPlugins(mainWindow).build();
+		CloseablePlugins collectedPlugins = new CollectPlugins(mainWindow).build();
 		ISettingsGroup pluginsGroup = new PluginSettingsGroup(this, mainWindow, collectedPlugins);
-		for (PluginContext context : collectedPlugins) {
+		for (PluginContext context : collectedPlugins.getList()) {
 			ISettingsGroup pluginGroup = addPluginGroup(context);
 			if (pluginGroup != null) {
-				pluginsGroup.getSubGroups().add(pluginGroup);
+				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(context.getPluginId(), pluginGroup));
 			}
 		}
 		return pluginsGroup;

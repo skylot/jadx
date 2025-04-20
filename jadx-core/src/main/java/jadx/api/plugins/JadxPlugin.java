@@ -23,4 +23,12 @@ public interface JadxPlugin {
 	 * For long operation, prefer {@link JadxPreparePass} or {@link JadxAfterLoadPass} instead.
 	 */
 	void init(JadxPluginContext context);
+
+	/**
+	 * Plugin unload handler.
+	 * Can be used to clean up resources on plugin unloading.
+	 */
+	default void unload() {
+		// optional method
+	}
 }

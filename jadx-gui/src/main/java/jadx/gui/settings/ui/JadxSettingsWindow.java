@@ -91,6 +91,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private transient boolean needReload = false;
 	private transient SettingsTree tree;
+	private List<ISettingsGroup> groups;
 
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
@@ -116,6 +117,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private void reloadUI() {
 		int[] selection = tree.getSelectionRows();
+		closeGroups(false);
 		getContentPane().removeAll();
 		initUI();
 		// wait for other events to process
@@ -128,7 +130,7 @@ public class JadxSettingsWindow extends JDialog {
 	private void initUI() {
 		JPanel wrapGroupPanel = new JPanel(new BorderLayout(10, 10));
 
-		List<ISettingsGroup> groups = new ArrayList<>();
+		groups = new ArrayList<>();
 		groups.add(makeDecompilationGroup());
 		groups.add(makeDeobfuscationGroup());
 		groups.add(makeRenameGroup());
@@ -690,7 +692,7 @@ public class JadxSettingsWindow extends JDialog {
 		sizeLimit.addChangeListener(ev -> settings.setSrhResourceSkipSize((Integer) sizeLimit.getValue()));
 
 		JTextField fileExtField = new JTextField();
-		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener((ev) -> {
+		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> {
 			String ext = fileExtField.getText();
 			settings.setSrhResourceFileExt(ext);
 		}));
@@ -703,7 +705,14 @@ public class JadxSettingsWindow extends JDialog {
 		return searchGroup;
 	}
 
+	private void closeGroups(boolean save) {
+		for (ISettingsGroup group : groups) {
+			group.close(save);
+		}
+	}
+
 	private void save() {
+		closeGroups(true);
 		settings.sync();
 		enableComponents(this, false);
 		SwingUtilities.invokeLater(() -> {
@@ -723,6 +732,7 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private void cancel() {
+		closeGroups(false);
 		JadxSettingsAdapter.fill(settings, startSettings);
 		mainWindow.loadSettings();
 		dispose();

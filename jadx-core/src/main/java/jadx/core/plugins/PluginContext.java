@@ -55,9 +55,15 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		this.pluginInfo = plugin.getPluginInfo();
 	}
 
-	void init() {
+	public void init() {
 		plugin.init(this);
 		initialized = true;
+	}
+
+	public void unload() {
+		if (initialized) {
+			plugin.unload();
+		}
 	}
 
 	@Override

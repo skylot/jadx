@@ -244,13 +244,17 @@ public class JCommanderWrapper {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.load(new JadxExternalPluginsLoader());
 			pluginManager.initAll();
-			for (PluginContext context : pluginManager.getAllPluginContexts()) {
-				JadxPluginOptions options = context.getOptions();
-				if (options != null) {
-					if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen)) {
-						k++;
+			try {
+				for (PluginContext context : pluginManager.getAllPluginContexts()) {
+					JadxPluginOptions options = context.getOptions();
+					if (options != null) {
+						if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen)) {
+							k++;
+						}
 					}
 				}
+			} finally {
+				pluginManager.unloadAll();
 			}
 		}
 		if (sb.length() == 0) {

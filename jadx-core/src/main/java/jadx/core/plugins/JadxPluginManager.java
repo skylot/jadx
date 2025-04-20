@@ -22,7 +22,6 @@ import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.core.plugins.versions.VerifyRequiredVersion;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
@@ -149,13 +148,31 @@ public class JadxPluginManager {
 				}
 				context.init();
 			} catch (Exception e) {
-				throw new JadxRuntimeException("Failed to init plugin: " + context.getPluginId(), e);
+				LOG.warn("Failed to init plugin: {}", context.getPluginId(), e);
 			}
 		}
 		for (PluginContext context : pluginContexts) {
 			JadxPluginOptions options = context.getOptions();
 			if (options != null) {
 				verifyOptions(context, options);
+			}
+		}
+	}
+
+	public void unloadAll() {
+		unload(allPlugins);
+	}
+
+	public void unloadResolved() {
+		unload(resolvedPlugins);
+	}
+
+	public void unload(SortedSet<PluginContext> pluginContexts) {
+		for (PluginContext context : pluginContexts) {
+			try {
+				context.unload();
+			} catch (Exception e) {
+				LOG.warn("Failed to unload plugin: {}", context.getPluginId(), e);
 			}
 		}
 	}
