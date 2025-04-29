@@ -1,7 +1,5 @@
 package jadx.cli;
 
-import java.nio.file.Path;
-
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +12,7 @@ public class TestExport extends BaseCliIntegrationTest {
 		int result = execJadxCli("samples/small.apk");
 		assertThat(result).isEqualTo(0);
 		assertThat(collectAllFilesInDir(outputDir))
-				.map(Path::toString)
+				.map(this::pathToUniformString)
 				.haveExactly(2, new Condition<>(f -> f.startsWith("sources/") && f.endsWith(".java"), "sources"))
 				.haveExactly(10, new Condition<>(f -> f.startsWith("resources/"), "resources"))
 				.haveExactly(1, new Condition<>(f -> f.equals("resources/AndroidManifest.xml"), "manifest"))
@@ -27,7 +25,7 @@ public class TestExport extends BaseCliIntegrationTest {
 		assertThat(result).isEqualTo(0);
 		assertThat(collectAllFilesInDir(outputDir))
 				.describedAs("check output files")
-				.map(Path::toString)
+				.map(this::pathToUniformString)
 				.haveExactly(2, new Condition<>(f -> f.endsWith(".java"), "java classes"))
 				.haveExactly(0, new Condition<>(f -> f.endsWith("classes.dex"), "dex files"))
 				.hasSize(15);
@@ -40,7 +38,7 @@ public class TestExport extends BaseCliIntegrationTest {
 		assertThat(collectAllFilesInDir(outputDir))
 				.describedAs("check output files")
 				.map(this::printFileContent)
-				.map(Path::toString)
+				.map(this::pathToUniformString)
 				.haveExactly(1, new Condition<>(f -> f.startsWith("lib/src/main/java/") && f.endsWith(".java"), "java"))
 				.haveExactly(0, new Condition<>(f -> f.endsWith(".jar"), "jar files"))
 				.hasSize(8);
@@ -53,7 +51,7 @@ public class TestExport extends BaseCliIntegrationTest {
 		assertThat(collectAllFilesInDir(outputDir))
 				.describedAs("check output files")
 				.map(this::printFileContent)
-				.map(Path::toString)
+				.map(this::pathToUniformString)
 				.haveExactly(1, new Condition<>(f -> f.endsWith(".java") && f.startsWith("app/src/main/java/"), "java"))
 				.haveExactly(0, new Condition<>(f -> f.endsWith(".class"), "class files"))
 				.haveExactly(1, new Condition<>(f -> f.equals("settings.gradle.kts"), "settings"))
@@ -69,7 +67,7 @@ public class TestExport extends BaseCliIntegrationTest {
 		assertThat(collectAllFilesInDir(outputDir))
 				.describedAs("check output files")
 				.map(this::printFileContent)
-				.map(Path::toString)
+				.map(this::pathToUniformString)
 				.haveExactly(1, new Condition<>(f -> f.endsWith(".java") && f.startsWith("app/src/main/java/"), "java"))
 				.haveExactly(1, new Condition<>(f -> f.equals("settings.gradle"), "settings"))
 				.haveExactly(1, new Condition<>(f -> f.equals("build.gradle"), "build"))

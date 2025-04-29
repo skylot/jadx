@@ -95,6 +95,10 @@ public class BaseCliIntegrationTest {
 		LOG.info("");
 	}
 
+	String pathToUniformString(Path path) {
+		return path.toString().replace('\\', '/');
+	}
+
 	Path printFileContent(Path file) {
 		try {
 			String content = Files.readString(outputDir.resolve(file));
