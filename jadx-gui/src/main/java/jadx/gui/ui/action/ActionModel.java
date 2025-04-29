@@ -101,7 +101,24 @@ public enum ActionModel {
 	SCRIPT_SAVE(PLUGIN_SCRIPT, "script.save", "script.save", "ui/menu-saveall",
 			Shortcut.keyboard(KeyEvent.VK_S, UiUtils.ctrlButton())),
 	SCRIPT_AUTO_COMPLETE(PLUGIN_SCRIPT, "script.auto_complete", "script.auto_complete", null,
-			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
+			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton())),
+
+	HEX_VIEWER_SHOW_INSPECTOR(HEX_VIEWER_MENU, "hex_viewer.show_inspector", "hex_viewer.show_inspector",
+			null, Shortcut.none()),
+	HEX_VIEWER_CHANGE_ENCODING(HEX_VIEWER_MENU, "hex_viewer.change_encoding", "hex_viewer.change_encoding",
+			null, Shortcut.none()),
+	HEX_VIEWER_GO_TO_ADDRESS(HEX_VIEWER_MENU, "hex_viewer.goto_address", "hex_viewer.goto_address",
+			null, Shortcut.keyboard(KeyEvent.VK_J, UiUtils.ctrlButton())),
+	HEX_VIEWER_FIND(HEX_VIEWER_MENU, "hex_viewer.find", "hex_viewer.find",
+			null, Shortcut.keyboard(KeyEvent.VK_F, UiUtils.ctrlButton())),
+	HEX_VIEWER_FIND_NEXT(HEX_VIEWER_MENU, "hex_viewer.find_next", "hex_viewer.find_next",
+			null, Shortcut.keyboard(KeyEvent.VK_G, UiUtils.ctrlButton())),
+	HEX_VIEWER_FIND_PREVIOUS(HEX_VIEWER_MENU, "hex_viewer.find_previous", "hex_viewer.find_previous",
+			null, Shortcut.keyboard(KeyEvent.VK_G, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
+	HEX_VIEWER_COPY_HEX(HEX_VIEWER_MENU, "hex_viewer.copy_hex", "hex_viewer.copy_hex",
+			null, Shortcut.keyboard(KeyEvent.VK_C, UiUtils.ctrlButton())),
+	HEX_VIEWER_COPY_TEXT(HEX_VIEWER_MENU, "hex_viewer.copy_text", "hex_viewer.copy_hex",
+			null, Shortcut.keyboard(KeyEvent.VK_C, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 	private final ActionCategory category;
 	private final String nameRes;

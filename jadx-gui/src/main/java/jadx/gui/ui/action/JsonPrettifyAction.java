@@ -1,4 +1,4 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 
 import jadx.core.utils.GsonUtils;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.codearea.CodeArea;
 
 public class JsonPrettifyAction extends JNodeAction {
 	private static final long serialVersionUID = -2682529369671695550L;

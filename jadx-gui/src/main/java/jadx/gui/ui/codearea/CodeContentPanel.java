@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Point;
 
 import org.slf4j.Logger;
@@ -38,6 +39,11 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 	@Override
 	public AbstractCodeArea getCodeArea() {
 		return codePanel.getCodeArea();
+	}
+
+	@Override
+	public Component getChildrenComponent() {
+		return getCodeArea();
 	}
 
 	@Override

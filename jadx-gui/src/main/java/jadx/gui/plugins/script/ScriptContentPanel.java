@@ -1,6 +1,7 @@
 package jadx.gui.plugins.script;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.Collections;
@@ -235,6 +236,11 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 	@Override
 	public AbstractCodeArea getCodeArea() {
 		return scriptArea;
+	}
+
+	@Override
+	public Component getChildrenComponent() {
+		return getCodeArea();
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.*;
 import jadx.gui.ui.codearea.mode.JCodeMode;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;

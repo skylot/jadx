@@ -3,6 +3,7 @@ package jadx.gui.ui.codearea;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuListener;
 
+import jadx.gui.ui.action.JNodeAction;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.utils.shortcut.ShortcutsController;
 

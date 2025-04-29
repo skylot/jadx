@@ -5,7 +5,8 @@ import jadx.gui.utils.NLS;
 public enum ActionCategory {
 	MENU_TOOLBAR("action_category.menu_toolbar"),
 	CODE_AREA("action_category.code_area"),
-	PLUGIN_SCRIPT("action_category.plugin_script");
+	PLUGIN_SCRIPT("action_category.plugin_script"),
+	HEX_VIEWER_MENU("action_category.hex_viewer");
 
 	private final String nameRes;
 
