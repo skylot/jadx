@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,7 +43,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
-import jadx.core.export.ExportGradleTask;
+import jadx.core.export.ExportGradle;
+import jadx.core.export.OutDirs;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.events.JadxEventsImpl;
@@ -297,31 +299,28 @@ public final class JadxDecompiler implements Closeable {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
-		File sourcesOutDir;
-		File resOutDir;
-		ExportGradleTask gradleExportTask;
-		if (args.isExportAsGradleProject()) {
-			gradleExportTask = new ExportGradleTask(resources, root, args.getOutDir());
-			gradleExportTask.init();
-			sourcesOutDir = gradleExportTask.getSrcOutDir();
-			resOutDir = gradleExportTask.getResOutDir();
+		OutDirs outDirs;
+		ExportGradle gradleExport;
+		if (args.getExportGradleType() != null) {
+			gradleExport = new ExportGradle(root, args.getOutDir(), getResources());
+			outDirs = gradleExport.init();
 		} else {
-			sourcesOutDir = args.getOutDirSrc();
-			resOutDir = args.getOutDirRes();
-			gradleExportTask = null;
+			gradleExport = null;
+			outDirs = new OutDirs(args.getOutDirSrc(), args.getOutDirRes());
+			outDirs.makeDirs();
 		}
 
 		TaskExecutor executor = new TaskExecutor();
 		executor.setThreadsCount(args.getThreadsCount());
 		if (saveResources) {
 			// save resources first because decompilation can stop or fail
-			appendResourcesSaveTasks(executor, resOutDir);
+			appendResourcesSaveTasks(executor, outDirs.getResOutDir());
 		}
 		if (saveSources) {
-			appendSourcesSave(executor, sourcesOutDir);
+			appendSourcesSave(executor, outDirs.getSrcOutDir());
 		}
-		if (gradleExportTask != null) {
-			executor.addSequentialTask(gradleExportTask);
+		if (gradleExport != null) {
+			executor.addSequentialTask(gradleExport::generateGradleFiles);
 		}
 		return executor;
 	}
@@ -340,6 +339,8 @@ public final class JadxDecompiler implements Closeable {
 		Set<String> inputFileNames = args.getInputFiles().stream()
 				.map(File::getAbsolutePath)
 				.collect(Collectors.toSet());
+		Set<String> codeSources = collectCodeSources();
+
 		List<Runnable> tasks = new ArrayList<>();
 		for (ResourceFile resourceFile : getResources()) {
 			ResourceType resType = resourceFile.getType();
@@ -347,14 +348,42 @@ public final class JadxDecompiler implements Closeable {
 				// already processed
 				continue;
 			}
-			if (resType != ResourceType.ARSC
-					&& inputFileNames.contains(resourceFile.getOriginalName())) {
-				// ignore resource made from input file
+			String resOriginalName = resourceFile.getOriginalName();
+			if (resType != ResourceType.ARSC && inputFileNames.contains(resOriginalName)) {
+				// ignore resource made from an input file
+				continue;
+			}
+			if (codeSources.contains(resOriginalName)) {
+				// don't output code source resources (.dex, .class, etc)
+				// do not trust file extensions, use only sources set as class inputs
 				continue;
 			}
 			tasks.add(new ResourcesSaver(this, outDir, resourceFile));
 		}
 		executor.addParallelTasks(tasks);
+	}
+
+	private Set<String> collectCodeSources() {
+		Set<String> set = new HashSet<>();
+		for (ClassNode cls : root.getClasses(true)) {
+			if (cls.getClsData() == null) {
+				// exclude synthetic classes
+				continue;
+			}
+			String inputFileName = cls.getInputFileName();
+			if (inputFileName.endsWith(".class")) {
+				// cut .class name to get source .jar file
+				// current template: "<optional input files>:<.jar>:<full class name>"
+				// TODO: add property to set file name or reference to resource name
+				int endIdx = inputFileName.lastIndexOf(':');
+				if (endIdx != -1) {
+					int startIdx = inputFileName.lastIndexOf(':', endIdx - 1) + 1;
+					inputFileName = inputFileName.substring(startIdx, endIdx);
+				}
+			}
+			set.add(inputFileName);
+		}
+		return set;
 	}
 
 	private void appendSourcesSave(ITaskExecutor executor, File outDir) {

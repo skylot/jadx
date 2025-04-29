@@ -32,7 +32,7 @@ import jadx.gui.utils.UiUtils;
 
 public class TreeExpansionService {
 	private static final Logger LOG = LoggerFactory.getLogger(TreeExpansionService.class);
-	private static final boolean DEBUG = UiUtils.JADX_GUI_DEBUG;
+	private static final boolean DEBUG = false;
 
 	private static final Comparator<TreePath> PATH_LENGTH_REVERSE = Comparator.comparingInt(p -> -p.getPathCount());
 

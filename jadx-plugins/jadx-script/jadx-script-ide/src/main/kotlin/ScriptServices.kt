@@ -31,7 +31,7 @@ data class ScriptAnalyzeResult(
 )
 
 class ScriptServices {
-	private val compileConf = ScriptEval.compileConf
+	private val compileConf = ScriptEval().buildCompileConf()
 	private val replCompiler = KJvmReplCompilerWithIdeServices(
 		compileConf[ScriptCompilationConfiguration.hostConfiguration]
 			?: defaultJvmScriptingHostConfiguration,

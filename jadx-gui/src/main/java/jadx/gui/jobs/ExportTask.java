@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 import jadx.api.ICodeCache;
 import jadx.api.utils.tasks.ITaskExecutor;
 import jadx.gui.JadxWrapper;
+import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.code.FixedCodeCache;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
@@ -42,9 +43,11 @@ public class ExportTask extends CancelableBackgroundTask {
 
 	private void wrapCodeCache() {
 		uiCodeCache = wrapper.getArgs().getCodeCache();
-		// do not save newly decompiled code in cache to not increase memory usage
-		// TODO: maybe make memory limited cache?
-		wrapper.getArgs().setCodeCache(new FixedCodeCache(uiCodeCache));
+		if (mainWindow.getSettings().getCodeCacheMode() != CodeCacheMode.DISK) {
+			// do not save newly decompiled code in cache to not increase memory usage
+			// TODO: maybe make memory limited cache?
+			wrapper.getArgs().setCodeCache(new FixedCodeCache(uiCodeCache));
+		}
 	}
 
 	@Override

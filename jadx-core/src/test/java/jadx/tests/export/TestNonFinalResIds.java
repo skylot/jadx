@@ -19,6 +19,6 @@ public class TestNonFinalResIds extends ExportGradleTest {
 
 		gradleInfo.setNonFinalResIds(true);
 		exportGradle("OptionalTargetSdkVersion.xml", "strings.xml");
-		assertThat(getGradleProperies()).containsOne("android.nonFinalResIds=false");
+		assertThat(getGradleProperties()).containsOne("android.nonFinalResIds=false");
 	}
 }

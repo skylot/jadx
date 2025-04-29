@@ -1,10 +1,9 @@
-package jadx.gui.ui.dialog;
+package jadx.gui.ui.export;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
@@ -12,16 +11,23 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import jadx.gui.settings.ExportProjectProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.core.export.ExportGradle;
+import jadx.core.export.ExportGradleType;
+import jadx.core.utils.files.FileUtils;
+import jadx.gui.JadxWrapper;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.CommonDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.utils.NLS;
@@ -29,6 +35,7 @@ import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class ExportProjectDialog extends CommonDialog {
+	private static final Logger LOG = LoggerFactory.getLogger(ExportProjectDialog.class);
 
 	private final ExportProjectProperties exportProjectProperties = new ExportProjectProperties();
 	private final Consumer<ExportProjectProperties> exportListener;
@@ -40,30 +47,25 @@ public class ExportProjectDialog extends CommonDialog {
 	}
 
 	private void initUI() {
-		JPanel contentPane = makeContentPane();
-		JPanel buttonPane = initButtonsPanel();
-		Container container = getContentPane();
-		container.add(contentPane, BorderLayout.CENTER);
-		container.add(buttonPane, BorderLayout.PAGE_END);
+		JPanel contentPanel = new JPanel();
+		contentPanel.setLayout(new BorderLayout(5, 5));
+		contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		contentPanel.add(makeContentPane(), BorderLayout.PAGE_START);
+		contentPanel.add(initButtonsPanel(), BorderLayout.PAGE_END);
+		getContentPane().add(contentPanel);
 
 		setTitle(NLS.str("export_dialog.title"));
 		commonWindowInit();
 	}
 
 	private JPanel makeContentPane() {
-		// top layout
-		JLabel label = new JLabel(NLS.str("export_dialog.save_path"));
+		JLabel pathLbl = new JLabel(NLS.str("export_dialog.save_path"));
 		JTextField pathField = new JTextField();
-		pathField.setText(mainWindow.getSettings().getLastSaveFilePath().toString());
 		pathField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> setExportProjectPath(pathField)));
+		pathField.setText(mainWindow.getSettings().getLastSaveFilePath().toString());
 		TextStandardActions.attach(pathField);
 
 		JButton browseButton = makeEditorBrowseButton(pathField);
-
-		// check box layout
-		JPanel exportOptionsPanel = new JPanel();
-		exportOptionsPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("export_dialog.export_options")));
-		exportOptionsPanel.setLayout(new BoxLayout(exportOptionsPanel, BoxLayout.PAGE_AXIS));
 
 		JCheckBox resourceDecode = new JCheckBox(NLS.str("preferences.skipResourcesDecode"));
 		resourceDecode.setSelected(mainWindow.getSettings().isSkipResources());
@@ -77,53 +79,68 @@ public class ExportProjectDialog extends CommonDialog {
 			exportProjectProperties.setSkipSources(e.getStateChange() == ItemEvent.SELECTED);
 		});
 
+		JLabel exportTypeLbl = new JLabel(NLS.str("export_dialog.export_gradle_type"));
+		JComboBox<ExportGradleType> exportTypeComboBox = new JComboBox<>(ExportGradleType.values());
+		exportTypeLbl.setLabelFor(exportTypeComboBox);
+		ExportGradleType initialExportType = getExportGradleType();
+		exportProjectProperties.setExportGradleType(initialExportType);
+		exportTypeComboBox.setSelectedItem(initialExportType);
+		exportTypeComboBox.addItemListener(e -> {
+			exportProjectProperties.setExportGradleType((ExportGradleType) e.getItem());
+		});
+		exportTypeComboBox.setEnabled(false);
+
 		JCheckBox exportAsGradleProject = new JCheckBox(NLS.str("export_dialog.export_gradle"));
 		exportAsGradleProject.addItemListener(e -> {
-			boolean isSelected = e.getStateChange() == ItemEvent.SELECTED;
-
-			exportProjectProperties.setAsGradleMode(isSelected);
-			resourceDecode.setEnabled(!isSelected);
-			skipSources.setEnabled(!isSelected);
+			boolean enableGradle = e.getStateChange() == ItemEvent.SELECTED;
+			exportProjectProperties.setAsGradleMode(enableGradle);
+			exportTypeComboBox.setEnabled(enableGradle);
+			resourceDecode.setEnabled(!enableGradle);
+			skipSources.setEnabled(!enableGradle);
 		});
 
+		JPanel pathPanel = new JPanel();
+		pathPanel.setLayout(new BoxLayout(pathPanel, BoxLayout.LINE_AXIS));
+		pathPanel.setAlignmentX(LEFT_ALIGNMENT);
+		pathPanel.add(pathLbl);
+		pathPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		pathPanel.add(pathField);
+		pathPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		pathPanel.add(browseButton);
+
+		JPanel typePanel = new JPanel();
+		typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.LINE_AXIS));
+		typePanel.setAlignmentX(LEFT_ALIGNMENT);
+		typePanel.add(Box.createRigidArea(new Dimension(20, 0)));
+		typePanel.add(exportTypeLbl);
+		typePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		typePanel.add(exportTypeComboBox);
+		typePanel.add(Box.createHorizontalGlue());
+
+		JPanel exportOptionsPanel = new JPanel();
+		exportOptionsPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("export_dialog.export_options")));
+		exportOptionsPanel.setLayout(new BoxLayout(exportOptionsPanel, BoxLayout.PAGE_AXIS));
 		exportOptionsPanel.add(exportAsGradleProject);
+		exportOptionsPanel.add(typePanel);
 		exportOptionsPanel.add(resourceDecode);
 		exportOptionsPanel.add(skipSources);
 
-		// build group box layout
-		JPanel groupBoxPanel = new JPanel();
-		GroupLayout groupBoxLayout = new GroupLayout(groupBoxPanel);
-		groupBoxLayout.setAutoCreateGaps(true);
-		groupBoxLayout.setAutoCreateContainerGaps(true);
-		groupBoxPanel.setLayout(groupBoxLayout);
-
-		groupBoxLayout.setHorizontalGroup(groupBoxLayout.createParallelGroup()
-				.addComponent(exportOptionsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Integer.MAX_VALUE));
-		groupBoxLayout.setVerticalGroup(groupBoxLayout.createSequentialGroup()
-				.addComponent(exportOptionsPanel));
-
-		// main layout
 		JPanel mainPanel = new JPanel();
-		GroupLayout layout = new GroupLayout(mainPanel);
-		mainPanel.setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-
-		// arrange components using GroupLayout
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(label)
-						.addComponent(pathField)
-						.addComponent(browseButton))
-				.addComponent(groupBoxPanel));
-
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(label)
-						.addComponent(pathField)
-						.addComponent(browseButton))
-				.addComponent(groupBoxPanel));
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+		mainPanel.add(pathPanel);
+		mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+		mainPanel.add(exportOptionsPanel);
 		return mainPanel;
+	}
+
+	private ExportGradleType getExportGradleType() {
+		try {
+			JadxWrapper wrapper = mainWindow.getWrapper();
+			return ExportGradle.detectExportType(wrapper.getRootNode(), wrapper.getResources());
+		} catch (Exception e) {
+			LOG.warn("Failed to detect export type", e);
+			return ExportGradleType.AUTO;
+		}
 	}
 
 	private void setExportProjectPath(JTextField field) {
@@ -143,8 +160,6 @@ public class ExportProjectDialog extends CommonDialog {
 
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(exportProjectButton);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -168,12 +183,33 @@ public class ExportProjectDialog extends CommonDialog {
 	}
 
 	private void exportProject() {
-		if (!new File(exportProjectProperties.getExportPath()).exists()) {
+		String exportPathStr = exportProjectProperties.getExportPath();
+		if (!validateAndMakeDir(exportPathStr)) {
 			JOptionPane.showMessageDialog(this, NLS.str("message.enter_valid_path"),
 					NLS.str("message.errorTitle"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
+		mainWindow.getSettings().setLastSaveFilePath(Path.of(exportPathStr));
+		LOG.debug("Export properties: {}", exportProjectProperties);
 		exportListener.accept(exportProjectProperties);
 		dispose();
+	}
+
+	private static boolean validateAndMakeDir(String exportPath) {
+		if (exportPath == null || exportPath.isBlank()) {
+			return false;
+		}
+		try {
+			Path path = Path.of(exportPath);
+			if (Files.isRegularFile(path)) {
+				// dir exists as a file
+				return false;
+			}
+			FileUtils.makeDirs(path);
+			return true;
+		} catch (Exception e) {
+			LOG.warn("Export path validate error, path string:{}", exportPath, e);
+			return false;
+		}
 	}
 }

@@ -27,7 +27,7 @@ public abstract class CommonDialog extends JDialog {
 		UiUtils.addEscapeShortCutToDispose(this);
 		setLocationRelativeTo(null);
 
-		pack();
+		UiUtils.uiRunAndWait(this::pack);
 		Dimension minSize = getSize();
 		setMinimumSize(minSize);
 		if (!mainWindow.getSettings().loadWindowPos(this)) {

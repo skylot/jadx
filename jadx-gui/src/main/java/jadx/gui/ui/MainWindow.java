@@ -74,6 +74,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.formdev.flatlaf.extras.FlatInspector;
+import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
+
 import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
@@ -111,7 +114,6 @@ import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
-import jadx.gui.settings.ExportProjectProperties;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
@@ -132,9 +134,9 @@ import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.ExceptionDialog;
-import jadx.gui.ui.dialog.ExportProjectDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.ui.menu.HiddenMenuItem;
@@ -798,23 +800,21 @@ public class MainWindow extends JFrame {
 		backgroundExecutor.cancelAll();
 	}
 
-	private void exportProject() {
-		ExportProjectDialog dialog = new ExportProjectDialog(this, this::saveAll);
+	public void exportProject() {
+		ExportProjectDialog dialog = new ExportProjectDialog(this, props -> {
+			JadxArgs args = wrapper.getArgs();
+			if (props.isAsGradleMode()) {
+				args.setExportGradleType(props.getExportGradleType());
+				args.setSkipSources(false);
+				args.setSkipResources(false);
+			} else {
+				args.setExportGradleType(null);
+				args.setSkipSources(props.isSkipSources());
+				args.setSkipResources(props.isSkipResources());
+			}
+			backgroundExecutor.execute(new ExportTask(this, wrapper, new File(props.getExportPath())));
+		});
 		dialog.setVisible(true);
-	}
-
-	private void saveAll(ExportProjectProperties exportProjectProperties) {
-		JadxArgs decompilerArgs = wrapper.getArgs();
-		decompilerArgs.setExportAsGradleProject(exportProjectProperties.isAsGradleMode());
-		if (exportProjectProperties.isAsGradleMode()) {
-			decompilerArgs.setSkipSources(false);
-			decompilerArgs.setSkipResources(false);
-		} else {
-			decompilerArgs.setSkipSources(exportProjectProperties.isSkipSources());
-			decompilerArgs.setSkipResources(exportProjectProperties.isSkipResources());
-		}
-		File saveDir = new File(exportProjectProperties.getExportPath());
-		backgroundExecutor.execute(new ExportTask(this, wrapper, saveDir));
 	}
 
 	public void initTree() {
@@ -1422,6 +1422,11 @@ public class MainWindow extends JFrame {
 		mainPanel.add(bottomSplitPane, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
+
+		if (UiUtils.JADX_GUI_DEBUG) {
+			FlatInspector.install("ctrl shift alt X");
+			FlatUIDefaultsInspector.install("ctrl shift alt Y");
+		}
 	}
 
 	public void setLocationAndPosition() {

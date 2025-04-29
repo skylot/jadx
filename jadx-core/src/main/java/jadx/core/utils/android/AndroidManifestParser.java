@@ -20,7 +20,7 @@ import jadx.core.xmlgen.ResContainer;
 
 public class AndroidManifestParser {
 	private final Document androidManifest;
-	private final Document appStrings;
+	private final @Nullable Document appStrings;
 	private final EnumSet<AppAttribute> parseAttrs;
 	private final IJadxSecurity security;
 
@@ -28,7 +28,7 @@ public class AndroidManifestParser {
 		this(androidManifestRes, null, parseAttrs, security);
 	}
 
-	public AndroidManifestParser(ResourceFile androidManifestRes, ResContainer appStrings,
+	public AndroidManifestParser(ResourceFile androidManifestRes, @Nullable ResContainer appStrings,
 			EnumSet<AppAttribute> parseAttrs, IJadxSecurity security) {
 		this.parseAttrs = parseAttrs;
 		this.security = Objects.requireNonNull(security);
