@@ -4,6 +4,7 @@ import java.nio.file.Path;
 
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.data.IJadxFiles;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxFilesData implements IJadxFiles {
 	private static final String PLUGINS_DATA_DIR = "plugins-data";
@@ -32,6 +33,8 @@ public class JadxFilesData implements IJadxFiles {
 	}
 
 	private Path toPluginPath(Path dir) {
-		return dir.resolve(PLUGINS_DATA_DIR).resolve(pluginInfo.getPluginId());
+		Path dirPath = dir.resolve(PLUGINS_DATA_DIR).resolve(pluginInfo.getPluginId());
+		FileUtils.makeDirs(dirPath);
+		return dirPath;
 	}
 }

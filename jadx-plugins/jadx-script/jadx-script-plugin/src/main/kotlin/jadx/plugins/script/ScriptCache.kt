@@ -1,6 +1,7 @@
 package jadx.plugins.script
 
-import jadx.commons.app.JadxCommonFiles
+import jadx.api.plugins.JadxPluginContext
+import jadx.core.utils.files.FileUtils
 import java.io.File
 import java.security.MessageDigest
 import kotlin.script.experimental.api.CompiledScript
@@ -14,11 +15,11 @@ import kotlin.script.experimental.jvmhost.saveToJar
 class ScriptCache {
 	private val enableCache = System.getProperty("JADX_SCRIPT_CACHE_ENABLE", "true").equals("true", ignoreCase = true)
 
-	fun build(): CompiledJvmScriptsCache {
+	fun build(context: JadxPluginContext): CompiledJvmScriptsCache {
 		if (!enableCache) {
 			return CompiledJvmScriptsCache.NoCache
 		}
-		return JadxScriptsCache(getCacheDir())
+		return JadxScriptsCache(getCacheDir(context))
 	}
 
 	/**
@@ -38,7 +39,7 @@ class ScriptCache {
 			}
 			return file.loadScriptFromJar() ?: run {
 				// invalidate cache if the script cannot be loaded
-				cacheDir.deleteRecursively()
+				FileUtils.deleteDir(cacheDir)
 				null
 			}
 		}
@@ -60,9 +61,9 @@ class ScriptCache {
 		}
 	}
 
-	private fun getCacheDir(): File {
-		val cacheBaseDir = JadxCommonFiles.getCacheDir().resolve("scripts").toFile()
-		cacheBaseDir.mkdirs()
+	private fun getCacheDir(context: JadxPluginContext): File {
+		val cacheBaseDir = context.files().pluginCacheDir.resolve("compiled").toFile()
+		FileUtils.makeDirs(cacheBaseDir)
 		return cacheBaseDir
 	}
 

@@ -7,7 +7,6 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -75,6 +74,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.formdev.flatlaf.extras.FlatInspector;
+import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
+
 import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
@@ -112,7 +114,6 @@ import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
-import jadx.gui.settings.ExportProjectProperties;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
@@ -132,10 +133,8 @@ import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
-import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.ui.dialog.ExportProjectDialog;
-import jadx.gui.ui.dialog.FindReplacePanel;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
@@ -242,7 +241,6 @@ public class MainWindow extends JFrame {
 	private final ShortcutsController shortcutsController;
 	private JadxMenuBar menuBar;
 	private JMenu pluginsMenu;
-	public JMenu hexViewerMenu;
 
 	private final transient RenameMappingsGui renameMappings;
 
@@ -805,23 +803,21 @@ public class MainWindow extends JFrame {
 		backgroundExecutor.cancelAll();
 	}
 
-	private void exportProject() {
-		ExportProjectDialog dialog = new ExportProjectDialog(this, this::saveAll);
+	public void exportProject() {
+		ExportProjectDialog dialog = new ExportProjectDialog(this, props -> {
+			JadxArgs args = wrapper.getArgs();
+			if (props.isAsGradleMode()) {
+				args.setExportGradleType(props.getExportGradleType());
+				args.setSkipSources(false);
+				args.setSkipResources(false);
+			} else {
+				args.setExportGradleType(null);
+				args.setSkipSources(props.isSkipSources());
+				args.setSkipResources(props.isSkipResources());
+			}
+			backgroundExecutor.execute(new ExportTask(this, wrapper, new File(props.getExportPath())));
+		});
 		dialog.setVisible(true);
-	}
-
-	private void saveAll(ExportProjectProperties exportProjectProperties) {
-		JadxArgs decompilerArgs = wrapper.getArgs();
-		decompilerArgs.setExportAsGradleProject(exportProjectProperties.isAsGradleMode());
-		if (exportProjectProperties.isAsGradleMode()) {
-			decompilerArgs.setSkipSources(false);
-			decompilerArgs.setSkipResources(false);
-		} else {
-			decompilerArgs.setSkipSources(exportProjectProperties.isSkipSources());
-			decompilerArgs.setSkipResources(exportProjectProperties.isSkipResources());
-		}
-		File saveDir = new File(exportProjectProperties.getExportPath());
-		backgroundExecutor.execute(new ExportTask(this, wrapper, saveDir));
 	}
 
 	public void initTree() {
@@ -969,66 +965,6 @@ public class MainWindow extends JFrame {
 		SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);
 	}
 
-	private void sendActionsToHexViewer(ActionModel action) {
-		JHexEditorSuite hexEditorSuite = getCurrentHexViewTab();
-		if (hexEditorSuite != null) {
-			JHexEditorInspector inspector = hexEditorSuite.getInspector();
-			JHexEditor hexEditor = hexEditorSuite.getEditor();
-			switch (action) {
-				case HEX_VIEWER_SHOW_INSPECTOR:
-					hexEditorSuite.getInspector().setVisible(!inspector.isVisible());
-					break;
-				case HEX_VIEWER_CHANGE_ENCODING:
-					String result = CharsetDialog.chooseCharset(this, hexEditor.getCharset());
-					if (!StringUtils.isEmpty(result)) {
-						hexEditor.setCharset(result);
-					}
-					break;
-				case HEX_VIEWER_GO_TO_ADDRESS:
-					hexEditor.showSetSelectionDialog(this, NLS.str("hex_viewer.goto_address"));
-					break;
-				case HEX_VIEWER_FIND:
-					if (hexEditor.isSelectionExists()) {
-						FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
-					} else {
-						FindReplacePanel.getInstance().showDialog(this, hexEditor);
-					}
-					break;
-				case HEX_VIEWER_FIND_NEXT:
-					if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
-						Toolkit.getDefaultToolkit().beep();
-					}
-					break;
-				case HEX_VIEWER_FIND_PREVIOUS:
-					if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
-						Toolkit.getDefaultToolkit().beep();
-					}
-					break;
-				case HEX_VIEWER_COPY_HEX:
-					hexEditor.copyAsHex();
-					break;
-				case HEX_VIEWER_COPY_TEXT:
-					hexEditor.copyAsString();
-					break;
-			}
-		}
-	}
-
-	public JHexEditorSuite getCurrentHexViewTab() {
-		ContentPanel panel = tabbedPane.getSelectedContentPanel();
-		if (panel instanceof AbstractCodeContentPanel) {
-			Component childrenComponent = ((AbstractCodeContentPanel) panel).getChildrenComponent();
-			if (childrenComponent instanceof JHexEditorSuite) {
-				return (JHexEditorSuite) childrenComponent;
-			}
-		}
-		return null;
-	}
-
-	public void toggleHexViewMenu() {
-		hexViewerMenu.setEnabled(getCurrentHexViewTab() != null);
-	}
-
 	public void goToMainActivity() {
 		AndroidManifestParser parser = new AndroidManifestParser(
 				AndroidManifestParser.getAndroidManifest(getWrapper().getResources()),
@@ -1124,9 +1060,6 @@ public class MainWindow extends JFrame {
 
 		JMenu recentProjects = new JadxMenu(NLS.str("menu.recent_projects"), shortcutsController);
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(this, recentProjects));
-
-		hexViewerMenu = new JadxMenu(NLS.str("menu.hex_viewer"), shortcutsController);
-		initHexViewMenu();
 
 		JadxGuiAction prefsAction = new JadxGuiAction(ActionModel.PREFS, this::openSettings);
 		JadxGuiAction exitAction = new JadxGuiAction(ActionModel.EXIT, this::closeWindow);
@@ -1224,7 +1157,6 @@ public class MainWindow extends JFrame {
 		JMenu view = new JadxMenu(NLS.str("menu.view"), shortcutsController);
 		view.setMnemonic(KeyEvent.VK_V);
 		view.add(quickTabsAction.makeCheckBoxMenuItem());
-		view.add(hexViewerMenu);
 		view.add(flatPkgMenuItem);
 		view.addSeparator();
 		view.add(syncAction);
@@ -1822,41 +1754,5 @@ public class MainWindow extends JFrame {
 
 	public JadxGuiEventsImpl events() {
 		return events;
-	}
-
-	private void initHexViewMenu() {
-		hexViewerMenu.setEnabled(false);
-
-		JadxGuiAction showInspectorAction = new JadxGuiAction(ActionModel.HEX_VIEWER_SHOW_INSPECTOR,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_SHOW_INSPECTOR));
-		JCheckBoxMenuItem showInspectorMenuItem = new JCheckBoxMenuItem(showInspectorAction);
-
-		JadxGuiAction changeEncoding = new JadxGuiAction(ActionModel.HEX_VIEWER_CHANGE_ENCODING,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_CHANGE_ENCODING));
-		JadxGuiAction goToAddress = new JadxGuiAction(ActionModel.HEX_VIEWER_GO_TO_ADDRESS,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_GO_TO_ADDRESS));
-
-		JadxGuiAction findAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND));
-		JadxGuiAction findNextAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND_NEXT,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND_NEXT));
-		JadxGuiAction findPreviousAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND_PREVIOUS,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND_PREVIOUS));
-
-		JadxGuiAction copyHexAction = new JadxGuiAction(ActionModel.HEX_VIEWER_COPY_HEX,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_COPY_HEX));
-		JadxGuiAction copyTextAction = new JadxGuiAction(ActionModel.HEX_VIEWER_COPY_TEXT,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_COPY_TEXT));
-
-		hexViewerMenu.add(showInspectorMenuItem);
-		hexViewerMenu.add(changeEncoding);
-		hexViewerMenu.add(goToAddress);
-		hexViewerMenu.addSeparator();
-		hexViewerMenu.add(findAction);
-		hexViewerMenu.add(findNextAction);
-		hexViewerMenu.add(findPreviousAction);
-		hexViewerMenu.addSeparator();
-		hexViewerMenu.add(copyHexAction);
-		hexViewerMenu.add(copyTextAction);
 	}
 }

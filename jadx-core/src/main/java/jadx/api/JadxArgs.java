@@ -39,6 +39,7 @@ import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.core.deobf.DeobfAliasProvider;
 import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.deobf.conditions.JadxRenameConditions;
+import jadx.core.export.ExportGradleType;
 import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.files.IJadxFilesGetter;
 import jadx.core.plugins.files.TempFilesGetter;
@@ -133,7 +134,7 @@ public class JadxArgs implements Closeable {
 	private boolean escapeUnicode = false;
 	private boolean replaceConsts = true;
 	private boolean respectBytecodeAccModifiers = false;
-	private boolean exportAsGradleProject = false;
+	private @Nullable ExportGradleType exportGradleType = null;
 
 	private boolean restoreSwitchOverString = true;
 
@@ -567,11 +568,25 @@ public class JadxArgs implements Closeable {
 	}
 
 	public boolean isExportAsGradleProject() {
-		return exportAsGradleProject;
+		return exportGradleType != null;
 	}
 
 	public void setExportAsGradleProject(boolean exportAsGradleProject) {
-		this.exportAsGradleProject = exportAsGradleProject;
+		if (exportAsGradleProject) {
+			if (exportGradleType == null) {
+				exportGradleType = ExportGradleType.AUTO;
+			}
+		} else {
+			exportGradleType = null;
+		}
+	}
+
+	public @Nullable ExportGradleType getExportGradleType() {
+		return exportGradleType;
+	}
+
+	public void setExportGradleType(@Nullable ExportGradleType exportGradleType) {
+		this.exportGradleType = exportGradleType;
 	}
 
 	public boolean isRestoreSwitchOverString() {
@@ -861,7 +876,7 @@ public class JadxArgs implements Closeable {
 				+ ", replaceConsts=" + replaceConsts
 				+ ", restoreSwitchOverString=" + restoreSwitchOverString
 				+ ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers
-				+ ", exportAsGradleProject=" + exportAsGradleProject
+				+ ", exportGradleType=" + exportGradleType
 				+ ", skipXmlPrettyPrint=" + skipXmlPrettyPrint
 				+ ", fsCaseSensitive=" + fsCaseSensitive
 				+ ", renameFlags=" + renameFlags
