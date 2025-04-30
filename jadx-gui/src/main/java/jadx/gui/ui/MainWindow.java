@@ -68,7 +68,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import jadx.gui.ui.export.ExportProjectDialog;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
@@ -140,6 +139,7 @@ import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.ui.dialog.FindReplacePanel;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.ui.hexeditor.editor.JHexEditor;
@@ -966,67 +966,67 @@ public class MainWindow extends JFrame {
 				return;
 			}
 		}
-        SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);
-    }
+		SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);
+	}
 
-    private void sendActionsToHexViewer(ActionModel action) {
-        JHexEditorSuite hexEditorSuite = getCurrentHexViewTab();
-        if (hexEditorSuite != null) {
-            JHexEditorInspector inspector = hexEditorSuite.getInspector();
-            JHexEditor hexEditor = hexEditorSuite.getEditor();
-            switch (action) {
-                case HEX_VIEWER_SHOW_INSPECTOR:
-                    hexEditorSuite.getInspector().setVisible(!inspector.isVisible());
-                    break;
-                case HEX_VIEWER_CHANGE_ENCODING:
-                    String result = CharsetDialog.chooseCharset(this, hexEditor.getCharset());
-                    if (!StringUtils.isEmpty(result)) {
-                        hexEditor.setCharset(result);
-                    }
-                    break;
-                case HEX_VIEWER_GO_TO_ADDRESS:
-                    hexEditor.showSetSelectionDialog(this, NLS.str("hex_viewer.goto_address"));
-                    break;
-                case HEX_VIEWER_FIND:
-                    if (hexEditor.isSelectionExists()) {
-                        FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
-                    } else {
-                        FindReplacePanel.getInstance().showDialog(this, hexEditor);
-                    }
-                    break;
-                case HEX_VIEWER_FIND_NEXT:
-                    if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
-                        Toolkit.getDefaultToolkit().beep();
-                    }
-                    break;
-                case HEX_VIEWER_FIND_PREVIOUS:
-                    if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
-                        Toolkit.getDefaultToolkit().beep();
-                    }
-                    break;
-                case HEX_VIEWER_COPY_HEX:
-                    hexEditor.copyAsHex();
-                    break;
-                case HEX_VIEWER_COPY_TEXT:
-                    hexEditor.copyAsString();
-                    break;
-            }
-        }
-    }
+	private void sendActionsToHexViewer(ActionModel action) {
+		JHexEditorSuite hexEditorSuite = getCurrentHexViewTab();
+		if (hexEditorSuite != null) {
+			JHexEditorInspector inspector = hexEditorSuite.getInspector();
+			JHexEditor hexEditor = hexEditorSuite.getEditor();
+			switch (action) {
+				case HEX_VIEWER_SHOW_INSPECTOR:
+					hexEditorSuite.getInspector().setVisible(!inspector.isVisible());
+					break;
+				case HEX_VIEWER_CHANGE_ENCODING:
+					String result = CharsetDialog.chooseCharset(this, hexEditor.getCharset());
+					if (!StringUtils.isEmpty(result)) {
+						hexEditor.setCharset(result);
+					}
+					break;
+				case HEX_VIEWER_GO_TO_ADDRESS:
+					hexEditor.showSetSelectionDialog(this, NLS.str("hex_viewer.goto_address"));
+					break;
+				case HEX_VIEWER_FIND:
+					if (hexEditor.isSelectionExists()) {
+						FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
+					} else {
+						FindReplacePanel.getInstance().showDialog(this, hexEditor);
+					}
+					break;
+				case HEX_VIEWER_FIND_NEXT:
+					if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
+						Toolkit.getDefaultToolkit().beep();
+					}
+					break;
+				case HEX_VIEWER_FIND_PREVIOUS:
+					if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
+						Toolkit.getDefaultToolkit().beep();
+					}
+					break;
+				case HEX_VIEWER_COPY_HEX:
+					hexEditor.copyAsHex();
+					break;
+				case HEX_VIEWER_COPY_TEXT:
+					hexEditor.copyAsString();
+					break;
+			}
+		}
+	}
 
-    public JHexEditorSuite getCurrentHexViewTab() {
-        ContentPanel panel = tabbedPane.getSelectedContentPanel();
-        if (panel instanceof AbstractCodeContentPanel) {
-            Component childrenComponent = ((AbstractCodeContentPanel) panel).getChildrenComponent();
-            if (childrenComponent instanceof JHexEditorSuite) {
-                return (JHexEditorSuite) childrenComponent;
-            }
-        }
-        return null;
-    }
+	public JHexEditorSuite getCurrentHexViewTab() {
+		ContentPanel panel = tabbedPane.getSelectedContentPanel();
+		if (panel instanceof AbstractCodeContentPanel) {
+			Component childrenComponent = ((AbstractCodeContentPanel) panel).getChildrenComponent();
+			if (childrenComponent instanceof JHexEditorSuite) {
+				return (JHexEditorSuite) childrenComponent;
+			}
+		}
+		return null;
+	}
 
-    public void toggleHexViewMenu() {
-        hexViewerMenu.setEnabled(getCurrentHexViewTab() != null);
+	public void toggleHexViewMenu() {
+		hexViewerMenu.setEnabled(getCurrentHexViewTab() != null);
 	}
 
 	public void goToMainActivity() {
@@ -1493,6 +1493,11 @@ public class MainWindow extends JFrame {
 		mainPanel.add(bottomSplitPane, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
+
+		if (UiUtils.JADX_GUI_DEBUG) {
+			FlatInspector.install("ctrl shift alt X");
+			FlatUIDefaultsInspector.install("ctrl shift alt Y");
+		}
 	}
 
 	public void setLocationAndPosition() {
