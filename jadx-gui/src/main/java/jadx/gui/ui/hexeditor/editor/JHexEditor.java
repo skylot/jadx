@@ -162,12 +162,9 @@ public class JHexEditor extends JComponent implements Scrollable {
 						long selEnd = getSelectionMax();
 						boolean clickInsideSelection = (isSelectionExists() && clickOffset >= selStart && clickOffset < selEnd);
 
-						// Condition to KEEP the selection: text is currently active AND click is OUTSIDE the selection.
-						boolean keepSelection = isTextActive() && !clickInsideSelection;
-
-						if (!keepSelection && SwingUtilities.isLeftMouseButton(e)) {
-							// If we are NOT keeping the selection (either hex is active, or text is active and click is inside
-							// selection)
+						if (!clickInsideSelection && SwingUtilities.isLeftMouseButton(e)) {
+							// If we are NOT keeping the selection
+							// (either hex is active, or text is active and click is inside selection)
 							// Then clear the selection and move the cursor to the click point.
 							document.setSelectionRange(p.offset, p.offset);
 							document.setMidByte(false); // Reset mid-byte state on regular click
