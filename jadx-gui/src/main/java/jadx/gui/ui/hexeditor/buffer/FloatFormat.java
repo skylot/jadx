@@ -108,16 +108,18 @@ public final class FloatFormat implements Serializable {
 		BigDecimal factor = new BigDecimal(BigInteger.ONE.shiftLeft(exp.abs().intValue()));
 		BigDecimal magnitude = (exp.signum() < 0) ? mantissa.divide(factor) : mantissa.multiply(factor);
 		BigDecimal result = negative ? magnitude.negate() : magnitude;
-		if (result.scale() == 0)
+		if (result.scale() == 0) {
 			result = result.setScale(1);
+		}
 		return result;
 	}
 
 	public Number round(Number value) {
 		if (value instanceof BigDecimal) {
 			BigDecimal result = ((BigDecimal) value).round(mc);
-			if (result.scale() == 0)
+			if (result.scale() == 0) {
 				result = result.setScale(1);
+			}
 			return result;
 		}
 		return value;
@@ -125,11 +127,13 @@ public final class FloatFormat implements Serializable {
 
 	public BigInteger nanToBits(boolean negative, boolean quiet, BigInteger pattern) {
 		BigInteger bits = pattern.and(patMask);
-		if (quiet)
+		if (quiet) {
 			bits = bits.setBit(quietBit);
+		}
 		bits = bits.or(expMask.shiftLeft(manWidth));
-		if (negative)
+		if (negative) {
 			bits = bits.setBit(signBit);
+		}
 		return bits;
 	}
 
@@ -139,8 +143,9 @@ public final class FloatFormat implements Serializable {
 
 	public BigInteger zeroToBits(boolean negative) {
 		BigInteger bits = BigInteger.ZERO;
-		if (negative)
+		if (negative) {
 			bits = bits.setBit(signBit);
+		}
 		return bits;
 	}
 
@@ -150,8 +155,9 @@ public final class FloatFormat implements Serializable {
 
 	public BigInteger binaryToBits(boolean negative, BigInteger exponent, BigInteger mantissa) {
 		int sign = mantissa.signum();
-		if (sign == 0)
+		if (sign == 0) {
 			return zeroToBits(negative);
+		}
 		if (sign < 0) {
 			negative = !negative;
 			mantissa = mantissa.negate();
@@ -175,15 +181,17 @@ public final class FloatFormat implements Serializable {
 
 		BigInteger bits = mantissa.and(manMask);
 		bits = bits.or(rawExp.shiftLeft(manWidth));
-		if (negative)
+		if (negative) {
 			bits = bits.setBit(signBit);
+		}
 		return bits;
 	}
 
 	public BigInteger decimalToBits(boolean negative, BigInteger exponent, BigInteger mantissa) {
 		int sign = mantissa.signum();
-		if (sign == 0)
+		if (sign == 0) {
 			return zeroToBits(negative);
+		}
 		if (sign < 0) {
 			negative = !negative;
 			mantissa = mantissa.negate();
@@ -237,8 +245,9 @@ public final class FloatFormat implements Serializable {
 		int mantissa;
 		if (rawExp == 0) {
 			int rawMan = fbits & ((1 << 23) - 1);
-			if (rawMan == 0)
+			if (rawMan == 0) {
 				return zeroToBits(negative);
+			}
 			mantissa = rawMan << 1;
 		} else {
 			mantissa = (fbits & ((1 << 23) - 1)) | (1 << 23);
@@ -261,8 +270,9 @@ public final class FloatFormat implements Serializable {
 		long mantissa;
 		if (rawExp == 0) {
 			long rawMan = dbits & ((1L << 52) - 1);
-			if (rawMan == 0)
+			if (rawMan == 0) {
 				return zeroToBits(negative);
+			}
 			mantissa = rawMan << 1;
 		} else {
 			mantissa = (dbits & ((1L << 52) - 1)) | (1L << 52);
@@ -273,39 +283,49 @@ public final class FloatFormat implements Serializable {
 	}
 
 	public BigInteger numberToBits(Number value) {
-		if (value instanceof NaN)
+		if (value instanceof NaN) {
 			return nanToBits((NaN) value);
-		if (value instanceof Zero)
+		}
+		if (value instanceof Zero) {
 			return zeroToBits((Zero) value);
-		if (value instanceof BigDecimal)
+		}
+		if (value instanceof BigDecimal) {
 			return bigDecimalToBits((BigDecimal) value);
-		if (value instanceof BigInteger)
+		}
+		if (value instanceof BigInteger) {
 			return bigIntegerToBits((BigInteger) value);
-		if (value instanceof Long)
+		}
+		if (value instanceof Long) {
 			return longToBits(value.longValue());
-		if (value instanceof Integer)
+		}
+		if (value instanceof Integer) {
 			return intToBits(value.intValue());
-		if (value instanceof Short)
+		}
+		if (value instanceof Short) {
 			return intToBits(value.intValue());
-		if (value instanceof Byte)
+		}
+		if (value instanceof Byte) {
 			return intToBits(value.intValue());
-		if (value instanceof Float)
+		}
+		if (value instanceof Float) {
 			return floatToBits(value.floatValue());
-		if (value instanceof Double)
+		}
+		if (value instanceof Double) {
 			return doubleToBits(value.doubleValue());
+		}
 		throw new UnsupportedOperationException(
-				"unknown subclass of Number; please convert to a known subclass " +
-						"(Byte, Short, Integer, Long, Float, Double, BigInteger, BigDecimal, " +
-						"FloatFormat.Zero, or FloatFormat.NaN)");
+				"unknown subclass of Number; please convert to a known subclass "
+						+ "(Byte, Short, Integer, Long, Float, Double, BigInteger, BigDecimal, "
+						+ "FloatFormat.Zero, or FloatFormat.NaN)");
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof FloatFormat) {
 			FloatFormat that = (FloatFormat) o;
-			return (this.expWidth == that.expWidth &&
-					this.manWidth == that.manWidth &&
-					this.expBias.equals(that.expBias));
+			return (this.expWidth == that.expWidth
+					&& this.manWidth == that.manWidth
+					&& this.expBias.equals(that.expBias));
 		}
 		return false;
 	}
@@ -416,15 +436,16 @@ public final class FloatFormat implements Serializable {
 
 		public static final NaN POSITIVE_INFINITY = new NaN(false, false, BigInteger.ZERO);
 		public static final NaN NEGATIVE_INFINITY = new NaN(true, false, BigInteger.ZERO);
-		public static final NaN NaN = new NaN(false, true, BigInteger.ZERO);
+		public static final NaN NA_N = new NaN(false, true, BigInteger.ZERO);
 
 		private final boolean negative;
 		private final boolean quiet;
 		private final BigInteger pattern;
 
 		public NaN(boolean negative, boolean quiet, BigInteger pattern) {
-			if (pattern == null)
+			if (pattern == null) {
 				pattern = BigInteger.ZERO;
+			}
 			this.negative = negative;
 			this.quiet = quiet;
 			this.pattern = pattern;
@@ -432,8 +453,9 @@ public final class FloatFormat implements Serializable {
 
 		public NaN(float value) {
 			int bits = Float.floatToRawIntBits(value);
-			if ((bits & FLOAT_I) != FLOAT_I)
+			if ((bits & FLOAT_I) != FLOAT_I) {
 				throw new IllegalArgumentException("Not a NaN");
+			}
 			this.negative = ((bits & FLOAT_S) != 0);
 			this.quiet = ((bits & FLOAT_Q) != 0);
 			this.pattern = BigInteger.valueOf(bits & FLOAT_P);
@@ -441,8 +463,9 @@ public final class FloatFormat implements Serializable {
 
 		public NaN(double value) {
 			long bits = Double.doubleToRawLongBits(value);
-			if ((bits & DOUBLE_I) != DOUBLE_I)
+			if ((bits & DOUBLE_I) != DOUBLE_I) {
 				throw new IllegalArgumentException("Not a NaN");
+			}
 			this.negative = ((bits & DOUBLE_S) != 0);
 			this.quiet = ((bits & DOUBLE_Q) != 0);
 			this.pattern = BigInteger.valueOf(bits & DOUBLE_P);
@@ -473,29 +496,34 @@ public final class FloatFormat implements Serializable {
 		}
 
 		public int signum() {
-			if (quiet || !pattern.equals(BigInteger.ZERO))
+			if (quiet || !pattern.equals(BigInteger.ZERO)) {
 				return 0;
-			else
+			} else {
 				return (negative ? -1 : 1);
+			}
 		}
 
 		@Override
 		public float floatValue() {
 			int bits = (pattern.intValue() & FLOAT_P) | FLOAT_I;
-			if (negative)
+			if (negative) {
 				bits |= FLOAT_S;
-			if (quiet)
+			}
+			if (quiet) {
 				bits |= FLOAT_Q;
+			}
 			return Float.intBitsToFloat(bits);
 		}
 
 		@Override
 		public double doubleValue() {
 			long bits = (pattern.longValue() & DOUBLE_P) | DOUBLE_I;
-			if (negative)
+			if (negative) {
 				bits |= DOUBLE_S;
-			if (quiet)
+			}
+			if (quiet) {
 				bits |= DOUBLE_Q;
+			}
 			return Double.longBitsToDouble(bits);
 		}
 
@@ -523,9 +551,9 @@ public final class FloatFormat implements Serializable {
 		public boolean equals(Object o) {
 			if (o instanceof NaN) {
 				NaN that = (NaN) o;
-				return (this.negative == that.negative &&
-						this.quiet == that.quiet &&
-						this.pattern.equals(that.pattern));
+				return (this.negative == that.negative
+						&& this.quiet == that.quiet
+						&& this.pattern.equals(that.pattern));
 			}
 			return false;
 		}
@@ -533,19 +561,22 @@ public final class FloatFormat implements Serializable {
 		@Override
 		public int hashCode() {
 			int hash = pattern.hashCode();
-			if (negative)
+			if (negative) {
 				hash ^= 0x80000000;
-			if (quiet)
+			}
+			if (quiet) {
 				hash ^= 0x40000000;
+			}
 			return hash;
 		}
 
 		@Override
 		public String toString() {
-			if (quiet || !pattern.equals(BigInteger.ZERO))
+			if (quiet || !pattern.equals(BigInteger.ZERO)) {
 				return "NaN";
-			else
+			} else {
 				return (negative ? "-Infinity" : "Infinity");
+			}
 		}
 	}
 }

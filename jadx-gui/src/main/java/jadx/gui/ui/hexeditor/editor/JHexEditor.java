@@ -60,7 +60,7 @@ public class JHexEditor extends JComponent implements Scrollable {
 	private static final Logger LOG = LoggerFactory.getLogger(JHexEditor.class);
 	private static final long serialVersionUID = 1L;
 
-	private static final Font defaultFont = new Font("Monospaced", Font.PLAIN, 12);
+	private static final Font DEFAULT_FONT = new Font("Monospaced", Font.PLAIN, 12);
 	private static final String HEX_ALPHABET = "0123456789ABCDEF";
 	private final boolean[] charsetPrintable = new boolean[256];
 	private final String[] charsetStrings = new String[256];
@@ -82,7 +82,6 @@ public class JHexEditor extends JComponent implements Scrollable {
 	private int minimumRowCount = 1;
 	private int preferredBytesPerRow = 16;
 	private int preferredRowCount = 16;
-	private int headerHeight = 0;
 	private Dimension minimumSize = null;
 	private Dimension preferredSize = null;
 
@@ -268,15 +267,17 @@ public class JHexEditor extends JComponent implements Scrollable {
 					case KeyEvent.VK_Z:
 						if (e.isShiftDown()) {
 							redo();
-						} else
+						} else {
 							undo();
+						}
 						e.consume();
 						return;
 					case KeyEvent.VK_Y:
 						if (e.isShiftDown()) {
 							undo();
-						} else
+						} else {
 							redo();
+						}
 						e.consume();
 						return;
 					case KeyEvent.VK_X:
@@ -467,8 +468,9 @@ public class JHexEditor extends JComponent implements Scrollable {
 							long jm = mark;
 							byte[] jd = document.getSelection();
 							if (jd != null && jd.length > 0) {
-								if (littleEndian)
+								if (littleEndian) {
 									ReverseTransform.BYTES.transform(jd, 0, jd.length);
+								}
 								jm += new BigInteger(jd).longValue();
 							}
 							long jl = document.length();
@@ -585,7 +587,7 @@ public class JHexEditor extends JComponent implements Scrollable {
 		this.document.addByteBufferListener(bufferListener);
 		this.document.addSelectionListener(selectionListener);
 		this.makeCharset();
-		this.setFont(defaultFont);
+		this.setFont(DEFAULT_FONT);
 		this.setFocusable(true);
 		this.setRequestFocusEnabled(true);
 		this.addFocusListener(focusListener);
@@ -877,13 +879,15 @@ public class JHexEditor extends JComponent implements Scrollable {
 	}
 
 	public void undo() {
-		if (!readOnly)
+		if (!readOnly) {
 			document.undo();
+		}
 	}
 
 	public void redo() {
-		if (!readOnly)
+		if (!readOnly) {
 			document.redo();
+		}
 	}
 
 	public void clearHistory() {
@@ -972,7 +976,8 @@ public class JHexEditor extends JComponent implements Scrollable {
 			String[] rangeArray = range.split(":", 2);
 			String sss = rangeArray[0].trim();
 			String ses = (rangeArray.length > 1) ? rangeArray[1].trim() : sss;
-			long ss, se;
+			long ss;
+			long se;
 
 			if (sss.startsWith("0x") || sss.startsWith("0X")) {
 				ss = Long.parseLong(sss.substring(2), 16);
@@ -1154,12 +1159,16 @@ public class JHexEditor extends JComponent implements Scrollable {
 		}
 		if (y >= i.top) {
 			int off = ((x < tax) ? ((x - hax + cw) / (cw * 3)) : ((x - tax - cw / 2) / cw));
-			if (off < 0)
+			if (off < 0) {
 				off = 0;
-			if (off > bpr)
+			}
+			if (off > bpr) {
 				off = bpr;
-			if ((offset += off) > length)
+			}
+			offset += off;
+			if (offset > length) {
 				offset = length;
+			}
 		}
 		return new PointInfo(false, x < tax, x >= tax, offset, length, bpr);
 	}
@@ -1202,8 +1211,9 @@ public class JHexEditor extends JComponent implements Scrollable {
 		if (bpr < 1) {
 			return null;
 		}
-		if (bpr > 4)
+		if (bpr > 4) {
 			bpr = 4 * (bpr / 4);
+		}
 
 		int hax = i.left + cw * 9;
 		int tax = i.left + cw * (bpr * 3 + 10);
@@ -1287,7 +1297,8 @@ public class JHexEditor extends JComponent implements Scrollable {
 		int ch = fm.getHeight() + 2;
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16;
 		int minimumHeight = ch * minimumRowCount + i.top + i.bottom;
-		int preferredWidth, bpr;
+		int preferredWidth;
+		int bpr;
 
 		Container parent = getParent();
 		if (parent instanceof JViewport) {
@@ -1298,10 +1309,12 @@ public class JHexEditor extends JComponent implements Scrollable {
 			preferredWidth = parent.getWidth();
 			int w = preferredWidth - i.left - i.right;
 			bpr = (w - 11 * cw) / (4 * cw);
-			if (bpr < 1)
+			if (bpr < 1) {
 				bpr = 1;
-			if (bpr > 4)
+			}
+			if (bpr > 4) {
 				bpr = 4 * (bpr / 4);
+			}
 		} else {
 			preferredWidth = cw * (preferredBytesPerRow * 4 + 12) + i.left + i.right;
 			bpr = preferredBytesPerRow;
@@ -1321,7 +1334,6 @@ public class JHexEditor extends JComponent implements Scrollable {
 	@Override
 	public void setFont(Font font) {
 		super.setFont(font);
-		updateHeaderHeight();
 		revalidate();
 		repaint();
 	}
@@ -1366,15 +1378,6 @@ public class JHexEditor extends JComponent implements Scrollable {
 	}
 
 	// RENDERING
-	private void updateHeaderHeight() {
-		FontMetrics fm = getFontMetrics(getFont());
-		if (fm != null) {
-			headerHeight = fm.getHeight() + 4;
-		} else {
-			headerHeight = 20; // Fallback
-		}
-	}
-
 	@Override
 	protected void paintComponent(Graphics g) {
 		if (g instanceof Graphics2D) {
@@ -1383,8 +1386,10 @@ public class JHexEditor extends JComponent implements Scrollable {
 		}
 
 		Insets i = getInsets();
-		int fw = getWidth(), w = fw - i.left - i.right;
-		int fh = getHeight(), h = fh - i.top - i.bottom;
+		int fw = getWidth();
+		int fh = getHeight();
+		int w = fw - i.left - i.right;
+		int h = fh - i.top - i.bottom;
 		Rectangle vr = getVisibleRect();
 
 		g.setFont(getFont());
@@ -1604,15 +1609,16 @@ public class JHexEditor extends JComponent implements Scrollable {
 
 	private void makeCharset() {
 		byte[] tmp = new byte[1];
+		String replacementCharacterString = Character.toString(0xFFFD);
 		for (int i = 0; i < 256; i++) {
 			tmp[0] = (byte) i;
 			String dataString;
 			try {
 				dataString = new String(tmp, charset);
 			} catch (Exception e) {
-				dataString = "\uFFFD";
+				dataString = replacementCharacterString;
 			}
-			if (dataString.contains("\uFFFD")) {
+			if (dataString.contains(replacementCharacterString)) {
 				charsetPrintable[i] = false;
 				charsetStrings[i] = ".";
 			} else {

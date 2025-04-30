@@ -24,25 +24,29 @@ public class IncrementTransform extends ByteTransform {
 			if (increment) {
 				if (le) {
 					for (int i = 0; i < length; i++) {
-						if ((++data[offset + i]) != 0)
+						if ((++data[offset + i]) != 0) {
 							break;
+						}
 					}
 				} else {
 					for (int i = length - 1; i >= 0; i--) {
-						if ((++data[offset + i]) != 0)
+						if ((++data[offset + i]) != 0) {
 							break;
+						}
 					}
 				}
 			} else {
 				if (le) {
 					for (int i = 0; i < length; i++) {
-						if ((data[offset + i]--) != 0)
+						if ((data[offset + i]--) != 0) {
 							break;
+						}
 					}
 				} else {
 					for (int i = length - 1; i >= 0; i--) {
-						if ((data[offset + i]--) != 0)
+						if ((data[offset + i]--) != 0) {
 							break;
+						}
 					}
 				}
 			}

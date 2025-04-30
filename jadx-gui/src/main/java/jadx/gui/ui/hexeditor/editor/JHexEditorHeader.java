@@ -86,8 +86,9 @@ public class JHexEditorHeader extends JComponent {
 		}
 		Insets i = getInsets();
 		FontMetrics fm = getFontMetrics(parent.getFont());
-		if (fm == null)
+		if (fm == null) {
 			return new Dimension(100, 20); // Fallback
+		}
 		int ch = fm.getHeight() + 2; // Row height
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16; // Char width estimate
 
@@ -112,19 +113,22 @@ public class JHexEditorHeader extends JComponent {
 		}
 		Insets i = getInsets();
 		FontMetrics fm = getFontMetrics(parent.getFont());
-		if (fm == null)
+		if (fm == null) {
 			return getMinimumSize(); // Fallback
+		}
 		int ch = fm.getHeight() + 2;
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16;
 
 		String maxAddr = addressString(-1, false);
 		String maxLen = addressString(Long.MAX_VALUE, false);
 
-		String sampleText = "Sel: " +
-				maxAddr + ":" + maxAddr + // Sel: start:end
-				"  Len: " +
-				maxLen + "/" + maxLen + // Len: selected/total
-				"  TXT RO OVR BE ISO-8859-1";
+		String sampleText = "Sel: "
+				+ maxAddr + ":"
+				+ maxAddr
+				+ "  Len: "
+				+ maxLen + "/"
+				+ maxLen
+				+ "  TXT RO OVR BE ISO-8859-1";
 		int preferredTextWidth = fm.stringWidth(sampleText);
 
 		int preferredWidth = preferredTextWidth + cw * 10 + i.left + i.right;
@@ -152,19 +156,23 @@ public class JHexEditorHeader extends JComponent {
 
 		// Get insets, width, height
 		Insets i = getInsets();
-		int fw = getWidth(), w = fw - i.left - i.right;
-		int fh = getHeight(), h = fh - i.top - i.bottom;
+		int fw = getWidth();
+		int fh = getHeight();
+		int w = fw - i.left - i.right;
+		int h = fh - i.top - i.bottom;
 
 		// Get font metrics
 		g.setFont(parent.getFont());
 		FontMetrics fm = g.getFontMetrics();
-		if (fm == null)
+		if (fm == null) {
 			return; // Cannot paint without font metrics
+		}
 		int ca = fm.getAscent() + 1; // Character ascent for baseline
 		int ch = fm.getHeight() + 2; // Row height including padding
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16; // Character width estimate
-		if (cw <= 0)
+		if (cw <= 0) {
 			cw = 1; // Avoid division by zero or incorrect calculations
+		}
 
 		// Get colors and status from parent editor
 		JHexEditorColors colors = parent.getColors();
@@ -180,10 +188,11 @@ public class JHexEditorHeader extends JComponent {
 
 		// Draw Background
 		g.setColor(colors.headerArea);
-		if (extendBorders)
+		if (extendBorders) {
 			g.fillRect(0, 0, fw, fh);
-		else
+		} else {
 			g.fillRect(i.left, i.top, w, h);
+		}
 
 		// Draw Text Elements (Sel, Len, Status)
 		g.setColor(colors.headerText);
@@ -302,10 +311,11 @@ public class JHexEditorHeader extends JComponent {
 
 		// Draw Bottom Border
 		g.setColor(colors.headerDivider); // Use headerDivider color for the border
-		if (extendBorders)
+		if (extendBorders) {
 			g.fillRect(0, fh - 1, fw, 1);
-		else
+		} else {
 			g.fillRect(i.left, i.top + h - 1, w, 1);
+		}
 	}
 
 	private String addressString(long address, boolean decimalAddresses) {

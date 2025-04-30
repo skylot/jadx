@@ -180,20 +180,27 @@ public class JHexEditorInspector extends JPanel {
 
 	private void clearFields(JTextField src) {
 		inputLock = true;
-		if (src != binField)
+		if (src != binField) {
 			binField.setText("");
-		if (src != octField)
+		}
+		if (src != octField) {
 			octField.setText("");
-		if (src != hexField)
+		}
+		if (src != hexField) {
 			hexField.setText("");
-		if (src != signedField)
+		}
+		if (src != signedField) {
 			signedField.setText("");
-		if (src != unsignedField)
+		}
+		if (src != unsignedField) {
 			unsignedField.setText("");
-		if (src != fixedField)
+		}
+		if (src != fixedField) {
 			fixedField.setText("");
-		if (src != floatField)
+		}
+		if (src != floatField) {
 			floatField.setText("");
+		}
 		inputLock = false;
 	}
 
@@ -206,16 +213,21 @@ public class JHexEditorInspector extends JPanel {
 			BigInteger uValue = uMask.and(value);
 			BigInteger sValue = value.testBit(length * 8 - 1) ? sMask.or(value) : uValue;
 			inputLock = true;
-			if (src != binField)
+			if (src != binField) {
 				binField.setText(uValue.toString(2));
-			if (src != octField)
+			}
+			if (src != octField) {
 				octField.setText(uValue.toString(8));
-			if (src != hexField)
+			}
+			if (src != hexField) {
 				hexField.setText(uValue.toString(16).toUpperCase());
-			if (src != signedField)
+			}
+			if (src != signedField) {
 				signedField.setText(sValue.toString());
-			if (src != unsignedField)
+			}
+			if (src != unsignedField) {
 				unsignedField.setText(uValue.toString());
+			}
 			if (src != fixedField) {
 				BigDecimal fixedBase = new BigDecimal(BigInteger.ONE.shiftLeft(length * 4));
 				BigDecimal fixedValue = new BigDecimal(sValue).divide(fixedBase);
@@ -235,8 +247,9 @@ public class JHexEditorInspector extends JPanel {
 			clearFields(src);
 		} else {
 			setFieldsEnabled(true);
-			if (parent.isLittleEndian())
+			if (parent.isLittleEndian()) {
 				ReverseTransform.BYTES.transform(data, 0, data.length);
+			}
 			setFieldValues(src, new BigInteger(data), data.length);
 		}
 	}
@@ -249,8 +262,9 @@ public class JHexEditorInspector extends JPanel {
 			pullFromEditor(src);
 		} else {
 			byte[] data = extend(value.toByteArray(), (int) length);
-			if (parent.isLittleEndian())
+			if (parent.isLittleEndian()) {
 				ReverseTransform.BYTES.transform(data, 0, data.length);
+			}
 			inputLock = true;
 			parent.replaceSelection("Replace Value", data, true);
 			setFieldValues(src, value, (int) length);
@@ -274,14 +288,17 @@ public class JHexEditorInspector extends JPanel {
 
 		@Override
 		public void changedUpdate(DocumentEvent e) {
-			if (inputLock || !isVisible())
+			if (inputLock || !isVisible()) {
 				return;
+			}
 			long length = parent.getSelectionLength();
-			if (length <= 0 || length > MAX_LENGTH)
+			if (length <= 0 || length > MAX_LENGTH) {
 				return;
+			}
 			BigInteger value = parse(field.getText(), (int) length);
-			if (value != null)
+			if (value != null) {
 				pushToEditor(field, value);
+			}
 			changed = true;
 		}
 
@@ -297,16 +314,19 @@ public class JHexEditorInspector extends JPanel {
 
 		@Override
 		public void focusLost(FocusEvent e) {
-			if (inputLock || !isVisible() || !changed)
+			if (inputLock || !isVisible() || !changed) {
 				return;
+			}
 			long length = parent.getSelectionLength();
-			if (length <= 0 || length > MAX_LENGTH)
+			if (length <= 0 || length > MAX_LENGTH) {
 				return;
+			}
 			BigInteger value = parse(field.getText(), (int) length);
-			if (value == null)
+			if (value == null) {
 				pullFromEditor(null);
-			else
+			} else {
 				pushToEditor(null, value);
+			}
 			changed = false;
 		}
 
@@ -385,8 +405,9 @@ public class JHexEditorInspector extends JPanel {
 
 		@Override
 		public void selectionChanged(ByteBufferSelectionModel sm, long start, long end) {
-			if (inputLock || !isVisible())
+			if (inputLock || !isVisible()) {
 				return;
+			}
 			pullFromEditor(null);
 		}
 
@@ -402,8 +423,9 @@ public class JHexEditorInspector extends JPanel {
 
 		@Override
 		public void editorStatusChanged(JHexEditor editor) {
-			if (inputLock || !isVisible())
+			if (inputLock || !isVisible()) {
 				return;
+			}
 			pullFromEditor(null);
 		}
 	};
@@ -417,20 +439,24 @@ public class JHexEditorInspector extends JPanel {
 
 	private static JPanel gridLayout(int rows, int cols, JPanel... panels) {
 		JPanel p = new JPanel(new GridLayout(rows, cols, 8, 8));
-		for (JPanel panel : panels)
+		for (JPanel panel : panels) {
 			p.add(panel);
+		}
 		return p;
 	}
 
 	private static void fixLabels(JLabel... labels) {
-		int width = 0, height = 0;
+		int width = 0;
+		int height = 0;
 		for (JLabel label : labels) {
 			label.setHorizontalAlignment(JLabel.TRAILING);
 			Dimension d = label.getPreferredSize();
-			if (d.width > width)
+			if (d.width > width) {
 				width = d.width;
-			if (d.height > height)
+			}
+			if (d.height > height) {
 				height = d.height;
+			}
 		}
 		Dimension d = new Dimension(width, height);
 		for (JLabel label : labels) {
@@ -480,8 +506,9 @@ public class JHexEditorInspector extends JPanel {
 
 	private static byte[] extend(byte[] src, int dstLen) {
 		int srcLen = src.length;
-		if (srcLen == dstLen)
+		if (srcLen == dstLen) {
 			return src;
+		}
 		byte fill = (srcLen > 0 && src[0] < 0) ? (byte) (-1) : (byte) (0);
 		byte[] dst = new byte[dstLen];
 		while (dstLen > 0) {

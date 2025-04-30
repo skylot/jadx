@@ -17,7 +17,7 @@ import jadx.gui.utils.NLS;
 public class CharsetDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(CharsetDialog.class);
 
-	private static final Comparator<Charset> charsetComparator = Comparator.comparing(
+	private static final Comparator<Charset> CHARSET_COMPARATOR = Comparator.comparing(
 			Charset::displayName,
 			String::compareToIgnoreCase);
 
@@ -25,7 +25,7 @@ public class CharsetDialog {
 		Collection<Charset> availableCharsets = Charset.availableCharsets().values();
 
 		List<Charset> sortedCharsets = availableCharsets.stream()
-				.sorted(charsetComparator)
+				.sorted(CHARSET_COMPARATOR)
 				.collect(Collectors.toList());
 
 		Charset initialSelection = null;

@@ -13,40 +13,40 @@ public enum BitOperation {
 	AND {
 		@Override
 		public byte op(byte src, byte mask) {
-			return src &= mask;
+			return (byte) (src & mask);
 		}
 	},
 	OR {
 		@Override
 		public byte op(byte src, byte mask) {
-			return src |= mask;
+			return (byte) (src | mask);
 		}
 	},
 	XOR {
 		@Override
 		public byte op(byte src, byte mask) {
-			return src ^= mask;
+			return (byte) (src ^ mask);
 		}
 	},
 	NAND {
 		@Override
 		public byte op(byte src, byte mask) {
-			src &= mask;
-			return src ^= -1;
+			byte temp = (byte) (src & mask);
+			return (byte) (~temp);
 		}
 	},
 	NOR {
 		@Override
 		public byte op(byte src, byte mask) {
-			src |= mask;
-			return src ^= -1;
+			byte temp = (byte) (src | mask);
+			return (byte) (~temp);
 		}
 	},
 	XNOR {
 		@Override
 		public byte op(byte src, byte mask) {
-			src ^= mask;
-			return src ^= -1;
+			byte temp = (byte) (src ^ mask);
+			return (byte) (~temp);
 		}
 	};
 

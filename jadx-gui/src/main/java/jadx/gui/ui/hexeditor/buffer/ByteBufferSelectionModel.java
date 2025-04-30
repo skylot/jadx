@@ -70,7 +70,8 @@ public class ByteBufferSelectionModel {
 	}
 
 	protected final void fireSelectionChanged(long start, long end) {
-		for (ByteBufferSelectionListener l : listeners)
+		for (ByteBufferSelectionListener l : listeners) {
 			l.selectionChanged(this, start, end);
+		}
 	}
 }

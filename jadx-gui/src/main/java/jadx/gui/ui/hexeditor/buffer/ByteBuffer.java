@@ -28,9 +28,9 @@ public abstract class ByteBuffer {
 
 	public final boolean transform(ByteTransform tx, long offset, int length) {
 		byte[] data = new byte[length];
-		return (get(offset, data, 0, length) &&
-				tx.transform(data, 0, length) &&
-				overwrite(offset, data, 0, length));
+		return get(offset, data, 0, length)
+				&& tx.transform(data, 0, length)
+				&& overwrite(offset, data, 0, length);
 	}
 
 	public final long indexOf(byte[] pattern) {
@@ -38,19 +38,23 @@ public abstract class ByteBuffer {
 	}
 
 	public final long indexOf(byte[] pattern, long index) {
-		if (pattern.length == 0)
+		if (pattern.length == 0) {
 			return index;
+		}
 		int[] shift = new int[256];
-		for (int i = 0; i < 256; i++)
+		for (int i = 0; i < 256; i++) {
 			shift[i] = pattern.length;
-		for (int i = 0, n = pattern.length - 1; i < n; i++)
+		}
+		for (int i = 0, n = pattern.length - 1; i < n; i++) {
 			shift[pattern[i] & 0xFF] = n - i;
+		}
 		byte[] text = new byte[pattern.length];
 		long maxIndex = length() - pattern.length;
 		while (index <= maxIndex) {
 			get(index, text, 0, pattern.length);
-			if (Arrays.equals(text, pattern))
+			if (Arrays.equals(text, pattern)) {
 				return index;
+			}
 			index += shift[text[pattern.length - 1] & 0xFF];
 		}
 		return -1;
@@ -61,27 +65,32 @@ public abstract class ByteBuffer {
 	}
 
 	public final long lastIndexOf(byte[] pattern, long index) {
-		if (pattern.length == 0)
+		if (pattern.length == 0) {
 			return index;
+		}
 		int[] shift = new int[256];
-		for (int i = 0; i < 256; i++)
+		for (int i = 0; i < 256; i++) {
 			shift[i] = pattern.length;
-		for (int i = pattern.length - 1; i > 0; i--)
+		}
+		for (int i = pattern.length - 1; i > 0; i--) {
 			shift[pattern[i] & 0xFF] = i;
+		}
 		byte[] text = new byte[pattern.length];
 		index = Math.min(index, length() - pattern.length);
 		while (index >= 0) {
 			get(index, text, 0, pattern.length);
-			if (Arrays.equals(text, pattern))
+			if (Arrays.equals(text, pattern)) {
 				return index;
+			}
 			index -= shift[text[0] & 0xFF];
 		}
 		return -1;
 	}
 
 	public final boolean replace(byte[] pattern, byte[] replacement) {
-		if (pattern.length == 0)
+		if (pattern.length == 0) {
 			return false;
+		}
 		boolean changed = false;
 		long o = indexOf(pattern);
 		while (o >= 0) {
@@ -106,17 +115,20 @@ public abstract class ByteBuffer {
 	}
 
 	protected final void fireDataInserted(long offset, int length) {
-		for (ByteBufferListener l : listeners)
+		for (ByteBufferListener l : listeners) {
 			l.dataInserted(this, offset, length);
+		}
 	}
 
 	protected final void fireDataOverwritten(long offset, int length) {
-		for (ByteBufferListener l : listeners)
+		for (ByteBufferListener l : listeners) {
 			l.dataOverwritten(this, offset, length);
+		}
 	}
 
 	protected final void fireDataRemoved(long offset, long length) {
-		for (ByteBufferListener l : listeners)
+		for (ByteBufferListener l : listeners) {
 			l.dataRemoved(this, offset, length);
+		}
 	}
 }

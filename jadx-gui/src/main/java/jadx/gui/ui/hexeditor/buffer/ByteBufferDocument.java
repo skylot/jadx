@@ -168,8 +168,9 @@ public class ByteBufferDocument {
 
 	public byte[] getSelection() {
 		long length = selection.getSelectionLength();
-		if (length <= 0 || length >= Integer.MAX_VALUE)
+		if (length <= 0 || length >= Integer.MAX_VALUE) {
 			return null;
+		}
 		long offset = selection.getSelectionMin();
 		byte[] data = new byte[(int) length];
 		buffer.get(offset, data, 0, (int) length);
@@ -197,8 +198,9 @@ public class ByteBufferDocument {
 
 	public String getSelectionAsString(String charset) {
 		byte[] data = getSelection();
-		if (data == null)
+		if (data == null) {
 			return null;
+		}
 		try {
 			return new String(data, charset);
 		} catch (IOException e) {
@@ -218,7 +220,8 @@ public class ByteBufferDocument {
 			this.selectionEnd = selection.getSelectionEnd();
 			this.offset = Math.min(selectionStart, selectionEnd);
 			int length = (int) Math.abs(selectionStart - selectionEnd);
-			buffer.get(offset, this.removed = new byte[length], 0, length);
+			this.removed = new byte[length];
+			buffer.get(offset, removed, 0, length);
 		}
 
 		@Override
@@ -236,8 +239,9 @@ public class ByteBufferDocument {
 
 	public boolean deleteSelection(String actionName) {
 		long length = selection.getSelectionLength();
-		if (length <= 0 || length >= Integer.MAX_VALUE)
+		if (length <= 0 || length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = new DeleteSelectionAction(actionName);
 		a.redo();
 		history.add(a);
@@ -258,7 +262,8 @@ public class ByteBufferDocument {
 			this.selectionEnd = selection.getSelectionEnd();
 			this.offset = Math.min(selectionStart, selectionEnd);
 			int length = (int) Math.abs(selectionStart - selectionEnd);
-			buffer.get(offset, this.removed = new byte[length], 0, length);
+			this.removed = new byte[length];
+			buffer.get(offset, removed, 0, length);
 			this.inserted = data;
 			this.keepSelected = keepSelected;
 		}
@@ -267,10 +272,11 @@ public class ByteBufferDocument {
 		public void redo() {
 			buffer.remove(offset, removed.length);
 			buffer.insert(offset, inserted, 0, inserted.length);
-			if (keepSelected)
+			if (keepSelected) {
 				selection.setSelectionRange(offset, offset + inserted.length);
-			else
+			} else {
 				selection.setSelectionRange(offset + inserted.length, offset + inserted.length);
+			}
 		}
 
 		@Override
@@ -283,8 +289,9 @@ public class ByteBufferDocument {
 
 	public boolean replaceSelection(String actionName, byte[] data, boolean keepSelected) {
 		long length = selection.getSelectionLength();
-		if (length >= Integer.MAX_VALUE)
+		if (length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = new ReplaceSelectionAction(actionName, data, keepSelected);
 		a.redo();
 		history.add(a);
@@ -293,14 +300,17 @@ public class ByteBufferDocument {
 
 	public boolean transformSelection(ByteTransform tx) {
 		long length = selection.getSelectionLength();
-		if (length <= 0 || length >= Integer.MAX_VALUE)
+		if (length <= 0 || length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		long offset = selection.getSelectionMin();
 		byte[] data = new byte[(int) length];
-		if (!buffer.get(offset, data, 0, (int) length))
+		if (!buffer.get(offset, data, 0, (int) length)) {
 			return false;
-		if (!tx.transform(data, 0, (int) length))
+		}
+		if (!tx.transform(data, 0, (int) length)) {
 			return false;
+		}
 		ByteBufferAction a = new ReplaceSelectionAction(tx.getName(), data, true);
 		a.redo();
 		history.add(a);
@@ -320,7 +330,7 @@ public class ByteBufferDocument {
 			this.selectionEnd = selection.getSelectionEnd();
 			this.pattern = pattern;
 			this.replacement = replacement;
-			this.offsets = new ArrayList<Long>();
+			this.offsets = new ArrayList<>();
 		}
 
 		@Override
@@ -330,21 +340,27 @@ public class ByteBufferDocument {
 			if (offsets.isEmpty()) {
 				long o = buffer.indexOf(pattern);
 				while (o >= 0) {
-					if (!buffer.remove(o, pattern.length))
+					if (!buffer.remove(o, pattern.length)) {
 						break;
-					if (!buffer.insert(o, replacement, 0, replacement.length))
+					}
+					if (!buffer.insert(o, replacement, 0, replacement.length)) {
 						break;
+					}
 					offsets.add(o);
-					ss = se = o + replacement.length;
+					se = o + replacement.length;
+					ss = se;
 					o = buffer.indexOf(pattern, ss);
 				}
 			} else {
 				for (long o : offsets) {
-					if (!buffer.remove(o, pattern.length))
+					if (!buffer.remove(o, pattern.length)) {
 						break;
-					if (!buffer.insert(o, replacement, 0, replacement.length))
+					}
+					if (!buffer.insert(o, replacement, 0, replacement.length)) {
 						break;
-					ss = se = o + replacement.length;
+					}
+					se = o + replacement.length;
+					ss = se;
 				}
 			}
 			selection.setSelectionRange(ss, se);
@@ -362,12 +378,14 @@ public class ByteBufferDocument {
 	}
 
 	public boolean replaceAll(byte[] pattern, byte[] replacement) {
-		if (pattern.length == 0)
+		if (pattern.length == 0) {
 			return false;
+		}
 		ReplaceAllAction a = new ReplaceAllAction(pattern, replacement);
 		a.redo();
-		if (a.offsets.isEmpty())
+		if (a.offsets.isEmpty()) {
 			return false;
+		}
 		history.add(a);
 		return true;
 	}
@@ -382,8 +400,9 @@ public class ByteBufferDocument {
 
 	public boolean copyAsHex() {
 		String s = getSelectionAsHex();
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Clipboard cb = tk.getSystemClipboard();
 		StringSelection ss = new StringSelection(s);
@@ -393,8 +412,9 @@ public class ByteBufferDocument {
 
 	public boolean copyAsString(String charset) {
 		String s = getSelectionAsString(charset);
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Clipboard cb = tk.getSystemClipboard();
 		StringSelection ss = new StringSelection(s);
@@ -419,18 +439,21 @@ public class ByteBufferDocument {
 
 	public boolean pasteAsHex() {
 		String s = getClipboardString();
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 		byte[] data = decodeHex(s);
-		if (data == null)
+		if (data == null) {
 			return false;
+		}
 		return replaceSelection("Paste", data, false);
 	}
 
 	public boolean pasteAsString(String charset) {
 		String s = getClipboardString();
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 		try {
 			return replaceSelection("Paste", s.getBytes(charset), false);
 		} catch (IOException e) {
@@ -452,10 +475,12 @@ public class ByteBufferDocument {
 		}
 
 		public boolean prepend() {
-			if (selection.getSelectionStart() != this.offset)
+			if (selection.getSelectionStart() != this.offset) {
 				return false;
-			if (selection.getSelectionEnd() != this.offset)
+			}
+			if (selection.getSelectionEnd() != this.offset) {
 				return false;
+			}
 			this.offset--;
 			//
 			byte[] newRemoved = new byte[removed.length + 1];
@@ -467,10 +492,12 @@ public class ByteBufferDocument {
 		}
 
 		public boolean append() {
-			if (selection.getSelectionStart() != this.offset)
+			if (selection.getSelectionStart() != this.offset) {
 				return false;
-			if (selection.getSelectionEnd() != this.offset)
+			}
+			if (selection.getSelectionEnd() != this.offset) {
 				return false;
+			}
 			//
 			byte[] newRemoved = new byte[removed.length + 1];
 			System.arraycopy(removed, 0, newRemoved, 0, removed.length);
@@ -498,8 +525,9 @@ public class ByteBufferDocument {
 			return deleteSelection("Delete");
 		} else {
 			long offset = selection.getSelectionStart();
-			if (offset <= 0)
+			if (offset <= 0) {
 				return false;
+			}
 			ByteBufferAction a = history.getUndoAction();
 			if (!(a instanceof KeyboardDeleteAction && ((KeyboardDeleteAction) a).prepend())) {
 				history.add(new KeyboardDeleteAction(false));
@@ -515,8 +543,9 @@ public class ByteBufferDocument {
 			return deleteSelection("Delete");
 		} else {
 			long offset = selection.getSelectionStart();
-			if (offset >= buffer.length())
+			if (offset >= buffer.length()) {
 				return false;
+			}
 			ByteBufferAction a = history.getUndoAction();
 			if (!(a instanceof KeyboardDeleteAction && ((KeyboardDeleteAction) a).append())) {
 				history.add(new KeyboardDeleteAction(true));
@@ -540,32 +569,37 @@ public class ByteBufferDocument {
 			this.selectionEnd = selection.getSelectionEnd();
 			this.offset = Math.min(selectionStart, selectionEnd);
 			int length = (int) Math.abs(selectionStart - selectionEnd);
-			buffer.get(offset, this.removed = new byte[length], 0, length);
+			this.removed = new byte[length];
+			buffer.get(offset, removed, 0, length);
 			this.inserted = data;
 		}
 
 		public boolean append(byte[] data) {
-			if (selection.getSelectionStart() != offset + inserted.length)
+			if (selection.getSelectionStart() != offset + inserted.length) {
 				return false;
-			if (selection.getSelectionEnd() != offset + inserted.length)
+			}
+			if (selection.getSelectionEnd() != offset + inserted.length) {
 				return false;
+			}
 			//
 			byte[] newInserted = new byte[inserted.length + data.length];
 			System.arraycopy(inserted, 0, newInserted, 0, inserted.length);
-			System.arraycopy(data, 0, newInserted, 0 + inserted.length, data.length);
+			System.arraycopy(data, 0, newInserted, inserted.length, data.length);
 			//
 			this.inserted = newInserted;
 			return true;
 		}
 
 		public boolean shiftIn(int nybble) {
-			if (selection.getSelectionStart() != offset + inserted.length)
+			if (selection.getSelectionStart() != offset + inserted.length) {
 				return false;
-			if (selection.getSelectionEnd() != offset + inserted.length)
+			}
+			if (selection.getSelectionEnd() != offset + inserted.length) {
 				return false;
+			}
 			if (selection.isMidByte() && inserted.length > 0) {
 				inserted[inserted.length - 1] <<= 4;
-				inserted[inserted.length - 1] |= nybble;
+				inserted[inserted.length - 1] |= (byte) nybble;
 				return true;
 			}
 			return false;
@@ -588,8 +622,9 @@ public class ByteBufferDocument {
 
 	public boolean insert(byte[] data) {
 		long length = selection.getSelectionLength();
-		if (length >= Integer.MAX_VALUE)
+		if (length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = history.getUndoAction();
 		if (a instanceof KeyboardInsertAction) {
 			KeyboardInsertAction ia = (KeyboardInsertAction) a;
@@ -608,8 +643,9 @@ public class ByteBufferDocument {
 
 	public boolean insert(int nybble) {
 		long length = selection.getSelectionLength();
-		if (length >= Integer.MAX_VALUE)
+		if (length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = history.getUndoAction();
 		if (a instanceof KeyboardInsertAction) {
 			KeyboardInsertAction ia = (KeyboardInsertAction) a;
@@ -618,7 +654,7 @@ public class ByteBufferDocument {
 				byte[] tmp = new byte[1];
 				buffer.get(offset - 1, tmp, 0, 1);
 				tmp[0] <<= 4;
-				tmp[0] |= nybble;
+				tmp[0] |= (byte) nybble;
 				buffer.overwrite(offset - 1, tmp, 0, 1);
 				selection.setMidByte(false);
 				return true;
@@ -646,15 +682,18 @@ public class ByteBufferDocument {
 			int slength = (int) Math.abs(selectionStart - selectionEnd);
 			long tlength = buffer.length() - Math.max(selectionStart, selectionEnd);
 			int rlength = slength + (int) Math.min(data.length, tlength);
-			buffer.get(offset, this.removed = new byte[rlength], 0, rlength);
+			this.removed = new byte[rlength];
+			buffer.get(offset, removed, 0, rlength);
 			this.inserted = data;
 		}
 
 		public boolean append(byte[] data) {
-			if (selection.getSelectionStart() != offset + inserted.length)
+			if (selection.getSelectionStart() != offset + inserted.length) {
 				return false;
-			if (selection.getSelectionEnd() != offset + inserted.length)
+			}
+			if (selection.getSelectionEnd() != offset + inserted.length) {
 				return false;
+			}
 			//
 			long tlength = buffer.length() - (offset + inserted.length);
 			int ralength = (int) Math.min(data.length, tlength);
@@ -664,7 +703,7 @@ public class ByteBufferDocument {
 			//
 			byte[] newInserted = new byte[inserted.length + data.length];
 			System.arraycopy(inserted, 0, newInserted, 0, inserted.length);
-			System.arraycopy(data, 0, newInserted, 0 + inserted.length, data.length);
+			System.arraycopy(data, 0, newInserted, inserted.length, data.length);
 			//
 			this.removed = newRemoved;
 			this.inserted = newInserted;
@@ -672,13 +711,15 @@ public class ByteBufferDocument {
 		}
 
 		public boolean shiftIn(int nybble) {
-			if (selection.getSelectionStart() != offset + inserted.length)
+			if (selection.getSelectionStart() != offset + inserted.length) {
 				return false;
-			if (selection.getSelectionEnd() != offset + inserted.length)
+			}
+			if (selection.getSelectionEnd() != offset + inserted.length) {
 				return false;
+			}
 			if (selection.isMidByte() && inserted.length > 0) {
 				inserted[inserted.length - 1] <<= 4;
-				inserted[inserted.length - 1] |= nybble;
+				inserted[inserted.length - 1] |= (byte) nybble;
 				return true;
 			}
 			return false;
@@ -701,8 +742,9 @@ public class ByteBufferDocument {
 
 	public boolean overwrite(byte[] data) {
 		long length = selection.getSelectionLength();
-		if (length >= Integer.MAX_VALUE)
+		if (length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = history.getUndoAction();
 		if (a instanceof KeyboardOverwriteAction) {
 			KeyboardOverwriteAction oa = (KeyboardOverwriteAction) a;
@@ -724,8 +766,9 @@ public class ByteBufferDocument {
 
 	public boolean overwrite(int nybble) {
 		long length = selection.getSelectionLength();
-		if (length >= Integer.MAX_VALUE)
+		if (length >= Integer.MAX_VALUE) {
 			return false;
+		}
 		ByteBufferAction a = history.getUndoAction();
 		if (a instanceof KeyboardOverwriteAction) {
 			KeyboardOverwriteAction oa = (KeyboardOverwriteAction) a;
@@ -734,7 +777,7 @@ public class ByteBufferDocument {
 				byte[] tmp = new byte[1];
 				buffer.get(offset - 1, tmp, 0, 1);
 				tmp[0] <<= 4;
-				tmp[0] |= nybble;
+				tmp[0] |= (byte) nybble;
 				buffer.overwrite(offset - 1, tmp, 0, 1);
 				selection.setMidByte(false);
 				return true;
@@ -758,9 +801,9 @@ public class ByteBufferDocument {
 	}
 
 	private static boolean isHexDigit(char ch) {
-		return ((ch >= '0' && ch <= '9') ||
-				(ch >= 'A' && ch <= 'F') ||
-				(ch >= 'a' && ch <= 'f'));
+		return ((ch >= '0' && ch <= '9')
+				|| (ch >= 'A' && ch <= 'F')
+				|| (ch >= 'a' && ch <= 'f'));
 	}
 
 	private static int hexDigitValue(char ch) {
@@ -771,26 +814,28 @@ public class ByteBufferDocument {
 	private static byte[] decodeHex(String s) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		char[] ch = s.toCharArray();
-		int i = 0, n = ch.length;
+		int i = 0;
+		int n = ch.length;
 		for (;;) {
-			while (i < n && Character.isWhitespace(ch[i]))
+			while (i < n && Character.isWhitespace(ch[i])) {
 				i++;
-			if (i < n) {
-				if (isHexDigit(ch[i])) {
-					int v = hexDigitValue(ch[i]) << 4;
-					i++;
-					if (i < n) {
-						if (isHexDigit(ch[i])) {
-							v |= hexDigitValue(ch[i]);
-							i++;
-							out.write(v);
-							continue;
+				if (i < n) {
+					if (isHexDigit(ch[i])) {
+						int v = hexDigitValue(ch[i]) << 4;
+						i++;
+						if (i < n) {
+							if (isHexDigit(ch[i])) {
+								v |= hexDigitValue(ch[i]);
+								i++;
+								out.write(v);
+								continue;
+							}
 						}
 					}
+					return null;
+				} else {
+					return out.toByteArray();
 				}
-				return null;
-			} else {
-				return out.toByteArray();
 			}
 		}
 	}

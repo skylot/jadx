@@ -18,33 +18,54 @@ public class JHexEditorColors {
 
 	private static final JHexEditorColors THEMED_INSTANCE = new JHexEditorColors("Themed");
 	private static volatile boolean themedInitialized = false;
-	private static final List<JHexEditor> themedComponents = new CopyOnWriteArrayList<>();
-	private static final Object themedLock = new Object();
+	private static final List<JHexEditor> THEMED_COMPONENTS = new CopyOnWriteArrayList<>();
+	private static final Object THEMED_LOCK = new Object();
 
 	public String name;
-	public Color addressAreaEven, addressAreaOdd;
-	public Color addressTextEven, addressTextOdd;
+	public Color addressAreaEven;
+	public Color addressAreaOdd;
+	public Color addressTextEven;
+	public Color addressTextOdd;
 	public Color addressDivider;
-	public Color hexAreaEven, hexAreaOdd;
-	public Color hexTextEven, hexTextOdd;
+	public Color hexAreaEven;
+	public Color hexAreaOdd;
+	public Color hexTextEven;
+	public Color hexTextOdd;
 	public Color hexDivider;
-	public Color textAreaEven, textAreaOdd;
-	public Color textPrintableEven, textPrintableOdd;
-	public Color textUnprintableEven, textUnprintableOdd;
+	public Color textAreaEven;
+	public Color textAreaOdd;
+	public Color textPrintableEven;
+	public Color textPrintableOdd;
+	public Color textUnprintableEven;
+	public Color textUnprintableOdd;
 	public Color textDivider;
-	public Color activeCursor, activeCursorMidByte;
-	public Color inactiveCursor, inactiveCursorMidByte;
-	public Color hexAreaActiveHighlightEven, hexAreaActiveHighlightOdd;
-	public Color hexAreaInactiveHighlightEven, hexAreaInactiveHighlightOdd;
-	public Color hexTextActiveHighlightEven, hexTextActiveHighlightOdd;
-	public Color hexTextInactiveHighlightEven, hexTextInactiveHighlightOdd;
-	public Color textAreaActiveHighlightEven, textAreaActiveHighlightOdd;
-	public Color textAreaInactiveHighlightEven, textAreaInactiveHighlightOdd;
-	public Color textPrintableActiveHighlightEven, textPrintableActiveHighlightOdd;
-	public Color textPrintableInactiveHighlightEven, textPrintableInactiveHighlightOdd;
-	public Color textUnprintableActiveHighlightEven, textUnprintableActiveHighlightOdd;
-	public Color textUnprintableInactiveHighlightEven, textUnprintableInactiveHighlightOdd;
-	public Color headerArea, headerText, headerDivider;
+	public Color activeCursor;
+	public Color activeCursorMidByte;
+	public Color inactiveCursor;
+	public Color inactiveCursorMidByte;
+	public Color hexAreaActiveHighlightEven;
+	public Color hexAreaActiveHighlightOdd;
+	public Color hexAreaInactiveHighlightEven;
+	public Color hexAreaInactiveHighlightOdd;
+	public Color hexTextActiveHighlightEven;
+	public Color hexTextActiveHighlightOdd;
+	public Color hexTextInactiveHighlightEven;
+	public Color hexTextInactiveHighlightOdd;
+	public Color textAreaActiveHighlightEven;
+	public Color textAreaActiveHighlightOdd;
+	public Color textAreaInactiveHighlightEven;
+	public Color textAreaInactiveHighlightOdd;
+	public Color textPrintableActiveHighlightEven;
+	public Color textPrintableActiveHighlightOdd;
+	public Color textPrintableInactiveHighlightEven;
+	public Color textPrintableInactiveHighlightOdd;
+	public Color textUnprintableActiveHighlightEven;
+	public Color textUnprintableActiveHighlightOdd;
+	public Color textUnprintableInactiveHighlightEven;
+	public Color textUnprintableInactiveHighlightOdd;
+	public Color headerArea;
+	public Color headerText;
+	public Color headerDivider;
 
 	public JHexEditorColors(String name, Color... colors) {
 		this.name = name;
@@ -119,7 +140,7 @@ public class JHexEditorColors {
 	 * Called from the JHexEditor.
 	 */
 	protected static void registerThemedComponent(JHexEditor component) {
-		themedComponents.add(component);
+		THEMED_COMPONENTS.add(component);
 		if (!themedInitialized) {
 			initializeThemed();
 		}
@@ -130,12 +151,12 @@ public class JHexEditorColors {
 	 * Called from the JHexEditor.
 	 */
 	protected static void unregisterThemedComponent(JHexEditor component) {
-		themedComponents.remove(component);
+		THEMED_COMPONENTS.remove(component);
 	}
 
 	private static void initializeThemed() {
 		if (!themedInitialized) {
-			synchronized (themedLock) {
+			synchronized (THEMED_LOCK) {
 				if (!themedInitialized) {
 					updateThemedColorsFromUIManager();
 
@@ -209,7 +230,7 @@ public class JHexEditorColors {
 	}
 
 	private static void notifyThemedComponents() {
-		for (JHexEditor component : themedComponents) {
+		for (JHexEditor component : THEMED_COMPONENTS) {
 			if (component.getColors() == THEMED_INSTANCE && component.isShowing()) {
 				SwingUtilities.invokeLater(component::repaint);
 			}
@@ -459,8 +480,9 @@ public class JHexEditorColors {
 	}
 
 	private static Color[] convertIntsToColors(int[] intColors) {
-		if (intColors == null)
+		if (intColors == null) {
 			return new Color[0];
+		}
 		Color[] colorArray = new Color[intColors.length];
 		for (int i = 0; i < intColors.length; i++) {
 			colorArray[i] = new Color(intColors[i], true);
@@ -469,8 +491,9 @@ public class JHexEditorColors {
 	}
 
 	private static Color blend(Color c1, Color c2, float alpha) {
-		if (c1 == null || c2 == null)
+		if (c1 == null || c2 == null) {
 			return c1 != null ? c1 : (c2 != null ? c2 : Color.GRAY);
+		}
 		float r = (c1.getRed() * (1.0f - alpha)) + (c2.getRed() * alpha);
 		float g = (c1.getGreen() * (1.0f - alpha)) + (c2.getGreen() * alpha);
 		float b = (c1.getBlue() * (1.0f - alpha)) + (c2.getBlue() * alpha);

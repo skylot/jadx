@@ -28,27 +28,32 @@ public class CompositeByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean isEmpty() {
-		for (ByteBuffer buffer : buffers)
-			if (!buffer.isEmpty())
+		for (ByteBuffer buffer : buffers) {
+			if (!buffer.isEmpty()) {
 				return false;
+			}
+		}
 		return true;
 	}
 
 	@Override
 	public long length() {
 		long length = 0;
-		for (ByteBuffer buffer : buffers)
+		for (ByteBuffer buffer : buffers) {
 			length += buffer.length();
+		}
 		return length;
 	}
 
 	@Override
 	public boolean get(long offset, byte[] dst, int dstOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		for (ByteBuffer buffer : buffers) {
-			if (buffer.isEmpty())
+			if (buffer.isEmpty()) {
 				continue;
+			}
 			long len = buffer.length();
 			if ((offset + length) <= len) {
 				if (offset >= 0) {
@@ -59,11 +64,13 @@ public class CompositeByteBuffer extends ByteBuffer {
 			}
 			if (offset < len) {
 				if (offset >= 0) {
-					if (!buffer.get(offset, dst, dstOffset, (int) (len - offset)))
+					if (!buffer.get(offset, dst, dstOffset, (int) (len - offset))) {
 						return false;
+					}
 				} else {
-					if (!buffer.get(0, dst, (int) (dstOffset - offset), (int) len))
+					if (!buffer.get(0, dst, (int) (dstOffset - offset), (int) len)) {
 						return false;
+					}
 				}
 			}
 			offset -= len;
@@ -73,8 +80,9 @@ public class CompositeByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean insert(long offset, byte[] src, int srcOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		long off = offset;
 		for (ByteBuffer buffer : buffers) {
 			long len = buffer.length();
@@ -84,7 +92,7 @@ public class CompositeByteBuffer extends ByteBuffer {
 			}
 			off -= len;
 		}
-		List<ByteBuffer> newBuffers = new ArrayList<ByteBuffer>();
+		List<ByteBuffer> newBuffers = new ArrayList<>();
 		newBuffers.addAll(slice(0, offset).buffers);
 		newBuffers.add(new ArrayByteBuffer(src, srcOffset, length));
 		newBuffers.addAll(slice(offset, length() - offset).buffers);
@@ -96,26 +104,30 @@ public class CompositeByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean overwrite(long offset, byte[] src, int srcOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		long off = offset;
-		List<ByteBuffer> newBuffers = new ArrayList<ByteBuffer>();
+		List<ByteBuffer> newBuffers = new ArrayList<>();
 		for (ByteBuffer buffer : buffers) {
-			if (buffer.isEmpty())
+			if (buffer.isEmpty()) {
 				continue;
+			}
 			long len = buffer.length();
 			if ((off + length) <= len) {
 				if (off >= 0) {
 					if (buffer.overwrite(off, src, srcOffset, length)) {
 						newBuffers.add(buffer);
 					} else {
-						if (off > 0)
+						if (off > 0) {
 							newBuffers.add(buffer.slice(0, off));
+						}
 						newBuffers.add(new ArrayByteBuffer(src, srcOffset, length));
 						long toff = off + length;
 						long tlen = len - toff;
-						if (tlen > 0)
+						if (tlen > 0) {
 							newBuffers.add(buffer.slice(toff, tlen));
+						}
 					}
 				} else if ((off + length) > 0) {
 					if (buffer.overwrite(0, src, (int) (srcOffset - off), (int) (length + off))) {
@@ -124,8 +136,9 @@ public class CompositeByteBuffer extends ByteBuffer {
 						newBuffers.add(new ArrayByteBuffer(src, (int) (srcOffset - off), (int) (length + off)));
 						long toff = off + length;
 						long tlen = len - toff;
-						if (tlen > 0)
+						if (tlen > 0) {
 							newBuffers.add(buffer.slice(toff, tlen));
+						}
 					}
 				} else {
 					newBuffers.add(buffer);
@@ -135,8 +148,9 @@ public class CompositeByteBuffer extends ByteBuffer {
 					if (buffer.overwrite(off, src, srcOffset, (int) (len - off))) {
 						newBuffers.add(buffer);
 					} else {
-						if (off > 0)
+						if (off > 0) {
 							newBuffers.add(buffer.slice(0, off));
+						}
 						newBuffers.add(new ArrayByteBuffer(src, srcOffset, (int) (len - off)));
 					}
 				} else {
@@ -159,36 +173,43 @@ public class CompositeByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean remove(long offset, long length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		long off = offset;
 		List<ByteBuffer> newBuffers = new ArrayList<ByteBuffer>();
 		for (ByteBuffer buffer : buffers) {
-			if (buffer.isEmpty())
+			if (buffer.isEmpty()) {
 				continue;
+			}
 			long len = buffer.length();
 			if ((off + length) <= len) {
 				if (off >= 0) {
 					if (buffer.remove(off, length)) {
-						if (!buffer.isEmpty())
+						if (!buffer.isEmpty()) {
 							newBuffers.add(buffer);
+						}
 					} else {
-						if (off > 0)
+						if (off > 0) {
 							newBuffers.add(buffer.slice(0, off));
+						}
 						long toff = off + length;
 						long tlen = len - toff;
-						if (tlen > 0)
+						if (tlen > 0) {
 							newBuffers.add(buffer.slice(toff, tlen));
+						}
 					}
 				} else if ((off + length) > 0) {
 					if (buffer.remove(0, length + off)) {
-						if (!buffer.isEmpty())
+						if (!buffer.isEmpty()) {
 							newBuffers.add(buffer);
+						}
 					} else {
 						long toff = off + length;
 						long tlen = len - toff;
-						if (tlen > 0)
+						if (tlen > 0) {
 							newBuffers.add(buffer.slice(toff, tlen));
+						}
 					}
 				} else {
 					newBuffers.add(buffer);
@@ -196,11 +217,13 @@ public class CompositeByteBuffer extends ByteBuffer {
 			} else if (off < len) {
 				if (off >= 0) {
 					if (buffer.remove(off, len - off)) {
-						if (!buffer.isEmpty())
+						if (!buffer.isEmpty()) {
 							newBuffers.add(buffer);
+						}
 					} else {
-						if (off > 0)
+						if (off > 0) {
 							newBuffers.add(buffer.slice(0, off));
+						}
 					}
 				}
 			} else {
@@ -217,11 +240,13 @@ public class CompositeByteBuffer extends ByteBuffer {
 	@Override
 	public CompositeByteBuffer slice(long offset, long length) {
 		CompositeByteBuffer newBuffer = new CompositeByteBuffer();
-		if (length <= 0)
+		if (length <= 0) {
 			return newBuffer;
+		}
 		for (ByteBuffer buffer : buffers) {
-			if (buffer.isEmpty())
+			if (buffer.isEmpty()) {
 				continue;
+			}
 			long len = buffer.length();
 			if ((offset + length) <= len) {
 				if (offset >= 0) {
@@ -246,11 +271,13 @@ public class CompositeByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean write(OutputStream out, long offset, long length) throws IOException {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		for (ByteBuffer buffer : buffers) {
-			if (buffer.isEmpty())
+			if (buffer.isEmpty()) {
 				continue;
+			}
 			long len = buffer.length();
 			if ((offset + length) <= len) {
 				if (offset >= 0) {
@@ -261,11 +288,13 @@ public class CompositeByteBuffer extends ByteBuffer {
 			}
 			if (offset < len) {
 				if (offset >= 0) {
-					if (!buffer.write(out, offset, len - offset))
+					if (!buffer.write(out, offset, len - offset)) {
 						return false;
+					}
 				} else {
-					if (!buffer.write(out, 0, len))
+					if (!buffer.write(out, 0, len)) {
 						return false;
+					}
 				}
 			}
 			offset -= len;

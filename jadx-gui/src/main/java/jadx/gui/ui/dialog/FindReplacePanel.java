@@ -20,34 +20,35 @@ public class FindReplacePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static FindReplacePanel instance = null;
-
-	public static FindReplacePanel getInstance() {
-		if (instance == null)
-			instance = new FindReplacePanel();
-		return instance;
-	}
-
 	private final JHexEditorSuite findSuite;
 	private final JHexEditor findEditor;
 	private JHexEditor editor = null;
 	private JDialog dialog = null;
+
+	public static FindReplacePanel getInstance() {
+		if (instance == null) {
+			instance = new FindReplacePanel();
+		}
+		return instance;
+	}
 
 	public FindReplacePanel() {
 		JPanel labelPanel = new JPanel(new GridLayout(0, 1, 8, 8));
 		labelPanel.add(rightAlign(new JLabel(NLS.str("hex_viewer.find") + ":")));
 
 		JPanel suitePanel = new JPanel(new GridLayout(0, 1, 8, 8));
-		suitePanel.add(findSuite = new JHexEditorSuite());
+		findSuite = new JHexEditorSuite();
+		suitePanel.add(findSuite);
 		findEditor = findSuite.getEditor();
 
 		JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 8, 8));
-		JButton findNextButton;
-		buttonPanel.add(findNextButton = new JButton(NLS.str("hex_viewer.find_next")));
-		JButton findPreviousButton;
-		buttonPanel.add(findPreviousButton = new JButton(NLS.str("hex_viewer.find_previous")));
-		JButton closeButton;
-		buttonPanel.add(closeButton = new JButton(NLS.str("common_dialog.cancel")));
+		JButton findNextButton = new JButton(NLS.str("hex_viewer.find_next"));
+		JButton findPreviousButton = new JButton(NLS.str("hex_viewer.find_previous"));
+		JButton closeButton = new JButton(NLS.str("common_dialog.cancel"));
 
+		buttonPanel.add(findNextButton);
+		buttonPanel.add(findPreviousButton);
+		buttonPanel.add(closeButton);
 		JPanel buttonOuterPanel = new JPanel(new BorderLayout());
 		buttonOuterPanel.add(buttonPanel, BorderLayout.PAGE_START);
 
@@ -73,8 +74,9 @@ public class FindReplacePanel extends JPanel {
 		});
 
 		closeButton.addActionListener(e -> {
-			if (dialog != null)
+			if (dialog != null) {
 				dialog.dispose();
+			}
 		});
 	}
 
@@ -126,8 +128,9 @@ public class FindReplacePanel extends JPanel {
 		}
 		long offset = editor.getSelectionMax();
 		offset = editor.indexOf(dataForFind, offset);
-		if (offset < 0)
+		if (offset < 0) {
 			offset = editor.indexOf(dataForFind);
+		}
 		if (offset < 0) {
 			return false;
 		}
