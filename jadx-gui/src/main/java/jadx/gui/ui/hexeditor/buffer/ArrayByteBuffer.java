@@ -25,13 +25,14 @@ public class ArrayByteBuffer extends ByteBuffer {
 
 	public ArrayByteBuffer(byte[] src, int offset, int length) {
 		this.array = new byte[length];
-		for (int i = 0; i < length; i++)
+		for (int i = 0; i < length; i++) {
 			this.array[i] = src[offset++];
+		}
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return array.length <= 0;
+		return array.length == 0;
 	}
 
 	@Override
@@ -41,28 +42,35 @@ public class ArrayByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean get(long offset, byte[] dst, int dstOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
-		for (int i = 0; i < length; i++)
+		}
+		for (int i = 0; i < length; i++) {
 			dst[dstOffset++] = array[(int) offset++];
+		}
 		return true;
 	}
 
 	@Override
 	public boolean insert(long offset, byte[] src, int srcOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		long newLength = (long) array.length + (long) length;
-		if (newLength < 0 || newLength > MAX_ARRAY_LENGTH)
+		if (newLength > MAX_ARRAY_LENGTH) {
 			return false;
+		}
 		byte[] newArray = new byte[(int) newLength];
 		int ni = 0;
-		for (int i = 0; i < offset; i++)
+		for (int i = 0; i < (int) offset; i++) {
 			newArray[ni++] = array[i];
-		for (int i = 0; i < length; i++)
+		}
+		for (int i = 0; i < length; i++) {
 			newArray[ni++] = src[srcOffset++];
-		for (int i = (int) offset; i < array.length; i++)
+		}
+		for (int i = (int) offset; i < array.length; i++) {
 			newArray[ni++] = array[i];
+		}
 		array = newArray;
 		fireDataInserted(offset, length);
 		return true;
@@ -70,27 +78,33 @@ public class ArrayByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean overwrite(long offset, byte[] src, int srcOffset, int length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
-		for (int i = 0; i < length; i++)
+		}
+		for (int i = 0; i < length; i++) {
 			array[(int) offset++] = src[srcOffset++];
+		}
 		fireDataOverwritten(offset, length);
 		return true;
 	}
 
 	@Override
 	public boolean remove(long offset, long length) {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		long newLength = (long) array.length - length;
-		if (newLength < 0 || newLength > MAX_ARRAY_LENGTH)
+		if (newLength < 0 || newLength > MAX_ARRAY_LENGTH) {
 			return false;
+		}
 		byte[] newArray = new byte[(int) newLength];
 		int ni = 0;
-		for (int i = 0; i < offset; i++)
+		for (int i = 0; i < (int) offset; i++) {
 			newArray[ni++] = array[i];
-		for (int i = (int) (offset + length); i < array.length; i++)
+		}
+		for (int i = (int) (offset + length); i < array.length; i++) {
 			newArray[ni++] = array[i];
+		}
 		array = newArray;
 		fireDataRemoved(offset, length);
 		return true;
@@ -103,8 +117,9 @@ public class ArrayByteBuffer extends ByteBuffer {
 
 	@Override
 	public boolean write(OutputStream out, long offset, long length) throws IOException {
-		if (length <= 0)
+		if (length <= 0) {
 			return true;
+		}
 		out.write(array, (int) offset, (int) length);
 		return true;
 	}
