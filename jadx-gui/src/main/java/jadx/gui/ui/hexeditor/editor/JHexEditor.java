@@ -162,7 +162,7 @@ public class JHexEditor extends JComponent implements Scrollable {
 						long selEnd = getSelectionMax();
 						boolean clickInsideSelection = (isSelectionExists() && clickOffset >= selStart && clickOffset < selEnd);
 
-						if (!clickInsideSelection && SwingUtilities.isLeftMouseButton(e)) {
+						if (SwingUtilities.isLeftMouseButton(e)) {
 							// If we are NOT keeping the selection
 							// (either hex is active, or text is active and click is inside selection)
 							// Then clear the selection and move the cursor to the click point.
@@ -173,7 +173,7 @@ public class JHexEditor extends JComponent implements Scrollable {
 							setTextActive(p.inTextArea);
 						}
 					}
-				} else if (p.inAddressArea) {
+				} else if (p.inAddressArea && !isSelectionExists()) {
 					long startOfRow = (p.offset / p.rowWidth) * p.rowWidth;
 					long endOfRow = Math.min(startOfRow + p.rowWidth, document.length());
 					document.setSelectionRange(startOfRow, endOfRow);
@@ -183,7 +183,6 @@ public class JHexEditor extends JComponent implements Scrollable {
 			}
 			showPopupMenuIfTriggered(e);
 		}
-
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			showPopupMenuIfTriggered(e);
