@@ -28,7 +28,7 @@ dependencies {
 
 	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.18")
-	implementation("io.github.oshai:kotlin-logging-jvm:7.0.6")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")
 	implementation("org.drjekyll:fontchooser:3.1.0")
@@ -39,14 +39,14 @@ dependencies {
 	implementation("com.formdev:flatlaf-intellij-themes:3.6")
 	implementation("com.formdev:flatlaf-extras:3.6")
 
-	implementation("com.google.code.gson:gson:2.13.0")
+	implementation("com.google.code.gson:gson:2.13.1")
 	implementation("org.apache.commons:commons-lang3:3.17.0")
 	implementation("org.apache.commons:commons-text:1.13.1")
 	implementation("commons-io:commons-io:2.19.0")
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.9.1")
+	implementation("com.android.tools.build:apksig:8.9.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
