@@ -176,8 +176,10 @@ public final class SmaliArea extends AbstractCodeArea {
 	private class NormalModel extends SmaliModel {
 
 		public NormalModel() {
-			Theme theme = getContentPanel().getMainWindow().getEditorTheme();
-			setSyntaxScheme(theme.scheme);
+			if (!getContentPanel().getMainWindow().getSettings().isUseDynamicEditorTheme()) {
+				Theme theme = getContentPanel().getMainWindow().getEditorTheme();
+				setSyntaxScheme(theme.scheme);
+			}
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
 
@@ -327,6 +329,9 @@ public final class SmaliArea extends AbstractCodeArea {
 			}
 
 			public boolean refreshTheme() {
+				if (getContentPanel().getMainWindow().getSettings().isUseDynamicEditorTheme()) {
+					return false;
+				}
 				Theme theme = getContentPanel().getMainWindow().getEditorTheme();
 				boolean refresh = theme != curTheme;
 				if (refresh) {
@@ -337,7 +342,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			}
 
 			private void updateTheme() {
-				Style[] mainStyles = curTheme.scheme.getStyles();
+				Style[] mainStyles = getSyntaxScheme().getStyles();
 				Style[] styles = new Style[mainStyles.length];
 				for (int i = 0; i < mainStyles.length; i++) {
 					Style mainStyle = mainStyles[i];
