@@ -102,6 +102,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
 	private boolean useAlternativeFileDialog = false;
+	private boolean useDynamicEditorTheme = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
@@ -322,6 +323,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setUseAlternativeFileDialog(boolean useAlternativeFileDialog) {
 		this.useAlternativeFileDialog = useAlternativeFileDialog;
+	}
+
+	public boolean isUseDynamicEditorTheme() {
+		return useDynamicEditorTheme;
+	}
+
+	public void setUseDynamicEditorTheme(boolean useDynamicEditorTheme) {
+		this.useDynamicEditorTheme = useDynamicEditorTheme;
 	}
 
 	public String getExcludedPackages() {

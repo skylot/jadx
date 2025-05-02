@@ -353,6 +353,7 @@ public class JadxSettingsWindow extends JDialog {
 
 		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
+		themesCbx.setEnabled(!settings.isUseDynamicEditorTheme());
 		for (EditorTheme theme : editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {
 				themesCbx.setSelectedItem(theme);
@@ -366,6 +367,14 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
+		JCheckBox useDynamicEditorTheme = new JCheckBox();
+		useDynamicEditorTheme.setSelected(settings.isUseDynamicEditorTheme());
+		useDynamicEditorTheme.addItemListener(e -> {
+			settings.setUseDynamicEditorTheme(e.getStateChange() == ItemEvent.SELECTED);
+			mainWindow.loadSettings();
+			themesCbx.setEnabled(!settings.isUseDynamicEditorTheme());
+		});
+
 		JComboBox<String> lafCbx = new JComboBox<>(LafManager.getThemes());
 		lafCbx.setSelectedItem(settings.getLafTheme());
 		lafCbx.addActionListener(e -> {
@@ -376,6 +385,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.appearance"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
+		group.addRow(NLS.str("preferences.dynamic_editor_theme"), useDynamicEditorTheme);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
 		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
 		JLabel smaliFontLabel = group.addRow(getSmaliFontLabelStr(), smaliFontBtn);

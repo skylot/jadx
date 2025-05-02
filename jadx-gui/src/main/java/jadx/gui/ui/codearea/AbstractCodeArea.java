@@ -31,9 +31,11 @@ import javax.swing.text.DefaultCaret;
 
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
+import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.Nullable;
@@ -365,16 +367,25 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		RSyntaxTextArea area = new RSyntaxTextArea();
 		area.setEditable(false);
 		area.setCodeFoldingEnabled(false);
+		area.setAntiAliasingEnabled(true);
 		loadCommonSettings(mainWindow, area);
 		return area;
 	}
 
 	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
-		area.setAntiAliasingEnabled(true);
-		mainWindow.getEditorTheme().apply(area);
-
 		JadxSettings settings = mainWindow.getSettings();
+		if (settings.isUseDynamicEditorTheme()) {
+			DynamicCoreAreaTheme.applyCustomTheme(area);
+		} else {
+			mainWindow.getEditorTheme().apply(area);
+		}
+
 		area.setFont(settings.getFont());
+		Gutter gutter = RSyntaxUtilities.getGutter(area);
+		if (gutter != null) {
+			gutter.setLineNumberFont(settings.getFont());
+		}
+
 	}
 
 	public void loadSettings() {
@@ -506,6 +517,14 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			popupMenu.removeAll();
 		} catch (Throwable e) {
 			LOG.debug("Error on code area dispose", e);
+		}
+	}
+
+	@Override
+	public void updateUI() {
+		super.updateUI();
+		if (contentPanel != null && contentPanel.getMainWindow() != null) {
+			loadSettings();
 		}
 	}
 
