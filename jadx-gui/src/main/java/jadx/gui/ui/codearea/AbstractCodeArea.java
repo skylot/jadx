@@ -374,18 +374,12 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
 		JadxSettings settings = mainWindow.getSettings();
-		if (settings.isUseDynamicEditorTheme()) {
-			DynamicCoreAreaTheme.applyCustomTheme(area);
-		} else {
-			mainWindow.getEditorTheme().apply(area);
-		}
-
+		mainWindow.getEditorThemeManager().apply(area);
 		area.setFont(settings.getFont());
 		Gutter gutter = RSyntaxUtilities.getGutter(area);
 		if (gutter != null) {
 			gutter.setLineNumberFont(settings.getFont());
 		}
-
 	}
 
 	public void loadSettings() {
@@ -517,14 +511,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			popupMenu.removeAll();
 		} catch (Throwable e) {
 			LOG.debug("Error on code area dispose", e);
-		}
-	}
-
-	@Override
-	public void updateUI() {
-		super.updateUI();
-		if (contentPanel != null && contentPanel.getMainWindow() != null) {
-			loadSettings();
 		}
 	}
 

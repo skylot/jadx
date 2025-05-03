@@ -10,7 +10,6 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,11 +78,11 @@ public class HexPreviewPanel extends JTextArea {
 		setBorder(new MatteBorder(0, 2, 0, 0, borderColor));
 	}
 
-	public void applyTheme(Theme theme, Font font) {
-		setBackground(theme.bgColor);
-		setHighlightColor(theme.selectionBG);
-		setBorderColor(theme.gutterBorderColor);
-		setDisabledTextColor(theme.scheme.getStyle(SyntaxScheme.IDENTIFIER).foreground);
+	public void applyTheme(HexArea hexArea, Font font) {
+		setBackground(hexArea.getBackground());
+		setHighlightColor(hexArea.getSelectionColor());
+		setBorderColor(hexArea.getMatchedBracketBorderColor());
+		setDisabledTextColor(hexArea.getSyntaxScheme().getStyle(SyntaxScheme.IDENTIFIER).foreground);
 		setFont(font);
 	}
 

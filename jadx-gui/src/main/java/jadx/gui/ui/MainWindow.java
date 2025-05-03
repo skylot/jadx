@@ -21,11 +21,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -67,8 +64,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -129,8 +124,8 @@ import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
-import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.codearea.EditorViewState;
+import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.ExceptionDialog;
@@ -192,6 +187,7 @@ public class MainWindow extends JFrame {
 	private final TabsController tabsController;
 	private final NavigationController navController;
 	private final EditorSyncManager editorSyncManager;
+	private final EditorThemeManager editorThemeManager;
 
 	private transient @NotNull JadxProject project;
 
@@ -223,7 +219,6 @@ public class MainWindow extends JFrame {
 
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
-	private transient Theme editorTheme;
 
 	private transient IssuesPanel issuesPanel;
 	private transient @Nullable LogPanel logPanel;
@@ -252,11 +247,12 @@ public class MainWindow extends JFrame {
 		this.shortcutsController = new ShortcutsController(settings);
 		this.tabsController = new TabsController(this);
 		this.navController = new NavigationController(this);
+		this.editorThemeManager = new EditorThemeManager(settings);
 
 		JadxEventQueue.register();
 		resetCache();
 		FontUtils.registerBundledFonts();
-		setEditorTheme(settings.getEditorThemePath());
+		editorThemeManager.setTheme(settings.getEditorTheme());
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
@@ -1443,40 +1439,6 @@ public class MainWindow extends JFrame {
 		setLocationRelativeTo(null);
 	}
 
-	private void setEditorTheme(String editorThemePath) {
-		try {
-			URL themeUrl = getClass().getResource(editorThemePath);
-			if (themeUrl != null) {
-				try (InputStream is = themeUrl.openStream()) {
-					editorTheme = Theme.load(is);
-					return;
-				}
-			}
-			Path themePath = Paths.get(editorThemePath);
-			if (Files.isRegularFile(themePath)) {
-				try (InputStream is = Files.newInputStream(themePath)) {
-					editorTheme = Theme.load(is);
-					return;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("Failed to load editor theme: {}", editorThemePath, e);
-		}
-		LOG.warn("Falling back to default editor theme: {}", editorThemePath);
-		editorThemePath = EditorTheme.getDefaultTheme().getPath();
-		try (InputStream is = getClass().getResourceAsStream(editorThemePath)) {
-			editorTheme = Theme.load(is);
-			return;
-		} catch (Exception e) {
-			LOG.error("Failed to load default editor theme: {}", editorThemePath, e);
-			editorTheme = new Theme(new RSyntaxTextArea());
-		}
-	}
-
-	public Theme getEditorTheme() {
-		return editorTheme;
-	}
-
 	private void openSettings() {
 		settingsOpen = true;
 
@@ -1501,12 +1463,12 @@ public class MainWindow extends JFrame {
 
 	private void updateUiSettings() {
 		LafManager.updateLaf(settings);
+		editorThemeManager.setTheme(settings.getEditorTheme());
 
 		Font font = settings.getFont();
 		Font largerFont = font.deriveFont(font.getSize() + 2.f);
 
 		setFont(largerFont);
-		setEditorTheme(settings.getEditorThemePath());
 		tree.setFont(largerFont);
 		tree.setRowHeight(-1);
 
@@ -1535,6 +1497,7 @@ public class MainWindow extends JFrame {
 		heapUsageBar.reset();
 		closeAll();
 
+		editorThemeManager.unload();
 		dispose();
 		System.exit(0);
 	}
@@ -1752,6 +1715,10 @@ public class MainWindow extends JFrame {
 
 	public CacheManager getCacheManager() {
 		return cacheManager;
+	}
+
+	public EditorThemeManager getEditorThemeManager() {
+		return editorThemeManager;
 	}
 
 	public JadxGuiEventsImpl events() {

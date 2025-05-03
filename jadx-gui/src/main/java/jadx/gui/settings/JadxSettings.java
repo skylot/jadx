@@ -41,7 +41,6 @@ import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
-import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
@@ -73,7 +72,11 @@ public class JadxSettings extends JadxCLIArgs {
 	private List<Path> recentProjects = new ArrayList<>();
 	private String fontStr = "";
 	private String smaliFontStr = "";
-	private String editorThemePath = EditorTheme.getDefaultTheme().getPath();
+	private String editorTheme = "";
+
+	// Deprecated. Keep for backward compatibility
+	private String editorThemePath = "/org/fife/ui/rsyntaxtextarea/themes/default.xml";
+
 	private String lafTheme = LafManager.INITIAL_THEME_NAME;
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
@@ -102,7 +105,6 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
 	private boolean useAlternativeFileDialog = false;
-	private boolean useDynamicEditorTheme = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
@@ -323,14 +325,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setUseAlternativeFileDialog(boolean useAlternativeFileDialog) {
 		this.useAlternativeFileDialog = useAlternativeFileDialog;
-	}
-
-	public boolean isUseDynamicEditorTheme() {
-		return useDynamicEditorTheme;
-	}
-
-	public void setUseDynamicEditorTheme(boolean useDynamicEditorTheme) {
-		this.useDynamicEditorTheme = useDynamicEditorTheme;
 	}
 
 	public String getExcludedPackages() {
@@ -587,12 +581,12 @@ public class JadxSettings extends JadxCLIArgs {
 		this.logLevel = level;
 	}
 
-	public String getEditorThemePath() {
-		return editorThemePath;
+	public String getEditorTheme() {
+		return editorTheme;
 	}
 
-	public void setEditorThemePath(String editorThemePath) {
-		this.editorThemePath = editorThemePath;
+	public void setEditorTheme(String editorTheme) {
+		this.editorTheme = editorTheme;
 	}
 
 	public String getLafTheme() {

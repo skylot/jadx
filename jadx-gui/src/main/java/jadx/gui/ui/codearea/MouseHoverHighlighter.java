@@ -3,7 +3,7 @@ package jadx.gui.ui.codearea;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
-import javax.swing.text.Highlighter;
+import javax.swing.text.Caret;
 
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rtextarea.SmartHighlightPainter;
@@ -19,7 +19,7 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 
 	private final CodeArea codeArea;
 	private final CodeLinkGenerator codeLinkGenerator;
-	private final Highlighter.HighlightPainter highlighter;
+	private final SmartHighlightPainter highlighter;
 
 	private Object tag;
 	private int highlightedTokenOffset = -1;
@@ -27,7 +27,12 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 	public MouseHoverHighlighter(CodeArea codeArea, CodeLinkGenerator codeLinkGenerator) {
 		this.codeArea = codeArea;
 		this.codeLinkGenerator = codeLinkGenerator;
-		this.highlighter = new SmartHighlightPainter(codeArea.getMarkOccurrencesColor());
+		this.highlighter = new SmartHighlightPainter();
+		loadSettings();
+	}
+
+	public void loadSettings() {
+		highlighter.setPaint(codeArea.getMarkOccurrencesColor());
 	}
 
 	@Override
@@ -39,6 +44,11 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 
 	private boolean addHighlight(MouseEvent e) {
 		if (e.getModifiersEx() != 0) {
+			return false;
+		}
+		Caret caret = codeArea.getCaret();
+		if (caret.getDot() != caret.getMark()) {
+			// selection in action, highlight will interfere with selection
 			return false;
 		}
 		try {

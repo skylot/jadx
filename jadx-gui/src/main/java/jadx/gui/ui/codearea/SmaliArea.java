@@ -26,7 +26,6 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
 import org.fife.ui.rsyntaxtextarea.Style;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.GutterIconInfo;
 import org.fife.ui.rtextarea.IconRowHeader;
@@ -122,7 +121,7 @@ public final class SmaliArea extends AbstractCodeArea {
 		if (model != null) {
 			model.unload();
 		}
-		model = shouldUseSmaliPrinterV2() ? new DebugModel() : new NormalModel();
+		model = shouldUseSmaliPrinterV2() ? new DebugModel() : new NormalModel(this);
 	}
 
 	public void scrollToDebugPos(int pos) {
@@ -175,11 +174,8 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	private class NormalModel extends SmaliModel {
 
-		public NormalModel() {
-			if (!getContentPanel().getMainWindow().getSettings().isUseDynamicEditorTheme()) {
-				Theme theme = getContentPanel().getMainWindow().getEditorTheme();
-				setSyntaxScheme(theme.scheme);
-			}
+		public NormalModel(SmaliArea smaliArea) {
+			getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
 
@@ -200,7 +196,7 @@ public final class SmaliArea extends AbstractCodeArea {
 		private Object runningHighlightTag = null; // running line
 		private final SmaliV2Style smaliV2Style = new SmaliV2Style(SmaliArea.this);
 		private final Map<Integer, BreakpointLine> bpMap = new HashMap<>();
-		private final PropertyChangeListener listener = evt -> {
+		private final PropertyChangeListener schemeListener = evt -> {
 			if (smaliV2Style.refreshTheme()) {
 				setSyntaxScheme(smaliV2Style);
 			}
@@ -209,7 +205,7 @@ public final class SmaliArea extends AbstractCodeArea {
 		public DebugModel() {
 			loadV2Style();
 			setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_6502);
-			addPropertyChangeListener(SYNTAX_SCHEME_PROPERTY, listener);
+			addPropertyChangeListener(SYNTAX_SCHEME_PROPERTY, schemeListener);
 			regBreakpointEvents();
 		}
 
@@ -229,7 +225,7 @@ public final class SmaliArea extends AbstractCodeArea {
 
 		@Override
 		public void unload() {
-			removePropertyChangeListener(listener);
+			removePropertyChangeListener(schemeListener);
 			removeLineHighlight(runningHighlightTag);
 			UiUtils.removeKeyBinding(SmaliArea.this, bpShortcut, "set a break point");
 			BreakpointManager.removeListener((JClass) node);
@@ -316,11 +312,9 @@ public final class SmaliArea extends AbstractCodeArea {
 		}
 
 		private class SmaliV2Style extends SyntaxScheme {
-			Theme curTheme;
-
 			public SmaliV2Style(SmaliArea smaliArea) {
 				super(true);
-				curTheme = smaliArea.getContentPanel().getMainWindow().getEditorTheme();
+				smaliArea.getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
 				updateTheme();
 			}
 
@@ -329,13 +323,8 @@ public final class SmaliArea extends AbstractCodeArea {
 			}
 
 			public boolean refreshTheme() {
-				if (getContentPanel().getMainWindow().getSettings().isUseDynamicEditorTheme()) {
-					return false;
-				}
-				Theme theme = getContentPanel().getMainWindow().getEditorTheme();
-				boolean refresh = theme != curTheme;
+				boolean refresh = getSyntaxScheme() != this;
 				if (refresh) {
-					curTheme = theme;
 					updateTheme();
 				}
 				return refresh;

@@ -9,7 +9,6 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.apache.commons.lang3.StringUtils;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import jadx.api.ResourcesLoader;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.UiUtils;
 
@@ -85,12 +85,12 @@ public class HexArea extends AbstractCodeArea {
 	}
 
 	private void applyTheme() {
-		Font font = getContentPanel().getMainWindow().getSettings().getSmaliFont();
+		MainWindow mainWindow = getContentPanel().getMainWindow();
+		mainWindow.getEditorThemeManager().apply(this);
+		Font font = mainWindow.getSettings().getSmaliFont();
 		setFont(font);
-
-		Theme theme = contentPanel.getMainWindow().getEditorTheme();
 		if (hexPreviewPanel != null) {
-			hexPreviewPanel.applyTheme(theme, font);
+			hexPreviewPanel.applyTheme(this, font);
 		}
 	}
 
