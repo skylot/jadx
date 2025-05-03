@@ -1319,24 +1319,12 @@ public class MainWindow extends JFrame {
 		});
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				if (SwingUtilities.isLeftMouseButton(e)) {
-					int clickActionNum = e.getClickCount();
-					// open tab by one click mouse uf used preview tab mode, like IntelliJ Idea
-					if (getSettings().isEnablePreviewTab() && clickActionNum == 1) {
-						if (!nodeClickAction(getJNodeUnderMouse(e))) {
-							// click ignored -> switch to focusable mode
-							tree.setFocusable(true);
-							tree.requestFocus();
-						}
-					}
-					// open tab by double-clicking, standard option on all ide/code editors
-					if (clickActionNum == 2) {
-						if (!nodeClickAction(getJNodeUnderMouse(e))) {
-							// click ignored -> switch to focusable mode
-							tree.setFocusable(true);
-							tree.requestFocus();
-						}
+					if (!nodeClickAction(getJNodeUnderMouse(e))) {
+						// click ignored -> switch to focusable mode
+						tree.setFocusable(true);
+						tree.requestFocus();
 					}
 				} else if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
