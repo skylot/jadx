@@ -32,7 +32,7 @@ public class TabsController {
 	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
-
+	private boolean openedFromTree;
 	private @Nullable TabBlueprint selectedTab;
 
 	public TabsController(MainWindow mainWindow) {
@@ -57,15 +57,20 @@ public class TabsController {
 	}
 
 	public TabBlueprint openTab(JNode node) {
-		return openTab(node, false);
+		return openTab(node, false, false);
 	}
 
 	public TabBlueprint openTab(JNode node, boolean hidden) {
+		return openTab(node, hidden, false);
+	}
+
+	public TabBlueprint openTab(JNode node, boolean hidden, boolean preview) {
 		TabBlueprint blueprint = getTabByNode(node);
 		if (blueprint == null) {
 			TabBlueprint newBlueprint = new TabBlueprint(node);
-			tabsMap.put(node, newBlueprint);
 			newBlueprint.setHidden(hidden);
+			newBlueprint.setPreviewTab(preview);
+			tabsMap.put(node, newBlueprint);
 			listeners.forEach(l -> l.onTabOpen(newBlueprint));
 			if (hidden) {
 				listeners.forEach(l -> l.onTabVisibilityChange(newBlueprint));
@@ -76,20 +81,46 @@ public class TabsController {
 		return blueprint;
 	}
 
+	public TabBlueprint previewTab(JNode node) {
+		TabBlueprint blueprint = getPreviewTab();
+		if (blueprint != null) {
+			closeTabForce(blueprint);
+		}
+
+		blueprint = openTab(node, false, true);
+
+		return blueprint;
+	}
+
 	public void selectTab(JNode node) {
+		selectTab(node, openedFromTree);
+	}
+
+	public void selectTab(JNode node, boolean fromTree) {
 		if (selectedTab != null && selectedTab.getNode() == node) {
 			// already selected
 			return;
 		}
-		TabBlueprint blueprint = openTab(node);
-		selectedTab = blueprint;
-		listeners.forEach(l -> l.onTabSelect(blueprint));
+		if (mainWindow.getSettings().isEnablePreviewTab() && fromTree) {
+			selectedTab = previewTab(node);
+		} else {
+			selectedTab = openTab(node);
+		}
+		listeners.forEach(l -> l.onTabSelect(selectedTab));
 	}
 
 	/**
 	 * Jump to node definition
 	 */
 	public void codeJump(JNode node) {
+		codeJump(node, false);
+	}
+
+	/**
+	 * Jump to node definition
+	 */
+	public void codeJump(JNode node, boolean fromTree) {
+		openedFromTree = fromTree;
 		JClass parentCls = node.getJParent();
 		if (parentCls != null) {
 			JavaClass cls = node.getJParent().getCls();
@@ -296,6 +327,11 @@ public class TabsController {
 		return tabsMap.values().stream()
 				.filter(TabBlueprint::isBookmarked)
 				.collect(Collectors.toUnmodifiableList());
+	}
+
+	public TabBlueprint getPreviewTab() {
+		return tabsMap.values().stream()
+				.filter(TabBlueprint::isPreviewTab).findFirst().orElse(null);
 	}
 
 	public void restoreEditorViewState(EditorViewState viewState) {
