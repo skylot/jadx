@@ -32,7 +32,6 @@ public class TabsController {
 	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
-	private boolean openedFromTree;
 	private @Nullable TabBlueprint selectedTab;
 
 	public TabsController(MainWindow mainWindow) {
@@ -93,7 +92,7 @@ public class TabsController {
 	}
 
 	public void selectTab(JNode node) {
-		selectTab(node, openedFromTree);
+		selectTab(node, false);
 	}
 
 	public void selectTab(JNode node, boolean fromTree) {
@@ -120,7 +119,6 @@ public class TabsController {
 	 * Jump to node definition
 	 */
 	public void codeJump(JNode node, boolean fromTree) {
-		openedFromTree = fromTree;
 		JClass parentCls = node.getJParent();
 		if (parentCls != null) {
 			JavaClass cls = node.getJParent().getCls();
@@ -128,23 +126,23 @@ public class TabsController {
 			JavaClass codeParent = cls.getTopParentClass();
 			if (!Objects.equals(codeParent, origTopCls)) {
 				JClass jumpCls = mainWindow.getCacheObject().getNodeCache().makeFrom(codeParent);
-				loadCodeWithUIAction(jumpCls, () -> jumpToInnerClass(node, codeParent, jumpCls));
+				loadCodeWithUIAction(jumpCls, () -> jumpToInnerClass(node, codeParent, jumpCls, fromTree));
 				return;
 			}
 		}
 
 		// Not an inline node, jump normally
 		if (node.getPos() > 0) {
-			codeJump(new JumpPosition(node));
+			codeJump(new JumpPosition(node), fromTree);
 			return;
 		}
 		if (node.getRootClass() == null) {
 			// not a class, select tab without position scroll
-			selectTab(node);
+			selectTab(node, fromTree);
 			return;
 		}
 		// node need loading
-		loadCodeWithUIAction(node.getRootClass(), () -> codeJump(new JumpPosition(node)));
+		loadCodeWithUIAction(node.getRootClass(), () -> codeJump(new JumpPosition(node), fromTree));
 	}
 
 	private void loadCodeWithUIAction(JClass cls, Runnable action) {
@@ -160,12 +158,12 @@ public class TabsController {
 	/**
 	 * Search and jump to original node in jumpCls
 	 */
-	private void jumpToInnerClass(JNode node, JavaClass codeParent, JClass jumpCls) {
+	private void jumpToInnerClass(JNode node, JavaClass codeParent, JClass jumpCls, boolean fromTree) {
 		codeParent.getCodeInfo().getCodeMetadata().searchDown(0, (pos, ann) -> {
 			if (ann.getAnnType() == ICodeAnnotation.AnnType.DECLARATION) {
 				ICodeNodeRef declNode = ((NodeDeclareRef) ann).getNode();
 				if (declNode.equals(node.getJavaNode().getCodeNodeRef())) {
-					codeJump(new JumpPosition(jumpCls, pos));
+					codeJump(new JumpPosition(jumpCls, pos), fromTree);
 					return true;
 				}
 			}
@@ -173,13 +171,17 @@ public class TabsController {
 		});
 	}
 
+	public void codeJump(JumpPosition pos) {
+		codeJump(pos, false);
+	}
+
 	/**
 	 * Prefer {@link TabsController#codeJump(JNode)} method
 	 */
-	public void codeJump(JumpPosition pos) {
+	public void codeJump(JumpPosition pos, boolean fromTree) {
 		JumpPosition currentPosition = mainWindow.getTabbedPane().getCurrentPosition();
 		if (selectedTab == null || selectedTab.getNode() != pos.getNode()) {
-			selectTab(pos.getNode());
+			selectTab(pos.getNode(), fromTree);
 		}
 		listeners.forEach(l -> l.onTabCodeJump(selectedTab, currentPosition, pos));
 	}
