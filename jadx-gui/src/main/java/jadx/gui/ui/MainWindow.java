@@ -624,6 +624,7 @@ public class MainWindow extends JFrame {
 				showLogViewer(LogOptions.allWithLevel(Level.ERROR));
 			}
 		} else {
+			showLogViewer(LogOptions.allWithLevel(Level.WARN));
 			UiUtils.showMessageBox(this, NLS.str("message.no_classes"));
 		}
 	}
