@@ -66,6 +66,7 @@ public class DynamicCodeAreaTheme implements IEditorTheme {
 			scheme.getStyle(Token.RESERVED_WORD).foreground = Color.decode("#569CD6");
 			scheme.getStyle(Token.RESERVED_WORD_2).foreground = dataTypeColor;
 			scheme.getStyle(Token.FUNCTION).foreground = Color.decode("#DCDCAA");
+			scheme.getStyle(Token.ANNOTATION).foreground = Color.decode("#B3AE60");
 			scheme.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground = Color.decode("#D7BA7D");
 			scheme.getStyle(Token.LITERAL_NUMBER_FLOAT).foreground = Color.decode("#D7BA7D");
 			scheme.getStyle(Token.LITERAL_NUMBER_HEXADECIMAL).foreground = Color.decode("#D7BA7D");
