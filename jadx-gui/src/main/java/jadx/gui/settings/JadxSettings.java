@@ -104,6 +104,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean showHeapUsageBar = false;
 	private boolean alwaysSelectOpened = false;
+	private boolean enablePreviewTab = false;
 	private boolean useAlternativeFileDialog = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
@@ -317,6 +318,15 @@ public class JadxSettings extends JadxCLIArgs {
 	public void setAlwaysSelectOpened(boolean alwaysSelectOpened) {
 		this.alwaysSelectOpened = alwaysSelectOpened;
 		partialSync(settings -> settings.alwaysSelectOpened = alwaysSelectOpened);
+	}
+
+	public boolean isEnablePreviewTab() {
+		return enablePreviewTab;
+	}
+
+	public void setEnablePreviewTab(boolean enablePreviewTab) {
+		this.enablePreviewTab = enablePreviewTab;
+		partialSync(settings -> settings.enablePreviewTab = enablePreviewTab);
 	}
 
 	public boolean isUseAlternativeFileDialog() {

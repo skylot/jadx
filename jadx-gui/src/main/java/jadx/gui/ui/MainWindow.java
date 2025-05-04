@@ -878,11 +878,11 @@ public class MainWindow extends JFrame {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
-					tabsController.selectTab(res);
+					tabsController.selectTab(res, true);
 					return true;
 				}
 			} else if (obj instanceof JNode) {
-				tabsController.codeJump((JNode) obj);
+				tabsController.codeJump((JNode) obj, true);
 				return true;
 			}
 		} catch (Exception e) {
@@ -1062,6 +1062,12 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), Icons.FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
+		JCheckBoxMenuItem enablePreviewTabMenuItem = new JCheckBoxMenuItem(NLS.str("menu.enable_preview_tab"));
+		enablePreviewTabMenuItem.setState(settings.isEnablePreviewTab());
+		enablePreviewTabMenuItem.addActionListener(event -> {
+			settings.setEnablePreviewTab(!settings.isEnablePreviewTab());
+		});
+
 		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
 		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
 		heapUsageBarMenuItem.addActionListener(event -> {
@@ -1153,6 +1159,7 @@ public class MainWindow extends JFrame {
 		view.add(quickTabsAction.makeCheckBoxMenuItem());
 		view.add(flatPkgMenuItem);
 		view.addSeparator();
+		view.add(enablePreviewTabMenuItem);
 		view.add(syncAction);
 		view.add(alwaysSelectOpened);
 		view.addSeparator();

@@ -9,6 +9,7 @@ public class TabBlueprint {
 	private boolean pinned;
 	private boolean bookmarked;
 	private boolean hidden;
+	private boolean previewTab;
 
 	public TabBlueprint(JNode node) {
 		this.node = Objects.requireNonNull(node);
@@ -50,6 +51,14 @@ public class TabBlueprint {
 		this.hidden = hidden;
 	}
 
+	public boolean isPreviewTab() {
+		return previewTab;
+	}
+
+	public void setPreviewTab(boolean previewTab) {
+		this.previewTab = previewTab;
+	}
+
 	@Override
 	public final boolean equals(Object o) {
 		if (this == o) {
@@ -68,10 +77,11 @@ public class TabBlueprint {
 
 	@Override
 	public String toString() {
-		return "TabBlueprint{node=" + node
-				+ ", bookmarked=" + bookmarked
-				+ ", pinned=" + pinned
-				+ ", hidden=" + hidden
-				+ '}';
+		return "TabBlueprint{" + "node="
+				+ node + ", pinned="
+				+ pinned + ", bookmarked="
+				+ bookmarked + ", hidden="
+				+ hidden + ", previewTab="
+				+ previewTab + '}';
 	}
 }
