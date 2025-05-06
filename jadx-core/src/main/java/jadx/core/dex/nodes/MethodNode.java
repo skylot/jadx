@@ -20,7 +20,7 @@ import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
-import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
+import jadx.api.plugins.input.data.attributes.types.MethodThrowsAttr;
 import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -477,7 +477,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	@Override
 	public List<ArgType> getThrows() {
-		ExceptionsAttr exceptionsAttr = get(JadxAttrType.EXCEPTIONS);
+		MethodThrowsAttr exceptionsAttr = get(JadxAttrType.METHOD_THROWS);
 		if (exceptionsAttr == null) {
 			return Collections.emptyList();
 		}

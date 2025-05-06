@@ -8,6 +8,7 @@ import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
 import jadx.api.plugins.input.data.attributes.types.MethodParametersAttr;
+import jadx.api.plugins.input.data.attributes.types.MethodThrowsAttr;
 import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 
@@ -30,6 +31,8 @@ public final class JadxAttrType<T extends IJadxAttribute> implements IJadxAttrTy
 	public static final JadxAttrType<AnnotationDefaultAttr> ANNOTATION_DEFAULT = bind();
 	public static final JadxAttrType<ExceptionsAttr> EXCEPTIONS = bind();
 	public static final JadxAttrType<MethodParametersAttr> METHOD_PARAMETERS = bind();
+
+	public static final JadxAttrType<MethodThrowsAttr> METHOD_THROWS = bind();
 
 	private static <T extends IJadxAttribute> JadxAttrType<T> bind() {
 		return new JadxAttrType<>();

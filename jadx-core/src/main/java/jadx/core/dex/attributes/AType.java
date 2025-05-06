@@ -2,6 +2,7 @@ package jadx.core.dex.attributes;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.input.data.attributes.types.MethodThrowsAttr;
 import jadx.core.codegen.utils.CodeComment;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
@@ -76,6 +77,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
 	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
 	public static final AType<CodeFeaturesAttr> METHOD_CODE_FEATURES = new AType<>();
+	public static final AType<MethodThrowsAttr> METHOD_THROWS = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();

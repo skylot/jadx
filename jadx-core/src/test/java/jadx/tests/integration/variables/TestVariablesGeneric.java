@@ -27,7 +27,7 @@ public class TestVariablesGeneric extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.doesNotContain("iVar2")
-				.containsOne("public static <T> j a(i<? super T> iVar, c<T> cVar) {")
+				.containsOne("public static <T> j a(i<? super T> iVar, c<T> cVar) throws OnErrorFailedException {")
 				.containsOne("if (iVar == null) {")
 				.countString(2, "} catch (Throwable th");
 	}
