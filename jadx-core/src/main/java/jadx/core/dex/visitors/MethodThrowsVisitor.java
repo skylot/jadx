@@ -8,22 +8,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
-import jadx.api.plugins.input.data.attributes.types.MethodThrowsAttr;
 import jadx.core.Consts;
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodThrowsAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
@@ -47,9 +46,7 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class MethodThrowsVisitor extends AbstractVisitor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MethodThrowsVisitor.class);
-
-	enum ExceptionType {
+	private enum ExceptionType {
 		THROWS_REQUIRED, RUNTIME, UNKNOWN_TYPE, NO_EXCEPTION
 	}
 
@@ -62,7 +59,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		MethodThrowsAttr attr = mth.get(JadxAttrType.METHOD_THROWS);
+		MethodThrowsAttr attr = mth.get(AType.METHOD_THROWS);
 		if (attr == null) {
 			attr = new MethodThrowsAttr(new HashSet<>());
 			mth.addAttr(attr);
@@ -72,89 +69,45 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 			processInstructions(mth);
 		}
 
+		List<ArgType> invalid = new ArrayList<>();
 		ExceptionsAttr exceptions = mth.get(JadxAttrType.EXCEPTIONS);
 		if (exceptions != null && !exceptions.getList().isEmpty()) {
-			for (String throwsAnnotation : exceptions.getList()) {
-				if (throwsAnnotation.startsWith("L") && throwsAnnotation.endsWith(";")) {
-					throwsAnnotation = throwsAnnotation.substring(1, throwsAnnotation.length() - 1).replace('/', '.');
-				}
-				if (validateException(throwsAnnotation) == ExceptionType.NO_EXCEPTION) {
-					mth.addWarnComment("Byte code manipulation detected: skipped illegal throws declaration");
+			for (String throwsTypeStr : exceptions.getList()) {
+				ArgType excType = ArgType.object(throwsTypeStr);
+				if (validateException(excType) == ExceptionType.NO_EXCEPTION) {
+					invalid.add(excType);
 				} else {
-					attr.getList().add(throwsAnnotation);
+					attr.getList().add(excType.getObject());
 				}
 			}
+		}
+		if (!invalid.isEmpty()) {
+			mth.addWarnComment("Byte code manipulation detected: skipped illegal throws declarations: " + invalid);
 		}
 		mergeExceptions(attr.getList());
 	}
 
-	private void mergeExceptions(Set<String> list) {
-		if (list.contains("java.lang.Exception")) {
-			list.removeIf(e -> !e.equals(Consts.CLASS_EXCEPTION));
+	private void mergeExceptions(Set<String> excSet) {
+		if (excSet.contains(Consts.CLASS_EXCEPTION)) {
+			excSet.removeIf(e -> !e.equals(Consts.CLASS_EXCEPTION));
 			return;
 		}
-		if (list.contains("java.lang.Throwable")) {
-			list.removeIf(e -> !e.equals(Consts.CLASS_THROWABLE));
+		if (excSet.contains(Consts.CLASS_THROWABLE)) {
+			excSet.removeIf(e -> !e.equals(Consts.CLASS_THROWABLE));
 			return;
 		}
 		List<String> toRemove = new ArrayList<>();
-		for (String ex1 : list) {
-			for (String ex2 : list) {
+		for (String ex1 : excSet) {
+			for (String ex2 : excSet) {
 				if (ex1.equals(ex2)) {
 					continue;
 				}
-				if (isBaseException(ex1, ex2, root)) {
+				if (isBaseException(ex1, ex2)) {
 					toRemove.add(ex1);
 				}
 			}
 		}
-		list.removeAll(toRemove);
-	}
-
-	/**
-	 * @param exception
-	 * @param possibleParent
-	 * @param root
-	 * @return is 'possibleParent' a exception class of 'exception'
-	 */
-	public static boolean isBaseException(String exception, String possibleParent, RootNode root) {
-		ClassNode classNode = root.resolveClass(exception);
-		if (classNode != null) {
-			ArgType superClass = classNode.getSuperClass();
-			if (superClass == null || superClass.getObject().equals(Consts.CLASS_THROWABLE)) {
-				return false;
-			}
-			if (superClass.getObject().equals(possibleParent)) {
-				return true;
-			}
-			return isBaseException(superClass.getObject(), possibleParent, root);
-		}
-		ArgType clspClass = ClassInfo.fromName(root, exception).getType();
-		return isClspBaseExcecption(root, clspClass, possibleParent);
-	}
-
-	/**
-	 * @param root
-	 * @param clspClass
-	 * @param possibleParent
-	 * @return is 'possibleParent' a base exception of 'clspClass'
-	 */
-	private static boolean isClspBaseExcecption(RootNode root, ArgType clspClass, String possibleParent) {
-		ClspClass clsDetails = root.getClsp().getClsDetails(clspClass);
-		if (clsDetails != null) {
-			for (ArgType parent : clsDetails.getParents()) {
-				if (parent.getObject().equals(Consts.CLASS_OBJECT)) {
-					continue;
-				}
-				if (parent.getObject().equals(Consts.CLASS_THROWABLE)) {
-					return false;
-				}
-				if (parent.getObject().equals(possibleParent) || isClspBaseExcecption(root, parent, possibleParent)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		toRemove.forEach(excSet::remove);
 	}
 
 	private void processInstructions(MethodNode mth) throws JadxException {
@@ -183,13 +136,24 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 
 	private void checkInsn(MethodNode mth, InsnNode insn, Set<String> excludedExceptions, boolean skipExceptions) throws JadxException {
 		if (!skipExceptions && insn.getType() == InsnType.THROW && !insn.contains(AFlag.DONT_GENERATE)) {
-			if (insn.getArg(0) instanceof RegisterArg) {
-				RegisterArg regArg = (RegisterArg) insn.getArg(0);
-				ArgType exceptionType = regArg.getSVar().getAssign().getInitType();
+			InsnArg throwArg = insn.getArg(0);
+			if (throwArg instanceof RegisterArg) {
+				RegisterArg regArg = (RegisterArg) throwArg;
+				ArgType exceptionType = regArg.getType();
+				if (exceptionType.equals(ArgType.THROWABLE)) {
+
+					InsnNode assignInsn = regArg.getAssignInsn();
+					if (assignInsn != null
+							&& assignInsn.getType() == InsnType.MOVE_EXCEPTION
+							&& assignInsn.getResult().contains(AFlag.CUSTOM_DECLARE)) {
+						// arg variable is from catch statement, ignore Throwable rethrow
+						return;
+					}
+				}
 				visitThrows(mth, exceptionType);
 			} else {
-				if (insn.getArg(0) instanceof InsnWrapArg) {
-					InsnWrapArg insnWrapArg = (InsnWrapArg) insn.getArg(0);
+				if (throwArg instanceof InsnWrapArg) {
+					InsnWrapArg insnWrapArg = (InsnWrapArg) throwArg;
 					ArgType exceptionType = insnWrapArg.getType();
 					visitThrows(mth, exceptionType);
 				}
@@ -198,31 +162,29 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		}
 
 		if (insn.getType() == InsnType.INVOKE) {
-			final InvokeNode invokeNode = (InvokeNode) insn;
-			final MethodInfo callMth = invokeNode.getCallMth();
-
+			InvokeNode invokeNode = (InvokeNode) insn;
+			MethodInfo callMth = invokeNode.getCallMth();
 			String signature = callMth.makeSignature(true);
-			final ClassInfo classInfo = callMth.getDeclClass();
-			ArgType type = classInfo.getType();
+			ClassInfo classInfo = callMth.getDeclClass();
 
-			ClassNode classNode = root.resolveClass(type);
+			ClassNode classNode = root.resolveClass(classInfo);
 			if (classNode != null) {
 				MethodNode cMth = searchOverriddenMethod(classNode, callMth, signature);
 				if (cMth == null) {
 					return;
 				}
 				visit(cMth);
-				MethodThrowsAttr cAttr = cMth.get(JadxAttrType.METHOD_THROWS);
-				MethodThrowsAttr attr = mth.get(JadxAttrType.METHOD_THROWS);
+				MethodThrowsAttr cAttr = cMth.get(AType.METHOD_THROWS);
+				MethodThrowsAttr attr = mth.get(AType.METHOD_THROWS);
 				if (attr != null && cAttr != null && !cAttr.getList().isEmpty()) {
 					attr.getList().addAll(filterExceptions(cAttr.getList(), excludedExceptions));
 				}
 			} else {
-				ClspClass clsDetails = root.getClsp().getClsDetails(type);
+				ClspClass clsDetails = root.getClsp().getClsDetails(classInfo.getType());
 				if (clsDetails != null) {
 					ClspMethod cMth = searchOverriddenMethod(clsDetails, signature);
 					if (cMth != null && cMth.getThrows() != null && !cMth.getThrows().isEmpty()) {
-						MethodThrowsAttr attr = mth.get(JadxAttrType.METHOD_THROWS);
+						MethodThrowsAttr attr = mth.get(AType.METHOD_THROWS);
 						if (attr != null) {
 							for (ArgType ex : cMth.getThrows()) {
 								attr.getList().add(ex.getObject());
@@ -234,95 +196,60 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void visitThrows(MethodNode mth, ArgType exceptionType) {
-		if (isThrowsRequired(exceptionType)) {
-			String ex = exceptionType.getObject();
-			MethodThrowsAttr attr = mth.get(JadxAttrType.METHOD_THROWS);
-			attr.getList().add(ex);
+	private void visitThrows(MethodNode mth, ArgType excType) {
+		if (excType.isTypeKnown() && isThrowsRequired(mth, excType)) {
+			mth.get(AType.METHOD_THROWS).getList().add(excType.getObject());
 		}
 	}
 
-	private boolean isThrowsRequired(ArgType type) {
-		ClassNode classNode = root.resolveClass(type);
-		if (classNode != null) {
-			return validateException(classNode) == ExceptionType.THROWS_REQUIRED;
-		} else {
-			if (type.isTypeKnown()) {
-				ClspClass clsDetails = root.getClsp().getClsDetails(type);
-				if (clsDetails == null) {
-					LOG.warn("Thrown type has an unknown type hierarchy: {}", type.getObject());
-					return true; // assume an exception
-				}
-				return validateException(clsDetails) == ExceptionType.THROWS_REQUIRED;
-			}
+	private boolean isThrowsRequired(MethodNode mth, ArgType type) {
+		ExceptionType result = validateException(type);
+		if (result == ExceptionType.UNKNOWN_TYPE) {
+			mth.addInfoComment("Thrown type has an unknown type hierarchy: " + type);
+			return true; // assume an exception
 		}
-		return false;
+		return result == ExceptionType.THROWS_REQUIRED;
 	}
 
-	private ExceptionType validateException(String exception) {
-		ClassNode classNode = root.resolveClass(exception);
-		if (classNode != null) {
-			return validateException(classNode);
+	private ExceptionType validateException(ArgType clsType) {
+		if (clsType == null || clsType.equals(ArgType.OBJECT)) {
+			return ExceptionType.NO_EXCEPTION;
 		}
-		ArgType clspClass = ClassInfo.fromName(root, exception).getType();
-		ClspClass clsDetails = root.getClsp().getClsDetails(clspClass);
-		if (clsDetails == null) {
+		if (!clsType.isTypeKnown() || !root.getClsp().isClsKnown(clsType.getObject())) {
 			return ExceptionType.UNKNOWN_TYPE;
 		}
-		return validateException(clsDetails);
-	}
-
-	private ExceptionType validateException(ClspClass clsDetails) {
-		if (clsDetails.getName().equals(Consts.CLASS_THROWABLE) || clsDetails.getName().equals(Consts.CLASS_EXCEPTION)) {
-			return ExceptionType.THROWS_REQUIRED;
-		}
-		if (clsDetails.getName().equals("java.lang.Error") || clsDetails.getName().equals("java.lang.RuntimeException")) {
+		if (isImplements(clsType, ArgType.RUNTIME_EXCEPTION) || isImplements(clsType, ArgType.ERROR)) {
 			return ExceptionType.RUNTIME;
 		}
-		ArgType[] parents = clsDetails.getParents();
-		for (ArgType type : parents) {
-			ClspClass p = root.getClsp().getClsDetails(type);
-			if (p != null) {
-				ExceptionType errorType = validateException(p);
-				if (errorType == ExceptionType.THROWS_REQUIRED
-						|| errorType == ExceptionType.RUNTIME) {
-					return errorType;
-				}
-			}
+		if (isImplements(clsType, ArgType.THROWABLE) || isImplements(clsType, ArgType.EXCEPTION)) {
+			return ExceptionType.THROWS_REQUIRED;
 		}
 		return ExceptionType.NO_EXCEPTION;
 	}
 
-	private ExceptionType validateException(ClassNode classNode) {
-		ArgType superClass = classNode.getSuperClass();
-		if (superClass == null || Consts.CLASS_OBJECT.equals(superClass.toString())) {
-			return ExceptionType.NO_EXCEPTION;
+	/**
+	 * @return is 'possibleParent' a exception class of 'exception'
+	 */
+	private boolean isBaseException(String exception, String possibleParent) {
+		if (exception.equals(possibleParent)) {
+			return true;
 		}
-		if (Consts.CLASS_THROWABLE.equals(superClass.toString()) || Consts.CLASS_EXCEPTION.equals(superClass.toString())) {
-			return ExceptionType.THROWS_REQUIRED;
+		return root.getClsp().isImplements(exception, possibleParent);
+	}
+
+	private boolean isImplements(ArgType type, ArgType baseType) {
+		if (type.equals(baseType)) {
+			return true;
 		}
-		if ("java.lang.Error".equals(superClass.toString()) || "java.lang.RuntimeException".equals(superClass.toString())) {
-			return ExceptionType.RUNTIME;
-		}
-		ClassNode parentClassNode = root.resolveClass(superClass.toString());
-		if (parentClassNode != null) {
-			return validateException(parentClassNode);
-		} else {
-			ArgType type = ClassInfo.fromName(root, superClass.toString()).getType();
-			ClspClass parentClass = root.getClsp().getClsDetails(type);
-			if (parentClass != null) {
-				return validateException(parentClass);
-			}
-			return ExceptionType.NO_EXCEPTION;
-		}
+		return root.getClsp().isImplements(type.getObject(), baseType.getObject());
 	}
 
 	private Collection<String> filterExceptions(Set<String> exceptions, Set<String> excludedExceptions) {
 		Set<String> filteredExceptions = new HashSet<>();
 		for (String exception : exceptions) {
 			boolean filtered = false;
-			for (String exlcuded : excludedExceptions) {
-				filtered = exception.equals(exlcuded) || isBaseException(exception, exlcuded, this.root);
+			for (String excluded : excludedExceptions) {
+				filtered = exception.equals(excluded) || isBaseException(exception, excluded);
 				if (filtered) {
 					break;
 				}
@@ -334,8 +261,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		return filteredExceptions;
 	}
 
-	@Nullable
-	private MethodNode searchOverriddenMethod(ClassNode cls, MethodInfo mth, String signature) {
+	private @Nullable MethodNode searchOverriddenMethod(ClassNode cls, MethodInfo mth, String signature) {
 		// search by exact full signature (with return value) to fight obfuscation (see test
 		// 'TestOverrideWithSameName')
 		String shortId = mth.getShortId();

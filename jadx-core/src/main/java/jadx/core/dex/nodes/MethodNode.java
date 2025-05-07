@@ -20,12 +20,13 @@ import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
-import jadx.api.plugins.input.data.attributes.types.MethodThrowsAttr;
+import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.utils.CodeUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.MethodThrowsAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
@@ -477,11 +478,15 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	@Override
 	public List<ArgType> getThrows() {
-		MethodThrowsAttr exceptionsAttr = get(JadxAttrType.METHOD_THROWS);
-		if (exceptionsAttr == null) {
-			return Collections.emptyList();
+		MethodThrowsAttr throwsAttr = get(AType.METHOD_THROWS);
+		if (throwsAttr != null) {
+			return Utils.collectionMap(throwsAttr.getList(), ArgType::object);
 		}
-		return Utils.collectionMap(exceptionsAttr.getList(), ArgType::object);
+		ExceptionsAttr exceptionsAttr = get(JadxAttrType.EXCEPTIONS);
+		if (exceptionsAttr != null) {
+			return Utils.collectionMap(exceptionsAttr.getList(), ArgType::object);
+		}
+		return Collections.emptyList();
 	}
 
 	/**

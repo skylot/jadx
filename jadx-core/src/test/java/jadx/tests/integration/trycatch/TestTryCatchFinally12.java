@@ -11,8 +11,7 @@ public class TestTryCatchFinally12 extends IntegrationTest {
 	public static class TestCls {
 		private StringBuilder sb;
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public void test1(int excType) throws Throwable {
+		public void test1(int excType) {
 			try {
 				try {
 					call(excType);
@@ -25,8 +24,7 @@ public class TestTryCatchFinally12 extends IntegrationTest {
 			}
 		}
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public void test2(int excType) throws Throwable {
+		public void test2(int excType) {
 			try {
 				try {
 					call(excType);
@@ -38,8 +36,7 @@ public class TestTryCatchFinally12 extends IntegrationTest {
 			}
 		}
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public void test3(int excType) throws Throwable {
+		public void test3(int excType) {
 			try {
 				call(excType);
 			} catch (NullPointerException e) {
@@ -61,8 +58,7 @@ public class TestTryCatchFinally12 extends IntegrationTest {
 			}
 		}
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public String runTest(int testNumber, int excType) throws Throwable {
+		public String runTest(int testNumber, int excType) {
 			sb = new StringBuilder();
 			try {
 				switch (testNumber) {
@@ -82,8 +78,7 @@ public class TestTryCatchFinally12 extends IntegrationTest {
 			return sb.toString();
 		}
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public void check() throws Throwable { // might throw a Throwable for extractFinally = false
+		public void check() {
 			assertThat(runTest(1, 0)).isEqualTo("call-out-finally");
 			assertThat(runTest(1, 1)).isEqualTo("call-npe-catch-out-finally");
 			assertThat(runTest(1, 2)).isEqualTo("call-iae-finally");

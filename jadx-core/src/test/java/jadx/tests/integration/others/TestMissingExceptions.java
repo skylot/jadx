@@ -10,7 +10,6 @@ class TestMissingExceptions extends SmaliTest {
 
 	@Test
 	void test() {
-		allowWarnInCode();
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.countString(6, "FileNotFoundException");

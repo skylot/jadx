@@ -6,7 +6,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestThrows extends IntegrationTest {
 
@@ -45,7 +46,7 @@ public class TestThrows extends IntegrationTest {
 			throw new FileNotFoundException("");
 		}
 
-		public void mergeThrownExcetions() throws IOException {
+		public void mergeThrownExceptions() throws IOException {
 			exceptionSource();
 		}
 
@@ -75,12 +76,17 @@ public class TestThrows extends IntegrationTest {
 
 	@Test
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(MissingThrowsTest.class))
+		assertThat(getClassNode(MissingThrowsTest.class))
 				.code()
-				.contains("throwCustomException() throws TestThrows$MissingThrowsTest {", "throwException() throws Exception {",
-						"throwRuntimeException1() {", "throwRuntimeException2() {",
-						"throwError() {", "throwError2() {", "throwThrowable() throws Throwable {",
-						"exceptionSource() throws FileNotFoundException {", "mergeThrownExcetions() throws IOException {",
-						"rethrowThrowable() {");
+				.containsOne("throwCustomException() throws TestThrows$MissingThrowsTest {")
+				.containsOne("throwException() throws Exception {")
+				.containsOne("throwRuntimeException1() {")
+				.containsOne("throwRuntimeException2() {")
+				.containsOne("throwError() {")
+				.containsOne("throwError2() {")
+				.containsOne("throwThrowable() throws Throwable {")
+				.containsOne("exceptionSource() throws FileNotFoundException {")
+				.containsOne("mergeThrownExceptions() throws IOException {")
+				.containsOne("rethrowThrowable() {");
 	}
 }

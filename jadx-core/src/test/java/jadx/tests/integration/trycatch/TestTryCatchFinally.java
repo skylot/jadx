@@ -32,8 +32,7 @@ public class TestTryCatchFinally extends IntegrationTest {
 			return (obj instanceof String);
 		}
 
-		@SuppressWarnings("checkstyle:illegalThrows")
-		public void check() throws Throwable { // might throw a Throwable for extractFinally = false
+		public void check() {
 			assertThat(test("a")).isTrue();
 			assertThat(test(null)).isTrue();
 		}

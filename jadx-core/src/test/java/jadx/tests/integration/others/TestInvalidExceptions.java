@@ -15,6 +15,7 @@ class TestInvalidExceptions extends SmaliTest {
 				.code()
 				.containsOne("invalidException() throws FileNotFoundException {")
 				.containsOne("Byte code manipulation detected: skipped illegal throws declaration")
+				.removeBlockComments()
 				.doesNotContain("String");
 	}
 }

@@ -1,19 +1,19 @@
-package jadx.api.plugins.input.data.attributes.types;
+package jadx.core.dex.attributes.nodes;
 
 import java.util.Set;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
-import jadx.api.plugins.input.data.attributes.IJadxAttribute;
-import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
+import jadx.core.dex.attributes.AType;
 
 public class MethodThrowsAttr extends PinnedAttribute {
-	@Override
-	public IJadxAttrType<? extends IJadxAttribute> getAttrType() {
-		return JadxAttrType.METHOD_THROWS;
-	}
-
 	private final Set<String> list;
+
+	private boolean visited;
+
+	public MethodThrowsAttr(Set<String> list) {
+		this.list = list;
+	}
 
 	public boolean isVisited() {
 		return visited;
@@ -23,19 +23,18 @@ public class MethodThrowsAttr extends PinnedAttribute {
 		this.visited = visited;
 	}
 
-	private boolean visited;
-
-	public MethodThrowsAttr(Set<String> list) {
-		this.list = list;
-	}
-
 	public Set<String> getList() {
 		return list;
 	}
 
 	@Override
+	public IJadxAttrType<MethodThrowsAttr> getAttrType() {
+		return AType.METHOD_THROWS;
+	}
+
+	@Override
 	public String toString() {
-		return "EXCEPTIONS:" + list;
+		return "THROWS:" + list;
 	}
 
 }
