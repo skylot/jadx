@@ -15,7 +15,7 @@ dependencies {
 	implementation(kotlin("scripting-dependencies-maven"))
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-	implementation("io.github.oshai:kotlin-logging-jvm:7.0.6")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-smali-input"))

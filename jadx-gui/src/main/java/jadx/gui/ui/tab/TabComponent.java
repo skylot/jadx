@@ -75,7 +75,7 @@ public class TabComponent extends JPanel {
 		icon = new OverlayIcon(node.getIcon());
 
 		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
-		label.setFont(getLabelFont());
+		makeLabelFont();
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {
 			setToolTipText(toolTip);
@@ -172,6 +172,16 @@ public class TabComponent extends JPanel {
 	private void toggleBookmark() {
 		boolean bookmarked = !getBlueprint().isBookmarked();
 		tabsController.setTabBookmarked(getNode(), bookmarked);
+	}
+
+	private void makeLabelFont() {
+		boolean previewTab = getBlueprint().isPreviewTab();
+		if (previewTab) {
+			Font newLabelFont = new Font(label.getFont().getName(), Font.ITALIC, label.getFont().getSize());
+			label.setFont(newLabelFont);
+		} else {
+			label.setFont(getLabelFont());
+		}
 	}
 
 	private void addListenerForDnd() {

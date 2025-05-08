@@ -67,7 +67,8 @@ import jadx.gui.settings.ui.font.JadxFontDialog;
 import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.ui.codearea.theme.EditorThemeManager;
+import jadx.gui.ui.codearea.theme.ThemeIdAndName;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
@@ -351,19 +352,15 @@ public class JadxSettingsWindow extends JDialog {
 		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
 		JButton smaliFontBtn = new JButton(NLS.str("preferences.select_smali_font"));
 
-		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
-		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
-		for (EditorTheme theme : editorThemes) {
-			if (theme.getPath().equals(settings.getEditorThemePath())) {
-				themesCbx.setSelectedItem(theme);
-				break;
+		EditorThemeManager editorThemeManager = mainWindow.getEditorThemeManager();
+		JComboBox<ThemeIdAndName> themesCbx = new JComboBox<>(editorThemeManager.getThemeIdNameArray());
+		themesCbx.setSelectedItem(editorThemeManager.getCurrentThemeIdName());
+		themesCbx.addActionListener(evt -> {
+			ThemeIdAndName selected = (ThemeIdAndName) themesCbx.getSelectedItem();
+			if (selected != null) {
+				settings.setEditorTheme(selected.getId());
+				mainWindow.loadSettings();
 			}
-		}
-		themesCbx.addActionListener(e -> {
-			int i = themesCbx.getSelectedIndex();
-			EditorTheme editorTheme = editorThemes[i];
-			settings.setEditorThemePath(editorTheme.getPath());
-			mainWindow.loadSettings();
 		});
 
 		JComboBox<String> lafCbx = new JComboBox<>(LafManager.getThemes());

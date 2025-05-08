@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.core.utils.files.FileUtils;
 import jadx.plugins.input.dex.sections.DexConsts;
 import jadx.plugins.input.dex.sections.DexHeaderV41;
 import jadx.plugins.input.dex.utils.DexCheckSum;
@@ -69,10 +71,16 @@ public class DexFileLoader {
 			if (in.read(magic) != magic.length) {
 				return Collections.emptyList();
 			}
-			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC) || fileName.endsWith(".dex")) {
+			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
 				in.reset();
 				byte[] content = readAllBytes(in);
 				return loadDexReaders(fileName, content);
+			}
+			if (fileName.endsWith(".dex")) {
+				// report invalid magic in '.dex' file
+				String hex = FileUtils.bytesToHex(magic);
+				String str = new String(magic, StandardCharsets.US_ASCII);
+				LOG.warn("Invalid DEX magic: 0x{}(\"{}\") in file: {}", hex, str, fileName);
 			}
 			if (file != null) {
 				// allow only top level zip files

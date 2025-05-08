@@ -46,6 +46,7 @@ public final class CodeArea extends AbstractCodeArea {
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	private @Nullable ICodeInfo cachedCodeInfo;
+	private @Nullable MouseHoverHighlighter mouseHoverHighlighter;
 	private final ShortcutsController shortcutsController;
 
 	CodeArea(ContentPanel contentPanel, JNode node) {
@@ -77,7 +78,16 @@ public final class CodeArea extends AbstractCodeArea {
 		});
 
 		if (isJavaCode) {
-			addMouseMotionListener(new MouseHoverHighlighter(this, codeLinkGenerator));
+			mouseHoverHighlighter = new MouseHoverHighlighter(this, codeLinkGenerator);
+			addMouseMotionListener(mouseHoverHighlighter);
+		}
+	}
+
+	@Override
+	public void loadSettings() {
+		super.loadSettings();
+		if (mouseHoverHighlighter != null) {
+			mouseHoverHighlighter.loadSettings();
 		}
 	}
 
