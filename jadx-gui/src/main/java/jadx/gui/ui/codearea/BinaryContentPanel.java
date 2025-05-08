@@ -9,9 +9,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-import jadx.gui.ui.hexviewer.HexPreviewPanel;
-import org.exbin.bined.EditMode;
-import org.exbin.auxiliary.binary_data.ByteArrayEditableData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +18,7 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.hexviewer.HexPreviewPanel;
 import jadx.gui.ui.tab.TabbedPane;
 
 public class BinaryContentPanel extends AbstractCodeContentPanel {

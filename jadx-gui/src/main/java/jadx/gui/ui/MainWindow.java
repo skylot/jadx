@@ -66,9 +66,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import jadx.gui.ui.dialog.GotoAddressDialog;
-import jadx.gui.ui.hexviewer.HexInspectorPanel;
-import jadx.gui.ui.hexviewer.HexPreviewPanel;
 import org.exbin.bined.swing.basic.CodeArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,11 +133,14 @@ import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.ExceptionDialog;
+import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
+import jadx.gui.ui.hexviewer.HexInspectorPanel;
+import jadx.gui.ui.hexviewer.HexPreviewPanel;
 import jadx.gui.ui.menu.HiddenMenuItem;
 import jadx.gui.ui.menu.JadxMenu;
 import jadx.gui.ui.menu.JadxMenuBar;
@@ -987,20 +987,20 @@ public class MainWindow extends JFrame {
 					break;
 				case HEX_VIEWER_FIND:
 					if (hexEditor.hasSelection()) {
-						//FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
+						// FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
 					} else {
-						//FindReplacePanel.getInstance().showDialog(this, hexEditor);
+						// FindReplacePanel.getInstance().showDialog(this, hexEditor);
 					}
 					break;
 				case HEX_VIEWER_FIND_NEXT:
-					//if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
-						Toolkit.getDefaultToolkit().beep();
-					//}
+					// if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
+					Toolkit.getDefaultToolkit().beep();
+					// }
 					break;
 				case HEX_VIEWER_FIND_PREVIOUS:
-					//if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
-						Toolkit.getDefaultToolkit().beep();
-					//}
+					// if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
+					Toolkit.getDefaultToolkit().beep();
+					// }
 					break;
 				case HEX_VIEWER_COPY_HEX:
 					hexPreviewPanel.performCopyAsCode();

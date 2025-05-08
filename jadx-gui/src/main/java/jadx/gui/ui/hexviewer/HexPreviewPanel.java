@@ -1,19 +1,5 @@
 package jadx.gui.ui.hexviewer;
 
-import jadx.gui.settings.JadxSettings;
-import org.exbin.auxiliary.binary_data.BinaryData;
-import org.exbin.auxiliary.binary_data.ByteArrayEditableData;
-import org.exbin.bined.CaretMovedListener;
-import org.exbin.bined.CodeAreaCaretPosition;
-import org.exbin.bined.EditMode;
-import org.exbin.bined.basic.BasicCodeAreaZone;
-import org.exbin.bined.swing.basic.CodeArea;
-
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JViewport;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -24,6 +10,22 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JViewport;
+
+import org.exbin.auxiliary.binary_data.BinaryData;
+import org.exbin.auxiliary.binary_data.ByteArrayEditableData;
+import org.exbin.bined.CaretMovedListener;
+import org.exbin.bined.CodeAreaCaretPosition;
+import org.exbin.bined.EditMode;
+import org.exbin.bined.basic.BasicCodeAreaZone;
+import org.exbin.bined.swing.basic.CodeArea;
+
+import jadx.gui.settings.JadxSettings;
 
 public class HexPreviewPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -210,7 +212,6 @@ public class HexPreviewPanel extends JPanel {
 		editor.cut();
 	}
 
-
 	public void performCopy() {
 		editor.copy();
 	}
@@ -219,26 +220,21 @@ public class HexPreviewPanel extends JPanel {
 		editor.copyAsCode();
 	}
 
-
 	public void performPaste() {
 		editor.paste();
 	}
-
 
 	public void performDelete() {
 		editor.delete();
 	}
 
-
 	public void performSelectAll() {
 		editor.selectAll();
 	}
 
-
 	public boolean isSelection() {
 		return editor.hasSelection();
 	}
-
 
 	public boolean isEditable() {
 		return editor.isEditable();

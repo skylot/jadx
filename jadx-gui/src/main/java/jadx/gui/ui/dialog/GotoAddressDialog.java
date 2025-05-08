@@ -1,11 +1,8 @@
 package jadx.gui.ui.dialog;
 
-import org.exbin.bined.capability.CaretCapable;
-import org.exbin.bined.capability.ScrollingCapable;
-import org.exbin.bined.swing.CodeAreaCore;
-import org.exbin.bined.swing.basic.CodeArea;
-
 import javax.swing.JOptionPane;
+
+import org.exbin.bined.swing.basic.CodeArea;
 
 public class GotoAddressDialog {
 

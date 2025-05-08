@@ -1,13 +1,5 @@
 package jadx.gui.ui.hexviewer;
 
-import org.exbin.bined.CaretMovedListener;
-import org.exbin.bined.CodeAreaSection;
-import org.exbin.bined.DataChangedListener;
-import org.exbin.bined.SelectionChangedListener;
-import org.exbin.bined.SelectionRange;
-import org.exbin.bined.basic.BasicCodeAreaSection;
-import org.exbin.bined.swing.basic.CodeArea;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -18,6 +10,14 @@ import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
 import javax.swing.UIManager;
+
+import org.exbin.bined.CaretMovedListener;
+import org.exbin.bined.CodeAreaSection;
+import org.exbin.bined.DataChangedListener;
+import org.exbin.bined.SelectionChangedListener;
+import org.exbin.bined.SelectionRange;
+import org.exbin.bined.basic.BasicCodeAreaSection;
+import org.exbin.bined.swing.basic.CodeArea;
 
 public class HexEditorHeader extends JComponent {
 	private static final long serialVersionUID = 1L;
@@ -186,8 +186,8 @@ public class HexEditorHeader extends JComponent {
 		currentX += fm.stringWidth(ses) + cw; // end + larger space
 
 		// Draw Divider After Sel Range
-		int dividerTopY =  i.top;
-		int dividerHeight =  h;
+		int dividerTopY = i.top;
+		int dividerHeight = h;
 		g.setColor(separatorForeground);
 		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
 		currentX += cw; // Add larger space after the divider
@@ -250,4 +250,3 @@ public class HexEditorHeader extends JComponent {
 		return String.format("%08X", address);
 	}
 }
-
