@@ -9,6 +9,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import jadx.gui.ui.hexviewer.HexPreviewPanel;
+import org.exbin.bined.EditMode;
+import org.exbin.auxiliary.binary_data.ByteArrayEditableData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +21,12 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.hexeditor.editor.JHexEditor;
-import jadx.gui.ui.hexeditor.editor.JHexEditorColors;
-import jadx.gui.ui.hexeditor.editor.JHexEditorSuite;
 import jadx.gui.ui.tab.TabbedPane;
 
 public class BinaryContentPanel extends AbstractCodeContentPanel {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryContentPanel.class);
 	private final transient CodePanel textCodePanel;
-	private final transient JHexEditorSuite hexCodePanel;
+	private final transient HexPreviewPanel hexPreviewPanel;
 	private final transient JTabbedPane areaTabbedPane;
 
 	public BinaryContentPanel(TabbedPane panel, JNode jnode) {
@@ -42,15 +42,8 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		} else {
 			textCodePanel = null;
 		}
-		JHexEditor hexEditor = new JHexEditor();
-		hexEditor.setReadOnly(true);
-
-		hexEditor.setExtendBorders(true);
-		hexEditor.setCharset(StandardCharsets.UTF_8.name());
-		hexEditor.setFont(getMainWindow().getSettings().getFont());
-		hexEditor.setColors(JHexEditorColors.getThemed());
-		hexCodePanel = new JHexEditorSuite(hexEditor);
-		hexCodePanel.getInspector().setVisible(false);
+		hexPreviewPanel = new HexPreviewPanel(getSettings(), new org.exbin.bined.swing.basic.CodeArea());
+		hexPreviewPanel.getInspector().setVisible(false);
 
 		areaTabbedPane = buildTabbedPane();
 		add(areaTabbedPane);
@@ -71,7 +64,7 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		if (bytes == null) {
 			bytes = binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.UTF_8);
 		}
-		hexCodePanel.getEditor().setDocument(bytes);
+		hexPreviewPanel.setData(bytes);
 	}
 
 	private JTabbedPane buildTabbedPane() {
@@ -81,7 +74,7 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		if (textCodePanel != null) {
 			tabbedPane.add(textCodePanel, "Text");
 		}
-		tabbedPane.add(hexCodePanel, "Hex");
+		tabbedPane.add(hexPreviewPanel, "Hex");
 		tabbedPane.addChangeListener(e -> {
 			getMainWindow().toggleHexViewMenu();
 		});
@@ -135,7 +128,7 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 			selectedPanel = ((CodePanel) selectedComponent).getCodeArea();
 		} else if (selectedComponent instanceof JSplitPane) {
 			selectedPanel = ((JSplitPane) selectedComponent).getLeftComponent();
-		} else if (selectedComponent instanceof JHexEditorSuite) {
+		} else if (selectedComponent instanceof HexPreviewPanel) {
 			selectedPanel = selectedComponent;
 		} else {
 			throw new RuntimeException("tabbedPane.getSelectedComponent returned a Component "

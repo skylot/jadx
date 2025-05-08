@@ -1,5 +1,14 @@
-package jadx.gui.ui.hexeditor.editor;
+package jadx.gui.ui.hexviewer;
 
+import org.exbin.bined.CaretMovedListener;
+import org.exbin.bined.CodeAreaSection;
+import org.exbin.bined.DataChangedListener;
+import org.exbin.bined.SelectionChangedListener;
+import org.exbin.bined.SelectionRange;
+import org.exbin.bined.basic.BasicCodeAreaSection;
+import org.exbin.bined.swing.basic.CodeArea;
+
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -8,58 +17,25 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
-import jadx.gui.ui.hexeditor.buffer.ByteBuffer;
-import jadx.gui.ui.hexeditor.buffer.ByteBufferDocument;
-import jadx.gui.ui.hexeditor.buffer.ByteBufferSelectionModel;
-
-public class JHexEditorHeader extends JComponent {
+public class HexEditorHeader extends JComponent {
 	private static final long serialVersionUID = 1L;
 	private static final String HEX_ALPHABET = "0123456789ABCDEF";
-	private final JHexEditor parent;
-	private final JHexEditorListener listener = new JHexEditorListener() {
-		@Override
-		public void dataInserted(ByteBuffer buffer, long offset, int length) {
+	private final CodeArea parent;
+	private final DataChangedListener dataChangedListener = this::repaint;
+	private final CaretMovedListener caretMovedListener = caretPosition -> repaint();
+	private final SelectionChangedListener selectionChangedListener = this::repaint;
 
-		}
-
-		@Override
-		public void dataOverwritten(ByteBuffer buffer, long offset, int length) {
-			repaint();
-		}
-
-		@Override
-		public void dataRemoved(ByteBuffer buffer, long offset, long length) {
-
-		}
-
-		@Override
-		public void selectionChanged(ByteBufferSelectionModel sm, long start, long end) {
-			repaint();
-		}
-
-		@Override
-		public void documentChanged(JHexEditor editor, ByteBufferDocument document) {
-			repaint();
-		}
-
-		@Override
-		public void colorsChanged(JHexEditor editor, JHexEditorColors colors) {
-			repaint();
-		}
-
-		@Override
-		public void editorStatusChanged(JHexEditor editor) {
-			repaint();
-		}
-	};
 	private Dimension minimumSize = null;
 	private Dimension preferredSize = null;
 
-	public JHexEditorHeader(JHexEditor parent) {
+	public HexEditorHeader(CodeArea parent) {
 		this.parent = parent;
 		if (this.parent != null) {
-			this.parent.addHexEditorListener(listener);
+			this.parent.addCaretMovedListener(caretMovedListener);
+			this.parent.addSelectionChangedListener(selectionChangedListener);
+			this.parent.addDataChangedListener(dataChangedListener);
 		}
 	}
 
@@ -67,14 +43,18 @@ public class JHexEditorHeader extends JComponent {
 	public void addNotify() {
 		super.addNotify();
 		if (this.parent != null) {
-			this.parent.addHexEditorListener(listener);
+			this.parent.addCaretMovedListener(caretMovedListener);
+			this.parent.addSelectionChangedListener(selectionChangedListener);
+			this.parent.addDataChangedListener(dataChangedListener);
 		}
 	}
 
 	@Override
 	public void removeNotify() {
 		if (this.parent != null) {
-			this.parent.removeHexEditorListener(listener);
+			this.parent.removeCaretMovedListener(caretMovedListener);
+			this.parent.removeSelectionChangedListener(selectionChangedListener);
+			this.parent.removeDataChangedListener(dataChangedListener);
 		}
 		super.removeNotify();
 	}
@@ -92,7 +72,8 @@ public class JHexEditorHeader extends JComponent {
 		int ch = fm.getHeight() + 2; // Row height
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16; // Char width estimate
 
-		int minTextWidth = fm.stringWidth("Sel: 00000000:00000000 Len: 0/0 TXT RO OVR BE ISO-8859-1");
+		String sampleText = "Sel: 00000000:00000000 Len: 00000000/00000000 TXT UTF-8";
+		int minTextWidth = fm.stringWidth(sampleText);
 		int minimumWidth = minTextWidth + cw * 5 + i.left + i.right;
 
 		int minimumHeight = ch + 5 + i.top + i.bottom;
@@ -119,20 +100,9 @@ public class JHexEditorHeader extends JComponent {
 		int ch = fm.getHeight() + 2;
 		int cw = fm.stringWidth(HEX_ALPHABET) / 16;
 
-		String maxAddr = addressString(-1, false);
-		String maxLen = addressString(Long.MAX_VALUE, false);
-
-		String sampleText = "Sel: "
-				+ maxAddr + ":"
-				+ maxAddr
-				+ "  Len: "
-				+ maxLen + "/"
-				+ maxLen
-				+ "  TXT RO OVR BE ISO-8859-1";
+		String sampleText = "Sel: 00000000:00000000 Len: 00000000/00000000 TXT UTF-8";
 		int preferredTextWidth = fm.stringWidth(sampleText);
-
 		int preferredWidth = preferredTextWidth + cw * 10 + i.left + i.right;
-
 		int preferredHeight = ch + 5 + i.top + i.bottom;
 
 		return new Dimension(preferredWidth, preferredHeight);
@@ -175,27 +145,25 @@ public class JHexEditorHeader extends JComponent {
 		}
 
 		// Get colors and status from parent editor
-		JHexEditorColors colors = parent.getColors();
-		boolean extendBorders = parent.getExtendBorders();
-		boolean decimalAddresses = parent.getDecimalAddresses();
-		long ss = parent.getSelectionMin();
-		long se = parent.getSelectionMax();
-		long sl = parent.getSelectionLength();
-		long length = parent.length();
+		Color separatorForeground = UIManager.getColor("Separator.foreground");
+		Color themeBackground = UIManager.getColor("Panel.background");
+		Color themeForeground = UIManager.getColor("Panel.foreground");
+
+		SelectionRange selectionRange = parent.getSelection();
+		long ss = selectionRange.getStart();
+		long se = selectionRange.getEnd();
+		long sl = selectionRange.getLength();
+		long length = parent.getDataSize();
 
 		// Vertical position for the text baseline (centered vertically)
 		int ty = i.top + ((h - ch) / 2) + ca; // Calculate middle Y for the single line of text
 
 		// Draw Background
-		g.setColor(colors.headerArea);
-		if (extendBorders) {
-			g.fillRect(0, 0, fw, fh);
-		} else {
-			g.fillRect(i.left, i.top, w, h);
-		}
+		g.setColor(themeBackground);
+		g.fillRect(i.left, i.top, w, h);
 
 		// Draw Text Elements (Sel, Len, Status)
-		g.setColor(colors.headerText);
+		g.setColor(themeForeground);
 
 		// Start drawing position (adjust for left inset)
 		int currentX = i.left + cw / 2; // Start with a small left padding
@@ -205,7 +173,7 @@ public class JHexEditorHeader extends JComponent {
 		g.drawString(selLabel, currentX, ty);
 		currentX += fm.stringWidth(selLabel) + cw; // "Sel:" + space
 
-		String sss = addressString(ss, decimalAddresses);
+		String sss = addressString(ss);
 		g.drawString(sss, currentX, ty);
 		currentX += fm.stringWidth(sss); // start
 
@@ -213,25 +181,24 @@ public class JHexEditorHeader extends JComponent {
 		g.drawString(separator1, currentX, ty);
 		currentX += fm.stringWidth(separator1); // :
 
-		String ses = addressString(se, decimalAddresses);
+		String ses = addressString(se);
 		g.drawString(ses, currentX, ty);
 		currentX += fm.stringWidth(ses) + cw; // end + larger space
 
 		// Draw Divider After Sel Range
-		int dividerTopY = extendBorders ? 0 : i.top;
-		int dividerHeight = extendBorders ? fh : h;
-		g.setColor(colors.headerDivider);
+		int dividerTopY =  i.top;
+		int dividerHeight =  h;
+		g.setColor(separatorForeground);
 		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
 		currentX += cw; // Add larger space after the divider
 
 		// Length Information (Len: selected/total-
-		g.setColor(colors.headerText);
+		g.setColor(themeForeground);
 		String lenLabel = "Len:";
 		g.drawString(lenLabel, currentX, ty);
 		currentX += fm.stringWidth(lenLabel) + cw; // "Len:" + space
 
-		String sls = addressString(sl, decimalAddresses);
+		String sls = addressString(sl);
 		g.drawString(sls, currentX, ty);
 		currentX += fm.stringWidth(sls); // selected length
 
@@ -239,86 +206,48 @@ public class JHexEditorHeader extends JComponent {
 		g.drawString(separator2, currentX, ty);
 		currentX += fm.stringWidth(separator2);
 
-		String ls = addressString(length, decimalAddresses);
+		String ls = addressString(length);
 		g.drawString(ls, currentX, ty);
 		currentX += fm.stringWidth(ls) + cw; // total length + larger space
 
 		// Draw Divider After Len Info
-		g.setColor(colors.headerDivider);
+		g.setColor(separatorForeground);
 		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
 		currentX += cw; // Add larger space after the divider
 
 		// Status Indicators (TXT/HEX, RO/RW, OVR/INS, LE/BE, Charset)
-		g.setColor(colors.headerText); // Ensure color is set for text
+		g.setColor(themeForeground); // Ensure color is set for text
 
 		// Draw TXT/HEX status
-		String statusTxtHex = parent.isTextActive() ? "TXT" : "HEX";
+		String statusTxtHex = "HEX";
+		CodeAreaSection section = parent.getActiveSection();
+		if (section == BasicCodeAreaSection.TEXT_PREVIEW) {
+			statusTxtHex = "TXT";
+		}
+
 		g.drawString(statusTxtHex, currentX, ty);
 		currentX += fm.stringWidth(statusTxtHex) + cw; // TXT/HEX
 
 		// Draw Divider After TXT/HEX
-		g.setColor(colors.headerDivider);
+		g.setColor(separatorForeground);
 		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
 		currentX += cw; // Add larger space after the divider
 
-		g.setColor(colors.headerText); // Restore text color
-
-		// Draw RO/RW status
-		String statusRoRw = parent.isReadOnly() ? "RO" : "RW";
-		g.drawString(statusRoRw, currentX, ty);
-		currentX += fm.stringWidth(statusRoRw) + cw; // RO/RW
-
-		// Draw Divider After RO/RW
-		g.setColor(colors.headerDivider);
-		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
-		currentX += cw; // Add larger space after the divider
-
-		g.setColor(colors.headerText);
-
-		// Draw OVR/INS status
-		String statusOvrIns = parent.getOvertype() ? "OVR" : "INS";
-		g.drawString(statusOvrIns, currentX, ty);
-		currentX += fm.stringWidth(statusOvrIns) + cw; // OVR/INS
-
-		// Draw Divider After OVR/INS
-		g.setColor(colors.headerDivider);
-		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
-		currentX += cw; // Add larger space after the divider
-
-		g.setColor(colors.headerText);
-
-		// Draw LE/BE status
-		String statusEndian = parent.isLittleEndian() ? "LE" : "BE";
-		g.drawString(statusEndian, currentX, ty);
-		currentX += fm.stringWidth(statusEndian) + cw; // LE/BE
-
-		// Draw Divider After LE/BE
-		g.setColor(colors.headerDivider);
-		g.fillRect(currentX, dividerTopY, 1, dividerHeight);
-		currentX += 1; // Move past the divider
-		currentX += cw; // Add larger space after the divider
-
-		g.setColor(colors.headerText);
+		g.setColor(themeForeground); // Restore text color
 
 		// Draw Charset
-		String statusCharset = parent.getCharset();
+		String statusCharset = parent.getCharset().name();
 		g.drawString(statusCharset, currentX, ty);
 		// No divider or space needed after the last element
 
 		// Draw Bottom Border
-		g.setColor(colors.headerDivider); // Use headerDivider color for the border
-		if (extendBorders) {
-			g.fillRect(0, fh - 1, fw, 1);
-		} else {
-			g.fillRect(i.left, i.top + h - 1, w, 1);
-		}
+		g.setColor(separatorForeground); // Use headerDivider color for the border
+		g.fillRect(i.left, i.top + h - 1, w, 1);
+
 	}
 
-	private String addressString(long address, boolean decimalAddresses) {
-		return parent.getDocument().addressString(address, decimalAddresses);
+	public String addressString(long address) {
+		return String.format("%08X", address);
 	}
 }
+
