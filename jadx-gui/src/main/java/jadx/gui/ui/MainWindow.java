@@ -1076,7 +1076,7 @@ public class MainWindow extends JFrame {
 		JadxGuiAction enablePreviewTabAction = new JadxGuiAction(ActionModel.PREVIEW_TAB, () -> {
 			settings.setEnablePreviewTab(!settings.isEnablePreviewTab());
 		});
-		enablePreviewTabAction.setSelected(!settings.isDockQuickTabs());
+		enablePreviewTabAction.setSelected(settings.isEnablePreviewTab());
 
 		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
 		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
