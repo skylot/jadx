@@ -115,11 +115,15 @@ import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignature;
+import jadx.gui.treemodel.JInputFiles;
+import jadx.gui.treemodel.JInputScripts;
+import jadx.gui.treemodel.JInputs;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.treemodel.JSources;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -882,8 +886,15 @@ public class MainWindow extends JFrame {
 					return true;
 				}
 			} else if (obj instanceof JNode) {
-				tabsController.codeJump((JNode) obj, true);
-				return true;
+				JNode treeNode = (JNode) obj;
+				if (!(treeNode instanceof JPackage)
+						&& !(treeNode instanceof JSources)
+						&& !(treeNode instanceof JInputs)
+						&& !(treeNode instanceof JInputFiles)
+						&& !(treeNode instanceof JInputScripts)) {
+					tabsController.codeJump(treeNode, true);
+					return true;
+				}
 			}
 		} catch (Exception e) {
 			LOG.error("Content loading error", e);
@@ -1062,11 +1073,10 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), Icons.FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
-		JCheckBoxMenuItem enablePreviewTabMenuItem = new JCheckBoxMenuItem(NLS.str("menu.enable_preview_tab"));
-		enablePreviewTabMenuItem.setState(settings.isEnablePreviewTab());
-		enablePreviewTabMenuItem.addActionListener(event -> {
+		JadxGuiAction enablePreviewTabAction = new JadxGuiAction(ActionModel.PREVIEW_TAB, () -> {
 			settings.setEnablePreviewTab(!settings.isEnablePreviewTab());
 		});
+		enablePreviewTabAction.setSelected(settings.isEnablePreviewTab());
 
 		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
 		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
@@ -1159,7 +1169,7 @@ public class MainWindow extends JFrame {
 		view.add(quickTabsAction.makeCheckBoxMenuItem());
 		view.add(flatPkgMenuItem);
 		view.addSeparator();
-		view.add(enablePreviewTabMenuItem);
+		view.add(enablePreviewTabAction.makeCheckBoxMenuItem());
 		view.add(syncAction);
 		view.add(alwaysSelectOpened);
 		view.addSeparator();
@@ -1241,6 +1251,7 @@ public class MainWindow extends JFrame {
 		toolbar.addSeparator();
 		toolbar.add(syncAction);
 		toolbar.add(flatPkgButton);
+		toolbar.add(enablePreviewTabAction.makeToggleButton());
 		toolbar.add(quickTabsAction.makeToggleButton());
 		toolbar.addSeparator();
 		toolbar.add(textSearchAction);

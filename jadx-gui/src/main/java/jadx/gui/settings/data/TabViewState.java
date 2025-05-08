@@ -10,6 +10,7 @@ public class TabViewState {
 	boolean pinned;
 	boolean bookmarked;
 	boolean hidden;
+	boolean previewTab;
 
 	public String getType() {
 		return type;
@@ -81,5 +82,13 @@ public class TabViewState {
 
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
+	}
+
+	public boolean isPreviewTab() {
+		return previewTab;
+	}
+
+	public void setPreviewTab(boolean previewTab) {
+		this.previewTab = previewTab;
 	}
 }
