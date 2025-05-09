@@ -1,4 +1,4 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.hexviewer;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -16,19 +16,15 @@ import javax.swing.JTextField;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-public class HexConfigurationPanel extends JPanel {
+public class HexInspectorPanel extends JPanel {
 	private final List<ValueFormatter> formatters = new ArrayList<>();
-
-	private final HexAreaConfiguration config;
 
 	private byte[] bytes = null;
 	private Integer offset = null;
-
+	private boolean isLittleEndian;
 	private int row = 0;
 
-	public HexConfigurationPanel(HexAreaConfiguration configuration) {
-		this.config = configuration;
-
+	public HexInspectorPanel() {
 		setLayout(new GridBagLayout());
 		addValueFormat("Signed 8 bit", 1, b -> Integer.toString(b.get()));
 		addValueFormat("Unsigned 8 bit", 1, b -> Integer.toString(b.get() & 0xFF));
@@ -49,7 +45,7 @@ public class HexConfigurationPanel extends JPanel {
 		constraints.gridwidth = 2;
 		JCheckBox littleEndianCheckBox = new JCheckBox("Little endian", false);
 		littleEndianCheckBox.addItemListener(ev -> {
-			config.littleEndian = ev.getStateChange() == ItemEvent.SELECTED;
+			isLittleEndian = ev.getStateChange() == ItemEvent.SELECTED;
 			reloadOffset();
 		});
 		add(littleEndianCheckBox, constraints);
@@ -115,7 +111,7 @@ public class HexConfigurationPanel extends JPanel {
 
 	private ByteBuffer decodeByteArray(int offset, int size) {
 		byte[] chunk = sliceBytes(offset, size);
-		if (config.littleEndian) {
+		if (isLittleEndian) {
 			ArrayUtils.reverse(chunk);
 		}
 		return ByteBuffer.wrap(chunk);

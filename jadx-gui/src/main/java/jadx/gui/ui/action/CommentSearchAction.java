@@ -1,8 +1,8 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import java.awt.event.ActionEvent;
 
-import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.dialog.SearchDialog;
 
 public class CommentSearchAction extends CodeAreaAction {

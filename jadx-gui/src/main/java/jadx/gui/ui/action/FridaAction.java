@@ -1,4 +1,4 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,7 +23,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

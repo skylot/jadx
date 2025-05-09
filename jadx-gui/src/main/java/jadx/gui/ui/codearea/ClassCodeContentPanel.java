@@ -125,6 +125,11 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		return javaCodePanel.getCodeArea();
 	}
 
+	@Override
+	public Component getChildrenComponent() {
+		return getCodeArea();
+	}
+
 	public CodePanel getJavaCodePanel() {
 		return javaCodePanel;
 	}

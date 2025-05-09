@@ -566,7 +566,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				((AbstractCodeContentPanel) pane).getCodeArea().addFocusListener(INSTANCE);
+				((AbstractCodeContentPanel) pane).getChildrenComponent().addFocusListener(INSTANCE);
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
@@ -586,7 +586,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getCodeArea().requestFocus());
+				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getChildrenComponent().requestFocus());
 				return;
 			}
 			if (pane instanceof HtmlPanel) {

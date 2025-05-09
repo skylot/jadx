@@ -1,7 +1,7 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.dialog.UsageDialog;
 
 public final class FindUsageAction extends JNodeAction {

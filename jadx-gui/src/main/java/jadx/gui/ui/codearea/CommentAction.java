@@ -29,6 +29,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.CodeAreaAction;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.dialog.CommentDialog;
 import jadx.gui.utils.DefaultPopupMenuListener;

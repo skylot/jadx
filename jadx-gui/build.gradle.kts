@@ -49,6 +49,12 @@ dependencies {
 	implementation("com.android.tools.build:apksig:8.9.2")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
+	// Library for hex viewing data
+	val bined = "0.2.1"
+	implementation("org.exbin.bined:bined-extended:$bined")
+	implementation("org.exbin.bined:bined-swing:$bined")
+	implementation("org.exbin.auxiliary:binary_data:$bined")
+
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
 }
 

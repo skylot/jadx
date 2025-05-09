@@ -1,4 +1,4 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
@@ -6,8 +6,7 @@ import java.beans.PropertyChangeListener;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.action.ActionModel;
-import jadx.gui.ui.action.JadxGuiAction;
+import jadx.gui.ui.codearea.CodeArea;
 
 /**
  * Add menu and key binding actions for JNode in code area

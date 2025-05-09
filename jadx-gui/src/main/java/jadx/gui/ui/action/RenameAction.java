@@ -1,8 +1,8 @@
-package jadx.gui.ui.codearea;
+package jadx.gui.ui.action;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRenameNode;
-import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.dialog.RenameDialog;
 
 public final class RenameAction extends JNodeAction {
