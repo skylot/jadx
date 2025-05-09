@@ -35,6 +35,7 @@ import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.InlineMethods;
 import jadx.core.dex.visitors.MarkMethodsForInline;
 import jadx.core.dex.visitors.MethodInvokeVisitor;
+import jadx.core.dex.visitors.MethodThrowsVisitor;
 import jadx.core.dex.visitors.MethodVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.MoveInlineVisitor;
@@ -179,6 +180,8 @@ public class Jadx {
 		}
 		passes.add(new ReturnVisitor());
 		passes.add(new CleanRegions());
+
+		passes.add(new MethodThrowsVisitor());
 
 		passes.add(new CodeShrinkVisitor());
 		passes.add(new MethodInvokeVisitor());

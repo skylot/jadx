@@ -24,6 +24,7 @@ import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
+import jadx.core.dex.attributes.nodes.MethodThrowsAttr;
 import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
@@ -76,6 +77,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
 	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
 	public static final AType<CodeFeaturesAttr> METHOD_CODE_FEATURES = new AType<>();
+	public static final AType<MethodThrowsAttr> METHOD_THROWS = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
