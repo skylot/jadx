@@ -291,7 +291,7 @@ public class HexPreviewPanel extends JPanel {
 
 			char[] targetData = new char[textLength];
 			Arrays.fill(targetData, ' ');
-			for (int i = 0; i < copy.getDataSize(); i++) {
+			for (int i = 0; i < (int) copy.getDataSize(); i++) {
 				CodeAreaUtils.byteToCharsCode(copy.getByte(i), codeType, targetData, i * charsPerByte, charactersCase);
 			}
 			return new String(targetData);
