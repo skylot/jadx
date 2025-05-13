@@ -114,7 +114,7 @@ public class BinarySearchServiceImpl implements BinarySearchService {
 
 		long dataSize = data.getDataSize();
 		while (position >= 0 && position <= dataSize - searchDataSize) {
-			int matchLength = 0;
+			long matchLength = 0;
 			while (matchLength < searchDataSize) {
 				if (data.getByte(position + matchLength) != searchData.getByte(matchLength)) {
 					break;
@@ -190,8 +190,8 @@ public class BinarySearchServiceImpl implements BinarySearchService {
 		long lastPosition = position;
 		while (position >= 0 && position <= dataSize - searchDataSize) {
 			int matchCharLength = 0;
-			int matchLength = 0;
-			while (matchCharLength < searchDataSize) {
+			long matchLength = 0;
+			while (matchCharLength < (int) searchDataSize) {
 				if (Thread.interrupted()) {
 					return;
 				}
