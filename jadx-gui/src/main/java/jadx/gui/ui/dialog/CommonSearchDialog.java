@@ -16,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -178,6 +180,18 @@ public abstract class CommonSearchDialog extends JFrame {
 		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
+	protected void copyAllSearchResults() {
+		StringBuilder sb = new StringBuilder();
+		Set<String> uniqueRefs = new HashSet<>();
+		for (JNode node : resultsModel.rows) {
+			String codeNodeRef = node.getJavaNode().getCodeNodeRef().toString();
+			if (uniqueRefs.add(codeNodeRef)) {
+				sb.append(codeNodeRef).append("\n");
+			}
+		}
+		UiUtils.copyToClipboard(sb.toString());
+	}
+
 	@NotNull
 	protected JPanel initButtonsPanel() {
 		progressPane = new ProgressPanel(mainWindow, false);
@@ -187,6 +201,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		JButton openBtn = new JButton(NLS.str("search_dialog.open"));
 		openBtn.addActionListener(event -> openSelectedItem());
 		getRootPane().setDefaultButton(openBtn);
+		JButton copyBtn = new JButton(NLS.str("search_dialog.copy"));
+		copyBtn.addActionListener(event -> copyAllSearchResults());
 
 		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
 		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
@@ -203,6 +219,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
+		buttonPane.add(copyBtn);
+		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(openBtn);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(cancelButton);
@@ -440,8 +458,8 @@ public abstract class CommonSearchDialog extends JFrame {
 		}
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj,
-				boolean isSelected, boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row,
+				int column) {
 			if (obj == null || table == null) {
 				return emptyLabel;
 			}

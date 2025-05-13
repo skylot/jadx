@@ -83,7 +83,7 @@ public class TabsController {
 	public TabBlueprint previewTab(JNode node) {
 		TabBlueprint blueprint = getPreviewTab();
 		if (blueprint != null) {
-			closeTabForce(blueprint);
+			closeTab(blueprint.getNode());
 		}
 
 		blueprint = openTab(node, false, true);
@@ -244,6 +244,7 @@ public class TabsController {
 
 	public void setTabPinnedInternal(TabBlueprint blueprint, boolean pinned) {
 		if (blueprint.isPinned() != pinned) {
+			blueprint.setPreviewTab(false);
 			blueprint.setPinned(pinned);
 			listeners.forEach(l -> l.onTabPinChange(blueprint));
 		}
@@ -256,6 +257,7 @@ public class TabsController {
 
 	private void setTabBookmarkedInternal(TabBlueprint blueprint, boolean bookmarked) {
 		if (blueprint.isBookmarked() != bookmarked) {
+			blueprint.setPreviewTab(false);
 			blueprint.setBookmarked(bookmarked);
 			listeners.forEach(l -> l.onTabBookmarkChange(blueprint));
 			removeTabIfNotReferenced(blueprint);
@@ -269,6 +271,7 @@ public class TabsController {
 
 	private void setTabHiddenInternal(TabBlueprint blueprint, boolean hidden) {
 		if (blueprint != null && blueprint.isHidden() != hidden) {
+			blueprint.setPreviewTab(false);
 			blueprint.setHidden(hidden);
 			listeners.forEach(l -> l.onTabVisibilityChange(blueprint));
 		}
@@ -338,7 +341,7 @@ public class TabsController {
 
 	public void restoreEditorViewState(EditorViewState viewState) {
 		JNode node = viewState.getNode();
-		TabBlueprint blueprint = openTab(node, viewState.isHidden());
+		TabBlueprint blueprint = openTab(node, viewState.isHidden(), viewState.isPreviewTab());
 		setTabPinnedInternal(blueprint, viewState.isPinned());
 		setTabBookmarkedInternal(blueprint, viewState.isBookmarked());
 		listeners.forEach(l -> l.onTabRestore(blueprint, viewState));
@@ -373,6 +376,7 @@ public class TabsController {
 		viewState.setPinned(blueprint.isPinned());
 		viewState.setBookmarked(blueprint.isBookmarked());
 		viewState.setHidden(blueprint.isHidden());
+		viewState.setPreviewTab(blueprint.isPreviewTab());
 		return viewState;
 	}
 }

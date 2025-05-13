@@ -17,6 +17,7 @@ public class EditorViewState {
 	private boolean pinned;
 	private boolean bookmarked;
 	private boolean hidden;
+	private boolean previewTab;
 
 	public EditorViewState(JNode node) {
 		this(node, "", 0, EditorViewState.ZERO);
@@ -83,6 +84,14 @@ public class EditorViewState {
 
 	public boolean isHidden() {
 		return hidden;
+	}
+
+	public boolean isPreviewTab() {
+		return previewTab;
+	}
+
+	public void setPreviewTab(boolean previewTab) {
+		this.previewTab = previewTab;
 	}
 
 	public void setHidden(boolean hidden) {
