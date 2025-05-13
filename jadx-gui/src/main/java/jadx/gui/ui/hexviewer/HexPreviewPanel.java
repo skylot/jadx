@@ -31,8 +31,8 @@ import org.exbin.bined.SelectionRange;
 import org.exbin.bined.basic.BasicCodeAreaZone;
 import org.exbin.bined.color.CodeAreaBasicColors;
 import org.exbin.bined.highlight.swing.color.CodeAreaMatchColorType;
-import org.exbin.bined.operation.swing.CodeAreaOperationCommandHandler;
 import org.exbin.bined.swing.CodeAreaPainter;
+import org.exbin.bined.swing.basic.DefaultCodeAreaCommandHandler;
 import org.exbin.bined.swing.capability.CharAssessorPainterCapable;
 import org.exbin.bined.swing.capability.ColorAssessorPainterCapable;
 import org.exbin.bined.swing.section.SectCodeArea;
@@ -64,20 +64,10 @@ public class HexPreviewPanel extends JPanel {
 	private BasicCodeAreaZone popupMenuPositionZone = BasicCodeAreaZone.UNKNOWN;
 
 	public HexPreviewPanel(JadxSettings settings) {
-		new HexPreviewPanel(settings, new SectCodeArea());
-	}
-
-	public HexPreviewPanel(JadxSettings settings, SectCodeArea editor) {
-		this.hexCodeArea = editor;
-
-		this.searchBar = new HexSearchBar(editor);
-		this.header = new HexEditorHeader(editor);
-		this.header.setFont(settings.getFont());
-		this.inspector = new HexInspectorPanel();
+		this.hexCodeArea = new SectCodeArea();
 		this.hexCodeArea.setCodeFont(settings.getFont());
 		this.hexCodeArea.setEditMode(EditMode.READ_ONLY);
 		this.hexCodeArea.setCharset(StandardCharsets.UTF_8);
-
 		this.hexCodeArea.setComponentPopupMenu(new JPopupMenu() {
 			@Override
 			public void show(Component invoker, int x, int y) {
@@ -87,7 +77,7 @@ public class HexPreviewPanel extends JPanel {
 					clickedX += invoker.getParent().getX();
 					clickedY += invoker.getParent().getY();
 				}
-				popupMenuPositionZone = editor.getPainter().getPositionZone(clickedX, clickedY);
+				popupMenuPositionZone = hexCodeArea.getPainter().getPositionZone(clickedX, clickedY);
 				createPopupMenu();
 
 				if (popupMenu != null && popupMenuPositionZone != BasicCodeAreaZone.HEADER
@@ -97,6 +87,11 @@ public class HexPreviewPanel extends JPanel {
 				}
 			}
 		});
+
+		this.inspector = new HexInspectorPanel();
+		this.searchBar = new HexSearchBar(hexCodeArea);
+		this.header = new HexEditorHeader(hexCodeArea);
+		this.header.setFont(settings.getFont());
 
 		CodeAreaPainter painter = hexCodeArea.getPainter();
 		defaultColors = (SectionCodeAreaColorProfile) hexCodeArea.getColorsProfile();
@@ -133,7 +128,8 @@ public class HexPreviewPanel extends JPanel {
 	public SectionCodeAreaColorProfile getColorsProfile() {
 		boolean isDarkTheme = UiUtils.isDarkTheme(Objects.requireNonNull(defaultColors.getColor(CodeAreaBasicColors.TEXT_BACKGROUND)));
 		Color markAllHighlightColor = isDarkTheme ? Color.decode("#32593D") : Color.decode("#ffc800");
-		Color currentMatchColor = defaultColors.getColor(CodeAreaBasicColors.SELECTION_BACKGROUND);
+		Color editorSelectionBackground = defaultColors.getColor(CodeAreaBasicColors.SELECTION_BACKGROUND);
+		Color currentMatchColor = UiUtils.adjustBrightness(editorSelectionBackground, isDarkTheme ? 0.6f : 1.4f);
 		defaultColors.setColor(CodeAreaMatchColorType.MATCH_BACKGROUND, markAllHighlightColor);
 		defaultColors.setColor(CodeAreaMatchColorType.CURRENT_MATCH_BACKGROUND, currentMatchColor);
 		return defaultColors;
@@ -261,7 +257,7 @@ public class HexPreviewPanel extends JPanel {
 	}
 
 	public void performCopyAsCode() {
-		((CodeAreaOperationCommandHandler) hexCodeArea.getCommandHandler()).copyAsCode();
+		((DefaultCodeAreaCommandHandler) hexCodeArea.getCommandHandler()).copyAsCode();
 	}
 
 	public void performPaste() {

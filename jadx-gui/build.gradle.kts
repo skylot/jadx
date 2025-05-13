@@ -52,7 +52,6 @@ dependencies {
 	// Library for hex viewing data
 	val bined = "0.2.2"
 	implementation("org.exbin.bined:bined-swing:$bined")
-	implementation("org.exbin.bined:bined-operation-swing:$bined")
 	implementation("org.exbin.bined:bined-highlight-swing:$bined")
 	implementation("org.exbin.bined:bined-swing-section:$bined")
 	implementation("org.exbin.auxiliary:binary_data:$bined")
