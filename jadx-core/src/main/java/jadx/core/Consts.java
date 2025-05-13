@@ -16,7 +16,9 @@ public class Consts {
 	public static final String CLASS_STRING = "java.lang.String";
 	public static final String CLASS_CLASS = "java.lang.Class";
 	public static final String CLASS_THROWABLE = "java.lang.Throwable";
+	public static final String CLASS_ERROR = "java.lang.Error";
 	public static final String CLASS_EXCEPTION = "java.lang.Exception";
+	public static final String CLASS_RUNTIME_EXCEPTION = "java.lang.RuntimeException";
 	public static final String CLASS_ENUM = "java.lang.Enum";
 
 	public static final String CLASS_STRING_BUILDER = "java.lang.StringBuilder";
