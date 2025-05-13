@@ -104,19 +104,6 @@ public class BinEdCodeAreaAssessor implements CodeAreaColorAssessor, CodeAreaCha
 			return parentColorAssessor.getPositionBackgroundColor(rowDataPosition, byteOnRow, charOnRow, section, inSelection);
 		}
 
-		// if (color == null || inSelection) {
-		// long dataPosition = rowDataPosition + byteOnRow;
-		// if (dataPosition > 100 && dataPosition < 300) {
-		// if (inSelection && color != null) {
-		// return new Color(
-		// (((int) (dataPosition * 17) % 255) + color.getRed()) / 2,
-		// (((int) (dataPosition * 37) % 255) + color.getGreen()) / 2,
-		// (((int) (dataPosition * 13) % 255) + color.getBlue()) / 2);
-		// }
-		// return new Color((int) (dataPosition * 17) % 255, (int) (dataPosition * 37) % 255, (int)
-		// (dataPosition * 13) % 255);
-		// }
-		// }
 		return null;
 	}
 

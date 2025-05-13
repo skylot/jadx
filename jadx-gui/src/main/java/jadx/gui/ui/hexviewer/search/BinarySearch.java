@@ -68,7 +68,7 @@ public class BinarySearch {
 
 			@Override
 			public void clearStatus() {
-				// binarySearchPanel.setInfoLabel("");
+				binarySearchPanel.setInfoLabel("");
 				BinarySearch.this.foundMatches = new BinarySearchService.FoundMatches();
 				updateMatchStatus();
 			}
