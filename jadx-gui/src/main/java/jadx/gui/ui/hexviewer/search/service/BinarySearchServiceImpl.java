@@ -190,13 +190,13 @@ public class BinarySearchServiceImpl implements BinarySearchService {
 		long lastPosition = position;
 		while (position >= 0 && position <= dataSize - searchDataSize) {
 			int matchCharLength = 0;
-			long matchLength = 0;
+			int matchLength = 0;
 			while (matchCharLength < (int) searchDataSize) {
 				if (Thread.interrupted()) {
 					return;
 				}
 
-				long searchPosition = position + matchLength;
+				long searchPosition = position + (long) matchLength;
 				int bytesToUse = maxBytesPerChar;
 				if (searchPosition + bytesToUse > dataSize) {
 					bytesToUse = (int) (dataSize - searchPosition);
