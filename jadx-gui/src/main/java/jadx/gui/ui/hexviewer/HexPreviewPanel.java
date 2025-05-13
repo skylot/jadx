@@ -3,10 +3,6 @@ package jadx.gui.ui.hexviewer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +13,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JViewport;
 
 import org.exbin.auxiliary.binary_data.BinaryData;
 import org.exbin.auxiliary.binary_data.array.ByteArrayEditableData;
@@ -71,19 +66,12 @@ public class HexPreviewPanel extends JPanel {
 		this.hexCodeArea.setComponentPopupMenu(new JPopupMenu() {
 			@Override
 			public void show(Component invoker, int x, int y) {
-				int clickedX = x;
-				int clickedY = y;
-				if (invoker instanceof JViewport) {
-					clickedX += invoker.getParent().getX();
-					clickedY += invoker.getParent().getY();
-				}
-				popupMenuPositionZone = hexCodeArea.getPainter().getPositionZone(clickedX, clickedY);
+				popupMenuPositionZone = hexCodeArea.getPainter().getPositionZone(x, y);
 				createPopupMenu();
-
 				if (popupMenu != null && popupMenuPositionZone != BasicCodeAreaZone.HEADER
 						&& popupMenuPositionZone != BasicCodeAreaZone.ROW_POSITIONS) {
 					updatePopupActionStates();
-					popupMenu.show(invoker, clickedX, clickedY);
+					popupMenu.show(invoker, x, y);
 				}
 			}
 		});
@@ -312,14 +300,8 @@ public class HexPreviewPanel extends JPanel {
 	}
 
 	public void copyOffset() {
-		String s = header.addressString(hexCodeArea.getSelection().getStart());
-		Toolkit tk = Toolkit.getDefaultToolkit();
-		Clipboard cb = tk.getSystemClipboard();
-		StringSelection ss = new StringSelection(s);
-		cb.setContents(ss, OWNER);
+		String str = header.addressString(hexCodeArea.getSelection().getStart());
+		UiUtils.copyToClipboard(str);
 	}
 
-	private static final ClipboardOwner OWNER = (cb, t) -> {
-		// Nothing.
-	};
 }
