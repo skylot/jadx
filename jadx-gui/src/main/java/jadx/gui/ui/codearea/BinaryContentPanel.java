@@ -9,6 +9,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import org.exbin.bined.swing.section.SectCodeArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		} else {
 			textCodePanel = null;
 		}
-		hexPreviewPanel = new HexPreviewPanel(getSettings(), new org.exbin.bined.swing.basic.CodeArea());
+		hexPreviewPanel = new HexPreviewPanel(getSettings(), new SectCodeArea());
 		hexPreviewPanel.getInspector().setVisible(false);
 
 		areaTabbedPane = buildTabbedPane();

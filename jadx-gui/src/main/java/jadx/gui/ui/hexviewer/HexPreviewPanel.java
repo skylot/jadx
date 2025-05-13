@@ -1,6 +1,7 @@
 package jadx.gui.ui.hexviewer;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -10,6 +11,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -18,21 +20,36 @@ import javax.swing.JPopupMenu;
 import javax.swing.JViewport;
 
 import org.exbin.auxiliary.binary_data.BinaryData;
-import org.exbin.auxiliary.binary_data.ByteArrayEditableData;
-import org.exbin.bined.CaretMovedListener;
+import org.exbin.auxiliary.binary_data.array.ByteArrayEditableData;
+import org.exbin.bined.CodeAreaCaretListener;
 import org.exbin.bined.CodeAreaCaretPosition;
+import org.exbin.bined.CodeAreaUtils;
+import org.exbin.bined.CodeCharactersCase;
+import org.exbin.bined.CodeType;
 import org.exbin.bined.EditMode;
+import org.exbin.bined.SelectionRange;
 import org.exbin.bined.basic.BasicCodeAreaZone;
-import org.exbin.bined.swing.basic.CodeArea;
+import org.exbin.bined.color.CodeAreaBasicColors;
+import org.exbin.bined.highlight.swing.color.CodeAreaMatchColorType;
+import org.exbin.bined.operation.swing.CodeAreaOperationCommandHandler;
+import org.exbin.bined.swing.CodeAreaPainter;
+import org.exbin.bined.swing.capability.CharAssessorPainterCapable;
+import org.exbin.bined.swing.capability.ColorAssessorPainterCapable;
+import org.exbin.bined.swing.section.SectCodeArea;
+import org.exbin.bined.swing.section.color.SectionCodeAreaColorProfile;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public class HexPreviewPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
-	public static int CACHE_SIZE = 250;
+	private static final int CACHE_SIZE = 250;
 	private final byte[] valuesCache = new byte[CACHE_SIZE];
-	private CodeArea editor;
+	private SectCodeArea hexCodeArea;
+	private SectionCodeAreaColorProfile defaultColors;
 	private HexEditorHeader header;
+	private HexSearchBar searchBar;
 	private HexInspectorPanel inspector;
 
 	private JPopupMenu popupMenu;
@@ -47,21 +64,21 @@ public class HexPreviewPanel extends JPanel {
 	private BasicCodeAreaZone popupMenuPositionZone = BasicCodeAreaZone.UNKNOWN;
 
 	public HexPreviewPanel(JadxSettings settings) {
-		new HexPreviewPanel(settings, new CodeArea());
+		new HexPreviewPanel(settings, new SectCodeArea());
 	}
 
-	public HexPreviewPanel(JadxSettings settings, CodeArea editor) {
-		this.editor = editor;
+	public HexPreviewPanel(JadxSettings settings, SectCodeArea editor) {
+		this.hexCodeArea = editor;
 
+		this.searchBar = new HexSearchBar(editor);
 		this.header = new HexEditorHeader(editor);
 		this.header.setFont(settings.getFont());
 		this.inspector = new HexInspectorPanel();
+		this.hexCodeArea.setCodeFont(settings.getFont());
+		this.hexCodeArea.setEditMode(EditMode.READ_ONLY);
+		this.hexCodeArea.setCharset(StandardCharsets.UTF_8);
 
-		this.editor.setFont(settings.getFont());
-		this.editor.setEditMode(EditMode.READ_ONLY);
-		this.editor.setCharset(StandardCharsets.UTF_8);
-
-		this.editor.setComponentPopupMenu(new JPopupMenu() {
+		this.hexCodeArea.setComponentPopupMenu(new JPopupMenu() {
 			@Override
 			public void show(Component invoker, int x, int y) {
 				int clickedX = x;
@@ -78,20 +95,30 @@ public class HexPreviewPanel extends JPanel {
 					updatePopupActionStates();
 					popupMenu.show(invoker, clickedX, clickedY);
 				}
-
 			}
 		});
 
+		CodeAreaPainter painter = hexCodeArea.getPainter();
+		defaultColors = (SectionCodeAreaColorProfile) hexCodeArea.getColorsProfile();
+
+		hexCodeArea.setColorsProfile(getColorsProfile());
+
+		BinEdCodeAreaAssessor codeAreaAssessor = new BinEdCodeAreaAssessor(((ColorAssessorPainterCapable) painter).getColorAssessor(),
+				((CharAssessorPainterCapable) painter).getCharAssessor());
+		((ColorAssessorPainterCapable) painter).setColorAssessor(codeAreaAssessor);
+		((CharAssessorPainterCapable) painter).setCharAssessor(codeAreaAssessor);
+
 		setLayout(new BorderLayout());
-		add(this.editor, BorderLayout.CENTER);
-		add(header, BorderLayout.NORTH);
+		add(searchBar, BorderLayout.PAGE_START);
+		add(hexCodeArea, BorderLayout.CENTER);
+		add(header, BorderLayout.PAGE_END);
 		add(inspector, BorderLayout.EAST);
 
 		setFocusable(true);
 		addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				editor.requestFocusInWindow();
+				hexCodeArea.requestFocusInWindow();
 			}
 
 			@Override
@@ -103,26 +130,35 @@ public class HexPreviewPanel extends JPanel {
 		enableUpdate();
 	}
 
+	public SectionCodeAreaColorProfile getColorsProfile() {
+		boolean isDarkTheme = UiUtils.isDarkTheme(Objects.requireNonNull(defaultColors.getColor(CodeAreaBasicColors.TEXT_BACKGROUND)));
+		Color markAllHighlightColor = isDarkTheme ? Color.decode("#32593D") : Color.decode("#ffc800");
+		Color currentMatchColor = defaultColors.getColor(CodeAreaBasicColors.SELECTION_BACKGROUND);
+		defaultColors.setColor(CodeAreaMatchColorType.MATCH_BACKGROUND, markAllHighlightColor);
+		defaultColors.setColor(CodeAreaMatchColorType.CURRENT_MATCH_BACKGROUND, currentMatchColor);
+		return defaultColors;
+	}
+
 	public void setData(byte[] data) {
-		if (editor != null && data != null) {
-			editor.setContentData(new ByteArrayEditableData(data));
+		if (hexCodeArea != null && data != null) {
+			hexCodeArea.setContentData(new ByteArrayEditableData(data));
 			inspector.setBytes(data);
 		}
 	}
 
 	public void enableUpdate() {
-		CaretMovedListener caretMovedListener = (CodeAreaCaretPosition caretPosition) -> updateValues();
-		editor.addCaretMovedListener(caretMovedListener);
+		CodeAreaCaretListener caretMovedListener = (CodeAreaCaretPosition caretPosition) -> updateValues();
+		hexCodeArea.addCaretMovedListener(caretMovedListener);
 	}
 
 	private void updateValues() {
-		CodeAreaCaretPosition caretPosition = editor.getCaretPosition();
+		CodeAreaCaretPosition caretPosition = hexCodeArea.getActiveCaretPosition();
 		long dataPosition = caretPosition.getDataPosition();
-		long dataSize = editor.getDataSize();
+		long dataSize = hexCodeArea.getDataSize();
 
 		if (dataPosition < dataSize) {
 			int availableData = dataSize - dataPosition >= CACHE_SIZE ? CACHE_SIZE : (int) (dataSize - dataPosition);
-			BinaryData contentData = editor.getContentData();
+			BinaryData contentData = hexCodeArea.getContentData();
 			contentData.copyToArray(dataPosition, valuesCache, 0, availableData);
 			if (availableData < CACHE_SIZE) {
 				Arrays.fill(valuesCache, availableData, CACHE_SIZE, (byte) 0);
@@ -133,32 +169,32 @@ public class HexPreviewPanel extends JPanel {
 	}
 
 	private void createActions() {
-		cutAction = new JMenuItem("Cut");
+		cutAction = new JMenuItem(NLS.str("popup.cut"));
 		cutAction.addActionListener(e -> performCut());
 
-		copyAction = new JMenuItem("Copy");
+		copyAction = new JMenuItem(NLS.str("popup.copy"));
 		copyAction.addActionListener(e -> performCopy());
 
-		copyHexAction = new JMenuItem("Copy as Hex");
+		copyHexAction = new JMenuItem(NLS.str("popup.copy_as_hex"));
 		copyHexAction.addActionListener(e -> performCopyAsCode());
 
-		copyStringAction = new JMenuItem("Copy as String");
+		copyStringAction = new JMenuItem(NLS.str("popup.copy_as_string"));
 		copyStringAction.addActionListener(e -> performCopy());
 
-		pasteAction = new JMenuItem("Paste");
+		pasteAction = new JMenuItem(NLS.str("popup.paste"));
 		pasteAction.addActionListener(e -> performPaste());
 
-		deleteAction = new JMenuItem("Delete");
+		deleteAction = new JMenuItem(NLS.str("popup.delete"));
 		deleteAction.addActionListener(e -> {
 			if (!isEditable()) {
 				performDelete();
 			}
 		});
 
-		selectAllAction = new JMenuItem("Select All");
+		selectAllAction = new JMenuItem(NLS.str("popup.select_all"));
 		selectAllAction.addActionListener(e -> performSelectAll());
 
-		copyOffsetItem = new JMenuItem("Copy Offset");
+		copyOffsetItem = new JMenuItem(NLS.str("popup.copy_offset"));
 		copyOffsetItem.addActionListener(e -> copyOffset());
 	}
 
@@ -174,7 +210,7 @@ public class HexPreviewPanel extends JPanel {
 			popupMenu.addSeparator();
 		}
 
-		JMenu copyMenu = new JMenu("Copy As...");
+		JMenu copyMenu = new JMenu(NLS.str("popup.copy_as"));
 		copyMenu.add(copyHexAction);
 		copyMenu.add(copyStringAction);
 		popupMenu.add(copyMenu);
@@ -193,11 +229,11 @@ public class HexPreviewPanel extends JPanel {
 		copyStringAction.setEnabled(selectionExists);
 		deleteAction.setEnabled(isEditable && selectionExists);
 
-		selectAllAction.setEnabled(editor.getDataSize() > 0);
+		selectAllAction.setEnabled(hexCodeArea.getDataSize() > 0);
 	}
 
-	public CodeArea getEditor() {
-		return this.editor;
+	public SectCodeArea getEditor() {
+		return this.hexCodeArea;
 	}
 
 	public HexEditorHeader getHeader() {
@@ -208,44 +244,79 @@ public class HexPreviewPanel extends JPanel {
 		return this.inspector;
 	}
 
+	public HexSearchBar getSearchBar() {
+		return this.searchBar;
+	}
+
+	public void showSearchBar() {
+		searchBar.showAndFocus();
+	}
+
 	public void performCut() {
-		editor.cut();
+		hexCodeArea.cut();
 	}
 
 	public void performCopy() {
-		editor.copy();
+		hexCodeArea.copy();
 	}
 
 	public void performCopyAsCode() {
-		editor.copyAsCode();
+		((CodeAreaOperationCommandHandler) hexCodeArea.getCommandHandler()).copyAsCode();
 	}
 
 	public void performPaste() {
-		editor.paste();
+		hexCodeArea.paste();
 	}
 
 	public void performDelete() {
-		editor.delete();
+		hexCodeArea.delete();
 	}
 
 	public void performSelectAll() {
-		editor.selectAll();
+		hexCodeArea.selectAll();
 	}
 
 	public boolean isSelection() {
-		return editor.hasSelection();
+		return hexCodeArea.hasSelection();
 	}
 
 	public boolean isEditable() {
-		return editor.isEditable();
+		return hexCodeArea.isEditable();
 	}
 
 	public boolean canPaste() {
-		return editor.canPaste();
+		return hexCodeArea.canPaste();
+	}
+
+	public static String getSelectionData(SectCodeArea core) {
+		SelectionRange selection = core.getSelection();
+		if (!selection.isEmpty()) {
+			long first = selection.getFirst();
+			long last = selection.getLast();
+
+			BinaryData copy = core.getContentData().copy(first, last - first + 1);
+
+			CodeType codeType = core.getCodeType();
+			CodeCharactersCase charactersCase = core.getCodeCharactersCase();
+
+			int charsPerByte = codeType.getMaxDigitsForByte() + 1;
+			int textLength = (int) (copy.getDataSize() * charsPerByte);
+			if (textLength > 0) {
+				textLength--;
+			}
+
+			char[] targetData = new char[textLength];
+			Arrays.fill(targetData, ' ');
+			for (int i = 0; i < copy.getDataSize(); i++) {
+				CodeAreaUtils.byteToCharsCode(copy.getByte(i), codeType, targetData, i * charsPerByte, charactersCase);
+			}
+			return new String(targetData);
+		}
+		return null;
 	}
 
 	public void copyOffset() {
-		String s = header.addressString(editor.getSelection().getStart());
+		String s = header.addressString(hexCodeArea.getSelection().getStart());
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Clipboard cb = tk.getSystemClipboard();
 		StringSelection ss = new StringSelection(s);

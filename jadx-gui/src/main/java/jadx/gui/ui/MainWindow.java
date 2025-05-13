@@ -7,7 +7,6 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -66,7 +65,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import org.exbin.bined.swing.basic.CodeArea;
+import org.exbin.bined.swing.section.SectCodeArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -971,7 +970,7 @@ public class MainWindow extends JFrame {
 		HexPreviewPanel hexPreviewPanel = getCurrentHexViewTab();
 		if (hexPreviewPanel != null) {
 			HexInspectorPanel inspector = hexPreviewPanel.getInspector();
-			CodeArea hexEditor = hexPreviewPanel.getEditor();
+			SectCodeArea hexEditor = hexPreviewPanel.getEditor();
 			switch (action) {
 				case HEX_VIEWER_SHOW_INSPECTOR:
 					hexPreviewPanel.getInspector().setVisible(!inspector.isVisible());
@@ -983,30 +982,10 @@ public class MainWindow extends JFrame {
 					}
 					break;
 				case HEX_VIEWER_GO_TO_ADDRESS:
-					new GotoAddressDialog().showSetSelectionDialog(hexEditor, NLS.str("hex_viewer.goto_address"));
+					new GotoAddressDialog().showSetSelectionDialog(hexEditor);
 					break;
 				case HEX_VIEWER_FIND:
-					if (hexEditor.hasSelection()) {
-						// FindReplacePanel.getInstance().useSelectionForFind(hexEditor);
-					} else {
-						// FindReplacePanel.getInstance().showDialog(this, hexEditor);
-					}
-					break;
-				case HEX_VIEWER_FIND_NEXT:
-					// if (!FindReplacePanel.getInstance().findNext(hexEditor)) {
-					Toolkit.getDefaultToolkit().beep();
-					// }
-					break;
-				case HEX_VIEWER_FIND_PREVIOUS:
-					// if (!FindReplacePanel.getInstance().findPrevious(hexEditor)) {
-					Toolkit.getDefaultToolkit().beep();
-					// }
-					break;
-				case HEX_VIEWER_COPY_HEX:
-					hexPreviewPanel.performCopyAsCode();
-					break;
-				case HEX_VIEWER_COPY_TEXT:
-					hexPreviewPanel.performCopy();
+					hexPreviewPanel.showSearchBar();
 					break;
 			}
 		}
@@ -1819,25 +1798,11 @@ public class MainWindow extends JFrame {
 
 		JadxGuiAction findAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND,
 				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND));
-		JadxGuiAction findNextAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND_NEXT,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND_NEXT));
-		JadxGuiAction findPreviousAction = new JadxGuiAction(ActionModel.HEX_VIEWER_FIND_PREVIOUS,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_FIND_PREVIOUS));
-
-		JadxGuiAction copyHexAction = new JadxGuiAction(ActionModel.HEX_VIEWER_COPY_HEX,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_COPY_HEX));
-		JadxGuiAction copyTextAction = new JadxGuiAction(ActionModel.HEX_VIEWER_COPY_TEXT,
-				() -> sendActionsToHexViewer(ActionModel.HEX_VIEWER_COPY_TEXT));
 
 		hexViewerMenu.add(showInspectorMenuItem);
 		hexViewerMenu.add(changeEncoding);
 		hexViewerMenu.add(goToAddress);
 		hexViewerMenu.addSeparator();
 		hexViewerMenu.add(findAction);
-		hexViewerMenu.add(findNextAction);
-		hexViewerMenu.add(findPreviousAction);
-		hexViewerMenu.addSeparator();
-		hexViewerMenu.add(copyHexAction);
-		hexViewerMenu.add(copyTextAction);
 	}
 }

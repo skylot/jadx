@@ -11,26 +11,26 @@ import java.awt.RenderingHints;
 import javax.swing.JComponent;
 import javax.swing.UIManager;
 
-import org.exbin.bined.CaretMovedListener;
+import org.exbin.bined.CodeAreaCaretListener;
 import org.exbin.bined.CodeAreaSection;
 import org.exbin.bined.DataChangedListener;
 import org.exbin.bined.SelectionChangedListener;
 import org.exbin.bined.SelectionRange;
 import org.exbin.bined.basic.BasicCodeAreaSection;
-import org.exbin.bined.swing.basic.CodeArea;
+import org.exbin.bined.swing.section.SectCodeArea;
 
 public class HexEditorHeader extends JComponent {
 	private static final long serialVersionUID = 1L;
 	private static final String HEX_ALPHABET = "0123456789ABCDEF";
-	private final CodeArea parent;
+	private final SectCodeArea parent;
 	private final DataChangedListener dataChangedListener = this::repaint;
-	private final CaretMovedListener caretMovedListener = caretPosition -> repaint();
+	private final CodeAreaCaretListener caretMovedListener = caretPosition -> repaint();
 	private final SelectionChangedListener selectionChangedListener = this::repaint;
 
 	private Dimension minimumSize = null;
 	private Dimension preferredSize = null;
 
-	public HexEditorHeader(CodeArea parent) {
+	public HexEditorHeader(SectCodeArea parent) {
 		this.parent = parent;
 		if (this.parent != null) {
 			this.parent.addCaretMovedListener(caretMovedListener);
