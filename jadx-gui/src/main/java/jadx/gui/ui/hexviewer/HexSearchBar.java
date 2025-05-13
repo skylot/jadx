@@ -98,7 +98,11 @@ public class HexSearchBar extends JToolBar {
 		findTypeCB = new JToggleButton();
 		findTypeCB.setIcon(ICON_FIND_TYPE_TXT);
 		findTypeCB.setSelectedIcon(ICON_FIND_TYPE_HEX);
-		findTypeCB.setToolTipText(NLS.str("search.find_type"));
+		if (findTypeCB.isSelected()) {
+			findTypeCB.setToolTipText(NLS.str("search.find_type_hex"));
+		} else {
+			findTypeCB.setToolTipText(NLS.str("search.find_type_text"));
+		}
 		findTypeCB.addActionListener(e -> {
 			searchField.setText("");
 			updateFindStatus();
@@ -156,7 +160,7 @@ public class HexSearchBar extends JToolBar {
 		String selectedText = HexPreviewPanel.getSelectionData(hexCodeArea);
 		if (!StringUtils.isEmpty(selectedText)) {
 			searchField.setText(selectedText);
-			findTypeCB.setSelected(true);
+			makeFindByHexButton();
 		}
 
 		searchField.selectAll();
@@ -171,7 +175,7 @@ public class HexSearchBar extends JToolBar {
 			String preferText = HexPreviewPanel.getSelectionData(hexCodeArea);
 			if (!StringUtils.isEmpty(preferText)) {
 				searchField.setText(preferText);
-				findTypeCB.setSelected(true);
+				makeFindByHexButton();
 			}
 			searchField.selectAll();
 			searchField.requestFocus();
@@ -241,7 +245,9 @@ public class HexSearchBar extends JToolBar {
 				condition.setSearchText(searchField.getText());
 			} else {
 				String hexBytes = searchField.getText();
-				condition.setBinaryData(new ByteArrayEditableData(hexStringToByteArray(hexBytes)));
+				if (isValidHexSting(hexBytes)) {
+					condition.setBinaryData(new ByteArrayEditableData(hexStringToByteArray(hexBytes)));
+				}
 			}
 		}
 		return condition;
@@ -250,21 +256,33 @@ public class HexSearchBar extends JToolBar {
 	public void updateFindStatus() {
 		SearchCondition condition = makeSearchCondition();
 		if (condition.getSearchMode() == SearchCondition.SearchMode.TEXT) {
-			findTypeCB.setIcon(ICON_FIND_TYPE_TXT);
+			findTypeCB.setSelected(false);
+			findTypeCB.setToolTipText(NLS.str("search.find_type_text"));
 			matchCaseCB.setEnabled(true);
 		} else {
-			findTypeCB.setSelectedIcon(ICON_FIND_TYPE_HEX);
+			makeFindByHexButton();
 			matchCaseCB.setEnabled(false);
 		}
 	}
 
-	public static byte[] hexStringToByteArray(String s) {
+	private void makeFindByHexButton() {
+		findTypeCB.setSelected(true);
+		findTypeCB.setToolTipText(NLS.str("search.find_type_hex"));
+	}
+
+	private boolean isValidHexSting(String hexSting) {
+		String cleanS = hexSting.replace(" ", "");
+		int len = cleanS.length();
+		return len % 2 == 0;
+	}
+
+	public byte[] hexStringToByteArray(String s) {
 		if (s == null || s.isEmpty()) {
 			return new byte[0];
 		}
 		String cleanS = s.replace(" ", "");
 		int len = cleanS.length();
-		if (len % 2 != 0) {
+		if (!isValidHexSting(s)) {
 			throw new IllegalArgumentException("Hex string must have even length. Input length: " + len);
 		}
 
