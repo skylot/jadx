@@ -23,8 +23,7 @@ public final class HtmlPanel extends ContentPanel {
 		setLayout(new BorderLayout());
 		textArea = new JHtmlPane();
 		loadSettings();
-		textArea.setText(jnode.getCodeInfo().getCodeStr());
-		textArea.setCaretPosition(0); // otherwise the start view will be the last line
+		loadContent(jnode);
 		textArea.setEditable(false);
 		JScrollPane sp = new JScrollPane(textArea);
 		add(sp);
@@ -36,6 +35,11 @@ public final class HtmlPanel extends ContentPanel {
 	public void loadSettings() {
 		JadxSettings settings = getMainWindow().getSettings();
 		textArea.setFont(settings.getFont());
+	}
+
+	public void loadContent(JNode jnode) {
+		textArea.setText(jnode.getCodeInfo().getCodeStr());
+		textArea.setCaretPosition(0); // otherwise the start view will be the last line
 	}
 
 	public JEditorPane getHtmlArea() {
