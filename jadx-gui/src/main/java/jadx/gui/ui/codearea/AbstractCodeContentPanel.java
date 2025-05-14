@@ -1,5 +1,7 @@
 package jadx.gui.ui.codearea;
 
+import java.awt.Component;
+
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
@@ -15,4 +17,6 @@ public abstract class AbstractCodeContentPanel extends ContentPanel {
 	}
 
 	public abstract AbstractCodeArea getCodeArea();
+
+	public abstract Component getChildrenComponent();
 }

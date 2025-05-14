@@ -1,5 +1,6 @@
 package jadx.gui.utils;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.MouseInfo;
@@ -453,5 +454,18 @@ public class UiUtils {
 	@TestOnly
 	public static void printStackTrace(String label) {
 		LOG.debug("StackTrace: {}", label, new Exception(label));
+	}
+
+	public static boolean isDarkTheme(Color background) {
+		double brightness = (background.getRed() * 0.299
+				+ background.getGreen() * 0.587
+				+ background.getBlue() * 0.114) / 255;
+		return brightness < 0.5;
+	}
+
+	public static Color adjustBrightness(Color color, float factor) {
+		float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+		hsb[2] = Math.min(1.0f, hsb[2] * factor); // Adjust brightness
+		return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
 	}
 }

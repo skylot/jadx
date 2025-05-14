@@ -103,7 +103,16 @@ public enum ActionModel {
 	SCRIPT_SAVE(PLUGIN_SCRIPT, "script.save", "script.save", "ui/menu-saveall",
 			Shortcut.keyboard(KeyEvent.VK_S, UiUtils.ctrlButton())),
 	SCRIPT_AUTO_COMPLETE(PLUGIN_SCRIPT, "script.auto_complete", "script.auto_complete", null,
-			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton()));
+			Shortcut.keyboard(KeyEvent.VK_SPACE, UiUtils.ctrlButton())),
+
+	HEX_VIEWER_SHOW_INSPECTOR(HEX_VIEWER_MENU, "hex_viewer.show_inspector", "hex_viewer.show_inspector",
+			null, Shortcut.none()),
+	HEX_VIEWER_CHANGE_ENCODING(HEX_VIEWER_MENU, "hex_viewer.change_encoding", "hex_viewer.change_encoding",
+			null, Shortcut.none()),
+	HEX_VIEWER_GO_TO_ADDRESS(HEX_VIEWER_MENU, "hex_viewer.goto_address", "hex_viewer.goto_address",
+			null, Shortcut.keyboard(KeyEvent.VK_J, UiUtils.ctrlButton())),
+	HEX_VIEWER_FIND(HEX_VIEWER_MENU, "hex_viewer.find", "hex_viewer.find",
+			null, Shortcut.keyboard(KeyEvent.VK_F, UiUtils.ctrlButton()));
 
 	private final ActionCategory category;
 	private final String nameRes;

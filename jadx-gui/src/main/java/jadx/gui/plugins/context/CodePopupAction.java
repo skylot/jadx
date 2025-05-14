@@ -9,8 +9,8 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.action.JNodeAction;
 import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.codearea.JNodeAction;
 
 public class CodePopupAction {
 	private final String name;
