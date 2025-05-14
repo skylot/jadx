@@ -180,7 +180,7 @@ public class HexSearchBar extends JToolBar {
 			searchField.selectAll();
 			searchField.requestFocus();
 		} else {
-			control.close();
+			control.performEscape();
 			hexCodeArea.requestFocus();
 		}
 	}
@@ -270,19 +270,29 @@ public class HexSearchBar extends JToolBar {
 		findTypeCB.setToolTipText(NLS.str("search.find_type_hex"));
 	}
 
-	private boolean isValidHexSting(String hexSting) {
-		String cleanS = hexSting.replace(" ", "");
+	private boolean isValidHexSting(String hexString) {
+		String cleanS = hexString.replace(" ", "");
 		int len = cleanS.length();
-		return len % 2 == 0;
+		try {
+			boolean isPair = len % 2 == 0;
+			if (isPair) {
+				Long.parseLong(cleanS, 16);
+				return true;
+			}
+		} catch (NumberFormatException ex) {
+			// ignore error
+			return false;
+		}
+		return false;
 	}
 
-	public byte[] hexStringToByteArray(String s) {
-		if (s == null || s.isEmpty()) {
+	public byte[] hexStringToByteArray(String hexString) {
+		if (hexString == null || hexString.isEmpty()) {
 			return new byte[0];
 		}
-		String cleanS = s.replace(" ", "");
+		String cleanS = hexString.replace(" ", "");
 		int len = cleanS.length();
-		if (!isValidHexSting(s)) {
+		if (!isValidHexSting(hexString)) {
 			throw new IllegalArgumentException("Hex string must have even length. Input length: " + len);
 		}
 
