@@ -12,7 +12,7 @@ public enum ResourceType {
 	ARSC(".arsc"),
 	APK(".apk", ".apkm", ".apks"),
 	FONT(".ttf", ".ttc", ".otf"),
-	IMG(".png", ".gif", ".jpg", ".webp", ".bmp", ".tiff", ".svg"),
+	IMG(".png", ".gif", ".jpg", ".webp", ".bmp", ".tiff"),
 	ARCHIVE(".zip", ".rar", ".7zip", ".7z", ".arj", ".tar", ".gzip", ".bzip", ".bzip2", ".cab", ".cpio", ".ar", ".gz", ".tgz", ".bz2" ),
 	VIDEOS(".mp4", ".mkv", ".webm", ".avi", ".flv", ".3gp"),
 	SOUNDS(".aac",".ogg", ".opus",".mp3",".wav", ".wma",".mid",".midi"),
