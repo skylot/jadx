@@ -245,7 +245,7 @@ public class HexSearchBar extends JToolBar {
 				condition.setSearchText(searchField.getText());
 			} else {
 				String hexBytes = searchField.getText();
-				if (isValidHexSting(hexBytes)) {
+				if (isValidHexString(hexBytes)) {
 					condition.setBinaryData(new ByteArrayEditableData(hexStringToByteArray(hexBytes)));
 				}
 			}
@@ -270,7 +270,7 @@ public class HexSearchBar extends JToolBar {
 		findTypeCB.setToolTipText(NLS.str("search.find_type_hex"));
 	}
 
-	private boolean isValidHexSting(String hexString) {
+	private boolean isValidHexString(String hexString) {
 		String cleanS = hexString.replace(" ", "");
 		int len = cleanS.length();
 		try {
@@ -292,7 +292,7 @@ public class HexSearchBar extends JToolBar {
 		}
 		String cleanS = hexString.replace(" ", "");
 		int len = cleanS.length();
-		if (!isValidHexSting(hexString)) {
+		if (!isValidHexString(hexString)) {
 			throw new IllegalArgumentException("Hex string must have even length. Input length: " + len);
 		}
 
