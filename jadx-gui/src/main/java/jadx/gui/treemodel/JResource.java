@@ -25,6 +25,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.BinaryContentPanel;
 import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.FontPanel;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.ui.popupmenu.JResourcePopupMenu;
 import jadx.gui.ui.tab.TabbedPane;
@@ -43,6 +44,14 @@ public class JResource extends JLoadableNode {
 	private static final ImageIcon SO_ICON = UiUtils.openSvgIcon("nodes/binaryFile");
 	private static final ImageIcon MANIFEST_ICON = UiUtils.openSvgIcon("nodes/manifest");
 	private static final ImageIcon JAVA_ICON = UiUtils.openSvgIcon("nodes/java");
+	private static final ImageIcon APK_ICON = UiUtils.openSvgIcon("nodes/archiveApk");
+	private static final ImageIcon AUDIO_ICON = UiUtils.openSvgIcon("nodes/audioFile");
+	private static final ImageIcon VIDEO_ICON = UiUtils.openSvgIcon("nodes/videoFile");
+	private static final ImageIcon FONT_ICON = UiUtils.openSvgIcon("nodes/fontFile");
+	private static final ImageIcon HTML_ICON = UiUtils.openSvgIcon("nodes/html");
+	private static final ImageIcon JSON_ICON = UiUtils.openSvgIcon("nodes/json");
+	private static final ImageIcon TEXT_ICON = UiUtils.openSvgIcon("nodes/text");
+	private static final ImageIcon ARCHIVE_ICON = UiUtils.openSvgIcon("nodes/archive");
 	private static final ImageIcon UNKNOWN_ICON = UiUtils.openSvgIcon("nodes/unknown");
 
 	public static final Comparator<JResource> RESOURCES_COMPARATOR =
@@ -149,6 +158,9 @@ public class JResource extends JLoadableNode {
 		}
 		if (resFile.getType() == ResourceType.LIB) {
 			return new BinaryContentPanel(tabbedPane, this, false);
+		}
+		if (resFile.getType() == ResourceType.FONT) {
+			return new FontPanel(tabbedPane, this);
 		}
 		if (getSyntaxByExtension(resFile.getDeobfName()) == null) {
 			return new BinaryContentPanel(tabbedPane, this);
@@ -287,6 +299,22 @@ public class JResource extends JLoadableNode {
 						return SO_ICON;
 					case CODE:
 						return JAVA_ICON;
+					case APK:
+						return APK_ICON;
+					case VIDEOS:
+						return VIDEO_ICON;
+					case SOUNDS:
+						return AUDIO_ICON;
+					case FONT:
+						return FONT_ICON;
+					case HTML:
+						return HTML_ICON;
+					case JSON:
+						return JSON_ICON;
+					case TEXT:
+						return TEXT_ICON;
+					case ARCHIVE:
+						return ARCHIVE_ICON;
 					case UNKNOWN:
 						return UNKNOWN_ICON;
 				}
@@ -298,8 +326,10 @@ public class JResource extends JLoadableNode {
 	public static boolean isSupportedForView(ResourceType type) {
 		switch (type) {
 			case CODE:
-			case FONT:
-			case MEDIA:
+			case SOUNDS:
+			case VIDEOS:
+			case ARCHIVE:
+			case APK:
 				return false;
 
 			case MANIFEST:
@@ -307,10 +337,24 @@ public class JResource extends JLoadableNode {
 			case ARSC:
 			case IMG:
 			case LIB:
+			case FONT:
+			case TEXT:
+			case JSON:
+			case HTML:
 			case UNKNOWN:
 				return true;
 		}
 		return true;
+	}
+
+	public static boolean isOpenInExternalTool(ResourceType type) {
+		switch (type) {
+			case SOUNDS:
+			case VIDEOS:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	public ResourceFile getResFile() {
