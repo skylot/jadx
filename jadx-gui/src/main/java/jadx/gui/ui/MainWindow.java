@@ -116,7 +116,7 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.tree.TreeExpansionService;
-import jadx.gui.treemodel.ApkSignature;
+import jadx.gui.treemodel.ApkSignatureNode;
 import jadx.gui.treemodel.JInputFiles;
 import jadx.gui.treemodel.JInputScripts;
 import jadx.gui.treemodel.JInputs;
@@ -682,7 +682,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void addTreeCustomNodes() {
-		treeRoot.replaceCustomNode(ApkSignature.getApkSignature(wrapper));
+		treeRoot.replaceCustomNode(ApkSignatureNode.getApkSignature(wrapper));
 		treeRoot.replaceCustomNode(new SummaryNode(this));
 	}
 
