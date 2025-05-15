@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -18,12 +19,14 @@ import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.dialog.MethodsDialog;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -38,9 +41,7 @@ public final class FridaAction extends JNodeAction {
 	@Override
 	public void runAction(JNode node) {
 		try {
-			String fridaSnippet = generateFridaSnippet(node);
-			LOG.info("Frida snippet:\n{}", fridaSnippet);
-			UiUtils.copyToClipboard(fridaSnippet);
+			generateFridaSnippet(node);
 		} catch (Exception e) {
 			LOG.error("Failed to generate Frida code snippet", e);
 			JOptionPane.showMessageDialog(getCodeArea().getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),
@@ -53,17 +54,27 @@ public final class FridaAction extends JNodeAction {
 		return node instanceof JMethod || node instanceof JClass || node instanceof JField;
 	}
 
-	private String generateFridaSnippet(JNode node) {
+	private void generateFridaSnippet(JNode node) {
+		String fridaSnippet;
 		if (node instanceof JMethod) {
-			return generateMethodSnippet((JMethod) node);
+			fridaSnippet = generateMethodSnippet((JMethod) node);
+			copySnipped(fridaSnippet);
+		} else if (node instanceof JField) {
+			fridaSnippet = generateFieldSnippet((JField) node);
+			copySnipped(fridaSnippet);
+		} else if (node instanceof JClass) {
+			SwingUtilities.invokeLater(() -> showMethodSelectionDialog((JClass) node));
+		} else {
+			throw new JadxRuntimeException("Unsupported node type: " + (node != null ? node.getClass() : "null"));
 		}
-		if (node instanceof JClass) {
-			return generateClassAllMethodSnippet((JClass) node);
+
+	}
+
+	private void copySnipped(String fridaSnippet) {
+		if (!StringUtils.isEmpty(fridaSnippet)) {
+			LOG.info("Frida snippet:\n{}", fridaSnippet);
+			UiUtils.copyToClipboard(fridaSnippet);
 		}
-		if (node instanceof JField) {
-			return generateFieldSnippet((JField) node);
-		}
-		throw new JadxRuntimeException("Unsupported node type: " + (node != null ? node.getClass() : "null"));
 	}
 
 	private String generateMethodSnippet(JMethod jMth) {
@@ -129,13 +140,20 @@ public final class FridaAction extends JNodeAction {
 		return String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
 	}
 
-	private String generateClassAllMethodSnippet(JClass jc) {
+	private void showMethodSelectionDialog(JClass jc) {
 		JavaClass javaClass = jc.getCls();
-		String result = "";
-		for (JavaMethod javaMethod : javaClass.getMethods()) {
-			result = result + generateMethodSnippet(javaMethod, jc) + "\n";
+		new MethodsDialog(getCodeArea().getMainWindow(), javaClass.getMethods(), (result) -> {
+			String fridaSnippet = generateClassAllMethodSnippet(jc, result);
+			copySnipped(fridaSnippet);
+		});
+	}
+
+	private String generateClassAllMethodSnippet(JClass jc, List<JavaMethod> methodList) {
+		StringBuilder result = new StringBuilder();
+		for (JavaMethod javaMethod : methodList) {
+			result.append(generateMethodSnippet(javaMethod, jc)).append("\n");
 		}
-		return result;
+		return result.toString();
 	}
 
 	private String generateFieldSnippet(JField jf) {
