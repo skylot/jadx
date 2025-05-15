@@ -104,7 +104,7 @@ public class JField extends JNode implements JRenameNode {
 
 	@Override
 	public void reload(MainWindow mainWindow) {
-		mainWindow.reloadTree();
+		mainWindow.reloadTreePreservingState();
 	}
 
 	@Override

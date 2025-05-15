@@ -254,8 +254,7 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	@Override
 	public void reload(MainWindow mainWindow) {
 		// TODO: rebuild packages only if class package has been changed
-		mainWindow.rebuildPackagesTree();
-		mainWindow.reloadTree();
+		mainWindow.reloadTreePreservingState();
 	}
 
 	@Override
