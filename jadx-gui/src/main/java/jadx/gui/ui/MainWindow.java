@@ -175,6 +175,7 @@ import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
+import jadx.gui.utils.ui.FileOpenerHelper;
 import jadx.gui.utils.ui.NodeLabel;
 
 public class MainWindow extends JFrame {
@@ -888,9 +889,15 @@ public class MainWindow extends JFrame {
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
-				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
-					tabsController.selectTab(res, true);
-					return true;
+				if (resFile != null) {
+					if (JResource.isOpenInExternalTool(resFile.getType())) {
+						FileOpenerHelper.openFile(this, res);
+						return true;
+					}
+					if (JResource.isSupportedForView(resFile.getType())) {
+						tabsController.selectTab(res, true);
+						return true;
+					}
 				}
 			} else if (obj instanceof JNode) {
 				JNode treeNode = (JNode) obj;
