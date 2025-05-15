@@ -852,6 +852,14 @@ public class MainWindow extends JFrame {
 		treeRoot.update();
 	}
 
+	// simple save and restore tree state after renaming
+	// maybe need improve for find and update only changed node
+	public void reloadTreePreservingState() {
+		List<String> treePath = treeExpansionService.save();
+		reloadTree();
+		treeExpansionService.load(treePath);
+	}
+
 	private void toggleFlattenPackage() {
 		setFlattenPackage(!isFlattenPackage);
 	}
