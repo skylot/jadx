@@ -282,6 +282,18 @@ public class TabComponent extends JPanel {
 			// We don't use TabsController here because tabs position is
 			// specific to TabbedPane
 			List<ContentPanel> contentPanels = tabbedPane.getTabs();
+			int currentIndex = contentPanels.indexOf(contentPanel);
+			if (currentIndex > 0) { // Add item only if there are tabs on the left (index > 0)
+				JMenuItem closeAllLeft = new JMenuItem(NLS.str("tabs.closeAllLeft"));
+				closeAllLeft.addActionListener(e -> {
+					// Iterate in reverse order from the index before the current tab to the beginning
+					for (int i = currentIndex - 1; i >= 0; i--) {
+						ContentPanel panelToClose = contentPanels.get(i);
+						tabsController.closeTab(panelToClose.getNode(), true);
+					}
+				});
+				menu.add(closeAllLeft);
+			}
 			if (contentPanel != ListUtils.last(contentPanels)) {
 				JMenuItem closeAllRight = new JMenuItem(NLS.str("tabs.closeAllRight"));
 				closeAllRight.addActionListener(e -> {
