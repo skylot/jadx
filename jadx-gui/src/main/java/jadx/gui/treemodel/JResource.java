@@ -200,7 +200,7 @@ public class JResource extends JLoadableNode {
 			List<JResource> nodes = ResTableHelper.buildTree(rc);
 			sortResNodes(nodes);
 			subNodes = nodes;
-			update();
+			UiUtils.uiRun(this::update);
 			return codeInfo;
 		}
 		// single node
