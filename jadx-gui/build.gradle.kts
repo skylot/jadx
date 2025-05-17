@@ -46,7 +46,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
 	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
-	implementation("com.android.tools.build:apksig:8.9.2")
+	implementation("com.android.tools.build:apksig:8.10.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	// Library for hex viewing data
