@@ -85,6 +85,9 @@ import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
@@ -654,6 +657,7 @@ public class MainWindow extends JFrame {
 					runInitialBackgroundJobs();
 					notifyLoadListeners(true);
 					update();
+					checkIfCodeHasNonPrintableChars();
 				});
 	}
 
@@ -1791,6 +1795,55 @@ public class MainWindow extends JFrame {
 		} else {
 			JOptionPane.showMessageDialog(this, NLS.str("message.desktop_entry_creation_error"),
 					NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void checkIfCodeHasNonPrintableChars() {
+		if (getSettings().isRenamePrintable() || getSettings().isDeobfuscationOn()) {
+			return;
+		}
+		List<ClassNode> classes = wrapper.getRootNode().getClasses(true);
+		Font font = getSettings().getFont();
+		boolean hasNonDisplayable = false;
+
+		for (ClassNode cls : classes) {
+			if (hasNonDisplayable) {
+				break;
+			}
+			String className = cls.getRawName();
+			if (!FontUtils.canStringBeDisplayed(className, font)) {
+				hasNonDisplayable = true;
+				break;
+			}
+
+			for (MethodNode methodNode : cls.getMethods()) {
+				if (hasNonDisplayable) {
+					break;
+				}
+				String methodName = methodNode.getName();
+				if (!FontUtils.canStringBeDisplayed(methodName, font)) {
+					hasNonDisplayable = true;
+					break;
+				}
+			}
+
+			for (FieldNode fieldNode : cls.getFields()) {
+				if (hasNonDisplayable) {
+					break;
+				}
+				String fieldName = fieldNode.getName();
+				if (!FontUtils.canStringBeDisplayed(fieldName, font)) {
+					hasNonDisplayable = true;
+					break;
+				}
+			}
+		}
+
+		if (hasNonDisplayable) {
+			JOptionPane.showMessageDialog(this,
+					NLS.str("msg.non_displayable_chars", font.getFontName()),
+					NLS.str("msg.warning_title"),
+					JOptionPane.WARNING_MESSAGE);
 		}
 	}
 
