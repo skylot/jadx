@@ -164,7 +164,7 @@ public class ManifestAttributes {
 	public String decode(String attrName, long value) {
 		MAttr attr = attrMap.get(attrName);
 		if (attr == null) {
-			if(attrName.contains(":")) {
+			if (attrName.contains(":")) {
 				attrName = attrName.split(":")[1];
 			}
 			attr = appAttrMap.get(attrName);
