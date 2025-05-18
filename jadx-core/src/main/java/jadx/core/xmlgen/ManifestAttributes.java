@@ -135,7 +135,7 @@ public class ManifestAttributes {
 					if (attr == null) {
 						return;
 					}
-					attrMap.put(name, attr);
+					attrMap.put(String.format("android:%s", name), attr);
 				}
 				NamedNodeMap attributes = tempNode.getAttributes();
 				Node nameNode = attributes.getNamedItem("name");
@@ -164,6 +164,9 @@ public class ManifestAttributes {
 	public String decode(String attrName, long value) {
 		MAttr attr = attrMap.get(attrName);
 		if (attr == null) {
+			if(attrName.contains(":")) {
+				attrName = attrName.split(":")[1];
+			}
 			attr = appAttrMap.get(attrName);
 			if (attr == null) {
 				return null;
