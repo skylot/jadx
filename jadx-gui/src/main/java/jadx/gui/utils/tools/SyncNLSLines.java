@@ -20,13 +20,17 @@ import org.slf4j.LoggerFactory;
  * - Removes lines from other language files that are not present in the reference file.
  * - Updates commented-out empty translations in other files with the reference text (commented).
  */
-public class NLSAddNewLines {
-	private static final Logger LOG = LoggerFactory.getLogger(NLSAddNewLines.class);
+public class SyncNLSLines {
+	private static final Logger LOG = LoggerFactory.getLogger(SyncNLSLines.class);
 
 	private static final Path I18N_PATH = Paths.get("src/main/resources/i18n/");
-	// Assumes this script is run from the project root, or jadx-gui is a direct subdirectory.
-	// If jadx-gui is the project root, this might need adjustment or to be removed
-	// if I18N_PATH is already relative to jadx-gui.
+	private static final String REFERENCE_FILE_NAME = "Messages_en_US.properties";
+
+	/**
+	 * Assumes this tool runs from the project root and jadx-gui is a direct subdirectory.
+	 * If jadx-gui is the project root, this might need adjustment or to be removed
+	 * if I18N_PATH is already relative to jadx-gui.
+	 */
 	private static final String GUI_MODULE_DIR_NAME = "jadx-gui";
 	private static final Path GUI_MODULE_PREFIX_PATH = Paths.get(GUI_MODULE_DIR_NAME);
 
@@ -39,26 +43,25 @@ public class NLSAddNewLines {
 	}
 
 	private static void process() throws Exception {
-		String referenceFileName = "Messages_en_US.properties";
-		Path refPath = getRefPath(referenceFileName);
+		Path refPath = getRefPath(REFERENCE_FILE_NAME);
 		if (!Files.exists(refPath)) {
-			LOG.error("Reference i18n file not found: {}", referenceFileName);
+			LOG.error("Reference i18n file not found: {}", REFERENCE_FILE_NAME);
 			return;
 		}
 		LOG.info("Using reference file: {}", refPath.toAbsolutePath());
-
-		List<String> refFileLines = Files.readAllLines(refPath, StandardCharsets.UTF_8);
-
 		Path i18nDir = refPath.toAbsolutePath().getParent();
 		if (i18nDir == null) {
 			LOG.error("Could not determine i18n directory from reference path: {}", refPath);
 			return;
 		}
-
+		List<String> refFileLines = Files.readAllLines(refPath, StandardCharsets.UTF_8);
 		try (Stream<Path> pathStream = Files.list(i18nDir)) {
-			pathStream
-					.filter(path -> !path.getFileName().toString().equals(referenceFileName))
-					.filter(path -> path.getFileName().toString().startsWith("Messages_") && path.toString().endsWith(".properties"))
+			pathStream.filter(path -> {
+				String fileName = path.getFileName().toString();
+				return !fileName.equals(REFERENCE_FILE_NAME)
+						&& fileName.startsWith("Messages_")
+						&& fileName.endsWith(".properties");
+			})
 					.forEach(targetPath -> {
 						try {
 							LOG.info("Processing target file: {}", targetPath.toAbsolutePath());
@@ -79,8 +82,8 @@ public class NLSAddNewLines {
 		Map<String, String> properties = new LinkedHashMap<>();
 		for (String line : lines) {
 			String key = extractKey(line);
-			// If key is null, it's a comment or blank line. We might not need these in the map
-			// if we iterate over the original refFileLines later.
+			// If the key is null, it's a comment or blank line, we might not need these in the map.
+			// If we iterate over the original refFileLines later.
 			// For simplicity here, we only store actual properties.
 			if (key != null) {
 				properties.put(key, line);
@@ -95,37 +98,28 @@ public class NLSAddNewLines {
 	 */
 	private static String extractKey(String line) {
 		String trimmedLine = line.trim();
-		if (trimmedLine.isEmpty() || trimmedLine.startsWith("#") || trimmedLine.startsWith("!")) {
-			return null; // Comment or empty line
+		if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
+			// Comment or empty line
+			return null;
 		}
-		int separatorIndex = -1;
-		for (int i = 0; i < trimmedLine.length(); i++) {
-			char c = trimmedLine.charAt(i);
-			if (c == '=' || c == ':') {
-				separatorIndex = i;
-				break;
-			}
-		}
-
+		int separatorIndex = trimmedLine.indexOf('=');
 		if (separatorIndex == -1) {
-			// Line without a separator, could be a key with no value (less common in i18n)
+			// Line without a separator could be a key with no value (less common in i18n)
 			// or just a malformed line. For now, let's consider it a key if it's not empty.
 			return trimmedLine;
 		}
-
 		return trimmedLine.substring(0, separatorIndex).trim();
 	}
 
 	private static void applySync(List<String> refFileLines, Path targetPath) throws IOException {
 		List<String> originalTargetLines = Files.readAllLines(targetPath, StandardCharsets.UTF_8);
 		Map<String, String> targetProperties = parseProperties(originalTargetLines);
-		List<String> newTargetLines = new ArrayList<>();
+		List<String> newTargetLines = new ArrayList<>(refFileLines.size());
 		boolean updated = false;
-
 		for (String refLine : refFileLines) {
 			String refKey = extractKey(refLine);
-
-			if (refKey == null) { // It's a comment or blank line from reference
+			if (refKey == null) {
+				// It's a comment or blank line from reference
 				newTargetLines.add(refLine);
 			} else {
 				// It's a property line from reference
@@ -133,20 +127,22 @@ public class NLSAddNewLines {
 					String targetLine = targetProperties.get(refKey);
 					// Original logic: if target line is like "#key=" (commented, no value)
 					// then use the commented reference value.
-					if (targetLine.trim().startsWith("#")
-							&& targetLine.trim().substring(1).trim().startsWith(refKey) // ensure it's the same key
-							&& targetLine.trim().endsWith("=")) {
-						newTargetLines.add("#" + refLine.trim()); // Use reference line, commented
+					String trimmed = targetLine.trim();
+					if (trimmed.startsWith("#")
+							&& trimmed.substring(1).trim().startsWith(refKey) // ensure it's the same key
+							&& trimmed.endsWith("=")) {
+						// Use reference line, commented
+						newTargetLines.add('#' + refLine.trim());
 					} else {
-						newTargetLines.add(targetLine); // Use existing target line
+						// Use existing target line
+						newTargetLines.add(targetLine);
 					}
 				} else {
 					// Key from reference is missing in target, add it commented out
-					newTargetLines.add("#" + refLine.trim());
+					newTargetLines.add('#' + refLine.trim());
 				}
 			}
 		}
-
 		// Check if files are different
 		if (originalTargetLines.size() != newTargetLines.size()) {
 			updated = true;
@@ -158,7 +154,6 @@ public class NLSAddNewLines {
 				}
 			}
 		}
-
 		if (updated) {
 			LOG.info("Updating {} ({} lines -> {} lines)", targetPath.getFileName(), originalTargetLines.size(), newTargetLines.size());
 			Files.write(targetPath, newTargetLines, StandardCharsets.UTF_8);
@@ -173,15 +168,13 @@ public class NLSAddNewLines {
 		if (Files.exists(projectRootRelative)) {
 			return projectRootRelative.toAbsolutePath();
 		}
-
 		// Path relative to a module (e.g. jadx-gui/src/main/resources)
 		// This assumes the script is run from one level above GUI_MODULE_DIR_NAME
 		Path moduleRelative = GUI_MODULE_PREFIX_PATH.resolve(I18N_PATH).resolve(referenceFileName);
 		if (Files.exists(moduleRelative)) {
 			return moduleRelative.toAbsolutePath();
 		}
-
-		// Path if script is run from within the GUI_MODULE_DIR_NAME itself
+		// Path if tool runs from within the GUI_MODULE_DIR_NAME itself
 		Path currentDirRelative = Paths.get(".").resolve(I18N_PATH).resolve(referenceFileName);
 		if (Files.exists(currentDirRelative)) {
 			return currentDirRelative.toAbsolutePath();

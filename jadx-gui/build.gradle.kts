@@ -228,10 +228,10 @@ val copyDistWinWithJre by tasks.registering(Copy::class) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val addNewNLSLines by tasks.registering(JavaExec::class) {
+val syncNLSLines by tasks.registering(JavaExec::class) {
 	group = "jadx-dev"
-	description = "Utility task to add new/missing translation lines"
+	description = "Utility task to sync new/missing translation using EN as a reference"
 
 	classpath = sourceSets.main.get().runtimeClasspath
-	mainClass.set("jadx.gui.utils.tools.NLSAddNewLines")
+	mainClass.set("jadx.gui.utils.tools.SyncNLSLines")
 }
