@@ -234,6 +234,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useHeaders = new JCheckBox();
+		useHeaders.setSelected(settings.isUseHeadersForDetectResourceExtensions());
+		useHeaders.addItemListener(e -> {
+			settings.setUseHeadersForDetectResourceExtension(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JComboBox<GeneratedRenamesMappingFileMode> generatedRenamesMappingFileModeCB =
 				new JComboBox<>(GeneratedRenamesMappingFileMode.values());
 		generatedRenamesMappingFileModeCB.setSelectedItem(settings.getGeneratedRenamesMappingFileMode());
@@ -265,6 +272,7 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_name_source"), resNamesSource);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_res_use_headers"), useHeaders);
 		deobfGroup.addRow(NLS.str("preferences.generated_renames_mapping_file_mode"), generatedRenamesMappingFileModeCB);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_whitelist"),
 				NLS.str("preferences.deobfuscation_whitelist.tooltip"), editWhitelistedEntities);
