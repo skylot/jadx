@@ -51,6 +51,10 @@ public class ManifestAttributes {
 			return values;
 		}
 
+		public void addValue(long key, String value) {
+			values.put(key, value);
+		}
+
 		@Override
 		public String toString() {
 			return "[" + type + ", " + values + ']';
@@ -58,6 +62,12 @@ public class ManifestAttributes {
 	}
 
 	private final IJadxSecurity security;
+
+	/**
+	 * Map containing default Android resource attribute definitions.
+	 * Keys are Android attribute names (e.g., "android:layout_width"),
+	 * and values are their corresponding {@link MAttr} objects.
+	 */
 	private final Map<String, MAttr> attrMap = new HashMap<>();
 	private final Map<String, MAttr> appAttrMap = new HashMap<>();
 
@@ -135,7 +145,7 @@ public class ManifestAttributes {
 					if (attr == null) {
 						return;
 					}
-					attrMap.put(name, attr);
+					attrMap.put("android:" + name, attr);
 				}
 				NamedNodeMap attributes = tempNode.getAttributes();
 				Node nameNode = attributes.getNamedItem("name");
@@ -151,7 +161,7 @@ public class ManifestAttributes {
 							} else {
 								key = Long.parseLong(nodeValue);
 							}
-							attr.getValues().put(key, nameNode.getNodeValue());
+							attr.addValue(key, nameNode.getNodeValue());
 						} catch (NumberFormatException e) {
 							LOG.debug("Failed parse manifest number", e);
 						}
@@ -164,19 +174,24 @@ public class ManifestAttributes {
 	public String decode(String attrName, long value) {
 		MAttr attr = attrMap.get(attrName);
 		if (attr == null) {
+			if (attrName.contains(":")) {
+				attrName = attrName.split(":", 2)[1];
+			}
 			attr = appAttrMap.get(attrName);
 			if (attr == null) {
 				return null;
 			}
 		}
+
+		Map<Long, String> attrValuesMap = attr.getValues();
 		if (attr.getType() == MAttrType.ENUM) {
-			return attr.getValues().get(value);
+			return attrValuesMap.get(value);
 		} else if (attr.getType() == MAttrType.FLAG) {
 			List<String> flagList = new ArrayList<>();
-			List<Long> attrKeys = new ArrayList<>(attr.getValues().keySet());
+			List<Long> attrKeys = new ArrayList<>(attrValuesMap.keySet());
 			attrKeys.sort((a, b) -> Long.compare(b, a)); // sort descending
 			for (Long key : attrKeys) {
-				String attrValue = attr.getValues().get(key);
+				String attrValue = attrValuesMap.get(key);
 				if (value == key) {
 					flagList.add(attrValue);
 					break;
@@ -217,7 +232,7 @@ public class ManifestAttributes {
 				for (int i = 1; i < ri.getNamedValues().size(); i++) {
 					RawNamedValue rv = ri.getNamedValues().get(i);
 					String value = vp.decodeNameRef(rv.getNameRef());
-					attr.getValues().put((long) rv.getRawValue().getData(), value.startsWith("id.") ? value.substring(3) : value);
+					attr.addValue(rv.getRawValue().getData(), value.startsWith("id.") ? value.substring(3) : value);
 				}
 				appAttrMap.put(ri.getKeyName(), attr);
 			}
