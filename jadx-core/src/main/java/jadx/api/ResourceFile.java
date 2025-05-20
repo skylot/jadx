@@ -63,7 +63,22 @@ public class ResourceFile {
 
 		if (useHeders) {
 			try {
-				byte[] bytes = ResourcesLoader.decodeStream(this, (size, is) -> is.readAllBytes());
+				int maxBytesToReadLimit = 4096;
+				byte[] bytes = ResourcesLoader.decodeStream(this, (size, is) -> {
+					int bytesToRead;
+					if (size > 0) {
+						bytesToRead = (int) Math.min(size, maxBytesToReadLimit);
+					} else if (size == 0) {
+						bytesToRead = 0;
+					} else {
+						bytesToRead = maxBytesToReadLimit;
+					}
+					if (bytesToRead == 0) {
+						return new byte[0];
+					}
+					return is.readNBytes(bytesToRead);
+				});
+
 				String fileExtension = FileTypeDetector.detectFileExtension(bytes);
 				if (!StringUtils.isEmpty(fileExtension)) {
 					sb.append(fileExtension);

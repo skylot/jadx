@@ -1,5 +1,6 @@
 package jadx.core.deobf;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -64,7 +65,7 @@ public class FileTypeDetector {
 		}
 
 		// detect ext by readable text
-		String text = new String(data);
+		String text = new String(data, StandardCharsets.UTF_8);
 		if (text.startsWith("-----BEGIN CERTIFICATE-----")) {
 			return ".cer";
 		}
