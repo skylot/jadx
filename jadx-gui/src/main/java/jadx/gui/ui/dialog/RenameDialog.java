@@ -69,7 +69,12 @@ public class RenameDialog extends CommonDialog {
 	}
 
 	private void initRenameField() {
-		renameField.setText(node.getName());
+		if (node instanceof JRenamePackage) {
+			JRenamePackage renamePackage = (JRenamePackage) node;
+			renameField.setText(renamePackage.getTitle());
+		} else {
+			renameField.setText(node.getName());
+		}
 		renameField.selectAll();
 	}
 
