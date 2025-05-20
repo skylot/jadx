@@ -1,12 +1,13 @@
 package jadx.api;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.deobf.FileTypeDetector;
 import jadx.core.utils.StringUtils;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.zip.IZipEntry;
@@ -63,29 +64,14 @@ public class ResourceFile {
 
 		if (useHeders) {
 			try {
-				int maxBytesToReadLimit = 4096;
-				byte[] bytes = ResourcesLoader.decodeStream(this, (size, is) -> {
-					int bytesToRead;
-					if (size > 0) {
-						bytesToRead = (int) Math.min(size, maxBytesToReadLimit);
-					} else if (size == 0) {
-						bytesToRead = 0;
-					} else {
-						bytesToRead = maxBytesToReadLimit;
-					}
-					if (bytesToRead == 0) {
-						return new byte[0];
-					}
-					return is.readNBytes(bytesToRead);
-				});
-
+				byte[] bytes = getSmallData();
 				String fileExtension = FileTypeDetector.detectFileExtension(bytes);
 				if (!StringUtils.isEmpty(fileExtension)) {
 					sb.append(fileExtension);
 				} else {
 					sb.append(getExtFromName(name));
 				}
-			} catch (JadxException ignored) {
+			} catch (IOException ignored) {
 			}
 		} else {
 			sb.append(getExtFromName(name));
@@ -97,6 +83,20 @@ public class ResourceFile {
 			return true;
 		}
 		return false;
+	}
+
+	private byte[] getSmallData() throws IOException {
+		byte[] buffer = new byte[4096];
+		int bytesRead = Objects.requireNonNull(getZipEntry()).getInputStream().read(buffer, 0, buffer.length);
+		if (bytesRead < 0) {
+			return new byte[0];
+		}
+		if (bytesRead < buffer.length) {
+			byte[] result = new byte[bytesRead];
+			System.arraycopy(buffer, 0, result, 0, bytesRead);
+			return result;
+		}
+		return buffer;
 	}
 
 	private String getExtFromName(String name) {
