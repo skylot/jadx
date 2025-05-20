@@ -2,6 +2,7 @@ package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.JNodeAction;
 import jadx.gui.ui.dialog.UsageDialogPlus;
 
 public final class UsageDialogPlusAction extends JNodeAction {

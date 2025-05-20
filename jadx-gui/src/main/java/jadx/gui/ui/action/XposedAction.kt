@@ -1,4 +1,4 @@
-package jadx.gui.ui.codearea
+package jadx.gui.ui.action
 
 import jadx.core.dex.instructions.args.ArgType
 import jadx.core.dex.instructions.args.PrimitiveType
@@ -8,7 +8,7 @@ import jadx.gui.treemodel.JClass
 import jadx.gui.treemodel.JField
 import jadx.gui.treemodel.JMethod
 import jadx.gui.treemodel.JNode
-import jadx.gui.ui.action.ActionModel
+import jadx.gui.ui.codearea.CodeArea
 import jadx.gui.utils.NLS
 import jadx.gui.utils.UiUtils
 import org.slf4j.Logger

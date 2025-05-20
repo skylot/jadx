@@ -7,6 +7,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.action.JNodeAction;
 
 public final class JNodePopupListener implements PopupMenuListener {
 	private final CodeArea codeArea;

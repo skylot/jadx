@@ -11,6 +11,7 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rtextarea.Gutter;
 
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 /**
  * Mix current UI theme colors and apply to code area theme.
@@ -37,12 +38,12 @@ public class DynamicCodeAreaTheme implements IEditorTheme {
 
 		SyntaxScheme scheme = textArea.getSyntaxScheme();
 
-		boolean isDarkTheme = isDarkTheme(themeBackground);
+		boolean isDarkTheme = UiUtils.isDarkTheme(themeBackground);
 
 		// Background colors based on the theme
 		Color editorBackground = isDarkTheme ? themeBackground : Color.WHITE; // Use white for light theme
 		Color lineHighlight = isDarkTheme
-				? adjustBrightness(themeBackground, 1.2f)
+				? UiUtils.adjustBrightness(themeBackground, 1.2f)
 				: Color.decode("#EBECF0"); // Light gray for light theme
 		Color lineNumberForeground = UIManager.getColor("Label.foreground");
 
@@ -52,8 +53,8 @@ public class DynamicCodeAreaTheme implements IEditorTheme {
 				: new Color(51, 153, 255, 50); // Lighter blue for light theme
 
 		Color markAllHighlightColor = isDarkTheme ? Color.decode("#32593D") : Color.decode("#ffc800");
-		Color matchedBracketBackground = isDarkTheme ? adjustBrightness(Color.decode("#3B514D"), 1.2f) : Color.decode("#93D9D9");
-		Color markOccurrencesColor = adjustBrightness(editorSelectionBackground, isDarkTheme ? 0.6f : 1.4f);
+		Color matchedBracketBackground = isDarkTheme ? UiUtils.adjustBrightness(Color.decode("#3B514D"), 1.2f) : Color.decode("#93D9D9");
+		Color markOccurrencesColor = UiUtils.adjustBrightness(editorSelectionBackground, isDarkTheme ? 0.6f : 1.4f);
 
 		// Set the syntax colors for the theme
 		if (isDarkTheme) {
@@ -131,19 +132,6 @@ public class DynamicCodeAreaTheme implements IEditorTheme {
 			gutter.setBorderColor(separatorForeground);
 			gutter.setLineNumberColor(lineNumberForeground);
 		}
-	}
-
-	private static boolean isDarkTheme(Color background) {
-		double brightness = (background.getRed() * 0.299
-				+ background.getGreen() * 0.587
-				+ background.getBlue() * 0.114) / 255;
-		return brightness < 0.5;
-	}
-
-	private static Color adjustBrightness(Color color, float factor) {
-		float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-		hsb[2] = Math.min(1.0f, hsb[2] * factor); // Adjust brightness
-		return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
 	}
 
 }

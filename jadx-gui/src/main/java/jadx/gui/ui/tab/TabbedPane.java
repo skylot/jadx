@@ -32,6 +32,7 @@ import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.FontPanel;
 import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
@@ -566,7 +567,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				((AbstractCodeContentPanel) pane).getCodeArea().addFocusListener(INSTANCE);
+				((AbstractCodeContentPanel) pane).getChildrenComponent().addFocusListener(INSTANCE);
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
@@ -574,6 +575,10 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				return;
 			}
 			if (pane instanceof ImagePanel) {
+				pane.addFocusListener(INSTANCE);
+				return;
+			}
+			if (pane instanceof FontPanel) {
 				pane.addFocusListener(INSTANCE);
 				return;
 			}
@@ -586,7 +591,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				return;
 			}
 			if (pane instanceof AbstractCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getCodeArea().requestFocus());
+				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getChildrenComponent().requestFocus());
 				return;
 			}
 			if (pane instanceof HtmlPanel) {
@@ -595,6 +600,10 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			}
 			if (pane instanceof ImagePanel) {
 				SwingUtilities.invokeLater(((ImagePanel) pane)::requestFocusInWindow);
+				return;
+			}
+			if (pane instanceof FontPanel) {
+				SwingUtilities.invokeLater(((FontPanel) pane)::requestFocusInWindow);
 				return;
 			}
 			// throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);

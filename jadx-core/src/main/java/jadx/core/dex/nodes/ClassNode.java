@@ -838,6 +838,9 @@ public class ClassNode extends NotificationAttrNode
 		return clsInfo.getAliasShortName();
 	}
 
+	/**
+	 * Deprecated. Use {@link #getAlias()}
+	 */
 	@Deprecated
 	public String getShortName() {
 		return clsInfo.getAliasShortName();

@@ -314,7 +314,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			writer.add(' ');
 		}
 		writer.add(attrFullName).add("=\"");
-		String decodedAttr = manifestAttributes.decode(attrName, attrValData);
+		String decodedAttr = manifestAttributes.decode(attrFullName, attrValData);
 		if (decodedAttr != null) {
 			memorizePackageName(attrName, decodedAttr);
 			if (isDeobfCandidateAttr(attrFullName)) {

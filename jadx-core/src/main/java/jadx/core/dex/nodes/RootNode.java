@@ -100,7 +100,20 @@ public class RootNode {
 
 	private @Nullable ManifestAttributes manifestAttributes;
 
+	public RootNode(JadxDecompiler decompiler) {
+		this(decompiler, decompiler.getArgs());
+	}
+
+	/**
+	 * Deprecated. Prefer {@link #RootNode(JadxDecompiler)}
+	 */
+	@Deprecated
 	public RootNode(JadxArgs args) {
+		this(null, args);
+	}
+
+	private RootNode(@Nullable JadxDecompiler decompiler, JadxArgs args) {
+		this.decompiler = decompiler;
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
 		this.processClasses = new ProcessClass(Jadx.getPassesList(args));
@@ -131,6 +144,9 @@ public class RootNode {
 				Utils.checkThreadInterrupt();
 			});
 		}
+	}
+
+	public void finishClassLoad() {
 		if (classes.size() != clsMap.size()) {
 			// class name duplication detected
 			markDuplicatedClasses(classes);
@@ -713,10 +729,6 @@ public class RootNode {
 
 	public JadxArgs getArgs() {
 		return args;
-	}
-
-	public void setDecompilerRef(JadxDecompiler jadxDecompiler) {
-		this.decompiler = jadxDecompiler;
 	}
 
 	public @Nullable JadxDecompiler getDecompiler() {
