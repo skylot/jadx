@@ -148,6 +148,7 @@ public final class CodeArea extends AbstractCodeArea {
 		JNodePopupBuilder popup = new JNodePopupBuilder(this, popupMenu, shortcutsController);
 		popup.addSeparator();
 		popup.add(new FindUsageAction(this));
+		popup.add(new UsageDialogPlusAction(this));
 		popup.add(new GoToDeclarationAction(this));
 		popup.add(new CommentAction(this));
 		popup.add(new CommentSearchAction(this));
