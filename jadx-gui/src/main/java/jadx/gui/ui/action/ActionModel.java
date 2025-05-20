@@ -83,6 +83,8 @@ public enum ActionModel {
 
 	FIND_USAGE(CODE_AREA, "popup.find_usage", "popup.find_usage", null,
 			Shortcut.keyboard(KeyEvent.VK_X)),
+	FIND_USAGE_PLUS(CODE_AREA, "popup.usage_dialog_plus", "popup.usage_dialog_plus", null,
+			Shortcut.keyboard(KeyEvent.VK_C)),
 	GOTO_DECLARATION(CODE_AREA, "popup.go_to_declaration", "popup.go_to_declaration", null,
 			Shortcut.keyboard(KeyEvent.VK_D)),
 	CODE_COMMENT(CODE_AREA, "popup.add_comment", "popup.add_comment", null,
