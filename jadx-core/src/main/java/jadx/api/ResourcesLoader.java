@@ -165,7 +165,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 	}
 
 	private static ResContainer decodeImage(ResourceFile rf, InputStream inputStream) {
-		String name = rf.getOriginalName();
+		String name = rf.getDeobfName();
 		if (name.endsWith(".9.png")) {
 			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 				Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();

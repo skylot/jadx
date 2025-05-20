@@ -228,6 +228,12 @@ public class JadxCLIArgs {
 	protected UseKotlinMethodsForVarNames useKotlinMethodsForVarNames = UseKotlinMethodsForVarNames.APPLY;
 
 	@Parameter(
+			names = { "--use-headers-for-detect-resource-extensions" },
+			description = "Use headers for detect resource extensions if resource obfuscated"
+	)
+	protected boolean useHeadersForDetectResourceExtensions = false;
+
+	@Parameter(
 			names = { "--rename-flags" },
 			description = "fix options (comma-separated list of):"
 					+ "\n 'case' - fix case sensitivity issues (according to --fs-case-sensitive option),"
@@ -354,6 +360,7 @@ public class JadxCLIArgs {
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setDeobfuscationWhitelist(Arrays.asList(deobfuscationWhitelistStr.split(" ")));
 		args.setUseSourceNameAsClassNameAlias(getUseSourceNameAsClassNameAlias());
+		args.setUseHeadersForDetectResourceExtensions(useHeadersForDetectResourceExtensions);
 		args.setSourceNameRepeatLimit(sourceNameRepeatLimit);
 		args.setUseKotlinMethodsForVarNames(useKotlinMethodsForVarNames);
 		args.setResourceNameSource(resourceNameSource);
@@ -584,6 +591,10 @@ public class JadxCLIArgs {
 
 	public boolean isFsCaseSensitive() {
 		return fsCaseSensitive;
+	}
+
+	public boolean isUseHeadersForDetectResourceExtensions() {
+		return useHeadersForDetectResourceExtensions;
 	}
 
 	public CommentsLevel getCommentsLevel() {

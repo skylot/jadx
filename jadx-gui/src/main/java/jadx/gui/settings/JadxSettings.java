@@ -446,6 +446,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.resourceNameSource = source;
 	}
 
+	public void setUseHeadersForDetectResourceExtension(boolean enable) {
+		this.useHeadersForDetectResourceExtensions = enable;
+	}
+
 	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
 		if (enabled) {
 			renameFlags.add(flag);

@@ -271,6 +271,7 @@ public class RootNode {
 		if (args.isSkipResources()) {
 			return;
 		}
+		boolean useHeaders = args.isUseHeadersForDetectResourceExtensions();
 		long start = System.currentTimeMillis();
 		int renamedCount = 0;
 		ResourceStorage resStorage = parser.getResStorage();
@@ -285,7 +286,7 @@ public class RootNode {
 		for (ResourceFile resource : resources) {
 			ResourceEntry resEntry = entryNames.get(resource.getOriginalName());
 			if (resEntry != null) {
-				if (resource.setAlias(resEntry)) {
+				if (resource.setAlias(resEntry, useHeaders)) {
 					renamedCount++;
 				}
 			}
