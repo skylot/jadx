@@ -100,7 +100,20 @@ public class RootNode {
 
 	private @Nullable ManifestAttributes manifestAttributes;
 
+	public RootNode(JadxDecompiler decompiler) {
+		this(decompiler, decompiler.getArgs());
+	}
+
+	/**
+	 * Deprecated. Prefer {@link #RootNode(JadxDecompiler)}
+	 */
+	@Deprecated
 	public RootNode(JadxArgs args) {
+		this(null, args);
+	}
+
+	private RootNode(@Nullable JadxDecompiler decompiler, JadxArgs args) {
+		this.decompiler = decompiler;
 		this.args = args;
 		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
 		this.processClasses = new ProcessClass(Jadx.getPassesList(args));
@@ -131,6 +144,9 @@ public class RootNode {
 				Utils.checkThreadInterrupt();
 			});
 		}
+	}
+
+	public void finishClassLoad() {
 		if (classes.size() != clsMap.size()) {
 			// class name duplication detected
 			markDuplicatedClasses(classes);
@@ -255,6 +271,7 @@ public class RootNode {
 		if (args.isSkipResources()) {
 			return;
 		}
+		boolean useHeaders = args.isUseHeadersForDetectResourceExtensions();
 		long start = System.currentTimeMillis();
 		int renamedCount = 0;
 		ResourceStorage resStorage = parser.getResStorage();
@@ -269,7 +286,7 @@ public class RootNode {
 		for (ResourceFile resource : resources) {
 			ResourceEntry resEntry = entryNames.get(resource.getOriginalName());
 			if (resEntry != null) {
-				if (resource.setAlias(resEntry)) {
+				if (resource.setAlias(resEntry, useHeaders)) {
 					renamedCount++;
 				}
 			}
@@ -713,10 +730,6 @@ public class RootNode {
 
 	public JadxArgs getArgs() {
 		return args;
-	}
-
-	public void setDecompilerRef(JadxDecompiler jadxDecompiler) {
-		this.decompiler = jadxDecompiler;
 	}
 
 	public @Nullable JadxDecompiler getDecompiler() {

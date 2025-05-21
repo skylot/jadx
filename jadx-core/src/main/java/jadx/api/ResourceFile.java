@@ -4,6 +4,9 @@ import java.io.File;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.deobf.FileTypeDetector;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.zip.IZipEntry;
@@ -11,7 +14,7 @@ import jadx.zip.IZipEntry;
 public class ResourceFile {
 	private final JadxDecompiler decompiler;
 	private final String name;
-	private final ResourceType type;
+	private ResourceType type;
 
 	private @Nullable IZipEntry zipEntry;
 	private String deobfName;
@@ -53,20 +56,61 @@ public class ResourceFile {
 		return ResourcesLoader.loadContent(decompiler, this);
 	}
 
-	public boolean setAlias(ResourceEntry ri) {
+	public boolean setAlias(ResourceEntry entry, boolean useHeders) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("res/").append(ri.getTypeName()).append(ri.getConfig());
-		sb.append("/").append(ri.getKeyName());
-		int lastDot = name.lastIndexOf('.');
-		if (lastDot != -1) {
-			sb.append(name.substring(lastDot));
+		sb.append("res/").append(entry.getTypeName()).append(entry.getConfig());
+		sb.append("/").append(entry.getKeyName());
+
+		if (useHeders) {
+			try {
+				int maxBytesToReadLimit = 4096;
+				byte[] bytes = ResourcesLoader.decodeStream(this, (size, is) -> {
+					int bytesToRead;
+					if (size > 0) {
+						bytesToRead = (int) Math.min(size, maxBytesToReadLimit);
+					} else if (size == 0) {
+						bytesToRead = 0;
+					} else {
+						bytesToRead = maxBytesToReadLimit;
+					}
+					if (bytesToRead == 0) {
+						return new byte[0];
+					}
+					return is.readNBytes(bytesToRead);
+				});
+
+				String fileExtension = FileTypeDetector.detectFileExtension(bytes);
+				if (!StringUtils.isEmpty(fileExtension)) {
+					sb.append(fileExtension);
+				} else {
+					sb.append(getExtFromName(name));
+				}
+			} catch (JadxException ignored) {
+			}
+		} else {
+			sb.append(getExtFromName(name));
 		}
 		String alias = sb.toString();
 		if (!alias.equals(name)) {
 			setDeobfName(alias);
+			type = ResourceType.getFileType(alias);
 			return true;
 		}
 		return false;
+	}
+
+	private String getExtFromName(String name) {
+		// the image .9.png extension always saved, when resource shrinking by aapt2
+		if (name.contains(".9.png")) {
+			return ".9.png";
+		}
+
+		int lastDot = name.lastIndexOf('.');
+		if (lastDot != -1) {
+			return name.substring(lastDot);
+		}
+
+		return "";
 	}
 
 	public @Nullable IZipEntry getZipEntry() {

@@ -3,6 +3,7 @@ package jadx.tests.api;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -43,14 +44,19 @@ import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaVariable;
+import jadx.api.ResourceFile;
+import jadx.api.ResourceType;
+import jadx.api.ResourcesLoader;
 import jadx.api.args.GeneratedRenamesMappingFileMode;
 import jadx.api.data.IJavaNodeRef;
 import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.VarNode;
+import jadx.api.plugins.CustomResourcesLoader;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -58,6 +64,10 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
+import jadx.core.xmlgen.BinaryXMLStrings;
+import jadx.core.xmlgen.IResTableParser;
+import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.CompilerOptions;
@@ -258,16 +268,15 @@ public abstract class IntegrationTest extends TestUtils {
 
 		JadxDecompiler d = new JadxDecompiler(args);
 		try {
+			insertResources(d);
 			d.load();
+			return d;
 		} catch (Exception e) {
 			LOG.error("Load failed", e);
 			d.close();
 			fail(e.getMessage());
 			return null;
 		}
-		RootNode root = JadxInternalAccess.getRoot(d);
-		insertResources(root);
-		return d;
 	}
 
 	protected void decompileAndCheck(ClassNode cls) {
@@ -346,18 +355,75 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 	}
 
-	private void insertResources(RootNode root) {
+	/**
+	 * Insert mock resource table data ('.arsc' file)
+	 */
+	private void insertResources(JadxDecompiler decompiler) throws IOException {
 		if (resMap.isEmpty()) {
 			return;
 		}
-		ResourceStorage resStorage = new ResourceStorage(root.getArgs().getSecurity());
+		String resTableName = "test-res-table";
+		Path resTablePath = testDir.resolve(resTableName);
+		File resTableFile = resTablePath.toFile().getAbsoluteFile();
+		FileUtils.makeDirsForFile(resTableFile);
+		Files.writeString(resTablePath, resTableName);
+		JadxArgs jadxArgs = decompiler.getArgs();
+		jadxArgs.getInputFiles().add(resTableFile);
+
+		// load mock file as 'arsc'
+		decompiler.addCustomResourcesLoader(new CustomResourcesLoader() {
+			@Override
+			public boolean load(ResourcesLoader loader, List<ResourceFile> list, File file) {
+				if (file == resTableFile) {
+					list.add(ResourceFile.createResourceFile(decompiler, resTableFile, ResourceType.ARSC));
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public void close() {
+			}
+		});
+
+		// convert resources map to resource storage object
+		ResourceStorage resStorage = new ResourceStorage(jadxArgs.getSecurity());
 		for (Map.Entry<Integer, String> entry : resMap.entrySet()) {
 			Integer id = entry.getKey();
 			String name = entry.getValue();
 			String[] parts = name.split("\\.");
 			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1], ""));
 		}
-		root.processResources(resStorage);
+
+		// mock res table parser to just return resource storage
+		IResTableParser resTableParser = new IResTableParser() {
+			@Override
+			public void decode(InputStream inputStream) {
+			}
+
+			@Override
+			public ResourceStorage getResStorage() {
+				return resStorage;
+			}
+
+			@Override
+			public ResContainer decodeFiles() {
+				return ResContainer.textResource(resTableName, new SimpleCodeInfo(resTableName));
+			}
+
+			@Override
+			public BinaryXMLStrings getStrings() {
+				return new BinaryXMLStrings();
+			}
+		};
+
+		// directly return generated resource storage instead parsing for mock res file
+		decompiler.getResourcesLoader().addResTableParserProvider(resFile -> {
+			if (resFile.getOriginalName().equals(resTableFile.getAbsolutePath())) {
+				return resTableParser;
+			}
+			return null;
+		});
 	}
 
 	private void runAutoCheck(ClassNode cls) {
