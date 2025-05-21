@@ -161,6 +161,7 @@ import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
 import jadx.gui.ui.tab.dnd.TabDndController;
+import jadx.gui.ui.treenodes.UndisplayedStringsNode;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
@@ -243,6 +244,7 @@ public class MainWindow extends JFrame {
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 	private boolean loaded;
 	private boolean settingsOpen = false;
+	private boolean showUndisplayedCharsDialog;
 
 	private final ShortcutsController shortcutsController;
 	private JadxMenuBar menuBar;
@@ -509,6 +511,7 @@ public class MainWindow extends JFrame {
 		// start new project
 		project = new JadxProject(this);
 		project.setFilePaths(paths);
+		showUndisplayedCharsDialog = false;
 		loadFiles(onFinish);
 	}
 
@@ -1802,48 +1805,53 @@ public class MainWindow extends JFrame {
 		if (getSettings().isRenamePrintable() || getSettings().isDeobfuscationOn()) {
 			return;
 		}
+
+		if (showUndisplayedCharsDialog) {
+			return;
+		}
+
+		StringBuilder nonDisplayString = new StringBuilder();
+
 		List<ClassNode> classes = wrapper.getRootNode().getClasses(true);
 		Font font = getSettings().getFont();
 		boolean hasNonDisplayable = false;
 
 		for (ClassNode cls : classes) {
-			if (hasNonDisplayable) {
-				break;
-			}
 			String className = cls.getRawName();
 			if (!FontUtils.canStringBeDisplayed(className, font)) {
 				hasNonDisplayable = true;
-				break;
+				nonDisplayString.append(className);
+				nonDisplayString.append("\n");
 			}
 
 			for (MethodNode methodNode : cls.getMethods()) {
-				if (hasNonDisplayable) {
-					break;
-				}
 				String methodName = methodNode.getName();
 				if (!FontUtils.canStringBeDisplayed(methodName, font)) {
 					hasNonDisplayable = true;
-					break;
+					nonDisplayString.append(methodName);
+					nonDisplayString.append("\n");
 				}
 			}
 
 			for (FieldNode fieldNode : cls.getFields()) {
-				if (hasNonDisplayable) {
-					break;
-				}
 				String fieldName = fieldNode.getName();
 				if (!FontUtils.canStringBeDisplayed(fieldName, font)) {
 					hasNonDisplayable = true;
-					break;
+					nonDisplayString.append(fieldName);
+					nonDisplayString.append("\n");
 				}
 			}
 		}
 
 		if (hasNonDisplayable) {
-			JOptionPane.showMessageDialog(this,
+			showUndisplayedCharsDialog = true;
+			int dialogResult = JOptionPane.showConfirmDialog(this,
 					NLS.str("msg.non_displayable_chars", font.getFontName()),
 					NLS.str("msg.warning_title"),
-					JOptionPane.WARNING_MESSAGE);
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (dialogResult == JOptionPane.YES_OPTION) {
+				tabsController.selectTab(new UndisplayedStringsNode(nonDisplayString.toString()));
+			}
 		}
 	}
 

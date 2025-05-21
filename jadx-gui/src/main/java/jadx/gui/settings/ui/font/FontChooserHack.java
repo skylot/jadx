@@ -3,6 +3,7 @@ package jadx.gui.settings.ui.font;
 import java.lang.reflect.Field;
 
 import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 
 import org.drjekyll.fontchooser.FontChooser;
 import org.drjekyll.fontchooser.panes.FamilyPane;
@@ -20,6 +21,15 @@ public class FontChooserHack {
 			monospacedCheckBox.setEnabled(false);
 		} catch (Throwable e) {
 			LOG.debug("Failed to set only monospace check box", e);
+		}
+	}
+
+	public static void hidePreview(FontChooser fontChooser) {
+		try {
+			JPanel previewPanel = (JPanel) getPrivateField(fontChooser, "previewPanel");
+			previewPanel.setVisible(false);
+		} catch (Throwable e) {
+			LOG.debug("Failed to hide preview panel", e);
 		}
 	}
 

@@ -46,4 +46,6 @@ public class Icons {
 	public static final ImageIcon CHECK = UiUtils.openSvgIcon("ui/checkConstraint");
 	public static final ImageIcon FORMAT = UiUtils.openSvgIcon("ui/toolWindowMessages");
 	public static final ImageIcon RESET = UiUtils.openSvgIcon("ui/reset");
+
+	public static final ImageIcon FONT = UiUtils.openSvgIcon("nodes/fontFile");
 }
