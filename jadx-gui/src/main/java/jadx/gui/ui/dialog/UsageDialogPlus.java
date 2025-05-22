@@ -505,47 +505,67 @@ public class UsageDialogPlus extends CommonSearchDialog {
 			});
 
 			resultsTable.addMouseListener(new MouseAdapter() {
+				private int lastClickedRow = -1;
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (e.getClickCount() == 2) {
-						int row = resultsTable.rowAtPoint(e.getPoint());
-						if (row >= 0) {
-							JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
-							if (selectedNode != null) {
-								// Get the actual node clicked
-								JNode nodeToUse = selectedNode;
+					int row = resultsTable.rowAtPoint(e.getPoint());
+					if (row < 0) {
+						return;
+					}
 
-								// If it is a CodeNode, we need to get the actual node it references
-								if (selectedNode instanceof CodeNode) {
-									CodeNode codeNode = (CodeNode) selectedNode;
-									// Use JavaNode to determine the correct node type
-									JavaNode javaNode = codeNode.getJavaNode();
-									// Use NodeCache to convert JavaNode to JNode
-									JNodeCache nodeCache = getNodeCache();
-									nodeToUse = nodeCache.makeFrom(javaNode);
-								}
-
-								// If the current panel is not the last panel, update the right panel
-								// Otherwise, add a new panel
-								if (index < usagePanels.size() - 1) {
-									// Update the right panel
-									updateRightPanel(nodeToUse);
-								} else {
-									// Add a new panel
-									parentDialog.addUsagePanel(nodeToUse);
-								}
-								// Whether updating or adding, scroll to the right
-								parentDialog.scrollToRight();
+					// Force code preview update on single click, even if the same row is clicked
+					if (e.getClickCount() == 1) {
+						JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
+						if (selectedNode != null) {
+							if (selectedNode instanceof CodeNode) {
+								CodeNode codeNode = (CodeNode) selectedNode;
+								codePanel.showCode(codeNode, codeNode.makeDescString());
+							} else {
+								codePanel.showCode(selectedNode, selectedNode.makeDescString());
 							}
 						}
-					} else if (e.getButton() == MouseEvent.BUTTON3) {
-						int row = resultsTable.rowAtPoint(e.getPoint());
-						if (row >= 0) {
-							resultsTable.setRowSelectionInterval(row, row);
-							JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
-							if (selectedNode != null) {
-								showPopupMenu(e, selectedNode);
+					} else if (e.getClickCount() == 2) {
+						// Avoid re-rendering if double-clicking on the same row
+						if (row == lastClickedRow) {
+							return;
+						}
+
+						JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
+						if (selectedNode != null) {
+							// Get the actual node clicked
+							JNode nodeToUse = selectedNode;
+
+							// If it is a CodeNode, we need to get the actual node it references
+							if (selectedNode instanceof CodeNode) {
+								CodeNode codeNode = (CodeNode) selectedNode;
+								// Use JavaNode to determine the correct node type
+								JavaNode javaNode = codeNode.getJavaNode();
+								// Use NodeCache to convert JavaNode to JNode
+								JNodeCache nodeCache = getNodeCache();
+								nodeToUse = nodeCache.makeFrom(javaNode);
 							}
+
+							// If the current panel is not the last panel, update the right panel
+							// Otherwise, add a new panel
+							if (index < usagePanels.size() - 1) {
+								// Update the right panel
+								updateRightPanel(nodeToUse);
+							} else {
+								// Add a new panel
+								parentDialog.addUsagePanel(nodeToUse);
+							}
+							// Whether updating or adding, scroll to the right
+							parentDialog.scrollToRight();
+
+							// Update last clicked row
+							lastClickedRow = row;
+						}
+					} else if (e.getButton() == MouseEvent.BUTTON3) {
+						resultsTable.setRowSelectionInterval(row, row);
+						JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
+						if (selectedNode != null) {
+							showPopupMenu(e, selectedNode);
 						}
 					}
 				}
