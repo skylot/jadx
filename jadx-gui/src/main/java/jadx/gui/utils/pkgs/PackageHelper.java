@@ -58,13 +58,14 @@ public class PackageHelper {
 		Set<String> added = new HashSet<>();
 		do {
 			JPackage jPkg = pkgInfoMap.get(pkgInfo);
-			if (jPkg != null) {
+			if (jPkg != null && !jPkg.isSynthetic()) {
 				JavaPackage javaPkg = jPkg.getPkg();
-				String fullName = javaPkg.isDefault() ? JPackage.PACKAGE_DEFAULT_HTML_STR : javaPkg.getFullName();
-				String name = jPkg.isSynthetic() || javaPkg.isParentRenamed() ? fullName : javaPkg.getName();
-				JRenamePackage renamePkg = new JRenamePackage(javaPkg, javaPkg.getRawFullName(), fullName, name);
-				if (added.add(fullName)) {
-					list.add(renamePkg);
+				if (!javaPkg.isDefault()) {
+					JRenamePackage renamePkg = new JRenamePackage(javaPkg,
+							javaPkg.getRawFullName(), javaPkg.getFullName(), javaPkg.getName());
+					if (added.add(javaPkg.getFullName())) {
+						list.add(renamePkg);
+					}
 				}
 			}
 			pkgInfo = pkgInfo.getParentPkg();
