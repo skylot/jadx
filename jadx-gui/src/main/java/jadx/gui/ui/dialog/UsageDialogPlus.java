@@ -5,13 +5,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,21 +19,28 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +57,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.visitors.prepare.CollectConstValues;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.TaskStatus;
-import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
@@ -62,15 +68,20 @@ import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.ui.NodeLabel;
 
 public class UsageDialogPlus extends CommonSearchDialog {
 	private static final long serialVersionUID = -5105405789969134107L;
 
-	private final List<UsagePanel> usagePanels = new ArrayList<>();
 	private final JPanel mainPanel;
 	private final JSplitPane splitPane;
 	private final CodePanel codePanel;
+	private final JTree usageTree;
+	private final DefaultTreeModel treeModel;
+	private final DefaultMutableTreeNode rootNode;
+	private final ProgressPanel localProgressPanel;
+	private final JLabel resultsInfoLabel;
+	private final JLabel progressInfoLabel;
+	private JNode initialNode;
 
 	private static final Logger LOG = LoggerFactory.getLogger(UsageDialogPlus.class);
 
@@ -89,13 +100,14 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		SwingUtilities.invokeLater(() -> {
 			int width = usageDialog.splitPane.getWidth();
 			if (width > 0) {
-				usageDialog.splitPane.setDividerLocation((int) (width * 0.7));
+				usageDialog.splitPane.setDividerLocation((int) (width * 0.3));
 			}
 		});
 	}
 
 	private UsageDialogPlus(MainWindow mainWindow, JNode node) {
 		super(mainWindow, NLS.str("usage_dialog_plus.title"));
+		this.initialNode = node;
 
 		// Initialize the progress panel and warning label
 		progressPane = new ProgressPanel(mainWindow, false);
@@ -103,112 +115,207 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		warnLabel.setForeground(Color.RED);
 		warnLabel.setVisible(false);
 
+		// Initialize result and progress info labels
+		resultsInfoLabel = new JLabel("");
+		progressInfoLabel = new JLabel("");
+		localProgressPanel = new ProgressPanel(mainWindow, false);
+
 		mainPanel = new JPanel();
-		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+		mainPanel.setLayout(new BorderLayout());
 
 		// Create the code panel
 		codePanel = new CodePanel(mainWindow);
 
-		// Create the split panel, allowing horizontal scrolling
+		// Create the tree
+		rootNode = new DefaultMutableTreeNode(node);
+		treeModel = new DefaultTreeModel(rootNode);
+		usageTree = new JTree(treeModel);
+		usageTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		usageTree.setRootVisible(true);
+		usageTree.setShowsRootHandles(true);
+		usageTree.putClientProperty("JTree.lineStyle", "Horizontal");
+		usageTree.setRowHeight(22);
+		usageTree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		// Use a custom renderer instead of a custom UI
+		usageTree.setCellRenderer(new PathHighlightTreeCellRenderer());
+
+		// Add tree listeners
+		usageTree.addTreeSelectionListener(new TreeSelectionListener() {
+			@Override
+			public void valueChanged(TreeSelectionEvent e) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) usageTree.getLastSelectedPathComponent();
+				if (node == null) {
+					return;
+				}
+
+				Object nodeInfo = node.getUserObject();
+				if (nodeInfo instanceof CodeNode) {
+					CodeNode codeNode = (CodeNode) nodeInfo;
+					codePanel.showCode(codeNode, codeNode.makeDescString());
+				} else if (nodeInfo instanceof JNode) {
+					JNode jNode = (JNode) nodeInfo;
+					codePanel.showCode(jNode, jNode.makeDescString());
+				}
+
+				// Update the result information to display the number of child nodes of the currently selected node
+				updateResultsInfo(node);
+			}
+		});
+
+		usageTree.addTreeExpansionListener(new TreeExpansionListener() {
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				TreePath path = event.getPath();
+				DefaultMutableTreeNode expandedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+
+				// Load only when the node has no child nodes.
+				if (expandedNode.getChildCount() == 0) {
+					Object userObject = expandedNode.getUserObject();
+					if (userObject instanceof JNode) {
+						JNode nodeToUse = (JNode) userObject;
+						// If it is a CodeNode, first convert it to an actual JNode and then search for its usage.
+						if (nodeToUse.getClass() == CodeNode.class) {
+							nodeToUse = getNodeFromCodeNode((CodeNode) nodeToUse);
+						}
+						if (nodeToUse != null) {
+							loadNodeUsages(nodeToUse, expandedNode);
+						}
+					}
+				}
+			}
+
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				// No need to process
+			}
+		});
+
+		usageTree.addMouseListener(new MouseAdapter() {
+			private long lastClickTime = 0;
+			private TreePath lastClickPath = null;
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				TreePath path = usageTree.getPathForLocation(e.getX(), e.getY());
+				if (path == null) {
+					return;
+				}
+
+				// Set the selected path
+				usageTree.setSelectionPath(path);
+
+				// Handle the right-click menu
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+					Object userObject = selectedNode.getUserObject();
+
+					if (userObject instanceof JNode || userObject instanceof CodeNode) {
+						JNode nodeForMenu = (userObject instanceof JNode) ? (JNode) userObject : getNodeFromCodeNode((CodeNode) userObject);
+						showPopupMenu(e, nodeForMenu, path);
+					}
+					return;
+				}
+
+				// Handle left-click single/double click
+				if (e.getButton() == MouseEvent.BUTTON1) {
+					long clickTime = System.currentTimeMillis();
+					// Double-click interval
+					long doubleClickInterval = 300;
+
+					DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+
+					// If the time interval between two clicks is less than the threshold and the same node is clicked,
+					// it is considered a double-click
+					if ((clickTime - lastClickTime) < doubleClickInterval && path.equals(lastClickPath)) {
+						// Double-click processing - switch between expanded/collapsed states
+						if (usageTree.isExpanded(path)) {
+							usageTree.collapsePath(path);
+						} else {
+							usageTree.expandPath(path);
+							// If the node has no child nodes and is a JNode, load its usage
+							if (selectedNode.getChildCount() == 0 && selectedNode.getUserObject() instanceof JNode) {
+								JNode nodeToUse = (JNode) selectedNode.getUserObject();
+								// If it is a CodeNode, first convert it to an actual JNode and then search for its usage
+								if (nodeToUse.getClass() == CodeNode.class) {
+									nodeToUse = getNodeFromCodeNode((CodeNode) nodeToUse);
+								}
+								if (nodeToUse != null) {
+									loadNodeUsages(nodeToUse, selectedNode);
+								}
+							}
+						}
+						// Update the result information to display the number of child nodes of the currently selected node
+						updateResultsInfo(selectedNode);
+					} else {
+						// Single-click processing - if the node is not expanded, expand it
+						if (!usageTree.isExpanded(path)) {
+							usageTree.expandPath(path);
+							// If the node has no child nodes and is a JNode, then load its usage.
+							if (selectedNode.getChildCount() == 0 && selectedNode.getUserObject() instanceof JNode) {
+								JNode nodeToUse = (JNode) selectedNode.getUserObject();
+								// If it is a CodeNode, first convert it to an actual JNode and then search for its usage
+								if (nodeToUse.getClass() == CodeNode.class) {
+									nodeToUse = getNodeFromCodeNode((CodeNode) nodeToUse);
+								}
+								if (nodeToUse != null) {
+									loadNodeUsages(nodeToUse, selectedNode);
+								}
+							}
+						}
+						// Update the result information to display the number of child nodes of the currently selected node
+						updateResultsInfo(selectedNode);
+					}
+
+					lastClickTime = clickTime;
+					lastClickPath = path;
+				}
+			}
+		});
+
+		// Create the split panel
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setContinuousLayout(true);
-		splitPane.setResizeWeight(0.7); // Left 70%
+		splitPane.setResizeWeight(0.3); // Left 30%
 		splitPane.setDividerSize(10); // Increase the width of the divider for easier dragging
 
-		// Need a wrapper panel to support horizontal scrolling
-		JScrollPane scrollPane = new JScrollPane(mainPanel);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		// Add tree to the scroll pane
+		JScrollPane treeScrollPane = new JScrollPane(usageTree);
+		treeScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		treeScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-		// Create the first panel but do not initialize it
-		UsagePanel panel = new UsagePanel(this, node, usagePanels.size());
-		usagePanels.add(panel);
-		mainPanel.add(panel);
+		// Create status panel
+		JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		statusPanel.add(resultsInfoLabel);
+		statusPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		statusPanel.add(progressInfoLabel);
+		statusPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+		statusPanel.add(localProgressPanel);
+
+		// Add components to the main panel
+		JPanel leftPanel = new JPanel(new BorderLayout());
+		leftPanel.add(treeScrollPane, BorderLayout.CENTER);
+		leftPanel.add(statusPanel, BorderLayout.SOUTH);
+
+		splitPane.setLeftComponent(leftPanel);
+		splitPane.setRightComponent(codePanel);
+
+		mainPanel.add(splitPane, BorderLayout.CENTER);
 
 		initUI();
 		registerInitOnOpen();
 		loadWindowPos();
 	}
 
-	private void addUsagePanel(JNode node) {
-		// If there is already a panel, update the panel on the right
-		if (!usagePanels.isEmpty()) {
-			int lastIndex = usagePanels.size() - 1;
-			// If there are multiple panels, remove all panels on the right of the last panel
-			while (usagePanels.size() > lastIndex + 1) {
-				UsagePanel panelToRemove = usagePanels.get(usagePanels.size() - 1);
-				mainPanel.remove(panelToRemove);
-				usagePanels.remove(usagePanels.size() - 1);
-			}
-		}
-
-		// Create a new panel and add it
-		UsagePanel panel = new UsagePanel(this, node, usagePanels.size());
-		usagePanels.add(panel);
-		mainPanel.add(panel);
-		mainPanel.revalidate();
-		mainPanel.repaint();
-
-		// If a new panel is added, scroll to the right
-		scrollToRight();
-
-		// Initialize the new added panel
-		panel.openInit();
-	}
-
-	private void scrollToRight() {
-		// Ensure the layout is updated
-		mainPanel.revalidate();
-
-		// Get the scroll panel
-		JScrollPane scrollPane = (JScrollPane) splitPane.getLeftComponent();
-
-		// Use SwingUtilities.invokeLater to ensure the scroll is executed after the UI is updated
-		SwingUtilities.invokeLater(() -> {
-			// Get the horizontal scroll bar
-			JScrollBar horizontalScrollBar = scrollPane.getHorizontalScrollBar();
-			// Scroll to the right
-			horizontalScrollBar.setValue(horizontalScrollBar.getMaximum());
-		});
-	}
-
-	@Override
-	protected void openInit() {
-		// Only initialize the first panel, other panels will be initialized automatically when added
-		if (!usagePanels.isEmpty()) {
-			usagePanels.get(0).openInit();
-		}
-	}
-
-	@Override
-	protected void loadFinished() {
-		// This method is handled separately in each UsagePanel
-	}
-
-	@Override
-	protected void loadStart() {
-		// This method is handled separately in each UsagePanel
-	}
-
 	private void initUI() {
-		JadxSettings settings = mainWindow.getSettings();
-		Font codeFont = settings.getFont();
-
-		JScrollPane scrollPane = new JScrollPane(mainPanel);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-
-		splitPane.setLeftComponent(scrollPane);
-		splitPane.setRightComponent(codePanel); // Set the right side to the code panel
-
 		initCommon();
 		JPanel buttonPane = initButtonsPanel();
 
 		JPanel contentPanel = new JPanel();
 		contentPanel.setLayout(new BorderLayout(5, 5));
 		contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		contentPanel.add(splitPane, BorderLayout.CENTER);
+		contentPanel.add(mainPanel, BorderLayout.CENTER);
 		contentPanel.add(buttonPane, BorderLayout.PAGE_END);
 		getContentPane().add(contentPanel);
 
@@ -228,12 +335,352 @@ public class UsageDialogPlus extends CommonSearchDialog {
 					double ratio = (double) currentDividerLocation / width;
 
 					// If the ratio is too small or too large, reset to a reasonable value
-					if (ratio < 0.3 || ratio > 0.85) {
-						splitPane.setDividerLocation((int) (width * 0.7)); // Use pixel values
+					if (ratio < 0.2 || ratio > 0.5) {
+						splitPane.setDividerLocation((int) (width * 0.3)); // Use pixel values
 					}
 				}
 			}
 		});
+	}
+
+	@Override
+	protected void openInit() {
+		prepareUsageData(initialNode);
+
+		localProgressPanel.setIndeterminate(true);
+		localProgressPanel.setVisible(true);
+		progressInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
+
+		// Load the usage of the root node
+		loadNodeUsages(initialNode, rootNode);
+	}
+
+	private void loadNodeUsages(JNode node, DefaultMutableTreeNode treeNode) {
+		// When loading starts, display the searching state
+		localProgressPanel.setIndeterminate(true);
+		localProgressPanel.setVisible(true);
+		progressInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
+
+		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
+				() -> collectUsageData(node, treeNode),
+				(status) -> {
+					if (status == TaskStatus.CANCEL_BY_MEMORY) {
+						mainWindow.showHeapUsageBar();
+						UiUtils.errorMessage(UsageDialogPlus.this, NLS.str("message.memoryLow"));
+					}
+					localProgressPanel.setVisible(false);
+					progressInfoLabel.setText(NLS.str("usage_dialog_plus.search_complete"));
+					// Update the result information - always display the number of child nodes of the currently
+					// selected node
+					updateResultsInfo(treeNode);
+
+					// Expand the root node
+					if (treeNode == rootNode) {
+						usageTree.expandPath(new TreePath(rootNode.getPath()));
+					}
+				});
+	}
+
+	private void updateResultsInfo(DefaultMutableTreeNode node) {
+		if (node != null) {
+			int childCount = node.getChildCount();
+			resultsInfoLabel.setText(NLS.str("search_dialog.results_complete", childCount));
+		}
+	}
+
+	private int getTotalChildCount(DefaultMutableTreeNode node) {
+		int count = node.getChildCount();
+		for (Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) e.nextElement();
+			count += getTotalChildCount(child);
+		}
+		return count;
+	}
+
+	private void prepareUsageData(JNode node) {
+		if (mainWindow.getSettings().isReplaceConsts() && node instanceof JField) {
+			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
+			boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
+			if (constField && !fld.getAccessFlags().isPrivate()) {
+				// run full decompilation to prepare for full code scan
+				mainWindow.requestFullDecompilation();
+			}
+		}
+	}
+
+	private void collectUsageData(JNode node, DefaultMutableTreeNode treeNode) {
+		List<CodeNode> usageList = new ArrayList<>();
+		buildUsageQuery(node).forEach(
+				(searchNode, useNodes) -> useNodes.stream()
+						.map(JavaNode::getTopParentClass)
+						.distinct()
+						.forEach(u -> processUsage(searchNode, u, usageList)));
+
+		// Sort and add to the tree node
+		Collections.sort(usageList);
+		SwingUtilities.invokeLater(() -> {
+			for (CodeNode codeNode : usageList) {
+				DefaultMutableTreeNode usageTreeNode = new DefaultMutableTreeNode(codeNode);
+				treeModel.insertNodeInto(usageTreeNode, treeNode, treeNode.getChildCount());
+			}
+			treeModel.nodeStructureChanged(treeNode);
+		});
+	}
+
+	private Map<JavaNode, List<? extends JavaNode>> buildUsageQuery(JNode node) {
+		Map<JavaNode, List<? extends JavaNode>> map = new HashMap<>();
+		if (node instanceof JMethod) {
+			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
+			for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
+				map.put(mth, mth.getUseIn());
+			}
+			return map;
+		}
+		if (node instanceof JClass) {
+			JavaClass javaCls = ((JClass) node).getCls();
+			map.put(javaCls, javaCls.getUseIn());
+			// add constructors usage into class usage
+			for (JavaMethod javaMth : javaCls.getMethods()) {
+				if (javaMth.isConstructor()) {
+					map.put(javaMth, javaMth.getUseIn());
+				}
+			}
+			return map;
+		}
+		if (node instanceof JField && mainWindow.getSettings().isReplaceConsts()) {
+			FieldNode fld = ((JField) node).getJavaField().getFieldNode();
+			boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
+			if (constField && !fld.getAccessFlags().isPrivate()) {
+				// search all classes to collect usage of replaced constants
+				map.put(fld.getJavaNode(), mainWindow.getWrapper().getIncludedClasses());
+				return map;
+			}
+		}
+		JavaNode javaNode = node.getJavaNode();
+		map.put(javaNode, javaNode.getUseIn());
+		return map;
+	}
+
+	private List<JavaMethod> getMethodWithOverrides(JavaMethod javaMethod) {
+		List<JavaMethod> relatedMethods = javaMethod.getOverrideRelatedMethods();
+		if (!relatedMethods.isEmpty()) {
+			return relatedMethods;
+		}
+		return Collections.singletonList(javaMethod);
+	}
+
+	private void processUsage(JavaNode searchNode, JavaClass topUseClass, List<CodeNode> usageList) {
+		ICodeInfo codeInfo = topUseClass.getCodeInfo();
+		List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
+		if (usePositions.isEmpty()) {
+			return;
+		}
+		String code = codeInfo.getCodeStr();
+		JadxWrapper wrapper = mainWindow.getWrapper();
+		for (int pos : usePositions) {
+			String line = CodeUtils.getLineForPos(code, pos);
+			if (line.startsWith("import ")) {
+				continue;
+			}
+			JNodeCache nodeCache = getNodeCache();
+			JavaNode enclosingNode = wrapper.getEnclosingNode(codeInfo, pos);
+			JClass rootJCls = nodeCache.makeFrom(topUseClass);
+			JNode usageJNode = enclosingNode == null ? rootJCls : nodeCache.makeFrom(enclosingNode);
+
+			// Create CodeNode and add to list
+			CodeNode codeNode = new CodeNode(rootJCls, usageJNode, line.trim(), pos);
+			usageList.add(codeNode);
+		}
+	}
+
+	private JNode getNodeFromCodeNode(CodeNode codeNode) {
+		if (codeNode != null) {
+			try {
+				// Try to get the actual node referenced by the CodeNode
+				JavaNode javaNode = codeNode.getJavaNode();
+				JNodeCache nodeCache = getNodeCache();
+				JNode node = nodeCache.makeFrom(javaNode);
+
+				// If it cannot be obtained directly, try to get it from jParent
+				if (node == null) {
+					node = codeNode.getJParent();
+				}
+
+				// Record the log for debugging
+				if (node != null) {
+					LOG.debug("Converted CodeNode to {} of type {}", node.getName(), node.getClass().getSimpleName());
+				} else {
+					LOG.debug("Failed to convert CodeNode: {}", codeNode.getName());
+				}
+
+				return node;
+			} catch (Exception e) {
+				LOG.error("Error converting CodeNode to JNode", e);
+			}
+		}
+		return null;
+	}
+
+	private void showPopupMenu(MouseEvent e, JNode node, TreePath path) {
+		if (node == null) {
+			return;
+		}
+
+		JPopupMenu popup = new JPopupMenu();
+
+		// Add the expand/load usage menu item
+		DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+		JMenuItem expandItem = new JMenuItem(NLS.str("usage_dialog_plus.expand_usages"));
+		expandItem.addActionListener(evt -> {
+			// Expand the node and load the usage
+			if (treeNode.getChildCount() == 0) {
+				JNode nodeToUse = node;
+				// If it is a CodeNode, first convert it to an actual JNode and then search for its usage
+				if (node.getClass() == CodeNode.class) {
+					nodeToUse = getNodeFromCodeNode((CodeNode) node);
+				}
+				if (nodeToUse != null) {
+					loadNodeUsages(nodeToUse, treeNode);
+				}
+			}
+			usageTree.expandPath(path);
+		});
+
+		JMenuItem jumpToItem = new JMenuItem(NLS.str("usage_dialog_plus.jump_to"));
+		jumpToItem.addActionListener(evt -> {
+			openItem(node);
+		});
+
+		JMenuItem copyPathItem = new JMenuItem(NLS.str("usage_dialog_plus.copy_path"));
+		copyPathItem.addActionListener(evt -> {
+			copyUsagePath(path);
+		});
+
+		popup.add(expandItem);
+		popup.addSeparator();
+		popup.add(jumpToItem);
+		popup.add(copyPathItem);
+		popup.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	private void copyUsagePath(TreePath path) {
+		if (path != null) {
+			StringBuilder pathBuilder = new StringBuilder();
+			Object[] nodes = path.getPath();
+
+			// Actually reverse the node order, from the leaf node (currently selected node) to the root node
+			for (int i = nodes.length - 1; i >= 0; i--) {
+				DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) nodes[i];
+				Object userObject = treeNode.getUserObject();
+
+				if (i < nodes.length - 1) {
+					pathBuilder.append("\n");
+					// Add indentation - reverse calculate the indentation level
+					int indentLevel = nodes.length - 1 - i;
+					for (int j = 0; j < indentLevel; j++) {
+						pathBuilder.append(" ");
+					}
+					pathBuilder.append("-> ");
+				}
+
+				// Add node information
+				if (userObject instanceof JNode) {
+					pathBuilder.append(((JNode) userObject).getJavaNode().getCodeNodeRef().toString());
+				} else if (userObject instanceof CodeNode) {
+					CodeNode codeNode = (CodeNode) userObject;
+					pathBuilder.append(codeNode.getJavaNode().getCodeNodeRef().toString());
+				}
+			}
+
+			// Copy to clipboard
+			UiUtils.copyToClipboard(pathBuilder.toString());
+		}
+	}
+
+	// Delete the PathHighlightTreeUI class, use the enhanced CellRenderer instead
+	private class PathHighlightTreeCellRenderer extends DefaultTreeCellRenderer {
+		private static final int INDENT_PER_LEVEL = 18; // Each level of indentation in pixels
+		private final Color selectedPathColor = new Color(220, 240, 255); // Light blue background
+		private final Color selectedPathTextColor = new Color(0, 0, 150); // Dark blue text
+
+		@Override
+		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
+				boolean expanded, boolean leaf, int row, boolean hasFocus) {
+
+			Component comp = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+			Object userObject = node.getUserObject();
+
+			// Calculate the node level
+			int level = node.getLevel();
+			// Set different colors according to the level
+			float hue = (level * 0.1f) % 1.0f; // Hue cycle
+			Color levelColor = Color.getHSBColor(hue, 0.1f, 0.95f);
+
+			// Check if it is on the selected path
+			boolean onSelectionPath = false;
+			TreePath selectionPath = tree.getSelectionPath();
+			if (selectionPath != null) {
+				// Check if the current node is on the selected path (whether it is part of the selected path)
+				Object[] selectedPathNodes = selectionPath.getPath();
+				for (Object pathNode : selectedPathNodes) {
+					if (pathNode == node) {
+						onSelectionPath = true;
+						break;
+					}
+				}
+			}
+
+			if (onSelectionPath && !selected) {
+				// If it is on the selected path but not the selected node, use a special background
+				setBackground(selectedPathColor);
+				setForeground(selectedPathTextColor);
+
+				// Set the highlighted border
+				setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createLineBorder(selectedPathTextColor, 1),
+						BorderFactory.createEmptyBorder(1, level * 2, 1, 1)));
+			} else if (!selected) {
+				// Only apply the background color when it is not selected
+				setBackground(levelColor);
+				// Normal border
+				setBorder(BorderFactory.createEmptyBorder(2, level * 2 + 1, 2, 1));
+			} else {
+				// The selected node also adds a border
+				setBorder(BorderFactory.createEmptyBorder(2, level * 2 + 1, 2, 1));
+			}
+
+			if (userObject instanceof JNode) {
+				JNode jNode = (JNode) userObject;
+				setText(jNode.makeLongString());
+				setIcon(jNode.getIcon());
+				setToolTipText(jNode.getTooltip());
+			} else if (userObject instanceof CodeNode) {
+				CodeNode codeNode = (CodeNode) userObject;
+				setText(codeNode.makeLongString());
+				setIcon(codeNode.getIcon());
+				setToolTipText(codeNode.getTooltip());
+			}
+
+			return comp;
+		}
+
+		// Add custom icons to enhance visual distinction
+		@Override
+		public Icon getLeafIcon() {
+			return super.getLeafIcon();
+		}
+
+		@Override
+		public Icon getOpenIcon() {
+			return super.getOpenIcon();
+		}
+
+		@Override
+		public Icon getClosedIcon() {
+			return super.getClosedIcon();
+		}
 	}
 
 	// The code panel class is used to display the code of the selected node.
@@ -247,7 +694,7 @@ public class UsageDialogPlus extends CommonSearchDialog {
 
 			// Set the minimum size to ensure the panel is not completely minimized
 			setMinimumSize(new Dimension(300, 400));
-			setPreferredSize(new Dimension(400, 600));
+			setPreferredSize(new Dimension(800, 600));
 
 			// The title label
 			titleLabel = new JLabel(NLS.str("usage_dialog_plus.code_view"));
@@ -418,417 +865,6 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		}
 	}
 
-	private class UsagePanel extends JPanel {
-		private final UsageDialogPlus parentDialog;
-		private final JNode node;
-		private final int index;
-		private List<CodeNode> usageList;
-		private ResultsModel resultsModel;
-		private JTable resultsTable;
-		private JLabel resultsInfoLabel;
-		private JLabel progressInfoLabel;
-		private ProgressPanel localProgressPanel; // Add local progress panel
-
-		// Unify the height of all panels.
-		private static final int PANEL_HEIGHT = 650;
-		private static final int PANEL_WIDTH = 450; // Increase width to display more node content
-
-		public UsagePanel(UsageDialogPlus parentDialog, JNode node, int index) {
-			this.parentDialog = parentDialog;
-			this.node = node;
-			this.index = index;
-
-			setLayout(new BorderLayout(5, 5));
-			setBorder(BorderFactory.createTitledBorder("Usage " + (index + 1)));
-
-			// Set the unified panel size
-			setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
-			setMinimumSize(new Dimension(250, PANEL_HEIGHT)); // Set the minimum width to 250
-
-			initPanelUI();
-		}
-
-		private void initPanelUI() {
-			// Initialize the local progress panel
-			localProgressPanel = new ProgressPanel(mainWindow, false);
-
-			// Search panel - use a text area instead of a label to support automatic line wrapping
-			JPanel searchPane = new JPanel(new BorderLayout());
-			JLabel lbl = new JLabel(NLS.str("usage_dialog.label"));
-			lbl.setFont(codeFont);
-
-			// Use NodeLabel.longName to display node information, including icons
-			JLabel nodeLabel = NodeLabel.longName(node);
-			nodeLabel.setFont(codeFont);
-			lbl.setLabelFor(nodeLabel);
-
-			JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			labelPanel.add(lbl);
-
-			searchPane.add(labelPanel, BorderLayout.NORTH);
-			searchPane.add(nodeLabel, BorderLayout.CENTER);
-			searchPane.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10)); // Increase the top and bottom margins
-
-			// Result table - initialized exactly as CommonSearchDialog.
-			EnhancedCellRenderer renderer = new EnhancedCellRenderer();
-			resultsModel = new ResultsModel();
-			resultsTable = new JTable(resultsModel);
-			resultsTable.setRowHeight(renderer.getMaxRowHeight());
-			resultsTable.setShowHorizontalLines(false);
-			resultsTable.setDragEnabled(false);
-			resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			resultsTable.setColumnSelectionAllowed(false);
-			resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // Set to not automatically adjust column widths
-			resultsTable.setAutoscrolls(true); // Enable automatic scrolling
-
-			resultsTable.setDefaultRenderer(Object.class, renderer);
-
-			// Remove the second column (code column)
-			if (resultsTable.getColumnCount() > 1) {
-				resultsTable.removeColumn(resultsTable.getColumnModel().getColumn(1));
-			}
-
-			// Add a selection listener to display code when a node is selected
-			resultsTable.getSelectionModel().addListSelectionListener(e -> {
-				if (!e.getValueIsAdjusting()) {
-					int selectedRow = resultsTable.getSelectedRow();
-					if (selectedRow >= 0 && selectedRow < resultsModel.getRowCount()) {
-						JNode selectedNode = (JNode) resultsModel.getValueAt(selectedRow, 0);
-						if (selectedNode instanceof CodeNode) {
-							CodeNode codeNode = (CodeNode) selectedNode;
-							codePanel.showCode(codeNode, codeNode.makeDescString());
-						} else {
-							codePanel.showCode(selectedNode, selectedNode.makeDescString());
-						}
-					}
-				}
-			});
-
-			resultsTable.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					if (e.getClickCount() == 2) {
-						int row = resultsTable.rowAtPoint(e.getPoint());
-						if (row >= 0) {
-							JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
-							if (selectedNode != null) {
-								// Get the actual node clicked
-								JNode nodeToUse = selectedNode;
-
-								// If it is a CodeNode, we need to get the actual node it references
-								if (selectedNode instanceof CodeNode) {
-									CodeNode codeNode = (CodeNode) selectedNode;
-									// Use JavaNode to determine the correct node type
-									JavaNode javaNode = codeNode.getJavaNode();
-									// Use NodeCache to convert JavaNode to JNode
-									JNodeCache nodeCache = getNodeCache();
-									nodeToUse = nodeCache.makeFrom(javaNode);
-								}
-
-								// If the current panel is not the last panel, update the right panel
-								// Otherwise, add a new panel
-								if (index < usagePanels.size() - 1) {
-									// Update the right panel
-									updateRightPanel(nodeToUse);
-								} else {
-									// Add a new panel
-									parentDialog.addUsagePanel(nodeToUse);
-								}
-								// Whether updating or adding, scroll to the right
-								parentDialog.scrollToRight();
-							}
-						}
-					} else if (e.getButton() == MouseEvent.BUTTON3) {
-						int row = resultsTable.rowAtPoint(e.getPoint());
-						if (row >= 0) {
-							resultsTable.setRowSelectionInterval(row, row);
-							JNode selectedNode = (JNode) resultsModel.getValueAt(row, 0);
-							if (selectedNode != null) {
-								showPopupMenu(e, selectedNode);
-							}
-						}
-					}
-				}
-			});
-
-			JScrollPane scrollPane = new JScrollPane(resultsTable);
-			scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			// Set the preferred scroll size of the table to support displaying longer content
-			resultsTable.setPreferredScrollableViewportSize(new Dimension(PANEL_WIDTH - 50, 500));
-
-			// Ensure the table can scroll to display long content
-			resultsTable.getTableHeader().setResizingAllowed(true);
-			resultsTable.getTableHeader().setReorderingAllowed(false);
-
-			// Status panel
-			JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			resultsInfoLabel = new JLabel("");
-			progressInfoLabel = new JLabel("");
-
-			statusPanel.add(resultsInfoLabel);
-			statusPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-			statusPanel.add(progressInfoLabel);
-			statusPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-			statusPanel.add(localProgressPanel); // Use the local progress panel
-
-			// Main panel layout
-			add(searchPane, BorderLayout.NORTH);
-			add(scrollPane, BorderLayout.CENTER);
-			add(statusPanel, BorderLayout.SOUTH);
-		}
-
-		private void showPopupMenu(MouseEvent e, JNode node) {
-			JPopupMenu popup = new JPopupMenu();
-
-			JMenuItem jumpToItem = new JMenuItem(NLS.str("usage_dialog_plus.jump_to"));
-			jumpToItem.addActionListener(evt -> {
-				parentDialog.openItem(node);
-			});
-
-			JMenuItem copyPathItem = new JMenuItem(NLS.str("usage_dialog_plus.copy_path"));
-			copyPathItem.addActionListener(evt -> {
-				copyUsagePath(node);
-			});
-
-			popup.add(jumpToItem);
-			popup.add(copyPathItem);
-			popup.show(e.getComponent(), e.getX(), e.getY());
-		}
-
-		private void copyUsagePath(JNode node) {
-			if (node != null) {
-				// Build the complete path from the leftmost node to the current node
-				StringBuilder pathBuilder = new StringBuilder();
-
-				// Get the node path from all panels from left to right
-				List<JNode> nodePath = new ArrayList<>();
-
-				// Add the nodes from all panels from left to right
-				for (int i = 0; i <= index; i++) {
-					UsagePanel panel = usagePanels.get(i);
-					nodePath.add(panel.node);
-				}
-
-				// Add the currently selected node (if it is different from the current panel node)
-				if (!node.equals(nodePath.get(nodePath.size() - 1))) {
-					nodePath.add(node);
-				}
-				Collections.reverse(nodePath);
-				// Build the path string in the required format: the leftmost node is at the top, and each level
-				// adds indentation and an arrow
-				// For example: a\n -> b\n -> c\n -> d
-
-				// Build the path string
-				for (int i = 0; i < nodePath.size(); i++) {
-					if (i > 0) {
-						pathBuilder.append("\n");
-						// Add indentation (add one space for each level)
-						for (int j = 0; j < i; j++) {
-							pathBuilder.append(" ");
-						}
-						pathBuilder.append("-> ");
-					}
-
-					// Add node information
-					JNode currentNode = nodePath.get(i);
-					pathBuilder.append(currentNode.getJavaNode().getCodeNodeRef().toString());
-				}
-
-				// Copy to clipboard
-				UiUtils.copyToClipboard(pathBuilder.toString());
-			}
-		}
-
-		public void openInit() {
-			localProgressPanel.setIndeterminate(true);
-			localProgressPanel.setVisible(true);
-			prepareUsageData();
-			mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
-					this::collectUsageData,
-					(status) -> {
-						if (status == TaskStatus.CANCEL_BY_MEMORY) {
-							mainWindow.showHeapUsageBar();
-							UiUtils.errorMessage(UsageDialogPlus.this, NLS.str("message.memoryLow"));
-						}
-						localProgressPanel.setVisible(false);
-						onLoadFinished();
-					});
-		}
-
-		private void prepareUsageData() {
-			if (mainWindow.getSettings().isReplaceConsts() && node instanceof JField) {
-				FieldNode fld = ((JField) node).getJavaField().getFieldNode();
-				boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
-				if (constField && !fld.getAccessFlags().isPrivate()) {
-					// run full decompilation to prepare for full code scan
-					mainWindow.requestFullDecompilation();
-				}
-			}
-		}
-
-		private void collectUsageData() {
-			usageList = new ArrayList<>();
-			buildUsageQuery().forEach(
-					(searchNode, useNodes) -> useNodes.stream()
-							.map(JavaNode::getTopParentClass)
-							.distinct()
-							.forEach(u -> processUsage(searchNode, u)));
-		}
-
-		private Map<JavaNode, List<? extends JavaNode>> buildUsageQuery() {
-			Map<JavaNode, List<? extends JavaNode>> map = new HashMap<>();
-			if (node instanceof JMethod) {
-				JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
-				for (JavaMethod mth : getMethodWithOverrides(javaMethod)) {
-					map.put(mth, mth.getUseIn());
-				}
-				return map;
-			}
-			if (node instanceof JClass) {
-				JavaClass javaCls = ((JClass) node).getCls();
-				map.put(javaCls, javaCls.getUseIn());
-				// add constructors usage into class usage
-				for (JavaMethod javaMth : javaCls.getMethods()) {
-					if (javaMth.isConstructor()) {
-						map.put(javaMth, javaMth.getUseIn());
-					}
-				}
-				return map;
-			}
-			if (node instanceof JField && mainWindow.getSettings().isReplaceConsts()) {
-				FieldNode fld = ((JField) node).getJavaField().getFieldNode();
-				boolean constField = CollectConstValues.getFieldConstValue(fld) != null;
-				if (constField && !fld.getAccessFlags().isPrivate()) {
-					// search all classes to collect usage of replaced constants
-					map.put(fld.getJavaNode(), mainWindow.getWrapper().getIncludedClasses());
-					return map;
-				}
-			}
-			JavaNode javaNode = node.getJavaNode();
-			map.put(javaNode, javaNode.getUseIn());
-			return map;
-		}
-
-		private List<JavaMethod> getMethodWithOverrides(JavaMethod javaMethod) {
-			List<JavaMethod> relatedMethods = javaMethod.getOverrideRelatedMethods();
-			if (!relatedMethods.isEmpty()) {
-				return relatedMethods;
-			}
-			return Collections.singletonList(javaMethod);
-		}
-
-		private void processUsage(JavaNode searchNode, JavaClass topUseClass) {
-			ICodeInfo codeInfo = topUseClass.getCodeInfo();
-			List<Integer> usePositions = topUseClass.getUsePlacesFor(codeInfo, searchNode);
-			if (usePositions.isEmpty()) {
-				return;
-			}
-			String code = codeInfo.getCodeStr();
-			JadxWrapper wrapper = mainWindow.getWrapper();
-			for (int pos : usePositions) {
-				String line = CodeUtils.getLineForPos(code, pos);
-				if (line.startsWith("import ")) {
-					continue;
-				}
-				JNodeCache nodeCache = getNodeCache();
-				JavaNode enclosingNode = wrapper.getEnclosingNode(codeInfo, pos);
-				JClass rootJCls = nodeCache.makeFrom(topUseClass);
-				JNode usageJNode = enclosingNode == null ? rootJCls : nodeCache.makeFrom(enclosingNode);
-
-				// Create CodeNode and add to list
-				CodeNode codeNode = new CodeNode(rootJCls, usageJNode, line.trim(), pos);
-				usageList.add(codeNode);
-			}
-		}
-
-		private void onLoadFinished() {
-			resultsTable.setEnabled(true);
-			resultsModel.clear();
-
-			Collections.sort(usageList);
-			resultsModel.addAll(usageList);
-			updateHighlightContext(node.getName(), true, false, true);
-			updateTableUI();
-
-			updateProgressLabel(true);
-
-			// If there are results, select the first one to display code
-			if (!usageList.isEmpty()) {
-				resultsTable.setRowSelectionInterval(0, 0);
-				CodeNode firstNode = usageList.get(0);
-				codePanel.showCode(firstNode, firstNode.makeDescString());
-			}
-		}
-
-		private void updateTableUI() {
-			if (resultsTable != null) {
-				// Set a sufficiently large column width to display complete content
-				int columnCount = resultsTable.getColumnCount();
-				int width = Math.max(resultsTable.getParent().getWidth(), PANEL_WIDTH);
-				// Use a larger width value to display more content
-				int colWidth = width + 500; // Use a sufficiently large width to ensure content can be fully displayed
-				resultsTable.getColumnModel().getColumn(0).setPreferredWidth(colWidth);
-				for (int col = 1; col < columnCount; col++) {
-					resultsTable.getColumnModel().getColumn(col).setPreferredWidth(width);
-				}
-
-				// Update the table UI
-				resultsTable.updateUI();
-			}
-		}
-
-		private void updateProgressLabel(boolean complete) {
-			if (complete) {
-				progressInfoLabel.setText(NLS.str("usage_dialog_plus.search_complete"));
-			} else {
-				progressInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
-			}
-
-			// Update the results information label
-			resultsInfoLabel.setText(NLS.str("search_dialog.results_complete", usageList.size()));
-		}
-
-		// Update the right panel method
-		private void updateRightPanel(JNode selectedNode) {
-			// Get the right panel index
-			int rightPanelIndex = index + 1;
-
-			// If the right panel does not exist, add a new panel
-			if (rightPanelIndex >= usagePanels.size()) {
-				parentDialog.addUsagePanel(selectedNode);
-				return;
-			}
-
-			// Get the right panel
-			UsagePanel rightPanel = usagePanels.get(rightPanelIndex);
-			// Create a new panel to replace the right panel
-			UsagePanel newPanel = new UsagePanel(parentDialog, selectedNode, rightPanelIndex);
-
-			// Replace the panel
-			mainPanel.remove(rightPanel);
-			mainPanel.add(newPanel, rightPanelIndex);
-			usagePanels.set(rightPanelIndex, newPanel);
-
-			// Remove all panels to the right
-			while (usagePanels.size() > rightPanelIndex + 1) {
-				UsagePanel panelToRemove = usagePanels.get(usagePanels.size() - 1);
-				mainPanel.remove(panelToRemove);
-				usagePanels.remove(usagePanels.size() - 1);
-			}
-
-			// Update UI
-			mainPanel.revalidate();
-			mainPanel.repaint();
-
-			// Initialize the new panel
-			newPanel.openInit();
-
-			// Scroll to the right
-			parentDialog.scrollToRight();
-		}
-	}
-
 	@NotNull
 	@Override
 	protected JPanel initButtonsPanel() {
@@ -839,7 +875,6 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		JButton openBtn = new JButton(NLS.str("search_dialog.open"));
 		openBtn.addActionListener(event -> openSelectedItem());
 		getRootPane().setDefaultButton(openBtn);
-		// Delete the copy all button
 
 		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
 		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
@@ -856,7 +891,6 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
-		// Do not add the copy all button
 		buttonPane.add(openBtn);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(cancelButton);
@@ -873,104 +907,35 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		openItem(node);
 	}
 
+	@Override
+	protected void loadFinished() {
+		// The tree loading is already handled
+	}
+
+	@Override
+	protected void loadStart() {
+		// The tree loading is already handled
+	}
+
 	@Nullable
 	private JNode getSelectedNode() {
 		try {
-			// Iterate through all panels to find the selected node
-			for (UsagePanel panel : usagePanels) {
-				int selectedRow = panel.resultsTable.getSelectedRow();
-				if (selectedRow != -1 && selectedRow < panel.resultsModel.getRowCount()) {
-					return (JNode) panel.resultsModel.getValueAt(selectedRow, 0);
-				}
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) usageTree.getLastSelectedPathComponent();
+			if (node == null) {
+				return null;
+			}
+
+			Object userObject = node.getUserObject();
+			if (userObject instanceof JNode) {
+				return (JNode) userObject;
+			} else if (userObject instanceof CodeNode) {
+				CodeNode codeNode = (CodeNode) userObject;
+				return getNodeFromCodeNode(codeNode);
 			}
 			return null;
 		} catch (Exception e) {
-			LOG.error("Failed to get results table selected object", e);
+			LOG.error("Failed to get selected node", e);
 			return null;
-		}
-	}
-
-	// Custom table cell renderer, fully implemented by referring to the ResultsTableCellRenderer in
-	// CommonSearchDialog.
-	private class EnhancedCellRenderer implements TableCellRenderer {
-		private final NodeLabel label;
-		private final RSyntaxTextArea codeArea;
-		private final NodeLabel emptyLabel;
-		private final Color codeSelectedColor;
-		private final Color codeBackground;
-
-		public EnhancedCellRenderer() {
-			codeArea = AbstractCodeArea.getDefaultArea(mainWindow);
-			codeArea.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-			codeArea.setRows(1);
-			codeBackground = codeArea.getBackground();
-			codeSelectedColor = codeArea.getSelectionColor();
-			label = new NodeLabel();
-			label.setOpaque(true);
-			label.setFont(codeArea.getFont());
-			label.setHorizontalAlignment(SwingConstants.LEFT);
-			emptyLabel = new NodeLabel();
-			emptyLabel.setOpaque(true);
-		}
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus,
-				int row,
-				int column) {
-			if (obj == null || table == null) {
-				return emptyLabel;
-			}
-			Component comp = makeCell((JNode) obj, column);
-			updateSelection(table, comp, column, isSelected);
-			return comp;
-		}
-
-		private void updateSelection(JTable table, Component comp, int column, boolean isSelected) {
-			if (column == 1) {
-				if (isSelected) {
-					comp.setBackground(codeSelectedColor);
-				} else {
-					comp.setBackground(codeBackground);
-				}
-			} else {
-				if (isSelected) {
-					comp.setBackground(table.getSelectionBackground());
-					comp.setForeground(table.getSelectionForeground());
-				} else {
-					comp.setBackground(table.getBackground());
-					comp.setForeground(table.getForeground());
-				}
-			}
-		}
-
-		private Component makeCell(JNode node, int column) {
-			if (column == 0) {
-				label.disableHtml(node.disableHtml());
-				// Use the complete node information, not truncated
-				String nodeText = node.makeLongStringHtml();
-				label.setText(nodeText);
-				label.setToolTipText(node.getTooltip());
-				label.setIcon(node.getIcon());
-				return label;
-			}
-			if (!node.hasDescString()) {
-				return emptyLabel;
-			}
-			codeArea.setSyntaxEditingStyle(node.getSyntaxName());
-			String descStr = node.makeDescString();
-			codeArea.setText(descStr);
-			codeArea.setColumns(descStr.length() + 1);
-			return codeArea;
-		}
-
-		public int getMaxRowHeight() {
-			label.setText("Text");
-			codeArea.setText("Text");
-			return Math.max(getCompHeight(label), getCompHeight(codeArea));
-		}
-
-		private int getCompHeight(Component comp) {
-			return Math.max(comp.getHeight(), comp.getPreferredSize().height);
 		}
 	}
 }
