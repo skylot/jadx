@@ -87,6 +87,21 @@ public class FontUtils {
 		}
 	}
 
+	public static boolean canStringBeDisplayed(String str, Font font) {
+		if (str == null || str.isEmpty()) {
+			return true;
+		}
+		int offset = 0;
+		while (offset < str.length()) {
+			int codePoint = str.codePointAt(offset);
+			if (!font.canDisplay(codePoint)) {
+				return false;
+			}
+			offset += Character.charCount(codePoint);
+		}
+		return true;
+	}
+
 	private FontUtils() {
 	}
 }

@@ -85,6 +85,9 @@ import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
@@ -160,6 +163,7 @@ import jadx.gui.ui.tab.TabsController;
 import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.ui.treenodes.SummaryNode;
+import jadx.gui.ui.treenodes.UndisplayedStringsNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.DesktopEntryUtils;
@@ -240,6 +244,7 @@ public class MainWindow extends JFrame {
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 	private boolean loaded;
 	private boolean settingsOpen = false;
+	private boolean showUndisplayedCharsDialog;
 
 	private final ShortcutsController shortcutsController;
 	private JadxMenuBar menuBar;
@@ -506,6 +511,7 @@ public class MainWindow extends JFrame {
 		// start new project
 		project = new JadxProject(this);
 		project.setFilePaths(paths);
+		showUndisplayedCharsDialog = false;
 		loadFiles(onFinish);
 	}
 
@@ -654,6 +660,7 @@ public class MainWindow extends JFrame {
 					runInitialBackgroundJobs();
 					notifyLoadListeners(true);
 					update();
+					checkIfCodeHasNonPrintableChars();
 				});
 	}
 
@@ -1791,6 +1798,60 @@ public class MainWindow extends JFrame {
 		} else {
 			JOptionPane.showMessageDialog(this, NLS.str("message.desktop_entry_creation_error"),
 					NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void checkIfCodeHasNonPrintableChars() {
+		if (getSettings().isRenamePrintable() || getSettings().isDeobfuscationOn()) {
+			return;
+		}
+
+		if (showUndisplayedCharsDialog) {
+			return;
+		}
+
+		StringBuilder nonDisplayString = new StringBuilder();
+
+		List<ClassNode> classes = wrapper.getRootNode().getClasses(true);
+		Font font = getSettings().getFont();
+		boolean hasNonDisplayable = false;
+
+		for (ClassNode cls : classes) {
+			String className = cls.getRawName();
+			if (!FontUtils.canStringBeDisplayed(className, font)) {
+				hasNonDisplayable = true;
+				nonDisplayString.append(className);
+				nonDisplayString.append("\n");
+			}
+
+			for (MethodNode methodNode : cls.getMethods()) {
+				String methodName = methodNode.getName();
+				if (!FontUtils.canStringBeDisplayed(methodName, font)) {
+					hasNonDisplayable = true;
+					nonDisplayString.append(methodName);
+					nonDisplayString.append("\n");
+				}
+			}
+
+			for (FieldNode fieldNode : cls.getFields()) {
+				String fieldName = fieldNode.getName();
+				if (!FontUtils.canStringBeDisplayed(fieldName, font)) {
+					hasNonDisplayable = true;
+					nonDisplayString.append(fieldName);
+					nonDisplayString.append("\n");
+				}
+			}
+		}
+
+		if (hasNonDisplayable) {
+			showUndisplayedCharsDialog = true;
+			int dialogResult = JOptionPane.showConfirmDialog(this,
+					NLS.str("msg.non_displayable_chars", font.getFontName()),
+					NLS.str("msg.warning_title"),
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (dialogResult == JOptionPane.YES_OPTION) {
+				tabsController.selectTab(new UndisplayedStringsNode(nonDisplayString.toString()));
+			}
 		}
 	}
 
