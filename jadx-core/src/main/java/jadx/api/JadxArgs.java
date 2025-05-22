@@ -91,6 +91,7 @@ public class JadxArgs implements Closeable {
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
+	private boolean useHeadersForDetectResourceExtensions;
 
 	/**
 	 * Predicate that allows to filter the classes to be process based on their full name
@@ -817,6 +818,14 @@ public class JadxArgs implements Closeable {
 		this.loadJadxClsSetFile = loadJadxClsSetFile;
 	}
 
+	public void setUseHeadersForDetectResourceExtensions(boolean useHeadersForDetectResourceExtensions) {
+		this.useHeadersForDetectResourceExtensions = useHeadersForDetectResourceExtensions;
+	}
+
+	public boolean isUseHeadersForDetectResourceExtensions() {
+		return useHeadersForDetectResourceExtensions;
+	}
+
 	/**
 	 * Hash of all options that can change result code
 	 */
@@ -825,7 +834,7 @@ public class JadxArgs implements Closeable {
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength + deobfuscationWhitelist
 				+ useSourceNameAsClassNameAlias + sourceNameRepeatLimit
-				+ resourceNameSource
+				+ resourceNameSource + useHeadersForDetectResourceExtensions
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
 				+ debugInfo + escapeUnicode + replaceConsts + restoreSwitchOverString
@@ -888,6 +897,7 @@ public class JadxArgs implements Closeable {
 				+ ", pluginOptions=" + pluginOptions
 				+ ", cfgOutput=" + cfgOutput
 				+ ", rawCFGOutput=" + rawCFGOutput
+				+ ", useHeadersForDetectResourceExtensions=" + useHeadersForDetectResourceExtensions
 				+ '}';
 	}
 }
