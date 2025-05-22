@@ -102,7 +102,7 @@ public class JRenamePackage implements JRenameNode {
 	@Override
 	public void reload(MainWindow mainWindow) {
 		mainWindow.rebuildPackagesTree();
-		mainWindow.reloadTree();
+		mainWindow.reloadTreePreservingState();
 	}
 
 	@Override
