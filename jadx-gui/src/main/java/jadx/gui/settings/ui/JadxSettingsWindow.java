@@ -645,6 +645,10 @@ public class JadxSettingsWindow extends JDialog {
 		update.setSelected(settings.isCheckForUpdates());
 		update.addItemListener(e -> settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));
 
+		JCheckBox disableTooltipOnHover = new JCheckBox();
+		disableTooltipOnHover.setSelected(settings.isDisableTooltipOnHover());
+		disableTooltipOnHover.addItemListener(e -> settings.setDisableTooltipOnHover(e.getStateChange() == ItemEvent.SELECTED));
+
 		JCheckBox cfg = new JCheckBox();
 		cfg.setSelected(settings.isCfgOutput());
 		cfg.addItemListener(e -> {
@@ -684,6 +688,7 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.xposed_codegen_language"), xposedCodegenLanguage);
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.update_channel"), updateChannel);
+		group.addRow(NLS.str("preferences.disable_tooltip_on_hover"), disableTooltipOnHover);
 		return group;
 	}
 
