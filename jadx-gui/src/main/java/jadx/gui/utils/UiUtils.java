@@ -477,7 +477,7 @@ public class UiUtils {
 	 * colors from becoming invalid or exceeding full brightness.
 	 * </p>
 	 *
-	 * <h3>How to use:</h3>
+	 * <h>How to use:</h>
 	 * <ul>
 	 * <li>To make a color **brighter**: Use a {@code factor} greater than {@code 1.0f} (e.g.,
 	 * {@code 1.2f}, {@code 1.5f}).</li>
