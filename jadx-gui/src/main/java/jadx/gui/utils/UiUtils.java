@@ -505,9 +505,6 @@ public class UiUtils {
 	 *
 	 * @param color  The original {@code Color} object whose brightness needs to be adjusted.
 	 * @param factor The multiplier for the brightness.
-	 *               A value > 1.0f increases brightness.
-	 *               A value < 1.0f decreases brightness.
-	 *               A value of 1.0f results in no change.
 	 * @return A new {@code Color} object with the adjusted brightness.
 	 * @see java.awt.Color#RGBtoHSB(int, int, int, float[])
 	 * @see java.awt.Color#getHSBColor(float, float, float)
