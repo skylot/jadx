@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaNode;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JNodeCache;
 
 class MouseHoverHighlighter extends MouseMotionAdapter {
@@ -86,11 +87,12 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 	}
 
 	private void updateToolTip(JavaNode node) {
-		if (node == null) {
+		MainWindow mainWindow = codeArea.getMainWindow();
+		if (node == null || mainWindow.getSettings().isDisableTooltipOnHover()) {
 			codeArea.setToolTipText(null);
 			return;
 		}
-		JNodeCache nodeCache = codeArea.getMainWindow().getCacheObject().getNodeCache();
+		JNodeCache nodeCache = mainWindow.getCacheObject().getNodeCache();
 		JNode jNode = nodeCache.makeFrom(node);
 		codeArea.setToolTipText(jNode.getTooltip());
 	}
