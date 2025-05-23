@@ -40,7 +40,7 @@ public class JadxPluginsData implements IJadxPlugins {
 		return pluginManager.getResolvedPluginContexts()
 				.stream()
 				.filter(p -> p.getPluginInstance().getClass().equals(pluginCls))
-				.map(p -> ((P) p.getPluginInstance()))
+				.map(p -> (P) p.getPluginInstance())
 				.findFirst()
 				.orElseThrow(() -> new JadxRuntimeException("Plugin class '" + pluginCls + "' not found"));
 	}

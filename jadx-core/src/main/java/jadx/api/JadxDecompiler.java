@@ -188,6 +188,7 @@ public final class JadxDecompiler implements Closeable {
 		closeAll(customCodeLoaders);
 		closeAll(customResourcesLoaders);
 		closeAll(closeableList);
+		FileUtils.deleteDirIfExists(args.getFilesGetter().getTempDir());
 		args.close();
 		FileUtils.clearTempRootDir();
 	}

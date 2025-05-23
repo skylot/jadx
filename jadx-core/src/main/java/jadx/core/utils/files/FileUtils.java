@@ -57,6 +57,7 @@ public class FileUtils {
 
 	public static synchronized Path updateTempRootDir(Path newTempRootDir) {
 		try {
+			makeDirs(newTempRootDir);
 			Path dir = Files.createTempDirectory(newTempRootDir, JADX_TMP_INSTANCE_PREFIX);
 			tempRootDir = dir;
 			dir.toFile().deleteOnExit();

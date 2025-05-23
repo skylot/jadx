@@ -1,6 +1,5 @@
 plugins {
 	id("jadx-library")
-	id("jadx-kotlin")
 }
 
 dependencies {

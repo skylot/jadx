@@ -66,6 +66,7 @@ public class JadxWrapper {
 				JadxProject project = getProject();
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
 				jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+				jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 				project.fillJadxArgs(jadxArgs);
 				JadxAppCommon.applyEnvVars(jadxArgs);
 
