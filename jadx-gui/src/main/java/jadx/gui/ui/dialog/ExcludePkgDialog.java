@@ -1,10 +1,9 @@
 package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Label;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -61,12 +61,12 @@ public class ExcludePkgDialog extends JDialog {
 		tree.setModel(treeModel);
 		tree.setCellRenderer(new PkgListCellRenderer());
 		JScrollPane listPanel = new JScrollPane(tree);
-		listPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+		listPanel.setBorder(BorderFactory.createEmptyBorder());
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-				if (path != null) {
+				if (path != null && path.getLastPathComponent() instanceof PkgNode) {
 					PkgNode node = (PkgNode) path.getLastPathComponent();
 					node.toggle();
 					repaint();
@@ -75,18 +75,18 @@ public class ExcludePkgDialog extends JDialog {
 		});
 
 		JPanel actionPanel = new JPanel();
-		BoxLayout boxLayout = new BoxLayout(actionPanel, BoxLayout.LINE_AXIS);
-		actionPanel.setLayout(boxLayout);
-		actionPanel.add(new Label(" "));
-		JButton btnOk = new JButton(NLS.str("exclude_dialog.ok"));
+		actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.LINE_AXIS));
+		JButton btnOk = new JButton(NLS.str("common_dialog.ok"));
 		JButton btnAll = new JButton(NLS.str("exclude_dialog.select_all"));
 		JButton btnInvert = new JButton(NLS.str("exclude_dialog.invert"));
 		JButton btnDeselect = new JButton(NLS.str("exclude_dialog.deselect"));
 		actionPanel.add(btnDeselect);
+		actionPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		actionPanel.add(btnInvert);
+		actionPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		actionPanel.add(btnAll);
-		actionPanel.add(new Label(" "));
-		actionPanel.add(btnOk);
+		actionPanel.add(Box.createHorizontalGlue());
+		actionPanel.add(btnOk, BorderLayout.PAGE_END);
 
 		JPanel mainPane = new JPanel(new BorderLayout(5, 5));
 		mainPane.add(listPanel, BorderLayout.CENTER);

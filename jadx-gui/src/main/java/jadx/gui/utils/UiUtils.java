@@ -463,6 +463,52 @@ public class UiUtils {
 		return brightness < 0.5;
 	}
 
+	/**
+	 * Adjusts the brightness of a given {@code Color} object without altering its hue or saturation.
+	 *
+	 * <p>
+	 * This method converts the input RGB color to the HSB (Hue, Saturation, Brightness) color model,
+	 * multiplies its brightness component by the specified {@code factor}, and then converts it back
+	 * to a new RGB {@code Color} object.
+	 * </p>
+	 *
+	 * <p>
+	 * The new brightness value is capped at {@code 1.0f} (maximum HSB brightness) to prevent
+	 * colors from becoming invalid or exceeding full brightness.
+	 * </p>
+	 *
+	 * How to use:
+	 * <ul>
+	 * <li>To make a color **brighter**: Use a {@code factor} greater than {@code 1.0f} (e.g.,
+	 * {@code 1.2f}, {@code 1.5f}).</li>
+	 * <li>To make a color **darker**: Use a {@code factor} less than {@code 1.0f} (e.g., {@code 0.8f},
+	 * {@code 0.5f}).</li>
+	 * <li>To keep the brightness **unchanged**: Use a {@code factor} of {@code 1.0f}.</li>
+	 * </ul>
+	 *
+	 * <pre>{@code
+	 * // Example usage:
+	 * Color originalColor = Color.BLUE;
+	 *
+	 * // Make the blue color 50% brighter (factor 1.5)
+	 * Color brighterBlue = adjustBrightness(originalColor, 1.5f);
+	 *
+	 * // Make the blue color 30% darker (factor 0.7)
+	 * Color darkerBlue = adjustBrightness(originalColor, 0.7f);
+	 *
+	 * // Get the brightest possible version of the color (will cap at 1.0 brightness)
+	 * Color maxBrightnessBlue = adjustBrightness(originalColor, 10.0f);
+	 *
+	 * // Get a very dark, almost black version
+	 * Color veryDarkBlue = adjustBrightness(originalColor, 0.1f);
+	 * }</pre>
+	 *
+	 * @param color  The original {@code Color} object whose brightness needs to be adjusted.
+	 * @param factor The multiplier for the brightness.
+	 * @return A new {@code Color} object with the adjusted brightness.
+	 * @see java.awt.Color#RGBtoHSB(int, int, int, float[])
+	 * @see java.awt.Color#getHSBColor(float, float, float)
+	 */
 	public static Color adjustBrightness(Color color, float factor) {
 		float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
 		hsb[2] = Math.min(1.0f, hsb[2] * factor); // Adjust brightness
