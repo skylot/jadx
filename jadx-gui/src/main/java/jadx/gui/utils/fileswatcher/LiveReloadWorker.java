@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.processors.PublishProcessor;
+import io.reactivex.rxjava3.processors.PublishProcessor;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;

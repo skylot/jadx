@@ -11,8 +11,8 @@ import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.disposables.Disposable;
-import io.reactivex.processors.PublishProcessor;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.processors.PublishProcessor;
 
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;

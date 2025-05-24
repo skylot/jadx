@@ -12,10 +12,10 @@ import javax.swing.JProgressBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hu.akarnokd.rxjava2.swing.SwingSchedulers;
-import io.reactivex.Flowable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import hu.akarnokd.rxjava3.swing.SwingSchedulers;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;

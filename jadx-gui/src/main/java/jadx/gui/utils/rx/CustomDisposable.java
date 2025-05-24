@@ -2,7 +2,7 @@ package jadx.gui.utils.rx;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 public class CustomDisposable implements Disposable {
 
