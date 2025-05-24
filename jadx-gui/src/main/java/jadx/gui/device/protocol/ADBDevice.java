@@ -16,8 +16,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.rxjava3.annotations.NonNull;
-
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.log.LogUtils;
 import jadx.gui.device.protocol.ADB.JDWPProcessListener;
@@ -208,7 +206,6 @@ public class ADBDevice {
 		return getProcessList("ps | grep " + pkg);
 	}
 
-	@NonNull
 	public List<Process> getProcessList() throws IOException {
 		return getProcessList("ps");
 	}

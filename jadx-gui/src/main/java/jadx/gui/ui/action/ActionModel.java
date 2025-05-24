@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
-import io.reactivex.rxjava3.annotations.NonNull;
-
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
@@ -165,7 +163,6 @@ public enum ActionModel {
 		return null;
 	}
 
-	@NonNull
 	public Shortcut getDefaultShortcut() {
 		return defaultShortcut;
 	}

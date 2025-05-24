@@ -126,6 +126,9 @@
 		</module>
 		<module name="IllegalImport">
 			<property name="illegalClasses" value="jadx.core.utils.DebugUtils"/>
+			<!-- don't use nullable annotations from RxJava -->
+			<property name="illegalClasses" value="io.reactivex.rxjava3.annotations.NonNull"/>
+			<property name="illegalClasses" value="io.reactivex.rxjava3.annotations.Nullable"/>
 		</module>
 		<module name="RegexpSinglelineJava">
 			<property name="id" value="printstacktrace"/>
