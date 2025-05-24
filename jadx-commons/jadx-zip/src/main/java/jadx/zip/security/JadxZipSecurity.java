@@ -27,6 +27,8 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 
 	private int maxEntriesCount = 100_000;
 
+	private boolean useLimitedDataStream = true;
+
 	@Override
 	public boolean isValidEntry(IZipEntry entry) {
 		return isValidEntryName(entry.getName()) && !isZipBomb(entry);
@@ -34,7 +36,7 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 
 	@Override
 	public boolean useLimitedDataStream() {
-		return false;
+		return useLimitedDataStream;
 	}
 
 	@Override
@@ -113,6 +115,10 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 
 	public void setZipBombMinUncompressedSize(int zipBombMinUncompressedSize) {
 		this.zipBombMinUncompressedSize = zipBombMinUncompressedSize;
+	}
+
+	public void setUseLimitedDataStream(boolean useLimitedDataStream) {
+		this.useLimitedDataStream = useLimitedDataStream;
 	}
 
 	private static File getCWD() {

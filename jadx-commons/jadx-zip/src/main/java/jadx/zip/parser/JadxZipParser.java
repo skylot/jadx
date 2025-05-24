@@ -1,6 +1,5 @@
 package jadx.zip.parser;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +23,7 @@ import jadx.zip.ZipReaderFlags;
 import jadx.zip.ZipReaderOptions;
 import jadx.zip.fallback.FallbackZipParser;
 import jadx.zip.io.ByteBufferBackedInputStream;
+import jadx.zip.io.LimitedInputStream;
 import jadx.zip.security.IJadxZipSecurity;
 
 /**
@@ -47,6 +47,7 @@ public final class JadxZipParser implements IZipParser {
 	private final IJadxZipSecurity zipSecurity;
 	private final Set<ZipReaderFlags> flags;
 	private final boolean verify;
+	private final boolean useLimitedDataStream;
 
 	private RandomAccessFile file;
 	private FileChannel fileChannel;
@@ -62,6 +63,7 @@ public final class JadxZipParser implements IZipParser {
 		this.zipSecurity = options.getZipSecurity();
 		this.flags = options.getFlags();
 		this.verify = options.getFlags().contains(ZipReaderFlags.REPORT_TAMPERING);
+		this.useLimitedDataStream = zipSecurity.useLimitedDataStream();
 	}
 
 	@Override
@@ -288,52 +290,74 @@ public final class JadxZipParser implements IZipParser {
 		}
 	}
 
-	InputStream getInputStream(JadxZipEntry entry) {
-		int compressMethod = entry.getCompressMethod();
+	synchronized InputStream getInputStream(JadxZipEntry entry) {
 		if (verify) {
-			if (compressMethod == 0) {
-				if (entry.getCompressedSize() != entry.getUncompressedSize()) {
-					LOG.warn("Not equal sizes for STORE method: compressed: {}, uncompressed: {}, entry: {}",
-							entry.getCompressedSize(), entry.getUncompressedSize(), entry);
-				}
-			} else if (compressMethod != 8) {
-				LOG.warn("Unknown compress method: {} in entry: {}", compressMethod, entry);
-			}
+			verifyEntry(entry);
 		}
-		if (compressMethod == 8) {
+		InputStream stream;
+		if (entry.getCompressMethod() == 8) {
 			try {
-				return ZipDeflate.decompressEntryToStream(byteBuffer, entry);
+				stream = ZipDeflate.decompressEntryToStream(byteBuffer, entry);
 			} catch (Exception e) {
-				if (isEncrypted(entry)) {
-					throw new RuntimeException("Entry is encrypted, failed to decompress: " + entry, e);
-				}
-				if (flags.contains(ZipReaderFlags.DONT_USE_FALLBACK)) {
-					throw new RuntimeException("Failed to decompress zip entry: " + entry + ", error: " + e.getMessage(), e);
-				}
-				LOG.warn("Entry '{}' parse failed, switching to fallback parser", entry, e);
-				return new ByteArrayInputStream(useFallbackParser(entry));
+				entryParseFailed(entry, e);
+				return useFallbackParser(entry).getInputStream();
 			}
+		} else {
+			// treat any other compression methods values as UNCOMPRESSED
+			stream = bufferToStream(byteBuffer, entry.getDataStart(), (int) entry.getUncompressedSize());
 		}
-		// treat any other compression methods values as UNCOMPRESSED
-		return bufferToStream(entry.getDataStart(), (int) entry.getUncompressedSize());
+		if (useLimitedDataStream) {
+			return new LimitedInputStream(stream, entry.getUncompressedSize());
+		}
+		return stream;
 	}
 
 	synchronized byte[] getBytes(JadxZipEntry entry) {
-		try {
-			return getInputStream(entry).readAllBytes();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to read bytes of entry " + entry, e);
+		if (verify) {
+			verifyEntry(entry);
+		}
+		if (entry.getCompressMethod() == 8) {
+			try {
+				return ZipDeflate.decompressEntryToBytes(byteBuffer, entry);
+			} catch (Exception e) {
+				entryParseFailed(entry, e);
+				return useFallbackParser(entry).getBytes();
+			}
+		}
+		// treat any other compression methods values as UNCOMPRESSED
+		return bufferToBytes(byteBuffer, entry.getDataStart(), (int) entry.getUncompressedSize());
+	}
+
+	private static void verifyEntry(JadxZipEntry entry) {
+		int compressMethod = entry.getCompressMethod();
+		if (compressMethod == 0) {
+			if (entry.getCompressedSize() != entry.getUncompressedSize()) {
+				LOG.warn("Not equal sizes for STORE method: compressed: {}, uncompressed: {}, entry: {}",
+						entry.getCompressedSize(), entry.getUncompressedSize(), entry);
+			}
+		} else if (compressMethod != 8) {
+			LOG.warn("Unknown compress method: {} in entry: {}", compressMethod, entry);
 		}
 	}
 
+	private void entryParseFailed(JadxZipEntry entry, Exception e) {
+		if (isEncrypted(entry)) {
+			throw new RuntimeException("Entry is encrypted, failed to decompress: " + entry, e);
+		}
+		if (flags.contains(ZipReaderFlags.DONT_USE_FALLBACK)) {
+			throw new RuntimeException("Failed to decompress zip entry: " + entry + ", error: " + e.getMessage(), e);
+		}
+		LOG.warn("Entry '{}' parse failed, switching to fallback parser", entry, e);
+	}
+
 	@SuppressWarnings("resource")
-	private byte[] useFallbackParser(JadxZipEntry entry) {
+	private IZipEntry useFallbackParser(JadxZipEntry entry) {
 		LOG.debug("useFallbackParser used for {}", entry);
 		IZipEntry zipEntry = initFallbackParser().searchEntry(entry.getName());
 		if (zipEntry == null) {
 			throw new RuntimeException("Fallback parser can't find entry: " + entry);
 		}
-		return zipEntry.getBytes();
+		return zipEntry;
 	}
 
 	@SuppressWarnings("resource")
@@ -359,21 +383,17 @@ public final class JadxZipParser implements IZipParser {
 		return readU2(buf);
 	}
 
-	byte[] bufferToBytes(int start, int size) {
-		ByteBuffer buf = byteBuffer;
+	static byte[] bufferToBytes(ByteBuffer buf, int start, int size) {
 		byte[] data = new byte[size];
 		buf.position(start);
 		buf.get(data);
 		return data;
 	}
 
-	InputStream bufferToStream(int start, int size) {
-		ByteBuffer buf = byteBuffer;
-		int orgPos = buf.position();
+	static InputStream bufferToStream(ByteBuffer buf, int start, int size) {
 		buf.position(start);
 		ByteBuffer streamBuf = buf.slice();
 		streamBuf.limit(size);
-		buf.position(orgPos);
 		return new ByteBufferBackedInputStream(streamBuf);
 	}
 

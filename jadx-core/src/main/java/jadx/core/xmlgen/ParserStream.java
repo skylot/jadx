@@ -1,5 +1,6 @@
 package jadx.core.xmlgen;
 
+import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +22,7 @@ public class ParserStream {
 	private long markPos = 0;
 
 	public ParserStream(@NotNull InputStream inputStream) {
-		this.input = inputStream;
+		this.input = inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream);
 	}
 
 	public long getPos() {

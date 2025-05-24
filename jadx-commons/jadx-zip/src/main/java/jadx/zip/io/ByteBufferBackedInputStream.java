@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import org.jetbrains.annotations.NotNull;
-
 public class ByteBufferBackedInputStream extends InputStream {
-
 	private final ByteBuffer buf;
 	private int markedPosition = 0;
 
@@ -22,15 +19,14 @@ public class ByteBufferBackedInputStream extends InputStream {
 		return buf.get() & 0xFF;
 	}
 
-	public int read(byte @NotNull [] bytes, int off, int len)
-			throws IOException {
+	@SuppressWarnings("NullableProblems")
+	public int read(byte[] bytes, int off, int len) throws IOException {
 		if (!buf.hasRemaining()) {
 			return -1;
 		}
-
-		len = Math.min(len, buf.remaining());
-		buf.get(bytes, off, len);
-		return len;
+		int readLen = Math.min(len, buf.remaining());
+		buf.get(bytes, off, readLen);
+		return readLen;
 	}
 
 	@Override
