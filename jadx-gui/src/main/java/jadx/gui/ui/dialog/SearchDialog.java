@@ -486,7 +486,7 @@ public class SearchDialog extends CommonSearchDialog {
 		String searchPackageText = packageField.getText();
 		SearchSettings searchSettings = new SearchSettings(text, !ignoreCase, useRegex, searchPackageText);
 		String error = searchSettings.prepare(mainWindow);
-		changeSearchFieldStyle(!StringUtils.isEmpty(error));
+		UiUtils.highlightAsErrorField(searchField, !StringUtils.isEmpty(error));
 		if (!StringUtils.isEmpty(error)) {
 			resultsInfoLabel.setText(error);
 			return null;
@@ -497,15 +497,6 @@ public class SearchDialog extends CommonSearchDialog {
 			return null;
 		}
 		return newSearchTask;
-	}
-
-	private void changeSearchFieldStyle(boolean isError) {
-		if (isError) {
-			searchField.putClientProperty("JComponent.outline", "error");
-		} else {
-			searchField.putClientProperty("JComponent.outline", "");
-		}
-		searchField.repaint();
 	}
 
 	private boolean buildSearch(SearchTask newSearchTask, String text, SearchSettings searchSettings) {

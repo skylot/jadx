@@ -25,9 +25,11 @@ import jadx.gui.ui.hexviewer.search.BinarySearch;
 import jadx.gui.ui.hexviewer.search.SearchCondition;
 import jadx.gui.ui.hexviewer.search.SearchParameters;
 import jadx.gui.ui.hexviewer.search.service.BinarySearchServiceImpl;
+import jadx.gui.utils.HexUtils;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.UiUtils;
 
 public class HexSearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
@@ -237,8 +239,10 @@ public class HexSearchBar extends JToolBar {
 				condition.setSearchText(searchField.getText());
 			} else {
 				String hexBytes = searchField.getText();
-				if (isValidHexString(hexBytes)) {
-					condition.setBinaryData(new ByteArrayEditableData(hexStringToByteArray(hexBytes)));
+				boolean isValidHexInput = HexUtils.isValidHexString(hexBytes);
+				UiUtils.highlightAsErrorField(searchField, !isValidHexInput);
+				if (isValidHexInput) {
+					condition.setBinaryData(new ByteArrayEditableData(HexUtils.hexStringToByteArray(hexBytes)));
 				}
 			}
 		}
@@ -246,6 +250,7 @@ public class HexSearchBar extends JToolBar {
 	}
 
 	public void updateFindStatus() {
+		UiUtils.highlightAsErrorField(searchField, false);
 		SearchCondition condition = makeSearchCondition();
 		if (condition.getSearchMode() == SearchCondition.SearchMode.TEXT) {
 			findTypeCB.setSelected(false);
@@ -260,45 +265,6 @@ public class HexSearchBar extends JToolBar {
 	private void makeFindByHexButton() {
 		findTypeCB.setSelected(true);
 		findTypeCB.setToolTipText(NLS.str("search.find_type_hex"));
-	}
-
-	private boolean isValidHexString(String hexString) {
-		String cleanS = hexString.replace(" ", "");
-		int len = cleanS.length();
-		try {
-			boolean isPair = len % 2 == 0;
-			if (isPair) {
-				Long.parseLong(cleanS, 16);
-				return true;
-			}
-		} catch (NumberFormatException ex) {
-			// ignore error
-			return false;
-		}
-		return false;
-	}
-
-	public byte[] hexStringToByteArray(String hexString) {
-		if (hexString == null || hexString.isEmpty()) {
-			return new byte[0];
-		}
-		String cleanS = hexString.replace(" ", "");
-		int len = cleanS.length();
-		if (!isValidHexString(hexString)) {
-			throw new IllegalArgumentException("Hex string must have even length. Input length: " + len);
-		}
-
-		byte[] data = new byte[len / 2];
-		for (int i = 0; i < len; i += 2) {
-			String byteString = cleanS.substring(i, i + 2);
-			try {
-				int intValue = Integer.parseInt(byteString, 16);
-				data[i / 2] = (byte) intValue;
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException("Input string contains non-hex characters at index " + i + ": " + byteString, e);
-			}
-		}
-		return data;
 	}
 
 	public interface Control {
