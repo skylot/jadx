@@ -44,8 +44,8 @@ dependencies {
 	implementation("org.apache.commons:commons-text:1.13.1")
 	implementation("commons-io:commons-io:2.19.0")
 
-	implementation("io.reactivex.rxjava2:rxjava:2.2.21")
-	implementation("com.github.akarnokd:rxjava2-swing:0.3.7")
+	implementation("io.reactivex.rxjava3:rxjava:3.1.10")
+	implementation("com.github.akarnokd:rxjava3-swing:3.1.1")
 	implementation("com.android.tools.build:apksig:8.10.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 

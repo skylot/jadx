@@ -43,7 +43,7 @@ import javax.swing.tree.TreePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.annotations.Nullable;
+import io.reactivex.rxjava3.annotations.Nullable;
 
 import jadx.core.utils.StringUtils;
 import jadx.gui.device.debugger.DebugController;

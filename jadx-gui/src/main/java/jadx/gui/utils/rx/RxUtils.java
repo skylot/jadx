@@ -7,9 +7,9 @@ import java.awt.event.KeyListener;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentListener;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableOnSubscribe;
 
 import jadx.gui.utils.ui.DocumentUpdateListener;
 
