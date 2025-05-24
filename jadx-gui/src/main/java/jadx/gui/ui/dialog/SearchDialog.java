@@ -1,9 +1,9 @@
 package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -26,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeListener;
 
@@ -45,6 +47,7 @@ import io.reactivex.schedulers.Schedulers;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.utils.ListUtils;
+import jadx.core.utils.StringUtils;
 import jadx.gui.jobs.ITaskInfo;
 import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.search.SearchSettings;
@@ -60,13 +63,14 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.cache.ValueCache;
-import jadx.gui.utils.layout.WrapLayout;
 import jadx.gui.utils.rx.RxUtils;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
@@ -81,8 +85,6 @@ import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.USE_REGEX;
 public class SearchDialog extends CommonSearchDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
 	private static final long serialVersionUID = -5105405456969134105L;
-
-	private static final Color SEARCH_FIELD_ERROR_COLOR = new Color(255, 150, 150);
 
 	public static void search(MainWindow window, SearchPreset preset) {
 		SearchDialog searchDialog = new SearchDialog(window, preset, Collections.emptySet());
@@ -136,8 +138,6 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private final transient SearchPreset searchPreset;
 	private final transient Set<SearchOptions> options;
-
-	private transient Color searchFieldDefaultBgColor;
 
 	private transient JTextField searchField;
 	private transient JTextField packageField;
@@ -242,8 +242,6 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		searchField = new JTextField();
-		searchFieldDefaultBgColor = searchField.getBackground();
-		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		TextStandardActions.attach(searchField);
 		addSearchHistoryButton();
 		searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
@@ -271,7 +269,17 @@ public class SearchDialog extends CommonSearchDialog {
 		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		searchLinePanel.add(searchBtn);
 		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.ignorecase"), Icons.ICON_MATCH, Icons.ICON_MATCH_SELECTED,
+				SearchOptions.IGNORE_CASE));
+		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.regex"), Icons.ICON_REGEX, Icons.ICON_REGEX_SELECTED,
+				SearchOptions.USE_REGEX));
+		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.active_tab"), Icons.ICON_ACTIVE_TAB,
+				Icons.ICON_ACTIVE_TAB_SELECTED, SearchOptions.ACTIVE_TAB));
+		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		searchLinePanel.add(autoSearchCB);
+
 		searchLinePanel.setAlignmentX(LEFT_ALIGNMENT);
 
 		JLabel findLabel = new JLabel(NLS.str("search_dialog.open_by_name"));
@@ -293,27 +301,36 @@ public class SearchDialog extends CommonSearchDialog {
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.resource"), SearchOptions.RESOURCE));
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.comments"), SearchOptions.COMMENT));
 
-		JPanel searchOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.options")));
-		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.ignorecase"), IGNORE_CASE));
-		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.regex"), USE_REGEX));
-		searchOptions.add(makeOptionsCheckBox(NLS.str("search_dialog.active_tab"), SearchOptions.ACTIVE_TAB));
-
 		packageField = new JTextField();
-		packageField.setAlignmentX(LEFT_ALIGNMENT);
-		packageField.setPreferredSize(new Dimension(300, packageField.getPreferredSize().height));
+		packageField.setMaximumSize(new Dimension(Integer.MAX_VALUE, searchField.getPreferredSize().height));
 		TextStandardActions.attach(packageField);
 		packageField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
-		JPanel searchPackageOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel searchPackageOptions = new JPanel();
+		searchPackageOptions.setLayout(new BoxLayout(searchPackageOptions, BoxLayout.LINE_AXIS));
 		searchPackageOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.limit_package")));
 		searchPackageOptions.add(packageField);
 
-		JPanel optionsPanel = new JPanel(new WrapLayout(WrapLayout.LEFT, 0, 0));
+		JTextField fileExtField = new JTextField();
+		TextStandardActions.attach(fileExtField);
+		fileExtField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> {
+			String ext = fileExtField.getText();
+			mainWindow.getSettings().setSrhResourceFileExt(ext);
+		}));
+		fileExtField.setText(mainWindow.getSettings().getSrhResourceFileExt());
+		fileExtField.setMaximumSize(new Dimension(Integer.MAX_VALUE, searchField.getPreferredSize().height));
+
+		JPanel searchExtFileOptions = new JPanel();
+		searchExtFileOptions.setLayout(new BoxLayout(searchExtFileOptions, BoxLayout.LINE_AXIS));
+		searchExtFileOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("preferences.res_file_ext")));
+		searchExtFileOptions.add(fileExtField);
+
+		JPanel optionsPanel = new JPanel(new GridLayout(2, 2, 5, 5));
 		optionsPanel.setAlignmentX(LEFT_ALIGNMENT);
 		optionsPanel.add(searchInPanel);
-		optionsPanel.add(searchOptions);
 		optionsPanel.add(searchPackageOptions);
+		optionsPanel.add(searchExtFileOptions);
 
 		JPanel searchPane = new JPanel();
 		searchPane.setLayout(new BoxLayout(searchPane, BoxLayout.PAGE_AXIS));
@@ -467,22 +484,28 @@ public class SearchDialog extends CommonSearchDialog {
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
 		String searchPackageText = packageField.getText();
-		SearchSettings searchSettings = new SearchSettings(text, ignoreCase, useRegex, searchPackageText);
+		SearchSettings searchSettings = new SearchSettings(text, !ignoreCase, useRegex, searchPackageText);
 		String error = searchSettings.prepare(mainWindow);
-		if (error == null) {
-			if (Objects.equals(searchField.getBackground(), SEARCH_FIELD_ERROR_COLOR)) {
-				searchField.setBackground(searchFieldDefaultBgColor);
-			}
-		} else {
-			searchField.setBackground(SEARCH_FIELD_ERROR_COLOR);
+		changeSearchFieldStyle(!StringUtils.isEmpty(error));
+		if (!StringUtils.isEmpty(error)) {
 			resultsInfoLabel.setText(error);
 			return null;
 		}
+
 		SearchTask newSearchTask = new SearchTask(mainWindow, this::addSearchResult, this::searchFinished);
 		if (!buildSearch(newSearchTask, text, searchSettings)) {
 			return null;
 		}
 		return newSearchTask;
+	}
+
+	private void changeSearchFieldStyle(boolean isError) {
+		if (isError) {
+			searchField.putClientProperty("JComponent.outline", "error");
+		} else {
+			searchField.putClientProperty("JComponent.outline", "");
+		}
+		searchField.repaint();
 	}
 
 	private boolean buildSearch(SearchTask newSearchTask, String text, SearchSettings searchSettings) {
@@ -695,6 +718,23 @@ public class SearchDialog extends CommonSearchDialog {
 			searchEmitter.emitSearch();
 		});
 		return chBox;
+	}
+
+	private JToggleButton makeOptionsToggleButton(String name, ImageIcon icon, ImageIcon selectedIcon, final SearchOptions opt) {
+		final JToggleButton toggleButton = new JToggleButton();
+		toggleButton.setToolTipText(name);
+		toggleButton.setIcon(icon);
+		toggleButton.setSelectedIcon(selectedIcon);
+		toggleButton.setSelected(options.contains(opt));
+		toggleButton.addItemListener(e -> {
+			if (toggleButton.isSelected()) {
+				options.add(opt);
+			} else {
+				options.remove(opt);
+			}
+			searchEmitter.emitSearch();
+		});
+		return toggleButton;
 	}
 
 	@Override

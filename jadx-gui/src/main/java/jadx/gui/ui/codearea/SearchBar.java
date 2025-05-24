@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -21,26 +20,17 @@ import org.fife.ui.rtextarea.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import jadx.core.utils.StringUtils;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.UiUtils;
 
 public class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);
-	private static final Icon ICON_MARK = UiUtils.openSvgIcon("search/mark");
-	private static final Icon ICON_MARK_SELECTED = UiUtils.openSvgIcon("search/previewSelected");
-	private static final Icon ICON_REGEX = UiUtils.openSvgIcon("search/regexHovered");
-	private static final Icon ICON_REGEX_SELECTED = UiUtils.openSvgIcon("search/regexSelected");
-	private static final Icon ICON_WORDS = UiUtils.openSvgIcon("search/wordsHovered");
-	private static final Icon ICON_WORDS_SELECTED = UiUtils.openSvgIcon("search/wordsSelected");
-	private static final Icon ICON_MATCH = UiUtils.openSvgIcon("search/matchCaseHovered");
-	private static final Icon ICON_MATCH_SELECTED = UiUtils.openSvgIcon("search/matchCaseSelected");
-	private static final Icon ICON_UP = UiUtils.openSvgIcon("ui/top");
-	private static final Icon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
-	private static final Icon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
 	private static final int MAX_RESULT_COUNT = 999;
 
 	private RSyntaxTextArea rTextArea;
@@ -60,6 +50,7 @@ public class SearchBar extends JToolBar {
 		add(findLabel);
 
 		searchField = new JTextField(30);
+		searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		searchField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -77,7 +68,7 @@ public class SearchBar extends JToolBar {
 			}
 		});
 		searchField.addActionListener(e -> search(1));
-		new TextStandardActions(searchField);
+		TextStandardActions.attach(searchField);
 		add(searchField);
 
 		ActionListener forwardListener = e -> search(1);
@@ -89,49 +80,49 @@ public class SearchBar extends JToolBar {
 		setResultCount(0);
 
 		matchCaseCB = new JToggleButton();
-		matchCaseCB.setIcon(ICON_MATCH);
-		matchCaseCB.setSelectedIcon(ICON_MATCH_SELECTED);
+		matchCaseCB.setIcon(Icons.ICON_MATCH);
+		matchCaseCB.setSelectedIcon(Icons.ICON_MATCH_SELECTED);
 		matchCaseCB.setToolTipText(NLS.str("search.match_case"));
 		matchCaseCB.addActionListener(forwardListener);
 		add(matchCaseCB);
 
 		wholeWordCB = new JToggleButton();
-		wholeWordCB.setIcon(ICON_WORDS);
-		wholeWordCB.setSelectedIcon(ICON_WORDS_SELECTED);
+		wholeWordCB.setIcon(Icons.ICON_WORDS);
+		wholeWordCB.setSelectedIcon(Icons.ICON_WORDS_SELECTED);
 		wholeWordCB.setToolTipText(NLS.str("search.whole_word"));
 		wholeWordCB.addActionListener(forwardListener);
 		add(wholeWordCB);
 
 		regexCB = new JToggleButton();
-		regexCB.setIcon(ICON_REGEX);
-		regexCB.setSelectedIcon(ICON_REGEX_SELECTED);
+		regexCB.setIcon(Icons.ICON_REGEX);
+		regexCB.setSelectedIcon(Icons.ICON_REGEX_SELECTED);
 		regexCB.setToolTipText(NLS.str("search.regex"));
 		regexCB.addActionListener(forwardListener);
 		add(regexCB);
 
 		JButton prevButton = new JButton();
-		prevButton.setIcon(ICON_UP);
+		prevButton.setIcon(Icons.ICON_UP);
 		prevButton.setToolTipText(NLS.str("search.previous"));
 		prevButton.addActionListener(e -> search(-1));
 		prevButton.setBorderPainted(false);
 		add(prevButton);
 
 		JButton nextButton = new JButton();
-		nextButton.setIcon(ICON_DOWN);
+		nextButton.setIcon(Icons.ICON_DOWN);
 		nextButton.setToolTipText(NLS.str("search.next"));
 		nextButton.addActionListener(e -> search(1));
 		nextButton.setBorderPainted(false);
 		add(nextButton);
 
 		markAllCB = new JToggleButton();
-		markAllCB.setIcon(ICON_MARK);
-		markAllCB.setSelectedIcon(ICON_MARK_SELECTED);
+		markAllCB.setIcon(Icons.ICON_MARK);
+		markAllCB.setSelectedIcon(Icons.ICON_MARK_SELECTED);
 		markAllCB.setToolTipText(NLS.str("search.mark_all"));
 		markAllCB.addActionListener(forwardListener);
 		add(markAllCB);
 
 		JButton closeButton = new JButton();
-		closeButton.setIcon(ICON_CLOSE);
+		closeButton.setIcon(Icons.ICON_CLOSE);
 		closeButton.addActionListener(e -> toggle());
 		closeButton.setBorderPainted(false);
 		add(closeButton);

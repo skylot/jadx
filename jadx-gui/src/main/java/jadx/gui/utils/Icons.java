@@ -48,4 +48,19 @@ public class Icons {
 	public static final ImageIcon RESET = UiUtils.openSvgIcon("ui/reset");
 
 	public static final ImageIcon FONT = UiUtils.openSvgIcon("nodes/fontFile");
+	public static final ImageIcon ICON_MARK = UiUtils.openSvgIcon("search/mark");
+	public static final ImageIcon ICON_MARK_SELECTED = UiUtils.openSvgIcon("search/previewSelected");
+	public static final ImageIcon ICON_REGEX = UiUtils.openSvgIcon("search/regexHovered");
+	public static final ImageIcon ICON_REGEX_SELECTED = UiUtils.openSvgIcon("search/regexSelected");
+	public static final ImageIcon ICON_WORDS = UiUtils.openSvgIcon("search/wordsHovered");
+	public static final ImageIcon ICON_WORDS_SELECTED = UiUtils.openSvgIcon("search/wordsSelected");
+	public static final ImageIcon ICON_MATCH = UiUtils.openSvgIcon("search/matchCaseHovered");
+	public static final ImageIcon ICON_MATCH_SELECTED = UiUtils.openSvgIcon("search/matchCaseSelected");
+	public static final ImageIcon ICON_UP = UiUtils.openSvgIcon("ui/top");
+	public static final ImageIcon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
+	public static final ImageIcon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
+	public static final ImageIcon ICON_FIND_TYPE_TXT = UiUtils.openSvgIcon("search/text");
+	public static final ImageIcon ICON_FIND_TYPE_HEX = UiUtils.openSvgIcon("search/hexSerial");
+	public static final ImageIcon ICON_ACTIVE_TAB = UiUtils.openSvgIcon("search/activeTab");
+	public static final ImageIcon ICON_ACTIVE_TAB_SELECTED = UiUtils.openSvgIcon("search/activeTabSelected");
 }
