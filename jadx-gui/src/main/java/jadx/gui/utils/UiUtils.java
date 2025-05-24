@@ -27,6 +27,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.RootPaneContainer;
@@ -513,5 +514,14 @@ public class UiUtils {
 		float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
 		hsb[2] = Math.min(1.0f, hsb[2] * factor); // Adjust brightness
 		return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+	}
+
+	public static void highlightAsErrorField(final JTextField field, boolean isError) {
+		if (isError) {
+			field.putClientProperty("JComponent.outline", "error");
+		} else {
+			field.putClientProperty("JComponent.outline", "");
+		}
+		field.repaint();
 	}
 }
