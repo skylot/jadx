@@ -23,6 +23,7 @@ import jadx.zip.ZipContent;
 import jadx.zip.ZipReaderFlags;
 import jadx.zip.ZipReaderOptions;
 import jadx.zip.fallback.FallbackZipParser;
+import jadx.zip.io.ByteBufferBackedInputStream;
 import jadx.zip.security.IJadxZipSecurity;
 
 /**
@@ -288,10 +289,6 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	InputStream getInputStream(JadxZipEntry entry) {
-		return new ByteArrayInputStream(getBytes(entry));
-	}
-
-	synchronized byte[] getBytes(JadxZipEntry entry) {
 		int compressMethod = entry.getCompressMethod();
 		if (verify) {
 			if (compressMethod == 0) {
@@ -305,7 +302,7 @@ public final class JadxZipParser implements IZipParser {
 		}
 		if (compressMethod == 8) {
 			try {
-				return ZipDeflate.decompressEntryToBytes(byteBuffer, entry);
+				return ZipDeflate.decompressEntryToStream(byteBuffer, entry);
 			} catch (Exception e) {
 				if (isEncrypted(entry)) {
 					throw new RuntimeException("Entry is encrypted, failed to decompress: " + entry, e);
@@ -314,15 +311,24 @@ public final class JadxZipParser implements IZipParser {
 					throw new RuntimeException("Failed to decompress zip entry: " + entry + ", error: " + e.getMessage(), e);
 				}
 				LOG.warn("Entry '{}' parse failed, switching to fallback parser", entry, e);
-				return useFallbackParser(entry);
+				return new ByteArrayInputStream(useFallbackParser(entry));
 			}
 		}
 		// treat any other compression methods values as UNCOMPRESSED
-		return bufferToBytes(entry.getDataStart(), (int) entry.getUncompressedSize());
+		return bufferToStream(entry.getDataStart(), (int) entry.getUncompressedSize());
+	}
+
+	synchronized byte[] getBytes(JadxZipEntry entry) {
+		try {
+			return getInputStream(entry).readAllBytes();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to read bytes of entry " + entry, e);
+		}
 	}
 
 	@SuppressWarnings("resource")
 	private byte[] useFallbackParser(JadxZipEntry entry) {
+		LOG.debug("useFallbackParser used for {}", entry);
 		IZipEntry zipEntry = initFallbackParser().searchEntry(entry.getName());
 		if (zipEntry == null) {
 			throw new RuntimeException("Fallback parser can't find entry: " + entry);
@@ -359,6 +365,16 @@ public final class JadxZipParser implements IZipParser {
 		buf.position(start);
 		buf.get(data);
 		return data;
+	}
+
+	InputStream bufferToStream(int start, int size) {
+		ByteBuffer buf = byteBuffer;
+		int orgPos = buf.position();
+		buf.position(start);
+		ByteBuffer streamBuf = buf.slice();
+		streamBuf.limit(size);
+		buf.position(orgPos);
+		return new ByteBufferBackedInputStream(streamBuf);
 	}
 
 	private static int readU2(ByteBuffer buf) {

@@ -1,8 +1,12 @@
 package jadx.zip.parser;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+
+import jadx.zip.io.ByteBufferBackedInputStream;
 
 final class ZipDeflate {
 
@@ -21,4 +25,13 @@ final class ZipDeflate {
 		inflater.end();
 		return out;
 	}
+
+	static InputStream decompressEntryToStream(ByteBuffer buf, JadxZipEntry entry) {
+		buf.position(entry.getDataStart());
+		ByteBuffer entryBuf = buf.slice();
+		entryBuf.limit((int) entry.getCompressedSize());
+		Inflater inflater = new Inflater(true);
+		return new InflaterInputStream(new ByteBufferBackedInputStream(entryBuf), inflater);
+	}
+
 }
