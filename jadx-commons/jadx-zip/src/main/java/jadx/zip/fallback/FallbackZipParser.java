@@ -17,8 +17,8 @@ import jadx.zip.IZipEntry;
 import jadx.zip.IZipParser;
 import jadx.zip.ZipContent;
 import jadx.zip.ZipReaderOptions;
+import jadx.zip.io.LimitedInputStream;
 import jadx.zip.security.IJadxZipSecurity;
-import jadx.zip.security.LimitedInputStream;
 
 public class FallbackZipParser implements IZipParser {
 	private static final Logger LOG = LoggerFactory.getLogger(FallbackZipParser.class);

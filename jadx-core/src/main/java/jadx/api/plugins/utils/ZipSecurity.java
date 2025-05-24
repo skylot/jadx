@@ -16,10 +16,10 @@ import jadx.api.plugins.JadxPluginContext;
 import jadx.core.utils.Utils;
 import jadx.zip.IZipEntry;
 import jadx.zip.ZipReader;
+import jadx.zip.io.LimitedInputStream;
 import jadx.zip.security.DisabledZipSecurity;
 import jadx.zip.security.IJadxZipSecurity;
 import jadx.zip.security.JadxZipSecurity;
-import jadx.zip.security.LimitedInputStream;
 
 /**
  * Deprecated, migrate to {@link ZipReader}. <br>

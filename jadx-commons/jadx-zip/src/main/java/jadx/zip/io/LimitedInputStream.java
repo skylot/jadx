@@ -1,4 +1,4 @@
-package jadx.zip.security;
+package jadx.zip.io;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -8,6 +8,7 @@ public class LimitedInputStream extends FilterInputStream {
 	private final long maxSize;
 
 	private long currentPos;
+	private long markPos;
 
 	public LimitedInputStream(InputStream in, long maxSize) {
 		super(in);
@@ -50,7 +51,14 @@ public class LimitedInputStream extends FilterInputStream {
 	}
 
 	@Override
-	public boolean markSupported() {
-		return false;
+	public void mark(int readLimit) {
+		super.mark(readLimit);
+		markPos = currentPos;
+	}
+
+	@Override
+	public void reset() throws IOException {
+		super.reset();
+		currentPos = markPos;
 	}
 }
