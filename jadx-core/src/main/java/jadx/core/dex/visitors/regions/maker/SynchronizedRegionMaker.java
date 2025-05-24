@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -141,22 +143,42 @@ public class SynchronizedRegionMaker {
 		List<IContainer> subBlocks = startRegion.getSubBlocks();
 		if (!subBlocks.isEmpty() && subBlocks.get(0) instanceof SynchronizedRegion) {
 			SynchronizedRegion synchRegion = (SynchronizedRegion) subBlocks.get(0);
-			InsnNode synchInsn = synchRegion.getEnterInsn();
-			if (!synchInsn.getArg(0).isThis()) {
-				LOG.warn("In synchronized method {}, top region not synchronized by 'this' {}", mth, synchInsn);
-				return;
+			InsnNode syncInsn = synchRegion.getEnterInsn();
+			if (canRemoveSyncBlock(mth, syncInsn)) {
+				// replace synchronized block with an inner region
+				startRegion.getSubBlocks().set(0, synchRegion.getRegion());
+				// remove 'monitor-enter' instruction
+				InsnRemover.remove(mth, syncInsn);
+				// remove 'monitor-exit' instruction
+				for (InsnNode exit : synchRegion.getExitInsns()) {
+					InsnRemover.remove(mth, exit);
+				}
+				// run region cleaner again
+				CleanRegions.process(mth);
+				// assume that CodeShrinker will be run after this
 			}
-			// replace synchronized block with inner region
-			startRegion.getSubBlocks().set(0, synchRegion.getRegion());
-			// remove 'monitor-enter' instruction
-			InsnRemover.remove(mth, synchInsn);
-			// remove 'monitor-exit' instruction
-			for (InsnNode exit : synchRegion.getExitInsns()) {
-				InsnRemover.remove(mth, exit);
-			}
-			// run region cleaner again
-			CleanRegions.process(mth);
-			// assume that CodeShrinker will be run after this
 		}
+	}
+
+	private static boolean canRemoveSyncBlock(MethodNode mth, InsnNode synchInsn) {
+		InsnArg syncArg = synchInsn.getArg(0);
+		if (mth.getAccessFlags().isStatic()) {
+			if (syncArg.isInsnWrap() && syncArg.isConst()) {
+				InsnNode constInsn = syncArg.unwrap();
+				if (constInsn.getType() == InsnType.CONST_CLASS) {
+					ArgType clsType = ((ConstClassNode) constInsn).getClsType();
+					if (clsType.equals(mth.getParentClass().getType())) {
+						return true;
+					}
+				}
+			}
+			mth.addWarnComment("In static synchronized method top region not synchronized by class const: " + syncArg);
+		} else {
+			if (syncArg.isThis()) {
+				return true;
+			}
+			mth.addWarnComment("In synchronized method top region not synchronized by 'this': " + syncArg);
+		}
+		return false;
 	}
 }
