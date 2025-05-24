@@ -61,4 +61,6 @@ public class Icons {
 	public static final ImageIcon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
 	public static final ImageIcon ICON_FIND_TYPE_TXT = UiUtils.openSvgIcon("search/text");
 	public static final ImageIcon ICON_FIND_TYPE_HEX = UiUtils.openSvgIcon("search/hexSerial");
+	public static final ImageIcon ICON_ACTIVE_TAB = UiUtils.openSvgIcon("search/activeTab");
+	public static final ImageIcon ICON_ACTIVE_TAB_SELECTED = UiUtils.openSvgIcon("search/activeTabSelected");
 }

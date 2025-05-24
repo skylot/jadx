@@ -275,7 +275,8 @@ public class SearchDialog extends CommonSearchDialog {
 		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.regex"), Icons.ICON_REGEX, Icons.ICON_REGEX_SELECTED,
 				SearchOptions.USE_REGEX));
 		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(makeOptionsCheckBox(NLS.str("search_dialog.active_tab"), SearchOptions.ACTIVE_TAB));
+		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.active_tab"), Icons.ICON_ACTIVE_TAB,
+				Icons.ICON_ACTIVE_TAB_SELECTED, SearchOptions.ACTIVE_TAB));
 		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
 		searchLinePanel.add(autoSearchCB);
 
