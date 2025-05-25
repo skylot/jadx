@@ -23,7 +23,7 @@ public class FileDialogWrapper {
 
 	private boolean isOpen;
 	private String title;
-	private List<String> fileExtList;
+	private List<String> fileExtList = new ArrayList<>();
 	private int selectionMode = JFileChooser.FILES_AND_DIRECTORIES;
 	private @Nullable Path currentDir;
 	private @Nullable Path selectedFile;

@@ -8,6 +8,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -15,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.ui.MainWindow;
@@ -42,8 +44,13 @@ class CustomFileChooser extends JFileChooser {
 		setAcceptAllFileFilterUsed(true);
 		List<String> fileExtList = data.getFileExtList();
 		if (Utils.notEmpty(fileExtList)) {
-			String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(fileExtList) + ')';
-			setFileFilter(new FileNameMultiExtensionFilter(description, fileExtList.toArray(new String[0])));
+			List<String> validFileExtList = fileExtList.stream()
+					.filter(StringUtils::notBlank)
+					.collect(Collectors.toList());
+			if (Utils.notEmpty(validFileExtList)) {
+				String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(validFileExtList) + ')';
+				setFileFilter(new FileNameMultiExtensionFilter(description, validFileExtList.toArray(new String[0])));
+			}
 		}
 		if (data.getSelectedFile() != null) {
 			setSelectedFile(data.getSelectedFile().toFile());
