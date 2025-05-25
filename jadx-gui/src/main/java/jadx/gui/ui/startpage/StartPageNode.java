@@ -1,11 +1,10 @@
-package jadx.gui.ui.treenodes;
+package jadx.gui.ui.startpage;
 
 import javax.swing.Icon;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.ui.panel.StartPagePanel;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
