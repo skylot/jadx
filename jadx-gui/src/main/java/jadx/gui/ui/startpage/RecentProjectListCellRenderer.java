@@ -1,4 +1,4 @@
-package jadx.gui.ui.cellrenders;
+package jadx.gui.ui.startpage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,8 +16,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicButtonUI;
 
-import jadx.gui.models.RecentProjectItem;
-import jadx.gui.ui.panel.StartPagePanel;
 import jadx.gui.utils.Icons;
 
 public class RecentProjectListCellRenderer extends JPanel implements ListCellRenderer<RecentProjectItem> {
@@ -75,7 +73,7 @@ public class RecentProjectListCellRenderer extends JPanel implements ListCellRen
 	public Component getListCellRendererComponent(JList<? extends RecentProjectItem> list,
 			RecentProjectItem value, int index, boolean isSelected, boolean cellHasFocus) {
 
-		fileNameLabel.setText(value.getFileName());
+		fileNameLabel.setText(value.getProjectName());
 		pathLabel.setText(value.getAbsolutePath());
 
 		boolean isThisRemoveButtonHovered = (index == StartPagePanel.hoveredRemoveBtnIndex);

@@ -1,7 +1,9 @@
-package jadx.gui.models;
+package jadx.gui.ui.startpage;
 
 import java.nio.file.Path;
 import java.util.Objects;
+
+import jadx.api.plugins.utils.CommonFileUtils;
 
 /**
  * Represents an item in the recent projects list.
@@ -17,8 +19,8 @@ public class RecentProjectItem {
 		return path;
 	}
 
-	public String getFileName() {
-		return path.getFileName().toString();
+	public String getProjectName() {
+		return CommonFileUtils.removeFileExtension(path.getFileName().toString());
 	}
 
 	public String getAbsolutePath() {
@@ -27,11 +29,14 @@ public class RecentProjectItem {
 
 	@Override
 	public String toString() {
-		return getFileName();
+		return getProjectName();
 	}
 
 	@Override
 	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}

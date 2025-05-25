@@ -1,4 +1,4 @@
-package jadx.gui.ui.panel;
+package jadx.gui.ui.startpage;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -20,17 +20,16 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-import jadx.gui.models.RecentProjectItem;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.cellrenders.RecentProjectListCellRenderer;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
-import jadx.gui.ui.treenodes.StartPageNode;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.NLS;
 
@@ -67,8 +66,7 @@ public class StartPagePanel extends ContentPanel {
 		this.recentListModel = new DefaultListModel<>();
 		this.recentList = new RecentProjectsJList(recentListModel);
 		this.recentList.setCellRenderer(new RecentProjectListCellRenderer(baseFont));
-		this.recentList.setFixedCellHeight(50);
-		this.recentList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		this.recentList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		JScrollPane scrollPane = new JScrollPane(recentList);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
