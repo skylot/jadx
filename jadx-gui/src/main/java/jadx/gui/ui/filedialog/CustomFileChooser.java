@@ -8,7 +8,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.JDialog;
@@ -17,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.ui.MainWindow;
@@ -45,7 +45,7 @@ class CustomFileChooser extends JFileChooser {
 		List<String> fileExtList = data.getFileExtList();
 		if (Utils.notEmpty(fileExtList)) {
 			List<String> validFileExtList = fileExtList.stream()
-					.filter(ext -> Objects.nonNull(ext) && !ext.trim().isEmpty())
+					.filter(StringUtils::notBlank)
 					.collect(Collectors.toList());
 			if (Utils.notEmpty(validFileExtList)) {
 				String description = NLS.str("file_dialog.supported_files") + ": (" + Utils.listToString(validFileExtList) + ')';

@@ -67,7 +67,9 @@ public class JResourcePopupMenu extends JPopupMenu {
 		String extension = CommonFileUtils.getFileExtension(resource.getName());
 
 		FileDialogWrapper fileDialog = new FileDialogWrapper(mainWindow, FileOpenMode.EXPORT_NODE);
-		fileDialog.setFileExtList(Collections.singletonList(extension));
+		if (extension != null) {
+			fileDialog.setFileExtList(Collections.singletonList(extension));
+		}
 		Path currentDir = fileDialog.getCurrentDir();
 		if (currentDir != null) {
 			fileDialog.setSelectedFile(currentDir.resolve(resource.getName()));
