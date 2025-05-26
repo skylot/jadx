@@ -12,8 +12,8 @@ public class TestVariablesInLoop extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("int i;")
-				.countString(2, "i = 0;")
-				.doesNotContain("i3");
+				.containsOne("int iMth;")
+				.countString(2, "iMth = 0;")
+				.doesNotContain("i2");
 	}
 }

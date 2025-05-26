@@ -483,4 +483,11 @@ public class StringUtils {
 		}
 		return Float.toString(f) + 'f';
 	}
+
+	public static String capitalizeFirstChar(String str) {
+		if (isEmpty(str)) {
+			return str;
+		}
+		return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+	}
 }

@@ -59,13 +59,11 @@ public class SSAVar implements Comparable<SSAVar> {
 		return version;
 	}
 
-	@NotNull
-	public RegisterArg getAssign() {
+	public @NotNull RegisterArg getAssign() {
 		return assign;
 	}
 
-	@Nullable
-	public InsnNode getAssignInsn() {
+	public @Nullable InsnNode getAssignInsn() {
 		return assign.getParentInsn();
 	}
 

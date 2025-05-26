@@ -39,6 +39,6 @@ public class TestTryCatchFinally15 extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.doesNotContain("parcel = Parcel.obtain();")
-				.containsOne("this.zza.transact(i, parcel, obtain, 0);");
+				.containsOne("this.zza.transact(i, parcel, parcelObtain, 0);");
 	}
 }

@@ -331,6 +331,7 @@ public class ProcessVariables extends AbstractVisitor {
 			return false;
 		}
 		parentInsn.add(AFlag.DECLARE_VAR);
+		var.getCodeVar().setDeclared(true);
 		return true;
 	}
 

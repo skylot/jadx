@@ -133,11 +133,11 @@ public class TestIfCodeStyle extends SmaliTest {
 				.oneOf(c -> c.doesNotContain("else").countString(8, "return;"),
 						c -> c.countString(1, "else").countString(7, "return;"))
 				.containsLines(2,
-						"if (readInt < 0) {",
-						indent() + "if (dataPosition > Integer.MAX_VALUE - readInt) {",
+						"if (i < 0) {",
+						indent() + "if (iDataPosition > Integer.MAX_VALUE - i) {",
 						indent(2) + "throw new RuntimeException(\"Overflow in the size of parcelable\");",
 						indent() + "}",
-						indent() + "parcel.setDataPosition(dataPosition + readInt);",
+						indent() + "parcel.setDataPosition(iDataPosition + i);",
 						indent() + "return;",
 						"}");
 	}

@@ -16,7 +16,7 @@ public class TestInnerAssign3 extends SmaliTest {
 		disableCompilation();
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("(testMethod = (testClass1 = null).testMethod()) == null")
+				.containsOne("(testClass2TestMethod = (testClass1 = null).testMethod()) == null")
 				.containsOne("testClass1.testField != null");
 	}
 }

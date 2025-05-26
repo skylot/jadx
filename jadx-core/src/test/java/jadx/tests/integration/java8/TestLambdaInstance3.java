@@ -38,8 +38,8 @@ public class TestLambdaInstance3 extends RaungTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.doesNotContain("this::get")
-				.containsOne("return (TestCls) of::get;");
-		// TODO: type inference set type for 'of' to Memoized and cast incorrectly removed
+				.containsOne("return (TestCls) lazyOf::get;");
+		// TODO: type inference set type for 'lazyOf' to Memoized and cast incorrectly removed
 		// .containsOne("Memoized)");
 	}
 
@@ -49,6 +49,6 @@ public class TestLambdaInstance3 extends RaungTest {
 		assertThat(getClassNodeFromRaung())
 				.code()
 				.doesNotContain("this::get")
-				.containsOne(" of::get");
+				.containsOne(" lazyOf::get");
 	}
 }

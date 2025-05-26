@@ -36,7 +36,7 @@ public class TestTypeResolver17 extends SmaliTest {
 		disableCompilation();
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("Cursor cursor = null;")
+				.containsOne("Cursor cursorQuery = null;")
 				.doesNotContain("(AutoCloseable autoCloseable = ");
 	}
 }

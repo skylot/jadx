@@ -13,6 +13,6 @@ public class TestLoopRestore extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.containsOne("try {")
-				.containsOne("for (byte b : digest) {");
+				.containsOne("for (byte b : bArrDigest) {");
 	}
 }

@@ -44,13 +44,13 @@ public class TestTypeResolver16 extends SmaliTest {
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("(List<T>) list");
+				.containsOne("(List<T>) listUnion");
 	}
 
 	@Test
 	public void testSmali() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("(List<T>) list");
+				.containsOne("(List<T>) listUnion");
 	}
 }

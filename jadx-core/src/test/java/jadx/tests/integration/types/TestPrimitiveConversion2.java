@@ -17,7 +17,7 @@ public class TestPrimitiveConversion2 extends SmaliTest {
 				.doesNotContain("z2 == 0")
 				.doesNotContain("z2 | 2")
 				.containsOne("(z2 ? 1 : 0) | 2")
-				.containsOne("if (z2 && formatCurrency != null) {")
+				.containsOne("if (z2 && currency != null) {")
 				.containsOne("i = 1;");
 	}
 }

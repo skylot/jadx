@@ -36,6 +36,6 @@ public class TestPrimitivesInIf extends IntegrationTest {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("short parseShort = Short.parseShort(str);");
+				.containsOne("short s = Short.parseShort(str);");
 	}
 }

@@ -16,6 +16,7 @@ import jadx.core.deobf.DeobfuscatorVisitor;
 import jadx.core.deobf.SaveDeobfMapping;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.visitors.AnonymousClassVisitor;
+import jadx.core.dex.visitors.ApplyVariableNames;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.AttachTryCatchVisitor;
@@ -200,6 +201,7 @@ public class Jadx {
 			passes.add(new MarkMethodsForInline());
 		}
 		passes.add(new ProcessVariables());
+		passes.add(new ApplyVariableNames());
 		passes.add(new PrepareForCodeGen());
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dumpRegions());
