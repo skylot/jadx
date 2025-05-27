@@ -110,27 +110,30 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		toRemove.forEach(excSet::remove);
 	}
 
-	private void processInstructions(MethodNode mth) throws JadxException {
+	private void processInstructions(MethodNode mth) {
 		if (mth.isNoCode() || mth.getBasicBlocks() == null) {
 			return;
 		}
-
-		blocks: for (final BlockNode block : mth.getBasicBlocks()) {
-			// Skip e.g. throw instructions of synchronized regions
-			boolean skipExceptions = block.contains(AFlag.REMOVE) || block.contains(AFlag.DONT_GENERATE);
-			Set<String> excludedExceptions = new HashSet<>();
-			CatchAttr catchAttr = block.get(AType.EXC_CATCH);
-			if (catchAttr != null) {
-				for (ExceptionHandler handler : catchAttr.getHandlers()) {
-					if (handler.isCatchAll()) {
-						continue blocks;
+		try {
+			blocks: for (final BlockNode block : mth.getBasicBlocks()) {
+				// Skip e.g. throw instructions of synchronized regions
+				boolean skipExceptions = block.contains(AFlag.REMOVE) || block.contains(AFlag.DONT_GENERATE);
+				Set<String> excludedExceptions = new HashSet<>();
+				CatchAttr catchAttr = block.get(AType.EXC_CATCH);
+				if (catchAttr != null) {
+					for (ExceptionHandler handler : catchAttr.getHandlers()) {
+						if (handler.isCatchAll()) {
+							continue blocks;
+						}
+						excludedExceptions.add(handler.getArgType().toString());
 					}
-					excludedExceptions.add(handler.getArgType().toString());
+				}
+				for (final InsnNode insn : block.getInstructions()) {
+					checkInsn(mth, insn, excludedExceptions, skipExceptions);
 				}
 			}
-			for (final InsnNode insn : block.getInstructions()) {
-				checkInsn(mth, insn, excludedExceptions, skipExceptions);
-			}
+		} catch (Exception e) {
+			mth.addWarnComment("Failed to analyze thrown exceptions", e);
 		}
 	}
 
