@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.plugins.files.IJadxFilesGetter;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class FileUtils {
@@ -157,23 +158,49 @@ public class FileUtils {
 		}
 	}
 
-	private static final SimpleFileVisitor<Path> FILE_DELETE_VISITOR = new SimpleFileVisitor<>() {
-		@Override
-		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-			Files.delete(file);
-			return FileVisitResult.CONTINUE;
-		}
-
-		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-			Files.delete(dir);
-			return FileVisitResult.CONTINUE;
-		}
-	};
-
 	private static void deleteDir(Path dir) {
+		deleteDir(dir, false);
+	}
+
+	private static void deleteDir(Path dir, boolean keepRootDir) {
 		try {
-			Files.walkFileTree(dir, Collections.emptySet(), Integer.MAX_VALUE, FILE_DELETE_VISITOR);
+			List<Path> files = new ArrayList<>();
+			List<Path> directories = new ArrayList<>();
+			Files.walkFileTree(dir, Collections.emptySet(), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
+				@Override
+				public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+					files.add(file);
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public @NotNull FileVisitResult postVisitDirectory(@NotNull Path directory, IOException exc) {
+					directories.add(directory);
+					return FileVisitResult.CONTINUE;
+				}
+			});
+			// delete files in parallel
+			if (!files.isEmpty()) {
+				files.parallelStream().forEach(path -> {
+					try {
+						Files.delete(path);
+					} catch (Exception e) {
+						LOG.warn("Failed to delete file {}", path.toAbsolutePath(), e);
+					}
+				});
+			}
+			// after all files are deleted, remove empty directories
+			if (keepRootDir) {
+				// root dir always last
+				ListUtils.removeLast(directories);
+			}
+			for (Path directory : directories) {
+				try {
+					Files.delete(directory);
+				} catch (IOException e) {
+					LOG.warn("Failed to delete directory {}", directory.toAbsolutePath(), e);
+				}
+			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to delete directory " + dir, e);
 		}
@@ -187,21 +214,7 @@ public class FileUtils {
 
 	public static void clearDir(Path clearDir) {
 		try {
-			Files.walkFileTree(clearDir, Collections.emptySet(), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Files.delete(file);
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-					if (!dir.equals(clearDir)) {
-						Files.delete(dir);
-					}
-					return FileVisitResult.CONTINUE;
-				}
-			});
+			deleteDir(clearDir, true);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to clear directory " + clearDir, e);
 		}
