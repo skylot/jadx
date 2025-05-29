@@ -160,6 +160,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 		if (parser == null) {
 			throw new JadxRuntimeException("Unknown type of resource file: " + resFile.getOriginalName());
 		}
+		parser.setBaseFileName(resFile.getDeobfName());
 		parser.decode(is);
 		return parser;
 	}

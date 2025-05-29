@@ -52,6 +52,10 @@ public class ResXmlGen {
 	}
 
 	public List<ResContainer> makeResourcesXml(JadxArgs args) {
+		return makeResourcesXml(args, "");
+	}
+
+	public List<ResContainer> makeResourcesXml(JadxArgs args, String baseFileName) {
 		Map<String, ICodeWriter> contMap = new HashMap<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (SKIP_RES_TYPES.contains(ri.getTypeName())) {
@@ -68,7 +72,7 @@ public class ResXmlGen {
 			}
 			addValue(cw, ri);
 		}
-
+		String filePrefix = baseFileName.isEmpty() ? null : baseFileName + ':';
 		List<ResContainer> files = new ArrayList<>(contMap.size());
 		for (Map.Entry<String, ICodeWriter> entry : contMap.entrySet()) {
 			String fileName = entry.getKey();
@@ -76,6 +80,9 @@ public class ResXmlGen {
 			content.decIndent();
 			content.startLine("</resources>");
 			ICodeInfo codeInfo = content.finish();
+			if (filePrefix != null) {
+				fileName = filePrefix + fileName;
+			}
 			files.add(ResContainer.textResource(fileName, codeInfo));
 		}
 		Collections.sort(files);

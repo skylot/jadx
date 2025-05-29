@@ -27,9 +27,15 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class ResTableProtoParser extends CommonProtoParser implements IResTableParser {
 	private final RootNode root;
 	private ResourceStorage resStorage;
+	private String baseFileName = "";
 
 	public ResTableProtoParser(RootNode root) {
 		this.root = root;
+	}
+
+	@Override
+	public void setBaseFileName(String fileName) {
+		this.baseFileName = fileName;
 	}
 
 	@Override
@@ -47,8 +53,8 @@ public class ResTableProtoParser extends CommonProtoParser implements IResTableP
 		ValuesParser vp = new ValuesParser(new BinaryXMLStrings(), resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp, root.initManifestAttributes());
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
-		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
-		return ResContainer.resourceTable("res", xmlFiles, content);
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs(), baseFileName);
+		return ResContainer.resourceTable(baseFileName, xmlFiles, content);
 	}
 
 	private void parse(Package p) {

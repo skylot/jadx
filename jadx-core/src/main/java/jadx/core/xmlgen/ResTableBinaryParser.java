@@ -67,6 +67,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 	private ResourceStorage resStorage;
 	private BinaryXMLStrings strings;
+	private String baseFileName = "";
 
 	public ResTableBinaryParser(RootNode root) {
 		this(root, false);
@@ -75,6 +76,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	public ResTableBinaryParser(RootNode root, boolean useRawResNames) {
 		this.root = root;
 		this.useRawResName = useRawResNames;
+	}
+
+	@Override
+	public void setBaseFileName(String fileName) {
+		this.baseFileName = fileName;
 	}
 
 	@Override
@@ -96,8 +102,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp, root.initManifestAttributes());
 
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
-		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
-		return ResContainer.resourceTable("res", xmlFiles, content);
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs(), baseFileName);
+		return ResContainer.resourceTable(baseFileName, xmlFiles, content);
 	}
 
 	void decodeTableChunk() throws IOException {

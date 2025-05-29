@@ -12,4 +12,8 @@ public interface IResTableParser {
 	ResourceStorage getResStorage();
 
 	BinaryXMLStrings getStrings();
+
+	default void setBaseFileName(String fileName) {
+		// optional
+	}
 }
