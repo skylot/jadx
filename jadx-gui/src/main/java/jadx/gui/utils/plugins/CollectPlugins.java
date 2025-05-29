@@ -34,12 +34,13 @@ public class CollectPlugins {
 		// collect and init not loaded plugins in new temp context
 		Runnable closeable = null;
 		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
+		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 		try (JadxDecompiler decompiler = new JadxDecompiler(jadxArgs)) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.registerAddPluginListener(pluginContext -> {
 				AppContext appContext = new AppContext();
 				appContext.setGuiContext(null); // load temp plugins without UI context
-				appContext.setFilesGetter(JadxFilesGetter.INSTANCE);
+				appContext.setFilesGetter(jadxArgs.getFilesGetter());
 				pluginContext.setAppContext(appContext);
 			});
 			pluginManager.load(new JadxExternalPluginsLoader());

@@ -150,7 +150,7 @@ public class JadxWrapper {
 		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
 			AppContext appContext = new AppContext();
 			appContext.setGuiContext(guiPluginsContext.buildForPlugin(pluginContext));
-			appContext.setFilesGetter(JadxFilesGetter.INSTANCE);
+			appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
 			pluginContext.setAppContext(appContext);
 		});
 		return guiPluginsContext;

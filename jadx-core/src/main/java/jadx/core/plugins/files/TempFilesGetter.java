@@ -9,15 +9,20 @@ public class TempFilesGetter implements IJadxFilesGetter {
 
 	public static final TempFilesGetter INSTANCE = new TempFilesGetter();
 
-	private final Path tempRootDir;
+	private static final class TempRootHolder {
+		public static final Path TEMP_ROOT_DIR;
+
+		static {
+			try {
+				TEMP_ROOT_DIR = Files.createTempDirectory("jadx-temp-");
+				TEMP_ROOT_DIR.toFile().deleteOnExit();
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to create temp directory", e);
+			}
+		}
+	}
 
 	private TempFilesGetter() {
-		try {
-			tempRootDir = Files.createTempDirectory("jadx-temp-");
-			tempRootDir.toFile().deleteOnExit();
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to create temp directory", e);
-		}
 	}
 
 	@Override
@@ -32,11 +37,11 @@ public class TempFilesGetter implements IJadxFilesGetter {
 
 	@Override
 	public Path getTempDir() {
-		return tempRootDir;
+		return makeSubDir("tmp");
 	}
 
 	private Path makeSubDir(String subDir) {
-		Path dir = tempRootDir.resolve(subDir);
+		Path dir = TempRootHolder.TEMP_ROOT_DIR.resolve(subDir);
 		FileUtils.makeDirs(dir);
 		return dir;
 	}
