@@ -3,7 +3,7 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -26,9 +26,12 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeListener;
 
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +49,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
+import jadx.core.dex.nodes.PackageNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 import jadx.gui.jobs.ITaskInfo;
 import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.search.SearchSettings;
@@ -63,14 +68,16 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.SimpleListener;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.cache.ValueCache;
+import jadx.gui.utils.layout.WrapLayout;
 import jadx.gui.utils.rx.RxUtils;
-import jadx.gui.utils.ui.DocumentUpdateListener;
 
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
@@ -92,7 +99,7 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	public static void searchInActiveTab(MainWindow window, SearchPreset preset) {
-		SearchDialog searchDialog = new SearchDialog(window, preset, EnumSet.of(SearchOptions.ACTIVE_TAB));
+		SearchDialog searchDialog = new SearchDialog(window, preset, EnumSet.of(ACTIVE_TAB));
 		show(searchDialog, window);
 	}
 
@@ -138,9 +145,12 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private final transient SearchPreset searchPreset;
 	private final transient Set<SearchOptions> options;
+	private final transient SimpleListener<Set<SearchOptions>> optionsListener = new SimpleListener<>();
 
 	private transient JTextField searchField;
 	private transient JTextField packageField;
+	private transient JTextField resExtField;
+	private transient JSpinner resSizeLimit;
 
 	private transient @Nullable SearchTask searchTask;
 	private transient JButton loadAllButton;
@@ -159,7 +169,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private final List<JNode> pendingResults = new ArrayList<>();
 
 	/**
-	 * Use single thread to do all background work, so additional synchronisation not needed
+	 * Use single thread to do all background work, so additional synchronization not needed
 	 */
 	private final Executor searchBackgroundExecutor = Executors.newSingleThreadExecutor();
 
@@ -209,12 +219,12 @@ public class SearchDialog extends CommonSearchDialog {
 				break;
 
 			case CLASS:
-				searchOptions.add(SearchOptions.CLASS);
+				searchOptions.add(CLASS);
 				break;
 
 			case COMMENT:
-				searchOptions.add(SearchOptions.COMMENT);
-				searchOptions.remove(SearchOptions.ACTIVE_TAB);
+				searchOptions.add(COMMENT);
+				searchOptions.remove(ACTIVE_TAB);
 				break;
 		}
 		return searchOptions;
@@ -263,36 +273,29 @@ public class SearchDialog extends CommonSearchDialog {
 			}
 		});
 
-		JPanel searchLinePanel = new JPanel();
-		searchLinePanel.setLayout(new BoxLayout(searchLinePanel, BoxLayout.LINE_AXIS));
-		searchLinePanel.add(searchField);
-		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(searchBtn);
-		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.ignorecase"), Icons.ICON_MATCH, Icons.ICON_MATCH_SELECTED,
+		JPanel searchButtons = new JPanel();
+		searchButtons.setLayout(new BoxLayout(searchButtons, BoxLayout.LINE_AXIS));
+		searchButtons.add(searchBtn);
+		searchButtons.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchButtons.add(makeOptionsToggleButton(NLS.str("search_dialog.ignorecase"), Icons.ICON_MATCH, Icons.ICON_MATCH_SELECTED,
 				SearchOptions.IGNORE_CASE));
-		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.regex"), Icons.ICON_REGEX, Icons.ICON_REGEX_SELECTED,
+		searchButtons.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchButtons.add(makeOptionsToggleButton(NLS.str("search_dialog.regex"), Icons.ICON_REGEX, Icons.ICON_REGEX_SELECTED,
 				SearchOptions.USE_REGEX));
-		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(makeOptionsToggleButton(NLS.str("search_dialog.active_tab"), Icons.ICON_ACTIVE_TAB,
+		searchButtons.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchButtons.add(makeOptionsToggleButton(NLS.str("search_dialog.active_tab"), Icons.ICON_ACTIVE_TAB,
 				Icons.ICON_ACTIVE_TAB_SELECTED, SearchOptions.ACTIVE_TAB));
-		searchLinePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-		searchLinePanel.add(autoSearchCB);
-
-		searchLinePanel.setAlignmentX(LEFT_ALIGNMENT);
-
-		JLabel findLabel = new JLabel(NLS.str("search_dialog.open_by_name"));
-		findLabel.setAlignmentX(LEFT_ALIGNMENT);
+		searchButtons.add(Box.createRigidArea(new Dimension(5, 0)));
+		searchButtons.add(autoSearchCB);
 
 		JPanel searchFieldPanel = new JPanel();
-		searchFieldPanel.setLayout(new BoxLayout(searchFieldPanel, BoxLayout.PAGE_AXIS));
-		searchFieldPanel.setAlignmentX(LEFT_ALIGNMENT);
-		searchFieldPanel.add(findLabel);
-		searchFieldPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-		searchFieldPanel.add(searchLinePanel);
+		searchFieldPanel.setLayout(new BorderLayout(5, 5));
+		searchFieldPanel.add(new JLabel(NLS.str("search_dialog.open_by_name")), BorderLayout.LINE_START);
+		searchFieldPanel.add(searchField, BorderLayout.CENTER);
+		searchFieldPanel.add(searchButtons, BorderLayout.LINE_END);
 
-		JPanel searchInPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel searchInPanel = new JPanel();
+		searchInPanel.setLayout(new BoxLayout(searchInPanel, BoxLayout.LINE_AXIS));
 		searchInPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.search_in")));
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS));
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD));
@@ -301,36 +304,50 @@ public class SearchDialog extends CommonSearchDialog {
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.resource"), SearchOptions.RESOURCE));
 		searchInPanel.add(makeOptionsCheckBox(NLS.str("search_dialog.comments"), SearchOptions.COMMENT));
 
-		packageField = new JTextField();
-		packageField.setMaximumSize(new Dimension(Integer.MAX_VALUE, searchField.getPreferredSize().height));
+		packageField = new JTextField(Math.min(100, getMaxPkgLen()));
 		TextStandardActions.attach(packageField);
 		packageField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+		packageField.setToolTipText(NLS.str("search_dialog.limit_package"));
 
-		JPanel searchPackageOptions = new JPanel();
-		searchPackageOptions.setLayout(new BoxLayout(searchPackageOptions, BoxLayout.LINE_AXIS));
-		searchPackageOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.limit_package")));
-		searchPackageOptions.add(packageField);
+		JPanel searchPackagePanel = new JPanel(new BorderLayout());
+		searchPackagePanel.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.limit_package")));
+		searchPackagePanel.add(packageField, BorderLayout.CENTER);
+		Dimension minPanelSize = calcMinSizeForTitledBorder(searchPackagePanel);
+		searchPackagePanel
+				.setPreferredSize(new Dimension(Math.max(packageField.getPreferredSize().width, minPanelSize.width), minPanelSize.height));
 
-		JTextField fileExtField = new JTextField();
-		TextStandardActions.attach(fileExtField);
-		fileExtField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
-		fileExtField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> {
-			String ext = fileExtField.getText();
-			mainWindow.getSettings().setSrhResourceFileExt(ext);
-		}));
-		fileExtField.setText(mainWindow.getSettings().getSrhResourceFileExt());
-		fileExtField.setMaximumSize(new Dimension(Integer.MAX_VALUE, searchField.getPreferredSize().height));
+		resExtField = new JTextField();
+		TextStandardActions.attach(resExtField);
+		resExtField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+		resExtField.setToolTipText(NLS.str("preferences.res_file_ext"));
+		resExtField.setText(mainWindow.getProject().getSearchResourcesFilter());
 
-		JPanel searchExtFileOptions = new JPanel();
-		searchExtFileOptions.setLayout(new BoxLayout(searchExtFileOptions, BoxLayout.LINE_AXIS));
-		searchExtFileOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("preferences.res_file_ext")));
-		searchExtFileOptions.add(fileExtField);
+		JPanel resExtFilePanel = new JPanel(new BorderLayout());
+		resExtFilePanel.setBorder(BorderFactory.createTitledBorder(NLS.str("preferences.res_file_ext")));
+		resExtFilePanel.add(resExtField, BorderLayout.CENTER);
+		resExtFilePanel.setPreferredSize(calcMinSizeForTitledBorder(resExtFilePanel));
 
-		JPanel optionsPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-		optionsPanel.setAlignmentX(LEFT_ALIGNMENT);
+		resSizeLimit = new JSpinner(new SpinnerNumberModel(mainWindow.getProject().getSearchResourcesSizeLimit(), 0, Integer.MAX_VALUE, 1));
+		resSizeLimit.setToolTipText(NLS.str("preferences.res_skip_file"));
+
+		JPanel sizeLimitPanel = new JPanel(new BorderLayout());
+		sizeLimitPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("preferences.res_skip_file")));
+		sizeLimitPanel.add(resSizeLimit, BorderLayout.CENTER);
+		sizeLimitPanel.setPreferredSize(calcMinSizeForTitledBorder(sizeLimitPanel));
+
+		JPanel optionsPanel = new JPanel(new WrapLayout(FlowLayout.LEFT));
 		optionsPanel.add(searchInPanel);
-		optionsPanel.add(searchPackageOptions);
-		optionsPanel.add(searchExtFileOptions);
+		optionsPanel.add(searchPackagePanel);
+		optionsPanel.add(resExtFilePanel);
+		optionsPanel.add(sizeLimitPanel);
+
+		optionsListener.addListener(searchOptions -> {
+			boolean codeSearch = Utils.isSetContainsAny(searchOptions, EnumSet.of(CODE, CLASS, METHOD, FIELD, COMMENT));
+			searchPackagePanel.setVisible(codeSearch);
+			boolean resSearch = searchOptions.contains(RESOURCE);
+			resExtFilePanel.setVisible(resSearch);
+			sizeLimitPanel.setVisible(resSearch);
+		});
 
 		JPanel searchPane = new JPanel();
 		searchPane.setLayout(new BoxLayout(searchPane, BoxLayout.PAGE_AXIS));
@@ -352,6 +369,34 @@ public class SearchDialog extends CommonSearchDialog {
 
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	}
+
+	private int getMaxPkgLen() {
+		CacheObject cacheObject = mainWindow.getCacheObject();
+		int maxPkgLength = cacheObject.getMaxPkgLength();
+		if (maxPkgLength != 0) {
+			return maxPkgLength;
+		}
+		int max = 1;
+		for (PackageNode pkg : mainWindow.getWrapper().getRootNode().getPackages()) {
+			int len = pkg.getPkgInfo().getFullName().length();
+			if (len > max) {
+				max = len;
+			}
+		}
+		cacheObject.setMaxPkgLength(max);
+		return max;
+	}
+
+	/**
+	 * Workaround to calculate minimum size for a panel with titled border
+	 */
+	private Dimension calcMinSizeForTitledBorder(JPanel panel) {
+		TitledBorder border = (TitledBorder) panel.getBorder();
+		Insets borderInsets = border.getBorderInsets(panel);
+		int insets = 2 * (borderInsets.left + borderInsets.right);
+		double titleWidth = panel.getFontMetrics(border.getTitleFont()).stringWidth(border.getTitle());
+		return new Dimension((int) titleWidth + insets, panel.getPreferredSize().height);
 	}
 
 	private void addSearchHistoryButton() {
@@ -441,17 +486,26 @@ public class SearchDialog extends CommonSearchDialog {
 					RxUtils.textFieldEnterPress(searchField),
 					RxUtils.textFieldChanges(packageField),
 					RxUtils.textFieldEnterPress(packageField),
+					RxUtils.textFieldChanges(resExtField),
+					RxUtils.textFieldEnterPress(resExtField),
+					RxUtils.spinnerChanges(resSizeLimit),
+					RxUtils.spinnerEnterPress(resSizeLimit),
 					searchEmitter.getFlowable()));
 		} else {
-			searchEvents = Flowable.merge(
+			searchEvents = Flowable.merge(List.of(
 					RxUtils.textFieldEnterPress(searchField),
 					RxUtils.textFieldEnterPress(packageField),
-					searchEmitter.getFlowable());
+					RxUtils.textFieldEnterPress(resExtField),
+					RxUtils.spinnerEnterPress(resSizeLimit),
+					searchEmitter.getFlowable()));
 		}
 		searchDisposable = searchEvents
 				.debounce(50, TimeUnit.MILLISECONDS)
 				.observeOn(Schedulers.from(searchBackgroundExecutor))
 				.subscribe(t -> this.search(searchField.getText()));
+
+		// set initial values
+		optionsListener.sendUpdate(options);
 	}
 
 	private void search(String text) {
@@ -477,14 +531,17 @@ public class SearchDialog extends CommonSearchDialog {
 			return null;
 		}
 		// allow empty text for search in comments
-		if (text.isEmpty() && !options.contains(SearchOptions.COMMENT)) {
+		if (text.isEmpty() && !options.contains(COMMENT)) {
 			return null;
 		}
 		LOG.debug("Building search for '{}', options: {}", text, options);
-		boolean ignoreCase = options.contains(IGNORE_CASE);
-		boolean useRegex = options.contains(USE_REGEX);
-		String searchPackageText = packageField.getText();
-		SearchSettings searchSettings = new SearchSettings(text, !ignoreCase, useRegex, searchPackageText);
+		SearchSettings searchSettings = new SearchSettings(text);
+		searchSettings.setIgnoreCase(options.contains(IGNORE_CASE));
+		searchSettings.setUseRegex(options.contains(USE_REGEX));
+		searchSettings.setSearchPkgStr(packageField.getText().trim());
+		searchSettings.setResFilterStr(resExtField.getText().trim());
+		searchSettings.setResSizeLimit((Integer) resSizeLimit.getValue());
+
 		String error = searchSettings.prepare(mainWindow);
 		UiUtils.highlightAsErrorField(searchField, !StringUtils.isEmpty(error));
 		if (!StringUtils.isEmpty(error)) {
@@ -496,6 +553,9 @@ public class SearchDialog extends CommonSearchDialog {
 		if (!buildSearch(newSearchTask, text, searchSettings)) {
 			return null;
 		}
+		// save search settings
+		mainWindow.getProject().setSearchResourcesFilter(searchSettings.getResFilterStr());
+		mainWindow.getProject().setSearchResourcesSizeLimit(searchSettings.getResSizeLimit());
 		return newSearchTask;
 	}
 
@@ -529,7 +589,7 @@ public class SearchDialog extends CommonSearchDialog {
 					.filter(searchSettings::isInSearchPkg)
 					.collect(Collectors.toList());
 		}
-		if (text.isEmpty() && options.contains(SearchOptions.COMMENT)) {
+		if (text.isEmpty() && options.contains(COMMENT)) {
 			// allow empty text for comment search
 			newSearchTask.addProviderJob(new CommentSearchProvider(mainWindow, searchSettings, searchClasses));
 			return true;
@@ -698,7 +758,6 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private JCheckBox makeOptionsCheckBox(String name, final SearchOptions opt) {
 		final JCheckBox chBox = new JCheckBox(name);
-		chBox.setAlignmentX(LEFT_ALIGNMENT);
 		chBox.setSelected(options.contains(opt));
 		chBox.addItemListener(e -> {
 			if (chBox.isSelected()) {
@@ -706,6 +765,7 @@ public class SearchDialog extends CommonSearchDialog {
 			} else {
 				options.remove(opt);
 			}
+			optionsListener.sendUpdate(options);
 			searchEmitter.emitSearch();
 		});
 		return chBox;
@@ -723,6 +783,7 @@ public class SearchDialog extends CommonSearchDialog {
 			} else {
 				options.remove(opt);
 			}
+			optionsListener.sendUpdate(options);
 			searchEmitter.emitSearch();
 		});
 		return toggleButton;
@@ -744,7 +805,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private void registerActiveTabListener() {
 		removeActiveTabListener();
 		activeTabListener = e -> {
-			if (options.contains(SearchOptions.ACTIVE_TAB)) {
+			if (options.contains(ACTIVE_TAB)) {
 				LOG.debug("active tab change event received");
 				searchEmitter.emitSearch();
 			}

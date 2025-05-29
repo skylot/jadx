@@ -48,8 +48,8 @@ public class ResourceSearchProvider implements ISearchProvider {
 
 	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings, SearchDialog searchDialog) {
 		this.searchSettings = searchSettings;
-		this.sizeLimit = mw.getSettings().getSrhResourceSkipSize() * 1048576;
-		this.extSet = buildAllowedFilesExtensions(mw.getSettings().getSrhResourceFileExt());
+		this.extSet = buildAllowedFilesExtensions(searchSettings.getResFilterStr());
+		this.sizeLimit = searchSettings.getResSizeLimit() * 1024 * 1024;
 		this.searchDialog = searchDialog;
 		JResource activeResource = searchSettings.getActiveResource();
 		if (activeResource != null) {
@@ -168,8 +168,13 @@ public class ResourceSearchProvider implements ISearchProvider {
 	}
 
 	private Set<String> buildAllowedFilesExtensions(String srhResourceFileExt) {
+		String str = srhResourceFileExt.trim();
+		if (str.isEmpty() || str.equals("*")) {
+			anyExt = true;
+			return Collections.emptySet();
+		}
 		Set<String> set = new HashSet<>();
-		for (String extStr : srhResourceFileExt.split("[|.]")) {
+		for (String extStr : str.split("[|.]")) {
 			String ext = extStr.trim();
 			if (!ext.isEmpty()) {
 				anyExt = ext.equals("*");

@@ -249,6 +249,22 @@ public class JadxProject {
 		changed();
 	}
 
+	public void setSearchResourcesFilter(String searchResourcesFilter) {
+		data.setSearchResourcesFilter(searchResourcesFilter);
+	}
+
+	public String getSearchResourcesFilter() {
+		return data.getSearchResourcesFilter();
+	}
+
+	public void setSearchResourcesSizeLimit(int searchResourcesSizeLimit) {
+		data.setSearchResourcesSizeLimit(searchResourcesSizeLimit);
+	}
+
+	public int getSearchResourcesSizeLimit() {
+		return data.getSearchResourcesSizeLimit();
+	}
+
 	private void changed() {
 		JadxSettings settings = mainWindow.getSettings();
 		if (settings != null && settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {

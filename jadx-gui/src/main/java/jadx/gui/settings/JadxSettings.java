@@ -112,7 +112,6 @@ public class JadxSettings extends JadxCLIArgs {
 	private int mainWindowExtendedState = JFrame.NORMAL;
 	private boolean codeAreaLineWrap = false;
 	private int srhResourceSkipSize = 1000;
-	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
 	private int searchResultsPerPage = 50;
 	private boolean useAutoSearch = true;
 	private boolean keepCommonDialogOpen = false;
@@ -643,14 +642,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setSrhResourceSkipSize(int size) {
 		srhResourceSkipSize = size;
-	}
-
-	public String getSrhResourceFileExt() {
-		return srhResourceFileExt;
-	}
-
-	public void setSrhResourceFileExt(String all) {
-		srhResourceFileExt = all.trim();
 	}
 
 	public int getSearchResultsPerPage() {

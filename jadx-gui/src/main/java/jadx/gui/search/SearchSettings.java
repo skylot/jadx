@@ -15,9 +15,11 @@ import jadx.gui.utils.NLS;
 
 public class SearchSettings {
 	private final String searchString;
-	private final boolean useRegex;
-	private final boolean ignoreCase;
-	private final String searchPkgStr;
+	private boolean useRegex;
+	private boolean ignoreCase;
+	private String searchPkgStr;
+	private String resFilterStr;
+	private int resSizeLimit; // in MB
 
 	private JClass activeCls;
 	private JResource activeResource;
@@ -25,15 +27,11 @@ public class SearchSettings {
 	private ISearchMethod searchMethod;
 	private JavaPackage searchPackage;
 
-	public SearchSettings(String searchString, boolean ignoreCase, boolean useRegex, String searchPkgStr) {
+	public SearchSettings(String searchString) {
 		this.searchString = searchString;
-		this.useRegex = useRegex;
-		this.ignoreCase = ignoreCase;
-		this.searchPkgStr = searchPkgStr;
 	}
 
-	@Nullable
-	public String prepare(MainWindow mainWindow) {
+	public @Nullable String prepare(MainWindow mainWindow) {
 		if (useRegex) {
 			try {
 				int flags = ignoreCase ? Pattern.CASE_INSENSITIVE : 0;
@@ -62,8 +60,16 @@ public class SearchSettings {
 		return this.useRegex;
 	}
 
+	public void setUseRegex(boolean useRegex) {
+		this.useRegex = useRegex;
+	}
+
 	public boolean isIgnoreCase() {
 		return this.ignoreCase;
+	}
+
+	public void setIgnoreCase(boolean ignoreCase) {
+		this.ignoreCase = ignoreCase;
 	}
 
 	public JavaPackage getSearchPackage() {
@@ -72,6 +78,10 @@ public class SearchSettings {
 
 	public boolean isInSearchPkg(JavaClass cls) {
 		return cls.getJavaPackage().isDescendantOf(searchPackage);
+	}
+
+	public void setSearchPkgStr(String searchPkgStr) {
+		this.searchPkgStr = searchPkgStr;
 	}
 
 	public String getSearchString() {
@@ -100,5 +110,21 @@ public class SearchSettings {
 
 	public ISearchMethod getSearchMethod() {
 		return searchMethod;
+	}
+
+	public String getResFilterStr() {
+		return resFilterStr;
+	}
+
+	public void setResFilterStr(String resFilterStr) {
+		this.resFilterStr = resFilterStr;
+	}
+
+	public int getResSizeLimit() {
+		return resSizeLimit;
+	}
+
+	public void setResSizeLimit(int resSizeLimit) {
+		this.resSizeLimit = resSizeLimit;
 	}
 }

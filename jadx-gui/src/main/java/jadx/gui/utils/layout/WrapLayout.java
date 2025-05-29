@@ -9,6 +9,8 @@ import java.awt.Insets;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.intellij.lang.annotations.MagicConstant;
+
 /**
  * FlowLayout subclass that fully supports wrapping of components.
  */
@@ -34,7 +36,7 @@ public class WrapLayout extends FlowLayout {
 	 *
 	 * @param align the alignment value
 	 */
-	public WrapLayout(int align) {
+	public WrapLayout(@MagicConstant(valuesFromClass = FlowLayout.class) int align) {
 		super(align);
 	}
 

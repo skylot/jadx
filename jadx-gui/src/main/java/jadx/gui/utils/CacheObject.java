@@ -18,6 +18,7 @@ public class CacheObject {
 	private String lastSearch;
 	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
 	private String lastSearchPackage;
+	private int maxPkgLength;
 
 	private volatile boolean fullDecompilationFinished;
 
@@ -52,6 +53,14 @@ public class CacheObject {
 
 	public void setLastSearchPackage(String lastSearchPackage) {
 		this.lastSearchPackage = lastSearchPackage;
+	}
+
+	public int getMaxPkgLength() {
+		return maxPkgLength;
+	}
+
+	public void setMaxPkgLength(int maxPkgLength) {
+		this.maxPkgLength = maxPkgLength;
 	}
 
 	public JNodeCache getNodeCache() {

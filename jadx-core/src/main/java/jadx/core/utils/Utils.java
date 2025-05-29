@@ -423,6 +423,15 @@ public class Utils {
 		return collection.iterator().next();
 	}
 
+	public static <T> boolean isSetContainsAny(Set<T> inputSet, Set<T> searchKeys) {
+		for (T t : inputSet) {
+			if (searchKeys.contains(t)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Nullable
 	public static <T> T first(List<T> list) {
 		if (list.isEmpty()) {
