@@ -21,15 +21,17 @@ public class ResTableHelper {
 	 * @return root nodes
 	 */
 	public static List<JResource> buildTree(ResContainer resTable) {
-		ResTableHelper resTableHelper = new ResTableHelper();
+		ResTableHelper resTableHelper = new ResTableHelper(resTable.getFileName());
 		resTableHelper.process(resTable);
 		return resTableHelper.roots;
 	}
 
 	private final List<JResource> roots = new ArrayList<>();
 	private final Map<String, JResource> dirs = new HashMap<>();
+	private final String resNamePrefix;
 
-	private ResTableHelper() {
+	private ResTableHelper(String resTableFileName) {
+		this.resNamePrefix = resTableFileName + ":/";
 	}
 
 	private void process(ResContainer resTable) {
@@ -52,7 +54,7 @@ public class ResTableHelper {
 		}
 		ICodeInfo code = rc.getText();
 		ResourceFileContent fileContent = new ResourceFileContent(name, ResourceType.XML, code);
-		JResource resFile = new JResource(fileContent, resName, name, JResource.JResType.FILE);
+		JResource resFile = new JResource(fileContent, resNamePrefix + resName, name, JResource.JResType.FILE);
 		addResFile(dir, resFile);
 
 		for (ResContainer subFile : rc.getSubFiles()) {
@@ -80,7 +82,7 @@ public class ResTableHelper {
 			JResource curDir = dirs.get(path);
 			if (curDir == null) {
 				String dirName = last ? dir.substring(prevStart) : dir.substring(prevStart, splitPos);
-				curDir = new JResource(null, dirName, JResource.JResType.DIR);
+				curDir = new JResource(null, resNamePrefix + path, dirName, JResource.JResType.DIR);
 				dirs.put(path, curDir);
 				if (parentDir == null) {
 					roots.add(curDir);

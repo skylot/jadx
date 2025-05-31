@@ -75,7 +75,7 @@ public class JadxDecompilerTest {
 					.findFirst().orElseThrow();
 			ResContainer resContainer = arsc.loadContent();
 			ResContainer xmlRes = resContainer.getSubFiles().stream()
-					.filter(r -> r.getName().equals("resources.arsc:res/values/colors.xml"))
+					.filter(r -> r.getName().equals("res/values/colors.xml"))
 					.findFirst().orElseThrow();
 			assertThat(xmlRes.getText())
 					.code()

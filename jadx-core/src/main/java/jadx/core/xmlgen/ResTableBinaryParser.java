@@ -102,7 +102,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp, root.initManifestAttributes());
 
 		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
-		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs(), baseFileName);
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml(root.getArgs());
 		return ResContainer.resourceTable(baseFileName, xmlFiles, content);
 	}
 
