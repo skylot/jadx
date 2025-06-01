@@ -1,10 +1,10 @@
 package jadx.gui.settings.ui;
 
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 
-import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
@@ -15,18 +15,26 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.plugins.gui.ISettingsGroup;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.utils.NLS;
 
 public class SettingsTree extends JTree {
+	private final JadxSettingsWindow settingsWindow;
 
-	public void init(JPanel groupPanel, List<ISettingsGroup> groups) {
+	public SettingsTree(JadxSettingsWindow settingsWindow) {
+		this.settingsWindow = settingsWindow;
+	}
+
+	public void init(List<ISettingsGroup> groups) {
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(NLS.str("preferences.title"));
 		addGroups(treeRoot, groups);
 		setModel(new DefaultTreeModel(treeRoot));
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		setFocusable(false);
-		addTreeSelectionListener(e -> switchGroup(groupPanel));
+		addTreeSelectionListener(ev -> switchGroup());
 		// expand all nodes and disallow collapsing
 		setNodeExpandedState(this, treeRoot, true);
 		addTreeWillExpandListener(new DisableRootCollapseListener(treeRoot));
@@ -41,13 +49,34 @@ public class SettingsTree extends JTree {
 		}
 	}
 
-	private void switchGroup(JPanel groupPanel) {
-		Object selected = getLastSelectedPathComponent();
-		groupPanel.removeAll();
-		if (selected instanceof SettingsTreeNode) {
-			groupPanel.add(((SettingsTreeNode) selected).getGroup().buildComponent());
+	public void selectGroup(ISettingsGroup group) {
+		SettingsTreeNode node = searchTreeNode(group);
+		if (node == null) {
+			throw new JadxRuntimeException("Settings group not found: " + group);
 		}
-		groupPanel.updateUI();
+		setSelectionPath(new TreePath(node.getPath()));
+	}
+
+	private @Nullable SettingsTreeNode searchTreeNode(ISettingsGroup group) {
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) getModel().getRoot();
+		Enumeration<TreeNode> enumeration = root.children();
+		while (enumeration.hasMoreElements()) {
+			SettingsTreeNode node = (SettingsTreeNode) enumeration.nextElement();
+			if (node.getGroup() == group) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	private void switchGroup() {
+		Object selected = getLastSelectedPathComponent();
+		if (selected instanceof SettingsTreeNode) {
+			ISettingsGroup group = ((SettingsTreeNode) selected).getGroup();
+			settingsWindow.activateGroup(group);
+		} else {
+			settingsWindow.activateGroup(null);
+		}
 	}
 
 	private static void setNodeExpandedState(JTree tree, TreeNode node, boolean expanded) {

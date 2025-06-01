@@ -39,7 +39,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -117,7 +116,6 @@ import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
-import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
 import jadx.gui.treemodel.JInputFiles;
@@ -1138,7 +1136,7 @@ public class MainWindow extends JFrame {
 		hexViewerMenu = new JadxMenu(NLS.str("menu.hex_viewer"), shortcutsController);
 		initHexViewMenu();
 
-		JadxGuiAction prefsAction = new JadxGuiAction(ActionModel.PREFS, this::openSettings);
+		JadxGuiAction prefsAction = new JadxGuiAction(ActionModel.PREFS, () -> openSettings());
 		JadxGuiAction exitAction = new JadxGuiAction(ActionModel.EXIT, this::closeWindow);
 
 		isFlattenPackage = settings.isFlattenPackage();
@@ -1532,16 +1530,23 @@ public class MainWindow extends JFrame {
 	}
 
 	private void openSettings() {
+		openSettings(null);
+	}
+
+	private void openSettings(@Nullable String navigateTo) {
 		settingsOpen = true;
 
-		JDialog settingsWindow = new JadxSettingsWindow(MainWindow.this, settings);
-		settingsWindow.setVisible(true);
+		JadxSettingsWindow settingsWindow = new JadxSettingsWindow(MainWindow.this, settings);
 		settingsWindow.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
 				settingsOpen = false;
 			}
 		});
+		if (navigateTo != null) {
+			settingsWindow.activatePage(navigateTo);
+		}
+		settingsWindow.setVisible(true);
 	}
 
 	public boolean isSettingsOpen() {
@@ -1780,8 +1785,8 @@ public class MainWindow extends JFrame {
 
 	public void resetPluginsMenu() {
 		pluginsMenu.removeAll();
-		pluginsMenu.add(new ActionHandler(() -> new PluginSettings(this, settings).addPlugin())
-				.withNameAndDesc(NLS.str("preferences.plugins.install")));
+		pluginsMenu.add(new ActionHandler(() -> openSettings("PluginSettingsGroup.class"))
+				.withNameAndDesc(NLS.str("preferences.plugins.manage")));
 	}
 
 	public void addToPluginsMenu(Action item) {

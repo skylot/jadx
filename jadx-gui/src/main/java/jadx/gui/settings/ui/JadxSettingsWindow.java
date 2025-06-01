@@ -38,6 +38,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,8 @@ import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.core.utils.GsonUtils;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.settings.JadxUpdateChannel;
@@ -91,6 +94,7 @@ public class JadxSettingsWindow extends JDialog {
 	private transient boolean needReload = false;
 	private transient SettingsTree tree;
 	private List<ISettingsGroup> groups;
+	private JPanel wrapGroupPanel;
 
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
@@ -127,7 +131,7 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private void initUI() {
-		JPanel wrapGroupPanel = new JPanel(new BorderLayout(10, 10));
+		wrapGroupPanel = new JPanel(new BorderLayout(10, 10));
 
 		groups = new ArrayList<>();
 		groups.add(makeDecompilationGroup());
@@ -140,8 +144,8 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(new PluginSettings(mainWindow, settings).build());
 		groups.add(makeOtherGroup());
 
-		tree = new SettingsTree();
-		tree.init(wrapGroupPanel, groups);
+		tree = new SettingsTree(this);
+		tree.init(groups);
 		tree.setFocusable(true);
 		JScrollPane leftPane = new JScrollPane(tree);
 		leftPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 3, 3));
@@ -192,6 +196,46 @@ public class JadxSettingsWindow extends JDialog {
 
 		getRootPane().setDefaultButton(saveBtn);
 		return buttonPane;
+	}
+
+	/**
+	 * Activate the settings page by location.
+	 *
+	 * @param location - can be title of a settings group or settings group class implementation (end
+	 *                 with .class)
+	 */
+	public void activatePage(String location) {
+		if (location.endsWith(".class")) {
+			String clsName = StringUtils.removeSuffix(location, ".class");
+			for (ISettingsGroup group : groups) {
+				String groupCls = group.getClass().getSimpleName();
+				if (groupCls.equals(clsName)) {
+					selectGroup(group);
+					return;
+				}
+			}
+			throw new JadxRuntimeException("No setting group class: " + location);
+		} else {
+			for (ISettingsGroup group : groups) {
+				if (group.getTitle().equals(location)) {
+					selectGroup(group);
+					return;
+				}
+			}
+			throw new JadxRuntimeException("No setting group with title: " + location);
+		}
+	}
+
+	public void selectGroup(ISettingsGroup group) {
+		tree.selectGroup(group);
+	}
+
+	public void activateGroup(@Nullable ISettingsGroup group) {
+		wrapGroupPanel.removeAll();
+		if (group != null) {
+			wrapGroupPanel.add(group.buildComponent());
+		}
+		wrapGroupPanel.updateUI();
 	}
 
 	private static void enableComponents(Container container, boolean enable) {
