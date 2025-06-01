@@ -153,14 +153,15 @@ public class JResource extends JLoadableNode {
 		if (resFile == null) {
 			return null;
 		}
-		if (resFile.getType() == ResourceType.IMG) {
-			return new ImagePanel(tabbedPane, this);
-		}
-		if (resFile.getType() == ResourceType.LIB) {
-			return new BinaryContentPanel(tabbedPane, this, false);
-		}
-		if (resFile.getType() == ResourceType.FONT) {
-			return new FontPanel(tabbedPane, this);
+		// TODO: allow to register custom viewers
+		switch (resFile.getType()) {
+			case IMG:
+				return new ImagePanel(tabbedPane, this);
+			case LIB:
+			case CODE:
+				return new BinaryContentPanel(tabbedPane, this, false);
+			case FONT:
+				return new FontPanel(tabbedPane, this);
 		}
 		if (getSyntaxByExtension(resFile.getDeobfName()) == null) {
 			return new BinaryContentPanel(tabbedPane, this);
@@ -326,7 +327,6 @@ public class JResource extends JLoadableNode {
 
 	public static boolean isSupportedForView(ResourceType type) {
 		switch (type) {
-			case CODE:
 			case SOUNDS:
 			case VIDEOS:
 			case ARCHIVE:

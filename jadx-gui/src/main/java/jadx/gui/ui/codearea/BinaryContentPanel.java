@@ -3,6 +3,7 @@ package jadx.gui.ui.codearea;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -20,6 +21,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.hexviewer.HexPreviewPanel;
 import jadx.gui.ui.tab.TabbedPane;
+import jadx.gui.utils.NLS;
 
 public class BinaryContentPanel extends AbstractCodeContentPanel {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryContentPanel.class);
@@ -46,23 +48,36 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		areaTabbedPane = buildTabbedPane();
 		add(areaTabbedPane);
 
-		SwingUtilities.invokeLater(this::loadCodePanel);
+		SwingUtilities.invokeLater(this::loadSelectedPanel);
 	}
 
 	private void loadToHexView(JNode binaryNode) {
-		byte[] bytes = null;
-		if (binaryNode instanceof JResource) {
-			JResource jResource = (JResource) binaryNode;
-			try {
-				bytes = ResourcesLoader.decodeStream(jResource.getResFile(), (size, is) -> is.readAllBytes());
-			} catch (JadxException e) {
-				LOG.error("Failed to directly load resource binary data {}: {}", jResource.getName(), e.getMessage());
-			}
+		if (hexPreviewPanel.isDataLoaded()) {
+			return;
 		}
-		if (bytes == null) {
-			bytes = binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.UTF_8);
-		}
-		hexPreviewPanel.setData(bytes);
+		AtomicReference<byte[]> bytesRef = new AtomicReference<>();
+		getMainWindow().getBackgroundExecutor().execute(NLS.str("progress.load"),
+				() -> {
+					byte[] bytes = null;
+					if (binaryNode instanceof JResource) {
+						JResource jResource = (JResource) binaryNode;
+						try {
+							bytes = ResourcesLoader.decodeStream(jResource.getResFile(), (size, is) -> is.readAllBytes());
+						} catch (JadxException e) {
+							LOG.error("Failed to directly load resource binary data {}: {}", jResource.getName(), e.getMessage());
+						}
+					}
+					if (bytes == null) {
+						bytes = binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.UTF_8);
+					}
+					bytesRef.set(bytes);
+				},
+				taskStatus -> {
+					byte[] bytes = bytesRef.get();
+					if (bytes != null) {
+						hexPreviewPanel.setData(bytes);
+					}
+				});
 	}
 
 	private JTabbedPane buildTabbedPane() {
@@ -75,16 +90,16 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		tabbedPane.add(hexPreviewPanel, "Hex");
 		tabbedPane.addChangeListener(e -> {
 			getMainWindow().toggleHexViewMenu();
+			loadSelectedPanel();
 		});
 		return tabbedPane;
 	}
 
-	private void loadCodePanel() {
+	private void loadSelectedPanel() {
 		Component codePanel = getSelectedPanel();
 		if (codePanel instanceof CodeArea) {
 			CodeArea codeArea = (CodeArea) codePanel;
 			codeArea.load();
-			loadToHexView(getNode());
 		} else {
 			loadToHexView(getNode());
 		}

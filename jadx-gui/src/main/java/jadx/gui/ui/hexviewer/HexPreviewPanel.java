@@ -38,14 +38,15 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class HexPreviewPanel extends JPanel {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 3261685857479120073L;
 	private static final int CACHE_SIZE = 250;
+
 	private final byte[] valuesCache = new byte[CACHE_SIZE];
-	private SectCodeArea hexCodeArea;
-	private SectionCodeAreaColorProfile defaultColors;
-	private HexEditorHeader header;
-	private HexSearchBar searchBar;
-	private HexInspectorPanel inspector;
+	private final SectCodeArea hexCodeArea;
+	private final SectionCodeAreaColorProfile defaultColors;
+	private final HexEditorHeader header;
+	private final HexSearchBar searchBar;
+	private final HexInspectorPanel inspector;
 
 	private JPopupMenu popupMenu;
 	private JMenuItem cutAction;
@@ -59,11 +60,11 @@ public class HexPreviewPanel extends JPanel {
 	private BasicCodeAreaZone popupMenuPositionZone = BasicCodeAreaZone.UNKNOWN;
 
 	public HexPreviewPanel(JadxSettings settings) {
-		this.hexCodeArea = new SectCodeArea();
-		this.hexCodeArea.setCodeFont(settings.getFont());
-		this.hexCodeArea.setEditMode(EditMode.READ_ONLY);
-		this.hexCodeArea.setCharset(StandardCharsets.UTF_8);
-		this.hexCodeArea.setComponentPopupMenu(new JPopupMenu() {
+		hexCodeArea = new SectCodeArea();
+		hexCodeArea.setCodeFont(settings.getFont());
+		hexCodeArea.setEditMode(EditMode.READ_ONLY);
+		hexCodeArea.setCharset(StandardCharsets.UTF_8);
+		hexCodeArea.setComponentPopupMenu(new JPopupMenu() {
 			@Override
 			public void show(Component invoker, int x, int y) {
 				popupMenuPositionZone = hexCodeArea.getPainter().getPositionZone(x, y);
@@ -76,10 +77,10 @@ public class HexPreviewPanel extends JPanel {
 			}
 		});
 
-		this.inspector = new HexInspectorPanel();
-		this.searchBar = new HexSearchBar(hexCodeArea);
-		this.header = new HexEditorHeader(hexCodeArea);
-		this.header.setFont(settings.getFont());
+		inspector = new HexInspectorPanel();
+		searchBar = new HexSearchBar(hexCodeArea);
+		header = new HexEditorHeader(hexCodeArea);
+		header.setFont(settings.getFont());
 
 		CodeAreaPainter painter = hexCodeArea.getPainter();
 		defaultColors = (SectionCodeAreaColorProfile) hexCodeArea.getColorsProfile();
@@ -116,15 +117,19 @@ public class HexPreviewPanel extends JPanel {
 	public SectionCodeAreaColorProfile getColorsProfile() {
 		boolean isDarkTheme = UiUtils.isDarkTheme(Objects.requireNonNull(defaultColors.getColor(CodeAreaBasicColors.TEXT_BACKGROUND)));
 		Color markAllHighlightColor = isDarkTheme ? Color.decode("#32593D") : Color.decode("#ffc800");
-		Color editorSelectionBackground = defaultColors.getColor(CodeAreaBasicColors.SELECTION_BACKGROUND);
+		Color editorSelectionBackground = Objects.requireNonNull(defaultColors.getColor(CodeAreaBasicColors.SELECTION_BACKGROUND));
 		Color currentMatchColor = UiUtils.adjustBrightness(editorSelectionBackground, isDarkTheme ? 0.6f : 1.4f);
 		defaultColors.setColor(CodeAreaMatchColorType.MATCH_BACKGROUND, markAllHighlightColor);
 		defaultColors.setColor(CodeAreaMatchColorType.CURRENT_MATCH_BACKGROUND, currentMatchColor);
 		return defaultColors;
 	}
 
+	public boolean isDataLoaded() {
+		return !hexCodeArea.getContentData().isEmpty();
+	}
+
 	public void setData(byte[] data) {
-		if (hexCodeArea != null && data != null) {
+		if (data != null) {
 			hexCodeArea.setContentData(new ByteArrayEditableData(data));
 			inspector.setBytes(data);
 		}

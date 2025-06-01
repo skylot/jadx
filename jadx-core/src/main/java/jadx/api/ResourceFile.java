@@ -56,12 +56,12 @@ public class ResourceFile {
 		return ResourcesLoader.loadContent(decompiler, this);
 	}
 
-	public boolean setAlias(ResourceEntry entry, boolean useHeders) {
+	public boolean setAlias(ResourceEntry entry, boolean useHeaders) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("res/").append(entry.getTypeName()).append(entry.getConfig());
 		sb.append("/").append(entry.getKeyName());
 
-		if (useHeders) {
+		if (useHeaders) {
 			try {
 				int maxBytesToReadLimit = 4096;
 				byte[] bytes = ResourcesLoader.decodeStream(this, (size, is) -> {
