@@ -537,14 +537,19 @@ public class MainWindow extends JFrame {
 	}
 
 	public void reopen() {
-		synchronized (ReloadProject.EVENT) {
-			saveAll();
-			closeAll();
-			loadFiles(() -> {
-				menuBar.reloadShortcuts();
-				events().send(ReloadSettingsWindow.INSTANCE);
-			});
-		}
+		LOG.debug("starting reopen");
+		UiUtils.bgRun(() -> {
+			getBackgroundExecutor().waitForComplete();
+			synchronized (ReloadProject.EVENT) {
+				saveAll();
+				closeAll();
+				loadFiles(() -> {
+					menuBar.reloadShortcuts();
+					events().send(ReloadSettingsWindow.INSTANCE);
+					LOG.debug("reopen complete");
+				});
+			}
+		});
 	}
 
 	private void openProject(Path path, Runnable onFinish) {
@@ -622,7 +627,7 @@ public class MainWindow extends JFrame {
 		shortcutsController.reset();
 		UiUtils.resetClipboardOwner();
 		System.gc();
-		update();
+		UiUtils.uiRun(this::update);
 	}
 
 	private void checkLoadedStatus() {

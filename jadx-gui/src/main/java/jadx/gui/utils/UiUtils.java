@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -78,6 +80,8 @@ public class UiUtils {
 			return "EMPTY_RUNNABLE";
 		}
 	};
+
+	private static final ExecutorService BACKGROUND_THREAD = Executors.newSingleThreadExecutor(Utils.simpleThreadFactory("utils-bg"));
 
 	private UiUtils() {
 	}
@@ -418,6 +422,14 @@ public class UiUtils {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Run task in background thread.
+	 * Uses single thread, so all tasks are ordered.
+	 */
+	public static void bgRun(Runnable runnable) {
+		BACKGROUND_THREAD.submit(runnable);
 	}
 
 	public static void uiThreadGuard() {

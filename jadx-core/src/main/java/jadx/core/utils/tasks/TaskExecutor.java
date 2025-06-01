@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.api.utils.tasks.ITaskExecutor;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TaskExecutor implements ITaskExecutor {
@@ -99,7 +100,7 @@ public class TaskExecutor implements ITaskExecutor {
 		running.set(true);
 		progress.set(0);
 		terminating.set(false);
-		executor = Executors.newFixedThreadPool(1);
+		executor = Executors.newFixedThreadPool(1, Utils.simpleThreadFactory("task-s"));
 		executor.execute(this::runStages);
 		executor.shutdown();
 	}
@@ -142,7 +143,8 @@ public class TaskExecutor implements ITaskExecutor {
 						wrapTask(task);
 					}
 				} else {
-					ExecutorService parallelExecutor = Executors.newFixedThreadPool(threads);
+					ExecutorService parallelExecutor = Executors.newFixedThreadPool(
+							threads, Utils.simpleThreadFactory("task-p"));
 					for (Runnable task : stage.getTasks()) {
 						parallelExecutor.execute(() -> wrapTask(task));
 					}

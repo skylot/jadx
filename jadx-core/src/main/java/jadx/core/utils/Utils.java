@@ -16,9 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
@@ -501,6 +504,27 @@ public class Utils {
 	public static void checkThreadInterrupt() {
 		if (Thread.currentThread().isInterrupted()) {
 			throw new JadxRuntimeException("Thread interrupted");
+		}
+	}
+
+	public static ThreadFactory simpleThreadFactory(String name) {
+		return new SimpleThreadFactory(name);
+	}
+
+	private static final class SimpleThreadFactory implements ThreadFactory {
+		private static final AtomicInteger POOL = new AtomicInteger(0);
+		private final AtomicInteger number = new AtomicInteger(0);
+		private final String name;
+
+		public SimpleThreadFactory(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public Thread newThread(@NotNull Runnable r) {
+			return new Thread(r, "jadx-" + name
+					+ '-' + POOL.incrementAndGet()
+					+ '-' + number.incrementAndGet());
 		}
 	}
 
