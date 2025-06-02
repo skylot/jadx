@@ -18,7 +18,7 @@ jobs:
       - name: Set up JDK
         uses: oracle-actions/setup-java@v1
         with:
-          release: 23
+          release: 24
 
       - name: Set jadx version
         uses: actions/github-script@v7
