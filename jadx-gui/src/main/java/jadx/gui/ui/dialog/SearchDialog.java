@@ -1,9 +1,12 @@
 package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -347,6 +350,8 @@ public class SearchDialog extends CommonSearchDialog {
 			boolean resSearch = searchOptions.contains(RESOURCE);
 			resExtFilePanel.setVisible(resSearch);
 			sizeLimitPanel.setVisible(resSearch);
+			optionsPanel.revalidate();
+			optionsPanel.repaint();
 		});
 
 		JPanel searchPane = new JPanel();
@@ -367,6 +372,13 @@ public class SearchDialog extends CommonSearchDialog {
 		contentPanel.add(buttonPane, BorderLayout.PAGE_END);
 		getContentPane().add(contentPanel);
 
+		this.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				optionsPanel.revalidate();
+				optionsPanel.repaint();
+			}
+		});
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	}
