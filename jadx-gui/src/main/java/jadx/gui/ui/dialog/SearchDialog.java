@@ -1,7 +1,6 @@
 package jadx.gui.ui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -372,7 +371,7 @@ public class SearchDialog extends CommonSearchDialog {
 		contentPanel.add(buttonPane, BorderLayout.PAGE_END);
 		getContentPane().add(contentPanel);
 
-		this.addComponentListener(new ComponentAdapter() {
+		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				optionsPanel.revalidate();
