@@ -135,6 +135,12 @@ public class HexPreviewPanel extends JPanel {
 		}
 	}
 
+	public void scrollToOffset(int pos) {
+		hexCodeArea.setSelection(pos, pos + 1);
+		hexCodeArea.setActiveCaretPosition(pos);
+		hexCodeArea.centerOnPosition(hexCodeArea.getActiveCaretPosition());
+	}
+
 	public void enableUpdate() {
 		CodeAreaCaretListener caretMovedListener = (CodeAreaCaretPosition caretPosition) -> updateValues();
 		hexCodeArea.addCaretMovedListener(caretMovedListener);

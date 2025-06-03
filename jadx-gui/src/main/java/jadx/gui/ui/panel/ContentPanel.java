@@ -41,6 +41,9 @@ public abstract class ContentPanel extends JPanel {
 		return node;
 	}
 
+	public void scrollToPos(int pos) {
+	}
+
 	/**
 	 * Allows to show a tool tip on the tab e.g. for displaying a long path of the
 	 * selected entry inside the APK file.

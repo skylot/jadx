@@ -17,6 +17,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.resources.ResourceContentType;
 import jadx.core.utils.ListUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
@@ -54,6 +55,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 
 	public ICodeInfo getCodeInfo() {
 		return ICodeInfo.EMPTY;
+	}
+
+	public ResourceContentType getContentType() {
+		return ResourceContentType.CONTENT_TEXT;
 	}
 
 	public boolean isEditable() {

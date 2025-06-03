@@ -8,6 +8,8 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.dex.nodes.PackageNode;
+import jadx.core.utils.exceptions.InvalidDataException;
+import jadx.gui.search.providers.ResourceFilter;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
@@ -26,6 +28,7 @@ public class SearchSettings {
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
 	private JavaPackage searchPackage;
+	private ResourceFilter resourceFilter;
 
 	public SearchSettings(String searchString) {
 		this.searchString = searchString;
@@ -49,6 +52,11 @@ public class SearchSettings {
 			searchPackage = pkg.getJavaNode();
 		}
 		searchMethod = ISearchMethod.build(this);
+		try {
+			resourceFilter = ResourceFilter.parse(resFilterStr);
+		} catch (InvalidDataException e) {
+			return "Invalid resource file filter: " + e.getMessage();
+		}
 		return null;
 	}
 
@@ -112,12 +120,12 @@ public class SearchSettings {
 		return searchMethod;
 	}
 
-	public String getResFilterStr() {
-		return resFilterStr;
-	}
-
 	public void setResFilterStr(String resFilterStr) {
 		this.resFilterStr = resFilterStr;
+	}
+
+	public ResourceFilter getResourceFilter() {
+		return resourceFilter;
 	}
 
 	public int getResSizeLimit() {

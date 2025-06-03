@@ -115,6 +115,16 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 	}
 
 	@Override
+	public void scrollToPos(int pos) {
+		Component codePanel = getSelectedPanel();
+		if (codePanel instanceof CodeArea) {
+			textCodePanel.getCodeArea().scrollToPos(pos);
+		} else {
+			hexPreviewPanel.scrollToOffset(pos);
+		}
+	}
+
+	@Override
 	public Component getChildrenComponent() {
 		return getSelectedPanel();
 	}

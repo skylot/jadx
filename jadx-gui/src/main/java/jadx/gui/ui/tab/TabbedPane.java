@@ -238,11 +238,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			LOG.warn("Ignore zero jump!", new JadxRuntimeException());
 			return;
 		}
-		if (contentPanel instanceof AbstractCodeContentPanel) {
-			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPanel).getCodeArea();
-			codeArea.requestFocus();
-			codeArea.scrollToPos(pos);
-		}
+		contentPanel.scrollToPos(pos);
 	}
 
 	public void selectTab(ContentPanel contentPanel) {
@@ -259,7 +255,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		} else {
 			selectTab(panel);
 		}
-		ClassCodeContentPanel codePane = ((ClassCodeContentPanel) panel);
+		ClassCodeContentPanel codePane = (ClassCodeContentPanel) panel;
 		codePane.showSmaliPane();
 		SmaliArea smaliArea = (SmaliArea) codePane.getSmaliCodeArea();
 		if (debugMode) {
@@ -272,7 +268,10 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	public @Nullable JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedContentPanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
-			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
+			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea();
+			if (codeArea != null) {
+				return codeArea.getCurrentPosition();
+			}
 		}
 		return null;
 	}
