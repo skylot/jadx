@@ -174,24 +174,40 @@ public class ResourceSearchProvider implements ISearchProvider {
 	}
 
 	private boolean shouldProcess(JResource resNode) {
+		if (resNode.getResFile().getType() == ResourceType.ARSC) {
+			// don't check the size of generated resource table, it will also skip all subfiles
+			return resourceFilter.isAnyFile()
+					|| resourceFilter.getContentTypes().contains(ResourceContentType.CONTENT_TEXT)
+					|| resourceFilter.getExtSet().contains("xml");
+		}
+		if (!isAllowedFileType(resNode)) {
+			return false;
+		}
+		return isAllowedFileSize(resNode);
+	}
+
+	private boolean isAllowedFileType(JResource resNode) {
 		ResourceFile resFile = resNode.getResFile();
-		if (resFile.getType() == ResourceType.ARSC) {
-			// don't check size of generated resource table, it will also skip all sub files
-			return resourceFilter.isAnyFile() || resourceFilter.getExtSet().contains("xml");
+		if (resourceFilter.isAnyFile()) {
+			return true;
 		}
-		if (!resourceFilter.isAnyFile()) {
-			if (resourceFilter.getContentTypes().contains(resNode.getContentType())) {
-				// accept
-			} else {
-				String fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
-				if (fileExt == null) {
-					return false;
-				}
-				if (!resourceFilter.getExtSet().contains(fileExt)) {
-					return false;
-				}
-			}
+		ResourceContentType resContentType = resNode.getContentType();
+		if (resourceFilter.getContentTypes().contains(resContentType)) {
+			return true;
 		}
+		String fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
+		if (fileExt != null && resourceFilter.getExtSet().contains(fileExt)) {
+			return true;
+		}
+		if (resContentType == ResourceContentType.CONTENT_UNKNOWN
+				&& resourceFilter.getContentTypes().contains(ResourceContentType.CONTENT_BINARY)) {
+			// treat unknown file type as binary
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isAllowedFileSize(JResource resNode) {
 		if (sizeLimit <= 0) {
 			return true;
 		}

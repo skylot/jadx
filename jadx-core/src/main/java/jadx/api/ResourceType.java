@@ -9,11 +9,12 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.api.resources.ResourceContentType.CONTENT_BINARY;
 import static jadx.api.resources.ResourceContentType.CONTENT_TEXT;
+import static jadx.api.resources.ResourceContentType.CONTENT_UNKNOWN;
 
 public enum ResourceType {
 	CODE(CONTENT_BINARY, ".dex", ".jar", ".class"),
 	XML(CONTENT_TEXT, ".xml"),
-	ARSC(CONTENT_BINARY, ".arsc"),
+	ARSC(CONTENT_TEXT, ".arsc"),
 	APK(CONTENT_BINARY, ".apk", ".apkm", ".apks"),
 	FONT(CONTENT_BINARY, ".ttf", ".ttc", ".otf"),
 	IMG(CONTENT_BINARY, ".png", ".gif", ".jpg", ".webp", ".bmp", ".tiff"),
@@ -26,7 +27,8 @@ public enum ResourceType {
 	HTML(CONTENT_TEXT, ".html"),
 	LIB(CONTENT_BINARY, ".so"),
 	MANIFEST(CONTENT_TEXT),
-	UNKNOWN(CONTENT_TEXT);
+	UNKNOWN_BIN(CONTENT_BINARY, ".bin"),
+	UNKNOWN(CONTENT_UNKNOWN);
 
 	private final ResourceContentType contentType;
 	private final String[] exts;

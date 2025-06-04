@@ -160,16 +160,17 @@ public class JResource extends JLoadableNode {
 		switch (resFile.getType()) {
 			case IMG:
 				return new ImagePanel(tabbedPane, this);
-			case LIB:
-			case CODE:
-				return new BinaryContentPanel(tabbedPane, this, false);
 			case FONT:
 				return new FontPanel(tabbedPane, this);
 		}
-		if (getSyntaxByExtension(resFile.getDeobfName()) == null) {
-			return new BinaryContentPanel(tabbedPane, this);
+		if (getContentType() == ResourceContentType.CONTENT_BINARY) {
+			return new BinaryContentPanel(tabbedPane, this, false);
 		}
-		return new CodeContentPanel(tabbedPane, this);
+		if (getSyntaxByExtension(resFile.getDeobfName()) != null) {
+			return new CodeContentPanel(tabbedPane, this);
+		}
+		// unknown file type, show both text and binary
+		return new BinaryContentPanel(tabbedPane, this, true);
 	}
 
 	@Override
@@ -231,11 +232,11 @@ public class JResource extends JLoadableNode {
 							return new SimpleCodeInfo("File too large for view");
 						}
 						Charset charset;
-						if (resourceFile.getType().getContentType() == ResourceContentType.CONTENT_BINARY) {
+						if (resourceFile.getType().getContentType() == ResourceContentType.CONTENT_TEXT) {
+							charset = StandardCharsets.UTF_8;
+						} else {
 							// force one byte charset for binary data to have the same offsets as in a byte array
 							charset = StandardCharsets.US_ASCII;
-						} else {
-							charset = StandardCharsets.UTF_8;
 						}
 						return ResourcesLoader.loadToCodeWriter(is, charset);
 					});

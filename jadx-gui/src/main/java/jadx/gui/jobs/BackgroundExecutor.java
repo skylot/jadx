@@ -104,6 +104,14 @@ public class BackgroundExecutor {
 		return execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable)));
 	}
 
+	public void startLoading(Runnable backgroundRunnable, Runnable onFinishUiRunnable) {
+		execute(new SimpleTask(NLS.str("progress.load"), backgroundRunnable, onFinishUiRunnable));
+	}
+
+	public void startLoading(Runnable backgroundRunnable) {
+		execute(new SimpleTask(NLS.str("progress.load"), backgroundRunnable));
+	}
+
 	private synchronized void reset() {
 		taskQueueExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, Utils.simpleThreadFactory("bg"));
 		taskRunning.clear();

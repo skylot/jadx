@@ -225,20 +225,19 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
-		ContentPanel contentPanel = getContentPanel(jumpPos.getNode());
-		if (contentPanel != null) {
-			selectTab(contentPanel);
-			scrollToPos(contentPanel, jumpPos.getPos());
+		JNode jumpNode = jumpPos.getNode();
+		ContentPanel contentPanel = getContentPanel(jumpNode);
+		if (contentPanel == null) {
+			return null;
 		}
-		return contentPanel;
-	}
-
-	private void scrollToPos(ContentPanel contentPanel, int pos) {
-		if (pos == 0) {
-			LOG.warn("Ignore zero jump!", new JadxRuntimeException());
-			return;
+		selectTab(contentPanel);
+		int pos = jumpPos.getPos();
+		if (pos < 0) {
+			LOG.warn("Invalid jump: {}", jumpPos, new JadxRuntimeException());
+			pos = 0;
 		}
 		contentPanel.scrollToPos(pos);
+		return contentPanel;
 	}
 
 	public void selectTab(ContentPanel contentPanel) {
