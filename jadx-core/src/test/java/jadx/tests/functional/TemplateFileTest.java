@@ -17,6 +17,7 @@ public class TemplateFileTest {
 		tmpl.add("versionCode", 3);
 		tmpl.add("versionName", "1.2.3");
 		tmpl.add("additionalOptions", "useLibrary 'org.apache.http.legacy'");
+		tmpl.add("compileSdkVersion", 4);
 		String res = tmpl.build();
 		System.out.println(res);
 
@@ -24,5 +25,6 @@ public class TemplateFileTest {
 		assertThat(res).contains("targetSdkVersion 2");
 		assertThat(res).contains("versionCode 3");
 		assertThat(res).contains("versionName \"1.2.3\"");
+		assertThat(res).contains("compileSdkVersion 4");
 	}
 }
