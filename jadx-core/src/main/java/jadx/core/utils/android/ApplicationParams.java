@@ -8,16 +8,18 @@ public class ApplicationParams {
 	private final String applicationLabel;
 	private final Integer minSdkVersion;
 	private final Integer targetSdkVersion;
+	private final Integer compileSdkVersion;
 	private final Integer versionCode;
 	private final String versionName;
 	private final String mainActivity;
 	private final String application;
 
-	public ApplicationParams(String applicationLabel, Integer minSdkVersion, Integer targetSdkVersion, Integer versionCode,
-			String versionName, String mainActivity, String application) {
+	public ApplicationParams(String applicationLabel, Integer minSdkVersion, Integer targetSdkVersion, Integer compileSdkVersion,
+			Integer versionCode, String versionName, String mainActivity, String application) {
 		this.applicationLabel = applicationLabel;
 		this.minSdkVersion = minSdkVersion;
 		this.targetSdkVersion = targetSdkVersion;
+		this.compileSdkVersion = compileSdkVersion;
 		this.versionCode = versionCode;
 		this.versionName = versionName;
 		this.mainActivity = mainActivity;
@@ -34,6 +36,10 @@ public class ApplicationParams {
 
 	public Integer getTargetSdkVersion() {
 		return targetSdkVersion;
+	}
+
+	public Integer getCompileSdkVersion() {
+		return compileSdkVersion;
 	}
 
 	public Integer getVersionCode() {
