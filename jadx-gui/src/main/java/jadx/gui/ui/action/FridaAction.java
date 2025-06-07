@@ -136,7 +136,7 @@ public final class FridaAction extends JNodeAction {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = StringEscapeUtils.escapeEcmaScript(javaClass.getRawName());
 		String shortClassName = javaClass.getName();
-		return String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
+		return String.format("var %s = Java.use(\"%s\");", shortClassName, rawClassName);
 	}
 
 	private void showMethodSelectionDialog(JClass jc) {
