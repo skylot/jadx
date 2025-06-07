@@ -31,7 +31,8 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 	private static final Logger LOG = LoggerFactory.getLogger(AndroidGradleGenerator.class);
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
 
-	private static final ApplicationParams UNKNOWN_APP_PARAMS = new ApplicationParams("UNKNOWN", 0, 0, 0, 0, "UNKNOWN", "UNKNOWN", "UNKNOWN");
+	private static final ApplicationParams UNKNOWN_APP_PARAMS =
+			new ApplicationParams("UNKNOWN", 0, 0, 0, 0, "UNKNOWN", "UNKNOWN", "UNKNOWN");
 
 	private final RootNode root;
 	private final File projectDir;
