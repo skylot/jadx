@@ -990,13 +990,15 @@ public class MainWindow extends JFrame {
 		ContentPanel panel = tabbedPane.getSelectedContentPanel();
 		if (panel instanceof AbstractCodeContentPanel) {
 			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
-			String preferText = codeArea.getSelectedText();
-			if (StringUtils.isEmpty(preferText)) {
-				preferText = codeArea.getWordUnderCaret();
-			}
-			if (!StringUtils.isEmpty(preferText)) {
-				SearchDialog.searchText(MainWindow.this, preferText);
-				return;
+			if (codeArea != null) {
+				String preferText = codeArea.getSelectedText();
+				if (StringUtils.isEmpty(preferText)) {
+					preferText = codeArea.getWordUnderCaret();
+				}
+				if (!StringUtils.isEmpty(preferText)) {
+					SearchDialog.searchText(MainWindow.this, preferText);
+					return;
+				}
 			}
 		}
 		SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.TEXT);

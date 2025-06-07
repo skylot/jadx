@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -229,9 +230,13 @@ public final class ResourcesLoader implements IResourcesLoader {
 	}
 
 	public static ICodeInfo loadToCodeWriter(InputStream is) throws IOException {
+		return loadToCodeWriter(is, StandardCharsets.UTF_8);
+	}
+
+	public static ICodeInfo loadToCodeWriter(InputStream is, Charset charset) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);
-		return new SimpleCodeInfo(baos.toString(StandardCharsets.UTF_8));
+		return new SimpleCodeInfo(baos.toString(charset));
 	}
 
 	private synchronized BinaryXMLParser loadBinaryXmlParser() {

@@ -3,6 +3,8 @@ package jadx.gui.ui.panel;
 import javax.swing.JPanel;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
@@ -12,7 +14,7 @@ import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
 
 public abstract class ContentPanel extends JPanel {
-
+	private static final Logger LOG = LoggerFactory.getLogger(ContentPanel.class);
 	private static final long serialVersionUID = 3237031760631677822L;
 
 	protected TabbedPane tabbedPane;
@@ -39,6 +41,10 @@ public abstract class ContentPanel extends JPanel {
 
 	public JNode getNode() {
 		return node;
+	}
+
+	public void scrollToPos(int pos) {
+		LOG.warn("ContentPanel.scrollToPos method not implemented, class: {}", getClass().getSimpleName());
 	}
 
 	/**

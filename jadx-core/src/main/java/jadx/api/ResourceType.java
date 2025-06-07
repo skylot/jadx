@@ -4,29 +4,42 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import jadx.api.resources.ResourceContentType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public enum ResourceType {
-	CODE(".dex", ".jar", ".class"),
-	XML(".xml"),
-	ARSC(".arsc"),
-	APK(".apk", ".apkm", ".apks"),
-	FONT(".ttf", ".ttc", ".otf"),
-	IMG(".png", ".gif", ".jpg", ".webp", ".bmp", ".tiff"),
-	ARCHIVE(".zip", ".rar", ".7zip", ".7z", ".arj", ".tar", ".gzip", ".bzip", ".bzip2", ".cab", ".cpio", ".ar", ".gz", ".tgz", ".bz2"),
-	VIDEOS(".mp4", ".mkv", ".webm", ".avi", ".flv", ".3gp"),
-	SOUNDS(".aac", ".ogg", ".opus", ".mp3", ".wav", ".wma", ".mid", ".midi"),
-	JSON(".json"),
-	TEXT(".txt", ".ini", ".conf", ".yaml", ".properties", ".js"),
-	HTML(".html"),
-	LIB(".so"),
-	MANIFEST,
-	UNKNOWN;
+import static jadx.api.resources.ResourceContentType.CONTENT_BINARY;
+import static jadx.api.resources.ResourceContentType.CONTENT_TEXT;
+import static jadx.api.resources.ResourceContentType.CONTENT_UNKNOWN;
 
+public enum ResourceType {
+	CODE(CONTENT_BINARY, ".dex", ".jar", ".class"),
+	XML(CONTENT_TEXT, ".xml"),
+	ARSC(CONTENT_TEXT, ".arsc"),
+	APK(CONTENT_BINARY, ".apk", ".apkm", ".apks"),
+	FONT(CONTENT_BINARY, ".ttf", ".ttc", ".otf"),
+	IMG(CONTENT_BINARY, ".png", ".gif", ".jpg", ".webp", ".bmp", ".tiff"),
+	ARCHIVE(CONTENT_BINARY, ".zip", ".rar", ".7zip", ".7z", ".arj", ".tar", ".gzip", ".bzip", ".bzip2", ".cab", ".cpio", ".ar", ".gz",
+			".tgz", ".bz2"),
+	VIDEOS(CONTENT_BINARY, ".mp4", ".mkv", ".webm", ".avi", ".flv", ".3gp"),
+	SOUNDS(CONTENT_BINARY, ".aac", ".ogg", ".opus", ".mp3", ".wav", ".wma", ".mid", ".midi"),
+	JSON(CONTENT_TEXT, ".json"),
+	TEXT(CONTENT_TEXT, ".txt", ".ini", ".conf", ".yaml", ".properties", ".js"),
+	HTML(CONTENT_TEXT, ".html"),
+	LIB(CONTENT_BINARY, ".so"),
+	MANIFEST(CONTENT_TEXT),
+	UNKNOWN_BIN(CONTENT_BINARY, ".bin"),
+	UNKNOWN(CONTENT_UNKNOWN);
+
+	private final ResourceContentType contentType;
 	private final String[] exts;
 
-	ResourceType(String... exts) {
+	ResourceType(ResourceContentType contentType, String... exts) {
+		this.contentType = contentType;
 		this.exts = exts;
+	}
+
+	public ResourceContentType getContentType() {
+		return contentType;
 	}
 
 	public String[] getExts() {

@@ -4,8 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.swing.tree.TreeNode;
 
@@ -16,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.api.resources.ResourceContentType;
 import jadx.api.utils.CodeUtils;
 import jadx.gui.jobs.Cancelable;
 import jadx.gui.search.ISearchProvider;
@@ -32,10 +31,9 @@ public class ResourceSearchProvider implements ISearchProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourceSearchProvider.class);
 
 	private final SearchSettings searchSettings;
-	private final Set<String> extSet;
 	private final SearchDialog searchDialog;
+	private final ResourceFilter resourceFilter;
 	private final int sizeLimit;
-	private boolean anyExt;
 
 	/**
 	 * Resources queue for process. Using UI nodes to reuse loading cache
@@ -48,7 +46,7 @@ public class ResourceSearchProvider implements ISearchProvider {
 
 	public ResourceSearchProvider(MainWindow mw, SearchSettings searchSettings, SearchDialog searchDialog) {
 		this.searchSettings = searchSettings;
-		this.extSet = buildAllowedFilesExtensions(searchSettings.getResFilterStr());
+		this.resourceFilter = searchSettings.getResourceFilter();
 		this.sizeLimit = searchSettings.getResSizeLimit() * 1024 * 1024;
 		this.searchDialog = searchDialog;
 		JResource activeResource = searchSettings.getActiveResource();
@@ -95,12 +93,20 @@ public class ResourceSearchProvider implements ISearchProvider {
 		if (newPos == -1) {
 			return null;
 		}
-		int lineStart = 1 + CodeUtils.getNewLinePosBefore(content, newPos);
-		int lineEnd = CodeUtils.getNewLinePosAfter(content, newPos);
-		int end = lineEnd == -1 ? content.length() : lineEnd;
-		String line = content.substring(lineStart, end);
-		this.pos = end;
-		return new JResSearchNode(resNode, line.trim(), newPos);
+		if (resNode.getContentType() == ResourceContentType.CONTENT_TEXT) {
+			int lineStart = 1 + CodeUtils.getNewLinePosBefore(content, newPos);
+			int lineEnd = CodeUtils.getNewLinePosAfter(content, newPos);
+			int end = lineEnd == -1 ? content.length() : lineEnd;
+			String line = content.substring(lineStart, end);
+			this.pos = end;
+			return new JResSearchNode(resNode, line.trim(), newPos);
+		} else {
+			int start = Math.max(0, newPos - 30);
+			int end = Math.min(newPos + 50, content.length());
+			String line = content.substring(start, end);
+			this.pos = newPos + searchString.length() + 1;
+			return new JResSearchNode(resNode, line, newPos);
+		}
 	}
 
 	private @Nullable JResource getNextResFile(Cancelable cancelable) {
@@ -167,41 +173,41 @@ public class ResourceSearchProvider implements ISearchProvider {
 		return deque;
 	}
 
-	private Set<String> buildAllowedFilesExtensions(String srhResourceFileExt) {
-		String str = srhResourceFileExt.trim();
-		if (str.isEmpty() || str.equals("*")) {
-			anyExt = true;
-			return Collections.emptySet();
+	private boolean shouldProcess(JResource resNode) {
+		if (resNode.getResFile().getType() == ResourceType.ARSC) {
+			// don't check the size of generated resource table, it will also skip all subfiles
+			return resourceFilter.isAnyFile()
+					|| resourceFilter.getContentTypes().contains(ResourceContentType.CONTENT_TEXT)
+					|| resourceFilter.getExtSet().contains("xml");
 		}
-		Set<String> set = new HashSet<>();
-		for (String extStr : str.split("[|.]")) {
-			String ext = extStr.trim();
-			if (!ext.isEmpty()) {
-				anyExt = ext.equals("*");
-				if (anyExt) {
-					break;
-				}
-				set.add(ext);
-			}
+		if (!isAllowedFileType(resNode)) {
+			return false;
 		}
-		return set;
+		return isAllowedFileSize(resNode);
 	}
 
-	private boolean shouldProcess(JResource resNode) {
+	private boolean isAllowedFileType(JResource resNode) {
 		ResourceFile resFile = resNode.getResFile();
-		if (resFile.getType() == ResourceType.ARSC) {
-			// don't check size of generated resource table, it will also skip all sub files
-			return anyExt || extSet.contains("xml");
+		if (resourceFilter.isAnyFile()) {
+			return true;
 		}
-		if (!anyExt) {
-			String fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
-			if (fileExt == null) {
-				return false;
-			}
-			if (!extSet.contains(fileExt)) {
-				return false;
-			}
+		ResourceContentType resContentType = resNode.getContentType();
+		if (resourceFilter.getContentTypes().contains(resContentType)) {
+			return true;
 		}
+		String fileExt = CommonFileUtils.getFileExtension(resFile.getOriginalName());
+		if (fileExt != null && resourceFilter.getExtSet().contains(fileExt)) {
+			return true;
+		}
+		if (resContentType == ResourceContentType.CONTENT_UNKNOWN
+				&& resourceFilter.getContentTypes().contains(ResourceContentType.CONTENT_BINARY)) {
+			// treat unknown file type as binary
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isAllowedFileSize(JResource resNode) {
 		if (sizeLimit <= 0) {
 			return true;
 		}

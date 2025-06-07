@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -51,6 +52,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
+import jadx.api.resources.ResourceContentType;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
@@ -65,6 +67,7 @@ import jadx.gui.search.providers.CommentSearchProvider;
 import jadx.gui.search.providers.FieldSearchProvider;
 import jadx.gui.search.providers.MergedSearchProvider;
 import jadx.gui.search.providers.MethodSearchProvider;
+import jadx.gui.search.providers.ResourceFilter;
 import jadx.gui.search.providers.ResourceSearchProvider;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -80,6 +83,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.cache.ValueCache;
 import jadx.gui.utils.layout.WrapLayout;
 import jadx.gui.utils.rx.RxUtils;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
 import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
@@ -318,15 +322,56 @@ public class SearchDialog extends CommonSearchDialog {
 		searchPackagePanel
 				.setPreferredSize(new Dimension(Math.max(packageField.getPreferredSize().width, minPanelSize.width), minPanelSize.height));
 
-		resExtField = new JTextField();
+		resExtField = new JTextField(30);
 		TextStandardActions.attach(resExtField);
 		resExtField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 		resExtField.setToolTipText(NLS.str("preferences.res_file_ext"));
-		resExtField.setText(mainWindow.getProject().getSearchResourcesFilter());
+		String resFilterStr = mainWindow.getProject().getSearchResourcesFilter();
+		resExtField.setText(resFilterStr);
 
-		JPanel resExtFilePanel = new JPanel(new BorderLayout());
+		ResourceFilter resFilter = ResourceFilter.parse(resFilterStr);
+
+		JCheckBox textResBox = new JCheckBox(NLS.str("search_dialog.res_text"));
+		textResBox.setSelected(resFilter.getContentTypes().contains(ResourceContentType.CONTENT_TEXT));
+		JCheckBox binResBox = new JCheckBox(NLS.str("search_dialog.res_binary"));
+		binResBox.setSelected(resFilter.getContentTypes().contains(ResourceContentType.CONTENT_BINARY));
+
+		ItemListener resContentTypeListener = ev -> {
+			try {
+				Set<ResourceContentType> contentTypes = EnumSet.noneOf(ResourceContentType.class);
+				if (textResBox.isSelected()) {
+					contentTypes.add(ResourceContentType.CONTENT_TEXT);
+				}
+				if (binResBox.isSelected()) {
+					contentTypes.add(ResourceContentType.CONTENT_BINARY);
+				}
+				String newStr = ResourceFilter.withContentType(resExtField.getText(), contentTypes);
+				if (!newStr.equals(resExtField.getText())) {
+					resExtField.setText(newStr);
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		};
+		textResBox.addItemListener(resContentTypeListener);
+		binResBox.addItemListener(resContentTypeListener);
+
+		resExtField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> UiUtils.uiRun(() -> {
+			try {
+				ResourceFilter filter = ResourceFilter.parse(resExtField.getText());
+				textResBox.setSelected(filter.getContentTypes().contains(ResourceContentType.CONTENT_TEXT));
+				binResBox.setSelected(filter.getContentTypes().contains(ResourceContentType.CONTENT_BINARY));
+			} catch (Exception e) {
+				// ignore
+			}
+		})));
+
+		JPanel resExtFilePanel = new JPanel();
+		resExtFilePanel.setLayout(new BoxLayout(resExtFilePanel, BoxLayout.LINE_AXIS));
 		resExtFilePanel.setBorder(BorderFactory.createTitledBorder(NLS.str("preferences.res_file_ext")));
-		resExtFilePanel.add(resExtField, BorderLayout.CENTER);
+		resExtFilePanel.add(resExtField);
+		resExtFilePanel.add(textResBox);
+		resExtFilePanel.add(binResBox);
 		resExtFilePanel.setPreferredSize(calcMinSizeForTitledBorder(resExtFilePanel));
 
 		resSizeLimit = new JSpinner(new SpinnerNumberModel(mainWindow.getProject().getSearchResourcesSizeLimit(), 0, Integer.MAX_VALUE, 1));
@@ -562,10 +607,11 @@ public class SearchDialog extends CommonSearchDialog {
 
 		SearchTask newSearchTask = new SearchTask(mainWindow, this::addSearchResult, this::searchFinished);
 		if (!buildSearch(newSearchTask, text, searchSettings)) {
+			UiUtils.highlightAsErrorField(searchField, true);
 			return null;
 		}
 		// save search settings
-		mainWindow.getProject().setSearchResourcesFilter(searchSettings.getResFilterStr());
+		mainWindow.getProject().setSearchResourcesFilter(resExtField.getText().trim());
 		mainWindow.getProject().setSearchResourcesSizeLimit(searchSettings.getResSizeLimit());
 		return newSearchTask;
 	}
