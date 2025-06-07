@@ -31,7 +31,8 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 	private static final Logger LOG = LoggerFactory.getLogger(AndroidGradleGenerator.class);
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
 
-	private static final ApplicationParams UNKNOWN_APP_PARAMS = new ApplicationParams("UNKNOWN", 0, 0, 0, "UNKNOWN", "UNKNOWN", "UNKNOWN");
+	private static final ApplicationParams UNKNOWN_APP_PARAMS =
+			new ApplicationParams("UNKNOWN", 0, 0, 0, 0, "UNKNOWN", "UNKNOWN", "UNKNOWN");
 
 	private final RootNode root;
 	private final File projectDir;
@@ -107,6 +108,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 			if (exportApp) {
 				attrs.add(AppAttribute.APPLICATION_LABEL);
 				attrs.add(AppAttribute.TARGET_SDK_VERSION);
+				attrs.add(AppAttribute.COMPILE_SDK_VERSION);
 				attrs.add(AppAttribute.VERSION_NAME);
 				attrs.add(AppAttribute.VERSION_CODE);
 			}
@@ -160,6 +162,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 		TemplateFile tmpl = TemplateFile.fromResources("/export/android/app.build.gradle.tmpl");
 		tmpl.add("applicationId", appPackage);
 		tmpl.add("minSdkVersion", minSdkVersion);
+		tmpl.add("compileSdkVersion", applicationParams.getCompileSdkVersion());
 		tmpl.add("targetSdkVersion", applicationParams.getTargetSdkVersion());
 		tmpl.add("versionCode", applicationParams.getVersionCode());
 		tmpl.add("versionName", applicationParams.getVersionName());
@@ -174,6 +177,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 		TemplateFile tmpl = TemplateFile.fromResources("/export/android/lib.build.gradle.tmpl");
 		tmpl.add("packageId", pkg);
 		tmpl.add("minSdkVersion", minSdkVersion);
+		tmpl.add("compileSdkVersion", applicationParams.getCompileSdkVersion());
 		tmpl.add("additionalOptions", genAdditionalAndroidPluginOptions(minSdkVersion));
 
 		tmpl.save(new File(baseDir, "build.gradle"));
