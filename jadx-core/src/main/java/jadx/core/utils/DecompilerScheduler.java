@@ -65,7 +65,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 					mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
 				}
 			} else {
-				List<JavaClass> batch = new ArrayList<>(depsSize + 1);
+				List<JavaClass> batch = new ArrayList<>();
 				for (JavaClass dep : cls.getDependencies()) {
 					JavaClass topDep = dep.getTopParentClass();
 					if (!added.contains(topDep)) {
@@ -75,7 +75,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				}
 				batch.sort(cmpDepSize);
 				batch.add(cls);
-				result.add(batch);
+				result.add(Utils.lockList(batch));
 			}
 		}
 		if (!mergedBatch.isEmpty()) {

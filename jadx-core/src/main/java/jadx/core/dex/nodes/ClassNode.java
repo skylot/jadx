@@ -150,6 +150,8 @@ public class ClassNode extends NotificationAttrNode
 		IUsageInfoData usageInfoData = root.getArgs().getUsageInfoCache().get(root);
 		if (usageInfoData != null) {
 			usageInfoData.applyForClass(this);
+		} else {
+			LOG.warn("Can't restore usage data for class: {}", this);
 		}
 	}
 
