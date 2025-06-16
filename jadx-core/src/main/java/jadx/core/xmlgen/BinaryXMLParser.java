@@ -65,7 +65,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		resourceIds = null;
 		is = new ParserStream(inputStream);
 		if (!isBinaryXml()) {
-			return ResourcesLoader.loadToCodeWriter(inputStream);
+			return ResourcesLoader.loadToCodeWriter(is);
 		}
 		nsMapGenerated = new HashSet<>();
 		nsMap = new HashMap<>();
