@@ -2,7 +2,6 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -15,7 +14,6 @@ public class TestSpecialValues2 extends IntegrationTest {
 		}
 	}
 
-	@NotYetImplemented("Constant value replace")
 	@Test
 	public void test() {
 		noDebugInfo();

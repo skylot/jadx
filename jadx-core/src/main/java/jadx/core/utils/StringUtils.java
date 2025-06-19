@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.JadxArgs;
 import jadx.api.args.IntegerFormat;
 import jadx.core.deobf.NameMapper;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class StringUtils {
 	private static final StringUtils DEFAULT_INSTANCE = new StringUtils(new JadxArgs());
@@ -386,58 +387,90 @@ public class StringUtils {
 		return new SimpleDateFormat("HH:mm:ss").format(new Date());
 	}
 
-	private String toFormatString(long l) {
+	private String formatNumber(long number, int bytesLen, boolean cast) {
+		String numStr;
 		if (integerFormat.isHexadecimal()) {
-			return "0x" + Long.toHexString(l);
+			String hexStr = Long.toHexString(number);
+			if (number < 0) {
+				// cut leading 'f' for negative numbers to match number type length
+				int len = hexStr.length();
+				numStr = "0x" + hexStr.substring(len - bytesLen * 2, len);
+				// force cast, because unsigned negative numbers are bigger
+				// than signed max value allowed by compiler
+				cast = true;
+			} else {
+				numStr = "0x" + hexStr;
+			}
+		} else {
+			numStr = Long.toString(number);
 		}
-		return Long.toString(l);
+		if (bytesLen == 8 && (number == Long.MIN_VALUE || Math.abs(number) >= Integer.MAX_VALUE)) {
+			// force cast for long values bigger than min/max int
+			// to resolve compiler error: "integer number too large"
+			cast = true;
+		}
+		if (cast) {
+			if (bytesLen == 8) {
+				return numStr + 'L';
+			}
+			return getCastStr(bytesLen) + numStr;
+		}
+		return numStr;
 	}
 
-	public String formatShort(long l, boolean cast) {
-		if (l == Short.MAX_VALUE) {
-			return "Short.MAX_VALUE";
+	private static String getCastStr(int bytesLen) {
+		switch (bytesLen) {
+			case 1:
+				return "(byte) ";
+			case 2:
+				return "(short) ";
+			case 4:
+				return "(int) ";
+			case 8:
+				return "(long) ";
+			default:
+				throw new JadxRuntimeException("Unexpected number type length: " + bytesLen);
 		}
-		if (l == Short.MIN_VALUE) {
-			return "Short.MIN_VALUE";
-		}
-		String str = toFormatString(l);
-		return cast ? "(short) " + str : str;
 	}
 
 	public String formatByte(long l, boolean cast) {
-		if (l == Byte.MAX_VALUE) {
-			return "Byte.MAX_VALUE";
+		return formatNumber(l, 1, cast);
+	}
+
+	public String formatShort(long l, boolean cast) {
+		if (integerFormat == IntegerFormat.AUTO) {
+			switch ((short) l) {
+				case Short.MAX_VALUE:
+					return "Short.MAX_VALUE";
+				case Short.MIN_VALUE:
+					return "Short.MIN_VALUE";
+			}
 		}
-		if (l == Byte.MIN_VALUE) {
-			return "Byte.MIN_VALUE";
-		}
-		String str = toFormatString(l);
-		return cast ? "(byte) " + str : str;
+		return formatNumber(l, 2, cast);
 	}
 
 	public String formatInteger(long l, boolean cast) {
-		if (l == Integer.MAX_VALUE) {
-			return "Integer.MAX_VALUE";
+		if (integerFormat == IntegerFormat.AUTO) {
+			switch ((int) l) {
+				case Integer.MAX_VALUE:
+					return "Integer.MAX_VALUE";
+				case Integer.MIN_VALUE:
+					return "Integer.MIN_VALUE";
+			}
 		}
-		if (l == Integer.MIN_VALUE) {
-			return "Integer.MIN_VALUE";
-		}
-		String str = toFormatString(l);
-		return cast ? "(int) " + str : str;
+		return formatNumber(l, 4, cast);
 	}
 
 	public String formatLong(long l, boolean cast) {
-		if (l == Long.MAX_VALUE) {
-			return "Long.MAX_VALUE";
+		if (integerFormat == IntegerFormat.AUTO) {
+			if (l == Long.MAX_VALUE) {
+				return "Long.MAX_VALUE";
+			}
+			if (l == Long.MIN_VALUE) {
+				return "Long.MIN_VALUE";
+			}
 		}
-		if (l == Long.MIN_VALUE) {
-			return "Long.MIN_VALUE";
-		}
-		String str = toFormatString(l);
-		if (cast || Math.abs(l) >= Integer.MAX_VALUE) {
-			return str + 'L';
-		}
-		return str;
+		return formatNumber(l, 8, cast);
 	}
 
 	public static String formatDouble(double d) {

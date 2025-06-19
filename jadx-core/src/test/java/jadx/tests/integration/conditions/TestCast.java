@@ -21,7 +21,7 @@ public class TestCast extends IntegrationTest {
 		}
 
 		public void test3(boolean a) {
-			write(a ? 0 : Byte.MAX_VALUE);
+			write(a ? 0 : (byte) 127);
 		}
 
 		public void test4(boolean a) {
@@ -49,7 +49,7 @@ public class TestCast extends IntegrationTest {
 				.code()
 				.contains("write(a ? (byte) 0 : (byte) 1);")
 				.contains("write(a ? (byte) 0 : this.myByte);")
-				.contains("write(a ? (byte) 0 : Byte.MAX_VALUE);")
+				.contains("write(a ? (byte) 0 : (byte) 127);")
 				.contains("write(a ? (short) 0 : (short) 1);")
 				.contains("write(a ? this.myShort : (short) 0);")
 				.contains("write(a ? Short.MIN_VALUE : (short) 0);");
