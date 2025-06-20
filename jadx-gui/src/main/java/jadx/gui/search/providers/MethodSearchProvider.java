@@ -23,6 +23,9 @@ public final class MethodSearchProvider extends BaseSearchProvider {
 
 	@Override
 	public @Nullable JNode next(Cancelable cancelable) {
+		if (classes.isEmpty()) {
+			return null;
+		}
 		while (true) {
 			if (cancelable.isCanceled()) {
 				return null;
