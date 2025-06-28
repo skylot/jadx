@@ -3,7 +3,7 @@ plugins {
 	id("application")
 	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.6"
+	id("com.gradleup.shadow") version "8.3.7"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -23,8 +23,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.2")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.5.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.5.0")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.6.0")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.6.0")
 
 	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.18")
@@ -46,7 +46,7 @@ dependencies {
 
 	implementation("io.reactivex.rxjava3:rxjava:3.1.10")
 	implementation("com.github.akarnokd:rxjava3-swing:3.1.1")
-	implementation("com.android.tools.build:apksig:8.10.0")
+	implementation("com.android.tools.build:apksig:8.11.0")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	// Library for hex viewing data
