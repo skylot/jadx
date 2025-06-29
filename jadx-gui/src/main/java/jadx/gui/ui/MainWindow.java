@@ -1216,7 +1216,7 @@ public class MainWindow extends JFrame {
 		JadxGuiAction forwardVariantAction = new JadxGuiAction(ActionModel.FORWARD_V, navController::navForward);
 		JadxGuiAction quarkAction = new JadxGuiAction(ActionModel.QUARK,
 				() -> new QuarkDialog(MainWindow.this).setVisible(true));
-		JadxGuiAction openDeviceAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
+		JadxGuiAction debuggerAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
 				() -> new ADBDialog(MainWindow.this).setVisible(true));
 
 		JMenu file = new JadxMenu(NLS.str("menu.file"), shortcutsController);
@@ -1276,7 +1276,7 @@ public class MainWindow extends JFrame {
 		tools.add(resetCacheAction);
 		tools.add(deobfMenuItem);
 		tools.add(quarkAction);
-		tools.add(openDeviceAction);
+		tools.add(debuggerAction);
 
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
@@ -1344,7 +1344,7 @@ public class MainWindow extends JFrame {
 		toolbar.addSeparator();
 		toolbar.add(deobfToggleBtn);
 		toolbar.add(quarkAction);
-		toolbar.add(openDeviceAction);
+		toolbar.add(debuggerAction);
 		toolbar.addSeparator();
 		toolbar.add(showLogAction);
 		toolbar.addSeparator();
@@ -1379,6 +1379,7 @@ public class MainWindow extends JFrame {
 			decompileAllAction.setEnabled(loaded);
 			deobfAction.setEnabled(loaded);
 			quarkAction.setEnabled(loaded);
+			debuggerAction.setEnabled(loaded);
 			resetCacheAction.setEnabled(loaded);
 			return false;
 		});
