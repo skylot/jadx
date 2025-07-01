@@ -556,7 +556,7 @@ public class SearchDialog extends CommonSearchDialog {
 					searchEmitter.getFlowable()));
 		}
 		searchDisposable = searchEvents
-				.debounce(50, TimeUnit.MILLISECONDS)
+				.debounce(100, TimeUnit.MILLISECONDS)
 				.observeOn(Schedulers.from(searchBackgroundExecutor))
 				.subscribe(t -> this.search(searchField.getText()));
 
