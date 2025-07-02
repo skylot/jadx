@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -380,6 +381,15 @@ public abstract class CommonSearchDialog extends JFrame {
 		@Override
 		public Object getValueAt(int row, int column) {
 			return model.getValueAt(row, column);
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+			// ResultsTable only has two wide columns, the default increment is way too fast
+			if (orientation == SwingConstants.HORIZONTAL) {
+				return 30;
+			}
+			return super.getScrollableUnitIncrement(visibleRect, orientation, direction);
 		}
 	}
 

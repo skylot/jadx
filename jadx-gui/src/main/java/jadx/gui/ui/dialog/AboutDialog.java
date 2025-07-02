@@ -3,7 +3,6 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
@@ -29,21 +28,16 @@ public class AboutDialog extends JDialog {
 	}
 
 	public final void initUI() {
-		Font font = new Font("Serif", Font.BOLD, 13);
-
 		URL logoURL = getClass().getResource("/logos/jadx-logo-48px.png");
-		Icon logo = new ImageIcon(logoURL, "jadx logo");
+		Icon logo = new ImageIcon(logoURL, "JADX logo");
 
-		JLabel name = new JLabel("jadx", logo, SwingConstants.CENTER);
-		name.setFont(font);
+		JLabel name = new JLabel("JADX", logo, SwingConstants.CENTER);
 		name.setAlignmentX(0.5f);
 
 		JLabel desc = new JLabel("Dex to Java decompiler");
-		desc.setFont(font);
 		desc.setAlignmentX(0.5f);
 
-		JLabel version = new JLabel("jadx version: " + JadxDecompiler.getVersion());
-		version.setFont(font);
+		JLabel version = new JLabel("JADX version: " + JadxDecompiler.getVersion());
 		version.setAlignmentX(0.5f);
 
 		String javaVm = System.getProperty("java.vm.name");
@@ -52,12 +46,10 @@ public class AboutDialog extends JDialog {
 		javaVm = javaVm == null ? "" : javaVm;
 
 		JLabel javaVmLabel = new JLabel("Java VM: " + javaVm);
-		javaVmLabel.setFont(font);
 		javaVmLabel.setAlignmentX(0.5f);
 
 		javaVer = javaVer == null ? "" : javaVer;
 		JLabel javaVerLabel = new JLabel("Java version: " + javaVer);
-		javaVerLabel.setFont(font);
 		javaVerLabel.setAlignmentX(0.5f);
 
 		JPanel textPane = new JPanel();

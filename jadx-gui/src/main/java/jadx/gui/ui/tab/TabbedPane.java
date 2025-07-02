@@ -86,12 +86,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 			int index = getSelectedIndex();
 			int maxIndex = getTabCount() - 1;
 			index += direction;
-			// switch between first tab <-> last tab
-			if (index < 0) {
-				index = maxIndex;
-			} else if (index > maxIndex) {
-				index = 0;
-			}
+			index = Math.max(0, Math.min(maxIndex, index));
 			try {
 				setSelectedIndex(index);
 			} catch (IndexOutOfBoundsException e) {

@@ -2,6 +2,7 @@ package jadx.gui.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.Font;
@@ -1297,7 +1298,13 @@ public class MainWindow extends JFrame {
 			uiWatchDog.setState(UIWatchDog.onStart());
 			help.add(uiWatchDog);
 		}
-		help.add(aboutAction);
+
+		if (SystemInfo.IS_MAC) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+			Desktop.getDesktop().setAboutHandler(e -> aboutAction.actionPerformed(null));
+		} else {
+			help.add(aboutAction);
+		}
 
 		menuBar = new JadxMenuBar();
 		menuBar.add(file);
