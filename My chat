@@ -1,0 +1,325 @@
+ChatApp/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/example/chatapp/
+│   │   │   │   ├── activities/
+│   │   │   │   │   ├── LoginActivity.kt
+│   │   │   │   │   ├── MainActivity.kt
+│   │   │   │   │   ├── ChatActivity.kt
+│   │   │   │   │   └── ProfileActivity.kt
+│   │   │   │   ├── adapters/
+│   │   │   │   │   └── ChatAdapter.kt
+│   │   │   │   ├── models/
+│   │   │   │   │   ├── User.kt
+│   │   │   │   │   └── ChatMessage.kt
+│   │   │   │   └── utils/
+│   │   │   │       ├── MediaUtils.kt
+│   │   │   │       └── FirebaseUtils.kt
+│   │   │   ├── res/
+│   │   │   │   ├── layout/
+│   │   │   │   │   ├── activity_login.xml
+│   │   │   │   │   ├── activity_main.xml
+│   │   │   │   │   ├── activity_chat.xml
+│   │   │   │   │   └── item_message.xml
+│   │   │   │   ├── values/
+│   │   │   │   │   ├── strings.xml
+│   │   │   │   │   ├── colors.xml
+│   │   │   │   │   └── styles.xml
+│   │   │   │   └── drawable/
+│   │   │   └── AndroidManifest.xml
+│   │   └── build.gradle
+├── gradle/
+└── build.gradle
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.chatapp">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        
+        <activity android:name=".activities.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activities.MainActivity" />
+        <activity android:name=".activities.ChatActivity" />
+        <activity android:name=".activities.ProfileActivity" />
+        
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.chatapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>
+class ChatActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityChatBinding
+    private lateinit var adapter: ChatAdapter
+    private lateinit var messages: MutableList<ChatMessage>
+    private lateinit var currentUser: User
+    private lateinit var recipient: User
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityChatBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        // Initialize users and messages
+        currentUser = FirebaseUtils.getCurrentUser()
+        recipient = intent.getParcelableExtra("recipient")!!
+        
+        setupRecyclerView()
+        setupClickListeners()
+        listenForMessages()
+    }
+    
+    private fun setupClickListeners() {
+        binding.btnSend.setOnClickListener {
+            val messageText = binding.etMessage.text.toString()
+            if (messageText.isNotEmpty()) {
+                sendMessage(messageText, MessageType.TEXT)
+                binding.etMessage.text.clear()
+            }
+        }
+        
+        binding.btnImage.setOnClickListener {
+            checkPermissionsAndOpenImagePicker()
+        }
+        
+        binding.btnAudio.setOnClickListener {
+            checkPermissionsAndRecordAudio()
+        }
+        
+        binding.btnVideo.setOnClickListener {
+            checkPermissionsAndRecordVideo()
+        }
+    }
+    
+    private fun sendMessage(content: String, type: MessageType) {
+        val message = ChatMessage(
+            senderId = currentUser.id,
+            recipientId = recipient.id,
+            content = content,
+            type = type,
+            timestamp = System.currentTimeMillis()
+        )
+        
+        FirebaseUtils.sendMessage(message) { success ->
+            if (success) {
+                // Message sent successfully
+            }
+        }
+    }
+    
+    private fun sendImage(imageUri: Uri) {
+        FirebaseUtils.uploadMedia(this, imageUri, MediaType.IMAGE) { downloadUrl ->
+            downloadUrl?.let {
+                sendMessage(it, MessageType.IMAGE)
+            }
+        }
+    }
+    
+    private fun sendAudio(audioUri: Uri) {
+        FirebaseUtils.uploadMedia(this, audioUri, MediaType.AUDIO) { downloadUrl ->
+            downloadUrl?.let {
+                sendMessage(it, MessageType.AUDIO)
+            }
+        }
+    }
+    
+    private fun sendVideo(videoUri: Uri) {
+        FirebaseUtils.uploadMedia(this, videoUri, MediaType.VIDEO) { downloadUrl ->
+            downloadUrl?.let {
+                sendMessage(it, MessageType.VIDEO)
+            }
+        }
+    }
+    
+    // Other methods for permissions, media handling, etc.
+}
+object FirebaseUtils {
+    private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
+    
+    fun getCurrentUser(): User {
+        // Implement current user retrieval
+    }
+    
+    fun sendMessage(message: ChatMessage, callback: (Boolean) -> Unit) {
+        db.collection("messages")
+            .add(message.toMap())
+            .addOnSuccessListener { callback(true) }
+            .addOnFailureListener { callback(false) }
+    }
+    
+    fun uploadMedia(context: Context, uri: Uri, type: MediaType, callback: (String?) -> Unit) {
+        val storageRef = storage.reference
+        val fileRef = storageRef.child("${type.name.toLowerCase()}/${UUID.randomUUID()}")
+        
+        fileRef.putFile(uri)
+            .addOnSuccessListener {
+                fileRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    callback(downloadUri.toString())
+                }
+            }
+            .addOnFailureListener {
+                callback(null)
+            }
+    }
+    
+    fun listenForMessages(userId: String, recipientId: String, callback: (ChatMessage) -> Unit) {
+        db.collection("messages")
+            .whereEqualTo("senderId", userId)
+            .whereEqualTo("recipientId", recipientId)
+            .addSnapshotListener { snapshot, _ ->
+                snapshot?.documents?.forEach { doc ->
+                    val message = doc.toObject(ChatMessage::class.java)
+                    message?.let { callback(it) }
+                }
+            }
+    }
+}
+class ChatAdapter(private val messages: List<ChatMessage>, private val currentUserId: String) :
+    RecyclerView.Adapter<ChatAdapter.MessageViewHolder>() {
+
+    companion object {
+        private const val VIEW_TYPE_SENT = 1
+        private const val VIEW_TYPE_RECEIVED = 2
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (messages[position].senderId == currentUserId) {
+            VIEW_TYPE_SENT
+        } else {
+            VIEW_TYPE_RECEIVED
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
+        val layout = when (viewType) {
+            VIEW_TYPE_SENT -> R.layout.item_message_sent
+            else -> R.layout.item_message_received
+        }
+        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+        return MessageViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
+        val message = messages[position]
+        holder.bind(message)
+    }
+
+    override fun getItemCount() = messages.size
+
+    inner class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(message: ChatMessage) {
+            when (message.type) {
+                MessageType.TEXT -> {
+                    itemView.tvMessageText.text = message.content
+                    itemView.tvMessageText.visibility = View.VISIBLE
+                    itemView.ivMedia.visibility = View.GONE
+                    itemView.btnPlayAudio.visibility = View.GONE
+                }
+                MessageType.IMAGE -> {
+                    Glide.with(itemView.context)
+                        .load(message.content)
+                        .into(itemView.ivMedia)
+                    itemView.ivMedia.visibility = View.VISIBLE
+                    itemView.tvMessageText.visibility = View.GONE
+                    itemView.btnPlayAudio.visibility = View.GONE
+                }
+                MessageType.AUDIO -> {
+                    itemView.btnPlayAudio.visibility = View.VISIBLE
+                    itemView.tvMessageText.visibility = View.GONE
+                    itemView.ivMedia.visibility = View.GONE
+                    
+                    itemView.btnPlayAudio.setOnClickListener {
+                        playAudio(message.content)
+                    }
+                }
+                MessageType.VIDEO -> {
+                    itemView.ivMedia.setImageResource(R.drawable.ic_video_placeholder)
+                    itemView.ivMedia.visibility = View.VISIBLE
+                    itemView.tvMessageText.visibility = View.GONE
+                    itemView.btnPlayAudio.visibility = View.GONE
+                    
+                    itemView.ivMedia.setOnClickListener {
+                        playVideo(message.content)
+                    }
+                }
+            }
+            
+            itemView.tvTimestamp.text = formatTimestamp(message.timestamp)
+        }
+        
+        private fun playAudio(audioUrl: String) {
+            // Implement audio playback
+        }
+        
+        private fun playVideo(videoUrl: String) {
+            // Implement video playback
+        }
+    }
+}
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /messages/{message} {
+      allow read, write: if request.auth != null;
+    }
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+    }
+  }
+
+}
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+dependencies {
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:31.2.3')
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-storage-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    
+    // Media
+    implementation 'com.github.bumptech.glide:glide:4.14.2'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.4'
+    
+    // Permissions
+    implementation 'com.karumi:dexter:6.2.3'
+    
+    // Date formatting
+    implementation 'org.ocpsoft.prettytime:prettytime:5.0.4.Final'
+}
