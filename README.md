@@ -168,7 +168,7 @@ Plugin options (-P<name>=<value>):
     - dex-input.verify-checksum       - verify dex file checksum before load, values: [yes, no], default: yes
  2) java-convert: Convert .class, .jar and .aar files to dex
     - java-convert.mode               - convert mode, values: [dx, d8, both], default: both
-    - java-convert.d8-desugar         - use desugar in d8, values: [yes, no], default: no
+    - java-convert.d8-desugar         - use desugar in d8, values: [yes, no], default: yes
  3) kotlin-metadata: Use kotlin.Metadata annotation for code generation
     - kotlin-metadata.class-alias     - rename class alias, values: [yes, no], default: yes
     - kotlin-metadata.method-args     - rename function arguments, values: [yes, no], default: yes
@@ -179,12 +179,12 @@ Plugin options (-P<name>=<value>):
     - kotlin-metadata.getters         - rename simple getters to field names, values: [yes, no], default: yes
  4) rename-mappings: various mappings support
     - rename-mappings.format          - mapping format, values: [AUTO, TINY_FILE, TINY_2_FILE, ENIGMA_FILE, ENIGMA_DIR, SRG_FILE, XSRG_FILE, CSRG_FILE, TSRG_FILE, TSRG_2_FILE, PROGUARD_FILE], default: AUTO
-    - rename-mappings.invert          - invert mapping on load, values: [yes, no], default: no
+    - rename-mappings.invert          - invert mapping on load, values: [yes, no], default: yes
 
 Environment variables:
   JADX_DISABLE_XML_SECURITY - set to 'true' to disable all security checks for XML files
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
-  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
+  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100000)
   JADX_CONFIG_DIR - custom config directory, using system by default
   JADX_CACHE_DIR - custom cache directory, using system by default
   JADX_TMP_DIR - custom temp directory, using system by default
