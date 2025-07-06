@@ -33,6 +33,7 @@ application {
 	mainClass.set("jadx.cli.JadxCLI")
 	applicationDefaultJvmArgs =
 		listOf(
+			"-XX:+IgnoreUnrecognizedVMOptions",
 			"-Xms256M",
 			"-XX:MaxRAMPercentage=70.0",
 			// disable zip checks (#1962)
