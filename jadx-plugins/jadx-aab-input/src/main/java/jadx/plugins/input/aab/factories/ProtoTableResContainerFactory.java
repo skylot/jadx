@@ -28,6 +28,7 @@ public class ProtoTableResContainerFactory implements IResContainerFactory {
 		if (parser == null) {
 			return null;
 		}
+		parser.decode(inputStream);
 		return parser.decodeFiles();
 	}
 }
