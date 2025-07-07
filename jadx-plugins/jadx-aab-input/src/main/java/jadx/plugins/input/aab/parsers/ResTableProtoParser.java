@@ -58,16 +58,14 @@ public class ResTableProtoParser extends CommonProtoParser implements IResTableP
 	}
 
 	private void parse(Package p) {
-		String name = p.getPackageName();
-		resStorage.setAppPackage(name);
-		parse(name, p.getTypeList());
-	}
+		String packageName = p.getPackageName();
+		resStorage.setAppPackage(packageName);
+		List<Type> types = p.getTypeList();
 
-	private void parse(String packageName, List<Type> types) {
 		for (Type type : types) {
 			String typeName = type.getName();
 			for (Entry entry : type.getEntryList()) {
-				int id = entry.getEntryId().getId();
+				int id = p.getPackageId().getId() << 24 | type.getTypeId().getId() << 16 | entry.getEntryId().getId();
 				String entryName = entry.getName();
 				for (ConfigValue configValue : entry.getConfigValueList()) {
 					String config = parse(configValue.getConfig());
