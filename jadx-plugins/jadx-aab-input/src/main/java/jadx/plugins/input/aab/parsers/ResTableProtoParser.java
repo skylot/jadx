@@ -1,16 +1,11 @@
 package jadx.plugins.input.aab.parsers;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
 import com.android.aapt.Resources.ConfigValue;
 import com.android.aapt.Resources.Entry;
 import com.android.aapt.Resources.Package;
 import com.android.aapt.Resources.ResourceTable;
 import com.android.aapt.Resources.Type;
 import com.android.aapt.Resources.Value;
-
 import jadx.api.ICodeInfo;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
@@ -23,6 +18,10 @@ import jadx.core.xmlgen.XmlGenUtils;
 import jadx.core.xmlgen.entry.ProtoValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 public class ResTableProtoParser extends CommonProtoParser implements IResTableParser {
 	private final RootNode root;
@@ -58,16 +57,14 @@ public class ResTableProtoParser extends CommonProtoParser implements IResTableP
 	}
 
 	private void parse(Package p) {
-		String name = p.getPackageName();
-		resStorage.setAppPackage(name);
-		parse(name, p.getTypeList());
-	}
+		String packageName = p.getPackageName();
+		resStorage.setAppPackage(packageName);
+		List<Type> types = p.getTypeList();
 
-	private void parse(String packageName, List<Type> types) {
 		for (Type type : types) {
 			String typeName = type.getName();
 			for (Entry entry : type.getEntryList()) {
-				int id = entry.getEntryId().getId();
+				int id = p.getPackageId().getId() << 24 | type.getTypeId().getId() << 16 | entry.getEntryId().getId();
 				String entryName = entry.getName();
 				for (ConfigValue configValue : entry.getConfigValueList()) {
 					String config = parse(configValue.getConfig());
