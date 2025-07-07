@@ -1,11 +1,16 @@
 package jadx.plugins.input.aab.parsers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 import com.android.aapt.Resources.ConfigValue;
 import com.android.aapt.Resources.Entry;
 import com.android.aapt.Resources.Package;
 import com.android.aapt.Resources.ResourceTable;
 import com.android.aapt.Resources.Type;
 import com.android.aapt.Resources.Value;
+
 import jadx.api.ICodeInfo;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.FileUtils;
@@ -18,10 +23,6 @@ import jadx.core.xmlgen.XmlGenUtils;
 import jadx.core.xmlgen.entry.ProtoValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 public class ResTableProtoParser extends CommonProtoParser implements IResTableParser {
 	private final RootNode root;
