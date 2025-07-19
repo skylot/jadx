@@ -3,7 +3,7 @@ plugins {
 	id("application")
 	id("jadx-library")
 	id("edu.sc.seis.launch4j") version "3.0.6"
-	id("com.gradleup.shadow") version "8.3.7"
+	id("com.gradleup.shadow") version "8.3.8"
 	id("org.beryx.runtime") version "1.13.1"
 }
 
@@ -23,8 +23,8 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.2")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.6.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.6.0")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.7.0")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.7.0")
 
 	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.18")
@@ -35,18 +35,18 @@ dependencies {
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer
 
-	implementation("com.formdev:flatlaf:3.6")
-	implementation("com.formdev:flatlaf-intellij-themes:3.6")
-	implementation("com.formdev:flatlaf-extras:3.6")
+	implementation("com.formdev:flatlaf:3.6.1")
+	implementation("com.formdev:flatlaf-intellij-themes:3.6.1")
+	implementation("com.formdev:flatlaf-extras:3.6.1")
 
 	implementation("com.google.code.gson:gson:2.13.1")
-	implementation("org.apache.commons:commons-lang3:3.17.0")
+	implementation("org.apache.commons:commons-lang3:3.18.0")
 	implementation("org.apache.commons:commons-text:1.13.1")
-	implementation("commons-io:commons-io:2.19.0")
+	implementation("commons-io:commons-io:2.20.0")
 
-	implementation("io.reactivex.rxjava3:rxjava:3.1.10")
+	implementation("io.reactivex.rxjava3:rxjava:3.1.11")
 	implementation("com.github.akarnokd:rxjava3-swing:3.1.1")
-	implementation("com.android.tools.build:apksig:8.11.0")
+	implementation("com.android.tools.build:apksig:8.11.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	// Library for hex viewing data
