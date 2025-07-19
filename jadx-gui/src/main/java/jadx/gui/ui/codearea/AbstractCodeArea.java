@@ -479,12 +479,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public void dispose() {
-		// code area reference can still be used somewhere in UI objects,
-		// reset node reference to allow to GC jadx objects tree
-		node = null;
-		contentPanel = null;
-
-		// also clear internals
+		// clear internals
 		try {
 			setIgnoreRepaint(true);
 			setText("");
@@ -513,6 +508,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		} catch (Throwable e) {
 			LOG.debug("Error on code area dispose", e);
 		}
+		// code area reference can still be used somewhere in UI objects,
+		// reset node reference to allow to GC jadx objects tree
+		node = null;
+		contentPanel = null;
 	}
 
 	@Override
