@@ -6,6 +6,7 @@ import jadx.gui.treemodel.JNode;
 
 public class TabBlueprint {
 	private final JNode node;
+	private boolean created;
 	private boolean pinned;
 	private boolean bookmarked;
 	private boolean hidden;
@@ -17,6 +18,14 @@ public class TabBlueprint {
 
 	public JNode getNode() {
 		return node;
+	}
+
+	public boolean isCreated() {
+		return created;
+	}
+
+	public void setCreated(boolean created) {
+		this.created = created;
 	}
 
 	public boolean isPinned() {

@@ -51,7 +51,7 @@ public class TabStateViewAdapter {
 			viewState.setPreviewTab(tvs.isPreviewTab());
 			return viewState;
 		} catch (Exception e) {
-			LOG.error("Failed to load tab state: " + tvs, e);
+			LOG.error("Failed to load tab state: {}", tvs, e);
 			return null;
 		}
 	}

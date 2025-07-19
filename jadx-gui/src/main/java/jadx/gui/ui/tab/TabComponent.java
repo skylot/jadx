@@ -342,9 +342,10 @@ public class TabComponent extends JPanel {
 	}
 
 	public TabBlueprint getBlueprint() {
-		TabBlueprint blueprint = tabsController.getTabByNode(contentPanel.getNode());
+		JNode node = contentPanel.getNode();
+		TabBlueprint blueprint = tabsController.getTabByNode(node);
 		if (blueprint == null) {
-			throw new JadxRuntimeException("TabComponent does not have a corresponding TabBlueprint");
+			throw new JadxRuntimeException("TabComponent does not have a corresponding TabBlueprint, node: " + node);
 		}
 		return blueprint;
 	}

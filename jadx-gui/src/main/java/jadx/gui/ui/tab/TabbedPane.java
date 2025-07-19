@@ -407,10 +407,15 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (blueprint.isHidden()) {
 			return;
 		}
-		ContentPanel newPanel = blueprint.getNode().getContentPanel(this);
+		JNode node = blueprint.getNode();
+		ContentPanel newPanel = node.getContentPanel(this);
 		if (newPanel != null) {
+			if (node != newPanel.getNode()) {
+				throw new JadxRuntimeException("Incorrect node found in content panel");
+			}
 			FocusManager.listen(newPanel);
 			addContentPanel(newPanel);
+			blueprint.setCreated(true);
 		}
 	}
 

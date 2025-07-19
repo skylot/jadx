@@ -25,6 +25,7 @@ import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.BinaryContentPanel;
 import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
@@ -275,6 +276,7 @@ public class JResource extends JLoadableNode {
 
 	private static final Map<String, String> EXTENSION_TO_FILE_SYNTAX = jadx.core.utils.Utils.newConstStringMap(
 			"java", SyntaxConstants.SYNTAX_STYLE_JAVA,
+			"smali", AbstractCodeArea.SYNTAX_STYLE_SMALI,
 			"js", SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT,
 			"ts", SyntaxConstants.SYNTAX_STYLE_TYPESCRIPT,
 			"json", SyntaxConstants.SYNTAX_STYLE_JSON,

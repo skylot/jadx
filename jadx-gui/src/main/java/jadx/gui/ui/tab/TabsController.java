@@ -77,6 +77,10 @@ public class TabsController {
 			blueprint = newBlueprint;
 		}
 		setTabHiddenInternal(blueprint, hidden);
+		if (!blueprint.isCreated()) {
+			LOG.warn("No content panel for node: {}", node);
+			closeTabForce(blueprint);
+		}
 		return blueprint;
 	}
 

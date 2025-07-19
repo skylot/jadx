@@ -17,7 +17,12 @@ public class JInputFiles extends JNode {
 
 	public JInputFiles(List<Path> files) {
 		for (Path file : files) {
-			add(new JInputFile(file));
+			String fileName = file.getFileName().toString();
+			if (fileName.endsWith(".smali")) {
+				add(new JInputSmaliFile(file));
+			} else {
+				add(new JInputFile(file));
+			}
 		}
 	}
 
