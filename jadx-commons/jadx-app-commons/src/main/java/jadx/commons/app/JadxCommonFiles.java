@@ -81,12 +81,15 @@ public class JadxCommonFiles {
 		}
 
 		/**
-		 * Return JNI or Foreign implementation
+		 * Return JNI, Foreign or PowerShell implementation
 		 */
 		private static Windows getWinDirs() {
 			Windows defSup = Windows.getDefaultSupplier().get();
 			if (defSup instanceof WindowsPowerShell) {
-				return new WindowsJni();
+				if (JadxSystemInfo.IS_AMD64) {
+					// JNI library compiled for x86-64
+					return new WindowsJni();
+				}
 			}
 			return defSup;
 		}
