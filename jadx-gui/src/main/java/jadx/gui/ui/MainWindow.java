@@ -84,6 +84,7 @@ import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.commons.app.JadxSystemInfo;
 import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -172,7 +173,6 @@ import jadx.gui.utils.Icons;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
@@ -1282,7 +1282,7 @@ public class MainWindow extends JFrame {
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
 		help.add(showLogAction);
-		if (SystemInfo.IS_UNIX && !SystemInfo.IS_MAC) {
+		if (JadxSystemInfo.IS_LINUX) {
 			help.add(new JadxGuiAction(ActionModel.CREATE_DESKTOP_ENTRY, this::createDesktopEntry));
 		}
 		if (Jadx.isDevVersion()) {
@@ -1299,7 +1299,7 @@ public class MainWindow extends JFrame {
 			help.add(uiWatchDog);
 		}
 
-		if (SystemInfo.IS_MAC) {
+		if (JadxSystemInfo.IS_MAC) {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
 			Desktop.getDesktop().setAboutHandler(e -> aboutAction.actionPerformed(null));
 		} else {

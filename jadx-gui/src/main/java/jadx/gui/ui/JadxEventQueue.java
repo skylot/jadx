@@ -7,11 +7,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import jadx.gui.utils.UiUtils;
+import jadx.commons.app.JadxSystemInfo;
 
 public class JadxEventQueue extends EventQueue {
 
-	private static final boolean IS_X_TOOLKIT = UiUtils.isXToolkit();
+	private static final boolean IS_X_TOOLKIT = JadxSystemInfo.IS_LINUX
+			&& "sun.awt.X11.XToolkit".equals(Toolkit.getDefaultToolkit().getClass().getName());
 
 	public static void register() {
 		if (IS_X_TOOLKIT) {

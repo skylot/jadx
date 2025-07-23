@@ -16,12 +16,12 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
+import jadx.commons.app.JadxSystemInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
 public class QuarkManager {
@@ -132,7 +132,7 @@ public class QuarkManager {
 			}
 		}
 		List<String> cmd = new ArrayList<>();
-		if (SystemInfo.IS_WINDOWS) {
+		if (JadxSystemInfo.IS_WINDOWS) {
 			cmd.add("python");
 			cmd.add("-m");
 			cmd.add("venv");
@@ -197,7 +197,7 @@ public class QuarkManager {
 	}
 
 	private Path getVenvPath(String cmd) {
-		if (SystemInfo.IS_WINDOWS) {
+		if (JadxSystemInfo.IS_WINDOWS) {
 			return VENV_PATH.resolve("Scripts").resolve(cmd + ".exe");
 		}
 		return VENV_PATH.resolve("bin").resolve(cmd);

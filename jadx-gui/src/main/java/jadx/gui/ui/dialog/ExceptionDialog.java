@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
+import jadx.commons.app.JadxSystemInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
@@ -66,11 +67,11 @@ public class ExceptionDialog extends JDialog {
 
 		Map<String, String> details = new LinkedHashMap<>();
 		details.put("Jadx version", JadxDecompiler.getVersion());
-		details.put("Java version", System.getProperty("java.version", "?"));
-		details.put("Java VM", String.format("%s %s", System.getProperty("java.vm.vendor", "?"),
-				System.getProperty("java.vm.name", "?")));
-		details.put("Platform", String.format("%s (%s %s)", System.getProperty("os.name", "?"),
-				System.getProperty("os.version", "?"), System.getProperty("os.arch", "?")));
+		details.put("Java version", JadxSystemInfo.JAVA_VER);
+		details.put("Java VM", String.format("%s %s",
+				System.getProperty("java.vm.vendor", "?"), System.getProperty("java.vm.name", "?")));
+		details.put("Platform", String.format("%s (%s %s)",
+				JadxSystemInfo.OS_NAME, JadxSystemInfo.OS_VERSION, JadxSystemInfo.OS_ARCH));
 		Runtime runtime = Runtime.getRuntime();
 		details.put("Max heap size", String.format("%d MB", runtime.maxMemory() / (1024 * 1024)));
 

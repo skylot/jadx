@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.cli.JCommanderWrapper;
 import jadx.cli.LogHelper;
+import jadx.commons.app.JadxSystemInfo;
+import jadx.core.Jadx;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.JadxSettings;
@@ -17,7 +19,6 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.SystemInfo;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);
@@ -67,10 +68,10 @@ public class JadxGUI {
 
 	private static void printSystemInfo() {
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Starting jadx-gui. Version: '{}'. JVM: {} {}. OS: {} {}",
-					SystemInfo.JADX_VERSION,
-					SystemInfo.JAVA_VM, SystemInfo.JAVA_VER,
-					SystemInfo.OS_NAME, SystemInfo.OS_VERSION);
+			LOG.debug("Starting jadx-gui. Version: '{}'. JVM: {} {}. OS: {}, version: {}, arch: {}",
+					Jadx.getVersion(),
+					JadxSystemInfo.JAVA_VM, JadxSystemInfo.JAVA_VER,
+					JadxSystemInfo.OS_NAME, JadxSystemInfo.OS_VERSION, JadxSystemInfo.OS_ARCH);
 		}
 	}
 }

@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import jadx.commons.app.JadxCommonEnv;
+import jadx.commons.app.JadxSystemInfo;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.StringUtils;
@@ -278,7 +279,7 @@ public class UiUtils {
 	@SuppressWarnings("deprecation")
 	@MagicConstant(flagsFromClass = InputEvent.class)
 	private static int getCtrlButton() {
-		if (SystemInfo.IS_MAC) {
+		if (JadxSystemInfo.IS_MAC) {
 			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		} else {
 			return InputEvent.CTRL_DOWN_MASK;
@@ -442,12 +443,6 @@ public class UiUtils {
 		if (SwingUtilities.isEventDispatchThread()) {
 			LOG.warn("Expect background thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
 		}
-	}
-
-	public static boolean isXToolkit() {
-		return SystemInfo.IS_UNIX
-				&& !SystemInfo.IS_MAC
-				&& "sun.awt.X11.XToolkit".equals(Toolkit.getDefaultToolkit().getClass().getName());
 	}
 
 	@TestOnly
