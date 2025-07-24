@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
+import jadx.api.JavaNode;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
@@ -185,9 +186,12 @@ public abstract class CommonSearchDialog extends JFrame {
 		StringBuilder sb = new StringBuilder();
 		Set<String> uniqueRefs = new HashSet<>();
 		for (JNode node : resultsModel.rows) {
-			String codeNodeRef = node.getJavaNode().getCodeNodeRef().toString();
-			if (uniqueRefs.add(codeNodeRef)) {
-				sb.append(codeNodeRef).append("\n");
+			JavaNode javaNode = node.getJavaNode();
+			if (javaNode != null) {
+				String codeNodeRef = javaNode.getCodeNodeRef().toString();
+				if (uniqueRefs.add(codeNodeRef)) {
+					sb.append(codeNodeRef).append("\n");
+				}
 			}
 		}
 		UiUtils.copyToClipboard(sb.toString());
