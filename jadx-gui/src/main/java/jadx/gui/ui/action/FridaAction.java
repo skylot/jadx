@@ -152,7 +152,8 @@ public final class FridaAction extends JNodeAction {
 		String classSnippet = generateClassSnippet(jc);
 		result.append(classSnippet).append("\n");
 		for (JavaMethod javaMethod : methodList) {
-			result.append(generateMethodSnippet(javaMethod, jc)).append("\n");
+			// Use getMethodSnippet directly instead of generateMethodSnippet to avoid duplicate class declarations
+			result.append(getMethodSnippet(javaMethod, jc)).append("\n");
 		}
 		return result.toString();
 	}
