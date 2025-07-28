@@ -152,7 +152,7 @@ public final class FridaAction extends JNodeAction {
 		String classSnippet = generateClassSnippet(jc);
 		result.append(classSnippet).append("\n");
 		for (JavaMethod javaMethod : methodList) {
-			result.append(generateMethodSnippet(javaMethod, jc)).append("\n");
+			result.append(getMethodSnippet(javaMethod, jc)).append("\n");
 		}
 		return result.toString();
 	}
