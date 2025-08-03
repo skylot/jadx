@@ -64,7 +64,13 @@ public class TabComponent extends JPanel {
 	}
 
 	private Font getLabelFont() {
-		return tabsController.getMainWindow().getSettings().getFont().deriveFont(Font.BOLD);
+		Font font = tabsController.getMainWindow().getSettings().getFont();
+		int style = font.getStyle();
+		style |= Font.BOLD;
+		if (getBlueprint().isPreviewTab()) {
+			style ^= Font.ITALIC; // flip italic bit to distinguish preview
+		}
+		return font.deriveFont(style);
 	}
 
 	private void init() {
@@ -183,13 +189,7 @@ public class TabComponent extends JPanel {
 	}
 
 	private void updateFont() {
-		boolean previewTab = getBlueprint().isPreviewTab();
-		if (previewTab) {
-			Font newLabelFont = new Font(label.getFont().getName(), Font.ITALIC, label.getFont().getSize());
-			label.setFont(newLabelFont);
-		} else {
-			label.setFont(getLabelFont());
-		}
+		label.setFont(getLabelFont());
 	}
 
 	private void addListenerForDnd() {
