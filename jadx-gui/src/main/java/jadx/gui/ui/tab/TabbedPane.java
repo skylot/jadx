@@ -480,9 +480,13 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
+		boolean restoreSelection = contentPanel == getSelectedContentPanel();
 		remove(contentPanel);
 		add(contentPanel, position);
 		setTabComponentAt(position, tabComponent);
+		if (restoreSelection) {
+			setSelectedIndex(position);
+		}
 	}
 
 	@Override
