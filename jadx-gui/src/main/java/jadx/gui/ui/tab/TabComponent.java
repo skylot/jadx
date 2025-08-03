@@ -120,6 +120,9 @@ public class TabComponent extends JPanel {
 					menu.show(e.getComponent(), e.getX(), e.getY());
 				} else if (SwingUtilities.isLeftMouseButton(e)) {
 					tabsController.selectTab(node);
+					if (e.getClickCount() == 2) {
+						tabsController.setTabPreview(node, false);
+					}
 				}
 			}
 		};

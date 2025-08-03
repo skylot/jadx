@@ -63,4 +63,6 @@ public interface ITabStatesListener {
 	default void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
 	}
 
+	default void onTabPreviewChange(TabBlueprint blueprint) {
+	}
 }

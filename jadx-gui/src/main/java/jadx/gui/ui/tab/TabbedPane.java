@@ -518,6 +518,15 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	@Override
+	public void onTabPreviewChange(TabBlueprint blueprint) {
+		TabComponent tabComponent = getTabComponentByNode(blueprint.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		tabComponent.update();
+	}
+
+	@Override
 	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
 		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel instanceof IViewStateSupport) {

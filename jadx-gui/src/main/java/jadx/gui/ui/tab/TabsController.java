@@ -281,6 +281,18 @@ public class TabsController {
 		}
 	}
 
+	public void setTabPreview(JNode node, boolean isPreview) {
+		TabBlueprint blueprint = getTabByNode(node);
+		setTabPreviewInternal(blueprint, isPreview);
+	}
+
+	private void setTabPreviewInternal(TabBlueprint blueprint, boolean isPreview) {
+		if (blueprint != null && blueprint.isPreviewTab() != isPreview) {
+			blueprint.setPreviewTab(isPreview);
+			listeners.forEach(l -> l.onTabPreviewChange(blueprint));
+		}
+	}
+
 	private void removeTabIfNotReferenced(TabBlueprint blueprint) {
 		if (blueprint.isHidden() && !blueprint.isReferenced()) {
 			tabsMap.remove(blueprint.getNode());
