@@ -75,14 +75,12 @@ public class TabComponent extends JPanel {
 		icon = new OverlayIcon(node.getIcon());
 
 		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
-		makeLabelFont();
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {
 			setToolTipText(toolTip);
 		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 		label.setIcon(icon);
-		updateBookmarkIcon();
 		if (node instanceof JEditableNode) {
 			((JEditableNode) node).addChangeListener(c -> label.setText(buildTabTitle(node)));
 		}
@@ -129,11 +127,18 @@ public class TabComponent extends JPanel {
 		addListenerForDnd();
 
 		add(label);
-		updateCloseOrPinButton();
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+		update();
 	}
 
-	public void updateCloseOrPinButton() {
+	public void update() {
+		updateCloseOrPinButton();
+		updateBookmarkIcon();
+		updateFont();
+	}
+
+	private void updateCloseOrPinButton() {
 		if (getBlueprint().isPinned()) {
 			if (closeBtn.isShowing()) {
 				remove(closeBtn);
@@ -151,7 +156,7 @@ public class TabComponent extends JPanel {
 		}
 	}
 
-	public void updateBookmarkIcon() {
+	private void updateBookmarkIcon() {
 		icon.clear();
 
 		if (getBlueprint().isBookmarked()) {
@@ -174,7 +179,7 @@ public class TabComponent extends JPanel {
 		tabsController.setTabBookmarked(getNode(), bookmarked);
 	}
 
-	private void makeLabelFont() {
+	private void updateFont() {
 		boolean previewTab = getBlueprint().isPreviewTab();
 		if (previewTab) {
 			Font newLabelFont = new Font(label.getFont().getName(), Font.ITALIC, label.getFont().getSize());

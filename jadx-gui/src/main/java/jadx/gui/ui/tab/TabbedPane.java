@@ -476,7 +476,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
-		tabComponent.updateCloseOrPinButton();
+		tabComponent.update();
 	}
 
 	@Override
@@ -485,7 +485,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
-		tabComponent.updateBookmarkIcon();
+		tabComponent.update();
 	}
 
 	@Override
