@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
@@ -30,6 +31,7 @@ import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
 public class DotGraphVisitor extends AbstractVisitor {
 
 	private static final String NL = "\\l";
+	private static final String NLQR = Matcher.quoteReplacement(NL);
 	private static final boolean PRINT_DOMINATORS = false;
 	private static final boolean PRINT_DOMINATORS_INFO = false;
 
@@ -324,7 +326,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					.replace("\"", "\\\"")
 					.replace("-", "\\-")
 					.replace("|", "\\|")
-					.replaceAll("\\R", NL);
+					.replaceAll("\\R", NLQR);
 		}
 	}
 }
