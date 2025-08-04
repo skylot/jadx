@@ -79,4 +79,9 @@ public class LogTabStates implements ITabStatesListener {
 	public void onTabVisibilityChange(TabBlueprint blueprint) {
 		LOG.debug("onTabVisibilityChange: blueprint={}", blueprint);
 	}
+
+	@Override
+	public void onTabPreviewChange(TabBlueprint blueprint) {
+		LOG.debug("onTabPreviewChange: blueprint={}", blueprint);
+	}
 }

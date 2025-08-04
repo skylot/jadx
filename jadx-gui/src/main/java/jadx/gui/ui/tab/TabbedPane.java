@@ -442,13 +442,28 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	@Override
 	public void onTabClose(TabBlueprint blueprint) {
-		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
-		if (contentPanel == null) {
+		ContentPanel contentPanelToClose = getTabByNode(blueprint.getNode());
+		if (contentPanelToClose == null) {
 			return;
 		}
-		tabsMap.remove(contentPanel.getNode());
-		remove(contentPanel);
-		contentPanel.dispose();
+
+		ContentPanel currentContentPanel = getSelectedContentPanel();
+		if (currentContentPanel == contentPanelToClose) {
+			if (lastTab != null && lastTab.getNode() != null) {
+				selectTab(lastTab);
+			} else if (getTabCount() > 1) {
+				int removalIdx = indexOfComponent(contentPanelToClose);
+				if (removalIdx > 0) { // select left tab
+					setSelectedIndex(removalIdx - 1);
+				} else if (removalIdx == 0) { // select right tab
+					setSelectedIndex(removalIdx + 1);
+				}
+			}
+		}
+
+		tabsMap.remove(contentPanelToClose.getNode());
+		remove(contentPanelToClose);
+		contentPanelToClose.dispose();
 	}
 
 	@Override
@@ -465,9 +480,13 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
+		boolean restoreSelection = contentPanel == getSelectedContentPanel();
 		remove(contentPanel);
 		add(contentPanel, position);
 		setTabComponentAt(position, tabComponent);
+		if (restoreSelection) {
+			setSelectedIndex(position);
+		}
 	}
 
 	@Override
@@ -476,7 +495,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
-		tabComponent.updateCloseOrPinButton();
+		tabComponent.update();
 	}
 
 	@Override
@@ -485,7 +504,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (tabComponent == null) {
 			return;
 		}
-		tabComponent.updateBookmarkIcon();
+		tabComponent.update();
 	}
 
 	@Override
@@ -496,6 +515,15 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		if (blueprint.isHidden() && tabsMap.containsKey(blueprint.getNode())) {
 			onTabClose(blueprint);
 		}
+	}
+
+	@Override
+	public void onTabPreviewChange(TabBlueprint blueprint) {
+		TabComponent tabComponent = getTabComponentByNode(blueprint.getNode());
+		if (tabComponent == null) {
+			return;
+		}
+		tabComponent.update();
 	}
 
 	@Override
