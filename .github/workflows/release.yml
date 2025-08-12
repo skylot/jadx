@@ -69,7 +69,7 @@ jobs:
           JADX_BUILD_JAVA_VERSION: 11
 
       - name: Download Windows JRE bundle
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: ${{ format('build/jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
