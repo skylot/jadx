@@ -1,0 +1,19 @@
+@Headers({
+    "Content-Type: application/json",
+    "Accept: application/json"
+  })
+  @POST(TopLevelFunctions.VOICE_PAUSE)
+  Call<DataResponse<ContentResponse<TicketAnimationResponse>>>
+    getTicketAnimation(
+      @Body TicketAnimationRequest ticketAnimationRequestcom/moovel/ticketing/network/NoAuthAgencyMetadataService.java:
+
+interface NoAuthAgencyMetadataService {
+  ...
+  @Headers({
+    "Content-Type: application/json",
+    "Accept: application/json"
+  })
+  @POST(TopLevelFunctions.VOICE_PAUSE)
+  Call<DataResponse<ContentResponse<TicketAnimationResponse>>>
+    getTicketAnimation(
+      @Body TicketAnimationRequest ticketAnimationRequest
