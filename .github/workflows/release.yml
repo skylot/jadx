@@ -21,7 +21,7 @@ jobs:
           release: 24
 
       - name: Set jadx version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const jadxVersion = context.ref.split('/').pop().substring(1)
@@ -54,7 +54,7 @@ jobs:
           java-version: 21
 
       - name: Set jadx version and release name
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const jadxVersion = context.ref.split('/').pop().substring(1)
