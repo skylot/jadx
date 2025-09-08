@@ -740,6 +740,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.integerFormat = format;
 	}
 
+	public void setTypeUpdatesLimitCount(int typeUpdatesLimitCount) {
+		this.typeUpdatesLimitCount = typeUpdatesLimitCount;
+	}
+
 	public void setLineNumbersMode(LineNumbersMode lineNumbersMode) {
 		this.lineNumbersMode = lineNumbersMode;
 	}

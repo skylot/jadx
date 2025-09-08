@@ -167,6 +167,8 @@ public class JadxArgs implements Closeable {
 
 	private IntegerFormat integerFormat = IntegerFormat.AUTO;
 
+	private int typeUpdatesLimitCount = 0;
+
 	private boolean useDxInput = false;
 
 	public enum UseKotlinMethodsForVarNames {
@@ -738,6 +740,14 @@ public class JadxArgs implements Closeable {
 		this.integerFormat = format;
 	}
 
+	public int getTypeUpdatesLimitCount() {
+		return typeUpdatesLimitCount;
+	}
+
+	public void setTypeUpdatesLimitCount(int typeUpdatesLimitCount) {
+		this.typeUpdatesLimitCount = typeUpdatesLimitCount;
+	}
+
 	public boolean isUseDxInput() {
 		return useDxInput;
 	}
@@ -898,6 +908,7 @@ public class JadxArgs implements Closeable {
 				+ ", cfgOutput=" + cfgOutput
 				+ ", rawCFGOutput=" + rawCFGOutput
 				+ ", useHeadersForDetectResourceExtensions=" + useHeadersForDetectResourceExtensions
+				+ ", typeUpdatesLimitCount=" + typeUpdatesLimitCount
 				+ '}';
 	}
 }

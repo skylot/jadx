@@ -59,6 +59,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
+	@Parameter(names = { "-tul", "--type-update-limit" }, description = "type update limit count")
+	protected int typeUpdatesLimitCount = 0;
+
 	@Parameter(names = { "--single-class" }, description = "decompile a single class, full name, raw or alias")
 	protected String singleClass = null;
 
@@ -384,6 +387,7 @@ public class JadxCLIArgs {
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
 		args.setIntegerFormat(integerFormat);
+		args.setTypeUpdatesLimitCount(typeUpdatesLimitCount);
 		args.setUseDxInput(useDx);
 		args.setPluginOptions(pluginOptions);
 		args.setDisabledPlugins(Arrays.stream(disablePlugins.split(",")).map(String::trim).collect(Collectors.toSet()));
@@ -547,6 +551,10 @@ public class JadxCLIArgs {
 
 	public IntegerFormat getIntegerFormat() {
 		return integerFormat;
+	}
+
+	public int getTypeUpdatesLimitCount() {
+		return typeUpdatesLimitCount;
 	}
 
 	public boolean isEscapeUnicode() {
