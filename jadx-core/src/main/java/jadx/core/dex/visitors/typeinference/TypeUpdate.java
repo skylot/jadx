@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.core.Consts;
 import jadx.core.clsp.ClspClass;
 import jadx.core.dex.attributes.AFlag;
@@ -42,9 +43,11 @@ public final class TypeUpdate {
 	private final RootNode root;
 	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
+	private final JadxArgs args;
 
 	public TypeUpdate(RootNode root) {
 		this.root = root;
+		this.args = root.getArgs();
 		this.listenerRegistry = initListenerRegistry();
 		this.comparator = new TypeCompare(root);
 	}
@@ -79,7 +82,7 @@ public final class TypeUpdate {
 			return REJECT;
 		}
 
-		TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags);
+		TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags, args);
 		TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
 		if (result == REJECT) {
 			return result;

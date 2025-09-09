@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.MethodNode;
@@ -18,10 +19,10 @@ public class TypeUpdateInfo {
 	private final int updatesLimitCount;
 	private int updateSeq = 0;
 
-	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags) {
+	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags, JadxArgs args) {
 		this.mth = mth;
 		this.flags = flags;
-		this.updatesLimitCount = mth.getInsnsCount() * 10;
+		this.updatesLimitCount = mth.getInsnsCount() * (10 + args.getTypeUpdatesLimitCount());
 	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
@@ -32,7 +33,8 @@ public class TypeUpdateInfo {
 					+ ", insn: " + arg.getParentInsn());
 		}
 		if (updateSeq > updatesLimitCount) {
-			throw new JadxOverflowException("Type inference error: updates count limit reached");
+			throw new JadxOverflowException("Type inference error: updates count limit reached"
+					+ " with updateSeq = " + updateSeq + ". Try increasing the type limit count on preferences.");
 		}
 	}
 

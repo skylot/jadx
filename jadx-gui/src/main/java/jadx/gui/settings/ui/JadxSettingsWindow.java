@@ -640,6 +640,16 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		int typeUpdatesLimitValue = settings.getTypeUpdatesLimitCount();
+		int typeUpdatesLimitCountMax = (int) Math.pow(2, 32);
+		SpinnerNumberModel typeUpdatesLimitCountSpinnerModel =
+				new SpinnerNumberModel(typeUpdatesLimitValue, 0, typeUpdatesLimitCountMax, 1);
+		JSpinner typeUpdatesLimitCount = new JSpinner(typeUpdatesLimitCountSpinnerModel);
+		typeUpdatesLimitCount.addChangeListener(e -> {
+			settings.setTypeUpdatesLimitCount((Integer) typeUpdatesLimitCount.getValue());
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"),
@@ -664,6 +674,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useKotlinMethodsForVarNames"), kotlinRenameVars);
 		other.addRow(NLS.str("preferences.commentsLevel"), commentsLevel);
 		other.addRow(NLS.str("preferences.integerFormat"), integerFormat);
+		other.addRow(NLS.str("preferences.typeUpdatesCountLimit"), typeUpdatesLimitCount);
 		return other;
 	}
 

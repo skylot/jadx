@@ -161,6 +161,7 @@ options:
                                             'auto' - automatically select (default)
                                             'decimal' - use decimal
                                             'hexadecimal' - use hexadecimal
+  -tul, --type-update-limit              - type update limit count
   --fs-case-sensitive                    - treat filesystem as case sensitive, false by default
   --cfg                                  - save methods control flow graph to dot file
   --raw-cfg                              - save methods control flow graph (use raw instructions)
