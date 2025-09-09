@@ -640,14 +640,16 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		int typeUpdatesLimitValue = settings.getTypeUpdatesLimitCount();
-		int typeUpdatesLimitCountMax = (int) Math.pow(2, 32);
-		SpinnerNumberModel typeUpdatesLimitCountSpinnerModel =
-				new SpinnerNumberModel(typeUpdatesLimitValue, 0, typeUpdatesLimitCountMax, 1);
-		JSpinner typeUpdatesLimitCount = new JSpinner(typeUpdatesLimitCountSpinnerModel);
+		JSpinner typeUpdatesLimitCount = new JSpinner(
+				new SpinnerNumberModel(settings.getTypeUpdatesLimitCount(), 1, Short.MAX_VALUE, 1));
 		typeUpdatesLimitCount.addChangeListener(e -> {
-			settings.setTypeUpdatesLimitCount((Integer) typeUpdatesLimitCount.getValue());
-			needReload();
+			int newValue = (Integer) typeUpdatesLimitCount.getValue();
+			if (newValue < 1) {
+				UiUtils.uiRun(() -> typeUpdatesLimitCount.setValue(1));
+			} else {
+				settings.setTypeUpdatesLimitCount(newValue);
+				needReload();
+			}
 		});
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));

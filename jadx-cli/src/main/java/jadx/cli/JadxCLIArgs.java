@@ -59,9 +59,6 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
-	@Parameter(names = { "-tul", "--type-update-limit" }, description = "type update limit count")
-	protected int typeUpdatesLimitCount = 0;
-
 	@Parameter(names = { "--single-class" }, description = "decompile a single class, full name, raw or alias")
 	protected String singleClass = null;
 
@@ -257,6 +254,9 @@ public class JadxCLIArgs {
 			converter = IntegerFormatConverter.class
 	)
 	protected IntegerFormat integerFormat = IntegerFormat.AUTO;
+
+	@Parameter(names = { "--type-update-limit" }, description = "type update limit count (per one instruction)")
+	protected int typeUpdatesLimitCount = 10;
 
 	@Parameter(names = { "--fs-case-sensitive" }, description = "treat filesystem as case sensitive, false by default")
 	protected boolean fsCaseSensitive = false;

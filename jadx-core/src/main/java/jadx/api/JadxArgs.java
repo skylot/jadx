@@ -167,7 +167,11 @@ public class JadxArgs implements Closeable {
 
 	private IntegerFormat integerFormat = IntegerFormat.AUTO;
 
-	private int typeUpdatesLimitCount = 0;
+	/**
+	 * Maximum updates allowed total in method per one instruction.
+	 * Should be more or equal 1, default value is 10.
+	 */
+	private int typeUpdatesLimitCount = 10;
 
 	private boolean useDxInput = false;
 
@@ -745,7 +749,7 @@ public class JadxArgs implements Closeable {
 	}
 
 	public void setTypeUpdatesLimitCount(int typeUpdatesLimitCount) {
-		this.typeUpdatesLimitCount = typeUpdatesLimitCount;
+		this.typeUpdatesLimitCount = Math.max(1, typeUpdatesLimitCount);
 	}
 
 	public boolean isUseDxInput() {
@@ -849,7 +853,7 @@ public class JadxArgs implements Closeable {
 				+ insertDebugLines + extractFinally
 				+ debugInfo + escapeUnicode + replaceConsts + restoreSwitchOverString
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
-				+ commentsLevel + useDxInput + integerFormat
+				+ commentsLevel + useDxInput + integerFormat + typeUpdatesLimitCount
 				+ "|" + buildPluginsHash(decompiler);
 		return FileUtils.md5Sum(argStr);
 	}

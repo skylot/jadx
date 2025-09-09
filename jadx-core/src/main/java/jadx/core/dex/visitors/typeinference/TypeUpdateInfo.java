@@ -22,7 +22,7 @@ public class TypeUpdateInfo {
 	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags, JadxArgs args) {
 		this.mth = mth;
 		this.flags = flags;
-		this.updatesLimitCount = mth.getInsnsCount() * (10 + args.getTypeUpdatesLimitCount());
+		this.updatesLimitCount = mth.getInsnsCount() * args.getTypeUpdatesLimitCount();
 	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
