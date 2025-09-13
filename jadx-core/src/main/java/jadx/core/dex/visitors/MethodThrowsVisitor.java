@@ -153,12 +153,12 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 						return;
 					}
 				}
-				visitThrows(mth, exceptionType);
+				visitThrows(mth, exceptionType, excludedExceptions);
 			} else {
 				if (throwArg instanceof InsnWrapArg) {
 					InsnWrapArg insnWrapArg = (InsnWrapArg) throwArg;
 					ArgType exceptionType = insnWrapArg.getType();
-					visitThrows(mth, exceptionType);
+					visitThrows(mth, exceptionType, excludedExceptions);
 				}
 			}
 			return;
@@ -189,9 +189,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 					if (cMth != null && cMth.getThrows() != null && !cMth.getThrows().isEmpty()) {
 						MethodThrowsAttr attr = mth.get(AType.METHOD_THROWS);
 						if (attr != null) {
-							for (ArgType ex : cMth.getThrows()) {
-								attr.getList().add(ex.getObject());
-							}
+							attr.getList().addAll(filterExceptions(cMth.getThrows(), excludedExceptions));
 						}
 					}
 				}
@@ -199,8 +197,14 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void visitThrows(MethodNode mth, ArgType excType) {
+	private void visitThrows(MethodNode mth, ArgType excType, Set<String> excludedExceptions) {
 		if (excType.isTypeKnown() && isThrowsRequired(mth, excType)) {
+			for (String excludedException : excludedExceptions) {
+				if (isBaseException(excType.getObject(), excludedException)) {
+					return;
+				}
+			}
+
 			mth.get(AType.METHOD_THROWS).getList().add(excType.getObject());
 		}
 	}
@@ -231,7 +235,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * @return is 'possibleParent' a exception class of 'exception'
+	 * @return is 'possibleParent' an exception class of 'exception'
 	 */
 	private boolean isBaseException(String exception, String possibleParent) {
 		if (exception.equals(possibleParent)) {
@@ -252,7 +256,25 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 		for (String exception : exceptions) {
 			boolean filtered = false;
 			for (String excluded : excludedExceptions) {
-				filtered = exception.equals(excluded) || isBaseException(exception, excluded);
+				filtered = isBaseException(exception, excluded);
+				if (filtered) {
+					break;
+				}
+			}
+			if (!filtered) {
+				filteredExceptions.add(exception);
+			}
+		}
+		return filteredExceptions;
+	}
+
+	private Collection<String> filterExceptions(Collection<ArgType> exceptionArgTypes, Set<String> excludedExceptions) {
+		Set<String> filteredExceptions = new HashSet<>();
+		for (ArgType exceptionArgType : exceptionArgTypes) {
+			boolean filtered = false;
+			String exception = exceptionArgType.getObject();
+			for (String excluded : excludedExceptions) {
+				filtered = isBaseException(exception, excluded);
 				if (filtered) {
 					break;
 				}
