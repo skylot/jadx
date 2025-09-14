@@ -2,6 +2,7 @@ package jadx.tests.integration.others;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -72,6 +73,20 @@ public class TestThrows extends IntegrationTest {
 				doSomething1(i);
 			}
 		}
+
+		public void noThrownExceptions1(InputStream i1) {
+			try {
+				i1.close();
+			} catch (IOException ignore) {
+			}
+		}
+
+		public void noThrownExceptions2() {
+			try {
+				throw new FileNotFoundException("");
+			} catch (IOException ignore) {
+			}
+		}
 	}
 
 	@Test
@@ -87,6 +102,9 @@ public class TestThrows extends IntegrationTest {
 				.containsOne("throwThrowable() throws Throwable {")
 				.containsOne("exceptionSource() throws FileNotFoundException {")
 				.containsOne("mergeThrownExceptions() throws IOException {")
-				.containsOne("rethrowThrowable() {");
+				.containsOne("rethrowThrowable() {")
+				.containsOne("noThrownExceptions1(InputStream i1) {")
+				.containsOne("noThrownExceptions2() {");
+
 	}
 }
