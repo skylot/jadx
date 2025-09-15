@@ -606,11 +606,9 @@
         <!-- ============ -->
        <eat-comment />
        <attr name="floatingToolbarCloseDrawable" format="reference" />
-       <attr name="floatingToolbarForegroundColor" format="reference|color" />
        <attr name="floatingToolbarItemBackgroundBorderlessDrawable" format="reference" />
        <attr name="floatingToolbarItemBackgroundDrawable" format="reference" />
        <attr name="floatingToolbarOpenDrawable" format="reference" />
-       <attr name="floatingToolbarPopupBackgroundDrawable" format="reference" />
        <attr name="floatingToolbarDividerColor" format="reference" />
 
         <!-- ============ -->
@@ -1080,6 +1078,11 @@
         <!-- Background color to use for tooltip popups. -->
         <attr name="tooltipBackgroundColor" format="reference|color" />
 
+        <attr name="tooltipCornerRadius" format="dimension" />
+        <attr name="tooltipHorizontalPadding" format="dimension" />
+        <attr name="tooltipVerticalPadding" format="dimension" />
+        <attr name="tooltipFontSize" format="dimension" />
+
         <!-- Theme to use for Search Dialogs. -->
         <attr name="searchDialogTheme" format="reference" />
 
@@ -1214,183 +1217,6 @@
              a value of 'true' will not override any 'false' value in its parent chain nor will
              it prevent any 'false' in any of its children. -->
         <attr name="forceDarkAllowed" format="boolean" />
-
-        <!-- A lower-emphasized variant of the color on the fixed secondary branding color. @hide
-             -->
-        <attr name="materialColorOnSecondaryFixedVariant" format="color"/>
-        <!-- A lower-emphasized variant of the color on the fixed tertiary branding color. @hide
-             -->
-        <attr name="materialColorOnTertiaryFixedVariant" format="color"/>
-        <!-- The container color of surface the most lowered. @hide -->
-        <attr name="materialColorSurfaceContainerLowest" format="color"/>
-        <!-- A lower-emphasized variant of the color on the fixed primary branding color. @hide -->
-        <attr name="materialColorOnPrimaryFixedVariant" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             the secondary container color. @hide -->
-        <attr name="materialColorOnSecondaryContainer" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             the tertiary container color. @hide -->
-        <attr name="materialColorOnTertiaryContainer" format="color"/>
-        <!-- The container color of surface slightly lowered, which replaces the previous surface
-             at elevation level 1. @hide -->
-        <attr name="materialColorSurfaceContainerLow" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             the primary container color. @hide -->
-        <attr name="materialColorOnPrimaryContainer" format="color"/>
-        <!-- A stronger, more emphasized variant of the fixed secondary branding color. @hide -->
-        <attr name="materialColorSecondaryFixedDim" format="color"/>
-        <!-- A tonal variation of the on error color that passes accessibility guidelines for
-             text/iconography when drawn on top of error container. @hide -->
-        <attr name="materialColorOnErrorContainer" format="color"/>
-        <!-- The color text/iconography when drawn on top of the fixed secondary branding color.
-             @hide -->
-        <attr name="materialColorOnSecondaryFixed" format="color"/>
-        <!-- The "on surface" inverse color, useful for inverted backgrounds. @hide -->
-        <attr name="materialColorOnSurfaceInverse" format="color"/>
-        <!-- A stronger, more emphasized variant of the fixed tertiary branding color. @hide -->
-        <attr name="materialColorTertiaryFixedDim" format="color"/>
-        <!-- The color text/iconography when drawn on top of the fixed tertiary branding color.
-             @hide -->
-        <attr name="materialColorOnTertiaryFixed" format="color"/>
-        <!-- A stronger, more emphasized variant of the fixed primary branding color. @hide -->
-        <attr name="materialColorPrimaryFixedDim" format="color"/>
-        <!-- A tonal variation of the secondary color suitable for background color of container
-             views. @hide -->
-        <attr name="materialColorSecondaryContainer" format="color"/>
-        <!-- A tonal variation of the error color suitable for background color of container views.
-             @hide -->
-        <attr name="materialColorErrorContainer" format="color"/>
-        <!-- The color text/iconography when drawn on top of the fixed primary branding color.
-             @hide -->
-        <attr name="materialColorOnPrimaryFixed" format="color"/>
-        <!-- The inverse color of colorPrimary. @hide -->
-        <attr name="materialColorPrimaryInverse" format="color"/>
-        <!-- A secondary branding color for the app, which stays the same between light and dark
-             themes. @hide -->
-        <attr name="materialColorSecondaryFixed" format="color"/>
-        <!-- The surface inverse color, useful for inverted backgrounds. @hide -->
-        <attr name="materialColorSurfaceInverse" format="color"/>
-        <!-- A tonal variation of the surface color. @hide -->
-        <attr name="materialColorSurfaceVariant" format="color"/>
-        <!-- A tonal variation of the tertiary color suitable for background color of container
-             views. @hide -->
-        <attr name="materialColorTertiaryContainer" format="color"/>
-        <!-- A tertiary branding color for the app, which stays the same between light and dark
-             themes. @hide -->
-        <attr name="materialColorTertiaryFixed" format="color"/>
-        <!-- A tonal variation of the primary color suitable for background color of container
-             views. @hide -->
-        <attr name="materialColorPrimaryContainer" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             background. @hide -->
-        <attr name="materialColorOnBackground" format="color"/>
-        <!-- A primary branding color for the app, which stays the same between light and dark
-             themes. @hide -->
-        <attr name="materialColorPrimaryFixed" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             secondary. @hide -->
-        <attr name="materialColorOnSecondary" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             tertiary. @hide -->
-        <attr name="materialColorOnTertiary" format="color"/>
-        <!-- The surface color which always stay the dimmest in either dark or light theme. @hide
-             -->
-        <attr name="materialColorSurfaceDim" format="color"/>
-        <!-- The surface color which always stay the brightest in either dark or light theme. @hide
-             -->
-        <attr name="materialColorSurfaceBright" format="color"/>
-        <!-- The secondary branding color for the app, usually a bright complement to the primary
-             branding color. @hide -->
-        <attr name="materialColorSecondary" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             error. @hide -->
-        <attr name="materialColorOnError" format="color"/>
-        <!-- The color of surfaces such as cards, sheets, menus. @hide -->
-        <attr name="materialColorSurface" format="color"/>
-        <!-- The container color of surface slightly elevated, which replaces the previous surface
-             at elevation level 3. @hide -->
-        <attr name="materialColorSurfaceContainerHigh" format="color"/>
-        <!-- The tertiary branding color for the app, usually a bright complement to the primary
-             branding color. @hide -->
-        <attr name="materialColorTertiary" format="color"/>
-        <!-- The container color of surface the most elevated, which replaces the previous surface
-             variant. @hide -->
-        <attr name="materialColorSurfaceContainerHighest" format="color"/>
-        <!-- A tonal variation of the on surface color that passes accessibility guidelines for
-             text/iconography when drawn on top of surface variant. @hide -->
-        <attr name="materialColorOnSurfaceVariant" format="color"/>
-        <!-- A color meant to be used in element outlines. @hide -->
-        <attr name="materialColorOutline" format="color"/>
-        <!-- A color meant to be used in element outlines on the surface-variant color. @hide -->
-        <attr name="materialColorOutlineVariant" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             primary. @hide -->
-        <attr name="materialColorOnPrimary" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top of
-             surface. @hide -->
-        <attr name="materialColorOnSurface" format="color"/>
-        <!-- The container color of surface, which replaces the previous surface at elevation level
-             2. @hide -->
-        <attr name="materialColorSurfaceContainer" format="color"/>
-        <!-- The container color of surface, which replaces the previous surface at elevation level
-             2. @hide -->
-        <attr name="materialColorSurfaceContainer" format="color"/>
-         <!-- The primary branding color for the app. By default, this is the color applied to the
-             action bar background. @hide -->
-        <attr name="materialColorPrimary" format="color"/>
-        <!-- The secondary branding color for the app, usually a bright complement to the primary
-             branding color. @hide -->
-        <attr name="materialColorSecondary" format="color"/>
-        <!-- A color that passes accessibility guidelines for text/iconography when drawn on top
-             of tertiary. @hide -->
-        <attr name="materialColorTertiary" format="color"/>
-        <!-- The error color for the app, intended to draw attention to error conditions. @hide -->
-        <attr name="materialColorError" format="color"/>
-
-        <!-- System Custom Tokens-->
-        <!-- @hide -->
-        <attr name="customColorWidgetBackground" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorClockHour" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorClockMinute" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorClockSecond" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorThemeApp" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnThemeApp" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorThemeAppRing" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnThemeAppRing" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorBrandA" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorBrandB" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorBrandC" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorBrandD" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorUnderSurface" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorShadeActive" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnShadeActive" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnShadeActiveVariant" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorShadeInactive" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnShadeInactive" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOnShadeInactiveVariant" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorShadeDisabled" format="color"/>
-        <!-- @hide -->
-        <attr name="customColorOverviewBackground" format="color"/>
-
     </declare-styleable>
 
     <!-- **************************************************************** -->
@@ -2186,6 +2012,344 @@
         <enum name="KEYCODE_DEMO_APP_2" value="302" />
         <enum name="KEYCODE_DEMO_APP_3" value="303" />
         <enum name="KEYCODE_DEMO_APP_4" value="304" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_DOWN" value="305" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_UP" value="306" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_TOGGLE" value="307" />
+        <enum name="KEYCODE_STYLUS_BUTTON_PRIMARY" value="308" />
+        <enum name="KEYCODE_STYLUS_BUTTON_SECONDARY" value="309" />
+        <enum name="KEYCODE_STYLUS_BUTTON_TERTIARY" value="310" />
+        <enum name="KEYCODE_STYLUS_BUTTON_TAIL" value="311" />
+        <enum name="KEYCODE_RECENT_APPS" value="312" />
+        <enum name="KEYCODE_MACRO_1" value="313" />
+        <enum name="KEYCODE_MACRO_2" value="314" />
+        <enum name="KEYCODE_MACRO_3" value="315" />
+        <enum name="KEYCODE_MACRO_4" value="316" />
+        <enum name="KEYCODE_EMOJI_PICKER" value="317" />
+        <enum name="KEYCODE_SCREENSHOT" value="318" />
+    </attr>
+
+    <!-- @hide same as keycode enum defined above, but to be used to define keycode output.
+         (redefining it to allow keycode and outKeycode to be part of same styleable attribute) -->
+    <attr name="outKeycode">
+        <enum name="KEYCODE_UNKNOWN" value="0" />
+        <enum name="KEYCODE_SOFT_LEFT" value="1" />
+        <enum name="KEYCODE_SOFT_RIGHT" value="2" />
+        <enum name="KEYCODE_HOME" value="3" />
+        <enum name="KEYCODE_BACK" value="4" />
+        <enum name="KEYCODE_CALL" value="5" />
+        <enum name="KEYCODE_ENDCALL" value="6" />
+        <enum name="KEYCODE_0" value="7" />
+        <enum name="KEYCODE_1" value="8" />
+        <enum name="KEYCODE_2" value="9" />
+        <enum name="KEYCODE_3" value="10" />
+        <enum name="KEYCODE_4" value="11" />
+        <enum name="KEYCODE_5" value="12" />
+        <enum name="KEYCODE_6" value="13" />
+        <enum name="KEYCODE_7" value="14" />
+        <enum name="KEYCODE_8" value="15" />
+        <enum name="KEYCODE_9" value="16" />
+        <enum name="KEYCODE_STAR" value="17" />
+        <enum name="KEYCODE_POUND" value="18" />
+        <enum name="KEYCODE_DPAD_UP" value="19" />
+        <enum name="KEYCODE_DPAD_DOWN" value="20" />
+        <enum name="KEYCODE_DPAD_LEFT" value="21" />
+        <enum name="KEYCODE_DPAD_RIGHT" value="22" />
+        <enum name="KEYCODE_DPAD_CENTER" value="23" />
+        <enum name="KEYCODE_VOLUME_UP" value="24" />
+        <enum name="KEYCODE_VOLUME_DOWN" value="25" />
+        <enum name="KEYCODE_POWER" value="26" />
+        <enum name="KEYCODE_CAMERA" value="27" />
+        <enum name="KEYCODE_CLEAR" value="28" />
+        <enum name="KEYCODE_A" value="29" />
+        <enum name="KEYCODE_B" value="30" />
+        <enum name="KEYCODE_C" value="31" />
+        <enum name="KEYCODE_D" value="32" />
+        <enum name="KEYCODE_E" value="33" />
+        <enum name="KEYCODE_F" value="34" />
+        <enum name="KEYCODE_G" value="35" />
+        <enum name="KEYCODE_H" value="36" />
+        <enum name="KEYCODE_I" value="37" />
+        <enum name="KEYCODE_J" value="38" />
+        <enum name="KEYCODE_K" value="39" />
+        <enum name="KEYCODE_L" value="40" />
+        <enum name="KEYCODE_M" value="41" />
+        <enum name="KEYCODE_N" value="42" />
+        <enum name="KEYCODE_O" value="43" />
+        <enum name="KEYCODE_P" value="44" />
+        <enum name="KEYCODE_Q" value="45" />
+        <enum name="KEYCODE_R" value="46" />
+        <enum name="KEYCODE_S" value="47" />
+        <enum name="KEYCODE_T" value="48" />
+        <enum name="KEYCODE_U" value="49" />
+        <enum name="KEYCODE_V" value="50" />
+        <enum name="KEYCODE_W" value="51" />
+        <enum name="KEYCODE_X" value="52" />
+        <enum name="KEYCODE_Y" value="53" />
+        <enum name="KEYCODE_Z" value="54" />
+        <enum name="KEYCODE_COMMA" value="55" />
+        <enum name="KEYCODE_PERIOD" value="56" />
+        <enum name="KEYCODE_ALT_LEFT" value="57" />
+        <enum name="KEYCODE_ALT_RIGHT" value="58" />
+        <enum name="KEYCODE_SHIFT_LEFT" value="59" />
+        <enum name="KEYCODE_SHIFT_RIGHT" value="60" />
+        <enum name="KEYCODE_TAB" value="61" />
+        <enum name="KEYCODE_SPACE" value="62" />
+        <enum name="KEYCODE_SYM" value="63" />
+        <enum name="KEYCODE_EXPLORER" value="64" />
+        <enum name="KEYCODE_ENVELOPE" value="65" />
+        <enum name="KEYCODE_ENTER" value="66" />
+        <enum name="KEYCODE_DEL" value="67" />
+        <enum name="KEYCODE_GRAVE" value="68" />
+        <enum name="KEYCODE_MINUS" value="69" />
+        <enum name="KEYCODE_EQUALS" value="70" />
+        <enum name="KEYCODE_LEFT_BRACKET" value="71" />
+        <enum name="KEYCODE_RIGHT_BRACKET" value="72" />
+        <enum name="KEYCODE_BACKSLASH" value="73" />
+        <enum name="KEYCODE_SEMICOLON" value="74" />
+        <enum name="KEYCODE_APOSTROPHE" value="75" />
+        <enum name="KEYCODE_SLASH" value="76" />
+        <enum name="KEYCODE_AT" value="77" />
+        <enum name="KEYCODE_NUM" value="78" />
+        <enum name="KEYCODE_HEADSETHOOK" value="79" />
+        <enum name="KEYCODE_FOCUS" value="80" />
+        <enum name="KEYCODE_PLUS" value="81" />
+        <enum name="KEYCODE_MENU" value="82" />
+        <enum name="KEYCODE_NOTIFICATION" value="83" />
+        <enum name="KEYCODE_SEARCH" value="84" />
+        <enum name="KEYCODE_MEDIA_PLAY_PAUSE" value="85" />
+        <enum name="KEYCODE_MEDIA_STOP" value="86" />
+        <enum name="KEYCODE_MEDIA_NEXT" value="87" />
+        <enum name="KEYCODE_MEDIA_PREVIOUS" value="88" />
+        <enum name="KEYCODE_MEDIA_REWIND" value="89" />
+        <enum name="KEYCODE_MEDIA_FAST_FORWARD" value="90" />
+        <enum name="KEYCODE_MUTE" value="91" />
+        <enum name="KEYCODE_PAGE_UP" value="92" />
+        <enum name="KEYCODE_PAGE_DOWN" value="93" />
+        <enum name="KEYCODE_PICTSYMBOLS" value="94" />
+        <enum name="KEYCODE_SWITCH_CHARSET" value="95" />
+        <enum name="KEYCODE_BUTTON_A" value="96" />
+        <enum name="KEYCODE_BUTTON_B" value="97" />
+        <enum name="KEYCODE_BUTTON_C" value="98" />
+        <enum name="KEYCODE_BUTTON_X" value="99" />
+        <enum name="KEYCODE_BUTTON_Y" value="100" />
+        <enum name="KEYCODE_BUTTON_Z" value="101" />
+        <enum name="KEYCODE_BUTTON_L1" value="102" />
+        <enum name="KEYCODE_BUTTON_R1" value="103" />
+        <enum name="KEYCODE_BUTTON_L2" value="104" />
+        <enum name="KEYCODE_BUTTON_R2" value="105" />
+        <enum name="KEYCODE_BUTTON_THUMBL" value="106" />
+        <enum name="KEYCODE_BUTTON_THUMBR" value="107" />
+        <enum name="KEYCODE_BUTTON_START" value="108" />
+        <enum name="KEYCODE_BUTTON_SELECT" value="109" />
+        <enum name="KEYCODE_BUTTON_MODE" value="110" />
+        <enum name="KEYCODE_ESCAPE" value="111" />
+        <enum name="KEYCODE_FORWARD_DEL" value="112" />
+        <enum name="KEYCODE_CTRL_LEFT" value="113" />
+        <enum name="KEYCODE_CTRL_RIGHT" value="114" />
+        <enum name="KEYCODE_CAPS_LOCK" value="115" />
+        <enum name="KEYCODE_SCROLL_LOCK" value="116" />
+        <enum name="KEYCODE_META_LEFT" value="117" />
+        <enum name="KEYCODE_META_RIGHT" value="118" />
+        <enum name="KEYCODE_FUNCTION" value="119" />
+        <enum name="KEYCODE_SYSRQ" value="120" />
+        <enum name="KEYCODE_BREAK" value="121" />
+        <enum name="KEYCODE_MOVE_HOME" value="122" />
+        <enum name="KEYCODE_MOVE_END" value="123" />
+        <enum name="KEYCODE_INSERT" value="124" />
+        <enum name="KEYCODE_FORWARD" value="125" />
+        <enum name="KEYCODE_MEDIA_PLAY" value="126" />
+        <enum name="KEYCODE_MEDIA_PAUSE" value="127" />
+        <enum name="KEYCODE_MEDIA_CLOSE" value="128" />
+        <enum name="KEYCODE_MEDIA_EJECT" value="129" />
+        <enum name="KEYCODE_MEDIA_RECORD" value="130" />
+        <enum name="KEYCODE_F1" value="131" />
+        <enum name="KEYCODE_F2" value="132" />
+        <enum name="KEYCODE_F3" value="133" />
+        <enum name="KEYCODE_F4" value="134" />
+        <enum name="KEYCODE_F5" value="135" />
+        <enum name="KEYCODE_F6" value="136" />
+        <enum name="KEYCODE_F7" value="137" />
+        <enum name="KEYCODE_F8" value="138" />
+        <enum name="KEYCODE_F9" value="139" />
+        <enum name="KEYCODE_F10" value="140" />
+        <enum name="KEYCODE_F11" value="141" />
+        <enum name="KEYCODE_F12" value="142" />
+        <enum name="KEYCODE_NUM_LOCK" value="143" />
+        <enum name="KEYCODE_NUMPAD_0" value="144" />
+        <enum name="KEYCODE_NUMPAD_1" value="145" />
+        <enum name="KEYCODE_NUMPAD_2" value="146" />
+        <enum name="KEYCODE_NUMPAD_3" value="147" />
+        <enum name="KEYCODE_NUMPAD_4" value="148" />
+        <enum name="KEYCODE_NUMPAD_5" value="149" />
+        <enum name="KEYCODE_NUMPAD_6" value="150" />
+        <enum name="KEYCODE_NUMPAD_7" value="151" />
+        <enum name="KEYCODE_NUMPAD_8" value="152" />
+        <enum name="KEYCODE_NUMPAD_9" value="153" />
+        <enum name="KEYCODE_NUMPAD_DIVIDE" value="154" />
+        <enum name="KEYCODE_NUMPAD_MULTIPLY" value="155" />
+        <enum name="KEYCODE_NUMPAD_SUBTRACT" value="156" />
+        <enum name="KEYCODE_NUMPAD_ADD" value="157" />
+        <enum name="KEYCODE_NUMPAD_DOT" value="158" />
+        <enum name="KEYCODE_NUMPAD_COMMA" value="159" />
+        <enum name="KEYCODE_NUMPAD_ENTER" value="160" />
+        <enum name="KEYCODE_NUMPAD_EQUALS" value="161" />
+        <enum name="KEYCODE_NUMPAD_LEFT_PAREN" value="162" />
+        <enum name="KEYCODE_NUMPAD_RIGHT_PAREN" value="163" />
+        <enum name="KEYCODE_VOLUME_MUTE" value="164" />
+        <enum name="KEYCODE_INFO" value="165" />
+        <enum name="KEYCODE_CHANNEL_UP" value="166" />
+        <enum name="KEYCODE_CHANNEL_DOWN" value="167" />
+        <enum name="KEYCODE_ZOOM_IN" value="168" />
+        <enum name="KEYCODE_ZOOM_OUT" value="169" />
+        <enum name="KEYCODE_TV" value="170" />
+        <enum name="KEYCODE_WINDOW" value="171" />
+        <enum name="KEYCODE_GUIDE" value="172" />
+        <enum name="KEYCODE_DVR" value="173" />
+        <enum name="KEYCODE_BOOKMARK" value="174" />
+        <enum name="KEYCODE_CAPTIONS" value="175" />
+        <enum name="KEYCODE_SETTINGS" value="176" />
+        <enum name="KEYCODE_TV_POWER" value="177" />
+        <enum name="KEYCODE_TV_INPUT" value="178" />
+        <enum name="KEYCODE_STB_POWER" value="179" />
+        <enum name="KEYCODE_STB_INPUT" value="180" />
+        <enum name="KEYCODE_AVR_POWER" value="181" />
+        <enum name="KEYCODE_AVR_INPUT" value="182" />
+        <enum name="KEYCODE_PROG_GRED" value="183" />
+        <enum name="KEYCODE_PROG_GREEN" value="184" />
+        <enum name="KEYCODE_PROG_YELLOW" value="185" />
+        <enum name="KEYCODE_PROG_BLUE" value="186" />
+        <enum name="KEYCODE_APP_SWITCH" value="187" />
+        <enum name="KEYCODE_BUTTON_1" value="188" />
+        <enum name="KEYCODE_BUTTON_2" value="189" />
+        <enum name="KEYCODE_BUTTON_3" value="190" />
+        <enum name="KEYCODE_BUTTON_4" value="191" />
+        <enum name="KEYCODE_BUTTON_5" value="192" />
+        <enum name="KEYCODE_BUTTON_6" value="193" />
+        <enum name="KEYCODE_BUTTON_7" value="194" />
+        <enum name="KEYCODE_BUTTON_8" value="195" />
+        <enum name="KEYCODE_BUTTON_9" value="196" />
+        <enum name="KEYCODE_BUTTON_10" value="197" />
+        <enum name="KEYCODE_BUTTON_11" value="198" />
+        <enum name="KEYCODE_BUTTON_12" value="199" />
+        <enum name="KEYCODE_BUTTON_13" value="200" />
+        <enum name="KEYCODE_BUTTON_14" value="201" />
+        <enum name="KEYCODE_BUTTON_15" value="202" />
+        <enum name="KEYCODE_BUTTON_16" value="203" />
+        <enum name="KEYCODE_LANGUAGE_SWITCH" value="204" />
+        <enum name="KEYCODE_MANNER_MODE" value="205" />
+        <enum name="KEYCODE_3D_MODE" value="206" />
+        <enum name="KEYCODE_CONTACTS" value="207" />
+        <enum name="KEYCODE_CALENDAR" value="208" />
+        <enum name="KEYCODE_MUSIC" value="209" />
+        <enum name="KEYCODE_CALCULATOR" value="210" />
+        <enum name="KEYCODE_ZENKAKU_HANKAKU" value="211" />
+        <enum name="KEYCODE_EISU" value="212" />
+        <enum name="KEYCODE_MUHENKAN" value="213" />
+        <enum name="KEYCODE_HENKAN" value="214" />
+        <enum name="KEYCODE_KATAKANA_HIRAGANA" value="215" />
+        <enum name="KEYCODE_YEN" value="216" />
+        <enum name="KEYCODE_RO" value="217" />
+        <enum name="KEYCODE_KANA" value="218" />
+        <enum name="KEYCODE_ASSIST" value="219" />
+        <enum name="KEYCODE_BRIGHTNESS_DOWN" value="220" />
+        <enum name="KEYCODE_BRIGHTNESS_UP" value="221" />
+        <enum name="KEYCODE_MEDIA_AUDIO_TRACK" value="222" />
+        <enum name="KEYCODE_MEDIA_SLEEP" value="223" />
+        <enum name="KEYCODE_MEDIA_WAKEUP" value="224" />
+        <enum name="KEYCODE_PAIRING" value="225" />
+        <enum name="KEYCODE_MEDIA_TOP_MENU" value="226" />
+        <enum name="KEYCODE_11" value="227" />
+        <enum name="KEYCODE_12" value="228" />
+        <enum name="KEYCODE_LAST_CHANNEL" value="229" />
+        <enum name="KEYCODE_TV_DATA_SERVICE" value="230" />
+        <enum name="KEYCODE_VOICE_ASSIST" value="231" />
+        <enum name="KEYCODE_TV_RADIO_SERVICE" value="232" />
+        <enum name="KEYCODE_TV_TELETEXT" value="233" />
+        <enum name="KEYCODE_TV_NUMBER_ENTRY" value="234" />
+        <enum name="KEYCODE_TV_TERRESTRIAL_ANALOG" value="235" />
+        <enum name="KEYCODE_TV_TERRESTRIAL_DIGITAL" value="236" />
+        <enum name="KEYCODE_TV_SATELLITE" value="237" />
+        <enum name="KEYCODE_TV_SATELLITE_BS" value="238" />
+        <enum name="KEYCODE_TV_SATELLITE_CS" value="239" />
+        <enum name="KEYCODE_TV_SATELLITE_SERVICE" value="240" />
+        <enum name="KEYCODE_TV_NETWORK" value="241" />
+        <enum name="KEYCODE_TV_ANTENNA_CABLE" value="242" />
+        <enum name="KEYCODE_TV_INPUT_HDMI_1" value="243" />
+        <enum name="KEYCODE_TV_INPUT_HDMI_2" value="244" />
+        <enum name="KEYCODE_TV_INPUT_HDMI_3" value="245" />
+        <enum name="KEYCODE_TV_INPUT_HDMI_4" value="246" />
+        <enum name="KEYCODE_TV_INPUT_COMPOSITE_1" value="247" />
+        <enum name="KEYCODE_TV_INPUT_COMPOSITE_2" value="248" />
+        <enum name="KEYCODE_TV_INPUT_COMPONENT_1" value="249" />
+        <enum name="KEYCODE_TV_INPUT_COMPONENT_2" value="250" />
+        <enum name="KEYCODE_TV_INPUT_VGA_1" value="251" />
+        <enum name="KEYCODE_TV_AUDIO_DESCRIPTION" value="252" />
+        <enum name="KEYCODE_TV_AUDIO_DESCRIPTION_MIX_UP" value="253" />
+        <enum name="KEYCODE_TV_AUDIO_DESCRIPTION_MIX_DOWN" value="254" />
+        <enum name="KEYCODE_TV_ZOOM_MODE" value="255" />
+        <enum name="KEYCODE_TV_CONTENTS_MENU" value="256" />
+        <enum name="KEYCODE_TV_MEDIA_CONTEXT_MENU" value="257" />
+        <enum name="KEYCODE_TV_TIMER_PROGRAMMING" value="258" />
+        <enum name="KEYCODE_HELP" value="259" />
+        <enum name="KEYCODE_NAVIGATE_PREVIOUS" value="260" />
+        <enum name="KEYCODE_NAVIGATE_NEXT" value="261" />
+        <enum name="KEYCODE_NAVIGATE_IN" value="262" />
+        <enum name="KEYCODE_NAVIGATE_OUT" value="263" />
+        <enum name="KEYCODE_STEM_PRIMARY" value="264" />
+        <enum name="KEYCODE_STEM_1" value="265" />
+        <enum name="KEYCODE_STEM_2" value="266" />
+        <enum name="KEYCODE_STEM_3" value="267" />
+        <enum name="KEYCODE_DPAD_UP_LEFT" value="268" />
+        <enum name="KEYCODE_DPAD_DOWN_LEFT" value="269" />
+        <enum name="KEYCODE_DPAD_UP_RIGHT" value="270" />
+        <enum name="KEYCODE_DPAD_DOWN_RIGHT" value="271" />
+        <enum name="KEYCODE_MEDIA_SKIP_FORWARD" value="272" />
+        <enum name="KEYCODE_MEDIA_SKIP_BACKWARD" value="273" />
+        <enum name="KEYCODE_MEDIA_STEP_FORWARD" value="274" />
+        <enum name="KEYCODE_MEDIA_STEP_BACKWARD" value="275" />
+        <enum name="KEYCODE_SOFT_SLEEP" value="276" />
+        <enum name="KEYCODE_CUT" value="277" />
+        <enum name="KEYCODE_COPY" value="278" />
+        <enum name="KEYCODE_PASTE" value="279" />
+        <enum name="KEYCODE_SYSTEM_NAVIGATION_UP" value="280" />
+        <enum name="KEYCODE_SYSTEM_NAVIGATION_DOWN" value="281" />
+        <enum name="KEYCODE_SYSTEM_NAVIGATION_LEFT" value="282" />
+        <enum name="KEYCODE_SYSTEM_NAVIGATION_RIGHT" value="283" />
+        <enum name="KEYCODE_ALL_APPS" value="284" />
+        <enum name="KEYCODE_REFRESH" value="285" />
+        <enum name="KEYCODE_THUMBS_UP" value="286" />
+        <enum name="KEYCODE_THUMBS_DOWN" value="287" />
+        <enum name="KEYCODE_PROFILE_SWITCH" value="288" />
+        <enum name="KEYCODE_VIDEO_APP_1" value="289" />
+        <enum name="KEYCODE_VIDEO_APP_2" value="290" />
+        <enum name="KEYCODE_VIDEO_APP_3" value="291" />
+        <enum name="KEYCODE_VIDEO_APP_4" value="292" />
+        <enum name="KEYCODE_VIDEO_APP_5" value="293" />
+        <enum name="KEYCODE_VIDEO_APP_6" value="294" />
+        <enum name="KEYCODE_VIDEO_APP_7" value="295" />
+        <enum name="KEYCODE_VIDEO_APP_8" value="296" />
+        <enum name="KEYCODE_FEATURED_APP_1" value="297" />
+        <enum name="KEYCODE_FEATURED_APP_2" value="298" />
+        <enum name="KEYCODE_FEATURED_APP_3" value="299" />
+        <enum name="KEYCODE_FEATURED_APP_4" value="300" />
+        <enum name="KEYCODE_DEMO_APP_1" value="301" />
+        <enum name="KEYCODE_DEMO_APP_2" value="302" />
+        <enum name="KEYCODE_DEMO_APP_3" value="303" />
+        <enum name="KEYCODE_DEMO_APP_4" value="304" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_DOWN" value="305" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_UP" value="306" />
+        <enum name="KEYCODE_KEYBOARD_BACKLIGHT_TOGGLE" value="307" />
+        <enum name="KEYCODE_STYLUS_BUTTON_PRIMARY" value="308" />
+        <enum name="KEYCODE_STYLUS_BUTTON_SECONDARY" value="309" />
+        <enum name="KEYCODE_STYLUS_BUTTON_TERTIARY" value="310" />
+        <enum name="KEYCODE_STYLUS_BUTTON_TAIL" value="311" />
+        <enum name="KEYCODE_RECENT_APPS" value="312" />
+        <enum name="KEYCODE_MACRO_1" value="313" />
+        <enum name="KEYCODE_MACRO_2" value="314" />
+        <enum name="KEYCODE_MACRO_3" value="315" />
+        <enum name="KEYCODE_MACRO_4" value="316" />
+        <enum name="KEYCODE_EMOJI_PICKER" value="317" />
+        <enum name="KEYCODE_SCREENSHOT" value="318" />
     </attr>
 
     <!-- ***************************************************************** -->
@@ -2573,7 +2737,7 @@
              The default is true. -->
         <attr name="windowIsFrameRatePowerSavingsBalanced" format="boolean"/>
 
-        <!-- Flag indicating whether this window would opt-out the edge-to-edge enforcement.
+        <!-- Flag indicating whether this window would opt out the edge-to-edge enforcement.
 
              <p>If this is false, the edge-to-edge enforcement will be applied to the window if it
              belongs to an app targeting
@@ -2589,10 +2753,13 @@
                  <li>The framework will set {@link android.R.attr#statusBarColor},
                  {@link android.R.attr#navigationBarColor}, and
                  {@link android.R.attr#navigationBarDividerColor} to transparent.
+                 <li>The frameworks will send Configuration no longer considering system insets.
+                 The Configuration will be stable regardless of the system insets change.
              </ul>
 
-             <p>If this is true, the edge-to-edge enforcement won't be applied. However, this
-             attribute will be deprecated and disabled in a future SDK level.
+             <p>If this is true, the edge-to-edge enforcement won't be applied. But if the window
+             belongs to an app targeting {@link android.os.Build.VERSION_CODES#BAKLAVA BAKLAVA} or
+             above, this attribute is ignored and the enforcement is applied regardless.
 
              <p>This is false by default. -->
         <attr name="windowOptOutEdgeToEdgeEnforcement" format="boolean"/>
@@ -3142,6 +3309,11 @@
              primarily for accessibility. Since some views do not have textual
              representation this attribute can be used for providing such. -->
         <attr name="contentDescription" format="string" localization="suggested" />
+
+        <!-- Provides brief supplemental information for the view, such as the purpose of
+             the view when that purpose is not conveyed within its textual representation.
+             This property is used primarily for accessibility. -->
+        <attr name="supplementalDescription" format="string" localization="suggested" />
 
         <!-- Sets the id of a view that screen readers are requested to visit after this view.
              Requests that a screen-reader visits the content of this view before the content of the
@@ -3966,7 +4138,7 @@
         <attr name="settingsActivity" format="string" />
         <!-- Component name of an activity that allows the user to modify
              on-screen keyboards variants (e.g. different language or layout) for this service. -->
-        <!-- @FlaggedApi("android.view.inputmethod.ime_switcher_revamp") -->
+        <!-- @FlaggedApi("android.view.inputmethod.ime_switcher_revamp_api") -->
         <attr name="languageSettingsActivity" format="string"/>
         <!-- Set to true in all of the configurations for which this input
              method should be considered an option as the default. -->
@@ -4069,6 +4241,10 @@
     <declare-styleable name="InputMethod_Subtype">
         <!-- The name of the subtype. -->
         <attr name="label" />
+        <!-- The layout label of the subtype.
+             {@link android.view.inputmethod.InputMethodSubtype#getLayoutDisplayName} returns the
+             value specified in this attribute. -->
+        <attr name="layoutLabel" format="reference" />
         <!-- The icon of the subtype. -->
         <attr name="icon" />
         <!-- The locale of the subtype. This string should be a locale (for example en_US and fr_FR)
@@ -4460,6 +4636,12 @@
         <!-- Whether the device should default to observe mode when this service is
              default or in the foreground. -->
         <attr name="shouldDefaultToObserveMode" format="boolean"/>
+        <!-- Whether this service should share the same AID routing priority as the role
+             owner. This package and the role owner must have the same signature, and the
+             role owner must opt into this behavior by using the property named by
+             {@link android.nfc.cardemulation.CardEmulation.PROPERTY_ALLOW_SHARED_ROLE_PRIORITY }
+             in the <code>&lt;application&rt;</code> tag. -->
+        <attr name="wantsRoleHolderPriority" format="boolean"/>
     </declare-styleable>
 
     <!-- Use <code>offhost-apdu-service</code> as the root tag of the XML resource that
@@ -4487,6 +4669,7 @@
         <!-- Whether the device should default to observe mode when this service is
              default or in the foreground. -->
         <attr name="shouldDefaultToObserveMode"/>
+        <attr name="wantsRoleHolderPriority"/>
     </declare-styleable>
 
     <!-- Specify one or more <code>aid-group</code> elements inside a
@@ -4904,6 +5087,11 @@
         <!-- Determines whether to measure all children or just those in
              the VISIBLE or INVISIBLE state when measuring. Defaults to false. -->
         <attr name="measureAllChildren" format="boolean" />
+    </declare-styleable>
+    <!-- @hide -->
+    <declare-styleable name="MaxHeightFrameLayout">
+        <!-- An optional argument to supply a maximum height for this view. -->
+        <attr name="maxHeight" format="dimension" />
     </declare-styleable>
     <declare-styleable name="ExpandableListView">
         <!-- Indicator shown beside the group View. This can be a stateful Drawable. -->
@@ -5381,6 +5569,22 @@
                  result to valid color values. Saturate(S + D) -->
             <enum name="add" value="16" />
         </attr>
+    </declare-styleable>
+
+    <!-- @hide internal use only -->
+    <declare-styleable name="NotificationProgressBar">
+        <!-- Minimum required drawing width for segments. The drawing width refers to the width
+             after the original segments have been adjusted for the neighboring Points and gaps.
+             This is enforced by stretching the segments that are too short. -->
+        <attr name="segMinWidth" format="dimension" />
+        <!-- The gap between two segments. -->
+        <attr name="segSegGap" format="dimension" />
+        <!-- The gap between a segment and a point. -->
+        <attr name="segPointGap" format="dimension" />
+        <!-- Draws the tracker on a NotificationProgressBar. -->
+        <attr name="tracker" format="reference" />
+        <!-- Height of the tracker. -->
+        <attr name="trackerHeight" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="StackView">
@@ -6738,6 +6942,8 @@
             <enum name="line" value="2" />
             <!-- Ring shape. -->
             <enum name="ring" value="3" />
+            <!-- ARC shape. -->
+            <enum name="arc" value="4"/>
         </attr>
         <!-- Inner radius of the ring expressed as a ratio of the ring's width. For instance,
              if innerRadiusRatio=9, then the inner radius equals the ring's width divided by 9.
@@ -6770,6 +6976,12 @@
         <attr name="opticalInsetRight" />
         <!-- Bottom optical inset. -->
         <attr name="opticalInsetBottom" />
+        <!-- Attributes that customize the stroke line cap. @hide -->
+        <attr name="strokeCap" format="enum">
+            <enum name="butt" value="0"/>
+            <enum name="round" value="1"/>
+            <enum name="square" value="2"/>
+        </attr>
     </declare-styleable>
 
     <!-- Used to specify the size of the shape for GradientDrawable. -->
@@ -7370,6 +7582,32 @@
         <attr name="name" />
         <!-- The animation for the target path, group or vector drawable. -->
         <attr name="animation" />
+    </declare-styleable>
+
+    <!-- ================================== -->
+    <!-- NotificationProgressDrawable class -->
+    <!-- ================================== -->
+
+    <!-- Used to config the segments of a NotificationProgressDrawable. -->
+    <!-- @hide internal use only -->
+    <declare-styleable name="NotificationProgressDrawableSegments">
+        <!-- Height of the solid segments. -->
+        <attr name="height" />
+        <!-- Height of the faded segments. -->
+        <attr name="fadedHeight" format="dimension" />
+        <!-- Corner radius of the segment rect. -->
+        <attr name="cornerRadius" format="dimension" />
+    </declare-styleable>
+
+    <!-- Used to config the points of a NotificationProgressDrawable. -->
+    <!-- @hide internal use only -->
+    <declare-styleable name="NotificationProgressDrawablePoints">
+        <!-- Radius (1/2 size) of the point rect. -->
+        <attr name="radius" />
+        <!-- Inset of the point icon or rect. -->
+        <attr name="inset" />
+        <!-- Corner radius of the point rect. -->
+        <attr name="cornerRadius"/>
     </declare-styleable>
 
     <!-- ========================== -->
@@ -8844,6 +9082,8 @@
             <flag name="home_screen" value="0x1" />
             <flag name="keyguard" value="0x2" />
             <flag name="searchbox" value="0x4" />
+            <!-- @FlaggedApi("android.appwidget.flags.not_keyguard_category") -->
+            <flag name="not_keyguard" value="0x8" />
         </attr>
         <!-- Flags indicating various features supported by the widget. These are hints to the
          widget host, and do not actually change the behavior of the widget. -->
@@ -9700,6 +9940,14 @@
         <attr name="hotSpotY" format="dimension" />
     </declare-styleable>
 
+    <!-- @hide -->
+    <declare-styleable name="PointerIconVectorTheme">
+        <attr name="pointerIconVectorFill" format="color" />
+        <attr name="pointerIconVectorFillInverse" format="color" />
+        <attr name="pointerIconVectorStroke" format="color" />
+        <attr name="pointerIconVectorStrokeInverse" format="color" />
+    </declare-styleable>
+
     <declare-styleable name="Storage">
         <!-- path to mount point for the storage. -->
         <attr name="mountPoint" format="string" />
@@ -9836,6 +10084,71 @@
         <attr name="vendorId" format="integer" />
         <!-- The product ID of the hardware the given layout corresponds to. @hide -->
         <attr name="productId" format="integer" />
+    </declare-styleable>
+
+    <!-- @hide -->
+    <declare-styleable name="KeyboardGlyphMap">
+        <attr name="glyphMap" format="reference" />
+        <attr name="vendorId" format="integer" />
+        <attr name="productId" format="integer" />
+    </declare-styleable>
+
+    <!-- @hide -->
+    <declare-styleable name="KeyGlyph">
+        <attr name="keycode" />
+        <attr name="glyphDrawable" format="reference" />
+    </declare-styleable>
+
+    <!-- @hide -->
+    <declare-styleable name="ModifierGlyph">
+        <!-- The values are taken from public constants for modifier state defined in
+             {@see KeyEvent.java}. Here we explicitly allow only one modifier bit as value, since
+             this represents the modifier key -->
+        <attr name="modifier">
+            <enum name="META" value="0x10000" />
+            <enum name="CTRL" value="0x1000" />
+            <enum name="ALT" value="0x02" />
+            <enum name="SHIFT" value="0x1" />
+            <enum name="SYM" value="0x4" />
+            <enum name="FUNCTION" value="0x8" />
+            <enum name="CAPS_LOCK" value="0x100000" />
+            <enum name="NUM_LOCK" value="0x200000" />
+            <enum name="SCROLL_LOCK" value="0x400000" />
+        </attr>
+        <attr name="glyphDrawable" format="reference" />
+    </declare-styleable>
+
+    <!-- @hide -->
+    <attr name="modifierState">
+        <flag name="META" value="0x10000" />
+        <flag name="CTRL" value="0x1000" />
+        <flag name="ALT" value="0x02" />
+        <flag name="SHIFT" value="0x1" />
+        <flag name="SYM" value="0x4" />
+        <flag name="FUNCTION" value="0x8" />
+        <flag name="CAPS_LOCK" value="0x100000" />
+        <flag name="NUM_LOCK" value="0x200000" />
+        <flag name="SCROLL_LOCK" value="0x400000" />
+    </attr>
+
+    <!-- @hide -->
+    <declare-styleable name="HardwareDefinedShortcut">
+        <attr name="keycode" />
+        <!-- The values are taken from public constants for modifier state defined in
+             {@see KeyEvent.java}. Here we allow multiple modifier flags as value, since this
+             represents the modifier state -->
+        <attr name="modifierState" />
+        <attr name="outKeycode" />
+    </declare-styleable>
+
+    <!-- @hide -->
+    <declare-styleable name="FunctionRowKey">
+        <attr name="keycode" />
+    </declare-styleable>
+
+    <declare-styleable name="Bookmark">
+        <attr name="keycode" />
+        <attr name="modifierState" />
     </declare-styleable>
 
     <declare-styleable name="MediaRouteButton">
@@ -10089,6 +10402,32 @@
 
     <declare-styleable name="DateTimeView">
         <attr name="showRelative" format="boolean" />
+        <!-- For relative times, controls what kinds of times get disambiguation text.
+
+             The default value is "future".
+
+             Does nothing if showRelative=false.
+             -->
+        <attr name="relativeTimeDisambiguationText">
+            <!-- Times in the past will have extra clarifying text indicating that the time is in
+                 the past. For example, 1 minute ago is represented as "1m ago". If this flag is not
+                 set, times in the past are represented as just "1m". -->
+            <flag name="past" value="0x01" />
+            <!-- Times in the future will have extra clarifying text indicating that the time is in
+                 the future. For example, 1 minute in the future is represented as "in 1m". If this
+                 flag is not set, times in the future are represented as just "1m". -->
+            <flag name="future" value="0x02" />
+        </attr>
+        <!-- For relative times, sets the length of the time unit displayed (minutes, hours, etc.).
+
+             Does nothing if showRelative=false.
+             -->
+        <attr name="relativeTimeUnitDisplayLength">
+            <!-- The time unit will be shown as a short as possible (1 character if possible). -->
+            <enum name="shortest" value="0" />
+            <!-- The time unit will be shortened to a medium length (2-3 characters in general). -->
+            <enum name="medium" value="1" />
+        </attr>
     </declare-styleable>
 
     <declare-styleable name="ResolverDrawerLayout_LayoutParams">
