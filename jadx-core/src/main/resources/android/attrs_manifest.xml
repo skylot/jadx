@@ -846,12 +846,40 @@
             This enum value is introduced in API level 31. -->
         <enum name="singleInstancePerTask" value="4" />
     </attr>
-    <!-- Specify the orientation an activity should be run in.  If not
-         specified, it will run in the current preferred orientation
-         of the screen.
+    <!-- Specify the orientation an activity should run in. If the orientation is not specified, the
+         system determines the best orientation for the activity.
          <p>This attribute is supported by the <a
             href="{@docRoot}guide/topics/manifest/activity-element.html">{@code <activity>}</a>
-            element. -->
+            element.
+         <aside class="note"><b>Note:</b>
+            <ul>
+                <li>To improve the layout of apps on form factors with smallest width >= 600dp, the
+                    system ignores the following values of this attribute for apps that target
+                    Android 16 (API level 36) or higher:
+                    <ul>
+                      <li><code>portrait</code></li>
+                      <li><code>landscape</code></li>
+                      <li><code>reversePortrait</code></li>
+                      <li><code>reverseLandscape</code></li>
+                      <li><code>sensorPortrait</code></li>
+                      <li><code>sensorLandscape</code></li>
+                      <li><code>userPortrait</code></li>
+                      <li><code>userLandscape</code></li>
+                    </ul>
+                    <p>The values are treated as if the app had set orientation as
+                       <code>unspecified</code>.</p>
+                </li>
+                <li>Device manufacturers can configure devices to override (ignore) this attribute
+                    to improve the layout of apps.</li>
+                <li>On devices with Android 16 (API level 36) or higher installed, virtual device
+                    owners (select trusted and privileged apps) can configure devices they manage to
+                    override (ignore) this attribute to improve app layout. See also
+                    <a href="https://source.android.com/docs/core/permissions/app-streaming">
+                    Companion app streaming</a>.</li>
+             </ul>
+             <p>See <a href="{@docRoot}guide/practices/device-compatibility-mode">Device
+             compatibility mode</a>.</p>
+         </aside> -->
     <attr name="screenOrientation">
         <!-- No preference specified: let the system decide the best
              orientation.  This will either be the orientation selected
@@ -1047,6 +1075,19 @@
         <!-- The font weight adjustment value has changed. Used to reflect the user increasing font
              weight. -->
         <flag name="fontWeightAdjustment" value="0x10000000" />
+        <!-- The assets paths have changed. For example a runtime overlay is installed and enabled.
+             Corresponds to {@link android.content.pm.ActivityInfo#CONFIG_ASSETS_PATHS}. -->
+        <flag name="assetsPaths" value="0x80000000" />
+        <!-- This is probably not the flag you want, the resources compiler supports a less
+             dangerous version of it, 'allKnown', that only suppresses all currently existing
+             configuration change restarts depending on your target SDK rather than whatever the
+             latest SDK supports, allowing the application to work with resources on future Platform
+             versions.
+             Activity doesn't use Android Resources at all and doesn't need to be restarted on any
+             configuration changes. This overrides all other flags, and this is recommended to be
+             used individually. Corresponds to
+             {@link android.content.pm.ActivityInfo#CONFIG_RESOURCES_UNUSED}. -->
+        <flag name="resourcesUnused" value="0x8000000" />
     </attr>
 
     <!-- Indicate that the activity can be launched as the embedded child of another
@@ -1447,13 +1488,31 @@
          no other apps in multi-window visible on screen (e.g. picture-in-picture) or on other
          displays. Therefore, this flag cannot be used to assure an exclusive resource access.
 
-         <p>NOTE: A task's root activity value is applied to all additional activities launched in
+         <p>A task's root activity value is applied to all additional activities launched in
          the task. That is if the root activity of a task is resizeable then the system will treat
          all other activities in the task as resizeable and will not if the root activity isn't
          resizeable.
 
-         <p>NOTE: The value of {@link android.R.attr#screenOrientation} is ignored for
-         resizeable activities when in multi-window mode before Android 12. -->
+         <aside class="note"><b>Note:</b>
+            <ul>
+                <li>On Android 11 (API level 30) and lower, the value of
+                    {@link android.R.attr#screenOrientation} is ignored for resizeable activities
+                    in multi-window mode.</li>
+                <li>To improve the layout of apps on form factors with smallest width >= 600dp, the
+                    system ignores this attribute for apps that target Android 16 (API level 36) or
+                    higher.</li>
+                <li>Device manufacturers can configure devices to override (ignore) this attribute
+                    to force apps to resize. The override does not affect the app's support for
+                    multi-window mode.</li>
+                <li>On devices with Android 16 (API level 36) or higher installed, virtual device
+                    owners (select trusted and privileged apps) can configure devices they manage to
+                    override (ignore) this attribute to force apps to resize. See
+                    also <a href="https://source.android.com/docs/core/permissions/app-streaming">
+                    Companion app streaming</a>.</li>
+            </ul>
+            <p>See <a href="{@docRoot}guide/practices/device-compatibility-mode"> Device
+            compatibility mode</a>.</p>
+         </aside> -->
     <attr name="resizeableActivity" format="boolean" />
 
     <!-- Indicates that the activity specifically supports the picture-in-picture form of
@@ -1470,28 +1529,54 @@
     <!-- This value indicates the maximum aspect ratio the activity supports. If the app runs on a
          device with a wider aspect ratio, the system automatically letterboxes the app, leaving
          portions of the screen unused so the app can run at its specified maximum aspect ratio.
-         <p>
-         Maximum aspect ratio, expressed as (longer dimension / shorter dimension) in decimal
+         <p>Maximum aspect ratio, expressed as (longer dimension / shorter dimension) in decimal
          form. For example, if the maximum aspect ratio is 7:3, set value to 2.33.
-         <p>
-         Value needs to be greater or equal to 1.0, otherwise it is ignored.
-         <p>
-         NOTE: This attribute is ignored if the activity has
-         {@link android.R.attr#resizeableActivity} set to true. -->
+         <p>Value needs to be greater or equal to 1.0, otherwise it is ignored.
+         <aside class="note"><b>Note:</b>
+            <ul>
+                <li>This attribute is ignored if the activity has
+                    {@link android.R.attr#resizeableActivity} set to {@code true}.</li>
+                <li>To improve the layout of apps on form factors with smallest width >= 600dp, the
+                    system ignores this attribute for apps that target Android 16 (API level 36) or
+                    higher.</li>
+                <li>Device manufacturers can configure devices to override (ignore) this attribute
+                    to improve the layout of apps.</li>
+                <li>On devices with Android 16 (API level 36) or higher installed, virtual device
+                    owners (select trusted and privileged apps) can configure devices they manage to
+                    override (ignore) this attribute to improve app layout. See
+                    <a href="https://source.android.com/docs/core/permissions/app-streaming">
+                    Companion app streaming</a>.</li>
+            </ul>
+            <p>See <a href="{@docRoot}guide/practices/device-compatibility-mode"> Device
+            compatibility mode</a>.</p>
+         </aside> -->
     <attr name="maxAspectRatio" format="float" />
 
     <!-- This value indicates the minimum aspect ratio the activity supports. If the app runs on a
          device with a narrower aspect ratio, the system automatically letterboxes the app, leaving
          portions of the screen unused so the app can run at its specified minimum aspect ratio.
-         <p>
-         Minimum aspect ratio, expressed as (longer dimension / shorter dimension) in decimal
-         form. For example, if the minimum aspect ratio is 4:3, set value to 1.33.
-         <p>
-         Value needs to be greater or equal to 1.0, otherwise it is ignored.
-         <p>
-         NOTE: This attribute is ignored if the activity has
-         {@link android.R.attr#resizeableActivity} set to true. -->
-    <attr name="minAspectRatio" format="float" />
+         <p>Minimum aspect ratio, expressed as (longer dimension / shorter dimension) in decimal
+            form. For example, if the minimum aspect ratio is 4:3, set value to 1.33.
+         <p>Value needs to be greater or equal to 1.0, otherwise it is ignored.
+          <aside class="note"><b>Note:</b>
+            <ul>
+                <li>This attribute is ignored if the activity has
+                    {@link android.R.attr#resizeableActivity} set to {@code true}.</li>
+                <li>To improve the layout of apps on form factors with smallest width >= 600dp, the
+                    system ignores this attribute for apps that target Android 16 (API level 36) or
+                    higher.</li>
+                <li>Device manufacturers can configure devices to override (ignore) this attribute
+                    to improve the layout of apps.</li>
+                <li>On devices with Android 16 (API level 36) or higher installed, virtual device
+                    owners (select trusted and privileged apps) can configure devices they manage to
+                    override (ignore) this attribute to improve app layout. See
+                    <a href="https://source.android.com/docs/core/permissions/app-streaming">
+                    Companion app streaming</a>.</li>
+            </ul>
+            <p>See <a href="{@docRoot}guide/practices/device-compatibility-mode"> Device
+            compatibility mode</a>.</p>
+         </aside> -->
+   <attr name="minAspectRatio" format="float" />
 
     <!-- This value indicates how tasks rooted at this activity will behave in lockTask mode.
          While in lockTask mode the system will not launch non-permitted tasks until
@@ -1817,12 +1902,55 @@
          {@link android.R.styleable#AndroidManifestProcess process} tag, or to an
          {@link android.R.styleable#AndroidManifestApplication application} tag (to supply
          a default setting for all application components). -->
-    <attr name="memtagMode">
+     <attr name="memtagMode">
        <enum name="default" value="-1" />
        <enum name="off" value="0" />
        <enum name="async" value="1" />
        <enum name="sync" value="2" />
     </attr>
+
+    <!-- This attribute overrides the user-set or platform-set 16 KB page size
+         compatibility mode, so that page agnostic compatibility is always enabled
+         or always disabled, rather than according to the user's preference.
+
+         <p>On 4 KB systems, this attribute is ignored and apps are installed
+         normally.
+
+         <p>On 16 KB systems, if an app is built for 16 KB page sizes, this
+         attribute is ignored and apps are installed normally.
+
+         <p>This attribute only affects 16 KB systems for apps that are built
+         with 4 KB page size (old) options.
+
+         <p>When page agnostic compatibility is enabled (either through this
+         flag or via the user's preference), the system specializes the app
+         installation process in ways known to improve compatibility of 4 KB
+         built apps on 16 KB systems. That is, apps which do not have aligned
+         libraries in APK files are extracted, requiring more space on the
+         device. An additional specialization when this option is enabled is
+         that the linker loads the application in a special mode intended
+         to allow 4 KB aligned program segments to load on a 16 KB page system.
+
+         <p>Here are the situations where this attribute should be most useful:
+         <ul>
+            <li>If an app works on 16 KB mode, but is not built for it, enabling this
+            attribute forces the app to be installed in 16 KB mode without
+            the user having to set these options themself.
+            <li>If an app is fully working in 16 KB mode, you can set this
+            attribute to disabled, so that any regression causes a clear failure
+            and this compatibility mode is not used.
+         </ul>
+
+         @FlaggedApi(android.content.pm.Flags.FLAG_APP_COMPAT_OPTION_16KB) -->
+    <attr name="pageSizeCompat">
+        <!-- value for enabled must match with
+        ApplicationInfo.PAGE_SIZE_APP_COMPAT_FLAG_MANIFEST_OVERRIDE_ENABLED -->
+        <enum name="enabled" value="32" />
+        <!-- value for disabled must match with
+        ApplicationInfo.PAGE_SIZE_APP_COMPAT_FLAG_MANIFEST_OVERRIDE_DISABLED -->
+        <enum name="disabled" value="64" />
+    </attr>
+
 
     <!-- Attribution tag to be used for permission sub-attribution if a
       permission is checked in  {@link android.content.Context#sendBroadcast(Intent, String)}.
@@ -1837,6 +1965,34 @@
          depending on the state of feature flags.
          @hide @SystemApi @FlaggedApi("android.content.res.manifest_flagging") -->
     <attr name="featureFlag" format="string" />
+
+    <!-- This attribute provides a way to fine-tune how incoming intents are matched to application
+    components. By default, no special matching rules are applied. This attribute can be specified
+    on the {@code <application>} tag as well as at the component tags such as {@code <activity>},
+    {@code <activity-alias>}, {@code <receiver>}, {@code <service>}, {@code <provider>} and the
+    attribute on the component can be used to override what's on the {@code <application>} tag. -->
+    <attr name="intentMatchingFlags">
+        <!-- Disables all special matching rules for incoming intents. When specifying multiple
+        flags, conflicting values are resolved by giving precedence to the "none" flag. -->
+        <flag name="none" value="0x0001" />
+
+        <!-- Enforces stricter matching for incoming intents:
+        <ul>
+             <li>Explicit intents should match the target component's intent filter
+             <li>Intents without an action should not match any intent filter
+        </ul>
+        -->
+        <flag name="enforceIntentFilter" value="0x0002" />
+
+        <!-- Relaxes the matching rules to allow intents without a action to match. This flag to be
+        used in conjunction with enforceIntentFilter to achieve a specific behavior:
+        <ul>
+            <li>Explicit intents should match the target component's intent filter
+            <li>Intents without an action are allowed to match any intent filter
+        </ul>
+        -->
+        <flag name="allowNullAction" value="0x0004" />
+    </attr>
 
     <!-- The <code>manifest</code> tag is the root of an
          <code>AndroidManifest.xml</code> file,
@@ -2146,6 +2302,9 @@
 
         <attr name="memtagMode" />
 
+        <!-- @FlaggedApi(android.content.pm.Flags.FLAG_APP_COMPAT_OPTION_16KB) -->
+        <attr name="pageSizeCompat" />
+
         <!-- If {@code true} enables automatic zero initialization of all native heap
              allocations. -->
         <attr name="nativeHeapZeroInitialized" format="boolean" />
@@ -2205,6 +2364,24 @@
              {@link android.window.OnBackInvokedCallback#onBackInvoked
              OnBackInvokedCallback.onBackInvoked()} on the focused window. -->
         <attr name="enableOnBackInvokedCallback" format="boolean"/>
+
+        <attr name="intentMatchingFlags"/>
+
+        <!-- Specifies the set of drawable resources that can be used in place
+             of an existing declared icon or banner for activities that appear
+             in the app launcher. The resource referenced must be an array of
+             drawable resources and can contain at most 500 items.
+             {@link android.content.pm.PackageManager#changeLauncherIconConfig}
+             @FlaggedApi(android.content.pm.Flags.FLAG_CHANGE_LAUNCHER_BADGING) -->
+        <attr name="alternateLauncherIcons" format="reference" />
+
+        <!-- Specifies the set of string resources that can be used in place
+             of an existing declared label for activities that appear
+             in the app launcher. The resource referenced must be an array of
+             string resources and can contain at most 500 items.
+             {@link android.content.pm.PackageManager#changeLauncherIconConfig}
+             @FlaggedApi(android.content.pm.Flags.FLAG_CHANGE_LAUNCHER_BADGING) -->
+        <attr name="alternateLauncherLabels" format="reference" />
     </declare-styleable>
 
     <!-- An attribution is a logical part of an app and is identified by a tag.
@@ -2787,6 +2964,17 @@
         <attr name="name" />
     </declare-styleable>
 
+    <!-- Private tag to declare the package name that the permissions of this package
+         is based on.  Only used for packages installed in the system image.  If
+         given, the permissions from the other package will be propagated into the
+         new package.
+
+         <p>This appears as a child tag of the root
+         {@link #AndroidManifest manifest} tag. -->
+    <declare-styleable name="AndroidManifestAdoptPermissions" parent="AndroidManifest">
+        <attr name="name" />
+    </declare-styleable>
+
     <!-- The <code>processes</code> tag specifies the processes the application will run code in
          and optionally characteristics of those processes.  This tag is optional; if not
          specified, components will simply run in the processes they specify.  If supplied,
@@ -2892,6 +3080,7 @@
              contained here. -->
         <attr name="attributionTags" />
         <attr name="systemUserOnly" format="boolean" />
+        <attr name="intentMatchingFlags"/>
     </declare-styleable>
 
     <!-- Attributes that can be supplied in an AndroidManifest.xml
@@ -3051,6 +3240,7 @@
         -->
         <attr name="allowSharedIsolatedProcess" format="boolean" />
         <attr name="systemUserOnly" format="boolean" />
+        <attr name="intentMatchingFlags"/>
     </declare-styleable>
 
     <!-- @hide The <code>apex-system-service</code> tag declares an apex system service
@@ -3118,6 +3308,7 @@
              Context.createAttributionContext() using the first attribution tag
              contained here. -->
         <attr name="attributionTags" />
+        <attr name="intentMatchingFlags"/>
     </declare-styleable>
 
     <!-- The <code>activity</code> tag declares an
@@ -3258,8 +3449,8 @@
              usually TVs.
              <p>Requires permission {@code android.permission.DISABLE_SYSTEM_SOUND_EFFECTS}. -->
         <attr name="playHomeTransitionSound" format="boolean"/>
-        <!-- Indicates whether the activity can be displayed on a remote device which may or
-             may not be running Android. -->
+        <!-- Indicates whether the activity can be displayed on a display that may belong to a
+             remote device which may or may not be running Android. -->
         <attr name="canDisplayOnRemoteDevices" format="boolean"/>
         <attr name="allowUntrustedActivityEmbedding" />
         <attr name="knownActivityEmbeddingCerts" />
@@ -3312,6 +3503,7 @@
                  URIs. -->
             <enum name="readAndWrite" value="4" />
         </attr>
+        <attr name="intentMatchingFlags"/>
     </declare-styleable>
 
     <!-- The <code>activity-alias</code> tag declares a new
@@ -3354,6 +3546,7 @@
         <attr name="attributionTags" />
         <attr name="allowUntrustedActivityEmbedding" />
         <attr name="knownActivityEmbeddingCerts" />
+        <attr name="intentMatchingFlags"/>
     </declare-styleable>
 
     <!-- The <code>meta-data</code> tag is used to attach additional
