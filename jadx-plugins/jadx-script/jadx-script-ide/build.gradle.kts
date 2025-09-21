@@ -13,5 +13,5 @@ dependencies {
 	implementation(kotlin("scripting-ide-services"))
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-	implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
+	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 }

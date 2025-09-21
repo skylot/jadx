@@ -7,5 +7,5 @@ dependencies {
 
 	implementation(project(":jadx-commons:jadx-app-commons"))
 
-	implementation("com.google.code.gson:gson:2.13.1")
+	implementation("com.google.code.gson:gson:2.13.2")
 }

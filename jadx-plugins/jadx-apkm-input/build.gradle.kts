@@ -7,5 +7,5 @@ dependencies {
 	api(project(":jadx-core"))
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
-	implementation("com.google.code.gson:gson:2.13.1")
+	implementation("com.google.code.gson:gson:2.13.2")
 }
