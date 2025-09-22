@@ -82,6 +82,17 @@ fun isNonStable(version: String): Boolean {
 	return isStable.not()
 }
 
+val distWinConfiguration: Configuration by configurations.creating {
+	isCanBeConsumed = false
+}
+val distWinWithJreConfiguration: Configuration by configurations.creating {
+	isCanBeConsumed = false
+}
+dependencies {
+	distWinConfiguration(project(":jadx-gui", "distWinConfiguration"))
+	distWinWithJreConfiguration(project(":jadx-gui", "distWinWithJreConfiguration"))
+}
+
 val copyArtifacts by tasks.registering(Copy::class) {
 	val jarCliPattern = "jadx-cli-(.*)-all.jar".toPattern()
 	from(tasks.getByPath(":jadx-cli:installShadowDist")) {
@@ -119,9 +130,7 @@ val distWin by tasks.registering(Zip::class) {
 	group = "jadx"
 	description = "Build Windows bundle"
 
-	val guiTask = tasks.getByPath("jadx-gui:copyDistWin")
-	dependsOn(guiTask)
-	from(guiTask.outputs)
+	from(distWinConfiguration)
 
 	destinationDirectory.set(layout.buildDirectory.dir("distWin"))
 	archiveFileName.set("jadx-gui-$jadxVersion-win.zip")
@@ -131,9 +140,7 @@ val distWin by tasks.registering(Zip::class) {
 val distWinWithJre by tasks.registering(Zip::class) {
 	description = "Build Windows with JRE bundle"
 
-	val guiTask = tasks.getByPath(":jadx-gui:copyDistWinWithJre")
-	dependsOn(guiTask)
-	from(guiTask.outputs)
+	from(distWinWithJreConfiguration)
 
 	destinationDirectory.set(layout.buildDirectory.dir("distWinWithJre"))
 	archiveFileName.set("jadx-gui-$jadxVersion-with-jre-win.zip")

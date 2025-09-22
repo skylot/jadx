@@ -228,6 +228,20 @@ val copyDistWinWithJre by tasks.registering(Copy::class) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+/**
+ * Register and expose distribution artifacts to use in top level packaging tasks
+ */
+val distWinConfiguration by configurations.creating {
+	isCanBeResolved = false
+}
+val distWinWithJreConfiguration by configurations.creating {
+	isCanBeResolved = false
+}
+artifacts {
+	add(distWinConfiguration.name, copyDistWin)
+	add(distWinWithJreConfiguration.name, copyDistWinWithJre)
+}
+
 val syncNLSLines by tasks.registering(JavaExec::class) {
 	group = "jadx-dev"
 	description = "Utility task to sync new/missing translation using EN as a reference"
