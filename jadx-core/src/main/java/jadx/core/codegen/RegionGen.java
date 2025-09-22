@@ -294,6 +294,9 @@ public class RegionGen extends InsnGen {
 			isEnum = clsDetails != null && clsDetails.hasAccFlag(AccessFlags.ENUM);
 		}
 		if (isEnum) {
+			if (fld != null) {
+				code.attachAnnotation(fld);
+			}
 			code.add(fldInfo.getAlias());
 			return;
 		}
