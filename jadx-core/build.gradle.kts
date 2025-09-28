@@ -8,7 +8,7 @@ dependencies {
 
 	implementation("com.google.code.gson:gson:2.13.2")
 
-	testImplementation("org.apache.commons:commons-lang3:3.18.0")
+	testImplementation("org.apache.commons:commons-lang3:3.19.0")
 
 	testImplementation(project(":jadx-plugins:jadx-dex-input"))
 	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
