@@ -32,7 +32,7 @@ public class ProtoXmlResContainerFactory implements IResContainerFactory {
 		if (zipEntry == null) {
 			return null;
 		}
-		boolean isFromAab = zipEntry.getZipFile().getPath().contains(".aab");
+		boolean isFromAab = zipEntry.getZipFile().getPath().toLowerCase().endsWith(".aab");
 		if (!isFromAab) {
 			return null;
 		}
