@@ -17,7 +17,7 @@ import jadx.gui.utils.NLS;
 public class FileDialogWrapper {
 
 	private static final List<String> OPEN_FILES_EXTS = Arrays.asList(
-			"apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "jadx.kts", "xapk", "apkm");
+			"apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "jadx.kts", "xapk", "apkm", "apks");
 
 	private final MainWindow mainWindow;
 
