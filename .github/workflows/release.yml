@@ -28,7 +28,7 @@ jobs:
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build
         run: ./gradlew dist -PbundleJRE=true
@@ -61,7 +61,7 @@ jobs:
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build
         run: ./gradlew dist distWin
