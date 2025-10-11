@@ -29,6 +29,7 @@ include("jadx-plugins:jadx-kotlin-source-debug-extension")
 include("jadx-plugins:jadx-xapk-input")
 include("jadx-plugins:jadx-aab-input")
 include("jadx-plugins:jadx-apkm-input")
+include("jadx-plugins:jadx-apks-input")
 
 include("jadx-plugins:jadx-script:jadx-script-plugin")
 include("jadx-plugins:jadx-script:jadx-script-runtime")
