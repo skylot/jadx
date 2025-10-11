@@ -1,6 +1,5 @@
 package jadx.plugins.input.java.data;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +22,7 @@ import jadx.plugins.input.java.data.attributes.types.JavaBootstrapMethodsAttr;
 import jadx.plugins.input.java.data.attributes.types.data.RawBootstrapMethod;
 import jadx.plugins.input.java.utils.DescriptorParser;
 import jadx.plugins.input.java.utils.JavaClassParseException;
+import jadx.plugins.input.java.utils.ModifiedUTF8Decoder;
 
 public class ConstPoolReader {
 	private final JavaClassReader clsReader;
@@ -235,8 +235,7 @@ public class ConstPoolReader {
 
 	@NotNull
 	private String parseString(byte[] bytes) {
-		// TODO: parse modified UTF-8
-		return new String(bytes, StandardCharsets.UTF_8);
+		return ModifiedUTF8Decoder.decodeString(bytes);
 	}
 
 	private String fixType(String clsName) {
