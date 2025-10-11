@@ -1,9 +1,9 @@
 package jadx.plugins.kotlin.metadata.utils
 
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmProperty
-import kotlinx.metadata.jvm.fieldSignature
-import kotlinx.metadata.jvm.signature
+import kotlin.metadata.KmFunction
+import kotlin.metadata.KmProperty
+import kotlin.metadata.jvm.fieldSignature
+import kotlin.metadata.jvm.signature
 
 inline val KmFunction.shortId: String? get() = signature?.toString()
 

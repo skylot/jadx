@@ -9,7 +9,7 @@ import jadx.plugins.kotlin.metadata.model.ClassAliasRename
 import jadx.plugins.kotlin.metadata.model.CompanionRename
 import jadx.plugins.kotlin.metadata.model.FieldRename
 import jadx.plugins.kotlin.metadata.model.MethodArgRename
-import kotlinx.metadata.KmClass
+import kotlin.metadata.KmClass
 
 object KotlinMetadataUtils {
 
