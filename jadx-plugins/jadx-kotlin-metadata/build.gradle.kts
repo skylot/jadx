@@ -12,4 +12,5 @@ dependencies {
 	testImplementation("org.apache.commons:commons-lang3:3.19.0")
 
 	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
+	testRuntimeOnly(project(":jadx-plugins:jadx-java-input"))
 }

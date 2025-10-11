@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -743,5 +744,12 @@ public abstract class IntegrationTest extends TestUtils {
 		JavaVariable javaVariable = (JavaVariable) jadxDecompiler.getJavaNodeByCodeAnnotation(null, varNode);
 		assertThat(javaVariable).isNotNull();
 		return javaVariable;
+	}
+
+	public File getResourceFile(String filePath) {
+		URL resource = getClass().getClassLoader().getResource(filePath);
+		assertThat(resource).as("Resource not found: %s", filePath).isNotNull();
+		String resPath = resource.getFile();
+		return new File(resPath);
 	}
 }
