@@ -1,11 +1,11 @@
 package jadx.plugins.input.smali;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,16 +51,18 @@ public class SmaliConvert {
 		long start = System.currentTimeMillis();
 		if (threads == 1 || inputFiles.size() == 1) {
 			for (Path inputFile : inputFiles) {
-				assemble(inputFile, smaliOptions);
+				assemble(dexData, inputFile, smaliOptions);
 			}
 		} else {
 			try {
 				ExecutorService executor = Executors.newFixedThreadPool(threads);
+				List<IDexData> syncList = Collections.synchronizedList(dexData);
 				for (Path inputFile : inputFiles) {
-					executor.execute(() -> assemble(inputFile, smaliOptions));
+					executor.execute(() -> assemble(syncList, inputFile, smaliOptions));
 				}
 				executor.shutdown();
-				executor.awaitTermination(1, TimeUnit.DAYS);
+				executor.awaitTermination(1, TimeUnit.HOURS);
+				dexData.sort(Comparator.comparing(IDexData::getFileName));
 			} catch (InterruptedException e) {
 				LOG.error("Smali compile interrupted", e);
 			}
@@ -70,27 +72,13 @@ public class SmaliConvert {
 		}
 	}
 
-	private void assemble(Path inputFile, SmaliOptions smaliOptions) {
+	private void assemble(List<IDexData> results, Path inputFile, SmaliOptions smaliOptions) {
 		Path path = inputFile.toAbsolutePath();
 		try {
 			byte[] dexContent = SmaliUtils.assemble(path.toFile(), smaliOptions);
-			dexData.add(new SimpleDexData(path.toString(), dexContent));
+			results.add(new SimpleDexData(path.toString(), dexContent));
 		} catch (Exception e) {
 			LOG.error("Failed to assemble smali file: {}", path, e);
-		}
-	}
-
-	private static void collectSystemErrors(OutputStream out, Runnable exec) {
-		PrintStream systemErr = System.err;
-		try (PrintStream err = new PrintStream(out)) {
-			System.setErr(err);
-			try {
-				exec.run();
-			} catch (Exception e) {
-				e.printStackTrace(err);
-			}
-		} finally {
-			System.setErr(systemErr);
 		}
 	}
 

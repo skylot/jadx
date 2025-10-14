@@ -435,7 +435,7 @@ public final class JadxDecompiler implements Closeable {
 		return list;
 	}
 
-	public List<JavaClass> getClasses() {
+	public synchronized List<JavaClass> getClasses() {
 		if (root == null) {
 			return Collections.emptyList();
 		}
@@ -443,10 +443,7 @@ public final class JadxDecompiler implements Closeable {
 			List<ClassNode> classNodeList = root.getClasses();
 			List<JavaClass> clsList = new ArrayList<>(classNodeList.size());
 			for (ClassNode classNode : classNodeList) {
-				if (classNode.contains(AFlag.DONT_GENERATE)) {
-					continue;
-				}
-				if (!classNode.getClassInfo().isInner()) {
+				if (!classNode.contains(AFlag.DONT_GENERATE) && !classNode.isInner()) {
 					clsList.add(convertClassNode(classNode));
 				}
 			}

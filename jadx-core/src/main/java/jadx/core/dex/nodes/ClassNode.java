@@ -612,17 +612,9 @@ public class ClassNode extends NotificationAttrNode
 		return parentClass;
 	}
 
-	public void updateParentClass() {
-		if (clsInfo.isInner()) {
-			ClassNode parent = root.resolveClass(clsInfo.getParentClass());
-			if (parent != null) {
-				parentClass = parent;
-				return;
-			}
-			// undo inner mark in class info
-			clsInfo.notInner(root);
-		}
-		parentClass = this;
+	public void notInner() {
+		this.clsInfo.notInner(root);
+		this.parentClass = this;
 	}
 
 	/**

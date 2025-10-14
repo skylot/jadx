@@ -159,7 +159,7 @@ public class RootNode {
 		LOG.info("Loaded classes: {}, methods: {}, instructions: {}", classes.size(), mthCount, insnsCount);
 
 		// sort classes by name, expect top classes before inner
-		classes.sort(Comparator.comparing(ClassNode::getFullName));
+		classes.sort(Comparator.comparing(ClassNode::getRawName));
 
 		if (args.isMoveInnerClasses()) {
 			// detect and move inner classes
@@ -309,10 +309,8 @@ public class RootNode {
 			ClassInfo clsInfo = cls.getClassInfo();
 			ClassNode parent = resolveParentClass(clsInfo);
 			if (parent == null) {
-				clsMap.remove(clsInfo);
-				clsInfo.notInner(this);
-				clsMap.put(clsInfo, cls);
 				updated.add(cls);
+				cls.notInner();
 			} else {
 				parent.addInnerClass(cls);
 			}
@@ -323,7 +321,6 @@ public class RootNode {
 				innerCls.getClassInfo().updateNames(this);
 			}
 		}
-		classes.forEach(ClassNode::updateParentClass);
 		for (PackageNode pkg : packages) {
 			pkg.getClasses().removeIf(cls -> cls.getClassInfo().isInner());
 		}

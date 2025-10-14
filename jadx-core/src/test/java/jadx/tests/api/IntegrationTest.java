@@ -221,8 +221,7 @@ public abstract class IntegrationTest extends TestUtils {
 		} else {
 			LOG.info("Convert back to top level: {}", cls);
 			cls.getTopParentClass().decompile(); // keep correct process order
-			cls.getClassInfo().notInner(root);
-			cls.updateParentClass();
+			cls.notInner();
 		}
 		decompileAndCheck(cls);
 		return cls;
