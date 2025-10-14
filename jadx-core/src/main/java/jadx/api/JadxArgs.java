@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -245,8 +244,12 @@ public class JadxArgs implements Closeable {
 		return inputFiles;
 	}
 
+	public void addInputFile(File inputFile) {
+		this.inputFiles.add(inputFile);
+	}
+
 	public void setInputFile(File inputFile) {
-		this.inputFiles = Collections.singletonList(inputFile);
+		addInputFile(inputFile);
 	}
 
 	public void setInputFiles(List<File> inputFiles) {

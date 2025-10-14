@@ -1,0 +1,2 @@
+CLASS jadx/test/BaseCls
+	CLASS Inner RenamedInner

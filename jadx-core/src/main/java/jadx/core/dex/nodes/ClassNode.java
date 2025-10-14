@@ -624,31 +624,35 @@ public class ClassNode extends NotificationAttrNode
 	 */
 	@Override
 	public void rename(String newName) {
-		int lastDot = newName.lastIndexOf('.');
-		if (lastDot == -1) {
+		if (newName.indexOf('.') == -1) {
 			clsInfo.changeShortName(newName);
 			return;
 		}
-		if (clsInfo.isInner()) {
-			addWarn("Can't change package for inner class: " + this + " to " + newName);
-			return;
-		}
+		// full name provided
+		ClassInfo newClsInfo = ClassInfo.fromNameWithoutCache(root, newName, clsInfo.isInner());
 		// change class package
-		String newPkg = newName.substring(0, lastDot);
-		String newShortName = newName.substring(lastDot + 1);
-		if (changeClassNodePackage(newPkg)) {
-			clsInfo.changePkgAndName(newPkg, newShortName);
-		} else {
+		String newPkg = newClsInfo.getPackage();
+		String newShortName = newClsInfo.getShortName();
+		if (clsInfo.isInner()) {
+			if (!newPkg.equals(clsInfo.getPackage())) {
+				addWarn("Can't change package for inner class: " + this + " to " + newName);
+			}
 			clsInfo.changeShortName(newShortName);
+		} else {
+			if (changeClassNodePackage(newPkg)) {
+				clsInfo.changePkgAndName(newPkg, newShortName);
+			} else {
+				clsInfo.changeShortName(newShortName);
+			}
 		}
 	}
 
 	private boolean changeClassNodePackage(String fullPkg) {
-		if (clsInfo.isInner()) {
-			throw new JadxRuntimeException("Can't change package for inner class: " + clsInfo);
-		}
 		if (fullPkg.equals(clsInfo.getAliasPkg())) {
 			return false;
+		}
+		if (clsInfo.isInner()) {
+			throw new JadxRuntimeException("Can't change package for inner class: " + clsInfo);
 		}
 		root.removeClsFromPackage(packageNode, this);
 		packageNode = PackageNode.getForClass(root, fullPkg, this);

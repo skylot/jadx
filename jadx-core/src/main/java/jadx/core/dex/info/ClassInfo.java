@@ -23,9 +23,9 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	@Nullable
 	private ClassAliasInfo alias;
 
-	private ClassInfo(RootNode root, ArgType type) {
+	private ClassInfo(RootNode root, ArgType type, boolean canBeInner) {
 		this.type = type;
-		splitAndApplyNames(root, type, root.getArgs().isMoveInnerClasses());
+		splitAndApplyNames(root, type, canBeInner);
 	}
 
 	public static ClassInfo fromType(RootNode root, ArgType type) {
@@ -34,12 +34,17 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		if (cls != null) {
 			return cls;
 		}
-		ClassInfo newClsInfo = new ClassInfo(root, clsType);
+		boolean canBeInner = root.getArgs().isMoveInnerClasses();
+		ClassInfo newClsInfo = new ClassInfo(root, clsType, canBeInner);
 		return root.getInfoStorage().putCls(newClsInfo);
 	}
 
 	public static ClassInfo fromName(RootNode root, String clsName) {
 		return fromType(root, ArgType.object(clsName));
+	}
+
+	public static ClassInfo fromNameWithoutCache(RootNode root, String fullClsName, boolean canBeInner) {
+		return new ClassInfo(root, ArgType.object(fullClsName), canBeInner);
 	}
 
 	private static ArgType checkClassType(ArgType type) {
