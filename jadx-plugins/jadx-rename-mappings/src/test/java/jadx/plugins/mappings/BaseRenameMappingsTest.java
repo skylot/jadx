@@ -39,7 +39,7 @@ public class BaseRenameMappingsTest {
 	}
 
 	public File loadResourceFile(String fileName) {
-		String path = testResDir + File.separator + fileName;
+		String path = testResDir + '/' + fileName;
 		try {
 			URL resource = getClass().getClassLoader().getResource(path);
 			assertThat(resource).isNotNull();
