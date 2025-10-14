@@ -27,7 +27,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.7.1")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.18")
+	implementation("ch.qos.logback:logback-classic:1.5.19")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")
@@ -35,9 +35,9 @@ dependencies {
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer
 
-	implementation("com.formdev:flatlaf:3.6.1")
-	implementation("com.formdev:flatlaf-intellij-themes:3.6.1")
-	implementation("com.formdev:flatlaf-extras:3.6.1")
+	implementation("com.formdev:flatlaf:3.6.2")
+	implementation("com.formdev:flatlaf-intellij-themes:3.6.2")
+	implementation("com.formdev:flatlaf-extras:3.6.2")
 
 	implementation("com.google.code.gson:gson:2.13.2")
 	implementation("org.apache.commons:commons-lang3:3.19.0")
