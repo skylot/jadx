@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.invokedynamic;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -81,6 +83,12 @@ public class CustomLambdaCall {
 		MethodInfo implMthInfo = MethodInfo.fromMethodProto(root, implCls, implName, implProto);
 		invokeCustomNode.setImplMthInfo(implMthInfo);
 
+		// Parse marker interfaces for intersection types from altMetafactory args
+		List<ArgType> markerInterfaces = parseMarkerInterfaces(root, values);
+		if (!markerInterfaces.isEmpty()) {
+			invokeCustomNode.setMarkerInterfaces(markerInterfaces);
+		}
+
 		MethodInfo callMthInfo = MethodInfo.fromRef(root, callMthHandle.getMethodRef());
 		InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
 
@@ -151,5 +159,74 @@ public class CustomLambdaCall {
 			}
 		}
 		return invokeNode;
+	}
+
+	/**
+	 * Parse marker interfaces from altMetafactory additional arguments.
+	 * 
+	 * Bootstrap method arguments structure:
+	 * Standard metafactory (6 args):
+	 * - arg[0]: bootstrap method handle (INVOKE_STATIC LambdaMetafactory.metafactory)
+	 * - arg[1]: SAM method name (String, e.g., "get")
+	 * - arg[2]: SAM method signature (MethodType)
+	 * - arg[3]: SAM method type (MethodType)
+	 * - arg[4]: implementation method handle (MethodHandle)
+	 * - arg[5]: instantiated method type (MethodType)
+	 *
+	 * altMetafactory (6+ args):
+	 * - arg[0-5]: same as above
+	 * - arg[6]: flags (int) - bit 1 (0x02) indicates marker interfaces present
+	 * - arg[7]: marker interface count (int)
+	 * - arg[8+]: marker interface types (Type[])
+	 */
+	private static List<ArgType> parseMarkerInterfaces(RootNode root, List<EncodedValue> values) {
+		// alt Metafactory needs more than 6 args
+		if (values.size() <= 6) {
+			return Collections.emptyList();
+		}
+
+		try {
+			// Check if this is altMetafactory by looking for integer flags at index 6
+			EncodedValue flagsValue = values.get(6);
+			if (flagsValue.getType() != EncodedType.ENCODED_INT) {
+				return Collections.emptyList();
+			}
+			
+			int flags = (Integer) flagsValue.getValue();
+			// Bit 1 (0x02) in flags indicates marker interfaces are present
+			boolean hasMarkers = (flags & 0x02) != 0;
+			
+			if (!hasMarkers || values.size() < 8) {
+				return Collections.emptyList();
+			}
+
+			// arg[7] should be marker count
+			EncodedValue markerCountValue = values.get(7);
+			if (markerCountValue.getType() != EncodedType.ENCODED_INT) {
+				return Collections.emptyList();
+			}
+
+			int markerCount = (Integer) markerCountValue.getValue();
+			if (markerCount <= 0 || values.size() < 8 + markerCount) {
+				return Collections.emptyList();
+			}
+
+			// Parse marker types from arg[8] onwards
+			List<ArgType> markers = new ArrayList<>(markerCount);
+			for (int i = 0; i < markerCount; i++) {
+				EncodedValue markerValue = values.get(8 + i);
+				if (markerValue.getType() == EncodedType.ENCODED_TYPE) {
+					String typeStr = (String) markerValue.getValue();
+					ArgType markerType = ArgType.parse(typeStr);
+					if (markerType != null && !markerType.equals(ArgType.OBJECT)) {
+						markers.add(markerType);
+					}
+				}
+			}
+			return markers;
+		} catch (Exception e) {
+			// If parsing fails, return empty list - don't break decompilation
+			return Collections.emptyList();
+		}
 	}
 }

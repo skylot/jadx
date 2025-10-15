@@ -1,10 +1,14 @@
 package jadx.core.dex.instructions;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
@@ -15,6 +19,7 @@ public class InvokeCustomNode extends InvokeNode {
 	private InsnNode callInsn;
 	private boolean inlineInsn;
 	private boolean useRef;
+	private List<ArgType> markerInterfaces; // For lambda intersection types (e.g., Function & Serializable)
 
 	public InvokeCustomNode(MethodInfo lambdaInfo, InsnData insn, boolean instanceCall, boolean isRange) {
 		super(lambdaInfo, insn, InvokeType.CUSTOM, instanceCall, isRange);
@@ -33,6 +38,7 @@ public class InvokeCustomNode extends InvokeNode {
 		copy.setCallInsn(callInsn);
 		copy.setInlineInsn(inlineInsn);
 		copy.setUseRef(useRef);
+		copy.setMarkerInterfaces(markerInterfaces);
 		return copy;
 	}
 
@@ -90,6 +96,19 @@ public class InvokeCustomNode extends InvokeNode {
 
 	public void setUseRef(boolean useRef) {
 		this.useRef = useRef;
+	}
+
+	/**
+	 * Get marker interfaces for lambda intersection types (e.g., Function & Serializable).
+	 * These are additional bounds from altMetafactory that should be used for type inference.
+	 */
+	@Nullable
+	public List<ArgType> getMarkerInterfaces() {
+		return markerInterfaces;
+	}
+
+	public void setMarkerInterfaces(List<ArgType> markerInterfaces) {
+		this.markerInterfaces = markerInterfaces;
 	}
 
 	@Nullable

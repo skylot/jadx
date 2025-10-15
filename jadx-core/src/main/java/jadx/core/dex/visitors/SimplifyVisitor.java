@@ -231,9 +231,15 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
-		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
-				|| isCastDuplicate(castInsn)
-				|| shadowedByOuterCast(mth.root(), castToType, parentInsn)) {
+		boolean castNeeded = ArgType.isCastNeeded(mth.root(), argType, castToType);
+		boolean duplicate = isCastDuplicate(castInsn);
+		boolean shadowed = shadowedByOuterCast(mth.root(), castToType, parentInsn);
+		
+		LOG.debug("ProcessCast: argType={}, castToType={}, castNeeded={}, duplicate={}, shadowed={}", 
+				argType, castToType, castNeeded, duplicate, shadowed);
+		
+		if (!castNeeded || duplicate || shadowed) {
+			LOG.debug("ProcessCast: REMOVING cast from {} to {}", argType, castToType);
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setOffset(castInsn.getOffset());
 			insnNode.setResult(castInsn.getResult());

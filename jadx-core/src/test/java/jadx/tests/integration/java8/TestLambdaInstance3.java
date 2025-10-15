@@ -39,7 +39,9 @@ public class TestLambdaInstance3 extends RaungTest {
 				.code()
 				.doesNotContain("this::get")
 				.containsOne("return (TestCls) lazyOf::get;");
-		// TODO: type inference set type for 'lazyOf' to Memoized and cast incorrectly removed
+		// TODO: Fix cascading casts - when javac generates CHECK_CAST to Memoized then CHECK_CAST to TestCls,
+		//  we currently only mark the first cast as EXPLICIT, but the second cast shadows it during region transformation.
+		//  The raung test (testRaung) works correctly and shows (Memoized) cast.
 		// .containsOne("Memoized)");
 	}
 

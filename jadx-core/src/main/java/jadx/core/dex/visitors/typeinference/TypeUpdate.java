@@ -20,6 +20,10 @@ import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeCustomNode;
+import jadx.core.dex.instructions.InvokeType;
+import jadx.core.dex.info.MethodInfo;
+import java.util.List;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -341,6 +345,12 @@ public final class TypeUpdate {
 			// TODO: implement backward type propagation (from result to instance)
 			return SAME;
 		}
+		
+		// Handle lambda method references (InvokeCustomNode)
+		if (invoke instanceof InvokeCustomNode) {
+			return handleInvokeCustom(updateInfo, (InvokeCustomNode) invoke, arg, candidateType);
+		}
+		
 		if (invoke.getInstanceArg() == arg) {
 			IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails(invoke);
 			if (methodDetails == null) {
@@ -361,6 +371,64 @@ public final class TypeUpdate {
 			return applyInvokeTypes(updateInfo, invoke, argsCount, knownTypeVars,
 					() -> typeUtils.replaceTypeVariablesUsingMap(returnType, typeVarsMap),
 					argNum -> typeUtils.replaceClassGenerics(candidateType, argTypes.get(argNum)));
+		}
+		return SAME;
+	}
+	
+	private TypeUpdateResult handleInvokeCustom(TypeUpdateInfo updateInfo, InvokeCustomNode invokeCustom,
+			InsnArg arg, ArgType candidateType) {
+		// Lambda expressions return types should match the functional interface
+		MethodInfo implMthInfo = invokeCustom.getImplMthInfo();
+		if (implMthInfo == null) {
+			LOG.debug("InvokeCustom: implMthInfo is null");
+			return SAME;
+		}
+		
+		RegisterArg resultArg = invokeCustom.getResult();
+		LOG.debug("InvokeCustom: resultArg={}, immutable={}, implMthInfo={}", 
+				resultArg, resultArg != null ? resultArg.isTypeImmutable() : "null", implMthInfo);
+		
+		if (resultArg != null && !resultArg.isTypeImmutable()) {
+			ArgType lambdaType = implMthInfo.getReturnType();
+			
+			// For intersection types (e.g., TestCls<R> & Memoized), prefer the marker interface
+			// that is NOT the primary functional interface for cast generation
+			List<ArgType> markerInterfaces = invokeCustom.getMarkerInterfaces();
+			LOG.debug("InvokeCustom: markerInterfaces={}, lambdaType={}", markerInterfaces, lambdaType);
+			
+			if (markerInterfaces != null && !markerInterfaces.isEmpty()) {
+				// Markers list usually contains: [FunctionalInterface, MarkerInterface(s)]
+				// We want the last marker which is the additional constraint
+				// Skip the first marker if it matches the return type or is an interface the lambda implements
+				ArgType targetMarker = null;
+				if (markerInterfaces.size() > 1) {
+					// Multiple markers - use the last one (typically the additional constraint like Serializable, Memoized)
+					targetMarker = markerInterfaces.get(markerInterfaces.size() - 1);
+				} else {
+					// Single marker - use it if it's not OBJECT
+					ArgType single = markerInterfaces.get(0);
+					if (!single.equals(ArgType.OBJECT)) {
+						targetMarker = single;
+					}
+				}
+				
+				if (targetMarker != null && !targetMarker.equals(ArgType.UNKNOWN)) {
+					LOG.debug("InvokeCustom: Applying targetMarker={} to resultArg={}", targetMarker, resultArg);
+					TypeUpdateResult result = updateTypeChecked(updateInfo, resultArg, targetMarker);
+					LOG.debug("InvokeCustom: Result={}", result);
+					if (result == CHANGED) {
+						return CHANGED;
+					}
+				}
+			}
+			
+			// Fallback: use the lambda interface type (functional interface)
+			if (lambdaType != null && !lambdaType.equals(ArgType.UNKNOWN)) {
+				TypeUpdateResult result = updateTypeChecked(updateInfo, resultArg, lambdaType);
+				if (result == CHANGED) {
+					return CHANGED;
+				}
+			}
 		}
 		return SAME;
 	}

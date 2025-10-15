@@ -29,6 +29,7 @@ import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.ExtractFieldInit;
 import jadx.core.dex.visitors.FallbackModeVisitor;
+import jadx.core.dex.visitors.FixLambdaCastVisitor;
 import jadx.core.dex.visitors.FixSwitchOverEnum;
 import jadx.core.dex.visitors.GenericTypesVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -149,6 +150,7 @@ public class Jadx {
 		}
 		passes.add(new ConstInlineVisitor());
 		passes.add(new TypeInferenceVisitor());
+		passes.add(new FixLambdaCastVisitor());
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
@@ -233,6 +235,7 @@ public class Jadx {
 		passes.add(new InitCodeVariables());
 		passes.add(new ConstInlineVisitor());
 		passes.add(new TypeInferenceVisitor());
+		passes.add(new FixLambdaCastVisitor());
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
