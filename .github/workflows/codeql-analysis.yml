@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@v5
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         queries: +security-extended
         languages: ${{ matrix.language }}
@@ -38,4 +38,4 @@ jobs:
         ./gradlew clean build -x checkstyleTest -x checkstyleMain -x test -x ':jadx-core:testClasses'
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
