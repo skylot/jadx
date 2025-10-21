@@ -78,25 +78,30 @@ public final class TypeUpdate {
 	}
 
 	private TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
-		if (candidateType == null || !candidateType.isTypeKnown()) {
+		try {
+			if (candidateType == null || !candidateType.isTypeKnown()) {
+				return REJECT;
+			}
+
+			TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags, args);
+			TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
+			if (result == REJECT) {
+				return result;
+			}
+			if (updateInfo.isEmpty()) {
+				return SAME;
+			}
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.debug("Applying type {} to {}:", candidateType, ssaVar.toShortString());
+				updateInfo.getSortedUpdates().forEach(upd -> LOG.debug("  {} -> {} in {}",
+						upd.getType(), upd.getArg().toShortString(), upd.getArg().getParentInsn()));
+			}
+			updateInfo.applyUpdates();
+			return CHANGED;
+		} catch (Exception e) {
+			mth.addWarnComment("Type update failed for variable: " + ssaVar + ", new type: " + candidateType, e);
 			return REJECT;
 		}
-
-		TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags, args);
-		TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
-		if (result == REJECT) {
-			return result;
-		}
-		if (updateInfo.isEmpty()) {
-			return SAME;
-		}
-		if (Consts.DEBUG_TYPE_INFERENCE) {
-			LOG.debug("Applying type {} to {}:", candidateType, ssaVar.toShortString());
-			updateInfo.getSortedUpdates().forEach(upd -> LOG.debug("  {} -> {} in {}",
-					upd.getType(), upd.getArg().toShortString(), upd.getArg().getParentInsn()));
-		}
-		updateInfo.applyUpdates();
-		return CHANGED;
 	}
 
 	private TypeUpdateResult updateTypeChecked(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
@@ -435,6 +440,9 @@ public final class TypeUpdate {
 	}
 
 	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		if (insn.getResult() == null) {
+			return CHANGED;
+		}
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
 
