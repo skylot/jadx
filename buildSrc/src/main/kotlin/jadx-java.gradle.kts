@@ -17,8 +17,8 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.17")
 	compileOnly("org.jetbrains:annotations:26.0.2")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.18")
-	testImplementation("org.assertj:assertj-core:3.27.3")
+	testImplementation("ch.qos.logback:logback-classic:1.5.20")
+	testImplementation("org.assertj:assertj-core:3.27.6")
 
 	testImplementation("org.junit.jupiter:junit-jupiter:5.13.3")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

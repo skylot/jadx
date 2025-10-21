@@ -27,7 +27,7 @@ dependencies {
 	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.7.1")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.19")
+	implementation("ch.qos.logback:logback-classic:1.5.20")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")

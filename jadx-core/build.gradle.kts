@@ -22,7 +22,7 @@ dependencies {
 			strictly("[3.33, 3.34[") // from 3.34 compiled with Java 17
 		}
 	}
-	testImplementation("tools.profiler:async-profiler:4.1")
+	testImplementation("tools.profiler:async-profiler:4.2")
 }
 
 val jadxTestJavaVersion = getTestJavaVersion()
