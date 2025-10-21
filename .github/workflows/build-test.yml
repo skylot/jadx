@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -29,4 +29,3 @@ jobs:
         run: ./gradlew build dist distWin
         env:
           JADX_BUILD_JAVA_VERSION: 11
-

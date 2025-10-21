@@ -18,7 +18,7 @@ jobs:
       - name: Set up JDK
         uses: oracle-actions/setup-java@v1
         with:
-          release: 24
+          release: 25
 
       - name: Set jadx version
         uses: actions/github-script@v8
@@ -51,7 +51,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
 
       - name: Set jadx version and release name
         uses: actions/github-script@v8
