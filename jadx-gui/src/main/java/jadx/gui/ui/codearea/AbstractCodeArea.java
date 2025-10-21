@@ -428,11 +428,16 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	 * @param str - if null -> reset current highlights
 	 */
 	private void highlightAllMatches(@Nullable String str) {
-		SearchContext context = new SearchContext(str);
-		context.setMarkAll(true);
-		context.setMatchCase(true);
-		context.setWholeWord(true);
-		SearchEngine.markAll(this, context);
+		try {
+			SearchContext context = new SearchContext(str);
+			context.setMarkAll(true);
+			context.setMatchCase(true);
+			context.setWholeWord(true);
+			SearchEngine.markAll(this, context);
+		} catch (Throwable e) {
+			// syntax parsing can fail for incorrect code
+			LOG.debug("Search highlight failed", e);
+		}
 	}
 
 	public @Nullable JumpPosition getCurrentPosition() {
