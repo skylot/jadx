@@ -71,6 +71,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		if (tokenMakerFactory instanceof AbstractTokenMakerFactory) {
 			AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) tokenMakerFactory;
 			atmf.putMapping(SYNTAX_STYLE_SMALI, "jadx.gui.ui.codearea.SmaliTokenMaker");
+			// use simple token maker instead default PlainTextTokenMaker to avoid parse errors
+			atmf.putMapping(SYNTAX_STYLE_NONE, "jadx.gui.ui.codearea.SimpleTokenMaker");
 		} else {
 			throw new JadxRuntimeException("Unexpected TokenMakerFactory instance: " + tokenMakerFactory.getClass());
 		}
