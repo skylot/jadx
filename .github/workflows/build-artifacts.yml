@@ -33,7 +33,7 @@ jobs:
           JADX_BUILD_JAVA_VERSION: 11
 
       - name: Save bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
           # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip file
@@ -43,7 +43,7 @@ jobs:
           retention-days: 14
 
       - name: Save Windows bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
           # Upload unpacked files for now
@@ -81,7 +81,7 @@ jobs:
         run: ./gradlew dist -PbundleJRE=true
 
       - name: Save Windows with JRE bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           # Upload unpacked files for now
