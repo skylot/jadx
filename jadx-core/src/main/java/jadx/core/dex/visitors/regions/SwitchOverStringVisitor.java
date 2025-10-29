@@ -118,7 +118,7 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			// use string arg directly in switch
 			swInsn.replaceArg(swInsn.getArg(0), strArg.duplicate());
 			return true;
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			mth.addWarnComment("Failed to restore switch over string. Please report as a decompilation issue", e);
 			return false;
 		}
@@ -151,7 +151,7 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 				}
 			}
 			InsnRemover.removeAllMarked(mth);
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			mth.addWarnComment("Failed to clean up code after switch over string restore", e);
 		}
 	}

@@ -34,7 +34,7 @@ public class ResourcesSaver implements Runnable {
 	public void run() {
 		try {
 			saveResources(resourceFile.loadContent());
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			LOG.warn("Failed to save resource: {}", resourceFile.getOriginalName(), e);
 		}
 	}

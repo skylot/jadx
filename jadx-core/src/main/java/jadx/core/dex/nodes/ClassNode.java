@@ -403,7 +403,7 @@ public class ClassNode extends NotificationAttrNode
 			ICodeInfo codeInfo = root.getProcessClasses().generateCode(this);
 			processDefinitionAnnotations(codeInfo);
 			return codeInfo;
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			addError("Code generation failed", e);
 			return new SimpleCodeInfo(Utils.getStackTrace(e));
 		}
@@ -874,7 +874,7 @@ public class ClassNode extends NotificationAttrNode
 		code.startLine(String.format("###### Class %s (%s)", getFullName(), getRawName()));
 		try {
 			code.startLine(clsData.getDisassembledCode());
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			code.startLine("Failed to disassemble class:");
 			code.startLine(Utils.getStackTrace(e));
 		}

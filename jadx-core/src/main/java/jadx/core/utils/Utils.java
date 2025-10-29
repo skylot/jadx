@@ -23,6 +23,8 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeWriter;
 import jadx.api.JadxDecompiler;
@@ -512,6 +514,8 @@ public class Utils {
 	}
 
 	private static final class SimpleThreadFactory implements ThreadFactory {
+		private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+
 		private static final AtomicInteger POOL = new AtomicInteger(0);
 		private final AtomicInteger number = new AtomicInteger(0);
 		private final String name;
@@ -522,9 +526,18 @@ public class Utils {
 
 		@Override
 		public Thread newThread(@NotNull Runnable r) {
-			return new Thread(r, "jadx-" + name
+			Thread thread = new Thread(r, "jadx-" + name
 					+ '-' + POOL.incrementAndGet()
 					+ '-' + number.incrementAndGet());
+			thread.setUncaughtExceptionHandler((t, e) -> {
+				if (e instanceof OutOfMemoryError) {
+					thread.interrupt();
+					LOG.error("OutOfMemoryError in thread: {}, forcing interrupt", t.getName());
+				} else {
+					LOG.error("Uncaught thread exception, thread: {}", t.getName(), e);
+				}
+			});
+			return thread;
 		}
 	}
 

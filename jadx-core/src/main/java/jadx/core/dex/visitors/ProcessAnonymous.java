@@ -64,7 +64,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 	private static void processClass(ClassNode cls) {
 		try {
 			markAnonymousClass(cls);
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			cls.addError("Anonymous visitor error", e);
 		}
 	}

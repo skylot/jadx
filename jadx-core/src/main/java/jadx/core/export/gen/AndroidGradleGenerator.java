@@ -116,7 +116,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 			IJadxSecurity security = root.getArgs().getSecurity();
 			AndroidManifestParser parser = new AndroidManifestParser(androidManifest, strings, attrs, security);
 			return parser.parse();
-		} catch (Throwable t) {
+		} catch (Exception t) {
 			LOG.warn("Failed to parse AndroidManifest.xml", t);
 			return UNKNOWN_APP_PARAMS;
 		}

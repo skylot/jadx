@@ -16,6 +16,7 @@ import jadx.core.dex.nodes.LoadStage;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
@@ -41,6 +42,7 @@ public class ProcessClass {
 			// nothing to do
 			return null;
 		}
+		Utils.checkThreadInterrupt();
 		synchronized (cls.getClassInfo()) {
 			try {
 				if (cls.contains(AFlag.CLASS_DEEP_RELOAD)) {
@@ -76,6 +78,7 @@ public class ProcessClass {
 					cls.setState(PROCESS_COMPLETE);
 				}
 				if (codegen) {
+					Utils.checkThreadInterrupt();
 					ICodeInfo code = CodeGen.generate(cls);
 					if (!cls.contains(AFlag.DONT_UNLOAD_CLASS)) {
 						cls.unload();
@@ -84,7 +87,7 @@ public class ProcessClass {
 					return code;
 				}
 				return null;
-			} catch (Throwable e) {
+			} catch (StackOverflowError | Exception e) {
 				if (codegen) {
 					throw e;
 				}
@@ -119,7 +122,7 @@ public class ProcessClass {
 				throw new JadxRuntimeException("Codegen failed");
 			}
 			return code;
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}
 	}
@@ -135,7 +138,7 @@ public class ProcessClass {
 		}
 		try {
 			process(cls, false);
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to process class: " + cls.getFullName(), e);
 		}
 	}
@@ -146,7 +149,7 @@ public class ProcessClass {
 	public @Nullable ICodeInfo forceGenerateCode(ClassNode cls) {
 		try {
 			return process(cls, true);
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}
 	}

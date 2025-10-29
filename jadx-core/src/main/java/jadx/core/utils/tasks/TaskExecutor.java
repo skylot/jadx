@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.utils.tasks.ITaskExecutor;
@@ -17,6 +19,7 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TaskExecutor implements ITaskExecutor {
+	private static final Logger LOG = LoggerFactory.getLogger(TaskExecutor.class);
 
 	private enum ExecType {
 		PARALLEL,
@@ -49,6 +52,7 @@ public class TaskExecutor implements ITaskExecutor {
 	private final Object executorSync = new Object();
 	private @Nullable ExecutorService executor;
 	private int tasksCount = 0;
+	private @Nullable Error terminateError;
 
 	@Override
 	public void addParallelTasks(List<? extends Runnable> parallelTasks) {
@@ -124,11 +128,25 @@ public class TaskExecutor implements ITaskExecutor {
 		if (activeExecutor != null && running.get()) {
 			awaitExecutorTermination(activeExecutor);
 		}
+		Error error = terminateError;
+		if (error != null) {
+			throw error;
+		}
 	}
 
 	@Override
 	public void terminate() {
 		terminating.set(true);
+	}
+
+	@SuppressWarnings("DataFlowIssue")
+	private void terminateWithError(Error error) {
+		if (terminating.get()) {
+			return;
+		}
+		terminateError = error;
+		terminate();
+		executor.shutdownNow();
 	}
 
 	@Override
@@ -176,8 +194,14 @@ public class TaskExecutor implements ITaskExecutor {
 		if (terminating.get()) {
 			return;
 		}
-		task.run();
-		progress.incrementAndGet();
+		try {
+			task.run();
+			progress.incrementAndGet();
+		} catch (Error e) {
+			terminateWithError(e);
+		} catch (Exception e) {
+			LOG.error("Unhandled task exception:", e);
+		}
 	}
 
 	public static void awaitExecutorTermination(ExecutorService executor) {

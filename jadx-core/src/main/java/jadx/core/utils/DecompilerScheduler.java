@@ -35,7 +35,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				check(result, classes);
 			}
 			return result;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			LOG.warn("Build batches failed (continue with fallback)", e);
 			return buildFallback(classes);
 		}

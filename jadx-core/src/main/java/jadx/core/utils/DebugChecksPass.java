@@ -23,7 +23,7 @@ public class DebugChecksPass extends AbstractVisitor {
 		if (!mth.contains(AType.JADX_ERROR)) {
 			try {
 				DebugChecks.runChecksAfterVisitor(mth, visitorName);
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				mth.addError("Check error", e);
 			}
 		}

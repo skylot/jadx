@@ -61,7 +61,7 @@ public class PostDominatorTree {
 				}
 				mth.addInfoComment("Infinite loop detected, blocks: " + blocksDelta + ", insns: " + insnsCount);
 			}
-		} catch (Throwable e) {
+		} catch (StackOverflowError | Exception e) {
 			// show error as a warning because this info not always used
 			mth.addWarnComment("Failed to build post-dominance tree", e);
 		} finally {
