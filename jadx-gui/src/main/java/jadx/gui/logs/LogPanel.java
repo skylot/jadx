@@ -29,7 +29,7 @@ import jadx.gui.utils.NLS;
 public class LogPanel extends JPanel {
 	private static final long serialVersionUID = -8077649118322056081L;
 
-	private static final Level[] LEVEL_ITEMS = { Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR };
+	private static final Level[] LEVEL_ITEMS = { Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF };
 
 	private final MainWindow mainWindow;
 	private final Runnable dockAction;
