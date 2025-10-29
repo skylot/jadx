@@ -13,6 +13,7 @@ import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -87,7 +88,7 @@ public class ProcessKotlinInternals extends AbstractVisitor {
 	}
 
 	private void processMth(MethodNode mth) {
-		if (mth.isNoCode()) {
+		if (mth.isNoCode() || mth.contains(AType.JADX_ERROR)) {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {

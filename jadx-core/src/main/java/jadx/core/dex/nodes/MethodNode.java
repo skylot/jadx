@@ -48,6 +48,7 @@ import static jadx.core.utils.Utils.lockList;
 
 public class MethodNode extends NotificationAttrNode implements IMethodDetails, ILoadable, ICodeNode, Comparable<MethodNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
+	private static final InsnNode[] EMPTY_INSN_ARRAY = new InsnNode[0];
 
 	private final MethodInfo mthInfo;
 	private final ClassNode parentClass;
@@ -154,8 +155,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			this.regsCount = codeReader.getRegistersCount();
 			this.argsStartReg = codeReader.getArgsStartReg();
 			initArguments(this.argTypes);
-			InsnDecoder decoder = new InsnDecoder(this);
-			this.instructions = decoder.process(codeReader);
+
+			if (contains(AType.JADX_ERROR)) {
+				// don't load instructions for method with errors
+				this.instructions = EMPTY_INSN_ARRAY;
+			} else {
+				InsnDecoder decoder = new InsnDecoder(this);
+				this.instructions = decoder.process(codeReader);
+			}
 		} catch (Exception e) {
 			if (!noCode) {
 				unload();

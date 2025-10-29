@@ -55,7 +55,7 @@ public class JadxCLI {
 
 	private static JadxArgs buildArgs(JadxCLIArgs cliArgs) {
 		LogHelper.initLogLevel(cliArgs);
-		LogHelper.setLogLevelsForLoadingStage();
+		LogHelper.applyLogLevels();
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setUsageInfoCache(new EmptyUsageInfoCache());
@@ -72,7 +72,6 @@ public class JadxCLI {
 			if (checkForErrors(jadx)) {
 				return 1;
 			}
-			LogHelper.setLogLevelsForDecompileStage();
 			if (!SingleClassMode.process(jadx, cliArgs)) {
 				save(jadx);
 			}
@@ -110,10 +109,10 @@ public class JadxCLI {
 				jadx.getArgs().setSkipSources(true);
 			}
 		}
-		if (jadx.getErrorsCount() > 0) {
-			LOG.error("Load with errors! Check log for details");
+		int errorsCount = jadx.getErrorsCount();
+		if (errorsCount > 0) {
+			LOG.error("Loading finished with errors! Count: {}", errorsCount);
 			// continue processing
-			return false;
 		}
 		return false;
 	}

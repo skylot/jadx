@@ -31,7 +31,7 @@ public class JadxGUI {
 				return;
 			}
 			LogHelper.initLogLevel(cliArgs);
-			LogHelper.setLogLevelsForDecompileStage();
+			LogHelper.applyLogLevels();
 			LogCollector.register();
 			printSystemInfo();
 

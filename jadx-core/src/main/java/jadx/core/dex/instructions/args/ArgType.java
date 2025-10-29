@@ -746,6 +746,9 @@ public abstract class ArgType {
 			case '[':
 				return array(parse(type.substring(1)));
 			default:
+				if (type.length() != 1) {
+					throw new JadxRuntimeException("Unknown type string: \"" + type + '"');
+				}
 				return parse(f);
 		}
 	}
@@ -772,7 +775,7 @@ public abstract class ArgType {
 				return VOID;
 
 			default:
-				return null;
+				throw new JadxRuntimeException("Unknown type char: '" + f + "' (0x" + Integer.toHexString(f) + ')');
 		}
 	}
 

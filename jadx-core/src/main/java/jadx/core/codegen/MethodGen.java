@@ -3,8 +3,6 @@ package jadx.core.codegen;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -381,6 +379,20 @@ public class MethodGen {
 	}
 
 	public void addFallbackMethodCode(ICodeWriter code, FallbackOption fallbackOption) {
+		if (fallbackOption == COMMENTED_DUMP && mth.getCommentsLevel() != CommentsLevel.DEBUG) {
+			long insnCountEstimate = mth.getInsnsCount();
+			if (insnCountEstimate > 200) {
+				code.incIndent();
+				code.startLine("Method dump skipped, instruction units count: " + insnCountEstimate);
+				if (code.isMetadataSupported()) {
+					code.startLine("To view this dump change 'Code comments level' option to 'DEBUG'");
+				} else {
+					code.startLine("To view this dump add '--comments-level debug' option");
+				}
+				code.decIndent();
+				return;
+			}
+		}
 		if (fallbackOption != FALLBACK_MODE) {
 			List<JadxError> errors = mth.getAll(AType.JADX_ERROR); // preserve error before unload
 			try {
@@ -403,23 +415,6 @@ public class MethodGen {
 		if (insnArr == null) {
 			code.startLine("// Can't load method instructions.");
 			return;
-		}
-		if (fallbackOption == COMMENTED_DUMP && mth.getCommentsLevel() != CommentsLevel.DEBUG) {
-			long insnCountEstimate = Stream.of(insnArr)
-					.filter(Objects::nonNull)
-					.filter(insn -> insn.getType() != InsnType.NOP)
-					.count();
-			if (insnCountEstimate > 100) {
-				code.incIndent();
-				code.startLine("Method dump skipped, instructions count: " + insnArr.length);
-				if (code.isMetadataSupported()) {
-					code.startLine("To view this dump change 'Code comments level' option to 'DEBUG'");
-				} else {
-					code.startLine("To view this dump add '--comments-level debug' option");
-				}
-				code.decIndent();
-				return;
-			}
 		}
 		code.incIndent();
 		if (mth.getThisArg() != null) {

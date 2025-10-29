@@ -50,7 +50,12 @@ public class InsnDecoder {
 				rawInsn.decode();
 				insn = decode(rawInsn);
 			} catch (Exception e) {
+				boolean mthWithErrors = method.contains(AType.JADX_ERROR);
 				method.addError("Failed to decode insn: " + rawInsn, e);
+				if (mthWithErrors) {
+					// second error in this method => abort processing
+					throw new JadxRuntimeException("Failed to decode insn: " + rawInsn, e);
+				}
 				insn = new InsnNode(InsnType.NOP, 0);
 				insn.addAttr(AType.JADX_ERROR, new JadxError("decode failed: " + e.getMessage(), e));
 			}

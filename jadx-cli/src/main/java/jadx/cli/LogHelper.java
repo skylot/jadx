@@ -56,20 +56,7 @@ public class LogHelper {
 		applyLogLevel(logLevelValue);
 	}
 
-	public static void setLogLevelsForLoadingStage() {
-		if (logLevelValue == null) {
-			return;
-		}
-		if (logLevelValue == LogLevelEnum.PROGRESS) {
-			// show load errors
-			LogHelper.applyLogLevel(LogLevelEnum.ERROR);
-			fixForShowProgress();
-			return;
-		}
-		applyLogLevel(logLevelValue);
-	}
-
-	public static void setLogLevelsForDecompileStage() {
+	public static void applyLogLevels() {
 		if (logLevelValue == null) {
 			return;
 		}

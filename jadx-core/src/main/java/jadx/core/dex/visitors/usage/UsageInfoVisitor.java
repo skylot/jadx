@@ -129,7 +129,8 @@ public class UsageInfoVisitor extends AbstractVisitor {
 			try {
 				processInsn(root, mth, insnData, usageInfo);
 			} catch (Exception e) {
-				mth.addError("Dependency scan failed at insn: " + insnData, e);
+				throw new JadxRuntimeException(
+						"Usage info collection failed with error: " + e.getMessage() + " at insn: " + insnData, e);
 			}
 		});
 	}
