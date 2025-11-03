@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourcesLoader;
 import jadx.api.resources.ResourceContentType;
 import jadx.gui.jobs.BackgroundExecutor;
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.treemodel.JNode;
@@ -89,7 +91,7 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 		Component codePanel = getSelectedPanel();
 		if (codePanel instanceof CodeArea) {
 			CodeArea codeArea = (CodeArea) codePanel;
-			bgExec.startLoading(codeArea::load);
+			codeArea.load();
 		} else {
 			bgExec.startLoading(this::loadHexView);
 		}
@@ -106,11 +108,17 @@ public class BinaryContentPanel extends AbstractCodeContentPanel {
 
 	@Override
 	public void scrollToPos(int pos) {
+		UiUtils.uiThreadGuard();
 		BackgroundExecutor bgExec = getMainWindow().getBackgroundExecutor();
 		if (getNode().getContentType() == ResourceContentType.CONTENT_TEXT) {
 			areaTabbedPane.setSelectedComponent(textCodePanel);
 			AbstractCodeArea codeArea = textCodePanel.getCodeArea();
-			bgExec.startLoading(codeArea::load, () -> codeArea.scrollToPos(pos));
+			if (codeArea.isLoaded()) {
+				codeArea.scrollToPos(pos);
+			} else {
+				IBackgroundTask loadTask = codeArea.getLoadTask();
+				bgExec.execute(new TaskWithExtraOnFinish(loadTask, () -> codeArea.scrollToPos(pos)));
+			}
 		} else {
 			areaTabbedPane.setSelectedComponent(hexPreviewPanel);
 			bgExec.startLoading(this::loadHexView, () -> hexPreviewPanel.scrollToOffset(pos));

@@ -182,7 +182,7 @@ public class BackgroundExecutor {
 			jobsCount = taskExecutor.getTasksCount();
 			LOG.debug("Starting background task '{}', jobs count: {}, time limit: {} ms, memory check: {}",
 					task.getTitle(), jobsCount, task.timeLimit(), task.checkMemoryUsage());
-			if (jobsCount != 1) {
+			if (jobsCount != 1 && !task.isSilent()) {
 				progressPane.changeVisibility(this, true);
 			}
 			status = TaskStatus.STARTED;
@@ -201,6 +201,10 @@ public class BackgroundExecutor {
 				while (true) {
 					if (!taskExecutor.isRunning()) {
 						return TaskStatus.COMPLETE;
+					}
+					if (task.isSilent()) {
+						Thread.sleep(50);
+						continue;
 					}
 					TaskStatus cancelStatus = cancelCheck.get();
 					if (cancelStatus != null) {

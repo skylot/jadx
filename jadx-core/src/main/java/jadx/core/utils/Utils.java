@@ -514,9 +514,9 @@ public class Utils {
 	}
 
 	private static final class SimpleThreadFactory implements ThreadFactory {
-		private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
-
 		private static final AtomicInteger POOL = new AtomicInteger(0);
+		private static final Thread.UncaughtExceptionHandler EXC_HANDLER = new SimpleUncaughtExceptionHandler();
+
 		private final AtomicInteger number = new AtomicInteger(0);
 		private final String name;
 
@@ -529,15 +529,22 @@ public class Utils {
 			Thread thread = new Thread(r, "jadx-" + name
 					+ '-' + POOL.incrementAndGet()
 					+ '-' + number.incrementAndGet());
-			thread.setUncaughtExceptionHandler((t, e) -> {
+			thread.setUncaughtExceptionHandler(EXC_HANDLER);
+			return thread;
+		}
+
+		private static class SimpleUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+			private static final Logger LOG = LoggerFactory.getLogger(SimpleUncaughtExceptionHandler.class);
+
+			@Override
+			public void uncaughtException(Thread thread, Throwable e) {
 				if (e instanceof OutOfMemoryError) {
 					thread.interrupt();
-					LOG.error("OutOfMemoryError in thread: {}, forcing interrupt", t.getName());
+					LOG.error("OutOfMemoryError in thread: {}, forcing interrupt", thread.getName());
 				} else {
-					LOG.error("Uncaught thread exception, thread: {}", t.getName(), e);
+					LOG.error("Uncaught thread exception, thread: {}", thread.getName(), e);
 				}
-			});
-			return thread;
+			}
 		}
 	}
 

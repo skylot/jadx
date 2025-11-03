@@ -430,17 +430,17 @@ public class UiUtils {
 	 * Uses single thread, so all tasks are ordered.
 	 */
 	public static void bgRun(Runnable runnable) {
-		BACKGROUND_THREAD.submit(runnable);
+		BACKGROUND_THREAD.execute(runnable);
 	}
 
 	public static void uiThreadGuard() {
-		if (!SwingUtilities.isEventDispatchThread()) {
+		if (JADX_GUI_DEBUG && !SwingUtilities.isEventDispatchThread()) {
 			LOG.warn("Expect UI thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
 		}
 	}
 
 	public static void notUiThreadGuard() {
-		if (SwingUtilities.isEventDispatchThread()) {
+		if (JADX_GUI_DEBUG && SwingUtilities.isEventDispatchThread()) {
 			LOG.warn("Expect background thread, got: {}", Thread.currentThread(), new JadxRuntimeException());
 		}
 	}

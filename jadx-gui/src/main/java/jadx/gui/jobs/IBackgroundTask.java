@@ -55,4 +55,11 @@ public interface IBackgroundTask extends Cancelable {
 	default @Nullable Consumer<ITaskProgress> getProgressListener() {
 		return null;
 	}
+
+	/**
+	 * Silent task: don't show progress
+	 */
+	default boolean isSilent() {
+		return false;
+	}
 }

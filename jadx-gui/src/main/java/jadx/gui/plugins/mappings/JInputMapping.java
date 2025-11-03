@@ -39,6 +39,11 @@ public class JInputMapping extends JEditableNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return new CodeContentPanel(tabbedPane, this);
 	}

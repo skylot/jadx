@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.jobs.SilentTask;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -221,7 +222,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
 		JNode jumpNode = jumpPos.getNode();
-		ContentPanel contentPanel = getContentPanel(jumpNode);
+		ContentPanel contentPanel = getTabByNode(jumpNode);
 		if (contentPanel == null) {
 			return null;
 		}
@@ -312,11 +313,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		}
 
 		return (TabComponent) component;
-	}
-
-	private @Nullable ContentPanel getContentPanel(JNode node) {
-		controller.openTab(node);
-		return getTabByNode(node);
 	}
 
 	public void refresh(JNode node) {
@@ -421,7 +417,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
-		ContentPanel contentPanel = getContentPanel(blueprint.getNode());
+		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel != null) {
 			setSelectedComponent(contentPanel);
 		}
@@ -429,7 +425,8 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 
 	@Override
 	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition position) {
-		showCode(position);
+		// queue task to wait completion of loading tasks
+		mainWindow.getBackgroundExecutor().execute(new SilentTask(() -> showCode(position)));
 	}
 
 	@Override

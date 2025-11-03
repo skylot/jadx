@@ -1,5 +1,6 @@
 package jadx.gui.jobs;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -13,13 +14,13 @@ public class TaskWithExtraOnFinish implements IBackgroundTask {
 	private final IBackgroundTask task;
 	private final Consumer<TaskStatus> extraOnFinish;
 
-	public TaskWithExtraOnFinish(IBackgroundTask task, Consumer<TaskStatus> extraOnFinish) {
-		this.task = task;
-		this.extraOnFinish = extraOnFinish;
-	}
-
 	public TaskWithExtraOnFinish(IBackgroundTask task, Runnable extraOnFinish) {
 		this(task, s -> extraOnFinish.run());
+	}
+
+	public TaskWithExtraOnFinish(IBackgroundTask task, Consumer<TaskStatus> extraOnFinish) {
+		this.task = Objects.requireNonNull(task);
+		this.extraOnFinish = Objects.requireNonNull(extraOnFinish);
 	}
 
 	@Override

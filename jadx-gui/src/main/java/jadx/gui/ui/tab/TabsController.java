@@ -15,6 +15,7 @@ import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.treemodel.JClass;
@@ -36,7 +37,9 @@ public class TabsController {
 
 	public TabsController(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
-		// addListener(new LogTabStates());
+		if (UiUtils.JADX_GUI_DEBUG) {
+			addListener(new LogTabStates());
+		}
 	}
 
 	public MainWindow getMainWindow() {
@@ -59,11 +62,10 @@ public class TabsController {
 		return openTab(node, false, false);
 	}
 
-	public TabBlueprint openTab(JNode node, boolean hidden) {
-		return openTab(node, hidden, false);
-	}
-
 	public TabBlueprint openTab(JNode node, boolean hidden, boolean preview) {
+		if (!node.hasContent()) {
+			throw new JadxRuntimeException("Can't open tab for node without content");
+		}
 		TabBlueprint blueprint = getTabByNode(node);
 		if (blueprint == null) {
 			TabBlueprint newBlueprint = new TabBlueprint(node);
@@ -77,10 +79,6 @@ public class TabsController {
 			blueprint = newBlueprint;
 		}
 		setTabHiddenInternal(blueprint, hidden);
-		if (!blueprint.isCreated()) {
-			LOG.warn("No content panel for node: {}", node);
-			closeTabForce(blueprint);
-		}
 		return blueprint;
 	}
 
@@ -89,10 +87,7 @@ public class TabsController {
 		if (blueprint != null) {
 			closeTab(blueprint.getNode());
 		}
-
-		blueprint = openTab(node, false, true);
-
-		return blueprint;
+		return openTab(node, false, true);
 	}
 
 	public void selectTab(JNode node) {
@@ -125,6 +120,9 @@ public class TabsController {
 	public void codeJump(JNode node, boolean fromTree) {
 		JClass parentCls = node.getJParent();
 		if (parentCls != null) {
+			// handle jump to inner class, method or field:
+			// - load parent
+			// - search position and jump to it
 			JavaClass cls = node.getJParent().getCls();
 			JavaClass origTopCls = cls.getOriginalTopParentClass();
 			JavaClass codeParent = cls.getTopParentClass();
@@ -134,19 +132,12 @@ public class TabsController {
 				return;
 			}
 		}
-
-		// Not an inline node, jump normally
-		if (node.getPos() > 0) {
-			codeJump(new JumpPosition(node), fromTree);
-			return;
-		}
 		if (node.getRootClass() == null) {
-			// not a class, select tab without position scroll
+			// not a class, select tab (without position scroll)
 			selectTab(node, fromTree);
 			return;
 		}
-		// node need loading
-		loadCodeWithUIAction(node.getRootClass(), () -> codeJump(new JumpPosition(node), fromTree));
+		codeJump(new JumpPosition(node), fromTree);
 	}
 
 	private void loadCodeWithUIAction(JClass cls, Runnable action) {

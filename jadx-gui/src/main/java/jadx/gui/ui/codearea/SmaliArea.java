@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.LoadTask;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -88,13 +90,15 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	@Override
-	public void load() {
-		if (getText().isEmpty() || curVersion != shouldUseSmaliPrinterV2()) {
-			curVersion = shouldUseSmaliPrinterV2();
-			model.load();
-			setCaretPosition(0);
-			setLoaded();
-		}
+	public IBackgroundTask getLoadTask() {
+		return new LoadTask<>(
+				() -> model.loadCode(),
+				code -> {
+					curVersion = shouldUseSmaliPrinterV2();
+					model.loadUI(code);
+					setCaretPosition(0);
+					setLoaded();
+				});
 	}
 
 	@Override
@@ -121,7 +125,10 @@ public final class SmaliArea extends AbstractCodeArea {
 		if (model != null) {
 			model.unload();
 		}
-		model = shouldUseSmaliPrinterV2() ? new DebugModel() : new NormalModel(this);
+		curVersion = shouldUseSmaliPrinterV2();
+		model = curVersion ? new DebugModel() : new NormalModel(this);
+		setUnLoaded();
+		load();
 	}
 
 	public void scrollToDebugPos(int pos) {
@@ -153,7 +160,9 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	private abstract class SmaliModel {
-		abstract void load();
+		abstract String loadCode();
+
+		abstract void loadUI(String code);
 
 		abstract void unload();
 
@@ -173,20 +182,23 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	private class NormalModel extends SmaliModel {
-
 		public NormalModel(SmaliArea smaliArea) {
 			getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
 
 		@Override
-		public void load() {
-			setText(getJClass().getSmali());
+		public String loadCode() {
+			return getJClass().getSmali();
+		}
+
+		@Override
+		public void loadUI(String code) {
+			setText(code);
 		}
 
 		@Override
 		public void unload() {
-
 		}
 	}
 
@@ -210,7 +222,12 @@ public final class SmaliArea extends AbstractCodeArea {
 		}
 
 		@Override
-		public void load() {
+		String loadCode() {
+			return DbgUtils.getSmaliCode(((JClass) node).getCls().getClassNode());
+		}
+
+		@Override
+		void loadUI(String code) {
 			if (gutter == null) {
 				gutter = RSyntaxUtilities.getGutter(SmaliArea.this);
 				gutter.setBookmarkingEnabled(true);
@@ -218,7 +235,7 @@ public final class SmaliArea extends AbstractCodeArea {
 				Font baseFont = SmaliArea.super.getFont();
 				gutter.setLineNumberFont(baseFont.deriveFont(baseFont.getSize2D() - 1.0f));
 			}
-			setText(DbgUtils.getSmaliCode(((JClass) node).getCls().getClassNode()));
+			setText(code);
 			loadV2Style();
 			loadBreakpoints();
 		}

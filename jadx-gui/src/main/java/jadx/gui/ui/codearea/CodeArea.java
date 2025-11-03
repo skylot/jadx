@@ -21,8 +21,12 @@ import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.gui.JadxWrapper;
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.LoadTask;
+import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
@@ -120,12 +124,24 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	@Override
-	public void load() {
-		if (getText().isEmpty()) {
-			setText(getCodeInfo().getCodeStr());
-			setCaretPosition(0);
-			setLoaded();
+	public IBackgroundTask getLoadTask() {
+		if (node instanceof JLoadableNode) {
+			IBackgroundTask loadTask = ((JLoadableNode) node).getLoadTask();
+			if (loadTask != null) {
+				return new TaskWithExtraOnFinish(loadTask, () -> {
+					setText(getCodeInfo().getCodeStr());
+					setCaretPosition(0);
+					setLoaded();
+				});
+			}
 		}
+		return new LoadTask<>(
+				() -> getCodeInfo().getCodeStr(),
+				code -> {
+					setText(code);
+					setCaretPosition(0);
+					setLoaded();
+				});
 	}
 
 	@Override

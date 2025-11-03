@@ -4,6 +4,8 @@ import org.fife.ui.autocomplete.AutoCompletion;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.ICodeInfo;
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.LoadTask;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.ui.action.JadxAutoCompletion;
@@ -48,12 +50,14 @@ public class ScriptCodeArea extends AbstractCodeArea {
 	}
 
 	@Override
-	public void load() {
-		if (getText().isEmpty()) {
-			setText(getCodeInfo().getCodeStr());
-			setCaretPosition(0);
-			setLoaded();
-		}
+	public IBackgroundTask getLoadTask() {
+		return new LoadTask<>(
+				() -> node.getCodeInfo().getCodeStr(),
+				code -> {
+					setText(code);
+					setCaretPosition(0);
+					setLoaded();
+				});
 	}
 
 	@Override

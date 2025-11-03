@@ -84,6 +84,11 @@ public class ApkSignatureNode extends JNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		ApkSignatureNode.tabbedPane = tabbedPane;
 		return new HtmlPanel(tabbedPane, this);

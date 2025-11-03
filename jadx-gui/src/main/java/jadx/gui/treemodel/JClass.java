@@ -136,6 +136,11 @@ public class JClass extends JLoadableNode implements JRenameNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return new ClassCodeContentPanel(tabbedPane, this);
 	}

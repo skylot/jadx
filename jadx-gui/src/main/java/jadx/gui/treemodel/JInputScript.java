@@ -37,6 +37,11 @@ public class JInputScript extends JEditableNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return new ScriptContentPanel(tabbedPane, this);
 	}

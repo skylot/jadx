@@ -1,6 +1,6 @@
 package jadx.gui.ui.treenodes;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -17,6 +17,11 @@ public class UndisplayedStringsNode extends JNode {
 
 	public UndisplayedStringsNode(String undisplayedStings) {
 		this.undisplayedStings = undisplayedStings;
+	}
+
+	@Override
+	public boolean hasContent() {
+		return true;
 	}
 
 	@Override

@@ -153,6 +153,11 @@ public class JResource extends JLoadableNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return resFile != null;
+	}
+
+	@Override
 	public @Nullable ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		if (resFile == null) {
 			return null;

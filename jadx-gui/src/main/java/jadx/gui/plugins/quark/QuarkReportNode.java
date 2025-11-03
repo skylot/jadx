@@ -54,6 +54,11 @@ public class QuarkReportNode extends JNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		try {
 			QuarkReportData data;

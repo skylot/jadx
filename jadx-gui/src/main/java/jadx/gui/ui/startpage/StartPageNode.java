@@ -13,6 +13,11 @@ public class StartPageNode extends JNode {
 	private static final long serialVersionUID = 8983134608645736174L;
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return new StartPagePanel(tabbedPane, this);
 	}

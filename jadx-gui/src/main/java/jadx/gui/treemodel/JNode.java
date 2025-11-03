@@ -45,6 +45,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 		return null;
 	}
 
+	public boolean hasContent() {
+		return false;
+	}
+
 	public @Nullable ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return null;
 	}

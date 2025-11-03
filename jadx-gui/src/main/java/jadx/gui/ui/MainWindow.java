@@ -120,15 +120,11 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
-import jadx.gui.treemodel.JInputFiles;
-import jadx.gui.treemodel.JInputScripts;
-import jadx.gui.treemodel.JInputs;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
-import jadx.gui.treemodel.JSources;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.JadxGuiAction;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -920,11 +916,7 @@ public class MainWindow extends JFrame {
 				}
 			} else if (obj instanceof JNode) {
 				JNode treeNode = (JNode) obj;
-				if (!(treeNode instanceof JPackage)
-						&& !(treeNode instanceof JSources)
-						&& !(treeNode instanceof JInputs)
-						&& !(treeNode instanceof JInputFiles)
-						&& !(treeNode instanceof JInputScripts)) {
+				if (treeNode.hasContent() || treeNode.getJParent() != null) {
 					tabsController.codeJump(treeNode, true);
 					return true;
 				}

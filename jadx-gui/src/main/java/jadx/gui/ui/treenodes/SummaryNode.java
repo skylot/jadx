@@ -195,6 +195,11 @@ public class SummaryNode extends JNode {
 	}
 
 	@Override
+	public boolean hasContent() {
+		return true;
+	}
+
+	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return new HtmlPanel(tabbedPane, this);
 	}
