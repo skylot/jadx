@@ -36,4 +36,9 @@ public class TaskProgress implements ITaskProgress {
 	public void updateTotal(int total) {
 		this.total = total;
 	}
+
+	@Override
+	public String toString() {
+		return "TaskProgress{" + progress + " of " + total + '}';
+	}
 }

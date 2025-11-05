@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -62,7 +61,7 @@ public class SearchTask extends CancelableBackgroundTask {
 		resetCancel();
 		resultsCount.set(0);
 		taskProgress.updateTotal(jobs.stream().mapToInt(s -> s.getProvider().total()).sum());
-		future = backgroundExecutor.execute(this);
+		future = backgroundExecutor.executeWithFuture(this);
 	}
 
 	public synchronized boolean addResult(JNode resultNode) {
@@ -79,19 +78,17 @@ public class SearchTask extends CancelableBackgroundTask {
 	}
 
 	public synchronized void waitTask() {
-		if (future != null) {
-			try {
-				future.get(200, TimeUnit.MILLISECONDS);
-			} catch (TimeoutException e) {
-				LOG.debug("Search task wait timeout");
-			} catch (Exception e) {
-				LOG.warn("Search task wait error", e);
-			} finally {
-				future.cancel(true);
-				future = null;
-			}
+		if (future == null) {
+			return;
 		}
-
+		try {
+			future.get(200, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			LOG.warn("Search task wait error", e);
+			future.cancel(true);
+		} finally {
+			future = null;
+		}
 	}
 
 	@Override

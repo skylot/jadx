@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import jadx.gui.treemodel.JNode;
 
 public class SearchJob implements Runnable {
-
 	private static final Logger LOG = LoggerFactory.getLogger(SearchJob.class);
+
 	private final SearchTask searchTask;
 	private final ISearchProvider provider;
 

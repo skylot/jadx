@@ -1,8 +1,6 @@
 package jadx.gui.ui.panel;
 
 import java.awt.Dimension;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -11,17 +9,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.SwingWorker;
 
 import jadx.gui.jobs.ITaskProgress;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.Icons;
 import jadx.gui.utils.UiUtils;
 
-public class ProgressPanel extends JPanel implements PropertyChangeListener {
-
+public class ProgressPanel extends JPanel {
 	private static final long serialVersionUID = -3238438119672015733L;
-
-	private static final Icon ICON_CANCEL = UiUtils.openSvgIcon("ui/close");
 
 	private final JProgressBar progressBar;
 	private final JLabel progressLabel;
@@ -43,8 +38,9 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 		add(progressLabel);
 		add(progressBar);
 
-		cancelButton = new JButton(ICON_CANCEL);
-		cancelButton.setPreferredSize(new Dimension(ICON_CANCEL.getIconWidth(), ICON_CANCEL.getIconHeight()));
+		Icon cancelIcon = Icons.ICON_CLOSE;
+		cancelButton = new JButton(cancelIcon);
+		cancelButton.setPreferredSize(new Dimension(cancelIcon.getIconWidth(), cancelIcon.getIconHeight()));
 		cancelButton.setToolTipText("Cancel background jobs");
 		cancelButton.setBorderPainted(false);
 		cancelButton.setFocusPainted(false);
@@ -82,31 +78,6 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 		progressBar.setStringPainted(true);
 	}
 
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		switch (evt.getPropertyName()) {
-			case "progress":
-				setProgress((Integer) evt.getNewValue());
-				break;
-
-			case "label":
-				setLabel((String) evt.getNewValue());
-				break;
-
-			case "visible":
-				setVisible(((Boolean) evt.getNewValue()));
-				break;
-
-			case "indeterminate":
-				setIndeterminate(((Boolean) evt.getNewValue()));
-				break;
-
-			case "cancel-visible":
-				cancelButton.setVisible(((Boolean) evt.getNewValue()));
-				break;
-		}
-	}
-
 	public void setLabel(String label) {
 		progressLabel.setText(label);
 	}
@@ -115,19 +86,7 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 		progressBar.setIndeterminate(newValue);
 	}
 
-	public void changeLabel(SwingWorker<?, ?> task, String label) {
-		task.firePropertyChange("label", null, label);
-	}
-
-	public void changeIndeterminate(SwingWorker<?, ?> task, boolean indeterminate) {
-		task.firePropertyChange("indeterminate", null, indeterminate);
-	}
-
-	public void changeVisibility(SwingWorker<?, ?> task, boolean visible) {
-		task.firePropertyChange("visible", null, visible);
-	}
-
-	public void changeCancelBtnVisible(SwingWorker<?, ?> task, boolean visible) {
-		task.firePropertyChange("cancel-visible", null, visible);
+	public void setCancelButtonVisible(boolean visible) {
+		cancelButton.setVisible(visible);
 	}
 }

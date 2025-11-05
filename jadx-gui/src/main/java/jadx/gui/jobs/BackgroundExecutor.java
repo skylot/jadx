@@ -15,9 +15,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,49 +27,49 @@ import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.gui.utils.UiUtils.calcProgress;
-
 /**
- * Class for run tasks in background with progress bar indication.
+ * Run tasks in the background with progress bar indication.
  * Use instance created in {@link MainWindow}.
  */
 public class BackgroundExecutor {
 	private static final Logger LOG = LoggerFactory.getLogger(BackgroundExecutor.class);
 
 	private final JadxSettings settings;
-	private final ProgressPanel progressPane;
+	private final ProgressUpdater progressUpdater;
 
 	private ThreadPoolExecutor taskQueueExecutor;
-	private final Map<Long, IBackgroundTask> taskRunning = new ConcurrentHashMap<>();
+	private final Map<Long, InternalTask> taskRunning = new ConcurrentHashMap<>();
 	private final AtomicLong idSupplier = new AtomicLong(0);
 
 	public BackgroundExecutor(JadxSettings settings, ProgressPanel progressPane) {
 		this.settings = Objects.requireNonNull(settings);
-		this.progressPane = Objects.requireNonNull(progressPane);
+		this.progressUpdater = new ProgressUpdater(progressPane, this::taskCanceled);
 		reset();
 	}
 
-	public synchronized Future<TaskStatus> execute(IBackgroundTask task) {
-		long id = idSupplier.incrementAndGet();
-		TaskWorker taskWorker = new TaskWorker(id, task);
-		taskRunning.put(id, task);
-		taskQueueExecutor.execute(() -> {
-			taskWorker.init();
-			taskWorker.run();
+	public synchronized void execute(IBackgroundTask task) {
+		InternalTask internalTask = buildTask(task);
+		taskQueueExecutor.execute(() -> runTask(internalTask));
+	}
+
+	public synchronized Future<TaskStatus> executeWithFuture(IBackgroundTask task) {
+		InternalTask internalTask = buildTask(task);
+		return taskQueueExecutor.submit(() -> {
+			runTask(internalTask);
+			return internalTask.getStatus();
 		});
-		return taskWorker;
 	}
 
 	public synchronized void cancelAll() {
 		try {
-			taskRunning.values().forEach(Cancelable::cancel);
+			taskRunning.values().forEach(this::cancelTask);
 			taskQueueExecutor.shutdownNow();
 			boolean complete = taskQueueExecutor.awaitTermination(3, TimeUnit.SECONDS);
 			if (complete) {
 				LOG.debug("Background task executor canceled successfully");
 			} else {
 				String taskNames = taskRunning.values().stream()
-						.map(IBackgroundTask::getTitle)
+						.map(t -> t.getBgTask().getTitle())
 						.collect(Collectors.joining(", "));
 				LOG.debug("Background task executor cancel failed. Running tasks: {}", taskNames);
 			}
@@ -100,8 +97,8 @@ public class BackgroundExecutor {
 		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable), onFinishUiRunnable));
 	}
 
-	public Future<TaskStatus> execute(String title, Runnable backgroundRunnable) {
-		return execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable)));
+	public void execute(String title, Runnable backgroundRunnable) {
+		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable)));
 	}
 
 	public void startLoading(Runnable backgroundRunnable, Runnable onFinishUiRunnable) {
@@ -118,152 +115,87 @@ public class BackgroundExecutor {
 		idSupplier.set(0);
 	}
 
-	private void taskComplete(long id) {
-		taskRunning.remove(id);
+	private InternalTask buildTask(IBackgroundTask task) {
+		long id = idSupplier.incrementAndGet();
+		InternalTask internalTask = new InternalTask(id, task);
+		taskRunning.put(id, internalTask);
+		return internalTask;
 	}
 
-	private final class TaskWorker extends SwingWorker<TaskStatus, Void> implements ITaskInfo {
-		private final long id;
-		private final IBackgroundTask task;
-		private ITaskExecutor taskExecutor;
-		private TaskStatus status = TaskStatus.WAIT;
-		private long jobsCount;
-		private long jobsComplete;
-		private long time;
-
-		public TaskWorker(long id, IBackgroundTask task) {
-			this.id = id;
-			this.task = task;
+	private void runTask(InternalTask internalTask) {
+		try {
+			IBackgroundTask task = internalTask.getBgTask();
+			ITaskExecutor taskExecutor = task.scheduleTasks();
+			taskExecutor.setThreadsCount(settings.getThreadsCount());
+			int tasksCount = taskExecutor.getTasksCount();
+			internalTask.setTaskExecutor(taskExecutor);
+			internalTask.setJobsCount(tasksCount);
+			if (UiUtils.JADX_GUI_DEBUG) {
+				LOG.debug("Starting background task '{}', jobs count: {}, time limit: {} ms, memory check: {}",
+						task.getTitle(), tasksCount, task.timeLimit(), task.checkMemoryUsage());
+			}
+			long startTime = System.currentTimeMillis();
+			Supplier<TaskStatus> cancelCheck = buildCancelCheck(internalTask, startTime);
+			internalTask.taskStart(startTime, cancelCheck);
+			progressUpdater.addTask(internalTask);
+			taskExecutor.execute();
+			taskExecutor.awaitTermination();
+		} catch (Exception e) {
+			LOG.error("Task failed", e);
+			internalTask.setStatus(TaskStatus.ERROR);
+		} finally {
+			taskComplete(internalTask);
 		}
+	}
 
-		public void init() {
-			addPropertyChangeListener(progressPane);
-			SwingUtilities.invokeLater(() -> {
-				progressPane.reset();
-				if (task.getTaskProgress() != null) {
-					progressPane.setIndeterminate(false);
+	private void taskComplete(InternalTask internalTask) {
+		try {
+			IBackgroundTask task = internalTask.getBgTask();
+			internalTask.setJobsComplete(internalTask.getTaskExecutor().getProgress());
+			internalTask.setStatus(TaskStatus.COMPLETE);
+			internalTask.updateExecTime();
+			task.onDone(internalTask);
+			// treat UI task operations as part of the task to not mix with others
+			UiUtils.uiRunAndWait(() -> {
+				try {
+					task.onFinish(internalTask);
+				} catch (Exception e) {
+					LOG.error("Task onFinish failed", e);
+					internalTask.setStatus(TaskStatus.ERROR);
 				}
 			});
+		} catch (Exception e) {
+			LOG.error("Task complete failed", e);
+			internalTask.setStatus(TaskStatus.ERROR);
+		} finally {
+			internalTask.taskComplete();
+			progressUpdater.taskComplete(internalTask);
+			removeTask(internalTask);
 		}
+	}
 
-		@Override
-		protected TaskStatus doInBackground() throws Exception {
-			progressPane.changeLabel(this, task.getTitle() + "… ");
-			progressPane.changeCancelBtnVisible(this, task.canBeCanceled());
-			try {
-				runJobs();
-			} finally {
-				try {
-					task.onDone(this);
-					// treat UI task operations as part of the task to not mix with others
-					UiUtils.uiRunAndWait(() -> {
-						try {
-							progressPane.setVisible(false);
-							task.onFinish(this);
-						} catch (Throwable e) {
-							LOG.error("Task onFinish failed", e);
-							status = TaskStatus.ERROR;
-						}
-					});
-				} catch (Throwable e) {
-					LOG.error("Task onDone failed", e);
-					status = TaskStatus.ERROR;
-				} finally {
-					taskComplete(id);
-					progressPane.changeVisibility(this, false);
-					removePropertyChangeListener(progressPane);
-				}
+	private void removeTask(InternalTask internalTask) {
+		taskRunning.remove(internalTask.getId());
+	}
+
+	private void cancelTask(InternalTask internalTask) {
+		try {
+			IBackgroundTask task = internalTask.getBgTask();
+			if (!internalTask.isRunning()) {
+				// task complete or not yet started
+				task.cancel();
+				removeTask(internalTask);
+				return;
 			}
-			return status;
-		}
-
-		private void runJobs() throws InterruptedException {
-			taskExecutor = task.scheduleTasks();
-			jobsCount = taskExecutor.getTasksCount();
-			LOG.debug("Starting background task '{}', jobs count: {}, time limit: {} ms, memory check: {}",
-					task.getTitle(), jobsCount, task.timeLimit(), task.checkMemoryUsage());
-			if (jobsCount != 1 && !task.isSilent()) {
-				progressPane.changeVisibility(this, true);
-			}
-			status = TaskStatus.STARTED;
-			taskExecutor.setThreadsCount(settings.getThreadsCount());
-			taskExecutor.execute();
-			long startTime = System.currentTimeMillis();
-			status = waitTermination(buildCancelCheck(startTime));
-			time = System.currentTimeMillis() - startTime;
-			jobsComplete = taskExecutor.getProgress();
-		}
-
-		@SuppressWarnings("BusyWait")
-		private TaskStatus waitTermination(Supplier<TaskStatus> cancelCheck) throws InterruptedException {
-			try {
-				int k = 0;
-				while (true) {
-					if (!taskExecutor.isRunning()) {
-						return TaskStatus.COMPLETE;
-					}
-					if (task.isSilent()) {
-						Thread.sleep(50);
-						continue;
-					}
-					TaskStatus cancelStatus = cancelCheck.get();
-					if (cancelStatus != null) {
-						performCancel();
-						return cancelStatus;
-					}
-					if (k < 10) {
-						// faster update for short tasks
-						Thread.sleep(200);
-						if (k == 5) {
-							updateProgress();
-						}
-					} else {
-						updateProgress();
-						Thread.sleep(1000);
-					}
-					if (jobsCount == 1 && k == 5) {
-						// small delay before show progress to reduce blinking on short tasks
-						progressPane.changeVisibility(this, true);
-					}
-					k++;
-				}
-			} catch (InterruptedException e) {
-				LOG.debug("Task wait interrupted");
-				performCancel();
-				return TaskStatus.CANCEL_BY_USER;
-			} catch (Exception e) {
-				LOG.error("Task wait aborted by exception", e);
-				performCancel();
-				return TaskStatus.ERROR;
-			}
-		}
-
-		private void updateProgress() {
-			Consumer<ITaskProgress> onProgressListener = task.getProgressListener();
-			ITaskProgress taskProgress = task.getTaskProgress();
-			if (taskProgress == null) {
-				setProgress(calcProgress(taskExecutor.getProgress(), jobsCount));
-				if (onProgressListener != null) {
-					onProgressListener.accept(new TaskProgress(taskExecutor.getProgress(), jobsCount));
-				}
-			} else {
-				setProgress(calcProgress(taskProgress));
-				if (onProgressListener != null) {
-					onProgressListener.accept(taskProgress);
-				}
-			}
-		}
-
-		private void performCancel() throws InterruptedException {
-			progressPane.changeLabel(this, task.getTitle() + " (" + NLS.str("progress.canceling") + ")… ");
-			progressPane.changeIndeterminate(this, true);
+			ITaskExecutor taskExecutor = internalTask.getTaskExecutor();
 			// force termination
+			task.cancel();
+			taskExecutor.terminate();
+
 			ExecutorService executor = taskExecutor.getInternalExecutor();
 			if (executor == null) {
 				return;
 			}
-			taskExecutor.terminate();
-			task.cancel();
 			int cancelTimeout = task.getCancelTimeoutMS();
 			if (cancelTimeout != 0) {
 				if (executor.awaitTermination(cancelTimeout, TimeUnit.MILLISECONDS)) {
@@ -277,74 +209,48 @@ public class BackgroundExecutor {
 			LOG.debug("Forced task cancel status: {}", complete
 					? "success"
 					: "fail, still active: " + (taskExecutor.getTasksCount() - taskExecutor.getProgress()));
+		} catch (Exception e) {
+			LOG.error("Failed to cancel task: {}", internalTask, e);
 		}
+	}
 
-		private Supplier<TaskStatus> buildCancelCheck(long startTime) {
-			long waitUntilTime = task.timeLimit() == 0 ? 0 : startTime + task.timeLimit();
-			boolean checkMemoryUsage = task.checkMemoryUsage();
-			return () -> {
-				if (task.isCanceled()) {
-					return TaskStatus.CANCEL_BY_USER;
+	/**
+	 * Task cancel notification from progress updater
+	 */
+	private void taskCanceled(InternalTask task) {
+		cancelTask(task);
+	}
+
+	private Supplier<TaskStatus> buildCancelCheck(InternalTask internalTask, long startTime) {
+		IBackgroundTask task = internalTask.getBgTask();
+		int timeLimit = task.timeLimit();
+		long waitUntilTime = timeLimit == 0 ? 0 : startTime + timeLimit;
+		boolean checkMemoryUsage = task.checkMemoryUsage();
+		return () -> {
+			if (task.isCanceled() || Thread.currentThread().isInterrupted()) {
+				return TaskStatus.CANCEL_BY_USER;
+			}
+			if (waitUntilTime != 0 && waitUntilTime < System.currentTimeMillis()) {
+				LOG.warn("Task '{}' execution timeout, force cancel", task.getTitle());
+				return TaskStatus.CANCEL_BY_TIMEOUT;
+			}
+			if (checkMemoryUsage && !UiUtils.isFreeMemoryAvailable()) {
+				LOG.warn("High memory usage: {}", UiUtils.memoryInfo());
+				if (internalTask.getTaskExecutor().getThreadsCount() == 1) {
+					LOG.warn("Task '{}' memory limit reached, force cancel", task.getTitle());
+					return TaskStatus.CANCEL_BY_MEMORY;
 				}
-				if (waitUntilTime != 0 && waitUntilTime < System.currentTimeMillis()) {
-					LOG.error("Task '{}' execution timeout, force cancel", task.getTitle());
-					return TaskStatus.CANCEL_BY_TIMEOUT;
+				LOG.warn("Low free memory, reduce processing threads count to 1");
+				// reduce threads count and continue
+				internalTask.getTaskExecutor().setThreadsCount(1);
+				System.gc();
+				UiUtils.sleep(1000); // wait GC
+				if (!UiUtils.isFreeMemoryAvailable()) {
+					LOG.error("Task '{}' memory limit reached (after GC), force cancel", task.getTitle());
+					return TaskStatus.CANCEL_BY_MEMORY;
 				}
-				if (isCancelled() || Thread.currentThread().isInterrupted()) {
-					LOG.warn("Task '{}' canceled", task.getTitle());
-					return TaskStatus.CANCEL_BY_USER;
-				}
-				if (checkMemoryUsage && !UiUtils.isFreeMemoryAvailable()) {
-					LOG.info("Memory usage: {}", UiUtils.memoryInfo());
-					if (taskExecutor.getThreadsCount() == 1) {
-						LOG.error("Task '{}' memory limit reached, force cancel", task.getTitle());
-						return TaskStatus.CANCEL_BY_MEMORY;
-					}
-					LOG.warn("Low memory, reduce processing threads count to 1");
-					// reduce threads count and continue
-					taskExecutor.setThreadsCount(1);
-					System.gc();
-					UiUtils.sleep(1000); // wait GC
-					if (!UiUtils.isFreeMemoryAvailable()) {
-						LOG.error("Task '{}' memory limit reached (after GC), force cancel", task.getTitle());
-						return TaskStatus.CANCEL_BY_MEMORY;
-					}
-				}
-				return null;
-			};
-		}
-
-		@Override
-		public TaskStatus getStatus() {
-			return status;
-		}
-
-		@Override
-		public long getJobsCount() {
-			return jobsCount;
-		}
-
-		@Override
-		public long getJobsComplete() {
-			return jobsComplete;
-		}
-
-		@Override
-		public long getJobsSkipped() {
-			return jobsCount - jobsComplete;
-		}
-
-		@Override
-		public long getTime() {
-			return time;
-		}
-
-		@Override
-		public String toString() {
-			return "TaskWorker{status=" + status
-					+ ", jobsCount=" + jobsCount
-					+ ", jobsComplete=" + jobsComplete
-					+ ", time=" + time + "ms}";
-		}
+			}
+			return null;
+		};
 	}
 }
