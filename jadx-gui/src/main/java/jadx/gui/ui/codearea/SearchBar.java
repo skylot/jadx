@@ -33,7 +33,7 @@ public class SearchBar extends JToolBar {
 	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);
 	private static final int MAX_RESULT_COUNT = 999;
 
-	private RSyntaxTextArea rTextArea;
+	private final RSyntaxTextArea rTextArea;
 
 	private final JTextField searchField;
 	private final JLabel resultCountLabel;
@@ -185,6 +185,7 @@ public class SearchBar extends JToolBar {
 		context.setRegularExpression(regex);
 		context.setSearchForward(forward);
 		context.setWholeWord(wholeWord);
+		context.setSearchWrap(true);
 
 		// We enable Mark All even if the corresponding toggle button is off,
 		// this is a bit hackish, but it's the only way to count matches through SearchEngine
@@ -215,14 +216,7 @@ public class SearchBar extends JToolBar {
 
 		notFound = !result.wasFound();
 		if (notFound) {
-			int pos = SearchEngine.getNextMatchPos(searchText, rTextArea.getText(), forward, matchCase, wholeWord);
-			if (pos != -1) {
-				rTextArea.setCaretPosition(forward ? 0 : rTextArea.getDocument().getLength() - 1);
-				search(direction);
-				searchField.putClientProperty("JComponent.outline", "warning");
-			} else {
-				searchField.putClientProperty("JComponent.outline", "error");
-			}
+			searchField.putClientProperty("JComponent.outline", "error");
 		} else {
 			searchField.putClientProperty("JComponent.outline", "");
 		}
