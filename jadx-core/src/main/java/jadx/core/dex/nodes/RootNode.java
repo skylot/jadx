@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -341,6 +344,19 @@ public class RootNode {
 		if (args.isRunDebugChecks()) {
 			preDecompilePasses = DebugChecks.insertPasses(preDecompilePasses);
 			processClasses = new ProcessClass(DebugChecks.insertPasses(processClasses.getPasses()));
+		}
+		List<String> disabledPasses = args.getDisabledPasses();
+		if (!disabledPasses.isEmpty()) {
+			Set<String> disabledSet = new HashSet<>(disabledPasses);
+			Predicate<IDexTreeVisitor> filter = p -> {
+				if (disabledSet.contains(p.getName())) {
+					LOG.debug("Disable pass: {}", p.getName());
+					return true;
+				}
+				return false;
+			};
+			preDecompilePasses.removeIf(filter);
+			processClasses.getPasses().removeIf(filter);
 		}
 	}
 

@@ -201,6 +201,11 @@ public class JadxArgs implements Closeable {
 	 */
 	private boolean runDebugChecks = false;
 
+	/**
+	 * Passes to exclude from processing.
+	 */
+	private final List<String> disabledPasses = new ArrayList<>();
+
 	private Map<String, String> pluginOptions = new HashMap<>();
 
 	private Set<String> disabledPlugins = new HashSet<>();
@@ -801,6 +806,10 @@ public class JadxArgs implements Closeable {
 
 	public void setRunDebugChecks(boolean runDebugChecks) {
 		this.runDebugChecks = runDebugChecks;
+	}
+
+	public List<String> getDisabledPasses() {
+		return disabledPasses;
 	}
 
 	public Map<String, String> getPluginOptions() {

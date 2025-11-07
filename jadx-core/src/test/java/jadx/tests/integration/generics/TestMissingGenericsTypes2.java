@@ -32,13 +32,23 @@ public class TestMissingGenericsTypes2 extends SmaliTest {
 		}
 	}
 	*/
-		// @formatter:on
+	// @formatter:on
 
 	@Test
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.contains("for (String s : l) {")
-				.doesNotContain("Iterator i");
+				.doesNotContain("Iterator i")
+				.containsOne("for (String s : l) {");
+	}
+
+	@Test
+	public void testTypes() {
+		// prevent loop from converting to 'for-each' to keep iterator variable type in code
+		getArgs().getDisabledPasses().add("LoopRegionVisitor");
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.doesNotContain("Iterator i")
+				.containsOne("Iterator<String> it = "); // variable name reject along with type
 	}
 }

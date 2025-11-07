@@ -1,55 +1,61 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+
+import static jadx.core.dex.visitors.typeinference.TypeUpdateFlags.FlagsEnum.ALLOW_WIDER;
+import static jadx.core.dex.visitors.typeinference.TypeUpdateFlags.FlagsEnum.IGNORE_SAME;
+import static jadx.core.dex.visitors.typeinference.TypeUpdateFlags.FlagsEnum.IGNORE_UNKNOWN;
+import static jadx.core.dex.visitors.typeinference.TypeUpdateFlags.FlagsEnum.KEEP_GENERICS;
+
 public class TypeUpdateFlags {
-	private static final int ALLOW_WIDER = 1;
-	private static final int IGNORE_SAME = 2;
-	private static final int IGNORE_UNKNOWN = 4;
-
-	public static final TypeUpdateFlags FLAGS_EMPTY = build(0);
-	public static final TypeUpdateFlags FLAGS_WIDER = build(ALLOW_WIDER);
-	public static final TypeUpdateFlags FLAGS_WIDER_IGNORE_SAME = build(ALLOW_WIDER | IGNORE_SAME);
-	public static final TypeUpdateFlags FLAGS_WIDER_IGNORE_UNKNOWN = build(ALLOW_WIDER | IGNORE_UNKNOWN);
-
-	private final int flags;
-
-	private static TypeUpdateFlags build(int flags) {
-		return new TypeUpdateFlags(flags);
+	enum FlagsEnum {
+		ALLOW_WIDER,
+		IGNORE_SAME,
+		IGNORE_UNKNOWN,
+		KEEP_GENERICS,
 	}
 
-	private TypeUpdateFlags(int flags) {
+	static final TypeUpdateFlags FLAGS_EMPTY = build();
+	static final TypeUpdateFlags FLAGS_WIDER = build(ALLOW_WIDER);
+	static final TypeUpdateFlags FLAGS_WIDER_IGNORE_SAME = build(ALLOW_WIDER, IGNORE_SAME);
+	static final TypeUpdateFlags FLAGS_APPLY_DEBUG = build(ALLOW_WIDER, KEEP_GENERICS, IGNORE_UNKNOWN);
+
+	private final Set<FlagsEnum> flags;
+
+	private static TypeUpdateFlags build(FlagsEnum... flags) {
+		EnumSet<FlagsEnum> set;
+		if (flags.length == 0) {
+			set = EnumSet.noneOf(FlagsEnum.class);
+		} else {
+			set = EnumSet.copyOf(List.of(flags));
+		}
+		return new TypeUpdateFlags(set);
+	}
+
+	private TypeUpdateFlags(Set<FlagsEnum> flags) {
 		this.flags = flags;
 	}
 
 	public boolean isAllowWider() {
-		return (flags & ALLOW_WIDER) != 0;
+		return flags.contains(ALLOW_WIDER);
 	}
 
 	public boolean isIgnoreSame() {
-		return (flags & IGNORE_SAME) != 0;
+		return flags.contains(IGNORE_SAME);
 	}
 
 	public boolean isIgnoreUnknown() {
-		return (flags & IGNORE_UNKNOWN) != 0;
+		return flags.contains(IGNORE_UNKNOWN);
+	}
+
+	public boolean isKeepGenerics() {
+		return flags.contains(KEEP_GENERICS);
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		if (isAllowWider()) {
-			sb.append("ALLOW_WIDER");
-		}
-		if (isIgnoreSame()) {
-			if (sb.length() != 0) {
-				sb.append('|');
-			}
-			sb.append("IGNORE_SAME");
-		}
-		if (isIgnoreUnknown()) {
-			if (sb.length() != 0) {
-				sb.append('|');
-			}
-			sb.append("IGNORE_UNKNOWN");
-		}
-		return sb.toString();
+		return flags.toString();
 	}
 }
