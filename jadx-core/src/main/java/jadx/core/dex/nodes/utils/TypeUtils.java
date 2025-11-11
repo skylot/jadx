@@ -242,9 +242,9 @@ public class TypeUtils {
 		}
 		Map<ArgType, ArgType> map = new HashMap<>(1 + invokeInsn.getArgsCount());
 		addTypeVarMapping(map, mthDetails.getReturnType(), invokeInsn.getResult());
-		int argCount = Math.min(mthDetails.getArgTypes().size(), invokeInsn.getArgsCount());
+		int argCount = Math.min(mthDetails.getArgTypes().size(), invokeInsn.getArgsCount() - invokeInsn.getFirstArgOffset());
 		for (int i = 0; i < argCount; i++) {
-			addTypeVarMapping(map, mthDetails.getArgTypes().get(i), invokeInsn.getArg(i));
+			addTypeVarMapping(map, mthDetails.getArgTypes().get(i), invokeInsn.getArg(i + invokeInsn.getFirstArgOffset()));
 		}
 		return map;
 	}
