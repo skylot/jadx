@@ -51,9 +51,8 @@ public class RegionUtils {
 			return true;
 		}
 		if (container instanceof IRegion) {
-			IRegion region = (IRegion) container;
-			List<IContainer> blocks = region.getSubBlocks();
-			return !blocks.isEmpty() && hasExitEdge(blocks.get(blocks.size() - 1));
+			IContainer last = Utils.last(((IRegion) container).getSubBlocks());
+			return last != null && hasExitEdge(last);
 		}
 		throw new JadxRuntimeException(unknownContainerType(container));
 	}
@@ -79,6 +78,26 @@ public class RegionUtils {
 		} else {
 			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+	}
+
+	public static @Nullable BlockNode getFirstBlockNode(IContainer container) {
+		if (container instanceof IBlock) {
+			if (container instanceof BlockNode) {
+				return (BlockNode) container;
+			}
+			return null;
+		}
+		if (container instanceof IBranchRegion) {
+			return null;
+		}
+		if (container instanceof IRegion) {
+			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
+			if (blocks.isEmpty()) {
+				return null;
+			}
+			return getFirstBlockNode(blocks.get(0));
+		}
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	public static int getFirstSourceLine(IContainer container) {
@@ -513,6 +532,17 @@ public class RegionUtils {
 			@Override
 			public void processBlock(MethodNode mth, IBlock block) {
 				visitor.accept(block);
+			}
+		});
+	}
+
+	public static void visitBlockNodes(MethodNode mth, IContainer container, Consumer<BlockNode> visitor) {
+		DepthRegionTraversal.traverse(mth, container, new AbstractRegionVisitor() {
+			@Override
+			public void processBlock(MethodNode mth, IBlock block) {
+				if (block instanceof BlockNode) {
+					visitor.accept((BlockNode) block);
+				}
 			}
 		});
 	}

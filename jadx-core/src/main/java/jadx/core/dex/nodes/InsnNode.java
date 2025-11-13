@@ -217,6 +217,19 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	public boolean isExitEdgeInsn() {
+		switch (getType()) {
+			case RETURN:
+			case THROW:
+			case CONTINUE:
+			case BREAK:
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
 	public boolean canRemoveResult() {
 		switch (getType()) {
 			case INVOKE:

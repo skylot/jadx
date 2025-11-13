@@ -25,6 +25,6 @@ public class RegionRefAttr implements IJadxAttribute {
 
 	@Override
 	public String toString() {
-		return "RegionRef:" + region;
+		return "RegionRef:" + region.baseString();
 	}
 }

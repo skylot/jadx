@@ -57,10 +57,9 @@ public class TestSwitch2 extends IntegrationTest {
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				// .countString(4, "break;"
+				.countString(4, "break;")
 				// .countString(2, "return;")
-				// TODO: remove redundant reak and returns
-				.countString(5, "break;")
+				// TODO: remove redundant returns
 				.countString(4, "return;");
 	}
 }

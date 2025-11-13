@@ -67,7 +67,10 @@ public class ListUtils {
 		return list.get(0);
 	}
 
-	public static <T> T last(List<T> list) {
+	public static <T> @Nullable T last(List<T> list) {
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
 		return list.get(list.size() - 1);
 	}
 

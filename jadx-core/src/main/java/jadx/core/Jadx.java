@@ -66,6 +66,7 @@ import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
+import jadx.core.dex.visitors.regions.SwitchBreakVisitor;
 import jadx.core.dex.visitors.regions.SwitchOverStringVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.rename.CodeRenameVisitor;
@@ -196,12 +197,14 @@ public class Jadx {
 		passes.add(new FixAccessModifiers());
 		passes.add(new ClassModifier());
 		passes.add(new LoopRegionVisitor());
+		passes.add(new SwitchBreakVisitor());
 
 		if (args.isInlineMethods()) {
 			passes.add(new MarkMethodsForInline());
 		}
 		passes.add(new ProcessVariables());
 		passes.add(new ApplyVariableNames());
+
 		passes.add(new PrepareForCodeGen());
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dumpRegions());

@@ -60,9 +60,7 @@ public class TestSwitchWithTryCatch extends IntegrationTest {
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				// .countString(3, "break;")
-				.countString(4, "return;")
-				// TODO: remove redundant break
-				.countString(4, "break;");
+				.countString(3, "break;")
+				.countString(4, "return;");
 	}
 }

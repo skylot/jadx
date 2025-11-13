@@ -86,13 +86,13 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	@Override
 	public String baseString() {
-		return header.baseString();
+		return "SW:" + header.baseString();
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Switch: ").append(cases.size());
+		sb.append("Switch: ").append(header.baseString());
 		for (CaseInfo caseInfo : cases) {
 			List<String> keyStrings = Utils.collectionMap(caseInfo.getKeys(),
 					k -> k == DEFAULT_CASE_KEY ? "default" : k.toString());
