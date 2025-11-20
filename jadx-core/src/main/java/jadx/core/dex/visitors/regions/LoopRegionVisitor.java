@@ -53,10 +53,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	@Override
 	public void visit(MethodNode mth) {
 		DepthRegionTraversal.traverse(mth, this);
-		if (mth.contains(AFlag.REQUEST_IF_REGION_OPTIMIZE)) {
-			IfRegionVisitor.process(mth);
-			mth.remove(AFlag.REQUEST_IF_REGION_OPTIMIZE);
-		}
+		IfRegionVisitor.processIfRequested(mth);
 	}
 
 	@Override

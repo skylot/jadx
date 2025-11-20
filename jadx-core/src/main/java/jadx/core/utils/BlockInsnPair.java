@@ -2,19 +2,19 @@ package jadx.core.utils;
 
 import java.util.Objects;
 
-import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 
 public class BlockInsnPair {
-	private final BlockNode block;
+	private final IBlock block;
 	private final InsnNode insn;
 
-	public BlockInsnPair(BlockNode block, InsnNode insn) {
+	public BlockInsnPair(IBlock block, InsnNode insn) {
 		this.block = block;
 		this.insn = insn;
 	}
 
-	public BlockNode getBlock() {
+	public IBlock getBlock() {
 		return block;
 	}
 

@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,8 @@ import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.regions.maker.SwitchRegionMaker;
+import jadx.core.utils.BlockInsnPair;
+import jadx.core.utils.BlockParentContainer;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.RegionUtils;
@@ -41,9 +44,14 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 		if (CodeFeaturesAttr.contains(mth, SWITCH)) {
 			DepthRegionTraversal.traverse(mth, new ExtractCommonBreak());
 			DepthRegionTraversal.traverse(mth, new RemoveUnreachableBreak());
+			IfRegionVisitor.processIfRequested(mth);
 		}
 	}
 
+	/**
+	 * Add common 'break' if 'break' or exit insn ('return', 'throw', 'continue') found in all branches.
+	 * Remove exist common break if all branches contain exit insn.
+	 */
 	private static final class ExtractCommonBreak extends BaseSwitchRegionVisitor {
 		@Override
 		public boolean switchVisitCondition(MethodNode mth, SwitchRegion switchRegion) {
@@ -54,11 +62,11 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 		public void processRegion(MethodNode mth, IRegion region) {
 			if (region instanceof IBranchRegion) {
 				// if break in all branches extract to parent region
-				processBranchRegion(region);
+				processBranchRegion(mth, region);
 			}
 		}
 
-		private void processBranchRegion(IRegion region) {
+		private void processBranchRegion(MethodNode mth, IRegion region) {
 			IRegion parentRegion = region.getParent();
 			if (parentRegion.contains(AFlag.FALL_THROUGH)) {
 				// fallthrough case, can't extract break
@@ -76,40 +84,37 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 				}
 			}
 			List<IContainer> branches = ((IBranchRegion) region).getBranches();
-			boolean removeBranchBreaks = false;
 			boolean removeCommonBreak = true; // all branches contain exit insns, common break is unreachable
+			List<BlockParentContainer> forBreakRemove = new ArrayList<>();
 			for (IContainer branch : branches) {
 				if (branch == null) {
 					removeCommonBreak = false;
 					continue;
 				}
-				IBlock lastBlock = RegionUtils.getLastBlock(branch);
-				InsnNode lastInsn = BlockUtils.getLastInsn(lastBlock);
-				if (lastInsn == null) {
+				BlockInsnPair last = RegionUtils.getLastInsnWithBlock(branch);
+				if (last == null) {
 					return;
 				}
+				InsnNode lastInsn = last.getInsn();
 				if (lastInsn.getType() == InsnType.BREAK) {
-					removeBranchBreaks = true;
+					IBlock block = last.getBlock();
+					IContainer parent = RegionUtils.getBlockContainer(branch, block);
+					forBreakRemove.add(new BlockParentContainer(parent, block));
 					removeCommonBreak = false;
 				} else if (!lastInsn.isExitEdgeInsn()) {
 					removeCommonBreak = false;
 				}
 			}
-			if (removeBranchBreaks) {
+			if (!forBreakRemove.isEmpty()) {
 				// common 'break' confirmed
-				for (IContainer branch : branches) {
-					if (branch == null) {
-						continue;
-					}
-					// remove breaks from all branches
-					IBlock lastBlock = RegionUtils.getLastBlock(branch);
-					if (lastBlock != null) {
-						removeBreak(lastBlock, branch);
-					}
+				for (BlockParentContainer breakData : forBreakRemove) {
+					removeBreak(breakData.getBlock(), breakData.getParent());
 				}
 				if (!dontAddCommonBreak) {
 					addBreakRegion.add(parentRegion);
 				}
+				// removed 'break' may allow to use 'else-if' chain
+				mth.add(AFlag.REQUEST_IF_REGION_OPTIMIZE);
 			}
 			if (removeCommonBreak && lastParentBlock != null) {
 				removeBreak(lastParentBlock, parentRegion);

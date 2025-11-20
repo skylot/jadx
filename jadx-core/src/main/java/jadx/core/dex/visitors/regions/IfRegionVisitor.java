@@ -30,7 +30,17 @@ public class IfRegionVisitor extends AbstractVisitor {
 		process(mth);
 	}
 
-	public static void process(MethodNode mth) {
+	public static void processIfRequested(MethodNode mth) {
+		if (mth.contains(AFlag.REQUEST_IF_REGION_OPTIMIZE)) {
+			try {
+				process(mth);
+			} finally {
+				mth.remove(AFlag.REQUEST_IF_REGION_OPTIMIZE);
+			}
+		}
+	}
+
+	private static void process(MethodNode mth) {
 		TernaryMod.process(mth);
 		DepthRegionTraversal.traverse(mth, PROCESS_IF_REGION_VISITOR);
 		DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
@@ -48,7 +58,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 	}
 
-	@SuppressWarnings({ "UnnecessaryReturnStatement", "StatementWithEmptyBody" })
+	@SuppressWarnings({ "UnnecessaryReturnStatement" })
 	private static void orderBranches(MethodNode mth, IfRegion ifRegion) {
 		if (RegionUtils.isEmpty(ifRegion.getElseRegion())) {
 			return;
@@ -158,7 +168,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 	}
 
-	@SuppressWarnings("StatementWithEmptyBody")
+	@SuppressWarnings("UnnecessaryParentheses")
 	private static boolean removeRedundantElseBlock(MethodNode mth, IfRegion ifRegion) {
 		if (ifRegion.getElseRegion() == null) {
 			return false;
