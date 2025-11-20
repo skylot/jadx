@@ -52,7 +52,7 @@ public class DebugChecks {
 		try {
 			checkMethod(mth);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Debug check failed after visitor: " + visitor, e);
+			mth.addError("Debug check failed after visitor: " + visitor, e);
 		}
 	}
 

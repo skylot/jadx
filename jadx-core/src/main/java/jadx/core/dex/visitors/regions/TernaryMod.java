@@ -122,6 +122,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			int branchLine = Math.max(thenInsn.getSourceLine(), elseInsn.getSourceLine());
 			ternInsn.setSourceLine(Math.max(ifRegion.getSourceLine(), branchLine));
 
+			thenInsn.setResult(null); // unset without unbind, SSA var still in use
 			InsnRemover.unbindResult(mth, elseInsn);
 
 			// remove 'if' instruction
