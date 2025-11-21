@@ -21,13 +21,13 @@ import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.jobs.LoadTask;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JNodeCache;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class TreeExpansionService {
@@ -62,9 +62,9 @@ public class TreeExpansionService {
 	}
 
 	public void load(List<String> treeExpansions) {
-		List<TreePath> expandedPaths = new ArrayList<>();
-		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
+		mainWindow.getBackgroundExecutor().execute(new LoadTask<>(
 				() -> {
+					List<TreePath> expandedPaths = new ArrayList<>();
 					loadPaths(treeExpansions, expandedPaths);
 					// send expand event to load sub-nodes and wait for completion
 					UiUtils.uiRunAndWait(() -> expandedPaths.forEach(path -> {
@@ -74,11 +74,12 @@ public class TreeExpansionService {
 							throw new JadxRuntimeException("Tree expand error", e);
 						}
 					}));
+					return expandedPaths;
 				},
-				s -> {
+				expandedPaths -> {
 					// expand paths after a loading task is finished
 					expandedPaths.forEach(tree::expandPath);
-				});
+				}));
 	}
 
 	private void loadPaths(List<String> treeExpansions, List<TreePath> expandedPaths) {
