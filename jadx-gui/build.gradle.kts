@@ -4,7 +4,7 @@ plugins {
 	id("jadx-library")
 	id("com.gradleup.shadow") version "8.3.8"
 	id("edu.sc.seis.launch4j") version "4.0.0"
-	id("org.beryx.runtime") version "2.0.0-rc"
+	id("org.beryx.runtime") version "2.0.1"
 }
 
 dependencies {
@@ -23,11 +23,11 @@ dependencies {
 	implementation("com.fifesoft:autocomplete:3.3.2")
 
 	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.7.1")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.7.1")
+	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.8.0")
+	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0")
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.20")
+	implementation("ch.qos.logback:logback-classic:1.5.21")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
 	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")
@@ -40,13 +40,13 @@ dependencies {
 	implementation("com.formdev:flatlaf-extras:3.6.2")
 
 	implementation("com.google.code.gson:gson:2.13.2")
-	implementation("org.apache.commons:commons-lang3:3.19.0")
+	implementation("org.apache.commons:commons-lang3:3.20.0")
 	implementation("org.apache.commons:commons-text:1.14.0")
-	implementation("commons-io:commons-io:2.20.0")
+	implementation("commons-io:commons-io:2.21.0")
 
 	implementation("io.reactivex.rxjava3:rxjava:3.1.12")
 	implementation("com.github.akarnokd:rxjava3-swing:3.1.1")
-	implementation("com.android.tools.build:apksig:8.13.0")
+	implementation("com.android.tools.build:apksig:8.13.1")
 	implementation("io.github.skylot:jdwp:2.0.0")
 
 	// Library for hex viewing data
