@@ -217,8 +217,43 @@ public class RootNode {
 
 	public void addClassNode(ClassNode clsNode) {
 		classes.add(clsNode);
-		clsMap.put(clsNode.getClassInfo(), clsNode);
-		rawClsMap.put(clsNode.getRawName(), clsNode);
+		ClassNode prevClsNode = clsMap.get(clsNode.getClassInfo());
+		if (prevClsNode == null) {
+			clsMap.put(clsNode.getClassInfo(), clsNode);
+			rawClsMap.put(clsNode.getRawName(), clsNode);
+		} else {
+			String prevFileName = prevClsNode.getInputFileName();
+			String fileName = clsNode.getInputFileName();
+
+			boolean prevFileNameIsValid = prevFileName.matches("classes[1-9]\\d*.dex") && !prevFileName.equals("classes1.dex");
+			boolean fileNameIsValid = fileName.matches("classes[1-9]\\d*.dex") && !fileName.equals("classes1.dex");
+
+			ClassNode newClsNode = clsNode;
+			// classes.dex has precedence
+			if (fileName.equals("classes.dex")) {
+				newClsNode = clsNode;
+			} else if (prevFileName.equals("classes.dex")) {
+				newClsNode = prevClsNode;
+			} else if (prevFileNameIsValid && !fileNameIsValid) {
+				// valid dex names have precedence
+				newClsNode = prevClsNode;
+			} else if (!prevFileNameIsValid && fileNameIsValid) {
+				newClsNode = clsNode;
+			} else if (prevFileNameIsValid && fileNameIsValid) {
+				// if both are valid, the lower index has precedence
+				long index = Long.parseLong(fileName.substring(7, fileName.length() - 4));
+				long prevIndex = Long.parseLong(prevFileName.substring(7, prevFileName.length() - 4));
+
+				if (index < prevIndex) {
+					newClsNode = clsNode;
+				} else {
+					newClsNode = prevClsNode;
+				}
+			}
+
+			clsMap.put(newClsNode.getClassInfo(), newClsNode);
+			rawClsMap.put(newClsNode.getRawName(), newClsNode);
+		}
 	}
 
 	public void loadResources(ResourcesLoader resLoader, List<ResourceFile> resources) {
