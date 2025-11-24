@@ -191,10 +191,10 @@ public class PackageNode extends LineAttrNode
 
 	public List<ClassNode> getClassesNoDup() {
 		return classes.stream()
-			.map(ClassNode::getClassInfo)
-			.collect(Collectors.toSet())
-			.stream()
-			.map(e -> root.resolveClass(e)).collect(Collectors.toList());
+				.map(ClassNode::getClassInfo)
+				.collect(Collectors.toSet())
+				.stream()
+				.map(e -> root.resolveClass(e)).collect(Collectors.toList());
 	}
 
 	public JavaPackage getJavaNode() {

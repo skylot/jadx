@@ -21,6 +21,7 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	JavaPackage(PackageNode pkgNode, List<JavaClass> classes, List<JavaPackage> subPkgs) {
 		this(pkgNode, classes, classes, subPkgs);
 	}
+
 	JavaPackage(PackageNode pkgNode, List<JavaClass> classes, List<JavaClass> clsListNoDup, List<JavaPackage> subPkgs) {
 		this.pkgNode = pkgNode;
 		this.classes = classes;
