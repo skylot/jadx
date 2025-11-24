@@ -543,9 +543,10 @@ public final class JadxDecompiler implements Closeable {
 			return foundPkg;
 		}
 		List<JavaClass> clsList = Utils.collectionMap(pkg.getClasses(), this::convertClassNode);
+		List<JavaClass> clsListNoDup = Utils.collectionMap(pkg.getClassesNoDup(), this::convertClassNode);
 		int subPkgsCount = pkg.getSubPackages().size();
 		List<JavaPackage> subPkgs = subPkgsCount == 0 ? Collections.emptyList() : new ArrayList<>(subPkgsCount);
-		JavaPackage javaPkg = new JavaPackage(pkg, clsList, subPkgs);
+		JavaPackage javaPkg = new JavaPackage(pkg, clsList, clsListNoDup, subPkgs);
 		if (subPkgsCount != 0) {
 			// add subpackages after parent to avoid endless recursion
 			for (PackageNode subPackage : pkg.getSubPackages()) {
