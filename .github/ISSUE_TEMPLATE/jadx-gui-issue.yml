@@ -23,14 +23,14 @@ body:
     id: jadx-version
     attributes:
       label: Jadx version
-      placeholder: check `Help->About`
+      placeholder: check `JadxGUI->About JadxGUI`
     validations:
       required: true
   - type: input
     id: java-version
     attributes:
       label: Java version
-      placeholder: check `Help->About`
+      placeholder: check `JadxGUI->About JadxGUI`
     validations:
       required: true
   - type: checkboxes
