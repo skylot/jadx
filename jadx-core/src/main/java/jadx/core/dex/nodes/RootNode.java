@@ -45,6 +45,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.utils.MethodUtils;
+import jadx.core.dex.nodes.utils.SelectFromDuplicates;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -152,7 +153,7 @@ public class RootNode {
 	public void finishClassLoad() {
 		if (classes.size() != clsMap.size()) {
 			// class name duplication detected
-			markDuplicatedClasses(classes);
+			fixDuplicatedClasses();
 		}
 		classes = new ArrayList<>(clsMap.values());
 
@@ -194,66 +195,37 @@ public class RootNode {
 		}
 	}
 
-	private static void markDuplicatedClasses(List<ClassNode> classes) {
+	private void fixDuplicatedClasses() {
 		classes.stream()
 				.collect(Collectors.groupingBy(ClassNode::getClassInfo))
 				.entrySet()
 				.stream()
 				.filter(entry -> entry.getValue().size() > 1)
 				.forEach(entry -> {
-					List<String> sources = Utils.collectionMap(entry.getValue(), ClassNode::getInputFileName);
-					LOG.warn("Found duplicated class: {}, count: {}. Only one will be loaded!\n  {}",
-							entry.getKey(), entry.getValue().size(), String.join("\n  ", sources));
-					entry.getValue().forEach(cls -> {
-						String thisSource = cls.getInputFileName();
-						String otherSourceStr = sources.stream()
-								.filter(s -> !s.equals(thisSource))
-								.sorted()
-								.collect(Collectors.joining("\n  "));
-						cls.addWarnComment("Classes with same name are omitted:\n  " + otherSourceStr + '\n');
-					});
+					ClassInfo clsInfo = entry.getKey();
+					List<ClassNode> dupClsList = entry.getValue();
+					ClassNode selectedCls = SelectFromDuplicates.process(dupClsList);
+
+					// keep only selected class in classes maps
+					clsMap.put(clsInfo, selectedCls);
+					rawClsMap.put(selectedCls.getRawName(), selectedCls);
+
+					String selectedSource = selectedCls.getInputFileName();
+					String sources = dupClsList.stream()
+							.map(ClassNode::getInputFileName)
+							.sorted()
+							.collect(Collectors.joining("\n  "));
+					LOG.warn("Found duplicated class: {}, count: {}, sources:"
+							+ "\n  {}\n Keep class with source: {}, others will be removed.",
+							clsInfo, dupClsList.size(), sources, selectedSource);
+					selectedCls.addWarnComment("Classes with same name are omitted, all sources:\n  " + sources + '\n');
 				});
 	}
 
 	public void addClassNode(ClassNode clsNode) {
 		classes.add(clsNode);
-		ClassNode prevClsNode = clsMap.get(clsNode.getClassInfo());
-		if (prevClsNode == null) {
-			clsMap.put(clsNode.getClassInfo(), clsNode);
-			rawClsMap.put(clsNode.getRawName(), clsNode);
-		} else {
-			String prevFileName = prevClsNode.getInputFileName();
-			String fileName = clsNode.getInputFileName();
-
-			boolean prevFileNameIsValid = prevFileName.matches("classes[1-9]\\d*.dex") && !prevFileName.equals("classes1.dex");
-			boolean fileNameIsValid = fileName.matches("classes[1-9]\\d*.dex") && !fileName.equals("classes1.dex");
-
-			ClassNode newClsNode = clsNode;
-			// classes.dex has precedence
-			if (fileName.equals("classes.dex")) {
-				newClsNode = clsNode;
-			} else if (prevFileName.equals("classes.dex")) {
-				newClsNode = prevClsNode;
-			} else if (prevFileNameIsValid && !fileNameIsValid) {
-				// valid dex names have precedence
-				newClsNode = prevClsNode;
-			} else if (!prevFileNameIsValid && fileNameIsValid) {
-				newClsNode = clsNode;
-			} else if (prevFileNameIsValid && fileNameIsValid) {
-				// if both are valid, the lower index has precedence
-				long index = Long.parseLong(fileName.substring(7, fileName.length() - 4));
-				long prevIndex = Long.parseLong(prevFileName.substring(7, prevFileName.length() - 4));
-
-				if (index < prevIndex) {
-					newClsNode = clsNode;
-				} else {
-					newClsNode = prevClsNode;
-				}
-			}
-
-			clsMap.put(newClsNode.getClassInfo(), newClsNode);
-			rawClsMap.put(newClsNode.getRawName(), newClsNode);
-		}
+		clsMap.put(clsNode.getClassInfo(), clsNode);
+		rawClsMap.put(clsNode.getRawName(), clsNode);
 	}
 
 	public void loadResources(ResourcesLoader resLoader, List<ResourceFile> resources) {
