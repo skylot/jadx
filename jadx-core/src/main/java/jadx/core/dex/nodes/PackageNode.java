@@ -3,6 +3,7 @@ package jadx.core.dex.nodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -186,6 +187,14 @@ public class PackageNode extends LineAttrNode
 
 	public List<ClassNode> getClasses() {
 		return classes;
+	}
+
+	public List<ClassNode> getClassesNoDup() {
+		return classes.stream()
+				.map(ClassNode::getClassInfo)
+				.collect(Collectors.toSet())
+				.stream()
+				.map(e -> root.resolveClass(e)).collect(Collectors.toList());
 	}
 
 	public JavaPackage getJavaNode() {

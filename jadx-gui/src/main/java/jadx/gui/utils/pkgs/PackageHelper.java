@@ -174,7 +174,7 @@ public class PackageHelper {
 		if (synthetic) {
 			classes = Collections.emptyList();
 		} else {
-			classes = Utils.collectionMap(javaPkg.getClasses(), nodeCache::makeFrom);
+			classes = Utils.collectionMap(javaPkg.getClassesNoDup(), nodeCache::makeFrom);
 			classes.sort(CLASS_COMPARATOR);
 		}
 		return nodeCache.newJPackage(javaPkg, synthetic, pkgEnabled, classes);

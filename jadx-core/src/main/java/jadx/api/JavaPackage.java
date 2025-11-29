@@ -15,11 +15,17 @@ import jadx.core.dex.nodes.PackageNode;
 public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	private final PackageNode pkgNode;
 	private final List<JavaClass> classes;
+	private final List<JavaClass> clsListNoDup;
 	private final List<JavaPackage> subPkgs;
 
 	JavaPackage(PackageNode pkgNode, List<JavaClass> classes, List<JavaPackage> subPkgs) {
+		this(pkgNode, classes, classes, subPkgs);
+	}
+
+	JavaPackage(PackageNode pkgNode, List<JavaClass> classes, List<JavaClass> clsListNoDup, List<JavaPackage> subPkgs) {
 		this.pkgNode = pkgNode;
 		this.classes = classes;
+		this.clsListNoDup = clsListNoDup;
 		this.subPkgs = subPkgs;
 	}
 
@@ -47,6 +53,10 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 
 	public List<JavaClass> getClasses() {
 		return classes;
+	}
+
+	public List<JavaClass> getClassesNoDup() {
+		return clsListNoDup;
 	}
 
 	public boolean isRoot() {
