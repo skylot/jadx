@@ -86,11 +86,13 @@ public class JadxWrapper {
 
 	// TODO: check and move into core package
 	public void unloadClasses() {
-		for (ClassNode cls : getDecompiler().getRoot().getClasses()) {
-			ProcessState clsState = cls.getState();
-			cls.unload();
-			cls.setState(clsState == PROCESS_COMPLETE ? GENERATED_AND_UNLOADED : NOT_LOADED);
-		}
+		getCurrentDecompiler().ifPresent(decompiler -> {
+			for (ClassNode cls : decompiler.getRoot().getClasses()) {
+				ProcessState clsState = cls.getState();
+				cls.unload();
+				cls.setState(clsState == PROCESS_COMPLETE ? GENERATED_AND_UNLOADED : NOT_LOADED);
+			}
+		});
 	}
 
 	public void close() {
