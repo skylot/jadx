@@ -386,7 +386,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			}
 
 			void remove() {
-				gutter.removeTrackingIcon(iconInfo);
+				safeRemoveTrackingIcon(iconInfo);
 				if (!this.disabled) {
 					removeLineHighlight(highlightTag);
 				}
@@ -395,7 +395,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			void setDisabled(boolean disabled) {
 				if (disabled) {
 					if (!this.disabled) {
-						gutter.removeTrackingIcon(iconInfo);
+						safeRemoveTrackingIcon(iconInfo);
 						removeLineHighlight(highlightTag);
 						try {
 							iconInfo = gutter.addLineTrackingIcon(line, ICON_BREAKPOINT_DISABLED);
@@ -405,7 +405,7 @@ public final class SmaliArea extends AbstractCodeArea {
 					}
 				} else {
 					if (this.disabled) {
-						gutter.removeTrackingIcon(this.iconInfo);
+						safeRemoveTrackingIcon(this.iconInfo);
 						try {
 							iconInfo = gutter.addLineTrackingIcon(line, ICON_BREAKPOINT);
 							highlightTag = addLineHighlight(line, BREAKPOINT_LINE_COLOR);
@@ -417,6 +417,13 @@ public final class SmaliArea extends AbstractCodeArea {
 				this.disabled = disabled;
 			}
 		}
+
+		private void safeRemoveTrackingIcon(GutterIconInfo iconInfo) {
+			if (gutter != null && iconInfo != null) {
+				gutter.removeTrackingIcon(iconInfo);
+			}
+		}
+
 	}
 
 	@Override
