@@ -72,6 +72,7 @@ public class ClassNode extends NotificationAttrNode
 	private ArgType superClass;
 	private List<ArgType> interfaces;
 	private List<ArgType> generics = Collections.emptyList();
+	private String inputFileName;
 
 	private List<MethodNode> methods;
 	private List<FieldNode> fields;
@@ -123,6 +124,7 @@ public class ClassNode extends NotificationAttrNode
 			this.accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
 			this.superClass = checkSuperType(cls);
 			this.interfaces = Utils.collectionMap(cls.getInterfacesTypes(), ArgType::object);
+			setInputFileName(cls.getInputFileName());
 
 			ListConsumer<IFieldData, FieldNode> fieldsConsumer = new ListConsumer<>(fld -> FieldNode.build(this, fld));
 			ListConsumer<IMethodData, MethodNode> methodsConsumer = new ListConsumer<>(mth -> MethodNode.build(this, mth));
@@ -228,6 +230,7 @@ public class ClassNode extends NotificationAttrNode
 	public static ClassNode addSyntheticClass(RootNode root, ClassInfo clsInfo, int accessFlags) {
 		ClassNode cls = new ClassNode(root, clsInfo, accessFlags);
 		cls.add(AFlag.SYNTHETIC);
+		cls.setInputFileName("synthetic");
 		cls.setState(ProcessState.PROCESS_COMPLETE);
 		root.addClassNode(cls);
 		return cls;
@@ -961,7 +964,11 @@ public class ClassNode extends NotificationAttrNode
 
 	@Override
 	public String getInputFileName() {
-		return clsData == null ? "synthetic" : clsData.getInputFileName();
+		return inputFileName;
+	}
+
+	public void setInputFileName(String inputFileName) {
+		this.inputFileName = inputFileName;
 	}
 
 	public JavaClass getJavaNode() {

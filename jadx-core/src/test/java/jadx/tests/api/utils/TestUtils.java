@@ -1,5 +1,7 @@
 package jadx.tests.api.utils;
 
+import java.io.File;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import jadx.NotYetImplementedExtension;
@@ -12,6 +14,7 @@ import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -70,5 +73,13 @@ public class TestUtils {
 			}
 		}
 		return false;
+	}
+
+	public static File getFileForSample(String resPath) {
+		try {
+			return new File(ClassLoader.getSystemResource(resPath).toURI().getRawPath());
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Resource load failed: " + resPath, e);
+		}
 	}
 }
