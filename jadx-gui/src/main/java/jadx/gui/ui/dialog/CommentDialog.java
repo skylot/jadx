@@ -128,7 +128,7 @@ public class CommentDialog extends CommonDialog {
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_ENTER:
 						if (e.isShiftDown() || e.isControlDown()) {
-							commentArea.append("\n");
+							commentArea.insert("\n", commentArea.getCaretPosition());
 						} else {
 							apply();
 						}
