@@ -205,7 +205,6 @@ public class SearchDialog extends CommonSearchDialog {
 		removeActiveTabListener();
 		searchBackgroundExecutor.execute(() -> {
 			stopSearchTask();
-			mainWindow.getBackgroundExecutor().waitForComplete();
 			unloadTempData();
 		});
 		super.dispose();
