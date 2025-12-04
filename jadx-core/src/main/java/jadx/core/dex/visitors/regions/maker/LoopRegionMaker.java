@@ -24,6 +24,7 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.getNextBlock;
@@ -349,7 +350,12 @@ final class LoopRegionMaker {
 
 		if (!confirm) {
 			BlockNode insertBlock = null;
-			while (exit != null) {
+			BlockSet visited = new BlockSet(mth);
+			while (true) {
+				if (exit == null || visited.contains(exit)) {
+					break;
+				}
+				visited.add(exit);
 				if (insertBlock != null && isPathExists(loopExit, exit)) {
 					// found cross
 					if (canInsertBreak(insertBlock)) {

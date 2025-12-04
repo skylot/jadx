@@ -599,7 +599,11 @@ public class BlockUtils {
 			if (s == until) {
 				return true;
 			}
-			int id = s.getId();
+			if (s == from) {
+				// ignore possible block self loop
+				continue;
+			}
+			int id = s.getPos();
 			if (!visited.get(id)) {
 				visited.set(id);
 				if (until.isDominator(s)) {
