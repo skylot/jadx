@@ -35,13 +35,13 @@ dependencies {
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer
 
-	implementation("com.formdev:flatlaf:3.6.2")
-	implementation("com.formdev:flatlaf-intellij-themes:3.6.2")
-	implementation("com.formdev:flatlaf-extras:3.6.2")
+	implementation("com.formdev:flatlaf:3.7")
+	implementation("com.formdev:flatlaf-intellij-themes:3.7")
+	implementation("com.formdev:flatlaf-extras:3.7")
 
 	implementation("com.google.code.gson:gson:2.13.2")
 	implementation("org.apache.commons:commons-lang3:3.20.0")
-	implementation("org.apache.commons:commons-text:1.14.0")
+	implementation("org.apache.commons:commons-text:1.15.0")
 	implementation("commons-io:commons-io:2.21.0")
 
 	implementation("io.reactivex.rxjava3:rxjava:3.1.12")
