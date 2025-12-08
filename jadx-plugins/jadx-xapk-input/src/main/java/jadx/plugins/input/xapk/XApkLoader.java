@@ -2,10 +2,12 @@ package jadx.plugins.input.xapk;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +87,9 @@ public class XApkLoader {
 		for (IZipEntry entry : content.getEntries()) {
 			String fileName = entry.getName();
 			Path file = tmpDir.resolve(fileName);
-			Files.write(file, entry.getBytes());
+			try (InputStream inputStream = entry.getInputStream()) {
+				Files.copy(inputStream, file, StandardCopyOption.REPLACE_EXISTING);
+			}
 			if (declaredApks.contains(fileName)) {
 				apks.add(file);
 			} else {
