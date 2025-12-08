@@ -25,6 +25,11 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - deobfuscator included
 
 **jadx-gui features:**
+
+> [!WARNING]
+> On Linux HiDPI systems, jadx may not scale correctly.<br>
+> As a workaround, start jadx with the environment variable `GDK_SCALE=2`.
+
 - view decompiled code with highlighted syntax
 - jump to declaration
 - find usage
