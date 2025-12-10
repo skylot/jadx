@@ -71,6 +71,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean checkForUpdates = true;
 	private boolean disableTooltipOnHover = false;
 	private List<Path> recentProjects = new ArrayList<>();
+	private float uiZoom = 1.0f;
 	private String fontStr = "";
 	private String smaliFontStr = "";
 	private String editorTheme = "";
@@ -537,6 +538,14 @@ public class JadxSettings extends JadxCLIArgs {
 	public void setTreeWidth(int treeWidth) {
 		this.treeWidth = treeWidth;
 		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
+	}
+
+	public float getUiZoom() {
+		return uiZoom;
+	}
+
+	public void setUiZoom(float uiZoom) {
+		this.uiZoom = uiZoom;
 	}
 
 	@JadxSettingsAdapter.GsonExclude

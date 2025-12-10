@@ -420,8 +420,16 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
+		JSpinner uiZoomSpinner = new JSpinner(new SpinnerNumberModel(settings.getUiZoom(), 0.1, 10.0, 0.25));
+		uiZoomSpinner.addChangeListener(e -> {
+			float zoomValue = ((Double) uiZoomSpinner.getValue()).floatValue();
+			settings.setUiZoom(zoomValue);
+			mainWindow.loadSettings();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.appearance"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
+		group.addRow(NLS.str("preferences.ui_zoom"), uiZoomSpinner);
 		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
 		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);

@@ -70,8 +70,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
+import com.formdev.flatlaf.util.UIScale;
 
 import ch.qos.logback.classic.Level;
 
@@ -263,7 +265,6 @@ public class MainWindow extends JFrame {
 		JadxEventQueue.register();
 		resetCache();
 		FontUtils.registerBundledFonts();
-		editorThemeManager.setTheme(settings.getEditorTheme());
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
@@ -1564,6 +1565,9 @@ public class MainWindow extends JFrame {
 	private void updateUiSettings() {
 		LafManager.updateLaf(settings);
 		editorThemeManager.setTheme(settings.getEditorTheme());
+		if (UIScale.setZoomFactor(settings.getUiZoom())) {
+			FlatLaf.updateUI();
+		}
 
 		Font font = settings.getFont();
 		Font largerFont = font.deriveFont(font.getSize() + 2.f);
@@ -1579,7 +1583,6 @@ public class MainWindow extends JFrame {
 		if (quickTabsTree != null) {
 			quickTabsTree.loadSettings();
 		}
-
 		shortcutsController.loadSettings();
 	}
 
