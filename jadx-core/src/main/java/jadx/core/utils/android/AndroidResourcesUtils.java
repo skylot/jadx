@@ -45,7 +45,7 @@ public class AndroidResourcesUtils {
 			addResourceFields(resCls, resStorage, true);
 			return resCls;
 		}
-		LOG.info("Can't find 'R' class in app package: {}", appPackage);
+		LOG.debug("Can't find 'R' class in app package: {}", appPackage);
 		List<ClassNode> candidates = root.searchClassByShortName("R");
 		if (candidates.size() == 1) {
 			ClassNode resClsCandidate = candidates.get(0);

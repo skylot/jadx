@@ -41,12 +41,12 @@ public class JCommanderWrapper {
 
 	public boolean parse(String[] args) {
 		try {
-			jc.parse(args);
+			String[] fixedArgs = fixArgsForEmptySaveConfig(args);
+			jc.parse(fixedArgs);
 			applyFiles(argsObj);
 			return true;
 		} catch (ParameterException e) {
 			System.err.println("Arguments parse error: " + e.getMessage());
-			printUsage();
 			return false;
 		}
 	}
@@ -94,6 +94,41 @@ public class JCommanderWrapper {
 		}
 		// simple override
 		return value;
+	}
+
+	/**
+	 * Workaround to allow empty value (i.e. zero arity) for '--save-config' option
+	 * Insert empty string arg if another option start right after this one, or it is a last one.
+	 */
+	private String[] fixArgsForEmptySaveConfig(String[] args) {
+		int len = args.length;
+		for (int i = 0; i < len; i++) {
+			String arg = args[i];
+			if (arg.equals("--save-config")) {
+				int next = i + 1;
+				if (next == len) {
+					return insertEmptyArg(args, next, true);
+				}
+				if (next < len) {
+					String nextArg = args[next];
+					if (nextArg.startsWith("-")) {
+						return insertEmptyArg(args, next, false);
+					}
+				}
+				break;
+			}
+		}
+		return args;
+	}
+
+	private static String[] insertEmptyArg(String[] args, int i, boolean add) {
+		List<String> strings = new ArrayList<>(Arrays.asList(args));
+		if (add) {
+			strings.add("");
+		} else {
+			strings.add(i, "");
+		}
+		return strings.toArray(new String[0]);
 	}
 
 	public void printUsage() {
@@ -182,7 +217,9 @@ public class JCommanderWrapper {
 			}
 			if (addDefaults) {
 				String defaultValue = getDefaultValue(args, f);
-				if (defaultValue != null && !description.contains("(default)")) {
+				if (defaultValue != null
+						&& !defaultValue.isEmpty()
+						&& !description.contains("(default)")) {
 					opt.append(", default: ").append(defaultValue);
 				}
 			}

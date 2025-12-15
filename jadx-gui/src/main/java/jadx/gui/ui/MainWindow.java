@@ -118,6 +118,7 @@ import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
@@ -700,10 +701,10 @@ public class MainWindow extends JFrame {
 			return true;
 		}
 		// Check if we saved settings that indicate what to do
-		if (settings.getSaveOption() == JadxSettings.SAVEOPTION.NEVER) {
+		if (settings.getSaveOption() == SaveOptionEnum.NEVER) {
 			return true;
 		}
-		if (settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {
+		if (settings.getSaveOption() == SaveOptionEnum.ALWAYS) {
 			saveProject();
 			return true;
 		}
@@ -723,7 +724,7 @@ public class MainWindow extends JFrame {
 		switch (res) {
 			case JOptionPane.YES_OPTION:
 				if (remember.isSelected()) {
-					settings.setSaveOption(JadxSettings.SAVEOPTION.ALWAYS);
+					settings.setSaveOption(SaveOptionEnum.ALWAYS);
 					settings.sync();
 				}
 				saveProject();
@@ -731,7 +732,7 @@ public class MainWindow extends JFrame {
 
 			case JOptionPane.NO_OPTION:
 				if (remember.isSelected()) {
-					settings.setSaveOption(JadxSettings.SAVEOPTION.NEVER);
+					settings.setSaveOption(SaveOptionEnum.NEVER);
 					settings.sync();
 				}
 				return true;
@@ -1163,12 +1164,12 @@ public class MainWindow extends JFrame {
 
 		JCheckBoxMenuItem dockLog = new JCheckBoxMenuItem(NLS.str("menu.dock_log"));
 		dockLog.setState(settings.isDockLogViewer());
-		dockLog.addActionListener(event -> settings.setDockLogViewer(!settings.isDockLogViewer()));
+		dockLog.addActionListener(event -> settings.saveDockLogViewer(!settings.isDockLogViewer()));
 
 		ActionHandler quickTabsAction = new ActionHandler(ev -> {
 			boolean visible = quickTabsTree == null;
 			setQuickTabsVisibility(visible);
-			settings.setDockQuickTabs(visible);
+			settings.saveDockQuickTabs(visible);
 		});
 		quickTabsAction.setNameAndDesc(NLS.str("menu.dock_quick_tabs"));
 		quickTabsAction.setIcon(Icons.QUICK_TABS);
@@ -1586,6 +1587,7 @@ public class MainWindow extends JFrame {
 		shortcutsController.loadSettings();
 	}
 
+	@SuppressWarnings("finally")
 	private void closeWindow() {
 		saveAll();
 		if (!ensureProjectIsSaved()) {
@@ -1599,6 +1601,7 @@ public class MainWindow extends JFrame {
 				if (debuggerPanel != null) {
 					saveSplittersInfo();
 				}
+				settings.sync();
 				closeAll();
 				UiUtils.uiRunAndWait(() -> {
 					heapUsageBar.reset();
@@ -1758,7 +1761,7 @@ public class MainWindow extends JFrame {
 		}
 		Runnable undock = () -> {
 			hideDockedLog();
-			settings.setDockLogViewer(false);
+			settings.saveDockLogViewer(false);
 			LogViewerDialog.open(this, logOptions);
 		};
 		logPanel = new LogPanel(this, logOptions, undock, this::hideDockedLog);

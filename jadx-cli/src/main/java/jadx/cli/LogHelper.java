@@ -43,10 +43,9 @@ public class LogHelper {
 			return null;
 		}
 		if (args.quiet) {
-			return LogLevelEnum.QUIET;
-		}
-		if (args.verbose) {
-			return LogLevelEnum.DEBUG;
+			args.logLevel = LogLevelEnum.QUIET;
+		} else if (args.verbose) {
+			args.logLevel = LogLevelEnum.DEBUG;
 		}
 		return args.logLevel;
 	}

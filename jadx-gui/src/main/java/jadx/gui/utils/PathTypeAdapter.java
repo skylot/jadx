@@ -11,7 +11,7 @@ import com.google.gson.stream.JsonWriter;
 
 public class PathTypeAdapter {
 
-	private static final TypeAdapter<Path> SINGLETON = new TypeAdapter<Path>() {
+	private static final TypeAdapter<Path> SINGLETON = new TypeAdapter<>() {
 		@Override
 		public void write(JsonWriter out, Path value) throws IOException {
 			if (value == null) {

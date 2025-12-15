@@ -597,11 +597,8 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		getRootPane().setDefaultButton(openBtn);
 
 		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
-		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
-		cbKeepOpen.addActionListener(e -> {
-			mainWindow.getSettings().setKeepCommonDialogOpen(cbKeepOpen.isSelected());
-			mainWindow.getSettings().sync();
-		});
+		cbKeepOpen.setSelected(mainWindow.getSettings().isKeepCommonDialogOpen());
+		cbKeepOpen.addActionListener(e -> mainWindow.getSettings().saveKeepCommonDialogOpen(cbKeepOpen.isSelected()));
 		cbKeepOpen.setAlignmentY(Component.CENTER_ALIGNMENT);
 
 		JPanel buttonPane = new JPanel();

@@ -270,7 +270,7 @@ public class SearchDialog extends CommonSearchDialog {
 		autoSearchCB.setSelected(autoSearch);
 		autoSearchCB.addActionListener(ev -> {
 			boolean newValue = autoSearchCB.isSelected();
-			mainWindow.getSettings().setUseAutoSearch(newValue);
+			mainWindow.getSettings().saveUseAutoSearch(newValue);
 			searchBtn.setVisible(!newValue);
 			initSearchEvents();
 			if (newValue) {

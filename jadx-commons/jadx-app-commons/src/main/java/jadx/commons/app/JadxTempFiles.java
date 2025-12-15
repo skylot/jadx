@@ -18,7 +18,9 @@ public class JadxTempFiles {
 			String jadxTmpDir = System.getenv("JADX_TMP_DIR");
 			Path dir;
 			if (jadxTmpDir != null) {
-				dir = Files.createTempDirectory(Paths.get(jadxTmpDir), JADX_TMP_INSTANCE_PREFIX);
+				Path customTmpRootDir = Paths.get(jadxTmpDir);
+				Files.createDirectories(customTmpRootDir);
+				dir = Files.createTempDirectory(customTmpRootDir, JADX_TMP_INSTANCE_PREFIX);
 			} else {
 				dir = Files.createTempDirectory(JADX_TMP_INSTANCE_PREFIX);
 			}

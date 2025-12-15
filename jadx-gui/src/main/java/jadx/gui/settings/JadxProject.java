@@ -36,6 +36,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.cache.manager.CacheManager;
 import jadx.gui.settings.data.ProjectData;
+import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
@@ -267,7 +268,7 @@ public class JadxProject {
 
 	private void changed() {
 		JadxSettings settings = mainWindow.getSettings();
-		if (settings != null && settings.getSaveOption() == JadxSettings.SAVEOPTION.ALWAYS) {
+		if (settings != null && settings.getSaveOption() == SaveOptionEnum.ALWAYS) {
 			save();
 		} else {
 			saved = false;

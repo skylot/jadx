@@ -10,7 +10,7 @@ import com.google.gson.stream.JsonWriter;
 
 public class RectangleTypeAdapter {
 
-	private static final TypeAdapter<Rectangle> SINGLETON = new TypeAdapter<Rectangle>() {
+	private static final TypeAdapter<Rectangle> SINGLETON = new TypeAdapter<>() {
 		@Override
 		public void write(JsonWriter out, Rectangle value) throws IOException {
 			if (value == null) {

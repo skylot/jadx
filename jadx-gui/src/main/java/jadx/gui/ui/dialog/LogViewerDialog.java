@@ -39,7 +39,7 @@ public class LogViewerDialog extends JFrame {
 		UiUtils.setWindowIcons(this);
 
 		Runnable dock = () -> {
-			mainWindow.getSettings().setDockLogViewer(true);
+			mainWindow.getSettings().saveDockLogViewer(true);
 			dispose();
 			mainWindow.showLogViewer(LogOptions.current());
 		};

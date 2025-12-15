@@ -42,8 +42,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
-
 import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
 import jadx.api.JadxArgs;
@@ -56,14 +54,14 @@ import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
-import jadx.core.utils.GsonUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.settings.JadxSettingsAdapter;
+import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.settings.JadxUpdateChannel;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.XposedCodegenLanguage;
+import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.font.JadxFontDialog;
 import jadx.gui.settings.ui.plugins.PluginSettings;
@@ -99,7 +97,7 @@ public class JadxSettingsWindow extends JDialog {
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;
 		this.settings = settings;
-		this.startSettings = JadxSettingsAdapter.makeString(settings);
+		this.startSettings = settings.getSettingsJsonString();
 		this.startSettingsHash = calcSettingsHash();
 		this.prevLang = settings.getLangLocale();
 
@@ -279,7 +277,7 @@ public class JadxSettingsWindow extends JDialog {
 		JCheckBox useHeaders = new JCheckBox();
 		useHeaders.setSelected(settings.isUseHeadersForDetectResourceExtensions());
 		useHeaders.addItemListener(e -> {
-			settings.setUseHeadersForDetectResourceExtension(e.getStateChange() == ItemEvent.SELECTED);
+			settings.setUseHeadersForDetectResourceExtensions(e.getStateChange() == ItemEvent.SELECTED);
 			needReload();
 		});
 
@@ -376,10 +374,10 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeProjectGroup() {
-		JComboBox<JadxSettings.SAVEOPTION> dropdown = new JComboBox<>(JadxSettings.SAVEOPTION.values());
+		JComboBox<SaveOptionEnum> dropdown = new JComboBox<>(SaveOptionEnum.values());
 		dropdown.setSelectedItem(settings.getSaveOption());
 		dropdown.addActionListener(e -> {
-			settings.setSaveOption((JadxSettings.SAVEOPTION) dropdown.getSelectedItem());
+			settings.setSaveOption((SaveOptionEnum) dropdown.getSelectedItem());
 			needReload();
 		});
 
@@ -730,16 +728,14 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JComboBox<XposedCodegenLanguage> xposedCodegenLanguage =
-				new JComboBox<>(XposedCodegenLanguage.getEntries().toArray(new XposedCodegenLanguage[0]));
+		JComboBox<XposedCodegenLanguage> xposedCodegenLanguage = new JComboBox<>(XposedCodegenLanguage.values());
 		xposedCodegenLanguage.setSelectedItem(settings.getXposedCodegenLanguage());
 		xposedCodegenLanguage.addActionListener(e -> {
 			settings.setXposedCodegenLanguage((XposedCodegenLanguage) xposedCodegenLanguage.getSelectedItem());
 			mainWindow.loadSettings();
 		});
 
-		JComboBox<JadxUpdateChannel> updateChannel =
-				new JComboBox<>(JadxUpdateChannel.getEntries().toArray(new JadxUpdateChannel[0]));
+		JComboBox<JadxUpdateChannel> updateChannel = new JComboBox<>(JadxUpdateChannel.values());
 		updateChannel.setSelectedItem(settings.getJadxUpdateChannel());
 		updateChannel.addActionListener(e -> {
 			settings.setJadxUpdateChannel((JadxUpdateChannel) updateChannel.getSelectedItem());
@@ -788,7 +784,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private void cancel() {
 		closeGroups(false);
-		JadxSettingsAdapter.fill(settings, startSettings);
+		settings.loadSettingsFromJsonString(startSettings);
 		mainWindow.loadSettings();
 		dispose();
 	}
@@ -800,8 +796,7 @@ public class JadxSettingsWindow extends JDialog {
 				NLS.str("preferences.reset_title"),
 				JOptionPane.YES_NO_OPTION);
 		if (res == JOptionPane.YES_OPTION) {
-			String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
-			JadxSettingsAdapter.fill(settings, defaults);
+			settings.loadSettingsData(new JadxSettingsData());
 			mainWindow.loadSettings();
 			needReload();
 			getContentPane().removeAll();
@@ -812,15 +807,7 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private void copySettings() {
-		JsonObject settingsJson = JadxSettingsAdapter.makeJsonObject(this.settings);
-		// remove irrelevant preferences
-		settingsJson.remove("windowPos");
-		settingsJson.remove("mainWindowExtendedState");
-		settingsJson.remove("lastSaveProjectPath");
-		settingsJson.remove("lastOpenFilePath");
-		settingsJson.remove("lastSaveFilePath");
-		settingsJson.remove("recentProjects");
-		String settingsText = GsonUtils.buildGson().toJson(settingsJson);
+		String settingsText = settings.exportSettingsString();
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		StringSelection selection = new StringSelection(settingsText);
 		clipboard.setContents(selection, selection);

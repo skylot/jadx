@@ -162,6 +162,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			public void actionPerformed(ActionEvent e) {
 				boolean wrap = !getLineWrap();
 				settings.setCodeAreaLineWrap(wrap);
+				settings.sync();
 				contentPanel.getTabbedPane().getTabs().forEach(v -> {
 					if (v instanceof AbstractCodeContentPanel) {
 						AbstractCodeArea codeArea = ((AbstractCodeContentPanel) v).getCodeArea();
@@ -172,7 +173,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 						}
 					}
 				});
-				settings.sync();
 			}
 		});
 		popupMenu.add(wrapItem);

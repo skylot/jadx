@@ -31,22 +31,32 @@ import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.cli.config.IJadxConfig;
+import jadx.cli.config.JadxConfigAdapter;
+import jadx.cli.config.JadxConfigExclude;
+import jadx.commons.app.JadxCommonFiles;
+import jadx.commons.app.JadxTempFiles;
 import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.export.ExportGradleType;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
-public class JadxCLIArgs {
+public class JadxCLIArgs implements IJadxConfig {
 
+	@JadxConfigExclude
 	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)")
 	protected List<String> files = Collections.emptyList();
 
+	@JadxConfigExclude
 	@Parameter(names = { "-d", "--output-dir" }, description = "output directory")
 	protected String outDir;
 
+	@JadxConfigExclude
 	@Parameter(names = { "-ds", "--output-dir-src" }, description = "output directory for sources")
 	protected String outDirSrc;
 
+	@JadxConfigExclude
 	@Parameter(names = { "-dr", "--output-dir-res" }, description = "output directory for resources")
 	protected String outDirRes;
 
@@ -59,9 +69,11 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
+	@JadxConfigExclude
 	@Parameter(names = { "--single-class" }, description = "decompile a single class, full name, raw or alias")
 	protected String singleClass = null;
 
+	@JadxConfigExclude
 	@Parameter(names = { "--single-class-output" }, description = "file or dir for write if decompile a single class")
 	protected String singleClassOutput = null;
 
@@ -166,6 +178,7 @@ public class JadxCLIArgs {
 	)
 	protected String deobfuscationWhitelistStr = DeobfWhitelist.DEFAULT_STR;
 
+	@JadxConfigExclude
 	@Parameter(
 			names = { "--deobf-cfg-file" },
 			description = "deobfuscation mappings file used for JADX auto-generated names (in the JOBF file format),"
@@ -241,7 +254,7 @@ public class JadxCLIArgs {
 					+ "\n 'printable' - remove non-printable chars from identifiers,"
 					+ "\nor single 'none' - to disable all renames"
 					+ "\nor single 'all' - to enable all (default)",
-			converter = RenameConverter.class
+			listConverter = RenameConverter.class
 	)
 	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
@@ -287,27 +300,106 @@ public class JadxCLIArgs {
 	)
 	protected LogHelper.LogLevelEnum logLevel = LogHelper.LogLevelEnum.PROGRESS;
 
+	@JadxConfigExclude
 	@Parameter(names = { "-v", "--verbose" }, description = "verbose output (set --log-level to DEBUG)")
 	protected boolean verbose = false;
 
+	@JadxConfigExclude
 	@Parameter(names = { "-q", "--quiet" }, description = "turn off output (set --log-level to QUIET)")
 	protected boolean quiet = false;
 
+	@JadxConfigExclude
 	@Parameter(names = { "--disable-plugins" }, description = "comma separated list of plugin ids to disable")
 	protected String disablePlugins = "";
 
+	@JadxConfigExclude
+	@Parameter(
+			names = { "--config" },
+			defaultValueDescription = "<config-ref>",
+			description = "load configuration from file, <config-ref> can be:"
+					+ "\n path to '.json' file"
+					+ "\n short name - uses file with this name from config directory"
+					+ "\n 'none' - to disable config loading"
+	)
+	protected String config = "";
+
+	@JadxConfigExclude
+	@Parameter(
+			names = { "--save-config" },
+			defaultValueDescription = "<config-ref>",
+			description = "save current options into configuration file and exit, <config-ref> can be:"
+					+ "\n empty - for default config"
+					+ "\n path to '.json' file"
+					+ "\n short name - file will be saved in config directory"
+	)
+	protected String saveConfig = null;
+
+	@JadxConfigExclude
+	@Parameter(names = { "--print-files" }, description = "print files and directories used by jadx (config, cache, temp)")
+	protected boolean printFiles = false;
+
+	@JadxConfigExclude
 	@Parameter(names = { "--version" }, description = "print jadx version")
 	protected boolean printVersion = false;
 
+	@JadxConfigExclude
 	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
 	@DynamicParameter(names = "-P", description = "Plugin options", hidden = true)
 	protected Map<String, String> pluginOptions = new HashMap<>();
 
+	/**
+	 * Obsolete method without config support,
+	 * prefer {@link #processArgs(String[], JadxCLIArgs, JadxConfigAdapter)}
+	 */
 	public boolean processArgs(String[] args) {
-		JCommanderWrapper jcw = new JCommanderWrapper(this);
-		return jcw.parse(args) && process(jcw);
+		return processArgs(args, this, null) != null;
+	}
+
+	public static <T extends JadxCLIArgs> @Nullable T processArgs(
+			String[] args, T argsObj, @Nullable JadxConfigAdapter<T> configAdapter) {
+		JCommanderWrapper jcw = new JCommanderWrapper(argsObj);
+		if (!jcw.parse(args)) {
+			return null;
+		}
+		applyArgs(argsObj);
+
+		// process commands and early exit flags
+		if (!argsObj.process(jcw)) {
+			return null;
+		}
+		if (configAdapter != null) {
+			if (argsObj.printFiles) {
+				printFilesAndDirs(configAdapter.getDefaultConfigFileName());
+				return null;
+			}
+			if (!argsObj.config.equalsIgnoreCase("none")) {
+				// load config file and merge with command line args
+				configAdapter.useConfigRef(argsObj.config);
+				T configObj = configAdapter.load();
+				if (configObj != null) {
+					jcw.overrideProvided(configObj);
+					argsObj = configObj;
+				}
+			}
+		}
+		// verify result object
+		argsObj.verify();
+		applyArgs(argsObj);
+
+		// save config if requested
+		if (argsObj.saveConfig != null) {
+			saveConfig(argsObj, configAdapter);
+			return null;
+		}
+		return argsObj;
+	}
+
+	private static <T extends JadxCLIArgs> void applyArgs(T argsObj) {
+		// apply log levels
+		LogHelper.initLogLevel(argsObj);
+		LogHelper.applyLogLevels();
 	}
 
 	public boolean process(JCommanderWrapper jcw) {
@@ -322,15 +414,36 @@ public class JadxCLIArgs {
 			System.out.println(JadxDecompiler.getVersion());
 			return false;
 		}
-		if (threadsCount <= 0) {
-			throw new JadxArgsValidateException("Threads count must be positive, got: " + threadsCount);
-		}
+		// unknown options added to 'files', run checks
 		for (String fileName : files) {
 			if (fileName.startsWith("-")) {
 				throw new JadxArgsValidateException("Unknown option: " + fileName);
 			}
 		}
 		return true;
+	}
+
+	private static void printFilesAndDirs(String defaultConfigFileName) {
+		System.out.println("Files and directories used by jadx:");
+		System.out.println(" - default config file: " + JadxCommonFiles.getConfigDir().resolve(defaultConfigFileName).toAbsolutePath());
+		System.out.println(" - config directory:    " + JadxCommonFiles.getConfigDir().toAbsolutePath());
+		System.out.println(" - cache directory:     " + JadxCommonFiles.getCacheDir().toAbsolutePath());
+		System.out.println(" - temp directory:      " + JadxTempFiles.getTempRootDir().getParent().toAbsolutePath());
+	}
+
+	public void verify() {
+		if (threadsCount <= 0) {
+			throw new JadxArgsValidateException("Threads count must be positive, got: " + threadsCount);
+		}
+	}
+
+	private static <T extends JadxCLIArgs> void saveConfig(T argsObj, @Nullable JadxConfigAdapter<T> configAdapter) {
+		if (configAdapter == null) {
+			throw new JadxRuntimeException("Config adapter set to null, can't save config");
+		}
+		configAdapter.useConfigRef(argsObj.saveConfig);
+		configAdapter.save(argsObj);
+		System.out.println("Config saved to " + configAdapter.getConfigPath().toAbsolutePath());
 	}
 
 	public JadxArgs toJadxArgs() {
@@ -383,7 +496,7 @@ public class JadxCLIArgs {
 		args.setAllowInlineKotlinLambda(allowInlineKotlinLambda);
 		args.setExtractFinally(extractFinally);
 		args.setRestoreSwitchOverString(restoreSwitchOverString);
-		args.setRenameFlags(renameFlags);
+		args.setRenameFlags(buildEnumSetForRenameFlags());
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
 		args.setIntegerFormat(integerFormat);
@@ -392,6 +505,12 @@ public class JadxCLIArgs {
 		args.setPluginOptions(pluginOptions);
 		args.setDisabledPlugins(Arrays.stream(disablePlugins.split(",")).map(String::trim).collect(Collectors.toSet()));
 		return args;
+	}
+
+	private EnumSet<RenameEnum> buildEnumSetForRenameFlags() {
+		EnumSet<RenameEnum> set = EnumSet.noneOf(RenameEnum.class);
+		set.addAll(renameFlags);
+		return set;
 	}
 
 	public List<String> getFiles() {
@@ -426,12 +545,24 @@ public class JadxCLIArgs {
 		return skipResources;
 	}
 
+	public void setSkipResources(boolean skipResources) {
+		this.skipResources = skipResources;
+	}
+
 	public boolean isSkipSources() {
 		return skipSources;
 	}
 
+	public void setSkipSources(boolean skipSources) {
+		this.skipSources = skipSources;
+	}
+
 	public int getThreadsCount() {
 		return threadsCount;
+	}
+
+	public void setThreadsCount(int threadsCount) {
+		this.threadsCount = threadsCount;
 	}
 
 	public boolean isFallbackMode() {
@@ -442,80 +573,168 @@ public class JadxCLIArgs {
 		return useDx;
 	}
 
+	public void setUseDx(boolean useDx) {
+		this.useDx = useDx;
+	}
+
 	public DecompilationMode getDecompilationMode() {
 		return decompilationMode;
+	}
+
+	public void setDecompilationMode(DecompilationMode decompilationMode) {
+		this.decompilationMode = decompilationMode;
 	}
 
 	public boolean isShowInconsistentCode() {
 		return showInconsistentCode;
 	}
 
+	public void setShowInconsistentCode(boolean showInconsistentCode) {
+		this.showInconsistentCode = showInconsistentCode;
+	}
+
 	public boolean isUseImports() {
 		return useImports;
+	}
+
+	public void setUseImports(boolean useImports) {
+		this.useImports = useImports;
 	}
 
 	public boolean isDebugInfo() {
 		return debugInfo;
 	}
 
+	public void setDebugInfo(boolean debugInfo) {
+		this.debugInfo = debugInfo;
+	}
+
 	public boolean isAddDebugLines() {
 		return addDebugLines;
+	}
+
+	public void setAddDebugLines(boolean addDebugLines) {
+		this.addDebugLines = addDebugLines;
 	}
 
 	public boolean isInlineAnonymousClasses() {
 		return inlineAnonymousClasses;
 	}
 
+	public void setInlineAnonymousClasses(boolean inlineAnonymousClasses) {
+		this.inlineAnonymousClasses = inlineAnonymousClasses;
+	}
+
 	public boolean isInlineMethods() {
 		return inlineMethods;
+	}
+
+	public void setInlineMethods(boolean inlineMethods) {
+		this.inlineMethods = inlineMethods;
 	}
 
 	public boolean isMoveInnerClasses() {
 		return moveInnerClasses;
 	}
 
+	public void setMoveInnerClasses(boolean moveInnerClasses) {
+		this.moveInnerClasses = moveInnerClasses;
+	}
+
 	public boolean isAllowInlineKotlinLambda() {
 		return allowInlineKotlinLambda;
+	}
+
+	public void setAllowInlineKotlinLambda(boolean allowInlineKotlinLambda) {
+		this.allowInlineKotlinLambda = allowInlineKotlinLambda;
 	}
 
 	public boolean isExtractFinally() {
 		return extractFinally;
 	}
 
+	public void setExtractFinally(boolean extractFinally) {
+		this.extractFinally = extractFinally;
+	}
+
 	public boolean isRestoreSwitchOverString() {
 		return restoreSwitchOverString;
+	}
+
+	public void setRestoreSwitchOverString(boolean restoreSwitchOverString) {
+		this.restoreSwitchOverString = restoreSwitchOverString;
 	}
 
 	public Path getUserRenamesMappingsPath() {
 		return userRenamesMappingsPath;
 	}
 
+	public void setUserRenamesMappingsPath(Path userRenamesMappingsPath) {
+		this.userRenamesMappingsPath = userRenamesMappingsPath;
+	}
+
 	public UserRenamesMappingsMode getUserRenamesMappingsMode() {
 		return userRenamesMappingsMode;
+	}
+
+	public void setUserRenamesMappingsMode(UserRenamesMappingsMode userRenamesMappingsMode) {
+		this.userRenamesMappingsMode = userRenamesMappingsMode;
 	}
 
 	public boolean isDeobfuscationOn() {
 		return deobfuscationOn;
 	}
 
+	public void setDeobfuscationOn(boolean deobfuscationOn) {
+		this.deobfuscationOn = deobfuscationOn;
+	}
+
 	public int getDeobfuscationMinLength() {
 		return deobfuscationMinLength;
+	}
+
+	public void setDeobfuscationMinLength(int deobfuscationMinLength) {
+		this.deobfuscationMinLength = deobfuscationMinLength;
 	}
 
 	public int getDeobfuscationMaxLength() {
 		return deobfuscationMaxLength;
 	}
 
+	public void setDeobfuscationMaxLength(int deobfuscationMaxLength) {
+		this.deobfuscationMaxLength = deobfuscationMaxLength;
+	}
+
 	public String getDeobfuscationWhitelistStr() {
 		return deobfuscationWhitelistStr;
+	}
+
+	public void setDeobfuscationWhitelistStr(String deobfuscationWhitelistStr) {
+		this.deobfuscationWhitelistStr = deobfuscationWhitelistStr;
 	}
 
 	public String getGeneratedRenamesMappingFile() {
 		return generatedRenamesMappingFile;
 	}
 
+	public void setGeneratedRenamesMappingFile(String generatedRenamesMappingFile) {
+		this.generatedRenamesMappingFile = generatedRenamesMappingFile;
+	}
+
 	public GeneratedRenamesMappingFileMode getGeneratedRenamesMappingFileMode() {
 		return generatedRenamesMappingFileMode;
+	}
+
+	public void setGeneratedRenamesMappingFileMode(GeneratedRenamesMappingFileMode generatedRenamesMappingFileMode) {
+		this.generatedRenamesMappingFileMode = generatedRenamesMappingFileMode;
+	}
+
+	public int getSourceNameRepeatLimit() {
+		return sourceNameRepeatLimit;
+	}
+
+	public void setSourceNameRepeatLimit(int sourceNameRepeatLimit) {
+		this.sourceNameRepeatLimit = sourceNameRepeatLimit;
 	}
 
 	public UseSourceNameAsClassNameAlias getUseSourceNameAsClassNameAlias() {
@@ -529,8 +748,8 @@ public class JadxCLIArgs {
 		}
 	}
 
-	public int getSourceNameRepeatLimit() {
-		return sourceNameRepeatLimit;
+	public void setUseSourceNameAsClassNameAlias(UseSourceNameAsClassNameAlias useSourceNameAsClassNameAlias) {
+		this.useSourceNameAsClassNameAlias = useSourceNameAsClassNameAlias;
 	}
 
 	/**
@@ -541,48 +760,96 @@ public class JadxCLIArgs {
 		return getUseSourceNameAsClassNameAlias().toBoolean();
 	}
 
+	public void setDeobfuscationUseSourceNameAsAlias(Boolean deobfuscationUseSourceNameAsAlias) {
+		this.deobfuscationUseSourceNameAsAlias = deobfuscationUseSourceNameAsAlias;
+	}
+
 	public ResourceNameSource getResourceNameSource() {
 		return resourceNameSource;
+	}
+
+	public void setResourceNameSource(ResourceNameSource resourceNameSource) {
+		this.resourceNameSource = resourceNameSource;
 	}
 
 	public UseKotlinMethodsForVarNames getUseKotlinMethodsForVarNames() {
 		return useKotlinMethodsForVarNames;
 	}
 
+	public void setUseKotlinMethodsForVarNames(UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
+		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
+	}
+
 	public IntegerFormat getIntegerFormat() {
 		return integerFormat;
+	}
+
+	public void setIntegerFormat(IntegerFormat integerFormat) {
+		this.integerFormat = integerFormat;
 	}
 
 	public int getTypeUpdatesLimitCount() {
 		return typeUpdatesLimitCount;
 	}
 
+	public void setTypeUpdatesLimitCount(int typeUpdatesLimitCount) {
+		this.typeUpdatesLimitCount = typeUpdatesLimitCount;
+	}
+
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
+	}
+
+	public void setEscapeUnicode(boolean escapeUnicode) {
+		this.escapeUnicode = escapeUnicode;
 	}
 
 	public boolean isCfgOutput() {
 		return cfgOutput;
 	}
 
+	public void setCfgOutput(boolean cfgOutput) {
+		this.cfgOutput = cfgOutput;
+	}
+
 	public boolean isRawCfgOutput() {
 		return rawCfgOutput;
+	}
+
+	public void setRawCfgOutput(boolean rawCfgOutput) {
+		this.rawCfgOutput = rawCfgOutput;
 	}
 
 	public boolean isReplaceConsts() {
 		return replaceConsts;
 	}
 
+	public void setReplaceConsts(boolean replaceConsts) {
+		this.replaceConsts = replaceConsts;
+	}
+
 	public boolean isRespectBytecodeAccessModifiers() {
 		return respectBytecodeAccessModifiers;
+	}
+
+	public void setRespectBytecodeAccessModifiers(boolean respectBytecodeAccessModifiers) {
+		this.respectBytecodeAccessModifiers = respectBytecodeAccessModifiers;
 	}
 
 	public boolean isExportAsGradleProject() {
 		return exportAsGradleProject;
 	}
 
+	public void setExportAsGradleProject(boolean exportAsGradleProject) {
+		this.exportAsGradleProject = exportAsGradleProject;
+	}
+
 	public boolean isSkipXmlPrettyPrint() {
 		return skipXmlPrettyPrint;
+	}
+
+	public void setSkipXmlPrettyPrint(boolean skipXmlPrettyPrint) {
+		this.skipXmlPrettyPrint = skipXmlPrettyPrint;
 	}
 
 	public boolean isRenameCaseSensitive() {
@@ -601,24 +868,68 @@ public class JadxCLIArgs {
 		return fsCaseSensitive;
 	}
 
+	public void setFsCaseSensitive(boolean fsCaseSensitive) {
+		this.fsCaseSensitive = fsCaseSensitive;
+	}
+
 	public boolean isUseHeadersForDetectResourceExtensions() {
 		return useHeadersForDetectResourceExtensions;
+	}
+
+	public void setUseHeadersForDetectResourceExtensions(boolean useHeadersForDetectResourceExtensions) {
+		this.useHeadersForDetectResourceExtensions = useHeadersForDetectResourceExtensions;
 	}
 
 	public CommentsLevel getCommentsLevel() {
 		return commentsLevel;
 	}
 
+	public void setCommentsLevel(CommentsLevel commentsLevel) {
+		this.commentsLevel = commentsLevel;
+	}
+
 	public LogHelper.LogLevelEnum getLogLevel() {
 		return logLevel;
+	}
+
+	public void setLogLevel(LogHelper.LogLevelEnum logLevel) {
+		this.logLevel = logLevel;
 	}
 
 	public Map<String, String> getPluginOptions() {
 		return pluginOptions;
 	}
 
+	public void setPluginOptions(Map<String, String> pluginOptions) {
+		this.pluginOptions = pluginOptions;
+	}
+
 	public String getDisablePlugins() {
 		return disablePlugins;
+	}
+
+	public void setDisablePlugins(String disablePlugins) {
+		this.disablePlugins = disablePlugins;
+	}
+
+	public void setExportGradleType(@Nullable ExportGradleType exportGradleType) {
+		this.exportGradleType = exportGradleType;
+	}
+
+	public void setOutputFormat(String outputFormat) {
+		this.outputFormat = outputFormat;
+	}
+
+	public Set<RenameEnum> getRenameFlags() {
+		return renameFlags;
+	}
+
+	public void setRenameFlags(Set<RenameEnum> renameFlags) {
+		this.renameFlags = renameFlags;
+	}
+
+	public String getConfig() {
+		return config;
 	}
 
 	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {

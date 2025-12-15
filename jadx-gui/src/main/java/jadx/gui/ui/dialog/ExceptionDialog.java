@@ -32,10 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
+import jadx.cli.config.JadxConfigAdapter;
 import jadx.commons.app.JadxSystemInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.settings.JadxSettingsAdapter;
+import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 
@@ -130,10 +131,10 @@ public class ExceptionDialog extends JDialog {
 
 		JPanel buttonPanel = new JPanel();
 		JButton exitButton = new JButton("Terminate Jadx");
-		exitButton.addActionListener((event) -> System.exit(1));
+		exitButton.addActionListener(event -> System.exit(1));
 		buttonPanel.add(exitButton);
 		JButton closeButton = new JButton("Go back to Jadx");
-		closeButton.addActionListener((event) -> setVisible(false));
+		closeButton.addActionListener(event -> setVisible(false));
 		buttonPanel.add(closeButton);
 		JScrollPane messageAreaScroller = new JScrollPane(messageArea);
 		messageAreaScroller.setMinimumSize(new Dimension(600, 400));
@@ -152,7 +153,7 @@ public class ExceptionDialog extends JDialog {
 		final int y = (screenSize.height - getHeight()) / 2;
 		setLocation(x, y);
 
-		getRootPane().registerKeyboardAction((event) -> setVisible(false),
+		getRootPane().registerKeyboardAction(event -> setVisible(false),
 				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 				JComponent.WHEN_IN_FOCUSED_WINDOW);
 
@@ -177,8 +178,14 @@ public class ExceptionDialog extends JDialog {
 	}
 
 	public static void main(String[] args) {
-		JadxSettings settings = JadxSettingsAdapter.load();
-		LafManager.init(settings);
+		JadxConfigAdapter<JadxSettingsData> configAdapter = JadxSettings.buildConfigAdapter();
+		configAdapter.useConfigRef("");
+		JadxSettingsData settingsData = configAdapter.load();
+		if (settingsData != null) {
+			JadxSettings settings = new JadxSettings(configAdapter);
+			settings.loadSettingsData(settingsData);
+			LafManager.init(settings);
+		}
 		showTestExceptionDialog();
 	}
 }

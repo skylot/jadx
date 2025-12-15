@@ -4,13 +4,13 @@ import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.Strictness;
 
 public class GsonUtils {
 
@@ -21,13 +21,9 @@ public class GsonUtils {
 	public static GsonBuilder defaultGsonBuilder() {
 		return new GsonBuilder()
 				.disableJdkUnsafe()
+				.disableInnerClassSerialization()
+				.setStrictness(Strictness.STRICT)
 				.setPrettyPrinting();
-	}
-
-	public static void fillObjectFromJsonString(GsonBuilder builder, Object obj, String jsonStr) {
-		Class<?> type = obj.getClass();
-		Gson gson = builder.registerTypeAdapter(type, (InstanceCreator<?>) t -> obj).create();
-		gson.fromJson(jsonStr, type);
 	}
 
 	public static <T> InterfaceReplace<T> interfaceReplace(Class<T> replaceCls) {

@@ -13,6 +13,7 @@ import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.api.usage.impl.EmptyUsageInfoCache;
 import jadx.cli.LogHelper.LogLevelEnum;
+import jadx.cli.config.JadxConfigAdapter;
 import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
@@ -35,15 +36,17 @@ public class JadxCLI {
 
 	public static int execute(String[] args, @Nullable Consumer<JadxArgs> argsMod) {
 		try {
-			JadxCLIArgs cliArgs = new JadxCLIArgs();
-			if (cliArgs.processArgs(args)) {
-				JadxArgs jadxArgs = buildArgs(cliArgs);
-				if (argsMod != null) {
-					argsMod.accept(jadxArgs);
-				}
-				return runSave(jadxArgs, cliArgs);
+			JadxCLIArgs cliArgs = JadxCLIArgs.processArgs(args,
+					new JadxCLIArgs(),
+					new JadxConfigAdapter<>(JadxCLIArgs.class, "cli"));
+			if (cliArgs == null) {
+				return 0;
 			}
-			return 0;
+			JadxArgs jadxArgs = buildArgs(cliArgs);
+			if (argsMod != null) {
+				argsMod.accept(jadxArgs);
+			}
+			return runSave(jadxArgs, cliArgs);
 		} catch (JadxArgsValidateException e) {
 			LOG.error("Incorrect arguments: {}", e.getMessage());
 			return 1;
@@ -54,8 +57,6 @@ public class JadxCLI {
 	}
 
 	private static JadxArgs buildArgs(JadxCLIArgs cliArgs) {
-		LogHelper.initLogLevel(cliArgs);
-		LogHelper.applyLogLevels();
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setUsageInfoCache(new EmptyUsageInfoCache());

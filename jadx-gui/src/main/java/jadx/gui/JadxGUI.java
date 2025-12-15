@@ -7,14 +7,14 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.cli.JCommanderWrapper;
-import jadx.cli.LogHelper;
+import jadx.cli.JadxCLIArgs;
+import jadx.cli.config.JadxConfigAdapter;
 import jadx.commons.app.JadxSystemInfo;
 import jadx.core.Jadx;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.settings.JadxSettingsAdapter;
+import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.utils.LafManager;
@@ -25,20 +25,16 @@ public class JadxGUI {
 
 	public static void main(String[] args) {
 		try {
-			JadxSettings cliArgs = new JadxSettings();
-			JCommanderWrapper jcw = new JCommanderWrapper(cliArgs);
-			if (!jcw.parse(args) || !cliArgs.process(jcw)) {
+			JadxConfigAdapter<JadxSettingsData> configAdapter = JadxSettings.buildConfigAdapter();
+			JadxSettingsData settingsData = JadxCLIArgs.processArgs(args, new JadxSettingsData(), configAdapter);
+			if (settingsData == null) {
 				return;
 			}
-			LogHelper.initLogLevel(cliArgs);
-			LogHelper.applyLogLevels();
+			JadxSettings settings = new JadxSettings(configAdapter);
+			settings.loadSettingsData(settingsData);
+
 			LogCollector.register();
 			printSystemInfo();
-
-			JadxSettings settings = JadxSettingsAdapter.load();
-			// overwrite loaded settings by command line arguments
-			jcw.overrideProvided(settings);
-
 			LafManager.init(settings);
 			NLS.setLocale(settings.getLangLocale());
 			ExceptionDialog.registerUncaughtExceptionHandler();

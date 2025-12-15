@@ -75,7 +75,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JadxSettings settings = getContentPanel().getMainWindow().getSettings();
-				settings.setSmaliAreaShowBytecode(!settings.getSmaliAreaShowBytecode());
+				settings.setSmaliAreaShowBytecode(!settings.isSmaliAreaShowBytecode());
 				contentPanel.getTabbedPane().getTabs().forEach(v -> {
 					if (v instanceof ClassCodeContentPanel) {
 						switchModel();
@@ -156,7 +156,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	private boolean shouldUseSmaliPrinterV2() {
-		return getContentPanel().getMainWindow().getSettings().getSmaliAreaShowBytecode();
+		return getContentPanel().getMainWindow().getSettings().isSmaliAreaShowBytecode();
 	}
 
 	private abstract class SmaliModel {

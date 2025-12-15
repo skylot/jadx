@@ -172,7 +172,16 @@ options:
   --log-level                                   - set log level, values: quiet, progress, error, warn, info, debug, default: progress
   -v, --verbose                                 - verbose output (set --log-level to DEBUG)
   -q, --quiet                                   - turn off output (set --log-level to QUIET)
-  --disable-plugins                             - comma separated list of plugin ids to disable, default:
+  --disable-plugins                             - comma separated list of plugin ids to disable
+  --config <config-ref>                         - load configuration from file, <config-ref> can be:
+                                                   path to '.json' file
+                                                   short name - uses file with this name from config directory
+                                                   'none' - to disable config loading
+  --save-config <config-ref>                    - save current options into configuration file and exit, <config-ref> can be:
+                                                   empty - for default config
+                                                   path to '.json' file
+                                                   short name - file will be saved in config directory
+  --print-files                                 - print files and directories used by jadx (config, cache, temp)
   --version                                     - print jadx version
   -h, --help                                    - print this help
 
@@ -193,7 +202,7 @@ Plugin options (-P<name>=<value>):
   kotlin-smap: Use kotlin.SourceDebugExtension annotation for rename class alias
     - kotlin-smap.class-alias-source-dbg        - rename class alias from SourceDebugExtension, values: [yes, no], default: no
   rename-mappings: various mappings support
-    - rename-mappings.format                    - mapping format, values: [AUTO, TINY_FILE, TINY_2_FILE, ENIGMA_FILE, ENIGMA_DIR, SRG_FILE, XSRG_FILE, JAM_FILE, CSRG_FILE, TSRG_FILE, TSRG_2_FILE, PROGUARD_FILE, INTELLIJ_MIGRATION_MAP_FILE, RECAF_SIMPLE_FILE, JOBF_FILE], default: AUTO
+    - rename-mappings.format                    - mapping format, values: [AUTO, TINY_FILE, TINY_2_FILE, ENIGMA_FILE, ENIGMA_DIR, PROGUARD_FILE, SRG_FILE, XSRG_FILE, JAM_FILE, CSRG_FILE, TSRG_FILE, TSRG_2_FILE, INTELLIJ_MIGRATION_MAP_FILE, RECAF_SIMPLE_FILE, JOBF_FILE], default: AUTO
     - rename-mappings.invert                    - invert mapping on load, values: [yes, no], default: no
   smali-input: Load .smali files
     - smali-input.api-level                     - Android API level, default: 27
