@@ -119,7 +119,7 @@ public class CommentDialog extends CommonDialog {
 		commentArea = new JTextArea();
 		TextStandardActions.attach(commentArea);
 		commentArea.setEditable(true);
-		commentArea.setFont(mainWindow.getSettings().getFont());
+		commentArea.setFont(mainWindow.getSettings().getCodeFont());
 		commentArea.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		commentArea.addKeyListener(new KeyAdapter() {

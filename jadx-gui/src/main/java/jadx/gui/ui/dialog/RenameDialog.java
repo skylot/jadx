@@ -156,7 +156,7 @@ public class RenameDialog extends CommonDialog {
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);
-		renameField.setFont(mainWindow.getSettings().getFont());
+		renameField.setFont(mainWindow.getSettings().getCodeFont());
 		renameField.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> checkNewName(renameField.getText())));
 		renameField.addActionListener(e -> rename());
 		new TextStandardActions(renameField);

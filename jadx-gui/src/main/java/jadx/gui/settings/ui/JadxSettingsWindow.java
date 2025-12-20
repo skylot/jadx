@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -62,6 +63,8 @@ import jadx.gui.settings.JadxUpdateChannel;
 import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.settings.XposedCodegenLanguage;
 import jadx.gui.settings.data.SaveOptionEnum;
+import jadx.gui.settings.font.FontAdapter;
+import jadx.gui.settings.font.FontSettings;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.font.JadxFontDialog;
 import jadx.gui.settings.ui.plugins.PluginSettings;
@@ -397,9 +400,6 @@ public class JadxSettingsWindow extends JDialog {
 		}
 		languageCbx.addActionListener(e -> settings.setLangLocale((LangLocale) languageCbx.getSelectedItem()));
 
-		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
-		JButton smaliFontBtn = new JButton(NLS.str("preferences.select_smali_font"));
-
 		EditorThemeManager editorThemeManager = mainWindow.getEditorThemeManager();
 		JComboBox<ThemeIdAndName> themesCbx = new JComboBox<>(editorThemeManager.getThemeIdNameArray());
 		themesCbx.setSelectedItem(editorThemeManager.getCurrentThemeIdName());
@@ -425,41 +425,25 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
+		JCheckBox applyUiZoomToFontsChB = new JCheckBox();
+		applyUiZoomToFontsChB.setSelected(settings.isApplyUiZoomToFonts());
+		applyUiZoomToFontsChB.addItemListener(e -> {
+			settings.setApplyUiZoomToFonts(e.getStateChange() == ItemEvent.SELECTED);
+			mainWindow.loadSettings();
+		});
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.appearance"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
 		group.addRow(NLS.str("preferences.ui_zoom"), uiZoomSpinner);
+		group.addRow(NLS.str("preferences.apply_ui_zoom_to_fonts"), applyUiZoomToFontsChB);
+
+		FontSettings fontSettings = settings.getFontSettings();
+		addFontEditor(group, NLS.str("preferences.ui_font"), fontSettings.getUiFontAdapter(), false);
+		addFontEditor(group, NLS.str("preferences.code_font"), fontSettings.getCodeFontAdapter(), false);
+		addFontEditor(group, NLS.str("preferences.smali_font"), fontSettings.getSmaliFontAdapter(), true);
+
 		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
-		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
-		JLabel smaliFontLabel = group.addRow(getSmaliFontLabelStr(), smaliFontBtn);
-
-		fontBtn.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				Font font = new JadxFontDialog(JadxSettingsWindow.this, NLS.str("preferences.font"))
-						.select(settings.getFont(), false);
-				if (font != null) {
-					LOG.debug("Selected Font: {}", font);
-					settings.setFont(font);
-					mainWindow.loadSettings();
-					fontLabel.setText(getFontLabelStr());
-				}
-			}
-		});
-
-		smaliFontBtn.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				Font font = new JadxFontDialog(JadxSettingsWindow.this, NLS.str("preferences.smali_font"))
-						.select(settings.getSmaliFont(), true);
-				if (font != null) {
-					LOG.debug("Selected Font: {} for smali", font);
-					settings.setSmaliFont(font);
-					mainWindow.loadSettings();
-					smaliFontLabel.setText(getSmaliFontLabelStr());
-				}
-			}
-		});
 
 		JComboBox<TabDndGhostType> tabDndGhostTypeCbx = new JComboBox<>(TabDndGhostType.values());
 		tabDndGhostTypeCbx.setSelectedItem(settings.getTabDndGhostType());
@@ -472,16 +456,32 @@ public class JadxSettingsWindow extends JDialog {
 		return group;
 	}
 
-	private String getFontLabelStr() {
-		Font font = settings.getFont();
-		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());
-		return NLS.str("preferences.font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
+	private void addFontEditor(SettingsGroup group, String title, FontAdapter fontAdapter, boolean monospace) {
+		JLabel fontLabel = new JLabel(getFontLabelStr(fontAdapter.getFont()));
+		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
+		fontBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Font font = new JadxFontDialog(JadxSettingsWindow.this, settings, title)
+						.select(fontAdapter.getFont(), monospace);
+				if (font != null) {
+					fontLabel.setText(getFontLabelStr(font));
+					fontAdapter.setFont(font);
+					mainWindow.loadSettings();
+				}
+			}
+		});
+		JPanel fontPanel = new JPanel();
+		fontPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		fontPanel.add(fontLabel);
+		fontPanel.add(fontBtn);
+		group.addRow(title, fontPanel);
 	}
 
-	private String getSmaliFontLabelStr() {
-		Font font = settings.getSmaliFont();
-		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());
-		return NLS.str("preferences.smali_font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
+	private static String getFontLabelStr(Font font) {
+		return font.getFamily()
+				+ ' ' + FontUtils.convertFontStyleToString(font.getStyle())
+				+ ' ' + font.getSize();
 	}
 
 	private SettingsGroup makeDecompilationGroup() {

@@ -11,6 +11,8 @@ import javax.swing.JFrame;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.google.gson.annotations.SerializedName;
+
 import jadx.cli.LogHelper;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
@@ -53,8 +55,13 @@ public class JadxSettingsData extends JadxGUIArgs {
 	private JadxUpdateChannel jadxUpdateChannel = JadxUpdateChannel.STABLE;
 
 	private float uiZoom = 1.0f;
-	private String fontStr = "";
+	private boolean applyUiZoomToFonts = true;
+
+	private String uiFontStr = "";
+	@SerializedName(value = "codeFontStr", alternate = "fontStr")
+	private String codeFontStr = "";
 	private String smaliFontStr = "";
+
 	private String editorTheme = "";
 
 	private String lafTheme = LafManager.INITIAL_THEME_NAME;
@@ -399,12 +406,20 @@ public class JadxSettingsData extends JadxGUIArgs {
 		this.smaliAreaShowBytecode = smaliAreaShowBytecode;
 	}
 
-	public String getFontStr() {
-		return fontStr;
+	public String getUiFontStr() {
+		return uiFontStr;
 	}
 
-	public void setFontStr(String fontStr) {
-		this.fontStr = fontStr;
+	public void setUiFontStr(String uiFontStr) {
+		this.uiFontStr = uiFontStr;
+	}
+
+	public String getCodeFontStr() {
+		return codeFontStr;
+	}
+
+	public void setCodeFontStr(String codeFontStr) {
+		this.codeFontStr = codeFontStr;
 	}
 
 	public String getSmaliFontStr() {
@@ -437,6 +452,14 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setUiZoom(float uiZoom) {
 		this.uiZoom = uiZoom;
+	}
+
+	public boolean isApplyUiZoomToFonts() {
+		return applyUiZoomToFonts;
+	}
+
+	public void setApplyUiZoomToFonts(boolean applyUiZoomToFonts) {
+		this.applyUiZoomToFonts = applyUiZoomToFonts;
 	}
 
 	public UsageCacheMode getUsageCacheMode() {

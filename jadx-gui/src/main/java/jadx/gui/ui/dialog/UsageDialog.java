@@ -185,7 +185,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		JadxSettings settings = mainWindow.getSettings();
-		Font codeFont = settings.getFont();
+		Font codeFont = settings.getCodeFont();
 		JLabel lbl = new JLabel(NLS.str("usage_dialog.label"));
 		lbl.setFont(codeFont);
 		JLabel nodeLabel = NodeLabel.longName(node);

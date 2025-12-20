@@ -130,7 +130,7 @@ public class UsageDialogPlus extends CommonSearchDialog {
 		usageTree.putClientProperty("JTree.lineStyle", "Horizontal");
 		usageTree.setRowHeight(22);
 		usageTree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		usageTree.setFont(mainWindow.getSettings().getFont());
+		usageTree.setFont(mainWindow.getSettings().getCodeFont());
 
 		// Use a custom renderer instead of a custom UI
 		usageTree.setCellRenderer(new PathHighlightTreeCellRenderer());

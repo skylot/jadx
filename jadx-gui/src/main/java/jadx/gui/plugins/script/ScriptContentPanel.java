@@ -225,7 +225,7 @@ public class ScriptContentPanel extends AbstractCodeContentPanel {
 	private void applySettings() {
 		JadxSettings settings = getSettings();
 		codeScrollPane.setLineNumbersEnabled(settings.getLineNumbersMode() != LineNumbersMode.DISABLE);
-		codeScrollPane.getGutter().setLineNumberFont(settings.getFont());
+		codeScrollPane.getGutter().setLineNumberFont(settings.getCodeFont());
 		scriptArea.loadSettings();
 	}
 

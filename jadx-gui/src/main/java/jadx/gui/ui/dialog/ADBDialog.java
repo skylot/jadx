@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Label;
 import java.awt.event.MouseAdapter;
@@ -121,8 +120,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		procTreeModel = new DefaultTreeModel(procTreeRoot);
 		procTree.setModel(procTreeModel);
 		procTree.setRowHeight(-1);
-		Font font = mainWindow.getSettings().getFont();
-		procTree.setFont(font.deriveFont(font.getSize() + 1.f));
+		procTree.setFont(mainWindow.getSettings().getCodeFont());
 
 		procTree.addMouseListener(new MouseAdapter() {
 			@Override

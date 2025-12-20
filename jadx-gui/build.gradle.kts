@@ -38,6 +38,8 @@ dependencies {
 	implementation("com.formdev:flatlaf:3.7")
 	implementation("com.formdev:flatlaf-intellij-themes:3.7")
 	implementation("com.formdev:flatlaf-extras:3.7")
+	implementation("com.formdev:flatlaf-fonts-inter:4.1")
+	implementation("com.formdev:flatlaf-fonts-jetbrains-mono:2.304")
 
 	implementation("com.google.code.gson:gson:2.13.2")
 	implementation("org.apache.commons:commons-lang3:3.20.0")

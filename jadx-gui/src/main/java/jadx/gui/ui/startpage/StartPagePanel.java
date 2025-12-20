@@ -47,7 +47,7 @@ public class StartPagePanel extends ContentPanel {
 		super(tabbedPane, node);
 		this.mainWindow = tabbedPane.getMainWindow();
 		this.settings = mainWindow.getSettings();
-		Font baseFont = settings.getFont();
+		Font baseFont = settings.getUiFont();
 
 		JButton openFile = new JButton(NLS.str("file.open_title"), Icons.OPEN);
 		openFile.addActionListener(ev -> mainWindow.openFileDialog());

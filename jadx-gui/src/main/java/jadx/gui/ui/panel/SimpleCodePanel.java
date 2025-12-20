@@ -48,7 +48,7 @@ public class SimpleCodePanel extends JPanel {
 
 		// The title label
 		titleLabel = new JLabel(NLS.str("usage_dialog_plus.code_view"));
-		titleLabel.setFont(settings.getFont());
+		titleLabel.setFont(settings.getCodeFont());
 		titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
 
 		// The code area
@@ -67,8 +67,8 @@ public class SimpleCodePanel extends JPanel {
 
 	private void applySettings(JadxSettings settings) {
 		codeScrollPane.setLineNumbersEnabled(settings.getLineNumbersMode() != LineNumbersMode.DISABLE);
-		codeScrollPane.getGutter().setLineNumberFont(settings.getFont());
-		codeArea.setFont(settings.getFont());
+		codeScrollPane.getGutter().setLineNumberFont(settings.getCodeFont());
+		codeArea.setFont(settings.getCodeFont());
 	}
 
 	public void showCode(JNode node, String codeLine) {

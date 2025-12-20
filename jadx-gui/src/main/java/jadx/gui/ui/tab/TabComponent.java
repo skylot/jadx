@@ -64,7 +64,7 @@ public class TabComponent extends JPanel {
 	}
 
 	private Font getLabelFont() {
-		Font font = tabsController.getMainWindow().getSettings().getFont();
+		Font font = tabsController.getMainWindow().getSettings().getCodeFont();
 		int style = font.getStyle();
 		style |= Font.BOLD;
 		if (getBlueprint().isPreviewTab()) {

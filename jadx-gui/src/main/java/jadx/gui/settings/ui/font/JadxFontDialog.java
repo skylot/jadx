@@ -1,6 +1,7 @@
 package jadx.gui.settings.ui.font;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Font;
 
@@ -14,7 +15,6 @@ import org.drjekyll.fontchooser.FontChooser;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.utils.NLS;
 
 public class JadxFontDialog extends JDialog {
@@ -24,9 +24,9 @@ public class JadxFontDialog extends JDialog {
 	private final JadxSettings settings;
 	private boolean selected = false;
 
-	public JadxFontDialog(JadxSettingsWindow settingsWindow, String title) {
-		super(settingsWindow, title, true);
-		settings = settingsWindow.getMainWindow().getSettings();
+	public JadxFontDialog(Dialog parent, JadxSettings settings, String title) {
+		super(parent, title, true);
+		this.settings = settings;
 		initComponents();
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		if (!settings.loadWindowPos(this)) {

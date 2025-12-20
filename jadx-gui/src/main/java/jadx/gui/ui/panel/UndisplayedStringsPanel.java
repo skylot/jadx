@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
-import javax.swing.SwingUtilities;
 
 import org.drjekyll.fontchooser.FontChooser;
 import org.drjekyll.fontchooser.model.FontSelectionModel;
@@ -30,7 +29,7 @@ public class UndisplayedStringsPanel extends ContentPanel {
 		textPane = AbstractCodeArea.getDefaultArea(panel.getMainWindow());
 
 		JadxSettings settings = getSettings();
-		Font selectedFont = settings.getFont();
+		Font selectedFont = settings.getCodeFont();
 
 		FontChooser fontChooser = new FontChooser();
 		fontChooser.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -39,10 +38,8 @@ public class UndisplayedStringsPanel extends ContentPanel {
 
 		fontChooser.addChangeListener(event -> {
 			FontSelectionModel model = (FontSelectionModel) event.getSource();
-			settings.setFont(model.getSelectedFont());
-			SwingUtilities.invokeLater(() -> {
-				getMainWindow().loadSettings();
-			});
+			settings.setCodeFont(model.getSelectedFont());
+			getMainWindow().loadSettings();
 		});
 
 		codeScrollPane = new RTextScrollPane(textPane);
@@ -56,8 +53,8 @@ public class UndisplayedStringsPanel extends ContentPanel {
 
 	private void applySettings() {
 		codeScrollPane.setLineNumbersEnabled(getSettings().getLineNumbersMode() != LineNumbersMode.DISABLE);
-		codeScrollPane.getGutter().setLineNumberFont(getSettings().getFont());
-		textPane.setFont(getSettings().getFont());
+		codeScrollPane.getGutter().setLineNumberFont(getSettings().getCodeFont());
+		textPane.setFont(getSettings().getCodeFont());
 	}
 
 	private void showData(String data) {

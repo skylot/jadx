@@ -195,7 +195,7 @@ public class ExcludePkgDialog extends JDialog {
 	}
 
 	private void initCheckbox() {
-		Font tmp = mainWindow.getSettings().getFont();
+		Font tmp = mainWindow.getSettings().getCodeFont();
 		Font font = tmp.deriveFont(tmp.getSize() + 1.f);
 		Set<String> excluded = new HashSet<>(mainWindow.getWrapper().getExcludedPackages());
 		walkTree(false, p -> p.initCheckbox(excluded.contains(p.getFullName()), font));

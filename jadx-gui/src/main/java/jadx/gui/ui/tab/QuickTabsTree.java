@@ -1,7 +1,6 @@
 package jadx.gui.ui.tab;
 
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -161,10 +160,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	}
 
 	public void loadSettings() {
-		Font font = mainWindow.getSettings().getFont();
-		Font largerFont = font.deriveFont(font.getSize() + 2.f);
-
-		setFont(largerFont);
+		setFont(mainWindow.getSettings().getCodeFont());
 	}
 
 	public void dispose() {

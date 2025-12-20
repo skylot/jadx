@@ -420,7 +420,7 @@ public class JDebuggerPanel extends JPanel {
 	public void loadSettings() {
 		UiUtils.uiThreadGuard();
 
-		Font font = mainWindow.getSettings().getFont();
+		Font font = mainWindow.getSettings().getCodeFont();
 		variableTree.setFont(font.deriveFont(font.getSize() + 1.f));
 		variableTree.setRowHeight(-1);
 		stackFrameList.setFont(font);
@@ -478,7 +478,7 @@ public class JDebuggerPanel extends JPanel {
 				elements.forEach(model::addElement);
 			}
 			threadBox.updateUI();
-			stackFrameList.setFont(mainWindow.getSettings().getFont());
+			stackFrameList.setFont(mainWindow.getSettings().getCodeFont());
 		});
 	}
 
@@ -487,7 +487,7 @@ public class JDebuggerPanel extends JPanel {
 			DefaultListModel<IListElement> model =
 					(DefaultListModel<IListElement>) stackFrameList.getModel();
 			elements.forEach(model::addElement);
-			stackFrameList.setFont(mainWindow.getSettings().getFont());
+			stackFrameList.setFont(mainWindow.getSettings().getCodeFont());
 		}
 		SwingUtilities.invokeLater(stackFrameList::repaint);
 	}

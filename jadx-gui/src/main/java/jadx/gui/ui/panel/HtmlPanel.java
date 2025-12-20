@@ -34,7 +34,7 @@ public final class HtmlPanel extends ContentPanel {
 	@Override
 	public void loadSettings() {
 		JadxSettings settings = getMainWindow().getSettings();
-		textArea.setFont(settings.getFont());
+		textArea.setFont(settings.getUiFont());
 	}
 
 	public void loadContent(JNode jnode) {

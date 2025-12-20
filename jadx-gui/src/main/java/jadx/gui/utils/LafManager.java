@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
-import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
@@ -37,12 +35,8 @@ public class LafManager {
 		settings.sync();
 	}
 
-	public static void updateLaf(JadxSettings settings) {
-		if (setupLaf(getThemeClass(settings))) {
-			// update all components
-			FlatAnimatedLafChange.hideSnapshotWithAnimation();
-			FlatLaf.updateUI();
-		}
+	public static boolean updateLaf(JadxSettings settings) {
+		return setupLaf(getThemeClass(settings));
 	}
 
 	public static String[] getThemes() {
@@ -84,7 +78,6 @@ public class LafManager {
 
 	private static boolean applyLaf(String theme) {
 		try {
-			FlatAnimatedLafChange.showSnapshot();
 			UIManager.setLookAndFeel(theme);
 			return true;
 		} catch (Exception e) {

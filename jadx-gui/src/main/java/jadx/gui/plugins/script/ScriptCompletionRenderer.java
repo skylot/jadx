@@ -14,7 +14,7 @@ import static jadx.gui.utils.UiUtils.wrapHtml;
 public class ScriptCompletionRenderer extends CompletionCellRenderer {
 
 	public ScriptCompletionRenderer(JadxSettings settings) {
-		setDisplayFont(settings.getFont());
+		setDisplayFont(settings.getCodeFont());
 	}
 
 	@Override

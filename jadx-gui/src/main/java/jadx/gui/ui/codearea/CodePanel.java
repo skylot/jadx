@@ -123,7 +123,7 @@ public class CodePanel extends JPanel {
 	}
 
 	private synchronized void initLineNumbers() {
-		codeScrollPane.getGutter().setLineNumberFont(getSettings().getFont());
+		codeScrollPane.getGutter().setLineNumberFont(getSettings().getCodeFont());
 		LineNumbersMode mode = getLineNumbersMode();
 		if (mode == LineNumbersMode.DISABLE) {
 			codeScrollPane.setLineNumbersEnabled(false);

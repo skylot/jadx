@@ -35,13 +35,14 @@ public class JadxGUI {
 
 			LogCollector.register();
 			printSystemInfo();
-			LafManager.init(settings);
-			NLS.setLocale(settings.getLangLocale());
 			ExceptionDialog.registerUncaughtExceptionHandler();
+			NLS.setLocale(settings.getLangLocale());
 			SwingUtilities.invokeLater(() -> {
+				LafManager.init(settings);
+				settings.getFontSettings().updateDefaultFont();
 				MainWindow mw = new MainWindow(settings);
-				mw.init();
 				registerOpenFileHandler(mw);
+				mw.init();
 			});
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);

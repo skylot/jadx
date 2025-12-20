@@ -13,7 +13,6 @@ import java.util.Set;
 
 import javax.swing.JFrame;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,7 @@ import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.data.ShortcutsWrapper;
+import jadx.gui.settings.font.FontSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.LangLocale;
@@ -49,14 +49,11 @@ public class JadxSettings {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final int RECENT_PROJECTS_COUNT = 30;
-	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	private final JadxConfigAdapter<JadxSettingsData> configAdapter;
 	private final ShortcutsWrapper shortcutsWrapper = new ShortcutsWrapper();
+	private final FontSettings fontSettings = new FontSettings();
 
-	private final FontLoader fontLoader = new FontLoader(DEFAULT_FONT);
-	// TODO: use default monospaced font
-	private final FontLoader smaliFontLoader = new FontLoader(DEFAULT_FONT);
 	private JadxSettingsData settingsData;
 
 	public JadxSettings(JadxConfigAdapter<JadxSettingsData> configAdapter) {
@@ -84,8 +81,7 @@ public class JadxSettings {
 		fixOnLoad();
 		// update custom fields
 		shortcutsWrapper.updateShortcuts(settingsData.getShortcuts());
-		fontLoader.load(settingsData.getFontStr());
-		smaliFontLoader.load(settingsData.getSmaliFontStr());
+		fontSettings.bindData(settingsData);
 	}
 
 	private void upgradeSettings(int fromVersion) {
@@ -336,24 +332,44 @@ public class JadxSettings {
 
 	public void setUiZoom(float uiZoom) {
 		settingsData.setUiZoom(uiZoom);
+		fontSettings.applyUiZoom(uiZoom, isApplyUiZoomToFonts());
 	}
 
-	public Font getFont() {
-		return fontLoader.getFont();
+	public boolean isApplyUiZoomToFonts() {
+		return settingsData.isApplyUiZoomToFonts();
 	}
 
-	public void setFont(@Nullable Font font) {
-		fontLoader.setFont(font);
-		settingsData.setFontStr(fontLoader.getFontStr());
+	public void setApplyUiZoomToFonts(boolean applyUiZoomToFonts) {
+		settingsData.setApplyUiZoomToFonts(applyUiZoomToFonts);
+		fontSettings.applyUiZoom(getUiZoom(), applyUiZoomToFonts);
+	}
+
+	public FontSettings getFontSettings() {
+		return fontSettings;
+	}
+
+	public Font getUiFont() {
+		return fontSettings.getUiFontAdapter().getEffectiveFont();
+	}
+
+	public void setUiFont(Font font) {
+		fontSettings.getUiFontAdapter().setFont(font);
+	}
+
+	public Font getCodeFont() {
+		return fontSettings.getCodeFontAdapter().getEffectiveFont();
+	}
+
+	public void setCodeFont(Font font) {
+		fontSettings.getCodeFontAdapter().setFont(font);
 	}
 
 	public Font getSmaliFont() {
-		return smaliFontLoader.getFont();
+		return fontSettings.getSmaliFontAdapter().getEffectiveFont();
 	}
 
-	public void setSmaliFont(@Nullable Font font) {
-		smaliFontLoader.setFont(font);
-		settingsData.setSmaliFontStr(smaliFontLoader.getFontStr());
+	public void setSmaliFont(Font font) {
+		fontSettings.getSmaliFontAdapter().setFont(font);
 	}
 
 	public String getEditorTheme() {

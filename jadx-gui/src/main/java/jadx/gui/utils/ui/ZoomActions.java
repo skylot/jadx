@@ -10,6 +10,9 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.font.FontAdapter;
+import jadx.gui.settings.font.FontSettings;
+import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.utils.UiUtils;
 
 public class ZoomActions {
@@ -57,12 +60,15 @@ public class ZoomActions {
 	}
 
 	private void textZoom(int change) {
-		Font font = settings.getFont();
-		if (component.getFont().equals(font)) {
-			settings.setFont(changeFontSize(font, change));
+		FontSettings fontSettings = settings.getFontSettings();
+		FontAdapter fontAdapter;
+		if (component instanceof SmaliArea) {
+			fontAdapter = fontSettings.getSmaliFontAdapter();
 		} else {
-			settings.setSmaliFont(changeFontSize(settings.getSmaliFont(), change));
+			fontAdapter = fontSettings.getCodeFontAdapter();
 		}
+		fontAdapter.setFont(changeFontSize(fontAdapter.getFont(), change));
+
 		settings.sync();
 		update.run();
 	}

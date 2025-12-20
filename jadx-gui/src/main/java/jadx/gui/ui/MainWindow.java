@@ -54,9 +54,11 @@ import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -265,7 +267,6 @@ public class MainWindow extends JFrame {
 
 		JadxEventQueue.register();
 		resetCache();
-		FontUtils.registerBundledFonts();
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
@@ -286,14 +287,6 @@ public class MainWindow extends JFrame {
 		treeSplitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
-		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				closeWindow();
-			}
-		});
-
 		processCommandLineArgs();
 	}
 
@@ -502,15 +495,17 @@ public class MainWindow extends JFrame {
 
 	private void open(List<Path> paths, Runnable onFinish) {
 		saveAll();
-		closeAll();
-		if (paths.size() == 1 && openSingleFile(paths.get(0), onFinish)) {
-			return;
-		}
-		// start new project
-		project = new JadxProject(this);
-		project.setFilePaths(paths);
-		showUndisplayedCharsDialog = false;
-		loadFiles(onFinish);
+		UiUtils.bgRun(() -> {
+			closeAll();
+			if (paths.size() == 1 && openSingleFile(paths.get(0), onFinish)) {
+				return;
+			}
+			// start new project
+			project = new JadxProject(this);
+			project.setFilePaths(paths);
+			showUndisplayedCharsDialog = false;
+			loadFiles(onFinish);
+		});
 	}
 
 	private boolean openSingleFile(Path singleFile, Runnable onFinish) {
@@ -1518,6 +1513,14 @@ public class MainWindow extends JFrame {
 			FlatInspector.install("ctrl shift alt X");
 			FlatUIDefaultsInspector.install("ctrl shift alt Y");
 		}
+
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				closeWindow();
+			}
+		});
 	}
 
 	public void setLocationAndPosition() {
@@ -1564,17 +1567,23 @@ public class MainWindow extends JFrame {
 	}
 
 	private void updateUiSettings() {
-		LafManager.updateLaf(settings);
-		editorThemeManager.setTheme(settings.getEditorTheme());
-		if (UIScale.setZoomFactor(settings.getUiZoom())) {
-			FlatLaf.updateUI();
+		boolean needUpdateUI = false;
+		Font defaultUiFont = UIManager.getFont("defaultFont");
+		Font uiFont = settings.getUiFont();
+		if (!uiFont.equals(defaultUiFont)) {
+			UIManager.put("defaultFont", new FontUIResource(uiFont));
+			setFont(uiFont);
+			needUpdateUI = true;
 		}
+		if (LafManager.updateLaf(settings)) {
+			needUpdateUI = true;
+		}
+		editorThemeManager.setTheme(settings.getEditorTheme());
 
-		Font font = settings.getFont();
-		Font largerFont = font.deriveFont(font.getSize() + 2.f);
-
-		setFont(largerFont);
-		tree.setFont(largerFont);
+		if (UIScale.setZoomFactor(settings.getUiZoom())) {
+			needUpdateUI = true;
+		}
+		tree.setFont(settings.getCodeFont());
 		tree.setRowHeight(-1);
 
 		tabbedPane.loadSettings();
@@ -1585,6 +1594,9 @@ public class MainWindow extends JFrame {
 			quickTabsTree.loadSettings();
 		}
 		shortcutsController.loadSettings();
+		if (needUpdateUI) {
+			FlatLaf.updateUI();
+		}
 	}
 
 	@SuppressWarnings("finally")
@@ -1835,7 +1847,7 @@ public class MainWindow extends JFrame {
 		StringBuilder nonDisplayString = new StringBuilder();
 
 		List<ClassNode> classes = wrapper.getRootNode().getClasses(true);
-		Font font = getSettings().getFont();
+		Font font = getSettings().getCodeFont();
 		boolean hasNonDisplayable = false;
 
 		for (ClassNode cls : classes) {

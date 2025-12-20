@@ -1,7 +1,6 @@
 package jadx.gui.utils;
 
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.io.InputStream;
 
 import javax.swing.text.StyleContext;
@@ -15,37 +14,31 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class FontUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(FontUtils.class);
 
-	public static final Font FONT_HACK = openFontTTF("Hack-Regular");
-
-	public static void registerBundledFonts() {
-		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		if (FontUtils.FONT_HACK != null) {
-			grEnv.registerFont(FontUtils.FONT_HACK);
-		}
-	}
-
 	public static Font loadByStr(String fontDesc) {
 		String[] parts = fontDesc.split("/");
 		if (parts.length != 3) {
 			throw new JadxRuntimeException("Unsupported font description format: " + fontDesc);
 		}
-		String name = parts[0];
+		String family = parts[0];
 		int style = parseFontStyle(parts[1]);
 		int size = Integer.parseInt(parts[2]);
 
 		StyleContext sc = StyleContext.getDefaultStyleContext();
-		Font font = sc.getFont(name, style, size);
+		Font font = sc.getFont(family, style, size);
 		if (font == null) {
 			throw new JadxRuntimeException("Font not found: " + fontDesc);
 		}
 		return font;
 	}
 
-	public static String convertToStr(Font font) {
+	public static String convertToStr(@Nullable Font font) {
+		if (font == null) {
+			return "";
+		}
 		if (font.getSize() < 1) {
 			throw new JadxRuntimeException("Bad font size: " + font.getSize());
 		}
-		return font.getFontName()
+		return font.getFamily()
 				+ '/' + convertFontStyleToString(font.getStyle())
 				+ '/' + font.getSize();
 	}

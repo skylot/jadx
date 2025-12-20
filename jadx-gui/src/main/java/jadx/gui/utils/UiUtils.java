@@ -531,4 +531,8 @@ public class UiUtils {
 		}
 		field.repaint();
 	}
+
+	public static boolean nearlyEqual(float a, float b) {
+		return Math.abs(a - b) < 1E-6f;
+	}
 }

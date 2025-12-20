@@ -159,7 +159,7 @@ public class QuarkReportPanel extends ContentPanel {
 
 	@Override
 	public void loadSettings() {
-		Font settingsFont = getMainWindow().getSettings().getFont();
+		Font settingsFont = getMainWindow().getSettings().getCodeFont();
 		this.font = settingsFont.deriveFont(settingsFont.getSize2D() + 1.f);
 		this.boldFont = font.deriveFont(Font.BOLD);
 		header.setFont(font);
