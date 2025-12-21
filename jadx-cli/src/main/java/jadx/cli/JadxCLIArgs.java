@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -43,6 +45,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxCLIArgs implements IJadxConfig {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxCLIArgs.class);
 
 	@JadxConfigExclude
 	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)")
@@ -376,11 +379,15 @@ public class JadxCLIArgs implements IJadxConfig {
 			}
 			if (!argsObj.config.equalsIgnoreCase("none")) {
 				// load config file and merge with command line args
-				configAdapter.useConfigRef(argsObj.config);
-				T configObj = configAdapter.load();
-				if (configObj != null) {
-					jcw.overrideProvided(configObj);
-					argsObj = configObj;
+				try {
+					configAdapter.useConfigRef(argsObj.config);
+					T configObj = configAdapter.load();
+					if (configObj != null) {
+						jcw.overrideProvided(configObj);
+						argsObj = configObj;
+					}
+				} catch (Exception e) {
+					LOG.error("Config load failed, continue with default values", e);
 				}
 			}
 		}

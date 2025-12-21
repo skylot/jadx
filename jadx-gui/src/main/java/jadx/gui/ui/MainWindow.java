@@ -1613,7 +1613,9 @@ public class MainWindow extends JFrame {
 				if (debuggerPanel != null) {
 					saveSplittersInfo();
 				}
-				settings.sync();
+				// block UI thread to avoid settings data changes during sync
+				UiUtils.uiRunAndWait(settings::sync);
+
 				closeAll();
 				UiUtils.uiRunAndWait(() -> {
 					heapUsageBar.reset();

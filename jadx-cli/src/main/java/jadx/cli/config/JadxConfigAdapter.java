@@ -1,6 +1,5 @@
 package jadx.cli.config;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -12,16 +11,11 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 
 import jadx.commons.app.JadxCommonFiles;
 import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 public class JadxConfigAdapter<T extends IJadxConfig> {
 	private static final ExclusionStrategy GSON_EXCLUSION_STRATEGY = new ExclusionStrategy() {
@@ -81,9 +75,10 @@ public class JadxConfigAdapter<T extends IJadxConfig> {
 	}
 
 	public void save(T configObject) {
-		try (JsonWriter writer = gson.newJsonWriter(
-				Files.newBufferedWriter(configPath, StandardCharsets.UTF_8, WRITE, CREATE, TRUNCATE_EXISTING))) {
-			gson.toJson(configObject, configCls, writer);
+		try {
+			String jsonStr = gson.toJson(configObject, configCls);
+			// don't use stream writer here because serialization errors will corrupt config
+			Files.writeString(configPath, jsonStr);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to save config file: " + configPath, e);
 		}

@@ -51,6 +51,7 @@ public class JadxSettings {
 	private static final int RECENT_PROJECTS_COUNT = 30;
 
 	private final JadxConfigAdapter<JadxSettingsData> configAdapter;
+	private final Object dataWriteSync = new Object();
 	private final ShortcutsWrapper shortcutsWrapper = new ShortcutsWrapper();
 	private final FontSettings fontSettings = new FontSettings();
 
@@ -112,7 +113,9 @@ public class JadxSettings {
 	}
 
 	public void sync() {
-		configAdapter.save(settingsData);
+		synchronized (dataWriteSync) {
+			configAdapter.save(settingsData);
+		}
 	}
 
 	public String exportSettingsString() {
@@ -218,8 +221,10 @@ public class JadxSettings {
 	}
 
 	public void saveWindowPos(Window window) {
-		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
-		settingsData.getWindowPos().put(pos.getWindowId(), pos);
+		synchronized (dataWriteSync) {
+			WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
+			settingsData.getWindowPos().put(pos.getWindowId(), pos);
+		}
 	}
 
 	public boolean loadWindowPos(Window window) {
