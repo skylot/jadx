@@ -82,7 +82,7 @@ public class PluginSettings {
 						LOG.info("Plugin installed: {}", metadata);
 						requestReload();
 					} catch (Exception e) {
-						LOG.error("Install failed", e);
+						LOG.error("Plugin install failed", e);
 						mainWindow.showLogViewer(LogOptions.forLevel(Level.ERROR));
 					}
 				});

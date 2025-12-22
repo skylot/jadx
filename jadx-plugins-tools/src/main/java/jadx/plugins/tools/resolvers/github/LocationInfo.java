@@ -8,6 +8,10 @@ public class LocationInfo {
 	private final String artifactPrefix;
 	private final @Nullable String version;
 
+	public LocationInfo(String owner, String project, String artifactPrefix) {
+		this(owner, project, artifactPrefix, null);
+	}
+
 	public LocationInfo(String owner, String project, String artifactPrefix, @Nullable String version) {
 		this.owner = owner;
 		this.project = project;

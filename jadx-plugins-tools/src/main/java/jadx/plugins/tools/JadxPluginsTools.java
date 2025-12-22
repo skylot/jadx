@@ -9,9 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,30 +53,43 @@ public class JadxPluginsTools {
 
 	public JadxPluginMetadata install(String locationId) {
 		IJadxPluginResolver resolver = ResolversRegistry.getResolver(locationId);
-		boolean hasVersion = resolver.hasVersion(locationId);
-		if (hasVersion) {
-			JadxPluginMetadata pluginMetadata = resolver.resolve(locationId)
-					.orElseThrow(() -> new JadxRuntimeException("Failed to resolve plugin location: " + locationId));
-			fillMetadata(pluginMetadata);
-			install(pluginMetadata);
-			return pluginMetadata;
+		Supplier<List<JadxPluginMetadata>> fetchVersions;
+		if (resolver.hasVersion(locationId)) {
+			fetchVersions = () -> {
+				JadxPluginMetadata version = resolver.resolve(locationId)
+						.orElseThrow(() -> new JadxRuntimeException("Failed to resolve plugin location: " + locationId));
+				return Collections.singletonList(version);
+			};
+		} else {
+			// load latest 10 version to search for compatible one
+			fetchVersions = () -> resolver.resolveVersions(locationId, 1, 10);
 		}
-		// try other versions in case latest is not compatible with current jadx
+		List<JadxPluginMetadata> versionsMetadata;
+		try {
+			versionsMetadata = fetchVersions.get();
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Plugin info fetch failed, locationId: " + locationId, e);
+		}
+		if (versionsMetadata.isEmpty()) {
+			throw new JadxRuntimeException("Plugin release not found, locationId: " + locationId);
+		}
 		VerifyRequiredVersion verifyRequiredVersion = new VerifyRequiredVersion();
-		for (int i = 1; i <= 5; i++) {
-			try {
-				for (JadxPluginMetadata pluginMetadata : resolver.resolveVersions(locationId, i, 1)) {
-					fillMetadata(pluginMetadata);
-					if (verifyRequiredVersion.isCompatible(pluginMetadata.getRequiredJadxVersion())) {
-						install(pluginMetadata);
-						return pluginMetadata;
-					}
-				}
-			} catch (Exception e) {
-				LOG.warn("Failed to fetch plugin ({} version before latest)", i, e);
+		List<String> rejectedVersions = new ArrayList<>();
+		for (JadxPluginMetadata pluginMetadata : versionsMetadata) {
+			// download plugin jar and fill metadata
+			// any download or plugin instantiation errors will stop versions check
+			fillMetadata(pluginMetadata);
+			if (verifyRequiredVersion.isCompatible(pluginMetadata.getRequiredJadxVersion())) {
+				install(pluginMetadata);
+				return pluginMetadata;
 			}
+			rejectedVersions.add(" version " + pluginMetadata.getVersion()
+					+ " not compatible, require: " + pluginMetadata.getRequiredJadxVersion());
 		}
-		throw new JadxRuntimeException("Can't find compatible version to install");
+		throw new JadxRuntimeException("Can't find compatible version to install"
+				+ ", current jadx version: " + verifyRequiredVersion.getJadxVersion()
+				+ "\nrejected versions:\n"
+				+ String.join("\n", rejectedVersions));
 	}
 
 	public JadxPluginMetadata resolveMetadata(String locationId) {

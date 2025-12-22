@@ -290,10 +290,11 @@ public class FileUtils {
 	}
 
 	public static byte[] streamToByteArray(InputStream input) throws IOException {
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			copyStream(input, out);
-			return out.toByteArray();
-		}
+		return input.readAllBytes();
+	}
+
+	public static String streamToString(InputStream input) throws IOException {
+		return new String(streamToByteArray(input), StandardCharsets.UTF_8);
 	}
 
 	public static void close(Closeable c) {

@@ -102,8 +102,8 @@ public class JadxPluginsList {
 	}
 
 	private Release fetchLatestRelease() {
-		LocationInfo latest = new LocationInfo("jadx-decompiler", "jadx-plugins-list", "list", null);
-		Release release = GithubTools.fetchRelease(latest);
+		LocationInfo pluginsList = new LocationInfo("jadx-decompiler", "jadx-plugins-list", "list");
+		Release release = GithubTools.fetchRelease(pluginsList);
 		List<Asset> assets = release.getAssets();
 		if (assets.isEmpty()) {
 			throw new RuntimeException("Release don't have assets");
