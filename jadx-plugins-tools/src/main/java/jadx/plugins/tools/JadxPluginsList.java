@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -29,6 +31,7 @@ import static jadx.core.utils.GsonUtils.buildGson;
 import static jadx.plugins.tools.utils.PluginFiles.PLUGINS_LIST_CACHE;
 
 public class JadxPluginsList {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginsList.class);
 	private static final JadxPluginsList INSTANCE = new JadxPluginsList();
 
 	private static final Type LIST_TYPE = new TypeToken<List<JadxPluginMetadata>>() {
@@ -64,12 +67,14 @@ public class JadxPluginsList {
 		JadxPluginListCache listCache = loadCache();
 		if (listCache != null) {
 			consumer.accept(listCache.getList());
+			loadedList = listCache;
 		}
 		Release release = fetchLatestRelease();
 		if (listCache == null || !listCache.getVersion().equals(release.getName())) {
 			JadxPluginListCache updatedList = fetchBundle(release);
 			saveCache(updatedList);
 			consumer.accept(updatedList.getList());
+			loadedList = updatedList;
 		}
 	}
 
@@ -98,10 +103,10 @@ public class JadxPluginsList {
 		} catch (Exception e) {
 			throw new RuntimeException("Error saving file: " + PLUGINS_LIST_CACHE, e);
 		}
-		loadedList = listCache;
 	}
 
 	private Release fetchLatestRelease() {
+		LOG.debug("Fetching latest plugins-list release info");
 		LocationInfo pluginsList = new LocationInfo("jadx-decompiler", "jadx-plugins-list", "list");
 		Release release = GithubTools.fetchRelease(pluginsList);
 		List<Asset> assets = release.getAssets();
@@ -112,6 +117,7 @@ public class JadxPluginsList {
 	}
 
 	private JadxPluginListCache fetchBundle(Release release) {
+		LOG.debug("Fetching plugins-list bundle: {}", release.getName());
 		try {
 			Asset listAsset = release.getAssets().get(0);
 			Path tmpListFile = Files.createTempFile("plugins-list", ".zip");
