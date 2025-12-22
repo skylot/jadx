@@ -107,6 +107,10 @@ public class TabsController {
 		listeners.forEach(l -> l.onTabSelect(selectedTab));
 	}
 
+	public void deselectTab() {
+		selectedTab = null;
+	}
+
 	/**
 	 * Jump to node definition
 	 */

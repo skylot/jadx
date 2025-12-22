@@ -455,6 +455,9 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 				} else if (removalIdx == 0) { // select right tab
 					setSelectedIndex(removalIdx + 1);
 				}
+			} else {
+				// no other tabs => inform controller to reset selection
+				controller.deselectTab();
 			}
 		}
 
