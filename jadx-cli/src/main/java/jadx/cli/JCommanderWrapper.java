@@ -25,7 +25,6 @@ import jadx.api.plugins.options.OptionDescription;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.Utils;
-import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 public class JCommanderWrapper {
 	private final JCommander jc;
@@ -275,19 +274,16 @@ public class JCommanderWrapper {
 
 	private String appendPluginOptions(int maxNamesLen) {
 		StringBuilder sb = new StringBuilder();
-		int k = 1;
 		// load and init all options plugins to print all options
 		try (JadxDecompiler decompiler = new JadxDecompiler(argsObj.toJadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
-			pluginManager.load(new JadxExternalPluginsLoader());
+			pluginManager.load(decompiler.getArgs().getPluginLoader());
 			pluginManager.initAll();
 			try {
 				for (PluginContext context : pluginManager.getAllPluginContexts()) {
 					JadxPluginOptions options = context.getOptions();
 					if (options != null) {
-						if (appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen)) {
-							k++;
-						}
+						appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen);
 					}
 				}
 			} finally {
