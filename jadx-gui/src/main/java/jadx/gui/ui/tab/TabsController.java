@@ -15,7 +15,6 @@ import jadx.api.JavaClass;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.treemodel.JClass;
@@ -64,7 +63,7 @@ public class TabsController {
 
 	public TabBlueprint openTab(JNode node, boolean hidden, boolean preview) {
 		if (!node.hasContent()) {
-			throw new JadxRuntimeException("Can't open tab for node without content");
+			LOG.warn("Can't open tab for node without content, node: {}", node);
 		}
 		TabBlueprint blueprint = getTabByNode(node);
 		if (blueprint == null) {
