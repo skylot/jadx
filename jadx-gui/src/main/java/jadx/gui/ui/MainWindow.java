@@ -118,6 +118,8 @@ import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
+import jadx.gui.report.ExceptionDialog;
+import jadx.gui.report.JadxExceptionHandler;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.data.SaveOptionEnum;
@@ -138,7 +140,6 @@ import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.CharsetDialog;
-import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
@@ -266,6 +267,7 @@ public class MainWindow extends JFrame {
 		this.editorThemeManager = new EditorThemeManager(settings);
 
 		JadxEventQueue.register();
+		JadxExceptionHandler.register(this);
 		resetCache();
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);

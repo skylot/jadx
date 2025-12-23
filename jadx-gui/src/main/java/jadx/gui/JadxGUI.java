@@ -16,7 +16,6 @@ import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.dialog.ExceptionDialog;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.NLS;
 
@@ -35,7 +34,6 @@ public class JadxGUI {
 
 			LogCollector.register();
 			printSystemInfo();
-			ExceptionDialog.registerUncaughtExceptionHandler();
 			NLS.setLocale(settings.getLangLocale());
 			SwingUtilities.invokeLater(() -> {
 				LafManager.init(settings);

@@ -23,6 +23,8 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxExternalPluginsLoader.class);
 
+	public static final String JADX_PLUGIN_CLASSLOADER_PREFIX = "jadx-plugin:";
+
 	private final List<URLClassLoader> classLoaders = new ArrayList<>();
 
 	@Override
@@ -75,7 +77,7 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	private void loadFromJar(Map<Class<? extends JadxPlugin>, JadxPlugin> map, Path jar) {
 		try {
 			File jarFile = jar.toFile();
-			String clsLoaderName = "jadx-plugin:" + jarFile.getName();
+			String clsLoaderName = JADX_PLUGIN_CLASSLOADER_PREFIX + jarFile.getName();
 			URL[] urls = new URL[] { jarFile.toURI().toURL() };
 			URLClassLoader pluginClsLoader = new URLClassLoader(clsLoaderName, urls, thisClassLoader());
 			classLoaders.add(pluginClsLoader);
