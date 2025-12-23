@@ -4,7 +4,7 @@ import java.util.List;
 
 public class JadxPluginListCache {
 	private String version;
-	private List<JadxPluginMetadata> list;
+	private List<JadxPluginListEntry> list;
 
 	public String getVersion() {
 		return version;
@@ -14,11 +14,11 @@ public class JadxPluginListCache {
 		this.version = version;
 	}
 
-	public List<JadxPluginMetadata> getList() {
+	public List<JadxPluginListEntry> getList() {
 		return list;
 	}
 
-	public void setList(List<JadxPluginMetadata> list) {
+	public void setList(List<JadxPluginListEntry> list) {
 		this.list = list;
 	}
 }

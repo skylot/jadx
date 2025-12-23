@@ -15,6 +15,7 @@ import jadx.cli.LogHelper;
 import jadx.core.utils.StringUtils;
 import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
+import jadx.plugins.tools.data.JadxPluginListEntry;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.data.JadxPluginUpdate;
 
@@ -116,9 +117,9 @@ public class CommandPlugins implements ICommand {
 			return;
 		}
 		if (available) {
-			List<JadxPluginMetadata> availableList = JadxPluginsList.getInstance().get();
+			List<JadxPluginListEntry> availableList = JadxPluginsList.getInstance().get();
 			System.out.println("Available plugins: " + availableList.size());
-			for (JadxPluginMetadata plugin : availableList) {
+			for (JadxPluginListEntry plugin : availableList) {
 				System.out.println(" - " + plugin.getName() + ": " + plugin.getDescription()
 						+ " (" + plugin.getLocationId() + ")");
 			}

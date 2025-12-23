@@ -1,12 +1,12 @@
 package jadx.gui.settings.ui.plugins;
 
-import jadx.plugins.tools.data.JadxPluginMetadata;
+import jadx.plugins.tools.data.JadxPluginListEntry;
 
 public class AvailablePluginNode extends BasePluginListNode {
 
-	private final JadxPluginMetadata metadata;
+	private final JadxPluginListEntry metadata;
 
-	public AvailablePluginNode(JadxPluginMetadata metadata) {
+	public AvailablePluginNode(JadxPluginListEntry metadata) {
 		this.metadata = metadata;
 	}
 

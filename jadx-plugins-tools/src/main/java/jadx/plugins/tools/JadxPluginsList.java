@@ -19,7 +19,7 @@ import com.google.gson.reflect.TypeToken;
 
 import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.data.JadxPluginListCache;
-import jadx.plugins.tools.data.JadxPluginMetadata;
+import jadx.plugins.tools.data.JadxPluginListEntry;
 import jadx.plugins.tools.resolvers.github.GithubTools;
 import jadx.plugins.tools.resolvers.github.LocationInfo;
 import jadx.plugins.tools.resolvers.github.data.Asset;
@@ -34,7 +34,7 @@ public class JadxPluginsList {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginsList.class);
 	private static final JadxPluginsList INSTANCE = new JadxPluginsList();
 
-	private static final Type LIST_TYPE = new TypeToken<List<JadxPluginMetadata>>() {
+	private static final Type LIST_TYPE = new TypeToken<List<JadxPluginListEntry>>() {
 	}.getType();
 
 	private static final Type CACHE_TYPE = new TypeToken<JadxPluginListCache>() {
@@ -59,7 +59,7 @@ public class JadxPluginsList {
 	 * <br>
 	 * Method call is blocking.
 	 */
-	public synchronized void get(Consumer<List<JadxPluginMetadata>> consumer) {
+	public synchronized void get(Consumer<List<JadxPluginListEntry>> consumer) {
 		if (loadedList != null) {
 			consumer.accept(loadedList.getList());
 			return;
@@ -78,8 +78,8 @@ public class JadxPluginsList {
 		}
 	}
 
-	public List<JadxPluginMetadata> get() {
-		AtomicReference<List<JadxPluginMetadata>> holder = new AtomicReference<>();
+	public List<JadxPluginListEntry> get() {
+		AtomicReference<List<JadxPluginListEntry>> holder = new AtomicReference<>();
 		get(holder::set);
 		return holder.get();
 	}
@@ -135,9 +135,9 @@ public class JadxPluginsList {
 		}
 	}
 
-	private static List<JadxPluginMetadata> loadListBundle(Path tmpListFile) {
+	private static List<JadxPluginListEntry> loadListBundle(Path tmpListFile) {
 		Gson gson = buildGson();
-		List<JadxPluginMetadata> entries = new ArrayList<>();
+		List<JadxPluginListEntry> entries = new ArrayList<>();
 		new ZipReader().visitEntries(tmpListFile.toFile(), entry -> {
 			if (entry.getName().endsWith(".json")) {
 				try (Reader reader = new InputStreamReader(entry.getInputStream())) {
