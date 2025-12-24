@@ -1,8 +1,8 @@
 package jadx.gui.utils.plugins;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
@@ -27,12 +27,13 @@ public class CollectPlugins {
 	}
 
 	public CloseablePlugins build() {
-		SortedSet<PluginContext> allPlugins = new TreeSet<>();
-		mainWindow.getWrapper().getCurrentDecompiler()
-				.ifPresent(decompiler -> allPlugins.addAll(decompiler.getPluginManager().getResolvedPluginContexts()));
-
-		// collect and init not loaded plugins in new temp context
-		Runnable closeable = null;
+		Optional<JadxDecompiler> currentDecompiler = mainWindow.getWrapper().getCurrentDecompiler();
+		if (currentDecompiler.isPresent()) {
+			JadxDecompiler decompiler = currentDecompiler.get();
+			SortedSet<PluginContext> plugins = decompiler.getPluginManager().getResolvedPluginContexts();
+			return new CloseablePlugins(new ArrayList<>(plugins), null);
+		}
+		// collect and init plugins in new temp context
 		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
 		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 		try (JadxDecompiler decompiler = new JadxDecompiler(jadxArgs)) {
@@ -44,18 +45,10 @@ public class CollectPlugins {
 				pluginContext.setAppContext(appContext);
 			});
 			pluginManager.load(new JadxExternalPluginsLoader());
-			SortedSet<PluginContext> missingPlugins = new TreeSet<>();
-			for (PluginContext context : pluginManager.getAllPluginContexts()) {
-				if (!allPlugins.contains(context)) {
-					missingPlugins.add(context);
-				}
-			}
-			if (!missingPlugins.isEmpty()) {
-				pluginManager.init(missingPlugins);
-				allPlugins.addAll(missingPlugins);
-				closeable = () -> pluginManager.unload(missingPlugins);
-			}
+			SortedSet<PluginContext> allPlugins = pluginManager.getAllPluginContexts();
+			pluginManager.init(allPlugins);
+			Runnable closeable = () -> pluginManager.unload(allPlugins);
+			return new CloseablePlugins(new ArrayList<>(allPlugins), closeable);
 		}
-		return new CloseablePlugins(new ArrayList<>(allPlugins), closeable);
 	}
 }
