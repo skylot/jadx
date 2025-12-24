@@ -38,7 +38,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	private final JadxDecompiler decompiler;
 	private final JadxPluginsData pluginsData;
 	private final JadxPlugin plugin;
-	private final JadxPluginInfo pluginInfo;
 
 	private AppContext appContext;
 
@@ -52,7 +51,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		this.decompiler = decompiler;
 		this.pluginsData = pluginsData;
 		this.plugin = plugin;
-		this.pluginInfo = plugin.getPluginInfo();
 	}
 
 	public void init() {
@@ -167,12 +165,12 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return pluginInfo;
+		return plugin.getPluginInfo();
 	}
 
 	@Override
 	public String getPluginId() {
-		return pluginInfo.getPluginId();
+		return getPluginInfo().getPluginId();
 	}
 
 	@Override
@@ -187,7 +185,7 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 
 	@Override
 	public IJadxFiles files() {
-		return new JadxFilesData(pluginInfo, appContext.getFilesGetter());
+		return new JadxFilesData(getPluginInfo(), appContext.getFilesGetter());
 	}
 
 	@Override
