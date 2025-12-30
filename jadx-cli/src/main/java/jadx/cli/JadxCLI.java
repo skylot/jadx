@@ -71,7 +71,7 @@ public class JadxCLI {
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
 			if (checkForErrors(jadx)) {
-				return 1;
+				return 2;
 			}
 			if (!SingleClassMode.process(jadx, cliArgs)) {
 				save(jadx);
@@ -80,7 +80,7 @@ public class JadxCLI {
 			if (errorsCount != 0) {
 				jadx.printErrorsReport();
 				LOG.error("finished with errors, count: {}", errorsCount);
-				return 1;
+				return 3;
 			}
 			LOG.info("done");
 			return 0;
