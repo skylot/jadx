@@ -1,6 +1,7 @@
 package jadx.core.codegen.utils;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +17,7 @@ import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -26,8 +28,8 @@ import jadx.core.utils.Utils;
 public class CodeGenUtils {
 
 	public static void addErrorsAndComments(ICodeWriter code, NotificationAttrNode node) {
-		addErrors(code, node);
 		addComments(code, node);
+		addErrors(code, node);
 	}
 
 	public static void addErrors(ICodeWriter code, NotificationAttrNode node) {
@@ -86,9 +88,37 @@ public class CodeGenUtils {
 		} else {
 			code.add(' ');
 		}
-		CommentStyle style = comment.getStyle();
+		addCommentWithStyle(code, comment.getStyle(), comment.getComment());
+	}
+
+	public static void addJadxNodeComment(ICodeWriter code, NotificationAttrNode node,
+			CommentsLevel level, BiConsumer<ICodeWriter, String> commentFunc) {
+		if (node.checkCommentsLevel(level)) {
+			code.startLine();
+			addCommentWithStyle(code, CommentStyle.BLOCK_CONDENSED, (commentCode, newLinePrefix) -> {
+				commentCode.add("JADX ").add(level.name()).add(": ");
+				commentFunc.accept(commentCode, newLinePrefix);
+			});
+		}
+	}
+
+	public static void addJadxComment(ICodeWriter code, CommentsLevel level, String commentStr) {
+		code.startLine();
+		addCommentWithStyle(code, CommentStyle.BLOCK_CONDENSED, "JADX " + level.name() + ": " + commentStr);
+	}
+
+	private static void addCommentWithStyle(ICodeWriter code, CommentStyle style, String commentStr) {
 		appendMultiLineString(code, "", style.getStart());
-		appendMultiLineString(code, style.getOnNewLine(), comment.getComment());
+		appendMultiLineString(code, style.getOnNewLine(), commentStr);
+		appendMultiLineString(code, "", style.getEnd());
+	}
+
+	/**
+	 * Insert comment with function, use second arg as new line prefix
+	 */
+	private static void addCommentWithStyle(ICodeWriter code, CommentStyle style, BiConsumer<ICodeWriter, String> commentFunc) {
+		appendMultiLineString(code, "", style.getStart());
+		commentFunc.accept(code, style.getOnNewLine());
 		appendMultiLineString(code, "", style.getEnd());
 	}
 
@@ -107,16 +137,21 @@ public class CodeGenUtils {
 		}
 	}
 
+	public static void addClassRenamedComment(ICodeWriter code, ClassNode cls) {
+		ClassInfo classInfo = cls.getClassInfo();
+		if (classInfo.hasAlias()) {
+			addRenamedComment(code, cls, classInfo.getType().getObject());
+		}
+	}
+
 	public static void addRenamedComment(ICodeWriter code, NotificationAttrNode node, String origName) {
-		if (!node.checkCommentsLevel(CommentsLevel.INFO)) {
-			return;
-		}
-		code.startLine("/* renamed from: ").add(origName);
-		RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
-		if (renameReasonAttr != null) {
-			code.add(", reason: ").add(renameReasonAttr.getDescription());
-		}
-		code.add(" */");
+		addJadxNodeComment(code, node, CommentsLevel.INFO, (commentCode, newLinePrefix) -> {
+			commentCode.add("renamed from: ").add(origName);
+			RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
+			if (renameReasonAttr != null) {
+				commentCode.add(", reason: ").add(renameReasonAttr.getDescription());
+			}
+		});
 	}
 
 	public static void addSourceFileInfo(ICodeWriter code, ClassNode node) {
@@ -131,7 +166,7 @@ public class CodeGenUtils {
 				// ignore similar name
 				return;
 			}
-			code.startLine("/* compiled from: ").add(fileName).add(" */");
+			addJadxComment(code, CommentsLevel.INFO, "compiled from: " + fileName);
 		}
 	}
 
@@ -146,7 +181,7 @@ public class CodeGenUtils {
 					// don't add same comment for inner classes
 					return;
 				}
-				code.startLine("/* loaded from: ").add(inputFileName).add(" */");
+				addJadxComment(code, CommentsLevel.INFO, "loaded from: " + inputFileName);
 			}
 		}
 	}

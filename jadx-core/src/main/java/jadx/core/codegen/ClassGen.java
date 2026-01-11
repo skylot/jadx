@@ -155,8 +155,6 @@ public class ClassGen {
 		if (Consts.DEBUG_USAGE) {
 			addClassUsageInfo(code, cls);
 		}
-		CodeGenUtils.addErrorsAndComments(code, cls);
-		CodeGenUtils.addSourceFileInfo(code, cls);
 		addClassDeclaration(code);
 		addClassBody(code);
 	}
@@ -177,9 +175,13 @@ public class ClassGen {
 			af = af.remove(AccessFlags.STATIC).remove(AccessFlags.PRIVATE);
 		}
 
-		annotationGen.addForClass(clsCode);
-		insertRenameInfo(clsCode, cls);
+		CodeGenUtils.addComments(clsCode, cls);
+		CodeGenUtils.addClassRenamedComment(clsCode, cls);
+		CodeGenUtils.addErrors(clsCode, cls);
+		CodeGenUtils.addSourceFileInfo(clsCode, cls);
 		CodeGenUtils.addInputFileInfo(clsCode, cls);
+
+		annotationGen.addForClass(clsCode);
 		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString(cls.checkCommentsLevel(CommentsLevel.INFO)));
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
@@ -434,10 +436,10 @@ public class ClassGen {
 		if (Consts.DEBUG_USAGE) {
 			addFieldUsageInfo(code, f);
 		}
+		CodeGenUtils.addComments(code, f);
 		if (f.getFieldInfo().hasAlias()) {
 			CodeGenUtils.addRenamedComment(code, f, f.getName());
 		}
-		CodeGenUtils.addComments(code, f);
 		annotationGen.addForField(code, f);
 
 		code.startLine(f.getAccessFlags().makeString(f.checkCommentsLevel(CommentsLevel.INFO)));
@@ -800,13 +802,6 @@ public class ClassGen {
 		}
 		String shortName = searchCls.getAliasShortName();
 		return root.getClsp().isClsKnown(currentPkg + '.' + shortName);
-	}
-
-	private void insertRenameInfo(ICodeWriter code, ClassNode cls) {
-		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.hasAlias() && cls.checkCommentsLevel(CommentsLevel.INFO)) {
-			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());
-		}
 	}
 
 	private static void addClassUsageInfo(ICodeWriter code, ClassNode cls) {
