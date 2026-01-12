@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
-import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.impl.SimpleCodeWriter;
@@ -38,8 +37,6 @@ import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.api.usage.IUsageInfoData;
 import jadx.core.Consts;
-import jadx.core.Jadx;
-import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.InlinedAttr;
@@ -320,23 +317,25 @@ public class ClassNode extends NotificationAttrNode
 	 * WARNING: Slow operation! Use with caution!
 	 */
 	public ICodeInfo decompileWithMode(DecompilationMode mode) {
-		DecompilationMode baseMode = root.getArgs().getDecompilationMode();
-		if (mode == baseMode) {
-			return decompile(true);
-		}
-		synchronized (DECOMPILE_WITH_MODE_SYNC) {
-			JadxArgs args = root.getArgs();
-			try {
-				unload();
-				args.setDecompilationMode(mode);
-				ProcessClass process = new ProcessClass(Jadx.getPassesList(args));
-				process.initPasses(root);
-				ICodeInfo code = process.forceGenerateCode(this);
-				return Utils.getOrElse(code, ICodeInfo.EMPTY);
-			} finally {
-				args.setDecompilationMode(baseMode);
-				unload();
-			}
+		switch (mode) {
+			case AUTO:
+			case RESTRUCTURE:
+				return decompile(true);
+
+			case SIMPLE:
+			case FALLBACK:
+				synchronized (DECOMPILE_WITH_MODE_SYNC) {
+					try {
+						unload();
+						ICodeInfo code = root.getProcessClasses().forceGenerateCodeForMode(this, mode);
+						return Utils.getOrElse(code, ICodeInfo.EMPTY);
+					} finally {
+						unload();
+					}
+				}
+
+			default:
+				throw new JadxRuntimeException("Unknown mode: " + mode);
 		}
 	}
 

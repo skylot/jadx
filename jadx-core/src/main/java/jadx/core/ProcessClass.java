@@ -1,16 +1,22 @@
 package jadx.core;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.DecompilationMode;
 import jadx.api.ICodeInfo;
+import jadx.api.JadxArgs;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.DecompileModeOverrideAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.LoadStage;
 import jadx.core.dex.nodes.RootNode;
@@ -151,6 +157,43 @@ public class ProcessClass {
 			return process(cls, true);
 		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
+		}
+	}
+
+	private final Map<DecompilationMode, ProcessClass> modesMap = new EnumMap<>(DecompilationMode.class);
+
+	public @Nullable ICodeInfo forceGenerateCodeForMode(ClassNode cls, DecompilationMode mode) {
+		synchronized (modesMap) {
+			ProcessClass prCls = modesMap.computeIfAbsent(mode, m -> {
+				RootNode root = cls.root();
+				ProcessClass newPrCls = new ProcessClass(getPassesForMode(root.getArgs(), m));
+				newPrCls.initPasses(root);
+				return newPrCls;
+			});
+			try {
+				cls.addAttr(new DecompileModeOverrideAttr(mode));
+				return prCls.forceGenerateCode(cls);
+			} finally {
+				cls.remove(AType.DECOMPILE_MODE_OVERRIDE);
+			}
+		}
+	}
+
+	private static List<IDexTreeVisitor> getPassesForMode(JadxArgs baseArgs, DecompilationMode mode) {
+		switch (mode) {
+			case FALLBACK:
+				return Jadx.getFallbackPassesList();
+
+			case SIMPLE:
+				// copy properties into new args
+				// keep in sync with properties usage in Jadx.getSimpleModePasses method
+				JadxArgs args = new JadxArgs();
+				args.setDebugInfo(baseArgs.isDebugInfo());
+				args.setCommentsLevel(baseArgs.getCommentsLevel());
+				return Jadx.getSimpleModePasses(args);
+
+			default:
+				throw new JadxRuntimeException("Unexpected decompilation mode: " + mode);
 		}
 	}
 

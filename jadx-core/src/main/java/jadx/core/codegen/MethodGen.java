@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
+import jadx.api.DecompilationMode;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.args.IntegerFormat;
@@ -23,6 +24,7 @@ import jadx.core.Jadx;
 import jadx.core.codegen.utils.CodeGenUtils;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.DecompileModeOverrideAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
@@ -266,7 +268,14 @@ public class MethodGen {
 
 	public void addInstructions(ICodeWriter code) throws CodegenException {
 		JadxArgs args = mth.root().getArgs();
-		switch (args.getDecompilationMode()) {
+		DecompileModeOverrideAttr modeOverrideAttr = mth.getTopParentClass().get(AType.DECOMPILE_MODE_OVERRIDE);
+		DecompilationMode mode;
+		if (modeOverrideAttr != null) {
+			mode = modeOverrideAttr.getMode();
+		} else {
+			mode = args.getDecompilationMode();
+		}
+		switch (mode) {
 			case AUTO:
 				if (classGen.isFallbackMode() || mth.getRegion() == null) {
 					// TODO: try simple mode first
