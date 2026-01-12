@@ -231,6 +231,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
+		if (isArithWideUpCast(parentInsn, argType, castToType)) {
+			return null;
+		}
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
 				|| isCastDuplicate(castInsn)
 				|| shadowedByOuterCast(mth.root(), castToType, parentInsn)) {
@@ -241,6 +244,21 @@ public class SimplifyVisitor extends AbstractVisitor {
 			return insnNode;
 		}
 		return null;
+	}
+
+	/**
+	 * Keep cast to wide types in arith instructions,
+	 * because arguments type determine instruction used in result bytecode.
+	 * Example: (long) i << 32 - without 'long' cast will be used 'int shift' instruction and result
+	 * will be incorrect
+	 */
+	private static boolean isArithWideUpCast(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
+		if (parentInsn != null
+				&& parentInsn.getType() == InsnType.ARITH
+				&& argType.isPrimitive() && castToType.isPrimitive()) {
+			return castToType.getRegCount() > argType.getRegCount();
+		}
+		return false;
 	}
 
 	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
