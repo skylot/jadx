@@ -14,9 +14,14 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -27,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +46,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.TextStandardActions;
+import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 public class ExceptionDialog extends JDialog {
 
@@ -76,7 +83,20 @@ public class ExceptionDialog extends JDialog {
 			LOG.error("failed to get program arguments", t);
 		}
 
+		String pluginName = null;
+
 		Throwable ex = data.getException();
+		if (ex.getStackTrace() != null) {
+			Set<String> moduleNames = Arrays.stream(ex.getStackTrace()).map(StackTraceElement::getModuleName).filter(Objects::nonNull)
+					.collect(Collectors.toSet());
+
+			Optional<String> plugin =
+					moduleNames.stream().filter(mn -> mn.startsWith(JadxExternalPluginsLoader.JADX_PLUGIN_CLASSLOADER_PREFIX)).findFirst();
+			if (plugin.isPresent()) {
+				pluginName = plugin.get();
+			}
+		}
+
 		StringWriter stackTraceWriter = new StringWriter(1024);
 		ex.printStackTrace(new PrintWriter(stackTraceWriter));
 		final String stackTrace = stackTraceWriter.toString();
@@ -91,6 +111,12 @@ public class ExceptionDialog extends JDialog {
 
 		String message = "Please describe what you did before the error occurred.\n\n";
 		message += "**IMPORTANT!** If the error occurs with a specific APK file please attach or provide link to apk file!\n\n";
+
+		if (pluginName != null) {
+			message += "The exception stack trace indicates that the third party JadxGui plugin \"" + pluginName
+					+ "\" may have caused this error. Issues caused by plugins should be reported to the plugin "
+					+ "project, not to Jadx!\n\n";
+		}
 
 		StringBuilder detailsIssueBuilder = new StringBuilder();
 		details.forEach((key, value) -> detailsIssueBuilder.append(String.format("* %s: %s\n", key, value)));
@@ -110,10 +136,18 @@ public class ExceptionDialog extends JDialog {
 
 		String project = data.getGithubProject();
 		if (!project.isEmpty()) {
+			c.gridy = 1;
 			String url = String.format("https://github.com/%s/issues/new?labels=bug&title=%s&body=%s",
 					project, issueTitle, issueBody);
-			Link issueLink = new Link("<html><u><b>Create a new issue at GitHub</b></u></html>", url);
-			c.gridy = 1;
+			Link issueLink = new Link("<html><u><b>Create a new Jadx issue at GitHub</b></u></html>", url);
+			if (pluginName != null) {
+				String pluginNameHtml = StringEscapeUtils.escapeHtml4(pluginName);
+				JLabel l = new JLabel("<html>The exception stack trace indicates that the third party JadxGui "
+						+ "plugin <b>" + pluginNameHtml + "</b> may have caused this error.<br>Issues caused by plugins "
+						+ "should be reported to the plugin project, not to Jadx!</html>");
+				titlePanel.add(l, c);
+				c.gridy += 1;
+			}
 			titlePanel.add(issueLink, c);
 		}
 		JTextArea messageArea = new JTextArea();
