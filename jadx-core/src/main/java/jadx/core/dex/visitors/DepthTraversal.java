@@ -12,7 +12,7 @@ public class DepthTraversal {
 				cls.getInnerClasses().forEach(inCls -> visit(visitor, inCls));
 				cls.getMethods().forEach(mth -> visit(visitor, mth));
 			}
-		} catch (StackOverflowError | Exception e) {
+		} catch (StackOverflowError | BootstrapMethodError | Exception e) {
 			cls.addError(e.getClass().getSimpleName() + " in pass: " + visitor.getClass().getSimpleName(), e);
 		}
 	}
@@ -23,7 +23,7 @@ public class DepthTraversal {
 				return;
 			}
 			visitor.visit(mth);
-		} catch (StackOverflowError | Exception e) {
+		} catch (StackOverflowError | BootstrapMethodError | Exception e) {
 			mth.addError(e.getClass().getSimpleName() + " in pass: " + visitor.getClass().getSimpleName(), e);
 		}
 	}

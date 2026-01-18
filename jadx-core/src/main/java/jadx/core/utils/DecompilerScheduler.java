@@ -35,10 +35,12 @@ public class DecompilerScheduler implements IDecompileScheduler {
 				check(result, classes);
 			}
 			return result;
+		} catch (StackOverflowError | BootstrapMethodError e) {
+			LOG.warn("Stack overflow while building decompile batches, continue with fallback");
 		} catch (Exception e) {
 			LOG.warn("Build batches failed (continue with fallback)", e);
-			return buildFallback(classes);
 		}
+		return buildFallback(classes);
 	}
 
 	/**

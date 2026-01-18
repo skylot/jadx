@@ -9,6 +9,7 @@ import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -34,7 +35,11 @@ public class TypeUpdateInfo {
 		}
 		if (updateSeq > updatesLimitCount) {
 			throw new JadxOverflowException("Type inference error: updates count limit reached"
-					+ " with updateSeq = " + updateSeq + ". Try increasing the type limit count on preferences.");
+					+ " with updateSeq = " + updateSeq + ". Try increasing type updates limit count.");
+		}
+		if (updateSeq % 100 == 0) {
+			// check for interruption sometimes (every update is too often)
+			Utils.checkThreadInterrupt();
 		}
 	}
 
