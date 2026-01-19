@@ -28,6 +28,7 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfInfo;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
+import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -197,6 +198,21 @@ final class IfRegionMaker {
 			info = new IfInfo(info, elseBlock, null);
 			info.setOutBlock(thenBlock);
 		}
+
+		// getPathCross may not find outBlock (e.g. one branch has return, outBlock definitely is
+		// null), so should check further
+		if (info.getOutBlock() == null) {
+			BlockNode scopeOutBlockThen = findScopeOutBlock(mth, info.getThenBlock());
+			BlockNode scopeOutBlockElse = findScopeOutBlock(mth, info.getElseBlock());
+			if (scopeOutBlockThen == null && scopeOutBlockElse != null) {
+				info.setOutBlock(scopeOutBlockElse);
+			} else if (scopeOutBlockThen != null && scopeOutBlockElse == null) {
+				info.setOutBlock(scopeOutBlockThen);
+			} else if (scopeOutBlockThen != null && scopeOutBlockThen == scopeOutBlockElse) {
+				info.setOutBlock(scopeOutBlockThen);
+			}
+		}
+
 		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {
 			info.setOutBlock(null);
 		}
@@ -241,6 +257,33 @@ final class IfRegionMaker {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * if startBlock is in a (try) scope, find the scope end as outBlock
+	 */
+	private @Nullable static BlockNode findScopeOutBlock(MethodNode mth, BlockNode startBlock) {
+		if (startBlock == null) {
+			return null;
+		}
+		List<BlockNode> domFrontiers = BlockUtils.bitSetToBlocks(mth, startBlock.getDomFrontier());
+		BlockNode scopeOutBlock = null;
+
+		// find handler from domFrontier(could be scope end), if domFrontier is handler
+		// and its topSplitter dominates branch block, then branch should end
+		for (BlockNode domFrontier : domFrontiers) {
+			ExcHandlerAttr handler = domFrontier.get(AType.EXC_HANDLER);
+			if (handler == null) {
+				continue;
+			}
+			BlockNode topSplitter = handler.getTryBlock().getTopSplitter();
+			if (startBlock.isDominator(topSplitter)) {
+				scopeOutBlock = BlockUtils.getTryAndHandlerCrossBlock(mth, handler.getHandler());
+				break;
+			}
+		}
+
+		return scopeOutBlock;
 	}
 
 	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {

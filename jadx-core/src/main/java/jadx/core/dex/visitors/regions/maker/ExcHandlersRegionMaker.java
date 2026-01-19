@@ -132,8 +132,18 @@ public class ExcHandlersRegionMaker {
 		if (dom.contains(AFlag.REMOVE)) {
 			return;
 		}
-		BitSet domFrontier = dom.getDomFrontier();
-		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(mth, domFrontier);
+		List<BlockNode> handlerExits = new ArrayList<>();
+
+		BlockNode handlerOutBlock = BlockUtils.getTryAndHandlerCrossBlock(mth, handler);
+		if (handlerOutBlock != null) {
+			// ensure frontier's other predecessors comes from try end
+			handlerExits.add(handlerOutBlock);
+		} else {
+			// fallback to simple frontier
+			BitSet domFrontier = dom.getDomFrontier();
+			handlerExits.addAll(BlockUtils.bitSetToBlocks(mth, domFrontier));
+		}
+
 		boolean inLoop = mth.getLoopForBlock(start) != null;
 		for (BlockNode exit : handlerExits) {
 			if ((!inLoop || BlockUtils.isPathExists(start, exit))
