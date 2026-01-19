@@ -1184,6 +1184,47 @@ public class BlockUtils {
 		return block;
 	}
 
+	/**
+	 * Return out block of try catch, by finding where try branch meets catch branch.
+	 * It traverse domFrontier start from handler block, find the first frontier
+	 * whose predecessor is try end.
+	 * <br>
+	 * It could return null if they never meets, but this doesn't mean that catch
+	 * ends at the method exit.
+	 * (see TestSwitchWithTryCatch and ExcHandlersRegionMaker#processExcHandler).
+	 */
+	@Nullable
+	public static BlockNode getTryAndHandlerCrossBlock(MethodNode mth, ExceptionHandler handler) {
+		BlockNode start = handler.getHandlerBlock();
+		BlockNode topSplitter = BlockUtils.getTopSplitterForHandler(start);
+		List<ExceptionHandler> allHandlers = handler.getTryBlock().getHandlers();
+		List<BlockNode> handlerExitsCandidate = new ArrayList<>(BlockUtils.bitSetToBlocks(mth, start.getDomFrontier()));
+		BitSet visited = newBlocksBitSet(mth);
+		while (!handlerExitsCandidate.isEmpty()) {
+			BlockNode frontier = handlerExitsCandidate.remove(0);
+			if (visited.get(frontier.getPos())) {
+				continue;
+			}
+			visited.set(frontier.getPos());
+			// In some cases, handler's domFrontier is in the half of catch block
+			// instead of the end, so we need to make sure frontier's predecessor
+			// comes from try branch end:
+			// 1. not from handler branch, doesn't exist path from handler to pred
+			// 2. from try branch, exists path from topSplitter to pred
+			// 3. skip method exit
+			for (BlockNode pred : frontier.getPredecessors()) {
+				boolean predFromHandler = allHandlers.stream().anyMatch(h -> isPathExists(h.getHandlerBlock(), pred));
+				if (!predFromHandler && BlockUtils.isPathExists(topSplitter, pred)
+						&& frontier != mth.getExitBlock()) {
+					return frontier;
+				}
+			}
+			// if not found, add this frontier's frontier to candidate list
+			handlerExitsCandidate.addAll(BlockUtils.bitSetToBlocks(mth, frontier.getDomFrontier()));
+		}
+		return null;
+	}
+
 	@Nullable
 	public static BlockNode getBlockWithFlag(List<BlockNode> blocks, AFlag flag) {
 		for (BlockNode block : blocks) {
