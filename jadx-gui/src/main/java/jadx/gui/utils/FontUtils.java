@@ -3,8 +3,6 @@ package jadx.gui.utils;
 import java.awt.Font;
 import java.io.InputStream;
 
-import javax.swing.text.StyleContext;
-
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +21,7 @@ public class FontUtils {
 		int style = parseFontStyle(parts[1]);
 		int size = Integer.parseInt(parts[2]);
 
-		StyleContext sc = StyleContext.getDefaultStyleContext();
-		Font font = sc.getFont(family, style, size);
+		Font font = FontUtils.getCompositeFont(family, style, size);
 		if (font == null) {
 			throw new JadxRuntimeException("Font not found: " + fontDesc);
 		}
@@ -93,6 +90,15 @@ public class FontUtils {
 			offset += Character.charCount(codePoint);
 		}
 		return true;
+	}
+
+	/**
+	 * https://github.com/JFormDesigner/FlatLaf/issues/923
+	 * When changing fonts, use font.deriveFont() or FontUtils.getCompositeFont
+	 * instead of new Font(), otherwise FlatLaf's CJKs support will be lost
+	 */
+	public static Font getCompositeFont(String family, int style, int size) {
+		return com.formdev.flatlaf.util.FontUtils.getCompositeFont(family, style, size);
 	}
 
 	private FontUtils() {

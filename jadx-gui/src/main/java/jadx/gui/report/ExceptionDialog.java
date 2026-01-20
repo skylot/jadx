@@ -3,7 +3,6 @@ package jadx.gui.report;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -119,7 +118,7 @@ public class ExceptionDialog extends JDialog {
 		JTextArea messageArea = new JTextArea();
 		TextStandardActions.attach(messageArea);
 		messageArea.setEditable(false);
-		messageArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		messageArea.setFont(mainWindow.getSettings().getCodeFont().deriveFont(12f));
 		messageArea.setForeground(Color.BLACK);
 		messageArea.setBackground(Color.WHITE);
 

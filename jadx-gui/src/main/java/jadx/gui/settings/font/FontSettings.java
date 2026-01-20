@@ -7,6 +7,7 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 import com.formdev.flatlaf.fonts.jetbrains_mono.FlatJetBrainsMonoFont;
+import com.formdev.flatlaf.util.FontUtils;
 
 import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.utils.UiUtils;
@@ -31,8 +32,8 @@ public class FontSettings {
 
 	public FontSettings() {
 		int defFontSize = 13;
-		Font defUiFont = new Font(FlatInterFont.FAMILY, Font.PLAIN, defFontSize);
-		Font defCodeFont = new Font(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, defFontSize);
+		Font defUiFont = FontUtils.getCompositeFont(FlatInterFont.FAMILY, Font.PLAIN, defFontSize);
+		Font defCodeFont = FontUtils.getCompositeFont(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, defFontSize);
 		uiFontAdapter = new FontAdapter(defUiFont);
 		codeFontAdapter = new FontAdapter(defCodeFont);
 		smaliFontAdapter = new FontAdapter(defCodeFont);

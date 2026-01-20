@@ -58,7 +58,6 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -1573,7 +1572,7 @@ public class MainWindow extends JFrame {
 		Font defaultUiFont = UIManager.getFont("defaultFont");
 		Font uiFont = settings.getUiFont();
 		if (!uiFont.equals(defaultUiFont)) {
-			UIManager.put("defaultFont", new FontUIResource(uiFont));
+			UIManager.put("defaultFont", uiFont);
 			setFont(uiFont);
 			needUpdateUI = true;
 		}
