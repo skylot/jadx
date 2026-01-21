@@ -49,6 +49,8 @@ import jadx.core.utils.exceptions.JadxException;
 public class DebugUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DebugUtils.class);
 
+	public static final Predicate<MethodNode> TEST_MTH_FILTER = mth -> mth.getName().equals("test");
+
 	private DebugUtils() {
 	}
 
@@ -63,7 +65,7 @@ public class DebugUtils {
 	}
 
 	public static void dumpRawTest(MethodNode mth, String desc) {
-		dumpRaw(mth, desc, method -> method.getName().equals("test"));
+		dumpRaw(mth, desc, TEST_MTH_FILTER);
 	}
 
 	public static void dumpRaw(MethodNode mth, String desc) {
@@ -89,6 +91,10 @@ public class DebugUtils {
 				}
 			}
 		};
+	}
+
+	public static IDexTreeVisitor dumpRawTestVisitor(String desc) {
+		return dumpRawVisitor(desc, TEST_MTH_FILTER);
 	}
 
 	public static void dump(MethodNode mth, String desc) {

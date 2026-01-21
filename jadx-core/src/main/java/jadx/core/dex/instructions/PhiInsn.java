@@ -69,6 +69,15 @@ public final class PhiInsn extends InsnNode {
 		return (RegisterArg) super.getArg(n);
 	}
 
+	public @Nullable RegisterArg getArgByBlock(BlockNode block) {
+		for (int i = 0; i < blockBinds.size(); i++) {
+			if (blockBinds.get(i) == block) {
+				return getArg(i);
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public boolean removeArg(InsnArg arg) {
 		int index = getArgIndex(arg);

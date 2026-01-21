@@ -447,14 +447,9 @@ public final class TypeUpdate {
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
 
-		boolean correctType;
-		if (changeArg.getType().isTypeKnown()) {
-			// allow result to be wider
-			TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
-			correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
-		} else {
-			correctType = true;
-		}
+		// allow result to be wider
+		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
+		boolean correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
 
 		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
 		if (result == SAME && !correctType) {

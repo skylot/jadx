@@ -18,6 +18,7 @@ import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -315,6 +316,13 @@ public class BlockProcessor extends AbstractVisitor {
 		if (mergeConstReturn(mth)) {
 			return true;
 		}
+		if (CodeFeaturesAttr.contains(mth, CodeFeaturesAttr.CodeFeature.SWITCH)) {
+			for (BlockNode basicBlock : mth.getBasicBlocks()) {
+				if (duplicateSimpleMoveBlock(mth, basicBlock)) {
+					return true;
+				}
+			}
+		}
 		return splitExitBlocks(mth);
 	}
 
@@ -381,6 +389,65 @@ public class BlockProcessor extends AbstractVisitor {
 			changed = true;
 		}
 		return changed;
+	}
+
+	/**
+	 * Duplicate block if it contains only one 'move' insn and all predecessors are 'switch' and 'if'.
+	 * This will help to resolve switch cases order and fallthrough detection
+	 * because such move blocks can be deduplicated by compiler.
+	 */
+	private static boolean duplicateSimpleMoveBlock(MethodNode mth, BlockNode block) {
+		List<InsnNode> insns = block.getInstructions();
+		if (insns.size() == 1 && block.getSuccessors().size() == 1) {
+			InsnNode insn = insns.get(0);
+			if (insn.getType() == InsnType.MOVE) {
+				List<BlockNode> preds = block.getPredecessors();
+				int predSize = preds.size();
+				if (predSize >= 3 && onlySwitchAndIfInLastInsns(preds)) {
+					// confirmed, duplicate block
+					BlockNode successor = block.getSuccessors().get(0);
+					List<BlockNode> predsCopy = new ArrayList<>(preds);
+					for (int i = 1; i < predSize; i++) {
+						BlockNode pred = predsCopy.get(i);
+						BlockNode newBlock = BlockSplitter.startNewBlock(mth, -1);
+						newBlock.add(AFlag.SYNTHETIC);
+						for (InsnNode oldInsn : block.getInstructions()) {
+							InsnNode copyInsn = oldInsn.copyWithoutSsa();
+							copyInsn.add(AFlag.SYNTHETIC);
+							newBlock.getInstructions().add(copyInsn);
+						}
+						newBlock.copyAttributesFrom(block);
+						BlockSplitter.replaceConnection(pred, block, newBlock);
+						BlockSplitter.connect(newBlock, successor);
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean onlySwitchAndIfInLastInsns(List<BlockNode> preds) {
+		boolean hasSwitch = false;
+		boolean hasIf = false;
+		for (BlockNode pred : preds) {
+			InsnNode lastInsn = BlockUtils.getLastInsn(pred);
+			if (lastInsn == null) {
+				return false;
+			}
+			InsnType insnType = lastInsn.getType();
+			switch (insnType) {
+				case SWITCH:
+					hasSwitch = true;
+					break;
+				case IF:
+					hasIf = true;
+					break;
+				default:
+					return false;
+			}
+		}
+		return hasSwitch && hasIf;
 	}
 
 	private static boolean simplifyLoopEnd(MethodNode mth, LoopInfo loop) {

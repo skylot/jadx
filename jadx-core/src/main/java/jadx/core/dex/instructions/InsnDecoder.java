@@ -483,7 +483,7 @@ public class InsnDecoder {
 			case FILL_ARRAY_DATA:
 				return new FillArrayInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN_ARRAY), insn.getTarget());
 			case FILL_ARRAY_DATA_PAYLOAD:
-				return new FillArrayData(((IArrayPayload) Objects.requireNonNull(insn.getPayload())));
+				return new FillArrayData((IArrayPayload) Objects.requireNonNull(insn.getPayload()));
 
 			case FILLED_NEW_ARRAY:
 				return filledNewArray(insn, false);
@@ -497,7 +497,7 @@ public class InsnDecoder {
 
 			case PACKED_SWITCH_PAYLOAD:
 			case SPARSE_SWITCH_PAYLOAD:
-				return new SwitchData(((ISwitchPayload) insn.getPayload()));
+				return new SwitchData((ISwitchPayload) insn.getPayload());
 
 			case MONITOR_ENTER:
 				return insn(InsnType.MONITOR_ENTER,
@@ -515,7 +515,7 @@ public class InsnDecoder {
 	}
 
 	private SwitchInsn makeSwitch(InsnData insn, boolean packed) {
-		SwitchInsn swInsn = new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), packed);
+		SwitchInsn swInsn = new SwitchInsn(InsnArg.reg(insn, 0, ArgType.NARROW_INTEGRAL), insn.getTarget(), packed);
 		ICustomPayload payload = insn.getPayload();
 		if (payload != null) {
 			swInsn.attachSwitchData(new SwitchData((ISwitchPayload) payload), insn.getTarget());
