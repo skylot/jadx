@@ -74,6 +74,13 @@ public class TestThrows extends IntegrationTest {
 			}
 		}
 
+		public int doSomething3(int i) throws IllegalArgumentException {
+			if (i < 0) {
+				throw new IllegalArgumentException();
+			}
+			return 1;
+		}
+
 		public void noThrownExceptions1(InputStream i1) {
 			try {
 				i1.close();
@@ -86,6 +93,11 @@ public class TestThrows extends IntegrationTest {
 				throw new FileNotFoundException("");
 			} catch (IOException ignore) {
 			}
+		}
+
+		public void noThrownExceptions3() {
+			int i = doSomething3(0);
+			System.out.print(i);
 		}
 	}
 
@@ -104,7 +116,7 @@ public class TestThrows extends IntegrationTest {
 				.containsOne("mergeThrownExceptions() throws IOException {")
 				.containsOne("rethrowThrowable() {")
 				.containsOne("noThrownExceptions1(InputStream i1) {")
-				.containsOne("noThrownExceptions2() {");
-
+				.containsOne("noThrownExceptions2() {")
+				.containsOne("noThrownExceptions3() {");
 	}
 }
