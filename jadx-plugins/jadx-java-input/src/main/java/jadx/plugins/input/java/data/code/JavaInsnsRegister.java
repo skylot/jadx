@@ -310,7 +310,7 @@ public class JavaInsnsRegister {
 			s.peekFrom(4, 8).peekFrom(1, 9);
 		} else {
 			s.insn().setRegsCount(6);
-			s.insert(2, WIDE);
+			s.insert(1, WIDE);
 			s.peekFrom(0, 0).peekFrom(1, 1);
 			s.peekFrom(1, 2).peekFrom(2, 3);
 			s.peekFrom(2, 4).peekFrom(0, 5);
