@@ -135,12 +135,13 @@ public class TabsController {
 				return;
 			}
 		}
-		if (node.getRootClass() == null) {
+		JClass clsRootClass = node.getRootClass();
+		if (clsRootClass == null) {
 			// not a class, select tab (without position scroll)
 			selectTab(node, fromTree);
 			return;
 		}
-		codeJump(new JumpPosition(node), fromTree);
+		loadCodeWithUIAction(clsRootClass, () -> codeJump(new JumpPosition(node), fromTree));
 	}
 
 	private void loadCodeWithUIAction(JClass cls, Runnable action) {
