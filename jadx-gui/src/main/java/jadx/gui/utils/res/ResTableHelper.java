@@ -31,7 +31,7 @@ public class ResTableHelper {
 	private final String resNamePrefix;
 
 	private ResTableHelper(String resTableFileName) {
-		this.resNamePrefix = resTableFileName + ":/";
+		this.resNamePrefix = resTableFileName + "/";
 	}
 
 	private void process(ResContainer resTable) {
