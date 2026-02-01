@@ -129,6 +129,10 @@ public class JResource extends JLoadableNode {
 		return name;
 	}
 
+	public String getShortName() {
+		return shortName;
+	}
+
 	public JResType getType() {
 		return type;
 	}
