@@ -77,11 +77,14 @@ public class JResource extends JLoadableNode {
 	private transient List<JResource> subNodes = Collections.emptyList();
 	private transient ICodeInfo content = ICodeInfo.EMPTY;
 
-	public JResource(ResourceFile resFile, String name, JResType type) {
+	public JResource(@Nullable ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
 	}
 
-	public JResource(ResourceFile resFile, String name, String shortName, JResType type) {
+	public JResource(@Nullable ResourceFile resFile, String name, String shortName, JResType type) {
+		if (resFile == null && type == JResType.FILE) {
+			throw new IllegalArgumentException("Null resource file");
+		}
 		this.resFile = resFile;
 		this.name = name;
 		this.shortName = shortName;
@@ -217,7 +220,7 @@ public class JResource extends JLoadableNode {
 		}
 		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
 			ICodeInfo codeInfo = loadCurrentSingleRes(rc);
-			List<JResource> nodes = ResTableHelper.buildTree(rc);
+			List<JResource> nodes = ResTableHelper.buildTree(this, rc);
 			sortResNodes(nodes);
 			subNodes = nodes;
 			UiUtils.uiRun(this::update);
