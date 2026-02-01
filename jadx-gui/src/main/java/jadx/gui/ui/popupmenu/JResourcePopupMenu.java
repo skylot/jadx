@@ -117,7 +117,7 @@ public class JResourcePopupMenu extends JPopupMenu {
 	}
 
 	private static void saveJResourceDir(JResource resource, Path savePath, boolean comingFromDialog) {
-		Path subSavePath = savePath.resolve(resource.getName());
+		Path subSavePath = savePath.resolve(resource.getShortName());
 		try {
 			if (!Files.isDirectory(subSavePath)) {
 				Files.createDirectories(subSavePath);
