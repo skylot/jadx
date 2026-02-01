@@ -20,6 +20,12 @@ public abstract class JLoadableNode extends JNode {
 	}
 
 	@Override
+	public @Nullable JNode searchDepthNode(Predicate<JNode> filter) {
+		loadNode();
+		return super.searchDepthNode(filter);
+	}
+
+	@Override
 	public @Nullable JNode removeNode(Predicate<JNode> filter) {
 		loadNode();
 		return super.removeNode(filter);

@@ -12,8 +12,10 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.JSubResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
+import jadx.gui.utils.UiUtils;
 
 public class TabStateViewAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(TabStateViewAdapter.class);
@@ -21,11 +23,13 @@ public class TabStateViewAdapter {
 	@Nullable
 	public static TabViewState build(EditorViewState viewState) {
 		TabViewState tvs = new TabViewState();
+		tvs.setSubPath(viewState.getSubPath());
 		if (!saveJNode(tvs, viewState.getNode())) {
-			LOG.debug("Can't save view state: " + viewState);
+			if (UiUtils.JADX_GUI_DEBUG) {
+				LOG.warn("Can't save view state: {}", viewState);
+			}
 			return null;
 		}
-		tvs.setSubPath(viewState.getSubPath());
 		tvs.setCaret(viewState.getCaretPos());
 		tvs.setView(new ViewPoint(viewState.getViewPoint()));
 		tvs.setActive(viewState.isActive());
@@ -41,6 +45,9 @@ public class TabStateViewAdapter {
 		try {
 			JNode node = loadJNode(mw, tvs);
 			if (node == null) {
+				if (UiUtils.JADX_GUI_DEBUG) {
+					LOG.warn("Can't restore view for {}", tvs);
+				}
 				return null;
 			}
 			EditorViewState viewState = new EditorViewState(node, tvs.getSubPath(), tvs.getCaret(), tvs.getView().toPoint());
@@ -67,8 +74,16 @@ public class TabStateViewAdapter {
 				break;
 
 			case "resource":
-				JResource tmpNode = new JResource(null, tvs.getTabPath(), JResource.JResType.FILE);
-				return mw.getTreeRoot().searchNode(tmpNode); // equals method in JResource check only name
+				return mw.getTreeRoot().searchResourceByName(tvs.getTabPath());
+
+			case "sub-resource":
+				String[] parts = tvs.getTabPath().split(JSubResource.SUB_RES_PREFIX);
+				JResource baseRes = mw.getTreeRoot().searchResourceByName(parts[0]);
+				if (baseRes != null) {
+					String subName = parts[1];
+					return baseRes.searchDepthNode(n -> n.getName().equals(subName)); // will load node before search
+				}
+				return null;
 
 			case "script":
 				return mw.getTreeRoot()
@@ -85,6 +100,12 @@ public class TabStateViewAdapter {
 		if (node instanceof JClass) {
 			tvs.setType("class");
 			tvs.setTabPath(((JClass) node).getCls().getRawName());
+			return true;
+		}
+		if (node instanceof JSubResource) {
+			JSubResource subRes = (JSubResource) node;
+			tvs.setType("sub-resource");
+			tvs.setTabPath(subRes.getBaseRes().getName() + JSubResource.SUB_RES_PREFIX + subRes.getName());
 			return true;
 		}
 		if (node instanceof JResource) {

@@ -12,6 +12,7 @@ import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.JSubResource;
 
 public class ResTableHelper {
 
@@ -20,18 +21,18 @@ public class ResTableHelper {
 	 *
 	 * @return root nodes
 	 */
-	public static List<JResource> buildTree(ResContainer resTable) {
-		ResTableHelper resTableHelper = new ResTableHelper(resTable.getFileName());
+	public static List<JResource> buildTree(JResource resTableRes, ResContainer resTable) {
+		ResTableHelper resTableHelper = new ResTableHelper(resTableRes);
 		resTableHelper.process(resTable);
 		return resTableHelper.roots;
 	}
 
 	private final List<JResource> roots = new ArrayList<>();
 	private final Map<String, JResource> dirs = new HashMap<>();
-	private final String resNamePrefix;
+	private final JResource resTableRes;
 
-	private ResTableHelper(String resTableFileName) {
-		this.resNamePrefix = resTableFileName + "/";
+	private ResTableHelper(JResource resTableRes) {
+		this.resTableRes = resTableRes;
 	}
 
 	private void process(ResContainer resTable) {
@@ -54,7 +55,7 @@ public class ResTableHelper {
 		}
 		ICodeInfo code = rc.getText();
 		ResourceFileContent fileContent = new ResourceFileContent(name, ResourceType.XML, code);
-		JResource resFile = new JResource(fileContent, resNamePrefix + resName, name, JResource.JResType.FILE);
+		JResource resFile = new JSubResource(resTableRes, fileContent, resName, name, JResource.JResType.FILE);
 		addResFile(dir, resFile);
 
 		for (ResContainer subFile : rc.getSubFiles()) {
@@ -82,7 +83,7 @@ public class ResTableHelper {
 			JResource curDir = dirs.get(path);
 			if (curDir == null) {
 				String dirName = last ? dir.substring(prevStart) : dir.substring(prevStart, splitPos);
-				curDir = new JResource(null, resNamePrefix + path, dirName, JResource.JResType.DIR);
+				curDir = new JSubResource(resTableRes, null, path, dirName, JResource.JResType.DIR);
 				dirs.put(path, curDir);
 				if (parentDir == null) {
 					roots.add(curDir);
