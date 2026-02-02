@@ -39,6 +39,8 @@ import jadx.gui.utils.ui.NodeLabel;
 public class TabComponent extends JPanel {
 	private static final long serialVersionUID = -8147035487543610321L;
 
+	private static final int TAB_TITLE_MAX_LENGTH = 30;
+
 	private final TabbedPane tabbedPane;
 	private final TabsController tabsController;
 	private final ContentPanel contentPanel;
@@ -81,7 +83,7 @@ public class TabComponent extends JPanel {
 		icon = new OverlayIcon(node.getIcon());
 
 		label = new NodeLabel(buildTabTitle(node), node.disableHtml());
-		String toolTip = contentPanel.getTabTooltip();
+		String toolTip = contentPanel.getNode().getTooltip();
 		if (toolTip != null) {
 			setToolTipText(toolTip);
 		}
@@ -208,11 +210,18 @@ public class TabComponent extends JPanel {
 	}
 
 	private String buildTabTitle(JNode node) {
-		String tabTitle;
-		if (node.getRootClass() != null) {
-			tabTitle = node.getRootClass().getName();
-		} else {
-			tabTitle = node.makeLongStringHtml();
+		String tabTitle = node.makeStringHtml();
+		if (tabbedPane.tabWithTitleExists(tabTitle)) {
+			tabTitle = node.makeLongString();
+		}
+		String newTabTitle = UiUtils.limitStringLength(tabTitle, TAB_TITLE_MAX_LENGTH);
+		if (!newTabTitle.equals(tabTitle)) {
+			if (tabbedPane.tabWithTitleExists(newTabTitle)) {
+				// shorter version also exist => make longer version (last try)
+				tabTitle = UiUtils.limitStringLength(tabTitle, (int) (TAB_TITLE_MAX_LENGTH * 1.2));
+			} else {
+				tabTitle = newTabTitle;
+			}
 		}
 		if (node instanceof JEditableNode) {
 			if (((JEditableNode) node).isChanged()) {
@@ -360,5 +369,9 @@ public class TabComponent extends JPanel {
 
 	public JNode getNode() {
 		return contentPanel.getNode();
+	}
+
+	public String getTabTitle() {
+		return label.getText();
 	}
 }
