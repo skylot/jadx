@@ -16,7 +16,7 @@ final class ZipDeflate {
 		ByteBuffer entryBuf = buf.slice();
 		entryBuf.limit((int) entry.getCompressedSize());
 		if (entry.getUncompressedSize() > Integer.MAX_VALUE) {
-    		throw new IOException("Entry too large: " + entry.getUncompressedSize());
+    		throw new DataFormatException("Entry too large: " + entry.getUncompressedSize());
 		}
 		byte[] out = new byte[(int) entry.getUncompressedSize()];
 		Inflater inflater = new Inflater(true);
