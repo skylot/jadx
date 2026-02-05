@@ -5,8 +5,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -293,9 +296,16 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
+		Set<Integer> processedIdx = new HashSet<>();
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
 			if (offset == NO_ENTRY) {
+				continue;
+			}
+			int index = entryOffset.getIdx();
+			if (isSparse && !processedIdx.add(index)) {
+				// Sometimes sparse type chunks contain multiple entries with the same index.
+				// If we have processed the index once we can ignore those entries.
 				continue;
 			}
 			long entryStartOffset = entriesStart + offset;
@@ -310,7 +320,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				// workaround for issue #2343: if the entryStartOffset is located before our current position
 				is.reset();
 			}
-			int index = entryOffset.getIdx();
 			is.skipToPos(entryStartOffset, "Expected start of entry " + index);
 			parseEntry(pkg, id, index, config.getQualifiers());
 		}
@@ -336,6 +345,14 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		public int getOffset() {
 			return offset;
+		}
+
+		@Override
+		public String toString() {
+			return new StringJoiner(", ", EntryOffset.class.getSimpleName() + "[", "]")
+					.add("idx=" + idx)
+					.add("offset=" + offset)
+					.toString();
 		}
 	}
 
