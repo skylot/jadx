@@ -246,7 +246,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	 * from <code>ResChunk_header</code>).
 	 *
 	 * @see <a href=
-	 *      "https://github.com/aosp-mirror/platform_frameworks_base/blob/master/libs/androidfw/include/androidfw/ResourceTypes.h"></a>ResourceTypes.h</a>
+	 * "https://github.com/aosp-mirror/platform_frameworks_base/blob/master/libs/androidfw/include/androidfw/ResourceTypes.h"></a>ResourceTypes.h</a>
 	 */
 	private void parseTypeChunk(long start, PackageChunk pkg) throws IOException {
 		/* int headerSize = */
@@ -296,7 +296,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
-		Set<Integer> processedOffsets = new HashSet<>();
+		Set<Integer> processedOffsets = new HashSet<>(offsets.size() * 2);
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
 			if (offset == NO_ENTRY) {
@@ -602,9 +602,9 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 			// since this function handles languages & regions, we add the value(s) to the base char
 			// which is usually 'a' or '0' depending on language or region.
-			return new char[] { (char) (first + base), (char) (second + base), (char) (third + base) };
+			return new char[]{(char) (first + base), (char) (second + base), (char) (third + base)};
 		}
-		return new char[] { (char) in0, (char) in1 };
+		return new char[]{(char) in0, (char) in1};
 	}
 
 	private String readScriptOrVariantChar(int length) throws IOException {
