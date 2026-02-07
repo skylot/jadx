@@ -32,8 +32,8 @@ public final class ResourceEntry {
 		return copy;
 	}
 
-	public ResourceEntry copyWithId() {
-		return copy(String.format("%s_res_0x%08x", keyName, id));
+	public ResourceEntry copyWithId(String resName) {
+		return copy(String.format("%s_res_0x%08x", resName, id));
 	}
 
 	public int getId() {
