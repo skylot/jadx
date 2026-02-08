@@ -55,7 +55,7 @@ public class ApplicationParams {
 	}
 
 	public JavaClass getMainActivityJavaClass(JadxDecompiler decompiler) {
-		return decompiler.searchJavaClassByOrigFullName(mainActivity);
+		return decompiler.searchJavaClassByAliasFullName(mainActivity);
 	}
 
 	public String getApplication() {
@@ -63,6 +63,6 @@ public class ApplicationParams {
 	}
 
 	public JavaClass getApplicationJavaClass(JadxDecompiler decompiler) {
-		return decompiler.searchJavaClassByOrigFullName(application);
+		return decompiler.searchJavaClassByAliasFullName(application);
 	}
 }
