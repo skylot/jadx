@@ -19,6 +19,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JResource.JResType;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -28,18 +29,20 @@ public class JRoot extends JNode {
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/rootPackageFolder");
 
 	private final transient JadxWrapper wrapper;
+	private final transient MainWindow mainWindow;
 
 	private transient boolean flatPackages = false;
 
-	private final List<JNode> customNodes = new ArrayList<>();
+	private final transient List<JNode> customNodes = new ArrayList<>();
 
-	public JRoot(JadxWrapper wrapper) {
-		this.wrapper = wrapper;
+	public JRoot(MainWindow mainWindow) {
+		this.mainWindow = mainWindow;
+		this.wrapper = mainWindow.getWrapper();
 	}
 
 	public final void update() {
 		removeAllChildren();
-		add(new JInputs(wrapper));
+		add(new JInputs(mainWindow));
 		add(new JSources(this, wrapper));
 
 		List<ResourceFile> resources = wrapper.getResources();

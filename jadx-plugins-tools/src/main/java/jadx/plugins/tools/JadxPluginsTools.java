@@ -26,6 +26,7 @@ import jadx.api.plugins.JadxPluginInfo;
 import jadx.core.Jadx;
 import jadx.core.plugins.versions.VerifyRequiredVersion;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.plugins.tools.data.JadxInstalledPlugins;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -83,12 +84,13 @@ public class JadxPluginsTools {
 				install(pluginMetadata);
 				return pluginMetadata;
 			}
-			rejectedVersions.add(" version " + pluginMetadata.getVersion()
-					+ " not compatible, require: " + pluginMetadata.getRequiredJadxVersion());
+			String pluginVersion = Utils.getOrElse(pluginMetadata.getVersion(), "unknown");
+			rejectedVersions.add(" version '" + pluginVersion + "' not compatible, require: "
+					+ pluginMetadata.getRequiredJadxVersion());
 		}
 		throw new JadxRuntimeException("Can't find compatible version to install"
 				+ ", current jadx version: " + verifyRequiredVersion.getJadxVersion()
-				+ "\nrejected versions:\n"
+				+ "\nrejected plugin versions:\n"
 				+ String.join("\n", rejectedVersions));
 	}
 

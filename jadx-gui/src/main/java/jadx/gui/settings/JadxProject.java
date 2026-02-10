@@ -53,6 +53,7 @@ public class JadxProject {
 	private static final int SEARCH_HISTORY_LIMIT = 30;
 
 	private final transient MainWindow mainWindow;
+	private final transient TabStateViewAdapter tabStateViewAdapter = new TabStateViewAdapter();
 
 	private transient String name = "New Project";
 	private transient @Nullable Path projectPath;
@@ -155,7 +156,7 @@ public class JadxProject {
 
 	public void saveOpenTabs(List<EditorViewState> tabs) {
 		List<TabViewState> tabStateList = tabs.stream()
-				.map(TabStateViewAdapter::build)
+				.map(tabStateViewAdapter::build)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		if (data.setOpenTabs(tabStateList)) {
@@ -164,8 +165,9 @@ public class JadxProject {
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
+		tabStateViewAdapter.setCustomAdapters(mw.getWrapper().getGuiPluginsContext().getTabStatePersistAdapters());
 		return data.getOpenTabs().stream()
-				.map(s -> TabStateViewAdapter.load(mw, s))
+				.map(s -> tabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 	}

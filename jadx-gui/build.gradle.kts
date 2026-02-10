@@ -16,21 +16,12 @@ dependencies {
 	// import mappings
 	implementation(project(":jadx-plugins:jadx-rename-mappings"))
 
-	// jadx-script autocomplete support
-	implementation(project(":jadx-plugins:jadx-script:jadx-script-ide"))
-	implementation(project(":jadx-plugins:jadx-script:jadx-script-runtime"))
-	implementation(kotlin("scripting-common"))
-	implementation("com.fifesoft:autocomplete:3.3.2")
-
-	// use KtLint for format and check jadx scripts
-	implementation("com.pinterest.ktlint:ktlint-rule-engine:1.8.0")
-	implementation("com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0")
-
 	implementation("org.jcommander:jcommander:2.0")
 	implementation("ch.qos.logback:logback-classic:1.5.21")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
-	implementation("com.fifesoft:rsyntaxtextarea:3.6.0")
+	implementation("com.fifesoft:rsyntaxtextarea:3.6.1")
+	implementation("com.fifesoft:autocomplete:3.3.2")
 	implementation("org.drjekyll:fontchooser:3.1.0")
 	implementation("hu.kazocsaba:image-viewer:1.2.3")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0") // WebP support for image viewer

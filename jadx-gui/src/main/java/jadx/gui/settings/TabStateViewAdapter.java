@@ -1,15 +1,19 @@
 package jadx.gui.settings;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.gui.plugins.mappings.JInputMapping;
+import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.settings.data.ViewPoint;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JSubResource;
@@ -20,8 +24,9 @@ import jadx.gui.utils.UiUtils;
 public class TabStateViewAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(TabStateViewAdapter.class);
 
-	@Nullable
-	public static TabViewState build(EditorViewState viewState) {
+	private final Map<String, ITabStatePersist> customAdaptersMap = new HashMap<>();
+
+	public @Nullable TabViewState build(EditorViewState viewState) {
 		TabViewState tvs = new TabViewState();
 		tvs.setSubPath(viewState.getSubPath());
 		if (!saveJNode(tvs, viewState.getNode())) {
@@ -40,8 +45,7 @@ public class TabStateViewAdapter {
 		return tvs;
 	}
 
-	@Nullable
-	public static EditorViewState load(MainWindow mw, TabViewState tvs) {
+	public @Nullable EditorViewState load(MainWindow mw, TabViewState tvs) {
 		try {
 			JNode node = loadJNode(mw, tvs);
 			if (node == null) {
@@ -63,8 +67,15 @@ public class TabStateViewAdapter {
 		}
 	}
 
+	public void setCustomAdapters(List<ITabStatePersist> customAdapters) {
+		customAdaptersMap.clear();
+		for (ITabStatePersist customAdapter : customAdapters) {
+			customAdaptersMap.put(customAdapter.getNodeClass().getName(), customAdapter);
+		}
+	}
+
 	@Nullable
-	private static JNode loadJNode(MainWindow mw, TabViewState tvs) {
+	private JNode loadJNode(MainWindow mw, TabViewState tvs) {
 		switch (tvs.getType()) {
 			case "class":
 				JavaClass javaClass = mw.getWrapper().searchJavaClassByRawName(tvs.getTabPath());
@@ -85,18 +96,21 @@ public class TabStateViewAdapter {
 				}
 				return null;
 
-			case "script":
-				return mw.getTreeRoot()
-						.followStaticPath("JInputs", "JInputScripts")
-						.searchNode(node -> node instanceof JInputScript && node.getName().equals(tvs.getTabPath()));
-
 			case "mapping":
 				return mw.getTreeRoot().followStaticPath("JInputs").searchNode(node -> node instanceof JInputMapping);
+		}
+		ITabStatePersist statePersist = customAdaptersMap.get(tvs.getType());
+		if (statePersist != null) {
+			try {
+				return statePersist.load(tvs.getTabPath());
+			} catch (Exception e) {
+				LOG.error("Failed to restore tab for custom node adapter: {}", tvs.getType(), e);
+			}
 		}
 		return null;
 	}
 
-	private static boolean saveJNode(TabViewState tvs, JNode node) {
+	private boolean saveJNode(TabViewState tvs, JNode node) {
 		if (node instanceof JClass) {
 			tvs.setType("class");
 			tvs.setTabPath(((JClass) node).getCls().getRawName());
@@ -113,14 +127,21 @@ public class TabStateViewAdapter {
 			tvs.setTabPath(node.getName());
 			return true;
 		}
-		if (node instanceof JInputScript) {
-			tvs.setType("script");
-			tvs.setTabPath(node.getName());
-			return true;
-		}
 		if (node instanceof JInputMapping) {
 			tvs.setType("mapping");
 			return true;
+		}
+
+		String typeName = node.getClass().getName();
+		ITabStatePersist statePersist = customAdaptersMap.get(typeName);
+		if (statePersist != null) {
+			try {
+				tvs.setTabPath(statePersist.save(node));
+				tvs.setType(statePersist.getNodeClass().getName());
+				return true;
+			} catch (Exception e) {
+				LOG.error("Failed to save state for custom node: {}", typeName, e);
+			}
 		}
 		return false;
 	}

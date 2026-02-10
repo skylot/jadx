@@ -39,6 +39,7 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	private final JadxPluginsData pluginsData;
 	private final JadxPlugin plugin;
 	private final JadxPluginInfo pluginInfo;
+	private final ClassLoader pluginClassLoader;
 
 	private AppContext appContext;
 
@@ -53,16 +54,30 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		this.pluginsData = pluginsData;
 		this.plugin = plugin;
 		this.pluginInfo = plugin.getPluginInfo();
+		this.pluginClassLoader = plugin.getClass().getClassLoader();
 	}
 
 	public void init() {
-		plugin.init(this);
-		initialized = true;
+		classLoaderWrap(() -> {
+			plugin.init(this);
+			initialized = true;
+		});
 	}
 
 	public void unload() {
 		if (initialized) {
-			plugin.unload();
+			classLoaderWrap(plugin::unload);
+		}
+	}
+
+	public void classLoaderWrap(Runnable task) {
+		Thread thread = Thread.currentThread();
+		ClassLoader prevClassLoader = thread.getContextClassLoader();
+		thread.setContextClassLoader(pluginClassLoader);
+		try {
+			task.run();
+		} finally {
+			thread.setContextClassLoader(prevClassLoader);
 		}
 	}
 

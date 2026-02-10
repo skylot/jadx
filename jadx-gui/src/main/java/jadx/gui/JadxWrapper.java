@@ -21,6 +21,9 @@ import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.api.impl.InMemoryCodeCache;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.plugins.pass.JadxPassInfo;
+import jadx.api.plugins.pass.impl.SimpleJadxPassInfo;
+import jadx.api.plugins.pass.types.JadxPreparePass;
 import jadx.api.usage.impl.EmptyUsageInfoCache;
 import jadx.api.usage.impl.InMemoryUsageInfoCache;
 import jadx.cli.JadxAppCommon;
@@ -30,6 +33,7 @@ import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.plugins.AppContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.code.CodeStringCache;
 import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
@@ -73,10 +77,9 @@ public class JadxWrapper {
 				decompiler = new JadxDecompiler(jadxArgs);
 				guiPluginsContext = initGuiPluginsContext(decompiler, mainWindow);
 				initUsageCache(jadxArgs);
+				registerCodeCache(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
-
 				decompiler.load();
-				initCodeCache();
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler wrapper init error", e);
@@ -114,22 +117,39 @@ public class JadxWrapper {
 		}
 	}
 
-	private void initCodeCache() {
-		switch (getSettings().getCodeCacheMode()) {
-			case MEMORY:
-				getArgs().setCodeCache(new InMemoryCodeCache());
-				break;
-			case DISK_WITH_CACHE:
-				getArgs().setCodeCache(new CodeStringCache(buildBufferedDiskCache()));
-				break;
-			case DISK:
-				getArgs().setCodeCache(buildBufferedDiskCache());
-				break;
+	/**
+	 * Disk cache require loaded classes to operate, but cache should be set before 'after load' event
+	 * to allow plugins decompile classes with cache enabled.
+	 * To resolve this, register last 'prepare' pass for cache initialization.
+	 */
+	private void registerCodeCache(JadxDecompiler jadxDecompiler) {
+		CodeCacheMode codeCacheMode = getSettings().getCodeCacheMode();
+		if (codeCacheMode == CodeCacheMode.MEMORY) {
+			jadxDecompiler.getArgs().setCodeCache(new InMemoryCodeCache());
+			return;
 		}
+		jadxDecompiler.addCustomPass(new JadxPreparePass() {
+			@Override
+			public JadxPassInfo getInfo() {
+				return new SimpleJadxPassInfo("CacheInit");
+			}
+
+			@Override
+			public void init(RootNode root) {
+				switch (getSettings().getCodeCacheMode()) {
+					case DISK_WITH_CACHE:
+						root.getArgs().setCodeCache(new CodeStringCache(buildBufferedDiskCache(root)));
+						break;
+					case DISK:
+						root.getArgs().setCodeCache(buildBufferedDiskCache(root));
+						break;
+				}
+			}
+		});
 	}
 
-	private BufferCodeCache buildBufferedDiskCache() {
-		DiskCodeCache diskCache = new DiskCodeCache(getDecompiler().getRoot(), getProject().getCacheDir());
+	private BufferCodeCache buildBufferedDiskCache(RootNode root) {
+		DiskCodeCache diskCache = new DiskCodeCache(root, getProject().getCacheDir());
 		return new BufferCodeCache(diskCache);
 	}
 

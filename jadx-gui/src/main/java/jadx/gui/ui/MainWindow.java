@@ -828,7 +828,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void initTree() {
-		treeRoot = new JRoot(wrapper);
+		treeRoot = new JRoot(this);
 		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
 		addTreeCustomNodes();
