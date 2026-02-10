@@ -35,6 +35,16 @@ public class JResSearchNode extends JNode {
 	}
 
 	@Override
+	public String makeLongStringHtml() {
+		return getName();
+	}
+
+	@Override
+	public Icon getIcon() {
+		return resNode.getIcon();
+	}
+
+	@Override
 	public String getName() {
 		return resNode.getName();
 	}
@@ -42,31 +52,6 @@ public class JResSearchNode extends JNode {
 	@Override
 	public String makeString() {
 		return resNode.makeString();
-	}
-
-	@Override
-	public String makeLongString() {
-		return resNode.makeLongString();
-	}
-
-	@Override
-	public String makeLongStringHtml() {
-		return resNode.makeLongStringHtml();
-	}
-
-	@Override
-	public String getTooltip() {
-		return resNode.getTooltip();
-	}
-
-	@Override
-	public boolean disableHtml() {
-		return resNode.disableHtml();
-	}
-
-	@Override
-	public Icon getIcon() {
-		return resNode.getIcon();
 	}
 
 	@Override

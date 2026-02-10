@@ -2,8 +2,10 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +21,7 @@ import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.api.utils.CodeUtils;
@@ -81,7 +84,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<LoopInfo> loops;
 	private Region region;
 
+	// Methods that use this method
 	private List<MethodNode> useIn = Collections.emptyList();
+	// Unresolved methods that use this method
+	private List<IMethodRef> unresolvedUsed = Collections.emptyList();
+	// Methods that this method uses
+	private Set<MethodNode> methodsUsed = new HashSet<>();
+	// True if this method contains a self call
+	private boolean callsSelf = false;
 
 	private JavaMethod javaNode;
 
@@ -702,12 +712,60 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return codeReader;
 	}
 
+	// Cannot modify through get, use setUseIn
 	public List<MethodNode> getUseIn() {
-		return useIn;
+		return Collections.unmodifiableList(useIn);
 	}
 
+	// Do not modify passed list after setting
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
+
+		// Notify all methods (callers) this method (calee) is used in
+		for (MethodNode methodUsedIn : useIn) {
+			methodUsedIn.addUsed(this);
+		}
+	}
+
+	public void addUsed(MethodNode used) {
+		if (used != null) {
+			this.methodsUsed.add(used);
+		}
+	}
+
+	public void setUsed(List<MethodNode> methodsUsed) {
+		this.methodsUsed = new HashSet<>(methodsUsed);
+	}
+
+	public Set<MethodNode> getUsed() {
+		this.removeInavlidMethodsUsed();
+		return methodsUsed;
+	}
+
+	public List<IMethodRef> getUnresolvedUsed() {
+		return unresolvedUsed;
+	}
+
+	public void setUnresolvedUsed(List<IMethodRef> unresolvedUsed) {
+		this.unresolvedUsed = unresolvedUsed;
+	}
+
+	public void setCallsSelf(boolean callsSelf) {
+		this.callsSelf = callsSelf;
+	}
+
+	public boolean callsSelf() {
+		return this.callsSelf;
+	}
+
+	// Remove any methods from the list of used methods (calees) if this method (caller) has been
+	// removed from the calee's list of callers
+	private void removeInavlidMethodsUsed() {
+		for (MethodNode methodUsed : new ArrayList<>(methodsUsed)) {
+			if (!methodUsed.getUseIn().contains(this)) {
+				methodsUsed.remove(methodUsed);
+			}
+		}
 	}
 
 	public JavaMethod getJavaNode() {

@@ -108,6 +108,11 @@ public class Smali {
 		return -1;
 	}
 
+	@Nullable
+	public SmaliMethodNode getMethodNode(String mthFullRawID) {
+		return insnMap.get(mthFullRawID);
+	}
+
 	public int getRegCount(String mthFullRawID) {
 		SmaliMethodNode info = insnMap.get(mthFullRawID);
 		if (info != null) {

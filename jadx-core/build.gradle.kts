@@ -11,10 +11,12 @@ dependencies {
 	testImplementation("org.apache.commons:commons-lang3:3.20.0")
 
 	testImplementation(project(":jadx-plugins:jadx-dex-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-java-convert"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-java-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-raung-input"))
+	// 'ClassNotFound' error is raised if set as 'testRuntime'
+	// for the plugins below when running the tests from vscode.
+	testImplementation(project(":jadx-plugins:jadx-smali-input"))
+	testImplementation(project(":jadx-plugins:jadx-java-convert"))
+	testImplementation(project(":jadx-plugins:jadx-java-input"))
+	testImplementation(project(":jadx-plugins:jadx-raung-input"))
 
 	testImplementation("org.eclipse.jdt:ecj") {
 		version {

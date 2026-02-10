@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -31,6 +32,7 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -506,11 +508,108 @@ public class BlockUtils {
 		}
 	}
 
+	public static List<BlockNode> collectAllPredecessors(MethodNode mth, BlockNode startBlock) {
+		List<BlockNode> list = new ArrayList<>(mth.getBasicBlocks().size());
+		Function<BlockNode, List<BlockNode>> nextFunc = BlockNode::getPredecessors;
+		visitDFS(mth, startBlock, nextFunc, list::add);
+		return list;
+	}
+
 	public static List<BlockNode> collectAllSuccessors(MethodNode mth, BlockNode startBlock, boolean clean) {
 		List<BlockNode> list = new ArrayList<>(mth.getBasicBlocks().size());
 		Function<BlockNode, List<BlockNode>> nextFunc = clean ? BlockNode::getCleanSuccessors : BlockNode::getSuccessors;
 		visitDFS(mth, startBlock, nextFunc, list::add);
 		return list;
+	}
+
+	public static List<BlockNode> collectAllSuccessorsUntil(MethodNode mth, BlockNode startBlock, boolean clean,
+			Predicate<BlockNode> stopCondition) {
+		List<BlockNode> blocks = new ArrayList<>();
+		collectAllSuccessorsUntil(mth, blocks, startBlock, clean, stopCondition);
+		return blocks;
+	}
+
+	private static void collectAllSuccessorsUntil(MethodNode mth, List<BlockNode> blocks, BlockNode currentBlock, boolean clean,
+			Predicate<BlockNode> stopCondition) {
+		if (blocks.contains(currentBlock)) {
+			return;
+		}
+
+		blocks.add(currentBlock);
+
+		if (stopCondition.test(currentBlock)) {
+			return;
+		}
+
+		List<BlockNode> successors = clean ? currentBlock.getCleanSuccessors() : currentBlock.getSuccessors();
+		for (BlockNode successor : successors) {
+			collectAllSuccessorsUntil(mth, blocks, successor, clean, stopCondition);
+		}
+	}
+
+	@Nullable
+	public static BlockNode getBottomCommonPredecessor(MethodNode mth, List<BlockNode> blocks, Set<BlockNode> containedBlocks) {
+		return getBottomCommonPredecessor(mth, blocks, containedBlocks, false);
+	}
+
+	@Nullable
+	public static BlockNode getBottomCommonPredecessor(MethodNode mth, List<BlockNode> blocks, Set<BlockNode> containedBlocks,
+			boolean addTopBlock) {
+		if (blocks.isEmpty()) {
+			return null;
+		}
+
+		Set<BlockNode> visitedPredecessorsByAll = new HashSet<>(collectAllPredecessors(mth, blocks.get(0)));
+
+		if (addTopBlock) {
+			BlockNode topBlock = BlockUtils.getBottomBlock(blocks);
+			if (topBlock == null) {
+				// TODO: These nodes are not connected so there will be no common successor ????
+				// return null;
+			} else {
+				visitedPredecessorsByAll.add(topBlock);
+			}
+		}
+
+		for (int i = 1; i < blocks.size(); i++) {
+			BlockNode nextBlock = blocks.get(i);
+			List<BlockNode> predecessors = collectAllPredecessors(mth, nextBlock);
+			visitedPredecessorsByAll.retainAll(predecessors);
+		}
+
+		return BlockUtils.getBottomBlock(new ArrayList<>(visitedPredecessorsByAll));
+	}
+
+	@Nullable
+	public static BlockNode getTopCommonSuccessor(MethodNode mth, List<BlockNode> blocks, boolean cleanOnly) {
+		return getTopCommonSuccessor(mth, blocks, cleanOnly, false);
+	}
+
+	@Nullable
+	public static BlockNode getTopCommonSuccessor(MethodNode mth, List<BlockNode> blocks, boolean cleanOnly, boolean addTopBlock) {
+		if (blocks.isEmpty()) {
+			return null;
+		}
+
+		Set<BlockNode> visitedSuccessorsByAll = new HashSet<>(collectAllSuccessors(mth, blocks.get(0), cleanOnly));
+
+		if (addTopBlock) {
+			BlockNode topBlock = BlockUtils.getTopBlock(blocks);
+			if (topBlock == null) {
+				// TODO: These nodes are not connected so there will be no common successor ????
+				// return null;
+			} else {
+				visitedSuccessorsByAll.add(topBlock);
+			}
+		}
+
+		for (int i = 1; i < blocks.size(); i++) {
+			BlockNode nextBlock = blocks.get(i);
+			List<BlockNode> successors = collectAllSuccessors(mth, nextBlock, cleanOnly);
+			visitedSuccessorsByAll.retainAll(successors);
+		}
+
+		return BlockUtils.getTopBlock(new ArrayList<>(visitedSuccessorsByAll));
 	}
 
 	public static void visitDFS(MethodNode mth, Consumer<BlockNode> visitor) {
@@ -584,6 +683,22 @@ public class BlockUtils {
 		return set;
 	}
 
+	/**
+	 * Collect blocks from one possible execution path from 'start' to 'end' containing no instructions
+	 */
+	public static List<BlockNode> getOneEmptyPath(BlockNode start, BlockNode end) {
+		return collectPathUntil(start, end, false, b -> {
+			return b.getInstructions().isEmpty() || b.equals(end);
+		});
+	}
+
+	/**
+	 * Collect blocks from one possible execution path from 'start' to 'end'
+	 */
+	public static List<BlockNode> getOnePath(BlockNode start, BlockNode end) {
+		return collectPathUntil(start, end, false, b -> true);
+	}
+
 	private static void addPredecessors(Set<BlockNode> set, BlockNode from, BlockNode until) {
 		set.add(from);
 		for (BlockNode pred : from.getPredecessors()) {
@@ -594,8 +709,30 @@ public class BlockUtils {
 	}
 
 	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited, boolean clean) {
+		return traverseSuccessorsUntil(from, until, visited, clean, b -> true);
+	}
+
+	/**
+	 *
+	 * Traverse succcessors until a node is found
+	 *
+	 * @param from    the source node to begin traversing
+	 * @param until   the destination node to halt traversing
+	 * @param visited the set of visited blocks so far
+	 * @param clean   use only clean successors
+	 * @param pred    a predicate that must be true to traverse a block (until or a reachable dominator
+	 *                of until must satisfy pred)
+	 * @return true if there is a path from `from` to `until` or a dominator of `until` through blocks
+	 *         that satisfy `pred`, false otherwise
+	 */
+	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited, boolean clean,
+			Predicate<BlockNode> pred) {
 		List<BlockNode> nodes = clean ? from.getCleanSuccessors() : from.getSuccessors();
 		for (BlockNode s : nodes) {
+			if (!pred.test(s)) {
+				// Only explore blocks such that the predicate holds
+				continue;
+			}
 			if (s == until) {
 				return true;
 			}
@@ -609,12 +746,71 @@ public class BlockUtils {
 				if (until.isDominator(s)) {
 					return true;
 				}
-				if (traverseSuccessorsUntil(s, until, visited, clean)) {
+				if (traverseSuccessorsUntil(s, until, visited, clean, pred)) {
 					return true;
 				}
 			}
 		}
 		return false;
+	}
+
+	/**
+	 *
+	 * Traverse succcessors until a node is found, collecting the path to the node
+	 *
+	 * @param from  the source node to begin traversing
+	 * @param until the destination node to halt traversing
+	 * @param clean use only clean successors
+	 * @param pred  a predicate that must be true to traverse a block (until must satisfy pred)
+	 * @return the list of blocks satisfying pred on a path between from and until (inclusive), or null
+	 *         if no such path exists
+	 */
+	public static List<BlockNode> collectPathUntil(BlockNode from, BlockNode until, boolean clean, Predicate<BlockNode> pred) {
+		List<BlockNode> path = internalCollectPathUntil(from, until, new BitSet(), clean, pred);
+		if (path == null) {
+			return path;
+		}
+		path.add(from);
+		Collections.reverse(path);
+		return path;
+	}
+
+	/**
+	 *
+	 * Traverse succcessors until a node is found, collecting the path to the node
+	 *
+	 * @param from    the source node to begin traversing
+	 * @param until   the destination node to halt traversing
+	 * @param visited the set of visited blocks so far
+	 * @param clean   use only clean successors
+	 * @param pred    a predicate that must be true to traverse a block (until must satisfy pred)
+	 * @return the list of blocks satisfying pred on a path between from (exclusive) and until
+	 *         (inclusive) in reverse order, or null if no such path exists
+	 */
+	private static List<BlockNode> internalCollectPathUntil(BlockNode from, BlockNode until, BitSet visited, boolean clean,
+			Predicate<BlockNode> pred) {
+		List<BlockNode> nodes = clean ? from.getCleanSuccessors() : from.getSuccessors();
+		for (BlockNode s : nodes) {
+			if (!pred.test(s)) {
+				// Only explore blocks such that the predicate holds
+				continue;
+			}
+			if (s == until) {
+				List<BlockNode> path = new ArrayList<>();
+				path.add(s);
+				return path;
+			}
+			int id = s.getPos();
+			if (!visited.get(id)) {
+				visited.set(id);
+				List<BlockNode> path = internalCollectPathUntil(s, until, visited, clean, pred);
+				if (path != null) {
+					path.add(s);
+					return path;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -643,12 +839,8 @@ public class BlockUtils {
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
 		if (start == end
-				|| end.isDominator(start)
 				|| start.getCleanSuccessors().contains(end)) {
 			return true;
-		}
-		if (start.getPredecessors().contains(end)) {
-			return false;
 		}
 		return traverseSuccessorsUntil(start, end, new BitSet(), true);
 	}
@@ -659,10 +851,14 @@ public class BlockUtils {
 				|| start.getSuccessors().contains(end)) {
 			return true;
 		}
-		if (start.getPredecessors().contains(end)) {
-			return false;
-		}
 		return traverseSuccessorsUntil(start, end, new BitSet(), false);
+	}
+
+	public static boolean isPathExists(BlockNode start, BlockNode end, Predicate<BlockNode> pred) {
+		if (start == end) {
+			return true;
+		}
+		return traverseSuccessorsUntil(start, end, new BitSet(), false, pred);
 	}
 
 	public static BlockNode getTopBlock(List<BlockNode> blocks) {
@@ -689,16 +885,46 @@ public class BlockUtils {
 	 */
 	@Nullable
 	public static BlockNode getBottomBlock(List<BlockNode> blocks) {
+		return getBottomBlock(blocks, false);
+	}
+
+	public static BlockNode getBottomBlock(List<BlockNode> blocks, boolean clean) {
 		if (blocks.size() == 1) {
 			return blocks.get(0);
 		}
+		// attempt 1: look for a block dominated by every other block
+		// don't do this if clean, since dominators always consider all successors
+		if (!clean) {
+			for (BlockNode bottomCandidate : blocks) {
+				boolean bottom = true;
+				for (BlockNode from : blocks) {
+					if (bottomCandidate != from && !bottomCandidate.isDominator(from)) {
+						bottom = false;
+						break;
+					}
+				}
+				if (bottom) {
+					return bottomCandidate;
+				}
+			}
+		}
+
+		// attempt 2: look for a block with a path from every other block
 		for (BlockNode bottomCandidate : blocks) {
 			boolean bottom = true;
 			for (BlockNode from : blocks) {
-				if (bottomCandidate != from && !isAnyPathExists(from, bottomCandidate)) {
-					bottom = false;
-					break;
+				if (clean) {
+					if (bottomCandidate != from && !isPathExists(from, bottomCandidate)) {
+						bottom = false;
+						break;
+					}
+				} else {
+					if (bottomCandidate != from && !isAnyPathExists(from, bottomCandidate)) {
+						bottom = false;
+						break;
+					}
 				}
+
 			}
 			if (bottom) {
 				return bottomCandidate;
@@ -761,6 +987,24 @@ public class BlockUtils {
 			}
 		});
 		return bitSetToOneBlock(mth, combine);
+	}
+
+	/**
+	 * Return the dominace frontier of an edge - the blocks for which any path to the block must pass
+	 * through this edge
+	 */
+	public static BitSet getDomFrontierThroughEdge(Edge edge) {
+		BlockNode target = edge.getTarget();
+
+		if (target.getPredecessors().size() > 1) {
+			// If the target node has other incoming edges, the dominance frontier is a single block
+			BitSet dominanceFrontier = new BitSet();
+			dominanceFrontier.set(target.getPos());
+			return dominanceFrontier;
+		} else {
+			// Otherwise the dominance frontier is equivalent to the domiance frontier of the target
+			return target.getDomFrontier();
+		}
 	}
 
 	/**
@@ -951,8 +1195,16 @@ public class BlockUtils {
 	 * Return start block if no such path.
 	 */
 	public static BlockNode followEmptyPath(BlockNode start) {
+		return followEmptyPath(start, false);
+	}
+
+	public static BlockNode followEmptyPath(BlockNode start, Boolean reverse) {
+		return followEmptyPath(start, reverse, true);
+	}
+
+	public static BlockNode followEmptyPath(BlockNode start, Boolean reverse, boolean cleanOnly) {
 		while (true) {
-			BlockNode next = getNextBlockOnEmptyPath(start);
+			BlockNode next = getNextBlockOnEmptyPath(start, reverse, cleanOnly);
 			if (next == null) {
 				return start;
 			}
@@ -960,9 +1212,36 @@ public class BlockUtils {
 		}
 	}
 
+	public static List<BlockNode> followEmptyUpPathWithinSet(BlockNode start, Collection<BlockNode> traversableBlocks) {
+		List<BlockNode> results = new LinkedList<>();
+		followEmptyUpPathWithinSet(results, start, traversableBlocks, new HashSet<>());
+		return results;
+	}
+
+	public static void followEmptyUpPathWithinSet(List<BlockNode> results, BlockNode start, Collection<BlockNode> traversableBlocks,
+			Collection<BlockNode> traversedBlocks) {
+		List<BlockNode> predecessors = ListUtils.filter(start.getPredecessors(), traversableBlocks::contains);
+		for (BlockNode predecessor : predecessors) {
+			if (!traversableBlocks.contains(predecessor) || traversedBlocks.contains(predecessor)) {
+				continue;
+			}
+			traversedBlocks.add(predecessor);
+			if (predecessor.getInstructions().isEmpty()) {
+				followEmptyUpPathWithinSet(results, start, traversableBlocks, traversedBlocks);
+			} else {
+				results.add(predecessor);
+			}
+			start = predecessor;
+		}
+	}
+
 	public static void visitBlocksOnEmptyPath(BlockNode start, Consumer<BlockNode> visitor) {
+		visitBlocksOnEmptyPath(start, visitor, false);
+	}
+
+	public static void visitBlocksOnEmptyPath(BlockNode start, Consumer<BlockNode> visitor, boolean reverse) {
 		while (true) {
-			BlockNode next = getNextBlockOnEmptyPath(start);
+			BlockNode next = getNextBlockOnEmptyPath(start, reverse);
 			if (next == null) {
 				return;
 			}
@@ -973,14 +1252,25 @@ public class BlockUtils {
 
 	@Nullable
 	private static BlockNode getNextBlockOnEmptyPath(BlockNode block) {
-		if (!block.getInstructions().isEmpty() || block.getPredecessors().size() > 1) {
+		return getNextBlockOnEmptyPath(block, false);
+	}
+
+	@Nullable
+	private static BlockNode getNextBlockOnEmptyPath(BlockNode block, Boolean reverse) {
+		return getNextBlockOnEmptyPath(block, reverse, true);
+	}
+
+	@Nullable
+	private static BlockNode getNextBlockOnEmptyPath(BlockNode block, Boolean reverse, boolean cleanOnly) {
+		if (!block.getInstructions().isEmpty() || (!reverse && block.getPredecessors().size() > 1)
+				|| (reverse && block.getCleanSuccessors().size() > 1)) {
 			return null;
 		}
-		List<BlockNode> successors = block.getCleanSuccessors();
-		if (successors.size() != 1) {
+		List<BlockNode> nextBlocks = reverse ? block.getPredecessors() : (cleanOnly ? block.getCleanSuccessors() : block.getSuccessors());
+		if (nextBlocks.size() != 1) {
 			return null;
 		}
-		return successors.get(0);
+		return nextBlocks.get(0);
 	}
 
 	/**
@@ -1136,6 +1426,12 @@ public class BlockUtils {
 			}
 		}
 		return false;
+	}
+
+	public static void removeInstructions(List<IBlock> blocks) {
+		for (IBlock block : blocks) {
+			block.getInstructions().clear();
+		}
 	}
 
 	public static boolean insertBeforeInsn(BlockNode block, InsnNode insn, InsnNode newInsn) {

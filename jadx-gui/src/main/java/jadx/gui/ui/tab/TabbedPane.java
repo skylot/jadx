@@ -315,22 +315,6 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		return (TabComponent) component;
 	}
 
-	public boolean tabWithTitleExists(String tabTitle) {
-		try {
-			for (int i = 0; i < getTabCount(); i++) {
-				Component component = getTabComponentAt(i);
-				if (component instanceof TabComponent) {
-					if (((TabComponent) component).getTabTitle().equals(tabTitle)) {
-						return true;
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOG.warn("Failed to check tabs titles", e);
-		}
-		return false;
-	}
-
 	public void refresh(JNode node) {
 		ContentPanel panel = getTabByNode(node);
 		if (panel != null) {

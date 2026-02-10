@@ -82,10 +82,20 @@ public class JNodeCache {
 
 	public void removeWholeClass(JavaClass javaCls) {
 		remove(javaCls);
-		javaCls.getMethods().forEach(this::remove);
-		javaCls.getFields().forEach(this::remove);
-		javaCls.getInnerClasses().forEach(this::remove);
-		javaCls.getInlinedClasses().forEach(this::remove);
+		/*
+		 * These javaCls.get...() calls require the class to be loaded, or will force it to load, generating
+		 * a potentially large decompilation task if needed, before throwing away that work when the class
+		 * is unloaded. To avoid this, which is very slow, we only bother to remove things from the cache if
+		 * the class is already loaded. If it's not then there either isn't going to be anything relevant in
+		 * the node cache or decompilation would regenerate the cache anyway.
+		 */
+		// if (true) {
+		if (!javaCls.loadingWouldRequireDecompilation()) {
+			javaCls.getMethods().forEach(this::remove);
+			javaCls.getFields().forEach(this::remove);
+			javaCls.getInnerClasses().forEach(this::remove);
+			javaCls.getInlinedClasses().forEach(this::remove);
+		}
 	}
 
 	public void reset() {

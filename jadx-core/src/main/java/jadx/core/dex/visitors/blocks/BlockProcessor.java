@@ -129,9 +129,46 @@ public class BlockProcessor extends AbstractVisitor {
 	private static void checkForUnreachableBlocks(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				throw new JadxRuntimeException("Unreachable block: " + block);
+				// Sometimes a split cross block will have all it's predecessors moved elsewhere after it's been
+				// created. This is usually detected at the time of it's creation, but in certain edge cases it
+				// is difficult to do so. In those cases it will be cleanly removed here, along with the associated
+				// bottom splitter.
+				if (block.contains(AType.EXC_SPLIT_CROSS) && fixUnreachableSplitCross(mth, block)) {
+					mth.addInfoComment("Removed unreachable split cross block " + block.toString());
+				} else {
+					throw new JadxRuntimeException("Unreachable block: " + block);
+				}
 			}
 		}
+	}
+
+	/**
+	 * Attempts to remove an unreachable synthetic split cross block that has been added previously,
+	 * along with the associated bottom splitter.
+	 *
+	 * @param mth        the method containing the unreachable block
+	 * @param splitCross the unreachable block
+	 * @return true if the operation was successful, false if a precondition was not satisfied and no
+	 *         changes were made.
+	 */
+	private static boolean fixUnreachableSplitCross(MethodNode mth, BlockNode splitCross) {
+		BlockNode bottomSplitter = null;
+		for (BlockNode succ : splitCross.getSuccessors()) {
+			if (succ.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
+				bottomSplitter = succ;
+				break;
+			}
+		}
+
+		if (bottomSplitter == null || bottomSplitter.getPredecessors().size() != 1) {
+			return false;
+		}
+		Set<BlockNode> removeSet = new HashSet<>();
+		removeSet.add(bottomSplitter);
+		removeSet.add(splitCross);
+		removeFromMethod(removeSet, mth);
+
+		return true;
 	}
 
 	private static boolean deduplicateBlockInsns(MethodNode mth, BlockNode block) {

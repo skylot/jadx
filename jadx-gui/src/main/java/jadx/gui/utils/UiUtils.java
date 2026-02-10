@@ -15,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,32 +156,6 @@ public class UiUtils {
 
 	public static String escapeHtml(String str) {
 		return str.replace("<", "&lt;").replace(">", "&gt;");
-	}
-
-	private static final String CUT_STR_REPLACE = "...";
-
-	public static String limitStringLength(String str, int maxLength) {
-		if (str.length() <= maxLength) {
-			return str;
-		}
-		char fileSepChar = File.separatorChar;
-		int firstFileSep = str.indexOf(fileSepChar);
-		if (firstFileSep != -1) {
-			// remove path parts
-			int lastFileSep = str.lastIndexOf(fileSepChar);
-			if (firstFileSep == lastFileSep) {
-				// single path char => cut before
-				str = CUT_STR_REPLACE + str.substring(lastFileSep - 1);
-			} else {
-				// cut middle
-				str = str.substring(0, firstFileSep + 1) + CUT_STR_REPLACE + str.substring(lastFileSep);
-			}
-			if (str.length() < maxLength) {
-				return str;
-			}
-		}
-		// cut end by default
-		return str.substring(0, maxLength - CUT_STR_REPLACE.length()) + CUT_STR_REPLACE;
 	}
 
 	public static String typeStr(ArgType type) {
@@ -561,5 +534,12 @@ public class UiUtils {
 
 	public static boolean nearlyEqual(float a, float b) {
 		return Math.abs(a - b) < 1E-6f;
+	}
+
+	// Formats a string to be in a .DOT node
+	public static String toDotNodeName(String fullName) {
+		String newName = fullName.replace("<", "\\<");
+		newName = newName.replace(">", "\\>");
+		return newName;
 	}
 }

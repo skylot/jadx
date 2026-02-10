@@ -66,7 +66,7 @@ public class JRoot extends JNode {
 			int count = parts.length;
 			for (int i = 0; i < count - 1; i++) {
 				String name = parts[i];
-				JResource subRF = getSubNodeByName(curRf, name);
+				JResource subRF = getResourceByName(curRf, name);
 				if (subRF == null) {
 					subRF = new JResource(null, name, JResType.DIR);
 					curRf.addSubNode(subRF);
@@ -81,24 +81,10 @@ public class JRoot extends JNode {
 		return root;
 	}
 
-	public static JResource getSubNodeByName(JResource rf, String name) {
+	private JResource getResourceByName(JResource rf, String name) {
 		for (JResource sub : rf.getSubNodes()) {
 			if (sub.getName().equals(name)) {
 				return sub;
-			}
-		}
-		return null;
-	}
-
-	public @Nullable JResource searchResourceByName(String name) {
-		Enumeration<?> en = this.breadthFirstEnumeration();
-		while (en.hasMoreElements()) {
-			Object obj = en.nextElement();
-			if (obj instanceof JResource) {
-				JResource res = (JResource) obj;
-				if (res.getName().equals(name)) {
-					return res;
-				}
 			}
 		}
 		return null;

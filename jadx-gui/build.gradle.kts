@@ -59,6 +59,11 @@ dependencies {
 	implementation("org.exbin.auxiliary:binary_data:$bined")
 	implementation("org.exbin.auxiliary:binary_data-array:$bined")
 
+	// Library for rendering GraphViz DOT files
+	implementation("guru.nidi:graphviz-java:0.18.1")
+	implementation("com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0")
+	implementation("com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0")
+
 	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
 }
 
@@ -169,7 +174,7 @@ fun escapeJVMOptions(): List<String> {
 }
 
 runtime {
-	addOptions("--strip-debug", "--compress", "zip-9", "--no-header-files", "--no-man-pages")
+	addOptions("--strip-debug", "--no-header-files", "--no-man-pages")
 	addModules(
 		"java.desktop",
 		"java.naming",

@@ -23,7 +23,7 @@ public class TestNotIndexedLoop extends IntegrationTest {
 					int i = 0;
 					while (true) {
 						if (i >= length) {
-							file = null;
+							file = new File("h");
 							break;
 						}
 						file = files[i];
@@ -48,6 +48,8 @@ public class TestNotIndexedLoop extends IntegrationTest {
 
 			File file = new File("f");
 			assertThat(test(new File[] { new File("a"), file })).isEqualTo(file);
+
+			assertThat(test(new File[] { new File("a") }).getName()).isEqualTo("h");
 		}
 	}
 

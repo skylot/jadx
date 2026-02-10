@@ -1,9 +1,11 @@
 package jadx.core.dex.visitors.regions.maker;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
@@ -27,8 +29,23 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.utils.BlockUtils.followEmptyPath;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
+
+/*
+ * Definitions:
+ * main loop body - the set of nodes that form a loop in the control flow graph e.g. they can all
+ * reach the loop start and are all reachable from the loop start
+ * loop exit edge - an edge with a source in the main loop body and a target outside the main loop
+ * body
+ * outblock - the first node after the entire loop has finished that should be regioned next
+ * header block - an IF node that implements the loop condition
+ * crossing - a block that is reachable from two different source nodes and represents where control
+ * flow paths from the two blocks cross
+ * exit block/node - an overloaded term. May mean the source or target of an exit edge, or a route
+ * to exit the overall region e.g. the outblock
+ */
 
 final class LoopRegionMaker {
 	private final MethodNode mth;
@@ -81,13 +98,32 @@ final class LoopRegionMaker {
 		exitBlocks.removeAll(condInfo.getMergedBlocks().toList());
 
 		if (!exitBlocks.isEmpty()) {
-			BlockNode loopExit = condInfo.getElseBlock();
-			if (loopExit != null) {
-				// add 'break' instruction before path cross between main loop exit and sub-exit
-				for (Edge exitEdge : loop.getExitEdges()) {
-					if (exitBlocks.contains(exitEdge.getSource())) {
-						insertLoopBreak(stack, loop, loopExit, exitEdge);
+
+			// Blocks associated with the loop condition
+			List<BlockNode> loopConditionBlocks = loopRegion.getConditionBlocks();
+
+			for (Edge exitEdge : loop.getExitEdges()) {
+				// An exit edge from the loop condition blocks
+				BlockNode exitSource = exitEdge.getSource();
+
+				if (loopConditionBlocks.contains(exitSource)) {
+					BlockNode outBlock = followEmptyPath(exitEdge.getTarget());
+
+					for (BlockNode pred : outBlock.getPredecessors()) {
+
+						// Restarting search through exit edges from the beginning ("top")
+						for (Edge exitEdgeTop : loop.getExitEdges()) {
+
+							if (!loopConditionBlocks.contains(exitEdgeTop.getSource())) {
+								if (isPathExists(exitEdgeTop.getTarget(), pred) || exitEdgeTop.getTarget() == outBlock) {
+									insertLoopBreak(stack, loop, outBlock, exitEdgeTop.getSource(), new Edge(pred, outBlock));
+								}
+							}
+						}
 					}
+
+					// Exit edge found - no need to check further regardless of break outcome
+					break;
 				}
 			}
 		}
@@ -106,7 +142,8 @@ final class LoopRegionMaker {
 			loopStart.addAttr(AType.LOOP, loop);
 			loop.getEnd().remove(AFlag.ADDED_TO_REGION);
 		} else {
-			out = condInfo.getElseBlock();
+			out = condInfo.getElseBlock(); // Following Jadx convention, this must be the next synthetic block, not actual (theoretical) out
+											// block
 			if (outerRegion != null
 					&& out != null
 					&& out.contains(AFlag.LOOP_START)
@@ -149,23 +186,27 @@ final class LoopRegionMaker {
 	 */
 	private LoopRegion makeLoopRegion(IRegion curRegion, LoopInfo loop, List<BlockNode> exitBlocks) {
 		for (BlockNode block : exitBlocks) {
+			// Ignore blocks that lead to exception handlers
 			if (block.contains(AType.EXC_HANDLER)) {
 				continue;
 			}
+			// Ignore blocks that do not branch based on an if statement
 			InsnNode lastInsn = BlockUtils.getLastInsn(block);
 			if (lastInsn == null || lastInsn.getType() != InsnType.IF) {
 				continue;
 			}
+			// Skip any nested if statements
 			List<LoopInfo> loops = block.getAll(AType.LOOP);
 			if (!loops.isEmpty() && loops.get(0) != loop) {
 				// skip nested loop condition
 				continue;
 			}
 			boolean exitAtLoopEnd = isExitAtLoopEnd(block, loop);
+
 			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, exitAtLoopEnd);
+
 			boolean found;
-			if (block == loop.getStart() || exitAtLoopEnd
-					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
+			if (block == loop.getStart() || exitAtLoopEnd || BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
 				found = true;
 			} else if (block.getPredecessors().contains(loop.getStart())) {
 				loopRegion.setPreCondition(loop.getStart());
@@ -216,30 +257,271 @@ final class LoopRegionMaker {
 		return loopEnd.getInstructions().isEmpty() && ListUtils.isSingleElement(loopEnd.getPredecessors(), exit);
 	}
 
+	/*
+	 * Check that the exits suggested by treating mainExitBlock as the header block
+	 * are consistent with a loop condition
+	 */
 	private boolean checkLoopExits(LoopInfo loop, BlockNode mainExitBlock) {
 		List<Edge> exitEdges = loop.getExitEdges();
 		if (exitEdges.size() < 2) {
 			return true;
 		}
+		// If the header selected does not have an exit edge, raise an exception
 		Optional<Edge> mainEdgeOpt = exitEdges.stream().filter(edge -> edge.getSource() == mainExitBlock).findFirst();
 		if (mainEdgeOpt.isEmpty()) {
 			throw new JadxRuntimeException("Not found exit edge by exit block: " + mainExitBlock);
 		}
+
 		Edge mainExitEdge = mainEdgeOpt.get();
 		BlockNode mainOutBlock = mainExitEdge.getTarget();
-		for (Edge exitEdge : exitEdges) {
-			if (exitEdge != mainExitEdge) {
-				// all exit paths must be same or don't cross (will be inside loop)
-				BlockNode exitBlock = exitEdge.getTarget();
-				if (!BlockUtils.isEqualPaths(mainOutBlock, exitBlock)) {
-					BlockNode crossBlock = BlockUtils.getPathCross(mth, mainOutBlock, exitBlock);
-					if (crossBlock != null) {
-						return false;
-					}
+
+		BlockNode firstWorkAfterMainExitBlock = BlockUtils.followEmptyPath(mainOutBlock);
+		List<InsnNode> firstInstructions = firstWorkAfterMainExitBlock.getInstructions();
+
+		// If there is a direct path to a return from the header, all exits are inside the loop
+		if (firstInstructions.size() == 1 && firstInstructions.get(0).getType() == InsnType.RETURN) {
+			return true;
+		}
+
+		// Otherwise the exit must lead to a valid out block
+		return validOutBlock(firstWorkAfterMainExitBlock, loop);
+	}
+
+	/*
+	 * An out block is valid if every exit path passes through it or doesn't cross any other exit path
+	 * (permitting one block of duplication)
+	 * @param outblock The proposed region exit block
+	 * @param exitEdges All edges leaving a section at the start of the region e.g. edges leaving a loop
+	 * body
+	 */
+	private Boolean validOutBlock(BlockNode outBlock, LoopInfo loop) {
+		/*
+		 * Not permitted:
+		 * - An edge which cannot reach outblock, but does cross with another exit path
+		 * --- This crossing could be on a path that never reaches outblock
+		 * --- This crossing could be after outblock
+		 * - An edge which can reach outblock, but has another crossing with an exit path
+		 * --- This crossing could be before outblock
+		 * --- This crossing could be after outblock
+		 * --- This crossing could be on a branch that does not reach outblock
+		 * Permitted:
+		 * - If any of these inconsistent crossings occur at or near the method exit
+		 * - If the node can reach the outblock but has no crossing there because it dominates the outnode
+		 * - A number of other edge cases
+		 */
+		List<Edge> exitEdges = loop.getExitEdges();
+		Queue<Edge> edgesToCheck = new LinkedList<>(exitEdges);
+
+		while (!edgesToCheck.isEmpty()) {
+			Edge exitEdge = edgesToCheck.remove();
+			BlockNode exitBlock = exitEdge.getTarget();
+
+			// Get the dominance frontier of exitEdge.getTarget() only along paths through exitEdge
+
+			List<BlockNode> dominanceFrontier;
+			if (!exitEdge.isSynthetic()) {
+				dominanceFrontier = BlockUtils.bitSetToBlocks(mth, BlockUtils.getDomFrontierThroughEdge(exitEdge));
+			} else {
+				dominanceFrontier = BlockUtils.bitSetToBlocks(mth, exitEdge.getTarget().getDomFrontier());
+			}
+
+			if (outBlock.isDominator(exitBlock) || outBlock == exitBlock) {
+				// Accept if the loop exit block is a dominator of the suggested out block
+				continue;
+			}
+
+			for (BlockNode crossing : dominanceFrontier) {
+				if (crossing == outBlock) {
+					// Accept if the crossing is at the outblock
+					continue;
+				}
+				if (BlockUtils.isExitBlock(mth, crossing)) {
+					// Accept if the crossing is at the method end
+					continue;
+				}
+
+				// Find the first block after the crossing with instructions
+				BlockNode firstInstructionBlock = crossing;
+				List<InsnNode> cInsns = crossing.getInstructions();
+				if (cInsns.isEmpty()) {
+					firstInstructionBlock = BlockUtils.followEmptyPath(crossing);
+				}
+
+				// Return false if the crossing doesn't satisfy any relevant edge case
+				if (!(viaValidUncleanSuccessor(exitBlock, crossing, loop)
+						|| noWorkBeforeEnd(firstInstructionBlock, outBlock)
+						|| oneBlockOfWorkBeforeEnd(firstInstructionBlock, outBlock)
+						|| isNestedIfCross(crossing, edgesToCheck)
+						|| isOuterOutblock(crossing, loop))) {
+					return false;
 				}
 			}
 		}
 		return true;
+	}
+
+	/*
+	 * @param exitBlock the target of an exit edge
+	 * @param crossing the crossing block between exitBlock and a possible outblock
+	 * @param loop the loop
+	 */
+	private boolean viaValidUncleanSuccessor(BlockNode exitBlock, BlockNode crossing, LoopInfo loop) {
+		// Return true if the path from exitBlock is to an exception handler or via a backwards loop edge
+		// with continue
+
+		if (isPathExists(exitBlock, crossing)) {
+			// This case does not apply if there is a path via clean successors
+			return false;
+		}
+
+		// If to a loop start check if the backwards edge has a branch without a valid continue
+		if (crossing.contains(AFlag.LOOP_START)) {
+			// Note: This loop start cannot be for the internal loop else exitEdge would not leave the loop
+
+			// Find the outer loop containing the loop start
+			LoopInfo parent = loop.getParentLoop();
+			LoopInfo outerLoop = null;
+			while (parent != null) {
+				if (parent.getStart() == crossing) {
+					outerLoop = parent;
+					break;
+				}
+				parent = parent.getParentLoop();
+			}
+
+			if (outerLoop != null) {
+				BlockNode loopEnd = outerLoop.getEnd();
+				List<BlockNode> predecessors = loopEnd.getPredecessors();
+				if (predecessors.size() > 1) {
+					for (BlockNode predecessor : predecessors) {
+						// Do not accept if a predecessor to the loop end reachable from the exit would not have a
+						// continue inserted
+						if (BlockUtils.isPathExists(exitBlock, predecessor)
+								&& !canInsertContinue(predecessor, predecessors, loopEnd, outerLoop.getExitNodes())) {
+							return false;
+						}
+					}
+				} else {
+					// Do not accept if no continues would be placed
+					return false;
+				}
+			}
+
+		}
+
+		// Accept if all branches have a valid continue or if not to a loop start (to an exception handler)
+		return true;
+	}
+
+	/*
+	 * @param firstInstructionBlock the first block containing instructions off the main loop body
+	 * @param outBlock a possible outblock of the loop
+	 */
+	private boolean noWorkBeforeEnd(BlockNode firstInstructionBlock, BlockNode outBlock) {
+		// Return true if there is no work between the crossing and an exit block
+		return (BlockUtils.isExitBlock(mth, firstInstructionBlock) || firstInstructionBlock == outBlock);
+	}
+
+	/*
+	 * @param firstInstructionBlock the first block containing instructions off the main loop body
+	 * @param outBlock a possible outblock of the loop
+	 */
+	private boolean oneBlockOfWorkBeforeEnd(BlockNode firstInstructionBlock, BlockNode outBlock) {
+		// Return true if down every path there is no more than one block of work between the crossing and
+		// an exit block
+		List<BlockNode> cleanSuccessors = firstInstructionBlock.getCleanSuccessors();
+		if (cleanSuccessors.isEmpty()) {
+			return false;
+		}
+		for (BlockNode cleanSuccessor : cleanSuccessors) {
+			BlockNode nextInstructionBlock = BlockUtils.followEmptyPath(cleanSuccessor);
+			if (!BlockUtils.isExitBlock(mth, nextInstructionBlock) && nextInstructionBlock != outBlock) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/*
+	 * @param crossing the block that may be the joint block of a merged if
+	 * @param edgesToCheck the list of edges that will be processed to add to
+	 */
+	private boolean isNestedIfCross(BlockNode crossing, Queue<Edge> edgesToCheck) {
+		// Return true if the crossing is due to merged control flow after a nested if
+		// Add the edges out of the crossing to be investigated
+
+		// If the crossing is the branch of a merged if, all predecessors will be synthetic up to the if
+		// statements, and the first if statement will dominate the crossing
+		List<BlockNode> predecessors = crossing.getPredecessors();
+
+		// Find a predecessor that dominates all other predecessors
+		BlockNode possibleFirstIF = BlockUtils.followEmptyPath(predecessors.get(0), true);
+		for (BlockNode predecessor : predecessors) {
+			// Follow the predecessor up to the first node with instructions
+			BlockNode possibleIF = followEmptyPath(predecessor, true);
+			if (crossing.isDominator(possibleIF)) {
+				possibleFirstIF = possibleIF;
+			}
+		}
+
+		// This case does not apply if a merged if cannot be made
+		IfInfo currentIf = IfRegionMaker.makeIfInfo(mth, possibleFirstIF);
+		if (currentIf == null) {
+			return false;
+		}
+
+		IfInfo mergedIf = IfRegionMaker.mergeNestedIfNodes(currentIf);
+		if (mergedIf == null) {
+			return false;
+		}
+
+		// Note: work will be repeated for large merged ifs. Results could be cached to improve performance
+		// Accept if following every predecessor path from the crossing reaches a merged if node
+		BlockSet mergedBlocks = mergedIf.getMergedBlocks();
+		for (BlockNode predecessor : predecessors) {
+			BlockNode possibleIF = followEmptyPath(predecessor, true);
+			if (!mergedBlocks.contains(possibleIF)) {
+				return false;
+			}
+		}
+
+		// If this crossing is the result of merged ifs, check the next crossing after this one
+		Edge placeHolderEdge = new Edge(crossing, crossing, true);
+		if (!edgesToCheck.contains(placeHolderEdge)) {
+			edgesToCheck.add(placeHolderEdge);
+		}
+
+		return true;
+	}
+
+	/*
+	 * @param crossing the block that may be an outblock for a parent loop
+	 * @param loop the inner loop currently being considered
+	 */
+	private boolean isOuterOutblock(BlockNode crossing, LoopInfo loop) {
+		// Return true if the crossing is the outblock for an outer loop and is jumped to using a labelled
+		// break
+
+		List<EdgeInsnAttr> edgeInsns = crossing.getAll(AType.EDGE_INSN);
+		for (EdgeInsnAttr edgeInsn : edgeInsns) {
+			InsnNode insn = edgeInsn.getInsn();
+			// If there is a break edge instruction
+			if (insn.getType() == InsnType.BREAK) {
+				List<LoopInfo> loopsBrokenFrom = insn.get(AType.LOOP).getList();
+				for (LoopInfo loopBrokenFrom : loopsBrokenFrom) {
+					// If it is for a parent of the current loop
+					if (loop.hasParent(loopBrokenFrom)) {
+						BlockNode target = edgeInsn.getEnd();
+						// If it points at the crossing
+						if (target == crossing) {
+							// Accept if the crossing block is already the target of a break instruction from a parent loop
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopInfo loop, BlockNode loopStart) {
@@ -256,7 +538,7 @@ final class LoopRegionMaker {
 		if (exitEdges.size() == 1) {
 			Edge exitEdge = exitEdges.get(0);
 			BlockNode exit = exitEdge.getTarget();
-			if (insertLoopBreak(stack, loop, exit, exitEdge)) {
+			if (insertLoopBreak(stack, loop, exit, exitEdge.getSource(), exitEdge)) {
 				BlockNode nextBlock = getNextBlock(exit);
 				if (nextBlock != null) {
 					stack.addExit(nextBlock);
@@ -264,16 +546,42 @@ final class LoopRegionMaker {
 				}
 			}
 		} else {
-			for (Edge exitEdge : exitEdges) {
+			loop0: for (Edge exitEdge : exitEdges) {
 				BlockNode exit = exitEdge.getTarget();
-				List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, exit.getDomFrontier());
+				List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, BlockUtils.getDomFrontierThroughEdge(exitEdge));
+
+				// Only select the method exit if there is no other valid outblock
+				BlockNode methodExit = mth.getExitBlock();
+				if (blocks.contains(methodExit)) {
+					blocks.remove(methodExit);
+					blocks.add(methodExit);
+				}
 				for (BlockNode block : blocks) {
 					if (BlockUtils.isPathExists(exit, block)) {
-						stack.addExit(block);
-						insertLoopBreak(stack, loop, block, exitEdge);
-						out = block;
-					} else {
-						insertLoopBreak(stack, loop, exit, exitEdge);
+						if (validOutBlock(block, loop)) {
+							out = block;
+							break loop0;
+						}
+					} else if (block.contains(AFlag.LOOP_START)) {
+						// Special case if there is no joining control flow before an outer loop back edge
+						if (validOutBlock(exit, loop)) {
+							out = exit;
+							break loop0;
+						}
+					}
+				}
+			}
+
+			// Add breaks
+			stack.addExit(out);
+			if (out != null && out != mth.getExitBlock()) {
+				// Add a break on every incoming edge where the predecessor is reachable from the loop
+				for (BlockNode predecessor : out.getPredecessors()) {
+					for (Edge exitEdge : loop.getExitEdges()) {
+						BlockNode target = exitEdge.getTarget();
+						if (BlockUtils.isPathExists(exitEdge.getTarget(), predecessor) || target == out) {
+							insertLoopBreak(stack, loop, out, exitEdge.getSource(), new Edge(predecessor, out));
+						}
 					}
 				}
 			}
@@ -332,7 +640,16 @@ final class LoopRegionMaker {
 		return true;
 	}
 
-	private boolean insertLoopBreak(RegionStack stack, LoopInfo loop, BlockNode loopExit, Edge exitEdge) {
+	/*
+	 * Insert a break instruction where exitEdge meets loopExit
+	 * @param stack the region stack
+	 * @param loop the loop being broken out of
+	 * @param loopExit the outblock for loop
+	 * @param blockOnLoop an exit block on loop through which exitEdge is reachable
+	 * @param exitEdge an edge on the path between blockOnLoop and loopExit indicative of the breaking
+	 * path
+	 */
+	private boolean insertLoopBreak(RegionStack stack, LoopInfo loop, BlockNode loopExit, BlockNode blockOnLoop, Edge exitEdge) {
 		BlockNode exit = exitEdge.getTarget();
 		Edge insertEdge = null;
 		boolean confirm = false;
@@ -349,7 +666,10 @@ final class LoopRegionMaker {
 		}
 
 		if (!confirm) {
-			BlockNode insertBlock = null;
+			// Start search from the next edge if the target is simple (e.g. first
+			// node after loop exit)
+			Boolean isSimple = BlockUtils.followEmptyPath(exit) != exit;
+			BlockNode insertBlock = isSimple ? null : exitEdge.getSource();
 			BlockSet visited = new BlockSet(mth);
 			while (true) {
 				if (exit == null || visited.contains(exit)) {
@@ -359,7 +679,7 @@ final class LoopRegionMaker {
 				if (insertBlock != null && isPathExists(loopExit, exit)) {
 					// found cross
 					if (canInsertBreak(insertBlock)) {
-						insertEdge = new Edge(insertBlock, insertBlock.getSuccessors().get(0));
+						insertEdge = new Edge(insertBlock, exit);
 						confirm = true;
 						break;
 					}
@@ -378,20 +698,23 @@ final class LoopRegionMaker {
 		EdgeInsnAttr.addEdgeInsn(insertEdge, breakInsn);
 		stack.addExit(exit);
 		// add label to 'break' if needed
-		addBreakLabel(exitEdge, exit, breakInsn);
+		addBreakLabel(blockOnLoop, exit, breakInsn);
 		return true;
 	}
 
-	private void addBreakLabel(Edge exitEdge, BlockNode exit, InsnNode breakInsn) {
-		BlockNode outBlock = BlockUtils.getNextBlock(exitEdge.getTarget());
-		if (outBlock == null) {
-			return;
-		}
-		List<LoopInfo> exitLoop = mth.getAllLoopsForBlock(outBlock);
+	/*
+	 * Adds a label to a break instruction if reaching the exit from the loop involves leaving multiple
+	 * loops
+	 * @param blockOnLoop the exit block on the loop to which breakInsn is currently associated
+	 * @param exit the out block of the loop to which breakInsn is currently associated
+	 * @param breakInsn a break instruction
+	 */
+	private void addBreakLabel(BlockNode blockOnLoop, BlockNode exit, InsnNode breakInsn) {
+		List<LoopInfo> exitLoop = mth.getAllLoopsForBlock(exit);
 		if (!exitLoop.isEmpty()) {
 			return;
 		}
-		List<LoopInfo> inLoops = mth.getAllLoopsForBlock(exitEdge.getSource());
+		List<LoopInfo> inLoops = mth.getAllLoopsForBlock(blockOnLoop);
 		if (inLoops.size() < 2) {
 			return;
 		}
@@ -448,6 +771,15 @@ final class LoopRegionMaker {
 		}
 		if (isDominatedOnBlocks(codePred, predecessors)) {
 			return false;
+		}
+		if (!pred.getAll(AType.EDGE_INSN).isEmpty()) {
+			// if we've already inserted a break, don't also insert a continue in the same spot
+			List<EdgeInsnAttr> insns = pred.getAll(AType.EDGE_INSN);
+			for (EdgeInsnAttr insn : insns) {
+				if (insn.getInsn().getType() == InsnType.BREAK) {
+					return false;
+				}
+			}
 		}
 		boolean gotoExit = false;
 		for (BlockNode exit : loopExitNodes) {

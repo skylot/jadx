@@ -2,10 +2,14 @@ package jadx.core.dex.visitors.usage;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoData;
 import jadx.api.usage.IUsageInfoVisitor;
 import jadx.core.clsp.ClspClass;
@@ -17,6 +21,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.notEmpty;
@@ -28,7 +33,13 @@ public class UsageInfo implements IUsageInfoData {
 	private final UseSet<ClassNode, ClassNode> clsUsage = new UseSet<>();
 	private final UseSet<ClassNode, MethodNode> clsUseInMth = new UseSet<>();
 	private final UseSet<FieldNode, MethodNode> fieldUsage = new UseSet<>();
+	// MethodNodeA -> Set of MethodNodes that MethodNodeA is called from
 	private final UseSet<MethodNode, MethodNode> mthUsage = new UseSet<>();
+	// MethodNodeA -> Set of MethodNodes that MethodNodeA calls
+	private final UseSet<MethodNode, MethodNode> mthUses = new UseSet<>();
+	// MethodNodeA -> Set of IMethodRefs for methods that MethodNodeA calls that cannot be resolved
+	private final UseSet<MethodNode, IMethodRef> unresolvedMthUsage = new UseSet<>();
+	private final Map<MethodNode, Boolean> selfCalls = new HashMap<>();
 
 	public UsageInfo(RootNode root) {
 		this.root = root;
@@ -38,21 +49,27 @@ public class UsageInfo implements IUsageInfoData {
 	public void apply() {
 		clsDeps.visit((cls, deps) -> cls.setDependencies(sortedList(deps)));
 		clsUsage.visit((cls, deps) -> cls.setUseIn(sortedList(deps)));
-		clsUseInMth.visit((cls, methods) -> cls.setUseInMth(sortedList(methods)));
-		fieldUsage.visit((field, methods) -> field.setUseIn(sortedList(methods)));
-		mthUsage.visit((mth, methods) -> mth.setUseIn(sortedList(methods)));
+		clsUseInMth.visit((cls, methods) -> cls.setUseInMth(resolveMthList(sortedList(methods))));
+		fieldUsage.visit((field, methods) -> field.setUseIn(resolveMthList(sortedList(methods))));
+		mthUsage.visit((mth, methods) -> mth.setUseIn(resolveMthList(sortedList(methods))));
+		mthUses.visit((mth, methods) -> mth.setUsed(resolveMthList(sortedList(methods))));
+		unresolvedMthUsage.visit((mth, unresolvedMethods) -> mth.setUnresolvedUsed(new ArrayList<>(unresolvedMethods)));
+		selfCalls.forEach((mth, selfCall) -> mth.setCallsSelf(selfCall));
 	}
 
 	@Override
 	public void applyForClass(ClassNode cls) {
-		cls.setDependencies(sortedList(clsDeps.get(cls)));
-		cls.setUseIn(sortedList(clsUsage.get(cls)));
-		cls.setUseInMth(sortedList(clsUseInMth.get(cls)));
+		cls.setDependencies(sortedList(clsDeps.getOrDefault(cls, Collections.emptySet())));
+		cls.setUseIn(sortedList(clsUsage.getOrDefault(cls, Collections.emptySet())));
+		cls.setUseInMth(resolveMthList(sortedList(clsUseInMth.getOrDefault(cls, Collections.emptySet()))));
 		for (FieldNode fld : cls.getFields()) {
-			fld.setUseIn(sortedList(fieldUsage.get(fld)));
+			fld.setUseIn(resolveMthList(sortedList(fieldUsage.getOrDefault(fld, Collections.emptySet()))));
 		}
 		for (MethodNode mth : cls.getMethods()) {
-			mth.setUseIn(sortedList(mthUsage.get(mth)));
+			mth.setUseIn(resolveMthList(sortedList(mthUsage.getOrDefault(mth, Collections.emptySet()))));
+			mth.setUsed(resolveMthList(sortedList(mthUses.getOrDefault(mth, Collections.emptySet()))));
+			mth.setUnresolvedUsed(new ArrayList<>(unresolvedMthUsage.getOrDefault(mth, Collections.emptySet())));
+			mth.setCallsSelf(selfCalls.getOrDefault(mth, false));
 		}
 	}
 
@@ -60,9 +77,16 @@ public class UsageInfo implements IUsageInfoData {
 	public void visitUsageData(IUsageInfoVisitor visitor) {
 		clsDeps.visit((cls, deps) -> visitor.visitClassDeps(cls, sortedList(deps)));
 		clsUsage.visit((cls, deps) -> visitor.visitClassUsage(cls, sortedList(deps)));
-		clsUseInMth.visit((cls, methods) -> visitor.visitClassUseInMethods(cls, sortedList(methods)));
-		fieldUsage.visit((field, methods) -> visitor.visitFieldsUsage(field, sortedList(methods)));
-		mthUsage.visit((mth, methods) -> visitor.visitMethodsUsage(mth, sortedList(methods)));
+		clsUseInMth.visit((cls, methods) -> visitor.visitClassUseInMethods(cls, resolveMthList(sortedList(methods))));
+		fieldUsage.visit((field, methods) -> visitor.visitFieldsUsage(field, resolveMthList(sortedList(methods))));
+		mthUsage.visit((mth, methods) -> visitor.visitMethodsUsage(mth, resolveMthList(sortedList(methods))));
+		mthUses.visit((mth, methods) -> visitor.visitMethodsUses(mth, resolveMthList(sortedList(methods))));
+		unresolvedMthUsage.visit((mth, unresolvedMethods) -> visitor.visitUnresolvedMethodsUsage(mth, new ArrayList<>(unresolvedMethods)));
+		for (Entry<MethodNode, Boolean> entry : selfCalls.entrySet()) {
+			MethodNode mth = entry.getKey();
+			Boolean selfCall = entry.getValue();
+			visitor.visitIsSelfCall(mth, selfCall);
+		}
 		visitor.visitComplete();
 	}
 
@@ -118,10 +142,21 @@ public class UsageInfo implements IUsageInfoData {
 	 */
 	public void methodUse(MethodNode mth, MethodNode useMth) {
 		clsUse(mth, useMth.getParentClass());
-		mthUsage.add(useMth, mth);
+		mthUsage.add(useMth, mth); // useMth is used in mth
+		mthUses.add(mth, useMth); // mth uses useMth
+		if (mth == useMth) {
+			selfCalls.put(mth, true);
+		}
 		// implicit usage
 		clsUse(mth, useMth.getReturnType());
 		useMth.getMethodInfo().getArgumentsTypes().forEach(argType -> clsUse(mth, argType));
+	}
+
+	/**
+	 * Add method usage: {@code useMth} occurrence found in {@code mth} code
+	 */
+	public void unresolvedMethodUse(MethodNode mth, IMethodRef useMth) {
+		unresolvedMthUsage.add(mth, useMth);
 	}
 
 	public void fieldUse(MethodNode mth, FieldNode useFld) {
@@ -196,5 +231,10 @@ public class UsageInfo implements IUsageInfoData {
 		List<T> list = new ArrayList<>(nodes);
 		Collections.sort(list);
 		return list;
+	}
+
+	private List<MethodNode> resolveMthList(List<MethodNode> mthNodeList) {
+		return Utils.collectionMap(mthNodeList,
+				m -> root.resolveDirectMethod(m.getParentClass().getRawName(), m.getMethodInfo().getShortId()));
 	}
 }

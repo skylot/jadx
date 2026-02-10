@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -26,6 +28,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
+import jadx.core.dex.regions.SwitchRegion.CaseInfo;
 import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.SwitchBreakVisitor;
@@ -34,11 +37,12 @@ import jadx.core.utils.ListUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.blocks.BlockSet;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class SwitchRegionMaker {
 	private final MethodNode mth;
 	private final RegionMaker regionMaker;
+
+	private static final Logger LOG = LoggerFactory.getLogger(SwitchRegionMaker.class);
 
 	SwitchRegionMaker(MethodNode mth, RegionMaker regionMaker) {
 		this.mth = mth;
@@ -69,7 +73,7 @@ public final class SwitchRegionMaker {
 		stack.addExit(out);
 
 		addCases(sw, out, stack, blocksMap);
-		removeEmptyCases(insn, sw, defCase);
+		removeEmptyCases(insn, sw, defCase, out);
 
 		stack.pop();
 		return out;
@@ -214,7 +218,10 @@ public final class SwitchRegionMaker {
 		}
 		if (out != null && regionMaker.isProcessed(out)) {
 			// 'out' block already processed, prevent endless loop
-			throw new JadxRuntimeException("Failed to find switch 'out' block (already processed)");
+			// in this case it might be that 'out' is the LOOP_START of a loop and occurs before 'block'
+			// just try the immediate post dominator as a fallback
+			mth.addWarnComment("Switch 'out' block " + out + " for " + block + " already processed. Defaulting to fallback option.");
+			out = block.getIPostDom();
 		}
 		return out;
 	}
@@ -246,14 +253,14 @@ public final class SwitchRegionMaker {
 			if (firstArg.isRegister()) {
 				RegisterArg reg = (RegisterArg) firstArg;
 				for (int i = 1; i < count; i++) {
-					InsnArg arg = returnArgs.get(1);
+					InsnArg arg = returnArgs.get(i);
 					if (!arg.isRegister() || !((RegisterArg) arg).sameCodeVar(reg)) {
 						return exitBlock;
 					}
 				}
 			} else {
 				for (int i = 1; i < count; i++) {
-					InsnArg arg = returnArgs.get(1);
+					InsnArg arg = returnArgs.get(i);
 					if (!arg.equals(firstArg)) {
 						return exitBlock;
 					}
@@ -276,29 +283,51 @@ public final class SwitchRegionMaker {
 	 * 1. single 'default' case
 	 * 2. filler cases if switch is 'packed' and 'default' case is empty
 	 */
-	private void removeEmptyCases(SwitchInsn insn, SwitchRegion sw, BlockNode defCase) {
+	private void removeEmptyCases(SwitchInsn insn, SwitchRegion sw, BlockNode defCase, BlockNode outBlock) {
 		boolean defaultCaseIsEmpty;
 		if (defCase == null) {
 			defaultCaseIsEmpty = true;
 		} else {
 			defaultCaseIsEmpty = sw.getCases().stream()
 					.anyMatch(c -> c.getKeys().contains(SwitchRegion.DEFAULT_CASE_KEY)
-							&& RegionUtils.isEmpty(c.getContainer()));
+							&& canRemove(c.getContainer(), outBlock));
 		}
 		if (defaultCaseIsEmpty) {
-			sw.getCases().removeIf(caseInfo -> {
-				if (RegionUtils.isEmpty(caseInfo.getContainer())) {
+			List<CaseInfo> cases = new ArrayList<>(sw.getCases());
+			for (CaseInfo caseInfo : cases) {
+				if (canRemove(caseInfo.getContainer(), outBlock)) {
 					List<Object> keys = caseInfo.getKeys();
-					if (keys.contains(SwitchRegion.DEFAULT_CASE_KEY)) {
-						return true;
-					}
-					if (insn.isPacked()) {
-						return true;
+					if (keys.contains(SwitchRegion.DEFAULT_CASE_KEY) || insn.isPacked()) {
+						// Remove case and mark all blocks as don't generate
+						RegionUtils.addToAll(mth, caseInfo.getContainer(), AFlag.DONT_GENERATE);
+						sw.getCases().remove(caseInfo);
 					}
 				}
-				return false;
-			});
+			}
 		}
+	}
+
+	/*
+	 * Check container is empty and all paths through container are empty up until outBlock
+	 */
+	private boolean canRemove(IContainer container, BlockNode outBlock) {
+		if (RegionUtils.isEmpty(container)) {
+			if (container instanceof BlockNode) {
+				// Base case - empty path from block node to outBlock
+				return BlockUtils.followEmptyPath((BlockNode) container) == outBlock;
+			} else if (container instanceof IRegion) {
+				// Recursive case - every subBlock can be removed
+				List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();
+				for (IContainer subBlock : subBlocks) {
+					if (!canRemove(subBlock, outBlock)) {
+						return false;
+					}
+				}
+				return true;
+			}
+			LOG.debug("Unexpected container type in switch");
+		}
+		return false;
 	}
 
 	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap, Map<BlockNode, BlockNode> fallThroughCases) {
@@ -345,7 +374,7 @@ public final class SwitchRegionMaker {
 					// 'continue' not needed
 				} else {
 					for (BlockNode p : loopEnd.getPredecessors()) {
-						if (list.contains(p)) {
+						if (list.contains(p) || p == caseBlock) {
 							if (p.isSynthetic()) {
 								p.getInstructions().add(new InsnNode(InsnType.CONTINUE, 0));
 								inserted = true;

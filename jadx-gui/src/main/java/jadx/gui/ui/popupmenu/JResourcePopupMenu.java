@@ -117,10 +117,10 @@ public class JResourcePopupMenu extends JPopupMenu {
 	}
 
 	private static void saveJResourceDir(JResource resource, Path savePath, boolean comingFromDialog) {
-		Path subSavePath = savePath.resolve(resource.getShortName());
+		Path subSavePath = savePath.resolve(resource.getName());
 		try {
 			if (!Files.isDirectory(subSavePath)) {
-				Files.createDirectories(subSavePath);
+				Files.createDirectory(subSavePath);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);

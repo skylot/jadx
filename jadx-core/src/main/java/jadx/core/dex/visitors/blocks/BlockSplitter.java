@@ -179,7 +179,7 @@ public class BlockSplitter extends AbstractVisitor {
 		replaceTarget(source, oldDest, newDest);
 	}
 
-	static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
+	public static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
 		BlockNode newBlock = startNewBlock(mth, target.getStartOffset());
 		newBlock.add(AFlag.SYNTHETIC);
 		removeConnection(source, target);

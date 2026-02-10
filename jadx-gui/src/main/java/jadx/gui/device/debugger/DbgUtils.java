@@ -19,6 +19,7 @@ import jadx.core.utils.android.AndroidManifestParser;
 import jadx.core.utils.android.AppAttribute;
 import jadx.core.utils.android.ApplicationParams;
 import jadx.gui.device.debugger.smali.Smali;
+import jadx.gui.device.debugger.smali.SmaliMethodNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
@@ -51,6 +52,21 @@ public class DbgUtils {
 			return smali.getMthFullIDAndCodeOffsetByLine(line);
 		}
 		return null;
+	}
+
+	@Nullable
+	public static SmaliMethodNode getSmaliMethodNode(JClass cls, String mthRawFullID) {
+		Smali smali = getSmali(cls.getCls().getClassNode().getTopParentClass());
+		if (smali != null) {
+			return smali.getMethodNode(mthRawFullID);
+		}
+		return null;
+	}
+
+	public static void printSmaliLineMapping(SmaliMethodNode smn) {
+		for (Map.Entry<Integer, Integer> lineToCodeOffset : smn.getLineMapping().entrySet()) {
+			LOG.debug("line={} -> codeOffset={}", lineToCodeOffset.getKey(), lineToCodeOffset.getValue());
+		}
 	}
 
 	public static String[] sepClassAndMthSig(String fullSig) {

@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.regions.maker;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -21,6 +22,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
@@ -33,9 +35,15 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.utils.BlockUtils.bitSetToBlocks;
+import static jadx.core.utils.BlockUtils.bitSetToOneBlock;
+import static jadx.core.utils.BlockUtils.followEmptyPath;
+import static jadx.core.utils.BlockUtils.getBottomBlock;
+import static jadx.core.utils.BlockUtils.getPathCross;
 import static jadx.core.utils.BlockUtils.isEqualPaths;
 import static jadx.core.utils.BlockUtils.isEqualReturnBlocks;
 import static jadx.core.utils.BlockUtils.isPathExists;
+import static jadx.core.utils.BlockUtils.newBlocksBitSet;
 
 final class IfRegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(IfRegionMaker.class);
@@ -48,6 +56,7 @@ final class IfRegionMaker {
 	}
 
 	BlockNode process(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
+
 		if (block.contains(AFlag.ADDED_TO_REGION)) {
 			// block already included in other 'if' region
 			return ifnode.getThenBlock();
@@ -62,7 +71,14 @@ final class IfRegionMaker {
 			currentIf = mergedIf;
 		} else {
 			// invert simple condition (compiler often do it)
-			currentIf = IfInfo.invert(currentIf);
+			// ensure that we only ever invert once, because if multiple regions contain this block
+			// we'll change the block after it's already been included in a region, which can cause
+			// other regions containing the block to believe the condition has been flipped when it
+			// has not, or vice versa.
+			if (!block.contains(AFlag.DONT_INVERT)) {
+				currentIf = IfInfo.invert(currentIf);
+				block.add(AFlag.DONT_INVERT);
+			}
 		}
 		IfInfo modifiedIf = restructureIf(mth, block, currentIf);
 		if (modifiedIf != null) {
@@ -103,17 +119,24 @@ final class IfRegionMaker {
 		}
 
 		// insert edge insns in new 'else' branch
-		// TODO: make more common algorithm
 		if (ifRegion.getElseRegion() == null && outBlock != null) {
 			List<EdgeInsnAttr> edgeInsnAttrs = outBlock.getAll(AType.EDGE_INSN);
 			if (!edgeInsnAttrs.isEmpty()) {
-				Region elseRegion = new Region(ifRegion);
+				List<InsnNode> instructions = new ArrayList<>();
 				for (EdgeInsnAttr edgeInsnAttr : edgeInsnAttrs) {
 					if (edgeInsnAttr.getEnd().equals(outBlock)) {
-						addEdgeInsn(currentIf, elseRegion, edgeInsnAttr);
+						if (currentIf.getMergedBlocks().contains(followEmptyPath(edgeInsnAttr.getStart(), true))) {
+							instructions.add(edgeInsnAttr.getInsn());
+						}
 					}
 				}
-				ifRegion.setElseRegion(elseRegion);
+
+				if (!instructions.isEmpty()) {
+					Region elseRegion = new Region(ifRegion);
+					InsnContainer newBlock = new InsnContainer(instructions);
+					elseRegion.add(newBlock);
+					ifRegion.setElseRegion(elseRegion);
+				}
 			}
 		}
 
@@ -127,21 +150,6 @@ final class IfRegionMaker {
 		condInfo = searchNestedIf(condInfo);
 		confirmMerge(condInfo);
 		return condInfo;
-	}
-
-	private void addEdgeInsn(IfInfo ifInfo, Region region, EdgeInsnAttr edgeInsnAttr) {
-		BlockNode start = edgeInsnAttr.getStart();
-		boolean fromThisIf = false;
-		for (BlockNode ifBlock : ifInfo.getMergedBlocks()) {
-			if (ifBlock.getSuccessors().contains(start)) {
-				fromThisIf = true;
-				break;
-			}
-		}
-		if (!fromThisIf) {
-			return;
-		}
-		region.add(start);
 	}
 
 	@Nullable
@@ -181,7 +189,8 @@ final class IfRegionMaker {
 			return info;
 		}
 		// init outblock, which will be used in isBadBranchBlock to compare with branch block
-		info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
+		info.setOutBlock(findOutBlock(mth, thenBlock, elseBlock));
+
 		boolean badThen = isBadBranchBlock(info, thenBlock);
 		boolean badElse = isBadBranchBlock(info, elseBlock);
 		if (badThen && badElse) {
@@ -217,6 +226,100 @@ final class IfRegionMaker {
 			info.setOutBlock(null);
 		}
 		return info;
+	}
+
+	static BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock) {
+		if (thenBlock == elseBlock) {
+			return thenBlock;
+		}
+		if (thenBlock == null || elseBlock == null) {
+			return null;
+		}
+
+		BitSet thenDomFrontier = newBlocksBitSet(mth);
+		thenDomFrontier.or(thenBlock.getDomFrontier());
+		thenDomFrontier.set(thenBlock.getPos());
+
+		BitSet elseDomFrontier = newBlocksBitSet(mth);
+		elseDomFrontier.or(elseBlock.getDomFrontier());
+		elseDomFrontier.set(elseBlock.getPos());
+
+		BitSet intersection = newBlocksBitSet(mth);
+		intersection.or(thenDomFrontier);
+		intersection.and(elseDomFrontier);
+
+		intersection.clear(mth.getExitBlock().getPos());
+		BlockNode oneBlock = bitSetToOneBlock(mth, intersection);
+
+		// Attempt one: there's a unique block in the intersection of dom frontiers, and no path from
+		// then->else or else->then
+		if (oneBlock != null) {
+			return oneBlock;
+		}
+
+		BitSet union = newBlocksBitSet(mth);
+		union.or(thenBlock.getDomFrontier());
+		union.or(elseBlock.getDomFrontier());
+		union.clear(mth.getExitBlock().getPos());
+
+		// Attempt two: look for a suitable block in the union.
+		BitSet candidates = newBlocksBitSet(mth);
+		for (BlockNode candidate : bitSetToBlocks(mth, union)) {
+			if (isCandidateForOutBlock(mth, thenBlock, elseBlock, candidate)) {
+				candidates.set(candidate.getPos());
+			}
+		}
+
+		BlockNode bottom = getBottomBlock(bitSetToBlocks(mth, candidates), true);
+		if (bottom != null) {
+			return bottom;
+		}
+
+		// Attempt three: fallback to path cross again
+		return getPathCross(mth, thenBlock, elseBlock);
+	}
+
+	static boolean isCandidateForOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock, BlockNode candidate) {
+		// a candidate block requires:
+		// - >1 predecessor
+		// - each predecessor has a clean path from elseBlock or thenBlock, and there exist predecessors
+		// covering both cases
+		// - inside the union of the two dom frontiers
+
+		if (candidate.getPredecessors().size() < 2) {
+			return false; // block has only one pred, and so can't be the outblock
+		}
+
+		BitSet coverageThenPreds = newBlocksBitSet(mth);
+		BitSet coverageElsePreds = newBlocksBitSet(mth);
+
+		if (candidate == elseBlock) {
+			coverageElsePreds.set(candidate.getPos());
+		}
+		if (candidate == thenBlock) {
+			coverageThenPreds.set(candidate.getPos());
+		}
+
+		for (BlockNode pred : candidate.getPredecessors()) {
+			if (isPathExists(thenBlock, pred)) {
+				coverageThenPreds.set(pred.getPos());
+			}
+
+			if (isPathExists(elseBlock, pred)) {
+				coverageElsePreds.set(pred.getPos());
+			}
+		}
+		if (coverageElsePreds.cardinality() == 0 || coverageThenPreds.cardinality() == 0) {
+			return false; // block has no path to both the then and else blocks
+		}
+
+		BlockNode coverageElsePred = bitSetToOneBlock(mth, coverageElsePreds);
+		BlockNode coverageThenPred = bitSetToOneBlock(mth, coverageThenPreds);
+		if (coverageElsePred != null && coverageElsePred == coverageThenPred) {
+			return false; // the only paths from else and then go through the same block
+		}
+
+		return true;
 	}
 
 	private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
@@ -508,12 +611,10 @@ final class IfRegionMaker {
 		if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
 			return makeIfInfo(info.getMth(), block);
 		}
-		// skip this block and search in successors chain
-		List<BlockNode> successors = block.getSuccessors();
-		if (successors.size() != 1) {
+		BlockNode next = getNextBlockInIfSuccessorChain(block);
+		if (next == null) {
 			return null;
 		}
-		BlockNode next = successors.get(0);
 		if (next.getPredecessors().size() != 1 || next.contains(AFlag.ADDED_TO_REGION)) {
 			return null;
 		}
@@ -527,6 +628,42 @@ final class IfRegionMaker {
 		}
 		nextInfo.addInsnsForForcedInline(forceInlineInsns);
 		return nextInfo;
+	}
+
+	/**
+	 * Allow singular successor to block or 2 successors where one is a EXC_BOTTOM_SPLITTER
+	 */
+	private static @Nullable BlockNode getNextBlockInIfSuccessorChain(BlockNode block) {
+
+		// skip this block and search in successors chain
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.size() > 2 || successors.size() == 0) {
+			return null;
+		}
+		// We might have the next IF and a EXC_BOTTOM_SPLITTER block to delimit a try region
+		BlockNode first = successors.get(0);
+		if (successors.size() == 1) {
+			return first;
+		}
+		BlockNode second = successors.get(1);
+		boolean firstIsHandlerPath = first.contains(AFlag.EXC_BOTTOM_SPLITTER);
+		boolean secondIsHandlerPath = second.contains(AFlag.EXC_BOTTOM_SPLITTER);
+		if (!firstIsHandlerPath && !secondIsHandlerPath) {
+			// unknown case
+			return null;
+		}
+		if (firstIsHandlerPath && secondIsHandlerPath) {
+			// unknown case
+			return null;
+		}
+		BlockNode candidate = firstIsHandlerPath ? second : first;
+
+		// Continue to recurse through blocks as long as none of them have any instructions
+		if (candidate.getInstructions().isEmpty()) {
+			return getNextBlockInIfSuccessorChain(candidate);
+		}
+
+		return candidate;
 	}
 
 	/**

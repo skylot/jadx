@@ -2,10 +2,12 @@ package jadx.gui.ui.panel;
 
 import javax.swing.JPanel;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.tab.TabbedPane;
@@ -43,6 +45,21 @@ public abstract class ContentPanel extends JPanel {
 
 	public void scrollToPos(int pos) {
 		LOG.warn("ContentPanel.scrollToPos method not implemented, class: {}", getClass().getSimpleName());
+	}
+
+	/**
+	 * Allows to show a tool tip on the tab e.g. for displaying a long path of the
+	 * selected entry inside the APK file.
+	 * <p>
+	 * If <code>null</code> is returned no tool tip will be displayed.
+	 */
+	@Nullable
+	public String getTabTooltip() {
+		JClass jClass = getNode().getRootClass();
+		if (jClass != null) {
+			return jClass.getFullName();
+		}
+		return getNode().getName();
 	}
 
 	public JadxSettings getSettings() {

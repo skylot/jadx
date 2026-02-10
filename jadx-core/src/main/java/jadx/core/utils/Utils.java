@@ -60,6 +60,104 @@ public class Utils {
 		return 'L' + obj.replace('.', '/') + ';';
 	}
 
+	public static String smaliNameToJavaName(String descString) {
+		if (descString.isEmpty()) {
+			return descString;
+		}
+
+		String javaName;
+		switch (descString.charAt(0)) {
+			case 'V':
+				javaName = "void";
+				break;
+			case 'Z':
+				javaName = "boolean";
+				break;
+			case 'C':
+				javaName = "char";
+				break;
+			case 'B':
+				javaName = "byte";
+				break;
+			case 'S':
+				javaName = "short";
+				break;
+			case 'I':
+				javaName = "int";
+				break;
+			case 'F':
+				javaName = "float";
+				break;
+			case 'J':
+				javaName = "long";
+				break;
+			case 'D':
+				javaName = "double";
+				break;
+			case 'L':
+				javaName = cleanObjectNameWithInnerClass(descString);
+				break;
+			case '[':
+				javaName = String.format("%s[]", smaliNameToJavaName(descString.substring(1, descString.length())));
+				break;
+			default:
+				javaName = descString;
+				break;
+		}
+		return javaName;
+	}
+
+	private static String cleanObjectNameWithInnerClass(String obj) {
+		// Probably can just update the Utils.cleanObjectName method?
+		String result = Utils.cleanObjectName(obj);
+		return result.replace('$', '.');
+	}
+
+	public static String javaNameToSmaliName(String descString) {
+		if (descString.isEmpty()) {
+			return descString;
+		}
+
+		if (descString.endsWith("[]")) {
+			return String.format("[%s", javaNameToSmaliName(descString.substring(0, descString.length() - 2)));
+		}
+
+		String javaName;
+		switch (descString) {
+			case "void":
+				javaName = "V";
+				break;
+			case "boolean":
+				javaName = "Z";
+				break;
+			case "char":
+				javaName = "C";
+				break;
+			case "byte":
+				javaName = "B";
+				break;
+			case "short":
+				javaName = "S";
+				break;
+			case "int":
+				javaName = "I";
+				break;
+			case "float":
+				javaName = "F";
+				break;
+			case "long":
+				javaName = "J";
+				break;
+			case "double":
+				javaName = "D";
+				break;
+			default:
+				javaName = Utils.makeQualifiedObjectName(descString);
+				break;
+		}
+		return javaName;
+	}
+
 	@SuppressWarnings("StringRepeatCanBeUsed")
 	public static String strRepeat(String str, int count) {
 		if (count < 1) {

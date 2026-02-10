@@ -4,12 +4,14 @@ import org.fife.ui.autocomplete.AutoCompletion;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.ICodeInfo;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.LoadTask;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JInputScript;
 import jadx.gui.ui.action.JadxAutoCompletion;
 import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.codearea.sync.CodePanelSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.shortcut.ShortcutsController;
 
@@ -86,5 +88,15 @@ public class ScriptCodeArea extends AbstractCodeArea {
 		shortcutsController.unbindActionsForComponent(this);
 		autoCompletion.uninstall();
 		super.dispose();
+	}
+
+	@Override
+	public CodePanelSyncer createCodePanelSyncer() {
+		throw new JadxRuntimeException("No CodePanelSyncer for ScriptCodeArea");
+	}
+
+	@Override
+	public boolean sync(CodePanelSyncer syncer) {
+		return syncer.syncTo(this);
 	}
 }

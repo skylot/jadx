@@ -61,8 +61,8 @@ public class CommentDialog extends CommonDialog {
 			LOG.error("Comment action failed", e);
 		}
 		try {
-			// refresh code
-			codeArea.refreshClass();
+			// refresh code in a background thread to avoid blocking the ui
+			codeArea.backgroundRefreshClass();
 		} catch (Exception e) {
 			LOG.error("Failed to reload code", e);
 		}

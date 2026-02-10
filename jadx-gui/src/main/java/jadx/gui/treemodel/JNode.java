@@ -140,17 +140,6 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 		return null;
 	}
 
-	public @Nullable JNode searchDepthNode(Predicate<JNode> filter) {
-		Enumeration<?> en = this.breadthFirstEnumeration();
-		while (en.hasMoreElements()) {
-			JNode node = (JNode) en.nextElement();
-			if (filter.test(node)) {
-				return node;
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * Remove and return first found node
 	 */

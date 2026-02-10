@@ -41,12 +41,17 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
 
-	private final boolean enabled;
+	protected final boolean enabled;
 	private @Nullable ICodeComment actionComment;
 	private boolean updateComment;
 
 	public CommentAction(CodeArea codeArea) {
 		super(ActionModel.CODE_COMMENT, codeArea);
+		this.enabled = codeArea.getNode() instanceof JClass;
+	}
+
+	public CommentAction(ActionModel actionModel, CodeArea codeArea) {
+		super(actionModel, codeArea);
 		this.enabled = codeArea.getNode() instanceof JClass;
 	}
 
@@ -98,7 +103,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 		CommentDialog.show(codeArea, actionComment, updateComment);
 	}
 
-	private @Nullable ICodeComment searchForExistComment(ICodeComment blankComment) {
+	protected @Nullable ICodeComment searchForExistComment(ICodeComment blankComment) {
 		try {
 			JadxProject project = codeArea.getProject();
 			JadxCodeData codeData = project.getCodeData();
@@ -123,7 +128,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	 * @return blank code comment object (comment string empty)
 	 */
 	@Nullable
-	private ICodeComment getCommentRef(int pos) {
+	protected ICodeComment getCommentRef(int pos) {
 		if (pos == -1) {
 			return null;
 		}
@@ -181,7 +186,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	/**
 	 * Check if all tokens are 'comment' in line at 'pos'
 	 */
-	private boolean isCommentLine(int pos) {
+	protected boolean isCommentLine(int pos) {
 		try {
 			int line = codeArea.getLineOfOffset(pos);
 			Token lineTokens = codeArea.getTokenListForLine(line);

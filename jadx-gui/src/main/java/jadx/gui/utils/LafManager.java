@@ -21,17 +21,24 @@ import jadx.gui.settings.JadxSettings;
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
 
-	public static final String SYSTEM_THEME_NAME = "default";
 	public static final String INITIAL_THEME_NAME = FlatLightLaf.NAME;
 
 	private static final Map<String, String> THEMES_MAP = initThemesMap();
 
 	public static void init(JadxSettings settings) {
-		if (setupLaf(getThemeClass(settings))) {
+		String preferredThemeClass = getThemeClass(settings);
+
+		// reset if settings refers to missing theme
+		if (preferredThemeClass == null) {
+			settings.setLafTheme(INITIAL_THEME_NAME);
+			preferredThemeClass = getThemeClass(settings);
+		}
+
+		if (setupLaf(preferredThemeClass)) {
 			return;
 		}
-		setupLaf(SYSTEM_THEME_NAME);
-		settings.setLafTheme(SYSTEM_THEME_NAME);
+		setupLaf(INITIAL_THEME_NAME);
+		settings.setLafTheme(INITIAL_THEME_NAME);
 		settings.sync();
 	}
 
@@ -48,9 +55,7 @@ public class LafManager {
 	}
 
 	private static boolean setupLaf(String themeClass) {
-		if (SYSTEM_THEME_NAME.equals(themeClass)) {
-			return applyLaf(UIManager.getSystemLookAndFeelClassName());
-		}
+
 		if (themeClass != null && !themeClass.isEmpty()) {
 			return applyLaf(themeClass);
 		}
@@ -59,7 +64,6 @@ public class LafManager {
 
 	private static Map<String, String> initThemesMap() {
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put(SYSTEM_THEME_NAME, SYSTEM_THEME_NAME);
 
 		// default flatlaf themes
 		map.put(FlatLightLaf.NAME, FlatLightLaf.class.getName());
