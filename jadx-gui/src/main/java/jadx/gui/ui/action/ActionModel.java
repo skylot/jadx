@@ -45,8 +45,6 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_T, UiUtils.ctrlButton())),
 	TEXT_SEARCH(MENU_TOOLBAR, "menu.text_search", "menu.text_search", "ui/find",
 			Shortcut.keyboard(KeyEvent.VK_F, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
-	STRINGS(MENU_TOOLBAR, "menu.strings", "menu.strings", "ui/strings",
-			Shortcut.none()),
 
 	CLASS_SEARCH(MENU_TOOLBAR, "menu.class_search", "menu.class_search", "ui/ejbFinderMethod",
 			Shortcut.keyboard(KeyEvent.VK_N, UiUtils.ctrlButton())),

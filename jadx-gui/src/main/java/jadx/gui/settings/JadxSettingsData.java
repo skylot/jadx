@@ -17,7 +17,6 @@ import jadx.cli.LogHelper;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
-import jadx.gui.strings.caching.StringsCacheMode;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.LafManager;
@@ -94,7 +93,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	private CodeCacheMode codeCacheMode = CodeCacheMode.DISK;
 	private UsageCacheMode usageCacheMode = UsageCacheMode.DISK;
-	private StringsCacheMode stringsCacheMode = StringsCacheMode.MEMORY;
 
 	/**
 	 * Cache dir option values:
@@ -504,11 +502,4 @@ public class JadxSettingsData extends JadxGUIArgs {
 		this.xposedCodegenLanguage = xposedCodegenLanguage;
 	}
 
-	public StringsCacheMode getStringsCacheMode() {
-		return stringsCacheMode;
-	}
-
-	public void setStringsCacheMode(StringsCacheMode stringsCacheMode) {
-		this.stringsCacheMode = stringsCacheMode;
-	}
 }

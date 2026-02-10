@@ -37,7 +37,6 @@ import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.settings.font.FontSettings;
-import jadx.gui.strings.caching.StringsCacheMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.LangLocale;
@@ -896,14 +895,6 @@ public class JadxSettings {
 
 	public void setSmaliAreaShowBytecode(boolean smaliAreaShowBytecode) {
 		settingsData.setSmaliAreaShowBytecode(smaliAreaShowBytecode);
-	}
-
-	public StringsCacheMode getStringsCacheMode() {
-		return settingsData.getStringsCacheMode();
-	}
-
-	public void setStringsCacheMode(StringsCacheMode stringsCacheMode) {
-		settingsData.setStringsCacheMode(stringsCacheMode);
 	}
 
 }

@@ -30,7 +30,6 @@ import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.settings.ui.SettingsGroup;
-import jadx.gui.strings.caching.StringsCacheMode;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.utils.NLS;
@@ -194,17 +193,9 @@ public class CacheSettingsGroup implements ISettingsGroup {
 			settingsWindow.needReload();
 		});
 
-		JComboBox<StringsCacheMode> stringsCacheModeComboBox = new JComboBox<>(StringsCacheMode.values());
-		stringsCacheModeComboBox.setSelectedItem(settings.getStringsCacheMode());
-		stringsCacheModeComboBox.addActionListener(e -> {
-			settings.setStringsCacheMode((StringsCacheMode) stringsCacheModeComboBox.getSelectedItem());
-			settingsWindow.needReload();
-		});
-
 		SettingsGroup group = new SettingsGroup(title);
 		group.addRow(NLS.str("preferences.codeCacheMode"), CodeCacheMode.buildToolTip(), codeCacheModeComboBox);
 		group.addRow(NLS.str("preferences.usageCacheMode"), usageCacheModeComboBox);
-		group.addRow(NLS.str("preferences.stringsCacheMode"), stringsCacheModeComboBox);
 		return group.buildComponent();
 	}
 }

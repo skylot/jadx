@@ -37,9 +37,6 @@ import jadx.gui.cache.usage.UsageInfoCache;
 import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.strings.caching.EmptyStringsInfoCache;
-import jadx.gui.strings.caching.IStringsInfoCache;
-import jadx.gui.strings.caching.MemoryStringsInfoCache;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
@@ -57,7 +54,6 @@ public class JadxWrapper {
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
 	private CommonGuiPluginsContext guiPluginsContext;
-	private IStringsInfoCache stringsInfoCache;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -81,7 +77,7 @@ public class JadxWrapper {
 
 				decompiler.load();
 				initCodeCache();
-				initStringsCache();
+
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler wrapper init error", e);
@@ -150,25 +146,6 @@ public class JadxWrapper {
 				jadxArgs.setUsageInfoCache(new UsageInfoCache(getProject().getCacheDir(), jadxArgs.getInputFiles()));
 				break;
 		}
-	}
-
-	private void initStringsCache() {
-		switch (getSettings().getStringsCacheMode()) {
-			case NONE:
-				setStringsInfoCache(new EmptyStringsInfoCache());
-				break;
-			case MEMORY:
-				setStringsInfoCache(new MemoryStringsInfoCache());
-				break;
-		}
-	}
-
-	private void setStringsInfoCache(IStringsInfoCache stringsInfoCache) {
-		this.stringsInfoCache = stringsInfoCache;
-	}
-
-	public IStringsInfoCache getStringsInfoCache() {
-		return this.stringsInfoCache;
 	}
 
 	public static CommonGuiPluginsContext initGuiPluginsContext(JadxDecompiler decompiler, MainWindow mainWindow) {
