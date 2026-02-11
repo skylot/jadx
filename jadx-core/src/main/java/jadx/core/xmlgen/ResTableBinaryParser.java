@@ -5,8 +5,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -255,8 +258,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		// The type identifier this chunk is holding. Type IDs start at 1 (corresponding
 		// to the value of the type bits in a resource identifier). 0 is invalid.
-		int id = is.readInt8();
-		String typeName = pkg.getTypeStrings().get(id - 1);
+		int typeId = is.readInt8();
+		String typeName = pkg.getTypeStrings().get(typeId - 1);
 
 		int flags = is.readInt8();
 		boolean isSparse = (flags & FLAG_SPARSE) != 0;
@@ -293,9 +296,16 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
+		Set<Integer> processedOffsets = new HashSet<>(offsets.size() * 2);
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
 			if (offset == NO_ENTRY) {
+				continue;
+			}
+			int index = entryOffset.getIdx();
+			if (!processedOffsets.add(offset)) {
+				// Sometimes sparse type chunks contain multiple entries with the same offset.
+				// If we have processed the offset once we can ignore those entries.
 				continue;
 			}
 			long entryStartOffset = entriesStart + offset;
@@ -310,9 +320,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				// workaround for issue #2343: if the entryStartOffset is located before our current position
 				is.reset();
 			}
-			int index = entryOffset.getIdx();
 			is.skipToPos(entryStartOffset, "Expected start of entry " + index);
-			parseEntry(pkg, id, index, config.getQualifiers());
+			parseEntry(pkg, typeId, index, config.getQualifiers());
 		}
 		if (ignoredEoc > 0) {
 			// invalid = data offset is after the chunk end
@@ -336,6 +345,14 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		public int getOffset() {
 			return offset;
+		}
+
+		@Override
+		public String toString() {
+			return new StringJoiner(", ", EntryOffset.class.getSimpleName() + "[", "]")
+					.add("idx=" + idx)
+					.add("offset=" + offset)
+					.toString();
 		}
 	}
 
@@ -372,6 +389,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	}
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
+		long fileOffset = is.getPos();
 		int size = is.readInt16();
 		int flags = is.readInt16();
 		boolean isComplex = (flags & FLAG_COMPLEX) != 0;
@@ -382,11 +400,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			return;
 		}
 
-		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
+		int resId = (int) fileOffset; // we assume resource.arsc files are always smaller than 2GB
 		String typeName = pkg.getTypeStrings().get(typeId - 1);
 		String origKeyName = pkg.getKeyStrings().get(key);
 
-		ResourceEntry newResEntry = buildResourceEntry(pkg, config, resRef, typeName, origKeyName);
+		ResourceEntry newResEntry = buildResourceEntry(pkg, config, resId, typeName, origKeyName);
 		if (isCompact) {
 			int dataType = flags >> 8;
 			int data = is.readInt32();
@@ -407,7 +425,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 	private static final ResourceEntry STUB_ENTRY = new ResourceEntry(-1, "stub", "stub", "stub", "");
 
-	private ResourceEntry buildResourceEntry(PackageChunk pkg, String config, int resRef, String typeName, String origKeyName) {
+	private ResourceEntry buildResourceEntry(PackageChunk pkg, String config, int resId, String typeName, String origKeyName) {
 		if (!root.getArgs().getSecurity().isValidEntryName(origKeyName)) {
 			// malicious entry, ignore it
 			// can't return null here, return stub without adding it to storage
@@ -416,16 +434,25 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		ResourceEntry newResEntry;
 		if (useRawResName) {
-			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, origKeyName, config);
+			newResEntry = new ResourceEntry(resId, pkg.getName(), typeName, origKeyName, config);
 		} else {
-			String resName = getResName(resRef, origKeyName);
-			newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, resName, config);
+			String resName = getResName(resId, origKeyName);
+			newResEntry = new ResourceEntry(resId, pkg.getName(), typeName, resName, config);
 			ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 			if (prevResEntry != null) {
-				newResEntry = newResEntry.copyWithId();
+				if (prevResEntry.getId() == newResEntry.getId()) {
+					// We do check that every offset is only processed once, so we should not get resource entries
+					// with an identical id. This check is just for safety purposes, otherwise Jadx can
+					// accumulate many GB of RAM as described in issue #2775 because resource names are extended by
+					// every rename operation and are getting longer and longer...
+					LOG.error("ResourceEntries with duplicate id found: {} {}", prevResEntry, newResEntry);
+					resName = origKeyName; // use the original name, not the renamed one
+				}
+				newResEntry = newResEntry.copyWithId(resName);
 
 				// rename also previous entry for consistency
-				ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
+				ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId(resName);
+				LOG.trace("Resource name collision - renamed to {} and {}", newResEntry.getKeyName(), replaceForPrevEntry.getKeyName());
 				resStorage.replace(prevResEntry, replaceForPrevEntry);
 				resStorage.addRename(replaceForPrevEntry);
 			}
