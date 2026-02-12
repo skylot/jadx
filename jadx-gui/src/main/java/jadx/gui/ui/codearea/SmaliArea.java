@@ -43,13 +43,15 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
 import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
 import jadx.gui.ui.codearea.sync.SmaliSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public final class SmaliArea extends AbstractCodeArea {
+public final class SmaliArea extends AbstractCodeArea implements CodePanelSyncerAbstractFactory, CodePanelSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliArea.class);
 
 	private static final long serialVersionUID = 1334485631870306494L;

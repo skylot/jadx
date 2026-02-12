@@ -19,7 +19,9 @@ import org.slf4j.LoggerFactory;
 import jadx.api.DecompilationMode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.codearea.mode.JCodeMode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
 import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
 import jadx.gui.ui.codearea.sync.fallback.FallbackSyncer;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.tab.TabbedPane;
@@ -284,11 +286,12 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 			AbstractCodeArea to = toPanel.getCodeArea();
 			toPanel.load();
 
-			CodePanelSyncer syncer = from.createCodePanelSyncer();
-			if (to.sync(syncer)) {
-				return;
+			if (from instanceof CodePanelSyncerAbstractFactory && to instanceof CodePanelSyncee) {
+				CodePanelSyncer syncer = ((CodePanelSyncerAbstractFactory) from).createCodePanelSyncer();
+				if (((CodePanelSyncee) to).sync(syncer)) {
+					return;
+				}
 			}
-
 			if (!FallbackSyncer.sync(fromPanel, toPanel)) {
 				LOG.warn("Code pane area sync not possible");
 			}
@@ -296,5 +299,4 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 			LOG.warn("Failed to sync method/class across views: {}", ex.getLocalizedMessage());
 		}
 	}
-
 }

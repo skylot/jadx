@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.gui.plugins.script.ScriptCodeArea;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.SmaliArea;
 
@@ -35,12 +34,6 @@ public class SmaliSyncer implements CodePanelSyncer {
 			// smali -> smali just highlight the current line but only if content is the same
 			to.scrollToPos(from.getLineStartOffsetOfCurrentLine());
 		}
-		return true; // Prevent fallback syncing
-	}
-
-	@Override
-	public boolean syncTo(ScriptCodeArea scriptCodeArea) {
-		LOG.error("Syncing Smali to Script N/A");
 		return true; // Prevent fallback syncing
 	}
 }

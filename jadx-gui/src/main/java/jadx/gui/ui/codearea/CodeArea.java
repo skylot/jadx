@@ -49,7 +49,9 @@ import jadx.gui.ui.action.ViewRawControlFlowGraphAction;
 import jadx.gui.ui.action.ViewRegionControlFlowGraphAction;
 import jadx.gui.ui.action.XposedAction;
 import jadx.gui.ui.codearea.mode.JCodeMode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
 import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
 import jadx.gui.ui.codearea.sync.JavaSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
@@ -64,7 +66,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
  * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
  * resources (e.g. AndroidManifest.xml)
  */
-public final class CodeArea extends AbstractCodeArea {
+public final class CodeArea extends AbstractCodeArea implements CodePanelSyncerAbstractFactory, CodePanelSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;

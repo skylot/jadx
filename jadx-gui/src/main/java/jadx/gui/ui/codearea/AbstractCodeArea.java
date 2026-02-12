@@ -53,8 +53,6 @@ import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.JNodeAction;
-import jadx.gui.ui.codearea.sync.CodePanelSyncee;
-import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
@@ -63,8 +61,7 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.gui.utils.ui.ZoomActions;
 
-public abstract class AbstractCodeArea extends RSyntaxTextArea
-		implements CodePanelSyncerAbstractFactory, CodePanelSyncee {
+public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	private static final long serialVersionUID = -3980354865216031972L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractCodeArea.class);
