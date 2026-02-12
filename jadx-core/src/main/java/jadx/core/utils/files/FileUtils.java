@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -75,6 +76,22 @@ public class FileUtils {
 			return dir;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to create temp root directory", e);
+		}
+	}
+
+	public static List<Path> listFiles(Path dir) {
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to list files in directory: " + dir, e);
+		}
+	}
+
+	public static List<Path> listFiles(Path dir, Predicate<? super Path> filter) {
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.filter(filter).collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to list files in directory: " + dir, e);
 		}
 	}
 
@@ -148,6 +165,10 @@ public class FileUtils {
 		return true;
 	}
 
+	public static void deleteDir(Path dir) {
+		deleteDir(dir, false);
+	}
+
 	public static void deleteDirIfExists(Path dir) {
 		if (Files.exists(dir)) {
 			try {
@@ -156,10 +177,6 @@ public class FileUtils {
 				LOG.error("Failed to delete dir: {}", dir.toAbsolutePath(), e);
 			}
 		}
-	}
-
-	private static void deleteDir(Path dir) {
-		deleteDir(dir, false);
 	}
 
 	private static void deleteDir(Path dir, boolean keepRootDir) {
@@ -422,6 +439,11 @@ public class FileUtils {
 			return fileName;
 		}
 		return fileName.substring(0, extEndIndex);
+	}
+
+	public static boolean hasExtension(Path path, String extension) {
+		String fileName = path.getFileName().toString();
+		return fileName.toLowerCase().endsWith(extension);
 	}
 
 	public static File toFile(String path) {

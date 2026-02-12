@@ -20,18 +20,23 @@ public class LocalFileResolver implements IJadxPluginResolver {
 		return false;
 	}
 
+	private static boolean isValidFileLocation(String locationId) {
+		return locationId.startsWith("file:")
+				&& (locationId.endsWith(".jar") || locationId.endsWith(".zip"));
+	}
+
 	@Override
 	public Optional<JadxPluginMetadata> resolve(String locationId) {
-		if (!locationId.startsWith("file:") || !locationId.endsWith(".jar")) {
+		if (!isValidFileLocation(locationId)) {
 			return Optional.empty();
 		}
-		File jarFile = new File(removePrefix(locationId, "file:"));
-		if (!jarFile.isFile()) {
-			throw new RuntimeException("File not found: " + jarFile.getAbsolutePath());
+		File pluginFile = new File(removePrefix(locationId, "file:"));
+		if (!pluginFile.isFile()) {
+			throw new RuntimeException("File not found: " + pluginFile.getAbsolutePath());
 		}
 		JadxPluginMetadata metadata = new JadxPluginMetadata();
 		metadata.setLocationId(locationId);
-		metadata.setJar(jarFile.getAbsolutePath());
+		metadata.setPath(pluginFile.getAbsolutePath());
 		return Optional.of(metadata);
 	}
 

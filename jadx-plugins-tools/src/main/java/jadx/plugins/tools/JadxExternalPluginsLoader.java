@@ -1,8 +1,9 @@
 package jadx.plugins.tools;
 
-import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,6 +20,7 @@ import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxExternalPluginsLoader.class);
@@ -44,16 +46,16 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 		return list;
 	}
 
-	public JadxPlugin loadFromJar(Path jar) {
+	public JadxPlugin loadFromPath(Path pluginPath) {
 		Map<String, JadxPlugin> map = new HashMap<>();
-		loadFromJar(map, jar);
+		loadFromPath(map, pluginPath);
 		int loaded = map.size();
 		if (loaded == 0) {
-			throw new JadxRuntimeException("No plugin found in jar: " + jar);
+			throw new JadxRuntimeException("No plugin found in jar: " + pluginPath);
 		}
 		if (loaded > 1) {
 			String plugins = map.values().stream().map(p -> p.getPluginInfo().getPluginId()).collect(Collectors.joining(", "));
-			throw new JadxRuntimeException("Expect only one plugin per jar: " + jar + ", but found: " + loaded + " - " + plugins);
+			throw new JadxRuntimeException("Expect only one plugin per jar: " + pluginPath + ", but found: " + loaded + " - " + plugins);
 		}
 		return Utils.first(map.values());
 
@@ -72,22 +74,46 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 	}
 
 	private void loadInstalledPlugins(Map<String, JadxPlugin> map) {
-		List<Path> jars = JadxPluginsTools.getInstance().getEnabledPluginJars();
-		for (Path jar : jars) {
-			loadFromJar(map, jar);
+		List<Path> paths = JadxPluginsTools.getInstance().getEnabledPluginPaths();
+		for (Path pluginPath : paths) {
+			loadFromPath(map, pluginPath);
 		}
 	}
 
-	private void loadFromJar(Map<String, JadxPlugin> map, Path jar) {
+	private void loadFromPath(Map<String, JadxPlugin> map, Path pluginPath) {
 		try {
-			File jarFile = jar.toFile();
-			String clsLoaderName = JADX_PLUGIN_CLASSLOADER_PREFIX + jarFile.getName();
-			URL[] urls = new URL[] { jarFile.toURI().toURL() };
+			URL[] urls;
+			if (Files.isDirectory(pluginPath)) {
+				urls = FileUtils.listFiles(pluginPath, file -> FileUtils.hasExtension(file, ".jar"))
+						.stream()
+						.map(JadxExternalPluginsLoader::toURL)
+						.toArray(URL[]::new);
+				if (urls.length == 0) {
+					throw new JadxRuntimeException("No jar files found in plugin directory");
+				}
+			} else if (Files.isRegularFile(pluginPath)) {
+				if (FileUtils.hasExtension(pluginPath, ".jar")) {
+					urls = new URL[] { toURL(pluginPath) };
+				} else {
+					throw new JadxRuntimeException("Unexpected plugin file format");
+				}
+			} else {
+				throw new JadxRuntimeException("Plugin file not found");
+			}
+			String clsLoaderName = JADX_PLUGIN_CLASSLOADER_PREFIX + pluginPath.getFileName();
 			URLClassLoader pluginClsLoader = new URLClassLoader(clsLoaderName, urls, thisClassLoader());
 			classLoaders.add(pluginClsLoader);
 			loadFromClsLoader(map, pluginClsLoader);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to load plugins from jar: " + jar, e);
+			throw new JadxRuntimeException("Failed to load plugins from: " + pluginPath, e);
+		}
+	}
+
+	private static URL toURL(Path pluginPath) {
+		try {
+			return pluginPath.toUri().toURL();
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

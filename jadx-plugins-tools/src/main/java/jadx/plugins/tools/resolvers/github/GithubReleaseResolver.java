@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.utils.ListUtils;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.resolvers.IJadxPluginResolver;
@@ -58,7 +60,7 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 		JadxPluginMetadata metadata = new JadxPluginMetadata();
 		metadata.setVersion(releaseVersion);
 		metadata.setLocationId(buildLocationIdWithoutVersion(info)); // exclude version for later updates
-		metadata.setJar(asset.getDownloadUrl());
+		metadata.setPath(asset.getDownloadUrl());
 		return metadata;
 	}
 
@@ -89,20 +91,28 @@ public class GithubReleaseResolver implements IJadxPluginResolver {
 	}
 
 	private static Asset searchPluginAsset(List<Asset> assets, String artifactPrefix, String releaseVersion) {
-		String artifactName = artifactPrefix + '-' + releaseVersion + ".jar";
+		Asset assetJar = searchAssetWithExt(assets, artifactPrefix, releaseVersion, ".jar");
+		if (assetJar != null) {
+			return assetJar;
+		}
+		Asset assetZip = searchAssetWithExt(assets, artifactPrefix, releaseVersion, ".zip");
+		if (assetZip != null) {
+			return assetZip;
+		}
+		throw new RuntimeException("Release artifact with prefix '" + artifactPrefix + "' not found");
+	}
+
+	private static @Nullable Asset searchAssetWithExt(List<Asset> assets, String artifactPrefix, String releaseVersion, String ext) {
+		String artifactName = artifactPrefix + '-' + releaseVersion + ext;
 		Asset exactAsset = ListUtils.filterOnlyOne(assets, a -> a.getName().equals(artifactName));
 		if (exactAsset != null) {
 			return exactAsset;
 		}
 		// search without version filter
-		Asset foundAsset = ListUtils.filterOnlyOne(assets, a -> {
+		return ListUtils.filterOnlyOne(assets, a -> {
 			String assetFileName = a.getName();
-			return assetFileName.startsWith(artifactPrefix) && assetFileName.endsWith(".jar");
+			return assetFileName.startsWith(artifactPrefix) && assetFileName.endsWith(ext);
 		});
-		if (foundAsset != null) {
-			return foundAsset;
-		}
-		throw new RuntimeException("Release artifact with prefix '" + artifactPrefix + "' not found");
 	}
 
 	private static String buildLocationIdWithoutVersion(LocationInfo info) {
