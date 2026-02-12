@@ -6,8 +6,6 @@ import ch.qos.logback.classic.Level;
 
 import jadx.core.utils.Utils;
 
-import static jadx.plugins.script.runtime.ScriptRuntime.JADX_SCRIPT_LOG_PREFIX;
-
 public class LogOptions {
 
 	/**
@@ -30,7 +28,7 @@ public class LogOptions {
 	}
 
 	public static LogOptions forScript(String scriptName) {
-		String filter = JADX_SCRIPT_LOG_PREFIX + scriptName;
+		String filter = "JadxScript:" + scriptName;
 		return store(new LogOptions(LogMode.CURRENT_SCRIPT, current.getLogLevel(), filter));
 	}
 

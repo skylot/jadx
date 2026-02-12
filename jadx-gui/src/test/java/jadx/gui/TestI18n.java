@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -116,12 +117,25 @@ public class TestI18n {
 		fail("I18n file: " + path.getFileName() + " and " + DEFAULT_LANG_FILE + " differ in line " + line);
 	}
 
+	/**
+	 * Temporary solution to allow use I18N strings in plugins until proper API implemented
+	 */
+	private static final List<String> EXCLUDED_KEYS = Arrays.asList(
+			// keys from `jadx-script-kotlin`
+			"tree.input_scripts",
+			"popup.new_script",
+			"popup.add_scripts",
+			"script.log",
+			"script.format",
+			"script.check");
+
 	@Test
 	public void keyIsUsed() throws IOException {
 		Properties properties = new Properties();
 		try (Reader reader = Files.newBufferedReader(i18nPath.resolve(DEFAULT_LANG_FILE))) {
 			properties.load(reader);
 		}
+		EXCLUDED_KEYS.forEach(properties.keySet()::remove);
 		Set<String> keys = new HashSet<>();
 		for (Object key : properties.keySet()) {
 			keys.add("\"" + key + '"');

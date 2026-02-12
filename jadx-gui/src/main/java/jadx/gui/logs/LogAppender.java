@@ -6,8 +6,6 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.plugins.script.runtime.ScriptRuntime.JADX_SCRIPT_LOG_PREFIX;
-
 class LogAppender implements ILogListener {
 	private final LogOptions options;
 	private final RSyntaxTextArea textArea;
@@ -39,7 +37,7 @@ class LogAppender implements ILogListener {
 				return true;
 
 			case ALL_SCRIPTS:
-				return logEvent.getLoggerName().startsWith(JADX_SCRIPT_LOG_PREFIX);
+				return logEvent.getLoggerName().startsWith("JadxScript:");
 
 			case CURRENT_SCRIPT:
 				return logEvent.getLoggerName().equals(options.getFilter());

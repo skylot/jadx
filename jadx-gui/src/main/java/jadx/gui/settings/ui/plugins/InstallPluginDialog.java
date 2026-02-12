@@ -3,7 +3,6 @@ package jadx.gui.settings.ui.plugins;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -61,7 +60,7 @@ public class InstallPluginDialog extends JDialog {
 		locationPanel.add(locationFld);
 
 		JButton fileBtn = new JButton(NLS.str("preferences.plugins.plugin_jar"));
-		fileBtn.addActionListener(ev -> openPluginJar());
+		fileBtn.addActionListener(ev -> openPluginFile());
 		JLabel fileLbl = new JLabel(NLS.str("preferences.plugins.plugin_jar_label"));
 		fileLbl.setLabelFor(fileBtn);
 
@@ -105,10 +104,10 @@ public class InstallPluginDialog extends JDialog {
 		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
-	private void openPluginJar() {
+	private void openPluginFile() {
 		FileDialogWrapper fd = new FileDialogWrapper(mainWindow, FileOpenMode.CUSTOM_OPEN);
 		fd.setTitle(NLS.str("preferences.plugins.plugin_jar"));
-		fd.setFileExtList(Collections.singletonList("jar"));
+		fd.setFileExtList(List.of("jar", "zip"));
 		fd.setSelectionMode(JFileChooser.FILES_ONLY);
 		List<Path> files = fd.show();
 		if (files.size() == 1) {

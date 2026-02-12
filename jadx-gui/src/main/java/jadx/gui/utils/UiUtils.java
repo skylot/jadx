@@ -88,7 +88,7 @@ public class UiUtils {
 	private UiUtils() {
 	}
 
-	public static FlatSVGIcon openSvgIcon(String name) {
+	public static ImageIcon openSvgIcon(String name) {
 		String iconPath = "icons/" + name + ".svg";
 		FlatSVGIcon icon = new FlatSVGIcon(iconPath);
 		boolean found;

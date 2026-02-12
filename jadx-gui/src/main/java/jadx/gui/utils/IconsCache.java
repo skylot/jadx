@@ -3,13 +3,13 @@ package jadx.gui.utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
+import javax.swing.ImageIcon;
 
 public class IconsCache {
 
-	private static final Map<String, FlatSVGIcon> SVG_ICONS = new ConcurrentHashMap<>();
+	private static final Map<String, ImageIcon> SVG_ICONS = new ConcurrentHashMap<>();
 
-	public static FlatSVGIcon getSVGIcon(String name) {
+	public static ImageIcon getSVGIcon(String name) {
 		return SVG_ICONS.computeIfAbsent(name, UiUtils::openSvgIcon);
 	}
 }

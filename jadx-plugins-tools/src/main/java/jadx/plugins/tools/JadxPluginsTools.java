@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,16 +22,22 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.Jadx;
 import jadx.core.plugins.versions.VerifyRequiredVersion;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 import jadx.plugins.tools.data.JadxInstalledPlugins;
 import jadx.plugins.tools.data.JadxPluginMetadata;
 import jadx.plugins.tools.data.JadxPluginUpdate;
 import jadx.plugins.tools.resolvers.IJadxPluginResolver;
 import jadx.plugins.tools.resolvers.ResolversRegistry;
 import jadx.plugins.tools.utils.PluginUtils;
+import jadx.zip.IZipEntry;
+import jadx.zip.ZipContent;
+import jadx.zip.ZipReader;
 
 import static jadx.core.utils.GsonUtils.buildGson;
 import static jadx.plugins.tools.utils.PluginFiles.DROPINS_DIR;
@@ -83,12 +88,13 @@ public class JadxPluginsTools {
 				install(pluginMetadata);
 				return pluginMetadata;
 			}
-			rejectedVersions.add(" version " + pluginMetadata.getVersion()
-					+ " not compatible, require: " + pluginMetadata.getRequiredJadxVersion());
+			String pluginVersion = Utils.getOrElse(pluginMetadata.getVersion(), "unknown");
+			rejectedVersions.add(" version '" + pluginVersion + "' not compatible, require: "
+					+ pluginMetadata.getRequiredJadxVersion());
 		}
 		throw new JadxRuntimeException("Can't find compatible version to install"
 				+ ", current jadx version: " + verifyRequiredVersion.getJadxVersion()
-				+ "\nrejected versions:\n"
+				+ "\nrejected plugin versions:\n"
 				+ String.join("\n", rejectedVersions));
 	}
 
@@ -163,7 +169,7 @@ public class JadxPluginsTools {
 			return false;
 		}
 		JadxPluginMetadata plugin = found.get();
-		deletePluginJar(plugin);
+		deletePlugin(plugin);
 		plugins.getInstalled().remove(plugin);
 		savePluginsJson(plugins);
 		return true;
@@ -187,24 +193,15 @@ public class JadxPluginsTools {
 		}
 	}
 
-	public List<Path> getAllPluginJars() {
-		List<Path> list = new ArrayList<>();
-		for (JadxPluginMetadata pluginMetadata : loadPluginsJson().getInstalled()) {
-			list.add(INSTALLED_DIR.resolve(pluginMetadata.getJar()));
-		}
-		collectJarsFromDir(list, DROPINS_DIR);
-		return list;
-	}
-
-	public List<Path> getEnabledPluginJars() {
+	public List<Path> getEnabledPluginPaths() {
 		List<Path> list = new ArrayList<>();
 		for (JadxPluginMetadata pluginMetadata : loadPluginsJson().getInstalled()) {
 			if (pluginMetadata.isDisabled()) {
 				continue;
 			}
-			list.add(INSTALLED_DIR.resolve(pluginMetadata.getJar()));
+			list.add(INSTALLED_DIR.resolve(pluginMetadata.getPath()));
 		}
-		collectJarsFromDir(list, DROPINS_DIR);
+		list.addAll(FileUtils.listFiles(DROPINS_DIR));
 		return list;
 	}
 
@@ -252,22 +249,31 @@ public class JadxPluginsTools {
 			throw new JadxRuntimeException("Can't install plugin, required version: \"" + reqVersionStr + '\"'
 					+ " is not compatible with current jadx version: " + Jadx.getVersion());
 		}
+		// remove previous version
+		uninstall(metadata.getPluginId());
 
 		String version = metadata.getVersion();
-		String fileName = metadata.getPluginId() + (StringUtils.notBlank(version) ? '-' + version : "") + ".jar";
-		Path pluginJar = INSTALLED_DIR.resolve(fileName);
-		copyJar(Paths.get(metadata.getJar()), pluginJar);
-		metadata.setJar(INSTALLED_DIR.relativize(pluginJar).toString());
-
-		JadxInstalledPlugins plugins = loadPluginsJson();
-		// remove previous version jar
-		plugins.getInstalled().removeIf(p -> {
-			if (p.getPluginId().equals(metadata.getPluginId())) {
-				deletePluginJar(p);
-				return true;
+		String pluginBaseName = metadata.getPluginId() + (StringUtils.notBlank(version) ? '-' + version : "");
+		String pluginPathStr = metadata.getPath();
+		Path pluginPath = Paths.get(pluginPathStr);
+		if (pluginPathStr.endsWith(".jar")) {
+			Path pluginJar = INSTALLED_DIR.resolve(pluginBaseName + ".jar");
+			copyJar(pluginPath, pluginJar);
+			metadata.setPath(INSTALLED_DIR.relativize(pluginJar).toString());
+		} else if (Files.isDirectory(pluginPath)) {
+			Path pluginDir = INSTALLED_DIR.resolve(pluginBaseName);
+			try {
+				FileUtils.deleteDirIfExists(pluginDir);
+				org.apache.commons.io.FileUtils.moveDirectory(pluginPath.toFile(), pluginDir.toFile());
+			} catch (IOException e) {
+				throw new JadxRuntimeException("Failed to install plugin: " + pluginBaseName, e);
 			}
-			return false;
-		});
+			metadata.setPath(INSTALLED_DIR.relativize(pluginDir).toString());
+		} else {
+			throw new JadxRuntimeException("Unexpected plugin path type: " + pluginPathStr);
+		}
+		// update plugins json
+		JadxInstalledPlugins plugins = loadPluginsJson();
 		plugins.getInstalled().add(metadata);
 		plugins.setUpdated(System.currentTimeMillis());
 		savePluginsJson(plugins);
@@ -275,23 +281,30 @@ public class JadxPluginsTools {
 
 	private void fillMetadata(JadxPluginMetadata metadata) {
 		try {
-			Path tmpJar;
-			if (needDownload(metadata.getJar())) {
-				tmpJar = Files.createTempFile(metadata.getName(), "plugin.jar");
-				PluginUtils.downloadFile(metadata.getJar(), tmpJar);
-				metadata.setJar(tmpJar.toAbsolutePath().toString());
-			} else {
-				tmpJar = Paths.get(metadata.getJar());
+			String pluginPath = metadata.getPath();
+			if (needDownload(pluginPath)) {
+				// download plugin
+				String ext = CommonFileUtils.getFileExtension(pluginPath);
+				Path tmpJar = Files.createTempFile(metadata.getName(), "plugin." + ext);
+				PluginUtils.downloadFile(pluginPath, tmpJar);
+				pluginPath = tmpJar.toAbsolutePath().toString();
 			}
-			fillMetadataFromJar(metadata, tmpJar);
+			if (pluginPath.endsWith(".zip")) {
+				// unpack plugin zip
+				Path tmpDir = Files.createTempDirectory(metadata.getName());
+				unzip(Paths.get(pluginPath), tmpDir);
+				pluginPath = tmpDir.toAbsolutePath().toString();
+			}
+			metadata.setPath(pluginPath);
+			fillMetadataFromPath(metadata, Paths.get(pluginPath));
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to fill plugin metadata, plugin: " + metadata.getPluginId(), e);
 		}
 	}
 
-	private void fillMetadataFromJar(JadxPluginMetadata metadata, Path jar) {
+	private void fillMetadataFromPath(JadxPluginMetadata metadata, Path pluginPath) {
 		try (JadxExternalPluginsLoader loader = new JadxExternalPluginsLoader()) {
-			JadxPlugin jadxPlugin = loader.loadFromJar(jar);
+			JadxPlugin jadxPlugin = loader.loadFromPath(pluginPath);
 			JadxPluginInfo pluginInfo = jadxPlugin.getPluginInfo();
 			metadata.setPluginId(pluginInfo.getPluginId());
 			metadata.setName(pluginInfo.getName());
@@ -315,9 +328,14 @@ public class JadxPluginsTools {
 		}
 	}
 
-	private void deletePluginJar(JadxPluginMetadata plugin) {
+	private void deletePlugin(JadxPluginMetadata plugin) {
 		try {
-			Files.deleteIfExists(INSTALLED_DIR.resolve(plugin.getJar()));
+			Path pluginPath = INSTALLED_DIR.resolve(plugin.getPath());
+			if (Files.isDirectory(pluginPath)) {
+				FileUtils.deleteDir(pluginPath);
+			} else {
+				Files.deleteIfExists(pluginPath);
+			}
 		} catch (IOException e) {
 			// ignore
 		}
@@ -361,11 +379,15 @@ public class JadxPluginsTools {
 		}
 	}
 
-	private static void collectJarsFromDir(List<Path> list, Path dir) {
-		try (Stream<Path> files = Files.list(dir)) {
-			files.filter(p -> p.getFileName().toString().endsWith(".jar")).forEach(list::add);
+	private static void unzip(Path zipFile, Path outDir) {
+		ZipReader zipReader = new ZipReader(); // TODO: pass zip options from jadx args
+		try (ZipContent content = zipReader.open(zipFile.toFile())) {
+			for (IZipEntry entry : content.getEntries()) {
+				Path entryFile = outDir.resolve(entry.getName());
+				Files.copy(entry.getInputStream(), entryFile, StandardCopyOption.REPLACE_EXISTING);
+			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JadxRuntimeException("Failed to unzip file: " + zipFile, e);
 		}
 	}
 }

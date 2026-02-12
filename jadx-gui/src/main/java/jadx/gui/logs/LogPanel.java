@@ -19,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import ch.qos.logback.classic.Level;
 
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.treemodel.JInputScript;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -144,7 +143,7 @@ public class LogPanel extends JPanel {
 		TabBlueprint selectedTab = mainWindow.getTabsController().getSelectedTab();
 		if (selectedTab != null) {
 			JNode node = selectedTab.getNode();
-			if (node instanceof JInputScript) {
+			if (node.getClass().getSimpleName().equals("JInputScript")) { // TODO: register custom log filters
 				return node.getName();
 			}
 		}
