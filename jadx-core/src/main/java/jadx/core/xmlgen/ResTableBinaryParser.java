@@ -296,16 +296,16 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
-		Set<Integer> processedOffsets = new HashSet<>(offsets.size() * 2);
+		Set<Integer> processedIndices = new HashSet<>(offsets.size() * 2);
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
 			if (offset == NO_ENTRY) {
 				continue;
 			}
 			int index = entryOffset.getIdx();
-			if (!processedOffsets.add(offset)) {
-				// Sometimes sparse type chunks contain multiple entries with the same offset.
-				// If we have processed the offset once we can ignore those entries.
+			if (isSparse && !processedIndices.add(index)) {
+				// Sometimes sparse type chunks contain multiple entries with the same index.
+				// If we have processed the index once, we assume can ignore other entries with the same index.
 				continue;
 			}
 			long entryStartOffset = entriesStart + offset;
@@ -389,7 +389,6 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 	}
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
-		long fileOffset = is.getPos();
 		int size = is.readInt16();
 		int flags = is.readInt16();
 		boolean isComplex = (flags & FLAG_COMPLEX) != 0;
@@ -400,7 +399,8 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			return;
 		}
 
-		int resId = (int) fileOffset; // we assume resource.arsc files are always smaller than 2GB
+		// resourceID as defined in AOSP make_resid()
+		int resId = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings().get(typeId - 1);
 		String origKeyName = pkg.getKeyStrings().get(key);
 
@@ -441,11 +441,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 			if (prevResEntry != null) {
 				if (prevResEntry.getId() == newResEntry.getId()) {
-					// We do check that every offset is only processed once, so we should not get resource entries
-					// with an identical id. This check is just for safety purposes, otherwise Jadx can
-					// accumulate many GB of RAM as described in issue #2775 because resource names are extended by
-					// every rename operation and are getting longer and longer...
-					LOG.error("ResourceEntries with duplicate id found: {} {}", prevResEntry, newResEntry);
+					// Check that every resource (identified by its resource ID) is only processed once.
+					// We should not get resource entries with an identical id. This check is just for safety purposes,
+					// otherwise Jadx can accumulate many GB of RAM as described in issue #2775 because resource names
+					// are extended by every rename operation and are getting longer and longer...
+					LOG.error("ResourceEntries with duplicate resource id found: {} {}", prevResEntry, newResEntry);
 					resName = origKeyName; // use the original name, not the renamed one
 				}
 				newResEntry = newResEntry.copyWithId(resName);
