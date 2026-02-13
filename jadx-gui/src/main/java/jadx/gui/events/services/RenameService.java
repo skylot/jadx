@@ -60,9 +60,10 @@ public class RenameService {
 	private void process(NodeRenamedByUser event) {
 		try {
 			LOG.debug("Applying rename event: {}", event);
+			long timeStarted = System.nanoTime();
 			JRenameNode node = getRenameNode(event);
 			updateCodeRenames(set -> processRename(node, event, set));
-			refreshState(node);
+			refreshState(node, timeStarted);
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
 			UiUtils.errorMessage(mainWindow, "Rename failed:\n" + Utils.getStackTrace(e));
@@ -109,7 +110,7 @@ public class RenameService {
 		project.setCodeData(codeData);
 	}
 
-	private void refreshState(JRenameNode node) {
+	private void refreshState(JRenameNode node, long timeStarted) {
 		List<JavaNode> toUpdate = new ArrayList<>();
 		node.addUpdateNodes(toUpdate);
 
@@ -128,8 +129,18 @@ public class RenameService {
 		mainWindow.getBackgroundExecutor().execute("Refreshing",
 				() -> {
 					mainWindow.getWrapper().reloadCodeData();
+					// Reload all the classes in the background process, rather than using the UI thread for
+					// decompilation. We don't just use codeArea.backgroundRefreshClass because it would spawn a
+					// separate background process, whereas we would like it to happen in this one.
+					for (ContentPanel tab : mainWindow.getTabbedPane().getTabs()) {
+						JClass rootClass = tab.getNode().getRootClass();
+						if (updatedTopClasses.contains(rootClass)) {
+							rootClass.reload(mainWindow.getCacheObject());
+						}
+					}
 					UiUtils.uiRunAndWait(() -> refreshTabs(mainWindow.getTabbedPane(), updatedTopClasses));
 					refreshClasses(updatedTopClasses);
+					LOG.debug("Finished rename, took " + (System.nanoTime() - timeStarted) + " ns");
 				},
 				(status) -> {
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
@@ -171,7 +182,7 @@ public class RenameService {
 			if (updatedClasses.remove(rootClass)) {
 				ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) tab;
 				CodeArea codeArea = (CodeArea) contentPanel.getJavaCodePanel().getCodeArea();
-				codeArea.refreshClass();
+				codeArea.refreshClass(true);
 			}
 		}
 	}

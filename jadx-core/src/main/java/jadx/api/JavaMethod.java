@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -70,6 +71,18 @@ public final class JavaMethod implements JavaNode {
 	@Override
 	public List<JavaNode> getUseIn() {
 		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUseIn());
+	}
+
+	public List<JavaNode> getUsed() {
+		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUsed());
+	}
+
+	public List<IMethodRef> getUnresolvedUsed() {
+		return mth.getUnresolvedUsed();
+	}
+
+	public boolean callsSelf() {
+		return mth.callsSelf();
 	}
 
 	public List<JavaMethod> getOverrideRelatedMethods() {

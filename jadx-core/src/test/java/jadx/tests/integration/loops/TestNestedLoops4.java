@@ -2,7 +2,6 @@ package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -37,7 +36,6 @@ public class TestNestedLoops4 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()

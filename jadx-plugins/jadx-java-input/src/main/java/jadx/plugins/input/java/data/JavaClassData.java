@@ -37,6 +37,11 @@ public class JavaClassData implements IClassData {
 	}
 
 	@Override
+	public int getInputFileOffset() {
+		return offsets.getAccessFlagsOffset();
+	}
+
+	@Override
 	public IClassData copy() {
 		return this;
 	}

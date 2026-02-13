@@ -76,7 +76,8 @@ public class CheckRegions extends AbstractVisitor {
 				if (region instanceof LoopRegion) {
 					// check loop conditions
 					BlockNode loopHeader = ((LoopRegion) region).getHeader();
-					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
+					if (loopHeader != null && !loopHeader.contains(AFlag.ALLOW_MULTIPLE_INSNS_LOOP_COND)
+							&& loopHeader.getInstructions().size() != 1) {
 						mth.addWarn("Incorrect condition in loop: " + loopHeader);
 					}
 				}

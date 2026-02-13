@@ -1,12 +1,24 @@
 package jadx.core.dex.nodes;
 
-public class Edge {
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AttrNode;
+
+public class Edge extends AttrNode {
 	private final BlockNode source;
 	private final BlockNode target;
 
 	public Edge(BlockNode source, BlockNode target) {
+		this(source, target, false);
+	}
+
+	public Edge(BlockNode source, BlockNode target, boolean isSynthetic) {
+		if (isSynthetic) {
+			this.add(AFlag.SYNTHETIC);
+		}
+
 		this.source = source;
 		this.target = target;
+
 	}
 
 	public BlockNode getSource() {
@@ -15,6 +27,10 @@ public class Edge {
 
 	public BlockNode getTarget() {
 		return target;
+	}
+
+	public boolean isSynthetic() {
+		return this.contains(AFlag.SYNTHETIC);
 	}
 
 	@Override

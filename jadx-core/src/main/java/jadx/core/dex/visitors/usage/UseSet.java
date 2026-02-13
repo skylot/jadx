@@ -22,6 +22,10 @@ public class UseSet<K, V> {
 		return useMap.get(obj);
 	}
 
+	public Set<V> getOrDefault(K obj, Set<V> defaultValue) {
+		return useMap.getOrDefault(obj, defaultValue);
+	}
+
 	public void visit(BiConsumer<K, Set<V>> consumer) {
 		for (Map.Entry<K, Set<V>> entry : useMap.entrySet()) {
 			consumer.accept(entry.getKey(), entry.getValue());

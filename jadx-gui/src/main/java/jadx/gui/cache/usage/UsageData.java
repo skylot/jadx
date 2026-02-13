@@ -59,6 +59,9 @@ class UsageData implements IUsageInfoData {
 			MthUsageData mthUsageData = mthUsage.get(mth.getMethodInfo().getShortId());
 			if (mthUsageData != null) {
 				mth.setUseIn(resolveMthList(mthUsageData.getUsage()));
+				mth.setUsed(resolveMthList(mthUsageData.getUses()));
+				mth.setUnresolvedUsed(mthUsageData.getUnresolvedUsage());
+				mth.setCallsSelf(mthUsageData.callsSelf());
 			}
 		}
 		Map<String, FldUsageData> fldUsage = clsUsageData.getFldUsage();

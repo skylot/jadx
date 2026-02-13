@@ -18,6 +18,7 @@ public enum AFlag {
 	DONT_WRAP,
 	DONT_INLINE,
 	DONT_INLINE_CONST,
+	DONT_INVERT, // don't invert this if statement
 	DONT_GENERATE, // process as usual, but don't output to generated code
 	COMMENT_OUT, // process as usual, but comment insn in generated code
 	REMOVE, // can be completely removed
@@ -29,6 +30,9 @@ public enum AFlag {
 	FORCE_RAW_NAME, // force use of raw name instead alias
 
 	ADDED_TO_REGION,
+
+	// this loop condition has been merged or otherwise shouldn't be subject to the 1 instruction limit
+	ALLOW_MULTIPLE_INSNS_LOOP_COND,
 
 	EXC_TOP_SPLITTER,
 	EXC_BOTTOM_SPLITTER,
@@ -66,6 +70,11 @@ public enum AFlag {
 	 * Force inline instruction with inline assign
 	 */
 	FORCE_ASSIGN_INLINE,
+
+	/**
+	 * A MOVE instruction has been inlined
+	 */
+	MOVE_INLINED,
 
 	CUSTOM_DECLARE, // variable for this register don't need declaration
 	DECLARE_VAR,

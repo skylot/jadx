@@ -2,6 +2,7 @@ package jadx.gui.cache.usage;
 
 import java.util.List;
 
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoVisitor;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -38,6 +39,21 @@ final class CollectUsageData implements IUsageInfoVisitor {
 	@Override
 	public void visitMethodsUsage(MethodNode mth, List<MethodNode> methods) {
 		data.getMethodData(mth).setUsage(mthNodesRef(methods));
+	}
+
+	@Override
+	public void visitMethodsUses(MethodNode mth, List<MethodNode> methods) {
+		data.getMethodData(mth).setUses(mthNodesRef(methods));
+	}
+
+	@Override
+	public void visitUnresolvedMethodsUsage(MethodNode mth, List<IMethodRef> methods) {
+		data.getMethodData(mth).setUnresolvedUsage(methods);
+	}
+
+	@Override
+	public void visitIsSelfCall(MethodNode mth, boolean isSelfCall) {
+		data.getMethodData(mth).setCallsSelf(isSelfCall);
 	}
 
 	@Override

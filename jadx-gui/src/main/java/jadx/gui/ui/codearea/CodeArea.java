@@ -4,7 +4,10 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
@@ -20,6 +23,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.LoadTask;
@@ -30,13 +34,31 @@ import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.action.*;
+import jadx.gui.ui.action.CommentSearchAction;
+import jadx.gui.ui.action.FindUsageAction;
+import jadx.gui.ui.action.FridaAction;
+import jadx.gui.ui.action.GoToDeclarationAction;
+import jadx.gui.ui.action.JNodeAction;
+import jadx.gui.ui.action.JsonPrettifyAction;
+import jadx.gui.ui.action.RenameAction;
+import jadx.gui.ui.action.ViewCallGraphAction;
+import jadx.gui.ui.action.ViewClassInheritanceGraphAction;
+import jadx.gui.ui.action.ViewClassMethodGraphAction;
+import jadx.gui.ui.action.ViewControlFlowGraphAction;
+import jadx.gui.ui.action.ViewRawControlFlowGraphAction;
+import jadx.gui.ui.action.ViewRegionControlFlowGraphAction;
+import jadx.gui.ui.action.XposedAction;
 import jadx.gui.ui.codearea.mode.JCodeMode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
+import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
+import jadx.gui.ui.codearea.sync.JavaSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.ShortcutsController;
 
@@ -44,7 +66,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
  * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
  * resources (e.g. AndroidManifest.xml)
  */
-public final class CodeArea extends AbstractCodeArea {
+public final class CodeArea extends AbstractCodeArea implements CodePanelSyncerAbstractFactory, CodePanelSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
@@ -172,6 +194,18 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.addSeparator();
 		popup.add(new FridaAction(this));
 		popup.add(new XposedAction(this));
+		popup.addSeparator();
+		popup.add(new ViewClassInheritanceGraphAction(this));
+		popup.add(new ViewClassMethodGraphAction(this));
+		popup.add(new ViewCallGraphAction(this));
+		popup.addSubmenu(new JNodeAction[] {
+				new ViewControlFlowGraphAction(this),
+				new ViewRawControlFlowGraphAction(this),
+				new ViewRegionControlFlowGraphAction(this),
+		}, NLS.str("popup.cfg_submenu"));
+		popup.addSeparator();
+		popup.add(new ConvertNumberAction(this));
+
 		getMainWindow().getWrapper().getGuiPluginsContext().appendPopupMenus(this, popup);
 
 		// move caret on mouse right button click
@@ -362,13 +396,22 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	public void refreshClass() {
+		refreshClass(false);
+	}
+
+	public void refreshClass(boolean alreadyReloaded) {
 		if (node instanceof JClass) {
 			JClass cls = node.getRootClass();
 			try {
 				CaretPositionFix caretFix = new CaretPositionFix(this);
 				caretFix.save();
 
-				cachedCodeInfo = cls.reload(getMainWindow().getCacheObject());
+				if (alreadyReloaded) {
+					cachedCodeInfo = cls.getCodeInfo();
+				} else {
+					// bad. blocks the UI thread for a potentially expensive decomp
+					cachedCodeInfo = cls.reload(getMainWindow().getCacheObject());
+				}
 
 				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
 				codeContentPanel.getTabbedPane().refresh(cls);
@@ -377,6 +420,20 @@ public final class CodeArea extends AbstractCodeArea {
 				LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 			}
 		}
+	}
+
+	/**
+	 * Refresh the class in the background, updating the UI once the potential decomp is complete.
+	 * Should be called from the UI thread.
+	 */
+	public void backgroundRefreshClass() {
+		UiUtils.uiThreadGuard();
+		this.getMainWindow().getBackgroundExecutor().execute("Refreshing...", () -> {
+			this.getNode().getRootClass().reload(this.getMainWindow().getCacheObject());
+			UiUtils.uiRunAndWait(() -> {
+				this.refreshClass(true);
+			});
+		});
 	}
 
 	public MainWindow getMainWindow() {
@@ -397,5 +454,66 @@ public final class CodeArea extends AbstractCodeArea {
 
 		super.dispose();
 		cachedCodeInfo = null;
+	}
+
+	@Override
+	public CodePanelSyncer createCodePanelSyncer() {
+		return new JavaSyncer(this);
+	}
+
+	@Override
+	public boolean sync(CodePanelSyncer codePanelSyncer) {
+		return codePanelSyncer.syncTo(this);
+	}
+
+	@Nullable
+	public ICodeMetadata getCodeMetadata() {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (!codeInfo.hasMetadata()) {
+			LOG.warn("No code info metadata for {}", codeInfo.toString());
+			return null;
+		}
+		return codeInfo.getCodeMetadata();
+	}
+
+	/**
+	 * Returns a mapping of 'decompilation output line number' to 'dex debug line number'
+	 * These are 1-indexed line numbers not the line indices of the CodeArea
+	 *
+	 * @return the line mapping
+	 */
+	public Map<Integer, Integer> getLineMappings() {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (!codeInfo.hasMetadata()) {
+			LOG.debug("No code info metadata for {}", codeInfo.toString());
+			return Map.of();
+		}
+		Map<Integer, Integer> lineMapping = codeInfo.getCodeMetadata().getLineMapping();
+		if (lineMapping.isEmpty()) {
+			LOG.debug("Line mappings are empty for {}", codeInfo.toString());
+			return Map.of();
+		}
+		return lineMapping;
+	}
+
+	/**
+	 * Returns the same as {@link #getLineMappings()} but only if each value (dex debug line number)
+	 * appears only once.
+	 * If a value appears more than once then it suggests that methods might share dex debug line
+	 * numbers.
+	 * If this is the case then the line mapping cannot be used for code sync correlation.
+	 *
+	 * @return the line mapping
+	 */
+	public Map<Integer, Integer> getFunctionUniqueLineMappings() {
+		final var lineMappings = getLineMappings();
+		final boolean isAnyRepeated =
+				lineMappings.values().stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).values().stream()
+						.filter(v -> v > 1).findAny().isPresent();
+		if (isAnyRepeated) {
+			LOG.debug("Dex debug line mappings are not unique");
+			return Map.of();
+		}
+		return lineMappings;
 	}
 }

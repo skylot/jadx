@@ -158,7 +158,9 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private void updateUsageInfo(MethodNode mth, MethodNode inlinedMth, InsnNode insn) {
-		inlinedMth.getUseIn().remove(mth);
+		List<MethodNode> newUseIn = new ArrayList<>(inlinedMth.getUseIn());
+		newUseIn.remove(mth);
+		inlinedMth.setUseIn(newUseIn);
 		insn.visitInsns(innerInsn -> {
 			// TODO: share code with UsageInfoVisitor
 			switch (innerInsn.getType()) {
@@ -167,7 +169,7 @@ public class InlineMethods extends AbstractVisitor {
 					MethodInfo callMth = ((BaseInvokeNode) innerInsn).getCallMth();
 					MethodNode callMthNode = mth.root().resolveMethod(callMth);
 					if (callMthNode != null) {
-						callMthNode.setUseIn(ListUtils.safeReplace(callMthNode.getUseIn(), inlinedMth, mth));
+						callMthNode.setUseIn(ListUtils.safeReplace(new ArrayList<>(callMthNode.getUseIn()), inlinedMth, mth));
 						replaceClsUsage(mth, inlinedMth, callMthNode.getParentClass());
 					}
 					break;
@@ -179,7 +181,7 @@ public class InlineMethods extends AbstractVisitor {
 					FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) innerInsn).getIndex();
 					FieldNode fieldNode = mth.root().resolveField(fieldInfo);
 					if (fieldNode != null) {
-						fieldNode.setUseIn(ListUtils.safeReplace(fieldNode.getUseIn(), inlinedMth, mth));
+						fieldNode.setUseIn(ListUtils.safeReplace(new ArrayList<>(fieldNode.getUseIn()), inlinedMth, mth));
 						replaceClsUsage(mth, inlinedMth, fieldNode.getParentClass());
 					}
 					break;

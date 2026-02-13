@@ -4,20 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JCheckBox;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.DecompilationMode;
-import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.codearea.mode.JCodeMode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
+import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
+import jadx.gui.ui.codearea.sync.fallback.FallbackSyncer;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;
@@ -25,7 +30,7 @@ import jadx.gui.utils.NLS;
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
 
 /**
- * Displays one class with two different view:
+ * Displays one class with two different views:
  *
  * <ul>
  * <li>Java source code of the selected class (default)</li>
@@ -39,6 +44,7 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 	private final transient CodePanel javaCodePanel;
 	private final transient CodePanel smaliCodePanel;
 	private final transient JTabbedPane areaTabbedPane;
+	private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
 
 	private boolean splitView = false;
 
@@ -46,12 +52,12 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		super(panel, jCls);
 
 		javaCodePanel = new CodePanel(new CodeArea(this, jCls));
-		smaliCodePanel = new CodePanel(new SmaliArea(this, jCls));
-		areaTabbedPane = buildTabbedPane(jCls, false);
+		smaliCodePanel = new CodePanel(new SmaliArea(this, jCls, false));
+		areaTabbedPane = buildTabbedPane(jCls);
 		addCustomControls(areaTabbedPane);
 
-		initView();
 		javaCodePanel.load();
+		initView();
 	}
 
 	private void initView() {
@@ -59,28 +65,108 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 0, 0, 0));
 		if (splitView) {
-			JTabbedPane splitPaneView = buildTabbedPane(((JClass) node), true);
-			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, areaTabbedPane, splitPaneView);
-			add(splitPane);
-			splitPane.setDividerLocation(0.5);
-			splitPaneView.setSelectedIndex(1);
+			setupSplitPane();
 		} else {
+			javaCodePanel.load();
+			smaliCodePanel.load();
+			attachSyncListeners(javaCodePanel, smaliCodePanel);
+			areaTabbedPane.setSelectedIndex(0); // default to Java
 			add(areaTabbedPane);
 		}
-		invalidate();
+		revalidate();
+		repaint();
 	}
 
-	private JTabbedPane buildTabbedPane(JClass jCls, boolean split) {
+	private void attachSyncListeners(CodePanel javaPanel, CodePanel smaliPanel) {
+		javaPanel.getCodeArea().addCaretListener(e -> {
+			if (syncInProgress.get()) {
+				return;
+			}
+			syncInProgress.set(true);
+			syncToMethod(javaPanel, smaliPanel);
+			syncInProgress.set(false);
+		});
+
+		smaliPanel.getCodeArea().addCaretListener(e -> {
+			if (syncInProgress.get()) {
+				return;
+			}
+			syncInProgress.set(true);
+			syncToMethod(smaliPanel, javaPanel);
+			syncInProgress.set(false);
+		});
+	}
+
+	private void setupSplitPane() {
+		JTabbedPane leftTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+		JTabbedPane rightTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+
+		CodePanel[] leftPanels = {
+				new CodePanel(new CodeArea(this, (JClass) node)), // Java
+				new CodePanel(new SmaliArea(this, (JClass) node, false)), // Smali
+				new CodePanel(new SmaliArea(this, (JClass) node, true)), // Smali with Dalvik
+				new CodePanel(new CodeArea(this, new JCodeMode((JClass) node, DecompilationMode.SIMPLE))), // Simple
+				new CodePanel(new CodeArea(this, new JCodeMode((JClass) node, DecompilationMode.FALLBACK))) // Fallback
+		};
+
+		CodePanel[] rightPanels = {
+				new CodePanel(new SmaliArea(this, (JClass) node, false)), // Smali
+				new CodePanel(new SmaliArea(this, (JClass) node, true)), // Smali with Dalvik
+				new CodePanel(new CodeArea(this, (JClass) node)), // Java
+				new CodePanel(new CodeArea(this, new JCodeMode((JClass) node, DecompilationMode.SIMPLE))), // Simple
+				new CodePanel(new CodeArea(this, new JCodeMode((JClass) node, DecompilationMode.FALLBACK))) // Fallback
+		};
+
+		leftTabbedPane.add(leftPanels[0], NLS.str("tabs.code"));
+		leftTabbedPane.add(leftPanels[1], NLS.str("tabs.smali"));
+		leftTabbedPane.add(leftPanels[2], NLS.str("tabs.smali_bytecode"));
+		leftTabbedPane.add(leftPanels[3], "Simple");
+		leftTabbedPane.add(leftPanels[4], "Fallback");
+
+		rightTabbedPane.add(rightPanels[0], NLS.str("tabs.smali"));
+		rightTabbedPane.add(rightPanels[1], NLS.str("tabs.smali_bytecode"));
+		rightTabbedPane.add(rightPanels[2], NLS.str("tabs.code"));
+		rightTabbedPane.add(rightPanels[3], "Simple");
+		rightTabbedPane.add(rightPanels[4], "Fallback");
+
+		for (CodePanel p : leftPanels) {
+			p.load();
+		}
+		for (CodePanel p : rightPanels) {
+			p.load();
+		}
+
+		leftTabbedPane.addChangeListener(e -> ((CodePanel) leftTabbedPane.getSelectedComponent()).load());
+		rightTabbedPane.addChangeListener(e -> ((CodePanel) rightTabbedPane.getSelectedComponent()).load());
+
+		// Attach caret sync between all combinations
+		for (CodePanel leftPanel : leftPanels) {
+			for (CodePanel rightPanel : rightPanels) {
+				attachSyncListeners(leftPanel, rightPanel);
+			}
+		}
+
+		// Create and configure split pane
+		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftTabbedPane, rightTabbedPane);
+		splitPane.setResizeWeight(0.5);
+		leftTabbedPane.setMinimumSize(new Dimension(200, 200));
+		rightTabbedPane.setMinimumSize(new Dimension(200, 200));
+		add(splitPane);
+
+		// Set divider location after layout
+		SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.5));
+
+		rightTabbedPane.setSelectedIndex(0);
+		addCustomControls(leftTabbedPane);
+	}
+
+	private JTabbedPane buildTabbedPane(JClass jCls) {
 		JTabbedPane areaTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
 		areaTabbedPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		areaTabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-		if (split) {
-			areaTabbedPane.add(new CodePanel(new CodeArea(this, jCls)), NLS.str("tabs.code"));
-			areaTabbedPane.add(new CodePanel(new SmaliArea(this, jCls)), NLS.str("tabs.smali"));
-		} else {
-			areaTabbedPane.add(javaCodePanel, NLS.str("tabs.code"));
-			areaTabbedPane.add(smaliCodePanel, NLS.str("tabs.smali"));
-		}
+		areaTabbedPane.add(javaCodePanel, NLS.str("tabs.code"));
+		areaTabbedPane.add(smaliCodePanel, NLS.str("tabs.smali"));
+		areaTabbedPane.add(new CodePanel(new SmaliArea(this, jCls, true)), NLS.str("tabs.smali_bytecode"));
 		areaTabbedPane.add(new CodePanel(new CodeArea(this, new JCodeMode(jCls, DecompilationMode.SIMPLE))), "Simple");
 		areaTabbedPane.add(new CodePanel(new CodeArea(this, new JCodeMode(jCls, DecompilationMode.FALLBACK))), "Fallback");
 		areaTabbedPane.addChangeListener(e -> {
@@ -106,11 +192,6 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		trailing.addSeparator(new Dimension(50, 1));
 		trailing.add(splitCheckBox);
 		tabbedPane.putClientProperty(TABBED_PANE_TRAILING_COMPONENT, trailing);
-	}
-
-	private void execInBackground(Runnable runnable) {
-		BackgroundExecutor bgExec = this.tabbedPane.getMainWindow().getBackgroundExecutor();
-		bgExec.execute("Loading", runnable);
 	}
 
 	@Override
@@ -194,5 +275,28 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 			}
 		}
 		super.dispose();
+	}
+
+	private void syncToMethod(CodePanel fromPanel, CodePanel toPanel) {
+		if (!fromPanel.isShowing() || !toPanel.isShowing()) {
+			return;
+		}
+		try {
+			AbstractCodeArea from = fromPanel.getCodeArea();
+			AbstractCodeArea to = toPanel.getCodeArea();
+			toPanel.load();
+
+			if (from instanceof CodePanelSyncerAbstractFactory && to instanceof CodePanelSyncee) {
+				CodePanelSyncer syncer = ((CodePanelSyncerAbstractFactory) from).createCodePanelSyncer();
+				if (((CodePanelSyncee) to).sync(syncer)) {
+					return;
+				}
+			}
+			if (!FallbackSyncer.sync(fromPanel, toPanel)) {
+				LOG.warn("Code pane area sync not possible");
+			}
+		} catch (Exception ex) {
+			LOG.warn("Failed to sync method/class across views: {}", ex.getLocalizedMessage());
+		}
 	}
 }

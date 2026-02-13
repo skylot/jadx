@@ -234,12 +234,29 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_C && UiUtils.isCtrlDown(e)) {
-					if (StringUtils.isEmpty(getSelectedText())) {
-						UiUtils.copyToClipboard(getWordUnderCaret());
-					}
+					UiUtils.copyToClipboard(getSelectedTokenOrWord());
 				}
 			}
 		});
+	}
+
+	/**
+	 * If the user has selected an individual word, for example by clicking and dragging
+	 * the mouse, then get that. Otherwise get the token underneath the cursor.
+	 * This is useful when the token is a string or comment and we want to control or copy
+	 * the word rather than the whole thing.
+	 *
+	 * @return The word or the token text
+	 */
+	public @Nullable String getSelectedTokenOrWord() {
+		final String rc = getSelectedText();
+		if (rc == null) {
+			return getWordUnderCaret();
+		}
+		if (StringUtils.isEmpty(rc)) {
+			return getWordUnderCaret();
+		}
+		return rc;
 	}
 
 	private void addSaveActions(JEditableNode node) {

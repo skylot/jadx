@@ -9,6 +9,8 @@ import jadx.core.utils.Utils;
 
 public class AttrList<T> implements IJadxAttribute {
 
+	private static final int MAX_ATTRLIST_LENGTH = 300;
+
 	private final IJadxAttrType<AttrList<T>> type;
 	private final List<T> list = new ArrayList<>();
 
@@ -27,6 +29,11 @@ public class AttrList<T> implements IJadxAttribute {
 
 	@Override
 	public String toString() {
-		return Utils.listToString(list, ", ");
+		String commaDelimited = Utils.listToString(list, ", ");
+		// if the comma delimited list is too long, use newlines instead to maintain readability
+		if (commaDelimited.length() > MAX_ATTRLIST_LENGTH) {
+			return Utils.listToString(list, "\n    ");
+		}
+		return commaDelimited;
 	}
 }

@@ -896,4 +896,5 @@ public class JadxSettings {
 	public void setSmaliAreaShowBytecode(boolean smaliAreaShowBytecode) {
 		settingsData.setSmaliAreaShowBytecode(smaliAreaShowBytecode);
 	}
+
 }

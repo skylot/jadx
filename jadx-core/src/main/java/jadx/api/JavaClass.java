@@ -362,4 +362,21 @@ public final class JavaClass implements JavaNode {
 	public String toString() {
 		return getFullName();
 	}
+
+	/**
+	 * Detect if calling load() would trigger a potentially expensive decompilation operation.
+	 */
+	public boolean loadingWouldRequireDecompilation() {
+		if (listsLoaded) {
+			// lists are already poplulated, so it's safe regardless of the state of the class itself
+			return false;
+		}
+
+		if (cls.getState().isProcessComplete()) {
+			// decompilation has already finished
+			return false;
+		}
+
+		return true;
+	}
 }

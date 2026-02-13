@@ -501,4 +501,5 @@ public class JadxSettingsData extends JadxGUIArgs {
 	public void setXposedCodegenLanguage(XposedCodegenLanguage xposedCodegenLanguage) {
 		this.xposedCodegenLanguage = xposedCodegenLanguage;
 	}
+
 }

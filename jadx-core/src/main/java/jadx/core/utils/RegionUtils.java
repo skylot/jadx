@@ -81,6 +81,27 @@ public class RegionUtils {
 		}
 	}
 
+	@Nullable
+	public static IBlock getFirstBlock(IContainer container) {
+		if (container == null) {
+			return null;
+		}
+		if (container instanceof IBlock) {
+			return (IBlock) container;
+		} else if (container instanceof IBranchRegion) {
+			return null;
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			List<IContainer> blocks = region.getSubBlocks();
+			if (blocks.isEmpty()) {
+				return null;
+			}
+			return getFirstBlock(blocks.get(0));
+		} else {
+			throw new JadxRuntimeException(unknownContainerType(container));
+		}
+	}
+
 	public static @Nullable BlockNode getFirstBlockNode(IContainer container) {
 		if (container instanceof IBlock) {
 			if (container instanceof BlockNode) {
@@ -421,6 +442,16 @@ public class RegionUtils {
 		return Collections.emptyList();
 	}
 
+	public static List<LoopInfo> getLoopsStartInRegion(MethodNode mth, IRegion r) {
+		List<LoopInfo> loops = new ArrayList<>();
+		visitBlocks(mth, r, b -> {
+			if (b.contains(AFlag.LOOP_START)) {
+				loops.addAll(b.getAll(AType.LOOP));
+			}
+		});
+		return loops;
+	}
+
 	private static boolean isRegionContainsExcHandlerRegion(IContainer container, IRegion region) {
 		if (container == region) {
 			return true;
@@ -599,5 +630,15 @@ public class RegionUtils {
 			return null;
 		}
 		return subBlocks.get(index + 1);
+	}
+
+	// Add a flag to all blocks in a region
+	public static void addToAll(MethodNode mth, IContainer container, AFlag flag) {
+		RegionUtils.visitBlocks(mth, container, new Consumer<IBlock>() {
+			@Override
+			public void accept(IBlock t) {
+				t.add(flag);
+			}
+		});
 	}
 }

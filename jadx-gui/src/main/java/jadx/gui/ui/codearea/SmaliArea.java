@@ -43,11 +43,15 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
+import jadx.gui.ui.codearea.sync.CodePanelSyncee;
+import jadx.gui.ui.codearea.sync.CodePanelSyncer;
+import jadx.gui.ui.codearea.sync.CodePanelSyncerAbstractFactory;
+import jadx.gui.ui.codearea.sync.SmaliSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public final class SmaliArea extends AbstractCodeArea {
+public final class SmaliArea extends AbstractCodeArea implements CodePanelSyncerAbstractFactory, CodePanelSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliArea.class);
 
 	private static final long serialVersionUID = 1334485631870306494L;
@@ -59,12 +63,16 @@ public final class SmaliArea extends AbstractCodeArea {
 
 	private final JNode textNode;
 	private final JCheckBoxMenuItem cbUseSmaliV2;
+	private final boolean allowToggleV2 = false; // add to constructor args to change back
+	private final boolean initialDisplayV2;
+
 	private boolean curVersion = false;
 	private SmaliModel model;
 
-	SmaliArea(ContentPanel contentPanel, JClass node) {
+	SmaliArea(ContentPanel contentPanel, JClass node, boolean initialDisplayV2) {
 		super(contentPanel, node);
 		this.textNode = new TextNode(node.getName());
+		this.initialDisplayV2 = initialDisplayV2;
 
 		setCodeFoldingEnabled(true);
 
@@ -85,7 +93,9 @@ public final class SmaliArea extends AbstractCodeArea {
 				settings.sync();
 			}
 		});
-		getPopupMenu().add(cbUseSmaliV2);
+		if (allowToggleV2) {
+			getPopupMenu().add(cbUseSmaliV2);
+		}
 		switchModel();
 	}
 
@@ -115,6 +125,10 @@ public final class SmaliArea extends AbstractCodeArea {
 	public JNode getNode() {
 		// this area contains only smali without other node attributes
 		return textNode;
+	}
+
+	public boolean isShowingDalvikBytecode() {
+		return model instanceof DebugModel;
 	}
 
 	public JClass getJClass() {
@@ -453,5 +467,15 @@ public final class SmaliArea extends AbstractCodeArea {
 				};
 			}
 		};
+	}
+
+	@Override
+	public CodePanelSyncer createCodePanelSyncer() {
+		return new SmaliSyncer(this);
+	}
+
+	@Override
+	public boolean sync(CodePanelSyncer codePanelSyncer) {
+		return codePanelSyncer.syncTo(this);
 	}
 }

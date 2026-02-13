@@ -47,6 +47,7 @@ public class FileUtils {
 
 	public static final int READ_BUFFER_SIZE = 8 * 1024;
 	private static final int MAX_FILENAME_LENGTH = 128;
+	private static final int MAX_UNIQUE_ID_LENGTH = 3;
 
 	public static final String JADX_TMP_INSTANCE_PREFIX = "jadx-instance-";
 	public static final String JADX_TMP_PREFIX = "jadx-tmp-";
@@ -366,17 +367,23 @@ public class FileUtils {
 		return saveFile;
 	}
 
-	private static File cutFileName(File file) {
+	public static File cutFileName(File file) {
 		String name = file.getName();
 		if (name.length() <= MAX_FILENAME_LENGTH) {
 			return file;
 		}
+
+		String uniqueID = String.valueOf(name.hashCode());
+		if (uniqueID.length() > MAX_UNIQUE_ID_LENGTH) {
+			uniqueID = uniqueID.substring(0, MAX_UNIQUE_ID_LENGTH);
+		}
 		int dotIndex = name.indexOf('.');
-		int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
+		int lengthOfSuffix = name.length() - dotIndex;
+		int cutAt = MAX_FILENAME_LENGTH - lengthOfSuffix - uniqueID.length() - 1;
 		if (cutAt <= 0) {
 			name = name.substring(0, MAX_FILENAME_LENGTH - 1);
 		} else {
-			name = name.substring(0, cutAt) + name.substring(dotIndex);
+			name = name.substring(0, cutAt) + uniqueID + name.substring(dotIndex);
 		}
 		return new File(file.getParentFile(), name);
 	}

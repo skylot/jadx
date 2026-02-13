@@ -41,7 +41,7 @@ public class RegionMaker {
 		this.ifMaker = new IfRegionMaker(mth, this);
 		this.loopMaker = new LoopRegionMaker(mth, this, ifMaker);
 		this.processedBlocks = BlockSet.empty(mth);
-		this.regionsLimit = mth.getBasicBlocks().size() * 100;
+		this.regionsLimit = mth.getBasicBlocks().size() * 400;
 	}
 
 	public Region makeMthRegion() {
@@ -57,16 +57,18 @@ public class RegionMaker {
 		}
 
 		if (processedBlocks.addChecked(startBlock)) {
-			mth.addWarn("Removed duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
-			return region;
+			mth.addWarnComment("Found duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
+			// Add block to multiple regions (duplicate the instructions in decompiled code) and allow
+			// processing to continue
 		}
 
 		BlockNode next = startBlock;
+
 		while (next != null) {
 			next = traverse(region, next);
 			regionsCount++;
 			if (regionsCount > regionsLimit) {
-				throw new JadxOverflowException("Regions count limit reached");
+				throw new JadxOverflowException("Regions count limit reached at block " + startBlock.toString());
 			}
 		}
 		return region;

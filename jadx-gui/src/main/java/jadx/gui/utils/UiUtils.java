@@ -562,4 +562,11 @@ public class UiUtils {
 	public static boolean nearlyEqual(float a, float b) {
 		return Math.abs(a - b) < 1E-6f;
 	}
+
+	// Formats a string to be in a .DOT node
+	public static String toDotNodeName(String fullName) {
+		String newName = fullName.replace("<", "\\<");
+		newName = newName.replace(">", "\\>");
+		return newName;
+	}
 }

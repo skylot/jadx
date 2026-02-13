@@ -348,6 +348,7 @@ public class InsnDecoder {
 				return insn(InsnType.THROW, null, InsnArg.reg(insn, 0, ArgType.THROWABLE));
 
 			case MOVE_EXCEPTION:
+				method.add(AFlag.COMPUTE_POST_DOM); // Post dominators required for try/catch block processing
 				return insn(InsnType.MOVE_EXCEPTION, InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT_NO_ARRAY));
 
 			case RETURN_VOID:

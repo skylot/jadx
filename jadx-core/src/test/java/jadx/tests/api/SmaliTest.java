@@ -14,7 +14,6 @@ import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
-import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class SmaliTest extends IntegrationTest {
