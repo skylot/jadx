@@ -38,7 +38,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class UsageFileAdapter extends DataAdapterHelper {
 	private static final Logger LOG = LoggerFactory.getLogger(UsageFileAdapter.class);
 
-	private static final int USAGE_DATA_VERSION = 1;
+	private static final int USAGE_DATA_VERSION = 2;
 	private static final byte[] JADX_USAGE_HEADER = "jadx.usage".getBytes(StandardCharsets.US_ASCII);
 
 	public static synchronized @Nullable RawUsageData load(Path usageFile, List<File> inputs) {
