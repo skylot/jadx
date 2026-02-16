@@ -123,16 +123,19 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 
 	@Override
 	public void close() {
+		List<URLClassLoader> failed = new ArrayList<>();
 		try {
 			for (URLClassLoader classLoader : classLoaders) {
 				try {
 					classLoader.close();
 				} catch (Exception e) {
-					// ignore
+					LOG.warn("Failed to close plugin class loader: {}", classLoader.getName(), e);
+					failed.add(classLoader);
 				}
 			}
 		} finally {
 			classLoaders.clear();
+			classLoaders.addAll(failed);
 		}
 	}
 }
