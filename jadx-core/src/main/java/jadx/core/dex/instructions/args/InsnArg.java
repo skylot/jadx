@@ -292,6 +292,17 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
+	public boolean isSameVar(SSAVar ssaVar) {
+		if (ssaVar == null) {
+			return false;
+		}
+		if (isRegister()) {
+			SSAVar thisSsaVar = ((RegisterArg) this).getSVar();
+			return Objects.equals(thisSsaVar, ssaVar);
+		}
+		return false;
+	}
+
 	public boolean isSameCodeVar(RegisterArg arg) {
 		if (arg == null) {
 			return false;
