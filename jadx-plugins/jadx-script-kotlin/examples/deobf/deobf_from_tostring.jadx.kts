@@ -12,7 +12,7 @@ import jadx.core.dex.instructions.InsnType
 import jadx.core.dex.instructions.args.InsnWrapArg
 import jadx.core.dex.nodes.InsnNode
 import jadx.core.dex.nodes.MethodNode
-import jadx.plugins.script.runtime.data.ScriptOrderedDecompilePass
+import jadx.plugins.script.kotlin.runtime.data.ScriptOrderedDecompilePass
 
 val jadx = getJadxInstance()
 

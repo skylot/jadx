@@ -5,7 +5,7 @@
 import jadx.api.plugins.input.data.attributes.JadxAttrType
 import jadx.core.deobf.NameMapper
 import jadx.core.dex.nodes.MethodNode
-import jadx.plugins.script.runtime.data.ScriptDecompilePass
+import jadx.plugins.script.kotlin.runtime.data.ScriptDecompilePass
 
 val annCls = "Lretrofit2/http/Query;"
 val annParam = "value"
