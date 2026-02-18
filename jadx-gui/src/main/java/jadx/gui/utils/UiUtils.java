@@ -379,9 +379,12 @@ public class UiUtils {
 	}
 
 	public static void errorMessage(Component parent, String message) {
+		errorMessage(parent, NLS.str("message.errorTitle"), message);
+	}
+
+	public static void errorMessage(Component parent, String title, String message) {
 		LOG.error(message);
-		JOptionPane.showMessageDialog(parent, message,
-				NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 
 	public static void copyToClipboard(String text) {
