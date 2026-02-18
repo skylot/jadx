@@ -551,17 +551,8 @@ public class MainWindow extends JFrame {
 
 	private void openProject(Path path, Runnable onFinish) {
 		LOG.debug("Loading project: {}", path);
-		JadxProject jadxProject = JadxProject.load(this, path);
-		if (jadxProject == null) {
-			JOptionPane.showMessageDialog(
-					this,
-					NLS.str("msg.project_error"),
-					NLS.str("msg.project_error_title"),
-					JOptionPane.INFORMATION_MESSAGE);
-			jadxProject = new JadxProject(this);
-		}
+		project = JadxProject.load(this, path);
 		settings.addRecentProject(path);
-		project = jadxProject;
 		loadFiles(onFinish);
 	}
 

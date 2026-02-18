@@ -61,10 +61,15 @@ public class JadxProject {
 	private transient boolean initial = true;
 	private transient boolean saved;
 
-	private ProjectData data = new ProjectData();
+	private final ProjectData data;
 
 	public JadxProject(MainWindow mainWindow) {
+		this(mainWindow, new ProjectData());
+	}
+
+	private JadxProject(MainWindow mainWindow, ProjectData projectData) {
 		this.mainWindow = mainWindow;
+		this.data = Objects.requireNonNull(projectData);
 	}
 
 	public void fillJadxArgs(JadxArgs jadxArgs) {
@@ -312,16 +317,11 @@ public class JadxProject {
 	}
 
 	public static JadxProject load(MainWindow mainWindow, Path path) {
-		try {
-			JadxProject project = new JadxProject(mainWindow);
-			project.data = loadProjectData(path);
-			project.saved = true;
-			project.setProjectPath(path);
-			return project;
-		} catch (Exception e) {
-			LOG.error("Error loading project", e);
-			return null;
-		}
+		ProjectData projectData = loadProjectData(path);
+		JadxProject project = new JadxProject(mainWindow, projectData);
+		project.saved = true;
+		project.setProjectPath(path);
+		return project;
 	}
 
 	public static ProjectData loadProjectData(Path path) {
