@@ -47,7 +47,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 	private void processTokens(Token tokens) {
 		Token prev = null;
 		Token current = tokens;
-		while (current != null) {
+		while (current != null && current.getType() != TokenTypes.NULL) {
 			if (prev != null) {
 				switch (current.getType()) {
 					case TokenTypes.RESERVED_WORD:
