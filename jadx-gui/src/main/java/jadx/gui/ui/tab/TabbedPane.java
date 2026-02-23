@@ -221,6 +221,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
+		UiUtils.uiThreadGuard();
 		JNode jumpNode = jumpPos.getNode();
 		ContentPanel contentPanel = getTabByNode(jumpNode);
 		if (contentPanel == null) {
@@ -442,7 +443,9 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	@Override
 	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition position) {
 		// queue task to wait completion of loading tasks
-		mainWindow.getBackgroundExecutor().execute(new SilentTask(() -> showCode(position)));
+		mainWindow.getBackgroundExecutor().execute(new SilentTask(() -> {
+			UiUtils.uiRun(() -> showCode(position));
+		}));
 	}
 
 	@Override
