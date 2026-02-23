@@ -9,8 +9,8 @@ import jadx.core.utils.tasks.TaskExecutor;
 public class SilentTask extends CancelableBackgroundTask {
 	private final Runnable task;
 
-	public SilentTask(Runnable task) {
-		this.task = task;
+	public SilentTask(Runnable backgroundTask) {
+		this.task = backgroundTask;
 	}
 
 	@Override
