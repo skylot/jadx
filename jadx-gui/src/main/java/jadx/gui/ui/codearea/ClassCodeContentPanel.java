@@ -47,6 +47,7 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 	private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
 
 	private boolean splitView = false;
+	private final JCheckBox splitCheckboxNormal;
 
 	public ClassCodeContentPanel(TabbedPane panel, JClass jCls) {
 		super(panel, jCls);
@@ -54,23 +55,25 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		javaCodePanel = new CodePanel(new CodeArea(this, jCls));
 		smaliCodePanel = new CodePanel(new SmaliArea(this, jCls, false));
 		areaTabbedPane = buildTabbedPane(jCls);
-		addCustomControls(areaTabbedPane);
+		splitCheckboxNormal = addCustomControls(areaTabbedPane, false);
 
 		javaCodePanel.load();
-		initView();
+		initView(false);
 	}
 
-	private void initView() {
+	private void initView(boolean splitViewEnabled) {
+		splitView = splitViewEnabled;
 		removeAll();
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 0, 0, 0));
-		if (splitView) {
+		if (splitViewEnabled) {
 			setupSplitPane();
 		} else {
 			javaCodePanel.load();
 			smaliCodePanel.load();
 			attachSyncListeners(javaCodePanel, smaliCodePanel);
 			areaTabbedPane.setSelectedIndex(0); // default to Java
+			splitCheckboxNormal.setSelected(false);
 			add(areaTabbedPane);
 		}
 		revalidate();
@@ -157,7 +160,7 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.5));
 
 		rightTabbedPane.setSelectedIndex(0);
-		addCustomControls(leftTabbedPane);
+		addCustomControls(leftTabbedPane, true);
 	}
 
 	private JTabbedPane buildTabbedPane(JClass jCls) {
@@ -178,11 +181,13 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		return areaTabbedPane;
 	}
 
-	private void addCustomControls(JTabbedPane tabbedPane) {
-		JCheckBox splitCheckBox = new JCheckBox("Split view", splitView);
+	private JCheckBox addCustomControls(JTabbedPane tabbedPane, boolean splitCheckboxInitialState) {
+		JCheckBox splitCheckBox = new JCheckBox("Split view", splitCheckboxInitialState);
 		splitCheckBox.addItemListener(e -> {
-			splitView = splitCheckBox.isSelected();
-			this.initView();
+			boolean newSplitView = splitCheckBox.isSelected();
+			if (splitView != newSplitView) {
+				this.initView(newSplitView);
+			}
 		});
 
 		JToolBar trailing = new JToolBar();
@@ -192,6 +197,7 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		trailing.addSeparator(new Dimension(50, 1));
 		trailing.add(splitCheckBox);
 		tabbedPane.putClientProperty(TABBED_PANE_TRAILING_COMPONENT, trailing);
+		return splitCheckBox;
 	}
 
 	@Override
