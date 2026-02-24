@@ -2,7 +2,7 @@ name: Build Test
 
 on:
   push:
-    branches: [ master, build-test ]
+    branches: [ master, stable, build-test ]
   pull_request:
     branches: [ master ]
 
