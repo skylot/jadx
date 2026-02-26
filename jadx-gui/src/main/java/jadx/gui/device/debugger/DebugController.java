@@ -1367,7 +1367,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 	}
 
-	private static class FieldTreeNode extends RuntimeValueTreeNode {
+	static class FieldTreeNode extends RuntimeValueTreeNode {
 		private static final long serialVersionUID = -1111111202103122235L;
 
 		private final RuntimeField field;
