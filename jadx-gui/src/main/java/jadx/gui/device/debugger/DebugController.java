@@ -905,8 +905,8 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	private void resetAllInfo() {
 		isSuspended = true;
 		toBeUpdatedTreeNode = null;
-		debuggerPanel.resetAllDebuggingInfo();
 		cur.reset();
+		UiUtils.uiRun(debuggerPanel::resetAllDebuggingInfo);
 	}
 
 	private List<RuntimeVarInfo> getRuntimeDebugInfo(FrameNode frame) {
