@@ -905,8 +905,8 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	private void resetAllInfo() {
 		isSuspended = true;
 		toBeUpdatedTreeNode = null;
-		debuggerPanel.resetAllDebuggingInfo();
 		cur.reset();
+		UiUtils.uiRun(debuggerPanel::resetAllDebuggingInfo);
 	}
 
 	private List<RuntimeVarInfo> getRuntimeDebugInfo(FrameNode frame) {
@@ -1367,7 +1367,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 	}
 
-	private static class FieldTreeNode extends RuntimeValueTreeNode {
+	static class FieldTreeNode extends RuntimeValueTreeNode {
 		private static final long serialVersionUID = -1111111202103122235L;
 
 		private final RuntimeField field;

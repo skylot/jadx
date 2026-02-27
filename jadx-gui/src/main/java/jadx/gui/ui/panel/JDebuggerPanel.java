@@ -448,6 +448,7 @@ public class JDebuggerPanel extends JPanel {
 	}
 
 	public void resetAllDebuggingInfo() {
+		UiUtils.uiThreadGuard();
 		clearFrameAndThreadList();
 		resetRegTreeNodes();
 		resetThisTreeNodes();
@@ -483,13 +484,15 @@ public class JDebuggerPanel extends JPanel {
 	}
 
 	public void refreshStackFrameList(List<? extends IListElement> elements) {
-		if (elements.size() > 0) {
-			DefaultListModel<IListElement> model =
-					(DefaultListModel<IListElement>) stackFrameList.getModel();
-			elements.forEach(model::addElement);
-			stackFrameList.setFont(mainWindow.getSettings().getCodeFont());
-		}
-		SwingUtilities.invokeLater(stackFrameList::repaint);
+		UiUtils.uiRun(() -> {
+			if (!elements.isEmpty()) {
+				DefaultListModel<IListElement> model =
+						(DefaultListModel<IListElement>) stackFrameList.getModel();
+				model.addAll(elements);
+				stackFrameList.setFont(mainWindow.getSettings().getCodeFont());
+			}
+			stackFrameList.repaint();
+		});
 	}
 
 	public void refreshRegisterTree() {
@@ -578,7 +581,7 @@ public class JDebuggerPanel extends JPanel {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new StringBuilder(64);
 			sb.append(getName());
 			String val = getValue();
 			if (val != null) {
