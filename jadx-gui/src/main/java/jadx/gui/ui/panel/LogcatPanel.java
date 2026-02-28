@@ -208,15 +208,8 @@ public class LogcatPanel extends JPanel {
 		JScrollBar scrollbar = logcatScroll.getVerticalScrollBar();
 		boolean atBottom = isAtBottom(scrollbar);
 
-		String logString = " > " +
-				logcatInfo.getTimestamp() +
-				" [pid: " +
-				logcatInfo.getPid() +
-				"] " +
-				logcatInfo.getMsgTypeString() +
-				": " +
-				logcatInfo.getMsg() +
-				"\n";
+		String logString = " > " + logcatInfo.getTimestamp() + " [pid: " + logcatInfo.getPid() + "] "
+				+ logcatInfo.getMsgTypeString() + ": " + logcatInfo.getMsg() + "\n";
 
 		if (logcatInfo.getMsgType() == 0) {
 			return; // ignore unknown
@@ -327,11 +320,7 @@ public class LogcatPanel extends JPanel {
 		public void selectAllBut(int ind) {
 			for (int i = 0; i < combo.getItemCount(); i++) {
 				CheckComboStore ccs = combo.getItemAt(i);
-				if (i != ind) {
-					ccs.state = false;
-				} else {
-					ccs.state = true;
-				}
+				ccs.state = (i == ind);
 				switch (type) {
 					case 1: // process
 						logcatController.getFilter().togglePid(ccs.index, ccs.state);
