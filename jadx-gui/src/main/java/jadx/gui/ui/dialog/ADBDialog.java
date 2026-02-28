@@ -279,6 +279,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 
 	@Override
 	public void onDeviceStatusChange(List<ADBDeviceInfo> deviceInfoList) {
+		LOG.debug("onDeviceStatusChange {}", deviceInfoList);
 		List<DeviceNode> nodes = new ArrayList<>(deviceInfoList.size());
 		info_loop: for (ADBDeviceInfo info : deviceInfoList) {
 			for (DeviceNode deviceNode : deviceNodes) {

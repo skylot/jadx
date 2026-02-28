@@ -8,8 +8,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,7 @@ public class LogcatController {
 	private final String timezone;
 	private LogcatInfo recent = null;
 	private List<LogcatInfo> events = new ArrayList<>();
-	private LogcatFilter filter = new LogcatFilter(null, null);
+	private LogcatFilter filter = new LogcatFilter();
 	private String status = "null";
 
 	public LogcatController(LogcatPanel logcatPanel, ADBDevice adbDevice) throws IOException {
@@ -155,7 +157,7 @@ public class LogcatController {
 
 	public void exit() {
 		stopLogcat();
-		filter = new LogcatFilter(null, null);
+		filter = new LogcatFilter();
 		recent = null;
 	}
 
@@ -164,44 +166,25 @@ public class LogcatController {
 	}
 
 	public class LogcatFilter {
-		private final List<Integer> pid;
-		private List<Byte> msgType = new ArrayList<>() {
-			{
-				add((byte) 1);
-				add((byte) 2);
-				add((byte) 3);
-				add((byte) 4);
-				add((byte) 5);
-				add((byte) 6);
-				add((byte) 7);
-				add((byte) 8);
-			}
-		};
 
-		public LogcatFilter(ArrayList<Integer> pid, ArrayList<Byte> msgType) {
-			if (pid != null) {
-				this.pid = pid;
-			} else {
-				this.pid = new ArrayList<>();
-			}
+		private final Set<Integer> pid;
+		private final Set<Byte> msgType;
 
-			if (msgType != null) {
-				this.msgType = msgType;
-			}
+		public LogcatFilter() {
+			this(new TreeSet<>(), new TreeSet<>(List.of((byte) 1, (byte) 2, (byte) 3, (byte) 4, (byte) 5, (byte) 6, (byte) 7, (byte) 8)));
+		}
+
+		public LogcatFilter(Set<Integer> pid, Set<Byte> msgType) {
+			this.pid = pid;
+			this.msgType = msgType;
 		}
 
 		public void addPid(int pid) {
-
-			if (!this.pid.contains(pid)) {
-				this.pid.add(pid);
-			}
+			this.pid.add(pid);
 		}
 
 		public void removePid(int pid) {
-			int pidPos = this.pid.indexOf(pid);
-			if (pidPos >= 0) {
-				this.pid.remove(pidPos);
-			}
+			this.pid.remove(pid);
 		}
 
 		public void togglePid(int pid, boolean state) {
@@ -213,16 +196,11 @@ public class LogcatController {
 		}
 
 		public void addMsgType(byte msgType) {
-			if (!this.msgType.contains(msgType)) {
-				this.msgType.add(msgType);
-			}
+			this.msgType.add(msgType);
 		}
 
 		public void removeMsgType(byte msgType) {
-			int typePos = this.msgType.indexOf(msgType);
-			if (typePos >= 0) {
-				this.msgType.remove(typePos);
-			}
+			this.msgType.remove(msgType);
 		}
 
 		public void toggleMsgType(byte msgType, boolean state) {
@@ -234,10 +212,7 @@ public class LogcatController {
 		}
 
 		public boolean doFilter(LogcatInfo inInfo) {
-			if (pid.contains(inInfo.getPid())) {
-				return msgType.contains(inInfo.getMsgType());
-			}
-			return false;
+			return (pid.contains(inInfo.getPid())) && msgType.contains(inInfo.getMsgType());
 		}
 
 		public List<LogcatInfo> getFilteredList(List<LogcatInfo> inInfoList) {
