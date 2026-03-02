@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;

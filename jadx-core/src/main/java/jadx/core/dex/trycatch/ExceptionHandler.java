@@ -164,8 +164,8 @@ public class ExceptionHandler {
 		TryCatchBlockAttr handlerTryBlock = getTryBlock();
 		// // TODO: Implement support for finding bottom splitter of catch with inner tries
 		// if (handlerTryBlock.getInnerTryBlocks().size() > 1) {
-		// 	LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
-		// 	return null;
+		// LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
+		// return null;
 		// }
 
 		final List<TryCatchBlockAttr> searchBodies;

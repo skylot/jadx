@@ -99,7 +99,7 @@ public final class FinishTypeInference extends AbstractVisitor {
 		TypeCompare cmp = typeUpdate.getTypeCompare();
 
 		for (ITypeBound bound : bounds) {
-			if(bound.getBound() != BoundEnum.ASSIGN) {
+			if (bound.getBound() != BoundEnum.ASSIGN) {
 				continue;
 			}
 
