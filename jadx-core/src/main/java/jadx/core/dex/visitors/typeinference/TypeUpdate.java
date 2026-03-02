@@ -1,6 +1,9 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.ArrayDeque;
 import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +47,28 @@ public final class TypeUpdate {
 	private final TypeCompare comparator;
 	private final JadxArgs args;
 
+	private static final int MAX_RECURSION_DEPTH = 200;
+
+	private static final EnumSet<InsnType> LISTENER_INSN_TYPES = EnumSet.of(
+			InsnType.CONST, InsnType.MOVE, InsnType.PHI,
+			InsnType.AGET, InsnType.APUT, InsnType.IF,
+			InsnType.ARITH, InsnType.NEG, InsnType.NOT,
+			InsnType.CHECK_CAST, InsnType.INVOKE, InsnType.CONSTRUCTOR);
+
+	private final ThreadLocal<int[]> callDepth = ThreadLocal.withInitial(() -> new int[] { 0 });
+	private final ThreadLocal<ArrayDeque<PendingWork>> pendingQueue = new ThreadLocal<>();
+	private final ThreadLocal<Map<SSAVar, ArgType>> visitedSsaVars = new ThreadLocal<>();
+
+	private static final class PendingWork {
+		final InsnArg arg;
+		final ArgType type;
+
+		PendingWork(InsnArg a, ArgType t) {
+			arg = a;
+			type = t;
+		}
+	}
+
 	public TypeUpdate(RootNode root) {
 		this.root = root;
 		this.args = root.getArgs();
@@ -83,10 +108,31 @@ public final class TypeUpdate {
 			}
 
 			TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags, args);
-			TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
-			if (result == REJECT) {
-				return result;
+
+			ArrayDeque<PendingWork> queue = new ArrayDeque<>();
+			pendingQueue.set(queue);
+			callDepth.get()[0] = 0;
+
+			try {
+				TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
+				if (result == REJECT) {
+					return result;
+				}
+
+				while (!queue.isEmpty()) {
+					PendingWork work = queue.poll();
+					if (!updateInfo.isProcessed(work.arg)) {
+						TypeUpdateResult pendingResult = updateTypeChecked(updateInfo, work.arg, work.type);
+						if (pendingResult == REJECT) {
+							return REJECT;
+						}
+					}
+				}
+			} finally {
+				pendingQueue.remove();
+				callDepth.get()[0] = 0;
 			}
+
 			if (updateInfo.isEmpty()) {
 				return SAME;
 			}
@@ -114,11 +160,28 @@ public final class TypeUpdate {
 		if (res != null) {
 			return res;
 		}
-		if (arg instanceof RegisterArg) {
-			RegisterArg reg = (RegisterArg) arg;
-			return updateTypeForSsaVar(updateInfo, reg.getSVar(), candidateType);
+
+		int[] depth = callDepth.get();
+
+		if (depth[0] >= MAX_RECURSION_DEPTH) {
+			ArrayDeque<PendingWork> queue = pendingQueue.get();
+			if (queue != null) {
+				queue.add(new PendingWork(arg, candidateType));
+				return CHANGED;
+			}
 		}
-		return requestUpdate(updateInfo, arg, candidateType);
+
+		depth[0]++;
+		try {
+			if (arg instanceof RegisterArg) {
+				RegisterArg reg = (RegisterArg) arg;
+				return updateTypeForSsaVar(updateInfo, reg.getSVar(), candidateType);
+			}
+
+			return requestUpdate(updateInfo, arg, candidateType);
+		} finally {
+			depth[0]--;
+		}
 	}
 
 	private @Nullable TypeUpdateResult verifyType(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
@@ -184,6 +247,21 @@ public final class TypeUpdate {
 
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
+
+		Map<SSAVar, ArgType> visited = visitedSsaVars.get();
+		if (visited != null) {
+			ArgType prev = visited.get(ssaVar);
+			if (candidateType.equals(prev)) {
+				return CHANGED;
+			}
+
+			visited.put(ssaVar, candidateType);
+		}
+
+		return updateTypeForSsaVarInner(updateInfo, ssaVar, candidateType, typeInfo);
+	}
+
+	private TypeUpdateResult updateTypeForSsaVarInner(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType, TypeInfo typeInfo) {
 		ArgType immutableType = ssaVar.getImmutableType();
 		if (immutableType != null && !Objects.equals(immutableType, candidateType)) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
@@ -198,20 +276,46 @@ public final class TypeUpdate {
 		boolean allSame = result == SAME;
 		if (result != REJECT) {
 			List<RegisterArg> useList = ssaVar.getUseList();
-			for (RegisterArg arg : useList) {
-				result = requestUpdate(updateInfo, arg, candidateType);
-				if (result == REJECT) {
-					break;
+			int size = useList.size();
+			if (size > 8) {
+				Map<InsnNode, InsnArg> seenInsns = new IdentityHashMap<>(size * 2);
+				for (int i = 0; i < size; i++) {
+					RegisterArg arg = useList.get(i);
+					InsnNode parent = arg.getParentInsn();
+
+					if (parent != null && seenInsns.putIfAbsent(parent, arg) != null) {
+						continue;
+					}
+
+					result = requestUpdate(updateInfo, arg, candidateType);
+
+					if (result == REJECT) {
+						break;
+					}
+					if (result != SAME) {
+						allSame = false;
+					}
 				}
-				if (result != SAME) {
-					allSame = false;
+			} else {
+				for (int i = 0; i < size; i++) {
+					result = requestUpdate(updateInfo, useList.get(i), candidateType);
+					if (result == REJECT) {
+						break;
+					}
+					if (result != SAME) {
+						allSame = false;
+					}
 				}
 			}
 		}
 		if (result == REJECT) {
 			// rollback update for all registers in current SSA var
 			updateInfo.rollbackUpdate(ssaVar.getAssign());
-			ssaVar.getUseList().forEach(updateInfo::rollbackUpdate);
+			List<RegisterArg> useList = ssaVar.getUseList();
+			int size = useList.size();
+			for (int i = 0; i < size; i++) {
+				updateInfo.rollbackUpdate(useList.get(i));
+			}
 			return REJECT;
 		}
 		return allSame ? SAME : CHANGED;
@@ -221,6 +325,16 @@ public final class TypeUpdate {
 		if (updateInfo.isProcessed(arg)) {
 			return CHANGED;
 		}
+
+		TypeUpdateResult preCheck = verifyType(updateInfo, arg, candidateType);
+		if (preCheck == REJECT) {
+			return REJECT;
+		}
+
+		if (preCheck == SAME) {
+			return SAME;
+		}
+
 		updateInfo.requestUpdate(arg, candidateType);
 		TypeUpdateResult result = runListeners(updateInfo, arg, candidateType);
 		if (result == REJECT) {
@@ -234,6 +348,12 @@ public final class TypeUpdate {
 		if (insn == null) {
 			return SAME;
 		}
+
+		InsnType type = insn.getType();
+		if (!LISTENER_INSN_TYPES.contains(type)) {
+			return CHANGED;
+		}
+
 		ITypeListener listener = listenerRegistry.get(insn.getType());
 		if (listener == null) {
 			return CHANGED;
@@ -447,15 +567,27 @@ public final class TypeUpdate {
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
 
+		if (updateInfo.hasUpdateWithType(changeArg, candidateType)) {
+			return CHANGED;
+		}
+
 		// allow result to be wider
-		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
+		ArgType changeArgType = changeArg.getType();
+		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArgType);
 		boolean correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
+
+		if (cmp.isConflict() && !correctType) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.debug("Move insn early-reject conflict: {} -> {}, arg: {}, insn: {}", candidateType, changeArgType, changeArg, insn);
+			}
+			return REJECT;
+		}
 
 		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
 		if (result == SAME && !correctType) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.debug("Move insn types mismatch: {} -> {}, change arg: {}, insn: {}",
-						candidateType, changeArg.getType(), changeArg, insn);
+						candidateType, changeArgType, changeArg, insn);
 			}
 			return REJECT;
 		}

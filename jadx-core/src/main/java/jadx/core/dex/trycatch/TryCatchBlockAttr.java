@@ -189,7 +189,15 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 			searchBlocks.removeAll(handler.getBlocks());
 		}
 
+		if (searchBlocks.isEmpty()) {
+			return;
+		}
+
 		BlockNode sourceBlock = BlockUtils.getTopBlock(new ArrayList<>(searchBlocks));
+
+		if (sourceBlock == null) {
+			return;
+		}
 
 		exploredTrys.add(this);
 
@@ -207,6 +215,11 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 
 	private void exploreTryPath(List<TryEdge> edges, BlockNode blk, Set<BlockNode> searchBlocks, List<BlockNode> exploredBlocks,
 			List<TryCatchBlockAttr> exploredTrys) {
+
+		if (blk == null) {
+			return;
+		}
+
 		for (BlockNode successor : blk.getSuccessors()) {
 			// If a separate branch has already explored this block, we don't need to recalculate its exits.
 			if (exploredBlocks.contains(successor)) {

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -19,6 +20,8 @@ public class TypeUpdateInfo {
 	private final Map<InsnArg, TypeUpdateEntry> updateMap = new IdentityHashMap<>();
 	private final int updatesLimitCount;
 	private int updateSeq = 0;
+
+	private int netUpdates = 0;
 
 	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags, JadxArgs args) {
 		this.mth = mth;
@@ -33,7 +36,9 @@ public class TypeUpdateInfo {
 					+ " types: prev=" + prev.getType() + ", new=" + changeType
 					+ ", insn: " + arg.getParentInsn());
 		}
-		if (updateSeq > updatesLimitCount) {
+
+		netUpdates++;
+		if (netUpdates > updatesLimitCount) {
 			throw new JadxOverflowException("Type inference error: updates count limit reached"
 					+ " with updateSeq = " + updateSeq + ". Try increasing type updates limit count.");
 		}
@@ -47,7 +52,15 @@ public class TypeUpdateInfo {
 		TypeUpdateEntry removed = updateMap.remove(arg);
 		if (removed != null) {
 			int seq = removed.getSeq();
-			updateMap.values().removeIf(upd -> upd.getSeq() > seq);
+			int removedCount = 1;
+			var it = updateMap.values().iterator();
+			while (it.hasNext()) {
+				if (it.next().getSeq() > seq) {
+					it.remove();
+					removedCount++;
+				}
+			}
+			netUpdates -= removedCount;
 		}
 	}
 
