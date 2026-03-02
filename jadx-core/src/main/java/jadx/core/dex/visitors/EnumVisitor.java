@@ -149,6 +149,21 @@ public class EnumVisitor extends AbstractVisitor {
 		if (arrArg.isInsnWrap()) {
 			InsnNode wrappedInsn = ((InsnWrapArg) arrArg).getWrapInsn();
 			enumFields = extractEnumFieldsFromInsn(data, wrappedInsn);
+		} else if (arrArg.isRegister()) {
+			// Kotlin 1.9+ $ENTRIES pattern: array register has multiple uses,
+			// preventing CodeShrinkVisitor from inlining into the SPUT
+			RegisterArg regArg = (RegisterArg) arrArg;
+			InsnNode assignInsn = regArg.getAssignInsn();
+			if (assignInsn != null) {
+				enumFields = extractEnumFieldsFromInsn(data, assignInsn);
+				if (enumFields != null) {
+					// extractEnumFieldsFromFilledArray already adds FILLED_NEW_ARRAY to toRemove
+					if (assignInsn.getType() != InsnType.FILLED_NEW_ARRAY) {
+						data.toRemove.add(assignInsn);
+					}
+					removeEntriesFieldInit(data, regArg.getSVar());
+				}
+			}
 		}
 		if (enumFields == null) {
 			cls.addWarnComment("Unknown enum class pattern. Please report as an issue!");
@@ -506,7 +521,18 @@ public class EnumVisitor extends AbstractVisitor {
 				}
 				case FILLED_NEW_ARRAY: {
 					// allow usage in values init instruction
-					if (!data.valuesInitInsn.getArg(0).unwrap().equals(useInsn)) {
+					InsnArg valuesArg = data.valuesInitInsn.getArg(0);
+					InsnNode unwrapped = valuesArg.unwrap();
+					if (unwrapped != null) {
+						if (unwrapped != useInsn) {
+							return null;
+						}
+					} else if (valuesArg.isRegister()) {
+						InsnNode valuesAssign = ((RegisterArg) valuesArg).getAssignInsn();
+						if (valuesAssign != useInsn) {
+							return null;
+						}
+					} else {
 						return null;
 					}
 					break;
@@ -519,6 +545,58 @@ public class EnumVisitor extends AbstractVisitor {
 			data.toRemove.add(assignInsn);
 		}
 		return enumField;
+	}
+
+	/**
+	 * Remove Kotlin 1.9+ $ENTRIES field initialization.
+	 * When enum values array register has extra uses from $ENTRIES assignment,
+	 * find and remove the $ENTRIES SPUT and mark its field as DONT_GENERATE.
+	 */
+	private void removeEntriesFieldInit(EnumData data, @Nullable SSAVar arrVar) {
+		if (arrVar == null) {
+			return;
+		}
+		for (RegisterArg useArg : arrVar.getUseList()) {
+			InsnNode useInsn = useArg.getParentInsn();
+			if (useInsn == null || useInsn == data.valuesInitInsn) {
+				continue;
+			}
+			if (useInsn.getType() != InsnType.INVOKE) {
+				continue;
+			}
+			if (useInsn.contains(AFlag.WRAPPED)) {
+				for (BlockNode block : data.staticBlocks) {
+					for (InsnNode blockInsn : block.getInstructions()) {
+						if (blockInsn.getType() == InsnType.SPUT
+								&& blockInsn.getArg(0).isInsnWrap()
+								&& ((InsnWrapArg) blockInsn.getArg(0)).getWrapInsn() == useInsn) {
+							markFieldDontGenerate(data, (IndexInsnNode) blockInsn);
+							data.toRemove.add(blockInsn);
+						}
+					}
+				}
+			} else {
+				data.toRemove.add(useInsn);
+				RegisterArg result = useInsn.getResult();
+				if (result != null && result.getSVar() != null) {
+					for (RegisterArg resUse : result.getSVar().getUseList()) {
+						InsnNode sputInsn = resUse.getParentInsn();
+						if (sputInsn != null && sputInsn.getType() == InsnType.SPUT) {
+							markFieldDontGenerate(data, (IndexInsnNode) sputInsn);
+							data.toRemove.add(sputInsn);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void markFieldDontGenerate(EnumData data, IndexInsnNode sputInsn) {
+		FieldInfo fieldInfo = (FieldInfo) sputInsn.getIndex();
+		FieldNode fieldNode = data.cls.searchField(fieldInfo);
+		if (fieldNode != null) {
+			fieldNode.add(AFlag.DONT_GENERATE);
+		}
 	}
 
 	@Nullable
