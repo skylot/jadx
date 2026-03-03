@@ -56,7 +56,6 @@ public final class TypeUpdate {
 			InsnType.ARITH, InsnType.NEG, InsnType.NOT,
 			InsnType.CHECK_CAST, InsnType.INVOKE, InsnType.CONSTRUCTOR);
 
-
 	public static final class PropCtx {
 		final ArrayDeque<PendingWork> queue = new ArrayDeque<>();
 		final Set<InsnArg> queuedArgs = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -124,7 +123,7 @@ public final class TypeUpdate {
 				PendingWork work = ctx.queue.poll();
 				ctx.queuedArgs.remove(work.arg);
 				if (!updateInfo.isProcessed(work.arg)) {
-					result = updateTypeChecked(updateInfo, work.arg, candidateType, ctx);
+					result = updateTypeChecked(updateInfo, work.arg, work.type, ctx);
 					if (result == REJECT) {
 						return REJECT;
 					}
@@ -138,7 +137,7 @@ public final class TypeUpdate {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.debug("Applying type {} to {}:", candidateType, ssaVar.toShortString());
 				updateInfo.getSortedUpdates().forEach(upd -> LOG.debug("  {} -> {} in {}",
-							upd.getType(), upd.getArg().toShortString(), upd.getArg().getParentInsn()));
+						upd.getType(), upd.getArg().toShortString(), upd.getArg().getParentInsn()));
 			}
 			updateInfo.applyUpdates();
 			return CHANGED;
@@ -249,14 +248,15 @@ public final class TypeUpdate {
 
 		ctx.visitedVars.put(ssaVar, candidateType);
 
-		try{
+		try {
 			return updateTypeForSsaVarInner(updateInfo, ssaVar, candidateType, ssaVar.getTypeInfo(), ctx);
 		} finally {
 			ctx.visitedVars.remove(ssaVar);
 		}
 	}
 
-	private TypeUpdateResult updateTypeForSsaVarInner(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType, TypeInfo typeInfo, PropCtx ctx) {
+	private TypeUpdateResult updateTypeForSsaVarInner(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType, TypeInfo typeInfo,
+			PropCtx ctx) {
 		ArgType immutableType = ssaVar.getImmutableType();
 		if (immutableType != null && !Objects.equals(immutableType, candidateType)) {
 			if (Consts.DEBUG_TYPE_INFERENCE) {
@@ -268,6 +268,9 @@ public final class TypeUpdate {
 			return REJECT;
 		}
 		TypeUpdateResult result = requestUpdate(updateInfo, ssaVar.getAssign(), candidateType, ctx);
+		if (result == REJECT) {
+			return REJECT;
+		}
 		boolean allSame = result == SAME;
 		List<RegisterArg> useList = ssaVar.getUseList();
 		int size = useList.size();
@@ -539,7 +542,8 @@ public final class TypeUpdate {
 		return type;
 	}
 
-	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType, PropCtx ctx) {
+	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType,
+			PropCtx ctx) {
 		InsnArg changeArg = isAssign(insn, arg) ? insn.getArg(0) : insn.getResult();
 		if (updateInfo.hasUpdateWithType(changeArg, candidateType)) {
 			return CHANGED;
@@ -619,7 +623,8 @@ public final class TypeUpdate {
 	/**
 	 * Try to set candidate type to all args, don't fail on reject
 	 */
-	private TypeUpdateResult suggestAllSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType, PropCtx ctx) {
+	private TypeUpdateResult suggestAllSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType,
+			PropCtx ctx) {
 		if (!isAssign(insn, arg)) {
 			RegisterArg resultArg = insn.getResult();
 			if (resultArg != null) {
