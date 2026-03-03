@@ -36,7 +36,6 @@ public final class FinishTypeInference extends AbstractVisitor {
 		mth.getSVars().forEach(var -> {
 			ArgType type = var.getTypeInfo().getType();
 			if (!type.isTypeKnown()) {
-				// works for me at least
 				// try last resort to resolve type
 				tryLastResort(mth, var);
 				type = var.getTypeInfo().getType();

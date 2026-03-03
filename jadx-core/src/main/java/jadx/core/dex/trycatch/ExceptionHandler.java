@@ -1,10 +1,13 @@
 package jadx.core.dex.trycatch;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -168,12 +171,14 @@ public class ExceptionHandler {
 		// return null;
 		// }
 
-		final List<TryCatchBlockAttr> searchBodies;
-		List<TryCatchBlockAttr> innerTries = handlerTryBlock.getInnerTryBlocks();
-		if (innerTries.isEmpty()) {
-			searchBodies = Collections.singletonList(handlerTryBlock);
-		} else {
-			searchBodies = innerTries;
+		Set<TryCatchBlockAttr> searchBodies = Collections.newSetFromMap(new IdentityHashMap<>());
+		ArrayDeque<TryCatchBlockAttr> queue = new ArrayDeque<>();
+		queue.add(handlerTryBlock);
+		while (!queue.isEmpty()) {
+			TryCatchBlockAttr current = queue.poll();
+			if (searchBodies.add(current)) {
+				queue.addAll(current.getInnerTryBlocks());
+			}
 		}
 
 		for (BlockNode handlerPredecessor : getHandlerBlock().getPredecessors()) {
