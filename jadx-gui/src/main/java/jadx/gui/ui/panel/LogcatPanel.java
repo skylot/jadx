@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
@@ -60,6 +61,10 @@ public class LogcatPanel extends JPanel {
 	private final AttributeSet errorAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#dc322f"));
 	private final AttributeSet fatalAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#d33682"));
 	private final AttributeSet silentAset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.decode("#002b36"));
+
+	private final Map<Byte, AttributeSet> asetMap =
+			Map.of((byte) 1, defaultAset, (byte) 2, verboseAset, (byte) 3, debugAset, (byte) 4, infoAset, (byte) 5, warningAset,
+					(byte) 6, errorAset, (byte) 7, fatalAset, (byte) 8, silentAset);
 
 	private static final ImageIcon ICON_PAUSE = UiUtils.openSvgIcon("debugger/threadFrozen");
 	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
@@ -199,64 +204,29 @@ public class LogcatPanel extends JPanel {
 	}
 
 	public void log(LogcatController.LogcatInfo logcatInfo) {
-		boolean atBottom = false;
-
 		int len = logcatPane.getDocument().getLength();
 		JScrollBar scrollbar = logcatScroll.getVerticalScrollBar();
-		if (isAtBottom(scrollbar)) {
-			atBottom = true;
+		boolean atBottom = isAtBottom(scrollbar);
+
+		String logString = " > " + logcatInfo.getTimestamp() + " [pid: " + logcatInfo.getPid() + "] "
+				+ logcatInfo.getMsgTypeString() + ": " + logcatInfo.getMsg() + "\n";
+
+		if (logcatInfo.getMsgType() == 0) {
+			return; // ignore unknown
 		}
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(" > ")
-				.append(logcatInfo.getTimestamp())
-				.append(" [pid: ")
-				.append(logcatInfo.getPid())
-				.append("] ")
-				.append(logcatInfo.getMsgTypeString())
-				.append(": ")
-				.append(logcatInfo.getMsg())
-				.append("\n");
+		AttributeSet attrSet = asetMap.get(logcatInfo.getMsgType());
 
-		try {
-			switch (logcatInfo.getMsgType()) {
-				case 0: // Unknown
-					break;
-				case 1: // Default
-					logcatPane.getDocument().insertString(len, sb.toString(), defaultAset);
-					break;
-				case 2: // Verbose
-					logcatPane.getDocument().insertString(len, sb.toString(), verboseAset);
-					break;
-				case 3: // Debug
-					logcatPane.getDocument().insertString(len, sb.toString(), debugAset);
-					break;
-				case 4: // Info
-					logcatPane.getDocument().insertString(len, sb.toString(), infoAset);
-					break;
-				case 5: // Warn
-					logcatPane.getDocument().insertString(len, sb.toString(), warningAset);
-					break;
-				case 6: // Error
-					logcatPane.getDocument().insertString(len, sb.toString(), errorAset);
-					break;
-				case 7: // Fatal
-					logcatPane.getDocument().insertString(len, sb.toString(), fatalAset);
-					break;
-				case 8: // Silent
-					logcatPane.getDocument().insertString(len, sb.toString(), silentAset);
-					break;
-				default:
-					logcatPane.getDocument().insertString(len, sb.toString(), null);
-					break;
+		UiUtils.uiRun(() -> {
+			try {
+				logcatPane.getDocument().insertString(len, logString, attrSet);
+			} catch (Exception e) {
+				LOG.error("Failed to add logcat message", e);
 			}
-		} catch (Exception e) {
-			LOG.error("Failed to write logcat message", e);
-		}
-
-		if (atBottom) {
-			EventQueue.invokeLater(() -> scrollbar.setValue(scrollbar.getMaximum()));
-		}
+			if (atBottom) {
+				EventQueue.invokeLater(() -> scrollbar.setValue(scrollbar.getMaximum()));
+			}
+		});
 	}
 
 	public void exit() {
@@ -282,7 +252,7 @@ public class LogcatPanel extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			JComboBox cb = (JComboBox) e.getSource();
+			JComboBox<?> cb = (JComboBox<?>) e.getSource();
 			CheckComboStore store = (CheckComboStore) cb.getSelectedItem();
 			CheckComboRenderer ccr = (CheckComboRenderer) cb.getRenderer();
 			store.state = !store.state;
@@ -350,11 +320,7 @@ public class LogcatPanel extends JPanel {
 		public void selectAllBut(int ind) {
 			for (int i = 0; i < combo.getItemCount(); i++) {
 				CheckComboStore ccs = combo.getItemAt(i);
-				if (i != ind) {
-					ccs.state = false;
-				} else {
-					ccs.state = true;
-				}
+				ccs.state = (i == ind);
 				switch (type) {
 					case 1: // process
 						logcatController.getFilter().togglePid(ccs.index, ccs.state);
