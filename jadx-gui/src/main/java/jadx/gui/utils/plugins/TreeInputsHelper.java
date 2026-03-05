@@ -46,7 +46,6 @@ public class TreeInputsHelper {
 
 	public List<JNode> getCustomNodes() {
 		return categoryData.stream()
-				.filter(CategoryData::notEmpty)
 				.map(CategoryData::buildInputNode)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
@@ -83,10 +82,6 @@ public class TreeInputsHelper {
 				LOG.error("Failed to build custom input node", e);
 				return null;
 			}
-		}
-
-		public boolean notEmpty() {
-			return !collectedFiles.isEmpty();
 		}
 	}
 }
