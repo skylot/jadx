@@ -39,7 +39,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -91,7 +90,6 @@ import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidManifestParser;
@@ -419,30 +417,6 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	public void addNewScript() {
-		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
-		fileDialog.setTitle(NLS.str("file.save"));
-		Path workingDir = project.getWorkingDir();
-		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
-		fileDialog.setSelectedFile(baseDir.resolve("script.jadx.kts"));
-		fileDialog.setFileExtList(Collections.singletonList("jadx.kts"));
-		fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
-		List<Path> paths = fileDialog.show();
-		if (paths.size() != 1) {
-			return;
-		}
-		Path scriptFile = paths.get(0);
-		try {
-			TemplateFile tmpl = TemplateFile.fromResources("/files/script.jadx.kts.tmpl");
-			FileUtils.writeFile(scriptFile, tmpl.build());
-		} catch (Exception e) {
-			LOG.error("Failed to save new script file: {}", scriptFile, e);
-		}
-		List<Path> inputs = project.getFilePaths();
-		inputs.add(scriptFile);
-		refreshTree(inputs);
-	}
-
 	public void removeInput(Path file) {
 		int dialogResult = JOptionPane.showConfirmDialog(
 				this,
@@ -650,8 +624,9 @@ public class MainWindow extends JFrame {
 	}
 
 	public void passesReloaded() {
+		UiUtils.uiThreadGuard();
 		tabbedPane.reloadInactiveTabs();
-		reloadTree();
+		reloadTreePreservingState();
 	}
 
 	private void initEvents() {
@@ -844,8 +819,10 @@ public class MainWindow extends JFrame {
 		treeRoot.update();
 	}
 
-	// simple save and restore tree state after renaming
-	// maybe need improve for find and update only changed node
+	/**
+	 * Simple save and restore tree state after renaming.
+	 * TODO: maybe need improve for find and update only changed node
+	 */
 	public void reloadTreePreservingState() {
 		List<String> treePath = treeExpansionService.save();
 		reloadTree();

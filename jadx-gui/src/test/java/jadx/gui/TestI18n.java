@@ -122,6 +122,7 @@ public class TestI18n {
 	 */
 	private static final List<String> EXCLUDED_KEYS = Arrays.asList(
 			// keys from `jadx-script-kotlin`
+			"file.save",
 			"tree.input_scripts",
 			"popup.new_script",
 			"popup.add_scripts",
