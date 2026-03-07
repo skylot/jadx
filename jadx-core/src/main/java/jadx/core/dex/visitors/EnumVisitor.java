@@ -49,6 +49,7 @@ import jadx.core.utils.BlockInsnPair;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -156,13 +157,6 @@ public class EnumVisitor extends AbstractVisitor {
 			InsnNode assignInsn = regArg.getAssignInsn();
 			if (assignInsn != null) {
 				enumFields = extractEnumFieldsFromInsn(data, assignInsn);
-				if (enumFields != null) {
-					// extractEnumFieldsFromFilledArray already adds FILLED_NEW_ARRAY to toRemove
-					if (assignInsn.getType() != InsnType.FILLED_NEW_ARRAY) {
-						data.toRemove.add(assignInsn);
-					}
-					removeEntriesFieldInit(data, regArg.getSVar());
-				}
 			}
 		}
 		if (enumFields == null) {
@@ -306,8 +300,13 @@ public class EnumVisitor extends AbstractVisitor {
 			return null;
 		}
 		List<EnumField> enumFields = extractEnumFieldsFromInsn(enumData, wrappedInsn);
-		if (enumFields != null) {
+		if (enumFields != null && ListUtils.isSingleElement(valuesMth.getUseIn(), enumData.classInitMth)) {
 			valuesMth.add(AFlag.DONT_GENERATE);
+			if (valuesMth.getName().equals("$values")) {
+				// Kotlin synthetic method used for init values
+				// rename to actual values method to use in $ENTRIES init code
+				valuesMth.getMethodInfo().setAlias("values");
+			}
 		}
 		return enumFields;
 	}
@@ -545,58 +544,6 @@ public class EnumVisitor extends AbstractVisitor {
 			data.toRemove.add(assignInsn);
 		}
 		return enumField;
-	}
-
-	/**
-	 * Remove Kotlin 1.9+ $ENTRIES field initialization.
-	 * When enum values array register has extra uses from $ENTRIES assignment,
-	 * find and remove the $ENTRIES SPUT and mark its field as DONT_GENERATE.
-	 */
-	private void removeEntriesFieldInit(EnumData data, @Nullable SSAVar arrVar) {
-		if (arrVar == null) {
-			return;
-		}
-		for (RegisterArg useArg : arrVar.getUseList()) {
-			InsnNode useInsn = useArg.getParentInsn();
-			if (useInsn == null || useInsn == data.valuesInitInsn) {
-				continue;
-			}
-			if (useInsn.getType() != InsnType.INVOKE) {
-				continue;
-			}
-			if (useInsn.contains(AFlag.WRAPPED)) {
-				for (BlockNode block : data.staticBlocks) {
-					for (InsnNode blockInsn : block.getInstructions()) {
-						if (blockInsn.getType() == InsnType.SPUT
-								&& blockInsn.getArg(0).isInsnWrap()
-								&& ((InsnWrapArg) blockInsn.getArg(0)).getWrapInsn() == useInsn) {
-							markFieldDontGenerate(data, (IndexInsnNode) blockInsn);
-							data.toRemove.add(blockInsn);
-						}
-					}
-				}
-			} else {
-				data.toRemove.add(useInsn);
-				RegisterArg result = useInsn.getResult();
-				if (result != null && result.getSVar() != null) {
-					for (RegisterArg resUse : result.getSVar().getUseList()) {
-						InsnNode sputInsn = resUse.getParentInsn();
-						if (sputInsn != null && sputInsn.getType() == InsnType.SPUT) {
-							markFieldDontGenerate(data, (IndexInsnNode) sputInsn);
-							data.toRemove.add(sputInsn);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private void markFieldDontGenerate(EnumData data, IndexInsnNode sputInsn) {
-		FieldInfo fieldInfo = (FieldInfo) sputInsn.getIndex();
-		FieldNode fieldNode = data.cls.searchField(fieldInfo);
-		if (fieldNode != null) {
-			fieldNode.add(AFlag.DONT_GENERATE);
-		}
 	}
 
 	@Nullable

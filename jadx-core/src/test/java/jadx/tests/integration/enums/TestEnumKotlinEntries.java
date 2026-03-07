@@ -16,12 +16,9 @@ public class TestEnumKotlinEntries extends SmaliTest {
 		disableCompilation(); // kotlin.enums.EnumEntries not on test classpath
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("ALPHA,")
-				.containsOne("BETA,")
-				.containsOne("GAMMA;")
+				.containsLines(1, "ALPHA,", "BETA,", "GAMMA;")
+				.containsOne("EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());")
 				.doesNotContain("$VALUES")
-				.doesNotContain("enumEntries")
-				.doesNotContain("EnumEntriesKt")
 				.doesNotContain("Failed to restore enum");
 	}
 }
