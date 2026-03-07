@@ -173,7 +173,7 @@ public class TypeUtils {
 		}
 		Map<ArgType, ArgType> typeVarsMap = Collections.emptyMap();
 		ClassTypeVarsAttr typeVars = getClassTypeVars(instanceType);
-		if (typeVars != null) {
+		if (typeVars != null && genericSourceType.isObject()) {
 			typeVarsMap = mergeTypeMaps(typeVarsMap, typeVars.getTypeVarsMapFor(genericSourceType));
 		}
 		typeVarsMap = mergeTypeMaps(typeVarsMap, getTypeVariablesMapping(instanceType));

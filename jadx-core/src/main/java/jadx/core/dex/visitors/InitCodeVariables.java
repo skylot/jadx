@@ -115,12 +115,12 @@ public class InitCodeVariables extends AbstractVisitor {
 		}
 		for (PhiInsn phiInsn : phiInsnList) {
 			SSAVar resultVar = phiInsn.getResult().getSVar();
-			if (vars.add(resultVar)) {
+			if (resultVar != null && vars.add(resultVar)) {
 				collectConnectedVars(resultVar.getPhiList(), vars);
 			}
 			phiInsn.getArguments().forEach(arg -> {
 				SSAVar sVar = ((RegisterArg) arg).getSVar();
-				if (vars.add(sVar)) {
+				if (sVar != null && vars.add(sVar)) {
 					collectConnectedVars(sVar.getPhiList(), vars);
 				}
 			});
