@@ -49,6 +49,7 @@ import jadx.core.utils.BlockInsnPair;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -149,6 +150,14 @@ public class EnumVisitor extends AbstractVisitor {
 		if (arrArg.isInsnWrap()) {
 			InsnNode wrappedInsn = ((InsnWrapArg) arrArg).getWrapInsn();
 			enumFields = extractEnumFieldsFromInsn(data, wrappedInsn);
+		} else if (arrArg.isRegister()) {
+			// Kotlin 1.9+ $ENTRIES pattern: array register has multiple uses,
+			// preventing CodeShrinkVisitor from inlining into the SPUT
+			RegisterArg regArg = (RegisterArg) arrArg;
+			InsnNode assignInsn = regArg.getAssignInsn();
+			if (assignInsn != null) {
+				enumFields = extractEnumFieldsFromInsn(data, assignInsn);
+			}
 		}
 		if (enumFields == null) {
 			cls.addWarnComment("Unknown enum class pattern. Please report as an issue!");
@@ -291,8 +300,13 @@ public class EnumVisitor extends AbstractVisitor {
 			return null;
 		}
 		List<EnumField> enumFields = extractEnumFieldsFromInsn(enumData, wrappedInsn);
-		if (enumFields != null) {
+		if (enumFields != null && ListUtils.isSingleElement(valuesMth.getUseIn(), enumData.classInitMth)) {
 			valuesMth.add(AFlag.DONT_GENERATE);
+			if (valuesMth.getName().equals("$values")) {
+				// Kotlin synthetic method used for init values
+				// rename to actual values method to use in $ENTRIES init code
+				valuesMth.getMethodInfo().setAlias("values");
+			}
 		}
 		return enumFields;
 	}
@@ -506,7 +520,18 @@ public class EnumVisitor extends AbstractVisitor {
 				}
 				case FILLED_NEW_ARRAY: {
 					// allow usage in values init instruction
-					if (!data.valuesInitInsn.getArg(0).unwrap().equals(useInsn)) {
+					InsnArg valuesArg = data.valuesInitInsn.getArg(0);
+					InsnNode unwrapped = valuesArg.unwrap();
+					if (unwrapped != null) {
+						if (unwrapped != useInsn) {
+							return null;
+						}
+					} else if (valuesArg.isRegister()) {
+						InsnNode valuesAssign = ((RegisterArg) valuesArg).getAssignInsn();
+						if (valuesAssign != useInsn) {
+							return null;
+						}
+					} else {
 						return null;
 					}
 					break;
