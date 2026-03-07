@@ -20,6 +20,8 @@ public class TypeUpdateInfo {
 	private final int updatesLimitCount;
 	private int updateSeq = 0;
 
+	private int netUpdates = 0;
+
 	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags, JadxArgs args) {
 		this.mth = mth;
 		this.flags = flags;
@@ -33,7 +35,9 @@ public class TypeUpdateInfo {
 					+ " types: prev=" + prev.getType() + ", new=" + changeType
 					+ ", insn: " + arg.getParentInsn());
 		}
-		if (updateSeq > updatesLimitCount) {
+
+		netUpdates++;
+		if (netUpdates > updatesLimitCount) {
 			throw new JadxOverflowException("Type inference error: updates count limit reached"
 					+ " with updateSeq = " + updateSeq + ". Try increasing type updates limit count.");
 		}
@@ -47,7 +51,15 @@ public class TypeUpdateInfo {
 		TypeUpdateEntry removed = updateMap.remove(arg);
 		if (removed != null) {
 			int seq = removed.getSeq();
-			updateMap.values().removeIf(upd -> upd.getSeq() > seq);
+			int removedCount = 1;
+			var it = updateMap.values().iterator();
+			while (it.hasNext()) {
+				if (it.next().getSeq() > seq) {
+					it.remove();
+					removedCount++;
+				}
+			}
+			netUpdates -= removedCount;
 		}
 	}
 

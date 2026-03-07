@@ -1,9 +1,11 @@
 package jadx.core.dex.trycatch;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -189,7 +191,15 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 			searchBlocks.removeAll(handler.getBlocks());
 		}
 
+		if (searchBlocks.isEmpty()) {
+			return;
+		}
+
 		BlockNode sourceBlock = BlockUtils.getTopBlock(new ArrayList<>(searchBlocks));
+
+		if (sourceBlock == null) {
+			return;
+		}
 
 		exploredTrys.add(this);
 
@@ -207,6 +217,11 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 
 	private void exploreTryPath(List<TryEdge> edges, BlockNode blk, Set<BlockNode> searchBlocks, List<BlockNode> exploredBlocks,
 			List<TryCatchBlockAttr> exploredTrys) {
+
+		if (blk == null) {
+			return;
+		}
+
 		for (BlockNode successor : blk.getSuccessors()) {
 			// If a separate branch has already explored this block, we don't need to recalculate its exits.
 			if (exploredBlocks.contains(successor)) {
@@ -328,19 +343,23 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 	}
 
 	public List<ExceptionHandler> getMergedHandlers() {
-		boolean hasInnerBlocks = !getInnerTryBlocks().isEmpty();
-		final List<ExceptionHandler> mergedHandlers;
-		if (hasInnerBlocks) {
-			// collect handlers from this and all inner blocks
-			// (intentionally not using recursive collect for now)
-			mergedHandlers = new ArrayList<>(getHandlers());
-			for (TryCatchBlockAttr innerTryBlock : getInnerTryBlocks()) {
-				mergedHandlers.addAll(innerTryBlock.getHandlers());
-			}
-		} else {
-			mergedHandlers = getHandlers();
+		if (innerTryBlocks.isEmpty()) {
+			return Collections.unmodifiableList(handlers);
 		}
-		return Collections.unmodifiableList(mergedHandlers);
+
+		List<ExceptionHandler> merged = new ArrayList<>(handlers);
+		Set<TryCatchBlockAttr> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+		ArrayDeque<TryCatchBlockAttr> queue = new ArrayDeque<>(innerTryBlocks);
+		visited.add(this);
+
+		while (!queue.isEmpty()) {
+			TryCatchBlockAttr current = queue.poll();
+			if (visited.add(current)) {
+				merged.addAll(current.getHandlers());
+				queue.addAll(current.getInnerTryBlocks());
+			}
+		}
+		return Collections.unmodifiableList(merged);
 	}
 
 	public Map<TryEdge, BlockNode> getEdgeBlockMap(MethodNode mth) {
