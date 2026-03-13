@@ -335,6 +335,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		ternInsn.simplifyCondition();
 
 		InsnRemover.unbindAllArgs(mth, phiInsn);
+		InsnRemover.delistPhi(mth, phiInsn);
 		InsnRemover.unbindResult(mth, insn);
 		InsnList.remove(block, insn);
 		header.getInstructions().clear();

@@ -67,6 +67,7 @@ public class DebugChecks {
 			}
 		}
 		checkSSAVars(mth);
+		quickCheckPhiInsn(mth);
 		// checkPHI(mth);
 	}
 
@@ -225,6 +226,34 @@ public class DebugChecks {
 				throw new JadxRuntimeException("Parent insn not found in blocks tree for: " + reg
 						+ "\n insn: " + parentInsn);
 			}
+		}
+	}
+
+	public static void quickCheckPhiInsn(MethodNode mth) {
+		if (mth.getSVars().isEmpty()) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			PhiListAttr phiListAttr = block.get(AType.PHI_LIST);
+			if (phiListAttr != null) {
+				for (PhiInsn phiInsn : phiListAttr.getList()) {
+					checkPhiArg(mth, phiInsn, phiInsn.getResult(), () -> "result");
+					int argsCount = phiInsn.getArgsCount();
+					for (int i = 0; i < argsCount; i++) {
+						int argNum = i;
+						checkPhiArg(mth, phiInsn, phiInsn.getArg(argNum), () -> "arg_" + argNum);
+					}
+				}
+			}
+		}
+	}
+
+	private static void checkPhiArg(MethodNode mth, PhiInsn phiInsn, RegisterArg arg, Supplier<String> argName) {
+		if (arg == null) {
+			throw new JadxRuntimeException("Null " + argName.get() + " in PHI insn: " + phiInsn);
+		}
+		if (arg.getSVar() == null) {
+			throw new JadxRuntimeException("Null SSA variable in " + argName.get() + " in PHI insn: " + phiInsn);
 		}
 	}
 
