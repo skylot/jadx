@@ -144,7 +144,7 @@ public class DesktopEntryUtils {
 
 	public static @Nullable String getLaunchScriptPath() {
 		String launchScriptPath = System.getProperty("jadx.launchScript.path");
-		if (launchScriptPath.isEmpty()) {
+		if (launchScriptPath == null || launchScriptPath.isEmpty()) {
 			LOG.error(
 					"The jadx.launchScript.path property is not set. Please launch JADX with the bundled launch script or set it to the appropriate value yourself.");
 			return null;
