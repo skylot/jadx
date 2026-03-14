@@ -1,9 +1,13 @@
 package jadx.core.dex.trycatch;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -161,19 +165,22 @@ public class ExceptionHandler {
 	@Nullable
 	public BlockNode getBottomSplitter() {
 		TryCatchBlockAttr handlerTryBlock = getTryBlock();
-		// TODO: Implement support for finding bottom splitter of catch with inner tries
-		if (handlerTryBlock.getInnerTryBlocks().size() > 1) {
-			LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
-			return null;
-		}
-		final TryCatchBlockAttr searchForTryBody;
-		if (handlerTryBlock.getInnerTryBlocks().isEmpty()) {
-			searchForTryBody = handlerTryBlock;
-		} else {
-			searchForTryBody = Utils.getOne(handlerTryBlock.getInnerTryBlocks());
+		// // TODO: Implement support for finding bottom splitter of catch with inner tries
+		// if (handlerTryBlock.getInnerTryBlocks().size() > 1) {
+		// LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
+		// return null;
+		// }
+
+		Set<TryCatchBlockAttr> searchBodies = Collections.newSetFromMap(new IdentityHashMap<>());
+		ArrayDeque<TryCatchBlockAttr> queue = new ArrayDeque<>();
+		queue.add(handlerTryBlock);
+		while (!queue.isEmpty()) {
+			TryCatchBlockAttr current = queue.poll();
+			if (searchBodies.add(current)) {
+				queue.addAll(current.getInnerTryBlocks());
+			}
 		}
 
-		BlockNode splitter = null;
 		for (BlockNode handlerPredecessor : getHandlerBlock().getPredecessors()) {
 			if (!handlerPredecessor.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
 				continue;
@@ -181,17 +188,12 @@ public class ExceptionHandler {
 
 			for (BlockNode splitterPredecessor : handlerPredecessor.getPredecessors()) {
 				TryCatchBlockAttr tryBody = splitterPredecessor.get(AType.TRY_BLOCK);
-				if (tryBody == searchForTryBody) {
-					splitter = handlerPredecessor;
-					break;
+				if (searchBodies.contains(tryBody)) {
+					return handlerPredecessor;
 				}
 			}
-
-			if (splitter != null) {
-				break;
-			}
 		}
-		return splitter;
+		return null;
 	}
 
 	public void markForRemove() {
