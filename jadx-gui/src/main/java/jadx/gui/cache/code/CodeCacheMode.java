@@ -26,6 +26,11 @@ public enum CodeCacheMode {
 		return NLS.str(descKey);
 	}
 
+	@Override
+	public String toString() {
+		return getLocalizedName();
+	}
+
 	public static String buildToolTip() {
 		return Stream.of(values())
 				.map(v -> v.getLocalizedName() + " - " + v.getDesc())
