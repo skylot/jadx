@@ -34,6 +34,7 @@ import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -164,12 +165,7 @@ public class ClassGen {
 		if (af.isInterface()) {
 			af = af.remove(AccessFlags.ABSTRACT)
 					.remove(AccessFlags.STATIC);
-		} else if (af.isEnum()) {
-			af = af.remove(AccessFlags.FINAL)
-					.remove(AccessFlags.ABSTRACT)
-					.remove(AccessFlags.STATIC);
 		}
-
 		// 'static' and 'private' modifier not allowed for top classes (not inner)
 		if (!cls.getClassInfo().isInner()) {
 			af = af.remove(AccessFlags.STATIC).remove(AccessFlags.PRIVATE);
@@ -294,7 +290,7 @@ public class ClassGen {
 	private void addInnerClsAndMethods(ICodeWriter clsCode) {
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
-				.filter(node -> !node.contains(AFlag.DONT_GENERATE) || fallback)
+				.filter(node -> !skipNode(node))
 				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
 				.forEach(node -> {
 					if (node instanceof ClassNode) {
@@ -303,6 +299,18 @@ public class ClassGen {
 						addMethod(clsCode, (MethodNode) node);
 					}
 				});
+	}
+
+	private boolean skipNode(NotificationAttrNode node) {
+		if (fallback) {
+			return false;
+		}
+		if (Consts.DEBUG_ATTRIBUTES) {
+			if (node.contains(AType.JADX_COMMENTS)) {
+				return false;
+			}
+		}
+		return node.contains(AFlag.DONT_GENERATE);
 	}
 
 	private void addInnerClass(ICodeWriter code, ClassNode innerCls) {

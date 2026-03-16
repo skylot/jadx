@@ -1,7 +1,5 @@
 package jadx.core.codegen;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +27,7 @@ import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.MethodReplaceAttr;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IfNode;
@@ -109,10 +108,6 @@ public class MethodGen {
 		if (clsAccFlags.isAnnotation()) {
 			ai = ai.remove(AccessFlags.PUBLIC);
 		}
-		if (mth.getMethodInfo().isConstructor() && mth.getParentClass().isEnum()) {
-			ai = ai.remove(AccessInfo.VISIBILITY_FLAGS);
-		}
-
 		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
@@ -152,21 +147,7 @@ public class MethodGen {
 			code.add(defMth.getAlias());
 		}
 		code.add('(');
-
-		List<RegisterArg> args = mth.getArgRegs();
-		if (mth.getMethodInfo().isConstructor()
-				&& mth.getParentClass().contains(AType.ENUM_CLASS)) {
-			if (args.size() == 2) {
-				args = Collections.emptyList();
-			} else if (args.size() > 2) {
-				args = args.subList(2, args.size());
-			} else {
-				mth.addWarnComment("Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
-			}
-		} else if (mth.contains(AFlag.SKIP_FIRST_ARG)) {
-			args = args.subList(1, args.size());
-		}
-		addMethodArguments(code, args);
+		addMethodArguments(code);
 		code.add(')');
 
 		annotationGen.addThrows(mth, code);
@@ -209,12 +190,22 @@ public class MethodGen {
 		}
 	}
 
-	private void addMethodArguments(ICodeWriter code, List<RegisterArg> args) {
+	private void addMethodArguments(ICodeWriter code) {
+		List<RegisterArg> args = mth.getArgRegs();
 		AnnotationMethodParamsAttr paramsAnnotation = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
-		int i = 0;
-		Iterator<RegisterArg> it = args.iterator();
-		while (it.hasNext()) {
-			RegisterArg mthArg = it.next();
+		int argNum = -1;
+		int lastArgNum = args.size() - 1;
+		boolean first = true;
+		for (RegisterArg mthArg : args) {
+			argNum++;
+			if (SkipMethodArgsAttr.isSkip(mth, argNum)) {
+				continue;
+			}
+			if (first) {
+				first = false;
+			} else {
+				code.add(", ");
+			}
 			SSAVar ssaVar = mthArg.getSVar();
 			CodeVar var;
 			if (ssaVar == null) {
@@ -226,7 +217,7 @@ public class MethodGen {
 
 			// add argument annotation
 			if (paramsAnnotation != null) {
-				annotationGen.addForParameter(code, paramsAnnotation, i);
+				annotationGen.addForParameter(code, paramsAnnotation, argNum);
 			}
 			if (var.isFinal()) {
 				code.add("final ");
@@ -239,7 +230,7 @@ public class MethodGen {
 			} else {
 				argType = varType;
 			}
-			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
+			if (argNum == lastArgNum && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
 				if (argType.isArray()) {
 					ArgType elType = argType.getArrayElement();
@@ -258,11 +249,6 @@ public class MethodGen {
 				code.attachDefinition(VarNode.get(mth, var));
 			}
 			code.add(varName);
-
-			i++;
-			if (it.hasNext()) {
-				code.add(", ");
-			}
 		}
 	}
 

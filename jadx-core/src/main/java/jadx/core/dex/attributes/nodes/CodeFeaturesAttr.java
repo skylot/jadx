@@ -53,4 +53,9 @@ public class CodeFeaturesAttr implements IJadxAttribute {
 	public String toAttrString() {
 		return "CodeFeatures{" + codeFeatures + '}';
 	}
+
+	@Override
+	public String toString() {
+		return toAttrString();
+	}
 }

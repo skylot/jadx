@@ -25,6 +25,7 @@ public enum AFlag {
 	REMOVE_SUPER_CLASS, // don't add super class
 
 	HIDDEN, // instruction used inside other instruction but not listed in args
+	CONVERTED_ENUM, // enum class successfully restored to original form
 
 	DONT_RENAME, // do not rename during deobfuscation
 	FORCE_RAW_NAME, // force use of raw name instead alias

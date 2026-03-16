@@ -5,6 +5,7 @@ import java.util.BitSet;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.MethodNode;
@@ -33,6 +34,9 @@ public class SkipMethodArgsAttr extends PinnedAttribute {
 	public static boolean isSkip(@Nullable MethodNode mth, int argNum) {
 		if (mth == null) {
 			return false;
+		}
+		if (argNum == 0 && mth.contains(AFlag.SKIP_FIRST_ARG)) {
+			return true;
 		}
 		SkipMethodArgsAttr attr = mth.get(AType.SKIP_MTH_ARGS);
 		if (attr == null) {
