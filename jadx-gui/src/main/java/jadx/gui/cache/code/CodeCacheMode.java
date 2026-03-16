@@ -1,9 +1,9 @@
 package jadx.gui.cache.code;
 
-import jadx.gui.utils.NLS;
-
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import jadx.gui.utils.NLS;
 
 public enum CodeCacheMode {
 	MEMORY("preferences.codeCacheMode.memory", "preferences.codeCacheMode.memory.desc"),
