@@ -220,38 +220,49 @@ public class JadxSettings {
 		recentProjects.remove(projectPath);
 	}
 
+	private static String makeWindowId(Window window) {
+		return window.getClass().getSimpleName();
+	}
+
+	@SuppressWarnings("ConstantValue")
 	public void saveWindowPos(Window window) {
+		if (window == null) {
+			return;
+		}
 		synchronized (dataWriteSync) {
-			WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
-			settingsData.getWindowPos().put(pos.getWindowId(), pos);
+			Rectangle bounds = window.getBounds();
+			if (bounds != null) {
+				WindowLocation pos = new WindowLocation(makeWindowId(window), bounds);
+				settingsData.getWindowPos().put(pos.getWindowId(), pos);
+			}
 		}
 	}
 
 	public boolean loadWindowPos(Window window) {
-		Map<String, WindowLocation> windowPos = settingsData.getWindowPos();
-		WindowLocation pos = windowPos.get(window.getClass().getSimpleName());
-		if (pos == null || pos.getBounds() == null) {
+		String windowId = makeWindowId(window);
+		WindowLocation pos = settingsData.getWindowPos().get(windowId);
+		if (pos == null) {
 			return false;
 		}
-		if (!isAccessibleInAnyScreen(pos)) {
+		Rectangle bounds = pos.getBounds();
+		if (bounds == null || !isAccessibleInAnyScreen(windowId, bounds)) {
 			return false;
 		}
-		window.setBounds(pos.getBounds());
+		window.setBounds(bounds);
 		if (window instanceof MainWindow) {
 			((JFrame) window).setExtendedState(getMainWindowExtendedState());
 		}
 		return true;
 	}
 
-	private static boolean isAccessibleInAnyScreen(WindowLocation pos) {
-		Rectangle windowBounds = pos.getBounds();
+	private static boolean isAccessibleInAnyScreen(String windowId, Rectangle windowBounds) {
 		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
 			Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
 			if (screenBounds.intersects(windowBounds)) {
 				return true;
 			}
 		}
-		LOG.debug("Window saved position was ignored: {}", pos);
+		LOG.debug("Window saved position was ignored: {}, bounds: {}", windowId, windowBounds);
 		return false;
 	}
 
