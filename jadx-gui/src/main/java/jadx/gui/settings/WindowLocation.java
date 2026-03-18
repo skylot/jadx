@@ -1,6 +1,7 @@
 package jadx.gui.settings;
 
 import java.awt.Rectangle;
+import java.util.Objects;
 
 public class WindowLocation {
 	private String windowId;
@@ -33,21 +34,23 @@ public class WindowLocation {
 
 	@Override
 	public int hashCode() {
-		return windowId.hashCode();
+		return Objects.hashCode(windowId);
 	}
 
 	@Override
 	public final boolean equals(Object o) {
 		if (o instanceof WindowLocation) {
 			WindowLocation that = (WindowLocation) o;
-			return windowId.equals(that.windowId) && bounds.equals(that.bounds);
+			return Objects.equals(windowId, that.windowId) && Objects.equals(bounds, that.bounds);
 		}
 		return false;
-
 	}
 
 	@Override
 	public String toString() {
+		if (bounds == null) {
+			return "WindowLocation{id='" + windowId + "', bounds=null}";
+		}
 		return "WindowLocation{"
 				+ "id='" + windowId + '\''
 				+ ", x=" + bounds.getX()
