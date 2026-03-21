@@ -52,7 +52,7 @@ public final class TypeUpdate {
 	}
 
 	/**
-	 * Perform recursive type checking and type propagation for all related variables
+	 * Perform type checking and type propagation for all related variables
 	 */
 	public TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
 		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_EMPTY);
@@ -81,9 +81,14 @@ public final class TypeUpdate {
 			if (candidateType == null || !candidateType.isTypeKnown()) {
 				return REJECT;
 			}
-
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.debug("Start type update for {} to {}", ssaVar.toShortString(), candidateType);
+			}
 			TypeUpdateInfo updateInfo = new TypeUpdateInfo(mth, flags, args);
-			TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
+			TypeUpdateResult result = queueTypeUpdate(updateInfo, ssaVar.getAssign(), candidateType, null);
+			if (result == null) {
+				result = runUpdate(updateInfo);
+			}
 			if (result == REJECT) {
 				return result;
 			}
@@ -103,16 +108,88 @@ public final class TypeUpdate {
 		}
 	}
 
-	private TypeUpdateResult updateTypeChecked(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
-		if (candidateType == null) {
-			throw new JadxRuntimeException("Null type update for arg: " + arg);
+	private TypeUpdateResult runUpdate(TypeUpdateInfo updateInfo) {
+		TypeUpdateResult result = REJECT;
+		while (true) {
+			TypeUpdateRequest request = updateInfo.pollNextRequest();
+			if (request == null) {
+				return result;
+			}
+			InsnArg updateArg = request.getArg();
+			ArgType updateType = request.getCandidateType();
+			TypeUpdateResult newResult;
+			if (request.isDirect()) {
+				newResult = requestUpdate(updateInfo, updateArg, updateType);
+			} else {
+				newResult = updateTypeForArg(updateInfo, updateArg, updateType);
+			}
+			updateInfo.saveCallback(request);
+			if (newResult == null) {
+				// no result: continue
+			} else {
+				// propagate result back through callbacks
+				result = processCallbacks(updateInfo, newResult);
+			}
 		}
-		if (updateInfo.isProcessed(arg)) {
-			return CHANGED;
+	}
+
+	private static TypeUpdateResult processCallbacks(TypeUpdateInfo updateInfo, TypeUpdateResult result) {
+		TypeUpdateResult current = result;
+		while (true) {
+			TypeUpdateRequest cbReq = updateInfo.pollNextCallback();
+			if (cbReq == null) {
+				return current;
+			}
+			ITypeUpdateCallback callback = Objects.requireNonNull(cbReq.getCallback());
+			current = callback.updateCallback(current);
+			if (current == null) {
+				// no result, put callback back into queue
+				// so it can be executed once result is calculated
+				updateInfo.saveCallback(cbReq);
+				return null;
+			}
+			if (current == REJECT) {
+				updateInfo.rollbackUpdate(cbReq.getArg());
+			}
+			// proceed to next callback
 		}
+	}
+
+	/**
+	 * Queue type update for InsnArg.
+	 *
+	 * @param callback - will be executed when result for this update is calculated,
+	 *                 can be null - callback will pass result without change
+	 * @return null if update added into queue, non-null result if not queued (verify failed)
+	 */
+	public @Nullable TypeUpdateResult queueTypeUpdate(TypeUpdateInfo updateInfo,
+			InsnArg arg, ArgType candidateType, @Nullable ITypeUpdateCallback callback) {
+		// verify can be done in queue processing before request run, but kept here for faster processing
+		// this might increase code complexity because result should be checked for null every time
 		TypeUpdateResult res = verifyType(updateInfo, arg, candidateType);
 		if (res != null) {
-			return res;
+			if (callback == null) {
+				return res;
+			}
+			TypeUpdateResult result = callback.updateCallback(res);
+			if (result == null) {
+				updateInfo.saveCallback(new TypeUpdateRequest(arg, candidateType, false, callback));
+			}
+			return result;
+		}
+		updateInfo.queueRequest(new TypeUpdateRequest(arg, candidateType, false, callback));
+		return null;
+	}
+
+	public @Nullable TypeUpdateResult queueDirectTypeUpdate(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType,
+			@Nullable ITypeUpdateCallback callback) {
+		updateInfo.queueRequest(new TypeUpdateRequest(arg, candidateType, true, callback));
+		return null;
+	}
+
+	private TypeUpdateResult updateTypeForArg(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
+		if (Consts.DEBUG_TYPE_INFERENCE) {
+			LOG.debug("-> update type for: {} to {}", arg, candidateType);
 		}
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -122,6 +199,12 @@ public final class TypeUpdate {
 	}
 
 	private @Nullable TypeUpdateResult verifyType(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
+		if (candidateType == null) {
+			throw new JadxRuntimeException("Null type update for arg: " + arg);
+		}
+		if (updateInfo.isProcessed(arg)) {
+			return CHANGED;
+		}
 		ArgType currentType = arg.getType();
 		TypeUpdateFlags typeUpdateFlags = updateInfo.getFlags();
 		if (Objects.equals(currentType, candidateType)) {
@@ -194,27 +277,16 @@ public final class TypeUpdate {
 		if (!inBounds(updateInfo, ssaVar, typeInfo.getBounds(), candidateType)) {
 			return REJECT;
 		}
-		TypeUpdateResult result = requestUpdate(updateInfo, ssaVar.getAssign(), candidateType);
-		boolean allSame = result == SAME;
-		if (result != REJECT) {
-			List<RegisterArg> useList = ssaVar.getUseList();
-			for (RegisterArg arg : useList) {
-				result = requestUpdate(updateInfo, arg, candidateType);
-				if (result == REJECT) {
-					break;
-				}
-				if (result != SAME) {
-					allSame = false;
-				}
+		var updateCallback = new ArgsListUpdateCallback<>(this, updateInfo, ssaVar.getUseList(), candidateType, true);
+		updateCallback.setFinalResultCallback(result -> {
+			if (result == REJECT) {
+				// rollback update for all registers in current SSA var
+				updateInfo.rollbackUpdate(ssaVar.getAssign());
+				ssaVar.getUseList().forEach(updateInfo::rollbackUpdate);
 			}
-		}
-		if (result == REJECT) {
-			// rollback update for all registers in current SSA var
-			updateInfo.rollbackUpdate(ssaVar.getAssign());
-			ssaVar.getUseList().forEach(updateInfo::rollbackUpdate);
-			return REJECT;
-		}
-		return allSame ? SAME : CHANGED;
+			return result;
+		});
+		return queueDirectTypeUpdate(updateInfo, ssaVar.getAssign(), candidateType, updateCallback);
 	}
 
 	private TypeUpdateResult requestUpdate(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
@@ -222,14 +294,6 @@ public final class TypeUpdate {
 			return CHANGED;
 		}
 		updateInfo.requestUpdate(arg, candidateType);
-		TypeUpdateResult result = runListeners(updateInfo, arg, candidateType);
-		if (result == REJECT) {
-			updateInfo.rollbackUpdate(arg);
-		}
-		return result;
-	}
-
-	private TypeUpdateResult runListeners(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
 		InsnNode insn = arg.getParentInsn();
 		if (insn == null) {
 			return SAME;
@@ -237,6 +301,9 @@ public final class TypeUpdate {
 		ITypeListener listener = listenerRegistry.get(insn.getType());
 		if (listener == null) {
 			return CHANGED;
+		}
+		if (Consts.DEBUG_TYPE_INFERENCE) {
+			LOG.debug("Run listener for insn: {}, arg: {}, type: {}", insn.getType(), arg, candidateType);
 		}
 		return listener.update(updateInfo, insn, arg, candidateType);
 	}
@@ -359,77 +426,22 @@ public final class TypeUpdate {
 			ArgType returnType = methodDetails.getReturnType();
 			List<ArgType> argTypes = methodDetails.getArgTypes();
 			int argsCount = argTypes.size();
+
+			Supplier<ArgType> getReturnType;
+			Function<Integer, ArgType> getArgType;
 			if (typeVarsMap.isEmpty()) {
 				// generics can't be resolved => use as is
-				return applyInvokeTypes(updateInfo, invoke, argsCount, knownTypeVars, () -> returnType, argTypes::get);
+				getReturnType = () -> returnType;
+				getArgType = argTypes::get;
+			} else {
+				// resolve types before apply
+				getReturnType = () -> typeUtils.replaceTypeVariablesUsingMap(returnType, typeVarsMap);
+				getArgType = argNum -> typeUtils.replaceClassGenerics(candidateType, argTypes.get(argNum));
 			}
-			// resolve types before apply
-			return applyInvokeTypes(updateInfo, invoke, argsCount, knownTypeVars,
-					() -> typeUtils.replaceTypeVariablesUsingMap(returnType, typeVarsMap),
-					argNum -> typeUtils.replaceClassGenerics(candidateType, argTypes.get(argNum)));
+			return new InvokeUpdateCallback(this, updateInfo, invoke, argsCount, knownTypeVars, getReturnType, getArgType)
+					.runQueue();
 		}
 		return SAME;
-	}
-
-	private TypeUpdateResult applyInvokeTypes(TypeUpdateInfo updateInfo, BaseInvokeNode invoke, int argsCount,
-			Set<ArgType> knownTypeVars, Supplier<ArgType> getReturnType, Function<Integer, ArgType> getArgType) {
-		boolean allSame = true;
-		RegisterArg resultArg = invoke.getResult();
-		if (resultArg != null && !resultArg.isTypeImmutable()) {
-			ArgType returnType = checkType(knownTypeVars, getReturnType.get());
-			if (returnType != null) {
-				TypeUpdateResult result = updateTypeChecked(updateInfo, resultArg, returnType);
-				if (result == REJECT) {
-					TypeCompareEnum compare = comparator.compareTypes(returnType, resultArg.getType());
-					if (compare.isWider()) {
-						return REJECT;
-					}
-				}
-				if (result == CHANGED) {
-					allSame = false;
-				}
-			}
-		}
-		int argOffset = invoke.getFirstArgOffset();
-		for (int i = 0; i < argsCount; i++) {
-			InsnArg invokeArg = invoke.getArg(argOffset + i);
-			if (!invokeArg.isTypeImmutable()) {
-				ArgType argType = checkType(knownTypeVars, getArgType.apply(i));
-				if (argType != null) {
-					TypeUpdateResult result = updateTypeChecked(updateInfo, invokeArg, argType);
-					if (result == REJECT) {
-						TypeCompareEnum compare = comparator.compareTypes(argType, invokeArg.getType());
-						if (compare.isNarrow()) {
-							return REJECT;
-						}
-					}
-					if (result == CHANGED) {
-						allSame = false;
-					}
-				}
-			}
-		}
-		return allSame ? SAME : CHANGED;
-	}
-
-	@Nullable
-	private ArgType checkType(Set<ArgType> knownTypeVars, @Nullable ArgType type) {
-		if (type == null) {
-			return null;
-		}
-		if (type.isWildcard()) {
-			return null;
-		}
-		if (type.containsTypeVariable()) {
-			if (knownTypeVars.isEmpty()) {
-				return null;
-			}
-			Boolean hasUnknown = type.visitTypes(t -> t.isGenericType() && !knownTypeVars.contains(t) ? Boolean.TRUE : null);
-			if (hasUnknown != null) {
-				return null;
-			}
-		}
-		return type;
 	}
 
 	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
@@ -437,7 +449,7 @@ public final class TypeUpdate {
 		if (updateInfo.hasUpdateWithType(changeArg, candidateType)) {
 			return CHANGED;
 		}
-		return updateTypeChecked(updateInfo, changeArg, candidateType);
+		return queueTypeUpdate(updateInfo, changeArg, candidateType, null);
 	}
 
 	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
@@ -451,18 +463,19 @@ public final class TypeUpdate {
 		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
 		boolean correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
 
-		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
-		if (result == SAME && !correctType) {
-			if (Consts.DEBUG_TYPE_INFERENCE) {
-				LOG.debug("Move insn types mismatch: {} -> {}, change arg: {}, insn: {}",
-						candidateType, changeArg.getType(), changeArg, insn);
+		return queueTypeUpdate(updateInfo, changeArg, candidateType, result -> {
+			if (result == SAME && !correctType) {
+				if (Consts.DEBUG_TYPE_INFERENCE) {
+					LOG.debug("Move insn types mismatch: {} -> {}, change arg: {}, insn: {}",
+							candidateType, changeArg.getType(), changeArg, insn);
+				}
+				return REJECT;
 			}
-			return REJECT;
-		}
-		if (result == REJECT && correctType) {
-			return CHANGED;
-		}
-		return result;
+			if (result == REJECT && correctType) {
+				return CHANGED;
+			}
+			return result;
+		});
 	}
 
 	/**
@@ -470,22 +483,12 @@ public final class TypeUpdate {
 	 */
 	private TypeUpdateResult allSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		if (!isAssign(insn, arg)) {
-			return updateTypeChecked(updateInfo, insn.getResult(), candidateType);
+			return queueTypeUpdate(updateInfo, insn.getResult(), candidateType, null);
 		}
-		boolean allSame = true;
-		for (InsnArg insnArg : insn.getArguments()) {
-			if (insnArg == arg) {
-				continue;
-			}
-			TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
-			if (result == REJECT) {
-				return result;
-			}
-			if (result != SAME) {
-				allSame = false;
-			}
-		}
-		return allSame ? SAME : CHANGED;
+		// update args with same type
+		var updateCallback = new ArgsListUpdateCallback<>(this, updateInfo, insn.getArgList(), candidateType, false);
+		updateCallback.setArgsFilter(a -> a != arg);
+		return updateCallback.runFirstQueue();
 	}
 
 	private TypeUpdateResult arithListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
@@ -501,32 +504,26 @@ public final class TypeUpdate {
 	 * Try to set candidate type to all args, don't fail on reject
 	 */
 	private TypeUpdateResult suggestAllSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		var updateCallback = new ArgsListUpdateCallback<>(this, updateInfo, insn.getArgList(), candidateType, false);
+		updateCallback.setArgsFilter(a -> a != arg);
+		updateCallback.setIgnoreReject(true);
 		if (!isAssign(insn, arg)) {
 			RegisterArg resultArg = insn.getResult();
 			if (resultArg != null) {
-				updateTypeChecked(updateInfo, resultArg, candidateType);
+				// start with result
+				return queueTypeUpdate(updateInfo, resultArg, candidateType, updateCallback);
 			}
 		}
-		boolean allSame = true;
-		for (InsnArg insnArg : insn.getArguments()) {
-			if (insnArg != arg) {
-				TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
-				if (result == REJECT) {
-					// ignore
-				} else if (result != SAME) {
-					allSame = false;
-				}
-			}
-		}
-		return allSame ? SAME : CHANGED;
+		// start with first arg
+		return updateCallback.runFirstQueue();
 	}
 
 	private TypeUpdateResult checkCastListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		IndexInsnNode checkCast = (IndexInsnNode) insn;
 		if (isAssign(insn, arg)) {
 			InsnArg insnArg = insn.getArg(0);
-			TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
-			return result == REJECT ? SAME : result;
+			return queueTypeUpdate(updateInfo, insnArg, candidateType,
+					r -> r == REJECT ? SAME : r);
 		}
 		ArgType castType = (ArgType) checkCast.getIndex();
 		TypeCompareEnum res = comparator.compareTypes(candidateType, castType);
@@ -543,7 +540,7 @@ public final class TypeUpdate {
 		}
 		if (res == TypeCompareEnum.NARROW_BY_GENERIC && candidateType.containsGeneric()) {
 			// propagate generic type to result
-			return updateTypeChecked(updateInfo, checkCast.getResult(), candidateType);
+			return queueTypeUpdate(updateInfo, checkCast.getResult(), candidateType, null);
 		}
 		ArgType currentType = checkCast.getArg(0).getType();
 		return candidateType.equals(currentType) ? SAME : CHANGED;
@@ -569,18 +566,19 @@ public final class TypeUpdate {
 
 	private TypeUpdateResult arrayGetListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		if (isAssign(insn, arg)) {
-			TypeUpdateResult result = updateTypeChecked(updateInfo, insn.getArg(0), ArgType.array(candidateType));
-			if (result == REJECT) {
-				ArgType arrType = insn.getArg(0).getType();
-				if (arrType.isTypeKnown() && arrType.isArray() && arrType.getArrayElement().isPrimitive()) {
-					TypeCompareEnum compResult = comparator.compareTypes(candidateType, arrType.getArrayElement());
-					if (compResult == TypeCompareEnum.WIDER) {
-						// allow implicit upcast for primitive types (int a = byteArr[n])
-						return CHANGED;
+			return queueTypeUpdate(updateInfo, insn.getArg(0), ArgType.array(candidateType), result -> {
+				if (result == REJECT) {
+					ArgType arrType = insn.getArg(0).getType();
+					if (arrType.isTypeKnown() && arrType.isArray() && arrType.getArrayElement().isPrimitive()) {
+						TypeCompareEnum compResult = comparator.compareTypes(candidateType, arrType.getArrayElement());
+						if (compResult == TypeCompareEnum.WIDER) {
+							// allow implicit upcast for primitive types (int a = byteArr[n])
+							return CHANGED;
+						}
 					}
 				}
-			}
-			return result;
+				return result;
+			});
 		}
 		InsnArg arrArg = insn.getArg(0);
 		if (arrArg == arg) {
@@ -588,18 +586,19 @@ public final class TypeUpdate {
 			if (arrayElement == null) {
 				return REJECT;
 			}
-			TypeUpdateResult result = updateTypeChecked(updateInfo, insn.getResult(), arrayElement);
-			if (result == REJECT) {
-				ArgType resType = insn.getResult().getType();
-				if (resType.isTypeKnown() && resType.isPrimitive()) {
-					TypeCompareEnum compResult = comparator.compareTypes(resType, arrayElement);
-					if (compResult == TypeCompareEnum.WIDER) {
-						// allow implicit upcast for primitive types (int a = byteArr[n])
-						return CHANGED;
+			return queueTypeUpdate(updateInfo, insn.getResult(), arrayElement, result -> {
+				if (result == REJECT) {
+					ArgType resType = insn.getResult().getType();
+					if (resType.isTypeKnown() && resType.isPrimitive()) {
+						TypeCompareEnum compResult = comparator.compareTypes(resType, arrayElement);
+						if (compResult == TypeCompareEnum.WIDER) {
+							// allow implicit upcast for primitive types (int a = byteArr[n])
+							return CHANGED;
+						}
 					}
 				}
-			}
-			return result;
+				return result;
+			});
 		}
 		// index argument
 		return SAME;
@@ -613,21 +612,22 @@ public final class TypeUpdate {
 			if (arrayElement == null) {
 				return REJECT;
 			}
-			TypeUpdateResult result = updateTypeChecked(updateInfo, putArg, arrayElement);
-			if (result == REJECT) {
-				ArgType putType = putArg.getType();
-				if (putType.isTypeKnown()) {
-					TypeCompareEnum compResult = comparator.compareTypes(arrayElement, putType);
-					if (compResult == TypeCompareEnum.WIDER || compResult == TypeCompareEnum.WIDER_BY_GENERIC) {
-						// allow wider result (i.e. allow put any objects in Object[] or byte in int[])
-						return CHANGED;
+			return queueTypeUpdate(updateInfo, putArg, arrayElement, result -> {
+				if (result == REJECT) {
+					ArgType putType = putArg.getType();
+					if (putType.isTypeKnown()) {
+						TypeCompareEnum compResult = comparator.compareTypes(arrayElement, putType);
+						if (compResult == TypeCompareEnum.WIDER || compResult == TypeCompareEnum.WIDER_BY_GENERIC) {
+							// allow wider result (i.e. allow put any objects in Object[] or byte in int[])
+							return CHANGED;
+						}
 					}
 				}
-			}
-			return result;
+				return result;
+			});
 		}
 		if (arrArg == putArg) {
-			return updateTypeChecked(updateInfo, arrArg, ArgType.array(candidateType));
+			return queueTypeUpdate(updateInfo, arrArg, ArgType.array(candidateType), null);
 		}
 		// index
 		return SAME;
@@ -637,26 +637,27 @@ public final class TypeUpdate {
 		InsnArg firstArg = insn.getArg(0);
 		InsnArg secondArg = insn.getArg(1);
 		InsnArg updateArg = firstArg == arg ? secondArg : firstArg;
-		TypeUpdateResult result = updateTypeChecked(updateInfo, updateArg, candidateType);
-		if (result == REJECT) {
-			// soft checks for objects and array - exact type not compared
-			ArgType updateArgType = updateArg.getType();
-			if (candidateType.isObject() && updateArgType.canBeObject()) {
-				return SAME;
-			}
-			if (candidateType.isArray() && updateArgType.canBeArray()) {
-				return SAME;
-			}
-			if (candidateType.isPrimitive()) {
-				if (updateArgType.canBePrimitive(candidateType.getPrimitiveType())) {
+		return queueTypeUpdate(updateInfo, updateArg, candidateType, result -> {
+			if (result == REJECT) {
+				// soft checks for objects and array - exact type not compared
+				ArgType updateArgType = updateArg.getType();
+				if (candidateType.isObject() && updateArgType.canBeObject()) {
 					return SAME;
 				}
-				if (updateArgType.isTypeKnown() && candidateType.getRegCount() == updateArgType.getRegCount()) {
+				if (candidateType.isArray() && updateArgType.canBeArray()) {
 					return SAME;
 				}
+				if (candidateType.isPrimitive()) {
+					if (updateArgType.canBePrimitive(candidateType.getPrimitiveType())) {
+						return SAME;
+					}
+					if (updateArgType.isTypeKnown() && candidateType.getRegCount() == updateArgType.getRegCount()) {
+						return SAME;
+					}
+				}
 			}
-		}
-		return result;
+			return result;
+		});
 	}
 
 	private static boolean isAssign(InsnNode insn, InsnArg arg) {

@@ -227,4 +227,15 @@ public class ListUtils {
 		}
 		return list;
 	}
+
+	public static <T> @Nullable T pollLast(List<T> list) {
+		if (list == null) {
+			return null;
+		}
+		int size = list.size();
+		if (size == 0) {
+			return null;
+		}
+		return list.remove(size - 1);
+	}
 }
