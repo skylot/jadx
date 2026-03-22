@@ -11,5 +11,5 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.13.2")
 	implementation("commons-io:commons-io:2.21.0")
 
-	testImplementation("com.squareup.okhttp3:mockwebserver3:5.3.0")
+	testImplementation("com.squareup.okhttp3:mockwebserver3:5.3.2")
 }

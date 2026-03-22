@@ -12,13 +12,11 @@ class KotlinMetadataPreparePass(
 	private val options: KotlinMetadataOptions,
 ) : JadxPreparePass {
 
-	override fun getInfo(): JadxPassInfo {
-		return OrderedJadxPassInfo(
-			"KotlinMetadataPrepare",
-			"Use kotlin.Metadata annotation to rename class & package",
-		)
-			.before("RenameVisitor")
-	}
+	override fun getInfo(): JadxPassInfo = OrderedJadxPassInfo(
+		"KotlinMetadataPrepare",
+		"Use kotlin.Metadata annotation to rename class & package",
+	)
+		.before("RenameVisitor")
 
 	override fun init(root: RootNode) {
 		if (options.isClassAlias) {

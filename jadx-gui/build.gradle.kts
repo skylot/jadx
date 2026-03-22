@@ -55,7 +55,13 @@ dependencies {
 	implementation("com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0")
 	implementation("com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0")
 
-	testImplementation(project.project(":jadx-core").sourceSets.getByName("test").output)
+	testImplementation(
+		project
+			.project(":jadx-core")
+			.sourceSets
+			.getByName("test")
+			.output,
+	)
 }
 
 val jadxVersion: String by rootProject.extra
@@ -119,12 +125,14 @@ project.components.withType(AdhocComponentWithVariants::class.java).forEach { c 
 tasks.startShadowScripts {
 	doLast {
 		val newWindowsScriptContent =
-			windowsScript.readText()
+			windowsScript
+				.readText()
 				.replace("java.exe", "javaw.exe")
 				.replace("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%", "start \"jadx-gui\" /B \"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")
 		// Add launch script path as a property
 		val newUnixScriptContent =
-			unixScript.readText()
+			unixScript
+				.readText()
 				.replace(
 					Regex("DEFAULT_JVM_OPTS=.+", RegexOption.MULTILINE),
 					{ result -> result.value + "\" \\\"-Djadx.launchScript.path=\$(realpath $0)\\\"\"" },
@@ -151,18 +159,24 @@ launch4j {
 	supportUrl.set("https://github.com/skylot/jadx")
 
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
-	classpath.set(tasks.getByName("shadowJar").outputs.files.map { "%EXEDIR%/lib/${it.name}" }.sorted().toList())
+	classpath.set(
+		tasks
+			.getByName("shadowJar")
+			.outputs.files
+			.map { "%EXEDIR%/lib/${it.name}" }
+			.sorted()
+			.toList(),
+	)
 	println("Launch4J classpath: ${classpath.get()}")
 
 	chdir.set("") // don't change current dir
 	libraryDir.set("") // don't add any libs
 }
 
-fun escapeJVMOptions(): List<String> {
-	return application.applicationDefaultJvmArgs
+fun escapeJVMOptions(): List<String> =
+	application.applicationDefaultJvmArgs
 		.toList()
 		.map { if (it.startsWith("-D")) "\"$it\"" else it }
-}
 
 runtime {
 	addOptions("--strip-debug", "--no-header-files", "--no-man-pages")

@@ -18,13 +18,11 @@ class KotlinMetadataDecompilePass(
 	private val options: KotlinMetadataOptions,
 ) : JadxDecompilePass {
 
-	override fun getInfo(): JadxPassInfo {
-		return OrderedJadxPassInfo(
-			"KotlinMetadataDecompile",
-			"Use kotlin.Metadata annotation perform various renames",
-		)
-			.before("CodeRenameVisitor")
-	}
+	override fun getInfo(): JadxPassInfo = OrderedJadxPassInfo(
+		"KotlinMetadataDecompile",
+		"Use kotlin.Metadata annotation perform various renames",
+	)
+		.before("CodeRenameVisitor")
 
 	override fun init(root: RootNode) {
 	}

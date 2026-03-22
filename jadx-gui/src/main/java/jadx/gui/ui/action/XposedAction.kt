@@ -32,17 +32,13 @@ class XposedAction(codeArea: CodeArea) : JNodeAction(ActionModel.XPOSED_COPY, co
 		}
 	}
 
-	override fun isActionEnabled(node: JNode?): Boolean {
-		return node is JMethod || node is JClass || node is JField
-	}
+	override fun isActionEnabled(node: JNode?): Boolean = node is JMethod || node is JClass || node is JField
 
-	private fun generateXposedSnippet(node: JNode): String {
-		return when (node) {
-			is JMethod -> generateMethodSnippet(node)
-			is JClass -> generateClassSnippet(node)
-			is JField -> generateFieldSnippet(node)
-			else -> throw JadxRuntimeException("Unsupported node type: " + node.javaClass)
-		}
+	private fun generateXposedSnippet(node: JNode): String = when (node) {
+		is JMethod -> generateMethodSnippet(node)
+		is JClass -> generateClassSnippet(node)
+		is JField -> generateFieldSnippet(node)
+		else -> throw JadxRuntimeException("Unsupported node type: " + node.javaClass)
 	}
 
 	private fun generateMethodSnippet(jMethod: JMethod): String {
@@ -73,6 +69,7 @@ class XposedAction(codeArea: CodeArea) : JNodeAction(ActionModel.XPOSED_COPY, co
         super.afterHookedMethod(param);
     }
 });"""
+
 			XposedCodegenLanguage.KOTLIN ->
 				"""XposedHelpers.%s("%s", classLoader, %s, object : XC_MethodHook() {
     override fun beforeHookedMethod(param: MethodHookParam) {
@@ -88,29 +85,31 @@ class XposedAction(codeArea: CodeArea) : JNodeAction(ActionModel.XPOSED_COPY, co
 		return String.format(template, xposedMethod, rawClassName, args.joinToString(", "))
 	}
 
-	private fun fixTypeContent(type: ArgType): String {
-		return when {
-			type.isGeneric -> "\"${type.`object`}\""
-			type.isGenericType && type.isObject && type.isTypeKnown -> "java.lang.Object"
-			type.isPrimitive -> when (language) {
-				XposedCodegenLanguage.JAVA -> "$type.class"
-				XposedCodegenLanguage.KOTLIN -> when (type.primitiveType) {
-					PrimitiveType.BOOLEAN -> "Boolean::class.javaPrimitiveType"
-					PrimitiveType.CHAR -> "Char::class.javaPrimitiveType"
-					PrimitiveType.BYTE -> "Byte::class.javaPrimitiveType"
-					PrimitiveType.SHORT -> "Short::class.javaPrimitiveType"
-					PrimitiveType.INT -> "Int::class.javaPrimitiveType"
-					PrimitiveType.FLOAT -> "Float::class.javaPrimitiveType"
-					PrimitiveType.LONG -> "Long::class.javaPrimitiveType"
-					PrimitiveType.DOUBLE -> "Double::class.javaPrimitiveType"
-					PrimitiveType.OBJECT -> "Any::class.java"
-					PrimitiveType.ARRAY -> "Array::class.java"
-					PrimitiveType.VOID -> "Void::class.javaPrimitiveType"
-					else -> throw JadxRuntimeException("Unknown or null primitive type: $type")
-				}
+	private fun fixTypeContent(type: ArgType): String = when {
+		type.isGeneric -> "\"${type.`object`}\""
+
+		type.isGenericType && type.isObject && type.isTypeKnown -> "java.lang.Object"
+
+		type.isPrimitive -> when (language) {
+			XposedCodegenLanguage.JAVA -> "$type.class"
+
+			XposedCodegenLanguage.KOTLIN -> when (type.primitiveType) {
+				PrimitiveType.BOOLEAN -> "Boolean::class.javaPrimitiveType"
+				PrimitiveType.CHAR -> "Char::class.javaPrimitiveType"
+				PrimitiveType.BYTE -> "Byte::class.javaPrimitiveType"
+				PrimitiveType.SHORT -> "Short::class.javaPrimitiveType"
+				PrimitiveType.INT -> "Int::class.javaPrimitiveType"
+				PrimitiveType.FLOAT -> "Float::class.javaPrimitiveType"
+				PrimitiveType.LONG -> "Long::class.javaPrimitiveType"
+				PrimitiveType.DOUBLE -> "Double::class.javaPrimitiveType"
+				PrimitiveType.OBJECT -> "Any::class.java"
+				PrimitiveType.ARRAY -> "Array::class.java"
+				PrimitiveType.VOID -> "Void::class.javaPrimitiveType"
+				else -> throw JadxRuntimeException("Unknown or null primitive type: $type")
 			}
-			else -> "\"$type\""
 		}
+
+		else -> "\"$type\""
 	}
 
 	private fun generateClassSnippet(jClass: JClass): String {

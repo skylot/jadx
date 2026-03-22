@@ -48,12 +48,10 @@ private fun IAnnotation.getParamAsStringArray(paramName: String): Array<String>?
 		?.toTypedArray()
 }
 
-private fun IAnnotation.getParamAsIntArray(paramName: String): IntArray? {
-	return getParamsAsList(paramName)
-		?.map<EncodedValue, Any?>(EncodedValue::getValue)
-		?.map { it as Int }
-		?.toIntArray()
-}
+private fun IAnnotation.getParamAsIntArray(paramName: String): IntArray? = getParamsAsList(paramName)
+	?.map<EncodedValue, Any?>(EncodedValue::getValue)
+	?.map { it as Int }
+	?.toIntArray()
 
 private fun IAnnotation.getParamAsInt(paramName: String): Int? {
 	val encodedValue = values[paramName]
@@ -67,6 +65,4 @@ private fun IAnnotation.getParamAsString(paramName: String): String? {
 	return encodedValue?.value?.let { it as String }
 }
 
-fun ClassNode.getKotlinClassMetadata(): KotlinClassMetadata? {
-	return getMetadata()?.let(KotlinClassMetadata::readLenient)
-}
+fun ClassNode.getKotlinClassMetadata(): KotlinClassMetadata? = getMetadata()?.let(KotlinClassMetadata::readLenient)

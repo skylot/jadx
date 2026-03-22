@@ -12,13 +12,11 @@ class KotlinSourceDebugExtensionPass(
 	private val options: KotlinSmapOptions,
 ) : JadxPreparePass {
 
-	override fun getInfo(): JadxPassInfo {
-		return OrderedJadxPassInfo(
-			"SourceDebugExtensionPrepare",
-			"Use kotlin.jvm.internal.SourceDebugExtension annotation to rename class & package",
-		)
-			.before("RenameVisitor")
-	}
+	override fun getInfo(): JadxPassInfo = OrderedJadxPassInfo(
+		"SourceDebugExtensionPrepare",
+		"Use kotlin.jvm.internal.SourceDebugExtension annotation to rename class & package",
+	)
+		.before("RenameVisitor")
 
 	override fun init(root: RootNode) {
 		if (options.isClassAliasSourceDbg) {

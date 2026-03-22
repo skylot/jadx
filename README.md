@@ -72,7 +72,7 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
 You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
 
 ### Build from source
-JDK 11 or higher must be installed:
+JDK 17 or higher must be installed:
 ```
 git clone https://github.com/skylot/jadx.git
 cd jadx

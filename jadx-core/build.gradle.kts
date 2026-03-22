@@ -24,7 +24,7 @@ dependencies {
 			strictly("[3.33, 3.34[") // from 3.34 compiled with Java 17
 		}
 	}
-	testImplementation("tools.profiler:async-profiler:4.2")
+	testImplementation("tools.profiler:async-profiler:4.3")
 }
 
 val jadxTestJavaVersion = getTestJavaVersion()
@@ -32,7 +32,10 @@ val jadxTestJavaVersion = getTestJavaVersion()
 fun getTestJavaVersion(): Int? {
 	val envVarName = "JADX_TEST_JAVA_VERSION"
 	val testJavaVer = System.getenv(envVarName)?.toInt() ?: return null
-	val currentJavaVer = java.toolchain.languageVersion.get().asInt()
+	val currentJavaVer =
+		java.toolchain.languageVersion
+			.get()
+			.asInt()
 	if (testJavaVer < currentJavaVer) {
 		throw GradleException("'$envVarName' can't be set to lower version than $currentJavaVer")
 	}

@@ -21,7 +21,5 @@ object ApkmUtils {
 		}
 	}
 
-	fun isSupported(manifest: ApkmManifest): Boolean {
-		return manifest.apkmVersion != -1
-	}
+	fun isSupported(manifest: ApkmManifest): Boolean = manifest.apkmVersion != -1
 }

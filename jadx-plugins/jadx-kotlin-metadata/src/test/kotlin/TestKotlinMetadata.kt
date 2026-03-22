@@ -159,7 +159,6 @@ class TestKotlinMetadata : SmaliTest() {
 		}
 	}
 
-	private fun assertThatClass(): JadxCodeAssertions =
-		assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinMetadata", "a"))
-			.code()
+	private fun assertThatClass(): JadxCodeAssertions = assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinMetadata", "a"))
+		.code()
 }
