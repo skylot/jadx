@@ -25,14 +25,14 @@ public final class CentralityState {
 	private boolean allowsCentral = true;
 	private boolean allowsNonStartingNode;
 
-	public CentralityState(final SameInstructionsStrategy sameInstructionsStrategy, final boolean allowsNonStartingNode) {
+	public CentralityState(SameInstructionsStrategy sameInstructionsStrategy, boolean allowsNonStartingNode) {
 		this.sameInstructionsStrategy = sameInstructionsStrategy;
 		this.allowsNonStartingNode = allowsNonStartingNode;
 	}
 
 	@Override
-	public final String toString() {
-		final StringBuilder sb = new StringBuilder("CentralityState - ");
+	public String toString() {
+		StringBuilder sb = new StringBuilder("CentralityState - ");
 		if (allowsCentral) {
 			sb.append("allows central");
 		} else {
@@ -46,31 +46,31 @@ public final class CentralityState {
 		return sb.toString();
 	}
 
-	public final SameInstructionsStrategy getSameInstructionsStrategy() {
+	public SameInstructionsStrategy getSameInstructionsStrategy() {
 		return sameInstructionsStrategy;
 	}
 
-	public final boolean getAllowsCentral() {
+	public boolean getAllowsCentral() {
 		return allowsCentral;
 	}
 
-	public final void setAllowsCentral(final boolean allowsCentral) {
+	public void setAllowsCentral(boolean allowsCentral) {
 		this.allowsCentral = allowsCentral;
 	}
 
-	public final boolean getAllowsNonStartingNode() {
+	public boolean getAllowsNonStartingNode() {
 		return allowsNonStartingNode;
 	}
 
-	public final void setAllowsNonStartingNode(final boolean allowsNonStartingNode) {
+	public void setAllowsNonStartingNode(boolean allowsNonStartingNode) {
 		this.allowsNonStartingNode = allowsNonStartingNode;
 	}
 
-	public final void addAllowableOutput(final RegisterArg allowableOutput) {
+	public void addAllowableOutput(RegisterArg allowableOutput) {
 		allowableOutputArguments.add(allowableOutput);
 	}
 
-	public final void addAllowableOutputs(final Collection<RegisterArg> allowableOutputs) {
+	public void addAllowableOutputs(Collection<RegisterArg> allowableOutputs) {
 		allowableOutputArguments.addAll(allowableOutputs);
 	}
 
@@ -79,36 +79,31 @@ public final class CentralityState {
 	 *
 	 * @param allowableOutputInsn The instruction to retrieve the list of inputs from.
 	 */
-	public final void addAllowableOutputs(final InsnNode allowableOutputInsn) {
-		final List<RegisterArg> registerArgs = new LinkedList<>();
-		for (final InsnArg arg : allowableOutputInsn.getArgList()) {
+	public void addAllowableOutputs(InsnNode allowableOutputInsn) {
+		List<RegisterArg> registerArgs = new LinkedList<>();
+		for (InsnArg arg : allowableOutputInsn.getArgList()) {
 			if (!(arg instanceof RegisterArg)) {
 				continue;
 			}
-
 			registerArgs.add((RegisterArg) arg);
 		}
-
 		registerArgs.forEach(this::addAllowableOutput);
 	}
 
-	public final boolean hasAllowableOutput(final InsnNode insn) {
+	public boolean hasAllowableOutput(InsnNode insn) {
 		if (allowableOutputArguments.isEmpty()) {
 			return false;
 		}
-
-		final RegisterArg registerArg;
+		RegisterArg registerArg;
 		if (insn.getResult() != null) {
 			registerArg = insn.getResult();
 		} else {
 			registerArg = null;
 		}
-
 		if (registerArg == null) {
 			return false;
 		}
-
-		for (final RegisterArg allowableOutput : allowableOutputArguments) {
+		for (RegisterArg allowableOutput : allowableOutputArguments) {
 			if (allowableOutput.equals(registerArg)) {
 				return true;
 			}
@@ -117,26 +112,22 @@ public final class CentralityState {
 	}
 
 	@SuppressWarnings("unused")
-	public final boolean hasAllowableInputs(final InsnNode insn) {
+	public boolean hasAllowableInputs(InsnNode insn) {
 		if (allowableOutputArguments.isEmpty()) {
 			return false;
 		}
-
-		final List<RegisterArg> registerArgs = new ArrayList<>();
-
-		for (final InsnArg arg : insn.getArgList()) {
+		List<RegisterArg> registerArgs = new ArrayList<>();
+		for (InsnArg arg : insn.getArgList()) {
 			if (arg instanceof RegisterArg) {
 				registerArgs.add((RegisterArg) arg);
 			}
 		}
-
 		if (registerArgs.isEmpty() || allowableOutputArguments.isEmpty()) {
 			return false;
 		}
-
-		for (final RegisterArg regArg : registerArgs) {
+		for (RegisterArg regArg : registerArgs) {
 			boolean foundMatch = false;
-			for (final RegisterArg allowableOutput : allowableOutputArguments) {
+			for (RegisterArg allowableOutput : allowableOutputArguments) {
 				if (regArg.equals(allowableOutput)) {
 					foundMatch = true;
 					break;
@@ -149,14 +140,14 @@ public final class CentralityState {
 		return true;
 	}
 
-	public final CentralityState duplicate() {
-		final CentralityState state = new CentralityState(sameInstructionsStrategy, allowsNonStartingNode);
+	public CentralityState duplicate() {
+		CentralityState state = new CentralityState(sameInstructionsStrategy, allowsNonStartingNode);
 		state.allowsCentral = allowsCentral;
 		state.allowableOutputArguments.addAll(allowableOutputArguments);
 		return state;
 	}
 
-	public final Set<RegisterArg> getAllowableOutputArguments() {
+	public Set<RegisterArg> getAllowableOutputArguments() {
 		return allowableOutputArguments;
 	}
 }

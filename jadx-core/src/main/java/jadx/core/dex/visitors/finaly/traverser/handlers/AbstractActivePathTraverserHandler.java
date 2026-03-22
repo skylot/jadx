@@ -9,7 +9,7 @@ public abstract class AbstractActivePathTraverserHandler extends AbstractBlockTr
 
 	private final TraverserActivePathState comparatorState;
 
-	public AbstractActivePathTraverserHandler(final TraverserActivePathState comparatorState) {
+	public AbstractActivePathTraverserHandler(TraverserActivePathState comparatorState) {
 		this.comparatorState = comparatorState;
 	}
 

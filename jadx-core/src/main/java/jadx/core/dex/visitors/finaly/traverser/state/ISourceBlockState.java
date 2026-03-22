@@ -4,5 +4,5 @@ import jadx.core.dex.nodes.BlockNode;
 
 public interface ISourceBlockState {
 
-	public abstract BlockNode getSourceBlock();
+	BlockNode getSourceBlock();
 }

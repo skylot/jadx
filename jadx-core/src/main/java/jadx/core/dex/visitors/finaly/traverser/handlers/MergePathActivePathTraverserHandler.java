@@ -27,17 +27,17 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class MergePathActivePathTraverserHandler extends AbstractActivePathTraverserHandler {
 
-	private static TraverserActivePathState createNonMatchingTerminator(final TraverserActivePathState state) {
-		final TraverserStateFactory<TerminalTraverserState> finallyStateFactory =
+	private static TraverserActivePathState createNonMatchingTerminator(TraverserActivePathState state) {
+		TraverserStateFactory<TerminalTraverserState> finallyStateFactory =
 				TerminalTraverserState.getFactory(TerminalTraverserState.TerminationReason.NON_MATCHING_PATHS);
-		final TraverserStateFactory<TerminalTraverserState> candidateStateFactory =
+		TraverserStateFactory<TerminalTraverserState> candidateStateFactory =
 				TerminalTraverserState.getFactory(TerminalTraverserState.TerminationReason.NON_MATCHING_PATHS);
 
 		return TraverserActivePathState.produceFromFactories(state, finallyStateFactory, candidateStateFactory);
 	}
 
-	private static boolean isStateOnTerminus(final TraverserState state, final BlockNode terminus) {
-		final TraverserBlockInfo blockInfo = state.getBlockInsnInfo();
+	private static boolean isStateOnTerminus(TraverserState state, BlockNode terminus) {
+		TraverserBlockInfo blockInfo = state.getBlockInsnInfo();
 		if (blockInfo == null) {
 			return false;
 		}
@@ -45,12 +45,12 @@ public final class MergePathActivePathTraverserHandler extends AbstractActivePat
 	}
 
 	private static Function<TraverserState, Boolean> getStateAbortOnTerminusFunction(
-			final IdentifiedScopeWithTerminatorTraverserState finallyState,
-			final IdentifiedScopeWithTerminatorTraverserState candidateState) {
-		final BlockNode finallyTerminus = finallyState.getTerminus();
-		final BlockNode candidateTerminus = candidateState.getTerminus();
-		final GlobalTraverserSourceState finallyGlobalState = finallyState.getGlobalState();
-		final GlobalTraverserSourceState candidateGlobalState = candidateState.getGlobalState();
+			IdentifiedScopeWithTerminatorTraverserState finallyState,
+			IdentifiedScopeWithTerminatorTraverserState candidateState) {
+		BlockNode finallyTerminus = finallyState.getTerminus();
+		BlockNode candidateTerminus = candidateState.getTerminus();
+		GlobalTraverserSourceState finallyGlobalState = finallyState.getGlobalState();
+		GlobalTraverserSourceState candidateGlobalState = candidateState.getGlobalState();
 
 		return (final TraverserState state) -> {
 			if (state.getGlobalState() == finallyGlobalState) {
@@ -63,25 +63,24 @@ public final class MergePathActivePathTraverserHandler extends AbstractActivePat
 		};
 	}
 
-	private static PostMergeStatus getScopeSplitPostMergeStatus(final List<TraverserActivePathState> pathsTaken) {
+	private static PostMergeStatus getScopeSplitPostMergeStatus(List<TraverserActivePathState> pathsTaken) {
 		// If the scope split is the same, all branches must not end in a terminator.
-
-		final PostMergeStatus status = new PostMergeStatus();
-		for (final TraverserActivePathState path : pathsTaken) {
-			final TraverserState finallyState;
-			final TraverserState candidateState;
+		PostMergeStatus status = new PostMergeStatus();
+		for (TraverserActivePathState path : pathsTaken) {
+			TraverserState finallyState;
+			TraverserState candidateState;
 			if (path.getFinallyState().isTerminal() || path.getCandidateState().isTerminal()) {
-				final TraverserState rawFinallyState = path.getFinallyState();
-				final TraverserState rawCandidateState = path.getCandidateState();
-				final boolean finallyIsCached = rawFinallyState instanceof RecoveredFromCacheTraverserState;
-				final boolean candidateIsCached = rawCandidateState instanceof RecoveredFromCacheTraverserState;
+				TraverserState rawFinallyState = path.getFinallyState();
+				TraverserState rawCandidateState = path.getCandidateState();
+				boolean finallyIsCached = rawFinallyState instanceof RecoveredFromCacheTraverserState;
+				boolean candidateIsCached = rawCandidateState instanceof RecoveredFromCacheTraverserState;
 				if (!(finallyIsCached && candidateIsCached)) {
 					status.perfectMatch = false;
 					continue;
 				}
 
-				final RecoveredFromCacheTraverserState finallyCachedState = (RecoveredFromCacheTraverserState) rawFinallyState;
-				final RecoveredFromCacheTraverserState candidateCachedState = (RecoveredFromCacheTraverserState) rawCandidateState;
+				RecoveredFromCacheTraverserState finallyCachedState = (RecoveredFromCacheTraverserState) rawFinallyState;
+				RecoveredFromCacheTraverserState candidateCachedState = (RecoveredFromCacheTraverserState) rawCandidateState;
 				if (finallyCachedState.canContinue() || candidateCachedState.canContinue()) {
 					status.perfectMatch = false;
 					continue;
@@ -92,20 +91,17 @@ public final class MergePathActivePathTraverserHandler extends AbstractActivePat
 				finallyState = path.getFinallyState();
 				candidateState = path.getCandidateState();
 			}
-
-			final CentralityState finallyCentralityState = finallyState.getCentralityState();
-			final CentralityState candidateCentralityState = candidateState.getCentralityState();
+			CentralityState finallyCentralityState = finallyState.getCentralityState();
+			CentralityState candidateCentralityState = candidateState.getCentralityState();
 			status.finallyAllowsCentral &= finallyCentralityState.getAllowsCentral();
 			status.candidateAllowsCentral &= candidateCentralityState.getAllowsCentral();
 			status.finallyAllowableOutputs.addAll(finallyCentralityState.getAllowableOutputArguments());
 			status.candidateAllowableOutputs.addAll(candidateCentralityState.getAllowableOutputArguments());
 		}
-
 		return status;
 	}
 
 	private static final class PostMergeStatus {
-
 		public final Set<RegisterArg> finallyAllowableOutputs = new HashSet<>();
 		public final Set<RegisterArg> candidateAllowableOutputs = new HashSet<>();
 		public boolean finallyAllowsCentral;
@@ -113,54 +109,54 @@ public final class MergePathActivePathTraverserHandler extends AbstractActivePat
 		public boolean perfectMatch = true;
 	}
 
-	public MergePathActivePathTraverserHandler(final TraverserActivePathState comparatorState) {
+	public MergePathActivePathTraverserHandler(TraverserActivePathState comparatorState) {
 		super(comparatorState);
 	}
 
 	@Override
-	protected final List<TraverserActivePathState> handle() {
-		final TraverserActivePathState comparator = getComparator().duplicate();
-		final TraverserGlobalCommonState commonState = comparator.getGlobalCommonState();
-		final IdentifiedScopeWithTerminatorTraverserState finallyState =
+	protected List<TraverserActivePathState> handle() {
+		TraverserActivePathState comparator = getComparator().duplicate();
+		TraverserGlobalCommonState commonState = comparator.getGlobalCommonState();
+		IdentifiedScopeWithTerminatorTraverserState finallyState =
 				(IdentifiedScopeWithTerminatorTraverserState) comparator.getFinallyState();
-		final IdentifiedScopeWithTerminatorTraverserState candidateState =
+		IdentifiedScopeWithTerminatorTraverserState candidateState =
 				(IdentifiedScopeWithTerminatorTraverserState) comparator.getCandidateState();
 
-		final BlockNode finallyTerminus = finallyState.getTerminus();
-		final BlockNode candidateTerminus = candidateState.getTerminus();
+		BlockNode finallyTerminus = finallyState.getTerminus();
+		BlockNode candidateTerminus = candidateState.getTerminus();
 
-		final Function<TraverserState, Boolean> abortFunction = getStateAbortOnTerminusFunction(finallyState, candidateState);
+		Function<TraverserState, Boolean> abortFunction = getStateAbortOnTerminusFunction(finallyState, candidateState);
 
-		final List<BlockNode[]> allPermutationsPaths = getAllPermutationsOfCollection(candidateState.getRoots());
+		List<BlockNode[]> allPermutationsPaths = getAllPermutationsOfCollection(candidateState.getRoots());
 		List<TraverserActivePathState> paths = null;
 		PostMergeStatus postMerge = null;
-		for (final BlockNode[] candidateRootsPermutation : allPermutationsPaths) {
-			final List<TraverserActivePathState> traversalPaths = new ArrayList<>();
+		for (BlockNode[] candidateRootsPermutation : allPermutationsPaths) {
+			List<TraverserActivePathState> traversalPaths = new ArrayList<>();
 			for (int i = 0; i < finallyState.getRoots().size(); i++) {
-				final var finallyRoot = finallyState.getRoots().get(i);
-				final var candidateRoot = candidateRootsPermutation[i];
+				var finallyRoot = finallyState.getRoots().get(i);
+				var candidateRoot = candidateRootsPermutation[i];
 
-				final var finallyCentrality = finallyState.getCentralityState().duplicate();
-				final var candidateCentrality = candidateState.getCentralityState().duplicate();
+				var finallyCentrality = finallyState.getCentralityState().duplicate();
+				var candidateCentrality = candidateState.getCentralityState().duplicate();
 
-				final var finallyBlockInfo = new TraverserBlockInfo(finallyRoot);
-				final var candidateBlockInfo = new TraverserBlockInfo(candidateRoot);
+				var finallyBlockInfo = new TraverserBlockInfo(finallyRoot);
+				var candidateBlockInfo = new TraverserBlockInfo(candidateRoot);
 
-				final var finallyStateFactory = NewBlockTraverserState.getFactory(finallyCentrality, finallyBlockInfo);
-				final var candidateStateFactory = NewBlockTraverserState.getFactory(candidateCentrality, candidateBlockInfo);
+				var finallyStateFactory = NewBlockTraverserState.getFactory(finallyCentrality, finallyBlockInfo);
+				var candidateStateFactory = NewBlockTraverserState.getFactory(candidateCentrality, candidateBlockInfo);
 
-				final var newState = TraverserActivePathState.produceFromFactories(comparator, finallyStateFactory, candidateStateFactory);
+				var newState = TraverserActivePathState.produceFromFactories(comparator, finallyStateFactory, candidateStateFactory);
 				traversalPaths.add(newState);
 			}
 
-			final List<TraverserActivePathState> currentPaths = new ArrayList<>();
+			List<TraverserActivePathState> currentPaths = new ArrayList<>();
 			boolean errorOccurred = false;
-			for (final TraverserActivePathState pathState : traversalPaths) {
-				final TraverserController branchController = new TraverserController(abortFunction);
-				final List<TraverserActivePathState> out;
+			for (TraverserActivePathState pathState : traversalPaths) {
+				TraverserController branchController = new TraverserController(abortFunction);
+				List<TraverserActivePathState> out;
 				try {
 					out = branchController.process(pathState);
-				} catch (final TraverserException e) {
+				} catch (TraverserException e) {
 					errorOccurred = true;
 					break;
 				}
@@ -175,57 +171,53 @@ public final class MergePathActivePathTraverserHandler extends AbstractActivePat
 			// If the finally terminus and candidate terminus have been cached at this stage, it means that a
 			// path that we searched evaluated the two termini. At this point, we can ignore a non-perfect
 			// match if the path could continue from the point of the termini.
-			final boolean hasTerminusBeenEvaluatedInPaths = commonState.hasBlocksBeenCached(finallyTerminus, candidateTerminus);
-			final PostMergeStatus currentPostMerge = getScopeSplitPostMergeStatus(currentPaths);
+			boolean hasTerminusBeenEvaluatedInPaths = commonState.hasBlocksBeenCached(finallyTerminus, candidateTerminus);
+			PostMergeStatus currentPostMerge = getScopeSplitPostMergeStatus(currentPaths);
 			if (!currentPostMerge.perfectMatch && !hasTerminusBeenEvaluatedInPaths) {
 				// No match
 				continue;
 			}
-
 			paths = currentPaths;
 			postMerge = currentPostMerge;
 			break;
 		}
-
 		if (paths == null || postMerge == null) {
-			final TraverserActivePathState nonMatchingState = createNonMatchingTerminator(comparator);
+			TraverserActivePathState nonMatchingState = createNonMatchingTerminator(comparator);
 			return List.of(nonMatchingState);
 		}
-
-		final CentralityState newFinallyCentralityState = finallyState.getCentralityState().duplicate();
+		CentralityState newFinallyCentralityState = finallyState.getCentralityState().duplicate();
 		newFinallyCentralityState.setAllowsCentral(postMerge.finallyAllowsCentral);
 		newFinallyCentralityState.addAllowableOutputs(postMerge.finallyAllowableOutputs);
-		final CentralityState newCandidateCentralityState = candidateState.getCentralityState().duplicate();
+		CentralityState newCandidateCentralityState = candidateState.getCentralityState().duplicate();
 		newCandidateCentralityState.setAllowsCentral(postMerge.candidateAllowsCentral);
 		newCandidateCentralityState.addAllowableOutputs(postMerge.candidateAllowableOutputs);
 
-		final TraverserBlockInfo finallyTerminusBlockInfo = new TraverserBlockInfo(finallyState.getTerminus());
-		final TraverserBlockInfo candidateTerminusBlockInfo = new TraverserBlockInfo(candidateState.getTerminus());
+		TraverserBlockInfo finallyTerminusBlockInfo = new TraverserBlockInfo(finallyState.getTerminus());
+		TraverserBlockInfo candidateTerminusBlockInfo = new TraverserBlockInfo(candidateState.getTerminus());
 
-		final TraverserStateFactory<NewBlockTraverserState> finallyStateFactory =
+		TraverserStateFactory<NewBlockTraverserState> finallyStateFactory =
 				NewBlockTraverserState.getFactory(newFinallyCentralityState, finallyTerminusBlockInfo);
-		final TraverserStateFactory<NewBlockTraverserState> candidateStateFactory =
+		TraverserStateFactory<NewBlockTraverserState> candidateStateFactory =
 				NewBlockTraverserState.getFactory(newCandidateCentralityState, candidateTerminusBlockInfo);
 
-		final TraverserActivePathState nextState =
+		TraverserActivePathState nextState =
 				TraverserActivePathState.produceFromFactories(comparator, finallyStateFactory, candidateStateFactory);
 		nextState.mergeWith(paths);
 		return List.of(nextState);
 	}
 
-	public static List<BlockNode[]> getAllPermutationsOfCollection(final Collection<BlockNode> elements) {
-		final Stack<BlockNode> permutationStack = new Stack<>();
-		final List<BlockNode[]> permutations = new ArrayList<>();
+	public static List<BlockNode[]> getAllPermutationsOfCollection(Collection<BlockNode> elements) {
+		Stack<BlockNode> permutationStack = new Stack<>();
+		List<BlockNode[]> permutations = new ArrayList<>();
 		permutations(permutations, elements, permutationStack, elements.size());
 		return permutations;
 	}
 
-	public static void permutations(final List<BlockNode[]> permutations, final Collection<BlockNode> elements,
-			final Stack<BlockNode> permutationStack, final int size) {
+	public static void permutations(List<BlockNode[]> permutations, Collection<BlockNode> elements,
+			Stack<BlockNode> permutationStack, int size) {
 		if (permutationStack.size() == size) {
 			permutations.add(permutationStack.toArray(BlockNode[]::new));
 		}
-
 		BlockNode[] availableItems = elements.toArray(BlockNode[]::new);
 		for (BlockNode i : availableItems) {
 			permutationStack.push(i);

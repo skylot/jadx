@@ -40,11 +40,11 @@ public class ListUtils {
 		if (list1.size() != list2.size()) {
 			return false;
 		}
-		final Iterator<T> iter1 = list1.iterator();
-		final Iterator<U> iter2 = list2.iterator();
+		Iterator<T> iter1 = list1.iterator();
+		Iterator<U> iter2 = list2.iterator();
 		while (iter1.hasNext() && iter2.hasNext()) {
-			final T item1 = iter1.next();
-			final U item2 = iter2.next();
+			T item1 = iter1.next();
+			U item2 = iter2.next();
 			if (!comparer.test(item1, item2)) {
 				return false;
 			}

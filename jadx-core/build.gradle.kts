@@ -54,4 +54,6 @@ tasks.named<Test>("test") {
 
 	// exclude temp tests
 	exclude("**/tmp/*")
+
+	// maxHeapSize = "4g"
 }

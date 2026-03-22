@@ -183,17 +183,15 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 
 	public void getFallthroughTryEdges(List<TryEdge> edges, List<BlockNode> exploredBlocks, List<TryCatchBlockAttr> exploredTrys) {
 		List<ExceptionHandler> mergedHandlers = getMergedHandlers();
-		Set<BlockNode> searchBlocks = new HashSet<>();
-		searchBlocks.addAll(getBlocks());
+		Set<BlockNode> searchBlocks = new HashSet<>(getBlocks());
 		for (ExceptionHandler handler : mergedHandlers) {
-			searchBlocks.removeAll(handler.getBlocks());
+			handler.getBlocks().forEach(searchBlocks::remove);
 		}
-
 		BlockNode sourceBlock = BlockUtils.getTopBlock(new ArrayList<>(searchBlocks));
-
-		exploredTrys.add(this);
-
-		exploreTryPath(edges, sourceBlock, searchBlocks, exploredBlocks, exploredTrys);
+		if (sourceBlock != null) {
+			exploredTrys.add(this);
+			exploreTryPath(edges, sourceBlock, searchBlocks, exploredBlocks, exploredTrys);
+		}
 	}
 
 	public List<TryEdge> getTryEdges() {
@@ -221,19 +219,19 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 			exploredBlocks.add(successor);
 
 			if (successor.contains(AFlag.LOOP_END)) {
-				final var loopsAttrList = successor.get(AType.LOOP);
-				final List<LoopInfo> loops = loopsAttrList.getList();
-				final List<BlockNode> loopStartBlocks = new LinkedList<>();
-				for (final LoopInfo loop : loops) {
+				var loopsAttrList = successor.get(AType.LOOP);
+				List<LoopInfo> loops = loopsAttrList.getList();
+				List<BlockNode> loopStartBlocks = new LinkedList<>();
+				for (LoopInfo loop : loops) {
 					loopStartBlocks.add(loop.getStart());
-					final List<Edge> loopEdges = loop.getExitEdges();
-					for (final Edge loopEdge : loopEdges) {
+					List<Edge> loopEdges = loop.getExitEdges();
+					for (Edge loopEdge : loopEdges) {
 						if (loopEdge.getTarget() == successor) {
 							loopStartBlocks.add(loopEdge.getSource());
 						}
 					}
 				}
-				final boolean includesAllLoopStart = ListUtils.allMatch(loopStartBlocks, exploredBlocks::contains);
+				boolean includesAllLoopStart = ListUtils.allMatch(loopStartBlocks, exploredBlocks::contains);
 				if (!includesAllLoopStart) {
 					edges.add(new TryEdge(blk, successor, TryEdgeType.LOOP_EXIT));
 					continue;
@@ -241,7 +239,7 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 			}
 
 			boolean isPathToAnySearchBlock = false;
-			for (final BlockNode searchBlock : searchBlocks) {
+			for (BlockNode searchBlock : searchBlocks) {
 				if (BlockUtils.isPathExists(successor, searchBlock)) {
 					isPathToAnySearchBlock = true;
 					break;
@@ -329,7 +327,7 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 
 	public List<ExceptionHandler> getMergedHandlers() {
 		boolean hasInnerBlocks = !getInnerTryBlocks().isEmpty();
-		final List<ExceptionHandler> mergedHandlers;
+		List<ExceptionHandler> mergedHandlers;
 		if (hasInnerBlocks) {
 			// collect handlers from this and all inner blocks
 			// (intentionally not using recursive collect for now)
@@ -343,7 +341,7 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 		return Collections.unmodifiableList(mergedHandlers);
 	}
 
-	public Map<TryEdge, BlockNode> getEdgeBlockMap(MethodNode mth) {
+	public Map<TryEdge, BlockNode> getEdgeBlockMap() {
 		List<TryEdge> edges = getTryEdges();
 		Map<TryEdge, BlockNode> blockMap = new HashMap<>();
 		for (TryEdge edge : edges) {
@@ -353,7 +351,7 @@ public class TryCatchBlockAttr implements IJadxAttribute {
 	}
 
 	public TryEdgeScopeGroupMap getExecutionScopeGroups(MethodNode mth) {
-		Map<TryEdge, BlockNode> handlerBlocks = getEdgeBlockMap(mth);
+		Map<TryEdge, BlockNode> handlerBlocks = getEdgeBlockMap();
 		TryEdgeScopeGroupMap scopeGroups = new TryEdgeScopeGroupMap(mth, this, handlerBlocks.size());
 		scopeGroups.populateFromEdges(handlerBlocks);
 

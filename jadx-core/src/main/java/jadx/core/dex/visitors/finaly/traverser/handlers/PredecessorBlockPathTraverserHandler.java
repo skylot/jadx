@@ -12,36 +12,30 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class PredecessorBlockPathTraverserHandler<T extends TraverserState & ISourceBlockState>
 		extends AbstractBlockPathTraverserHandler {
-
 	private final ISourceBlockState sourceBlockState;
 
-	public PredecessorBlockPathTraverserHandler(final T initialState) {
+	public PredecessorBlockPathTraverserHandler(T initialState) {
 		super(initialState);
-
 		this.sourceBlockState = initialState;
 	}
 
-	public PredecessorBlockPathTraverserHandler(final AtomicReference<T> initialStateRef) {
+	public PredecessorBlockPathTraverserHandler(AtomicReference<T> initialStateRef) {
 		super(initialStateRef);
-
 		this.sourceBlockState = initialStateRef.get();
 	}
 
 	@Override
-	protected final void handle() {
-		final TraverserState baseState = getState();
-		final TraverserActivePathState comparator = baseState.getComparatorState();
-		final AtomicReference<TraverserState> stateRef = comparator.getReferenceForState(baseState);
-
+	protected void handle() {
+		TraverserState baseState = getState();
+		TraverserActivePathState comparator = baseState.getComparatorState();
+		AtomicReference<TraverserState> stateRef = comparator.getReferenceForState(baseState);
 		if (stateRef == null) {
 			throw new JadxRuntimeException("Orphaned traverser state");
 		}
-
-		final BlockNode sourceBlock = sourceBlockState.getSourceBlock();
-		final AbstractBlockTraverserVisitor visitor = new PredecessorBlockTraverserVisitor(baseState);
-		final TraverserState nextState = visitor.visit(sourceBlock);
+		BlockNode sourceBlock = sourceBlockState.getSourceBlock();
+		AbstractBlockTraverserVisitor visitor = new PredecessorBlockTraverserVisitor(baseState);
+		TraverserState nextState = visitor.visit(sourceBlock);
 
 		stateRef.set(nextState);
 	}
-
 }

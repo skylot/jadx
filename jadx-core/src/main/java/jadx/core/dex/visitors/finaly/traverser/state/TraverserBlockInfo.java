@@ -6,7 +6,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 
 public final class TraverserBlockInfo {
-
 	private final BlockNode block;
 
 	// These offsets are the instruction indices NOT an instruction size.
@@ -14,11 +13,11 @@ public final class TraverserBlockInfo {
 	private int topOffset;
 	private int bottomImplicitCount;
 
-	public TraverserBlockInfo(final BlockNode block) {
+	public TraverserBlockInfo(BlockNode block) {
 		this(block, 0, 0, 0);
 	}
 
-	public TraverserBlockInfo(final BlockNode block, final int bottomOffset, final int topOffset, final int bottomImplicitCount) {
+	public TraverserBlockInfo(BlockNode block, int bottomOffset, int topOffset, int bottomImplicitCount) {
 		this.bottomOffset = bottomOffset;
 		this.topOffset = topOffset;
 		this.block = block;
@@ -26,67 +25,62 @@ public final class TraverserBlockInfo {
 	}
 
 	@Override
-	public final String toString() {
+	public String toString() {
 		return toString("");
 	}
 
-	public final String toString(final String indent) {
-		final StringBuilder sb = new StringBuilder("BlockInsnInfo - ");
-
+	public String toString(String indent) {
+		StringBuilder sb = new StringBuilder("BlockInsnInfo - ");
 		sb.append(block.toString());
 		sb.append(" [↑ ");
 		sb.append(bottomOffset);
 		sb.append("] [↓ ");
 		sb.append(topOffset);
 		sb.append("] ");
-
 		return sb.toString();
 	}
 
-	public final TraverserBlockInfo duplicate() {
+	public TraverserBlockInfo duplicate() {
 		return new TraverserBlockInfo(block, bottomOffset, topOffset, bottomImplicitCount);
 	}
 
-	public final BlockNode getBlock() {
+	public BlockNode getBlock() {
 		return block;
 	}
 
-	public final int getTopOffset() {
+	public int getTopOffset() {
 		return topOffset;
 	}
 
-	public final void setTopOffset(final int topOffset) {
+	public void setTopOffset(int topOffset) {
 		this.topOffset = topOffset;
 	}
 
-	public final int getBottomOffset() {
+	public int getBottomOffset() {
 		return bottomOffset;
 	}
 
-	public final void setBottomOffset(final int bottomOffset) {
+	public void setBottomOffset(int bottomOffset) {
 		this.bottomOffset = bottomOffset;
 	}
 
-	public final int getBottomImplicitCount() {
+	public int getBottomImplicitCount() {
 		return bottomImplicitCount;
 	}
 
-	public final void setBottomImplicitOffset(final int bottomImplicitCount) {
+	public void setBottomImplicitOffset(int bottomImplicitCount) {
 		this.bottomImplicitCount = bottomImplicitCount;
 	}
 
-	public final List<InsnNode> getInsnsSlice() {
-		final List<InsnNode> insns = block.getInstructions();
-
-		final int totalSkippedCount = bottomOffset + topOffset;
+	public List<InsnNode> getInsnsSlice() {
+		List<InsnNode> insns = block.getInstructions();
+		int totalSkippedCount = bottomOffset + topOffset;
 		if (totalSkippedCount > insns.size()) {
 			throw new IndexOutOfBoundsException("Attempted to get instructions slice of block " + block.toString() + " with "
 					+ totalSkippedCount + " skipped instructions whilst only having " + insns.size() + " instructions in block.");
 		}
-
-		final int startIndex = topOffset;
-		final int endIndex = insns.size() - bottomOffset;
-
+		int startIndex = topOffset;
+		int endIndex = insns.size() - bottomOffset;
 		return insns.subList(startIndex, endIndex);
 	}
 }

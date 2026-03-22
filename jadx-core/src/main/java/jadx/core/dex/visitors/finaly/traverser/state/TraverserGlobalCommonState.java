@@ -11,33 +11,31 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Pair;
 
 public final class TraverserGlobalCommonState {
-
 	private final MethodNode mth;
 	private final Map<Pair<BlockNode>, List<TraverserActivePathState>> searchedStates;
 
-	public TraverserGlobalCommonState(final MethodNode mth) {
+	public TraverserGlobalCommonState(MethodNode mth) {
 		this.mth = mth;
 		this.searchedStates = new HashMap<>();
 	}
 
-	public final void addCachedStateFor(final BlockNode finallyBlock, final BlockNode candidateBlock,
-			final List<TraverserActivePathState> state) {
-		final Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
+	public void addCachedStateFor(BlockNode finallyBlock, BlockNode candidateBlock, List<TraverserActivePathState> state) {
+		Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
 		searchedStates.put(blocks, state);
 	}
 
 	@Nullable
-	public final List<TraverserActivePathState> getCachedStateFor(final BlockNode finallyBlock, final BlockNode candidateBlock) {
-		final Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
+	public List<TraverserActivePathState> getCachedStateFor(BlockNode finallyBlock, BlockNode candidateBlock) {
+		Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
 		return searchedStates.get(blocks);
 	}
 
-	public final boolean hasBlocksBeenCached(final BlockNode finallyBlock, final BlockNode candidateBlock) {
-		final Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
+	public boolean hasBlocksBeenCached(BlockNode finallyBlock, BlockNode candidateBlock) {
+		Pair<BlockNode> blocks = new Pair<>(finallyBlock, candidateBlock);
 		return searchedStates.containsKey(blocks);
 	}
 
-	public final MethodNode getMethodNode() {
+	public MethodNode getMethodNode() {
 		return mth;
 	}
 }

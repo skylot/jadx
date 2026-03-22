@@ -10,23 +10,21 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.PredecessorBlockPathTrav
 
 public final class NoBlockTraverserState extends TraverserState implements ISourceBlockState {
 
-	public static TraverserStateFactory<NoBlockTraverserState> getFactory(final CentralityState centralityState,
-			final BlockNode sourceBlock) {
+	public static TraverserStateFactory<NoBlockTraverserState> getFactory(CentralityState centralityState, BlockNode sourceBlock) {
 		return new NoBlockStateFactory(centralityState, sourceBlock);
 	}
 
 	private static class NoBlockStateFactory extends TraverserStateFactory<NoBlockTraverserState> {
-
 		private final CentralityState centralityState;
 		private final BlockNode sourceBlock;
 
-		public NoBlockStateFactory(final CentralityState centralityState, final BlockNode sourceBlock) {
+		public NoBlockStateFactory(CentralityState centralityState, BlockNode sourceBlock) {
 			this.centralityState = centralityState;
 			this.sourceBlock = sourceBlock;
 		}
 
 		@Override
-		public NoBlockTraverserState generateInternalState(final TraverserActivePathState state) {
+		public NoBlockTraverserState generateInternalState(TraverserActivePathState state) {
 			return new NoBlockTraverserState(state, centralityState, sourceBlock);
 		}
 	}
@@ -34,45 +32,45 @@ public final class NoBlockTraverserState extends TraverserState implements ISour
 	private final BlockNode sourceBlock;
 	private final CentralityState centralityState;
 
-	public NoBlockTraverserState(final TraverserActivePathState state, final CentralityState centralityState, final BlockNode sourceBlock) {
+	public NoBlockTraverserState(TraverserActivePathState state, CentralityState centralityState, BlockNode sourceBlock) {
 		super(state);
 		this.sourceBlock = sourceBlock;
 		this.centralityState = centralityState;
 	}
 
 	@Override
-	public final @Nullable AbstractBlockPathTraverserHandler getNextHandler() {
+	public @Nullable AbstractBlockPathTraverserHandler getNextHandler() {
 		return new PredecessorBlockPathTraverserHandler<>(this);
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.NOT_READY;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return false;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return centralityState;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return null;
 	}
 
 	@Override
-	public final BlockNode getSourceBlock() {
+	public BlockNode getSourceBlock() {
 		return sourceBlock;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
-		final CentralityState dCentralityState = centralityState.duplicate();
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
+		CentralityState dCentralityState = centralityState.duplicate();
 		return new NoBlockTraverserState(comparatorState, dCentralityState, sourceBlock);
 	}
 }

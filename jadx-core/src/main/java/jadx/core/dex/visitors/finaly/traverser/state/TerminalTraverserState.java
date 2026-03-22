@@ -8,11 +8,11 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.AbstractBlockPathTravers
 
 public final class TerminalTraverserState extends TraverserState {
 
-	public static TraverserStateFactory<TerminalTraverserState> getFactory(final TerminationReason terminationReason) {
+	public static TraverserStateFactory<TerminalTraverserState> getFactory(TerminationReason terminationReason) {
 		return new TerminalStateFactory(terminationReason);
 	}
 
-	public static enum TerminationReason {
+	public enum TerminationReason {
 		/**
 		 * When comparing instructions within a finally and candidate block, non-matching
 		 * instructions were found calling for the termination of the Traverser.
@@ -38,10 +38,9 @@ public final class TerminalTraverserState extends TraverserState {
 	}
 
 	private static class TerminalStateFactory extends TraverserStateFactory<TerminalTraverserState> {
-
 		private final TerminationReason terminationReason;
 
-		public TerminalStateFactory(final TerminationReason terminationReason) {
+		public TerminalStateFactory(TerminationReason terminationReason) {
 			this.terminationReason = terminationReason;
 		}
 
@@ -53,45 +52,42 @@ public final class TerminalTraverserState extends TraverserState {
 
 	private final TerminationReason terminationReason;
 
-	public TerminalTraverserState(final TraverserActivePathState state, final TerminationReason terminationReason) {
+	public TerminalTraverserState(TraverserActivePathState state, TerminationReason terminationReason) {
 		super(state);
 		this.terminationReason = terminationReason;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return true;
 	}
 
 	@Override
-	@Nullable
-	public final AbstractBlockPathTraverserHandler getNextHandler() {
+	public @Nullable AbstractBlockPathTraverserHandler getNextHandler() {
 		return null;
 	}
 
-	public final TerminationReason getTerminationReason() {
+	public TerminationReason getTerminationReason() {
 		return terminationReason;
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.NOT_READY;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return null;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return null;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
-		final TraverserState duplicated = new TerminalTraverserState(comparatorState, terminationReason);
-
-		return duplicated;
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
+		return new TerminalTraverserState(comparatorState, terminationReason);
 	}
 }

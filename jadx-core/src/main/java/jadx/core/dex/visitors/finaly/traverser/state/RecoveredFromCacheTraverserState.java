@@ -8,20 +8,19 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.AbstractBlockTraverserHa
 
 public final class RecoveredFromCacheTraverserState extends TraverserState {
 
-	public static TraverserStateFactory<RecoveredFromCacheTraverserState> getFactory(final TraverserState underlying) {
+	public static TraverserStateFactory<RecoveredFromCacheTraverserState> getFactory(TraverserState underlying) {
 		return new RecoveredFromCacheStateFactory(underlying);
 	}
 
 	private static final class RecoveredFromCacheStateFactory extends TraverserStateFactory<RecoveredFromCacheTraverserState> {
-
 		private final TraverserState underlying;
 
-		private RecoveredFromCacheStateFactory(final TraverserState underlying) {
+		private RecoveredFromCacheStateFactory(TraverserState underlying) {
 			this.underlying = underlying;
 		}
 
 		@Override
-		protected final RecoveredFromCacheTraverserState generateInternalState(final TraverserActivePathState state) {
+		protected RecoveredFromCacheTraverserState generateInternalState(TraverserActivePathState state) {
 			return new RecoveredFromCacheTraverserState(underlying);
 		}
 
@@ -29,47 +28,46 @@ public final class RecoveredFromCacheTraverserState extends TraverserState {
 
 	private final TraverserState underlying;
 
-	public RecoveredFromCacheTraverserState(final TraverserState underlying) {
+	public RecoveredFromCacheTraverserState(TraverserState underlying) {
 		super(underlying.getComparatorState());
-
 		this.underlying = underlying;
 	}
 
 	@Override
-	public final @Nullable AbstractBlockTraverserHandler getNextHandler() {
+	public @Nullable AbstractBlockTraverserHandler getNextHandler() {
 		return null;
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.NOT_READY;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return true;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return null;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return null;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
 		return new RecoveredFromCacheTraverserState(underlying);
 	}
 
-	public final TraverserState getUnderlying() {
+	public TraverserState getUnderlying() {
 		return underlying;
 	}
 
-	public final boolean canContinue() {
+	public boolean canContinue() {
 		return underlying.isTerminal();
 	}
 }

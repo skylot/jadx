@@ -114,7 +114,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 			return;
 		}
 		try {
-			blocks: for (final BlockNode block : mth.getBasicBlocks()) {
+			blocks: for (BlockNode block : mth.getBasicBlocks()) {
 				// Skip e.g. throw instructions of synchronized regions
 				boolean skipExceptions = block.contains(AFlag.REMOVE) || block.contains(AFlag.DONT_GENERATE);
 				Set<String> excludedExceptions = new HashSet<>();
@@ -127,7 +127,7 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 						excludedExceptions.add(handler.getArgType().toString());
 					}
 				}
-				for (final InsnNode insn : block.getInstructions()) {
+				for (InsnNode insn : block.getInstructions()) {
 					checkInsn(mth, insn, excludedExceptions, skipExceptions);
 				}
 			}

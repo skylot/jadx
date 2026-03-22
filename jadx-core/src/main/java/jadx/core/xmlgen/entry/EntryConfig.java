@@ -488,7 +488,7 @@ public class EntryConfig {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final EntryConfig other = (EntryConfig) obj;
+		EntryConfig other = (EntryConfig) obj;
 		return this.mQualifiers.equals(other.mQualifiers);
 	}
 

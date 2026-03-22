@@ -483,7 +483,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 
 		if (constField != null) {
-			final String newFieldName = ResNameUtils.convertToRFieldName(newResName);
+			String newFieldName = ResNameUtils.convertToRFieldName(newResName);
 			constField.rename(newFieldName);
 			constField.add(AFlag.DONT_RENAME);
 		}
@@ -500,7 +500,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 
 		if (root.getArgs().isRenameValid()) {
-			final boolean allowNonPrintable = !root.getArgs().isRenamePrintable();
+			boolean allowNonPrintable = !root.getArgs().isRenamePrintable();
 			newResName = ResNameUtils.sanitizeAsResourceName(newResName, String.format("_res_0x%08x", resRef), allowNonPrintable);
 		}
 

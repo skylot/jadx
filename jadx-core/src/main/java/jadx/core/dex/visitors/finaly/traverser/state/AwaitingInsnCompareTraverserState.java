@@ -7,50 +7,45 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.AbstractBlockTraverserHa
 import jadx.core.dex.visitors.finaly.traverser.handlers.InstructionActivePathTraverserHandler;
 
 public final class AwaitingInsnCompareTraverserState extends TraverserState {
-
 	private final CentralityState centralityState;
 	private final @Nullable TraverserBlockInfo blockInsnInfo;
 
-	public AwaitingInsnCompareTraverserState(final TraverserActivePathState state, final CentralityState centralityState,
-			final TraverserBlockInfo blockInsnInfo) {
+	public AwaitingInsnCompareTraverserState(TraverserActivePathState state, CentralityState centralityState,
+			TraverserBlockInfo blockInsnInfo) {
 		super(state);
-
 		this.centralityState = centralityState;
 		this.blockInsnInfo = blockInsnInfo;
 	}
 
 	@Override
-	public final @Nullable AbstractBlockTraverserHandler getNextHandler() {
+	public @Nullable AbstractBlockTraverserHandler getNextHandler() {
 		return new InstructionActivePathTraverserHandler(getComparatorState());
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.READY_TO_COMPARE;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return false;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return centralityState;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return blockInsnInfo;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
-		final CentralityState dCentralityState = centralityState.duplicate();
-		final TraverserBlockInfo dBlockInsnInfo = blockInsnInfo.duplicate();
-
-		final TraverserState duplicated = new AwaitingInsnCompareTraverserState(comparatorState, dCentralityState, dBlockInsnInfo);
-
-		return duplicated;
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
+		CentralityState dCentralityState = centralityState.duplicate();
+		TraverserBlockInfo dBlockInsnInfo = blockInsnInfo.duplicate();
+		return new AwaitingInsnCompareTraverserState(comparatorState, dCentralityState, dBlockInsnInfo);
 	}
 }

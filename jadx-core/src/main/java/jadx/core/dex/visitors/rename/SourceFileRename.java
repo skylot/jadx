@@ -30,7 +30,7 @@ public class SourceFileRename extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) throws JadxException {
-		final var useSourceName = root.getArgs().getUseSourceNameAsClassNameAlias();
+		var useSourceName = root.getArgs().getUseSourceNameAsClassNameAlias();
 		if (useSourceName == UseSourceNameAsClassNameAlias.NEVER) {
 			return;
 		}

@@ -13,36 +13,34 @@ import jadx.core.dex.visitors.finaly.traverser.visitors.comparator.InstructionBl
 public final class InstructionActivePathTraverserHandler extends AbstractActivePathTraverserHandler {
 
 	public static final class UnresolvableBlockException extends TraverserException {
-		public UnresolvableBlockException(final BlockNode block, final String reason) {
+		public UnresolvableBlockException(BlockNode block, String reason) {
 			super("A block, " + block.toString() + ", could not have instructions compared.\n\t" + reason);
 		}
 	}
 
-	public InstructionActivePathTraverserHandler(final TraverserActivePathState state) {
+	public InstructionActivePathTraverserHandler(TraverserActivePathState state) {
 		super(state);
 	}
 
 	@Override
 	protected List<TraverserActivePathState> handle() throws TraverserException {
-		final TraverserActivePathState comparator = getComparator();
-		final TraverserGlobalCommonState commonState = comparator.getGlobalCommonState();
+		TraverserActivePathState comparator = getComparator();
+		TraverserGlobalCommonState commonState = comparator.getGlobalCommonState();
 
-		final TraverserState finallyState = comparator.getFinallyState();
-		final TraverserState candidateState = comparator.getCandidateState();
+		TraverserState finallyState = comparator.getFinallyState();
+		TraverserState candidateState = comparator.getCandidateState();
 
-		final TraverserBlockInfo finallyBlockInfo = finallyState.getBlockInsnInfo();
-		final TraverserBlockInfo candidateBlockInfo = candidateState.getBlockInsnInfo();
-		final BlockNode finallyBlock = finallyBlockInfo.getBlock();
-		final BlockNode candidateBlock = candidateBlockInfo.getBlock();
+		TraverserBlockInfo finallyBlockInfo = finallyState.getBlockInsnInfo();
+		TraverserBlockInfo candidateBlockInfo = candidateState.getBlockInsnInfo();
+		BlockNode finallyBlock = finallyBlockInfo.getBlock();
+		BlockNode candidateBlock = candidateBlockInfo.getBlock();
 
-		final InstructionBlockComparatorTraverserVisitor visitor = new InstructionBlockComparatorTraverserVisitor();
-		final TraverserActivePathState newState = visitor.visit(comparator);
+		InstructionBlockComparatorTraverserVisitor visitor = new InstructionBlockComparatorTraverserVisitor();
+		TraverserActivePathState newState = visitor.visit(comparator);
 
 		if (finallyBlock != null && candidateBlock != null) {
 			commonState.addCachedStateFor(finallyBlock, candidateBlock, List.of(newState));
 		}
-
 		return List.of(newState);
 	}
-
 }

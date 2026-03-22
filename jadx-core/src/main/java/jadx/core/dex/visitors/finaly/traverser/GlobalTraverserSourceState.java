@@ -12,15 +12,15 @@ public final class GlobalTraverserSourceState {
 
 	private final Set<BlockNode> containedBlocks;
 
-	public GlobalTraverserSourceState(final Set<BlockNode> containedBlocks) {
+	public GlobalTraverserSourceState(Set<BlockNode> containedBlocks) {
 		this.containedBlocks = containedBlocks;
 	}
 
-	public final boolean isBlockContained(final BlockNode block) {
+	public boolean isBlockContained(BlockNode block) {
 		return containedBlocks.contains(block);
 	}
 
-	public final Set<BlockNode> getContainedBlocks() {
+	public Set<BlockNode> getContainedBlocks() {
 		return containedBlocks;
 	}
 }

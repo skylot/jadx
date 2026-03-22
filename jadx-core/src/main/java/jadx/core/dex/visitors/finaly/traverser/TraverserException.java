@@ -2,7 +2,7 @@ package jadx.core.dex.visitors.finaly.traverser;
 
 public class TraverserException extends Exception {
 
-	public TraverserException(final String msg) {
+	public TraverserException(String msg) {
 		super(msg);
 	}
 }

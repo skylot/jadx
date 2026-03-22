@@ -12,8 +12,8 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.MergePathActivePathTrave
 
 public final class IdentifiedScopeWithTerminatorTraverserState extends TraverserState {
 
-	public static TraverserStateFactory<IdentifiedScopeWithTerminatorTraverserState> getFactory(final CentralityState centralityState,
-			final List<BlockNode> roots, final BlockNode scopeTerminator) {
+	public static TraverserStateFactory<IdentifiedScopeWithTerminatorTraverserState> getFactory(CentralityState centralityState,
+			List<BlockNode> roots, BlockNode scopeTerminator) {
 		return new IdentifiedScopeWithTerminatorStateFactory(centralityState, roots, scopeTerminator);
 	}
 
@@ -24,15 +24,15 @@ public final class IdentifiedScopeWithTerminatorTraverserState extends Traverser
 		private final List<BlockNode> roots;
 		private final BlockNode scopeTerminator;
 
-		public IdentifiedScopeWithTerminatorStateFactory(final CentralityState centralityState, final List<BlockNode> roots,
-				final BlockNode scopeTerminator) {
+		public IdentifiedScopeWithTerminatorStateFactory(CentralityState centralityState, List<BlockNode> roots,
+				BlockNode scopeTerminator) {
 			this.centralityState = centralityState;
 			this.roots = roots;
 			this.scopeTerminator = scopeTerminator;
 		}
 
 		@Override
-		public final IdentifiedScopeWithTerminatorTraverserState generateInternalState(final TraverserActivePathState state) {
+		public IdentifiedScopeWithTerminatorTraverserState generateInternalState(TraverserActivePathState state) {
 			return new IdentifiedScopeWithTerminatorTraverserState(state, centralityState, roots, scopeTerminator);
 		}
 	}
@@ -41,8 +41,8 @@ public final class IdentifiedScopeWithTerminatorTraverserState extends Traverser
 	private final List<BlockNode> roots;
 	private final BlockNode scopeTerminator;
 
-	public IdentifiedScopeWithTerminatorTraverserState(final TraverserActivePathState state, final CentralityState centralityState,
-			final List<BlockNode> roots, final BlockNode scopeTerminator) {
+	public IdentifiedScopeWithTerminatorTraverserState(TraverserActivePathState state, CentralityState centralityState,
+			List<BlockNode> roots, BlockNode scopeTerminator) {
 		super(state);
 		this.roots = roots;
 		this.scopeTerminator = scopeTerminator;
@@ -50,40 +50,40 @@ public final class IdentifiedScopeWithTerminatorTraverserState extends Traverser
 	}
 
 	@Override
-	public final @Nullable AbstractBlockTraverserHandler getNextHandler() {
+	public @Nullable AbstractBlockTraverserHandler getNextHandler() {
 		return new MergePathActivePathTraverserHandler(getComparatorState());
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.READY_TO_COMPARE;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return false;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return centralityState;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return null;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
 		return new IdentifiedScopeWithTerminatorTraverserState(comparatorState, centralityState, roots, scopeTerminator);
 	}
 
-	public final BlockNode getTerminus() {
+	public BlockNode getTerminus() {
 		return scopeTerminator;
 	}
 
-	public final List<BlockNode> getRoots() {
+	public List<BlockNode> getRoots() {
 		return roots;
 	}
 }

@@ -36,7 +36,7 @@ public class StringFormattedCheck {
 				return false;
 			}
 			@SuppressWarnings("unchecked")
-			final Duo<T1, T2> other = (Duo<T1, T2>) obj;
+			Duo<T1, T2> other = (Duo<T1, T2>) obj;
 			if (!Objects.equals(this.m1, other.m1)) {
 				return false;
 			}

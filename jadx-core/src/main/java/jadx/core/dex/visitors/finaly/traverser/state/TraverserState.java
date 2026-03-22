@@ -8,7 +8,7 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.AbstractBlockTraverserHa
 
 public abstract class TraverserState {
 
-	public static enum ComparisonState {
+	public enum ComparisonState {
 		NOT_READY,
 		AWAITING_OPTIONAL_PREDECESSOR_MERGE,
 		READY_TO_COMPARE
@@ -16,12 +16,11 @@ public abstract class TraverserState {
 
 	private final TraverserActivePathState comparatorState;
 
-	public TraverserState(final TraverserActivePathState comparatorState) {
+	public TraverserState(TraverserActivePathState comparatorState) {
 		this.comparatorState = comparatorState;
 	}
 
-	@Nullable
-	public abstract AbstractBlockTraverserHandler getNextHandler();
+	public abstract @Nullable AbstractBlockTraverserHandler getNextHandler();
 
 	public abstract ComparisonState getCompareState();
 
@@ -36,40 +35,37 @@ public abstract class TraverserState {
 	 *
 	 * @return The deep cloned duplication of this Traverser state.
 	 */
-	protected abstract TraverserState duplicateInternalState(final TraverserActivePathState comparatorState);
+	protected abstract TraverserState duplicateInternalState(TraverserActivePathState comparatorState);
 
 	@Override
 	public final String toString() {
 		return toString(0);
 	}
 
-	public final TraverserState duplicate(final TraverserActivePathState comparatorState) {
-		final TraverserState duplicatedState = duplicateInternalState(comparatorState);
-		return duplicatedState;
+	public final TraverserState duplicate(TraverserActivePathState comparatorState) {
+		return duplicateInternalState(comparatorState);
 	}
 
 	public final TraverserActivePathState getComparatorState() {
 		return comparatorState;
 	}
 
-	public final String toString(final int indentAmount) {
-		final String baseIndent = " ".repeat(indentAmount);
-		final String secondIndent = " ".repeat(indentAmount + 2);
+	public final String toString(int indentAmount) {
+		String baseIndent = " ".repeat(indentAmount);
+		String secondIndent = " ".repeat(indentAmount + 2);
 
-		final StringBuilder sb = new StringBuilder(baseIndent);
+		StringBuilder sb = new StringBuilder(baseIndent);
 		sb.append(getClass().getSimpleName());
 		sb.append(' ');
-
 		if (isTerminal()) {
 			sb.append("TERMINAL ");
 		}
-
 		sb.append(" {");
 		sb.append(System.lineSeparator());
 
 		sb.append(secondIndent);
 		sb.append("centrality: ");
-		final CentralityState centralityState = getUnderlyingCentralityState();
+		CentralityState centralityState = getUnderlyingCentralityState();
 		if (centralityState == null) {
 			sb.append("none");
 		} else {
@@ -82,7 +78,7 @@ public abstract class TraverserState {
 		sb.append(System.lineSeparator());
 
 		sb.append(secondIndent);
-		final TraverserBlockInfo blockInsnInfo = getBlockInsnInfo();
+		TraverserBlockInfo blockInsnInfo = getBlockInsnInfo();
 		if (blockInsnInfo != null) {
 			sb.append(blockInsnInfo.toString(secondIndent));
 		} else {
@@ -92,12 +88,11 @@ public abstract class TraverserState {
 
 		sb.append(baseIndent);
 		sb.append("}");
-
 		return sb.toString();
 	}
 
 	public final CentralityState getCentralityState() {
-		final CentralityState underlying = getUnderlyingCentralityState();
+		CentralityState underlying = getUnderlyingCentralityState();
 		if (underlying == null) {
 			throw new UnsupportedOperationException("Centrality state is not supported for " + getClass().getName());
 		}

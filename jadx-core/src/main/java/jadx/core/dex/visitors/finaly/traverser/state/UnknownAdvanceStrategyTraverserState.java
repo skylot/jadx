@@ -11,54 +11,49 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.AbstractActivePathTraver
 import jadx.core.dex.visitors.finaly.traverser.handlers.PredecessorMergeActivePathTraverserHandler;
 
 public final class UnknownAdvanceStrategyTraverserState extends TraverserState {
-
 	private final CentralityState centralityState;
 	private final List<BlockNode> nextBlocks;
 
-	public UnknownAdvanceStrategyTraverserState(final TraverserActivePathState state, final CentralityState centralityState,
-			final List<BlockNode> nextBlocks) {
+	public UnknownAdvanceStrategyTraverserState(TraverserActivePathState state, CentralityState centralityState,
+			List<BlockNode> nextBlocks) {
 		super(state);
-
 		this.centralityState = centralityState;
 		this.nextBlocks = nextBlocks;
 	}
 
 	@Override
-	public final @Nullable AbstractActivePathTraverserHandler getNextHandler() {
+	public @Nullable AbstractActivePathTraverserHandler getNextHandler() {
 		return new PredecessorMergeActivePathTraverserHandler(getComparatorState());
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.READY_TO_COMPARE;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return false;
 	}
 
 	@Override
-	protected final @Nullable CentralityState getUnderlyingCentralityState() {
+	protected @Nullable CentralityState getUnderlyingCentralityState() {
 		return centralityState;
 	}
 
 	@Override
-	protected final @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
+	protected @Nullable TraverserBlockInfo getUnderlyingBlockInsnInfo() {
 		return null;
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
-		final CentralityState dCentralityState = centralityState.duplicate();
-		final List<BlockNode> dNextBlocks = new ArrayList<>(nextBlocks);
-
-		final TraverserState duplicated = new UnknownAdvanceStrategyTraverserState(comparatorState, dCentralityState, dNextBlocks);
-
-		return duplicated;
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
+		CentralityState dCentralityState = centralityState.duplicate();
+		List<BlockNode> dNextBlocks = new ArrayList<>(nextBlocks);
+		return new UnknownAdvanceStrategyTraverserState(comparatorState, dCentralityState, dNextBlocks);
 	}
 
-	public final List<BlockNode> getNextBlocks() {
+	public List<BlockNode> getNextBlocks() {
 		return nextBlocks;
 	}
 }

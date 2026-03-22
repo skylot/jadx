@@ -14,11 +14,11 @@ public abstract class AbstractBlockPathTraverserHandler extends AbstractBlockTra
 
 	private final AtomicReference<? extends TraverserState> stateRef;
 
-	public AbstractBlockPathTraverserHandler(final TraverserState initialState) {
+	public AbstractBlockPathTraverserHandler(TraverserState initialState) {
 		this.stateRef = new AtomicReference<>(initialState);
 	}
 
-	public AbstractBlockPathTraverserHandler(final AtomicReference<? extends TraverserState> initialStateRef) {
+	public AbstractBlockPathTraverserHandler(AtomicReference<? extends TraverserState> initialStateRef) {
 		this.stateRef = initialStateRef;
 	}
 

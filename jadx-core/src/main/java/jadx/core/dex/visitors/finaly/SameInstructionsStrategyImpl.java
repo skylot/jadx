@@ -10,18 +10,18 @@ import jadx.core.dex.nodes.InsnNode;
 
 public final class SameInstructionsStrategyImpl extends SameInstructionsStrategy {
 
-	private static boolean sameDebugInfo(final RegisterArg dupReg, final RegisterArg fReg) {
-		final RegDebugInfoAttr fDbgInfo = fReg.get(AType.REG_DEBUG_INFO);
-		final RegDebugInfoAttr dupDbgInfo = dupReg.get(AType.REG_DEBUG_INFO);
+	private static boolean sameDebugInfo(RegisterArg dupReg, RegisterArg fReg) {
+		RegDebugInfoAttr fDbgInfo = fReg.get(AType.REG_DEBUG_INFO);
+		RegDebugInfoAttr dupDbgInfo = dupReg.get(AType.REG_DEBUG_INFO);
 		if (fDbgInfo == null || dupDbgInfo == null) {
 			return false;
 		}
 		return dupDbgInfo.equals(fDbgInfo);
 	}
 
-	private static boolean assignInsnDifferent(final RegisterArg dupReg, final RegisterArg fReg) {
-		final InsnNode assignInsn = fReg.getAssignInsn();
-		final InsnNode dupAssign = dupReg.getAssignInsn();
+	private static boolean assignInsnDifferent(RegisterArg dupReg, RegisterArg fReg) {
+		InsnNode assignInsn = fReg.getAssignInsn();
+		InsnNode dupAssign = dupReg.getAssignInsn();
 		if (assignInsn == null || dupAssign == null) {
 			return true;
 		}
@@ -31,48 +31,45 @@ public final class SameInstructionsStrategyImpl extends SameInstructionsStrategy
 		if (assignInsn.isConstInsn() && dupAssign.isConstInsn()) {
 			// Do this and not deep equals since we already know that the result is the same and that the insn
 			// type is the same
-			return !(Objects.equals(assignInsn.getArguments(), assignInsn.getArguments()));
+			return !Objects.equals(assignInsn.getArguments(), assignInsn.getArguments());
 		}
 		return false;
 	}
 
 	@Override
-	public final boolean sameInsns(final InsnNode dupInsn, final InsnNode fInsn) {
+	public boolean sameInsns(InsnNode dupInsn, InsnNode fInsn) {
 		if (!dupInsn.isSame(fInsn)) {
 			return false;
 		}
-
 		for (int i = 0; i < dupInsn.getArgsCount(); i++) {
-			final InsnArg dupArg = dupInsn.getArg(i);
-			final InsnArg fArg = fInsn.getArg(i);
+			InsnArg dupArg = dupInsn.getArg(i);
+			InsnArg fArg = fInsn.getArg(i);
 			if (!isSameArgs(dupArg, fArg)) {
 				return false;
 			}
 		}
-
 		return true;
 	}
 
 	@Override
-	public final boolean isSameArgs(final InsnArg dupArg, final InsnArg fArg) {
+	public boolean isSameArgs(InsnArg dupArg, InsnArg fArg) {
 		if (dupArg == null) {
 			return false;
 		}
-		final boolean isReg = dupArg.isRegister();
+		boolean isReg = dupArg.isRegister();
 		if (isReg != fArg.isRegister()) {
 			return false;
 		}
 		if (isReg) {
-			final RegisterArg dupReg = (RegisterArg) dupArg;
-			final RegisterArg fReg = (RegisterArg) fArg;
-
+			RegisterArg dupReg = (RegisterArg) dupArg;
+			RegisterArg fReg = (RegisterArg) fArg;
 			if (!dupReg.sameCodeVar(fReg)
 					&& !sameDebugInfo(dupReg, fReg)
 					&& assignInsnDifferent(dupReg, fReg)) {
 				return false;
 			}
 		}
-		final boolean remConst = dupArg.isConst();
+		boolean remConst = dupArg.isConst();
 		if (remConst != fArg.isConst()) {
 			return false;
 		}

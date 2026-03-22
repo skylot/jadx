@@ -26,7 +26,7 @@ class ResNameUtils {
 			return postfix;
 		}
 
-		final StringBuilder sb = new StringBuilder(name.length() + 1);
+		StringBuilder sb = new StringBuilder(name.length() + 1);
 		boolean nameChanged = false;
 
 		int cp = name.codePointAt(0);
@@ -51,7 +51,7 @@ class ResNameUtils {
 			}
 		}
 
-		final String sanitizedName = sb.toString();
+		String sanitizedName = sb.toString();
 		if (NameMapper.isReserved(sanitizedName)) {
 			nameChanged = true;
 		}

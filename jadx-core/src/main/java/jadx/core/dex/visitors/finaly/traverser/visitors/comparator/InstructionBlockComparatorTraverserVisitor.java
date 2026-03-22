@@ -19,42 +19,42 @@ import jadx.core.utils.Pair;
 
 public final class InstructionBlockComparatorTraverserVisitor extends AbstractTraverserComparatorVisitor {
 
-	private static TraverserActivePathState createStateForPerfectMatch(final TraverserActivePathState previousState,
-			final BlockNode finallyBlock,
-			final BlockNode candidateBlock) {
-		final CentralityState finallyCentralityState = previousState.getFinallyState().getCentralityState().duplicate();
-		final CentralityState candidateCentralityState = previousState.getCandidateState().getCentralityState().duplicate();
+	private static TraverserActivePathState createStateForPerfectMatch(TraverserActivePathState previousState,
+			BlockNode finallyBlock,
+			BlockNode candidateBlock) {
+		CentralityState finallyCentralityState = previousState.getFinallyState().getCentralityState().duplicate();
+		CentralityState candidateCentralityState = previousState.getCandidateState().getCentralityState().duplicate();
 
 		finallyCentralityState.setAllowsCentral(false);
 		candidateCentralityState.setAllowsCentral(false);
 		finallyCentralityState.setAllowsNonStartingNode(false);
 		candidateCentralityState.setAllowsNonStartingNode(false);
 
-		final TraverserStateFactory<NoBlockTraverserState> finallyStateProducer =
+		TraverserStateFactory<NoBlockTraverserState> finallyStateProducer =
 				NoBlockTraverserState.getFactory(finallyCentralityState, finallyBlock);
-		final TraverserStateFactory<NoBlockTraverserState> candidateStateProducer =
+		TraverserStateFactory<NoBlockTraverserState> candidateStateProducer =
 				NoBlockTraverserState.getFactory(candidateCentralityState, candidateBlock);
 
 		return TraverserActivePathState.produceFromFactories(previousState, finallyStateProducer, candidateStateProducer);
 	}
 
-	private static TraverserActivePathState createStateForUnevenMatch(final TraverserActivePathState previousState,
-			final TraverserState finallyState,
-			final TraverserState candidateState, final BlockNode finallyBlock, final BlockNode candidateBlock, final int finallyInsnsSize,
-			final int candidateInsnsSize) {
-		final int maxIterateCount = Math.max(finallyInsnsSize, candidateInsnsSize);
-		final boolean finallyOverruns = finallyInsnsSize > candidateInsnsSize;
+	private static TraverserActivePathState createStateForUnevenMatch(TraverserActivePathState previousState,
+			TraverserState finallyState,
+			TraverserState candidateState, BlockNode finallyBlock, BlockNode candidateBlock, int finallyInsnsSize,
+			int candidateInsnsSize) {
+		int maxIterateCount = Math.max(finallyInsnsSize, candidateInsnsSize);
+		boolean finallyOverruns = finallyInsnsSize > candidateInsnsSize;
 
-		final int insnsDelta;
-		final TraverserStateFactory<?> newFinallyStateProducer;
-		final TraverserStateFactory<?> newCandidateStateProducer;
-		final TraverserBlockInfo adjustedBlockInfo;
+		int insnsDelta;
+		TraverserStateFactory<?> newFinallyStateProducer;
+		TraverserStateFactory<?> newCandidateStateProducer;
+		TraverserBlockInfo adjustedBlockInfo;
 		if (finallyOverruns) {
 			// More finally instructions than candidate instructions
-			final CentralityState candidateCentralityState = candidateState.getCentralityState().duplicate();
+			CentralityState candidateCentralityState = candidateState.getCentralityState().duplicate();
 			candidateCentralityState.setAllowsCentral(false);
 			candidateCentralityState.setAllowsNonStartingNode(false);
-			final CentralityState finallyCentralityState = finallyState.getCentralityState();
+			CentralityState finallyCentralityState = finallyState.getCentralityState();
 			finallyCentralityState.setAllowsCentral(false);
 			finallyCentralityState.setAllowsNonStartingNode(false);
 
@@ -64,10 +64,10 @@ public final class InstructionBlockComparatorTraverserVisitor extends AbstractTr
 			newCandidateStateProducer = NoBlockTraverserState.getFactory(candidateCentralityState, candidateBlock);
 		} else {
 			// More candidate instructions than finally instructions
-			final CentralityState finallyCentralityState = finallyState.getCentralityState().duplicate();
+			CentralityState finallyCentralityState = finallyState.getCentralityState().duplicate();
 			finallyCentralityState.setAllowsCentral(false);
 			finallyCentralityState.setAllowsNonStartingNode(false);
-			final CentralityState candidateCentralityState = candidateState.getCentralityState();
+			CentralityState candidateCentralityState = candidateState.getCentralityState();
 			candidateCentralityState.setAllowsCentral(false);
 			candidateCentralityState.setAllowsNonStartingNode(false);
 
@@ -82,11 +82,11 @@ public final class InstructionBlockComparatorTraverserVisitor extends AbstractTr
 		return TraverserActivePathState.produceFromFactories(previousState, newFinallyStateProducer, newCandidateStateProducer);
 	}
 
-	private static TraverserActivePathState createStateForBlockSkip(final TraverserActivePathState previousState,
-			final TraverserState finallyState,
-			final TraverserState candidateState, final BlockNode finallyBlock, final BlockNode candidateBlock) {
-		final CentralityState finallyCentralityState = finallyState.getCentralityState();
-		final CentralityState candidateCentralityState = candidateState.getCentralityState();
+	private static TraverserActivePathState createStateForBlockSkip(TraverserActivePathState previousState,
+			TraverserState finallyState,
+			TraverserState candidateState, BlockNode finallyBlock, BlockNode candidateBlock) {
+		CentralityState finallyCentralityState = finallyState.getCentralityState();
+		CentralityState candidateCentralityState = candidateState.getCentralityState();
 
 		// TODO: Maybe replace this with controller logic so that we can determine if we need to use these
 		// as path ends and then merge above path?
@@ -95,23 +95,23 @@ public final class InstructionBlockComparatorTraverserVisitor extends AbstractTr
 		// later iteration.
 		if (finallyCentralityState.getAllowsNonStartingNode()) {
 			finallyCentralityState.setAllowsNonStartingNode(false);
-			final TraverserStateFactory<NoBlockTraverserState> newFinallyStateProducer =
+			TraverserStateFactory<NoBlockTraverserState> newFinallyStateProducer =
 					NoBlockTraverserState.getFactory(finallyCentralityState, finallyBlock);
-			final TraverserStateFactory<?> newCandidateStateProducer = new DuplicatedTraverserStateFactory<>(candidateState);
+			TraverserStateFactory<?> newCandidateStateProducer = new DuplicatedTraverserStateFactory<>(candidateState);
 			return TraverserActivePathState.produceFromFactories(previousState, newFinallyStateProducer, newCandidateStateProducer);
 		} else {
 			candidateCentralityState.setAllowsNonStartingNode(false);
-			final TraverserStateFactory<NoBlockTraverserState> newCandidateStateProducer =
+			TraverserStateFactory<NoBlockTraverserState> newCandidateStateProducer =
 					NoBlockTraverserState.getFactory(candidateCentralityState, candidateBlock);
-			final TraverserStateFactory<?> newFinallyStateProducer = new DuplicatedTraverserStateFactory<>(finallyState);
+			TraverserStateFactory<?> newFinallyStateProducer = new DuplicatedTraverserStateFactory<>(finallyState);
 			return TraverserActivePathState.produceFromFactories(previousState, newFinallyStateProducer, newCandidateStateProducer);
 		}
 	}
 
-	private static TraverserActivePathState createStateForTerminatorState(final TraverserActivePathState previousState) {
-		final TraverserStateFactory<TerminalTraverserState> finallyStateProducer =
+	private static TraverserActivePathState createStateForTerminatorState(TraverserActivePathState previousState) {
+		TraverserStateFactory<TerminalTraverserState> finallyStateProducer =
 				TerminalTraverserState.getFactory(TerminalTraverserState.TerminationReason.NON_MATCHING_INSTRUCTIONS);
-		final TraverserStateFactory<TerminalTraverserState> candidateStateProducer =
+		TraverserStateFactory<TerminalTraverserState> candidateStateProducer =
 				TerminalTraverserState.getFactory(TerminalTraverserState.TerminationReason.NON_MATCHING_INSTRUCTIONS);
 
 		return TraverserActivePathState.produceFromFactories(previousState, finallyStateProducer, candidateStateProducer);
@@ -120,57 +120,57 @@ public final class InstructionBlockComparatorTraverserVisitor extends AbstractTr
 	private final SameInstructionsStrategy sameInstructionsStrategy = new SameInstructionsStrategyImpl();
 
 	@Override
-	public final TraverserActivePathState visit(final TraverserActivePathState state) {
-		final TraverserState finallyState = state.getFinallyState();
-		final TraverserState candidateState = state.getCandidateState();
+	public TraverserActivePathState visit(TraverserActivePathState state) {
+		TraverserState finallyState = state.getFinallyState();
+		TraverserState candidateState = state.getCandidateState();
 
-		final TraverserBlockInfo finallyBlockInfo = finallyState.getBlockInsnInfo();
-		final TraverserBlockInfo candidateBlockInfo = candidateState.getBlockInsnInfo();
+		TraverserBlockInfo finallyBlockInfo = finallyState.getBlockInsnInfo();
+		TraverserBlockInfo candidateBlockInfo = candidateState.getBlockInsnInfo();
 
 		if (finallyBlockInfo == null || candidateBlockInfo == null) {
 			throw new UnsupportedOperationException(
 					"The instruction comparator handler has received a state which does not support block insn info");
 		}
 
-		final BlockNode finallyBlock = finallyBlockInfo.getBlock();
-		final BlockNode candidateBlock = candidateBlockInfo.getBlock();
+		BlockNode finallyBlock = finallyBlockInfo.getBlock();
+		BlockNode candidateBlock = candidateBlockInfo.getBlock();
 
-		final List<InsnNode> finallyInsns = finallyBlockInfo.getInsnsSlice();
-		final List<InsnNode> candidateInsns = candidateBlockInfo.getInsnsSlice();
-		final int finallyInsnsSize = finallyInsns.size();
-		final int candidateInsnsSize = candidateInsns.size();
+		List<InsnNode> finallyInsns = finallyBlockInfo.getInsnsSlice();
+		List<InsnNode> candidateInsns = candidateBlockInfo.getInsnsSlice();
+		int finallyInsnsSize = finallyInsns.size();
+		int candidateInsnsSize = candidateInsns.size();
 
-		final int maxIterateCount = Math.min(finallyInsnsSize, candidateInsnsSize);
+		int maxIterateCount = Math.min(finallyInsnsSize, candidateInsnsSize);
 
-		final List<Pair<InsnNode>> matchingInsns = new ArrayList<>(maxIterateCount);
+		List<Pair<InsnNode>> matchingInsns = new ArrayList<>(maxIterateCount);
 
 		// Search through each instruction in reverse and see how many match
 		for (int i = 0; i < maxIterateCount; i++) {
-			final InsnNode candidateInsn = candidateInsns.get(candidateInsnsSize - i - 1);
-			final InsnNode finallyInsn = finallyInsns.get(finallyInsnsSize - i - 1);
+			InsnNode candidateInsn = candidateInsns.get(candidateInsnsSize - i - 1);
+			InsnNode finallyInsn = finallyInsns.get(finallyInsnsSize - i - 1);
 
 			if (!sameInstructionsStrategy.sameInsns(candidateInsn, finallyInsn)) {
 				break;
 			}
 
-			final Pair<InsnNode> match = new Pair<>(finallyInsn, candidateInsn);
+			Pair<InsnNode> match = new Pair<>(finallyInsn, candidateInsn);
 			matchingInsns.add(match);
 		}
 
-		final int matchedInsnsCount = matchingInsns.size();
+		int matchedInsnsCount = matchingInsns.size();
 
 		state.registerWithBlockInfo(finallyBlockInfo, matchedInsnsCount);
 		state.registerWithBlockInfo(candidateBlockInfo, matchedInsnsCount);
 
-		final boolean finallyOverruns = finallyInsnsSize > candidateInsnsSize;
-		final boolean candidateOverruns = finallyInsnsSize < candidateInsnsSize;
-		final boolean sameSizedSlices = !finallyOverruns && !candidateOverruns;
-		final boolean allMatched = matchedInsnsCount == maxIterateCount;
-		final boolean noneMatched = matchedInsnsCount == 0;
+		boolean finallyOverruns = finallyInsnsSize > candidateInsnsSize;
+		boolean candidateOverruns = finallyInsnsSize < candidateInsnsSize;
+		boolean sameSizedSlices = !finallyOverruns && !candidateOverruns;
+		boolean allMatched = matchedInsnsCount == maxIterateCount;
+		boolean noneMatched = matchedInsnsCount == 0;
 
 		state.getMatchedInsns().addAll(matchingInsns);
 
-		final TraverserActivePathState newState;
+		TraverserActivePathState newState;
 		if (allMatched) {
 			if (sameSizedSlices) {
 				// All instructions matched and there are no more instructions to match in either
@@ -195,9 +195,9 @@ public final class InstructionBlockComparatorTraverserVisitor extends AbstractTr
 		return newState;
 	}
 
-	private boolean eitherStateAllowsBlockSkip(final TraverserState finallyState, final TraverserState candidateState) {
-		final CentralityState finallyCentralityState = finallyState.getCentralityState();
-		final CentralityState candidateCentralityState = candidateState.getCentralityState();
+	private boolean eitherStateAllowsBlockSkip(TraverserState finallyState, TraverserState candidateState) {
+		CentralityState finallyCentralityState = finallyState.getCentralityState();
+		CentralityState candidateCentralityState = candidateState.getCentralityState();
 
 		return finallyCentralityState.getAllowsNonStartingNode() || candidateCentralityState.getAllowsNonStartingNode();
 	}

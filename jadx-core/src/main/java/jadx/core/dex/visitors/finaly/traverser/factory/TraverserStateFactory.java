@@ -5,10 +5,9 @@ import jadx.core.dex.visitors.finaly.traverser.state.TraverserState;
 
 public abstract class TraverserStateFactory<T extends TraverserState> {
 
-	protected abstract T generateInternalState(final TraverserActivePathState state);
+	protected abstract T generateInternalState(TraverserActivePathState state);
 
-	public final T generateState(final TraverserActivePathState state) {
-		final T generatedState = generateInternalState(state);
-		return generatedState;
+	public final T generateState(TraverserActivePathState state) {
+		return generateInternalState(state);
 	}
 }

@@ -498,7 +498,7 @@ public class JadxArgs implements Closeable {
 	 */
 	@Deprecated
 	public void setUseSourceNameAsClassAlias(boolean useSourceNameAsClassAlias) {
-		final var useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.create(useSourceNameAsClassAlias);
+		var useSourceNameAsClassNameAlias = UseSourceNameAsClassNameAlias.create(useSourceNameAsClassAlias);
 		setUseSourceNameAsClassNameAlias(useSourceNameAsClassNameAlias);
 	}
 

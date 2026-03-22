@@ -166,7 +166,7 @@ public class ExceptionHandler {
 			LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
 			return null;
 		}
-		final TryCatchBlockAttr searchForTryBody;
+		TryCatchBlockAttr searchForTryBody;
 		if (handlerTryBlock.getInnerTryBlocks().isEmpty()) {
 			searchForTryBody = handlerTryBlock;
 		} else {

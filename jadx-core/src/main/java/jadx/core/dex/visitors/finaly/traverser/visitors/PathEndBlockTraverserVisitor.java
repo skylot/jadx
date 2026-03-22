@@ -16,8 +16,8 @@ import jadx.core.dex.visitors.finaly.traverser.state.TraverserState;
 
 public final class PathEndBlockTraverserVisitor extends AbstractBlockTraverserVisitor {
 
-	public static boolean isInstructionPathEnd(final InsnNode insn) {
-		final InsnType type = insn.getType();
+	public static boolean isInstructionPathEnd(InsnNode insn) {
+		InsnType type = insn.getType();
 
 		switch (type) {
 			case RETURN:
@@ -28,29 +28,24 @@ public final class PathEndBlockTraverserVisitor extends AbstractBlockTraverserVi
 		}
 	}
 
-	public PathEndBlockTraverserVisitor(final TraverserState state) {
+	public PathEndBlockTraverserVisitor(TraverserState state) {
 		super(state);
 	}
 
 	@Override
-	public final TraverserState visit(final BlockNode block) {
-		final CentralityState centralityState = getState().getCentralityState();
-
-		final TraverserBlockInfo insnInfo = getState().getBlockInsnInfo();
-
+	public TraverserState visit(BlockNode block) {
+		CentralityState centralityState = getState().getCentralityState();
+		TraverserBlockInfo insnInfo = getState().getBlockInsnInfo();
 		if (!centralityState.getAllowsCentral()) {
 			return new AwaitingInsnCompareTraverserState(getComparator(), centralityState, insnInfo);
 		}
+		List<InsnNode> insns = insnInfo.getInsnsSlice();
+		ListIterator<InsnNode> insnsIterator = insns.listIterator(insns.size());
 
-		final List<InsnNode> insns = insnInfo.getInsnsSlice();
-		final ListIterator<InsnNode> insnsIterator = insns.listIterator(insns.size());
-
-		/**
-		 * The number of instructions that have been identified as "path end" instructions.
-		 */
+		// The number of instructions that have been identified as "path end" instructions.
 		int bottomDelta = 0;
 		while (insnsIterator.hasPrevious()) {
-			final InsnNode insn = insnsIterator.previous();
+			InsnNode insn = insnsIterator.previous();
 
 			// Check if we should ignore the instruction due to it being a "path end" instruction.
 			if (isInstructionPathEnd(insn)) {
@@ -68,7 +63,7 @@ public final class PathEndBlockTraverserVisitor extends AbstractBlockTraverserVi
 				// RETURN r2 <-- A path end instruction
 
 				if (insn.getArgsCount() != 0) {
-					final InsnArg handlerExitArg = insn.getArg(0);
+					InsnArg handlerExitArg = insn.getArg(0);
 					// Returned values from instructions can only be register args so we check that the input to the
 					// path end insn is a register arg
 					if (handlerExitArg instanceof RegisterArg) {
@@ -89,8 +84,8 @@ public final class PathEndBlockTraverserVisitor extends AbstractBlockTraverserVi
 
 		insnInfo.setBottomOffset(insnInfo.getBottomOffset() + bottomDelta);
 
-		final BlockNode sourceBlock = insnInfo.getBlock();
-		final boolean noInstructionsLeft = insnInfo.getBottomOffset() >= sourceBlock.getInstructions().size();
+		BlockNode sourceBlock = insnInfo.getBlock();
+		boolean noInstructionsLeft = insnInfo.getBottomOffset() >= sourceBlock.getInstructions().size();
 		if (noInstructionsLeft) {
 			// Mark the state to request finding predecessors to search for duplicate instructions for
 			return new NoBlockTraverserState(getComparator(), centralityState, sourceBlock);

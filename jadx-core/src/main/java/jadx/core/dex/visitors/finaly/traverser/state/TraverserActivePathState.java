@@ -41,20 +41,18 @@ public class TraverserActivePathState {
 	 *                               be held by the resulting active path state.
 	 * @return The cloned active path state.
 	 */
-	public static TraverserActivePathState produceFromFactories(final TraverserActivePathState previousTraverserState,
-			final TraverserStateFactory<?> finallyStateProducer, final TraverserStateFactory<?> candidateStateProducer) {
-		final TraverserActivePathState dState =
+	public static TraverserActivePathState produceFromFactories(TraverserActivePathState previousTraverserState,
+			TraverserStateFactory<?> finallyStateProducer, TraverserStateFactory<?> candidateStateProducer) {
+		TraverserActivePathState dState =
 				new TraverserActivePathState(previousTraverserState.matchedInsns, previousTraverserState.finallyCompletionMonitor,
 						previousTraverserState.candidateCompletionMonitor, previousTraverserState.commonGlobalState,
 						previousTraverserState.finallyGlobalState,
 						previousTraverserState.candidateGlobalState);
 
-		final TraverserState dFinallyState = finallyStateProducer.generateState(dState);
-		final TraverserState dCandidateState = candidateStateProducer.generateState(dState);
-
+		TraverserState dFinallyState = finallyStateProducer.generateState(dState);
+		TraverserState dCandidateState = candidateStateProducer.generateState(dState);
 		dState.candidateStateRef.set(dCandidateState);
 		dState.finallyStateRef.set(dFinallyState);
-
 		return dState;
 	}
 
@@ -63,33 +61,29 @@ public class TraverserActivePathState {
 	 * i.e. how many of the instructions have been compared in the Traversal.
 	 */
 	private static final class BlockCompletionMonitor {
-
 		private final BlockNode block;
 		private final Set<Integer> matchedIndices;
-		private final int insnCount;
 
-		private BlockCompletionMonitor(final BlockNode block) {
+		private BlockCompletionMonitor(BlockNode block) {
 			this.block = block;
-			this.insnCount = block.getInstructions().size();
+			int insnCount = block.getInstructions().size();
 			this.matchedIndices = new HashSet<>(insnCount);
 			for (int i = 0; i < insnCount; i++) {
 				matchedIndices.add(i);
 			}
 		}
 
-		private void registerWithBlockInfo(final TraverserBlockInfo info, final int numberMatched) {
+		private void registerWithBlockInfo(TraverserBlockInfo info, int numberMatched) {
 			if (info.getBlock() != block) {
 				return;
 			}
-
-			final int botPointer = info.getBottomOffset();
+			int botPointer = info.getBottomOffset();
 			for (int i = 0; i < numberMatched; i++) {
-				final int indexMatched = botPointer + i;
+				int indexMatched = botPointer + i;
 				matchedIndices.remove(indexMatched);
 			}
-
-			final int bottomImplicitCount = info.getBottomImplicitCount();
-			final boolean noPathEndInsns = botPointer - bottomImplicitCount == 0;
+			int bottomImplicitCount = info.getBottomImplicitCount();
+			boolean noPathEndInsns = botPointer - bottomImplicitCount == 0;
 			if (noPathEndInsns) {
 				for (int i = 0; i < bottomImplicitCount; i++) {
 					matchedIndices.remove(i);
@@ -98,16 +92,15 @@ public class TraverserActivePathState {
 		}
 
 		private BlockCompletionMonitor duplicate() {
-			final BlockCompletionMonitor dup = new BlockCompletionMonitor(block);
+			BlockCompletionMonitor dup = new BlockCompletionMonitor(block);
 			dup.matchedIndices.retainAll(matchedIndices);
 			return dup;
 		}
 
-		private void mergeWith(final BlockCompletionMonitor other) {
+		private void mergeWith(BlockCompletionMonitor other) {
 			if (other.block != block) {
 				return;
 			}
-
 			matchedIndices.retainAll(other.matchedIndices);
 		}
 
@@ -125,101 +118,100 @@ public class TraverserActivePathState {
 		}
 
 		@Override
-		public final void clear() {
+		public void clear() {
 			underlying.clear();
 		}
 
 		@Override
-		public final boolean containsKey(Object key) {
+		public boolean containsKey(Object key) {
 			return underlying.containsKey(key);
 		}
 
 		@Override
-		public final boolean containsValue(Object value) {
+		public boolean containsValue(Object value) {
 			if (!(value instanceof BlockNode)) {
 				return false;
 			}
-
-			final BlockNode edge = (BlockNode) value;
+			BlockNode edge = (BlockNode) value;
 			return underlying.containsKey(edge);
 		}
 
 		@Override
-		public final Set<Entry<BlockNode, BlockCompletionMonitor>> entrySet() {
+		public Set<Entry<BlockNode, BlockCompletionMonitor>> entrySet() {
 			return underlying.entrySet();
 		}
 
 		@Override
-		public final BlockCompletionMonitor get(Object key) {
+		public BlockCompletionMonitor get(Object key) {
 			return underlying.get(key);
 		}
 
 		@Override
-		public final boolean isEmpty() {
+		public boolean isEmpty() {
 			return underlying.isEmpty();
 		}
 
 		@Override
-		public final Set<BlockNode> keySet() {
+		public Set<BlockNode> keySet() {
 			return underlying.keySet();
 		}
 
 		@Override
-		public final BlockCompletionMonitor put(BlockNode key, BlockCompletionMonitor value) {
+		public BlockCompletionMonitor put(BlockNode key, BlockCompletionMonitor value) {
 			return underlying.put(key, value);
 		}
 
 		@Override
-		public final void putAll(Map<? extends BlockNode, ? extends BlockCompletionMonitor> otherMap) {
+		public void putAll(Map<? extends BlockNode, ? extends BlockCompletionMonitor> otherMap) {
 			underlying.putAll(otherMap);
 		}
 
 		@Override
-		public final BlockCompletionMonitor remove(Object key) {
+		public BlockCompletionMonitor remove(Object key) {
 			return underlying.remove(key);
 		}
 
 		@Override
-		public final int size() {
+		public int size() {
 			return underlying.size();
 		}
 
 		@Override
-		public final Collection<BlockCompletionMonitor> values() {
+		public Collection<BlockCompletionMonitor> values() {
 			return underlying.values();
 		}
 
-		private void registerWithBlockInfo(final TraverserBlockInfo info, final int numberMatched) {
-			final BlockNode block = info.getBlock();
+		private void registerWithBlockInfo(TraverserBlockInfo info, int numberMatched) {
+			BlockNode block = info.getBlock();
 			if (containsKey(block)) {
 				get(block).registerWithBlockInfo(info, numberMatched);
 			} else {
-				final BlockCompletionMonitor monitor = new BlockCompletionMonitor(block);
+				BlockCompletionMonitor monitor = new BlockCompletionMonitor(block);
 				monitor.registerWithBlockInfo(info, numberMatched);
 				put(block, monitor);
 			}
 		}
 
-		private void mergeEntry(final BlockCompletionMonitor other) {
-			final BlockNode block = other.block;
+		private void mergeEntry(BlockCompletionMonitor other) {
+			BlockNode block = other.block;
 			if (containsKey(block)) {
 				get(block).mergeWith(other);
 			} else {
-				final BlockCompletionMonitor monitor = other.duplicate();
+				BlockCompletionMonitor monitor = other.duplicate();
 				put(block, monitor);
 			}
 		}
 
-		private void mergeMap(final BlockCompletionMonitorMap other) {
-			for (final BlockCompletionMonitor monitor : other.values()) {
+		private void mergeMap(BlockCompletionMonitorMap other) {
+			for (BlockCompletionMonitor monitor : other.values()) {
 				mergeEntry(monitor);
 			}
 		}
 
 		private BlockCompletionMonitorMap duplicate() {
-			final BlockCompletionMonitorMap dup = new BlockCompletionMonitorMap();
-			for (final BlockNode sourceBlock : keySet()) {
-				final BlockCompletionMonitor monitor = get(sourceBlock);
+			BlockCompletionMonitorMap dup = new BlockCompletionMonitorMap();
+			for (BlockNode sourceBlock : keySet()) {
+				BlockCompletionMonitor monitor = get(sourceBlock);
 				dup.put(sourceBlock, monitor.duplicate());
 			}
 			return dup;
@@ -239,27 +231,20 @@ public class TraverserActivePathState {
 	/**
 	 * Creates a new instance of a traversal active path. This constructor is used to create a new
 	 * path to be used by the traverser controller to begin a new traversal.
-	 *
-	 * @param mth
-	 * @param sameInstructionsStrategy
-	 * @param finallyBlockTerminus
-	 * @param candidateBlockTerminus
-	 * @param finallyBlocks
-	 * @param candidateBlocks
 	 */
-	public TraverserActivePathState(final MethodNode mth, final SameInstructionsStrategy sameInstructionsStrategy,
-			final BlockNode finallyBlockTerminus, final BlockNode candidateBlockTerminus, final List<BlockNode> finallyBlocks,
-			final List<BlockNode> candidateBlocks) {
-		final boolean shouldFinallyAllowFirstBlockSkip = !finallyBlockTerminus.getInstructions().isEmpty();
-		final boolean shouldCandidateAllowFirstBlockSkip = !candidateBlockTerminus.getInstructions().isEmpty();
-		final CentralityState finallyCentralityState = new CentralityState(sameInstructionsStrategy, shouldFinallyAllowFirstBlockSkip);
-		final CentralityState candidateCentralityState = new CentralityState(sameInstructionsStrategy, shouldCandidateAllowFirstBlockSkip);
+	public TraverserActivePathState(MethodNode mth, SameInstructionsStrategy sameInstructionsStrategy,
+			BlockNode finallyBlockTerminus, BlockNode candidateBlockTerminus, List<BlockNode> finallyBlocks,
+			List<BlockNode> candidateBlocks) {
+		boolean shouldFinallyAllowFirstBlockSkip = !finallyBlockTerminus.getInstructions().isEmpty();
+		boolean shouldCandidateAllowFirstBlockSkip = !candidateBlockTerminus.getInstructions().isEmpty();
+		CentralityState finallyCentralityState = new CentralityState(sameInstructionsStrategy, shouldFinallyAllowFirstBlockSkip);
+		CentralityState candidateCentralityState = new CentralityState(sameInstructionsStrategy, shouldCandidateAllowFirstBlockSkip);
 
-		final TraverserBlockInfo finallyBlockInfo = new TraverserBlockInfo(finallyBlockTerminus);
-		final TraverserBlockInfo candidateBlockInfo = new TraverserBlockInfo(candidateBlockTerminus);
+		TraverserBlockInfo finallyBlockInfo = new TraverserBlockInfo(finallyBlockTerminus);
+		TraverserBlockInfo candidateBlockInfo = new TraverserBlockInfo(candidateBlockTerminus);
 
-		final TraverserState finallyState = new NewBlockTraverserState(this, finallyCentralityState, finallyBlockInfo);
-		final TraverserState candidateState = new NewBlockTraverserState(this, candidateCentralityState, candidateBlockInfo);
+		TraverserState finallyState = new NewBlockTraverserState(this, finallyCentralityState, finallyBlockInfo);
+		TraverserState candidateState = new NewBlockTraverserState(this, candidateCentralityState, candidateBlockInfo);
 
 		this.finallyGlobalState = new GlobalTraverserSourceState(new HashSet<>(finallyBlocks));
 		this.candidateGlobalState = new GlobalTraverserSourceState(new HashSet<>(candidateBlocks));
@@ -276,17 +261,10 @@ public class TraverserActivePathState {
 	 * Creates a new instance of a traversal active path. This constructor is used to duplicate a
 	 * state between a previous traverser controller and is a liaison for initialising non-null
 	 * final fields for the {@link TraverserActivePathState#produceFromFactories} function.
-	 *
-	 * @param matchedInsns
-	 * @param finallyCompletionMonitor
-	 * @param candidateCompletionMonitor
-	 * @param commonGlobalState
-	 * @param finallyGlobalState
-	 * @param candidateGlobalState
 	 */
-	private TraverserActivePathState(final Set<Pair<InsnNode>> matchedInsns, final BlockCompletionMonitorMap finallyCompletionMonitor,
-			final BlockCompletionMonitorMap candidateCompletionMonitor, final TraverserGlobalCommonState commonGlobalState,
-			final GlobalTraverserSourceState finallyGlobalState, final GlobalTraverserSourceState candidateGlobalState) {
+	private TraverserActivePathState(Set<Pair<InsnNode>> matchedInsns, BlockCompletionMonitorMap finallyCompletionMonitor,
+			BlockCompletionMonitorMap candidateCompletionMonitor, TraverserGlobalCommonState commonGlobalState,
+			GlobalTraverserSourceState finallyGlobalState, GlobalTraverserSourceState candidateGlobalState) {
 		this.finallyStateRef = new AtomicReference<>();
 		this.candidateStateRef = new AtomicReference<>();
 		this.matchedInsns = matchedInsns;
@@ -298,19 +276,17 @@ public class TraverserActivePathState {
 	}
 
 	public final TraverserActivePathState duplicate() {
-		final Set<Pair<InsnNode>> dMatchedInsns = new HashSet<>(matchedInsns);
-		final BlockCompletionMonitorMap dFinallyCompletionMonitor = finallyCompletionMonitor.duplicate();
-		final BlockCompletionMonitorMap dCandidateCompletionMonitor = candidateCompletionMonitor.duplicate();
-		final TraverserActivePathState dState =
+		Set<Pair<InsnNode>> dMatchedInsns = new HashSet<>(matchedInsns);
+		BlockCompletionMonitorMap dFinallyCompletionMonitor = finallyCompletionMonitor.duplicate();
+		BlockCompletionMonitorMap dCandidateCompletionMonitor = candidateCompletionMonitor.duplicate();
+		TraverserActivePathState dState =
 				new TraverserActivePathState(dMatchedInsns, dFinallyCompletionMonitor, dCandidateCompletionMonitor,
 						commonGlobalState, finallyGlobalState, candidateGlobalState);
 
-		final TraverserState dFinallyState = getFinallyState().duplicate(dState);
-		final TraverserState dCandidateState = getCandidateState().duplicate(dState);
-
+		TraverserState dFinallyState = getFinallyState().duplicate(dState);
+		TraverserState dCandidateState = getCandidateState().duplicate(dState);
 		dState.candidateStateRef.set(dCandidateState);
 		dState.finallyStateRef.set(dFinallyState);
-
 		return dState;
 	}
 
@@ -335,24 +311,24 @@ public class TraverserActivePathState {
 	}
 
 	@Nullable
-	public final AtomicReference<TraverserState> getReferenceForState(final TraverserState state) {
+	public final AtomicReference<TraverserState> getReferenceForState(TraverserState state) {
 		if (finallyStateRef.get() == state) {
 			return finallyStateRef;
-		} else if (candidateStateRef.get() == state) {
-			return candidateStateRef;
-		} else {
-			return null;
 		}
+		if (candidateStateRef.get() == state) {
+			return candidateStateRef;
+		}
+		return null;
 	}
 
-	public final GlobalTraverserSourceState getGlobalStateFor(final TraverserState state) {
+	public final GlobalTraverserSourceState getGlobalStateFor(TraverserState state) {
 		if (finallyStateRef.get() == state) {
 			return finallyGlobalState;
-		} else if (candidateStateRef.get() == state) {
-			return candidateGlobalState;
-		} else {
-			throw new JadxRuntimeException("Orphaned TraverserState node");
 		}
+		if (candidateStateRef.get() == state) {
+			return candidateGlobalState;
+		}
+		throw new JadxRuntimeException("Orphaned TraverserState node");
 	}
 
 	public final GlobalTraverserSourceState getFinallyGlobalState() {
@@ -367,8 +343,8 @@ public class TraverserActivePathState {
 		return commonGlobalState;
 	}
 
-	public final void mergeWith(final List<TraverserActivePathState> otherStates) {
-		for (final TraverserActivePathState otherState : otherStates) {
+	public final void mergeWith(List<TraverserActivePathState> otherStates) {
+		for (TraverserActivePathState otherState : otherStates) {
 			matchedInsns.addAll(otherState.getMatchedInsns());
 
 			finallyCompletionMonitor.mergeMap(otherState.finallyCompletionMonitor);
@@ -376,10 +352,10 @@ public class TraverserActivePathState {
 		}
 	}
 
-	public final void registerWithBlockInfo(final TraverserBlockInfo info, final int numberMatched) {
-		final BlockNode block = info.getBlock();
-		final boolean isFinallyBlock = finallyGlobalState.isBlockContained(block);
-		final BlockCompletionMonitorMap monitorMap;
+	public final void registerWithBlockInfo(TraverserBlockInfo info, int numberMatched) {
+		BlockNode block = info.getBlock();
+		boolean isFinallyBlock = finallyGlobalState.isBlockContained(block);
+		BlockCompletionMonitorMap monitorMap;
 		if (isFinallyBlock) {
 			monitorMap = finallyCompletionMonitor;
 		} else {
@@ -396,17 +372,14 @@ public class TraverserActivePathState {
 		return getAllFullyMatchedBlocks(candidateCompletionMonitor);
 	}
 
-	private Set<BlockNode> getAllFullyMatchedBlocks(final BlockCompletionMonitorMap monitorMap) {
-		final Set<BlockNode> matches = new HashSet<>();
-
-		for (final BlockCompletionMonitor monitor : monitorMap.values()) {
+	private Set<BlockNode> getAllFullyMatchedBlocks(BlockCompletionMonitorMap monitorMap) {
+		Set<BlockNode> matches = new HashSet<>();
+		for (BlockCompletionMonitor monitor : monitorMap.values()) {
 			if (!monitor.isEntireBlock()) {
 				continue;
 			}
-
 			matches.add(monitor.block);
 		}
-
 		return matches;
 	}
 }

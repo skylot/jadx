@@ -19,15 +19,15 @@ public final class TryEdge {
 	private final Optional<ExceptionHandler> handler;
 	private final TryEdgeType type;
 
-	public TryEdge(final BlockNode source, final BlockNode target, final TryEdgeType type) {
+	public TryEdge(BlockNode source, BlockNode target, TryEdgeType type) {
 		this(source, target, type, Optional.empty());
 	}
 
-	public TryEdge(final BlockNode source, final BlockNode target, final @NotNull ExceptionHandler handler) {
+	public TryEdge(BlockNode source, BlockNode target, @NotNull ExceptionHandler handler) {
 		this(source, target, TryEdgeType.HANDLER, Optional.of(handler));
 	}
 
-	public TryEdge(final BlockNode source, final BlockNode target, final TryEdgeType type, final Optional<ExceptionHandler> handler) {
+	public TryEdge(BlockNode source, BlockNode target, TryEdgeType type, Optional<ExceptionHandler> handler) {
 		this.source = source;
 		this.target = target;
 		this.handler = handler;
@@ -41,7 +41,7 @@ public final class TryEdge {
 	}
 
 	@Override
-	public final String toString() {
+	public String toString() {
 		StringBuilder sb = new StringBuilder("TryEdge: [");
 		sb.append(type);
 		sb.append(' ');
@@ -58,12 +58,12 @@ public final class TryEdge {
 	}
 
 	@Override
-	public final boolean equals(Object obj) {
+	public boolean equals(Object obj) {
 		if (!(obj instanceof TryEdge)) {
 			return false;
 		}
 
-		final TryEdge other = (TryEdge) obj;
+		TryEdge other = (TryEdge) obj;
 
 		return source.equals(other.source)
 				&& target.equals(other.target)
@@ -72,31 +72,31 @@ public final class TryEdge {
 	}
 
 	@Override
-	public final int hashCode() {
+	public int hashCode() {
 		return Objects.hash(source, target, type, handler);
 	}
 
-	public final BlockNode getSource() {
+	public BlockNode getSource() {
 		return source;
 	}
 
-	public final BlockNode getTarget() {
+	public BlockNode getTarget() {
 		return target;
 	}
 
-	public final TryEdgeType getType() {
+	public TryEdgeType getType() {
 		return type;
 	}
 
-	public final boolean isHandlerExit() {
+	public boolean isHandlerExit() {
 		return type == TryEdgeType.HANDLER;
 	}
 
-	public final boolean isNotHandlerExit() {
+	public boolean isNotHandlerExit() {
 		return !isHandlerExit();
 	}
 
-	public final ExceptionHandler getExceptionHandler() {
+	public ExceptionHandler getExceptionHandler() {
 		if (!isHandlerExit()) {
 			throw new JadxRuntimeException("Attempted to get the exception handler of a non-handler edge type");
 		}

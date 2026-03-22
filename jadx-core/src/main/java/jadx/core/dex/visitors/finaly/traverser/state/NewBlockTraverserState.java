@@ -9,23 +9,22 @@ import jadx.core.dex.visitors.finaly.traverser.handlers.BaseBlockTraverserHandle
 
 public final class NewBlockTraverserState extends TraverserState {
 
-	public static final TraverserStateFactory<NewBlockTraverserState> getFactory(final CentralityState centralityState,
-			final TraverserBlockInfo blockInsnInfo) {
+	public static TraverserStateFactory<NewBlockTraverserState> getFactory(CentralityState centralityState,
+			TraverserBlockInfo blockInsnInfo) {
 		return new NewBlockStateFactory(centralityState, blockInsnInfo);
 	}
 
 	private static class NewBlockStateFactory extends TraverserStateFactory<NewBlockTraverserState> {
-
 		private final CentralityState centralityState;
 		private final TraverserBlockInfo blockInsnInfo;
 
-		public NewBlockStateFactory(final CentralityState centralityState, final TraverserBlockInfo blockInsnInfo) {
+		public NewBlockStateFactory(CentralityState centralityState, TraverserBlockInfo blockInsnInfo) {
 			this.centralityState = centralityState;
 			this.blockInsnInfo = blockInsnInfo;
 		}
 
 		@Override
-		public NewBlockTraverserState generateInternalState(final TraverserActivePathState state) {
+		public NewBlockTraverserState generateInternalState(TraverserActivePathState state) {
 			return new NewBlockTraverserState(state, centralityState, blockInsnInfo);
 		}
 	}
@@ -33,20 +32,19 @@ public final class NewBlockTraverserState extends TraverserState {
 	private final CentralityState centralityState;
 	private final @Nullable TraverserBlockInfo blockInsnInfo;
 
-	public NewBlockTraverserState(final TraverserActivePathState state, final CentralityState centralityState,
-			final TraverserBlockInfo blockInsnInfo) {
+	public NewBlockTraverserState(TraverserActivePathState state, CentralityState centralityState, TraverserBlockInfo blockInsnInfo) {
 		super(state);
 		this.centralityState = centralityState;
 		this.blockInsnInfo = blockInsnInfo;
 	}
 
 	@Override
-	public final ComparisonState getCompareState() {
+	public ComparisonState getCompareState() {
 		return ComparisonState.NOT_READY;
 	}
 
 	@Override
-	public final boolean isTerminal() {
+	public boolean isTerminal() {
 		return false;
 	}
 
@@ -68,12 +66,9 @@ public final class NewBlockTraverserState extends TraverserState {
 	}
 
 	@Override
-	protected final TraverserState duplicateInternalState(final TraverserActivePathState comparatorState) {
-		final CentralityState dCentralityState = centralityState.duplicate();
-		final TraverserBlockInfo dBlockInsnInfo = blockInsnInfo.duplicate();
-
-		final TraverserState duplicated = new NewBlockTraverserState(comparatorState, dCentralityState, dBlockInsnInfo);
-
-		return duplicated;
+	protected TraverserState duplicateInternalState(TraverserActivePathState comparatorState) {
+		CentralityState dCentralityState = centralityState.duplicate();
+		TraverserBlockInfo dBlockInsnInfo = blockInsnInfo.duplicate();
+		return new NewBlockTraverserState(comparatorState, dCentralityState, dBlockInsnInfo);
 	}
 }
