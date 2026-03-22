@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.utils.TypeUtils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.CHANGED;
@@ -102,9 +103,10 @@ public final class TypeUpdate {
 			}
 			updateInfo.applyUpdates();
 			return CHANGED;
+		} catch (JadxOverflowException e) {
+			throw e;
 		} catch (Exception e) {
-			mth.addWarnComment("Type update failed for variable: " + ssaVar + ", new type: " + candidateType, e);
-			return REJECT;
+			throw new JadxRuntimeException("Type update failed for variable: " + ssaVar + ", new type: " + candidateType, e);
 		}
 	}
 
