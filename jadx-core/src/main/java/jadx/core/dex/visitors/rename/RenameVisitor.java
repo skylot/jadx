@@ -72,7 +72,7 @@ public class RenameVisitor extends AbstractVisitor {
 					pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
 					pkgUpdated = true;
 					// verify the new name also doesn't conflict
-					while (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
+					if (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
 						pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
 					}
 				}
@@ -90,7 +90,7 @@ public class RenameVisitor extends AbstractVisitor {
 					clsInfo.changeShortName(aliasProvider.forClass(cls));
 					cls.addAttr(new RenameReasonAttr(cls).append("case insensitive filesystem"));
 					// verify the new name also doesn't conflict
-					while (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
+					if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
 						clsInfo.changeShortName(aliasProvider.forClass(cls));
 					}
 				}
