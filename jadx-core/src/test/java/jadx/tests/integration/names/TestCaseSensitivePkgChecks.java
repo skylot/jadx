@@ -12,7 +12,8 @@ import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 public class TestCaseSensitivePkgChecks extends SmaliTest {
 	/*
 	 * com.Example.Foo and com.example.Foo - same class name in packages that differ only by case.
-	 * On case-insensitive FS both would map to the same path (com/example/foo), requiring package rename.
+	 * On case-insensitive FS both would map to the same path (com/example/foo), requiring package
+	 * rename.
 	 */
 
 	@Test
