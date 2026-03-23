@@ -59,23 +59,42 @@ public class RenameVisitor extends AbstractVisitor {
 			checkFields(aliasProvider, cls, args);
 			checkMethods(aliasProvider, cls, args);
 		}
+		boolean pkgUpdated = false;
+		for (PackageNode pkg : root.getPackages()) {
+			pkgUpdated |= checkPackage(args, aliasProvider, pkg);
+		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
+			// check for package directory conflicts on case insensitive filesystems
+			Set<String> pkgPaths = new HashSet<>();
+			for (PackageNode pkg : root.getPackages()) {
+				String pkgPath = pkg.getAliasPkgInfo().getFullName().toLowerCase();
+				if (!pkgPaths.add(pkgPath)) {
+					pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
+					pkgUpdated = true;
+					// verify the new name also doesn't conflict
+					while (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
+						pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
+					}
+				}
+			}
+		}
+		if (pkgUpdated) {
+			root.runPackagesUpdate();
+		}
+		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
+			// check for class file conflicts on case insensitive filesystems (run after package rename)
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
 			for (ClassNode cls : classes) {
 				ClassInfo clsInfo = cls.getClassInfo();
 				if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
 					clsInfo.changeShortName(aliasProvider.forClass(cls));
 					cls.addAttr(new RenameReasonAttr(cls).append("case insensitive filesystem"));
-					clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase());
+					// verify the new name also doesn't conflict
+					while (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
+						clsInfo.changeShortName(aliasProvider.forClass(cls));
+					}
 				}
 			}
-		}
-		boolean pkgUpdated = false;
-		for (PackageNode pkg : root.getPackages()) {
-			pkgUpdated |= checkPackage(args, aliasProvider, pkg);
-		}
-		if (pkgUpdated) {
-			root.runPackagesUpdate();
 		}
 		processRootPackages(aliasProvider, root, classes);
 	}
