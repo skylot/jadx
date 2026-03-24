@@ -84,14 +84,15 @@ public class JadxCommonFiles {
 		 * Return JNI, Foreign or PowerShell implementation
 		 */
 		private static Windows getWinDirs() {
-			Windows defSup = Windows.getDefaultSupplier().get();
-			if (defSup instanceof WindowsPowerShell) {
+			Windows impl = Windows.getDefaultSupplier().get();
+			if (impl instanceof WindowsPowerShell) {
 				if (JadxSystemInfo.IS_AMD64) {
-					// JNI library compiled for x86-64
-					return new WindowsJni();
+					// JNI library compiled only for x86-64
+					impl = new WindowsJni();
 				}
 			}
-			return defSup;
+			LOG.debug("Using win dirs implementation: {}", impl.getClass().getSimpleName());
+			return impl;
 		}
 
 		public Path getCacheDir() {

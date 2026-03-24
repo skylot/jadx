@@ -2,6 +2,7 @@ package jadx.commons.app;
 
 import java.util.Locale;
 
+@SuppressWarnings("unused")
 public class JadxSystemInfo {
 	public static final String JAVA_VM = System.getProperty("java.vm.name", "?");
 	public static final String JAVA_VER = System.getProperty("java.version", "?");
@@ -16,7 +17,7 @@ public class JadxSystemInfo {
 	public static final boolean IS_LINUX = !IS_WINDOWS && !IS_MAC;
 	public static final boolean IS_UNIX = !IS_WINDOWS;
 
-	private static final String OS_ARCH_LOWER = OS_NAME.toLowerCase(Locale.ENGLISH);
+	private static final String OS_ARCH_LOWER = OS_ARCH.toLowerCase(Locale.ENGLISH);
 	public static final boolean IS_AMD64 = OS_ARCH_LOWER.equals("amd64");
 	public static final boolean IS_ARM64 = OS_ARCH_LOWER.equals("aarch64");
 
