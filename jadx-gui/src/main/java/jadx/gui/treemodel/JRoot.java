@@ -1,6 +1,5 @@
 package jadx.gui.treemodel;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +26,7 @@ public class JRoot extends JNode {
 	private static final long serialVersionUID = 8888495789773527342L;
 
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/rootPackageFolder");
+	private static final Pattern SPLIT_PATH_PATTERN = Pattern.compile("[/\\\\]+");
 
 	private final transient JadxWrapper wrapper;
 	private final transient MainWindow mainWindow;
@@ -56,15 +56,9 @@ public class JRoot extends JNode {
 
 	private JResource getHierarchyResources(List<ResourceFile> resources) {
 		JResource root = new JResource(null, NLS.str("tree.resources_title"), JResType.ROOT);
-		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
-			String rfName;
-			if (rf.getZipEntry() != null) {
-				rfName = rf.getDeobfName();
-			} else {
-				rfName = new File(rf.getDeobfName()).getName();
-			}
-			String[] parts = new File(rfName).getPath().split(splitPathStr);
+			String rfName = rf.getDeobfName();
+			String[] parts = SPLIT_PATH_PATTERN.split(rfName);
 			JResource curRf = root;
 			int count = parts.length;
 			for (int i = 0; i < count - 1; i++) {
