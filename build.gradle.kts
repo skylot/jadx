@@ -126,6 +126,13 @@ val pack by tasks.registering(Zip::class) {
 	from(copyArtifacts)
 	archiveFileName.set("jadx-$jadxVersion.zip")
 	destinationDirectory.set(layout.buildDirectory)
+	eachFile {
+		if (path == "bin/jadx" || path == "bin/jadx-gui") {
+			permissions {
+				unix("rwxr-xr-x")
+			}
+		}
+	}
 }
 
 val distWin by tasks.registering(Zip::class) {
