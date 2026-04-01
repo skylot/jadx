@@ -111,23 +111,26 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			RegisterArg resArg;
 			if (thenPhi.getArgsCount() == 2) {
 				resArg = thenPhi.getResult();
-				InsnRemover.unbindResult(mth, thenInsn);
 			} else {
 				resArg = thenResArg;
 				thenPhi.removeArg(elseResArg);
 			}
-			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
-			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
-			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
+			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn.copyWithoutResult());
+			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn.copyWithoutResult());
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg.duplicate(), thenArg, elseArg);
 			int branchLine = Math.max(thenInsn.getSourceLine(), elseInsn.getSourceLine());
 			ternInsn.setSourceLine(Math.max(ifRegion.getSourceLine(), branchLine));
 
-			thenInsn.setResult(null); // unset without unbind, SSA var still in use
-			InsnRemover.unbindResult(mth, elseInsn);
+			InsnRemover.unbindInsn(mth, thenInsn);
+			InsnRemover.unbindInsn(mth, elseInsn);
+			ternInsn.rebindArgs();
+			if (thenPhi.getArgsCount() == 0) {
+				InsnRemover.unbindResult(mth, thenPhi);
+				InsnRemover.delistPhi(mth, thenPhi);
+			}
 
 			// remove 'if' instruction
 			header.getInstructions().clear();
-			ternInsn.rebindArgs();
 			header.getInstructions().add(ternInsn);
 
 			clearConditionBlocks(conditionBlocks, header);
@@ -321,11 +324,11 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		InsnArg elseArg;
 		if (elseAssign != null && elseAssign.isConstInsn()) {
 			// inline constant
+			elseArg = InsnArg.wrapInsnIntoArg(elseAssign.copyWithoutResult());
 			SSAVar elseVar = elseAssign.getResult().getSVar();
 			if (elseVar.getUseCount() == 1 && elseVar.getOnlyOneUseInPhi() == phiInsn) {
 				InsnRemover.remove(mth, elseAssign);
 			}
-			elseArg = InsnArg.wrapInsnIntoArg(elseAssign);
 		} else {
 			elseArg = otherArg.duplicate();
 		}

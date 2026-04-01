@@ -84,7 +84,7 @@ public final class InsnWrapArg extends InsnArg {
 		if (wrappedInsn.getType() == InsnType.CONST_STR) {
 			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
 		}
-		return "(wrap:" + type + ":" + wrappedInsn.getType() + ')';
+		return "(wrap " + type + ":" + wrappedInsn.getType() + ')';
 	}
 
 	@Override
@@ -92,6 +92,6 @@ public final class InsnWrapArg extends InsnArg {
 		if (wrappedInsn.getType() == InsnType.CONST_STR) {
 			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
 		}
-		return "(wrap:" + type + ":" + wrappedInsn + ')';
+		return "(wrap " + type + ":" + wrappedInsn + ')';
 	}
 }

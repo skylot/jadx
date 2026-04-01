@@ -78,8 +78,13 @@ public class DebugChecks {
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg instanceof RegisterArg) {
 				checkVar(mth, insn, (RegisterArg) arg);
-			} else if (arg.isInsnWrap()) {
+			} else if (arg instanceof InsnWrapArg) {
 				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				if (wrapInsn.contains(AFlag.DONT_GENERATE)
+						&& !insn.contains(AFlag.DONT_GENERATE)
+						&& !mth.contains(AFlag.DONT_GENERATE)) {
+					throw new JadxRuntimeException("Not generated wrapped insn: \n " + wrapInsn + ",\nouter insn:\n " + insn);
+				}
 				checkInsn(mth, block, wrapInsn);
 			}
 		}

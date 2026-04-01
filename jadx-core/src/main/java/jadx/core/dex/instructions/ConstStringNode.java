@@ -35,6 +35,6 @@ public final class ConstStringNode extends InsnNode {
 
 	@Override
 	public String toString() {
-		return super.toString() + ' ' + StringUtils.getInstance().unescapeString(str);
+		return super.baseString() + StringUtils.getInstance().unescapeString(str) + super.attributesString();
 	}
 }
