@@ -130,9 +130,6 @@ public final class TryEdgeScopeGroupMap implements Map<TryEdge, Map<TryEdge, Blo
 	/**
 	 * Returns a map of all points where edges meet with each other, dictating the end of that
 	 * edge's scope.
-	 *
-	 * @param mth
-	 * @return
 	 */
 	public Map<BlockNode, List<TryEdge>> getScopeEnds(MethodNode mth) {
 		Map<BlockNode, List<TryEdge>> groups = new HashMap<>();
