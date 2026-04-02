@@ -127,17 +127,24 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void checkForUnreachableBlocks(MethodNode mth) {
-		for (BlockNode block : mth.getBasicBlocks()) {
-			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				// Sometimes a split cross block will have all it's predecessors moved elsewhere after it's been
-				// created. This is usually detected at the time of it's creation, but in certain edge cases it
-				// is difficult to do so. In those cases it will be cleanly removed here, along with the associated
-				// bottom splitter.
-				if (block.contains(AType.EXC_SPLIT_CROSS) && fixUnreachableSplitCross(mth, block)) {
-					mth.addInfoComment("Removed unreachable split cross block " + block.toString());
-				} else {
+		while (true) {
+			boolean fixed = false;
+			for (BlockNode block : mth.getBasicBlocks()) {
+				if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+					// Sometimes a split cross block will have all it's predecessors moved elsewhere after it's been
+					// created. This is usually detected at the time of it's creation, but in certain edge cases it
+					// is difficult to do so. In those cases it will be cleanly removed here, along with the associated
+					// bottom splitter.
+					if (block.contains(AType.EXC_SPLIT_CROSS) && fixUnreachableSplitCross(mth, block)) {
+						mth.addInfoComment("Removed unreachable split cross block " + block);
+						fixed = true;
+						break;
+					}
 					throw new JadxRuntimeException("Unreachable block: " + block);
 				}
+			}
+			if (!fixed) {
+				break;
 			}
 		}
 	}
@@ -159,7 +166,6 @@ public class BlockProcessor extends AbstractVisitor {
 				break;
 			}
 		}
-
 		if (bottomSplitter == null || bottomSplitter.getPredecessors().size() != 1) {
 			return false;
 		}
@@ -167,7 +173,6 @@ public class BlockProcessor extends AbstractVisitor {
 		removeSet.add(bottomSplitter);
 		removeSet.add(splitCross);
 		removeFromMethod(removeSet, mth);
-
 		return true;
 	}
 
