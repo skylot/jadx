@@ -131,6 +131,7 @@ public abstract class InsnArg extends Typed {
 				}
 			}
 		}
+		RegisterArg resArg = insn.getResult();
 		InsnArg arg = wrapInsnIntoArg(insn);
 		InsnArg oldArg = parent.getArg(i);
 		if (arg.getType() == ArgType.UNKNOWN) {
@@ -141,6 +142,8 @@ public abstract class InsnArg extends Typed {
 		InsnRemover.unbindArgUsage(mth, oldArg);
 		if (unbind) {
 			InsnRemover.unbindArgUsage(mth, this);
+		}
+		if (resArg != null && !insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 			// result not needed in wrapped insn
 			InsnRemover.unbindResult(mth, insn);
 			insn.setResult(null);
@@ -323,9 +326,7 @@ public abstract class InsnArg extends Typed {
 		return copy;
 	}
 
-	public InsnArg duplicate() {
-		return this;
-	}
+	public abstract InsnArg duplicate();
 
 	public String toShortString() {
 		return this.toString();

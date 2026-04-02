@@ -151,7 +151,7 @@ public class InsnRemover {
 		}
 		// check if all usage only in not generated instructions
 		if (allMatch(ssaVar.getUseList(),
-				arg -> arg.contains(AFlag.DONT_GENERATE) || (InsnUtils.contains(arg.getParentInsn(), AFlag.DONT_GENERATE)))) {
+				arg -> arg.contains(AFlag.DONT_GENERATE) || InsnUtils.contains(arg.getParentInsn(), AFlag.DONT_GENERATE))) {
 			for (RegisterArg arg : ssaVar.getUseList()) {
 				arg.resetSSAVar();
 			}

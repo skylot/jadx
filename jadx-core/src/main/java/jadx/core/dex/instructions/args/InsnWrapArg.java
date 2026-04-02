@@ -41,7 +41,14 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public InsnArg duplicate() {
-		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copyWithoutResult());
+		InsnNode wrapInsn = wrappedInsn;
+		InsnNode wrapInsnCopy = wrapInsn.copyWithoutResult();
+		if (wrapInsn.getResult() != null && wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+			// keep same SSA var in result arg, this will break previous version, mark it for removal
+			wrapInsnCopy.setResult(wrapInsn.getResult().duplicate());
+			wrapInsn.add(AFlag.DONT_GENERATE);
+		}
+		InsnWrapArg copy = new InsnWrapArg(wrapInsnCopy);
 		copy.setType(type);
 		return copyCommonParams(copy);
 	}

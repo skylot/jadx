@@ -85,6 +85,9 @@ public class DebugChecks {
 						&& !mth.contains(AFlag.DONT_GENERATE)) {
 					throw new JadxRuntimeException("Not generated wrapped insn: \n " + wrapInsn + ",\nouter insn:\n " + insn);
 				}
+				if (wrapInsn.getResult() != null && !wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+					throw new JadxRuntimeException("Wrapped insn result should be removed: \n " + wrapInsn + ",\nouter insn:\n " + insn);
+				}
 				checkInsn(mth, block, wrapInsn);
 			}
 		}

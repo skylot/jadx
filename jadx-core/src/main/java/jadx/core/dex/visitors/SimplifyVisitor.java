@@ -114,8 +114,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 				InsnNode replaceInsn = simplifyInsn(mth, wrapInsn, insn);
 				if (replaceInsn != null) {
-					arg.wrapInstruction(mth, replaceInsn, false);
-					InsnRemover.unbindInsn(mth, wrapInsn);
+					arg.wrapInstruction(mth, replaceInsn);
 					changed = true;
 				}
 			}
