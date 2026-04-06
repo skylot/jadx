@@ -35,6 +35,7 @@ public final class JadxZipEntry implements IZipEntry {
 		return compressedSize <= uncompressedSize;
 	}
 
+	@Override
 	public String getName() {
 		return fileName;
 	}

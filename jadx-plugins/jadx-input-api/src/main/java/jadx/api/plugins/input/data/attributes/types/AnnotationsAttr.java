@@ -16,8 +16,7 @@ import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 
 public class AnnotationsAttr extends PinnedAttribute {
 
-	@Nullable
-	public static AnnotationsAttr pack(List<IAnnotation> annotationList) {
+	public static @Nullable AnnotationsAttr pack(List<IAnnotation> annotationList) {
 		if (annotationList.isEmpty()) {
 			return null;
 		}
@@ -39,7 +38,7 @@ public class AnnotationsAttr extends PinnedAttribute {
 		this.map = map;
 	}
 
-	public IAnnotation get(String className) {
+	public @Nullable IAnnotation get(String className) {
 		return map.get(className);
 	}
 

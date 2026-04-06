@@ -1,14 +1,20 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.errorprone
+import net.ltgt.gradle.nullaway.nullaway
 
 plugins {
 	java
 	checkstyle
 
 	id("jadx-rewrite")
+	id("net.ltgt.errorprone")
+	id("net.ltgt.nullaway")
 }
 
 val jadxVersion: String by rootProject.extra
 val jadxBuildJavaVersion: Int? by rootProject.extra
+val jadxBuildChecksMode: String by rootProject.extra
 
 group = "io.github.skylot"
 version = jadxVersion
@@ -24,6 +30,9 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	testCompileOnly("org.jetbrains:annotations:26.1.0")
+
+	errorprone("com.google.errorprone:error_prone_core:2.48.0")
+	errorprone("com.uber.nullaway:nullaway:0.13.1")
 }
 
 repositories {
@@ -60,5 +69,29 @@ tasks {
 			exceptionFormat = TestExceptionFormat.FULL
 			showCauses = true
 		}
+	}
+}
+
+tasks.withType<JavaCompile>().configureEach {
+	val checkEnabled = jadxBuildChecksMode != "off"
+	if (checkEnabled) {
+		options.compilerArgs.add("-XDaddTypeAnnotationsToSymbol=true")
+	}
+	options.errorprone {
+		isEnabled = checkEnabled
+		allErrorsAsWarnings = jadxBuildChecksMode == "warn"
+		excludedPaths = ".*/test/.*"
+		nullaway {
+			if (jadxBuildChecksMode == "error") {
+				error()
+			}
+			annotatedPackages.add("jadx")
+		}
+		// TODO: fix and enable all checks
+		disable("MixedMutabilityReturnType")
+		disable("EqualsGetClass")
+		disable("OperatorPrecedence")
+		disable("UnusedVariable")
+		disable("ImmutableEnumChecker")
 	}
 }

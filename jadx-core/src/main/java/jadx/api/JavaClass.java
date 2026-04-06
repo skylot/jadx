@@ -6,12 +6,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
@@ -26,11 +25,9 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.ListUtils;
 
 public final class JavaClass implements JavaNode {
-	private static final Logger LOG = LoggerFactory.getLogger(JavaClass.class);
-
-	private final JadxDecompiler decompiler;
+	private final @Nullable JadxDecompiler decompiler;
 	private final ClassNode cls;
-	private final JavaClass parent;
+	private final @Nullable JavaClass parent;
 
 	private List<JavaClass> innerClasses = Collections.emptyList();
 	private List<JavaClass> inlinedClasses = Collections.emptyList();
@@ -38,7 +35,7 @@ public final class JavaClass implements JavaNode {
 	private List<JavaMethod> methods = Collections.emptyList();
 	private boolean listsLoaded;
 
-	JavaClass(ClassNode classNode, JadxDecompiler decompiler) {
+	JavaClass(ClassNode classNode, @NotNull JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
 		this.cls = classNode;
 		this.parent = null;
@@ -47,7 +44,7 @@ public final class JavaClass implements JavaNode {
 	/**
 	 * Inner classes constructor
 	 */
-	JavaClass(ClassNode classNode, JavaClass parent) {
+	JavaClass(ClassNode classNode, @NotNull JavaClass parent) {
 		this.decompiler = null;
 		this.cls = classNode;
 		this.parent = parent;
@@ -67,6 +64,21 @@ public final class JavaClass implements JavaNode {
 
 	public void decompile() {
 		load();
+	}
+
+	/**
+	 * Detect if calling load() would trigger a potentially expensive decompilation operation.
+	 */
+	public boolean loadingWouldRequireDecompilation() {
+		if (listsLoaded) {
+			// lists are already populated, so it's safe regardless of the state of the class itself
+			return false;
+		}
+		if (cls.getState().isProcessComplete()) {
+			// decompilation has already finished
+			return false;
+		}
+		return true;
 	}
 
 	public synchronized ICodeInfo reload() {
@@ -187,10 +199,10 @@ public final class JavaClass implements JavaNode {
 		if (parent != null) {
 			return parent.getRootDecompiler();
 		}
-		return decompiler;
+		return Objects.requireNonNull(decompiler);
 	}
 
-	public ICodeAnnotation getAnnotationAt(int pos) {
+	public @Nullable ICodeAnnotation getAnnotationAt(int pos) {
 		return getCodeInfo().getCodeMetadata().getAt(pos);
 	}
 
@@ -259,7 +271,7 @@ public final class JavaClass implements JavaNode {
 	}
 
 	@Override
-	public JavaClass getDeclaringClass() {
+	public @Nullable JavaClass getDeclaringClass() {
 		return parent;
 	}
 
@@ -361,22 +373,5 @@ public final class JavaClass implements JavaNode {
 	@Override
 	public String toString() {
 		return getFullName();
-	}
-
-	/**
-	 * Detect if calling load() would trigger a potentially expensive decompilation operation.
-	 */
-	public boolean loadingWouldRequireDecompilation() {
-		if (listsLoaded) {
-			// lists are already poplulated, so it's safe regardless of the state of the class itself
-			return false;
-		}
-
-		if (cls.getState().isProcessComplete()) {
-			// decompilation has already finished
-			return false;
-		}
-
-		return true;
 	}
 }

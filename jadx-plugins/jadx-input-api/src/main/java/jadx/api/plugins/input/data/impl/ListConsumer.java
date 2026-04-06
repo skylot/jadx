@@ -9,7 +9,7 @@ import jadx.api.plugins.input.data.ISeqConsumer;
 
 public class ListConsumer<T, R> implements ISeqConsumer<T> {
 	private final Function<T, R> convert;
-	private List<R> list;
+	private List<R> list = new ArrayList<>();
 
 	public ListConsumer(Function<T, R> convert) {
 		this.convert = convert;
@@ -26,10 +26,6 @@ public class ListConsumer<T, R> implements ISeqConsumer<T> {
 	}
 
 	public List<R> getResult() {
-		if (list == null) {
-			// init not called
-			return Collections.emptyList();
-		}
 		return list;
 	}
 }

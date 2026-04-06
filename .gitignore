@@ -39,5 +39,7 @@ jadx-output/
 *.orig
 quark.json
 
+.env
+
 cliff.toml
 jadx-gui/src/main/resources/logback.xml

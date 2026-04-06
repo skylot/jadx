@@ -3,6 +3,7 @@ package jadx.core.utils;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -295,7 +296,7 @@ public class Utils {
 				}
 			}
 		};
-		try (PrintWriter pw = new PrintWriter(w, true)) {
+		try (PrintWriter pw = new PrintWriter(w, true, StandardCharsets.UTF_8)) {
 			filterRecursive(throwable);
 			throwable.printStackTrace(pw);
 			pw.flush();
@@ -618,7 +619,7 @@ public class Utils {
 		private final AtomicInteger number = new AtomicInteger(0);
 		private final String name;
 
-		public SimpleThreadFactory(String name) {
+		SimpleThreadFactory(String name) {
 			this.name = name;
 		}
 

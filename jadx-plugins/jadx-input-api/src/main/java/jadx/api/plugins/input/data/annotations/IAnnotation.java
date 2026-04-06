@@ -11,8 +11,7 @@ public interface IAnnotation {
 
 	Map<String, EncodedValue> getValues();
 
-	@Nullable
-	default EncodedValue getDefaultValue() {
+	default @Nullable EncodedValue getDefaultValue() {
 		return getValues().get("value");
 	}
 }

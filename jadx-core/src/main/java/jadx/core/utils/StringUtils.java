@@ -209,7 +209,7 @@ public class StringUtils {
 		return sb.toString();
 	}
 
-	private static String escapeXmlChar(char c) {
+	private static @Nullable String escapeXmlChar(char c) {
 		if (c <= 0x1F) {
 			return "\\" + (int) c;
 		}
@@ -231,7 +231,7 @@ public class StringUtils {
 		}
 	}
 
-	private static String escapeWhiteSpaceChar(char c) {
+	private static @Nullable String escapeWhiteSpaceChar(char c) {
 		switch (c) {
 			case '\n':
 				return "\\n";

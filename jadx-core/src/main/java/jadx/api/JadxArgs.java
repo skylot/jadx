@@ -95,7 +95,7 @@ public class JadxArgs implements Closeable {
 	/**
 	 * Predicate that allows to filter the classes to be process based on their full name
 	 */
-	private Predicate<String> classFilter = null;
+	private @Nullable Predicate<String> classFilter = null;
 
 	/**
 	 * Save dependencies for classes accepted by {@code classFilter}
@@ -227,7 +227,6 @@ public class JadxArgs implements Closeable {
 	@Override
 	public void close() {
 		try {
-			inputFiles = null;
 			if (codeCache != null) {
 				codeCache.close();
 			}
@@ -239,9 +238,6 @@ public class JadxArgs implements Closeable {
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to close JadxArgs", e);
-		} finally {
-			codeCache = null;
-			usageInfoCache = null;
 		}
 	}
 

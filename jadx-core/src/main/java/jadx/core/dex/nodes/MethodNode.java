@@ -74,7 +74,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	// decompilation data, reset on unload
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
-	private InsnNode[] instructions;
+	private @Nullable InsnNode[] instructions;
 	private List<BlockNode> blocks;
 	private int blocksMaxCId;
 	private BlockNode enterBlock;
@@ -106,11 +106,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
 		ICodeReader codeReader = mthData.getCodeReader();
-		this.noCode = codeReader == null;
-		if (noCode) {
+		if (codeReader == null) {
+			this.noCode = true;
 			this.codeReader = null;
 			this.insnsCount = 0;
 		} else {
+			this.noCode = false;
 			this.codeReader = codeReader.copy();
 			this.insnsCount = codeReader.getUnitsCount();
 		}
@@ -713,6 +714,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	// Cannot modify through get, use setUseIn
+	@Override
 	public List<MethodNode> getUseIn() {
 		return Collections.unmodifiableList(useIn);
 	}
@@ -721,7 +723,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
 
-		// Notify all methods (callers) this method (calee) is used in
+		// Notify all methods (callers) this method (callee) is used in
 		for (MethodNode methodUsedIn : useIn) {
 			methodUsedIn.addUsed(this);
 		}
