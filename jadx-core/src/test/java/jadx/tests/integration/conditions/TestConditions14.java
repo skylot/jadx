@@ -3,7 +3,8 @@ package jadx.tests.integration.conditions;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestConditions14 extends IntegrationTest {
 
@@ -22,9 +23,15 @@ public class TestConditions14 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("boolean r = a == null ? b != null : !a.equals(b);")
+				.containsLines(2,
+						"boolean r;",
+						"if (a == null) {",
+						indent() + "r = b != null;",
+						"} else {",
+						indent() + "r = !a.equals(b);",
+						"}")
 				.containsOne("if (r) {")
 				.containsOne("System.out.println(\"r=\" + r);");
 	}

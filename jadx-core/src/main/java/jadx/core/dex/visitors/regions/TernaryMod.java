@@ -31,13 +31,18 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 	private static final TernaryMod INSTANCE = new TernaryMod();
 
 	public static void process(MethodNode mth) {
-		// first: convert all found ternary nodes in one iteration
+		boolean changed = false;
+		// convert all found ternary nodes in one iteration
 		DepthRegionTraversal.traverse(mth, INSTANCE);
 		if (mth.contains(AFlag.REQUEST_CODE_SHRINK)) {
 			CodeShrinkVisitor.shrinkMethod(mth);
+			changed = true;
 		}
-		// second: iterative runs with shrink after each change
-		DepthRegionTraversal.traverseIterative(mth, INSTANCE);
+		if (changed && mth.isConstructor()) {
+			// aggressive mode to help code inline before super call in constructor
+			// iterative runs with shrink after each change
+			DepthRegionTraversal.traverseIterative(mth, INSTANCE);
+		}
 	}
 
 	@Override
