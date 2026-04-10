@@ -123,6 +123,7 @@ import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
@@ -618,9 +619,23 @@ public class MainWindow extends JFrame {
 					onFinish.run();
 					checkIfCodeHasNonPrintableChars();
 					runInitialBackgroundJobs();
+					prepareInitialView();
 				});
 		// queue tree state restore after loading task
 		treeExpansionService.load(project.getTreeExpansions());
+	}
+
+	private void prepareInitialView() {
+		UiUtils.uiThreadGuard();
+		// open single class
+		wrapper.getCurrentDecompiler().ifPresent(decompiler -> {
+			List<JavaClass> classes = decompiler.getClasses();
+			if (classes.size() == 1) {
+				JClass singleCls = cacheObject.getNodeCache().makeFrom(classes.get(0));
+				tabsController.codeJump(singleCls, true);
+				selectNodeInTree(singleCls);
+			}
+		});
 	}
 
 	public void passesReloaded() {
