@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -55,20 +57,20 @@ public class RegionMaker {
 			insertEdgeInsns(region, startBlock);
 			return region;
 		}
-
 		if (processedBlocks.addChecked(startBlock)) {
-			mth.addWarnComment("Found duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
-			// Add block to multiple regions (duplicate the instructions in decompiled code) and allow
-			// processing to continue
+			// Add block to multiple regions (duplicate the instructions in decompiled code)
+			// and allow processing to continue
+			if (!startBlock.contains(AFlag.DUPLICATED)) {
+				mth.addWarnComment("Code duplicated, block: " + startBlock + ' ' + startBlock.getAttributesString());
+				startBlock.add(AFlag.DUPLICATED);
+			}
 		}
-
 		BlockNode next = startBlock;
-
 		while (next != null) {
 			next = traverse(region, next);
 			regionsCount++;
 			if (regionsCount > regionsLimit) {
-				throw new JadxOverflowException("Regions count limit reached at block " + startBlock.toString());
+				throw new JadxOverflowException("Regions count limit reached at block " + startBlock);
 			}
 		}
 		return region;
@@ -77,7 +79,7 @@ public class RegionMaker {
 	/**
 	 * Recursively traverse all blocks from 'block' until block from 'exits'
 	 */
-	private BlockNode traverse(IRegion r, BlockNode block) {
+	private @Nullable BlockNode traverse(IRegion r, BlockNode block) {
 		if (block.contains(AFlag.MTH_EXIT_BLOCK)) {
 			return null;
 		}

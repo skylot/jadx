@@ -86,6 +86,9 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		if (tb == null || eb == null) {
 			return false;
 		}
+		if (tb.contains(AFlag.DUPLICATED) || eb.contains(AFlag.DUPLICATED)) {
+			return false;
+		}
 		List<BlockNode> conditionBlocks = ifRegion.getConditionBlocks();
 		if (conditionBlocks.isEmpty()) {
 			return false;

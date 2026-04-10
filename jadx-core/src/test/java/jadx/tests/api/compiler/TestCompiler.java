@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
@@ -19,8 +21,8 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.IntegrationTest;
@@ -47,7 +49,8 @@ public class TestCompiler implements Closeable {
 				throw new IllegalStateException("Can not find compiler, please use JDK instead");
 			}
 		}
-		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+		fileManager = new ClassFileManager(compiler.getStandardFileManager(
+				System.out::println, Locale.ENGLISH, StandardCharsets.UTF_8));
 	}
 
 	public List<File> compileFiles(List<File> sourceFiles, Path outTmp) throws IOException {
@@ -74,23 +77,25 @@ public class TestCompiler implements Closeable {
 		List<String> arguments = new ArrayList<>();
 		arguments.add(options.isIncludeDebugInfo() ? "-g" : "-g:none");
 		int javaVersion = options.getJavaVersion();
-		String javaVerStr = javaVersion <= 8 ? "1." + javaVersion : Integer.toString(javaVersion);
-		arguments.add("-source");
-		arguments.add(javaVerStr);
-		arguments.add("-target");
-		arguments.add(javaVerStr);
+		if (javaVersion != 0) {
+			String javaVerStr = javaVersion <= 8 ? "1." + javaVersion : Integer.toString(javaVersion);
+			arguments.add("-source");
+			arguments.add(javaVerStr);
+			arguments.add("-target");
+			arguments.add(javaVerStr);
+		}
 		arguments.addAll(options.getArguments());
 
-		SimpleCodeWriter output = new SimpleCodeWriter();
+		StringBuilder sb = new StringBuilder();
 		DiagnosticListener<JavaFileObject> diagnostic = diagObj -> {
 			String msg = "Compiler diagnostic: " + diagObj;
-			output.startLine(msg);
+			sb.append('\n').append(msg);
 			System.out.println(msg);
 		};
 		Writer out = new PrintWriter(System.out);
 		CompilationTask compilerTask = compiler.getTask(out, fileManager, diagnostic, arguments, null, jfObjects);
 		if (Boolean.FALSE.equals(compilerTask.call())) {
-			throw new RuntimeException("Compilation failed: " + output);
+			throw new RuntimeException("Compilation failed: " + sb);
 		}
 	}
 
@@ -102,12 +107,11 @@ public class TestCompiler implements Closeable {
 		return getClassLoader().loadClass(clsFullName);
 	}
 
-	@NotNull
-	public Method getMethod(Class<?> cls, String methodName, Class<?>[] types) throws NoSuchMethodException {
+	public @NotNull Method getMethod(Class<?> cls, String methodName, Class<?>[] types) throws NoSuchMethodException {
 		return cls.getMethod(methodName, types);
 	}
 
-	public Object invoke(String clsFullName, String methodName, Class<?>[] types, Object[] args) {
+	public @Nullable Object invoke(String clsFullName, String methodName, Class<?>[] types, Object[] args) {
 		try {
 			for (Class<?> type : types) {
 				checkType(type);

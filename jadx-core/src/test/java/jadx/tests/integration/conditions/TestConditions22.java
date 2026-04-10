@@ -1,12 +1,14 @@
 package jadx.tests.integration.conditions;
 
-import jadx.tests.api.IntegrationTest;
+import org.junit.jupiter.api.Test;
+
+import jadx.tests.api.SmaliTest;
 import jadx.tests.api.extensions.profiles.TestProfile;
 import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
-public class TestConditions22 extends IntegrationTest {
+public class TestConditions22 extends SmaliTest {
 
 	public static class TestCls {
 
@@ -38,13 +40,17 @@ public class TestConditions22 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(test(1, 2)).isEqualTo(3);
-			assertThat(test(1, 1)).isEqualTo(0);
-			assertThat(test(2, 3)).isEqualTo(4);
-			assertThat(test(2, 2)).isEqualTo(0);
-			assertThat(test(3, 4)).isEqualTo(5);
-			assertThat(test(3, 3)).isEqualTo(0);
-			assertThat(test(4, 4)).isEqualTo(0);
+			verify(1, 2, 3);
+			verify(1, 1, 0);
+			verify(2, 3, 4);
+			verify(2, 2, 0);
+			verify(3, 4, 5);
+			verify(3, 3, 0);
+			verify(4, 4, 0);
+		}
+
+		private static void verify(int a, int b, int result) {
+			assertThat(test(a, b)).isEqualTo(result);
 		}
 	}
 
@@ -56,5 +62,13 @@ public class TestConditions22 extends IntegrationTest {
 				.containsOne(indent(2) + "if (")
 				.containsOne(indent(2) + "} else if (")
 				.containsOne(indent(2) + "} else {");
+	}
+
+	@Test
+	public void testSmali() {
+		allowWarnInCode(); // TODO: don't add 'duplicated region' warning for small and/or constant code
+		forceDecompiledCheck();
+		assertThat(getClassNodeFromSmali())
+				.code();
 	}
 }

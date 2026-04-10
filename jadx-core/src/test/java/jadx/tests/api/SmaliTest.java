@@ -28,6 +28,7 @@ public abstract class SmaliTest extends IntegrationTest {
 	}
 
 	@BeforeEach
+	@Override
 	public void init() {
 		Assumptions.assumeFalse(USE_JAVA_INPUT, "skip smali test for java input tests");
 		super.init();

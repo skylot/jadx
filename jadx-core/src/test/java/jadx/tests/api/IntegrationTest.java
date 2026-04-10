@@ -125,7 +125,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	/**
 	 * Run check method on decompiled code even if source check method not found.
-	 * Useful for smali test if check method added to smali code
+	 * Useful for Smali tests if check method added into Smali code
 	 */
 	private boolean forceDecompiledCheck = false;
 
@@ -263,7 +263,7 @@ public abstract class IntegrationTest extends TestUtils {
 	protected JadxDecompiler loadFiles(List<File> inputFiles) {
 		args.setInputFiles(inputFiles);
 		boolean useDx = !isJavaInput();
-		LOG.info(useDx ? "Using dex input" : "Using java input");
+		LOG.info(useDx ? "Using dex input" : "Using java input, current java version: " + JavaUtils.JAVA_VERSION_INT);
 		args.setUseDxInput(useDx);
 
 		JadxDecompiler d = new JadxDecompiler(args);

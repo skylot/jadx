@@ -220,6 +220,9 @@ public class InsnRemover {
 	}
 
 	public static void remove(MethodNode mth, BlockNode block, InsnNode insn) {
+		if (block.contains(AFlag.DUPLICATED)) {
+			mth.addWarnComment("Instruction removed from duplicated block: " + block + ", please report this as an issue");
+		}
 		unbindInsn(mth, insn);
 		removeWithoutUnbind(mth, block, insn);
 	}

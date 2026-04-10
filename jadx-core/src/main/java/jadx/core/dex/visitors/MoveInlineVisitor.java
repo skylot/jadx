@@ -2,7 +2,6 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.InsnType;
@@ -40,7 +39,6 @@ public class MoveInlineVisitor extends AbstractVisitor {
 					continue;
 				}
 				if (processMove(mth, insn)) {
-					block.add(AFlag.MOVE_INLINED);
 					remover.addAndUnbind(insn);
 				}
 			}

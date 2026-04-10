@@ -23,6 +23,11 @@ public enum TestProfile implements Consumer<IntegrationTest> {
 		test.keepParentClassOnInput();
 		test.getArgs().getPluginOptions().put("java-convert.d8-desugar", "yes");
 	}),
+	JAVA("java", test -> {
+		// do not set java version, use default for current compiler
+		test.useTargetJavaVersion(0);
+		test.useJavaInput();
+	}),
 	JAVA8("java-8", test -> {
 		test.useTargetJavaVersion(8);
 		test.useJavaInput();
@@ -45,7 +50,8 @@ public enum TestProfile implements Consumer<IntegrationTest> {
 		test.useTargetJavaVersion(8);
 		test.useJavaInput();
 	}),
-	ALL("all", null);
+	ALL("all", test -> {
+	});
 
 	private final String description;
 	private final Consumer<IntegrationTest> setup;

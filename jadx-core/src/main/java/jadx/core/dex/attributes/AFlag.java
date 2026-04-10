@@ -31,6 +31,7 @@ public enum AFlag {
 	FORCE_RAW_NAME, // force use of raw name instead alias
 
 	ADDED_TO_REGION,
+	DUPLICATED,
 
 	// this loop condition has been merged or otherwise shouldn't be subject to the 1 instruction limit
 	ALLOW_MULTIPLE_INSNS_LOOP_COND,
@@ -71,11 +72,6 @@ public enum AFlag {
 	 * Force inline instruction with inline assign
 	 */
 	FORCE_ASSIGN_INLINE,
-
-	/**
-	 * A MOVE instruction has been inlined
-	 */
-	MOVE_INLINED,
 
 	CUSTOM_DECLARE, // variable for this register don't need declaration
 	DECLARE_VAR,

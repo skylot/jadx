@@ -13,7 +13,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class RaungTest extends IntegrationTest {
 
@@ -22,6 +21,7 @@ public abstract class RaungTest extends IntegrationTest {
 	private static final String RAUNG_TESTS_EXT = ".raung";
 
 	@BeforeEach
+	@Override
 	public void init() {
 		super.init();
 		this.useJavaInput();
