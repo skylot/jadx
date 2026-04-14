@@ -43,11 +43,11 @@ public class TypeUpdateInfo {
 	}
 
 	public @Nullable TypeUpdateRequest pollNextRequest() {
-		return ListUtils.pollLast(queue);
+		return ListUtils.removeLast(queue);
 	}
 
 	public @Nullable TypeUpdateRequest pollNextCallback() {
-		return ListUtils.pollLast(callbackQueue);
+		return ListUtils.removeLast(callbackQueue);
 	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {

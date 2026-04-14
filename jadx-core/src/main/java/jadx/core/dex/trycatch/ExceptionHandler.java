@@ -16,7 +16,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
@@ -30,7 +30,7 @@ public class ExceptionHandler {
 
 	private BlockNode handlerBlock;
 	private final List<BlockNode> blocks = new ArrayList<>();
-	private IContainer handlerRegion;
+	private IRegion handlerRegion;
 	private InsnArg arg;
 
 	private TryCatchBlockAttr tryBlock;
@@ -122,11 +122,11 @@ public class ExceptionHandler {
 		blocks.add(node);
 	}
 
-	public IContainer getHandlerRegion() {
+	public IRegion getHandlerRegion() {
 		return handlerRegion;
 	}
 
-	public void setHandlerRegion(IContainer handlerRegion) {
+	public void setHandlerRegion(IRegion handlerRegion) {
 		this.handlerRegion = handlerRegion;
 	}
 
