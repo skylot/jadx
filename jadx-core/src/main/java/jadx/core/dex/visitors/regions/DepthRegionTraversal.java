@@ -31,6 +31,14 @@ public class DepthRegionTraversal {
 		traverseInternal(mth, visitor, container);
 	}
 
+	public static <R> @Nullable R traversePartial(MethodNode mth, IRegionPartialVisitor<R> visitor) {
+		return traversePartialInternal(mth, visitor, mth.getRegion());
+	}
+
+	public static <R> @Nullable R traversePartial(MethodNode mth, IContainer container, IRegionPartialVisitor<R> visitor) {
+		return traversePartialInternal(mth, visitor, container);
+	}
+
 	public static void traverseIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
 		int k = 0;
@@ -91,6 +99,24 @@ public class DepthRegionTraversal {
 				if (visitRegion) {
 					addSubBlocksToStack(stack, region);
 				}
+			}
+		}
+	}
+
+	private static <R> @Nullable R traversePartialInternal(MethodNode mth, IRegionPartialVisitor<R> visitor, IContainer startContainer) {
+		List<IContainer> stack = new ArrayList<>();
+		stack.add(startContainer);
+		while (true) {
+			IContainer current = ListUtils.removeLast(stack);
+			if (current == null) {
+				return null;
+			}
+			R result = visitor.visit(mth, current);
+			if (result != null) {
+				return result;
+			}
+			if (current instanceof IRegion) {
+				addSubBlocksToStack(stack, (IRegion) current);
 			}
 		}
 	}
