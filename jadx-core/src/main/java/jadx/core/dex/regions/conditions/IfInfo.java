@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -18,7 +20,7 @@ public final class IfInfo {
 	private final BlockNode elseBlock;
 	private final Set<BlockNode> skipBlocks;
 	private final List<InsnNode> forceInlineInsns;
-	private BlockNode outBlock;
+	private @Nullable BlockNode outBlock;
 
 	public IfInfo(MethodNode mth, IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
 		this(mth, condition, thenBlock, elseBlock, BlockSet.empty(mth), new HashSet<>(), new ArrayList<>());
@@ -84,11 +86,11 @@ public final class IfInfo {
 		return elseBlock;
 	}
 
-	public BlockNode getOutBlock() {
+	public @Nullable BlockNode getOutBlock() {
 		return outBlock;
 	}
 
-	public void setOutBlock(BlockNode outBlock) {
+	public void setOutBlock(@Nullable BlockNode outBlock) {
 		this.outBlock = outBlock;
 	}
 

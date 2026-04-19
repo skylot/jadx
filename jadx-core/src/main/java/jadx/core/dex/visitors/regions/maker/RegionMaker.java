@@ -14,7 +14,6 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -79,7 +78,7 @@ public class RegionMaker {
 	/**
 	 * Recursively traverse all blocks from 'block' until block from 'exits'
 	 */
-	private @Nullable BlockNode traverse(IRegion r, BlockNode block) {
+	private @Nullable BlockNode traverse(Region r, BlockNode block) {
 		if (block.contains(AFlag.MTH_EXIT_BLOCK)) {
 			return null;
 		}
@@ -125,7 +124,7 @@ public class RegionMaker {
 			}
 		}
 		if (!processed) {
-			r.getSubBlocks().add(block);
+			r.add(block);
 			next = getNextBlock(block);
 		}
 		if (next != null && !stack.containsExit(block) && !stack.containsExit(next)) {

@@ -89,7 +89,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 					// this block/region has a path from an exception handler so is after the end of the try block
 					continue;
 				}
-				tryRegion.getSubBlocks().add(cont);
+				tryRegion.add(cont);
 			}
 		}
 		if (tryRegion.getSubBlocks().isEmpty()) {

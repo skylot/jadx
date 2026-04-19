@@ -55,13 +55,12 @@ final class IfRegionMaker {
 		this.regionMaker = regionMaker;
 	}
 
+	@Nullable
 	BlockNode process(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
-
 		if (block.contains(AFlag.ADDED_TO_REGION)) {
 			// block already included in other 'if' region
 			return ifnode.getThenBlock();
 		}
-
 		IfInfo currentIf = makeIfInfo(mth, block);
 		if (currentIf == null) {
 			return null;
@@ -80,7 +79,7 @@ final class IfRegionMaker {
 				block.add(AFlag.DONT_INVERT);
 			}
 		}
-		IfInfo modifiedIf = restructureIf(mth, block, currentIf);
+		IfInfo modifiedIf = restructureIf(block, currentIf);
 		if (modifiedIf != null) {
 			currentIf = modifiedIf;
 		} else {
@@ -88,7 +87,7 @@ final class IfRegionMaker {
 				return null;
 			}
 			currentIf = makeIfInfo(mth, block);
-			currentIf = restructureIf(mth, block, currentIf);
+			currentIf = restructureIf(block, currentIf);
 			if (currentIf == null) {
 				// all attempts failed
 				return null;
@@ -173,7 +172,7 @@ final class IfRegionMaker {
 		return info;
 	}
 
-	static IfInfo restructureIf(MethodNode mth, BlockNode block, IfInfo info) {
+	IfInfo restructureIf(BlockNode block, IfInfo info) {
 		BlockNode thenBlock = info.getThenBlock();
 		BlockNode elseBlock = info.getElseBlock();
 
@@ -211,8 +210,8 @@ final class IfRegionMaker {
 		// getPathCross may not find outBlock (e.g. one branch has return, outBlock definitely is
 		// null), so should check further
 		if (info.getOutBlock() == null) {
-			BlockNode scopeOutBlockThen = findScopeOutBlock(mth, info.getThenBlock());
-			BlockNode scopeOutBlockElse = findScopeOutBlock(mth, info.getElseBlock());
+			BlockNode scopeOutBlockThen = findScopeOutBlock(info.getThenBlock());
+			BlockNode scopeOutBlockElse = findScopeOutBlock(info.getElseBlock());
 			if (scopeOutBlockThen == null && scopeOutBlockElse != null) {
 				info.setOutBlock(scopeOutBlockElse);
 			} else if (scopeOutBlockThen != null && scopeOutBlockElse == null) {
@@ -228,7 +227,7 @@ final class IfRegionMaker {
 		return info;
 	}
 
-	static BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock) {
+	static @Nullable BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock) {
 		if (thenBlock == elseBlock) {
 			return thenBlock;
 		}
@@ -365,7 +364,7 @@ final class IfRegionMaker {
 	/**
 	 * if startBlock is in a (try) scope, find the scope end as outBlock
 	 */
-	private @Nullable static BlockNode findScopeOutBlock(MethodNode mth, BlockNode startBlock) {
+	private @Nullable BlockNode findScopeOutBlock(BlockNode startBlock) {
 		if (startBlock == null) {
 			return null;
 		}
@@ -385,7 +384,14 @@ final class IfRegionMaker {
 				break;
 			}
 		}
-
+		if (scopeOutBlock != null) {
+			// check if out block still inside scope limited by 'exit' blocks
+			for (BlockNode exit : regionMaker.getStack().getExits()) {
+				if (BlockUtils.isPathExists(exit, scopeOutBlock)) {
+					return null;
+				}
+			}
+		}
 		return scopeOutBlock;
 	}
 

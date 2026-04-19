@@ -106,6 +106,10 @@ final class RegionStack {
 		return curState.exits.contains(exit);
 	}
 
+	public Iterable<BlockNode> getExits() {
+		return curState.exits;
+	}
+
 	public IRegion peekRegion() {
 		return curState.region;
 	}
