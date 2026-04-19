@@ -25,6 +25,8 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
+import jadx.core.dex.regions.SwitchRegion;
+import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -109,17 +111,29 @@ public class RegionUtils {
 			}
 			return null;
 		}
-		if (container instanceof IBranchRegion) {
-			return null;
+		if (container instanceof IConditionRegion) {
+			return ListUtils.firstOrNull(((IConditionRegion) container).getConditionBlocks());
+		}
+		if (container instanceof TryCatchRegion) {
+			return getFirstBlockNode(((TryCatchRegion) container).getTryRegion());
+		}
+		if (container instanceof SwitchRegion) {
+			return ((SwitchRegion) container).getHeader();
 		}
 		if (container instanceof IRegion) {
-			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
-			if (blocks.isEmpty()) {
-				return null;
-			}
-			return getFirstBlockNode(blocks.get(0));
+			return getFirstBlockNode(((IRegion) container).getSubBlocks());
 		}
 		throw new JadxRuntimeException(unknownContainerType(container));
+	}
+
+	private static @Nullable BlockNode getFirstBlockNode(List<IContainer> containers) {
+		for (IContainer cont : containers) {
+			BlockNode firstBlockNode = getFirstBlockNode(cont);
+			if (firstBlockNode != null) {
+				return firstBlockNode;
+			}
+		}
+		return null;
 	}
 
 	public static int getFirstSourceLine(IContainer container) {
@@ -584,6 +598,18 @@ public class RegionUtils {
 			return false;
 		}
 		throw new JadxRuntimeException(unknownContainerType(cont));
+	}
+
+	/**
+	 * Check if path exists from block to container start.
+	 * Return false if block is inside container.
+	 */
+	public static boolean isPathExists(BlockNode block, IContainer container) {
+		BlockNode firstBlock = RegionUtils.getFirstBlockNode(container);
+		if (firstBlock != null) {
+			return BlockUtils.isPathExists(block, firstBlock);
+		}
+		return false;
 	}
 
 	protected static String unknownContainerType(IContainer container) {

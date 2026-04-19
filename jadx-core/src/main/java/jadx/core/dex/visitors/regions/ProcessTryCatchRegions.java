@@ -117,12 +117,12 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		return true;
 	}
 
-	private static boolean isHandlerPath(TryCatchBlockAttr tb, IContainer cont) {
+	private static boolean isHandlerPath(TryCatchBlockAttr tb, IContainer container) {
 		for (ExceptionHandler h : tb.getHandlers()) {
 			BlockNode handlerBlock = h.getHandlerBlock();
 			if (handlerBlock != null
 					&& !handlerBlock.contains(AFlag.REMOVE)
-					&& RegionUtils.hasPathThroughBlock(handlerBlock, cont)) {
+					&& RegionUtils.isPathExists(handlerBlock, container)) {
 				return true;
 			}
 		}

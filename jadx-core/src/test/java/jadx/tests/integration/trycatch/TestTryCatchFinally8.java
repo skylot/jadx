@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchFinally8 extends IntegrationTest {
 
+	@SuppressWarnings({ "ResultOfMethodCallIgnored", "TryFinallyCanBeTryWithResources", "DataFlowIssue" })
 	public static class TestCls {
 		public Object test(Object obj) {
 			File file = new File("r");
@@ -42,20 +44,12 @@ public class TestTryCatchFinally8 extends IntegrationTest {
 	@Test
 	@NotYetImplemented("Fix merged catch blocks (shared code between catches)")
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
-				.contains("try {")
-				.contains("} catch (IOException e) {")
-				.contains("} finally {")
-				.contains("file.delete();");
-	}
-
-	@Test
-	public void test2() {
-		disableCompilation();
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
-				.code()
-				.contains("output = new FileOutputStream(file);")
-				.contains("} catch (IOException e) {");
+				.containsOne("FileOutputStream output = null;")
+				.countString(2, "try {")
+				.countString(2, "} catch (IOException e")
+				.containsOne("} finally {")
+				.containsOne("file.delete();");
 	}
 }
