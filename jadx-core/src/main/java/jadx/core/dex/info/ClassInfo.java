@@ -214,9 +214,12 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public String getAliasFullPath() {
-		return getAliasPkg().replace('.', File.separatorChar)
-				+ File.separatorChar
-				+ getAliasNameWithoutPackage().replace('.', '_');
+		String fileName = getAliasNameWithoutPackage().replace('.', '_');
+		String aliasPkg = getAliasPkg();
+		if (aliasPkg.isEmpty()) {
+			return fileName;
+		}
+		return aliasPkg.replace('.', File.separatorChar) + File.separatorChar + fileName;
 	}
 
 	public String getFullName() {
