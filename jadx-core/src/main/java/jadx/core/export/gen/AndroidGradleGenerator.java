@@ -31,9 +31,6 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 	private static final Logger LOG = LoggerFactory.getLogger(AndroidGradleGenerator.class);
 	private static final Pattern ILLEGAL_GRADLE_CHARS = Pattern.compile("[/\\\\:>\"?*|]");
 
-	private static final ApplicationParams UNKNOWN_APP_PARAMS =
-			new ApplicationParams("UNKNOWN", 0, 0, 0, 0, "UNKNOWN", "UNKNOWN", "UNKNOWN");
-
 	private final RootNode root;
 	private final File projectDir;
 	private final List<ResourceFile> resources;
@@ -83,8 +80,8 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 		try {
 			ResourceFile androidManifest = AndroidManifestParser.getAndroidManifest(resources);
 			if (androidManifest == null) {
-				LOG.warn("AndroidManifest.xml not found, exported files will contains 'UNKNOWN' fields");
-				return UNKNOWN_APP_PARAMS;
+				LOG.warn("AndroidManifest.xml not found, exported files will contains 'null' fields");
+				return new ApplicationParams();
 			}
 			ResContainer strings = null;
 			if (exportApp) {
@@ -118,7 +115,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 			return parser.parse();
 		} catch (Exception t) {
 			LOG.warn("Failed to parse AndroidManifest.xml", t);
-			return UNKNOWN_APP_PARAMS;
+			return new ApplicationParams();
 		}
 	}
 
@@ -143,7 +140,7 @@ public class AndroidGradleGenerator implements IExportGradleGenerator {
 
 	private void saveSettingsGradle() throws IOException {
 		TemplateFile tmpl = TemplateFile.fromResources("/export/android/settings.gradle.tmpl");
-		String appName = applicationParams.getApplicationName();
+		String appName = applicationParams.getApplicationLabel();
 		String projectName;
 		if (appName != null) {
 			projectName = ILLEGAL_GRADLE_CHARS.matcher(appName).replaceAll("");

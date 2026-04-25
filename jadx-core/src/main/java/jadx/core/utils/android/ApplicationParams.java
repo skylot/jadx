@@ -1,68 +1,95 @@
 package jadx.core.utils.android;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 
 public class ApplicationParams {
+	private @Nullable String applicationLabel;
+	private @Nullable Integer minSdkVersion;
+	private @Nullable Integer targetSdkVersion;
+	private @Nullable Integer compileSdkVersion;
+	private @Nullable Integer versionCode;
+	private @Nullable String versionName;
+	private @Nullable String mainActivity;
+	private @Nullable String application;
 
-	private final String applicationLabel;
-	private final Integer minSdkVersion;
-	private final Integer targetSdkVersion;
-	private final Integer compileSdkVersion;
-	private final Integer versionCode;
-	private final String versionName;
-	private final String mainActivity;
-	private final String application;
-
-	public ApplicationParams(String applicationLabel, Integer minSdkVersion, Integer targetSdkVersion, Integer compileSdkVersion,
-			Integer versionCode, String versionName, String mainActivity, String application) {
-		this.applicationLabel = applicationLabel;
-		this.minSdkVersion = minSdkVersion;
-		this.targetSdkVersion = targetSdkVersion;
-		this.compileSdkVersion = compileSdkVersion;
-		this.versionCode = versionCode;
-		this.versionName = versionName;
-		this.mainActivity = mainActivity;
-		this.application = application;
-	}
-
-	public String getApplicationName() {
-		return applicationLabel;
-	}
-
-	public Integer getMinSdkVersion() {
-		return minSdkVersion;
-	}
-
-	public Integer getTargetSdkVersion() {
-		return targetSdkVersion;
-	}
-
-	public Integer getCompileSdkVersion() {
-		return compileSdkVersion;
-	}
-
-	public Integer getVersionCode() {
-		return versionCode;
-	}
-
-	public String getVersionName() {
-		return versionName;
-	}
-
-	public String getMainActivity() {
-		return mainActivity;
-	}
-
-	public JavaClass getMainActivityJavaClass(JadxDecompiler decompiler) {
-		return decompiler.searchJavaClassByAliasFullName(mainActivity);
-	}
-
-	public String getApplication() {
+	public @Nullable String getApplication() {
 		return application;
 	}
 
-	public JavaClass getApplicationJavaClass(JadxDecompiler decompiler) {
+	public void setApplication(@Nullable String application) {
+		this.application = application;
+	}
+
+	public @Nullable JavaClass getApplicationJavaClass(JadxDecompiler decompiler) {
+		if (application == null) {
+			return null;
+		}
 		return decompiler.searchJavaClassByAliasFullName(application);
+	}
+
+	public @Nullable String getApplicationLabel() {
+		return applicationLabel;
+	}
+
+	public void setApplicationLabel(@Nullable String applicationLabel) {
+		this.applicationLabel = applicationLabel;
+	}
+
+	public @Nullable String getMainActivity() {
+		return mainActivity;
+	}
+
+	public void setMainActivity(@Nullable String mainActivity) {
+		this.mainActivity = mainActivity;
+	}
+
+	public @Nullable JavaClass getMainActivityJavaClass(JadxDecompiler decompiler) {
+		if (mainActivity == null) {
+			return null;
+		}
+		return decompiler.searchJavaClassByAliasFullName(mainActivity);
+	}
+
+	public @Nullable Integer getCompileSdkVersion() {
+		return compileSdkVersion;
+	}
+
+	public void setCompileSdkVersion(@Nullable Integer compileSdkVersion) {
+		this.compileSdkVersion = compileSdkVersion;
+	}
+
+	public @Nullable Integer getMinSdkVersion() {
+		return minSdkVersion;
+	}
+
+	public void setMinSdkVersion(@Nullable Integer minSdkVersion) {
+		this.minSdkVersion = minSdkVersion;
+	}
+
+	public @Nullable Integer getTargetSdkVersion() {
+		return targetSdkVersion;
+	}
+
+	public void setTargetSdkVersion(@Nullable Integer targetSdkVersion) {
+		this.targetSdkVersion = targetSdkVersion;
+	}
+
+	public @Nullable Integer getVersionCode() {
+		return versionCode;
+	}
+
+	public void setVersionCode(@Nullable Integer versionCode) {
+		this.versionCode = versionCode;
+	}
+
+	public @Nullable String getVersionName() {
+		return versionName;
+	}
+
+	public void setVersionName(@Nullable String versionName) {
+		this.versionName = versionName;
 	}
 }

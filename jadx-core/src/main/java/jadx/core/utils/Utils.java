@@ -672,4 +672,26 @@ public class Utils {
 		}
 		return Integer.parseInt(strValue);
 	}
+
+	public static int safeParseInt(String value, int defValue) {
+		if (value == null || value.isEmpty()) {
+			return defValue;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {
+			return defValue;
+		}
+	}
+
+	public static @Nullable Integer safeParseInteger(@Nullable String value) {
+		if (value == null || value.isEmpty()) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }
