@@ -8,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.Utils;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.UiUtils;
 
@@ -24,7 +23,7 @@ public class FontAdapter {
 	private Consumer<String> fontSetter;
 	private float uiZoom;
 
-	public FontAdapter(Font defaultFont) {
+	FontAdapter(Font defaultFont) {
 		Objects.requireNonNull(defaultFont);
 		this.defaultFont = defaultFont;
 		this.font = defaultFont;
@@ -39,12 +38,12 @@ public class FontAdapter {
 	}
 
 	public void setDefaultFont(Font newDefaultFont) {
-		Objects.requireNonNull(newDefaultFont);
+		Font newDefFont = FontUtils.toCompositeFont(newDefaultFont);
 		Font prevDefaultFont = defaultFont;
-		defaultFont = newDefaultFont;
+		defaultFont = newDefFont;
 		if (font == prevDefaultFont) {
 			// font was set to default => update it also
-			setFont(newDefaultFont);
+			setFont(newDefFont);
 		}
 	}
 
@@ -57,7 +56,11 @@ public class FontAdapter {
 	}
 
 	public void setFont(@Nullable Font newFont) {
-		font = Utils.getOrElse(newFont, defaultFont);
+		if (newFont != null) {
+			font = FontUtils.toCompositeFont(newFont);
+		} else {
+			font = defaultFont;
+		}
 		fontSetter.accept(getFontStr());
 		applyFontZoom();
 	}

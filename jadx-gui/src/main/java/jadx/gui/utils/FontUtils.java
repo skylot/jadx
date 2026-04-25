@@ -101,6 +101,10 @@ public class FontUtils {
 		return com.formdev.flatlaf.util.FontUtils.getCompositeFont(family, style, size);
 	}
 
+	public static Font toCompositeFont(Font font) {
+		return getCompositeFont(font.getFamily(), font.getStyle(), font.getSize());
+	}
+
 	private FontUtils() {
 	}
 }
