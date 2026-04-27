@@ -1,89 +1,201 @@
-.class public LTestSwitchOverStrings4;
-.super Ljava/lang/Object;
+.class public Lswitches/TestSwitchOverStrings4;
+.super Landroid/support/v7/app/AppCompatActivity;
 
-.method public static test4(Ljava/lang/String;)I
-    .registers 10
+.method private test()V
+    .registers 7
 
-    const/16 v3, 0x0
+    .line 220
+    invoke-virtual {p0}, Lswitches/TestSwitchOverStrings4;->getSupportFragmentManager()Landroid/support/v4/app/FragmentManager;
 
-    const/16 v4, -0x1
+    move-result-object v0
 
-    if-nez p0, :cond_26
+    const v1, 0x7f090070
 
-    return v4
+    invoke-virtual {v0, v1}, Landroid/support/v4/app/FragmentManager;->findFragmentById(I)Landroid/support/v4/app/Fragment;
 
-    :cond_26
-    .line 202
+    move-result-object v0
 
-    invoke-virtual {p0}, Ljava/lang/String;->hashCode()I
+    .line 221
+    invoke-virtual {v0}, Landroid/support/v4/app/Fragment;->getTag()Ljava/lang/String;
+
+    move-result-object v0
+
+    const/4 v1, 0x0
+
+    if-nez v0, :cond_16
+
+    .line 225
+    invoke-direct {p0, v1}, Lswitches/TestSwitchOverStrings4;->setHomeIsActionBack(Z)V
+
+    return-void
+
+    :cond_16
+    const-string v2, "CONTAINER_PROP"
+
+    .line 230
+    invoke-virtual {v0, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
     move-result v2
 
-    sparse-switch v2, :sswitch_data_222
+    const/4 v3, 0x1
 
-    const/4 v0, -0x1
+    if-nez v2, :cond_2c
 
-    const/16 v2, 0x13
+    const-string v2, "CHOOSE_FILE"
 
-    goto/16 :goto_20a
+    .line 231
+    invoke-virtual {v0, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
-    :sswitch_3b
-    const/16 v2, 0x13
+    move-result v2
 
-    const-string/jumbo v1, "video/x-matroska"
+    if-eqz v2, :cond_28
 
-    invoke-virtual {p0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    goto :goto_2c
+
+    .line 236
+    :cond_28
+    invoke-direct {p0, v1}, Lswitches/TestSwitchOverStrings4;->setHomeIsActionBack(Z)V
+
+    goto :goto_2f
+
+    .line 233
+    :cond_2c
+    :goto_2c
+    invoke-direct {p0, v3}, Lswitches/TestSwitchOverStrings4;->setHomeIsActionBack(Z)V
+
+    :goto_2f
+    const/4 v2, -0x1
+
+    .line 240
+    invoke-virtual {v0}, Ljava/lang/String;->hashCode()I
+
+    move-result v4
+
+    const v5, -0x7864e404
+
+    if-eq v4, v5, :cond_67
+
+    const v1, -0x3f1aacc4
+
+    if-eq v4, v1, :cond_5d
+
+    const v1, -0x1d0b6cd4
+
+    if-eq v4, v1, :cond_53
+
+    const v1, 0x2ad8bc
+
+    if-eq v4, v1, :cond_49
+
+    goto :goto_70
+
+    :cond_49
+    const-string v1, "INSTALL_NEW"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
     move-result v0
 
-    if-nez v0, :cond_48
+    if-eqz v0, :cond_70
 
-    goto/16 :goto_207
+    const/4 v1, 0x2
 
-    :cond_48
-    const/16 v0, 0x1
+    goto :goto_71
 
-    goto/16 :goto_20a
+    :cond_53
+    const-string v1, "MANAGE_CONTAINERS"
 
-    :sswitch_1fd
-    const/16 v2, 0x13
-
-    const-string v1, "audio/eac3-joc"
-
-    invoke-virtual {p0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
     move-result v0
 
-    if-nez v0, :cond_209
+    if-eqz v0, :cond_70
 
-    :goto_207
-    const/4 v0, -0x1
+    const/4 v1, 0x3
 
-    goto :goto_20a
+    goto :goto_71
 
-    :cond_209
-    const/4 v0, 0x0
+    :cond_5d
+    const-string v1, "START_MENU"
 
-    :goto_20a
-    packed-switch v0, :pswitch_data_29c
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
-    return v4
+    move-result v0
 
-    :pswitch_216
-    return v2
+    if-eqz v0, :cond_70
 
-    :pswitch_221
-    return v3
+    move v1, v3
 
-    :sswitch_data_222
-    .sparse-switch
-        0xb269699 -> :sswitch_1fd
-        0x79909c15 -> :sswitch_3b
-    .end sparse-switch
+    goto :goto_71
 
-    :pswitch_data_29c
+    :cond_67
+    const-string v3, "DESKTOP"
+
+    invoke-virtual {v0, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_70
+
+    goto :goto_71
+
+    :cond_70
+    :goto_70
+    move v1, v2
+
+    :goto_71
+    packed-switch v1, :pswitch_data_9a
+
+    goto :goto_98
+
+    .line 252
+    :pswitch_75
+    iget-object v0, p0, Lswitches/TestSwitchOverStrings4;->mNavigationView:Landroid/support/design/widget/NavigationView;
+
+    const v1, 0x7f090074
+
+    invoke-virtual {v0, v1}, Landroid/support/design/widget/NavigationView;->setCheckedItem(I)V
+
+    goto :goto_98
+
+    .line 249
+    :pswitch_7e
+    iget-object v0, p0, Lswitches/TestSwitchOverStrings4;->mNavigationView:Landroid/support/design/widget/NavigationView;
+
+    const v1, 0x7f090073
+
+    invoke-virtual {v0, v1}, Landroid/support/design/widget/NavigationView;->setCheckedItem(I)V
+
+    goto :goto_98
+
+    .line 246
+    :pswitch_87
+    iget-object v0, p0, Lswitches/TestSwitchOverStrings4;->mNavigationView:Landroid/support/design/widget/NavigationView;
+
+    const v1, 0x7f090075
+
+    invoke-virtual {v0, v1}, Landroid/support/design/widget/NavigationView;->setCheckedItem(I)V
+
+    goto :goto_98
+
+    .line 243
+    :pswitch_90
+    iget-object v0, p0, Lswitches/TestSwitchOverStrings4;->mNavigationView:Landroid/support/design/widget/NavigationView;
+
+    const v1, 0x7f090071
+
+    invoke-virtual {v0, v1}, Landroid/support/design/widget/NavigationView;->setCheckedItem(I)V
+
+    :goto_98
+    return-void
+
+    nop
+
+    :pswitch_data_9a
     .packed-switch 0x0
-        :pswitch_221
-        :pswitch_216
+        :pswitch_90
+        :pswitch_87
+        :pswitch_7e
+        :pswitch_75
     .end packed-switch
 .end method
