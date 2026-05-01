@@ -107,6 +107,8 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_F)),
 	XPOSED_COPY(CODE_AREA, "popup.xposed", "popup.xposed", null,
 			Shortcut.keyboard(KeyEvent.VK_Y)),
+	COPY_REFERENCE(CODE_AREA, "popup.copy_reference", "popup.copy_reference", null,
+			Shortcut.keyboard(KeyEvent.VK_R)),
 	JSON_PRETTIFY(CODE_AREA, "popup.json_prettify", "popup.json_prettify", null,
 			Shortcut.none()),
 
