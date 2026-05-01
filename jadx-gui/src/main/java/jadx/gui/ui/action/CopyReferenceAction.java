@@ -33,7 +33,7 @@ public final class CopyReferenceAction extends JNodeAction {
 		} else if (javaNode instanceof JavaField) {
 			ref = ((JavaField) javaNode).getDeclaringClass().getFullName() + '.' + javaNode.getName();
 		} else {
-			LOG.warn("Unsupported node type: {}", node.getClass());
+			LOG.warn("Copy reference not supported for node type: {}", node.getClass());
 			return;
 		}
 		UiUtils.copyToClipboard(ref);
