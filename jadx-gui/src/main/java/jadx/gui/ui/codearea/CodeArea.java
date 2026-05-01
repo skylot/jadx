@@ -35,6 +35,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.CommentSearchAction;
+import jadx.gui.ui.action.CopyReferenceAction;
 import jadx.gui.ui.action.FindUsageAction;
 import jadx.gui.ui.action.FridaAction;
 import jadx.gui.ui.action.GoToDeclarationAction;
@@ -191,6 +192,7 @@ public final class CodeArea extends AbstractCodeArea implements CodePanelSyncerA
 		popup.add(new CommentAction(this));
 		popup.add(new CommentSearchAction(this));
 		popup.add(new RenameAction(this));
+		popup.add(new CopyReferenceAction(this));
 		popup.addSeparator();
 		popup.add(new FridaAction(this));
 		popup.add(new XposedAction(this));
