@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -17,22 +15,24 @@ import jadx.core.utils.files.FileUtils;
 
 public class DesktopEntryUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DesktopEntryUtils.class);
-	private static final Map<Integer, String> SIZE_TO_LOGO_MAP = Map.of(
-			16, "jadx-logo-16px.png",
-			32, "jadx-logo-32px.png",
-			48, "jadx-logo-48px.png",
-			252, "jadx-logo.png",
-			256, "jadx-logo.png");
-	private static final Path XDG_DESKTOP_MENU_COMMAND_PATH = findExecutablePath("xdg-desktop-menu");
-	private static final Path XDG_ICON_RESOURCE_COMMAND_PATH = findExecutablePath("xdg-icon-resource");
+	private static final Map<String, String> SIZE_TO_LOGO_MAP = Map.of(
+			"16", "jadx-logo-16px.png",
+			"32", "jadx-logo-32px.png",
+			"48", "jadx-logo-48px.png",
+			"252", "jadx-logo.png",
+			"256", "jadx-logo.png");
+	private static final String XDG_DESKTOP_MENU_COMMAND = findExecutableCommand(
+			"/usr/bin/xdg-desktop-menu", "/usr/local/bin/xdg-desktop-menu", "/bin/xdg-desktop-menu", "/usr/sbin/xdg-desktop-menu");
+	private static final String XDG_ICON_RESOURCE_COMMAND = findExecutableCommand(
+			"/usr/bin/xdg-icon-resource", "/usr/local/bin/xdg-icon-resource", "/bin/xdg-icon-resource", "/usr/sbin/xdg-icon-resource");
 
 	public static boolean createDesktopEntry() {
-		if (XDG_DESKTOP_MENU_COMMAND_PATH == null) {
-			LOG.error("xdg-desktop-menu was not found in $PATH");
+		if (XDG_DESKTOP_MENU_COMMAND == null) {
+			LOG.error("xdg-desktop-menu was not found in trusted system directories");
 			return false;
 		}
-		if (XDG_ICON_RESOURCE_COMMAND_PATH == null) {
-			LOG.error("xdg-icon-resource was not found in $PATH");
+		if (XDG_ICON_RESOURCE_COMMAND == null) {
+			LOG.error("xdg-icon-resource was not found in trusted system directories");
 			return false;
 		}
 		Path desktopTempFile = FileUtils.createTempFileNonPrefixed("jadx-gui.desktop");
@@ -55,8 +55,8 @@ public class DesktopEntryUtils {
 		if (launchScriptPath == null) {
 			return false;
 		}
-		for (Map.Entry<Integer, String> entry : SIZE_TO_LOGO_MAP.entrySet()) {
-			Path path = iconTempFolder.resolve(entry.getKey() + ".png");
+		for (Map.Entry<String, String> entry : SIZE_TO_LOGO_MAP.entrySet()) {
+			Path path = iconTempFolder.resolve(entry.getValue());
 			if (!writeLogoFile(entry.getValue(), path)) {
 				return false;
 			}
@@ -72,8 +72,9 @@ public class DesktopEntryUtils {
 
 	private static boolean installDesktopEntry(Path desktopTempFile) {
 		try {
-			ProcessBuilder desktopFileInstallCommand = new ProcessBuilder(Objects.requireNonNull(XDG_DESKTOP_MENU_COMMAND_PATH).toString(),
-					"install", desktopTempFile.toString());
+			String desktopFile = desktopTempFile.toFile().getAbsolutePath();
+			ProcessBuilder desktopFileInstallCommand = new ProcessBuilder(XDG_DESKTOP_MENU_COMMAND,
+					"install", desktopFile);
 			Process process = desktopFileInstallCommand.start();
 			int statusCode = process.waitFor();
 			if (statusCode != 0) {
@@ -88,12 +89,11 @@ public class DesktopEntryUtils {
 		return true;
 	}
 
-	private static boolean installIcon(int size, Path iconPath) {
+	private static boolean installIcon(String size, Path iconPath) {
 		try {
-			ProcessBuilder iconInstallCommand =
-					new ProcessBuilder(Objects.requireNonNull(XDG_ICON_RESOURCE_COMMAND_PATH).toString(), "install", "--novendor", "--size",
-							String.valueOf(size), iconPath.toString(),
-							"jadx");
+			String iconFile = iconPath.toFile().getAbsolutePath();
+			ProcessBuilder iconInstallCommand = new ProcessBuilder(XDG_ICON_RESOURCE_COMMAND,
+					"install", "--novendor", "--size", size, iconFile, "jadx");
 			Process process = iconInstallCommand.start();
 			int statusCode = process.waitFor();
 			if (statusCode != 0) {
@@ -108,10 +108,9 @@ public class DesktopEntryUtils {
 		return true;
 	}
 
-	private static Path findExecutablePath(String executableName) {
-		for (String pathDirectory : System.getenv("PATH").split(File.pathSeparator)) {
-			Path path = Paths.get(pathDirectory, executableName);
-			if (path.toFile().isFile() && path.toFile().canExecute()) {
+	private static String findExecutableCommand(String... candidates) {
+		for (String path : candidates) {
+			if (new File(path).canExecute()) {
 				return path;
 			}
 		}
