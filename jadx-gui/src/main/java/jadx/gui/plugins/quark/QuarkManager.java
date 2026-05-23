@@ -132,13 +132,9 @@ public class QuarkManager {
 			}
 		}
 		List<String> cmd = new ArrayList<>();
-		if (JadxSystemInfo.IS_WINDOWS) {
-			cmd.add("python");
-			cmd.add("-m");
-			cmd.add("venv");
-		} else {
-			cmd.add("virtualenv");
-		}
+		cmd.add("python");
+		cmd.add("-m");
+		cmd.add("venv");
 		cmd.add(VENV_PATH.toString());
 		try {
 			runCommand(cmd);
