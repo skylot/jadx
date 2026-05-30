@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.NodeDeclareRef;
@@ -95,27 +96,20 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 		if (fromMthRange == null) {
 			return false;
 		}
-
 		Integer mthDefPos = fromMthRange.getStart().getKey();
 		Integer mthEndPos = fromMthRange.getEnd().getKey();
-
-		LOG.debug("InsnOffsetJavaSyncer caretPos = {}", caretPos);
-		LOG.debug("InsnOffsetJavaSyncer mthDefPos = {}", mthDefPos);
-		LOG.debug("InsnOffsetJavaSyncer mthEndPos = {}", mthEndPos);
+		LOG.debug("InsnOffsetJavaSyncer caretPos = {}, mthDefPos = {}, mthEndPos = {}", caretPos, mthDefPos, mthEndPos);
 
 		CodeMetadataRange fromInsnOffsetRange = findOffsetRange(caretPos, mthDefPos, mthEndPos);
 		if (fromInsnOffsetRange == null) {
 			return false;
 		}
-
 		String mthID = getMthRawFullID(mthDefPos);
-
 		// now search for this range within the target area
 		CodeMetadataRange toMthRange = findMethodRange(mthID, to);
 		if (toMthRange == null) {
 			return false;
 		}
-
 		// search for the first insn offset
 		int firstInsnOffset = ((InsnCodeOffset) fromInsnOffsetRange.getStart().getValue()).getOffset();
 		Integer highlightPosStart = to.getCodeMetadata().searchDown(toMthRange.getStart().getKey(), (offset, ann) -> {
@@ -149,7 +143,6 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 		if (highlightPosEnd == null) {
 			return false;
 		}
-
 		to.scrollToPos(highlightPosStart);
 		try {
 			CodeSyncHighlighter.defaultHighlighter().highlightRange(to, highlightPosStart, highlightPosEnd);
@@ -162,9 +155,12 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 		return false;
 	}
 
-	@Nullable
-	private static CodeMetadataRange findMethodRange(String mthFullRawID, CodeArea area) {
-		Map.Entry<Integer, ICodeAnnotation> toMthDecl = area.getCodeMetadata().searchDown(0, (offset, ann) -> {
+	private static @Nullable CodeMetadataRange findMethodRange(String mthFullRawID, CodeArea area) {
+		ICodeMetadata codeMetadata = area.getCodeMetadata();
+		if (codeMetadata == null) {
+			return null;
+		}
+		Map.Entry<Integer, ICodeAnnotation> toMthDecl = codeMetadata.searchDown(0, (offset, ann) -> {
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.DECLARATION) {
 				return null;
 			}
@@ -179,28 +175,27 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 			}
 			return new SimpleEntry<>(offset, ann);
 		});
-
 		if (toMthDecl == null) {
 			return null;
 		}
-
-		Map.Entry<Integer, ICodeAnnotation> toMthEnd = area.getCodeMetadata().searchDown(toMthDecl.getKey(), (offset, ann) -> {
+		Map.Entry<Integer, ICodeAnnotation> toMthEnd = codeMetadata.searchDown(toMthDecl.getKey(), (offset, ann) -> {
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.END) {
 				return null;
 			}
 			return new SimpleEntry<>(offset, ann);
 		});
-
 		if (toMthEnd == null) {
 			return null;
 		}
-
 		return new CodeMetadataRange(toMthDecl, toMthEnd);
 	}
 
-	@Nullable
-	private CodeMetadataRange findEnclosingMethodRange(Integer startPos) {
-		Map.Entry<Integer, ICodeAnnotation> mthDef = from.getCodeMetadata().searchUp(startPos, (offset, ann) -> {
+	private @Nullable CodeMetadataRange findEnclosingMethodRange(Integer startPos) {
+		ICodeMetadata codeMetadata = from.getCodeMetadata();
+		if (codeMetadata == null) {
+			return null;
+		}
+		Map.Entry<Integer, ICodeAnnotation> mthDef = codeMetadata.searchUp(startPos, (offset, ann) -> {
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.DECLARATION) {
 				return null;
 			}
@@ -211,22 +206,18 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 			}
 			return new SimpleEntry<>(offset, ann);
 		});
-
 		if (mthDef == null) {
 			return null;
 		}
-
-		Map.Entry<Integer, ICodeAnnotation> mthEnd = from.getCodeMetadata().searchDown(startPos, (offset, ann) -> {
+		Map.Entry<Integer, ICodeAnnotation> mthEnd = codeMetadata.searchDown(startPos, (offset, ann) -> {
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.END) {
 				return null;
 			}
 			return new SimpleEntry<>(offset, ann);
 		});
-
 		if (mthEnd == null) {
 			return null;
 		}
-
 		return new CodeMetadataRange(mthDef, mthEnd);
 	}
 
@@ -234,12 +225,11 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 	 * Gets a CodeMetadataRange for the from CodeArea where start and end
 	 * are InsnCodeOffsets whose offsets are monotonically increasing.
 	 *
-	 * @param - startPos the starting position to start searching from
-	 * @param - mthDefPos the method node decl position enclosing the range
-	 * @param - mthEndPos the method end position enclosing the range
+	 * @param startPos  the starting position to start searching from
+	 * @param mthDefPos the method node decl position enclosing the range
+	 * @param mthEndPos the method end position enclosing the range
 	 */
-	@Nullable
-	private CodeMetadataRange findOffsetRange(Integer startPos, Integer mthDefPos, Integer mthEndPos) {
+	private @Nullable CodeMetadataRange findOffsetRange(Integer startPos, Integer mthDefPos, Integer mthEndPos) {
 		Map.Entry<Integer, ICodeAnnotation> first = findInsnOffsetBeforePos(startPos, mthDefPos);
 		Map.Entry<Integer, ICodeAnnotation> second = findInsnOffsetAfterPos(startPos, mthEndPos);
 		if (first == null || second == null) {
@@ -256,29 +246,35 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 		return new CodeMetadataRange(first, second);
 	}
 
-	@Nullable
-	private Map.Entry<Integer, ICodeAnnotation> findInsnOffsetBeforePos(Integer startPos, Integer limit) {
-		return from.getCodeMetadata().searchUp(startPos, (offset, ann) -> {
+	private @Nullable Map.Entry<Integer, ICodeAnnotation> findInsnOffsetBeforePos(Integer startPos, Integer limit) {
+		ICodeMetadata codeMetadata = from.getCodeMetadata();
+		if (codeMetadata == null) {
+			return null;
+		}
+		return codeMetadata.searchUp(startPos, (offset, ann) -> {
 			if (offset <= limit) {
 				return null;
 			}
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.OFFSET) {
 				return null;
 			}
-			return new SimpleEntry<Integer, ICodeAnnotation>(offset, ann);
+			return new SimpleEntry<>(offset, ann);
 		});
 	}
 
-	@Nullable
-	private Map.Entry<Integer, ICodeAnnotation> findInsnOffsetAfterPos(Integer startPos, Integer limit) {
-		return from.getCodeMetadata().searchDown(startPos, (offset, ann) -> {
+	private @Nullable Map.Entry<Integer, ICodeAnnotation> findInsnOffsetAfterPos(Integer startPos, Integer limit) {
+		ICodeMetadata codeMetadata = from.getCodeMetadata();
+		if (codeMetadata == null) {
+			return null;
+		}
+		return codeMetadata.searchDown(startPos, (offset, ann) -> {
 			if (offset >= limit) {
 				return null;
 			}
 			if (ann.getAnnType() != ICodeAnnotation.AnnType.OFFSET) {
 				return null;
 			}
-			return new SimpleEntry<Integer, ICodeAnnotation>(offset, ann);
+			return new SimpleEntry<>(offset, ann);
 		});
 	}
 
@@ -298,7 +294,6 @@ public class InsnOffsetJavaSyncer implements IToJavaSyncStrategy, IToSmaliSyncSt
 	 *
 	 * @param smaliMethodNode     - method of interest
 	 * @param insnCodeOffsetRange - code offset range from the caret pos
-	 * @return
 	 */
 	private static List<Integer> getMappedSmaliLines(
 			SmaliMethodNode smaliMethodNode,

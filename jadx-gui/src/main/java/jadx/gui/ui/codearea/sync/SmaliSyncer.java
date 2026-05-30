@@ -9,7 +9,7 @@ import jadx.gui.ui.codearea.SmaliArea;
 /**
  * Syncs a Smali code panel area to another area
  */
-public class SmaliSyncer implements CodePanelSyncer {
+public class SmaliSyncer implements CodeAreaSyncer {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliSyncer.class);
 
 	private final SmaliArea from;

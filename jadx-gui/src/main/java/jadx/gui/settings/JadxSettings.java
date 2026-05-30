@@ -899,13 +899,4 @@ public class JadxSettings {
 	public void setSaveOption(SaveOptionEnum saveOption) {
 		settingsData.setSaveOption(saveOption);
 	}
-
-	public boolean isSmaliAreaShowBytecode() {
-		return settingsData.isSmaliAreaShowBytecode();
-	}
-
-	public void setSmaliAreaShowBytecode(boolean smaliAreaShowBytecode) {
-		settingsData.setSmaliAreaShowBytecode(smaliAreaShowBytecode);
-	}
-
 }

@@ -1,17 +1,12 @@
 package jadx.gui.ui.codearea.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.SmaliArea;
 
 /**
  * Syncs a Java code panel area (Java/Simple/Fallback) to another area
  */
-public class JavaSyncer implements CodePanelSyncer {
-	private static final Logger LOG = LoggerFactory.getLogger(JavaSyncer.class);
-
+public class JavaSyncer implements CodeAreaSyncer {
 	private final DebugLineJavaSyncer debugLineSyncer;
 	private final InsnOffsetJavaSyncer insnOffsetSyncer;
 

@@ -26,7 +26,7 @@ public class DebugLineSmaliSyncer implements IToJavaSyncStrategy {
 	@Override
 	public boolean syncTo(CodeArea to) {
 		try {
-			// Get the from lines and currentline index
+			// Get the from lines and current line index
 			int lineIndex = from.getCaretLineNumber();
 			String[] fromLines = from.getText().split("\\R");
 			if (lineIndex >= fromLines.length) {
@@ -62,8 +62,7 @@ public class DebugLineSmaliSyncer implements IToJavaSyncStrategy {
 		return false;
 	}
 
-	@Nullable
-	private Anchor findNearestAnchor(int smaliLineNumber, String[] lines) {
+	private @Nullable Anchor findNearestAnchor(int smaliLineNumber, String[] lines) {
 		for (int i = smaliLineNumber; i >= 0; i--) {
 			String trimmedLine = lines[i].trim();
 			if (trimmedLine.startsWith(".line")) {

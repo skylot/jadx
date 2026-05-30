@@ -10,17 +10,16 @@ import org.slf4j.LoggerFactory;
 
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.ui.codearea.sync.CodeSyncHighlighter;
 
 /**
- * Regex/String based sync strategy of toPanel when clicking in fromPanel
+ * Regex/String based sync strategy of toArea when clicking in fromArea
  * Summary of syncing strategy:
  * 1) Look for an identifying class member token under the caret position.
  * 2) If found look for the enclosing method or class declaration.
  * 3) If the line is a declaration line, find the equivalent line in the other code panel.
- * 4) Otherwise find the nth occurence of the token in the enclosing method/class in the other code
+ * 4) Otherwise find the nth occurrence of the token in the enclosing method/class in the other code
  * panel.
  * The following are not yet supported:
  * - generic classes/methods
@@ -31,15 +30,12 @@ import jadx.gui.ui.codearea.sync.CodeSyncHighlighter;
 public class FallbackSyncer {
 	private static final Logger LOG = LoggerFactory.getLogger(FallbackSyncer.class);
 
-	public static boolean sync(CodePanel fromPanel, CodePanel toPanel) throws BadLocationException, Exception {
+	public static boolean sync(AbstractCodeArea fromArea, AbstractCodeArea toArea) throws Exception {
 		LOG.debug("FALLBACK SYNC START");
 		try {
-			AbstractCodeArea from = fromPanel.getCodeArea();
-			AbstractCodeArea to = toPanel.getCodeArea();
-
-			int caretPos = from.getCaretPosition();
-			int lineIndex = from.getLineOfOffset(caretPos);
-			String[] fromLines = from.getText().split("\\R");
+			int caretPos = fromArea.getCaretPosition();
+			int lineIndex = fromArea.getLineOfOffset(caretPos);
+			String[] fromLines = fromArea.getText().split("\\R");
 			if (lineIndex >= fromLines.length) {
 				return false;
 			}
@@ -48,7 +44,7 @@ public class FallbackSyncer {
 			LOG.debug("Caret line [{}]: {}", caretPos, caretLine);
 
 			// Extract token under caret (string literal or identifier)
-			AbstractCodeAreaToken areaToken = FallbackSyncer.getToken(from, caretPos);
+			AbstractCodeAreaToken areaToken = FallbackSyncer.getToken(fromArea, caretPos);
 			String token = areaToken.getStr();
 			LOG.debug("Token at caret: '{}'", token);
 			if (token == null || token.isEmpty()) {
@@ -60,14 +56,14 @@ public class FallbackSyncer {
 				return false;
 			}
 
-			return syncToIdentifyingNthOccurence(areaToken, to);
+			return syncToIdentifyingNthOccurence(areaToken, toArea);
 		} finally {
 			LOG.debug("FALLBACK SYNC END");
 		}
 	}
 
 	// This function just serves as a way to create the correct Token type
-	// FallbackSyncer should be refactored to use CodePanelSyncer
+	// FallbackSyncer should be refactored to use CodeAreaSyncer
 	private static AbstractCodeAreaToken getToken(AbstractCodeArea from, int caretPos) throws BadLocationException, FallbackSyncException {
 		if (from instanceof SmaliArea) {
 			return new SmaliAreaToken((SmaliArea) from, caretPos);
@@ -196,7 +192,7 @@ public class FallbackSyncer {
 		return null;
 	}
 
-	// Similar with the function above if refactored to use the CodePanelSyncer Abstraction we can
+	// Similar with the function above if refactored to use the CodeAreaSyncer Abstraction we can
 	// remove this.
 	private static AbstractCodeAreaLine getLine(AbstractCodeArea area, int lineIndex) throws BadLocationException, FallbackSyncException {
 		if (area instanceof SmaliArea) {

@@ -25,16 +25,19 @@ public class DebugLineJavaSyncer implements IToSmaliSyncStrategy, IToJavaSyncStr
 	public boolean syncTo(CodeArea to) {
 		// This might be any combination between java/simple/fallback
 		// We cannot just rely on the current line.
-		// Instead try to correlate with line mappings.
+		// Instead, try to correlate with line mappings.
 		try {
-			int lineIndex = from.getCaretLineNumber();
 			Map<Integer, Integer> toLineMapping = to.getFunctionUniqueLineMappings();
+			if (toLineMapping.isEmpty()) {
+				return false;
+			}
+			int lineIndex = from.getCaretLineNumber();
 			// lineIndex is 0-indexed whereas the line mappings are based off a 1-index.
 			Integer sourceLine = getClosestSourceLine(lineIndex + 1);
 			if (sourceLine == null) {
 				return false;
 			}
-			// find the equivalent linenumber in the 'to' by a reverse lookup from the source line
+			// find the equivalent line number in the 'to' by a reverse lookup from the source line
 			for (Map.Entry<Integer, Integer> entry : toLineMapping.entrySet()) {
 				int toLine = entry.getKey();
 				int candidateSourceLine = entry.getValue();
@@ -85,7 +88,7 @@ public class DebugLineJavaSyncer implements IToSmaliSyncStrategy, IToJavaSyncStr
 	private @Nullable Integer getClosestSourceLine(int lineNum) {
 		// get the line mappings of the Java/Simple/Fallback code
 		Map<Integer, Integer> lineMapping = from.getFunctionUniqueLineMappings();
-		if (lineMapping == null || lineMapping.isEmpty()) {
+		if (lineMapping.isEmpty()) {
 			return null;
 		}
 		// get the source line from the decomp line

@@ -80,7 +80,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 	private int searchResultsPerPage = 50;
 	private boolean useAutoSearch = true;
 	private boolean keepCommonDialogOpen = false;
-	private boolean smaliAreaShowBytecode = false;
 	private LineNumbersMode lineNumbersMode = LineNumbersMode.AUTO;
 
 	private int mainWindowVerticalSplitterLoc = 300;
@@ -396,14 +395,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setShowHeapUsageBar(boolean showHeapUsageBar) {
 		this.showHeapUsageBar = showHeapUsageBar;
-	}
-
-	public boolean isSmaliAreaShowBytecode() {
-		return smaliAreaShowBytecode;
-	}
-
-	public void setSmaliAreaShowBytecode(boolean smaliAreaShowBytecode) {
-		this.smaliAreaShowBytecode = smaliAreaShowBytecode;
 	}
 
 	public String getUiFontStr() {
