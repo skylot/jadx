@@ -54,7 +54,7 @@ public class UsageInfo implements IUsageInfoData {
 		mthUsage.visit((mth, methods) -> mth.setUseIn(resolveMthList(sortedList(methods))));
 		mthUses.visit((mth, methods) -> mth.setUsed(resolveMthList(sortedList(methods))));
 		unresolvedMthUsage.visit((mth, unresolvedMethods) -> mth.setUnresolvedUsed(new ArrayList<>(unresolvedMethods)));
-		selfCalls.forEach((mth, selfCall) -> mth.setCallsSelf(selfCall));
+		selfCalls.forEach(MethodNode::setCallsSelf);
 	}
 
 	@Override

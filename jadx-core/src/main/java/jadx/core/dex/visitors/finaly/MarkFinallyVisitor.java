@@ -27,8 +27,6 @@ import jadx.core.dex.trycatch.TryEdge;
 import jadx.core.dex.trycatch.TryEdgeScopeGroupMap;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.ConstInlineVisitor;
-import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.finaly.traverser.TraverserController;
 import jadx.core.dex.visitors.finaly.traverser.TraverserException;
@@ -37,7 +35,6 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.Pair;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
@@ -474,18 +471,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	 */
 	private static void undoFinallyVisitor(MethodNode mth) {
 		try {
-			// TODO: make more common and less hacky
-			mth.unload();
-			mth.load();
-			for (IDexTreeVisitor visitor : mth.root().getPasses()) {
-				if (visitor instanceof MarkFinallyVisitor) {
-					break;
-					// All visitors after MarkFinally will be invoked as usual after this because
-					// the original decompilation request will proceed.
-				}
-				DepthTraversal.visit(visitor, mth);
-			}
-		} catch (DecodeException e) {
+			mth.root().getProcessClasses().processMethodUntilVisitor(mth, "MarkFinallyVisitor", false);
+		} catch (Exception e) {
 			mth.addError("Undo finally extract failed", e);
 		}
 	}

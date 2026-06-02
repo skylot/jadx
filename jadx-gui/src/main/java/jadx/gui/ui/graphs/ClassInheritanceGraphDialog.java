@@ -1,4 +1,4 @@
-package jadx.gui.ui.dialog;
+package jadx.gui.ui.graphs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -14,9 +14,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.android.apksig.internal.util.Pair;
 
@@ -34,13 +31,11 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
 
 public class ClassInheritanceGraphDialog extends GraphDialog {
-
 	private static final long serialVersionUID = 938883901412562913L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClassInheritanceGraphDialog.class);
-
 	private static final String FONT = "fontname=\"Courier\" fontsize=12";
-	private ClassNode cls;
+
+	private final ClassNode cls;
 	private boolean longNames = false;
 	private boolean overrides = false;
 
@@ -53,6 +48,7 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 		this.cls = cls;
 	}
 
+	@Override
 	public JMenuBar addMenuBar() {
 		JMenuBar menuBar = super.addMenuBar();
 
@@ -85,12 +81,9 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 	}
 
 	public static void open(MainWindow window, JClass node) {
-
 		ClassNode cls = node.getCls().getClassNode();
-
 		ClassInheritanceGraphDialog graphDialog = new ClassInheritanceGraphDialog(window, cls);
 		graphDialog.addMenuBar();
-
 		graphDialog.setVisible(true);
 		graphDialog.reload();
 	}
@@ -103,9 +96,6 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 	}
 
 	private String generateGraph(ClassNode rootClass) {
-		StringBuilder sb = new StringBuilder();
-
-		ClassNode cls = rootClass;
 
 		objectToNodeID = new HashMap<>();
 
@@ -126,8 +116,8 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 						themeHighlight.getBlue());
 		String shadeColor = String.format("fillcolor=\"#%02x%02x%02x\"", themeShade.getRed(), themeShade.getGreen(), themeShade.getBlue());
 
+		StringBuilder sb = new StringBuilder();
 		try (Formatter f = new Formatter(sb)) {
-
 			// graph header
 			f.format("digraph G {\n");
 			f.format("%s\n", bgColor);
@@ -135,11 +125,9 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 			f.format("edge[arrowtail=\"onormal\" arrowhead=\"onormal\" %s %s %s]\n", FONT, fontColor, lineColor);
 
 			// add nodes
-			processClass(f, cls, highlightColor);
-
+			processClass(f, rootClass, highlightColor);
 			// close graph
 			f.format("}");
-
 			return f.toString();
 		}
 	}
@@ -175,7 +163,6 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 
 		// add superclass relationship
 		ArgType superClass = cls.getSuperClass();
-
 		if (superClass != ArgType.OBJECT) {
 			int superClsID;
 			cls = cls.root().resolveClass(superClass);
@@ -185,7 +172,6 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 			} else {
 				superClsID = addNode(f, superClass);
 			}
-
 			f.format("Node_%d -> Node_%d [label=\"extends\" ]\n", classID, superClsID);
 		}
 		return classID;
@@ -205,14 +191,11 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 			nextNodeID++;
 			objectToNodeID.put(cls, nodeID);
 		}
-
 		if (cls.getAccessFlags().isInterface()) {
 			extra += " style=\"dashed, filled\"";
 		}
-
 		String name = DotGraphUtils.classFormatName(cls, longNames);
 		f.format("Node_%d [ label=\"{%s\\ ", nodeID, UiUtils.toDotNodeName(name));
-
 		if (overrides) {
 			f.format("|");
 			List<Pair<String, String>> table = new ArrayList<>();
@@ -227,30 +210,24 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 							String baseClassName = DotGraphUtils.classFormatName(baseMthDetails.getMethodInfo().getDeclClass(), longNames);
 							details.format("%s, ", baseClassName);
 						}
-
 						String detailsString = details.toString();
-
 						// Remove trailing ', '
 						detailsString = detailsString.substring(0, detailsString.length() - 2);
-
 						table.add(Pair.of(methodName, detailsString));
 						details.close();
 					}
 				}
 			}
-
 			if (!table.isEmpty()) {
 				int longestLength = table.stream().map(Pair::getFirst).map(String::length).max((a, b) -> a - b).get();
 				for (Pair<String, String> entry : table) {
 					f.format("%-" + longestLength + "s %s\\l", entry.getFirst(), entry.getSecond());
 				}
-
 			} else {
 				f.format("No overrides.");
 			}
 		}
 		f.format("}\" %s]\n", extra);
-
 		return nodeID;
 	}
 
@@ -268,15 +245,11 @@ public class ClassInheritanceGraphDialog extends GraphDialog {
 			nextNodeID++;
 			objectToNodeID.put(argType, nodeID);
 		}
-
 		Color themeOutOfFocus = UIManager.getColor("Component.disabledBorderColor");
 		String outOfFocus =
 				String.format("color=\"#%02x%02x%02x\"", themeOutOfFocus.getRed(), themeOutOfFocus.getGreen(), themeOutOfFocus.getBlue());
-
 		String name = DotGraphUtils.interfaceFormatName(argType, cls, longNames);
 		f.format("Node_%d [ label=\"{%s}\" %s %s]\n", nodeID, UiUtils.toDotNodeName(name), outOfFocus, extra);
-
 		return nodeID;
 	}
-
 }

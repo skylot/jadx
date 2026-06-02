@@ -1,58 +1,41 @@
 package jadx.gui.ui.action;
 
-import java.io.File;
-
 import javax.swing.JOptionPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.DotGraphUtils;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.dialog.ControlFlowGraphDialog;
+import jadx.gui.ui.graphs.ControlFlowGraphDialog;
 import jadx.gui.utils.NLS;
 
 public final class ViewControlFlowGraphAction extends JNodeAction {
-	private static final Logger LOG = LoggerFactory.getLogger(ViewControlFlowGraphAction.class);
 	private static final long serialVersionUID = -490213655L;
 
-	public ViewControlFlowGraphAction(CodeArea codeArea) {
-		super(ActionModel.VIEW_CONTROL_FLOW_GRAPH, codeArea);
+	private static final Logger LOG = LoggerFactory.getLogger(ViewControlFlowGraphAction.class);
+
+	public ViewControlFlowGraphAction(ActionModel actionModel, CodeArea codeArea) {
+		super(actionModel, codeArea);
+	}
+
+	@Override
+	public boolean isActionEnabled(JNode node) {
+		return node instanceof JMethod;
 	}
 
 	@Override
 	public void runAction(JNode node) {
 		try {
-
-			JMethod methodNode;
-
-			if (node instanceof JMethod) {
-				methodNode = (JMethod) node;
-			} else {
-				throw new JadxRuntimeException("Unsupported node type: " + (node != null ? node.getClass() : "null"));
-			}
-
-			ControlFlowGraphDialog.open(getCodeArea().getMainWindow(), methodNode, false, false);
+			ControlFlowGraphDialog.open(getCodeArea().getMainWindow(), (JMethod) node);
 		} catch (Exception e) {
 			LOG.error("Failed to view graph", e);
-			JOptionPane.showMessageDialog(getCodeArea().getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),
+			JOptionPane.showMessageDialog(
+					getCodeArea().getMainWindow(),
+					e.getLocalizedMessage(),
+					NLS.str("error_dialog.title"),
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}
-
-	@Override
-	public boolean isActionEnabled(JNode node) {
-		if (!(node instanceof JMethod)) {
-			return false;
-		}
-		MethodNode mth = ((JMethod) node).getJavaMethod().getMethodNode();
-		File file = new DotGraphUtils(false, false).getFullFile(mth);
-
-		return file.exists() && !file.isDirectory();
-	}
-
 }

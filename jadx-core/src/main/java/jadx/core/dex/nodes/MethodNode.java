@@ -131,6 +131,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		sVars = Collections.emptyList();
 		instructions = null;
 		blocks = null;
+		blocksMaxCId = 0;
 		enterBlock = null;
 		exitBlock = null;
 		region = null;
@@ -713,10 +714,9 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return codeReader;
 	}
 
-	// Cannot modify through get, use setUseIn
 	@Override
 	public List<MethodNode> getUseIn() {
-		return Collections.unmodifiableList(useIn);
+		return useIn;
 	}
 
 	// Do not modify passed list after setting
@@ -740,7 +740,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public Set<MethodNode> getUsed() {
-		this.removeInavlidMethodsUsed();
+		this.removeInvalidMethodsUsed();
 		return methodsUsed;
 	}
 
@@ -762,12 +762,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	// Remove any methods from the list of used methods (calees) if this method (caller) has been
 	// removed from the calee's list of callers
-	private void removeInavlidMethodsUsed() {
-		for (MethodNode methodUsed : new ArrayList<>(methodsUsed)) {
-			if (!methodUsed.getUseIn().contains(this)) {
-				methodsUsed.remove(methodUsed);
-			}
-		}
+	private void removeInvalidMethodsUsed() {
+		methodsUsed.removeIf(methodUsed -> !methodUsed.getUseIn().contains(this));
 	}
 
 	public JavaMethod getJavaNode() {

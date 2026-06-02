@@ -36,20 +36,18 @@ import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.CommentSearchAction;
 import jadx.gui.ui.action.CopyReferenceAction;
 import jadx.gui.ui.action.FindUsageAction;
 import jadx.gui.ui.action.FridaAction;
 import jadx.gui.ui.action.GoToDeclarationAction;
-import jadx.gui.ui.action.JNodeAction;
 import jadx.gui.ui.action.JsonPrettifyAction;
 import jadx.gui.ui.action.RenameAction;
 import jadx.gui.ui.action.ViewCallGraphAction;
 import jadx.gui.ui.action.ViewClassInheritanceGraphAction;
 import jadx.gui.ui.action.ViewClassMethodGraphAction;
 import jadx.gui.ui.action.ViewControlFlowGraphAction;
-import jadx.gui.ui.action.ViewRawControlFlowGraphAction;
-import jadx.gui.ui.action.ViewRegionControlFlowGraphAction;
 import jadx.gui.ui.action.XposedAction;
 import jadx.gui.ui.codearea.mode.JCodeMode;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncee;
@@ -61,7 +59,6 @@ import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.ShortcutsController;
 
@@ -202,11 +199,7 @@ public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAb
 		popup.add(new ViewClassInheritanceGraphAction(this));
 		popup.add(new ViewClassMethodGraphAction(this));
 		popup.add(new ViewCallGraphAction(this));
-		popup.addSubmenu(new JNodeAction[] {
-				new ViewControlFlowGraphAction(this),
-				new ViewRawControlFlowGraphAction(this),
-				new ViewRegionControlFlowGraphAction(this),
-		}, NLS.str("popup.cfg_submenu"));
+		popup.add(new ViewControlFlowGraphAction(ActionModel.VIEW_CONTROL_FLOW_GRAPH, this));
 		popup.addSeparator();
 		popup.add(new ConvertNumberAction(this));
 

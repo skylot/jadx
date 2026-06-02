@@ -1,4 +1,4 @@
-package jadx.gui.ui.dialog;
+package jadx.gui.ui.graphs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.swing.Box;
@@ -24,9 +23,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.plugins.input.data.IMethodRef;
@@ -38,19 +34,17 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
 
 public class CallGraphDialog extends GraphDialog {
-
 	private static final long serialVersionUID = -850803763322590708L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(CallGraphDialog.class);
-
 	private static final String FONT = "fontname=\"Courier\" fontsize=12";
+
+	private final JavaMethod javaMethod;
 	private int callerDepthLimit = 3;
 	private int calleeDepthLimit = 3;
 	private int nextNodeID;
 	private Map<JavaMethod, Integer> methodToNodeID;
 	private Map<IMethodRef, Integer> unresolvedMethodToNodeID;
 	private Set<Edge> edges;
-	private JavaMethod javaMethod;
 	private boolean longNames = false;
 
 	public CallGraphDialog(MainWindow mainWindow, JavaMethod javaMethod) {
@@ -59,6 +53,7 @@ public class CallGraphDialog extends GraphDialog {
 		this.javaMethod = javaMethod;
 	}
 
+	@Override
 	public JMenuBar addMenuBar() {
 		JMenuBar menuBar = super.addMenuBar();
 
@@ -128,7 +123,6 @@ public class CallGraphDialog extends GraphDialog {
 	}
 
 	public static void open(MainWindow window, JMethod method) {
-
 		JavaMethod javaMethod = method.getJavaMethod();
 		CallGraphDialog graphDialog = new CallGraphDialog(window, javaMethod);
 		graphDialog.addMenuBar();
@@ -141,13 +135,11 @@ public class CallGraphDialog extends GraphDialog {
 		SwingUtilities.invokeLater(() -> {
 			String graph = generateGraph(javaMethod);
 			getPanel().setGraph(graph);
-
 		});
 	}
 
 	private String generateGraph(JavaMethod javaMethod) {
 		StringBuilder sb = new StringBuilder();
-
 		Color themeBackground = UIManager.getColor("Panel.background");
 		Color themeForeground = UIManager.getColor("Label.foreground");
 		Color themeHighlight = UIManager.getColor("Component.focusedBorderColor");
@@ -167,7 +159,6 @@ public class CallGraphDialog extends GraphDialog {
 		String shadeColor = String.format("fillcolor=\"#%02x%02x%02x\"", themeShade.getRed(), themeShade.getGreen(), themeShade.getBlue());
 
 		try (Formatter f = new Formatter(sb)) {
-
 			// graph header
 			f.format("digraph G {\n");
 			f.format("%s\n", bgColor);
@@ -180,16 +171,12 @@ public class CallGraphDialog extends GraphDialog {
 			edges = new HashSet<>();
 
 			addNode(f, javaMethod, highlightColor);
-
 			// add caller relationships
 			addCallers(0, f, javaMethod);
-
 			// add calee relationships
 			addCallees(0, f, javaMethod);
-
 			// close graph
 			f.format("}");
-
 			return f.toString();
 		}
 	}
@@ -198,7 +185,6 @@ public class CallGraphDialog extends GraphDialog {
 		if (depth >= callerDepthLimit) {
 			return;
 		}
-
 		List<JavaNode> uses = javaMethod.getUseIn();
 
 		// add "calls" relationships
@@ -207,10 +193,8 @@ public class CallGraphDialog extends GraphDialog {
 				continue;
 			}
 			JavaMethod caller = (JavaMethod) node;
-
 			int nodeID = addNode(f, caller);
 			addEdge(f, nodeID, methodToNodeID.get(javaMethod));
-
 			addCallers(depth + 1, f, caller);
 		}
 	}
@@ -219,7 +203,6 @@ public class CallGraphDialog extends GraphDialog {
 		if (depth >= calleeDepthLimit) {
 			return;
 		}
-
 		List<JavaNode> used = javaMethod.getUsed();
 
 		// add "calls" relationships
@@ -228,10 +211,8 @@ public class CallGraphDialog extends GraphDialog {
 				continue;
 			}
 			JavaMethod callee = (JavaMethod) node;
-
 			int nodeID = addNode(f, callee);
 			addEdge(f, methodToNodeID.get(javaMethod), nodeID);
-
 			addCallees(depth + 1, f, callee);
 		}
 		addUnresolvedCallees(depth, f, javaMethod);
@@ -241,7 +222,6 @@ public class CallGraphDialog extends GraphDialog {
 		if (depth >= calleeDepthLimit) {
 			return;
 		}
-
 		List<IMethodRef> used = javaMethod.getUnresolvedUsed();
 
 		// add "calls" relationships
@@ -250,7 +230,6 @@ public class CallGraphDialog extends GraphDialog {
 			if (name == null) {
 				continue;
 			}
-
 			int nodeID = addNode(f, callee);
 			addEdge(f, methodToNodeID.get(javaMethod), nodeID);
 		}
@@ -260,7 +239,9 @@ public class CallGraphDialog extends GraphDialog {
 		return addNode(f, method, "");
 	}
 
-	// Add a node representing method to the graph in f. Returns the ID of the new node
+	/**
+	 * Add a node representing method to the graph in f. Returns the ID of the new node
+	 */
 	private int addNode(Formatter f, JavaMethod method, String extra) {
 		int nodeID;
 		if (methodToNodeID.containsKey(method)) {
@@ -270,14 +251,11 @@ public class CallGraphDialog extends GraphDialog {
 			nextNodeID++;
 			methodToNodeID.put(method, nodeID);
 		}
-
 		String name = DotGraphUtils.methodFormatName(method, longNames);
 		f.format("Node_%d [ label=\"{%s}\" %s]\n", nodeID, UiUtils.toDotNodeName(name), extra);
-
 		if (javaMethod.callsSelf()) {
 			addEdge(f, nodeID, nodeID);
 		}
-
 		return nodeID;
 	}
 
@@ -285,7 +263,9 @@ public class CallGraphDialog extends GraphDialog {
 		return addNode(f, method, "");
 	}
 
-	// Add a node representing an unresolved method to the graph in f. Returns the ID of the new node
+	/**
+	 * Add a node representing an unresolved method to the graph in f. Returns the ID of the new node
+	 */
 	private int addNode(Formatter f, IMethodRef method, String extra) {
 		int nodeID;
 		if (unresolvedMethodToNodeID.containsKey(method)) {
@@ -313,30 +293,6 @@ public class CallGraphDialog extends GraphDialog {
 		if (!edges.contains(edge)) {
 			f.format("Node_%d -> Node_%d\n", sourceID, destID);
 			edges.add(edge);
-		}
-	}
-
-	private static class Edge {
-		public int source;
-		public int dest;
-
-		public Edge(int source, int dest) {
-			this.source = source;
-			this.dest = dest;
-		}
-
-		@Override
-		public boolean equals(Object otherObject) {
-			if (!(otherObject instanceof Edge)) {
-				return false;
-			}
-			Edge other = (Edge) otherObject;
-			return (this.source == other.source) && (this.dest == other.dest);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(source, dest);
 		}
 	}
 }

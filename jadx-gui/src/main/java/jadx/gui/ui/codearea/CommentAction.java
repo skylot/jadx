@@ -127,8 +127,7 @@ public class CommentAction extends CodeAreaAction implements DefaultPopupMenuLis
 	 *
 	 * @return blank code comment object (comment string empty)
 	 */
-	@Nullable
-	protected ICodeComment getCommentRef(int pos) {
+	protected @Nullable ICodeComment getCommentRef(int pos) {
 		if (pos == -1) {
 			return null;
 		}

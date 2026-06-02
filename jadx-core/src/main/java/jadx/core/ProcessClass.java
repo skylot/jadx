@@ -19,6 +19,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DecompileModeOverrideAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.LoadStage;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -204,6 +205,44 @@ public class ProcessClass {
 			} catch (Exception e) {
 				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
 			}
+		}
+	}
+
+	public boolean processMethodUntilVisitor(MethodNode mth, String visitorName, boolean includeVisitor) {
+		IDexTreeVisitor foundPass = null;
+		IDexTreeVisitor prevPass = null;
+		for (IDexTreeVisitor pass : passes) {
+			if (pass.getName().equals(visitorName)) {
+				if (includeVisitor) {
+					foundPass = pass;
+				} else {
+					foundPass = prevPass;
+				}
+				break;
+			}
+			prevPass = pass;
+		}
+		if (foundPass == null) {
+			return false;
+		}
+		return processMethodToVisitor(mth, foundPass);
+	}
+
+	public boolean processMethodToVisitor(MethodNode mth, IDexTreeVisitor lastPassToProcess) {
+		synchronized (mth.getTopParentClass().getClassInfo()) {
+			try {
+				mth.unload();
+				mth.load();
+				for (IDexTreeVisitor pass : passes) {
+					DepthTraversal.visit(pass, mth);
+					if (pass == lastPassToProcess) {
+						return true;
+					}
+				}
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed to process method to visitor: " + lastPassToProcess, e);
+			}
+			return false;
 		}
 	}
 

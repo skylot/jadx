@@ -44,7 +44,7 @@ public class CommentDialog extends CommonDialog {
 		dialog.setVisible(true);
 	}
 
-	private static void updateCommentsData(CodeArea codeArea, Consumer<List<ICodeComment>> updater) {
+	public static void updateCommentsData(CodeArea codeArea, Consumer<List<ICodeComment>> updater) {
 		try {
 			JadxProject project = codeArea.getProject();
 			JadxCodeData codeData = project.getCodeData();

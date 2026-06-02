@@ -4,10 +4,14 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import org.jetbrains.annotations.Nullable;
+
+import jadx.core.utils.Utils;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
@@ -81,21 +85,14 @@ public enum ActionModel {
 	OPEN_DEVICE(MENU_TOOLBAR, "debugger.process_selector", "debugger.process_selector", "ui/startDebugger",
 			Shortcut.none()),
 
-	FIND_USAGE(CODE_AREA, "popup.find_usage", "popup.find_usage", null,
-			Shortcut.keyboard(KeyEvent.VK_X)),
-	FIND_USAGE_PLUS(CODE_AREA, "popup.usage_dialog_plus", "popup.usage_dialog_plus", null,
-			Shortcut.keyboard(KeyEvent.VK_C)),
-	GOTO_DECLARATION(CODE_AREA, "popup.go_to_declaration", "popup.go_to_declaration", null,
-			Shortcut.keyboard(KeyEvent.VK_D)),
-	CONVERT_NUMBER(CODE_AREA, "popup.convert_number", "popup.convert_number", null, Shortcut.none()),
-	VIEW_CLASS_INHERITANCE_GRAPH(CODE_AREA, "popup.view_class_graph", "popup.view_class_graph_description", null,
-			Shortcut.none()),
-	VIEW_CLASS_METHOD_GRAPH(CODE_AREA, "popup.view_class_method_graph", "popup.view_class_method_graph_description",
-			null, Shortcut.none()),
-	VIEW_CALL_GRAPH(CODE_AREA, "popup.view_call_graph", "popup.view_call_graph_description", null, Shortcut.none()),
-	VIEW_CONTROL_FLOW_GRAPH(CODE_AREA, "popup.view_cfg", "popup.view_cfg_description", null, Shortcut.none()),
-	VIEW_RAW_CONTROL_FLOW_GRAPH(CODE_AREA, "popup.view_raw_cfg", "popup.view_raw_cfg_description", null, Shortcut.none()),
-	VIEW_REGION_CONTROL_FLOW_GRAPH(CODE_AREA, "popup.view_region_cfg", "popup.view_region_cfg_description", null, Shortcut.none()),
+	FIND_USAGE(CODE_AREA, "popup.find_usage", null, null, Shortcut.keyboard(KeyEvent.VK_X)),
+	FIND_USAGE_PLUS(CODE_AREA, "popup.usage_dialog_plus", null, null, Shortcut.keyboard(KeyEvent.VK_C)),
+	GOTO_DECLARATION(CODE_AREA, "popup.go_to_declaration", null, null, Shortcut.keyboard(KeyEvent.VK_D)),
+	CONVERT_NUMBER(CODE_AREA, "popup.convert_number", null, null, null),
+	VIEW_CLASS_INHERITANCE_GRAPH(CODE_AREA, "popup.view_class_graph", "popup.view_class_graph_description", null, null),
+	VIEW_CLASS_METHOD_GRAPH(CODE_AREA, "popup.view_class_method_graph", "popup.view_class_method_graph_description", null, null),
+	VIEW_CALL_GRAPH(CODE_AREA, "popup.view_call_graph", "popup.view_call_graph_description", null, null),
+	VIEW_CONTROL_FLOW_GRAPH(CODE_AREA, "popup.view_cfg", null, null, null),
 
 	CODE_COMMENT(CODE_AREA, "popup.add_comment", "popup.add_comment", null,
 			Shortcut.keyboard(KeyEvent.VK_SEMICOLON)),
@@ -131,15 +128,16 @@ public enum ActionModel {
 	private final ActionCategory category;
 	private final String nameRes;
 	private final String descRes;
-	private final String iconPath;
+	private final @Nullable String iconPath;
 	private final Shortcut defaultShortcut;
 
-	ActionModel(ActionCategory category, String nameRes, String descRes, String iconPath, Shortcut defaultShortcut) {
-		this.category = category;
-		this.nameRes = nameRes;
-		this.descRes = descRes;
+	ActionModel(ActionCategory category, String nameRes, @Nullable String descRes, @Nullable String iconPath,
+			@Nullable Shortcut defaultShortcut) {
+		this.category = Objects.requireNonNull(category);
+		this.nameRes = Objects.requireNonNull(nameRes);
+		this.descRes = Utils.getOrElse(descRes, nameRes);
 		this.iconPath = iconPath;
-		this.defaultShortcut = defaultShortcut;
+		this.defaultShortcut = defaultShortcut != null ? defaultShortcut : Shortcut.none();
 	}
 
 	public static List<ActionModel> select(ActionCategory category) {
@@ -152,7 +150,7 @@ public enum ActionModel {
 		return category;
 	}
 
-	public String getName() {
+	public @Nullable String getName() {
 		if (nameRes != null) {
 			String name = NLS.str(nameRes);
 			if (name().endsWith("_V")) {
@@ -163,14 +161,14 @@ public enum ActionModel {
 		return null;
 	}
 
-	public String getDescription() {
+	public @Nullable String getDescription() {
 		if (descRes != null) {
 			return NLS.str(descRes);
 		}
 		return null;
 	}
 
-	public ImageIcon getIcon() {
+	public @Nullable ImageIcon getIcon() {
 		if (iconPath != null) {
 			return UiUtils.openSvgIcon(iconPath);
 		}

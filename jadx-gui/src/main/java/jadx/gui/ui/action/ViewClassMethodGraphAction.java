@@ -11,23 +11,27 @@ import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.dialog.ClassMethodGraphDialog;
+import jadx.gui.ui.graphs.ClassMethodGraphDialog;
 import jadx.gui.utils.NLS;
 
 public final class ViewClassMethodGraphAction extends JNodeAction {
-	private static final Logger LOG = LoggerFactory.getLogger(ViewClassMethodGraphAction.class);
 	private static final long serialVersionUID = -331826691076655264L;
+
+	private static final Logger LOG = LoggerFactory.getLogger(ViewClassMethodGraphAction.class);
 
 	public ViewClassMethodGraphAction(CodeArea codeArea) {
 		super(ActionModel.VIEW_CLASS_METHOD_GRAPH, codeArea);
 	}
 
 	@Override
+	public boolean isActionEnabled(JNode node) {
+		return node instanceof JMethod || node instanceof JClass || node instanceof JField;
+	}
+
+	@Override
 	public void runAction(JNode node) {
 		try {
-
 			JClass classNode;
-
 			if (node instanceof JMethod) {
 				classNode = node.getJParent();
 			} else if (node instanceof JField) {
@@ -37,7 +41,6 @@ public final class ViewClassMethodGraphAction extends JNodeAction {
 			} else {
 				throw new JadxRuntimeException("Unsupported node type: " + (node != null ? node.getClass() : "null"));
 			}
-
 			ClassMethodGraphDialog.open(getCodeArea().getMainWindow(), classNode);
 		} catch (Exception e) {
 			LOG.error("Failed to view graph", e);
@@ -45,10 +48,4 @@ public final class ViewClassMethodGraphAction extends JNodeAction {
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}
-
-	@Override
-	public boolean isActionEnabled(JNode node) {
-		return node instanceof JMethod || node instanceof JClass || node instanceof JField;
-	}
-
 }

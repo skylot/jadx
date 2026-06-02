@@ -1,4 +1,4 @@
-package jadx.gui.ui.dialog;
+package jadx.gui.ui.graphs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,16 +30,16 @@ import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
 
 public class ClassMethodGraphDialog extends GraphDialog {
-
 	private static final long serialVersionUID = -850803763322590708L;
 
 	private static final String FONT = "fontname=\"Courier\" fontsize=12";
-	private int callerDepthLimit = 10;
+	private static final int CALLER_DEPTH_LIMIT = 10;
+
+	private final ClassNode cls;
 	private int nextNodeID = 0;
 	private Map<JavaMethod, Integer> methodToNodeID;
 	private Set<Edge> edges;
 	private List<JavaMethod> javaMethods = Collections.emptyList();
-	private ClassNode cls;
 	private boolean longNames = false;
 
 	public ClassMethodGraphDialog(MainWindow mainWindow, ClassNode cls) {
@@ -48,6 +47,7 @@ public class ClassMethodGraphDialog extends GraphDialog {
 		this.cls = cls;
 	}
 
+	@Override
 	public JMenuBar addMenuBar() {
 		JMenuBar menuBar = super.addMenuBar();
 
@@ -71,41 +71,28 @@ public class ClassMethodGraphDialog extends GraphDialog {
 	}
 
 	public static void open(MainWindow window, JClass node) {
-
 		ClassNode cls = node.getCls().getClassNode();
 		ClassMethodGraphDialog graphDialog = new ClassMethodGraphDialog(window, cls);
 		graphDialog.addMenuBar();
-
 		graphDialog.setVisible(true);
 		graphDialog.reload();
 	}
 
 	public void reload() {
-		SwingUtilities.invokeLater(() -> {
-			String graph = generateGraph(cls);
-			getPanel().setGraph(graph);
-		});
+		SwingUtilities.invokeLater(() -> getPanel().setGraph(generateGraph(cls)));
 	}
 
 	private String generateGraph(ClassNode classNode) {
-		StringBuilder sb = new StringBuilder();
-
 		Color themeBackground = UIManager.getColor("Panel.background");
 		Color themeForeground = UIManager.getColor("Label.foreground");
 		Color themeShade = UIManager.getColor("TextArea.background");
 
-		String bgColor =
-				String.format("bgcolor=\"#%02x%02x%02x\"", themeBackground.getRed(), themeBackground.getGreen(),
-						themeBackground.getBlue());
-		String lineColor =
-				String.format("color=\"#%02x%02x%02x\"", themeForeground.getRed(), themeForeground.getGreen(), themeForeground.getBlue());
-		String fontColor =
-				String.format("fontcolor=\"#%02x%02x%02x\"", themeForeground.getRed(), themeForeground.getGreen(),
-						themeForeground.getBlue());
-		String shadeColor = String.format("fillcolor=\"#%02x%02x%02x\"", themeShade.getRed(), themeShade.getGreen(), themeShade.getBlue());
+		String bgColor = "bgcolor=" + formatColor(themeBackground);
+		String lineColor = "color=" + formatColor(themeForeground);
+		String fontColor = "fontcolor=" + formatColor(themeForeground);
+		String shadeColor = "fillcolor=" + formatColor(themeShade);
 
-		try (Formatter f = new Formatter(sb)) {
-
+		try (Formatter f = new Formatter(new StringBuilder())) {
 			// graph header
 			f.format("digraph G {\n");
 			f.format("%s\n", bgColor);
@@ -117,45 +104,39 @@ public class ClassMethodGraphDialog extends GraphDialog {
 			edges = new HashSet<>();
 
 			List<MethodNode> methods = classNode.getMethods();
-			javaMethods = methods.stream().map(method -> method.getJavaNode()).collect(Collectors.toList());
-
+			javaMethods = methods.stream().map(MethodNode::getJavaNode).collect(Collectors.toList());
 			for (JavaMethod javaMethod : javaMethods) {
-
 				addNode(f, javaMethod);
-
 				// add caller relationships
 				addCallers(0, f, javaMethod);
 			}
-
 			// close graph
 			f.format("}");
-
 			return f.toString();
 		}
 	}
 
+	private static String formatColor(Color color) {
+		return String.format("\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue());
+	}
+
 	private void addCallers(int depth, Formatter f, JavaMethod javaMethod) {
-		if (depth >= callerDepthLimit) {
+		if (depth >= CALLER_DEPTH_LIMIT) {
 			return;
 		}
-
 		List<JavaNode> uses = javaMethod.getUseIn();
-
 		// add "calls" relationships
 		for (JavaNode node : uses) {
 			if (!(node instanceof JavaMethod)) {
 				continue;
 			}
 			JavaMethod caller = (JavaMethod) node;
-
 			// Do not process callers that are not methods from the class
 			if (!javaMethods.contains(node)) {
 				continue;
 			}
-
 			int nodeID = addNode(f, caller);
 			addEdge(f, nodeID, methodToNodeID.get(javaMethod));
-
 			addCallers(depth + 1, f, caller);
 		}
 	}
@@ -170,14 +151,11 @@ public class ClassMethodGraphDialog extends GraphDialog {
 			nextNodeID++;
 			methodToNodeID.put(method, nodeID);
 		}
-
 		String name = DotGraphUtils.methodFormatName(method, longNames);
 		f.format("Node_%d [ label=\"{%s}\"]\n", nodeID, UiUtils.toDotNodeName(name));
-
 		if (method.callsSelf()) {
 			addEdge(f, nodeID, nodeID);
 		}
-
 		return nodeID;
 	}
 
@@ -187,30 +165,6 @@ public class ClassMethodGraphDialog extends GraphDialog {
 		if (!edges.contains(edge)) {
 			f.format("Node_%d -> Node_%d\n", sourceID, destID);
 			edges.add(edge);
-		}
-	}
-
-	private static class Edge {
-		public int source;
-		public int dest;
-
-		public Edge(int source, int dest) {
-			this.source = source;
-			this.dest = dest;
-		}
-
-		@Override
-		public boolean equals(Object otherObject) {
-			if (!(otherObject instanceof Edge)) {
-				return false;
-			}
-			Edge other = (Edge) otherObject;
-			return (this.source == other.source) && (this.dest == other.dest);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(source, dest);
 		}
 	}
 }

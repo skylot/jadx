@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.ICodeWriter;
 import jadx.api.JavaMethod;
 import jadx.api.impl.SimpleCodeWriter;
@@ -89,8 +91,7 @@ public class DotGraphUtils {
 				.resolve(mth.getParentClass().getClassInfo().getAliasFullPath() + "_graphs")
 				.resolve(fileName)
 				.toFile();
-		file = FileUtils.cutFileName(file);
-		return file;
+		return FileUtils.cutFileName(file);
 	}
 
 	public void dumpToFile(MethodNode mth) {
@@ -100,16 +101,14 @@ public class DotGraphUtils {
 
 	public void dumpToFile(MethodNode mth, File dir) {
 		String graph = dumpToString(mth);
-
 		if (graph == null) {
 			return;
 		}
-
 		File file = getFullFile(mth, dir);
 		SaveCode.save(graph, file);
 	}
 
-	public String dumpToString(MethodNode mth) {
+	public @Nullable String dumpToString(MethodNode mth) {
 		dot.startLine("digraph \"CFG for");
 		dot.add(escape(mth.getMethodInfo().getFullId()));
 		dot.add("\" {");
@@ -144,9 +143,7 @@ public class DotGraphUtils {
 					// region will already process all it's containing blocks.
 					continue;
 				}
-
 				processBlock(mth, block);
-
 			}
 		}
 
