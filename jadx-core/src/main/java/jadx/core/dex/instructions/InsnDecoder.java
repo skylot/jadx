@@ -528,18 +528,10 @@ public class InsnDecoder {
 
 	private InsnNode makeNewArray(InsnData insn) {
 		ArgType indexType = ArgType.parse(insn.getIndexAsType());
+		// NEW_ARRAY literal = dimensions to wrap the operand by: 0 if it is already the full array type
+		// (dalvik new-array, java multianewarray), 1 for newarray/anewarray (operand is the element type)
 		int dim = (int) insn.getLiteral();
-		ArgType arrType;
-		if (dim == 0) {
-			arrType = indexType;
-		} else {
-			if (indexType.isArray()) {
-				// java bytecode can pass array as a base type
-				arrType = indexType;
-			} else {
-				arrType = ArgType.array(indexType, dim);
-			}
-		}
+		ArgType arrType = dim == 0 ? indexType : ArgType.array(indexType, dim);
 		int regsCount = insn.getRegsCount();
 		NewArrayNode newArr = new NewArrayNode(arrType, regsCount - 1);
 		newArr.setResult(InsnArg.reg(insn, 0, arrType));
