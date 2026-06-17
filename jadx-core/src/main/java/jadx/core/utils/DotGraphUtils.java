@@ -428,18 +428,18 @@ public class DotGraphUtils {
 		}
 	}
 
-	private String escape(Object obj) {
+	public static String escape(Object obj) {
 		if (obj == null) {
 			return "null";
 		}
 		return escape(obj.toString());
 	}
 
-	private String escape(String string) {
+	public static String escape(String string) {
 		return escape(string, NLQR);
 	}
 
-	private String escape(String string, String newline) {
+	public static String escape(String string, String newline) {
 		return string
 				.replace("\\", "") // TODO replace \"
 				.replace("/", "\\/")
