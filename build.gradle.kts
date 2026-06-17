@@ -6,9 +6,9 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import java.util.Locale
 
 plugins {
-	id("com.github.ben-manes.versions") version "0.53.0"
+	id("com.github.ben-manes.versions") version "0.54.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.19"
-	id("com.diffplug.spotless") version "8.4.0"
+	id("com.diffplug.spotless") version "8.7.0"
 }
 
 val jadxEnv = loadEnv(file("$rootDir/.env"))

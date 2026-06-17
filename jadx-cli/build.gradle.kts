@@ -26,8 +26,8 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-apks-input"))
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.32")
-	implementation("com.google.code.gson:gson:2.13.2")
+	implementation("ch.qos.logback:logback-classic:1.5.34")
+	implementation("com.google.code.gson:gson:2.14.0")
 }
 
 application {

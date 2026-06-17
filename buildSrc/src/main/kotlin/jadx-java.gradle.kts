@@ -20,10 +20,10 @@ group = "io.github.skylot"
 version = jadxVersion
 
 dependencies {
-	implementation("org.slf4j:slf4j-api:2.0.17")
+	implementation("org.slf4j:slf4j-api:2.0.18")
 	compileOnly("org.jetbrains:annotations:26.1.0")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.32")
+	testImplementation("ch.qos.logback:logback-classic:1.5.34")
 	testImplementation("org.assertj:assertj-core:3.27.7")
 
 	testImplementation("org.junit.jupiter:junit-jupiter:5.13.3")
@@ -31,8 +31,8 @@ dependencies {
 
 	testCompileOnly("org.jetbrains:annotations:26.1.0")
 
-	errorprone("com.google.errorprone:error_prone_core:2.48.0")
-	errorprone("com.uber.nullaway:nullaway:0.13.1")
+	errorprone("com.google.errorprone:error_prone_core:2.50.0")
+	errorprone("com.uber.nullaway:nullaway:0.13.7")
 }
 
 repositories {

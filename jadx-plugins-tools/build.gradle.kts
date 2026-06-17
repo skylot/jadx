@@ -8,8 +8,8 @@ dependencies {
 
 	implementation(project(":jadx-commons:jadx-app-commons"))
 
-	implementation("com.google.code.gson:gson:2.13.2")
-	implementation("commons-io:commons-io:2.21.0")
+	implementation("com.google.code.gson:gson:2.14.0")
+	implementation("commons-io:commons-io:2.22.0")
 
-	testImplementation("com.squareup.okhttp3:mockwebserver3:5.3.2")
+	testImplementation("com.squareup.okhttp3:mockwebserver3:5.4.0")
 }
