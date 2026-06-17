@@ -33,7 +33,7 @@ public class UsageInfoCache implements IUsageInfoCache {
 		}
 		synchronized (LOAD_DATA_SYNC) {
 			if (rawUsageData == null) {
-				rawUsageData = UsageFileAdapter.load(usageFile, inputs);
+				rawUsageData = UsageFileAdapter.load(root, usageFile, inputs);
 			}
 			if (rawUsageData != null) {
 				UsageData data = new UsageData(root, rawUsageData);

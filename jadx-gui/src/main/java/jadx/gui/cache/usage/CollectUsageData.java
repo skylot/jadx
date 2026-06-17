@@ -4,6 +4,7 @@ import java.util.List;
 
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoVisitor;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -47,8 +48,8 @@ final class CollectUsageData implements IUsageInfoVisitor {
 	}
 
 	@Override
-	public void visitUnresolvedMethodsUsage(MethodNode mth, List<IMethodRef> methods) {
-		data.getMethodData(mth).setUnresolvedUsage(methods);
+	public void visitUnresolvedMethodsUsage(MethodNode mth, List<MethodInfo> methods) {
+		data.getMethodData(mth).setUnresolvedUsage(mthInfoRef(methods));
 	}
 
 	@Override
@@ -67,5 +68,9 @@ final class CollectUsageData implements IUsageInfoVisitor {
 
 	private List<MthRef> mthNodesRef(List<MethodNode> methods) {
 		return Utils.collectionMap(methods, m -> data.getMethodData(m).getMthRef());
+	}
+
+	private List<IMethodRef> mthInfoRef(List<MethodInfo> methods) {
+		return Utils.collectionMap(methods, CachedMethodRef::new);
 	}
 }

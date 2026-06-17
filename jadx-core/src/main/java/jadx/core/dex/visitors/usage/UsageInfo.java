@@ -9,12 +9,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoData;
 import jadx.api.usage.IUsageInfoVisitor;
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspClassSource;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -37,8 +37,8 @@ public class UsageInfo implements IUsageInfoData {
 	private final UseSet<MethodNode, MethodNode> mthUsage = new UseSet<>();
 	// MethodNodeA -> Set of MethodNodes that MethodNodeA calls
 	private final UseSet<MethodNode, MethodNode> mthUses = new UseSet<>();
-	// MethodNodeA -> Set of IMethodRefs for methods that MethodNodeA calls that cannot be resolved
-	private final UseSet<MethodNode, IMethodRef> unresolvedMthUsage = new UseSet<>();
+	// MethodNodeA -> Set of MethodInfos for methods that MethodNodeA calls that cannot be resolved
+	private final UseSet<MethodNode, MethodInfo> unresolvedMthUsage = new UseSet<>();
 	private final Map<MethodNode, Boolean> selfCalls = new HashMap<>();
 
 	public UsageInfo(RootNode root) {
@@ -53,7 +53,7 @@ public class UsageInfo implements IUsageInfoData {
 		fieldUsage.visit((field, methods) -> field.setUseIn(resolveMthList(sortedList(methods))));
 		mthUsage.visit((mth, methods) -> mth.setUseIn(resolveMthList(sortedList(methods))));
 		mthUses.visit((mth, methods) -> mth.setUsed(resolveMthList(sortedList(methods))));
-		unresolvedMthUsage.visit((mth, unresolvedMethods) -> mth.setUnresolvedUsed(new ArrayList<>(unresolvedMethods)));
+		unresolvedMthUsage.visit((mth, unresolvedMethods) -> mth.setUnresolvedUsed(sortedList(unresolvedMethods)));
 		selfCalls.forEach(MethodNode::setCallsSelf);
 	}
 
@@ -68,7 +68,7 @@ public class UsageInfo implements IUsageInfoData {
 		for (MethodNode mth : cls.getMethods()) {
 			mth.setUseIn(resolveMthList(sortedList(mthUsage.getOrDefault(mth, Collections.emptySet()))));
 			mth.setUsed(resolveMthList(sortedList(mthUses.getOrDefault(mth, Collections.emptySet()))));
-			mth.setUnresolvedUsed(new ArrayList<>(unresolvedMthUsage.getOrDefault(mth, Collections.emptySet())));
+			mth.setUnresolvedUsed(sortedList(unresolvedMthUsage.getOrDefault(mth, Collections.emptySet())));
 			mth.setCallsSelf(selfCalls.getOrDefault(mth, false));
 		}
 	}
@@ -81,7 +81,7 @@ public class UsageInfo implements IUsageInfoData {
 		fieldUsage.visit((field, methods) -> visitor.visitFieldsUsage(field, resolveMthList(sortedList(methods))));
 		mthUsage.visit((mth, methods) -> visitor.visitMethodsUsage(mth, resolveMthList(sortedList(methods))));
 		mthUses.visit((mth, methods) -> visitor.visitMethodsUses(mth, resolveMthList(sortedList(methods))));
-		unresolvedMthUsage.visit((mth, unresolvedMethods) -> visitor.visitUnresolvedMethodsUsage(mth, new ArrayList<>(unresolvedMethods)));
+		unresolvedMthUsage.visit((mth, unresolvedMethods) -> visitor.visitUnresolvedMethodsUsage(mth, sortedList(unresolvedMethods)));
 		for (Entry<MethodNode, Boolean> entry : selfCalls.entrySet()) {
 			MethodNode mth = entry.getKey();
 			Boolean selfCall = entry.getValue();
@@ -155,7 +155,7 @@ public class UsageInfo implements IUsageInfoData {
 	/**
 	 * Add method usage: {@code useMth} occurrence found in {@code mth} code
 	 */
-	public void unresolvedMethodUse(MethodNode mth, IMethodRef useMth) {
+	public void unresolvedMethodUse(MethodNode mth, MethodInfo useMth) {
 		unresolvedMthUsage.add(mth, useMth);
 	}
 

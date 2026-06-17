@@ -3,6 +3,8 @@ package jadx.gui.cache.usage;
 import java.util.List;
 
 import jadx.api.plugins.input.data.IMethodRef;
+import jadx.core.codegen.TypeGen;
+import jadx.core.dex.info.MethodInfo;
 
 public class CachedMethodRef implements IMethodRef {
 
@@ -16,6 +18,13 @@ public class CachedMethodRef implements IMethodRef {
 		this.name = name;
 		this.returnType = returnType;
 		this.argTypes = argTypes;
+	}
+
+	public CachedMethodRef(MethodInfo mthInfo) {
+		this(TypeGen.signature(mthInfo.getDeclClass().getType()),
+				mthInfo.getName(),
+				TypeGen.signature(mthInfo.getReturnType()),
+				TypeGen.signatures(mthInfo.getArgumentsTypes()));
 	}
 
 	@Override
@@ -56,12 +65,10 @@ public class CachedMethodRef implements IMethodRef {
 
 	@Override
 	public int getUniqId() {
-		throw new UnsupportedOperationException("Unimplemented method 'getUniqId'");
+		return 0;
 	}
 
 	@Override
 	public void load() {
-		throw new UnsupportedOperationException("Unimplemented method 'load'");
 	}
-
 }

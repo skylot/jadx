@@ -8,10 +8,10 @@ import org.jetbrains.annotations.ApiStatus;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
-import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
@@ -73,7 +73,7 @@ public final class JavaMethod implements JavaNode {
 		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUsed());
 	}
 
-	public List<IMethodRef> getUnresolvedUsed() {
+	public List<MethodInfo> getUnresolvedUsed() {
 		return mth.getUnresolvedUsed();
 	}
 

@@ -1,7 +1,10 @@
 package jadx.core.utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.function.IntConsumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -366,6 +369,24 @@ public class StringUtils {
 
 	public static boolean isWordSeparator(char chr) {
 		return WORD_SEPARATORS.indexOf(chr) != -1;
+	}
+
+	public static List<String> splitByFixedString(String content, String splitStr) {
+		if (isEmpty(content)) {
+			return Collections.emptyList();
+		}
+		List<String> parts = new ArrayList<>();
+		int splitLen = splitStr.length();
+		int pos = 0;
+		while (true) {
+			int split = content.indexOf(splitStr, pos);
+			if (split == -1) {
+				parts.add(content.substring(pos));
+				return parts;
+			}
+			parts.add(content.substring(pos, split));
+			pos = split + splitLen;
+		}
 	}
 
 	public static String removeSuffix(String str, String suffix) {

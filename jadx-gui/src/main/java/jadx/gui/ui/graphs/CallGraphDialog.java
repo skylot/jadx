@@ -25,13 +25,15 @@ import javax.swing.UIManager;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.api.plugins.input.data.IMethodRef;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.utils.DotGraphUtils;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
+
+import static jadx.core.utils.DotGraphUtils.formatColor;
+import static jadx.core.utils.DotGraphUtils.toDotNodeName;
 
 public class CallGraphDialog extends GraphDialog {
 	private static final long serialVersionUID = -850803763322590708L;
@@ -43,7 +45,7 @@ public class CallGraphDialog extends GraphDialog {
 	private int calleeDepthLimit = 3;
 	private int nextNodeID;
 	private Map<JavaMethod, Integer> methodToNodeID;
-	private Map<IMethodRef, Integer> unresolvedMethodToNodeID;
+	private Map<MethodInfo, Integer> unresolvedMethodToNodeID;
 	private Set<Edge> edges;
 	private boolean longNames = false;
 
@@ -222,10 +224,8 @@ public class CallGraphDialog extends GraphDialog {
 		if (depth >= calleeDepthLimit) {
 			return;
 		}
-		List<IMethodRef> used = javaMethod.getUnresolvedUsed();
-
 		// add "calls" relationships
-		for (IMethodRef callee : used) {
+		for (MethodInfo callee : javaMethod.getUnresolvedUsed()) {
 			String name = callee.getName();
 			if (name == null) {
 				continue;
@@ -252,21 +252,21 @@ public class CallGraphDialog extends GraphDialog {
 			methodToNodeID.put(method, nodeID);
 		}
 		String name = DotGraphUtils.methodFormatName(method, longNames);
-		f.format("Node_%d [ label=\"{%s}\" %s]\n", nodeID, UiUtils.toDotNodeName(name), extra);
+		f.format("Node_%d [ label=\"{%s}\" %s]\n", nodeID, toDotNodeName(name), extra);
 		if (javaMethod.callsSelf()) {
 			addEdge(f, nodeID, nodeID);
 		}
 		return nodeID;
 	}
 
-	private int addNode(Formatter f, IMethodRef method) {
+	private int addNode(Formatter f, MethodInfo method) {
 		return addNode(f, method, "");
 	}
 
 	/**
 	 * Add a node representing an unresolved method to the graph in f. Returns the ID of the new node
 	 */
-	private int addNode(Formatter f, IMethodRef method, String extra) {
+	private int addNode(Formatter f, MethodInfo method, String extra) {
 		int nodeID;
 		if (unresolvedMethodToNodeID.containsKey(method)) {
 			nodeID = unresolvedMethodToNodeID.get(method);
@@ -275,15 +275,10 @@ public class CallGraphDialog extends GraphDialog {
 			nextNodeID++;
 			unresolvedMethodToNodeID.put(method, nodeID);
 		}
-
 		String name = DotGraphUtils.unresolvedMethodFormatName(method, longNames);
-
 		Color themeOutOfFocus = UIManager.getColor("Component.disabledBorderColor");
-		String outOfFocus =
-				String.format("color=\"#%02x%02x%02x\"", themeOutOfFocus.getRed(), themeOutOfFocus.getGreen(),
-						themeOutOfFocus.getBlue());
-
-		f.format("Node_%d [ label=\"{%s}\" style=dashed %s %s]\n", nodeID, UiUtils.toDotNodeName(name), outOfFocus, extra);
+		String outOfFocus = "color=" + formatColor(themeOutOfFocus);
+		f.format("Node_%d [ label=\"{%s}\" style=dashed %s %s]\n", nodeID, toDotNodeName(name), outOfFocus, extra);
 		return nodeID;
 	}
 

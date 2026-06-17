@@ -26,8 +26,10 @@ import jadx.core.utils.DotGraphUtils;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.layout.WrapLayout;
+
+import static jadx.core.utils.DotGraphUtils.formatColor;
+import static jadx.core.utils.DotGraphUtils.toDotNodeName;
 
 public class ClassMethodGraphDialog extends GraphDialog {
 	private static final long serialVersionUID = -850803763322590708L;
@@ -116,10 +118,6 @@ public class ClassMethodGraphDialog extends GraphDialog {
 		}
 	}
 
-	private static String formatColor(Color color) {
-		return String.format("\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue());
-	}
-
 	private void addCallers(int depth, Formatter f, JavaMethod javaMethod) {
 		if (depth >= CALLER_DEPTH_LIMIT) {
 			return;
@@ -152,7 +150,7 @@ public class ClassMethodGraphDialog extends GraphDialog {
 			methodToNodeID.put(method, nodeID);
 		}
 		String name = DotGraphUtils.methodFormatName(method, longNames);
-		f.format("Node_%d [ label=\"{%s}\"]\n", nodeID, UiUtils.toDotNodeName(name));
+		f.format("Node_%d [ label=\"{%s}\"]\n", nodeID, toDotNodeName(name));
 		if (method.callsSelf()) {
 			addEdge(f, nodeID, nodeID);
 		}

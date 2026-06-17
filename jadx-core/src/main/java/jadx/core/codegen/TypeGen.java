@@ -1,5 +1,7 @@
 package jadx.core.codegen;
 
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,10 @@ public class TypeGen {
 			return '[' + signature(type.getArrayElement());
 		}
 		return stype.getShortName();
+	}
+
+	public static List<String> signatures(List<ArgType> types) {
+		return Utils.collectionMap(types, TypeGen::signature);
 	}
 
 	/**

@@ -746,6 +746,14 @@ public class ClassNode extends NotificationAttrNode
 		}
 	}
 
+	public void getInnerClassesRecursive(Set<ClassNode> resultClassesSet) {
+		for (ClassNode innerCls : innerClasses) {
+			if (resultClassesSet.add(innerCls)) {
+				innerCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
+			}
+		}
+	}
+
 	public void addInnerClass(ClassNode cls) {
 		if (innerClasses.isEmpty()) {
 			innerClasses = new ArrayList<>(5);

@@ -51,7 +51,7 @@ abstract class AbstractCodeAreaLine {
 
 	/**
 	 * This could be itself or:
-	 * - the enclosing method delcaration if line is in a method
+	 * - the enclosing method declaration if line is in a method
 	 * - the enclosing class declaration if line is a field declaration
 	 */
 	public IDeclaration getEnclosingScopeDeclaration() throws BadLocationException, FallbackSyncException {

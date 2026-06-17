@@ -1,5 +1,6 @@
 package jadx.core.utils;
 
+import java.awt.Color;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
@@ -7,19 +8,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
 import jadx.api.JavaMethod;
 import jadx.api.impl.SimpleCodeWriter;
-import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.MethodGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -477,19 +477,13 @@ public class DotGraphUtils {
 		return methodNode.getAlias();
 	}
 
-	public static String unresolvedMethodFormatName(IMethodRef methodRef, boolean longName) {
-		String name = methodRef.getName();
+	public static String unresolvedMethodFormatName(MethodInfo mthInfo, boolean longName) {
+		String name = mthInfo.getName();
 		if (longName) {
-			String className = methodRef.getParentClassType();
-			className = Utils.cleanObjectName(className);
-
-			String returnName = methodRef.getReturnType();
-			returnName = Utils.smaliNameToJavaName(returnName);
-
-			List<String> argTypes = methodRef.getArgTypes();
-			argTypes = argTypes.stream().map(c -> Utils.smaliNameToJavaName(c)).collect(Collectors.toList());
-
-			return String.format("%s.%s(%s):%s", className, name, Utils.listToString(argTypes), returnName);
+			String className = mthInfo.getDeclClass().getFullName();
+			String returnName = mthInfo.getReturnType().toString();
+			String argStr = Utils.listToString(mthInfo.getArgumentsTypes(), ArgType::toString);
+			return String.format("%s.%s(%s):%s", className, name, argStr, returnName);
 		}
 		return name;
 	}
@@ -507,5 +501,13 @@ public class DotGraphUtils {
 			}
 		}
 		return arg.toString();
+	}
+
+	public static String formatColor(Color color) {
+		return String.format("\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue());
+	}
+
+	public static String toDotNodeName(String fullName) {
+		return fullName.replace("<", "\\<").replace(">", "\\>");
 	}
 }

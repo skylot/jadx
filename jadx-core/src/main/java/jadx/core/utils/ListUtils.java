@@ -33,9 +33,7 @@ public class ListUtils {
 	}
 
 	public static <T> List<T> mutableListOf(T... objs) {
-		List<T> list = new ArrayList<>();
-		Collections.addAll(list, objs);
-		return list;
+		return new ArrayList<>(Arrays.asList(objs));
 	}
 
 	public static <T> boolean isSingleElement(@Nullable List<T> list, T obj) {

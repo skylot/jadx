@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoData;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -38,10 +39,10 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class UsageFileAdapter extends DataAdapterHelper {
 	private static final Logger LOG = LoggerFactory.getLogger(UsageFileAdapter.class);
 
-	private static final int USAGE_DATA_VERSION = 2;
+	private static final int USAGE_DATA_VERSION = 3;
 	private static final byte[] JADX_USAGE_HEADER = "jadx.usage".getBytes(StandardCharsets.US_ASCII);
 
-	public static synchronized @Nullable RawUsageData load(Path usageFile, List<File> inputs) {
+	public static synchronized @Nullable RawUsageData load(RootNode root, Path usageFile, List<File> inputs) {
 		if (!Files.isRegularFile(usageFile)) {
 			return null;
 		}
@@ -61,7 +62,7 @@ public class UsageFileAdapter extends DataAdapterHelper {
 				FileUtils.deleteFileIfExists(usageFile);
 				return null;
 			}
-			RawUsageData data = readData(in);
+			RawUsageData data = readData(root, in);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Loaded usage data from disk cache, classes count: {}, time: {}ms, file: {}",
 						data.getClsMap().size(), System.currentTimeMillis() - start, usageFile);
@@ -103,7 +104,7 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		}
 	}
 
-	private static RawUsageData readData(DataInputStream in) throws IOException {
+	private static RawUsageData readData(RootNode root, DataInputStream in) throws IOException {
 		RawUsageData data = new RawUsageData();
 		int clsCount = readUVInt(in);
 		int clsWithoutDataCount = readUVInt(in);
@@ -119,6 +120,11 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		}
 		for (int i = 0; i < clsWithoutDataCount; i++) {
 			clsNames[c++] = in.readUTF();
+		}
+		int uClsCount = readUVInt(in);
+		String[] uClsNames = new String[uClsCount];
+		for (int i = 0; i < uClsCount; i++) {
+			uClsNames[i] = in.readUTF();
 		}
 
 		// Method information
@@ -137,16 +143,15 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		int uMthCount = readUVInt(in);
 		IMethodRef[] unresolvedMethods = new IMethodRef[uMthCount];
 		for (int i = 0; i < uMthCount; i++) {
+			int clsId = readUVInt(in);
 			String name = in.readUTF();
-			String parentClassType = in.readUTF();
 			String returnType = in.readUTF();
-			int argCount = in.readInt();
-			String[] args = new String[argCount];
+			int argCount = readUVInt(in);
+			List<String> args = new ArrayList<>(argCount);
 			for (int j = 0; j < argCount; j++) {
-				args[j] = in.readUTF();
+				args.add(in.readUTF());
 			}
-			IMethodRef iMethodRef = new CachedMethodRef(parentClassType, name, returnType, Arrays.asList(args));
-			unresolvedMethods[i] = iMethodRef;
+			unresolvedMethods[i] = new CachedMethodRef(uClsNames[clsId], name, returnType, args);
 		}
 
 		// Usage data
@@ -181,9 +186,28 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		Map<MthRef, Integer> mthMap = new HashMap<>();
 		Map<IMethodRef, Integer> uMthMap = new HashMap<>();
 		Map<String, ClsUsageData> clsDataMap = usageData.getClsMap();
+
+		Map<String, Integer> uClsMap = new HashMap<>();
+		List<IMethodRef> unresolvedMethods = clsDataMap.values().stream()
+				.flatMap(classUsageData -> classUsageData.getMthUsage().values().stream())
+				.flatMap(methodUsageData -> {
+					List<IMethodRef> unresolvedUsageList = methodUsageData.getUnresolvedUsage();
+					return unresolvedUsageList == null ? null : unresolvedUsageList.stream();
+				})
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
 		List<String> classes = new ArrayList<>(clsDataMap.keySet());
 		Collections.sort(classes);
 		List<String> classesWithoutData = usageData.getClassesWithoutData();
+
+		// pool for classes from unresolved methods
+		Set<String> uClsNames = new HashSet<>();
+		for (IMethodRef uMthRef : unresolvedMethods) {
+			uClsNames.add(uMthRef.getParentClassType());
+		}
+		List<String> uClsList = new ArrayList<>(uClsNames);
+		Collections.sort(uClsList);
 
 		// Class information
 		writeUVInt(out, classes.size());
@@ -196,6 +220,13 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		for (String cls : classesWithoutData) {
 			out.writeUTF(cls);
 			clsMap.put(cls, i++);
+		}
+
+		writeUVInt(out, uClsList.size());
+		int u = 0;
+		for (String cls : uClsList) {
+			out.writeUTF(cls);
+			uClsMap.put(cls, u++);
 		}
 
 		// Method information
@@ -212,33 +243,18 @@ public class UsageFileAdapter extends DataAdapterHelper {
 		}
 
 		// Unresolved method information
-		Set<IMethodRef> unresolvedMethods = clsDataMap.values().stream()
-				.flatMap(classUsageData -> classUsageData.getMthUsage().values().stream())
-				.flatMap(methodUsageData -> {
-					List<IMethodRef> unresolvedUsageList = methodUsageData.getUnresolvedUsage();
-					return (unresolvedUsageList == null) ? null : unresolvedUsageList.stream();
-				})
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet());
 		writeUVInt(out, unresolvedMethods.size());
 		int k = 0;
-		for (IMethodRef uMth : unresolvedMethods) {
-			String name = uMth.getName();
-			out.writeUTF((name == null) ? "" : name);
-			String parentClassType = uMth.getParentClassType();
-			out.writeUTF((parentClassType == null) ? "" : parentClassType);
-			String returnType = uMth.getReturnType();
-			out.writeUTF((returnType == null) ? "" : returnType);
-			List<String> argTypes = uMth.getArgTypes();
-			if (argTypes == null) {
-				out.writeInt(0);
-			} else {
-				out.writeInt(argTypes.size());
-				for (String arg : argTypes) {
-					out.writeUTF(arg);
-				}
+		for (IMethodRef uMthRef : unresolvedMethods) {
+			writeUVInt(out, uClsMap.get(uMthRef.getParentClassType()));
+			out.writeUTF(uMthRef.getName());
+			out.writeUTF(uMthRef.getReturnType());
+			List<String> args = uMthRef.getArgTypes();
+			writeUVInt(out, args.size());
+			for (String arg : args) {
+				out.writeUTF(arg);
 			}
-			uMthMap.put(uMth, k++);
+			uMthMap.put(uMthRef, k++);
 		}
 
 		// Usage data
