@@ -7,6 +7,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
+import jadx.api.metadata.annotations.InsnCodeOffset;
+import jadx.core.dex.nodes.PackageNode;
+import jadx.core.dex.nodes.RootNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -93,4 +96,44 @@ public class JadxDecompilerTest {
 	}
 
 	// TODO add more tests
+
+
+	@Test
+	public void testConvertPackageHierarchy() {
+		JadxDecompiler jadx = new JadxDecompiler();
+		RootNode root = new RootNode(jadx);
+		PackageNode leafPkgNode = PackageNode.getOrBuild(root, "com.example.app");
+		PackageNode rootPkgNode = leafPkgNode.getParentPkg().getParentPkg();
+
+		JavaPackage rootPkg = jadx.convertPackageNode(rootPkgNode);
+
+		assertThat(rootPkg.getFullName()).isEqualTo("com");
+		assertThat(rootPkg.isRoot()).isTrue();
+		assertThat(rootPkg.isLeaf()).isFalse();
+		assertThat(rootPkg.getSubPackages())
+				.extracting(JavaPackage::getFullName)
+				.containsExactly("com.example");
+		JavaPackage middlePkg = rootPkg.getSubPackages().get(0);
+		assertThat(middlePkg.getFullName()).isEqualTo("com.example");
+		assertThat(middlePkg.getSubPackages())
+				.extracting(JavaPackage::getFullName)
+				.containsExactly("com.example.app");
+		JavaPackage leafPkg = middlePkg.getSubPackages().get(0);
+		assertThat(leafPkg.getFullName()).isEqualTo("com.example.app");
+		assertThat(leafPkg.isLeaf()).isTrue();
+	}
+
+	@Test
+	public void testGetJavaNodeByRefReusesConvertedPackage() {
+		JadxDecompiler jadx = new JadxDecompiler();
+		RootNode root = new RootNode(jadx);
+		PackageNode pkgNode = PackageNode.getOrBuild(root, "com.example");
+
+		JavaNode javaNode = jadx.getJavaNodeByRef(pkgNode);
+
+		assertThat(javaNode).isNotNull();
+		assertThat(javaNode.getCodeNodeRef()).isSameAs(pkgNode);
+		assertThat(jadx.getJavaNodeByRef(pkgNode)).isSameAs(javaNode);
+		assertThat(jadx.convertPackageNode(pkgNode)).isSameAs(javaNode);
+	}
 }
