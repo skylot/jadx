@@ -392,6 +392,23 @@ public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAb
 		}
 	}
 
+	public @Nullable JavaNode getJavaIdentifierIfAtPos(int pos) {
+		try {
+			ICodeInfo codeInfo = getCodeInfo();
+			if (!codeInfo.hasMetadata()) {
+				return null;
+			}
+			ICodeAnnotation ann = codeInfo.getCodeMetadata().getAt(pos);
+			if (ann == null) {
+				return null;
+			}
+			return getJadxWrapper().getDecompiler().getJavaNodeByCodeAnnotation(codeInfo, ann);
+		} catch (Exception e) {
+			LOG.error("Can't get java node by offset: {}", pos, e);
+			return null;
+		}
+	}
+
 	public void refreshClass() {
 		refreshClass(false);
 	}

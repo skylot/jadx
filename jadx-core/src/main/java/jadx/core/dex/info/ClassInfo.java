@@ -256,11 +256,17 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		return parentClass.getAliasNameWithoutPackage() + '.' + getAliasShortName();
 	}
 
+	/**
+	 * Return the outer class of the class represented by this ClassInfo instead of the parent class.
+	 */
 	@Nullable
 	public ClassInfo getParentClass() {
 		return parentClass;
 	}
 
+	/**
+	 * Return the top outer class of the class represented by this ClassInfo instead of the parent class.
+	 */
 	public ClassInfo getTopParentClass() {
 		if (parentClass != null) {
 			ClassInfo topCls = parentClass.getTopParentClass();

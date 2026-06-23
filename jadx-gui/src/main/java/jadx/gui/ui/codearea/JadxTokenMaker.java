@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.swing.text.Segment;
 
+import jadx.api.JavaMethod;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
@@ -54,6 +55,10 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 						fixContextualKeyword(current);
 						break;
 
+					case TokenTypes.FUNCTION:
+						fixIdentifierWithTheSameNameAsJavaLangClass(current);
+						break;
+
 					case TokenTypes.IDENTIFIER:
 						current = mergeLongClassNames(prev, current, false);
 						break;
@@ -75,6 +80,25 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 	private static void fixContextualKeyword(Token token) {
 		String lexeme = token.getLexeme(); // TODO: create new string every call, better to avoid
 		if (lexeme != null && CONTEXTUAL_KEYWORDS.contains(lexeme)) {
+			token.setType(TokenTypes.IDENTIFIER);
+		}
+	}
+
+	private void fixIdentifierWithTheSameNameAsJavaLangClass(Token token) {
+		JavaNode identifier = codeArea.getJavaIdentifierIfAtPos(token.getTextOffset());
+		if (identifier == null) {
+			return;
+		}
+		String lexeme = token.getLexeme();
+		if (lexeme.equals(identifier.getName())) {
+			token.setType(TokenTypes.IDENTIFIER);
+			return;
+		}
+		if (!(identifier instanceof JavaMethod)) {
+			return;
+		}
+		JavaClass javaCls = identifier.getDeclaringClass();
+		if (lexeme.equals(javaCls.getName())) {
 			token.setType(TokenTypes.IDENTIFIER);
 		}
 	}

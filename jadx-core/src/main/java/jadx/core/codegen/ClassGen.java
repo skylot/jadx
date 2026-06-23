@@ -122,17 +122,18 @@ public class ClassGen {
 	private void addImports(ICodeWriter clsCode) {
 		int importsCount = imports.size();
 		if (importsCount != 0) {
-			List<ClassInfo> sortedImports = new ArrayList<>(imports);
-			sortedImports.sort(Comparator.comparing(ClassInfo::getAliasFullName));
-			sortedImports.forEach(classInfo -> {
-				clsCode.startLine("import ");
-				ClassNode classNode = cls.root().resolveClass(classInfo);
-				if (classNode != null) {
-					clsCode.attachAnnotation(classNode);
-				}
-				clsCode.add(classInfo.getAliasFullName());
-				clsCode.add(';');
-			});
+			imports.stream()
+					.filter(classInfo -> !classInfo.getPackage().equals("java.lang") || classInfo.isInner())
+					.sorted(Comparator.comparing(ClassInfo::getAliasFullName))
+					.forEach(classInfo -> {
+						clsCode.startLine("import ");
+						ClassNode classNode = cls.root().resolveClass(classInfo);
+						if (classNode != null) {
+							clsCode.attachAnnotation(classNode);
+						}
+						clsCode.add(classInfo.getAliasFullName());
+						clsCode.add(';');
+					});
 			clsCode.newLine();
 			imports.clear();
 		}
@@ -697,10 +698,6 @@ public class ClassGen {
 			return fullName;
 		}
 		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
-			return shortName;
-		}
-		// don't add import for top classes from 'java.lang' package (subpackages excluded)
-		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
 		// don't add import if this class from same package
