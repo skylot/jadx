@@ -41,6 +41,9 @@ public class Utils {
 	}
 
 	public static String cleanObjectName(String obj) {
+		if (obj.isEmpty()) {
+			return obj;
+		}
 		if (obj.charAt(0) == 'L') {
 			int last = obj.length() - 1;
 			if (obj.charAt(last) == ';') {
@@ -51,6 +54,9 @@ public class Utils {
 	}
 
 	public static String cutObject(String obj) {
+		if (obj.isEmpty()) {
+			return obj;
+		}
 		if (obj.charAt(0) == 'L') {
 			return obj.substring(1, obj.length() - 1);
 		}
