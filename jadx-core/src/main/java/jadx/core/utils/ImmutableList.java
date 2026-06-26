@@ -60,7 +60,7 @@ public final class ImmutableList<E> implements List<E>, RandomAccess {
 
 	@Override
 	public int lastIndexOf(Object o) {
-		for (int i = arr.length - 1; i > 0; i--) {
+		for (int i = arr.length - 1; i >= 0; i--) {
 			E e = arr[i];
 			if (Objects.equals(e, o)) {
 				return i;
