@@ -225,7 +225,7 @@ public class ResXmlGen {
 				}
 				break;
 			case "plurals":
-				final String quantity = PLURALS_MAP.get(value.getNameRef());
+				String quantity = PLURALS_MAP.get(value.getNameRef());
 				addSimpleValue(cw, typeName, itemTag, "quantity", quantity, valueStr);
 				break;
 			default:

@@ -4,10 +4,14 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import org.jetbrains.annotations.Nullable;
+
+import jadx.core.utils.Utils;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.Shortcut;
@@ -45,6 +49,7 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_T, UiUtils.ctrlButton())),
 	TEXT_SEARCH(MENU_TOOLBAR, "menu.text_search", "menu.text_search", "ui/find",
 			Shortcut.keyboard(KeyEvent.VK_F, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
+
 	CLASS_SEARCH(MENU_TOOLBAR, "menu.class_search", "menu.class_search", "ui/ejbFinderMethod",
 			Shortcut.keyboard(KeyEvent.VK_N, UiUtils.ctrlButton())),
 	COMMENT_SEARCH(MENU_TOOLBAR, "menu.comment_search", "menu.comment_search", "ui/usagesFinder",
@@ -53,7 +58,8 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_M, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
 	GO_TO_APPLICATION(MENU_TOOLBAR, "menu.go_to_application", "menu.go_to_application", "ui/application",
 			Shortcut.keyboard(KeyEvent.VK_A, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK)),
-	GO_TO_ANDROID_MANIFEST(MENU_TOOLBAR, "menu.go_to_android_manifest", "menu.go_to_android_manifest", "ui/androidManifest",
+	GO_TO_ANDROID_MANIFEST(MENU_TOOLBAR, "menu.go_to_android_manifest", "menu.go_to_android_manifest",
+			"ui/androidManifest",
 			Shortcut.none()),
 	PREVIEW_TAB(MENU_TOOLBAR, "menu.enable_preview_tab", "menu.enable_preview_tab", "ui/editorPreview",
 			Shortcut.none()),
@@ -79,12 +85,15 @@ public enum ActionModel {
 	OPEN_DEVICE(MENU_TOOLBAR, "debugger.process_selector", "debugger.process_selector", "ui/startDebugger",
 			Shortcut.none()),
 
-	FIND_USAGE(CODE_AREA, "popup.find_usage", "popup.find_usage", null,
-			Shortcut.keyboard(KeyEvent.VK_X)),
-	FIND_USAGE_PLUS(CODE_AREA, "popup.usage_dialog_plus", "popup.usage_dialog_plus", null,
-			Shortcut.keyboard(KeyEvent.VK_C)),
-	GOTO_DECLARATION(CODE_AREA, "popup.go_to_declaration", "popup.go_to_declaration", null,
-			Shortcut.keyboard(KeyEvent.VK_D)),
+	FIND_USAGE(CODE_AREA, "popup.find_usage", null, null, Shortcut.keyboard(KeyEvent.VK_X)),
+	FIND_USAGE_PLUS(CODE_AREA, "popup.usage_dialog_plus", null, null, Shortcut.keyboard(KeyEvent.VK_C)),
+	GOTO_DECLARATION(CODE_AREA, "popup.go_to_declaration", null, null, Shortcut.keyboard(KeyEvent.VK_D)),
+	CONVERT_NUMBER(CODE_AREA, "popup.convert_number", null, null, null),
+	VIEW_CLASS_INHERITANCE_GRAPH(CODE_AREA, "popup.view_class_graph", "popup.view_class_graph_description", null, null),
+	VIEW_CLASS_METHOD_GRAPH(CODE_AREA, "popup.view_class_method_graph", "popup.view_class_method_graph_description", null, null),
+	VIEW_CALL_GRAPH(CODE_AREA, "popup.view_call_graph", "popup.view_call_graph_description", null, null),
+	VIEW_CONTROL_FLOW_GRAPH(CODE_AREA, "popup.view_cfg", null, null, null),
+
 	CODE_COMMENT(CODE_AREA, "popup.add_comment", "popup.add_comment", null,
 			Shortcut.keyboard(KeyEvent.VK_SEMICOLON)),
 	CODE_COMMENT_SEARCH(CODE_AREA, "popup.search_comment", "popup.search_comment", null,
@@ -95,6 +104,8 @@ public enum ActionModel {
 			Shortcut.keyboard(KeyEvent.VK_F)),
 	XPOSED_COPY(CODE_AREA, "popup.xposed", "popup.xposed", null,
 			Shortcut.keyboard(KeyEvent.VK_Y)),
+	COPY_REFERENCE(CODE_AREA, "popup.copy_reference", "popup.copy_reference", null,
+			Shortcut.keyboard(KeyEvent.VK_R)),
 	JSON_PRETTIFY(CODE_AREA, "popup.json_prettify", "popup.json_prettify", null,
 			Shortcut.none()),
 
@@ -117,15 +128,16 @@ public enum ActionModel {
 	private final ActionCategory category;
 	private final String nameRes;
 	private final String descRes;
-	private final String iconPath;
+	private final @Nullable String iconPath;
 	private final Shortcut defaultShortcut;
 
-	ActionModel(ActionCategory category, String nameRes, String descRes, String iconPath, Shortcut defaultShortcut) {
-		this.category = category;
-		this.nameRes = nameRes;
-		this.descRes = descRes;
+	ActionModel(ActionCategory category, String nameRes, @Nullable String descRes, @Nullable String iconPath,
+			@Nullable Shortcut defaultShortcut) {
+		this.category = Objects.requireNonNull(category);
+		this.nameRes = Objects.requireNonNull(nameRes);
+		this.descRes = Utils.getOrElse(descRes, nameRes);
 		this.iconPath = iconPath;
-		this.defaultShortcut = defaultShortcut;
+		this.defaultShortcut = defaultShortcut != null ? defaultShortcut : Shortcut.none();
 	}
 
 	public static List<ActionModel> select(ActionCategory category) {
@@ -138,7 +150,7 @@ public enum ActionModel {
 		return category;
 	}
 
-	public String getName() {
+	public @Nullable String getName() {
 		if (nameRes != null) {
 			String name = NLS.str(nameRes);
 			if (name().endsWith("_V")) {
@@ -149,14 +161,14 @@ public enum ActionModel {
 		return null;
 	}
 
-	public String getDescription() {
+	public @Nullable String getDescription() {
 		if (descRes != null) {
 			return NLS.str(descRes);
 		}
 		return null;
 	}
 
-	public ImageIcon getIcon() {
+	public @Nullable ImageIcon getIcon() {
 		if (iconPath != null) {
 			return UiUtils.openSvgIcon(iconPath);
 		}

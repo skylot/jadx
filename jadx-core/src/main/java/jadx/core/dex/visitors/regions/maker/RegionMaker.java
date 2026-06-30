@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -12,7 +14,6 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -41,7 +42,7 @@ public class RegionMaker {
 		this.ifMaker = new IfRegionMaker(mth, this);
 		this.loopMaker = new LoopRegionMaker(mth, this, ifMaker);
 		this.processedBlocks = BlockSet.empty(mth);
-		this.regionsLimit = mth.getBasicBlocks().size() * 100;
+		this.regionsLimit = mth.getBasicBlocks().size() * 400;
 	}
 
 	public Region makeMthRegion() {
@@ -55,18 +56,20 @@ public class RegionMaker {
 			insertEdgeInsns(region, startBlock);
 			return region;
 		}
-
 		if (processedBlocks.addChecked(startBlock)) {
-			mth.addWarn("Removed duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
-			return region;
+			// Add block to multiple regions (duplicate the instructions in decompiled code)
+			// and allow processing to continue
+			if (!startBlock.contains(AFlag.DUPLICATED)) {
+				mth.addWarnComment("Code duplicated, block: " + startBlock + ' ' + startBlock.getAttributesString());
+				startBlock.add(AFlag.DUPLICATED);
+			}
 		}
-
 		BlockNode next = startBlock;
 		while (next != null) {
 			next = traverse(region, next);
 			regionsCount++;
 			if (regionsCount > regionsLimit) {
-				throw new JadxOverflowException("Regions count limit reached");
+				throw new JadxOverflowException("Regions count limit reached at block " + startBlock);
 			}
 		}
 		return region;
@@ -75,7 +78,7 @@ public class RegionMaker {
 	/**
 	 * Recursively traverse all blocks from 'block' until block from 'exits'
 	 */
-	private BlockNode traverse(IRegion r, BlockNode block) {
+	private @Nullable BlockNode traverse(Region r, BlockNode block) {
 		if (block.contains(AFlag.MTH_EXIT_BLOCK)) {
 			return null;
 		}
@@ -121,7 +124,7 @@ public class RegionMaker {
 			}
 		}
 		if (!processed) {
-			r.getSubBlocks().add(block);
+			r.add(block);
 			next = getNextBlock(block);
 		}
 		if (next != null && !stack.containsExit(block) && !stack.containsExit(next)) {

@@ -80,12 +80,16 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 		Region tryRegion = new Region(replaceRegion);
 		List<IContainer> subBlocks = replaceRegion.getSubBlocks();
+		// traverse the enclosing region for blocks that have a path from the dominator but don't have a
+		// path from any of the exception handlers i.e. they are not before the end of the try block so
+		// should be inside the try block.
 		for (IContainer cont : subBlocks) {
 			if (RegionUtils.hasPathThroughBlock(dominator, cont)) {
 				if (isHandlerPath(tb, cont)) {
-					break;
+					// this block/region has a path from an exception handler so is after the end of the try block
+					continue;
 				}
-				tryRegion.getSubBlocks().add(cont);
+				tryRegion.add(cont);
 			}
 		}
 		if (tryRegion.getSubBlocks().isEmpty()) {
@@ -113,12 +117,12 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		return true;
 	}
 
-	private static boolean isHandlerPath(TryCatchBlockAttr tb, IContainer cont) {
+	private static boolean isHandlerPath(TryCatchBlockAttr tb, IContainer container) {
 		for (ExceptionHandler h : tb.getHandlers()) {
 			BlockNode handlerBlock = h.getHandlerBlock();
 			if (handlerBlock != null
 					&& !handlerBlock.contains(AFlag.REMOVE)
-					&& RegionUtils.hasPathThroughBlock(handlerBlock, cont)) {
+					&& RegionUtils.isPathExists(handlerBlock, container)) {
 				return true;
 			}
 		}

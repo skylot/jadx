@@ -14,6 +14,7 @@ import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -62,11 +63,20 @@ public class AttributeStorage {
 
 	public <T> void add(IJadxAttrType<AttrList<T>> type, T obj) {
 		AttrList<T> list = get(type);
-		if (list == null) {
-			list = new AttrList<>(type);
-			add(list);
+		if (list != null) {
+			list.getList().add(obj);
+		} else {
+			add(new AttrList<>(type, ListUtils.mutableListOf(obj)));
 		}
-		list.getList().add(obj);
+	}
+
+	public <T> void addAttrList(IJadxAttrType<AttrList<T>> type, List<T> attrList) {
+		AttrList<T> list = get(type);
+		if (list != null) {
+			list.getList().addAll(attrList);
+		} else {
+			add(new AttrList<>(type, attrList));
+		}
 	}
 
 	public void addAll(AttributeStorage otherList) {

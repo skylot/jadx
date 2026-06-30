@@ -37,7 +37,10 @@ jadx-output/
 *.log
 *.cfg
 *.orig
-quark.json
+*.json
+*.dot
+
+.env
 
 cliff.toml
 jadx-gui/src/main/resources/logback.xml

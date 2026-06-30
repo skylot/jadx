@@ -6,8 +6,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.usage.IUsageInfoData;
 import jadx.api.usage.IUsageInfoVisitor;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -59,6 +61,9 @@ class UsageData implements IUsageInfoData {
 			MthUsageData mthUsageData = mthUsage.get(mth.getMethodInfo().getShortId());
 			if (mthUsageData != null) {
 				mth.setUseIn(resolveMthList(mthUsageData.getUsage()));
+				mth.setUsed(resolveMthList(mthUsageData.getUses()));
+				mth.setUnresolvedUsed(resolveMthInfoList(mthUsageData.getUnresolvedUsage()));
+				mth.setCallsSelf(mthUsageData.callsSelf());
 			}
 		}
 		Map<String, FldUsageData> fldUsage = clsUsageData.getFldUsage();
@@ -81,5 +86,9 @@ class UsageData implements IUsageInfoData {
 
 	private List<MethodNode> resolveMthList(List<MthRef> mthRefList) {
 		return Utils.collectionMap(mthRefList, m -> root.resolveDirectMethod(m.getCls(), m.getShortId()));
+	}
+
+	private List<MethodInfo> resolveMthInfoList(List<IMethodRef> mthRefList) {
+		return Utils.collectionMap(mthRefList, m -> MethodInfo.fromRef(root, m));
 	}
 }

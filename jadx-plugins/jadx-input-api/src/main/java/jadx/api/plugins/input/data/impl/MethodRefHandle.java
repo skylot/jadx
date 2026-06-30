@@ -1,5 +1,7 @@
 package jadx.api.plugins.input.data.impl;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodRef;
@@ -21,12 +23,12 @@ public class MethodRefHandle implements IMethodHandle {
 	}
 
 	@Override
-	public IMethodRef getMethodRef() {
+	public @Nullable IMethodRef getMethodRef() {
 		return methodRef;
 	}
 
 	@Override
-	public IFieldData getFieldRef() {
+	public @Nullable IFieldData getFieldRef() {
 		return null;
 	}
 

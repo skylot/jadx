@@ -44,7 +44,7 @@ public class CommentDialog extends CommonDialog {
 		dialog.setVisible(true);
 	}
 
-	private static void updateCommentsData(CodeArea codeArea, Consumer<List<ICodeComment>> updater) {
+	public static void updateCommentsData(CodeArea codeArea, Consumer<List<ICodeComment>> updater) {
 		try {
 			JadxProject project = codeArea.getProject();
 			JadxCodeData codeData = project.getCodeData();
@@ -61,8 +61,8 @@ public class CommentDialog extends CommonDialog {
 			LOG.error("Comment action failed", e);
 		}
 		try {
-			// refresh code
-			codeArea.refreshClass();
+			// refresh code in a background thread to avoid blocking the ui
+			codeArea.backgroundRefreshClass();
 		} catch (Exception e) {
 			LOG.error("Failed to reload code", e);
 		}

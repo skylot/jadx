@@ -24,6 +24,9 @@ public class D8Converter {
 				.setMinApiLevel(30)
 				.setIntermediate(true)
 				.setDisableDesugaring(!options.isD8Desugar())
+				.setEnableVerboseSyntheticNames(true)
+				.setOptimizeMultidexForLinearAlloc(false)
+				.setIncludeClassesChecksum(false)
 				.build();
 		D8.run(d8Command);
 	}

@@ -18,6 +18,7 @@ import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -126,11 +127,53 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void checkForUnreachableBlocks(MethodNode mth) {
-		for (BlockNode block : mth.getBasicBlocks()) {
-			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				throw new JadxRuntimeException("Unreachable block: " + block);
+		while (true) {
+			boolean fixed = false;
+			for (BlockNode block : mth.getBasicBlocks()) {
+				if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+					// Sometimes a split cross block will have all it's predecessors moved elsewhere after it's been
+					// created. This is usually detected at the time of it's creation, but in certain edge cases it
+					// is difficult to do so. In those cases it will be cleanly removed here, along with the associated
+					// bottom splitter.
+					if (block.contains(AType.EXC_SPLIT_CROSS) && fixUnreachableSplitCross(mth, block)) {
+						mth.addInfoComment("Removed unreachable split cross block " + block);
+						fixed = true;
+						break;
+					}
+					throw new JadxRuntimeException("Unreachable block: " + block);
+				}
+			}
+			if (!fixed) {
+				break;
 			}
 		}
+	}
+
+	/**
+	 * Attempts to remove an unreachable synthetic split cross block that has been added previously,
+	 * along with the associated bottom splitter.
+	 *
+	 * @param mth        the method containing the unreachable block
+	 * @param splitCross the unreachable block
+	 * @return true if the operation was successful, false if a precondition was not satisfied and no
+	 *         changes were made.
+	 */
+	private static boolean fixUnreachableSplitCross(MethodNode mth, BlockNode splitCross) {
+		BlockNode bottomSplitter = null;
+		for (BlockNode succ : splitCross.getSuccessors()) {
+			if (succ.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
+				bottomSplitter = succ;
+				break;
+			}
+		}
+		if (bottomSplitter == null || bottomSplitter.getPredecessors().size() != 1) {
+			return false;
+		}
+		Set<BlockNode> removeSet = new HashSet<>();
+		removeSet.add(bottomSplitter);
+		removeSet.add(splitCross);
+		removeFromMethod(removeSet, mth);
+		return true;
 	}
 
 	private static boolean deduplicateBlockInsns(MethodNode mth, BlockNode block) {
@@ -315,6 +358,13 @@ public class BlockProcessor extends AbstractVisitor {
 		if (mergeConstReturn(mth)) {
 			return true;
 		}
+		if (CodeFeaturesAttr.contains(mth, CodeFeaturesAttr.CodeFeature.SWITCH)) {
+			for (BlockNode basicBlock : mth.getBasicBlocks()) {
+				if (duplicateSimpleMoveBlock(mth, basicBlock)) {
+					return true;
+				}
+			}
+		}
 		return splitExitBlocks(mth);
 	}
 
@@ -381,6 +431,65 @@ public class BlockProcessor extends AbstractVisitor {
 			changed = true;
 		}
 		return changed;
+	}
+
+	/**
+	 * Duplicate block if it contains only one 'move' insn and all predecessors are 'switch' and 'if'.
+	 * This will help to resolve switch cases order and fallthrough detection
+	 * because such move blocks can be deduplicated by compiler.
+	 */
+	private static boolean duplicateSimpleMoveBlock(MethodNode mth, BlockNode block) {
+		List<InsnNode> insns = block.getInstructions();
+		if (insns.size() == 1 && block.getSuccessors().size() == 1) {
+			InsnNode insn = insns.get(0);
+			if (insn.getType() == InsnType.MOVE) {
+				List<BlockNode> preds = block.getPredecessors();
+				int predSize = preds.size();
+				if (predSize >= 3 && onlySwitchAndIfInLastInsns(preds)) {
+					// confirmed, duplicate block
+					BlockNode successor = block.getSuccessors().get(0);
+					List<BlockNode> predsCopy = new ArrayList<>(preds);
+					for (int i = 1; i < predSize; i++) {
+						BlockNode pred = predsCopy.get(i);
+						BlockNode newBlock = BlockSplitter.startNewBlock(mth, -1);
+						newBlock.add(AFlag.SYNTHETIC);
+						for (InsnNode oldInsn : block.getInstructions()) {
+							InsnNode copyInsn = oldInsn.copyWithoutSsa();
+							copyInsn.add(AFlag.SYNTHETIC);
+							newBlock.getInstructions().add(copyInsn);
+						}
+						newBlock.copyAttributesFrom(block);
+						BlockSplitter.replaceConnection(pred, block, newBlock);
+						BlockSplitter.connect(newBlock, successor);
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean onlySwitchAndIfInLastInsns(List<BlockNode> preds) {
+		boolean hasSwitch = false;
+		boolean hasIf = false;
+		for (BlockNode pred : preds) {
+			InsnNode lastInsn = BlockUtils.getLastInsn(pred);
+			if (lastInsn == null) {
+				return false;
+			}
+			InsnType insnType = lastInsn.getType();
+			switch (insnType) {
+				case SWITCH:
+					hasSwitch = true;
+					break;
+				case IF:
+					hasIf = true;
+					break;
+				default:
+					return false;
+			}
+		}
+		return hasSwitch && hasIf;
 	}
 
 	private static boolean simplifyLoopEnd(MethodNode mth, LoopInfo loop) {

@@ -6,12 +6,14 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import java.util.Locale
 
 plugins {
-	id("com.github.ben-manes.versions") version "0.53.0"
+	id("com.github.ben-manes.versions") version "0.54.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.19"
-	id("com.diffplug.spotless") version "6.25.0"
+	id("com.diffplug.spotless") version "8.7.0"
 }
 
-val jadxVersion by extra { System.getenv("JADX_VERSION") ?: "dev" }
+val jadxEnv = loadEnv(file("$rootDir/.env"))
+
+val jadxVersion by extra { jadxEnv["JADX_VERSION"] ?: "dev" }
 println("jadx version: $jadxVersion")
 version = jadxVersion
 
@@ -19,12 +21,30 @@ val jadxBuildJavaVersion by extra { getBuildJavaVersion() }
 
 fun getBuildJavaVersion(): Int? {
 	val envVarName = "JADX_BUILD_JAVA_VERSION"
-	val buildJavaVer = System.getenv(envVarName)?.toInt() ?: return null
+	val buildJavaVer = jadxEnv[envVarName]?.toInt() ?: return null
 	if (buildJavaVer < 11) {
 		throw GradleException("'$envVarName' can't be set to lower than 11")
 	}
 	println("Set Java toolchain for jadx build to version '$buildJavaVer'")
 	return buildJavaVer
+}
+
+// control ErrorProne checks level, can be: off, warn, error
+val jadxBuildChecksMode: String by extra { getBuildChecksMode() }
+
+fun getBuildChecksMode(): String {
+	val buildChecksMode = jadxEnv["JADX_BUILD_CHECKS_MODE"]?.lowercase() ?: "off"
+	val expectedValues = listOf("off", "warn", "error")
+	if (!expectedValues.contains(buildChecksMode)) {
+		throw GradleException("Unknown check mode: '$buildChecksMode', should be one of $expectedValues")
+	}
+	if (buildChecksMode != "off") {
+		val javaVersion = jadxBuildJavaVersion?.let { JavaVersion.toVersion(it) } ?: JavaVersion.current()
+		if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
+			throw GradleException("Error Prone requires Java 21")
+		}
+	}
+	return buildChecksMode
 }
 
 allprojects {
@@ -82,6 +102,30 @@ fun isNonStable(version: String): Boolean {
 	return isStable.not()
 }
 
+fun loadEnv(file: File): Map<String, String> {
+	val envMap = HashMap<String, String>()
+	System
+		.getenv()
+		.filter { it.key.startsWith("JADX_") }
+		.forEach { envMap[it.key] = it.value }
+	if (file.exists()) {
+		file
+			.readLines()
+			.map { it.trim() }
+			.filter { it.isNotEmpty() && !it.startsWith("#") }
+			.forEach {
+				val (k, v) = it.split("=", limit = 2)
+				envMap[k.trim()] = v.trim()
+			}
+	}
+	println(
+		"Loaded env vars (${envMap.size}):\n${
+			envMap.toList().sortedBy { it.first }.joinToString(separator = "\n") { "${it.first}=${it.second}" }
+		}\n",
+	)
+	return envMap
+}
+
 val distWinConfiguration: Configuration by configurations.creating {
 	isCanBeConsumed = false
 }
@@ -98,7 +142,9 @@ val copyArtifacts by tasks.registering(Copy::class) {
 	from(tasks.getByPath(":jadx-cli:installShadowDist")) {
 		exclude("**/*.jar")
 		filter { line ->
-			jarCliPattern.matcher(line).replaceAll("jadx-$1-all.jar")
+			jarCliPattern
+				.matcher(line)
+				.replaceAll("jadx-$1-all.jar")
 				.replace("-jar \"\\\"\$CLASSPATH\\\"\"", "-cp \"\\\"\$CLASSPATH\\\"\" jadx.cli.JadxCLI")
 				.replace("-jar \"%CLASSPATH%\"", "-cp \"%CLASSPATH%\" jadx.cli.JadxCLI")
 		}
@@ -124,6 +170,13 @@ val pack by tasks.registering(Zip::class) {
 	from(copyArtifacts)
 	archiveFileName.set("jadx-$jadxVersion.zip")
 	destinationDirectory.set(layout.buildDirectory)
+	eachFile {
+		if (path == "bin/jadx" || path == "bin/jadx-gui") {
+			permissions {
+				unix("rwxr-xr-x")
+			}
+		}
+	}
 }
 
 val distWin by tasks.registering(Zip::class) {

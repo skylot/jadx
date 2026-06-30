@@ -3,6 +3,8 @@ package jadx.plugins.tools.data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.google.gson.annotations.SerializedName;
+
 public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String pluginId;
 	private String name;
@@ -11,8 +13,15 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private @Nullable String requiredJadxVersion;
 
 	private @Nullable String version;
+
 	private String locationId;
-	private String jar;
+
+	/**
+	 * Absolute path to '.jar' file or unpacked zip directory
+	 */
+	@SerializedName(value = "path", alternate = { "jar" })
+	private String path;
+
 	private boolean disabled;
 
 	public String getPluginId() {
@@ -71,12 +80,22 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 		this.locationId = locationId;
 	}
 
-	public String getJar() {
-		return jar;
+	public String getPath() {
+		return path;
 	}
 
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	@Deprecated
+	public String getJar() {
+		return path;
+	}
+
+	@Deprecated
 	public void setJar(String jar) {
-		this.jar = jar;
+		this.path = jar;
 	}
 
 	public boolean isDisabled() {
@@ -115,7 +134,7 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 				+ ", name=" + name
 				+ ", version=" + (version != null ? version : "?")
 				+ ", locationId=" + locationId
-				+ ", jar=" + jar
+				+ ", path=" + path
 				+ '}';
 	}
 }

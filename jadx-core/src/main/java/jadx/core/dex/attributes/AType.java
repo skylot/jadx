@@ -7,9 +7,11 @@ import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.attributes.nodes.DecompileModeOverrideAttr;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
+import jadx.core.dex.attributes.nodes.ExcSplitCrossAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
@@ -62,6 +64,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<ClassTypeVarsAttr> CLASS_TYPE_VARS = new AType<>();
 	public static final AType<AnonymousClassAttr> ANONYMOUS_CLASS = new AType<>();
 	public static final AType<InlinedAttr> INLINED = new AType<>();
+	public static final AType<DecompileModeOverrideAttr> DECOMPILE_MODE_OVERRIDE = new AType<>();
 
 	// field
 	public static final AType<FieldInitInsnAttr> FIELD_INIT_INSN = new AType<>();
@@ -90,6 +93,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<AttrList<SpecialEdgeAttr>> SPECIAL_EDGE = new AType<>();
 	public static final AType<TmpEdgeAttr> TMP_EDGE = new AType<>();
 	public static final AType<TryCatchBlockAttr> TRY_BLOCK = new AType<>();
+	public static final AType<ExcSplitCrossAttr> EXC_SPLIT_CROSS = new AType<>();
 
 	// block or insn
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<>();

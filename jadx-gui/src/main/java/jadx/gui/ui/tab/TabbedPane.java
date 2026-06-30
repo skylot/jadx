@@ -221,6 +221,7 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	}
 
 	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
+		UiUtils.uiThreadGuard();
 		JNode jumpNode = jumpPos.getNode();
 		ContentPanel contentPanel = getTabByNode(jumpNode);
 		if (contentPanel == null) {
@@ -228,9 +229,9 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		}
 		selectTab(contentPanel);
 		int pos = jumpPos.getPos();
-		if (pos < 0) {
+		if (pos <= 0) {
 			LOG.warn("Invalid jump: {}", jumpPos, new JadxRuntimeException());
-			pos = 0;
+			pos = Math.max(0, jumpNode.getPos());
 		}
 		contentPanel.scrollToPos(pos);
 		return contentPanel;
@@ -313,6 +314,22 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 		}
 
 		return (TabComponent) component;
+	}
+
+	public boolean tabWithTitleExists(String tabTitle) {
+		try {
+			for (int i = 0; i < getTabCount(); i++) {
+				Component component = getTabComponentAt(i);
+				if (component instanceof TabComponent) {
+					if (((TabComponent) component).getTabTitle().equals(tabTitle)) {
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOG.warn("Failed to check tabs titles", e);
+		}
+		return false;
 	}
 
 	public void refresh(JNode node) {
@@ -426,7 +443,9 @@ public class TabbedPane extends JTabbedPane implements ITabStatesListener {
 	@Override
 	public void onTabCodeJump(TabBlueprint blueprint, @Nullable JumpPosition prevPos, JumpPosition position) {
 		// queue task to wait completion of loading tasks
-		mainWindow.getBackgroundExecutor().execute(new SilentTask(() -> showCode(position)));
+		mainWindow.getBackgroundExecutor().execute(new SilentTask(() -> {
+			UiUtils.uiRun(() -> showCode(position));
+		}));
 	}
 
 	@Override

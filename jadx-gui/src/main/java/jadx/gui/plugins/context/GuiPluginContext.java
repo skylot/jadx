@@ -26,6 +26,7 @@ import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.gui.JadxGuiSettings;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
@@ -80,6 +81,14 @@ public class GuiPluginContext implements JadxGuiContext {
 	@Override
 	public void addTreePopupMenuEntry(String name, Predicate<ITreeNode> addPredicate, Consumer<ITreeNode> action) {
 		commonContext.getTreePopupMenuEntries().add(new TreePopupMenuEntry(name, addPredicate, action));
+	}
+
+	public void registerTreeInputCategory(ITreeInputCategory inputCategory) {
+		commonContext.getTreeInputCategories().add(inputCategory);
+	}
+
+	public void registerTabStatePersistAdapter(ITabStatePersist tabStatePersist) {
+		commonContext.getTabStatePersistAdapters().add(tabStatePersist);
 	}
 
 	@Override

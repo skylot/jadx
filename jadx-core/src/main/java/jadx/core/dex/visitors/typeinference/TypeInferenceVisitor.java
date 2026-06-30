@@ -73,6 +73,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			assignImmutableTypes(mth);
 			initTypeBounds(mth);
 			runTypePropagation(mth);
+		} catch (StackOverflowError | BootstrapMethodError e) {
+			mth.addError("Type inference failed with stack overflow", new JadxOverflowException(e.getMessage()));
 		} catch (Exception e) {
 			mth.addError("Type inference failed", e);
 		}

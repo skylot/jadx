@@ -1,6 +1,7 @@
 package jadx.zip;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.zip.fallback.FallbackException;
 import jadx.zip.fallback.FallbackZipParser;
 import jadx.zip.parser.JadxZipParser;
 import jadx.zip.security.IJadxZipSecurity;
@@ -39,13 +41,15 @@ public class ZipReader {
 
 	@SuppressWarnings("resource")
 	public ZipContent open(File zipFile) throws IOException {
+		if (!zipFile.exists()) {
+			throw new FileNotFoundException(zipFile.getAbsolutePath());
+		}
 		try {
 			JadxZipParser jadxParser = new JadxZipParser(zipFile, options);
 			IZipParser detectedParser = detectParser(zipFile, jadxParser);
-			if (detectedParser != jadxParser) {
-				jadxParser.close();
-			}
 			return detectedParser.open();
+		} catch (FallbackException e) {
+			throw e;
 		} catch (Exception e) {
 			if (options.getFlags().contains(ZipReaderFlags.DONT_USE_FALLBACK)) {
 				throw new IOException("Failed to open zip: " + zipFile, e);
@@ -90,7 +94,7 @@ public class ZipReader {
 		return options;
 	}
 
-	private IZipParser detectParser(File zipFile, JadxZipParser jadxParser) {
+	private IZipParser detectParser(File zipFile, JadxZipParser jadxParser) throws IOException {
 		if (zipFile.getName().endsWith(".apk")
 				|| options.getFlags().contains(ZipReaderFlags.DONT_USE_FALLBACK)) {
 			return jadxParser;
@@ -105,7 +109,7 @@ public class ZipReader {
 		return jadxParser;
 	}
 
-	private FallbackZipParser buildFallbackParser(File zipFile) {
+	private FallbackZipParser buildFallbackParser(File zipFile) throws IOException {
 		return new FallbackZipParser(zipFile, options);
 	}
 }

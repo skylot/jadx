@@ -6,15 +6,17 @@ dependencies {
 	api(project(":jadx-plugins:jadx-input-api"))
 	api(project(":jadx-commons:jadx-zip"))
 
-	implementation("com.google.code.gson:gson:2.13.2")
+	implementation("com.google.code.gson:gson:2.14.0")
 
 	testImplementation("org.apache.commons:commons-lang3:3.20.0")
 
 	testImplementation(project(":jadx-plugins:jadx-dex-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-smali-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-java-convert"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-java-input"))
-	testRuntimeOnly(project(":jadx-plugins:jadx-raung-input"))
+	// 'ClassNotFound' error is raised if set as 'testRuntime'
+	// for the plugins below when running the tests from vscode.
+	testImplementation(project(":jadx-plugins:jadx-smali-input"))
+	testImplementation(project(":jadx-plugins:jadx-java-convert"))
+	testImplementation(project(":jadx-plugins:jadx-java-input"))
+	testImplementation(project(":jadx-plugins:jadx-raung-input"))
 
 	testImplementation("org.eclipse.jdt:ecj") {
 		version {
@@ -22,7 +24,7 @@ dependencies {
 			strictly("[3.33, 3.34[") // from 3.34 compiled with Java 17
 		}
 	}
-	testImplementation("tools.profiler:async-profiler:4.2")
+	testImplementation("tools.profiler:async-profiler:4.4")
 }
 
 val jadxTestJavaVersion = getTestJavaVersion()
@@ -30,7 +32,10 @@ val jadxTestJavaVersion = getTestJavaVersion()
 fun getTestJavaVersion(): Int? {
 	val envVarName = "JADX_TEST_JAVA_VERSION"
 	val testJavaVer = System.getenv(envVarName)?.toInt() ?: return null
-	val currentJavaVer = java.toolchain.languageVersion.get().asInt()
+	val currentJavaVer =
+		java.toolchain.languageVersion
+			.get()
+			.asInt()
 	if (testJavaVer < currentJavaVer) {
 		throw GradleException("'$envVarName' can't be set to lower version than $currentJavaVer")
 	}
@@ -52,4 +57,6 @@ tasks.named<Test>("test") {
 
 	// exclude temp tests
 	exclude("**/tmp/*")
+
+	// maxHeapSize = "4g"
 }

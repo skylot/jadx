@@ -33,12 +33,11 @@ class SMAP(val fileMappings: List<FileMapping>) {
 class FileMapping(val name: String, val path: String) {
 	val lineMappings = arrayListOf<RangeMapping>()
 
-	fun toSourceInfo(): SourceInfo =
-		SourceInfo(
-			name,
-			path,
-			lineMappings.fold(0) { result, mapping -> max(result, mapping.source + mapping.range - 1) },
-		)
+	fun toSourceInfo(): SourceInfo = SourceInfo(
+		name,
+		path,
+		lineMappings.fold(0) { result, mapping -> max(result, mapping.source + mapping.range - 1) },
+	)
 
 	fun mapNewLineNumber(source: Int, currentIndex: Int, callSite: SourcePosition?): Int {
 		// Save some space in the SMAP by reusing (or extending if it's the last one) the existing range.
@@ -51,25 +50,19 @@ class FileMapping(val name: String, val path: String) {
 		return mapping.mapSourceToDest(source)
 	}
 
-	private fun RangeMapping.canReuseFor(newSource: Int, globalMaxDest: Int, newCallSite: SourcePosition?): Boolean =
-		callSite == newCallSite && (newSource - source) in 0 until range + (if (globalMaxDest in this) 10 else 0)
+	private fun RangeMapping.canReuseFor(newSource: Int, globalMaxDest: Int, newCallSite: SourcePosition?): Boolean = callSite == newCallSite && (newSource - source) in 0 until range + (if (globalMaxDest in this) 10 else 0)
 
-	fun mapNewInterval(source: Int, dest: Int, range: Int, callSite: SourcePosition? = null): RangeMapping =
-		RangeMapping(source, dest, range, callSite, parent = this).also { lineMappings.add(it) }
+	fun mapNewInterval(source: Int, dest: Int, range: Int, callSite: SourcePosition? = null): RangeMapping = RangeMapping(source, dest, range, callSite, parent = this).also { lineMappings.add(it) }
 }
 
 data class RangeMapping(val source: Int, val dest: Int, var range: Int, val callSite: SourcePosition?, val parent: FileMapping) {
-	operator fun contains(destLine: Int): Boolean =
-		dest <= destLine && destLine < dest + range
+	operator fun contains(destLine: Int): Boolean = dest <= destLine && destLine < dest + range
 
-	fun hasMappingForSource(sourceLine: Int): Boolean =
-		source <= sourceLine && sourceLine < source + range
+	fun hasMappingForSource(sourceLine: Int): Boolean = source <= sourceLine && sourceLine < source + range
 
-	fun mapDestToSource(destLine: Int): SourcePosition =
-		SourcePosition(source + (destLine - dest), parent.name, parent.path)
+	fun mapDestToSource(destLine: Int): SourcePosition = SourcePosition(source + (destLine - dest), parent.name, parent.path)
 
-	fun mapSourceToDest(sourceLine: Int): Int =
-		dest + (sourceLine - source)
+	fun mapSourceToDest(sourceLine: Int): Int = dest + (sourceLine - source)
 }
 
 val RangeMapping.toRange: IntRange

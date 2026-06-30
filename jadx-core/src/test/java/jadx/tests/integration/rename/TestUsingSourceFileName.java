@@ -41,7 +41,7 @@ public class TestUsingSourceFileName extends SmaliTest {
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
 				.containsOne("class C0000b {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("compiled from: a.java");
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class TestUsingSourceFileName extends SmaliTest {
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
 				.containsOne("class a {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("compiled from: a.java");
 	}
 
 	@Test
@@ -63,7 +63,7 @@ public class TestUsingSourceFileName extends SmaliTest {
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
 				.containsOne("class a {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("compiled from: a.java");
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class TestUsingSourceFileName extends SmaliTest {
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
 				.containsOne("class C0000b {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("compiled from: a.java");
 	}
 
 	@Test
@@ -105,6 +105,6 @@ public class TestUsingSourceFileName extends SmaliTest {
 		assertThat(searchCls(loadFromSmaliFiles(), "b"))
 				.code()
 				.containsOne("class a {")
-				.containsOne("/* compiled from: a.java */");
+				.containsOne("compiled from: a.java");
 	}
 }

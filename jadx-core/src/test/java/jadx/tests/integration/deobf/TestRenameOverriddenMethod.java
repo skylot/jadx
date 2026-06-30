@@ -35,7 +35,7 @@ public class TestRenameOverriddenMethod extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.countString(2, "@Override")
-				.countString(3, "/* renamed from: m */")
+				.countString(3, "renamed from: m")
 				.containsOne("void mo0m();")
 				.countString(2, "public void mo0m() {");
 	}

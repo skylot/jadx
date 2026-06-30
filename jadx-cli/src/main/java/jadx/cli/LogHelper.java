@@ -72,6 +72,9 @@ public class LogHelper {
 		setLevelForClass(JadxCLI.class, Level.INFO);
 		setLevelForClass(JadxDecompiler.class, Level.INFO);
 		setLevelForClass(SingleClassMode.class, Level.INFO);
+
+		// show warnings and errors from input plugins
+		setLevelForPackage("jadx.plugins.input", Level.WARN);
 	}
 
 	private static void applyLogLevel(@NotNull LogLevelEnum logLevel) {

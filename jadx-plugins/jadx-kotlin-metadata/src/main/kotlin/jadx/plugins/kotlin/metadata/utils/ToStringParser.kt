@@ -124,23 +124,17 @@ class ToStringParser private constructor(mthToString: MethodNode) {
 			)
 		}
 
-		private fun isStartStringBuilder(inst: InsnNode): Boolean {
-			return inst is ConstructorInsn &&
-				inst.isNewInstance &&
-				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER
-		}
+		private fun isStartStringBuilder(inst: InsnNode): Boolean = inst is ConstructorInsn &&
+			inst.isNewInstance &&
+			inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER
 
-		private fun isAppendInvoke(inst: InsnNode): Boolean {
-			return inst is InvokeNode &&
-				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
-				inst.callMth.name == "append" &&
-				inst.argsCount == 2
-		}
+		private fun isAppendInvoke(inst: InsnNode): Boolean = inst is InvokeNode &&
+			inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
+			inst.callMth.name == "append" &&
+			inst.argsCount == 2
 
-		private fun isToString(inst: InsnNode): Boolean {
-			return inst is InvokeNode &&
-				inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
-				inst.callMth.shortId == Consts.MTH_TOSTRING_SIGNATURE
-		}
+		private fun isToString(inst: InsnNode): Boolean = inst is InvokeNode &&
+			inst.callMth.declClass.fullName == Consts.CLASS_STRING_BUILDER &&
+			inst.callMth.shortId == Consts.MTH_TOSTRING_SIGNATURE
 	}
 }

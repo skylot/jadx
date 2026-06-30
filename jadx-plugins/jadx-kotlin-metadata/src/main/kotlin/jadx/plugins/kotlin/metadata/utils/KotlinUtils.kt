@@ -33,14 +33,12 @@ object KotlinUtils {
 		}
 	}
 
-	private fun getFieldGetterMethod(cls: ClassNode, field: FieldInfo): MethodNode? {
-		return cls.methods.firstOrNull {
-			it.returnType == field.type &&
-				it.argTypes.isEmpty() &&
-				it.insnsCount == 3 &&
-				it.sVars.size == 2 &&
-				(it.sVars[1].assignInsn as? IndexInsnNode)?.index == field
-		}
+	private fun getFieldGetterMethod(cls: ClassNode, field: FieldInfo): MethodNode? = cls.methods.firstOrNull {
+		it.returnType == field.type &&
+			it.argTypes.isEmpty() &&
+			it.insnsCount == 3 &&
+			it.sVars.size == 2 &&
+			(it.sVars[1].assignInsn as? IndexInsnNode)?.index == field
 	}
 
 	private fun getGetterAlias(fieldAlias: String): String {
@@ -84,7 +82,5 @@ object KotlinUtils {
 		}
 	}
 
-	private fun getDefaultMethodAlias(alias: String): String {
-		return "$alias\$default"
-	}
+	private fun getDefaultMethodAlias(alias: String): String = "$alias\$default"
 }

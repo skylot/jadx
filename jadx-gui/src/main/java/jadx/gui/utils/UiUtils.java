@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +88,7 @@ public class UiUtils {
 	private UiUtils() {
 	}
 
-	public static FlatSVGIcon openSvgIcon(String name) {
+	public static ImageIcon openSvgIcon(String name) {
 		String iconPath = "icons/" + name + ".svg";
 		FlatSVGIcon icon = new FlatSVGIcon(iconPath);
 		boolean found;
@@ -156,6 +157,32 @@ public class UiUtils {
 
 	public static String escapeHtml(String str) {
 		return str.replace("<", "&lt;").replace(">", "&gt;");
+	}
+
+	private static final String CUT_STR_REPLACE = "...";
+
+	public static String limitStringLength(String str, int maxLength) {
+		if (str.length() <= maxLength) {
+			return str;
+		}
+		char fileSepChar = File.separatorChar;
+		int firstFileSep = str.indexOf(fileSepChar);
+		if (firstFileSep != -1) {
+			// remove path parts
+			int lastFileSep = str.lastIndexOf(fileSepChar);
+			if (firstFileSep == lastFileSep) {
+				// single path char => cut before
+				str = CUT_STR_REPLACE + str.substring(lastFileSep - 1);
+			} else {
+				// cut middle
+				str = str.substring(0, firstFileSep + 1) + CUT_STR_REPLACE + str.substring(lastFileSep);
+			}
+			if (str.length() < maxLength) {
+				return str;
+			}
+		}
+		// cut end by default
+		return str.substring(0, maxLength - CUT_STR_REPLACE.length()) + CUT_STR_REPLACE;
 	}
 
 	public static String typeStr(ArgType type) {
@@ -352,9 +379,12 @@ public class UiUtils {
 	}
 
 	public static void errorMessage(Component parent, String message) {
+		errorMessage(parent, NLS.str("message.errorTitle"), message);
+	}
+
+	public static void errorMessage(Component parent, String title, String message) {
 		LOG.error(message);
-		JOptionPane.showMessageDialog(parent, message,
-				NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 
 	public static void copyToClipboard(String text) {

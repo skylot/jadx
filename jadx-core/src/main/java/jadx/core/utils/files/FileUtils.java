@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ public class FileUtils {
 
 	public static final int READ_BUFFER_SIZE = 8 * 1024;
 	private static final int MAX_FILENAME_LENGTH = 128;
+	private static final int MAX_UNIQUE_ID_LENGTH = 3;
 
 	public static final String JADX_TMP_INSTANCE_PREFIX = "jadx-instance-";
 	public static final String JADX_TMP_PREFIX = "jadx-tmp-";
@@ -75,6 +77,22 @@ public class FileUtils {
 			return dir;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to create temp root directory", e);
+		}
+	}
+
+	public static List<Path> listFiles(Path dir) {
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to list files in directory: " + dir, e);
+		}
+	}
+
+	public static List<Path> listFiles(Path dir, Predicate<? super Path> filter) {
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.filter(filter).collect(Collectors.toList());
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to list files in directory: " + dir, e);
 		}
 	}
 
@@ -148,6 +166,10 @@ public class FileUtils {
 		return true;
 	}
 
+	public static void deleteDir(Path dir) {
+		deleteDir(dir, false);
+	}
+
 	public static void deleteDirIfExists(Path dir) {
 		if (Files.exists(dir)) {
 			try {
@@ -156,10 +178,6 @@ public class FileUtils {
 				LOG.error("Failed to delete dir: {}", dir.toAbsolutePath(), e);
 			}
 		}
-	}
-
-	private static void deleteDir(Path dir) {
-		deleteDir(dir, false);
 	}
 
 	private static void deleteDir(Path dir, boolean keepRootDir) {
@@ -349,17 +367,23 @@ public class FileUtils {
 		return saveFile;
 	}
 
-	private static File cutFileName(File file) {
+	public static File cutFileName(File file) {
 		String name = file.getName();
 		if (name.length() <= MAX_FILENAME_LENGTH) {
 			return file;
 		}
+
+		String uniqueID = String.valueOf(name.hashCode());
+		if (uniqueID.length() > MAX_UNIQUE_ID_LENGTH) {
+			uniqueID = uniqueID.substring(0, MAX_UNIQUE_ID_LENGTH);
+		}
 		int dotIndex = name.indexOf('.');
-		int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
+		int lengthOfSuffix = name.length() - dotIndex;
+		int cutAt = MAX_FILENAME_LENGTH - lengthOfSuffix - uniqueID.length() - 1;
 		if (cutAt <= 0) {
 			name = name.substring(0, MAX_FILENAME_LENGTH - 1);
 		} else {
-			name = name.substring(0, cutAt) + name.substring(dotIndex);
+			name = name.substring(0, cutAt) + uniqueID + name.substring(dotIndex);
 		}
 		return new File(file.getParentFile(), name);
 	}
@@ -422,6 +446,11 @@ public class FileUtils {
 			return fileName;
 		}
 		return fileName.substring(0, extEndIndex);
+	}
+
+	public static boolean hasExtension(Path path, String extension) {
+		String fileName = path.getFileName().toString();
+		return fileName.toLowerCase().endsWith(extension);
 	}
 
 	public static File toFile(String path) {

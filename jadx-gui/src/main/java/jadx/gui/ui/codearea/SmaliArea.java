@@ -12,7 +12,6 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
@@ -39,15 +38,17 @@ import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.LoadTask;
-import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncee;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncer;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncerAbstractFactory;
+import jadx.gui.ui.codearea.sync.SmaliSyncer;
 import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-public final class SmaliArea extends AbstractCodeArea {
+public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerAbstractFactory, CodeAreaSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(SmaliArea.class);
 
 	private static final long serialVersionUID = 1334485631870306494L;
@@ -58,43 +59,22 @@ public final class SmaliArea extends AbstractCodeArea {
 	private static final Color DEBUG_LINE_COLOR = Color.decode("#9c1138");
 
 	private final JNode textNode;
-	private final JCheckBoxMenuItem cbUseSmaliV2;
-	private boolean curVersion = false;
-	private SmaliModel model;
+	private final SmaliModel model;
 
-	SmaliArea(ContentPanel contentPanel, JClass node) {
+	SmaliArea(ContentPanel contentPanel, JClass node, boolean showBytecode) {
 		super(contentPanel, node);
-		this.textNode = new TextNode(node.getName());
-
 		setCodeFoldingEnabled(true);
-
-		cbUseSmaliV2 = new JCheckBoxMenuItem(NLS.str("popup.bytecode_col"), shouldUseSmaliPrinterV2());
-		cbUseSmaliV2.setAction(new AbstractAction(NLS.str("popup.bytecode_col")) {
-			private static final long serialVersionUID = -1111111202103170737L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JadxSettings settings = getContentPanel().getMainWindow().getSettings();
-				settings.setSmaliAreaShowBytecode(!settings.isSmaliAreaShowBytecode());
-				contentPanel.getTabbedPane().getTabs().forEach(v -> {
-					if (v instanceof ClassCodeContentPanel) {
-						switchModel();
-						((ClassCodeContentPanel) v).getSmaliCodeArea().refresh();
-					}
-				});
-				settings.sync();
-			}
-		});
-		getPopupMenu().add(cbUseSmaliV2);
-		switchModel();
+		this.textNode = new TextNode(node.getName());
+		this.model = showBytecode ? new DebugModel() : new NormalModel(this);
+		setUnLoaded();
+		load();
 	}
 
 	@Override
 	public IBackgroundTask getLoadTask() {
 		return new LoadTask<>(
-				() -> model.loadCode(),
+				model::loadCode,
 				code -> {
-					curVersion = shouldUseSmaliPrinterV2();
 					model.loadUI(code);
 					setCaretPosition(0);
 					setLoaded();
@@ -117,28 +97,15 @@ public final class SmaliArea extends AbstractCodeArea {
 		return textNode;
 	}
 
+	public boolean isShowingDalvikBytecode() {
+		return model instanceof DebugModel;
+	}
+
 	public JClass getJClass() {
 		return (JClass) node;
 	}
 
-	private void switchModel() {
-		if (model != null) {
-			model.unload();
-		}
-		curVersion = shouldUseSmaliPrinterV2();
-		model = curVersion ? new DebugModel() : new NormalModel(this);
-		setUnLoaded();
-		load();
-	}
-
 	public void scrollToDebugPos(int pos) {
-		// don't sync when it's set programmatically.
-		getContentPanel().getMainWindow().getSettings().setSmaliAreaShowBytecode(true);
-		cbUseSmaliV2.setState(shouldUseSmaliPrinterV2());
-		if (!(model instanceof DebugModel)) {
-			switchModel();
-			refresh();
-		}
 		model.togglePosHighlight(pos);
 	}
 
@@ -153,10 +120,6 @@ public final class SmaliArea extends AbstractCodeArea {
 	@Override
 	public Font getFontForTokenType(int type) {
 		return getFont();
-	}
-
-	private boolean shouldUseSmaliPrinterV2() {
-		return getContentPanel().getMainWindow().getSettings().isSmaliAreaShowBytecode();
 	}
 
 	private abstract class SmaliModel {
@@ -182,7 +145,7 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	private class NormalModel extends SmaliModel {
-		public NormalModel(SmaliArea smaliArea) {
+		private NormalModel(SmaliArea smaliArea) {
 			getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
@@ -214,7 +177,7 @@ public final class SmaliArea extends AbstractCodeArea {
 			}
 		};
 
-		public DebugModel() {
+		private DebugModel() {
 			loadV2Style();
 			setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_6502);
 			addPropertyChangeListener(SYNTAX_SCHEME_PROPERTY, schemeListener);
@@ -453,5 +416,15 @@ public final class SmaliArea extends AbstractCodeArea {
 				};
 			}
 		};
+	}
+
+	@Override
+	public CodeAreaSyncer createCodeAreaSyncer() {
+		return new SmaliSyncer(this);
+	}
+
+	@Override
+	public boolean sync(CodeAreaSyncer codeAreaSyncer) {
+		return codeAreaSyncer.syncTo(this);
 	}
 }

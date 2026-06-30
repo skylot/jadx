@@ -2,6 +2,8 @@ package jadx.zip.security;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +13,7 @@ import jadx.zip.IZipEntry;
 public class JadxZipSecurity implements IJadxZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxZipSecurity.class);
 
-	private static final File CWD = getCWD();
+	private static final Path CWD = Paths.get(".").toAbsolutePath().normalize();
 
 	/**
 	 * The size of uncompressed zip entry shouldn't be bigger of compressed in zipBombDetectionFactor
@@ -56,14 +58,17 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 				return false;
 			}
 		}
+		// Path traversal check as presented on
+		// https://www.heise.de/en/background/Secure-Coding-Best-practices-for-using-Java-NIO-against-path-traversal-9996787.html
 		try {
-			File currentPath = CWD;
-			File canonical = new File(currentPath, entryName).getCanonicalFile();
-			if (isInSubDirectoryInternal(currentPath, canonical)) {
+			Path entryPath = CWD.resolve(entryName).normalize();
+			if (entryPath.startsWith(CWD)) {
 				return true;
 			}
 		} catch (Exception e) {
 			// check failed
+			LOG.error("Invalid file name or path traversal attack detected: {} - error: {}", entryName, e.getMessage());
+			return false;
 		}
 		LOG.error("Invalid file name or path traversal attack detected: {}", entryName);
 		return false;
@@ -119,14 +124,6 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 
 	public void setUseLimitedDataStream(boolean useLimitedDataStream) {
 		this.useLimitedDataStream = useLimitedDataStream;
-	}
-
-	private static File getCWD() {
-		try {
-			return new File(".").getCanonicalFile();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to init current working dir constant", e);
-		}
 	}
 
 }

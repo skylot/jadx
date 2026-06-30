@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.plugins.PluginContext;
+import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.JNodePopupBuilder;
@@ -23,6 +24,8 @@ public class CommonGuiPluginsContext {
 
 	private final List<CodePopupAction> codePopupActionList = new ArrayList<>();
 	private final List<TreePopupMenuEntry> treePopupMenuEntries = new ArrayList<>();
+	private final List<ITreeInputCategory> treeInputCategories = new ArrayList<>();
+	private final List<ITabStatePersist> tabStatePersistAdapters = new ArrayList<>();
 
 	public CommonGuiPluginsContext(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -38,9 +41,19 @@ public class CommonGuiPluginsContext {
 		return pluginsMap.get(pluginContext);
 	}
 
+	public @Nullable GuiPluginContext getGuiPluginContextById(String pluginId) {
+		for (GuiPluginContext guiPluginContext : pluginsMap.values()) {
+			if (guiPluginContext.getPluginContext().getPluginId().equals(pluginId)) {
+				return guiPluginContext;
+			}
+		}
+		return null;
+	}
+
 	public void reset() {
 		codePopupActionList.clear();
 		treePopupMenuEntries.clear();
+		treeInputCategories.clear();
 		mainWindow.resetPluginsMenu();
 	}
 
@@ -54,6 +67,14 @@ public class CommonGuiPluginsContext {
 
 	public List<TreePopupMenuEntry> getTreePopupMenuEntries() {
 		return treePopupMenuEntries;
+	}
+
+	public List<ITreeInputCategory> getTreeInputCategories() {
+		return treeInputCategories;
+	}
+
+	public List<ITabStatePersist> getTabStatePersistAdapters() {
+		return tabStatePersistAdapters;
 	}
 
 	public void addMenuAction(String name, Runnable action) {

@@ -1,8 +1,10 @@
 package jadx.commons.app;
 
+import org.jetbrains.annotations.Nullable;
+
 public class JadxCommonEnv {
 
-	public static String get(String varName, String defValue) {
+	public static @Nullable String get(String varName, @Nullable String defValue) {
 		String strValue = System.getenv(varName);
 		return isNullOrEmpty(strValue) ? defValue : strValue;
 	}
@@ -23,7 +25,7 @@ public class JadxCommonEnv {
 		return Integer.parseInt(strValue);
 	}
 
-	private static boolean isNullOrEmpty(String value) {
+	private static boolean isNullOrEmpty(@Nullable String value) {
 		return value == null || value.isEmpty();
 	}
 }

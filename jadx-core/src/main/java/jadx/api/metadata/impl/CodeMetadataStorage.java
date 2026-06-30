@@ -32,8 +32,11 @@ public class CodeMetadataStorage implements ICodeMetadata {
 		return new CodeMetadataStorage(Collections.emptyMap(), Collections.emptyNavigableMap());
 	}
 
+	// <decomp file line number> -> <dex debug line number>
 	private final Map<Integer, Integer> lines;
 
+	// <character index into the file> -> <code annotation>
+	// the key is what is returned by AbstractCodeArea#getCaretPos() when clicking in a code panel.
 	private final NavigableMap<Integer, ICodeAnnotation> navMap;
 
 	private CodeMetadataStorage(Map<Integer, Integer> lines, NavigableMap<Integer, ICodeAnnotation> navMap) {

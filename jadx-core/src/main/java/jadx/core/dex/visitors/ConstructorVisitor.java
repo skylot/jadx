@@ -164,7 +164,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 
 	private static boolean canRemoveConstructor(MethodNode mth, ConstructorInsn co) {
 		ClassNode parentClass = mth.getParentClass();
-		if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
+		if (co.isSuper() && co.getArgsCount() == 0) {
 			return true;
 		}
 		if (co.isThis() && co.getArgsCount() == 0) {

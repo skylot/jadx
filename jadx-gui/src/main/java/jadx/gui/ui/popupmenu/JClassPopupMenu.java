@@ -1,8 +1,5 @@
 package jadx.gui.ui.popupmenu;
 
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.DecompilationMode;
+import jadx.core.dex.visitors.SaveCode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -85,11 +83,7 @@ public class JClassPopupMenu extends JPopupMenu {
 	}
 
 	public static void saveJClass(JClass jClass, Path savePath, JClassExportType exportType) {
-		try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
-			writer.write(getCode(jClass, exportType));
-		} catch (Exception e) {
-			throw new RuntimeException("Error saving project", e);
-		}
+		SaveCode.save(getCode(jClass, exportType), savePath.toFile());
 	}
 
 	private static String getCode(JClass jClass, JClassExportType exportType) {

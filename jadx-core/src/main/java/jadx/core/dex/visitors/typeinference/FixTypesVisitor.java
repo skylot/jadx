@@ -23,6 +23,7 @@ import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -32,6 +33,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -70,6 +72,7 @@ public final class FixTypesVisitor extends AbstractVisitor {
 		this.typeUpdate = root.getTypeUpdate();
 		this.typeInference.init(root);
 		this.resolvers = Arrays.asList(
+				this::applyFieldType,
 				this::tryRestoreTypeVarCasts,
 				this::tryInsertCasts,
 				this::tryDeduceTypes,
@@ -293,6 +296,117 @@ public final class FixTypesVisitor extends AbstractVisitor {
 	}
 
 	/**
+	 * Use type for var assigned from field (IGET or SGET).
+	 * Insert additional casts at var use places.
+	 */
+	private Boolean applyFieldType(MethodNode mth) {
+		try {
+			boolean changed = false;
+			// will add new SSA vars, can't use for-each loop
+			List<SSAVar> sVars = mth.getSVars();
+			for (int i = 0, varsCount = sVars.size(); i < varsCount; i++) {
+				SSAVar ssaVar = sVars.get(i);
+				if (tryFieldTypeWithNewCasts(mth, ssaVar, true)) {
+					changed = true;
+				}
+			}
+			if (!changed) {
+				return false;
+			}
+			// rerun full type inference
+			InitCodeVariables.rerun(mth);
+			typeInference.initTypeBounds(mth);
+			typeInference.runTypePropagation(mth);
+
+			// check if changed var types are fixed
+			boolean success = true;
+			for (SSAVar ssaVar : mth.getSVars()) {
+				if (tryFieldTypeWithNewCasts(mth, ssaVar, false)) {
+					success = false;
+				}
+			}
+			if (!success) {
+				typeInference.initTypeBounds(mth);
+				typeInference.runTypePropagation(mth);
+				mth.addWarnComment("Type inference incomplete: some casts might be missing");
+			}
+			return success;
+		} catch (Exception e) {
+			mth.addWarnComment("Type inference fix 'apply assigned field type' failed", e);
+			return false;
+		}
+	}
+
+	private boolean tryFieldTypeWithNewCasts(MethodNode mth, SSAVar ssaVar, boolean insertCasts) {
+		ArgType type = ssaVar.getTypeInfo().getType();
+		if (type.isTypeKnown() || ssaVar.isTypeImmutable()) {
+			return false;
+		}
+		InsnNode assignInsn = ssaVar.getAssignInsn();
+		if (assignInsn == null) {
+			return false;
+		}
+		InsnType insnType = assignInsn.getType();
+		if (insnType != InsnType.IGET && insnType != InsnType.SGET) {
+			return false;
+		}
+		ArgType fieldType = assignInsn.getResult().getInitType();
+		// field type should be used
+		if (insertCasts) {
+			// try to find a use place and insert cast
+			boolean inserted = false;
+			for (RegisterArg useArg : ssaVar.getUseList()) {
+				if (insertExplicitUseCast(mth, ssaVar, useArg, fieldType)) {
+					inserted = true;
+				}
+			}
+			return inserted;
+		}
+		// force field type, will make type inference incomplete,
+		// but it is better that completely unknown type
+		ssaVar.setType(fieldType);
+		return true;
+	}
+
+	private boolean insertExplicitUseCast(MethodNode mth, SSAVar ssaVar, RegisterArg useArg, ArgType fieldType) {
+		InsnNode parentInsn = useArg.getParentInsn();
+		if (!InsnUtils.isInsnType(parentInsn, InsnType.INVOKE)) {
+			return false;
+		}
+		InvokeNode invoke = (InvokeNode) parentInsn;
+		InsnArg instanceArg = invoke.getInstanceArg();
+		if (instanceArg == null || !instanceArg.isSameVar(ssaVar)) {
+			return false;
+		}
+		IMethodDetails details = mth.root().getMethodUtils().getMethodDetails(invoke);
+		if (details == null) {
+			return false;
+		}
+		int newCasts = 0;
+		int k = -1;
+		for (InsnArg invArg : invoke.getArgList()) {
+			if (invArg == instanceArg) {
+				continue;
+			}
+			k++;
+			if (!invArg.isRegister()) {
+				continue;
+			}
+			ArgType detailsArg = details.getArgTypes().get(k);
+			ArgType invArgType = invArg.getType();
+			ArgType resolvedType = mth.root().getTypeUtils().replaceClassGenerics(fieldType, invArgType, detailsArg);
+			if (resolvedType != null && !resolvedType.equals(invArgType)) {
+				IndexInsnNode castInsn = insertUseCast(mth, (RegisterArg) invArg, resolvedType);
+				if (castInsn != null) {
+					castInsn.add(AFlag.EXPLICIT_CAST);
+					newCasts++;
+				}
+			}
+		}
+		return newCasts > 0;
+	}
+
+	/**
 	 * Fix check casts to type var extend type:
 	 * <br>
 	 * {@code <T extends Comparable> T var = (Comparable) obj; => T var = (T) obj; }
@@ -372,7 +486,9 @@ public final class FixTypesVisitor extends AbstractVisitor {
 					&& !boundType.equals(var.getTypeInfo().getType())
 					&& boundType.containsTypeVariable()
 					&& !mth.root().getTypeUtils().containsUnknownTypeVar(mth, boundType)) {
-				if (insertAssignCast(mth, var, boundType)) {
+				IndexInsnNode castInsn = insertAssignCast(mth, var, boundType);
+				if (castInsn != null) {
+					castInsn.add(AFlag.SOFT_CAST);
 					return 1;
 				}
 				return insertUseCasts(mth, var);
@@ -388,58 +504,65 @@ public final class FixTypesVisitor extends AbstractVisitor {
 		}
 		int useCasts = 0;
 		for (RegisterArg useReg : new ArrayList<>(useList)) {
-			if (insertSoftUseCast(mth, useReg)) {
+			IndexInsnNode castInsn = insertUseCast(mth, useReg, useReg.getInitType());
+			if (castInsn != null) {
+				castInsn.add(AFlag.SOFT_CAST);
 				useCasts++;
 			}
 		}
 		return useCasts;
 	}
 
-	private boolean insertAssignCast(MethodNode mth, SSAVar var, ArgType castType) {
+	private @Nullable IndexInsnNode insertAssignCast(MethodNode mth, SSAVar var, ArgType castType) {
 		RegisterArg assignArg = var.getAssign();
 		InsnNode assignInsn = assignArg.getParentInsn();
 		if (assignInsn == null || assignInsn.getType() == InsnType.PHI) {
-			return false;
+			return null;
 		}
 		BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
 		if (assignBlock == null) {
-			return false;
+			return null;
 		}
 		assignInsn.setResult(assignArg.duplicateWithNewSSAVar(mth));
-		IndexInsnNode castInsn = makeSoftCastInsn(assignArg.duplicate(), assignInsn.getResult().duplicate(), castType);
-		return BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn);
+		IndexInsnNode castInsn = makeCastInsn(assignArg.duplicate(), assignInsn.getResult().duplicate(), castType);
+		if (!BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn)) {
+			return null;
+		}
+		return castInsn;
 	}
 
-	private boolean insertSoftUseCast(MethodNode mth, RegisterArg useArg) {
+	private @Nullable IndexInsnNode insertUseCast(MethodNode mth, RegisterArg useArg, ArgType castType) {
 		InsnNode useInsn = useArg.getParentInsn();
 		if (useInsn == null || useInsn.getType() == InsnType.PHI) {
-			return false;
+			return null;
 		}
 		if (useInsn.getType() == InsnType.IF && useInsn.getArg(1).isZeroConst()) {
 			// cast isn't needed if compare with null
-			return false;
+			return null;
 		}
 		BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
 		if (useBlock == null) {
-			return false;
+			return null;
 		}
-		IndexInsnNode castInsn = makeSoftCastInsn(
+		IndexInsnNode castInsn = makeCastInsn(
 				useArg.duplicateWithNewSSAVar(mth),
 				useArg.duplicate(),
-				useArg.getInitType());
+				castType);
 		useInsn.replaceArg(useArg, castInsn.getResult().duplicate());
-		boolean success = BlockUtils.insertBeforeInsn(useBlock, useInsn, castInsn);
-		if (Consts.DEBUG_TYPE_INFERENCE && success) {
-			LOG.info("Insert soft cast for {} before {} in {}", useArg, useInsn, useBlock);
+		boolean inserted = BlockUtils.insertBeforeInsn(useBlock, useInsn, castInsn);
+		if (!inserted) {
+			return null;
 		}
-		return success;
+		if (Consts.DEBUG_TYPE_INFERENCE) {
+			LOG.info("Insert cast for {} before {} in {}", useArg, useInsn, useBlock);
+		}
+		return castInsn;
 	}
 
-	private IndexInsnNode makeSoftCastInsn(RegisterArg result, RegisterArg arg, ArgType castType) {
+	private IndexInsnNode makeCastInsn(RegisterArg result, RegisterArg arg, ArgType castType) {
 		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
 		castInsn.setResult(result);
 		castInsn.addArg(arg);
-		castInsn.add(AFlag.SOFT_CAST);
 		castInsn.add(AFlag.SYNTHETIC);
 		return castInsn;
 	}

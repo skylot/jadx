@@ -323,8 +323,8 @@ public class TypeCompare {
 			return WIDER;
 		}
 
-		final int type1Width = getTypeWidth(type1);
-		final int type2Width = getTypeWidth(type2);
+		int type1Width = getTypeWidth(type1);
+		int type2Width = getTypeWidth(type2);
 		if (type1Width > type2Width) {
 			return WIDER;
 		} else if (type1Width < type2Width) {

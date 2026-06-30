@@ -61,7 +61,7 @@ public class ReturnVisitor extends AbstractVisitor {
 			if (mth.getLoopForBlock(block) != null) {
 				return false;
 			}
-			for (IRegion region : regionStack) {
+			for (IRegion region : getRegionStack()) {
 				if (region.getClass() == LoopRegion.class) {
 					return false;
 				}
@@ -74,7 +74,7 @@ public class ReturnVisitor extends AbstractVisitor {
 		 */
 		private boolean noTrailInstructions(BlockNode block) {
 			IContainer curContainer = block;
-			for (IRegion region : regionStack) {
+			for (IRegion region : getRegionStack()) {
 				// ignore paths on other branches
 				if (region instanceof IBranchRegion) {
 					curContainer = region;

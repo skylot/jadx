@@ -57,8 +57,8 @@ public class SSATransform extends AbstractVisitor {
 		renameVariables(mth);
 		fixLastAssignInTry(mth);
 		removeBlockerInsns(mth);
-		markThisArgs(mth.getThisArg());
 		tryToFixUselessPhi(mth);
+		markThisArgs(mth.getThisArg());
 		hidePhiInsns(mth);
 		removeUnusedInvokeResults(mth);
 	}
@@ -312,6 +312,20 @@ public class SSATransform extends AbstractVisitor {
 		if (allSame) {
 			return replacePhiWithMove(mth, block, phi, phi.getArg(0));
 		}
+		SSAVar sameVar = isSameMove(phi);
+		if (sameVar != null) {
+			RegisterArg sameArg = sameVar.getAssign().duplicate();
+			if (inlinePhiInsn(mth, block, phi, sameArg)) {
+				for (InsnArg arg : phi.getArguments()) {
+					InsnNode moveInsn = ((RegisterArg) arg).getAssignInsn();
+					if (moveInsn != null) {
+						moveInsn.add(AFlag.REMOVE);
+						InsnRemover.remove(mth, moveInsn);
+					}
+				}
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -328,6 +342,32 @@ public class SSATransform extends AbstractVisitor {
 			}
 		}
 		return allSame;
+	}
+
+	private static SSAVar isSameMove(PhiInsn phi) {
+		SSAVar var = null;
+		int argsCount = phi.getArgsCount();
+		for (int i = 0; i < argsCount; i++) {
+			RegisterArg arg = phi.getArg(i);
+			if (arg.getSVar().getUseCount() != 1) {
+				return null;
+			}
+			InsnNode assignInsn = arg.getAssignInsn();
+			if (assignInsn == null || assignInsn.getType() != InsnType.MOVE) {
+				return null;
+			}
+			InsnArg moveArg = assignInsn.getArg(0);
+			if (!moveArg.isRegister()) {
+				return null;
+			}
+			SSAVar moveVar = ((RegisterArg) moveArg).getSVar();
+			if (var == null) {
+				var = moveVar;
+			} else if (var != moveVar) {
+				return null;
+			}
+		}
+		return var;
 	}
 
 	private static boolean removePhiList(MethodNode mth, List<PhiInsn> insnToRemove) {
@@ -372,7 +412,7 @@ public class SSATransform extends AbstractVisitor {
 			argVar.removeUsedInPhi(phi);
 		}
 		// try inline
-		if (inlinePhiInsn(mth, block, phi)) {
+		if (inlinePhiInsn(mth, block, phi, phi.getArg(0))) {
 			insns.remove(phiIndex);
 		} else {
 			assign.removeUsedInPhi(phi);
@@ -387,29 +427,34 @@ public class SSATransform extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean inlinePhiInsn(MethodNode mth, BlockNode block, PhiInsn phi) {
+	private static boolean inlinePhiInsn(MethodNode mth, BlockNode block, PhiInsn phi, RegisterArg inlineArg) {
 		SSAVar resVar = phi.getResult().getSVar();
 		if (resVar == null) {
 			return false;
 		}
-		RegisterArg arg = phi.getArg(0);
-		if (arg.getSVar() == null) {
+		if (inlineArg.getSVar() == null) {
 			return false;
 		}
 		List<RegisterArg> useList = resVar.getUseList();
 		for (RegisterArg useArg : new ArrayList<>(useList)) {
 			InsnNode useInsn = useArg.getParentInsn();
-			if (useInsn == null || useInsn == phi || useArg.getRegNum() != arg.getRegNum()) {
+			if (useInsn == null || useInsn == phi) {
 				return false;
 			}
-			// replace SSAVar in 'useArg' to SSAVar from 'arg'
-			// no need to replace whole RegisterArg
-			useArg.getSVar().removeUse(useArg);
-			arg.getSVar().use(useArg);
+			if (useArg.getRegNum() == inlineArg.getRegNum()) {
+				// replace SSAVar in 'useArg' to SSAVar from 'arg'
+				// no need to replace whole RegisterArg
+				useArg.getSVar().removeUse(useArg);
+				inlineArg.getSVar().use(useArg);
+			} else {
+				if (!useInsn.replaceArg(useArg, inlineArg)) {
+					return false;
+				}
+			}
 		}
 		if (block.contains(AType.EXC_HANDLER)) {
 			// don't inline into exception handler
-			InsnNode assignInsn = arg.getAssignInsn();
+			InsnNode assignInsn = inlineArg.getAssignInsn();
 			if (assignInsn != null && !assignInsn.isConstInsn()) {
 				assignInsn.add(AFlag.DONT_INLINE);
 			}

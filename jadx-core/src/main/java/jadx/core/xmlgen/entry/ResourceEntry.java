@@ -32,10 +32,23 @@ public final class ResourceEntry {
 		return copy;
 	}
 
-	public ResourceEntry copyWithId() {
-		return copy(String.format("%s_res_0x%08x", keyName, id));
+	public ResourceEntry copyWithId(String resName) {
+		return copy(String.format("%s_res_0x%08x", resName, id));
 	}
 
+	/**
+	 * 32 bit resource ID as defined in AOSP.
+	 *
+	 * <ol>
+	 * <li>Package ID (8 bit)</li>
+	 * <li>Type ID (8 bit)</li>
+	 * <li>Entry ID (16 bit)</li>
+	 * </ol>
+	 *
+	 * See <code>make_resid()</code> in ResourceUtils.h
+	 *
+	 * @return resource ID
+	 */
 	public int getId() {
 		return id;
 	}

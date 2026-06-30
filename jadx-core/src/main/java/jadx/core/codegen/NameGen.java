@@ -3,6 +3,8 @@ package jadx.core.codegen;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
@@ -84,15 +86,32 @@ public class NameGen {
 		return name;
 	}
 
+	private static final Pattern ENDS_WITH_NUMBER = Pattern.compile(".*(\\d+)$");
+
 	private String getUniqueVarName(String name) {
-		String r = name;
-		int i = 2;
-		while (varNames.contains(r)) {
-			r = name + i;
-			i++;
+		if (!varNames.contains(name)) {
+			varNames.add(name);
+			return name;
 		}
-		varNames.add(r);
-		return r;
+		// code duplication reuse same variable in different places
+		// parse variable name and increment index
+		String base;
+		int i;
+		Matcher matcher = ENDS_WITH_NUMBER.matcher(name);
+		if (matcher.matches()) {
+			base = name.substring(0, matcher.start(1));
+			i = 1 + Integer.parseInt(matcher.group(1));
+		} else {
+			base = name;
+			i = 2;
+		}
+		while (true) {
+			String newName = base + i++;
+			if (!varNames.contains(newName)) {
+				varNames.add(newName);
+				return newName;
+			}
+		}
 	}
 
 	private String makeArgName(CodeVar var) {

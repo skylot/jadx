@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -69,6 +70,15 @@ public final class PhiInsn extends InsnNode {
 		return (RegisterArg) super.getArg(n);
 	}
 
+	public @Nullable RegisterArg getArgByBlock(BlockNode block) {
+		for (int i = 0; i < blockBinds.size(); i++) {
+			if (blockBinds.get(i) == block) {
+				return getArg(i);
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public boolean removeArg(InsnArg arg) {
 		int index = getArgIndex(arg);
@@ -99,6 +109,18 @@ public final class PhiInsn extends InsnNode {
 			}
 		}
 		return null;
+	}
+
+	@Nullable
+	public RegisterArg getArgByBlock(IBlock block) {
+		if (getArgsCount() == 0) {
+			return null;
+		}
+		int index = blockBinds.indexOf(block);
+		if (index == -1) {
+			return null;
+		}
+		return getArg(index);
 	}
 
 	@Override

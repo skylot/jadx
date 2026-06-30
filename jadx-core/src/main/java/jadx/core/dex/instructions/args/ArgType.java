@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import com.google.errorprone.annotations.Immutable;
+
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.RootNode;
@@ -18,6 +20,7 @@ import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+@Immutable
 public abstract class ArgType {
 	public static final ArgType INT = primitive(PrimitiveType.INT);
 	public static final ArgType BOOLEAN = primitive(PrimitiveType.BOOLEAN);
@@ -60,6 +63,9 @@ public abstract class ArgType {
 	public static final ArgType NARROW_NUMBERS_NO_BOOL = unknown(
 			PrimitiveType.INT, PrimitiveType.FLOAT,
 			PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR);
+
+	public static final ArgType NARROW_NEG_NUMBERS = unknown(
+			PrimitiveType.INT, PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.FLOAT);
 
 	public static final ArgType NARROW_NUMBERS_NO_FLOAT = unknown(
 			PrimitiveType.INT, PrimitiveType.BOOLEAN,
@@ -197,7 +203,7 @@ public abstract class ArgType {
 	private static final class PrimitiveArg extends KnownType {
 		private final PrimitiveType type;
 
-		public PrimitiveArg(PrimitiveType type) {
+		PrimitiveArg(PrimitiveType type) {
 			this.type = type;
 			this.hash = type.hashCode();
 		}
@@ -226,7 +232,7 @@ public abstract class ArgType {
 	private static class ObjectType extends KnownType {
 		protected final String objName;
 
-		public ObjectType(String obj) {
+		ObjectType(String obj) {
 			this.objName = obj;
 			this.hash = objName.hashCode();
 		}
@@ -260,15 +266,15 @@ public abstract class ArgType {
 	private static final class GenericType extends ObjectType {
 		private List<ArgType> extendTypes;
 
-		public GenericType(String obj) {
+		GenericType(String obj) {
 			this(obj, Collections.emptyList());
 		}
 
-		public GenericType(String obj, ArgType extendType) {
+		GenericType(String obj, ArgType extendType) {
 			this(obj, Collections.singletonList(extendType));
 		}
 
-		public GenericType(String obj, List<ArgType> extendTypes) {
+		GenericType(String obj, List<ArgType> extendTypes) {
 			super(obj);
 			this.extendTypes = extendTypes;
 		}
@@ -334,7 +340,7 @@ public abstract class ArgType {
 		private final ArgType type;
 		private final WildcardBound bound;
 
-		public WildcardType(ArgType obj, WildcardBound bound) {
+		WildcardType(ArgType obj, WildcardBound bound) {
 			super(OBJECT.getObject());
 			this.type = Objects.requireNonNull(obj);
 			this.bound = Objects.requireNonNull(bound);
@@ -379,7 +385,7 @@ public abstract class ArgType {
 	private static class GenericObject extends ObjectType {
 		private final List<ArgType> generics;
 
-		public GenericObject(String obj, List<ArgType> generics) {
+		GenericObject(String obj, List<ArgType> generics) {
 			super(obj);
 			this.generics = Objects.requireNonNull(generics);
 			this.hash = calcHash();
@@ -415,7 +421,7 @@ public abstract class ArgType {
 		private final ObjectType outerType;
 		private final ObjectType innerType;
 
-		public OuterGenericObject(ObjectType outerType, ObjectType innerType) {
+		OuterGenericObject(ObjectType outerType, ObjectType innerType) {
 			super(outerType.getObject() + '$' + innerType.getObject());
 			this.outerType = outerType;
 			this.innerType = innerType;
@@ -463,7 +469,7 @@ public abstract class ArgType {
 		private static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[] { PrimitiveType.ARRAY };
 		private final ArgType arrayElement;
 
-		public ArrayArg(ArgType arrayElement) {
+		ArrayArg(ArgType arrayElement) {
 			this.arrayElement = arrayElement;
 			this.hash = arrayElement.hashCode();
 		}
@@ -523,7 +529,7 @@ public abstract class ArgType {
 	private static final class UnknownArg extends ArgType {
 		private final PrimitiveType[] possibleTypes;
 
-		public UnknownArg(PrimitiveType[] types) {
+		UnknownArg(PrimitiveType[] types) {
 			this.possibleTypes = types;
 			this.hash = Arrays.hashCode(possibleTypes);
 		}

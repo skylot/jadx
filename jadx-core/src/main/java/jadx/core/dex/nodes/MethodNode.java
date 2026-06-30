@@ -2,8 +2,10 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +73,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	// decompilation data, reset on unload
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
-	private InsnNode[] instructions;
+	private @Nullable InsnNode[] instructions;
 	private List<BlockNode> blocks;
 	private int blocksMaxCId;
 	private BlockNode enterBlock;
@@ -81,7 +83,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<LoopInfo> loops;
 	private Region region;
 
+	// Methods that use this method
 	private List<MethodNode> useIn = Collections.emptyList();
+	// Unresolved methods that use this method
+	private List<MethodInfo> unresolvedUsed = Collections.emptyList();
+	// Methods that this method uses
+	private Set<MethodNode> methodsUsed = new HashSet<>();
+	// True if this method contains a self call
+	private boolean callsSelf = false;
 
 	private JavaMethod javaNode;
 
@@ -96,11 +105,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
 		ICodeReader codeReader = mthData.getCodeReader();
-		this.noCode = codeReader == null;
-		if (noCode) {
+		if (codeReader == null) {
+			this.noCode = true;
 			this.codeReader = null;
 			this.insnsCount = 0;
 		} else {
+			this.noCode = false;
 			this.codeReader = codeReader.copy();
 			this.insnsCount = codeReader.getUnitsCount();
 		}
@@ -120,6 +130,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		sVars = Collections.emptyList();
 		instructions = null;
 		blocks = null;
+		blocksMaxCId = 0;
 		enterBlock = null;
 		exitBlock = null;
 		region = null;
@@ -702,12 +713,56 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return codeReader;
 	}
 
+	@Override
 	public List<MethodNode> getUseIn() {
 		return useIn;
 	}
 
+	// Do not modify passed list after setting
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
+
+		// Notify all methods (callers) this method (callee) is used in
+		for (MethodNode methodUsedIn : useIn) {
+			methodUsedIn.addUsed(this);
+		}
+	}
+
+	public void addUsed(MethodNode used) {
+		if (used != null) {
+			this.methodsUsed.add(used);
+		}
+	}
+
+	public void setUsed(List<MethodNode> methodsUsed) {
+		this.methodsUsed = new HashSet<>(methodsUsed);
+	}
+
+	public Set<MethodNode> getUsed() {
+		this.removeInvalidMethodsUsed();
+		return methodsUsed;
+	}
+
+	public List<MethodInfo> getUnresolvedUsed() {
+		return unresolvedUsed;
+	}
+
+	public void setUnresolvedUsed(List<MethodInfo> unresolvedUsed) {
+		this.unresolvedUsed = unresolvedUsed;
+	}
+
+	public void setCallsSelf(boolean callsSelf) {
+		this.callsSelf = callsSelf;
+	}
+
+	public boolean callsSelf() {
+		return this.callsSelf;
+	}
+
+	// Remove any methods from the list of used methods (calees) if this method (caller) has been
+	// removed from the calee's list of callers
+	private void removeInvalidMethodsUsed() {
+		methodsUsed.removeIf(methodUsed -> !methodUsed.getUseIn().contains(this));
 	}
 
 	public JavaMethod getJavaNode() {

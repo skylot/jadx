@@ -13,7 +13,7 @@ jobs:
   build-release-win-bundle:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: oracle-actions/setup-java@v1
@@ -21,20 +21,20 @@ jobs:
           release: 25
 
       - name: Set jadx version
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const jadxVersion = context.ref.split('/').pop().substring(1)
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         run: ./gradlew dist -PbundleJRE=true
 
       - name: Save JRE bundle artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: ${{ format('build/distWinWithJre/jadx-gui-{0}-with-jre-win.zip', env.JADX_VERSION) }}
@@ -45,7 +45,7 @@ jobs:
     needs: build-release-win-bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -54,14 +54,14 @@ jobs:
           java-version: 25
 
       - name: Set jadx version and release name
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const jadxVersion = context.ref.split('/').pop().substring(1)
             core.exportVariable('JADX_VERSION', jadxVersion);
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         run: ./gradlew dist distWin
@@ -69,7 +69,7 @@ jobs:
           JADX_BUILD_JAVA_VERSION: 11
 
       - name: Download Windows JRE bundle
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: ${{ format('build/jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
@@ -84,7 +84,7 @@ jobs:
           ls -l *.zip
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.JADX_VERSION }}
           draft: true

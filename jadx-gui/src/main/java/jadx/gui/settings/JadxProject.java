@@ -53,6 +53,7 @@ public class JadxProject {
 	private static final int SEARCH_HISTORY_LIMIT = 30;
 
 	private final transient MainWindow mainWindow;
+	private final transient TabStateViewAdapter tabStateViewAdapter = new TabStateViewAdapter();
 
 	private transient String name = "New Project";
 	private transient @Nullable Path projectPath;
@@ -60,10 +61,15 @@ public class JadxProject {
 	private transient boolean initial = true;
 	private transient boolean saved;
 
-	private ProjectData data = new ProjectData();
+	private final ProjectData data;
 
 	public JadxProject(MainWindow mainWindow) {
+		this(mainWindow, new ProjectData());
+	}
+
+	private JadxProject(MainWindow mainWindow, ProjectData projectData) {
 		this.mainWindow = mainWindow;
+		this.data = Objects.requireNonNull(projectData);
 	}
 
 	public void fillJadxArgs(JadxArgs jadxArgs) {
@@ -155,7 +161,7 @@ public class JadxProject {
 
 	public void saveOpenTabs(List<EditorViewState> tabs) {
 		List<TabViewState> tabStateList = tabs.stream()
-				.map(TabStateViewAdapter::build)
+				.map(tabStateViewAdapter::build)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		if (data.setOpenTabs(tabStateList)) {
@@ -164,8 +170,9 @@ public class JadxProject {
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
+		tabStateViewAdapter.setCustomAdapters(mw.getWrapper().getGuiPluginsContext().getTabStatePersistAdapters());
 		return data.getOpenTabs().stream()
-				.map(s -> TabStateViewAdapter.load(mw, s))
+				.map(s -> tabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 	}
@@ -310,16 +317,11 @@ public class JadxProject {
 	}
 
 	public static JadxProject load(MainWindow mainWindow, Path path) {
-		try {
-			JadxProject project = new JadxProject(mainWindow);
-			project.data = loadProjectData(path);
-			project.saved = true;
-			project.setProjectPath(path);
-			return project;
-		} catch (Exception e) {
-			LOG.error("Error loading project", e);
-			return null;
-		}
+		ProjectData projectData = loadProjectData(path);
+		JadxProject project = new JadxProject(mainWindow, projectData);
+		project.saved = true;
+		project.setProjectPath(path);
+		return project;
 	}
 
 	public static ProjectData loadProjectData(Path path) {

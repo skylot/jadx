@@ -44,7 +44,8 @@ import jadx.core.utils.exceptions.JadxException;
 		runAfter = {
 				ModVisitor.class,
 				FixAccessModifiers.class,
-				ProcessAnonymous.class
+				ProcessAnonymous.class,
+				ExtractFieldInit.class
 		}
 )
 public class ClassModifier extends AbstractVisitor {
@@ -326,8 +327,9 @@ public class ClassModifier extends AbstractVisitor {
 		}
 		AccessInfo af = mth.getAccessFlags();
 		boolean publicConstructor = mth.isConstructor() && af.isPublic();
+		boolean enumDefConstructor = mth.isConstructor() && mth.getParentClass().contains(AFlag.CONVERTED_ENUM);
 		boolean clsInit = mth.getMethodInfo().isClassInit() && af.isStatic();
-		if (publicConstructor || clsInit) {
+		if (publicConstructor || enumDefConstructor || clsInit) {
 			if (!BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks())) {
 				return;
 			}

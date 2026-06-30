@@ -27,10 +27,17 @@ public class DexClassData implements IClassData {
 
 	private final SectionReader in;
 	private final AnnotationsParser annotationsParser;
+	private final int inputFileOffset;
 
 	public DexClassData(SectionReader sectionReader, AnnotationsParser annotationsParser) {
 		this.in = sectionReader;
 		this.annotationsParser = annotationsParser;
+		this.inputFileOffset = this.in.getOffset();
+	}
+
+	@Override
+	public int getInputFileOffset() {
+		return this.inputFileOffset;
 	}
 
 	@Override

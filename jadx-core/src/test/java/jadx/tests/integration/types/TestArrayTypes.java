@@ -3,10 +3,12 @@ package jadx.tests.integration.types;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestArrayTypes extends IntegrationTest {
 
+	@SuppressWarnings({ "ThrowablePrintedToSystemOut", "unused" })
 	public static class TestCls {
 
 		public void test() {
@@ -25,7 +27,7 @@ public class TestArrayTypes extends IntegrationTest {
 
 	@Test
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("use(new Object[]{e});");
 	}
@@ -33,7 +35,7 @@ public class TestArrayTypes extends IntegrationTest {
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("use(new Object[]{exc});");
 	}

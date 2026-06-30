@@ -10,7 +10,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 
-class SmaliMethodNode {
+public class SmaliMethodNode {
 	private Map<Long, InsnNode> nodes; // codeOffset: InsnNode
 	private List<SmaliRegister> regList;
 	private int[] insnPos;
@@ -27,6 +27,13 @@ class SmaliMethodNode {
 		return this.regCount;
 	}
 
+	/**
+	 * Returns the line mapping of the:
+	 * 'output disassembled smali file line index' to 'dex instruction position code offset'
+	 * The value is the same as {@link InsnNode#getOffset()}
+	 *
+	 * @return the line mapping
+	 */
 	public Map<Integer, Integer> getLineMapping() {
 		return lineMapping;
 	}

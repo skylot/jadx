@@ -38,10 +38,6 @@ public enum RuntimeType {
 
 	/**
 	 * Converts a <code>JDWP.Tag</code> to a {@link RuntimeType}
-	 *
-	 * @param tag
-	 * @return
-	 * @throws SmaliDebuggerException
 	 */
 	public static RuntimeType fromJdwpTag(int tag) throws SmaliDebuggerException {
 		switch (tag) {

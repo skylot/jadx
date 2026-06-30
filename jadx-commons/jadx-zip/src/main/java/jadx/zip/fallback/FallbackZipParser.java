@@ -22,39 +22,45 @@ import jadx.zip.security.IJadxZipSecurity;
 
 public class FallbackZipParser implements IZipParser {
 	private static final Logger LOG = LoggerFactory.getLogger(FallbackZipParser.class);
+
 	private final File file;
+	private final ZipFile zipFile;
 	private final IJadxZipSecurity zipSecurity;
 	private final boolean useLimitedDataStream;
 
-	private ZipFile zipFile;
-
-	public FallbackZipParser(File file, ZipReaderOptions options) {
-		this.file = file;
-		this.zipSecurity = options.getZipSecurity();
-		this.useLimitedDataStream = zipSecurity.useLimitedDataStream();
+	public FallbackZipParser(File file, ZipReaderOptions options) throws FallbackException {
+		try {
+			this.file = file;
+			this.zipFile = new ZipFile(file);
+			this.zipSecurity = options.getZipSecurity();
+			this.useLimitedDataStream = zipSecurity.useLimitedDataStream();
+		} catch (Exception e) {
+			throw new FallbackException("Error opening zip file: " + file.getAbsolutePath(), e);
+		}
 	}
 
 	@Override
 	public ZipContent open() throws IOException {
-		zipFile = new ZipFile(file);
-
-		int maxEntriesCount = zipSecurity.getMaxEntriesCount();
-		if (maxEntriesCount == -1) {
-			maxEntriesCount = Integer.MAX_VALUE;
-		}
-
-		List<IZipEntry> list = new ArrayList<>();
-		Enumeration<? extends ZipEntry> entries = zipFile.entries();
-		while (entries.hasMoreElements()) {
-			FallbackZipEntry zipEntry = new FallbackZipEntry(this, entries.nextElement());
-			if (isValidEntry(zipEntry)) {
-				list.add(zipEntry);
-				if (list.size() > maxEntriesCount) {
-					throw new IllegalStateException("Max entries count limit exceeded: " + list.size());
+		try {
+			int maxEntriesCount = zipSecurity.getMaxEntriesCount();
+			if (maxEntriesCount == -1) {
+				maxEntriesCount = Integer.MAX_VALUE;
+			}
+			List<IZipEntry> list = new ArrayList<>();
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				FallbackZipEntry zipEntry = new FallbackZipEntry(this, entries.nextElement());
+				if (isValidEntry(zipEntry)) {
+					list.add(zipEntry);
+					if (list.size() > maxEntriesCount) {
+						throw new IllegalStateException("Max entries count limit exceeded: " + list.size());
+					}
 				}
 			}
+			return new ZipContent(this, list);
+		} catch (Exception e) {
+			throw new FallbackException("Error opening zip file: " + file.getAbsolutePath(), e);
 		}
-		return new ZipContent(this, list);
 	}
 
 	private boolean isValidEntry(IZipEntry zipEntry) {
@@ -98,12 +104,8 @@ public class FallbackZipParser implements IZipParser {
 
 	@Override
 	public void close() throws IOException {
-		try {
-			if (zipFile != null) {
-				zipFile.close();
-			}
-		} finally {
-			zipFile = null;
+		if (zipFile != null) {
+			zipFile.close();
 		}
 	}
 }

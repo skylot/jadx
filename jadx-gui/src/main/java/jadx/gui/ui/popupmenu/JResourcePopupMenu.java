@@ -1,8 +1,6 @@
 package jadx.gui.ui.popupmenu;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -16,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.utils.CommonFileUtils;
+import jadx.core.dex.visitors.SaveCode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
@@ -117,10 +116,10 @@ public class JResourcePopupMenu extends JPopupMenu {
 	}
 
 	private static void saveJResourceDir(JResource resource, Path savePath, boolean comingFromDialog) {
-		Path subSavePath = savePath.resolve(resource.getName());
+		Path subSavePath = savePath.resolve(resource.getShortName());
 		try {
 			if (!Files.isDirectory(subSavePath)) {
-				Files.createDirectory(subSavePath);
+				Files.createDirectories(subSavePath);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -147,11 +146,7 @@ public class JResourcePopupMenu extends JPopupMenu {
 	}
 
 	private static void exportString(JResource resource, Path savePath) {
-		try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
-			writer.write(resource.getCodeInfo().getCodeStr());
-		} catch (Exception e) {
-			throw new RuntimeException("Error saving file " + resource.getName(), e);
-		}
+		SaveCode.save(resource.getCodeInfo().getCodeStr(), savePath.toFile());
 	}
 
 }

@@ -8,7 +8,7 @@ import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 
 public class EncodedValue extends PinnedAttribute {
-	public static final EncodedValue NULL = new EncodedValue(EncodedType.ENCODED_NULL, null);
+	public static final EncodedValue NULL = new EncodedValue(EncodedType.ENCODED_NULL, "null");
 
 	private final EncodedType type;
 	private final Object value;

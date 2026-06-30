@@ -14,7 +14,6 @@ import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
-import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class SmaliTest extends IntegrationTest {
@@ -29,6 +28,7 @@ public abstract class SmaliTest extends IntegrationTest {
 	}
 
 	@BeforeEach
+	@Override
 	public void init() {
 		Assumptions.assumeFalse(USE_JAVA_INPUT, "skip smali test for java input tests");
 		super.init();

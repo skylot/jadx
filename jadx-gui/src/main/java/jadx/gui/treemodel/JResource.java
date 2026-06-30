@@ -2,6 +2,7 @@ package jadx.gui.treemodel;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -69,7 +70,7 @@ public class JResource extends JLoadableNode {
 	}
 
 	private final transient String name;
-	private final transient String shortName;
+	private transient String shortName;
 	private final transient JResType type;
 	private final transient ResourceFile resFile;
 
@@ -77,11 +78,14 @@ public class JResource extends JLoadableNode {
 	private transient List<JResource> subNodes = Collections.emptyList();
 	private transient ICodeInfo content = ICodeInfo.EMPTY;
 
-	public JResource(ResourceFile resFile, String name, JResType type) {
+	public JResource(@Nullable ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
 	}
 
-	public JResource(ResourceFile resFile, String name, String shortName, JResType type) {
+	public JResource(@Nullable ResourceFile resFile, String name, String shortName, JResType type) {
+		if (resFile == null && type == JResType.FILE) {
+			throw new IllegalArgumentException("Null resource file");
+		}
 		this.resFile = resFile;
 		this.name = name;
 		this.shortName = shortName;
@@ -129,6 +133,10 @@ public class JResource extends JLoadableNode {
 		return name;
 	}
 
+	public String getShortName() {
+		return shortName;
+	}
+
 	public JResType getType() {
 		return type;
 	}
@@ -150,6 +158,50 @@ public class JResource extends JLoadableNode {
 			nodes.forEach(JResource::sortSubNodes);
 			nodes.sort(RESOURCES_COMPARATOR);
 		}
+	}
+
+	/**
+	 * Collapse single-child DIR chains into one node with a slash-joined display name (GitHub-style).
+	 */
+	public static void mergeMiddleDirs(JResource root) {
+		mergeChildren(root.subNodes);
+	}
+
+	public static void mergeMiddleDirs(List<JResource> roots) {
+		mergeChildren(roots);
+	}
+
+	private static void mergeChildren(List<JResource> children) {
+		for (int i = 0; i < children.size(); i++) {
+			JResource sub = children.get(i);
+			JResource replaced = mergeChain(sub, new ArrayList<>());
+			if (replaced != sub) {
+				children.set(i, replaced);
+			}
+			mergeChildren(replaced.subNodes);
+		}
+	}
+
+	private static JResource mergeChain(JResource node, List<JResource> merged) {
+		if (node.type == JResType.DIR) {
+			List<JResource> subs = node.subNodes;
+			if (subs.size() == 1 && subs.get(0).type == JResType.DIR) {
+				merged.add(node);
+				return mergeChain(subs.get(0), merged);
+			}
+		}
+		if (!merged.isEmpty()) {
+			merged.add(node);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < merged.size(); i++) {
+				if (i > 0) {
+					sb.append('/');
+				}
+				sb.append(merged.get(i).shortName);
+			}
+			node.shortName = sb.toString();
+		}
+		return node;
 	}
 
 	@Override
@@ -213,7 +265,7 @@ public class JResource extends JLoadableNode {
 		}
 		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
 			ICodeInfo codeInfo = loadCurrentSingleRes(rc);
-			List<JResource> nodes = ResTableHelper.buildTree(rc);
+			List<JResource> nodes = ResTableHelper.buildTree(this, rc);
 			sortResNodes(nodes);
 			subNodes = nodes;
 			UiUtils.uiRun(this::update);

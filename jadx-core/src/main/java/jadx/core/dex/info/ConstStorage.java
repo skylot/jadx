@@ -15,7 +15,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IFieldInfoRef;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.prepare.CollectConstValues;
 
 public class ConstStorage {
 
@@ -23,18 +22,18 @@ public class ConstStorage {
 		private final Map<Object, IFieldInfoRef> values = new ConcurrentHashMap<>();
 		private final Set<Object> duplicates = new HashSet<>();
 
-		public Map<Object, IFieldInfoRef> getValues() {
+		Map<Object, IFieldInfoRef> getValues() {
 			return values;
 		}
 
-		public IFieldInfoRef get(Object key) {
+		IFieldInfoRef get(Object key) {
 			return values.get(key);
 		}
 
 		/**
 		 * @return true if this value is duplicated
 		 */
-		public boolean put(Object value, IFieldInfoRef fld) {
+		boolean put(Object value, IFieldInfoRef fld) {
 			if (duplicates.contains(value)) {
 				values.remove(value);
 				return true;
@@ -83,14 +82,6 @@ public class ConstStorage {
 
 	public void addGlobalConstField(IFieldInfoRef fld, Object value) {
 		globalValues.put(value, fld);
-	}
-
-	/**
-	 * Use method from CollectConstValues class
-	 */
-	@Deprecated
-	public static @Nullable Object getFieldConstValue(FieldNode fld) {
-		return CollectConstValues.getFieldConstValue(fld);
 	}
 
 	public void removeForClass(ClassNode cls) {

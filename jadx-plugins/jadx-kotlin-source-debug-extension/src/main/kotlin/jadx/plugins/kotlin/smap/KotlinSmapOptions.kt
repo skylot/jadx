@@ -14,9 +14,7 @@ class KotlinSmapOptions : BasePluginOptionsBuilder() {
 			.setter { isClassAliasSourceDbg = it }
 	}
 
-	fun isClassSourceDbg(): Boolean {
-		return isClassAliasSourceDbg
-	}
+	fun isClassSourceDbg(): Boolean = isClassAliasSourceDbg
 
 	companion object {
 		const val CLASS_ALIAS_SOURCE_DBG_OPT = "$PLUGIN_ID.class-alias-source-dbg"

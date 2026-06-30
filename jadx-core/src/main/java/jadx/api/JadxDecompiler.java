@@ -138,11 +138,16 @@ public final class JadxDecompiler implements Closeable {
 		loadFinished();
 	}
 
+	/**
+	 * Reload passes and plugins without processing classes and inputs
+	 */
 	public void reloadPasses() {
 		LOG.info("reloading (passes only) ...");
 		customPasses.clear();
 		root.resetPasses();
 		events.reset();
+		unloadPlugins();
+
 		loadPlugins();
 		root.mergePasses(customPasses);
 		root.restartVisitors();

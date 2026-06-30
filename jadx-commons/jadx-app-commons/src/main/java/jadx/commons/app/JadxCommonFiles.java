@@ -3,7 +3,8 @@ package jadx.commons.app;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Function;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,40 +31,39 @@ public class JadxCommonFiles {
 
 	static {
 		DirsLoader loader = new DirsLoader();
-		loader.init();
 		CONFIG_DIR = loader.getConfigDir();
 		CACHE_DIR = loader.getCacheDir();
 	}
 
 	private static final class DirsLoader {
-		private @Nullable ProjectDirectories dirs;
-		private Path configDir;
-		private Path cacheDir;
+		private final Path configDir;
+		private final Path cacheDir;
 
-		public void init() {
+		DirsLoader() {
 			try {
-				configDir = loadEnvDir("JADX_CONFIG_DIR", pd -> pd.configDir);
-				cacheDir = loadEnvDir("JADX_CACHE_DIR", pd -> pd.cacheDir);
+				AtomicReference<@Nullable ProjectDirectories> pdRef = new AtomicReference<>();
+				configDir = loadEnvDir("JADX_CONFIG_DIR", () -> loadDirs(pdRef).configDir);
+				cacheDir = loadEnvDir("JADX_CACHE_DIR", () -> loadDirs(pdRef).cacheDir);
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to init common directories", e);
 			}
 		}
 
-		private Path loadEnvDir(String envVar, Function<ProjectDirectories, String> dirFunc) throws IOException {
+		private static Path loadEnvDir(String envVar, Supplier<String> dirFunc) throws IOException {
 			String envDir = JadxCommonEnv.get(envVar, null);
 			String dirStr;
 			if (envDir != null) {
 				dirStr = envDir;
 			} else {
-				dirStr = dirFunc.apply(loadDirs());
+				dirStr = dirFunc.get();
 			}
 			Path path = Path.of(dirStr).toAbsolutePath();
 			Files.createDirectories(path);
 			return path;
 		}
 
-		private synchronized ProjectDirectories loadDirs() {
-			ProjectDirectories currentDirs = dirs;
+		private static ProjectDirectories loadDirs(AtomicReference<@Nullable ProjectDirectories> pdRef) {
+			ProjectDirectories currentDirs = pdRef.get();
 			if (currentDirs != null) {
 				return currentDirs;
 			}
@@ -76,7 +76,7 @@ public class JadxCommonFiles {
 				LOG.debug("Loaded system dirs ({}ms): config: {}, cache: {}",
 						System.currentTimeMillis() - start, loadedDirs.configDir, loadedDirs.cacheDir);
 			}
-			dirs = loadedDirs;
+			pdRef.set(loadedDirs);
 			return loadedDirs;
 		}
 
@@ -84,21 +84,22 @@ public class JadxCommonFiles {
 		 * Return JNI, Foreign or PowerShell implementation
 		 */
 		private static Windows getWinDirs() {
-			Windows defSup = Windows.getDefaultSupplier().get();
-			if (defSup instanceof WindowsPowerShell) {
+			Windows impl = Windows.getDefaultSupplier().get();
+			if (impl instanceof WindowsPowerShell) {
 				if (JadxSystemInfo.IS_AMD64) {
-					// JNI library compiled for x86-64
-					return new WindowsJni();
+					// JNI library compiled only for x86-64
+					impl = new WindowsJni();
 				}
 			}
-			return defSup;
+			LOG.debug("Using win dirs implementation: {}", impl.getClass().getSimpleName());
+			return impl;
 		}
 
-		public Path getCacheDir() {
+		Path getCacheDir() {
 			return cacheDir;
 		}
 
-		public Path getConfigDir() {
+		Path getConfigDir() {
 			return configDir;
 		}
 	}

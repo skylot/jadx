@@ -50,8 +50,7 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	public <T> void addAttr(IJadxAttrType<AttrList<T>> type, List<T> list) {
-		AttributeStorage strg = initStorage();
-		list.forEach(attr -> strg.add(type, attr));
+		initStorage().addAttrList(type, list);
 	}
 
 	@Override

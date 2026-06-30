@@ -9,6 +9,7 @@
 
 	<!-- jadx-gui -->
 	<logger name="com.pinterest.ktlint" level="INFO"/>
+	<logger name="guru.nidi.graphviz" level="WARN"/>
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>

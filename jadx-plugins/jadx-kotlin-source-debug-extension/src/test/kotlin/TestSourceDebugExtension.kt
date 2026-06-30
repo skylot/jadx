@@ -28,7 +28,6 @@ class TestSourceDebugExtension : SmaliTest() {
 		}
 	}
 
-	private fun assertThatClass(): JadxCodeAssertions =
-		assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinSourceDebugExtension", "C6"))
-			.code()
+	private fun assertThatClass(): JadxCodeAssertions = assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinSourceDebugExtension", "C6"))
+		.code()
 }

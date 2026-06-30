@@ -41,6 +41,10 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 			this.container = container;
 		}
 
+		public boolean isDefaultCase() {
+			return keys.size() == 1 && keys.get(0) == DEFAULT_CASE_KEY;
+		}
+
 		public List<Object> getKeys() {
 			return keys;
 		}
@@ -70,7 +74,9 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 	public List<IContainer> getSubBlocks() {
 		List<IContainer> all = new ArrayList<>(cases.size() + 1);
 		all.add(header);
-		all.addAll(getCaseContainers());
+		for (CaseInfo caseInfo : cases) {
+			all.add(caseInfo.container);
+		}
 		return Collections.unmodifiableList(all);
 	}
 

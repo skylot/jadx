@@ -22,6 +22,7 @@ public abstract class AbstractCodeContentPanel extends ContentPanel {
 
 	public abstract Component getChildrenComponent();
 
+	@Override
 	public void scrollToPos(int pos) {
 		AbstractCodeArea codeArea = getCodeArea();
 		if (codeArea != null) {

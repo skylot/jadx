@@ -91,4 +91,9 @@ public class TabViewState {
 	public void setPreviewTab(boolean previewTab) {
 		this.previewTab = previewTab;
 	}
+
+	@Override
+	public String toString() {
+		return "TabViewState{type=" + type + ", tabPath=" + tabPath + ", subPath=" + subPath + '}';
+	}
 }

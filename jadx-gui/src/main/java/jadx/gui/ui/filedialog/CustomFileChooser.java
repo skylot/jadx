@@ -1,19 +1,29 @@
 package jadx.gui.ui.filedialog;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
 
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.StringUtils;
@@ -54,6 +64,9 @@ class CustomFileChooser extends JFileChooser {
 		}
 		if (data.getSelectedFile() != null) {
 			setSelectedFile(data.getSelectedFile().toFile());
+		}
+		if (data.isOpen()) {
+			installFileListPasteAction(this);
 		}
 		MainWindow mainWindow = data.getMainWindow();
 		int ret = data.isOpen() ? showOpenDialog(mainWindow) : showSaveDialog(mainWindow);
@@ -106,5 +119,51 @@ class CustomFileChooser extends JFileChooser {
 			}
 		}
 		super.approveSelection();
+	}
+
+	private void installFileListPasteAction(Component component) {
+		if (component instanceof JTextComponent) {
+			JTextComponent textComponent = (JTextComponent) component;
+			Action defaultPasteAction = textComponent.getActionMap().get(DefaultEditorKit.pasteAction);
+			textComponent.getActionMap().put(DefaultEditorKit.pasteAction, new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (!pasteFileListFromClipboard(textComponent)) {
+						if (defaultPasteAction != null) {
+							defaultPasteAction.actionPerformed(e);
+						} else {
+							textComponent.paste();
+						}
+					}
+				}
+			});
+		}
+		if (component instanceof Container) {
+			for (Component child : ((Container) component).getComponents()) {
+				installFileListPasteAction(child);
+			}
+		}
+	}
+
+	private boolean pasteFileListFromClipboard(JTextComponent textComponent) {
+		try {
+			Transferable contents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+			if (contents == null || !contents.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+				return false;
+			}
+			@SuppressWarnings("unchecked")
+			List<File> clipboardFiles = (List<File>) contents.getTransferData(DataFlavor.javaFileListFlavor);
+			String paths = clipboardFiles.stream()
+					.filter(Objects::nonNull)
+					.map(file -> '"' + file.getAbsolutePath() + '"')
+					.collect(Collectors.joining(" "));
+			if (paths.isEmpty()) {
+				return false;
+			}
+			textComponent.replaceSelection(paths);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }

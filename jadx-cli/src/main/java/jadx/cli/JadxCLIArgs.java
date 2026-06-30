@@ -283,6 +283,13 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "--raw-cfg" }, description = "save methods control flow graph (use raw instructions)")
 	protected boolean rawCfgOutput = false;
 
+	@Parameter(
+			names = { "--call-graph" },
+			description = "save app call graph in format: 'dot' or 'json'",
+			converter = CallGraphSaveModeConverter.class
+	)
+	protected CallGraphSaveMode callGraphSaveMode = CallGraphSaveMode.NONE;
+
 	@Parameter(names = { "-f", "--fallback" }, description = "set '--decompilation-mode' to 'fallback' (deprecated)")
 	protected boolean fallbackMode = false;
 
@@ -827,6 +834,14 @@ public class JadxCLIArgs implements IJadxConfig {
 		this.rawCfgOutput = rawCfgOutput;
 	}
 
+	public CallGraphSaveMode getCallGraphSaveMode() {
+		return callGraphSaveMode;
+	}
+
+	public void setCallGraphSaveMode(CallGraphSaveMode callGraphSaveMode) {
+		this.callGraphSaveMode = callGraphSaveMode;
+	}
+
 	public boolean isReplaceConsts() {
 		return replaceConsts;
 	}
@@ -1019,6 +1034,18 @@ public class JadxCLIArgs implements IJadxConfig {
 	public static class IntegerFormatConverter extends BaseEnumConverter<IntegerFormat> {
 		public IntegerFormatConverter() {
 			super(IntegerFormat::valueOf, IntegerFormat::values);
+		}
+	}
+
+	public enum CallGraphSaveMode {
+		NONE,
+		DOT,
+		JSON,
+	}
+
+	public static class CallGraphSaveModeConverter extends BaseEnumConverter<CallGraphSaveMode> {
+		public CallGraphSaveModeConverter() {
+			super(CallGraphSaveMode::valueOf, CallGraphSaveMode::values);
 		}
 	}
 

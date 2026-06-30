@@ -54,7 +54,7 @@ public class TestFieldRenameFormat extends IntegrationTest {
 				.containsOne("private List<String> authors;")
 				.containsLines(1,
 						"",
-						"/* renamed from: c */",
+						"/* JADX INFO: renamed from: c */",
 						"@SerializedName(\"title\")",
 						"private String title;",
 						"");

@@ -44,12 +44,12 @@ public class BetterName {
 					: secondName;
 		}
 
-		final var firstResult = analyze(firstName);
-		final var secondResult = analyze(secondName);
+		var firstResult = analyze(firstName);
+		var secondResult = analyze(secondName);
 
 		if (firstResult.digitCount != 0 || secondResult.digitCount != 0) {
-			final var firstRatio = (float) firstResult.digitCount / firstResult.length;
-			final var secondRatio = (float) secondResult.digitCount / secondResult.length;
+			var firstRatio = (float) firstResult.digitCount / firstResult.length;
+			var secondRatio = (float) secondResult.digitCount / secondResult.length;
 
 			if (Math.abs(secondRatio - firstRatio) >= TOLERANCE) {
 				return firstRatio <= secondRatio
@@ -64,7 +64,7 @@ public class BetterName {
 	}
 
 	private static AnalyzeResult analyze(String name) {
-		final var result = new AnalyzeResult();
+		var result = new AnalyzeResult();
 
 		StringUtils.visitCodePoints(name, cp -> {
 			if (Character.isDigit(cp)) {

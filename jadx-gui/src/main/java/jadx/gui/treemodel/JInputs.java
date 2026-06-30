@@ -1,38 +1,29 @@
 package jadx.gui.treemodel;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import jadx.core.utils.files.FileUtils;
-import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.plugins.TreeInputsHelper;
 
 public class JInputs extends JNode {
 	private static final ImageIcon INPUTS_ICON = UiUtils.openSvgIcon("nodes/projectStructure");
 
-	public JInputs(JadxWrapper wrapper) {
-		JadxProject project = wrapper.getProject();
+	public JInputs(MainWindow mainWindow) {
+		JadxProject project = mainWindow.getProject();
 		List<Path> inputs = project.getFilePaths();
 		List<Path> files = FileUtils.expandDirs(inputs);
-		List<Path> scripts = new ArrayList<>();
-		Iterator<Path> it = files.iterator();
-		while (it.hasNext()) {
-			Path file = it.next();
-			if (file.getFileName().toString().endsWith(".jadx.kts")) {
-				scripts.add(file);
-				it.remove();
-			}
-		}
-
-		add(new JInputFiles(files));
-		add(new JInputScripts(scripts));
+		TreeInputsHelper inputsHelper = new TreeInputsHelper(mainWindow);
+		inputsHelper.processInputs(files);
+		add(new JInputFiles(inputsHelper.getSimpleFiles()));
+		inputsHelper.getCustomNodes().forEach(this::add);
 	}
 
 	@Override

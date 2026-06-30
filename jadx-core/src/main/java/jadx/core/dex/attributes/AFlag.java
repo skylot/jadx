@@ -18,17 +18,23 @@ public enum AFlag {
 	DONT_WRAP,
 	DONT_INLINE,
 	DONT_INLINE_CONST,
+	DONT_INVERT, // don't invert this if statement
 	DONT_GENERATE, // process as usual, but don't output to generated code
 	COMMENT_OUT, // process as usual, but comment insn in generated code
 	REMOVE, // can be completely removed
 	REMOVE_SUPER_CLASS, // don't add super class
 
 	HIDDEN, // instruction used inside other instruction but not listed in args
+	CONVERTED_ENUM, // enum class successfully restored to original form
 
 	DONT_RENAME, // do not rename during deobfuscation
 	FORCE_RAW_NAME, // force use of raw name instead alias
 
 	ADDED_TO_REGION,
+	DUPLICATED,
+
+	// this loop condition has been merged or otherwise shouldn't be subject to the 1 instruction limit
+	ALLOW_MULTIPLE_INSNS_LOOP_COND,
 
 	EXC_TOP_SPLITTER,
 	EXC_BOTTOM_SPLITTER,

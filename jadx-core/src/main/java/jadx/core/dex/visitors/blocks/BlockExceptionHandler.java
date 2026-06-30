@@ -23,6 +23,7 @@ import jadx.api.plugins.utils.Utils;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.ExcSplitCrossAttr;
 import jadx.core.dex.attributes.nodes.TmpEdgeAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.InsnType;
@@ -380,6 +381,23 @@ public class BlockExceptionHandler {
 		}
 		connectSplittersAndHandlers(tryCatchBlock, topSplitterBlock, bottomSplitterBlock);
 
+		// At this point, it's possible that a cross edge to the original bottom has been turned into a back
+		// edge by the insertion of the new bottom. This causes problems because back edges usually signifiy
+		// loops, but this is not a loop. To fix this, predecessors of the bottom that also have a path from
+		// the bottom are rewritten to point to the original path crossing point (before synthetic blocks).
+		if (bottom != null && bottom.contains(AType.EXC_SPLIT_CROSS)) {
+			List<BlockNode> convertBlocks = new ArrayList<>();
+			for (BlockNode b : bottom.getPredecessors()) {
+				if (BlockUtils.isAnyPathExists(bottom, b)) {
+					convertBlocks.add(b);
+				}
+			}
+			for (BlockNode b : convertBlocks) {
+				// The connection can't be replaced during the first loop because it would modify the preds list.
+				BlockSplitter.replaceConnection(b, bottom, bottom.get(AType.EXC_SPLIT_CROSS).getOriginalPathCross());
+			}
+		}
+
 		for (BlockNode block : blocks) {
 			TryCatchBlockAttr currentTCBAttr = block.get(AType.TRY_BLOCK);
 			if (currentTCBAttr == null || currentTCBAttr.getInnerTryBlocks().contains(tryCatchBlock)) {
@@ -460,12 +478,15 @@ public class BlockExceptionHandler {
 		List<BlockNode> outsidePredecessors = preds.stream()
 				.filter(p -> !BlockUtils.atLeastOnePathExists(blocks, p))
 				.collect(Collectors.toList());
-		if (outsidePredecessors.isEmpty()) {
+		// if we have no predecessors or every predecessor is outside (which would mean that inserting the
+		// new synthetic block does nothing), just return the existing path cross instead.
+		if (outsidePredecessors.isEmpty() || outsidePredecessors.size() == pathCross.getPredecessors().size()) {
 			return pathCross;
 		}
 		// some predecessors outside of input set paths -> split block only for input set
 		BlockNode splitCross = BlockSplitter.blockSplitTop(mth, pathCross);
 		splitCross.add(AFlag.SYNTHETIC);
+		splitCross.addAttr(new ExcSplitCrossAttr(pathCross));
 		for (BlockNode outsidePredecessor : outsidePredecessors) {
 			// return predecessors to split bottom block (original)
 			BlockSplitter.replaceConnection(outsidePredecessor, splitCross, pathCross);

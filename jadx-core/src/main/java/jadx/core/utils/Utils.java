@@ -3,6 +3,7 @@ package jadx.core.utils;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +59,104 @@ public class Utils {
 
 	public static String makeQualifiedObjectName(String obj) {
 		return 'L' + obj.replace('.', '/') + ';';
+	}
+
+	public static String smaliNameToJavaName(String descString) {
+		if (descString.isEmpty()) {
+			return descString;
+		}
+
+		String javaName;
+		switch (descString.charAt(0)) {
+			case 'V':
+				javaName = "void";
+				break;
+			case 'Z':
+				javaName = "boolean";
+				break;
+			case 'C':
+				javaName = "char";
+				break;
+			case 'B':
+				javaName = "byte";
+				break;
+			case 'S':
+				javaName = "short";
+				break;
+			case 'I':
+				javaName = "int";
+				break;
+			case 'F':
+				javaName = "float";
+				break;
+			case 'J':
+				javaName = "long";
+				break;
+			case 'D':
+				javaName = "double";
+				break;
+			case 'L':
+				javaName = cleanObjectNameWithInnerClass(descString);
+				break;
+			case '[':
+				javaName = String.format("%s[]", smaliNameToJavaName(descString.substring(1, descString.length())));
+				break;
+			default:
+				javaName = descString;
+				break;
+		}
+		return javaName;
+	}
+
+	private static String cleanObjectNameWithInnerClass(String obj) {
+		// Probably can just update the Utils.cleanObjectName method?
+		String result = Utils.cleanObjectName(obj);
+		return result.replace('$', '.');
+	}
+
+	public static String javaNameToSmaliName(String descString) {
+		if (descString.isEmpty()) {
+			return descString;
+		}
+
+		if (descString.endsWith("[]")) {
+			return String.format("[%s", javaNameToSmaliName(descString.substring(0, descString.length() - 2)));
+		}
+
+		String javaName;
+		switch (descString) {
+			case "void":
+				javaName = "V";
+				break;
+			case "boolean":
+				javaName = "Z";
+				break;
+			case "char":
+				javaName = "C";
+				break;
+			case "byte":
+				javaName = "B";
+				break;
+			case "short":
+				javaName = "S";
+				break;
+			case "int":
+				javaName = "I";
+				break;
+			case "float":
+				javaName = "F";
+				break;
+			case "long":
+				javaName = "J";
+				break;
+			case "double":
+				javaName = "D";
+				break;
+			default:
+				javaName = Utils.makeQualifiedObjectName(descString);
+				break;
+		}
+		return javaName;
 	}
 
 	@SuppressWarnings("StringRepeatCanBeUsed")
@@ -197,7 +296,7 @@ public class Utils {
 				}
 			}
 		};
-		try (PrintWriter pw = new PrintWriter(w, true)) {
+		try (PrintWriter pw = new PrintWriter(w, true, StandardCharsets.UTF_8)) {
 			filterRecursive(throwable);
 			throwable.printStackTrace(pw);
 			pw.flush();
@@ -520,7 +619,7 @@ public class Utils {
 		private final AtomicInteger number = new AtomicInteger(0);
 		private final String name;
 
-		public SimpleThreadFactory(String name) {
+		SimpleThreadFactory(String name) {
 			this.name = name;
 		}
 
@@ -572,5 +671,27 @@ public class Utils {
 			return defValue;
 		}
 		return Integer.parseInt(strValue);
+	}
+
+	public static int safeParseInt(String value, int defValue) {
+		if (value == null || value.isEmpty()) {
+			return defValue;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {
+			return defValue;
+		}
+	}
+
+	public static @Nullable Integer safeParseInteger(@Nullable String value) {
+		if (value == null || value.isEmpty()) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

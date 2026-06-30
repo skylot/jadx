@@ -310,7 +310,7 @@ public class JavaInsnsRegister {
 			s.peekFrom(4, 8).peekFrom(1, 9);
 		} else {
 			s.insn().setRegsCount(6);
-			s.insert(2, WIDE);
+			s.insert(1, WIDE);
 			s.peekFrom(0, 0).peekFrom(1, 1);
 			s.peekFrom(1, 2).peekFrom(2, 3);
 			s.peekFrom(2, 4).peekFrom(0, 5);
@@ -342,7 +342,9 @@ public class JavaInsnsRegister {
 			s.idx(s.u2());
 			int dim = s.u1();
 			JavaInsnData insn = s.insn();
-			insn.setLiteral(dim);
+			// operand is already the full array type (like new-array): literal 0 = no wrapping; the
+			// dimension count is carried by regsCount
+			insn.setLiteral(0);
 			insn.setRegsCount(dim + 1);
 			for (int i = dim; i > 0; i--) {
 				s.pop(i);

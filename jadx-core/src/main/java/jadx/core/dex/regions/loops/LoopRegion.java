@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
 import jadx.core.codegen.RegionGen;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
@@ -126,6 +127,7 @@ public final class LoopRegion extends ConditionRegion {
 			preCondInsns.addAll(condInsns);
 			condInsns.clear();
 			condInsns.addAll(preCondInsns);
+			header.add(AFlag.ALLOW_MULTIPLE_INSNS_LOOP_COND);
 			preCondInsns.clear();
 			preCondition = null;
 		}

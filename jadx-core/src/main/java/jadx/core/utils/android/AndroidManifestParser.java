@@ -18,6 +18,8 @@ import jadx.api.security.IJadxSecurity;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 
+import static jadx.core.utils.Utils.safeParseInteger;
+
 public class AndroidManifestParser {
 	private final Document androidManifest;
 	private final @Nullable Document appStrings;
@@ -41,8 +43,7 @@ public class AndroidManifestParser {
 		return androidManifest != null;
 	}
 
-	@Nullable
-	public static ResourceFile getAndroidManifest(List<ResourceFile> resources) {
+	public static @Nullable ResourceFile getAndroidManifest(List<ResourceFile> resources) {
 		return resources.stream()
 				.filter(resourceFile -> resourceFile.getType() == ResourceType.MANIFEST)
 				.findFirst()
@@ -53,19 +54,11 @@ public class AndroidManifestParser {
 		if (!isManifestFound()) {
 			throw new JadxRuntimeException("AndroidManifest.xml is missing");
 		}
-
 		return parseAttributes();
 	}
 
 	private ApplicationParams parseAttributes() {
-		String applicationLabel = null;
-		Integer minSdkVersion = null;
-		Integer targetSdkVersion = null;
-		Integer compileSdkVersion = null;
-		Integer versionCode = null;
-		String versionName = null;
-		String mainActivity = null;
-		String application = null;
+		ApplicationParams appParams = new ApplicationParams();
 
 		@Nullable
 		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
@@ -73,49 +66,47 @@ public class AndroidManifestParser {
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
 
 		if (parseAttrs.contains(AppAttribute.APPLICATION_LABEL)) {
-			applicationLabel = getApplicationLabel();
+			appParams.setApplicationLabel(getApplicationLabel());
 		}
 		if (usesSdk != null) {
 			if (parseAttrs.contains(AppAttribute.MIN_SDK_VERSION)) {
-				minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
+				appParams.setMinSdkVersion(safeParseInteger(usesSdk.getAttribute("android:minSdkVersion")));
 			}
 			if (parseAttrs.contains(AppAttribute.TARGET_SDK_VERSION)) {
 				String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
 				if (!stringTargetSdk.isEmpty()) {
-					targetSdkVersion = Integer.valueOf(stringTargetSdk);
+					appParams.setTargetSdkVersion(safeParseInteger(stringTargetSdk));
 				} else {
-					if (minSdkVersion == null) {
-						minSdkVersion = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
+					if (appParams.getMinSdkVersion() == null) {
+						appParams.setMinSdkVersion(safeParseInteger(usesSdk.getAttribute("android:minSdkVersion")));
 					}
-					targetSdkVersion = minSdkVersion;
+					appParams.setTargetSdkVersion(appParams.getMinSdkVersion());
 				}
 			}
 			if (parseAttrs.contains(AppAttribute.COMPILE_SDK_VERSION)) {
 				String stringCompileSdk = usesSdk.getAttribute("android:compileSdkVersion");
 				if (!stringCompileSdk.isEmpty()) {
-					compileSdkVersion = Integer.valueOf(stringCompileSdk);
+					appParams.setCompileSdkVersion(safeParseInteger(stringCompileSdk));
 				} else {
-					compileSdkVersion = targetSdkVersion;
+					appParams.setCompileSdkVersion(appParams.getTargetSdkVersion());
 				}
 			}
 		}
 		if (manifest != null) {
 			if (parseAttrs.contains(AppAttribute.VERSION_CODE)) {
-				versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
+				appParams.setVersionCode(safeParseInteger(manifest.getAttribute("android:versionCode")));
 			}
 			if (parseAttrs.contains(AppAttribute.VERSION_NAME)) {
-				versionName = manifest.getAttribute("android:versionName");
+				appParams.setVersionName(manifest.getAttribute("android:versionName"));
 			}
 		}
 		if (parseAttrs.contains(AppAttribute.MAIN_ACTIVITY)) {
-			mainActivity = getMainActivityName();
+			appParams.setMainActivity(getMainActivityName());
 		}
 		if (parseAttrs.contains(AppAttribute.APPLICATION)) {
-			application = getApplicationName();
+			appParams.setApplication(getApplicationName());
 		}
-
-		return new ApplicationParams(applicationLabel, minSdkVersion, targetSdkVersion, compileSdkVersion,
-				versionCode, versionName, mainActivity, application);
+		return appParams;
 	}
 
 	private String getApplicationLabel() {
@@ -143,11 +134,10 @@ public class AndroidManifestParser {
 				return appLabelName;
 			}
 		}
-
 		return "UNKNOWN";
 	}
 
-	private String getMainActivityName() {
+	private @Nullable String getMainActivityName() {
 		String mainActivityName = getMainActivityNameThroughActivityTag();
 		if (mainActivityName == null) {
 			mainActivityName = getMainActivityNameThroughActivityAliasTag();
@@ -155,7 +145,7 @@ public class AndroidManifestParser {
 		return mainActivityName;
 	}
 
-	private String getApplicationName() {
+	private @Nullable String getApplicationName() {
 		Element application = (Element) androidManifest.getElementsByTagName("application").item(0);
 		if (application.hasAttribute("android:name")) {
 			return application.getAttribute("android:name");
@@ -163,7 +153,7 @@ public class AndroidManifestParser {
 		return null;
 	}
 
-	private String getMainActivityNameThroughActivityAliasTag() {
+	private @Nullable String getMainActivityNameThroughActivityAliasTag() {
 		NodeList activityAliasNodes = androidManifest.getElementsByTagName("activity-alias");
 		for (int i = 0; i < activityAliasNodes.getLength(); i++) {
 			Element activityElement = (Element) activityAliasNodes.item(i);
@@ -174,7 +164,7 @@ public class AndroidManifestParser {
 		return null;
 	}
 
-	private String getMainActivityNameThroughActivityTag() {
+	private @Nullable String getMainActivityNameThroughActivityTag() {
 		NodeList activityNodes = androidManifest.getElementsByTagName("activity");
 		for (int i = 0; i < activityNodes.getLength(); i++) {
 			Element activityElement = (Element) activityNodes.item(i);
@@ -230,7 +220,7 @@ public class AndroidManifestParser {
 		}
 	}
 
-	private Document parseAppStrings(ResContainer appStrings) {
+	private @Nullable Document parseAppStrings(@Nullable ResContainer appStrings) {
 		if (appStrings == null) {
 			return null;
 		}
@@ -238,7 +228,7 @@ public class AndroidManifestParser {
 		return parseXml(content);
 	}
 
-	private Document parseAndroidManifest(ResourceFile androidManifest) {
+	private @Nullable Document parseAndroidManifest(ResourceFile androidManifest) {
 		if (androidManifest == null) {
 			return null;
 		}

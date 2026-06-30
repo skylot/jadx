@@ -45,7 +45,13 @@ public class BinaryXMLStrings {
 			return INVALID_STRING_PLACEHOLDER;
 		}
 
-		long offset = stringsStart + buffer.getInt(id * 4);
+		int off = buffer.getInt(id * 4);
+		if (off < 0) {
+			// read unsigned offset value is larger than Integer.MAX_VALUE
+			// In reality this should only happen in obfuscated APKs with invalid offsets
+			return INVALID_STRING_PLACEHOLDER;
+		}
+		long offset = stringsStart + off;
 		String extracted;
 		if (isUtf8) {
 			extracted = extractString8(this.buffer.array(), (int) offset);

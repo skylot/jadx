@@ -47,21 +47,6 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 	}
 
 	@Override
-	public String getTabTooltip() {
-		String s = node.getName();
-		JNode n = (JNode) node.getParent();
-		while (n != null) {
-			String name = n.getName();
-			if (name == null) {
-				break;
-			}
-			s = name + '/' + s;
-			n = (JNode) n.getParent();
-		}
-		return '/' + s;
-	}
-
-	@Override
 	public void saveEditorViewState(EditorViewState viewState) {
 		int caretPos = codePanel.getCodeArea().getCaretPosition();
 		Point viewPoint = codePanel.getCodeScrollPane().getViewport().getViewPosition();

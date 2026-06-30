@@ -22,12 +22,11 @@ import jadx.plugins.kotlin.smap.model.KOTLIN_STRATA_NAME
 import jadx.plugins.kotlin.smap.model.SMAP
 
 object SMAPParser {
-	fun parseOrNull(mappingInfo: String): SMAP? =
-		if (mappingInfo.isNotEmpty()) {
-			parseStratum(mappingInfo, KOTLIN_STRATA_NAME, parseStratum(mappingInfo, KOTLIN_DEBUG_STRATA_NAME, null))
-		} else {
-			null
-		}
+	fun parseOrNull(mappingInfo: String): SMAP? = if (mappingInfo.isNotEmpty()) {
+		parseStratum(mappingInfo, KOTLIN_STRATA_NAME, parseStratum(mappingInfo, KOTLIN_DEBUG_STRATA_NAME, null))
+	} else {
+		null
+	}
 
 	private class SMAPTokenizer(private val text: String, private val headerString: String) : Iterator<String> {
 
@@ -55,9 +54,7 @@ object SMAPParser {
 			pos++
 		}
 
-		override fun hasNext(): Boolean {
-			return currentLine != null
-		}
+		override fun hasNext(): Boolean = currentLine != null
 
 		override fun next(): String {
 			val res = currentLine ?: throw NoSuchElementException()
@@ -105,7 +102,9 @@ object SMAPParser {
 			val range = when {
 				// These two fields have a different meaning, but for compatibility we treat them the same. See `SMAPBuilder`.
 				destMultiplierSeparator != line.length -> line.substring(destMultiplierSeparator + 1).toInt()
+
 				sourceRangeSeparator != destSeparator -> line.substring(sourceRangeSeparator + 1, destSeparator).toInt()
+
 				else -> 1
 			}
 			// Here we assume that each range in `Kotlin` is entirely within at most one range in `KotlinDebug`.

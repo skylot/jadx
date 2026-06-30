@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -25,7 +25,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         run: ./gradlew dist distWin
@@ -33,7 +33,7 @@ jobs:
           JADX_BUILD_JAVA_VERSION: 11
 
       - name: Save bundle artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
           # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip file
@@ -43,7 +43,7 @@ jobs:
           retention-days: 14
 
       - name: Save Windows bundle artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
           # Upload unpacked files for now
@@ -54,7 +54,7 @@ jobs:
   build-win-bundle:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -75,13 +75,13 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         run: ./gradlew dist -PbundleJRE=true
 
       - name: Save Windows with JRE bundle artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           # Upload unpacked files for now

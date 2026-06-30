@@ -72,7 +72,7 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
 You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
 
 ### Build from source
-JDK 11 or higher must be installed:
+JDK 17 or higher must be installed:
 ```
 git clone https://github.com/skylot/jadx.git
 cd jadx
@@ -166,6 +166,7 @@ options:
   --fs-case-sensitive                           - treat filesystem as case sensitive, false by default
   --cfg                                         - save methods control flow graph to dot file
   --raw-cfg                                     - save methods control flow graph (use raw instructions)
+  --call-graph                                  - save app call graph in format: 'dot' or 'json', default: none
   -f, --fallback                                - set '--decompilation-mode' to 'fallback' (deprecated)
   --use-dx                                      - use dx/d8 to convert java bytecode
   --comments-level                              - set code comments level, values: error, warn, info, debug, user-only, none, default: info

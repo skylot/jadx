@@ -19,6 +19,23 @@ import org.jetbrains.annotations.Nullable;
 
 public class ListUtils {
 
+	public static <T> List<T> mutableListOf(T obj) {
+		List<T> list = new ArrayList<>();
+		list.add(obj);
+		return list;
+	}
+
+	public static <T> List<T> mutableListOf(T obj1, T obj2) {
+		List<T> list = new ArrayList<>();
+		list.add(obj1);
+		list.add(obj2);
+		return list;
+	}
+
+	public static <T> List<T> mutableListOf(T... objs) {
+		return new ArrayList<>(Arrays.asList(objs));
+	}
+
 	public static <T> boolean isSingleElement(@Nullable List<T> list, T obj) {
 		if (list == null || list.size() != 1) {
 			return false;
@@ -40,11 +57,11 @@ public class ListUtils {
 		if (list1.size() != list2.size()) {
 			return false;
 		}
-		final Iterator<T> iter1 = list1.iterator();
-		final Iterator<U> iter2 = list2.iterator();
+		Iterator<T> iter1 = list1.iterator();
+		Iterator<U> iter2 = list2.iterator();
 		while (iter1.hasNext() && iter2.hasNext()) {
-			final T item1 = iter1.next();
-			final U item2 = iter2.next();
+			T item1 = iter1.next();
+			U item2 = iter2.next();
 			if (!comparer.test(item1, item2)) {
 				return false;
 			}
@@ -67,6 +84,13 @@ public class ListUtils {
 		return list.get(0);
 	}
 
+	public static <T> T firstOrNull(List<T> list) {
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		return list.get(0);
+	}
+
 	public static <T> @Nullable T last(List<T> list) {
 		if (list == null || list.isEmpty()) {
 			return null;
@@ -74,7 +98,10 @@ public class ListUtils {
 		return list.get(list.size() - 1);
 	}
 
-	public static <T> @Nullable T removeLast(List<T> list) {
+	public static <T> @Nullable T removeLast(@Nullable List<T> list) {
+		if (list == null) {
+			return null;
+		}
 		int size = list.size();
 		if (size == 0) {
 			return null;

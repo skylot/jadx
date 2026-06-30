@@ -49,9 +49,9 @@ public final class JadxZipParser implements IZipParser {
 	private final boolean verify;
 	private final boolean useLimitedDataStream;
 
-	private RandomAccessFile file;
-	private FileChannel fileChannel;
-	private ByteBuffer byteBuffer;
+	private @Nullable RandomAccessFile file;
+	private @Nullable FileChannel fileChannel;
+	private @Nullable ByteBuffer byteBuffer;
 
 	private int endOfCDStart = -2;
 
@@ -90,23 +90,25 @@ public final class JadxZipParser implements IZipParser {
 		}
 	}
 
-	@SuppressWarnings("RedundantIfStatement")
 	public boolean canOpen() {
 		try {
 			load();
 			int eocdStart = searchEndOfCDStart();
-			ByteBuffer buf = byteBuffer;
+			ByteBuffer buf = getBuffer();
 			buf.position(eocdStart + 4);
 			int diskNum = readU2(buf);
-			if (diskNum == 0xFFFF) {
-				// Zip64
-				return false;
+			if (diskNum != 0xFFFF) { // Zip64 not supported
+				return true;
 			}
-			return true;
 		} catch (Exception e) {
 			LOG.warn("Jadx parser can't open zip file: {}", zipFile, e);
-			return false;
 		}
+		try {
+			close();
+		} catch (Exception e) {
+			LOG.warn("Failed to close jadx parser, zip file: {}", zipFile, e);
+		}
+		return false;
 	}
 
 	private boolean isValidEntry(JadxZipEntry zipEntry) {
@@ -117,13 +119,21 @@ public final class JadxZipParser implements IZipParser {
 		return validEntry;
 	}
 
+	private ByteBuffer getBuffer() {
+		ByteBuffer buf = byteBuffer;
+		if (buf == null) {
+			throw new RuntimeException("File not opened: " + zipFile);
+		}
+		return buf;
+	}
+
 	private void load() throws IOException {
 		if (byteBuffer != null) {
 			// already loaded
 			return;
 		}
-		file = new RandomAccessFile(zipFile, "r");
-		long size = file.length();
+		RandomAccessFile raFile = new RandomAccessFile(zipFile, "r");
+		long size = raFile.length();
 		if (size >= Integer.MAX_VALUE) {
 			throw new IOException("Zip file is too big");
 		}
@@ -131,16 +141,16 @@ public final class JadxZipParser implements IZipParser {
 		if (fileLen < 100 * 1024 * 1024) {
 			// load files smaller than 100MB directly into memory
 			byte[] bytes = new byte[fileLen];
-			file.readFully(bytes);
-			byteBuffer = ByteBuffer.wrap(bytes).asReadOnlyBuffer();
-			file.close();
-			file = null;
+			raFile.readFully(bytes);
+			byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+			raFile.close();
 		} else {
 			// for big files - use a memory mapped file
-			fileChannel = file.getChannel();
+			file = raFile;
+			fileChannel = raFile.getChannel();
 			byteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		}
-		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 	}
 
 	private List<IZipEntry> searchLocalFileHeaders(int maxEntriesCount) {
@@ -165,7 +175,7 @@ public final class JadxZipParser implements IZipParser {
 		if (eocdStart < 0) {
 			throw new RuntimeException("End of central directory not found");
 		}
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		buf.position(eocdStart + 10);
 		int entriesCount = readU2(buf);
 		buf.position(eocdStart + 16);
@@ -186,7 +196,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	private JadxZipEntry loadCDEntry() {
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		int start = buf.position();
 		buf.position(start + 28);
 		int fileNameLen = readU2(buf);
@@ -207,7 +217,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	private JadxZipEntry fixEntryFromCD(JadxZipEntry entry, int start) {
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		buf.position(start + 10);
 		int comprMethod = readU2(buf);
 		buf.position(start + 20);
@@ -237,7 +247,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	private JadxZipEntry loadFileEntry(int start) {
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		buf.position(start + 8);
 		int comprMethod = readU2(buf);
 		buf.position(start + 18);
@@ -255,7 +265,7 @@ public final class JadxZipParser implements IZipParser {
 		if (endOfCDStart != -2) {
 			return endOfCDStart;
 		}
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		int pos = buf.limit() - 22;
 		int minPos = Math.max(0, pos - 0xffff);
 		while (true) {
@@ -273,7 +283,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	private int searchEntryStart() {
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		while (true) {
 			int start = buf.position();
 			if (start + 4 > buf.limit()) {
@@ -297,14 +307,14 @@ public final class JadxZipParser implements IZipParser {
 		InputStream stream;
 		if (entry.getCompressMethod() == 8) {
 			try {
-				stream = ZipDeflate.decompressEntryToStream(byteBuffer, entry);
+				stream = ZipDeflate.decompressEntryToStream(getBuffer(), entry);
 			} catch (Exception e) {
 				entryParseFailed(entry, e);
 				return useFallbackParser(entry).getInputStream();
 			}
 		} else {
 			// treat any other compression methods values as UNCOMPRESSED
-			stream = bufferToStream(byteBuffer, entry.getDataStart(), (int) entry.getUncompressedSize());
+			stream = bufferToStream(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
 		}
 		if (useLimitedDataStream) {
 			return new LimitedInputStream(stream, entry.getUncompressedSize());
@@ -318,14 +328,14 @@ public final class JadxZipParser implements IZipParser {
 		}
 		if (entry.getCompressMethod() == 8) {
 			try {
-				return ZipDeflate.decompressEntryToBytes(byteBuffer, entry);
+				return ZipDeflate.decompressEntryToBytes(getBuffer(), entry);
 			} catch (Exception e) {
 				entryParseFailed(entry, e);
 				return useFallbackParser(entry).getBytes();
 			}
 		}
 		// treat any other compression methods values as UNCOMPRESSED
-		return bufferToBytes(byteBuffer, entry.getDataStart(), (int) entry.getUncompressedSize());
+		return bufferToBytes(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
 	}
 
 	private static void verifyEntry(JadxZipEntry entry) {
@@ -361,7 +371,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	@SuppressWarnings("resource")
-	private ZipContent initFallbackParser() {
+	private synchronized ZipContent initFallbackParser() {
 		if (fallbackZipContent == null) {
 			try {
 				fallbackZipContent = new FallbackZipParser(zipFile, options).open();
@@ -378,7 +388,7 @@ public final class JadxZipParser implements IZipParser {
 	}
 
 	private int readFlags(JadxZipEntry entry) {
-		ByteBuffer buf = byteBuffer;
+		ByteBuffer buf = getBuffer();
 		buf.position(entry.getEntryStart() + 6);
 		return readU2(buf);
 	}
@@ -407,6 +417,7 @@ public final class JadxZipParser implements IZipParser {
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
+	@SuppressWarnings("DataFlowIssue")
 	@Override
 	public void close() throws IOException {
 		try {

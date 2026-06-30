@@ -6,14 +6,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +28,9 @@ import jadx.core.utils.log.LogUtils;
 import jadx.gui.utils.IOUtils;
 
 public class ADB {
+
+	public static final Charset ADB_CHARSET = StandardCharsets.UTF_8;
+
 	private static final Logger LOG = LoggerFactory.getLogger(ADB.class);
 
 	private static final int DEFAULT_PORT = 5037;
@@ -31,10 +38,10 @@ public class ADB {
 
 	private static final String CMD_FEATURES = "000dhost:features";
 	private static final String CMD_TRACK_DEVICES = "0014host:track-devices-l";
-	private static final byte[] OKAY = "OKAY".getBytes();
-	private static final byte[] FAIL = "FAIL".getBytes();
+	private static final byte[] OKAY = "OKAY".getBytes(ADB_CHARSET);
+	private static final byte[] FAIL = "FAIL".getBytes(ADB_CHARSET);
 
-	static boolean isOkay(InputStream stream) throws IOException {
+	static boolean isOkay(InputStream stream, String command) throws IOException {
 		byte[] buf = IOUtils.readNBytes(stream, 4);
 		if (Arrays.equals(buf, OKAY)) {
 			return true;
@@ -45,13 +52,13 @@ public class ADB {
 			// int msgLen = Integer.parseInt(new String(IOUtils.readNBytes(stream, 4)), 16);
 			// byte[] errorMsg = IOUtils.readNBytes(stream, msgLen);
 			// LOG.error("isOkay failed: received error message: {}", new String(errorMsg));
-			LOG.error("isOkay failed");
+			LOG.error("isOkay failed for command: {}", command);
 			return false;
 		}
 		if (buf == null) {
 			throw new IOException("isOkay failed - steam ended");
 		}
-		throw new IOException("isOkay failed - unexpected response " + new String(buf));
+		throw new IOException("isOkay failed - unexpected response " + new String(buf, ADB_CHARSET));
 	}
 
 	public static byte[] exec(String cmd, OutputStream outputStream, InputStream inputStream) throws IOException {
@@ -73,13 +80,13 @@ public class ADB {
 	}
 
 	static boolean execCommandAsync(OutputStream outputStream, InputStream inputStream, String cmd) throws IOException {
-		outputStream.write(cmd.getBytes());
-		return isOkay(inputStream);
+		outputStream.write(cmd.getBytes(ADB_CHARSET));
+		return isOkay(inputStream, "execCommandAsync");
 	}
 
 	private static byte[] execCommandSync(OutputStream outputStream, InputStream inputStream, String cmd) throws IOException {
-		outputStream.write(cmd.getBytes());
-		if (isOkay(inputStream)) {
+		outputStream.write(cmd.getBytes(ADB_CHARSET));
+		if (isOkay(inputStream, "execCommandSync")) {
 			return readServiceProtocol(inputStream);
 		}
 		return null;
@@ -91,7 +98,7 @@ public class ADB {
 			if (buf == null) {
 				return null;
 			}
-			int len = unhex(buf);
+			int len = hexToInt(buf);
 			byte[] result;
 			if (len == 0) {
 				result = new byte[0];
@@ -111,13 +118,15 @@ public class ADB {
 	}
 
 	static boolean setSerial(String serial, OutputStream outputStream, InputStream inputStream) throws IOException {
+		checkSerial(serial);
+		LOG.trace("setSerial({})", serial);
 		String setSerialCmd = String.format("host:tport:serial:%s", serial);
 		setSerialCmd = String.format("%04x%s", setSerialCmd.length(), setSerialCmd);
-		outputStream.write(setSerialCmd.getBytes());
-		boolean ok = isOkay(inputStream);
+		outputStream.write(setSerialCmd.getBytes(ADB_CHARSET));
+		boolean ok = isOkay(inputStream, setSerialCmd);
 		if (ok) {
 			// skip the shell-state-id returned by ADB server, it's not important for the following actions.
-			IOUtils.readNBytes(inputStream, 8);
+			inputStream.readNBytes(8);
 		} else {
 			LOG.error("setSerial command {} failed", LogUtils.escape(setSerialCmd));
 		}
@@ -127,8 +136,8 @@ public class ADB {
 	private static byte[] execShellCommandRaw(String cmd, OutputStream outputStream, InputStream inputStream) throws IOException {
 		cmd = String.format("shell,v2,TERM=xterm-256color,raw:%s", cmd);
 		cmd = String.format("%04x%s", cmd.length(), cmd);
-		outputStream.write(cmd.getBytes());
-		if (isOkay(inputStream)) {
+		outputStream.write(cmd.getBytes(ADB_CHARSET));
+		if (isOkay(inputStream, cmd)) {
 			return ShellProtocol.readStdout(inputStream);
 		}
 		return null;
@@ -144,7 +153,7 @@ public class ADB {
 	public static List<String> getFeatures() throws IOException {
 		byte[] rst = exec(CMD_FEATURES);
 		if (rst != null) {
-			return Arrays.asList(new String(rst).trim().split(","));
+			return Arrays.asList(new String(rst, ADB_CHARSET).trim().split(","));
 		}
 		return Collections.emptyList();
 	}
@@ -202,7 +211,7 @@ public class ADB {
 					break; // socket disconnected
 				}
 				if (listener != null) {
-					String payload = new String(res);
+					String payload = new String(res, ADB_CHARSET);
 					String[] deviceLines = payload.split("\n");
 					List<ADBDeviceInfo> deviceInfoList = new ArrayList<>(deviceLines.length);
 					for (String deviceLine : deviceLines) {
@@ -225,11 +234,11 @@ public class ADB {
 			String cmd = "0011host:list-forward";
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
-			outputStream.write(cmd.getBytes());
-			if (isOkay(inputStream)) {
+			outputStream.write(cmd.getBytes(ADB_CHARSET));
+			if (isOkay(inputStream, "listForward")) {
 				byte[] bytes = readServiceProtocol(inputStream);
 				if (bytes != null) {
-					String[] forwards = new String(bytes).split("\n");
+					String[] forwards = new String(bytes, ADB_CHARSET).split("\n");
 					return Stream.of(forwards).map(String::trim).collect(Collectors.toList());
 				}
 			}
@@ -244,8 +253,8 @@ public class ADB {
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
 			if (setSerial(serial, outputStream, inputStream)) {
-				outputStream.write(cmd.getBytes());
-				return isOkay(inputStream) && isOkay(inputStream);
+				outputStream.write(cmd.getBytes(ADB_CHARSET));
+				return isOkay(inputStream, "removeForward1") && isOkay(inputStream, "removeForward2");
 			}
 		}
 		return false;
@@ -267,7 +276,21 @@ public class ADB {
 		return rst;
 	}
 
-	private static int unhex(byte[] hex) {
+	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w-]{10,20}$");
+
+	private static void checkSerial(String serial) {
+		if (!SERIAL_PATTERN.matcher(serial).matches()) {
+			throw new IllegalArgumentException("Invalid serial: " + serial);
+		}
+	}
+
+	/**
+	 * Convert 4 hex characters to int
+	 *
+	 * @param hex
+	 * @return
+	 */
+	private static int hexToInt(byte[] hex) {
 		int n = 0;
 		byte b;
 		for (int i = 0; i < 4; i++) {
@@ -339,6 +362,16 @@ public class ADB {
 				return proc;
 			}
 			return null;
+		}
+
+		@Override
+		public String toString() {
+			return new StringJoiner(", ", Process.class.getSimpleName() + "[", "]")
+					.add("user='" + user + "'")
+					.add("pid='" + pid + "'")
+					.add("ppid='" + ppid + "'")
+					.add("name='" + name + "'")
+					.toString();
 		}
 	}
 

@@ -3,10 +3,12 @@ package jadx.tests.integration.arith;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.assertj.JadxAssertions;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFieldIncrement extends IntegrationTest {
 
+	@SuppressWarnings("unused")
 	public static class TestCls {
 		public int instanceField = 1;
 		public static int staticField = 1;
@@ -27,7 +29,7 @@ public class TestFieldIncrement extends IntegrationTest {
 
 	@Test
 	public void test() {
-		JadxAssertions.assertThat(getClassNode(TestCls.class))
+		assertThat(getClassNode(TestCls.class))
 				.code()
 				.contains("instanceField++;")
 				.contains("staticField--;")

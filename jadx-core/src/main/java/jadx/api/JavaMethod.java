@@ -5,21 +5,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 
 public final class JavaMethod implements JavaNode {
-	private static final Logger LOG = LoggerFactory.getLogger(JavaMethod.class);
-
 	private final MethodNode mth;
 	private final JavaClass parent;
 
@@ -70,6 +67,18 @@ public final class JavaMethod implements JavaNode {
 	@Override
 	public List<JavaNode> getUseIn() {
 		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUseIn());
+	}
+
+	public List<JavaNode> getUsed() {
+		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUsed());
+	}
+
+	public List<MethodInfo> getUnresolvedUsed() {
+		return mth.getUnresolvedUsed();
+	}
+
+	public boolean callsSelf() {
+		return mth.callsSelf();
 	}
 
 	public List<JavaMethod> getOverrideRelatedMethods() {

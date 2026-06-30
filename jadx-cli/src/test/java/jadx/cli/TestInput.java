@@ -73,4 +73,12 @@ public class TestInput extends BaseCliIntegrationTest {
 				path -> path.getFileName().toString().equalsIgnoreCase("AndroidManifest.xml"));
 		assertThat(files).isNotEmpty();
 	}
+
+	@Test
+	public void testNoRenameForDefPkg() throws Exception {
+		int result = execJadxCli(buildArgs(List.of("--rename-flags", "none"), "samples/defpkg.smali"));
+		assertThat(result).isEqualTo(0);
+		List<Path> files = collectJavaFilesInDir(outputDir);
+		assertThat(files).hasSize(1);
+	}
 }

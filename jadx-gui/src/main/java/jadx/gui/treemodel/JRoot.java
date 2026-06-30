@@ -1,6 +1,5 @@
 package jadx.gui.treemodel;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +18,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JResource.JResType;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -26,20 +26,23 @@ public class JRoot extends JNode {
 	private static final long serialVersionUID = 8888495789773527342L;
 
 	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/rootPackageFolder");
+	private static final Pattern SPLIT_PATH_PATTERN = Pattern.compile("[/\\\\]+");
 
 	private final transient JadxWrapper wrapper;
+	private final transient MainWindow mainWindow;
 
 	private transient boolean flatPackages = false;
 
-	private final List<JNode> customNodes = new ArrayList<>();
+	private final transient List<JNode> customNodes = new ArrayList<>();
 
-	public JRoot(JadxWrapper wrapper) {
-		this.wrapper = wrapper;
+	public JRoot(MainWindow mainWindow) {
+		this.mainWindow = mainWindow;
+		this.wrapper = mainWindow.getWrapper();
 	}
 
 	public final void update() {
 		removeAllChildren();
-		add(new JInputs(wrapper));
+		add(new JInputs(mainWindow));
 		add(new JSources(this, wrapper));
 
 		List<ResourceFile> resources = wrapper.getResources();
@@ -53,20 +56,14 @@ public class JRoot extends JNode {
 
 	private JResource getHierarchyResources(List<ResourceFile> resources) {
 		JResource root = new JResource(null, NLS.str("tree.resources_title"), JResType.ROOT);
-		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
-			String rfName;
-			if (rf.getZipEntry() != null) {
-				rfName = rf.getDeobfName();
-			} else {
-				rfName = new File(rf.getDeobfName()).getName();
-			}
-			String[] parts = new File(rfName).getPath().split(splitPathStr);
+			String rfName = rf.getDeobfName();
+			String[] parts = SPLIT_PATH_PATTERN.split(rfName);
 			JResource curRf = root;
 			int count = parts.length;
 			for (int i = 0; i < count - 1; i++) {
 				String name = parts[i];
-				JResource subRF = getResourceByName(curRf, name);
+				JResource subRF = getSubNodeByName(curRf, name);
 				if (subRF == null) {
 					subRF = new JResource(null, name, JResType.DIR);
 					curRf.addSubNode(subRF);
@@ -76,15 +73,30 @@ public class JRoot extends JNode {
 			JResource leaf = new JResource(rf, rf.getDeobfName(), parts[count - 1], JResType.FILE);
 			curRf.addSubNode(leaf);
 		}
+		JResource.mergeMiddleDirs(root);
 		root.sortSubNodes();
 		root.update();
 		return root;
 	}
 
-	private JResource getResourceByName(JResource rf, String name) {
+	public static JResource getSubNodeByName(JResource rf, String name) {
 		for (JResource sub : rf.getSubNodes()) {
 			if (sub.getName().equals(name)) {
 				return sub;
+			}
+		}
+		return null;
+	}
+
+	public @Nullable JResource searchResourceByName(String name) {
+		Enumeration<?> en = this.breadthFirstEnumeration();
+		while (en.hasMoreElements()) {
+			Object obj = en.nextElement();
+			if (obj instanceof JResource) {
+				JResource res = (JResource) obj;
+				if (res.getName().equals(name)) {
+					return res;
+				}
 			}
 		}
 		return null;

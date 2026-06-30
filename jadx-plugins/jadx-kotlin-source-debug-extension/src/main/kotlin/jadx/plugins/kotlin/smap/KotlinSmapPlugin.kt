@@ -9,9 +9,7 @@ class KotlinSmapPlugin : JadxPlugin {
 
 	private val options = KotlinSmapOptions()
 
-	override fun getPluginInfo(): JadxPluginInfo {
-		return JadxPluginInfo(PLUGIN_ID, "Kotlin SMAP", "Use kotlin.SourceDebugExtension annotation for rename class alias")
-	}
+	override fun getPluginInfo(): JadxPluginInfo = JadxPluginInfo(PLUGIN_ID, "Kotlin SMAP", "Use kotlin.SourceDebugExtension annotation for rename class alias")
 
 	override fun init(context: JadxPluginContext) {
 		context.registerOptions(options)

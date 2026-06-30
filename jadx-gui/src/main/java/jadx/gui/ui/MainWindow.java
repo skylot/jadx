@@ -39,7 +39,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -58,7 +57,6 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -92,7 +90,6 @@ import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.export.TemplateFile;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidManifestParser;
@@ -126,6 +123,7 @@ import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.JadxSettingsWindow;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
@@ -420,30 +418,6 @@ public class MainWindow extends JFrame {
 		update();
 	}
 
-	public void addNewScript() {
-		FileDialogWrapper fileDialog = new FileDialogWrapper(this, FileOpenMode.CUSTOM_SAVE);
-		fileDialog.setTitle(NLS.str("file.save"));
-		Path workingDir = project.getWorkingDir();
-		Path baseDir = workingDir != null ? workingDir : settings.getLastSaveFilePath();
-		fileDialog.setSelectedFile(baseDir.resolve("script.jadx.kts"));
-		fileDialog.setFileExtList(Collections.singletonList("jadx.kts"));
-		fileDialog.setSelectionMode(JFileChooser.FILES_ONLY);
-		List<Path> paths = fileDialog.show();
-		if (paths.size() != 1) {
-			return;
-		}
-		Path scriptFile = paths.get(0);
-		try {
-			TemplateFile tmpl = TemplateFile.fromResources("/files/script.jadx.kts.tmpl");
-			FileUtils.writeFile(scriptFile, tmpl.build());
-		} catch (Exception e) {
-			LOG.error("Failed to save new script file: {}", scriptFile, e);
-		}
-		List<Path> inputs = project.getFilePaths();
-		inputs.add(scriptFile);
-		refreshTree(inputs);
-	}
-
 	public void removeInput(Path file) {
 		int dialogResult = JOptionPane.showConfirmDialog(
 				this,
@@ -552,17 +526,8 @@ public class MainWindow extends JFrame {
 
 	private void openProject(Path path, Runnable onFinish) {
 		LOG.debug("Loading project: {}", path);
-		JadxProject jadxProject = JadxProject.load(this, path);
-		if (jadxProject == null) {
-			JOptionPane.showMessageDialog(
-					this,
-					NLS.str("msg.project_error"),
-					NLS.str("msg.project_error_title"),
-					JOptionPane.INFORMATION_MESSAGE);
-			jadxProject = new JadxProject(this);
-		}
+		project = JadxProject.load(this, path);
 		settings.addRecentProject(path);
-		project = jadxProject;
 		loadFiles(onFinish);
 	}
 
@@ -654,14 +619,29 @@ public class MainWindow extends JFrame {
 					onFinish.run();
 					checkIfCodeHasNonPrintableChars();
 					runInitialBackgroundJobs();
+					prepareInitialView();
 				});
 		// queue tree state restore after loading task
 		treeExpansionService.load(project.getTreeExpansions());
 	}
 
+	private void prepareInitialView() {
+		UiUtils.uiThreadGuard();
+		// open single class
+		wrapper.getCurrentDecompiler().ifPresent(decompiler -> {
+			List<JavaClass> classes = decompiler.getClasses();
+			if (classes.size() == 1) {
+				JClass singleCls = cacheObject.getNodeCache().makeFrom(classes.get(0));
+				tabsController.codeJump(singleCls, true);
+				selectNodeInTree(singleCls);
+			}
+		});
+	}
+
 	public void passesReloaded() {
+		UiUtils.uiThreadGuard();
 		tabbedPane.reloadInactiveTabs();
-		reloadTree();
+		reloadTreePreservingState();
 	}
 
 	private void initEvents() {
@@ -829,7 +809,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void initTree() {
-		treeRoot = new JRoot(wrapper);
+		treeRoot = new JRoot(this);
 		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
 		addTreeCustomNodes();
@@ -854,8 +834,10 @@ public class MainWindow extends JFrame {
 		treeRoot.update();
 	}
 
-	// simple save and restore tree state after renaming
-	// maybe need improve for find and update only changed node
+	/**
+	 * Simple save and restore tree state after renaming.
+	 * TODO: maybe need improve for find and update only changed node
+	 */
 	public void reloadTreePreservingState() {
 		List<String> treePath = treeExpansionService.save();
 		reloadTree();
@@ -1573,7 +1555,7 @@ public class MainWindow extends JFrame {
 		Font defaultUiFont = UIManager.getFont("defaultFont");
 		Font uiFont = settings.getUiFont();
 		if (!uiFont.equals(defaultUiFont)) {
-			UIManager.put("defaultFont", new FontUIResource(uiFont));
+			UIManager.put("defaultFont", uiFont);
 			setFont(uiFont);
 			needUpdateUI = true;
 		}

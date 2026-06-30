@@ -6,26 +6,31 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 
 public class ExceptionHandler {
 
+	private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandler.class);
+
 	private final List<ClassInfo> catchTypes = new ArrayList<>(1);
 	private final int handlerOffset;
 
 	private BlockNode handlerBlock;
 	private final List<BlockNode> blocks = new ArrayList<>();
-	private IContainer handlerRegion;
+	private IRegion handlerRegion;
 	private InsnArg arg;
 
 	private TryCatchBlockAttr tryBlock;
@@ -117,11 +122,11 @@ public class ExceptionHandler {
 		blocks.add(node);
 	}
 
-	public IContainer getHandlerRegion() {
+	public IRegion getHandlerRegion() {
 		return handlerRegion;
 	}
 
-	public void setHandlerRegion(IContainer handlerRegion) {
+	public void setHandlerRegion(IRegion handlerRegion) {
 		this.handlerRegion = handlerRegion;
 	}
 
@@ -151,6 +156,42 @@ public class ExceptionHandler {
 
 	public boolean isRemoved() {
 		return removed;
+	}
+
+	@Nullable
+	public BlockNode getBottomSplitter() {
+		TryCatchBlockAttr handlerTryBlock = getTryBlock();
+		// TODO: Implement support for finding bottom splitter of catch with inner tries
+		if (handlerTryBlock.getInnerTryBlocks().size() > 1) {
+			LOG.warn("No support yet for finding bottom block of try body with multipe inner trys");
+			return null;
+		}
+		TryCatchBlockAttr searchForTryBody;
+		if (handlerTryBlock.getInnerTryBlocks().isEmpty()) {
+			searchForTryBody = handlerTryBlock;
+		} else {
+			searchForTryBody = Utils.getOne(handlerTryBlock.getInnerTryBlocks());
+		}
+
+		BlockNode splitter = null;
+		for (BlockNode handlerPredecessor : getHandlerBlock().getPredecessors()) {
+			if (!handlerPredecessor.contains(AFlag.EXC_BOTTOM_SPLITTER)) {
+				continue;
+			}
+
+			for (BlockNode splitterPredecessor : handlerPredecessor.getPredecessors()) {
+				TryCatchBlockAttr tryBody = splitterPredecessor.get(AType.TRY_BLOCK);
+				if (tryBody == searchForTryBody) {
+					splitter = handlerPredecessor;
+					break;
+				}
+			}
+
+			if (splitter != null) {
+				break;
+			}
+		}
+		return splitter;
 	}
 
 	public void markForRemove() {

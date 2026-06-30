@@ -23,6 +23,9 @@ public final class LiteralArg extends InsnArg {
 		if (value == 1) {
 			return ArgType.NARROW_NUMBERS;
 		}
+		if (value < 0) {
+			return ArgType.NARROW_NEG_NUMBERS;
+		}
 		return ArgType.NARROW_NUMBERS_NO_BOOL;
 	}
 

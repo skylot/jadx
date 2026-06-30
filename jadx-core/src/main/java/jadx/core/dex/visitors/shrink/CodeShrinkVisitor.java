@@ -200,8 +200,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (!InsnRemover.removeWithoutUnbind(mth, assignBlock, assignInsn)) {
 			return false;
 		}
-		InsnArg replaceArg = InsnArg.wrapInsnIntoArg(assignInsn);
-		useInsn.replaceArg(useArg, replaceArg);
+		useArg.wrapInstruction(mth, assignInsn);
 		return true;
 	}
 

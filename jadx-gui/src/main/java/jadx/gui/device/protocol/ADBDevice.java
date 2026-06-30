@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +19,8 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.log.LogUtils;
 import jadx.gui.device.protocol.ADB.JDWPProcessListener;
 import jadx.gui.device.protocol.ADB.Process;
+
+import static jadx.gui.device.protocol.ADB.ADB_CHARSET;
 
 public class ADBDevice {
 	private static final Logger LOG = LoggerFactory.getLogger(ADBDevice.class);
@@ -65,16 +66,16 @@ public class ADBDevice {
 			OutputStream outputStream = socket.getOutputStream();
 			ForwardResult rst;
 			if (ADB.setSerial(info.getSerial(), outputStream, inputStream)) {
-				outputStream.write(cmd.getBytes());
-				if (!ADB.isOkay(inputStream)) {
+				outputStream.write(cmd.getBytes(ADB_CHARSET));
+				if (!ADB.isOkay(inputStream, "forwardJDWP1")) {
 					rst = new ForwardResult(1, ADB.readServiceProtocol(inputStream));
-				} else if (!ADB.isOkay(inputStream)) {
+				} else if (!ADB.isOkay(inputStream, "forwardJDWP2")) {
 					rst = new ForwardResult(2, ADB.readServiceProtocol(inputStream));
 				} else {
 					rst = new ForwardResult(0, null);
 				}
 			} else {
-				rst = new ForwardResult(1, "Unknown error.".getBytes());
+				rst = new ForwardResult(1, "Unknown error.".getBytes(ADB_CHARSET));
 			}
 			return rst;
 		}
@@ -89,7 +90,7 @@ public class ADBDevice {
 
 		public ForwardResult(int state, byte[] desc) {
 			if (desc != null) {
-				this.desc = new String(desc);
+				this.desc = new String(desc, ADB_CHARSET);
 			} else {
 				this.desc = "";
 			}
@@ -109,7 +110,7 @@ public class ADBDevice {
 				return -1;
 			}
 		}
-		String rst = new String(res).trim();
+		String rst = new String(res, ADB_CHARSET).trim();
 		if (rst.startsWith("Starting: Intent {") && rst.endsWith(fullAppName + " }")) {
 			Thread.sleep(40);
 			String pkg = fullAppName.split("/")[0];
@@ -124,10 +125,10 @@ public class ADBDevice {
 	 * @return binary output of logcat
 	 */
 	public byte[] getBinaryLogcat() throws IOException {
-
-		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
-		String cmd = "logcat -dB";
-		return ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
+			String cmd = "logcat -dB";
+			return ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+		}
 	}
 
 	/**
@@ -135,32 +136,38 @@ public class ADBDevice {
 	 *         Timestamp is in the format 09-08 02:18:03.131
 	 */
 	public byte[] getBinaryLogcat(String timestamp) throws IOException {
-		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
-		Matcher matcher = TIMESTAMP_FORMAT.matcher(timestamp);
-		if (!matcher.find()) {
-			LOG.error("Invalid Logcat Timestamp " + timestamp);
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
+			Matcher matcher = TIMESTAMP_FORMAT.matcher(timestamp);
+			if (!matcher.find()) {
+				LOG.error("Invalid Logcat Timestamp {}", timestamp);
+			}
+			String cmd = "logcat -dB -t \"" + timestamp + "\"";
+			return ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 		}
-		String cmd = "logcat -dB -t \"" + timestamp + "\"";
-		return ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
 	}
 
 	/**
 	 * Binary output of logcat -c
 	 */
 	public void clearLogcat() throws IOException {
-		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
-		String cmd = "logcat -c";
-		ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
+			String cmd = "logcat -c";
+			ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+		}
 	}
 
 	/**
 	 * @return Timezone for the attached android device
 	 */
 	public String getTimezone() throws IOException {
-		Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort());
-		String cmd = "getprop persist.sys.timezone";
-		byte[] tz = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
-		return new String(tz).trim();
+		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
+			String cmd = "getprop persist.sys.timezone";
+			byte[] tz = ADB.execShellCommandRaw(info.getSerial(), cmd, socket.getOutputStream(), socket.getInputStream());
+			if (tz == null) {
+				throw new IOException("Failed to get timezone");
+			}
+			return new String(tz, ADB_CHARSET).trim();
+		}
 	}
 
 	public String getAndroidReleaseVersion() {
@@ -169,9 +176,10 @@ public class ADBDevice {
 		}
 		try {
 			List<String> list = getProp("ro.build.version.release");
-			if (list.size() != 0) {
-				androidReleaseVer = list.get(0);
+			if (!list.isEmpty()) {
+				return list.get(0);
 			}
+			LOG.error("Failed to get android release version - no result");
 		} catch (Exception e) {
 			LOG.error("Failed to get android release version", e);
 			androidReleaseVer = "";
@@ -180,6 +188,7 @@ public class ADBDevice {
 	}
 
 	public List<String> getProp(String entry) throws IOException {
+		LOG.debug("ADB getProp({})", entry);
 		try (Socket socket = ADB.connect(info.getAdbHost(), info.getAdbPort())) {
 			List<String> props = Collections.emptyList();
 			String cmd = "getprop";
@@ -190,7 +199,7 @@ public class ADBDevice {
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
 				props = new ArrayList<>();
-				String[] lines = new String(payload).split("\n");
+				String[] lines = new String(payload, ADB_CHARSET).split("\n");
 				for (String line : lines) {
 					line = line.trim();
 					if (!line.isEmpty()) {
@@ -198,6 +207,7 @@ public class ADBDevice {
 					}
 				}
 			}
+			LOG.trace("ADB getProp({}) = {}", entry, props);
 			return props;
 		}
 	}
@@ -216,7 +226,8 @@ public class ADBDevice {
 			byte[] payload = ADB.execShellCommandRaw(info.getSerial(), cmd,
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
-				String ps = new String(payload);
+				String ps = new String(payload, ADB_CHARSET);
+				// LOG.trace("ADB getProcessList({}) = {}", cmd, ps);
 				String[] psLines = ps.split("\n");
 				for (String line : psLines) {
 					line = line.trim();
@@ -244,18 +255,21 @@ public class ADBDevice {
 		OutputStream outputStream = jdwpListenerSock.getOutputStream();
 		if (ADB.setSerial(info.getSerial(), outputStream, inputStream)
 				&& ADB.execCommandAsync(outputStream, inputStream, CMD_TRACK_JDWP)) {
-			Executors.newFixedThreadPool(1).execute(() -> {
+			new Thread(() -> {
 				for (;;) {
 					byte[] res = ADB.readServiceProtocol(inputStream);
 					if (res != null) {
 						if (listener != null) {
-							String payload = new String(res);
+							String payload = new String(res, ADB_CHARSET);
 							String[] ids = payload.split("\n");
 							Set<String> idList = new HashSet<>(ids.length);
 							for (String id : ids) {
 								if (!id.trim().isEmpty()) {
 									idList.add(id);
 								}
+							}
+							if (idList.isEmpty()) {
+								LOG.info("No debuggable app process found on device {}", info.getSerial());
 							}
 							listener.jdwpProcessOccurred(this, idList);
 						}
@@ -267,13 +281,13 @@ public class ADBDevice {
 					this.jdwpListenerSock = null;
 					listener.jdwpListenerClosed(this);
 				}
-			});
+			}).start();
+			return true;
 		} else {
 			jdwpListenerSock.close();
 			jdwpListenerSock = null;
 			return false;
 		}
-		return true;
 	}
 
 	public void stopListenForJDWP() {

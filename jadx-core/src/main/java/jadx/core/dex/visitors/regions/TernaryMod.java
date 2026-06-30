@@ -31,13 +31,18 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 	private static final TernaryMod INSTANCE = new TernaryMod();
 
 	public static void process(MethodNode mth) {
-		// first: convert all found ternary nodes in one iteration
+		boolean changed = false;
+		// convert all found ternary nodes in one iteration
 		DepthRegionTraversal.traverse(mth, INSTANCE);
 		if (mth.contains(AFlag.REQUEST_CODE_SHRINK)) {
 			CodeShrinkVisitor.shrinkMethod(mth);
+			changed = true;
 		}
-		// second: iterative runs with shrink after each change
-		DepthRegionTraversal.traverseIterative(mth, INSTANCE);
+		if (changed && mth.isConstructor()) {
+			// aggressive mode to help code inline before super call in constructor
+			// iterative runs with shrink after each change
+			DepthRegionTraversal.traverseIterative(mth, INSTANCE);
+		}
 	}
 
 	@Override
@@ -81,6 +86,9 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		if (tb == null || eb == null) {
 			return false;
 		}
+		if (tb.contains(AFlag.DUPLICATED) || eb.contains(AFlag.DUPLICATED)) {
+			return false;
+		}
 		List<BlockNode> conditionBlocks = ifRegion.getConditionBlocks();
 		if (conditionBlocks.isEmpty()) {
 			return false;
@@ -111,23 +119,26 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			RegisterArg resArg;
 			if (thenPhi.getArgsCount() == 2) {
 				resArg = thenPhi.getResult();
-				InsnRemover.unbindResult(mth, thenInsn);
 			} else {
 				resArg = thenResArg;
 				thenPhi.removeArg(elseResArg);
 			}
-			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
-			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
-			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
+			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn.copyWithoutResult());
+			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn.copyWithoutResult());
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg.duplicate(), thenArg, elseArg);
 			int branchLine = Math.max(thenInsn.getSourceLine(), elseInsn.getSourceLine());
 			ternInsn.setSourceLine(Math.max(ifRegion.getSourceLine(), branchLine));
 
-			thenInsn.setResult(null); // unset without unbind, SSA var still in use
-			InsnRemover.unbindResult(mth, elseInsn);
+			InsnRemover.unbindInsn(mth, thenInsn);
+			InsnRemover.unbindInsn(mth, elseInsn);
+			ternInsn.rebindArgs();
+			if (thenPhi.getArgsCount() == 0) {
+				InsnRemover.unbindResult(mth, thenPhi);
+				InsnRemover.delistPhi(mth, thenPhi);
+			}
 
 			// remove 'if' instruction
 			header.getInstructions().clear();
-			ternInsn.rebindArgs();
 			header.getInstructions().add(ternInsn);
 
 			clearConditionBlocks(conditionBlocks, header);
@@ -321,11 +332,11 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		InsnArg elseArg;
 		if (elseAssign != null && elseAssign.isConstInsn()) {
 			// inline constant
+			elseArg = InsnArg.wrapInsnIntoArg(elseAssign.copyWithoutResult());
 			SSAVar elseVar = elseAssign.getResult().getSVar();
 			if (elseVar.getUseCount() == 1 && elseVar.getOnlyOneUseInPhi() == phiInsn) {
 				InsnRemover.remove(mth, elseAssign);
 			}
-			elseArg = InsnArg.wrapInsnIntoArg(elseAssign);
 		} else {
 			elseArg = otherArg.duplicate();
 		}
@@ -335,6 +346,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 		ternInsn.simplifyCondition();
 
 		InsnRemover.unbindAllArgs(mth, phiInsn);
+		InsnRemover.delistPhi(mth, phiInsn);
 		InsnRemover.unbindResult(mth, insn);
 		InsnList.remove(block, insn);
 		header.getInstructions().clear();

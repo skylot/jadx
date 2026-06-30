@@ -39,6 +39,7 @@ public class TestTryCatch9 extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("logError(ex);")
-				.containsOne("Integer res = null;");
+				.containsOne("Integer res")
+				.contains("res = null;");
 	}
 }

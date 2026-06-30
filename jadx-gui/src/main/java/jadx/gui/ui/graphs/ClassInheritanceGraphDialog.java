@@ -1,0 +1,246 @@
+package jadx.gui.ui.graphs;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JCheckBox;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import com.android.apksig.internal.util.Pair;
+
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.IMethodDetails;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.DotGraphUtils;
+import jadx.core.utils.StringUtils;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.layout.WrapLayout;
+
+import static jadx.core.utils.DotGraphUtils.classFormatName;
+import static jadx.core.utils.DotGraphUtils.formatColor;
+import static jadx.core.utils.DotGraphUtils.toDotNodeName;
+
+public class ClassInheritanceGraphDialog extends GraphDialog {
+	private static final long serialVersionUID = 938883901412562913L;
+
+	private static final String FONT = "fontname=\"Courier\" fontsize=12";
+
+	private final ClassNode cls;
+	private boolean longNames = false;
+	private boolean overrides = false;
+
+	private Map<Object, Integer> objectToNodeID = new HashMap<>();
+	private int nextNodeID = 0;
+
+	public ClassInheritanceGraphDialog(MainWindow mainWindow, ClassNode cls) {
+		super(mainWindow, String.format("%s: %s",
+				NLS.str("graph_viewer.inheritance_graph.title"),
+				classFormatName(cls, false)));
+		this.cls = cls;
+	}
+
+	@Override
+	public JMenuBar addMenuBar() {
+		JMenuBar menuBar = super.addMenuBar();
+
+		// Long names checkbox
+		JCheckBox showLongNames = new JCheckBox(NLS.str("graph_viewer.long_names"));
+		showLongNames.setSelected(false);
+		showLongNames.addItemListener(e -> {
+			longNames = showLongNames.isSelected();
+			reload();
+		});
+
+		// Overrides checkbox
+		JCheckBox showOverrides = new JCheckBox(NLS.str("graph_viewer.overrides"));
+		showOverrides.setSelected(false);
+		showOverrides.addItemListener(e -> {
+			overrides = showOverrides.isSelected();
+			reload();
+		});
+
+		// Assemble menubar panel
+		JPanel menuBarPanel = new JPanel();
+		menuBarPanel.setOpaque(false);
+		menuBarPanel.setLayout(new WrapLayout(FlowLayout.LEFT));
+		menuBarPanel.add(showLongNames, BorderLayout.PAGE_START);
+		menuBarPanel.add(showOverrides, BorderLayout.PAGE_START);
+
+		// Add menubar panel to menuBar
+		menuBar.add(menuBarPanel);
+		return menuBar;
+	}
+
+	public static void open(MainWindow window, JClass node) {
+		ClassNode cls = node.getCls().getClassNode();
+		ClassInheritanceGraphDialog graphDialog = new ClassInheritanceGraphDialog(window, cls);
+		graphDialog.addMenuBar();
+		graphDialog.setVisible(true);
+		graphDialog.reload();
+	}
+
+	public void reload() {
+		SwingUtilities.invokeLater(() -> {
+			String graph = generateGraph(cls);
+			getPanel().setGraph(graph);
+		});
+	}
+
+	private String generateGraph(ClassNode rootClass) {
+		objectToNodeID = new HashMap<>();
+
+		Color themeBackground = UIManager.getColor("Panel.background");
+		Color themeForeground = UIManager.getColor("Label.foreground");
+		Color themeHighlight = UIManager.getColor("Component.focusedBorderColor");
+		Color themeShade = UIManager.getColor("TextArea.background");
+
+		String bgColor = "bgcolor=" + formatColor(themeBackground);
+		String lineColor = "color=" + formatColor(themeForeground);
+		String fontColor = "fontcolor=" + formatColor(themeForeground);
+		String highlightColor = "color=" + formatColor(themeHighlight);
+		String shadeColor = "fillcolor=" + formatColor(themeShade);
+
+		StringBuilder sb = new StringBuilder();
+		try (Formatter f = new Formatter(sb)) {
+			// graph header
+			f.format("digraph G {\n");
+			f.format("%s\n", bgColor);
+			f.format("node[shape=\"record\" style=\"filled\" %s %s %s %s]\n", FONT, fontColor, lineColor, shadeColor);
+			f.format("edge[arrowtail=\"onormal\" arrowhead=\"onormal\" %s %s %s]\n", FONT, fontColor, lineColor);
+
+			// add nodes
+			processClass(f, rootClass, highlightColor);
+			// close graph
+			f.format("}");
+			return f.toString();
+		}
+	}
+
+	private int processClass(Formatter f, ClassNode cls) {
+		return processClass(f, cls, "");
+	}
+
+	private int processClass(Formatter f, ClassNode cls, String extra) {
+		if (objectToNodeID.containsKey(cls)) {
+			// Don't process a class that has been processed before
+			return objectToNodeID.get(cls);
+		}
+		int classID = addNode(f, cls, extra);
+
+		// add interface relationships
+		for (ArgType iface : cls.getInterfaces()) {
+			int ifaceID;
+			ClassNode ifaceNode = cls.root().resolveClass(iface);
+			if (ifaceNode != null) {
+				ifaceID = processClass(f, ifaceNode);
+				objectToNodeID.put(iface, ifaceID);
+			} else {
+				ifaceID = addNode(f, iface);
+			}
+			// Classes implement interfaces, interfaces extend interfaces
+			String edgeLabel = cls.getAccessFlags().isInterface() ? "extends" : "implements";
+			f.format("Node_%d -> Node_%d [label=\"%s\" style=\"dashed\" ]\n", classID, ifaceID, edgeLabel);
+		}
+		// add superclass relationship
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != ArgType.OBJECT && superClass != null) {
+			int superClsID;
+			cls = cls.root().resolveClass(superClass);
+			if (cls != null) {
+				superClsID = processClass(f, cls);
+				objectToNodeID.put(superClass, superClsID);
+			} else {
+				superClsID = addNode(f, superClass);
+			}
+			f.format("Node_%d -> Node_%d [label=\"extends\" ]\n", classID, superClsID);
+		}
+		return classID;
+	}
+
+	// Add a node for a class
+	private int addNode(Formatter f, ClassNode cls) {
+		return addNode(f, cls, "");
+	}
+
+	private int addNode(Formatter f, ClassNode cls, String extra) {
+		int nodeID;
+		if (objectToNodeID.containsKey(cls)) {
+			nodeID = objectToNodeID.get(cls);
+		} else {
+			nodeID = nextNodeID;
+			nextNodeID++;
+			objectToNodeID.put(cls, nodeID);
+		}
+		if (cls.getAccessFlags().isInterface()) {
+			extra += " style=\"dashed, filled\"";
+		}
+		String name = classFormatName(cls, longNames);
+		f.format("Node_%d [ label=\"{%s\\ ", nodeID, toDotNodeName(name));
+		if (overrides) {
+			f.format("|");
+			List<Pair<String, String>> table = new ArrayList<>();
+			for (MethodNode method : cls.getMethods()) {
+				MethodOverrideAttr ovrdAttr = method.get(AType.METHOD_OVERRIDE);
+				if (ovrdAttr != null) {
+					if (!ovrdAttr.getOverrideList().isEmpty()) {
+						String methodName = DotGraphUtils.methodFormatName(method, longNames);
+						Formatter details = new Formatter();
+						details.format(" overrides ");
+						for (IMethodDetails baseMthDetails : ovrdAttr.getOverrideList()) {
+							String baseClassName = classFormatName(baseMthDetails.getMethodInfo().getDeclClass(), longNames);
+							details.format("%s, ", baseClassName);
+						}
+						String detailsString = StringUtils.removeSuffix(details.toString(), ", ");
+						table.add(Pair.of(methodName, detailsString));
+						details.close();
+					}
+				}
+			}
+			if (!table.isEmpty()) {
+				int longestLength = table.stream().map(Pair::getFirst).map(String::length).max((a, b) -> a - b).get();
+				for (Pair<String, String> entry : table) {
+					f.format("%-" + longestLength + "s %s\\l", entry.getFirst(), entry.getSecond());
+				}
+			} else {
+				f.format("No overrides.");
+			}
+		}
+		f.format("}\" %s]\n", extra);
+		return nodeID;
+	}
+
+	// Add a node for an unresolved arg type
+	private int addNode(Formatter f, ArgType argType) {
+		return addNode(f, argType, "");
+	}
+
+	private int addNode(Formatter f, ArgType argType, String extra) {
+		int nodeID;
+		if (objectToNodeID.containsKey(argType)) {
+			nodeID = objectToNodeID.get(argType);
+		} else {
+			nodeID = nextNodeID;
+			nextNodeID++;
+			objectToNodeID.put(argType, nodeID);
+		}
+		Color themeOutOfFocus = UIManager.getColor("Component.disabledBorderColor");
+		String outOfFocus = "color=" + formatColor(themeOutOfFocus);
+		String name = DotGraphUtils.interfaceFormatName(argType, cls, longNames);
+		f.format("Node_%d [ label=\"{%s}\" %s %s]\n", nodeID, toDotNodeName(name), outOfFocus, extra);
+		return nodeID;
+	}
+}

@@ -49,6 +49,7 @@ import jadx.core.utils.BlockInsnPair;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -72,6 +73,7 @@ import static jadx.core.utils.InsnUtils.getWrappedInsn;
 		}
 )
 public class EnumVisitor extends AbstractVisitor {
+	private static final String ENUM_SUPER_CONSTRUCTOR_ID = "java.lang.Enum.<init>(Ljava/lang/String;I)V";
 
 	private MethodInfo enumValueOfMth;
 	private MethodInfo cloneMth;
@@ -149,6 +151,14 @@ public class EnumVisitor extends AbstractVisitor {
 		if (arrArg.isInsnWrap()) {
 			InsnNode wrappedInsn = ((InsnWrapArg) arrArg).getWrapInsn();
 			enumFields = extractEnumFieldsFromInsn(data, wrappedInsn);
+		} else if (arrArg.isRegister()) {
+			// Kotlin 1.9+ $ENTRIES pattern: array register has multiple uses,
+			// preventing CodeShrinkVisitor from inlining into the SPUT
+			RegisterArg regArg = (RegisterArg) arrArg;
+			InsnNode assignInsn = regArg.getAssignInsn();
+			if (assignInsn != null) {
+				enumFields = extractEnumFieldsFromInsn(data, assignInsn);
+			}
 		}
 		if (enumFields == null) {
 			cls.addWarnComment("Unknown enum class pattern. Please report as an issue!");
@@ -162,11 +172,8 @@ public class EnumVisitor extends AbstractVisitor {
 		cls.addAttr(attr);
 
 		for (EnumField enumField : attr.getFields()) {
-			ConstructorInsn co = enumField.getConstrInsn();
 			FieldNode fieldNode = enumField.getField();
-
-			// use string arg from the constructor as enum field name
-			String name = getConstString(cls.root(), co.getArg(0));
+			String name = enumField.getNameStr();
 			if (name != null
 					&& !fieldNode.getAlias().equals(name)
 					&& NameMapper.isValidAndPrintable(name)
@@ -184,7 +191,22 @@ public class EnumVisitor extends AbstractVisitor {
 			CodeShrinkVisitor.shrinkMethod(classInitMth);
 		}
 		removeEnumMethods(cls, data.valuesField);
+		fixAccessFlags(cls);
+		cls.add(AFlag.CONVERTED_ENUM);
 		return true;
+	}
+
+	private static void fixAccessFlags(ClassNode cls) {
+		// remove invalid access flags
+		cls.setAccessFlags(cls.getAccessFlags()
+				.remove(AccessFlags.FINAL)
+				.remove(AccessFlags.ABSTRACT)
+				.remove(AccessFlags.STATIC));
+		for (MethodNode mth : cls.getMethods()) {
+			if (mth.getMethodInfo().isConstructor()) {
+				mth.setAccessFlags(mth.getAccessFlags().remove(AccessInfo.VISIBILITY_FLAGS));
+			}
+		}
 	}
 
 	/**
@@ -291,8 +313,13 @@ public class EnumVisitor extends AbstractVisitor {
 			return null;
 		}
 		List<EnumField> enumFields = extractEnumFieldsFromInsn(enumData, wrappedInsn);
-		if (enumFields != null) {
+		if (enumFields != null && ListUtils.isSingleElement(valuesMth.getUseIn(), enumData.classInitMth)) {
 			valuesMth.add(AFlag.DONT_GENERATE);
+			if (valuesMth.getName().equals("$values")) {
+				// Kotlin synthetic method used for init values
+				// rename to actual values method to use in $ENTRIES init code
+				valuesMth.getMethodInfo().setAlias("values");
+			}
 		}
 		return enumFields;
 	}
@@ -419,13 +446,9 @@ public class EnumVisitor extends AbstractVisitor {
 		return enumFieldNode;
 	}
 
-	@SuppressWarnings("StatementWithEmptyBody")
 	private EnumField createEnumFieldByConstructor(EnumData data, FieldNode enumFieldNode, ConstructorInsn co) {
-		// usually constructor signature is '<init>(Ljava/lang/String;I)V'.
-		// sometimes for one field enum second arg can be omitted
-		if (co.getArgsCount() < 1) {
-			return null;
-		}
+		// usually constructor signature is '<init>(Ljava/lang/String;I)V', sometimes one or both args can
+		// be omitted
 		ClassNode cls = data.cls;
 		ClassInfo clsInfo = co.getClassType();
 		ClassNode constrCls = cls.root().resolveClass(clsInfo);
@@ -443,17 +466,45 @@ public class EnumVisitor extends AbstractVisitor {
 		if (ctrMth == null) {
 			return null;
 		}
-		List<RegisterArg> regs = new ArrayList<>();
-		co.getRegisterArgs(regs);
-		if (!regs.isEmpty()) {
-			ConstructorInsn replacedCo = inlineExternalRegs(data, co);
-			if (replacedCo == null) {
-				throw new JadxRuntimeException("Init of enum field '" + enumFieldNode.getName() + "' uses external variables");
+		// usually constructor signature is '<init>(Ljava/lang/String;I)V'
+		// sometimes one or both args can be inlined or omitted
+		String nameStr = null;
+		if (co.getArgsCount() == 0) {
+			ConstructorInsn ctrInsn = searchEnumSuperCtrInsn(ctrMth);
+			if (ctrInsn != null && ctrInsn.getArgsCount() != 0) {
+				nameStr = getConstString(ctrMth.root(), ctrInsn.getArg(0));
 			}
-			data.toRemove.add(co);
-			co = replacedCo;
+		} else {
+			nameStr = getConstString(cls.root(), co.getArg(0));
+			// verify and try to inline additional constructor args
+			List<RegisterArg> regs = new ArrayList<>();
+			co.getRegisterArgs(regs);
+			if (!regs.isEmpty()) {
+				ConstructorInsn replacedCo = inlineExternalRegs(data, co);
+				if (replacedCo == null) {
+					throw new JadxRuntimeException("Init of enum field '" + enumFieldNode.getName() + "' uses external variables");
+				}
+				data.toRemove.add(co);
+				co = replacedCo;
+			}
 		}
-		return new EnumField(enumFieldNode, co);
+		return new EnumField(enumFieldNode, co, nameStr);
+	}
+
+	private @Nullable ConstructorInsn searchEnumSuperCtrInsn(MethodNode ctrMth) {
+		for (BlockNode block : ctrMth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				if (insn.getType() == InsnType.CONSTRUCTOR) {
+					ConstructorInsn ctrCall = (ConstructorInsn) insn;
+					if (ctrCall.isSuper()
+							&& ctrCall.getArgsCount() != 0
+							&& ctrCall.getCallMth().getRawFullId().equals(ENUM_SUPER_CONSTRUCTOR_ID)) {
+						return ctrCall;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private ConstructorInsn inlineExternalRegs(EnumData data, ConstructorInsn co) {
@@ -506,7 +557,18 @@ public class EnumVisitor extends AbstractVisitor {
 				}
 				case FILLED_NEW_ARRAY: {
 					// allow usage in values init instruction
-					if (!data.valuesInitInsn.getArg(0).unwrap().equals(useInsn)) {
+					InsnArg valuesArg = data.valuesInitInsn.getArg(0);
+					InsnNode unwrapped = valuesArg.unwrap();
+					if (unwrapped != null) {
+						if (unwrapped != useInsn) {
+							return null;
+						}
+					} else if (valuesArg.isRegister()) {
+						InsnNode valuesAssign = ((RegisterArg) valuesArg).getAssignInsn();
+						if (valuesAssign != useInsn) {
+							return null;
+						}
+					} else {
 						return null;
 					}
 					break;
@@ -549,10 +611,16 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 			String shortId = mi.getShortId();
 			if (mi.isConstructor()) {
+				markArgsForSkip(mth);
+				// remove super constructor call
+				ConstructorInsn superCtrInsn = searchEnumSuperCtrInsn(mth);
+				if (superCtrInsn != null) {
+					superCtrInsn.add(AFlag.DONT_GENERATE);
+					InsnRemover.remove(mth, superCtrInsn);
+				}
 				if (isDefaultConstructor(mth, shortId)) {
 					mth.add(AFlag.DONT_GENERATE);
 				}
-				markArgsForSkip(mth);
 			} else if (mi.getShortId().equals(valuesMethodShortId)) {
 				if (isValuesMethod(mth, clsType)) {
 					valuesMethod = mth;
@@ -731,5 +799,10 @@ public class EnumVisitor extends AbstractVisitor {
 			this.classInitMth = classInitMth;
 			this.staticBlocks = staticBlocks;
 		}
+	}
+
+	@Override
+	public String getName() {
+		return "EnumVisitor";
 	}
 }

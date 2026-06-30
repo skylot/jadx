@@ -41,7 +41,14 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public InsnArg duplicate() {
-		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copyWithoutResult());
+		InsnNode wrapInsn = wrappedInsn;
+		InsnNode wrapInsnCopy = wrapInsn.copyWithoutResult();
+		if (wrapInsn.getResult() != null && wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+			// keep same SSA var in result arg, this will break previous version, mark it for removal
+			wrapInsnCopy.setResult(wrapInsn.getResult().duplicate());
+			wrapInsn.add(AFlag.DONT_GENERATE);
+		}
+		InsnWrapArg copy = new InsnWrapArg(wrapInsnCopy);
 		copy.setType(type);
 		return copyCommonParams(copy);
 	}
@@ -84,7 +91,7 @@ public final class InsnWrapArg extends InsnArg {
 		if (wrappedInsn.getType() == InsnType.CONST_STR) {
 			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
 		}
-		return "(wrap:" + type + ":" + wrappedInsn.getType() + ')';
+		return "(wrap " + type + ":" + wrappedInsn.getType() + ')';
 	}
 
 	@Override
@@ -92,6 +99,6 @@ public final class InsnWrapArg extends InsnArg {
 		if (wrappedInsn.getType() == InsnType.CONST_STR) {
 			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
 		}
-		return "(wrap:" + type + ":" + wrappedInsn + ')';
+		return "(wrap " + type + ":" + wrappedInsn + ')';
 	}
 }

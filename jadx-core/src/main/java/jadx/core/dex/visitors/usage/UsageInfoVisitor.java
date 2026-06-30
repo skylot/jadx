@@ -163,9 +163,12 @@ public class UsageInfoVisitor extends AbstractVisitor {
 				} else {
 					mthRef = insnData.getIndexAsMethod();
 				}
-				MethodNode methodNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
+				MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);
+				MethodNode methodNode = root.resolveMethod(mthInfo);
 				if (methodNode != null) {
 					usageInfo.methodUse(mth, methodNode);
+				} else {
+					usageInfo.unresolvedMethodUse(mth, mthInfo);
 				}
 				break;
 			}
@@ -176,9 +179,14 @@ public class UsageInfoVisitor extends AbstractVisitor {
 				IMethodHandle methodHandle = InsnDataUtils.getMethodHandleAt(callSite, 4);
 				if (methodHandle != null) {
 					IMethodRef mthRef = methodHandle.getMethodRef();
-					MethodNode mthNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
-					if (mthNode != null) {
-						usageInfo.methodUse(mth, mthNode);
+					if (mthRef != null) {
+						MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);
+						MethodNode mthNode = root.resolveMethod(mthInfo);
+						if (mthNode != null) {
+							usageInfo.methodUse(mth, mthNode);
+						} else {
+							usageInfo.unresolvedMethodUse(mth, mthInfo);
+						}
 					}
 				}
 				break;

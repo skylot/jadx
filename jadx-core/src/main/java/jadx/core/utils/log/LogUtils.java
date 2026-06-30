@@ -9,16 +9,18 @@ import java.util.regex.Pattern;
  */
 public class LogUtils {
 
-	private static final Pattern ALFA_NUMERIC = Pattern.compile("\\w*");
+	/**
+	 * We replace everything except alphanumeric characters, underscore, dots, colon, semicolon, comma,
+	 * spaces, minus
+	 */
+	private static final Pattern REPLACE_PATTERN = Pattern.compile("[^\\w\\.:;, -]");
 
 	public static String escape(String input) {
 		if (input == null) {
 			return "null";
 		}
-		if (ALFA_NUMERIC.matcher(input).matches()) {
-			return input;
-		}
-		return input.replaceAll("\\W", ".");
+
+		return REPLACE_PATTERN.matcher(input).replaceAll(".");
 	}
 
 	public static String escape(byte[] input) {

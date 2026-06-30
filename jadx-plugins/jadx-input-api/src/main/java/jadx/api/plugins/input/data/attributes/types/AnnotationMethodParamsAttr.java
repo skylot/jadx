@@ -11,8 +11,7 @@ import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 
 public class AnnotationMethodParamsAttr extends PinnedAttribute {
 
-	@Nullable
-	public static AnnotationMethodParamsAttr pack(List<List<IAnnotation>> annotationRefList) {
+	public static @Nullable AnnotationMethodParamsAttr pack(List<List<IAnnotation>> annotationRefList) {
 		if (annotationRefList.isEmpty()) {
 			return null;
 		}

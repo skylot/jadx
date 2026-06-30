@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -16,5 +17,6 @@ public interface ITypeListener {
 	 * @param arg           apply suggested type for this arg
 	 * @param candidateType suggest new type
 	 */
+	@Nullable
 	TypeUpdateResult update(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, @NotNull ArgType candidateType);
 }

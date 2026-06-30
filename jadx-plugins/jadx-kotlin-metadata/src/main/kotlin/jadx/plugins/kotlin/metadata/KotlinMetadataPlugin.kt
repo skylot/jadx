@@ -10,9 +10,7 @@ class KotlinMetadataPlugin : JadxPlugin {
 
 	private val options = KotlinMetadataOptions()
 
-	override fun getPluginInfo(): JadxPluginInfo {
-		return JadxPluginInfo(PLUGIN_ID, "Kotlin Metadata", "Use kotlin.Metadata annotation for code generation")
-	}
+	override fun getPluginInfo(): JadxPluginInfo = JadxPluginInfo(PLUGIN_ID, "Kotlin Metadata", "Use kotlin.Metadata annotation for code generation")
 
 	override fun init(context: JadxPluginContext) {
 		context.registerOptions(options)

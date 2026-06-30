@@ -1,5 +1,6 @@
 package jadx.gui.ui.codearea;
 
+import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuListener;
 
@@ -45,6 +46,18 @@ public class JNodePopupBuilder {
 		if (action instanceof PopupMenuListener) {
 			menu.addPopupMenuListener((PopupMenuListener) action);
 		}
+	}
+
+	public void addSubmenu(String name, JNodeAction... nodeActions) {
+		JMenu submenu = new JMenu(name);
+		for (JNodeAction nodeAction : nodeActions) {
+			if (nodeAction.getActionModel() != null) {
+				shortcutsController.bindImmediate(nodeAction);
+			}
+			submenu.add(nodeAction);
+			popupListener.addActions(nodeAction);
+		}
+		menu.add(submenu);
 	}
 
 	public JPopupMenu getMenu() {

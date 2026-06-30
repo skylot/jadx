@@ -85,7 +85,6 @@ public class SimplifyVisitor extends AbstractVisitor {
 			int insnCount = list.size();
 			InsnNode modInsn = simplifyInsn(mth, insn, null);
 			if (modInsn != null) {
-				modInsn.rebindArgs();
 				if (i < list.size() && list.get(i) == insn) {
 					list.set(i, modInsn);
 				} else {
@@ -95,6 +94,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 					}
 					list.set(idx, modInsn);
 				}
+				InsnRemover.unbindInsn(mth, insn);
+				modInsn.rebindArgs();
 				if (list.size() < insnCount) {
 					// some insns removed => restart block processing
 					simplifyBlock(mth, block);
@@ -113,8 +114,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 				InsnNode replaceInsn = simplifyInsn(mth, wrapInsn, insn);
 				if (replaceInsn != null) {
-					arg.wrapInstruction(mth, replaceInsn, false);
-					InsnRemover.unbindInsn(mth, wrapInsn);
+					arg.wrapInstruction(mth, replaceInsn);
 					changed = true;
 				}
 			}
@@ -231,16 +231,34 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
+		if (isArithWideUpCast(parentInsn, argType, castToType)) {
+			return null;
+		}
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
 				|| isCastDuplicate(castInsn)
 				|| shadowedByOuterCast(mth.root(), castToType, parentInsn)) {
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setOffset(castInsn.getOffset());
-			insnNode.setResult(castInsn.getResult());
-			insnNode.addArg(castArg);
+			insnNode.setResult(InsnNode.duplicateArg(castInsn.getResult()));
+			insnNode.addArg(castArg.duplicate());
 			return insnNode;
 		}
 		return null;
+	}
+
+	/**
+	 * Keep cast to wide types in arith instructions,
+	 * because arguments type determine instruction used in result bytecode.
+	 * Example: (long) i << 32 - without 'long' cast will be used 'int shift' instruction and result
+	 * will be incorrect
+	 */
+	private static boolean isArithWideUpCast(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
+		if (parentInsn != null
+				&& parentInsn.getType() == InsnType.ARITH
+				&& argType.isPrimitive() && castToType.isPrimitive()) {
+			return castToType.getRegCount() > argType.getRegCount();
+		}
+		return false;
 	}
 
 	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
@@ -558,7 +576,11 @@ public class SimplifyVisitor extends AbstractVisitor {
 				if (litArg.isNegative()) {
 					LiteralArg negLitArg = litArg.negate();
 					if (negLitArg != null) {
-						return new ArithNode(ArithOp.SUB, arith.getResult(), arith.getArg(0), negLitArg);
+						RegisterArg resArg = InsnNode.duplicateArg(arith.getResult());
+						ArithNode newInsn = new ArithNode(ArithOp.SUB, resArg, arith.getArg(0).duplicate(), negLitArg);
+						newInsn.copyAttributesFrom(arith);
+						newInsn.setOffset(arith.getOffset());
+						return newInsn;
 					}
 				}
 				break;
@@ -568,10 +590,12 @@ public class SimplifyVisitor extends AbstractVisitor {
 				InsnArg firstArg = arith.getArg(0);
 				long lit = litArg.getLiteral();
 				if (firstArg.getType() == ArgType.BOOLEAN && (lit == 0 || lit == 1)) {
-					InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
-					node.setResult(arith.getResult());
-					node.addArg(firstArg);
-					return node;
+					InsnNode newInsn = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
+					newInsn.setResult(InsnNode.duplicateArg(arith.getResult()));
+					newInsn.addArg(firstArg.duplicate());
+					newInsn.copyAttributesFrom(arith);
+					newInsn.setOffset(arith.getOffset());
+					return newInsn;
 				}
 				break;
 		}
@@ -619,16 +643,22 @@ public class SimplifyVisitor extends AbstractVisitor {
 			}
 			if (wrapType == InsnType.ARITH) {
 				ArithNode ar = (ArithNode) wrap;
-				return ArithNode.oneArgOp(ar.getOp(), fArg, ar.getArg(1));
+				ArithNode newInsn = ArithNode.oneArgOp(ar.getOp(), fArg, ar.getArg(1).duplicate());
+				newInsn.copyAttributesFrom(insn);
+				newInsn.setOffset(insn.getOffset());
+				return newInsn;
 			}
 			int argsCount = wrap.getArgsCount();
 			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
 			for (int i = 1; i < argsCount; i++) {
-				concat.addArg(wrap.getArg(i));
+				concat.addArg(wrap.getArg(i).duplicate());
 			}
 			InsnArg concatArg = InsnArg.wrapArg(concat);
 			concatArg.setType(ArgType.STRING);
-			return ArithNode.oneArgOp(ArithOp.ADD, fArg, concatArg);
+			ArithNode newInsn = ArithNode.oneArgOp(ArithOp.ADD, fArg, concatArg);
+			newInsn.copyAttributesFrom(wrap);
+			newInsn.setOffset(wrap.getOffset());
+			return newInsn;
 		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}

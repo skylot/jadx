@@ -1,14 +1,19 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.ListUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -16,6 +21,8 @@ public class TypeUpdateInfo {
 	private final MethodNode mth;
 	private final TypeUpdateFlags flags;
 	private final Map<InsnArg, TypeUpdateEntry> updateMap = new IdentityHashMap<>();
+	private final List<TypeUpdateRequest> queue = new ArrayList<>();
+	private final List<TypeUpdateRequest> callbackQueue = new ArrayList<>();
 	private final int updatesLimitCount;
 	private int updateSeq = 0;
 
@@ -23,6 +30,24 @@ public class TypeUpdateInfo {
 		this.mth = mth;
 		this.flags = flags;
 		this.updatesLimitCount = mth.getInsnsCount() * args.getTypeUpdatesLimitCount();
+	}
+
+	public void queueRequest(TypeUpdateRequest request) {
+		queue.add(request);
+	}
+
+	public void saveCallback(TypeUpdateRequest request) {
+		if (request.getCallback() != null) {
+			callbackQueue.add(request);
+		}
+	}
+
+	public @Nullable TypeUpdateRequest pollNextRequest() {
+		return ListUtils.removeLast(queue);
+	}
+
+	public @Nullable TypeUpdateRequest pollNextCallback() {
+		return ListUtils.removeLast(callbackQueue);
 	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
@@ -34,7 +59,11 @@ public class TypeUpdateInfo {
 		}
 		if (updateSeq > updatesLimitCount) {
 			throw new JadxOverflowException("Type inference error: updates count limit reached"
-					+ " with updateSeq = " + updateSeq + ". Try increasing the type limit count on preferences.");
+					+ " with updateSeq = " + updateSeq + ". Try increasing type updates limit count.");
+		}
+		if (updateSeq % 100 == 0) {
+			// check for interruption sometimes (every update is too often)
+			Utils.checkThreadInterrupt();
 		}
 	}
 

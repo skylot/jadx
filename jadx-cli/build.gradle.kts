@@ -11,6 +11,7 @@ dependencies {
 	implementation(project(":jadx-core"))
 	implementation(project(":jadx-plugins-tools"))
 	implementation(project(":jadx-commons:jadx-app-commons"))
+	implementation(project(":jadx-commons:jadx-analysis"))
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-java-input"))
@@ -19,15 +20,14 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-rename-mappings"))
 	runtimeOnly(project(":jadx-plugins:jadx-kotlin-metadata"))
 	runtimeOnly(project(":jadx-plugins:jadx-kotlin-source-debug-extension"))
-	runtimeOnly(project(":jadx-plugins:jadx-script:jadx-script-plugin"))
 	runtimeOnly(project(":jadx-plugins:jadx-xapk-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-apkm-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-apks-input"))
 
 	implementation("org.jcommander:jcommander:2.0")
-	implementation("ch.qos.logback:logback-classic:1.5.22")
-	implementation("com.google.code.gson:gson:2.13.2")
+	implementation("ch.qos.logback:logback-classic:1.5.34")
+	implementation("com.google.code.gson:gson:2.14.0")
 }
 
 application {

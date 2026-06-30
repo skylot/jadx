@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -149,7 +151,7 @@ public class InsnRemover {
 		}
 		// check if all usage only in not generated instructions
 		if (allMatch(ssaVar.getUseList(),
-				arg -> arg.contains(AFlag.DONT_GENERATE) || (InsnUtils.contains(arg.getParentInsn(), AFlag.DONT_GENERATE)))) {
+				arg -> arg.contains(AFlag.DONT_GENERATE) || InsnUtils.contains(arg.getParentInsn(), AFlag.DONT_GENERATE))) {
 			for (RegisterArg arg : ssaVar.getUseList()) {
 				arg.resetSSAVar();
 			}
@@ -218,6 +220,9 @@ public class InsnRemover {
 	}
 
 	public static void remove(MethodNode mth, BlockNode block, InsnNode insn) {
+		if (block.contains(AFlag.DUPLICATED)) {
+			mth.addWarnComment("Instruction removed from duplicated block: " + block + ", please report this as an issue");
+		}
 		unbindInsn(mth, insn);
 		removeWithoutUnbind(mth, block, insn);
 	}
@@ -276,5 +281,14 @@ public class InsnRemover {
 		List<InsnNode> instructions = block.getInstructions();
 		unbindInsn(mth, instructions.get(index));
 		instructions.remove(index);
+	}
+
+	public static void delistPhi(MethodNode mth, PhiInsn phiInsn) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			PhiListAttr phiListAttr = block.get(AType.PHI_LIST);
+			if (phiListAttr != null) {
+				phiListAttr.getList().removeIf(i -> i == phiInsn);
+			}
+		}
 	}
 }

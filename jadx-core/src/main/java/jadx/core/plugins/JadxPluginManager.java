@@ -148,7 +148,7 @@ public class JadxPluginManager {
 				}
 				context.init();
 			} catch (Exception e) {
-				LOG.warn("Failed to init plugin: {}", context.getPluginId(), e);
+				LOG.error("Failed to init plugin: {}", context.getPluginId(), e);
 			}
 		}
 		for (PluginContext context : pluginContexts) {

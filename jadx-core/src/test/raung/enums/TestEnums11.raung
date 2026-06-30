@@ -1,0 +1,74 @@
+.version 52  # Java 8
+.class public final enum enums/TestEnums11
+.super java/lang/Enum
+.signature Ljava/lang/Enum<Lenums/TestEnums11;>;
+.source "SourceFile"
+
+.field public static final enum A Lenums/TestEnums11;
+.field public static final synthetic b [Lenums/TestEnums11;
+.field public final a I
+
+.method public static values()[Lenums/TestEnums11;
+    .max stack 1
+    .max locals 1
+
+    getstatic enums/TestEnums11 b [Lenums/TestEnums11;
+    invokevirtual [Lenums/TestEnums11; clone ()Ljava/lang/Object;
+    checkcast [Lenums/TestEnums11;
+    areturn
+.end method
+
+.method public static valueOf(Ljava/lang/String;)Lenums/TestEnums11;
+    .max stack 2
+    .max locals 1
+
+    ldc Lenums/TestEnums11;
+    aload 0
+    invokestatic java/lang/Enum valueOf (Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+    checkcast enums/TestEnums11
+    areturn
+.end method
+
+.method public <init>()V
+    .signature (I)V
+    .max stack 4
+    .max locals 1
+
+    aload 0
+    dup
+    ldc "UNKNOWN"
+    iconst_0
+    invokespecial java/lang/Enum <init> (Ljava/lang/String;I)V
+    bipush -99
+    putfield enums/TestEnums11 a I
+    return
+.end method
+
+.method public static <clinit>()V
+    .max stack 4
+    .max locals 1
+
+    new enums/TestEnums11
+    dup
+    dup
+    astore 0
+    invokespecial enums/TestEnums11 <init> ()V
+    putstatic enums/TestEnums11 A Lenums/TestEnums11;
+    iconst_1
+    anewarray enums/TestEnums11
+    dup
+    iconst_0
+    aload 0
+    aastore
+    putstatic enums/TestEnums11 b [Lenums/TestEnums11;
+    return
+.end method
+
+.method public getErrorCode()I
+    .max stack 1
+    .max locals 1
+
+    aload 0
+    getfield enums/TestEnums11 a I
+    ireturn
+.end method

@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.regions;
 
-import java.util.Collections;
 import java.util.List;
 
 import jadx.core.dex.attributes.AType;
@@ -9,7 +8,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnContainer;
-import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
@@ -60,8 +58,7 @@ public final class PostProcessRegions extends AbstractRegionVisitor {
 				return;
 			}
 		}
-		List<InsnNode> insns = Collections.singletonList(insnAttr.getInsn());
-		region.add(new InsnContainer(insns));
+		region.add(new InsnContainer(insnAttr.getInsn()));
 	}
 
 	private PostProcessRegions() {

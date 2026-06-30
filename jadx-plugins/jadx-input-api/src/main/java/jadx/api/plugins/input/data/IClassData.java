@@ -15,6 +15,8 @@ public interface IClassData {
 
 	int getAccessFlags();
 
+	int getInputFileOffset();
+
 	@Nullable
 	String getSuperType();
 

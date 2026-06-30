@@ -15,6 +15,7 @@ import org.drjekyll.fontchooser.FontChooser;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.NLS;
 
 public class JadxFontDialog extends JDialog {
@@ -42,7 +43,7 @@ public class JadxFontDialog extends JDialog {
 		setVisible(true);
 		Font selectedFont = fontChooser.getSelectedFont();
 		if (selected && !selectedFont.equals(currentFont)) {
-			return selectedFont;
+			return FontUtils.getCompositeFont(selectedFont.getFamily(), selectedFont.getStyle(), selectedFont.getSize());
 		}
 		return null;
 	}

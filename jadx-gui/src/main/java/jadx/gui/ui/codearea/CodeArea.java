@@ -4,7 +4,11 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
@@ -12,6 +16,7 @@ import javax.swing.event.PopupMenuEvent;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +25,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.metadata.ICodeAnnotation;
+import jadx.api.metadata.ICodeMetadata;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.LoadTask;
@@ -30,8 +36,24 @@ import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.action.*;
+import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.CommentSearchAction;
+import jadx.gui.ui.action.CopyReferenceAction;
+import jadx.gui.ui.action.FindUsageAction;
+import jadx.gui.ui.action.FridaAction;
+import jadx.gui.ui.action.GoToDeclarationAction;
+import jadx.gui.ui.action.JsonPrettifyAction;
+import jadx.gui.ui.action.RenameAction;
+import jadx.gui.ui.action.ViewCallGraphAction;
+import jadx.gui.ui.action.ViewClassInheritanceGraphAction;
+import jadx.gui.ui.action.ViewClassMethodGraphAction;
+import jadx.gui.ui.action.ViewControlFlowGraphAction;
+import jadx.gui.ui.action.XposedAction;
 import jadx.gui.ui.codearea.mode.JCodeMode;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncee;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncer;
+import jadx.gui.ui.codearea.sync.CodeAreaSyncerAbstractFactory;
+import jadx.gui.ui.codearea.sync.JavaSyncer;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
@@ -44,7 +66,7 @@ import jadx.gui.utils.shortcut.ShortcutsController;
  * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
  * resources (e.g. AndroidManifest.xml)
  */
-public final class CodeArea extends AbstractCodeArea {
+public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAbstractFactory, CodeAreaSyncee {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
@@ -169,9 +191,18 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.add(new CommentAction(this));
 		popup.add(new CommentSearchAction(this));
 		popup.add(new RenameAction(this));
+		popup.add(new CopyReferenceAction(this));
 		popup.addSeparator();
 		popup.add(new FridaAction(this));
 		popup.add(new XposedAction(this));
+		popup.addSeparator();
+		popup.add(new ViewClassInheritanceGraphAction(this));
+		popup.add(new ViewClassMethodGraphAction(this));
+		popup.add(new ViewCallGraphAction(this));
+		popup.add(new ViewControlFlowGraphAction(ActionModel.VIEW_CONTROL_FLOW_GRAPH, this));
+		popup.addSeparator();
+		popup.add(new ConvertNumberAction(this));
+
 		getMainWindow().getWrapper().getGuiPluginsContext().appendPopupMenus(this, popup);
 
 		// move caret on mouse right button click
@@ -299,7 +330,7 @@ public final class CodeArea extends AbstractCodeArea {
 	/**
 	 * Search referenced java node by offset in {@code jCls} code
 	 */
-	public JavaNode getJavaNodeAtOffset(int offset) {
+	public @Nullable JavaNode getJavaNodeAtOffset(int offset) {
 		if (offset == -1) {
 			return null;
 		}
@@ -311,7 +342,7 @@ public final class CodeArea extends AbstractCodeArea {
 		return null;
 	}
 
-	public JavaNode getClosestJavaNode(int offset) {
+	public @Nullable JavaNode getClosestJavaNode(int offset) {
 		if (offset == -1) {
 			return null;
 		}
@@ -323,7 +354,7 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 	}
 
-	public JavaNode getEnclosingJavaNode(int offset) {
+	public @Nullable JavaNode getEnclosingJavaNode(int offset) {
 		if (offset == -1) {
 			return null;
 		}
@@ -362,13 +393,22 @@ public final class CodeArea extends AbstractCodeArea {
 	}
 
 	public void refreshClass() {
+		refreshClass(false);
+	}
+
+	public void refreshClass(boolean alreadyReloaded) {
 		if (node instanceof JClass) {
 			JClass cls = node.getRootClass();
 			try {
 				CaretPositionFix caretFix = new CaretPositionFix(this);
 				caretFix.save();
 
-				cachedCodeInfo = cls.reload(getMainWindow().getCacheObject());
+				if (alreadyReloaded) {
+					cachedCodeInfo = cls.getCodeInfo();
+				} else {
+					// bad. blocks the UI thread for a potentially expensive decomp
+					cachedCodeInfo = cls.reload(getMainWindow().getCacheObject());
+				}
 
 				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
 				codeContentPanel.getTabbedPane().refresh(cls);
@@ -377,6 +417,20 @@ public final class CodeArea extends AbstractCodeArea {
 				LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 			}
 		}
+	}
+
+	/**
+	 * Refresh the class in the background, updating the UI once the potential decomp is complete.
+	 * Should be called from the UI thread.
+	 */
+	public void backgroundRefreshClass() {
+		UiUtils.uiThreadGuard();
+		this.getMainWindow().getBackgroundExecutor().execute("Refreshing...", () -> {
+			this.getNode().getRootClass().reload(this.getMainWindow().getCacheObject());
+			UiUtils.uiRunAndWait(() -> {
+				this.refreshClass(true);
+			});
+		});
 	}
 
 	public MainWindow getMainWindow() {
@@ -397,5 +451,75 @@ public final class CodeArea extends AbstractCodeArea {
 
 		super.dispose();
 		cachedCodeInfo = null;
+	}
+
+	@Override
+	public CodeAreaSyncer createCodeAreaSyncer() {
+		return new JavaSyncer(this);
+	}
+
+	@Override
+	public boolean sync(CodeAreaSyncer codeAreaSyncer) {
+		return codeAreaSyncer.syncTo(this);
+	}
+
+	public @Nullable ICodeMetadata getCodeMetadata() {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (!codeInfo.hasMetadata()) {
+			LOG.warn("No code info metadata for {}", codeInfo);
+			return null;
+		}
+		return codeInfo.getCodeMetadata();
+	}
+
+	/**
+	 * Returns a mapping of 'decompilation output line number' to 'dex debug line number'
+	 * These are 1-indexed line numbers not the line indices of the CodeArea
+	 *
+	 * @return the line mapping
+	 */
+	public Map<Integer, Integer> getLineMappings() {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (!codeInfo.hasMetadata()) {
+			LOG.debug("No code info metadata for {}", codeInfo);
+			return Collections.emptyMap();
+		}
+		Map<Integer, Integer> lineMapping = codeInfo.getCodeMetadata().getLineMapping();
+		if (lineMapping.isEmpty()) {
+			LOG.debug("Line mappings are empty for {}", codeInfo);
+			return Collections.emptyMap();
+		}
+		return lineMapping;
+	}
+
+	private Map<Integer, Integer> cachedUniqueLineMappings;
+
+	/**
+	 * Returns the same as {@link #getLineMappings()} but only if each value (dex debug line number)
+	 * appears only once.
+	 * If a value appears more than once then it suggests that methods might share dex debug line
+	 * numbers.
+	 * If this is the case then the line mapping cannot be used for code sync correlation.
+	 */
+	public Map<Integer, Integer> getFunctionUniqueLineMappings() {
+		Map<Integer, Integer> mappings = cachedUniqueLineMappings;
+		if (mappings == null) {
+			mappings = calcUniqueLineMappings();
+			cachedUniqueLineMappings = mappings;
+		}
+		return mappings;
+	}
+
+	private @NotNull Map<Integer, Integer> calcUniqueLineMappings() {
+		Map<Integer, Integer> lineMappings = getLineMappings();
+		boolean isAnyRepeated = lineMappings.values().stream()
+				.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+				.values().stream()
+				.anyMatch(v -> v > 1);
+		if (isAnyRepeated) {
+			LOG.debug("Dex debug line mappings are not unique");
+			return Collections.emptyMap();
+		}
+		return lineMappings;
 	}
 }

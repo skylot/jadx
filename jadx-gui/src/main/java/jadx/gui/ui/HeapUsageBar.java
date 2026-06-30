@@ -35,6 +35,7 @@ public class HeapUsageBar extends JProgressBar {
 
 	private final double maxGB;
 	private final long limit;
+	private long peakUsed;
 	private final String labelTemplate;
 
 	private transient Disposable timer;
@@ -45,6 +46,7 @@ public class HeapUsageBar extends JProgressBar {
 		setStringPainted(true);
 
 		long maxMemory = runtime.maxMemory();
+		peakUsed = 0;
 		maxGB = maxMemory / GB;
 		limit = maxMemory - UiUtils.MIN_FREE_MEMORY;
 		labelTemplate = NLS.str("heapUsage.text");
@@ -102,8 +104,11 @@ public class HeapUsageBar extends JProgressBar {
 		}
 		UpdateData updateData = new UpdateData();
 		long used = runtime.totalMemory() - runtime.freeMemory();
+		if (used > peakUsed) {
+			peakUsed = used;
+		}
 		updateData.value = (int) (used / 1024);
-		updateData.label = String.format(labelTemplate, used / GB, maxGB);
+		updateData.label = String.format(labelTemplate, used / GB, maxGB, peakUsed / GB);
 		updateData.color = used > limit ? RED : GREEN;
 		return updateData;
 	}
