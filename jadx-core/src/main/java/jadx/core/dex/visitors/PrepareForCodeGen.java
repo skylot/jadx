@@ -115,6 +115,12 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				case MOVE:
 					// remove redundant moves: unused result and same args names (a = a;)
 					RegisterArg result = insn.getResult();
+					if (result == null) {
+						if (!insn.getArg(0).isInsnWrap()) {
+							it.remove();
+						}
+						break;
+					}
 					if (result.getSVar().getUseCount() == 0
 							&& result.isNameEquals(insn.getArg(0))) {
 						it.remove();
@@ -254,7 +260,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	 * Otherwise, move to the top and add a warning.
 	 */
 	private void moveConstructorInConstructor(MethodNode mth) {
-		if (!mth.isConstructor()) {
+		if (!mth.isConstructor() || mth.getRegion() == null) {
 			return;
 		}
 		ConstructorInsn ctrInsn = searchConstructorCall(mth);

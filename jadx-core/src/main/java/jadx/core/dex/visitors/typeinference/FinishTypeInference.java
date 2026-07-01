@@ -3,6 +3,7 @@ package jadx.core.dex.visitors.typeinference;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
 
 @JadxVisitor(
@@ -20,6 +21,9 @@ public final class FinishTypeInference extends AbstractVisitor {
 			return;
 		}
 		mth.getSVars().forEach(var -> {
+			if (!var.isCodeVarSet()) {
+				InitCodeVariables.initCodeVar(var);
+			}
 			ArgType type = var.getTypeInfo().getType();
 			if (!type.isTypeKnown()) {
 				mth.addWarnComment("Type inference failed for: " + var.getDetailedVarInfo(mth));
