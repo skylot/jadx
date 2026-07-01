@@ -75,6 +75,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			runTypePropagation(mth);
 		} catch (StackOverflowError | BootstrapMethodError e) {
 			mth.addError("Type inference failed with stack overflow", new JadxOverflowException(e.getMessage()));
+		} catch (JadxOverflowException e) {
+			mth.addWarnComment("Type inference stopped after reaching update limit: " + e.getMessage());
 		} catch (Exception e) {
 			mth.addError("Type inference failed", e);
 		}

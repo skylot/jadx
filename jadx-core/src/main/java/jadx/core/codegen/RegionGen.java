@@ -48,6 +48,7 @@ import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
@@ -365,11 +366,18 @@ public class RegionGen extends InsnGen {
 		if (arg == null) {
 			code.add("unknown"); // throwing exception is too late at this point
 		} else if (arg instanceof RegisterArg) {
-			SSAVar ssaVar = ((RegisterArg) arg).getSVar();
-			if (code.isMetadataSupported()) {
+			RegisterArg regArg = (RegisterArg) arg;
+			SSAVar ssaVar = regArg.getSVar();
+			if (ssaVar == null) {
+				InitCodeVariables.initCodeVar(mth, regArg);
+				ssaVar = regArg.getSVar();
+			} else if (!ssaVar.isCodeVarSet()) {
+				InitCodeVariables.initCodeVar(ssaVar);
+			}
+			if (ssaVar != null && code.isMetadataSupported()) {
 				code.attachDefinition(VarNode.get(mth, ssaVar));
 			}
-			code.add(mgen.getNameGen().assignArg(ssaVar.getCodeVar()));
+			code.add(ssaVar != null ? mgen.getNameGen().assignArg(ssaVar.getCodeVar()) : "unknown");
 		} else if (arg instanceof NamedArg) {
 			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		} else {

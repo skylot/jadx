@@ -207,7 +207,7 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 		public void leaveRegion(MethodNode mth, IRegion region) {
 			if (addBreakRegion.contains(region)) {
 				addBreakRegion.remove(region);
-				region.getSubBlocks().add(SwitchRegionMaker.buildBreakContainer(currentSwitch));
+				SwitchRegionMaker.appendBreak(mth, region, currentSwitch);
 			}
 			if (cleanupSet.contains(region)) {
 				cleanupSet.remove(region);
