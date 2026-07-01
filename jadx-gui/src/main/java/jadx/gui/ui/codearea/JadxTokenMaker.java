@@ -4,7 +4,6 @@ import java.util.Set;
 
 import javax.swing.text.Segment;
 
-import jadx.api.JavaMethod;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenImpl;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
+import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 
 import static jadx.api.plugins.utils.Utils.constSet;
@@ -85,7 +85,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 	}
 
 	private void fixIdentifierWithTheSameNameAsJavaLangClass(Token token) {
-		JavaNode identifier = codeArea.getJavaIdentifierIfAtPos(token.getTextOffset());
+		JavaNode identifier = codeArea.getJavaNodeAtOffset(token.getTextOffset());
 		if (identifier == null) {
 			return;
 		}
@@ -94,12 +94,11 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 			token.setType(TokenTypes.IDENTIFIER);
 			return;
 		}
-		if (!(identifier instanceof JavaMethod)) {
-			return;
-		}
-		JavaClass javaCls = identifier.getDeclaringClass();
-		if (lexeme.equals(javaCls.getName())) {
-			token.setType(TokenTypes.IDENTIFIER);
+		if (identifier instanceof JavaMethod) {
+			JavaClass javaCls = identifier.getDeclaringClass();
+			if (lexeme.equals(javaCls.getName())) {
+				token.setType(TokenTypes.IDENTIFIER);
+			}
 		}
 	}
 

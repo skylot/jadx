@@ -123,7 +123,6 @@ public class ClassGen {
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			imports.stream()
-					.filter(classInfo -> !classInfo.getPackage().equals("java.lang") || classInfo.isInner())
 					.sorted(Comparator.comparing(ClassInfo::getAliasFullName))
 					.forEach(classInfo -> {
 						clsCode.startLine("import ");
@@ -700,11 +699,15 @@ public class ClassGen {
 		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
 			return shortName;
 		}
-		// don't add import if this class from same package
-		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
+		// don't add import for top classes from 'java.lang' package (subpackages excluded)
+		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
 		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+			if (!extClsInfo.isInner()) {
+				// don't add import if this class from same package
+				return shortName;
+			}
 			fullName = extClsInfo.getAliasNameWithoutPackage();
 		}
 		for (ClassInfo importCls : getImports()) {
@@ -737,7 +740,16 @@ public class ClassGen {
 		}
 		Collections.reverse(clsList);
 		if (addImport) {
-			addImport(clsList.get(0));
+			ClassInfo top = clsList.get(0);
+			if (top != extClsInfo) {
+				String usedName = useClassInternal(useCls, top);
+				if (!usedName.equals(top.getAliasShortName())) {
+					// short top name can't be used, use full name as fallback
+					return extClsInfo.getAliasFullName();
+				}
+			} else {
+				addImport(top);
+			}
 		}
 		return Utils.listToString(clsList, ".", ClassInfo::getAliasShortName);
 	}

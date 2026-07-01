@@ -257,17 +257,16 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	/**
-	 * Return the outer class of the class represented by this ClassInfo instead of the parent class.
+	 * Return the outer class of the class represented by this ClassInfo
 	 */
-	@Nullable
-	public ClassInfo getParentClass() {
+	public @Nullable ClassInfo getParentClass() {
 		return parentClass;
 	}
 
 	/**
-	 * Return the top outer class of the class represented by this ClassInfo instead of the parent class.
+	 * Return the top outer class of the class represented by this ClassInfo
 	 */
-	public ClassInfo getTopParentClass() {
+	public @Nullable ClassInfo getTopParentClass() {
 		if (parentClass != null) {
 			ClassInfo topCls = parentClass.getTopParentClass();
 			return topCls != null ? topCls : parentClass;
