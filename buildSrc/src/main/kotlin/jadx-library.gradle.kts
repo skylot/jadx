@@ -5,7 +5,7 @@ plugins {
 	id("signing")
 }
 
-val jadxVersion: String by rootProject.extra
+val jadxVersion = rootProject.extra["jadxVersion"] as String
 
 group = "io.github.skylot"
 version = jadxVersion
@@ -42,7 +42,7 @@ publishing {
 					developer {
 						id.set("skylot")
 						name.set("Skylot")
-						email.set(project.properties["libEmail"].toString())
+						email.set(project.findProperty("libEmail") as String? ?: "" )
 						url.set("https://github.com/skylot")
 					}
 				}
@@ -60,8 +60,8 @@ publishing {
 			val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 			url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 			credentials {
-				username = project.properties["ossrhUser"].toString()
-				password = project.properties["ossrhPassword"].toString()
+				username = project.findProperty("ossrhUser") as String? ?: ""
+				password = project.findProperty("ossrhPassword") as String? ?: ""
 			}
 		}
 	}

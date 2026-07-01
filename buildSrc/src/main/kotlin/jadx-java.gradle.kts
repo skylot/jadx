@@ -12,9 +12,9 @@ plugins {
 	id("net.ltgt.nullaway")
 }
 
-val jadxVersion: String by rootProject.extra
-val jadxBuildJavaVersion: Int? by rootProject.extra
-val jadxBuildChecksMode: String by rootProject.extra
+val jadxVersion = rootProject.extra["jadxVersion"] as String
+val jadxBuildJavaVersion = rootProject.extra["jadxBuildJavaVersion"] as Int?
+val jadxBuildChecksMode = rootProject.extra["jadxBuildChecksMode"] as String
 
 group = "io.github.skylot"
 version = jadxVersion
@@ -23,7 +23,7 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:2.0.18")
 	compileOnly("org.jetbrains:annotations:26.1.0")
 
-	testImplementation("ch.qos.logback:logback-classic:1.5.34")
+	testImplementation("ch.qos.logback:logback-classic:1.5.37")
 	testImplementation("org.assertj:assertj-core:3.27.7")
 
 	testImplementation("org.junit.jupiter:junit-jupiter:5.13.3")

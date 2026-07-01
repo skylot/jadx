@@ -64,7 +64,7 @@ dependencies {
 	)
 }
 
-val jadxVersion: String by rootProject.extra
+val jadxVersion = rootProject.extra["jadxVersion"] as String
 
 tasks.test {
 	exclude("**/tmp/*")
@@ -198,66 +198,71 @@ runtime {
 	}
 }
 
-val copyDistWin by tasks.registering(Copy::class) {
-	description = "Copy files for Windows bundle"
+val copyDistWin =
+	tasks.register<Copy>("copyDistWin") {
+		description = "Copy files for Windows bundle"
 
-	val libTask = tasks.getByName("shadowJar")
-	dependsOn(libTask)
-	from(libTask.outputs) {
-		include("*.jar")
-		into("lib")
+		val libTask = tasks.getByName("shadowJar")
+		dependsOn(libTask)
+		from(libTask.outputs) {
+			include("*.jar")
+			into("lib")
+		}
+		val exeTask = tasks.getByName("createExe")
+		dependsOn(exeTask)
+		from(exeTask.outputs) {
+			include("*.exe")
+		}
+		into(layout.buildDirectory.dir("jadx-gui-win"))
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
-	val exeTask = tasks.getByName("createExe")
-	dependsOn(exeTask)
-	from(exeTask.outputs) {
-		include("*.exe")
-	}
-	into(layout.buildDirectory.dir("jadx-gui-win"))
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
 
-val copyDistWinWithJre by tasks.registering(Copy::class) {
-	description = "Copy files for Windows with JRE bundle"
+val copyDistWinWithJre =
+	tasks.register<Copy>("copyDistWinWithJre") {
+		description = "Copy files for Windows with JRE bundle"
 
-	val jreTask = tasks.runtime.get()
-	dependsOn(jreTask)
-	from(jreTask.jreDir) {
-		include("**/*")
-		into("jre")
+		val jreTask = tasks.runtime.get()
+		dependsOn(jreTask)
+		from(jreTask.jreDir) {
+			include("**/*")
+			into("jre")
+		}
+		val libTask = tasks.getByName("shadowJar")
+		dependsOn(libTask)
+		from(libTask.outputs) {
+			include("*.jar")
+			into("lib")
+		}
+		val exeTask = tasks.getByName("createExe")
+		dependsOn(exeTask)
+		from(exeTask.outputs) {
+			include("*.exe")
+		}
+		into(layout.buildDirectory.dir("jadx-gui-with-jre-win"))
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
-	val libTask = tasks.getByName("shadowJar")
-	dependsOn(libTask)
-	from(libTask.outputs) {
-		include("*.jar")
-		into("lib")
-	}
-	val exeTask = tasks.getByName("createExe")
-	dependsOn(exeTask)
-	from(exeTask.outputs) {
-		include("*.exe")
-	}
-	into(layout.buildDirectory.dir("jadx-gui-with-jre-win"))
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
 
 /**
  * Register and expose distribution artifacts to use in top level packaging tasks
  */
-val distWinConfiguration by configurations.creating {
-	isCanBeResolved = false
-}
-val distWinWithJreConfiguration by configurations.creating {
-	isCanBeResolved = false
-}
+val distWinConfiguration =
+	configurations.create("distWinConfiguration") {
+		isCanBeResolved = false
+	}
+val distWinWithJreConfiguration =
+	configurations.create("distWinWithJreConfiguration") {
+		isCanBeResolved = false
+	}
 artifacts {
 	add(distWinConfiguration.name, copyDistWin)
 	add(distWinWithJreConfiguration.name, copyDistWinWithJre)
 }
 
-val syncNLSLines by tasks.registering(JavaExec::class) {
-	group = "jadx-dev"
-	description = "Utility task to sync new/missing translation using EN as a reference"
+val syncNLSLines =
+	tasks.register<JavaExec>("syncNLSLines") {
+		group = "jadx-dev"
+		description = "Utility task to sync new/missing translation using EN as a reference"
 
-	classpath = sourceSets.main.get().runtimeClasspath
-	mainClass.set("jadx.gui.utils.tools.SyncNLSLines")
-}
+		classpath = sourceSets.main.get().runtimeClasspath
+		mainClass.set("jadx.gui.utils.tools.SyncNLSLines")
+	}
