@@ -7,12 +7,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
-import jadx.api.metadata.annotations.InsnCodeOffset;
-import jadx.core.dex.nodes.PackageNode;
-import jadx.core.dex.nodes.RootNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import jadx.core.dex.nodes.PackageNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.ResContainer;
 import jadx.plugins.input.dex.DexInputPlugin;
 
@@ -96,7 +95,6 @@ public class JadxDecompilerTest {
 	}
 
 	// TODO add more tests
-
 
 	@Test
 	public void testConvertPackageHierarchy() {
