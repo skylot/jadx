@@ -122,17 +122,17 @@ public class ClassGen {
 	private void addImports(ICodeWriter clsCode) {
 		int importsCount = imports.size();
 		if (importsCount != 0) {
-			List<ClassInfo> sortedImports = new ArrayList<>(imports);
-			sortedImports.sort(Comparator.comparing(ClassInfo::getAliasFullName));
-			sortedImports.forEach(classInfo -> {
-				clsCode.startLine("import ");
-				ClassNode classNode = cls.root().resolveClass(classInfo);
-				if (classNode != null) {
-					clsCode.attachAnnotation(classNode);
-				}
-				clsCode.add(classInfo.getAliasFullName());
-				clsCode.add(';');
-			});
+			imports.stream()
+					.sorted(Comparator.comparing(ClassInfo::getAliasFullName))
+					.forEach(classInfo -> {
+						clsCode.startLine("import ");
+						ClassNode classNode = cls.root().resolveClass(classInfo);
+						if (classNode != null) {
+							clsCode.attachAnnotation(classNode);
+						}
+						clsCode.add(classInfo.getAliasFullName());
+						clsCode.add(';');
+					});
 			clsCode.newLine();
 			imports.clear();
 		}
@@ -703,11 +703,11 @@ public class ClassGen {
 		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
-		// don't add import if this class from same package
-		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
-			return shortName;
-		}
 		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+			if (!extClsInfo.isInner()) {
+				// don't add import if this class from same package
+				return shortName;
+			}
 			fullName = extClsInfo.getAliasNameWithoutPackage();
 		}
 		for (ClassInfo importCls : getImports()) {
@@ -740,7 +740,16 @@ public class ClassGen {
 		}
 		Collections.reverse(clsList);
 		if (addImport) {
-			addImport(clsList.get(0));
+			ClassInfo top = clsList.get(0);
+			if (top != extClsInfo) {
+				String usedName = useClassInternal(useCls, top);
+				if (!usedName.equals(top.getAliasShortName())) {
+					// short top name can't be used, use full name as fallback
+					return extClsInfo.getAliasFullName();
+				}
+			} else {
+				addImport(top);
+			}
 		}
 		return Utils.listToString(clsList, ".", ClassInfo::getAliasShortName);
 	}
