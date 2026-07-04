@@ -1,0 +1,194 @@
+.version 65  # Java 21
+.class public super conditions/TestTernarySameResult
+.source "TestTernarySameResult.java"
+
+.field private calls I
+
+.method public <init>()V
+    .max stack 1
+    .max locals 1
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .line 2
+    aload 0
+    invokespecial java/lang/Object <init> ()V
+    return
+.end method
+
+.method public retNull(Ljava/lang/Object;)Ljava/lang/Object;
+    .max stack 1
+    .max locals 2
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "o" Ljava/lang/Object;
+    .line 5
+    aload 1
+    ifnonnull :L1
+    aconst_null
+    areturn
+  :L1
+    .stack same
+    aconst_null
+    areturn
+.end method
+
+.method public retSame(Z)I
+    .max stack 1
+    .max locals 2
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "z" Z
+    .line 8
+    iload 1
+    ifeq :L1
+    bipush 7
+    ireturn
+  :L1
+    .stack same
+    bipush 7
+    ireturn
+.end method
+
+.method public retStr(Z)Ljava/lang/String;
+    .max stack 1
+    .max locals 2
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "z" Z
+    .line 11
+    iload 1
+    ifeq :L1
+    ldc "x"
+    areturn
+  :L1
+    .stack same
+    ldc "x"
+    areturn
+.end method
+
+.method public assignSame(Z)I
+    .max stack 1
+    .max locals 3
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "z" Z
+    .line 15
+    iload 1
+    ifeq :L1
+    bipush 7
+    istore 2
+    .local 2 "r" I
+    goto :L3
+  :L1
+    .stack same
+    .end local 2 # "r"
+    bipush 7
+    istore 2
+  :L3
+    .local 2 "r" I
+    .line 16
+    .stack append
+        int
+    .end stack
+    iload 2
+    ireturn
+.end method
+
+.method public keepDiff(Z)I
+    .max stack 1
+    .max locals 3
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "z" Z
+    .line 20
+    iload 1
+    ifeq :L1
+    bipush 7
+    istore 2
+    .local 2 "r" I
+    goto :L3
+  :L1
+    .stack same
+    .end local 2 # "r"
+    bipush 8
+    istore 2
+  :L3
+    .local 2 "r" I
+    .line 21
+    .stack append
+        int
+    .end stack
+    iload 2
+    ireturn
+.end method
+
+.method public keepEffect()I
+    .max stack 1
+    .max locals 2
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .line 25
+    aload 0
+    invokevirtual conditions/TestTernarySameResult ping ()I
+    ifle :L1
+    iconst_5
+    istore 1
+    .local 1 "r" I
+    goto :L3
+  :L1
+    .stack same
+    .end local 1 # "r"
+    iconst_5
+    istore 1
+  :L3
+    .local 1 "r" I
+    .line 26
+    .stack append
+        int
+    .end stack
+    iload 1
+    ireturn
+.end method
+
+.method public keepCast(Ljava/lang/Object;)I
+    .max stack 1
+    .max locals 3
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .local 1 "o" Ljava/lang/Object;
+    .line 29
+    aload 1
+    checkcast java/lang/Integer
+    astore 2
+    .local 2 "i" Ljava/lang/Integer;
+    .line 30
+    aload 2
+    ifnull :L2
+    bipush 9
+    goto :L3
+  :L2
+    .stack append
+        java/lang/Integer
+    .end stack
+    bipush 9
+  :L3
+    .stack same1 int
+    ireturn
+.end method
+
+.method private ping()I
+    .max stack 3
+    .max locals 1
+
+    .local 0 "this" Lconditions/TestTernarySameResult;
+    .line 32
+    aload 0
+    dup
+    getfield conditions/TestTernarySameResult calls I
+    iconst_1
+    iadd
+    putfield conditions/TestTernarySameResult calls I
+    aload 0
+    getfield conditions/TestTernarySameResult calls I
+    ireturn
+.end method
