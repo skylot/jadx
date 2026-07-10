@@ -377,6 +377,41 @@ public class MainWindow extends JFrame {
 		});
 	}
 
+	public void closeProject(boolean save, @Nullable Runnable onFinish) {
+		UiUtils.bgRun(() -> {
+			try {
+				if (save) {
+					UiUtils.uiRunAndWait(() -> {
+						saveAll();
+						persistProjectSilently();
+					});
+				}
+				closeAll();
+				updateProject(new JadxProject(this));
+			} catch (Exception e) {
+				LOG.error("Programmatic closeProject error", e);
+			} finally {
+				if (onFinish != null) {
+					onFinish.run();
+				}
+			}
+		});
+	}
+
+	private void persistProjectSilently() {
+		if (project.isInitial() || project.getFilePaths().isEmpty()) {
+			return;
+		}
+		if (project.isSaveFileSelected()) {
+			project.save();
+		} else {
+			Path defaultPath = getProjectPathForFile(project.getFilePaths().get(0));
+			project.saveAs(defaultPath);
+			settings.addRecentProject(defaultPath);
+		}
+		settings.sync();
+	}
+
 	private void saveProject() {
 		saveOpenTabs();
 		if (!project.isSaveFileSelected()) {
