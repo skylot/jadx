@@ -190,7 +190,12 @@ public abstract class CommonSearchDialog extends JFrame {
 			if (javaNode != null) {
 				String codeNodeRef = javaNode.getCodeNodeRef().toString();
 				if (uniqueRefs.add(codeNodeRef)) {
-					sb.append(codeNodeRef).append("\n");
+					sb.append(codeNodeRef);
+					if (node.hasDescString()) {
+						String code = node.makeDescString();
+						sb.append("		").append(code);
+					}
+					sb.append("\n");
 				}
 			}
 		}
