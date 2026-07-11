@@ -27,11 +27,8 @@ import jadx.core.xmlgen.ResContainer;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
-import jadx.gui.ui.codearea.BinaryContentPanel;
-import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.ui.panel.FontPanel;
-import jadx.gui.ui.panel.ImagePanel;
+import jadx.gui.ui.panel.ResourcePanel;
 import jadx.gui.ui.popupmenu.JResourcePopupMenu;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.Icons;
@@ -214,21 +211,7 @@ public class JResource extends JLoadableNode {
 		if (resFile == null) {
 			return null;
 		}
-		// TODO: allow to register custom viewers
-		switch (resFile.getType()) {
-			case IMG:
-				return new ImagePanel(tabbedPane, this);
-			case FONT:
-				return new FontPanel(tabbedPane, this);
-		}
-		if (getContentType() == ResourceContentType.CONTENT_BINARY) {
-			return new BinaryContentPanel(tabbedPane, this, false);
-		}
-		if (getSyntaxByExtension(resFile.getDeobfName()) != null) {
-			return new CodeContentPanel(tabbedPane, this);
-		}
-		// unknown file type, show both text and binary
-		return new BinaryContentPanel(tabbedPane, this, true);
+		return new ResourcePanel(tabbedPane, this);
 	}
 
 	@Override
@@ -353,6 +336,10 @@ public class JResource extends JLoadableNode {
 		}
 		String ext = name.substring(dot + 1);
 		return EXTENSION_TO_FILE_SYNTAX.get(ext);
+	}
+
+	public boolean hasSyntaxByExtension() {
+		return resFile != null && getSyntaxByExtension(resFile.getDeobfName()) != null;
 	}
 
 	@Override
