@@ -87,6 +87,31 @@ public class JadxWrapper {
 		}
 	}
 
+	public void initPluginsForEmptyWorkspace() {
+		synchronized (DECOMPILER_UPDATE_SYNC) {
+			if (decompiler != null) {
+				return; // a project (or a previous empty init) is already active
+			}
+			try {
+				JadxArgs jadxArgs = getSettings().toJadxArgs();
+				jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+				jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
+				JadxAppCommon.applyEnvVars(jadxArgs);
+
+				JadxDecompiler dc = new JadxDecompiler(jadxArgs);
+				CommonGuiPluginsContext ctx = initGuiPluginsContext(dc, mainWindow);
+				dc.setEventsImpl(mainWindow.events());
+				// Plugin init only: no input validation, no class loading.
+				dc.getPluginManager().load(jadxArgs.getPluginLoader());
+				dc.getPluginManager().initResolved();
+				decompiler = dc;
+				guiPluginsContext = ctx;
+			} catch (Exception e) {
+				LOG.error("Jadx empty-workspace plugin init error", e);
+			}
+		}
+	}
+
 	// TODO: check and move into core package
 	public void unloadClasses() {
 		getCurrentDecompiler().ifPresent(decompiler -> {

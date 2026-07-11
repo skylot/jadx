@@ -293,9 +293,20 @@ public class MainWindow extends JFrame {
 	private void processCommandLineArgs() {
 		if (settings.getFiles().isEmpty()) {
 			tabsController.selectTab(new StartPageNode());
+			initGuiPluginsForEmptyWorkspace();
 		} else {
 			open(FileUtils.fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
+	}
+
+	private void initGuiPluginsForEmptyWorkspace() {
+		UiUtils.bgRun(() -> {
+			try {
+				wrapper.initPluginsForEmptyWorkspace();
+			} catch (Exception e) {
+				LOG.warn("Failed to initialize GUI plugins for empty workspace", e);
+			}
+		});
 	}
 
 	private void handleSelectClassOption() {
@@ -502,6 +513,16 @@ public class MainWindow extends JFrame {
 
 	public void open(List<Path> paths) {
 		open(paths, UiUtils.EMPTY_RUNNABLE);
+	}
+
+	/**
+	 * Programmatically open the given input files (e.g an APK) as a new project without any GUI
+	 * dialog, replacing the current project. Intended for automation and AI, mirroring
+	 * {@link #closeProject(boolean, Runnable)}: {@code onFinish} runs once the new project has
+	 * finished loading (it is not invoked on load failure), so callers can wait for readiness.
+	 */
+	public void openProject(List<Path> paths, @Nullable Runnable onFinish) {
+		UiUtils.uiRun(() -> open(paths, onFinish == null ? UiUtils.EMPTY_RUNNABLE : onFinish));
 	}
 
 	private void open(List<Path> paths, Runnable onFinish) {
