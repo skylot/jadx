@@ -22,7 +22,7 @@ public class EditorSyncManager implements ITabStatesListener {
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
-		mainWindow.toggleHexViewMenu();
+		mainWindow.updateHexViewMenuEnabled();
 		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
 			// verify that tab opened for this blueprint (some nodes don't open tab with content)
 			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
@@ -35,6 +35,6 @@ public class EditorSyncManager implements ITabStatesListener {
 	@Override
 	public void onTabClose(TabBlueprint blueprint) {
 		ITabStatesListener.super.onTabClose(blueprint);
-		mainWindow.toggleHexViewMenu();
+		mainWindow.updateHexViewMenuEnabled();
 	}
 }

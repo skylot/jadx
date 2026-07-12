@@ -15,12 +15,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.exbin.auxiliary.binary_data.BinaryData;
 
 public class HexInspectorPanel extends JPanel {
 	private final List<ValueFormatter> formatters = new ArrayList<>();
 
-	private byte[] bytes = null;
-	private Integer offset = null;
+	private BinaryData data;
+	private Integer offset;
 	private boolean isLittleEndian;
 	private int row = 0;
 
@@ -61,12 +62,12 @@ public class HexInspectorPanel extends JPanel {
 		reloadOffset();
 	}
 
-	public void setBytes(byte[] bytes) {
-		this.bytes = bytes;
+	public void setContentData(BinaryData data) {
+		this.data = data;
 	}
 
 	private void reloadOffset() {
-		if (bytes == null || offset == null) {
+		if (data == null || offset == null) {
 			return;
 		}
 
@@ -106,7 +107,7 @@ public class HexInspectorPanel extends JPanel {
 	}
 
 	private boolean canDisplay(int offset, int size) {
-		return offset + size <= bytes.length;
+		return offset + size <= data.getDataSize();
 	}
 
 	private ByteBuffer decodeByteArray(int offset, int size) {
@@ -119,7 +120,7 @@ public class HexInspectorPanel extends JPanel {
 
 	private byte[] sliceBytes(int offset, int size) {
 		byte[] slice = new byte[size];
-		System.arraycopy(bytes, offset, slice, 0, size);
+		data.copyToArray(offset, slice, 0, size);
 		return slice;
 	}
 

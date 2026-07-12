@@ -131,7 +131,13 @@ public class HexPreviewPanel extends JPanel {
 	public void setData(byte[] data) {
 		if (data != null) {
 			hexCodeArea.setContentData(new ByteArrayEditableData(data));
-			inspector.setBytes(data);
+		}
+	}
+
+	public void setData(BinaryData data) {
+		if (data != null) {
+			hexCodeArea.setContentData(data);
+			inspector.setContentData(data);
 		}
 	}
 
@@ -315,4 +321,7 @@ public class HexPreviewPanel extends JPanel {
 		UiUtils.copyToClipboard(str);
 	}
 
+	public void dispose() {
+		hexCodeArea.getContentData().dispose();
+	}
 }

@@ -2,9 +2,14 @@ package jadx.gui.ui.panel;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeListener;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +28,13 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 
 	private final transient JTabbedPane tabbedPane;
 
+	/**
+	 * Store the tab references that have been loaded so far.
+	 * As we only want to track refernces we can use IdentityHashSet which does not make calls
+	 * to hashCode() and equals() which make sit faster for large objects.
+	 */
+	private final Set<Component> initializedTabs = Collections.newSetFromMap(new IdentityHashMap<>());
+
 	public ResourcePanel(TabbedPane panel, JResource resource) {
 		super(panel, resource);
 		setLayout(new BorderLayout());
@@ -32,8 +44,19 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 		tabbedPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		buildTabs(panel, resource);
-		tabbedPane.addChangeListener(e -> getMainWindow().toggleHexViewMenu());
+		ChangeListener changeListener = e -> {
+			Component selected = tabbedPane.getSelectedComponent();
+			if (initializedTabs.add(selected)) {
+				if (selected instanceof ILazyLoad) {
+					ILazyLoad lazyLoadComponent = (ILazyLoad) selected;
+					SwingUtilities.invokeLater(lazyLoadComponent::loadData);
+				}
+			}
+			getMainWindow().updateHexViewMenuEnabled();
+		};
+		tabbedPane.addChangeListener(changeListener);
 		add(tabbedPane, BorderLayout.CENTER);
+		changeListener.stateChanged(null);
 	}
 
 	private void buildTabs(TabbedPane panel, JResource resource) {

@@ -1011,7 +1011,7 @@ public class MainWindow extends JFrame {
 		return null;
 	}
 
-	public void toggleHexViewMenu() {
+	public void updateHexViewMenuEnabled() {
 		hexViewerMenu.setEnabled(getCurrentHexViewTab() != null);
 	}
 
