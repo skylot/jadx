@@ -41,8 +41,43 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  build-release-mac-bundle:
+    strategy:
+      matrix:
+        os: [ macos-latest, macos-15-intel ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Set jadx version
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const jadxVersion = context.ref.split('/').pop().substring(1)
+            core.exportVariable('JADX_VERSION', jadxVersion);
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        run: ./gradlew distMac
+
+      - name: Save macOS DMG artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('jadx-gui-{0}-mac-{1}', env.JADX_VERSION, runner.arch) }}
+          path: build/distMac/*.dmg
+          if-no-files-found: error
+          retention-days: 1
+
   release:
-    needs: build-release-win-bundle
+    needs: [ build-release-win-bundle, build-release-mac-bundle ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -74,6 +109,13 @@ jobs:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
           path: ${{ format('build/jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
 
+      - name: Download macOS DMG bundles
+        uses: actions/download-artifact@v8
+        with:
+          pattern: ${{ format('jadx-gui-{0}-mac-*', env.JADX_VERSION) }}
+          merge-multiple: true
+          path: build
+
       - run: |
           cd build
           pwd
@@ -81,7 +123,7 @@ jobs:
           ls jadx-gui-*-with-jre-win
           mv jadx-gui-*-with-jre-win/jadx-gui-*-with-jre-win.zip .
           mv distWin/jadx-gui-*-win.zip .
-          ls -l *.zip
+          ls -l *.zip *.dmg
 
       - name: Release
         uses: softprops/action-gh-release@v3
@@ -89,4 +131,6 @@ jobs:
           name: ${{ env.JADX_VERSION }}
           draft: true
           fail_on_unmatched_files: true
-          files: build/jadx-*.zip
+          files: |
+            build/jadx-*.zip
+            build/jadx-gui-*-mac-*.dmg

@@ -137,9 +137,14 @@ val distWinWithJreConfiguration =
 	configurations.create("distWinWithJreConfiguration") {
 		isCanBeConsumed = false
 	}
+val distMacConfiguration =
+	configurations.create("distMacConfiguration") {
+		isCanBeConsumed = false
+	}
 dependencies {
 	distWinConfiguration(project(":jadx-gui", "distWinConfiguration"))
 	distWinWithJreConfiguration(project(":jadx-gui", "distWinWithJreConfiguration"))
+	distMacConfiguration(project(":jadx-gui", "distMacConfiguration"))
 }
 
 val copyArtifacts =
@@ -209,6 +214,16 @@ val distWinWithJre =
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
 
+val distMac =
+	tasks.register<Copy>("distMac") {
+		group = "jadx"
+		description = "Build macOS DMG bundle (with bundled JRE)"
+
+		from(distMacConfiguration)
+
+		into(layout.buildDirectory.dir("distMac"))
+	}
+
 val dist =
 	tasks.register("dist") {
 		group = "jadx"
@@ -224,6 +239,8 @@ val dist =
 			} else {
 				dependsOn(distWin)
 			}
+		} else if (os.isMacOsX) {
+			dependsOn(distMac)
 		}
 	}
 

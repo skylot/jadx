@@ -1,3 +1,5 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 plugins {
 	id("jadx-kotlin")
 	id("application")
@@ -189,9 +191,25 @@ runtime {
 		"jdk.accessibility",
 	)
 	jpackage {
-		imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")
-		skipInstaller = true
-		targetPlatformName = "win"
+		if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+			imageName = "jadx-gui"
+			imageOptions =
+				listOf(
+					"--icon",
+					"$projectDir/src/main/resources/logos/jadx-logo.icns",
+					"--mac-package-identifier",
+					"io.github.skylot.jadx",
+				)
+			// jpackage on macOS requires version as up to three integers separated by dots
+			appVersion = if (jadxVersion.matches(Regex("\\d+(\\.\\d+){0,2}"))) jadxVersion else "1.0.0"
+			installerType = "dmg"
+			installerName = "jadx-gui"
+			skipInstaller = false
+		} else {
+			imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")
+			skipInstaller = true
+			targetPlatformName = "win"
+		}
 	}
 	launcher {
 		noConsole = true
@@ -242,6 +260,22 @@ val copyDistWinWithJre =
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
 
+val copyDistMac =
+	tasks.register<Copy>("copyDistMac") {
+		description = "Copy dmg file for macOS bundle"
+
+		val jpackageTask = tasks.getByName("jpackage")
+		dependsOn(jpackageTask)
+		from(layout.buildDirectory.dir("jpackage")) {
+			include("*.dmg")
+		}
+		rename(
+			"(.*)\\.dmg",
+			"jadx-gui-$jadxVersion-mac-${System.getProperty("os.arch")}.dmg",
+		)
+		into(layout.buildDirectory.dir("jadx-gui-mac"))
+	}
+
 /**
  * Register and expose distribution artifacts to use in top level packaging tasks
  */
@@ -253,9 +287,14 @@ val distWinWithJreConfiguration =
 	configurations.create("distWinWithJreConfiguration") {
 		isCanBeResolved = false
 	}
+val distMacConfiguration =
+	configurations.create("distMacConfiguration") {
+		isCanBeResolved = false
+	}
 artifacts {
 	add(distWinConfiguration.name, copyDistWin)
 	add(distWinWithJreConfiguration.name, copyDistWinWithJre)
+	add(distMacConfiguration.name, copyDistMac)
 }
 
 val syncNLSLines =

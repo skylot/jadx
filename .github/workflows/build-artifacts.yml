@@ -88,3 +88,39 @@ jobs:
           path: jadx-gui/build/jadx-gui-with-jre-win/*
           if-no-files-found: error
           retention-days: 14
+
+  build-mac-bundle:
+    strategy:
+      matrix:
+        os: [ macos-latest, macos-15-intel ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Set jadx version
+        run: |
+          JADX_REV=$(git rev-list --count HEAD)
+          JADX_VERSION="r${JADX_REV}.${GITHUB_SHA:0:7}"
+          echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        run: ./gradlew distMac
+
+      - name: Save macOS DMG artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('jadx-gui-{0}-mac-{1}', env.JADX_VERSION, runner.arch) }}
+          path: build/distMac/*.dmg
+          if-no-files-found: error
+          retention-days: 14
