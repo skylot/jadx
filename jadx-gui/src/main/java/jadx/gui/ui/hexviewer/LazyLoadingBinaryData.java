@@ -18,7 +18,7 @@ public class LazyLoadingBinaryData implements BinaryData {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LazyLoadingBinaryData.class);
 
-	private final int BLOCK_SIZE = 1024 * 512; // 512 KB
+	private final int blockSize = 1024 * 512; // 512 KB
 
 	private final InputStream inputStream;
 
@@ -60,7 +60,6 @@ public class LazyLoadingBinaryData implements BinaryData {
 			return;
 		}
 		try {
-			int blockSize = BLOCK_SIZE;
 			byte[] block = new byte[blockSize];
 			int bytesRead = inputStream.readNBytes(block, 0, blockSize);
 			boolean lastBlock = bytesRead < blockSize;
@@ -101,8 +100,8 @@ public class LazyLoadingBinaryData implements BinaryData {
 		if (!ensurePositionLoaded(position)) {
 			throw new RuntimeException("Unreachable position: " + position);
 		}
-		int blockNum = (int) (position / BLOCK_SIZE);
-		int blockOffset = (int) (position % BLOCK_SIZE);
+		int blockNum = (int) (position / blockSize);
+		int blockOffset = (int) (position % blockSize);
 		return blocks.get(blockNum)[blockOffset];
 	}
 
@@ -124,8 +123,8 @@ public class LazyLoadingBinaryData implements BinaryData {
 		if (!ensurePositionLoaded(endPosition)) {
 			throw new RuntimeException("Unreachable position: " + endPosition);
 		}
-		int blockNum = (int) (startFrom / BLOCK_SIZE);
-		int blockOffset = (int) (startFrom % BLOCK_SIZE);
+		int blockNum = (int) (startFrom / blockSize);
+		int blockOffset = (int) (startFrom % blockSize);
 		int remaining = length;
 		int targetPos = offset;
 		while (remaining > 0) {
