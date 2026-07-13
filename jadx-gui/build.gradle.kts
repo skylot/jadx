@@ -193,13 +193,18 @@ runtime {
 	jpackage {
 		if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
 			imageName = "jadx-gui"
+			val fileAssociations =
+				fileTree("$projectDir/dist/macos/jpackage-file-associations") { include("*.properties") }
+					.files
+					.sortedBy { it.name }
+					.flatMap { listOf("--file-associations", it.absolutePath) }
 			imageOptions =
 				listOf(
 					"--icon",
 					"$projectDir/src/main/resources/logos/jadx-logo.icns",
 					"--mac-package-identifier",
 					"io.github.skylot.jadx",
-				)
+				) + fileAssociations
 			// jpackage on macOS requires version as up to three integers separated by dots
 			appVersion = if (jadxVersion.matches(Regex("\\d+(\\.\\d+){0,2}"))) jadxVersion else "1.0.0"
 			installerType = "dmg"
