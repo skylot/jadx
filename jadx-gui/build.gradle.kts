@@ -201,7 +201,7 @@ runtime {
 			imageOptions =
 				listOf(
 					"--icon",
-					"$projectDir/src/main/resources/logos/jadx-logo.icns",
+					"$projectDir/dist/macos/jadx-logo.icns",
 					"--mac-package-identifier",
 					"io.github.skylot.jadx",
 				) + fileAssociations
