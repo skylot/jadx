@@ -36,20 +36,19 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
-          # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip file
-          # Upload unpacked files for now
-          path: build/jadx/**/*
+          path: build/jadx-*.zip
           if-no-files-found: error
           retention-days: 14
+          archive: false
 
       - name: Save Windows bundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
-          # Upload unpacked files for now
-          path: jadx-gui/build/jadx-gui-win/*
+          path: build/distWin/jadx-gui-*.zip
           if-no-files-found: error
           retention-days: 14
+          archive: false
 
   build-win-bundle:
     runs-on: windows-latest
@@ -84,10 +83,10 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
-          # Upload unpacked files for now
-          path: jadx-gui/build/jadx-gui-with-jre-win/*
+          path: build/distWinWithJre/jadx-gui-*.zip
           if-no-files-found: error
           retention-days: 14
+          archive: false
 
   build-mac-bundle:
     strategy:
@@ -124,3 +123,5 @@ jobs:
           path: build/distMac/*.dmg
           if-no-files-found: error
           retention-days: 14
+          # nightly.link support only '.zip' artifacts, issue: https://github.com/oprypin/nightly.link/issues/88
+          # archive: false
