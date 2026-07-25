@@ -35,7 +35,6 @@ public class JadxConfigAdapter<T extends IJadxConfig> {
 	private final Gson gson;
 
 	private Path configPath;
-	private Consumer<Path> beforeLoad;
 
 	public JadxConfigAdapter(Class<T> configCls, String defaultConfigName) {
 		this(configCls, defaultConfigName, gsonBuilder -> {
@@ -63,17 +62,10 @@ public class JadxConfigAdapter<T extends IJadxConfig> {
 		return defaultConfigFileName;
 	}
 
-	public void setBeforeLoad(Consumer<Path> beforeLoad) {
-		this.beforeLoad = beforeLoad;
-	}
-
 	public @Nullable T load() {
 		if (!Files.isRegularFile(configPath)) {
 			// file not found
 			return null;
-		}
-		if (beforeLoad != null) {
-			beforeLoad.accept(configPath);
 		}
 		try (JsonReader reader = gson.newJsonReader(Files.newBufferedReader(configPath))) {
 			return gson.fromJson(reader, configCls);

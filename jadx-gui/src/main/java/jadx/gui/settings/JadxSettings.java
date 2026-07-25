@@ -62,12 +62,10 @@ public class JadxSettings {
 	}
 
 	public static JadxConfigAdapter<JadxSettingsData> buildConfigAdapter() {
-		JadxConfigAdapter<JadxSettingsData> configAdapter = new JadxConfigAdapter<>(JadxSettingsData.class, "gui", gsonBuilder -> {
+		return new JadxConfigAdapter<>(JadxSettingsData.class, "gui", gsonBuilder -> {
 			gsonBuilder.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton());
 			gsonBuilder.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton());
 		});
-		configAdapter.setBeforeLoad(GuiConfigLocale::applyFromConfig);
-		return configAdapter;
 	}
 
 	public String getSettingsJsonString() {
