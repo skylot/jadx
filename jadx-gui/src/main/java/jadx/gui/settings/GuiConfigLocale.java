@@ -14,11 +14,7 @@ import jadx.core.utils.GsonUtils;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
-/**
- * Reads {@code langLocale} from gui config before full Gson deserialization.
- * Needed because {@code ActionModel} uses NLS strings during class initialization
- * triggered by parsing the {@code shortcuts} field.
- */
+/** Reads {@code langLocale} from gui config before full Gson deserialization. */
 public final class GuiConfigLocale {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiConfigLocale.class);
 

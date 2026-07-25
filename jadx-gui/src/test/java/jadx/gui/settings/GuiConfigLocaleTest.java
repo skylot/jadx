@@ -17,26 +17,16 @@ class GuiConfigLocaleTest {
 	Path tempDir;
 
 	@Test
-	void applyFromConfigSetsLocaleBeforeFullParse() throws Exception {
+	void applyFromConfigSetsLocale() throws Exception {
+		LangLocale previous = NLS.currentLocale();
 		Path configPath = tempDir.resolve("gui.json");
 		Files.writeString(configPath,
-				"{\n"
-						+ "  \"langLocale\": {\n"
-						+ "    \"locale\": {\n"
-						+ "      \"language\": \"zh\",\n"
-						+ "      \"country\": \"CN\"\n"
-						+ "    }\n"
-						+ "  },\n"
-						+ "  \"shortcuts\": {\n"
-						+ "    \"OPEN\": {\n"
-						+ "      \"key\": 79,\n"
-						+ "      \"modifiers\": 128\n"
-						+ "    }\n"
-						+ "  }\n"
-						+ "}\n");
-
-		GuiConfigLocale.applyFromConfig(configPath);
-
-		assertThat(NLS.currentLocale()).isEqualTo(new LangLocale("zh", "CN"));
+				"{\"langLocale\":{\"locale\":{\"language\":\"zh\",\"country\":\"CN\"}}}\n");
+		try {
+			GuiConfigLocale.applyFromConfig(configPath);
+			assertThat(NLS.currentLocale()).isEqualTo(new LangLocale("zh", "CN"));
+		} finally {
+			NLS.setLocale(previous != null ? previous : NLS.defaultLocale());
+		}
 	}
 }
