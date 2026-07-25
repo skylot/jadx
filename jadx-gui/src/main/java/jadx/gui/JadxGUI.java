@@ -13,17 +13,18 @@ import jadx.commons.app.JadxSystemInfo;
 import jadx.core.Jadx;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
+import jadx.gui.settings.GuiConfigLocale;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LafManager;
-import jadx.gui.utils.NLS;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);
 
 	public static void main(String[] args) {
 		try {
+			GuiConfigLocale.load();
 			JadxConfigAdapter<JadxSettingsData> configAdapter = JadxSettings.buildConfigAdapter();
 			JadxSettingsData settingsData = JadxCLIArgs.processArgs(args, new JadxSettingsData(), configAdapter);
 			if (settingsData == null) {
@@ -31,10 +32,10 @@ public class JadxGUI {
 			}
 			JadxSettings settings = new JadxSettings(configAdapter);
 			settings.loadSettingsData(settingsData);
+			GuiConfigLocale.checkConfig(settingsData);
 
 			LogCollector.register();
 			printSystemInfo();
-			NLS.setLocale(settings.getLangLocale());
 			SwingUtilities.invokeLater(() -> {
 				LafManager.init(settings);
 				settings.getFontSettings().updateDefaultFont();

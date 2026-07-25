@@ -7,6 +7,7 @@ import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.Collection;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,11 @@ public class CertificateManagerTest {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to create CertificateManager");
 		}
+	}
+
+	@BeforeAll
+	public static void init() {
+		NLS.setLocale(NLS.defaultLocale());
 	}
 
 	@BeforeEach

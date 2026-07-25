@@ -46,7 +46,6 @@ public class NLS {
 
 		LangLocale defLang = LANG_LOCALES.get(0);
 		FALLBACK_MESSAGES_MAP = LANG_LOCALES_MAP.get(defLang);
-		localizedMessagesMap = LANG_LOCALES_MAP.get(defLang);
 	}
 
 	private NLS() {
@@ -71,7 +70,7 @@ public class NLS {
 	public static String str(String key) {
 		try {
 			return localizedMessagesMap.getString(key);
-		} catch (Exception e) {
+		} catch (MissingResourceException e) {
 			return getFallbackString(key);
 		}
 	}

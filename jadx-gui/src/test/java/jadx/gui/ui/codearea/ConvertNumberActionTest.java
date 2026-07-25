@@ -3,11 +3,18 @@ package jadx.gui.ui.codearea;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import jadx.gui.utils.NLS;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConvertNumberActionTest {
+	@BeforeAll
+	public static void init() {
+		NLS.setLocale(NLS.defaultLocale());
+	}
 
 	@Test
 	public void nonNumeric() {
