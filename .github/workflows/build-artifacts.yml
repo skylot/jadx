@@ -2,7 +2,7 @@ name: Build Artifacts
 
 on:
   push:
-    branches: [ master, build-test ]
+    branches: [ master, build-test, build-artifacts ]
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build
-        run: ./gradlew dist distWin
+        run: ./gradlew dist -PjadxBundleType=app
         env:
           JADX_BUILD_JAVA_VERSION: 11
 
@@ -37,15 +37,6 @@ jobs:
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
           path: build/jadx-*.zip
-          if-no-files-found: error
-          retention-days: 14
-          archive: false
-
-      - name: Save Windows bundle artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
-          path: build/distWin/jadx-gui-*.zip
           if-no-files-found: error
           retention-days: 14
           archive: false
@@ -76,10 +67,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build
-        run: ./gradlew dist -PbundleJRE=true
+      - name: Build NO-JRE bundle
+        run: ./gradlew dist -PjadxBundleType=win-no-jre
 
-      - name: Save Windows with JRE bundle artifact
+      - name: Save Windows bundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('jadx-gui-{0}-no-jre-win', env.JADX_VERSION) }}
+          path: build/distWin/jadx-gui-*.zip
+          if-no-files-found: error
+          retention-days: 14
+          archive: false
+
+      - name: Build JRE bundle
+        run: ./gradlew dist -PbundleJRE=true -PjadxBundleType=win-jre
+
+      - name: Save JRE bundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ format('jadx-gui-{0}-with-jre-win', env.JADX_VERSION) }}
@@ -87,6 +90,32 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           archive: false
+
+      # Prepare build for 'msi' bundle
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install WiX Toolset
+        run: |
+          dotnet tool install wix --global --version 5.0.2
+          wix extension add --global WixToolset.Util.wixext/5.0.2
+          wix extension add --global WixToolset.UI.wixext/5.0.2
+          wix.exe --version
+
+      - name: Build msi bundle
+        run: ./gradlew :jadx-gui:jpackage -PjadxBundleType=msi
+
+      - name: Save msi artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ format('jadx-gui-{0}.msi', env.JADX_VERSION) }}
+          path: jadx-gui/build/jpackage/jadx-gui-*.msi
+          if-no-files-found: error
+          retention-days: 14
+          # nightly.link support only '.zip' artifacts, issue: https://github.com/oprypin/nightly.link/issues/88
+          # archive: false
 
   build-mac-bundle:
     strategy:
@@ -114,7 +143,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build
-        run: ./gradlew distMac
+        run: ./gradlew distMac -PjadxBundleType=dmg
 
       - name: Save macOS DMG artifact
         uses: actions/upload-artifact@v7

@@ -148,7 +148,7 @@ launch4j {
 	mainClassName.set(application.mainClass.get())
 	copyConfigurable.set(listOf<Any>())
 	dontWrapJar.set(true)
-	icon.set("$projectDir/src/main/resources/logos/jadx-logo.ico")
+	icon.set("$projectDir/dist/windows/jadx-logo.ico")
 	outfile.set("jadx-gui-$jadxVersion.exe")
 	version.set(jadxVersion)
 	copyright.set("Skylot")
@@ -169,7 +169,6 @@ launch4j {
 			.sorted()
 			.toList(),
 	)
-	println("Launch4J classpath: ${classpath.get()}")
 
 	chdir.set("") // don't change current dir
 	libraryDir.set("") // don't add any libs
@@ -191,7 +190,8 @@ runtime {
 		"jdk.accessibility",
 	)
 	jpackage {
-		if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+		val os = DefaultNativePlatform.getCurrentOperatingSystem()
+		if (os.isMacOsX) {
 			imageName = "jadx-gui"
 			val fileAssociations =
 				fileTree("$projectDir/dist/macos/jpackage-file-associations") { include("*.properties") }
@@ -210,10 +210,25 @@ runtime {
 			installerType = "dmg"
 			installerName = "jadx-gui"
 			skipInstaller = false
+		} else if (os.isWindows) {
+			// WiX Toolset required
+			appVersion = if (jadxVersion.matches(Regex("\\d+(\\.\\d+){0,2}"))) jadxVersion else "0.0.0"
+			imageOptions = listOf("--icon", "$projectDir/dist/windows/jadx-logo.ico")
+			skipInstaller = false
+			installerType = "msi"
+			installerOptions =
+				listOf(
+					"--win-menu",
+					"--win-shortcut",
+					"--win-dir-chooser",
+					"--win-upgrade-uuid",
+					"3d479468-383f-49fc-b374-53f64559dd9b",
+				)
+		} else if (os.isLinux) {
+			appVersion = if (jadxVersion.matches(Regex("\\d+(\\.\\d+){0,2}"))) jadxVersion else "0.0.0"
+			// TODO: setup linux packages, need to include jadx cli
 		} else {
-			imageOptions = listOf("--icon", "$projectDir/src/main/resources/logos/jadx-logo.ico")
-			skipInstaller = true
-			targetPlatformName = "win"
+			throw RuntimeException("Unexpected OS: $os")
 		}
 	}
 	launcher {
