@@ -11,6 +11,7 @@ import jadx.cli.JadxCLIArgs;
 import jadx.cli.config.JadxConfigAdapter;
 import jadx.commons.app.JadxSystemInfo;
 import jadx.core.Jadx;
+import jadx.core.utils.JadxBuildInfo;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.GuiConfigLocale;
@@ -64,8 +65,8 @@ public class JadxGUI {
 
 	private static void printSystemInfo() {
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Starting jadx-gui. Version: '{}'. JVM: {} {}. OS: {}, version: {}, arch: {}",
-					Jadx.getVersion(),
+			LOG.debug("Starting jadx-gui: version: {}, bundle: {}. JVM: {} {}. OS: {}, version: {}, arch: {}",
+					Jadx.getVersion(), JadxBuildInfo.getJadxBundleType(),
 					JadxSystemInfo.JAVA_VM, JadxSystemInfo.JAVA_VER,
 					JadxSystemInfo.OS_NAME, JadxSystemInfo.OS_VERSION, JadxSystemInfo.OS_ARCH);
 		}

@@ -60,3 +60,20 @@ tasks.named<Test>("test") {
 
 	// maxHeapSize = "4g"
 }
+
+tasks.processResources {
+	val jadxVersion = rootProject.extra["jadxVersion"] as String
+	val jadxBundleType = project.findProperty("jadxBundleType") as String? ?: ""
+
+	inputs.property("jadxVersion", jadxVersion)
+	inputs.property("jadxBundleType", jadxBundleType)
+
+	filesMatching("jadx-build-info.properties") {
+		expand(
+			mapOf(
+				"jadxVersion" to jadxVersion,
+				"jadxBundleType" to jadxBundleType,
+			),
+		)
+	}
+}
