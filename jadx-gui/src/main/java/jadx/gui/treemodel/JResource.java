@@ -2,11 +2,12 @@ package jadx.gui.treemodel;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -171,7 +172,7 @@ public class JResource extends JLoadableNode {
 	private static void mergeChildren(List<JResource> children) {
 		for (int i = 0; i < children.size(); i++) {
 			JResource sub = children.get(i);
-			JResource replaced = mergeChain(sub, new ArrayList<>());
+			JResource replaced = mergeChain(sub);
 			if (replaced != sub) {
 				children.set(i, replaced);
 			}
@@ -179,24 +180,26 @@ public class JResource extends JLoadableNode {
 		}
 	}
 
-	private static JResource mergeChain(JResource node, List<JResource> merged) {
-		if (node.type == JResType.DIR) {
-			List<JResource> subs = node.subNodes;
-			if (subs.size() == 1 && subs.get(0).type == JResType.DIR) {
-				merged.add(node);
-				return mergeChain(subs.get(0), merged);
-			}
+	private static JResource mergeChain(JResource node) {
+		if (node.type != JResType.DIR) {
+			return node;
+		}
+		List<JResource> merged = new LinkedList<>();
+		JResource deepestDir = node;
+		List<JResource> subs = deepestDir.subNodes;
+		while (subs.size() == 1 && subs.get(0).type == JResType.DIR) {
+			deepestDir = subs.get(0);
+			merged.add(deepestDir);
+			subs = deepestDir.subNodes;
 		}
 		if (!merged.isEmpty()) {
-			merged.add(node);
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < merged.size(); i++) {
-				if (i > 0) {
-					sb.append('/');
-				}
-				sb.append(merged.get(i).shortName);
-			}
-			node.shortName = sb.toString();
+			// merge the found single-child dir chain into the current node
+			merged.add(0, node);
+			String shortName = merged.stream().map(n -> n.shortName).collect(Collectors.joining("/"));
+			String name = merged.stream().map(n -> n.name).collect(Collectors.joining("/"));
+			JResource mergedNode = new JResource(node.resFile, name, shortName, JResType.DIR);
+			mergedNode.subNodes = deepestDir.subNodes;
+			return mergedNode;
 		}
 		return node;
 	}
