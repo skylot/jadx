@@ -10,10 +10,23 @@ import java.io.*;
 import java.net.URI;
 
 import javax.swing.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.kitfox.svg.SVGDiagram;
 import com.kitfox.svg.SVGUniverse;
@@ -81,7 +94,48 @@ public class GraphPanel extends JPanel {
 		image = null;
 		byte[] bytes;
 		try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
-			renderer = Graphviz.fromString(dotString).width(getWidth()).render(Format.SVG);
+			renderer = Graphviz.fromString(dotString)
+					.width(getWidth())
+					.postProcessor((result, options, processOptions) -> result.mapString(svg -> {
+						// Graphviz <5.0.1 erroniously outputs 'stroke="transparent"' attributes in it's generated svg,
+						// which is not valid SVG 1.1. To fix this, we parse the SVG as XML, use XPath to locate bad
+						// attributes, correct them, and reserialize.
+						// Unfortunately, the versions of Graphviz in both Ubuntu <26.04 and guru.nidi.graphviz are far too
+						// old for this to be fixed upstream.
+						try {
+							// Parse the generated XML
+							DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+							DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+							Document doc = docBuilder.parse(new ByteArrayInputStream(svg.getBytes()));
+
+							// Find polygon nodes with attribute 'stroke="transparent"'
+							XPath xpath = XPathFactory.newInstance().newXPath();
+							NodeList nodes =
+									(NodeList) xpath.compile("//polygon[@stroke=\"transparent\"]").evaluate(doc, XPathConstants.NODESET);
+
+							// Rewrite the stroke attribute on found nodes
+							for (int i = 0; i < nodes.getLength(); i++) {
+								Node node = nodes.item(i);
+								NamedNodeMap attrs = node.getAttributes();
+								attrs.getNamedItem("stroke").setNodeValue("none");
+							}
+
+							// Reserialize the adjusted XML document
+							TransformerFactory tff = TransformerFactory.newInstance();
+							Transformer tf = tff.newTransformer();
+							StringWriter writer = new StringWriter();
+							tf.transform(new DOMSource(doc), new StreamResult(writer));
+							return writer.toString();
+
+						} catch (Exception e) {
+							// If something goes wrong in this process, just give up and continue with the original SVG source.
+							// This will cause large amounts of exceptions to be printed to the console but should otherwise
+							// work fine.
+							return svg;
+						}
+
+					}))
+					.render(Format.SVG);
 			renderer.toOutputStream(bout);
 			bytes = bout.toByteArray();
 		} catch (Exception e) {

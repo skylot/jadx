@@ -37,6 +37,7 @@ import java.util.function.Consumer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -48,6 +49,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
@@ -55,11 +57,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -141,6 +145,7 @@ import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.ui.dialog.StringsDialog;
 import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
@@ -177,6 +182,7 @@ import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 import jadx.gui.utils.ui.FileOpenerHelper;
 import jadx.gui.utils.ui.NodeLabel;
 
@@ -214,7 +220,7 @@ public class MainWindow extends JFrame {
 	private transient JSplitPane quickTabsAndCodeSplitPane;
 
 	private JTree tree;
-	private DefaultTreeModel treeModel;
+	private FilterableTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
@@ -250,6 +256,11 @@ public class MainWindow extends JFrame {
 	public JMenu hexViewerMenu;
 
 	private final transient RenameMappingsGui renameMappings;
+
+	/**
+	 * This stores the delay timer before applying the filter.
+	 */
+	private TimerTask filterTimerTask;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
@@ -1077,6 +1088,10 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	public void stringsViewer() {
+		StringsDialog.open(MainWindow.this);
+	}
+
 	public void goToAndroidManifest() {
 		ResourceFile androidManifest = AndroidManifestParser.getAndroidManifest(getWrapper().getResources());
 		if (androidManifest == null) {
@@ -1158,6 +1173,7 @@ public class MainWindow extends JFrame {
 
 		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this.editorSyncManager::sync);
 		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
+		JadxGuiAction stringsAction = new JadxGuiAction(ActionModel.STRINGS, this::stringsViewer);
 		JadxGuiAction clsSearchAction = new JadxGuiAction(ActionModel.CLASS_SEARCH,
 				() -> SearchDialog.search(MainWindow.this, SearchDialog.SearchPreset.CLASS));
 		JadxGuiAction commentSearchAction = new JadxGuiAction(ActionModel.COMMENT_SEARCH,
@@ -1217,6 +1233,8 @@ public class MainWindow extends JFrame {
 		view.add(quickTabsAction.makeCheckBoxMenuItem());
 		view.add(hexViewerMenu);
 		view.add(flatPkgMenuItem);
+		view.addSeparator();
+		view.add(stringsAction);
 		view.addSeparator();
 		view.add(enablePreviewTabAction.makeCheckBoxMenuItem());
 		view.add(syncAction);
@@ -1316,6 +1334,8 @@ public class MainWindow extends JFrame {
 		toolbar.add(goToApplicationAction);
 		toolbar.add(goToAndroidManifestAction);
 		toolbar.addSeparator();
+		toolbar.add(stringsAction);
+		toolbar.addSeparator();
 		toolbar.add(backAction);
 		toolbar.add(forwardAction);
 		toolbar.addSeparator();
@@ -1340,6 +1360,7 @@ public class MainWindow extends JFrame {
 
 		addLoadListener(loaded -> {
 			textSearchAction.setEnabled(loaded);
+			stringsAction.setEnabled(loaded);
 			clsSearchAction.setEnabled(loaded);
 			commentSearchAction.setEnabled(loaded);
 			goToMainActivityAction.setEnabled(loaded);
@@ -1370,9 +1391,11 @@ public class MainWindow extends JFrame {
 		mainPanel.add(treeSplitPane);
 
 		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
-		treeModel = new DefaultTreeModel(treeRootNode);
+
+		treeModel = new FilterableTreeModel(treeRootNode);
 		tree = new JTree(treeModel);
 		ToolTipManager.sharedInstance().registerComponent(tree);
+
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.setFocusable(false);
 		tree.addFocusListener(new FocusAdapter() {
@@ -1451,6 +1474,23 @@ public class MainWindow extends JFrame {
 			}
 		});
 
+		treeModel.addTreeModelListener(new TreeModelListener() {
+			public void treeNodesChanged(TreeModelEvent e) {
+			}
+
+			public void treeNodesInserted(TreeModelEvent e) {
+			}
+
+			public void treeNodesRemoved(TreeModelEvent e) {
+			}
+
+			public void treeStructureChanged(TreeModelEvent e) {
+				if (!treeModel.getFilter().equals("")) {
+					expandTree(tree, treeModel);
+				}
+			}
+		});
+
 		progressPane = new ProgressPanel(this, true);
 		issuesPanel = new IssuesPanel(this);
 
@@ -1464,6 +1504,49 @@ public class MainWindow extends JFrame {
 
 		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
+
+		JPanel filterPanel = new JPanel(new BorderLayout(5, 5));
+		filterPanel.setBorder(new EmptyBorder(0, 0, 5, 0));
+
+		JTextField filterField = new JTextField();
+		filterField.setToolTipText("Filter classes");
+		filterField.getDocument().addDocumentListener(
+				new DocumentUpdateListener(ev -> {
+					/*
+					 * Wait for 300ms of no keystrokes before actually applying the filter, to prevent multiple unneeded
+					 * UI lockups during typing.
+					 */
+
+					if (filterTimerTask != null) {
+						// new keystroke means cancel the old filter task
+						filterTimerTask.cancel();
+					}
+
+					filterTimerTask = new TimerTask() {
+						public void run() {
+							treeModel.setFilter(filterField.getText());
+						}
+					};
+
+					new Timer().schedule(filterTimerTask, 300);
+				}));
+
+		JButton filterClearButton = new JButton(Icons.ICON_CLOSE);
+		filterClearButton.setToolTipText("Clear filter");
+
+		filterClearButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				filterField.setText("");
+				filterField.repaint();
+			}
+		});
+
+		filterPanel.add(filterField, BorderLayout.CENTER);
+		filterPanel.add(filterClearButton, BorderLayout.LINE_END);
+
+		leftPane.add(filterPanel, BorderLayout.PAGE_START);
+
 		treeSplitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this, tabsController);
@@ -1506,6 +1589,38 @@ public class MainWindow extends JFrame {
 				closeWindow();
 			}
 		});
+	}
+
+	private void expandTree(JTree tree, FilterableTreeModel treeModel) {
+		TreeNode rootNode = (TreeNode) treeModel.getRoot();
+
+		if (rootNode == null) {
+			return;
+		}
+
+		TreePath rootPath = new TreePath(treeModel.getPathToRoot(rootNode));
+
+		expandTree(tree, treeModel, rootPath);
+	}
+
+	private void expandTree(JTree tree, FilterableTreeModel treeModel, TreePath path) {
+		if (path.getLastPathComponent() instanceof JClass) {
+			tree.makeVisible(path);
+		} else {
+			int childrenCount = treeModel.getChildCount(path.getLastPathComponent());
+
+			if (childrenCount == 0) {
+				// this is a leaf node that has not passed through a class
+				// e.g. a resource
+				tree.makeVisible(path);
+			}
+
+			for (int i = 0; i < childrenCount; i++) {
+				Object child = treeModel.getChild(path.getLastPathComponent(), i);
+				expandTree(tree, treeModel, path.pathByAddingChild(child));
+			}
+		}
+
 	}
 
 	public void setLocationAndPosition() {

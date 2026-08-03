@@ -9,6 +9,7 @@ plugins {
 	id("com.github.ben-manes.versions") version "0.54.0"
 	id("se.patrikerdes.use-latest-versions") version "0.2.19"
 	id("com.diffplug.spotless") version "8.8.0"
+	id("eclipse")
 }
 
 val jadxEnv = loadEnv(file("$rootDir/.env"))

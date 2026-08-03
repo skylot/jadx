@@ -23,7 +23,7 @@ import jadx.zip.IZipEntry;
 
 public class BinaryContentPanel extends AbstractCodeContentPanel implements ILazyLoad {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryContentPanel.class);
-	private final transient HexPreviewPanel hexPreviewPanel;
+	protected final transient HexPreviewPanel hexPreviewPanel;
 
 	public BinaryContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
@@ -44,10 +44,11 @@ public class BinaryContentPanel extends AbstractCodeContentPanel implements ILaz
 			return;
 		}
 		LOG.debug("Loading Hex View of {}", node.getName());
+
 		UiUtils.uiRunAndWait(() -> hexPreviewPanel.setData(getNodeData()));
 	}
 
-	private BinaryData getNodeData() {
+	protected BinaryData getNodeData() {
 		JNode binaryNode = getNode();
 		if (binaryNode instanceof JResource) {
 			JResource jResource = (JResource) binaryNode;

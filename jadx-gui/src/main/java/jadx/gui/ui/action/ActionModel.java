@@ -42,7 +42,7 @@ public enum ActionModel {
 	EXIT(MENU_TOOLBAR, NLS.str("file.exit"), null, "ui/exit", null),
 	SYNC(MENU_TOOLBAR, NLS.str("menu.sync"), null, "ui/locate", keyboard(KeyEvent.VK_T, ctrlButton())),
 	TEXT_SEARCH(MENU_TOOLBAR, NLS.str("menu.text_search"), null, "ui/find", keyboard(KeyEvent.VK_F, ctrlButton() | SHIFT_DOWN_MASK)),
-
+	STRINGS(MENU_TOOLBAR, NLS.str("menu.strings"), null, "ui/strings", Shortcut.none()),
 	CLASS_SEARCH(MENU_TOOLBAR, NLS.str("menu.class_search"), null, "ui/ejbFinderMethod", keyboard(KeyEvent.VK_N, ctrlButton())),
 	COMMENT_SEARCH(MENU_TOOLBAR, NLS.str("menu.comment_search"), null, "ui/usagesFinder",
 			keyboard(KeyEvent.VK_SEMICOLON, ctrlButton() | SHIFT_DOWN_MASK)),

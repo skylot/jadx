@@ -20,6 +20,7 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.BinaryContentPanel;
 import jadx.gui.ui.codearea.CodeContentPanel;
+import jadx.gui.ui.codearea.LibraryContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;
 
@@ -70,6 +71,10 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 			case FONT:
 				tabbedPane.addTab(NLS.str("tabs.font"), new FontPanel(panel, resource));
 				tabbedPane.addTab(NLS.str("tabs.hex"), new BinaryContentPanel(panel, resource));
+				return;
+
+			case LIB:
+				tabbedPane.addTab(NLS.str("tabs.hex"), new LibraryContentPanel(panel, resource));
 				return;
 		}
 

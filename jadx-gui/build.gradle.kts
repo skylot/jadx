@@ -57,6 +57,11 @@ dependencies {
 	implementation("com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0")
 	implementation("com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0")
 
+	// Library for ELF file parsing
+	implementation("net.fornwall:jelf:0.9.0")
+
+	implementation("com.google.guava:guava:33.6.0-jre")
+
 	testImplementation(
 		project
 			.project(":jadx-core")
