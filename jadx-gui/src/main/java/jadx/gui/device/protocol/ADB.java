@@ -276,7 +276,7 @@ public class ADB {
 		return rst;
 	}
 
-	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w-]{10,20}$");
+	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w-]{8,20}$");
 
 	private static void checkSerial(String serial) {
 		if (!SERIAL_PATTERN.matcher(serial).matches()) {
