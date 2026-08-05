@@ -8,7 +8,7 @@ class JavaClassStringReader : Iterator<String> {
 	fun registerSmali(smali: String) {
 		// Regex pattern will find the string part of the Smali const-string opcode and will output the string to a capture group
 		// Expected pattern: const-string someRegister0, "string"
-		val regex = Regex("const-string[ \\w]*,.*?\\\"+(?<string>.*)\\\"\\n")
+		val regex = Regex("const-string[ \\w]*,.*?\\\"+(?<string>.*)\\\"")
 		matchesIterator = regex.findAll(smali).iterator()
 		index = 0
 	}
