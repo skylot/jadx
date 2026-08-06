@@ -1,0 +1,41 @@
+.version 50
+.class public super conditions/TestDuplicatedBlockCondition
+.super java/lang/Object
+.auto frames
+
+# Java equivalent:
+#   static int test(boolean a, boolean b, boolean x, boolean y) {
+#       int r = 2;
+#       if (a || b) {         # 'if' body is a block with two predecessors -> DUPLICATED
+#           r = (x || y) ? 1 : 0;
+#       }
+#       return r;
+#   }
+#
+# The '(x || y)' block heads a merged short-circuit condition and is also reached from
+# two predecessors, so it is processed as a region head twice. The second (standalone)
+# pass must not invert its shared 'if' instruction again, otherwise the first operand of
+# the already built condition gets flipped ('x || y' -> '!x || y').
+
+.method public static test(ZZZZ)I
+    iload 0
+    ifne :L_body
+    iconst_2
+    istore 4
+    iload 1
+    ifeq :L_return
+  :L_body
+    iload 2
+    ifne :L_one
+    iload 3
+    ifne :L_one
+    iconst_0
+    istore 4
+    goto :L_return
+  :L_one
+    iconst_1
+    istore 4
+  :L_return
+    iload 4
+    ireturn
+.end method
