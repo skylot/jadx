@@ -95,6 +95,8 @@ public final class FixTypesVisitor extends AbstractVisitor {
 					break;
 				}
 			}
+		} catch (JadxOverflowException e) {
+			mth.addWarnComment("Type fixes stopped after reaching update limit: " + e.getMessage());
 		} catch (Exception e) {
 			mth.addError("Types fix failed", e);
 		}

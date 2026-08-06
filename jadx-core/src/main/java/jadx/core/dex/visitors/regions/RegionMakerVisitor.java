@@ -9,6 +9,7 @@ import jadx.core.dex.visitors.regions.maker.RegionMaker;
 import jadx.core.dex.visitors.regions.maker.SynchronizedRegionMaker;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 @JadxVisitor(
 		name = "RegionMakerVisitor",
@@ -21,17 +22,25 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
 			return;
 		}
-		RegionMaker rm = new RegionMaker(mth);
-		mth.setRegion(rm.makeMthRegion());
-		if (!mth.isNoExceptionHandlers()) {
-			new ExcHandlersRegionMaker(mth, rm).process();
-		}
-		processForceInlineInsns(mth);
-		ProcessTryCatchRegions.process(mth);
-		PostProcessRegions.process(mth);
-		CleanRegions.process(mth);
-		if (mth.getAccessFlags().isSynchronized()) {
-			SynchronizedRegionMaker.removeSynchronized(mth);
+		try {
+			RegionMaker rm = new RegionMaker(mth);
+			mth.setRegion(rm.makeMthRegion());
+			if (!mth.isNoExceptionHandlers()) {
+				new ExcHandlersRegionMaker(mth, rm).process();
+			}
+			processForceInlineInsns(mth);
+			ProcessTryCatchRegions.process(mth);
+			PostProcessRegions.process(mth);
+			CleanRegions.process(mth);
+			if (mth.getAccessFlags().isSynchronized()) {
+				SynchronizedRegionMaker.removeSynchronized(mth);
+			}
+		} catch (JadxOverflowException e) {
+			mth.setRegion(null);
+			mth.addWarnComment("Code restructure failed: " + e.getMessage() + ", using fallback mode");
+		} catch (StackOverflowError e) {
+			mth.setRegion(null);
+			mth.addWarnComment("Code restructure failed: StackOverflowError, using fallback mode", e);
 		}
 	}
 
