@@ -66,8 +66,17 @@ public class ClassNode extends NotificationAttrNode
 	private final ClassInfo clsInfo;
 	private PackageNode packageNode;
 	private AccessInfo accessFlags;
+
+	/**
+	 * This class' super class
+	 */
 	private ArgType superClass;
+
+	/**
+	 * Interfaces this class implements
+	 */
 	private List<ArgType> interfaces;
+
 	private List<ArgType> generics = Collections.emptyList();
 	private String inputFileName;
 
@@ -493,11 +502,17 @@ public class ClassNode extends NotificationAttrNode
 		}
 	}
 
+	/*
+	 * Get the superclass of this class
+	 */
 	@Nullable
 	public ArgType getSuperClass() {
 		return superClass;
 	}
 
+	/*
+	 * Get the interfaces this class implements
+	 */
 	public List<ArgType> getInterfaces() {
 		return interfaces;
 	}
