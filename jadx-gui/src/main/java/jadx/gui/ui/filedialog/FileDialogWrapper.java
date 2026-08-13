@@ -124,7 +124,7 @@ public class FileDialogWrapper {
 				break;
 
 			case EXPORT_NODE_FOLDER:
-				isOpen = true;
+				isOpen = false;
 				title = NLS.str("file.save_all_msg");
 				currentDir = mainWindow.getSettings().getLastSaveFilePath();
 				selectionMode = JFileChooser.DIRECTORIES_ONLY;
