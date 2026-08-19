@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.TryCatchRegion;
@@ -467,12 +468,13 @@ public class DotGraphUtils {
 
 	public static String methodFormatName(MethodNode methodNode, boolean longName) {
 		if (longName) {
+			RootNode root = methodNode.root();
 			ClassNode parentClass = methodNode.getParentClass();
 			List<ArgType> argTypes = methodNode.getArgTypes();
 			ArgType retType = methodNode.getReturnType();
 			return classFormatName(parentClass, true) + "." + methodFormatName(methodNode, false)
-					+ '(' + Utils.listToString(argTypes, ", ", e -> argTypeFormatName(e, parentClass, true)) + "):"
-					+ argTypeFormatName(retType, parentClass, true);
+					+ '(' + Utils.listToString(argTypes, ", ", e -> argTypeFormatName(e, root, true)) + "):"
+					+ argTypeFormatName(retType, root, true);
 		}
 		return methodNode.getAlias();
 	}
@@ -488,14 +490,19 @@ public class DotGraphUtils {
 		return name;
 	}
 
-	public static String interfaceFormatName(ArgType iface, ClassNode cls, boolean longName) {
-		ClassInfo ifaceInfo = ClassInfo.fromType(cls.root(), iface);
+	public static String interfaceFormatName(ArgType iface, RootNode root, boolean longName) {
+		ClassInfo ifaceInfo = ClassInfo.fromType(root, iface);
 		return longName ? ifaceInfo.getAliasFullName() : ifaceInfo.getAliasShortName();
 	}
 
-	public static String argTypeFormatName(ArgType arg, ClassNode cls, boolean longName) {
+	public static String rawNameFormatName(String rawName, RootNode root, boolean longName) {
+		ClassInfo ifaceInfo = ClassInfo.fromName(root, rawName);
+		return longName ? ifaceInfo.getAliasFullName() : ifaceInfo.getAliasShortName();
+	}
+
+	public static String argTypeFormatName(ArgType arg, RootNode root, boolean longName) {
 		if (arg.isObject() && !arg.isGenericType()) {
-			ClassNode superCls = cls.root().resolveClass(arg);
+			ClassNode superCls = root.resolveClass(arg);
 			if (superCls != null) {
 				return DotGraphUtils.classFormatName(superCls, longName);
 			}

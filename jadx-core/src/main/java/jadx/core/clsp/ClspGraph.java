@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.Consts;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -24,15 +23,37 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
  * Classes hierarchy graph with methods additional info
+ *
+ * nameMap is constructed through loadClsSetFile, addClasspath, or addApp.
+ *
+ * initCache must be called after the nameMap has been propagated to fill the caches before using
+ * other class features.
+ *
+ * isImplements, getCommonAncestor, getImplementations and others can then be used to query the
+ * class hierarchy.
+ *
+ * printMissingClasses is used to display any classes encountered when enumerating parents that
+ * were missing from the nameMap.
  */
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
 	private final RootNode root;
+	/** Maps class names to class details */
 	private Map<String, ClspClass> nameMap;
+	/** Maps class names to all super classes and implemented interfaces */
 	private Map<String, Set<String>> superTypesCache;
+	/** Maps class names to all sub classes and implementations */
 	private Map<String, List<String>> implementsCache;
+	/**
+	 * Maps class names to immediate super classes - this is equivalent to the .parents attribute of the
+	 * ClspClasses in the nameMap
+	 */
+	private Map<String, Set<String>> immediateSuperTypesCache;
+	/** Maps class names to immeditae sub classes and implementations */
+	private Map<String, List<String>> immediateImplementsCache;
 
+	/** Classes encountered when building the caches that have not had details provided */
 	private final Set<String> missingClasses = new HashSet<>();
 
 	public ClspGraph(RootNode rootNode) {
@@ -54,6 +75,11 @@ public class ClspGraph {
 		}
 	}
 
+	/**
+	 * Add a list of classes to the class map
+	 *
+	 * @param classes the classes to add
+	 */
 	public void addApp(List<ClassNode> classes) {
 		if (nameMap == null) {
 			nameMap = new HashMap<>(classes.size());
@@ -63,17 +89,44 @@ public class ClspGraph {
 		}
 	}
 
+	/**
+	 * Construct the cached mappings from the added classes
+	 */
 	public void initCache() {
+		fillImmediateSuperTypesCache();
+		fillImmediateImplementsCache();
 		fillSuperTypesCache();
 		fillImplementsCache();
 	}
 
+	/**
+	 * Check if the class name has been added to the graph
+	 *
+	 * @param fullName the raw name of the class to check
+	 * @return
+	 */
 	public boolean isClsKnown(String fullName) {
 		return nameMap.containsKey(fullName);
 	}
 
+	/**
+	 * Get the ClspClass for an object
+	 *
+	 * @param type the ArgType of the object to fetch
+	 * @return
+	 */
 	public ClspClass getClsDetails(ArgType type) {
-		return nameMap.get(type.getObject());
+		return getClsDetails(type.getObject());
+	}
+
+	/**
+	 * Get the ClspClass for a class string
+	 *
+	 * @param cls the name of the class to fetch
+	 * @return
+	 */
+	public ClspClass getClsDetails(String cls) {
+		return nameMap.get(cls);
 	}
 
 	@Nullable
@@ -104,6 +157,13 @@ public class ClspGraph {
 		return cls.getMethodsMap().get(methodInfo.getShortId());
 	}
 
+	/**
+	 * Add a class to the class path graph.
+	 *
+	 * Extracts the name, access flags, and parents information to store in a ClspClass entry
+	 *
+	 * @param cls
+	 */
 	private void addClass(ClassNode cls) {
 		ArgType clsType = cls.getClassInfo().getType();
 		String rawName = clsType.getObject();
@@ -120,11 +180,46 @@ public class ClspGraph {
 		return anc.contains(implClsName);
 	}
 
+	/**
+	 * Get all implementations of a class
+	 *
+	 * @param clsName
+	 * @return
+	 */
 	public List<String> getImplementations(String clsName) {
 		List<String> list = implementsCache.get(clsName);
 		return list == null ? Collections.emptyList() : list;
 	}
 
+	/**
+	 * Get direct implementations of a class
+	 *
+	 * @param clsName
+	 * @return
+	 */
+	public List<String> getChildren(String clsName) {
+		List<String> list = immediateImplementsCache.get(clsName);
+		return list == null ? Collections.emptyList() : list;
+	}
+
+	/**
+	 * Propogate the immediate implements cache by reversing the immediateSuperTypesCache
+	 */
+	private void fillImmediateImplementsCache() {
+		Map<String, List<String>> map = new HashMap<>(nameMap.size());
+		List<String> classes = new ArrayList<>(nameMap.keySet());
+		Collections.sort(classes);
+		for (String cls : classes) {
+			for (String st : getParents(cls)) {
+				map.computeIfAbsent(st, v -> new ArrayList<>()).add(cls);
+			}
+		}
+		immediateImplementsCache = map;
+	}
+
+	/**
+	 * Propogate the implements cache by reversing the superTypesCache
+	 */
 	private void fillImplementsCache() {
 		Map<String, List<String>> map = new HashMap<>(nameMap.size());
 		List<String> classes = new ArrayList<>(nameMap.keySet());
@@ -170,57 +265,62 @@ public class ClspGraph {
 		return null;
 	}
 
+	/**
+	 * Get all super types for a class
+	 *
+	 * @param clsName
+	 * @return
+	 */
 	public Set<String> getSuperTypes(String clsName) {
 		Set<String> result = superTypesCache.get(clsName);
 		return result == null ? Collections.emptySet() : result;
 	}
 
-	private static final Set<String> OBJECT_SINGLE_SET = Collections.singleton(Consts.CLASS_OBJECT);
-
-	private void fillSuperTypesCache() {
-		Map<String, Set<String>> map = new HashMap<>(nameMap.size());
-		Set<String> tmpSet = new HashSet<>();
-		for (Map.Entry<String, ClspClass> entry : nameMap.entrySet()) {
-			ClspClass cls = entry.getValue();
-			tmpSet.clear();
-			addSuperTypes(cls, tmpSet);
-			Set<String> result;
-			int size = tmpSet.size();
-			switch (size) {
-				case 0: {
-					result = Collections.emptySet();
-					break;
-				}
-				case 1: {
-					String supCls = tmpSet.iterator().next();
-					if (supCls.equals(Consts.CLASS_OBJECT)) {
-						result = OBJECT_SINGLE_SET;
-					} else {
-						result = Collections.singleton(supCls);
-					}
-					break;
-				}
-				default: {
-					result = new HashSet<>(tmpSet);
-					break;
-				}
-			}
-			map.put(cls.getName(), result);
+	/**
+	 * Get the immediate parents for a class
+	 *
+	 * @param clsName
+	 * @return
+	 */
+	public Set<String> getParents(String clsName) {
+		if (!immediateSuperTypesCache.containsKey(clsName)) {
+			return null;
 		}
-		superTypesCache = map;
+		return immediateSuperTypesCache.get(clsName);
 	}
 
-	private void addSuperTypes(ClspClass cls, Set<String> result) {
+	/**
+	 * Propogate the immediateSuperTypesCache by traversing the nameMap and inspecting the parents of
+	 * the ClspClasses
+	 */
+	private void fillImmediateSuperTypesCache() {
+		Map<String, Set<String>> nametoSupertypesMap = new HashMap<>(nameMap.size());
+		for (Map.Entry<String, ClspClass> entry : nameMap.entrySet()) {
+			Set<String> supertypesSet = new HashSet<>();
+			ClspClass cls = entry.getValue();
+			addImmediateSuperTypes(cls, supertypesSet);
+			nametoSupertypesMap.put(cls.getName(), supertypesSet);
+		}
+		immediateSuperTypesCache = nametoSupertypesMap;
+	}
+
+	/**
+	 * Add only the names of immediate super types of cls to result
+	 *
+	 * @param cls
+	 * @param result
+	 */
+	private void addImmediateSuperTypes(ClspClass cls, Set<String> result) {
 		for (ArgType parentType : cls.getParents()) {
 			if (parentType == null) {
 				continue;
 			}
 			ClspClass parentCls = getClspClass(parentType);
+
+			// add just the parent
 			if (parentCls != null) {
-				boolean isNew = result.add(parentCls.getName());
-				if (isNew) {
-					addSuperTypes(parentCls, result);
-				}
+				// this should be equivalent to parentType.getObject()
+				result.add(parentCls.getName());
 			} else {
 				// parent type is unknown
 				result.add(parentType.getObject());
@@ -228,6 +328,51 @@ public class ClspGraph {
 		}
 	}
 
+	/**
+	 * Propogate the superTypesCache by traversing the immediateSuperTypesCache
+	 */
+	private void fillSuperTypesCache() {
+		Map<String, Set<String>> nametoSupertypesMap = new HashMap<>(nameMap.size());
+		for (String name : immediateSuperTypesCache.keySet()) {
+			Set<String> supertypesSet = new HashSet<>();
+			addSuperTypes(name, supertypesSet);
+			nametoSupertypesMap.put(name, supertypesSet);
+		}
+		superTypesCache = nametoSupertypesMap;
+	}
+
+	/**
+	 * Add the names of super types of cls to result using immediateSuperTypesCache
+	 *
+	 * @param clsName
+	 * @param result
+	 */
+	private void addSuperTypes(String clsName, Set<String> result) {
+		Set<String> parents = getParents(clsName);
+		if (parents == null) {
+			return;
+		}
+
+		for (String parent : parents) {
+			// add the parent
+			boolean isNew = result.add(parent);
+			if (isNew) {
+				// add super types of the parent
+				addSuperTypes(parent, result);
+			}
+		}
+	}
+
+	/**
+	 * Get the ClspClass for an object when propogating the super types cache.
+	 * Adds objects to the missingClasses list if they are encountered but haven't been added to the
+	 * nameMap.
+	 *
+	 * An internal equivalent to getClsDetails that handles constructing missing classes
+	 *
+	 * @param clsType
+	 * @return
+	 */
 	@Nullable
 	private ClspClass getClspClass(ArgType clsType) {
 		ClspClass clspClass = nameMap.get(clsType.getObject());
@@ -237,6 +382,9 @@ public class ClspGraph {
 		return clspClass;
 	}
 
+	/**
+	 * Display missing classes
+	 */
 	public void printMissingClasses() {
 		int count = missingClasses.size();
 		if (count == 0) {
