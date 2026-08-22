@@ -131,6 +131,14 @@ tasks.startShadowScripts {
 				.readText()
 				.replace("java.exe", "javaw.exe")
 				.replace("\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%", "start \"jadx-gui\" /B \"%JAVA_EXE%\" %DEFAULT_JVM_OPTS%")
+				// Prefer 8.3 short path when available so non-ASCII install paths still work (#2926)
+				.replace(
+					"set APP_HOME=%DIRNAME%..",
+					"set APP_HOME=%DIRNAME%..\r\nfor %%i in (\"%APP_HOME%\") do set APP_HOME=%%~si",
+				).replace(
+					"for %%i in (\"%APP_HOME%\") do set APP_HOME=%%~fi",
+					"for %%i in (\"%APP_HOME%\") do set APP_HOME=%%~si",
+				)
 		// Add launch script path as a property
 		val newUnixScriptContent =
 			unixScript
@@ -143,6 +151,13 @@ tasks.startShadowScripts {
 		unixScript.writeText(newUnixScriptContent)
 	}
 }
+
+// Launch4j uses ANSI Windows APIs and fails when the install path contains non-ASCII
+// characters (emoji, CJK, accented letters, …) — see #2926. These messages surface when
+// the launcher itself can report an error; the JVM "JNI error" dialog cannot be customized.
+val nonAsciiPathHint =
+	"If the install path contains non-ASCII characters, use jadx-gui.cmd next to this exe, " +
+		"the MSI installer, or move jadx to a path with only ASCII characters. See https://github.com/skylot/jadx/issues/2926"
 
 launch4j {
 	mainClassName.set(application.mainClass.get())
@@ -159,6 +174,12 @@ launch4j {
 	requires64Bit.set(true)
 	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk21-windows")
 	supportUrl.set("https://github.com/skylot/jadx")
+	errTitle.set("jadx-gui")
+	messagesStartupError.set("Failed to start jadx-gui. $nonAsciiPathHint")
+	messagesLauncherError.set("jadx-gui launcher error. $nonAsciiPathHint")
+	messagesJreNotFoundError.set(
+		"Java 11+ (64-bit) was not found. Install a JDK/JRE or set JAVA_HOME. $nonAsciiPathHint",
+	)
 
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
 	classpath.set(
@@ -178,6 +199,71 @@ fun escapeJVMOptions(): List<String> =
 	application.applicationDefaultJvmArgs
 		.toList()
 		.map { if (it.startsWith("-D")) "\"$it\"" else it }
+
+/**
+ * Build a Unicode-friendly Windows .cmd launcher for portable bundles.
+ * Launch4j's .exe uses ANSI path APIs and cannot start from non-ASCII paths (#2926).
+ * This script prefers the 8.3 short path when available, then starts javaw directly.
+ */
+fun windowsCmdLauncher(bundleJre: Boolean): String {
+	val jvmOpts =
+		application.applicationDefaultJvmArgs.joinToString(" ") { opt ->
+			if (opt.startsWith("-D") || opt.contains(' ')) "\"$opt\"" else opt
+		}
+	val lines = mutableListOf<String>()
+	lines += "@echo off"
+	lines += "setlocal EnableExtensions"
+	lines += "rem Unicode-safe launcher for paths with non-ASCII characters (issue #2926)."
+	lines += "rem Prefer this over the .exe when the install folder name is not pure ASCII."
+	lines += "set \"DIR=%~dp0\""
+	lines += "if \"%DIR:~-1%\"==\"\\\" set \"DIR=%DIR:~0,-1%\""
+	lines += "rem 8.3 short path keeps the JVM classpath ASCII when short names are enabled"
+	lines += "for %%I in (\"%DIR%\") do set \"DIR=%%~sI\""
+	lines += ""
+	if (bundleJre) {
+		lines += "set \"JAVA_EXE=%DIR%\\jre\\bin\\javaw.exe\""
+		lines += "if not exist \"%JAVA_EXE%\" ("
+		lines += "  echo ERROR: Bundled JRE not found:"
+		lines += "  echo   %JAVA_EXE%"
+		lines += "  pause"
+		lines += "  exit /b 1"
+		lines += ")"
+	} else {
+		lines += "if defined JAVA_HOME ("
+		lines += "  set \"JAVA_EXE=%JAVA_HOME%\\bin\\javaw.exe\""
+		lines += ") else ("
+		lines += "  set \"JAVA_EXE=javaw.exe\""
+		lines += ")"
+	}
+	lines += ""
+	lines += "set \"CP=\""
+	lines += "for %%J in (\"%DIR%\\lib\\*.jar\") do set \"CP=%%~fJ\""
+	lines += "if not defined CP ("
+	lines += "  echo ERROR: No jar found in \"%DIR%\\lib\""
+	lines += "  echo If this path contains non-ASCII characters, move jadx to an ASCII-only folder"
+	lines += "  echo or use the MSI installer from the GitHub releases / nightly builds."
+	lines += "  pause"
+	lines += "  exit /b 1"
+	lines += ")"
+	lines += ""
+	lines += "start \"jadx-gui\" /B \"%JAVA_EXE%\" $jvmOpts -cp \"%CP%\" jadx.gui.JadxGUI %*"
+	lines += ""
+	return lines.joinToString("\n")
+}
+
+val writeWinCmdLauncher =
+	tasks.register("writeWinCmdLauncher") {
+		description = "Write Unicode-safe jadx-gui.cmd for Windows portable bundles"
+		val outDir = layout.buildDirectory.dir("win-launcher")
+		val outFile = outDir.map { it.file("jadx-gui.cmd") }
+		val bundleJre = project.hasProperty("bundleJRE")
+		outputs.file(outFile)
+		doLast {
+			val file = outFile.get().asFile
+			file.parentFile.mkdirs()
+			file.writeText(windowsCmdLauncher(bundleJre).replace("\n", "\r\n"))
+		}
+	}
 
 runtime {
 	addOptions("--strip-debug", "--no-header-files", "--no-man-pages")
@@ -251,6 +337,8 @@ val copyDistWin =
 		from(exeTask.outputs) {
 			include("*.exe")
 		}
+		dependsOn(writeWinCmdLauncher)
+		from(writeWinCmdLauncher)
 		into(layout.buildDirectory.dir("jadx-gui-win"))
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
@@ -276,6 +364,8 @@ val copyDistWinWithJre =
 		from(exeTask.outputs) {
 			include("*.exe")
 		}
+		dependsOn(writeWinCmdLauncher)
+		from(writeWinCmdLauncher)
 		into(layout.buildDirectory.dir("jadx-gui-with-jre-win"))
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
