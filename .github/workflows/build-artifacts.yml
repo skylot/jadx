@@ -25,7 +25,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Build
         run: ./gradlew dist -PjadxBundleType=app
@@ -65,7 +65,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Build NO-JRE bundle
         run: ./gradlew dist -PjadxBundleType=win-no-jre
@@ -140,7 +140,7 @@ jobs:
           echo "JADX_VERSION=$JADX_VERSION" >> $GITHUB_ENV
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Build
         run: ./gradlew distMac -PjadxBundleType=dmg
