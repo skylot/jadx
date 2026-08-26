@@ -769,7 +769,11 @@ public class JadxSettingsWindow extends JDialog {
 		SwingUtilities.invokeLater(() -> {
 			if (shouldReload()) {
 				mainWindow.getShortcutsController().loadSettings();
-				mainWindow.reopen();
+				if (mainWindow.getProject().getFilePaths().isEmpty()) {
+					mainWindow.reloadMenuShortcuts();
+				} else {
+					mainWindow.reopen();
+				}
 			}
 			if (!settings.getLangLocale().equals(prevLang)) {
 				JOptionPane.showMessageDialog(

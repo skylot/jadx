@@ -507,6 +507,10 @@ public class MainWindow extends JFrame {
 		return loadedFile.resolveSibling(fileName);
 	}
 
+	public void reloadMenuShortcuts() {
+		menuBar.reloadShortcuts();
+	}
+
 	public void reopen() {
 		LOG.debug("starting reopen");
 		UiUtils.bgRun(() -> {
@@ -516,7 +520,7 @@ public class MainWindow extends JFrame {
 				closeAll();
 				System.gc();
 				loadFiles(() -> {
-					menuBar.reloadShortcuts();
+					reloadMenuShortcuts();
 					events().send(ReloadSettingsWindow.INSTANCE);
 					LOG.debug("reopen complete");
 				});
