@@ -63,6 +63,12 @@ public class PluginSettings {
 				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(context.getPluginId(), pluginGroup));
 			}
 		}
+		for (GuiPluginContext appContext : mainWindow.getGuiPluginsContext().getAppPluginContexts()) {
+			ISettingsGroup customSettingsGroup = appContext.getCustomSettingsGroup();
+			if (customSettingsGroup != null) {
+				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(appContext.getPluginId(), customSettingsGroup));
+			}
+		}
 		return pluginsGroup;
 	}
 
