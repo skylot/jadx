@@ -21,7 +21,7 @@ public class TreeInputsHelper {
 	private List<Path> simpleFiles;
 
 	public TreeInputsHelper(MainWindow mainWindow) {
-		categoryData = mainWindow.getWrapper().getGuiPluginsContext()
+		categoryData = mainWindow.getGuiPluginsContext()
 				.getTreeInputCategories()
 				.stream()
 				.map(CategoryData::new)

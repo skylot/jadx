@@ -251,10 +251,13 @@ public class MainWindow extends JFrame {
 
 	private final transient RenameMappingsGui renameMappings;
 
+	private final transient CommonGuiPluginsContext guiPluginsContext;
+
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
+		this.guiPluginsContext = new CommonGuiPluginsContext(this);
 		this.cacheObject = new CacheObject(wrapper);
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
@@ -915,8 +918,7 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JPopupMenu menu = node.onTreePopupMenu(this);
-		CommonGuiPluginsContext pluginsContext = getWrapper().getGuiPluginsContext();
-		for (TreePopupMenuEntry entry : pluginsContext.getTreePopupMenuEntries()) {
+		for (TreePopupMenuEntry entry : guiPluginsContext.getTreePopupMenuEntries()) {
 			JMenuItem menuItem = entry.buildEntry(node);
 			if (menuItem != null) {
 				if (menu == null) {
@@ -1674,6 +1676,10 @@ public class MainWindow extends JFrame {
 
 	public JadxWrapper getWrapper() {
 		return wrapper;
+	}
+
+	public CommonGuiPluginsContext getGuiPluginsContext() {
+		return guiPluginsContext;
 	}
 
 	public JadxProject getProject() {

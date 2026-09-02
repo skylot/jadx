@@ -57,7 +57,6 @@ public class JadxWrapper {
 
 	private final MainWindow mainWindow;
 	private volatile @Nullable JadxDecompiler decompiler;
-	private CommonGuiPluginsContext guiPluginsContext;
 
 	public JadxWrapper(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -75,7 +74,7 @@ public class JadxWrapper {
 				JadxAppCommon.applyEnvVars(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);
-				guiPluginsContext = initGuiPluginsContext(decompiler, mainWindow);
+				initGuiPluginsContext(decompiler);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
@@ -105,10 +104,7 @@ public class JadxWrapper {
 					decompiler.close();
 					decompiler = null;
 				}
-				if (guiPluginsContext != null) {
-					resetGuiPluginsContext();
-					guiPluginsContext = null;
-				}
+				mainWindow.getGuiPluginsContext().resetProjectScope();
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler close error", e);
@@ -167,27 +163,18 @@ public class JadxWrapper {
 		}
 	}
 
-	public static CommonGuiPluginsContext initGuiPluginsContext(JadxDecompiler decompiler, MainWindow mainWindow) {
-		CommonGuiPluginsContext guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
+	private void initGuiPluginsContext(JadxDecompiler decompiler) {
+		CommonGuiPluginsContext guiPluginsContext = mainWindow.getGuiPluginsContext();
 		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
 			AppContext appContext = new AppContext();
 			appContext.setGuiContext(guiPluginsContext.buildForPlugin(pluginContext));
 			appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
 			pluginContext.setAppContext(appContext);
 		});
-		return guiPluginsContext;
-	}
-
-	public CommonGuiPluginsContext getGuiPluginsContext() {
-		return guiPluginsContext;
-	}
-
-	public void resetGuiPluginsContext() {
-		guiPluginsContext.reset();
 	}
 
 	public void reloadPasses() {
-		resetGuiPluginsContext();
+		mainWindow.getGuiPluginsContext().resetProjectScope();
 		decompiler.reloadPasses();
 	}
 

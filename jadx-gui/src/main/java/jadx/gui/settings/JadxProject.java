@@ -186,7 +186,7 @@ public class JadxProject {
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
-		tabStateViewAdapter.setCustomAdapters(mw.getWrapper().getGuiPluginsContext().getTabStatePersistAdapters());
+		tabStateViewAdapter.setCustomAdapters(mw.getGuiPluginsContext().getTabStatePersistAdapters());
 		return data.getOpenTabs().stream()
 				.map(s -> tabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)
