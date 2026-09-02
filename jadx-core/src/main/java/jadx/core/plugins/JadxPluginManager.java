@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.gui.JadxGuiPlugin;
 import jadx.api.plugins.input.JadxCodeInput;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -61,7 +62,7 @@ public class JadxPluginManager {
 		Objects.requireNonNull(plugin);
 		PluginContext addedPlugin = addPlugin(plugin, new VerifyRequiredVersion());
 		if (addedPlugin == null) {
-			LOG.debug("Can't register plugin, it was disabled: {}", plugin.getPluginInfo().getPluginId());
+			LOG.debug("Plugin not registered: {}", plugin.getPluginInfo().getPluginId());
 			return;
 		}
 		LOG.debug("Register plugin: {}", addedPlugin.getPluginId());
@@ -69,6 +70,10 @@ public class JadxPluginManager {
 	}
 
 	private @Nullable PluginContext addPlugin(JadxPlugin plugin, VerifyRequiredVersion verifyRequiredVersion) {
+		if (plugin instanceof JadxGuiPlugin) {
+			LOG.debug("Skip application scoped gui plugin: {}", plugin.getPluginInfo().getPluginId());
+			return null;
+		}
 		PluginContext pluginContext = new PluginContext(decompiler, pluginsData, plugin);
 		if (disabledPlugins.contains(pluginContext.getPluginId())) {
 			return null;

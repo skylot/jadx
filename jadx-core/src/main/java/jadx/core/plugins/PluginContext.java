@@ -71,6 +71,10 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 	}
 
 	public void classLoaderWrap(Runnable task) {
+		classLoaderWrap(pluginClassLoader, task);
+	}
+
+	public static void classLoaderWrap(ClassLoader pluginClassLoader, Runnable task) {
 		Thread thread = Thread.currentThread();
 		ClassLoader prevClassLoader = thread.getContextClassLoader();
 		thread.setContextClassLoader(pluginClassLoader);
