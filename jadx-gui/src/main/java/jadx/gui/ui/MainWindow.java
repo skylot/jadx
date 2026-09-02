@@ -111,6 +111,7 @@ import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
+import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
@@ -252,12 +253,14 @@ public class MainWindow extends JFrame {
 	private final transient RenameMappingsGui renameMappings;
 
 	private final transient CommonGuiPluginsContext guiPluginsContext;
+	private final transient GuiPluginsManager guiPluginsManager;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
 		this.guiPluginsContext = new CommonGuiPluginsContext(this);
+		this.guiPluginsManager = new GuiPluginsManager(this);
 		this.cacheObject = new CacheObject(wrapper);
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
@@ -290,6 +293,7 @@ public class MainWindow extends JFrame {
 		treeSplitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
+		UiUtils.bgRun(guiPluginsManager::load);
 		processCommandLineArgs();
 	}
 
@@ -1608,6 +1612,7 @@ public class MainWindow extends JFrame {
 				UiUtils.uiRunAndWait(settings::sync);
 
 				closeAll();
+				guiPluginsManager.unload();
 				UiUtils.uiRunAndWait(() -> {
 					heapUsageBar.reset();
 					editorThemeManager.unload();
