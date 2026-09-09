@@ -363,7 +363,29 @@ public class ExtractFieldInit extends AbstractVisitor {
 		for (int i = 0; i < count; i++) {
 			InsnNode baseInsn = base.get(i).putInsn;
 			InsnNode otherInsn = other.get(i).putInsn;
-			if (!baseInsn.isSame(otherInsn)) {
+			if (!sameFieldInit(baseInsn, otherInsn)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean sameFieldInit(InsnNode first, InsnNode second) {
+		if (!first.isSame(second)) {
+			return false;
+		}
+		for (int i = 0; i < first.getArgsCount(); i++) {
+			InsnArg firstArg = first.getArg(i);
+			InsnArg secondArg = second.getArg(i);
+			// Constructors can use different registers and SSA variables for the same instance.
+			if (firstArg.isThis() && secondArg.isThis()) {
+				continue;
+			}
+			if (firstArg.isInsnWrap() && secondArg.isInsnWrap()) {
+				if (!sameFieldInit(((InsnWrapArg) firstArg).getWrapInsn(), ((InsnWrapArg) secondArg).getWrapInsn())) {
+					return false;
+				}
+			} else if (!firstArg.equals(secondArg)) {
 				return false;
 			}
 		}
