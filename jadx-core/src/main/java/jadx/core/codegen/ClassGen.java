@@ -291,7 +291,8 @@ public class ClassGen {
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
 				.filter(node -> !skipNode(node))
-				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
+				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine)
+						.thenComparing(this::memberSortKey))
 				.forEach(node -> {
 					if (node instanceof ClassNode) {
 						addInnerClass(clsCode, (ClassNode) node);
@@ -299,6 +300,19 @@ public class ClassGen {
 						addMethod(clsCode, (MethodNode) node);
 					}
 				});
+	}
+
+	private String memberSortKey(LineAttrNode node) {
+		if (node instanceof ClassNode) {
+			return "0:" + ((ClassNode) node).getFullName();
+		}
+		MethodNode mth = (MethodNode) node;
+		RootNode root = mth.root();
+		String args = mth.getMethodInfo().getArgumentsTypes().stream()
+				.map(type -> TypeGen.signature(ArgType.tryToResolveClassAlias(root, type)))
+				.collect(Collectors.joining());
+		return "1:" + mth.getAlias() + '(' + args + ')'
+				+ TypeGen.signature(ArgType.tryToResolveClassAlias(root, mth.getMethodInfo().getReturnType()));
 	}
 
 	private boolean skipNode(NotificationAttrNode node) {
