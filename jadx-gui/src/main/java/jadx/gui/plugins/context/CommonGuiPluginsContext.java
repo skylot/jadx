@@ -33,9 +33,18 @@ public class CommonGuiPluginsContext {
 	}
 
 	public GuiPluginContext buildForPlugin(PluginContext pluginContext, boolean isGlobalPlugin) {
-		GuiPluginContext guiPluginContext = new GuiPluginContext(this, projectScope, pluginContext);
+		GuiPluginsRegistry registry = isGlobalPlugin ? globalScope : projectScope;
+		GuiPluginContext guiPluginContext = new GuiPluginContext(this, registry, pluginContext);
 		(isGlobalPlugin ? globalPlugins : projectPlugins).put(pluginContext, guiPluginContext);
 		return guiPluginContext;
+	}
+
+	public void copyGlobalPluginData(PluginContext globalContext, PluginContext projectContext) {
+		GuiPluginContext globalGuiContext = globalPlugins.get(globalContext);
+		GuiPluginContext projectGuiContext = projectPlugins.get(projectContext);
+		if (globalGuiContext != null && projectGuiContext != null) {
+			projectGuiContext.setCustomSettings(globalGuiContext.getCustomSettingsGroup());
+		}
 	}
 
 	public void resetProjectScope() {
