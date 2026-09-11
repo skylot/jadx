@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-	implementation(project(":jadx-core"))
+	api(project(":jadx-core"))
 }
