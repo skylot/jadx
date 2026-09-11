@@ -30,17 +30,23 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 
 	private final List<URLClassLoader> classLoaders = new ArrayList<>();
 
-	@Override
-	public List<JadxPlugin> load() {
-		return load(cls -> true);
+	private final Predicate<Class<?>> pluginClassFilter;
+
+	public JadxExternalPluginsLoader() {
+		this(c -> true);
 	}
 
-	public List<JadxPlugin> load(Predicate<Class<? extends JadxPlugin>> classFilter) {
+	public JadxExternalPluginsLoader(Predicate<Class<?>> pluginClassFilter) {
+		this.pluginClassFilter = pluginClassFilter;
+	}
+
+	@Override
+	public List<JadxPlugin> load() {
 		close();
 		long start = System.currentTimeMillis();
 		Map<String, JadxPlugin> map = new HashMap<>();
-		loadFromClsLoader(map, thisClassLoader(), classFilter);
-		loadInstalledPlugins(map, classFilter);
+		loadFromClsLoader(map, thisClassLoader());
+		loadInstalledPlugins(map);
 
 		List<JadxPlugin> list = new ArrayList<>(map.size());
 		list.addAll(map.values());
@@ -53,41 +59,41 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 
 	public JadxPlugin loadFromPath(Path pluginPath) {
 		Map<String, JadxPlugin> map = new HashMap<>();
-		loadFromPath(map, pluginPath, cls -> true);
+		loadFromPath(map, pluginPath);
 		int loaded = map.size();
-		if (loaded == 0) {
-			throw new JadxRuntimeException("No plugin found in jar: " + pluginPath);
-		}
 		if (loaded > 1) {
 			String plugins = map.values().stream().map(p -> p.getPluginInfo().getPluginId()).collect(Collectors.joining(", "));
 			throw new JadxRuntimeException("Expect only one plugin per jar: " + pluginPath + ", but found: " + loaded + " - " + plugins);
 		}
-		return Utils.first(map.values());
+		JadxPlugin plugin = Utils.first(map.values());
+		if (plugin == null) {
+			throw new JadxRuntimeException("No plugin found in jar: " + pluginPath);
+		}
+		return plugin;
 
 	}
 
-	private void loadFromClsLoader(Map<String, JadxPlugin> map, ClassLoader classLoader,
-			Predicate<Class<? extends JadxPlugin>> classFilter) {
+	private void loadFromClsLoader(Map<String, JadxPlugin> map, ClassLoader classLoader) {
 		ServiceLoader<JadxPlugin> serviceLoader = ServiceLoader.load(JadxPlugin.class, classLoader);
 		for (ServiceLoader.Provider<JadxPlugin> provider : serviceLoader.stream().collect(Collectors.toList())) {
 			Class<? extends JadxPlugin> pluginClass = provider.type();
 			String clsName = pluginClass.getName();
 			if (!map.containsKey(clsName)
 					&& pluginClass.getClassLoader() == classLoader
-					&& classFilter.test(pluginClass)) {
+					&& pluginClassFilter.test(pluginClass)) {
 				map.put(clsName, provider.get());
 			}
 		}
 	}
 
-	private void loadInstalledPlugins(Map<String, JadxPlugin> map, Predicate<Class<? extends JadxPlugin>> classFilter) {
+	private void loadInstalledPlugins(Map<String, JadxPlugin> map) {
 		List<Path> paths = JadxPluginsTools.getInstance().getEnabledPluginPaths();
 		for (Path pluginPath : paths) {
-			loadFromPath(map, pluginPath, classFilter);
+			loadFromPath(map, pluginPath);
 		}
 	}
 
-	private void loadFromPath(Map<String, JadxPlugin> map, Path pluginPath, Predicate<Class<? extends JadxPlugin>> classFilter) {
+	private void loadFromPath(Map<String, JadxPlugin> map, Path pluginPath) {
 		try {
 			URL[] urls;
 			if (Files.isDirectory(pluginPath)) {
@@ -110,7 +116,7 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 			String clsLoaderName = JADX_PLUGIN_CLASSLOADER_PREFIX + pluginPath.getFileName();
 			URLClassLoader pluginClsLoader = new URLClassLoader(clsLoaderName, urls, thisClassLoader());
 			classLoaders.add(pluginClsLoader);
-			loadFromClsLoader(map, pluginClsLoader, classFilter);
+			loadFromClsLoader(map, pluginClsLoader);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to load plugins from: " + pluginPath, e);
 		}

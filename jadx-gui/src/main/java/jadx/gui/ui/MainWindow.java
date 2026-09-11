@@ -81,6 +81,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.api.gui.IMainWindow;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
@@ -112,7 +113,6 @@ import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
 import jadx.gui.plugins.GuiPluginsManager;
-import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
@@ -181,7 +181,7 @@ import jadx.gui.utils.ui.ActionHandler;
 import jadx.gui.utils.ui.FileOpenerHelper;
 import jadx.gui.utils.ui.NodeLabel;
 
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements IMainWindow {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
 
 	private static final String DEFAULT_TITLE = "jadx-gui";
@@ -252,14 +252,12 @@ public class MainWindow extends JFrame {
 
 	private final transient RenameMappingsGui renameMappings;
 
-	private final transient CommonGuiPluginsContext guiPluginsContext;
 	private final transient GuiPluginsManager guiPluginsManager;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
 		this.project = new JadxProject(this);
 		this.wrapper = new JadxWrapper(this);
-		this.guiPluginsContext = new CommonGuiPluginsContext(this);
 		this.guiPluginsManager = new GuiPluginsManager(this);
 		this.cacheObject = new CacheObject(wrapper);
 		this.liveReloadWorker = new LiveReloadWorker(this);
@@ -922,7 +920,7 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JPopupMenu menu = node.onTreePopupMenu(this);
-		for (TreePopupMenuEntry entry : guiPluginsContext.getTreePopupMenuEntries()) {
+		for (TreePopupMenuEntry entry : guiPluginsManager.getPluginsContext().getTreePopupMenuEntries()) {
 			JMenuItem menuItem = entry.buildEntry(node);
 			if (menuItem != null) {
 				if (menu == null) {
@@ -1612,7 +1610,7 @@ public class MainWindow extends JFrame {
 				UiUtils.uiRunAndWait(settings::sync);
 
 				closeAll();
-				guiPluginsManager.unload();
+				guiPluginsManager.runGlobalUnload();
 				UiUtils.uiRunAndWait(() -> {
 					heapUsageBar.reset();
 					editorThemeManager.unload();
@@ -1683,10 +1681,6 @@ public class MainWindow extends JFrame {
 		return wrapper;
 	}
 
-	public CommonGuiPluginsContext getGuiPluginsContext() {
-		return guiPluginsContext;
-	}
-
 	public JadxProject getProject() {
 		return project;
 	}
@@ -1701,6 +1695,10 @@ public class MainWindow extends JFrame {
 
 	public NavigationController getNavController() {
 		return navController;
+	}
+
+	public GuiPluginsManager getGuiPluginsManager() {
+		return guiPluginsManager;
 	}
 
 	public JadxSettings getSettings() {

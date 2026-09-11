@@ -12,6 +12,7 @@ plugins {
 
 dependencies {
 	implementation(project(":jadx-core"))
+	implementation(project(":jadx-gui-api"))
 	implementation(project(":jadx-cli"))
 	implementation(project(":jadx-plugins-tools"))
 	implementation(project(":jadx-commons:jadx-app-commons"))

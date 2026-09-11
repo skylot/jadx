@@ -1,19 +1,22 @@
 package jadx.gui.plugins;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.Objects;
+import java.util.SortedSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.plugins.JadxPlugin;
-import jadx.api.plugins.JadxPluginInfo;
+import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
+import jadx.api.gui.plugins.JadxGlobalGuiPlugin;
+import jadx.api.gui.plugins.JadxGuiContextExt;
 import jadx.api.plugins.gui.JadxGuiContext;
-import jadx.api.plugins.gui.JadxGuiPlugin;
+import jadx.api.plugins.loader.JadxPluginLoader;
+import jadx.cli.JadxAppCommon;
+import jadx.cli.plugins.JadxFilesGetter;
+import jadx.core.plugins.AppContext;
+import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
-import jadx.core.plugins.versions.VerifyRequiredVersion;
 import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
@@ -22,76 +25,116 @@ public class GuiPluginsManager {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginsManager.class);
 
 	private final MainWindow mainWindow;
-	private final JadxExternalPluginsLoader pluginsLoader = new JadxExternalPluginsLoader();
-	private final List<JadxGuiPlugin> initializedPlugins = new ArrayList<>();
+	private final CommonGuiPluginsContext guiPluginsContext;
+
+	// TODO: don't use JadxDecompiler instance just for load global plugins
+	// (unbind JadxPluginManager from JadxDecompiler)
+	private JadxDecompiler globalDecompiler;
 
 	public GuiPluginsManager(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
+		this.guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
 	}
 
 	public void load() {
 		try {
 			long start = System.currentTimeMillis();
-			List<JadxPlugin> plugins = pluginsLoader.load(JadxGuiPlugin.class::isAssignableFrom);
-			Set<String> disabledPlugins = mainWindow.getSettings().toJadxArgs().getDisabledPlugins();
-			CommonGuiPluginsContext guiPluginsContext = mainWindow.getGuiPluginsContext();
-			initializedPlugins.addAll(
-					initPlugins(plugins, disabledPlugins, new VerifyRequiredVersion(), guiPluginsContext::buildForAppPlugin));
+
+			JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
+			jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+			jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
+			JadxAppCommon.applyEnvVars(jadxArgs);
+
+			globalDecompiler = new JadxDecompiler(jadxArgs) {
+				@Override
+				public String toString() {
+					return "Global jadx decompiler: " + getVersion();
+				}
+			};
+			JadxPluginManager pluginManager = globalDecompiler.getPluginManager();
+			initGuiPluginsContext(globalDecompiler, true);
+			pluginManager.load(new JadxExternalPluginsLoader(JadxGlobalGuiPlugin.class::isAssignableFrom));
+			SortedSet<PluginContext> globalPlugins = pluginManager.getResolvedPluginContexts();
+			runGlobalInit(globalPlugins);
+
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Initialized {} gui plugins in {} ms",
-						initializedPlugins.size(), System.currentTimeMillis() - start);
+				LOG.debug("Initialized {} global gui plugins in {} ms",
+						globalPlugins.size(), System.currentTimeMillis() - start);
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to load gui plugins", e);
 		}
 	}
 
-	public void unload() {
-		unloadPlugins(initializedPlugins);
-		initializedPlugins.clear();
+	public JadxPluginLoader buildProjectPluginLoader() {
+		return new JadxExternalPluginsLoader(cls -> !JadxGlobalGuiPlugin.class.isAssignableFrom(cls));
+	}
+
+	public void initGuiPluginsContext(JadxDecompiler decompiler, boolean isGlobalPlugin) {
+		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
+			AppContext appContext = new AppContext();
+			appContext.setGuiContext(guiPluginsContext.buildForPlugin(pluginContext, isGlobalPlugin));
+			appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
+			pluginContext.setAppContext(appContext);
+		});
+	}
+
+	/**
+	 * Inject global plugin into project decompiler and transfer plugin context data
+	 */
+	public void injectGlobalPlugins(JadxDecompiler decompiler) {
+		for (PluginContext globalContext : globalDecompiler.getPluginManager().getResolvedPluginContexts()) {
+			PluginContext projectContext = decompiler.getPluginManager().register(globalContext.getPluginInstance());
+			if (projectContext != null) {
+				// copy options data
+				projectContext.registerOptions(globalContext.getOptions());
+			} else {
+				LOG.warn("Failed to register plugin in project decompiler: {}", globalContext.getPluginId());
+			}
+		}
+	}
+
+	public SortedSet<PluginContext> getGlobalPluginContexts() {
+		return globalDecompiler.getPluginManager().getResolvedPluginContexts();
+	}
+
+	public void resetProjectScope() {
+		guiPluginsContext.resetProjectScope();
+	}
+
+	private void runGlobalInit(SortedSet<PluginContext> globalPlugins) {
+		for (PluginContext pluginContext : globalPlugins) {
+			JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginContext.getPluginInstance();
+			try {
+				PluginContext.classLoaderWrap(plugin.getClass().getClassLoader(), () -> {
+					JadxGuiContext guiContext = Objects.requireNonNull(pluginContext.getGuiContext());
+					plugin.globalInit((JadxGuiContextExt) guiContext);
+				});
+			} catch (Exception e) {
+				LOG.warn("Failed to init global gui plugin: {}", pluginContext.getPluginId(), e);
+			}
+		}
+	}
+
+	public synchronized void runGlobalUnload() {
 		try {
-			pluginsLoader.close();
+			for (PluginContext pluginContext : globalDecompiler.getPluginManager().getResolvedPluginContexts()) {
+				try {
+					JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginContext.getPluginInstance();
+					PluginContext.classLoaderWrap(plugin.getClass().getClassLoader(), plugin::globalUnload);
+				} catch (Exception e) {
+					LOG.warn("Failed to unload global gui plugin: {}", pluginContext.getPluginId(), e);
+				}
+			}
 		} catch (Exception e) {
-			LOG.warn("Failed to close gui plugins loader", e);
+			LOG.warn("Failed to unload global gui plugins", e);
 		}
+		// NOTE: don't call 'globalDecompiler.close()'
+		// project scope decompiler will call project unload for global plugin too
+		// and nothing to actually close in global decompiler
 	}
 
-	static List<JadxGuiPlugin> initPlugins(List<JadxPlugin> plugins, Set<String> disabledPlugins,
-			VerifyRequiredVersion verifyRequiredVersion, Function<JadxPluginInfo, JadxGuiContext> contextBuilder) {
-		List<JadxGuiPlugin> initialized = new ArrayList<>(plugins.size());
-		for (JadxPlugin plugin : plugins) {
-			if (!(plugin instanceof JadxGuiPlugin)) {
-				continue;
-			}
-			JadxGuiPlugin guiPlugin = (JadxGuiPlugin) plugin;
-			JadxPluginInfo pluginInfo = plugin.getPluginInfo();
-			if (disabledPlugins.contains(pluginInfo.getPluginId())) {
-				continue;
-			}
-			String requiredJadxVersion = pluginInfo.getRequiredJadxVersion();
-			if (!verifyRequiredVersion.isCompatible(requiredJadxVersion)) {
-				LOG.warn("Plugin '{}' not loaded: requires '{}' jadx version which it is not compatible with current: {}",
-						pluginInfo.getPluginId(), requiredJadxVersion, verifyRequiredVersion.getJadxVersion());
-				continue;
-			}
-			try {
-				PluginContext.classLoaderWrap(guiPlugin.getClass().getClassLoader(),
-						() -> guiPlugin.initGui(contextBuilder.apply(pluginInfo)));
-				initialized.add(guiPlugin);
-			} catch (Exception e) {
-				LOG.error("Failed to init gui plugin: {}", pluginInfo.getPluginId(), e);
-			}
-		}
-		return initialized;
-	}
-
-	static void unloadPlugins(List<JadxGuiPlugin> plugins) {
-		for (JadxGuiPlugin plugin : plugins) {
-			try {
-				PluginContext.classLoaderWrap(plugin.getClass().getClassLoader(), plugin::unload);
-			} catch (Exception e) {
-				LOG.warn("Failed to unload gui plugin: {}", plugin.getPluginInfo().getPluginId(), e);
-			}
-		}
+	public CommonGuiPluginsContext getPluginsContext() {
+		return guiPluginsContext;
 	}
 }

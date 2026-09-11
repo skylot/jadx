@@ -83,7 +83,7 @@ import jadx.zip.ZipReader;
  * </code>
  * </pre>
  */
-public final class JadxDecompiler implements Closeable {
+public class JadxDecompiler implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final JadxArgs args;

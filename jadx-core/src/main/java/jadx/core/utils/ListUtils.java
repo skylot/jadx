@@ -132,6 +132,13 @@ public class ListUtils {
 		return list;
 	}
 
+	public static <T> List<T> concatSetsToList(Set<T> first, Set<T> second) {
+		List<T> list = new ArrayList<>(first.size() + second.size());
+		list.addAll(first);
+		list.addAll(second);
+		return list;
+	}
+
 	/**
 	 * Replace old element to new one.
 	 * Support null and empty immutable list (created by Collections.emptyList())

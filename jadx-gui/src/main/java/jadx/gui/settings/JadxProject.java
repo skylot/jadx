@@ -34,6 +34,7 @@ import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.cache.manager.CacheManager;
+import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.settings.data.ProjectData;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.data.TabViewState;
@@ -186,7 +187,8 @@ public class JadxProject {
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
-		tabStateViewAdapter.setCustomAdapters(mw.getGuiPluginsContext().getTabStatePersistAdapters());
+		CommonGuiPluginsContext pluginsContext = mw.getGuiPluginsManager().getPluginsContext();
+		tabStateViewAdapter.setCustomAdapters(pluginsContext.getTabStatePersistAdapters());
 		return data.getOpenTabs().stream()
 				.map(s -> tabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)

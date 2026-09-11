@@ -203,7 +203,7 @@ public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAb
 		popup.addSeparator();
 		popup.add(new ConvertNumberAction(this));
 
-		getMainWindow().getGuiPluginsContext().appendPopupMenus(this, popup);
+		getMainWindow().getGuiPluginsManager().getPluginsContext().appendPopupMenus(this, popup);
 
 		// move caret on mouse right button click
 		popupMenu.addPopupMenuListener(new DefaultPopupMenuListener() {

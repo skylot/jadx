@@ -17,13 +17,15 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
+import jadx.api.gui.IMainWindow;
+import jadx.api.gui.plugins.JadxGuiContextExt;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.api.plugins.gui.ISettingsGroup;
-import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.gui.JadxGuiSettings;
+import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.core.plugins.PluginContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.data.ITabStatePersist;
@@ -36,22 +38,29 @@ import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.IconsCache;
 import jadx.gui.utils.UiUtils;
 
-public class GuiPluginContext implements JadxGuiContext {
+public class GuiPluginContext implements JadxGuiContextExt {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginContext.class);
 
 	private final CommonGuiPluginsContext commonContext;
 	private final GuiPluginsRegistry registry;
-	private final String pluginId;
-	private final @Nullable PluginContext pluginContext;
+	private final PluginContext pluginContext;
 
 	private @Nullable ISettingsGroup customSettingsGroup;
 
-	GuiPluginContext(CommonGuiPluginsContext commonContext, GuiPluginsRegistry registry,
-			String pluginId, @Nullable PluginContext pluginContext) {
+	GuiPluginContext(CommonGuiPluginsContext commonContext, GuiPluginsRegistry registry, PluginContext pluginContext) {
 		this.commonContext = commonContext;
 		this.registry = registry;
-		this.pluginId = pluginId;
 		this.pluginContext = pluginContext;
+	}
+
+	@Override
+	public IMainWindow getMainWindow() {
+		return commonContext.getMainWindow();
+	}
+
+	@Override
+	public void registerOptions(JadxPluginOptions options) {
+		pluginContext.registerOptions(options);
 	}
 
 	public CommonGuiPluginsContext getCommonContext() {
@@ -59,10 +68,10 @@ public class GuiPluginContext implements JadxGuiContext {
 	}
 
 	public String getPluginId() {
-		return pluginId;
+		return pluginContext.getPluginId();
 	}
 
-	public @Nullable PluginContext getPluginContext() {
+	public PluginContext getPluginContext() {
 		return pluginContext;
 	}
 
@@ -156,7 +165,7 @@ public class GuiPluginContext implements JadxGuiContext {
 	}
 
 	@Override
-	public ICodeNodeRef getNodeUnderCaret() {
+	public @Nullable ICodeNodeRef getNodeUnderCaret() {
 		CodeArea codeArea = getCodeArea();
 		if (codeArea != null) {
 			JNode nodeUnderCaret = codeArea.getNodeUnderCaret();
@@ -168,7 +177,7 @@ public class GuiPluginContext implements JadxGuiContext {
 	}
 
 	@Override
-	public ICodeNodeRef getNodeUnderMouse() {
+	public @Nullable ICodeNodeRef getNodeUnderMouse() {
 		CodeArea codeArea = getCodeArea();
 		if (codeArea != null) {
 			JNode nodeUnderMouse = codeArea.getNodeUnderMouse();
@@ -180,7 +189,7 @@ public class GuiPluginContext implements JadxGuiContext {
 	}
 
 	@Override
-	public ICodeNodeRef getEnclosingNodeUnderCaret() {
+	public @Nullable ICodeNodeRef getEnclosingNodeUnderCaret() {
 		CodeArea codeArea = getCodeArea();
 		if (codeArea != null) {
 			JNode nodeUnderMouse = codeArea.getEnclosingNodeUnderCaret();
@@ -192,7 +201,7 @@ public class GuiPluginContext implements JadxGuiContext {
 	}
 
 	@Override
-	public ICodeNodeRef getEnclosingNodeUnderMouse() {
+	public @Nullable ICodeNodeRef getEnclosingNodeUnderMouse() {
 		CodeArea codeArea = getCodeArea();
 		if (codeArea != null) {
 			JNode nodeUnderMouse = codeArea.getEnclosingNodeUnderMouse();

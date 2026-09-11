@@ -1,2 +1,2 @@
-jadx.gui.plugins.TestGuiProbePlugin
-jadx.gui.plugins.TestSimpleProbePlugin
+jadx.gui.plugins.TestGlobalGuiPlugin
+jadx.gui.plugins.TestSimpleGuiPlugin

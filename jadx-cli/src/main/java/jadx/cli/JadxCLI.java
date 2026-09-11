@@ -14,6 +14,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.api.impl.SimpleCodeWriter;
+import jadx.api.plugins.gui.IJadxGuiPlugin;
 import jadx.api.usage.impl.EmptyUsageInfoCache;
 import jadx.cli.LogHelper.LogLevelEnum;
 import jadx.cli.config.JadxConfigAdapter;
@@ -64,7 +65,7 @@ public class JadxCLI {
 		JadxArgs jadxArgs = cliArgs.toJadxArgs();
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		jadxArgs.setUsageInfoCache(new EmptyUsageInfoCache());
-		jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+		jadxArgs.setPluginLoader(buildCliPluginLoader());
 		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 		initCodeWriterProvider(jadxArgs);
 		JadxAppCommon.applyEnvVars(jadxArgs);
@@ -102,6 +103,11 @@ public class JadxCLI {
 				jadxArgs.setCodeWriterProvider(AnnotatedCodeWriter::new);
 				break;
 		}
+	}
+
+	private static JadxExternalPluginsLoader buildCliPluginLoader() {
+		// exclude "jadx-gui only" plugins
+		return new JadxExternalPluginsLoader(cls -> !IJadxGuiPlugin.class.isAssignableFrom(cls));
 	}
 
 	private static boolean checkForErrors(JadxDecompiler jadx) {

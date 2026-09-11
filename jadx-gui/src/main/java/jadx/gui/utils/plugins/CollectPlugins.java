@@ -11,7 +11,8 @@ import jadx.core.plugins.AppContext;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.gui.ui.MainWindow;
-import jadx.plugins.tools.JadxExternalPluginsLoader;
+
+import static jadx.core.utils.ListUtils.concatSetsToList;
 
 /**
  * Collect all plugins.
@@ -33,6 +34,7 @@ public class CollectPlugins {
 			SortedSet<PluginContext> plugins = decompiler.getPluginManager().getResolvedPluginContexts();
 			return new CloseablePlugins(new ArrayList<>(plugins), null);
 		}
+		SortedSet<PluginContext> globalPlugins = mainWindow.getGuiPluginsManager().getGlobalPluginContexts();
 		// collect and init plugins in new temp context
 		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
 		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
@@ -44,11 +46,11 @@ public class CollectPlugins {
 				appContext.setFilesGetter(jadxArgs.getFilesGetter());
 				pluginContext.setAppContext(appContext);
 			});
-			pluginManager.load(new JadxExternalPluginsLoader());
+			pluginManager.load(mainWindow.getGuiPluginsManager().buildProjectPluginLoader());
 			SortedSet<PluginContext> allPlugins = pluginManager.getAllPluginContexts();
 			pluginManager.init(allPlugins);
 			Runnable closeable = () -> pluginManager.unload(allPlugins);
-			return new CloseablePlugins(new ArrayList<>(allPlugins), closeable);
+			return new CloseablePlugins(concatSetsToList(allPlugins, globalPlugins), closeable);
 		}
 	}
 }

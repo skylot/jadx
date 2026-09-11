@@ -31,19 +31,17 @@ import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.plugins.AppContext;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.code.CodeStringCache;
 import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
 import jadx.gui.cache.usage.UsageInfoCache;
-import jadx.gui.plugins.context.CommonGuiPluginsContext;
+import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CacheObject;
-import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
@@ -67,14 +65,16 @@ public class JadxWrapper {
 		try {
 			synchronized (DECOMPILER_UPDATE_SYNC) {
 				JadxProject project = getProject();
+				GuiPluginsManager guiPluginsManager = mainWindow.getGuiPluginsManager();
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
-				jadxArgs.setPluginLoader(new JadxExternalPluginsLoader());
+				jadxArgs.setPluginLoader(guiPluginsManager.buildProjectPluginLoader());
 				jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 				project.fillJadxArgs(jadxArgs);
 				JadxAppCommon.applyEnvVars(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);
-				initGuiPluginsContext(decompiler);
+				guiPluginsManager.initGuiPluginsContext(decompiler, false);
+				guiPluginsManager.injectGlobalPlugins(decompiler);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
@@ -104,7 +104,7 @@ public class JadxWrapper {
 					decompiler.close();
 					decompiler = null;
 				}
-				mainWindow.getGuiPluginsContext().resetProjectScope();
+				mainWindow.getGuiPluginsManager().resetProjectScope();
 			}
 		} catch (Exception e) {
 			LOG.error("Jadx decompiler close error", e);
@@ -163,18 +163,8 @@ public class JadxWrapper {
 		}
 	}
 
-	private void initGuiPluginsContext(JadxDecompiler decompiler) {
-		CommonGuiPluginsContext guiPluginsContext = mainWindow.getGuiPluginsContext();
-		decompiler.getPluginManager().registerAddPluginListener(pluginContext -> {
-			AppContext appContext = new AppContext();
-			appContext.setGuiContext(guiPluginsContext.buildForPlugin(pluginContext));
-			appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
-			pluginContext.setAppContext(appContext);
-		});
-	}
-
 	public void reloadPasses() {
-		mainWindow.getGuiPluginsContext().resetProjectScope();
+		mainWindow.getGuiPluginsManager().resetProjectScope();
 		decompiler.reloadPasses();
 	}
 

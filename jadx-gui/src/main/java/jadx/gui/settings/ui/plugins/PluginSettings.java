@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +62,6 @@ public class PluginSettings {
 			ISettingsGroup pluginGroup = addPluginGroup(context);
 			if (pluginGroup != null) {
 				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(context.getPluginId(), pluginGroup));
-			}
-		}
-		for (GuiPluginContext appContext : mainWindow.getGuiPluginsContext().getAppPluginContexts()) {
-			ISettingsGroup customSettingsGroup = appContext.getCustomSettingsGroup();
-			if (customSettingsGroup != null) {
-				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(appContext.getPluginId(), customSettingsGroup));
 			}
 		}
 		return pluginsGroup;
@@ -125,7 +120,7 @@ public class PluginSettings {
 		});
 	}
 
-	private ISettingsGroup addPluginGroup(PluginContext context) {
+	private @Nullable ISettingsGroup addPluginGroup(PluginContext context) {
 		JadxGuiContext guiContext = context.getGuiContext();
 		if (guiContext instanceof GuiPluginContext) {
 			GuiPluginContext pluginGuiContext = (GuiPluginContext) guiContext;
