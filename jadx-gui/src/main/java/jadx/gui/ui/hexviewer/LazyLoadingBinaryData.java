@@ -97,8 +97,14 @@ public class LazyLoadingBinaryData implements BinaryData {
 
 	@Override
 	public byte getByte(long position) {
-		if (!ensurePositionLoaded(position)) {
-			throw new RuntimeException("Unreachable position: " + position);
+		if (position < 0) {
+			throw new IndexOutOfBoundsException("Position out of bounds: " + position);
+		}
+		if (!ensurePositionLoaded(position + 1)) {
+			throw new IndexOutOfBoundsException("Unreachable position: " + position);
+		}
+		if (position >= size) {
+			throw new IndexOutOfBoundsException("Position out of bounds: " + position);
 		}
 		int blockNum = (int) (position / blockSize);
 		int blockOffset = (int) (position % blockSize);

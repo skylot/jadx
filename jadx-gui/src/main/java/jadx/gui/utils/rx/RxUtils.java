@@ -1,10 +1,12 @@
 package jadx.gui.utils.rx;
 
+import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.function.Supplier;
 
+import javax.swing.JScrollBar;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
@@ -55,6 +57,16 @@ public class RxUtils {
 			emitter.setDisposable(new CustomDisposable(() -> spinner.removeKeyListener(keyListener)));
 		};
 		return Flowable.create(source, BackpressureStrategy.LATEST).distinctUntilChanged();
+	}
+
+	public static Flowable<Integer> scrollBarEvents(JScrollBar scrollBar) {
+		FlowableOnSubscribe<Integer> source = emitter -> {
+			AdjustmentListener listener = e -> emitter.onNext(e.getValue());
+			scrollBar.addAdjustmentListener(listener);
+			emitter.setDisposable(new CustomDisposable(() -> scrollBar.removeAdjustmentListener(listener)));
+		};
+		return Flowable.create(source, BackpressureStrategy.LATEST)
+				.distinctUntilChanged(Integer::equals);
 	}
 
 	private static @NotNull KeyListener enterKeyListener(FlowableEmitter<String> emitter, Supplier<String> supplier) {
