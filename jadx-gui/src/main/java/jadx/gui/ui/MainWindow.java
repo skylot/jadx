@@ -261,7 +261,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 	public JMenu hexViewerMenu;
 
 	private final transient RenameMappingsGui renameMappings;
-  
 	private final transient GuiPluginsManager guiPluginsManager;
 	private JTextField treeFilterField;
 	private Disposable treeFilterDisposable;
