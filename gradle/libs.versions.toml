@@ -3,12 +3,12 @@ bined = "0.2.2"
 #noinspection UnusedVersionCatalogEntry
 # @pin from version 11 require Java 17
 checkstyle = "10.26.1"
-flatlaf = "3.7.2"
+flatlaf = "3.8"
 # @pin not compatible version
 j2v8 = "4.6.0"
-kotlin = "2.4.10"
+kotlin = "2.4.21"
 raung = "0.1.1"
-smali = "3.0.9"
+smali = "3.0.10"
 
 [plugins]
 beryx-runtime = "org.beryx.runtime:2.0.1"
@@ -20,11 +20,11 @@ shadow = "com.gradleup.shadow:9.6.1"
 [libraries]
 # @pin from 9.3 compiled with Java 17
 aapt2-proto = "com.android.tools.build:aapt2-proto:9.2.1-15009934"
-apksig = "com.android.tools.build:apksig:9.4.0"
-asm = "org.ow2.asm:asm:9.10.1"
+apksig = "com.android.tools.build:apksig:9.5.1"
+asm = "org.ow2.asm:asm:9.11.1"
 #noinspection UnusedVersionCatalogEntry
 assertj = "org.assertj:assertj-core:3.27.7"
-async-profiler = "tools.profiler:async-profiler:4.5"
+async-profiler = "tools.profiler:async-profiler:4.6"
 bined-data = { module = "org.exbin.auxiliary:binary_data", version.ref = "bined" }
 bined-data-array = { module = "org.exbin.auxiliary:binary_data-array", version.ref = "bined" }
 bined-highlight-swing = { module = "org.exbin.bined:bined-highlight-swing", version.ref = "bined" }
@@ -34,14 +34,14 @@ bundletool = "com.android.tools.build:bundletool:1.18.3"
 #noinspection UnusedVersionCatalogEntry
 checkstyle-tools = { module = "com.puppycrawl.tools:checkstyle", version.ref = "checkstyle" }
 commons-io = "commons-io:commons-io:2.22.0"
-commons-lang3 = "org.apache.commons:commons-lang3:3.20.0"
+commons-lang3 = "org.apache.commons:commons-lang3:3.22.0"
 commons-text = "org.apache.commons:commons-text:1.15.0"
-directories-jni = "io.get-coursier.util:directories-jni:0.1.4"
+directories-jni = "io.get-coursier.util:directories-jni:0.2.0"
 dx = "com.jakewharton.android.repackaged:dalvik-dx:16.0.1"
 # @pin from 3.34 compiled with Java 17
 eclipse-jdt-ecj = "org.eclipse.jdt:ecj:3.33.0"
 #noinspection UnusedVersionCatalogEntry
-errorprone = "com.google.errorprone:error_prone_core:2.50.0"
+errorprone = "com.google.errorprone:error_prone_core:2.53.0"
 flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
 flatlaf-extras = { module = "com.formdev:flatlaf-extras", version.ref = "flatlaf" }
 flatlaf-fonts-inter = "com.formdev:flatlaf-fonts-inter:4.1"
@@ -49,10 +49,10 @@ flatlaf-fonts-jetbrains-mono = "com.formdev:flatlaf-fonts-jetbrains-mono:2.304"
 flatlaf-intellij-themes = { module = "com.formdev:flatlaf-intellij-themes", version.ref = "flatlaf" }
 fontchooser = "org.drjekyll:fontchooser:3.1.0"
 graphviz = "guru.nidi:graphviz-java:0.18.1"
-gson = "com.google.code.gson:gson:2.14.0"
+gson = "com.google.code.gson:gson:2.15.0"
 guava-jre = "com.google.guava:guava:23.0"
 image-viewer = "hu.kazocsaba:image-viewer:1.2.3"
-imageio-webp = "com.twelvemonkeys.imageio:imageio-webp:3.14.0"
+imageio-webp = "com.twelvemonkeys.imageio:imageio-webp:3.15.3"
 j2v8-linux = { module = "com.eclipsesource.j2v8:j2v8_linux_x86_64", version.ref = "j2v8" }
 j2v8-win32 = { module = "com.eclipsesource.j2v8:j2v8_win32_x86_64", version.ref = "j2v8" }
 # @pin from 3.0 compiled with Java 17
@@ -64,23 +64,23 @@ jetbrains-annotations = "org.jetbrains:annotations:26.1.0"
 #noinspection UnusedVersionCatalogEntry
 junit = "org.junit.jupiter:junit-jupiter:5.14.4"
 kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
-logback-classic = "ch.qos.logback:logback-classic:1.6.3"
-mapping-io = "net.fabricmc:mapping-io:0.9.1"
-mockwebserver = "com.squareup.okhttp3:mockwebserver3:5.5.0"
+logback-classic = "ch.qos.logback:logback-classic:1.6.7"
+mapping-io = "net.fabricmc:mapping-io:0.9.2"
+mockwebserver = "com.squareup.okhttp3:mockwebserver3:5.5.1"
 #noinspection UnusedVersionCatalogEntry
-nullaway = "com.uber.nullaway:nullaway:0.14.1"
-oshai-kotlin-logging-jvm = "io.github.oshai:kotlin-logging-jvm:8.0.4"
+nullaway = "com.uber.nullaway:nullaway:0.14.4"
+oshai-kotlin-logging-jvm = "io.github.oshai:kotlin-logging-jvm:8.0.7"
 # @pin from 4.0 conflict with `aapt2-proto`
 protobuf-java = "com.google.protobuf:protobuf-java:3.25.9"
-r8 = "com.android.tools:r8:9.4.17"
+r8 = "com.android.tools:r8:9.5.33"
 raung-asm = { module = "io.github.skylot:raung-asm", version.ref = "raung" }
 raung-disasm = { module = "io.github.skylot:raung-disasm", version.ref = "raung" }
-rsta = "com.fifesoft:rsyntaxtextarea:4.0.1"
+rsta = "com.fifesoft:rsyntaxtextarea:4.0.2"
 rsta-autocomplete = "com.fifesoft:autocomplete:4.0.0"
 rxjava = "io.reactivex.rxjava3:rxjava:3.1.12"
 rxjava-swing = "com.github.akarnokd:rxjava3-swing:3.1.1"
 #noinspection UnusedVersionCatalogEntry
-slf4j-api = "org.slf4j:slf4j-api:2.0.18"
+slf4j-api = "org.slf4j:slf4j-api:2.0.20"
 smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
 smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
 
