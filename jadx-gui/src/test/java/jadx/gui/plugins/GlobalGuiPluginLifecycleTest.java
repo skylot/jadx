@@ -38,7 +38,6 @@ public class GlobalGuiPluginLifecycleTest {
 			assertThat(plugin.unloadCount).isEqualTo(0);
 			assertThat(plugin.globalUnloadCount).isEqualTo(0);
 
-			
 			// open and close two projects
 			for (int i = 1; i <= 2; i++) {
 				try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
@@ -54,8 +53,6 @@ public class GlobalGuiPluginLifecycleTest {
 				assertThat(plugin.globalInitCount).isEqualTo(1);
 				assertThat(plugin.globalUnloadCount).isEqualTo(0);
 			}
-
-
 
 			// jadx-gui exit
 			manager.runGlobalUnload();

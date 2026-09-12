@@ -29,11 +29,9 @@ public class GuiPluginsManagerTest {
 	public void globalPluginsLoadFailureDontBreakProject() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
-		
-		
+
 		// shim has no settings so load will fail inside and log an error
 		manager.load();
-
 
 		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
 			assertThatCode(() -> manager.injectGlobalPlugins(projectDecompiler)).doesNotThrowAnyException();
@@ -63,7 +61,6 @@ public class GuiPluginsManagerTest {
 			assertThat(projectDecompiler.getPluginManager().getAllPluginContexts())
 					.extracting(PluginContext::getPluginId)
 					.containsExactly("global-plugin");
-
 
 			// same plugin instance is used in both scopes
 			PluginContext projectContext = projectDecompiler.getPluginManager().getAllPluginContexts().first();
@@ -96,8 +93,6 @@ public class GuiPluginsManagerTest {
 		}
 	}
 
-
-	
 	@Test
 	public void projectPluginCustomSettingsNotAffected() throws Exception {
 		MainWindow mainWindow = TestMainWindowShim.build();

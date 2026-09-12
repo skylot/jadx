@@ -50,7 +50,7 @@ public class JadxPluginManager {
 
 	public void load(JadxPluginLoader pluginLoader) {
 		List<JadxPlugin> plugins = pluginLoader.load();
-		
+
 		// allow repeated load (used in passes reload) but keep plugins added by 'register' method
 		Set<String> loadedIds = plugins.stream()
 				.map(p -> p.getPluginInfo().getPluginId())

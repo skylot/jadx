@@ -48,9 +48,6 @@ public class JadxPluginManagerLoadTest {
 		}
 	}
 
-
-
-
 	// Plugins added with 'register' method (i.e global gui plugins) should survive plugins load
 	@Test
 	public void loadKeepRegisteredPlugins() {
@@ -63,8 +60,6 @@ public class JadxPluginManagerLoadTest {
 			assertThat(pluginManager.getAllPluginContexts())
 					.extracting(PluginContext::getPluginId)
 					.containsExactlyInAnyOrder("registered-plugin", "loaded-plugin");
-
-
 
 			// and still kept after a repeated load
 			pluginManager.load(new TestLoader(new TestPlugin("loaded-plugin")));
