@@ -4,9 +4,9 @@ bined = "0.2.2"
 # @pin from version 11 require Java 17
 checkstyle = "10.26.1"
 flatlaf = "3.7.2"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 raung = "0.1.1"
-smali = "3.0.9"
+smali = "3.0.10"
 
 [plugins]
 beryx-runtime = "org.beryx.runtime:2.0.1"
@@ -50,7 +50,7 @@ graphviz = "guru.nidi:graphviz-java:0.18.1"
 gson = "com.google.code.gson:gson:2.14.0"
 guava-jre = "com.google.guava:guava:23.0"
 image-viewer = "hu.kazocsaba:image-viewer:1.2.3"
-imageio-webp = "com.twelvemonkeys.imageio:imageio-webp:3.14.0"
+imageio-webp = "com.twelvemonkeys.imageio:imageio-webp:3.15.0"
 j2v8-linux = "com.eclipsesource.j2v8:j2v8_linux_x86_64:4.8.0"
 j2v8-win32 = "com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0"
 # @pin from 3.0 compiled with Java 17
@@ -78,7 +78,7 @@ rsta-autocomplete = "com.fifesoft:autocomplete:4.0.0"
 rxjava = "io.reactivex.rxjava3:rxjava:3.1.12"
 rxjava-swing = "com.github.akarnokd:rxjava3-swing:3.1.1"
 #noinspection UnusedVersionCatalogEntry
-slf4j-api = "org.slf4j:slf4j-api:2.0.18"
+slf4j-api = "org.slf4j:slf4j-api:2.0.19"
 smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
 smali-baksmali = { module = "com.android.tools.smali:smali-baksmali", version.ref = "smali" }
 
