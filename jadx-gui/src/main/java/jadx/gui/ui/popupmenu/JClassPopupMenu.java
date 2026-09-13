@@ -74,6 +74,7 @@ public class JClassPopupMenu extends JPopupMenu {
 				savePath = selectedPath;
 			}
 
+			mainWindow.getSettings().setLastSaveFilePath(savePath.toAbsolutePath().getParent());
 			saveJClass(jClass, savePath, exportType);
 
 			LOG.info("Done saving {}", savePath);
