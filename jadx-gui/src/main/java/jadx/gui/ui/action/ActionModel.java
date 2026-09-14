@@ -80,6 +80,7 @@ public enum ActionModel {
 	FRIDA_COPY(CODE_AREA, NLS.str("popup.frida"), null, null, keyboard(KeyEvent.VK_F)),
 	XPOSED_COPY(CODE_AREA, NLS.str("popup.xposed"), null, null, keyboard(KeyEvent.VK_Y)),
 	COPY_REFERENCE(CODE_AREA, NLS.str("popup.copy_reference"), null, null, keyboard(KeyEvent.VK_R)),
+	COPY_SMALI_REFERENCE(CODE_AREA, NLS.str("popup.copy_smali_reference"), null, null, null),
 	JSON_PRETTIFY(CODE_AREA, NLS.str("popup.json_prettify"), null, null, null),
 
 	SCRIPT_RUN(PLUGIN_SCRIPT, NLS.str("script.run"), null, "ui/run", keyboard(KeyEvent.VK_F8)),
