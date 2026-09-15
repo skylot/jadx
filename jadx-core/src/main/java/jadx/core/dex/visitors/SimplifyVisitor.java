@@ -138,8 +138,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				simplifyIf(mth, (IfNode) insn);
 				break;
 			case TERNARY:
-				simplifyTernary(mth, (TernaryInsn) insn);
-				break;
+				return simplifyTernary(mth, (TernaryInsn) insn);
 
 			case INVOKE:
 				return convertInvoke(mth, (InvokeNode) insn);
@@ -306,13 +305,58 @@ public class SimplifyVisitor extends AbstractVisitor {
 	/**
 	 * Simplify condition in ternary operation
 	 */
-	private static void simplifyTernary(MethodNode mth, TernaryInsn insn) {
+	private static InsnNode simplifyTernary(MethodNode mth, TernaryInsn insn) {
+		if (insn.getArg(0).isSameConst(insn.getArg(1)) && canDropCondition(insn.getCondition())) {
+			// both branches yield the same constant and the condition has no side effect: 'c ? x : x' => 'x'
+			for (RegisterArg reg : insn.getCondition().getRegisterArgs()) {
+				InsnRemover.unbindArgUsage(mth, reg);
+			}
+			InsnArg valueArg = insn.getArg(0);
+			InsnNode value;
+			if (valueArg.isInsnWrap()) {
+				value = ((InsnWrapArg) valueArg).getWrapInsn().copyWithoutResult();
+			} else {
+				value = new InsnNode(InsnType.CONST, 1);
+				value.addArg(valueArg);
+			}
+			value.setResult(insn.getResult());
+			value.copyAttributesFrom(insn);
+			return value;
+		}
 		IfCondition condition = insn.getCondition();
 		if (condition.isCompare()) {
 			simplifyIf(mth, condition.getCompare().getInsn());
 		} else {
 			insn.simplifyCondition();
 		}
+		return null;
+	}
+
+	/**
+	 * A condition can be dropped only if evaluating it has no observable effect. Every condition
+	 * instruction must be in {@link InsnNode#canThrowException()}'s no-throw set (which holds only
+	 * pure insns: const/compare/move/neg), and every operand must be a parameter or a plain field
+	 * read. Anything else (a cast, invoke, array access, ...) may be the last use of a value whose
+	 * removal drops a cast/exception (e.g. the erased CHECK_CAST behind 'String s = list.get(0)').
+	 */
+	private static boolean canDropCondition(IfCondition condition) {
+		boolean[] pure = { true };
+		condition.visitInsns(insn -> {
+			if (insn.canThrowException()) {
+				pure[0] = false;
+			}
+		});
+		if (!pure[0]) {
+			return false;
+		}
+		for (RegisterArg reg : condition.getRegisterArgs()) {
+			// null assign == method argument (no producing insn to drop)
+			InsnNode assign = reg.getSVar().getAssignInsn();
+			if (assign != null && assign.getType() != InsnType.IGET && assign.getType() != InsnType.SGET) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
