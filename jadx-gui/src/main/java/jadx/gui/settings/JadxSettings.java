@@ -620,6 +620,14 @@ public class JadxSettings {
 		settingsData.setRespectBytecodeAccessModifiers(respectBytecodeAccessModifiers);
 	}
 
+	public boolean isStableMemberOrder() {
+		return settingsData.isStableMemberOrder();
+	}
+
+	public void setStableMemberOrder(boolean stableMemberOrder) {
+		settingsData.setStableMemberOrder(stableMemberOrder);
+	}
+
 	public boolean isRenameCaseSensitive() {
 		return settingsData.isRenameCaseSensitive();
 	}

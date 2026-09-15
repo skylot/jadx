@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
+import jadx.cli.config.JadxConfigAdapter;
+
 import static jadx.core.utils.Utils.newConstStringMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +27,39 @@ public class JadxCLIArgsTest {
 	public void testEscapeUnicodeOption() {
 		assertThat(parse("--escape-unicode").isEscapeUnicode()).isTrue();
 		assertThat(parse("").isEscapeUnicode()).isFalse();
+	}
+
+	@Test
+	public void testStableMemberOrderOption() {
+		JadxCLIArgs defaults = parse("");
+		assertThat(defaults.isStableMemberOrder()).isFalse();
+		assertThat(defaults.toJadxArgs().isStableMemberOrder()).isFalse();
+		JadxCLIArgs enabled = parse("--stable-member-order");
+		assertThat(enabled.isStableMemberOrder()).isTrue();
+		assertThat(enabled.toJadxArgs().isStableMemberOrder()).isTrue();
+	}
+
+	@Test
+	public void testStableMemberOrderConfig() {
+		JadxConfigAdapter<JadxCLIArgs> adapter = new JadxConfigAdapter<>(JadxCLIArgs.class, "test");
+		JadxCLIArgs args = parse("--stable-member-order");
+		JadxCLIArgs restored = adapter.jsonStringToObject(adapter.objectToJsonString(args));
+		assertThat(restored.toJadxArgs().isStableMemberOrder()).isTrue();
+		restored.setStableMemberOrder(false);
+		assertThat(adapter.jsonStringToObject(adapter.objectToJsonString(restored))
+				.toJadxArgs().isStableMemberOrder()).isFalse();
+		assertThat(adapter.jsonStringToObject("{}").isStableMemberOrder()).isFalse();
+	}
+
+	@Test
+	public void testStableMemberOrderCodeCacheHash() {
+		JadxArgs args = new JadxArgs();
+		assertThat(args.isStableMemberOrder()).isFalse();
+		String defaultHash = args.makeCodeArgsHash(null);
+		args.setStableMemberOrder(true);
+		assertThat(args.makeCodeArgsHash(null)).isNotEqualTo(defaultHash);
+		args.setStableMemberOrder(false);
+		assertThat(args.makeCodeArgsHash(null)).isEqualTo(defaultHash);
 	}
 
 	@Test
