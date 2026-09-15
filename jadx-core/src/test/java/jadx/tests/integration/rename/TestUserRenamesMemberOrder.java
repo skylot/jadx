@@ -1,7 +1,7 @@
 package jadx.tests.integration.rename;
 
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
@@ -11,6 +11,9 @@ import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 public class TestUserRenamesMemberOrder extends IntegrationTest {
 
 	public static class TestCls {
+		public static int z = Integer.parseInt("1");
+		public static int a = Integer.parseInt("2");
+
 		public static class A {
 		}
 
@@ -37,9 +40,10 @@ public class TestUserRenamesMemberOrder extends IntegrationTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(booleans = { false, true })
-	public void test(boolean debugInfo) {
+	@CsvSource({ "false, false", "false, true", "true, false", "true, true" })
+	public void test(boolean debugInfo, boolean stableMemberOrder) {
 		getArgs().setDebugInfo(debugInfo);
+		getArgs().setStableMemberOrder(stableMemberOrder);
 		addClsRename(TestCls.A.class.getName(), "Zebra");
 		addClsRename(TestCls.B.class.getName(), "Alpha");
 		addMthRename(TestCls.class.getName(), "first()V", "zeta");
@@ -47,7 +51,8 @@ public class TestUserRenamesMemberOrder extends IntegrationTest {
 
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().getCodeStr();
-		if (debugInfo) {
+		assertThat(code).containsSubsequence("static int z =", "static int a =");
+		if (debugInfo || !stableMemberOrder) {
 			assertThat(code).containsSubsequence("(Zebra ", "(Alpha ", "(Zebra[] ", "(Alpha[] ");
 			assertThat(code).containsSubsequence("void zeta()", "void alpha()");
 		} else {

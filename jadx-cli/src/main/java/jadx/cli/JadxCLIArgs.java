@@ -120,6 +120,12 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "--no-debug-info" }, description = "disable debug info parsing and processing")
 	protected boolean debugInfo = true;
 
+	@Parameter(
+			names = { "--stable-member-order" },
+			description = "order methods and inner classes by renamed signatures when source lines tie; leave fields unchanged"
+	)
+	protected boolean stableMemberOrder = false;
+
 	@Parameter(names = { "--add-debug-lines" }, description = "add comments with debug line numbers if available")
 	protected boolean addDebugLines = false;
 
@@ -503,6 +509,7 @@ public class JadxCLIArgs implements IJadxConfig {
 		args.setSkipXmlPrettyPrint(skipXmlPrettyPrint);
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
+		args.setStableMemberOrder(stableMemberOrder);
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setInlineMethods(inlineMethods);
@@ -856,6 +863,14 @@ public class JadxCLIArgs implements IJadxConfig {
 
 	public void setRespectBytecodeAccessModifiers(boolean respectBytecodeAccessModifiers) {
 		this.respectBytecodeAccessModifiers = respectBytecodeAccessModifiers;
+	}
+
+	public boolean isStableMemberOrder() {
+		return stableMemberOrder;
+	}
+
+	public void setStableMemberOrder(boolean stableMemberOrder) {
+		this.stableMemberOrder = stableMemberOrder;
 	}
 
 	public boolean isExportAsGradleProject() {

@@ -115,6 +115,7 @@ options:
   --no-xml-pretty-print                         - do not prettify XML
   --no-imports                                  - disable use of imports, always write entire package name
   --no-debug-info                               - disable debug info parsing and processing
+  --stable-member-order                         - order methods and inner classes by renamed signatures when source lines tie; leave fields unchanged
   --add-debug-lines                             - add comments with debug line numbers if available
   --no-inline-anonymous                         - disable anonymous classes inline
   --no-inline-methods                           - disable methods inline

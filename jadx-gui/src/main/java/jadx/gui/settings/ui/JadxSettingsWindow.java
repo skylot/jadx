@@ -576,6 +576,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox stableMemberOrder = new JCheckBox();
+		stableMemberOrder.setSelected(settings.isStableMemberOrder());
+		stableMemberOrder.addItemListener(e -> {
+			settings.setStableMemberOrder(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox inlineAnonymous = new JCheckBox();
 		inlineAnonymous.setSelected(settings.isInlineAnonymousClasses());
 		inlineAnonymous.addItemListener(e -> {
@@ -670,6 +677,8 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.useDebugInfo"), useDebugInfo);
+		other.addRow(NLS.str("preferences.stableMemberOrder"),
+				NLS.str("preferences.stableMemberOrder.tooltip"), stableMemberOrder);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.inlineKotlinLambdas"), inlineKotlinLambdas);

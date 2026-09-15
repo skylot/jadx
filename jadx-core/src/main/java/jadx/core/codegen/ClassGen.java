@@ -288,11 +288,14 @@ public class ClassGen {
 	}
 
 	private void addInnerClsAndMethods(ICodeWriter clsCode) {
+		Comparator<LineAttrNode> order = Comparator.comparingInt(LineAttrNode::getSourceLine);
+		if (cls.root().getArgs().isStableMemberOrder()) {
+			order = order.thenComparing(this::memberSortKey);
+		}
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
 				.filter(node -> !skipNode(node))
-				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine)
-						.thenComparing(this::memberSortKey))
+				.sorted(order)
 				.forEach(node -> {
 					if (node instanceof ClassNode) {
 						addInnerClass(clsCode, (ClassNode) node);
