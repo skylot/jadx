@@ -1,6 +1,5 @@
 package jadx.gui.plugins;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,6 +8,7 @@ import javax.swing.JLabel;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
@@ -42,72 +42,121 @@ public class GuiPluginsManagerTest {
 	}
 
 	@Test
-	public void loadedGlobalPluginsInjectedIntoProject() throws Exception {
-		MainWindow mainWindow = TestMainWindowShim.build();
-		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+	public void globalPluginsLoadedWithoutDecompiler() {
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		RecordingGlobalPlugin globalPlugin = new RecordingGlobalPlugin("global-plugin");
+		manager.loadGlobalPlugins(new JadxArgs(), new TestPluginsLoader(globalPlugin));
 
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler();
-				JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-			TestPlugin globalPlugin = new TestPlugin("global-plugin");
-			assertThat(globalDecompiler.getPluginManager().register(globalPlugin)).isNotNull();
-			setGlobalDecompiler(manager, globalDecompiler);
+		assertThat(manager.getGlobalPluginContexts())
+				.extracting(PluginContext::getPluginId)
+				.containsExactly("global-plugin");
+		PluginContext globalContext = manager.getGlobalPluginContexts().first();
+		// global plugin data not bound to any decompiler, plugin gets only gui context on global init
+		assertThat(globalContext).isNotInstanceOf(JadxPluginContext.class);
+		assertThat(globalPlugin.globalInitCount).isEqualTo(1);
+		assertThat(globalPlugin.globalContext).isSameAs(globalContext.getGuiContext());
+		assertThat(globalPlugin.projectInitCount).isZero();
+	}
 
-			assertThat(manager.getGlobalPluginContexts())
-					.extracting(PluginContext::getPluginId)
-					.containsExactly("global-plugin");
+	@Test
+	public void disabledGlobalPluginsSkipped() {
+		JadxArgs args = new JadxArgs();
+		args.getDisabledPlugins().add("disabled-plugin");
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		RecordingGlobalPlugin disabledPlugin = new RecordingGlobalPlugin("disabled-plugin");
+		manager.loadGlobalPlugins(args, new TestPluginsLoader(disabledPlugin, new RecordingGlobalPlugin("enabled-plugin")));
 
+		assertThat(manager.getGlobalPluginContexts())
+				.extracting(PluginContext::getPluginId)
+				.containsExactly("enabled-plugin");
+		assertThat(disabledPlugin.globalInitCount).isZero();
+	}
+
+	@Test
+	public void globalPluginOptionsAppliedFromArgs() {
+		RecordingGlobalPlugin globalPlugin = new RecordingGlobalPlugin("global-plugin");
+		JadxArgs args = new JadxArgs();
+		args.getPluginOptions().put(globalPlugin.getOptionName(), "global-value");
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		manager.loadGlobalPlugins(args, new TestPluginsLoader(globalPlugin));
+
+		assertThat(globalPlugin.optionValue).isEqualTo("global-value");
+		assertThat(manager.getGlobalPluginContexts().first().getOptions()).isNotNull();
+	}
+
+	@Test
+	public void loadedGlobalPluginsInjectedIntoProject() {
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		RecordingGlobalPlugin globalPlugin = new RecordingGlobalPlugin("global-plugin");
+		manager.loadGlobalPlugins(new JadxArgs(), new TestPluginsLoader(globalPlugin));
+		PluginContext globalContext = manager.getGlobalPluginContexts().first();
+
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			manager.initGuiPluginsContext(projectDecompiler);
 			manager.injectGlobalPlugins(projectDecompiler);
 
 			assertThat(projectDecompiler.getPluginManager().getAllPluginContexts())
 					.extracting(PluginContext::getPluginId)
 					.containsExactly("global-plugin");
 
-			// same plugin instance is used in both scopes
+			// same plugin instance is used in both scopes, but with separate plugin data
 			PluginContext projectContext = projectDecompiler.getPluginManager().getAllPluginContexts().first();
 			assertThat(projectContext.getPluginInstance()).isSameAs(globalPlugin);
+			assertThat(projectContext).isNotSameAs(globalContext);
 		}
 	}
 
 	@Test
-	public void globalPluginCustomSettingsUsedInProjectScope() throws Exception {
-		MainWindow mainWindow = TestMainWindowShim.build();
-		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+	public void projectOptionsAppliedToInjectedGlobalPlugin() {
+		RecordingGlobalPlugin globalPlugin = new RecordingGlobalPlugin("global-plugin");
+		JadxArgs globalArgs = new JadxArgs();
+		globalArgs.getPluginOptions().put(globalPlugin.getOptionName(), "global-value");
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		manager.loadGlobalPlugins(globalArgs, new TestPluginsLoader(globalPlugin));
 
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler();
-				JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-			TestPlugin globalPlugin = new TestPlugin("global-plugin");
-			manager.initGuiPluginsContext(globalDecompiler, true);
-			PluginContext globalContext = globalDecompiler.getPluginManager().register(globalPlugin);
-			assertThat(globalContext).isNotNull();
-			GuiPluginContext globalGuiContext = (GuiPluginContext) globalContext.getGuiContext();
-			ISettingsGroup settingsGroup = new TestSettingsGroup();
-			globalGuiContext.settings().setCustomSettingsGroup(settingsGroup);
-			setGlobalDecompiler(manager, globalDecompiler);
+		// project args contain per project options (see JadxProject.fillJadxArgs)
+		JadxArgs projectArgs = new JadxArgs();
+		projectArgs.getPluginOptions().put(globalPlugin.getOptionName(), "project-value");
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler(projectArgs)) {
+			manager.initGuiPluginsContext(projectDecompiler);
+			manager.injectGlobalPlugins(projectDecompiler);
 
-			manager.initGuiPluginsContext(projectDecompiler, false);
+			PluginContext projectContext = projectDecompiler.getPluginManager().getAllPluginContexts().first();
+			assertThat(projectContext.getOptions()).isNotNull();
+			assertThat(globalPlugin.optionValue).isEqualTo("project-value");
+		}
+	}
+
+	@Test
+	public void globalPluginCustomSettingsUsedInProjectScope() {
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		RecordingGlobalPlugin globalPlugin = new RecordingGlobalPlugin("global-plugin");
+		ISettingsGroup settingsGroup = new TestSettingsGroup();
+		globalPlugin.customSettings = settingsGroup;
+		manager.loadGlobalPlugins(new JadxArgs(), new TestPluginsLoader(globalPlugin));
+
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			manager.initGuiPluginsContext(projectDecompiler);
 			manager.injectGlobalPlugins(projectDecompiler);
 
 			PluginContext projectContext = projectDecompiler.getPluginManager().getAllPluginContexts().first();
 			GuiPluginContext projectGuiContext = (GuiPluginContext) projectContext.getGuiContext();
+			assertThat(projectGuiContext).isNotNull();
 			assertThat(projectGuiContext.getCustomSettingsGroup()).isSameAs(settingsGroup);
 		}
 	}
 
 	@Test
-	public void projectPluginCustomSettingsNotAffected() throws Exception {
-		MainWindow mainWindow = TestMainWindowShim.build();
-		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+	public void projectPluginCustomSettingsNotAffected() {
+		GuiPluginsManager manager = new GuiPluginsManager(TestMainWindowShim.build());
+		manager.loadGlobalPlugins(new JadxArgs(), new TestPluginsLoader(new RecordingGlobalPlugin("global-plugin")));
 
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler();
-				JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-			manager.initGuiPluginsContext(globalDecompiler, true);
-			assertThat(globalDecompiler.getPluginManager().register(new TestPlugin("global-plugin"))).isNotNull();
-			setGlobalDecompiler(manager, globalDecompiler);
-
-			manager.initGuiPluginsContext(projectDecompiler, false);
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			manager.initGuiPluginsContext(projectDecompiler);
 			PluginContext projectOnly = projectDecompiler.getPluginManager().register(new TestPlugin("project-plugin"));
 			assertThat(projectOnly).isNotNull();
 			GuiPluginContext projectOnlyGui = (GuiPluginContext) projectOnly.getGuiContext();
+			assertThat(projectOnlyGui).isNotNull();
 			ISettingsGroup ownGroup = new TestSettingsGroup();
 			projectOnlyGui.settings().setCustomSettingsGroup(ownGroup);
 
@@ -132,12 +181,6 @@ public class GuiPluginsManagerTest {
 		public List<ISettingsGroup> getSubGroups() {
 			return Collections.emptyList();
 		}
-	}
-
-	private static void setGlobalDecompiler(GuiPluginsManager manager, JadxDecompiler decompiler) throws Exception {
-		Field field = GuiPluginsManager.class.getDeclaredField("globalDecompiler");
-		field.setAccessible(true);
-		field.set(manager, decompiler);
 	}
 
 	private static final class TestPlugin implements JadxPlugin {
