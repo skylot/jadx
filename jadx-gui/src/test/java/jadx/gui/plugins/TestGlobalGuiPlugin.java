@@ -1,5 +1,11 @@
 package jadx.gui.plugins;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +34,16 @@ public class TestGlobalGuiPlugin extends JadxGlobalGuiPlugin {
 				.build();
 	}
 
+	private List<Path> projectFiles = Collections.emptyList();
+
 	@Override
 	public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContextExt) {
 		LOG.info("TestGlobalGuiPlugin globalInit called");
+		guiContextExt.addMenuAction("Test: reopen project files", () -> {
+			List<Path> files = projectFiles;
+			LOG.info("TestGlobalGuiPlugin open files: {}", files);
+			guiContextExt.uiRun(() -> guiContextExt.getMainWindow().open(files));
+		});
 	}
 
 	@Override
@@ -50,6 +63,7 @@ public class TestGlobalGuiPlugin extends JadxGlobalGuiPlugin {
 	@Override
 	public void init(JadxPluginContext context, @NotNull JadxGuiContextExt guiContextExt) {
 		LOG.info("TestGlobalGuiPlugin project init called");
+		projectFiles = context.getArgs().getInputFiles().stream().map(File::toPath).collect(Collectors.toList());
 	}
 
 	@Override

@@ -482,6 +482,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		open(Collections.singletonList(path), UiUtils.EMPTY_RUNNABLE);
 	}
 
+	@Override
 	public void open(List<Path> paths) {
 		open(paths, UiUtils.EMPTY_RUNNABLE);
 	}
