@@ -10,14 +10,12 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
-import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.data.IJadxFiles;
 import jadx.api.plugins.data.IJadxPlugins;
 import jadx.api.plugins.data.JadxPluginRuntimeData;
-import jadx.api.plugins.events.IJadxEvents;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.input.ICodeLoader;
 import jadx.api.plugins.input.JadxCodeInput;
@@ -25,16 +23,13 @@ import jadx.api.plugins.input.data.impl.MergeCodeLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
-import jadx.api.plugins.pass.JadxPass;
-import jadx.api.plugins.resources.IResourcesLoader;
 import jadx.core.plugins.files.JadxFilesData;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.zip.ZipReader;
 
-public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, Comparable<PluginContext> {
-	private final JadxDecompiler decompiler;
+public class PluginContext implements JadxPluginRuntimeData, Comparable<PluginContext> {
+	private final JadxArgs args;
 	private final JadxPluginsData pluginsData;
 	private final JadxPlugin plugin;
 	private final JadxPluginInfo pluginInfo;
@@ -48,17 +43,17 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 
 	private boolean initialized;
 
-	PluginContext(JadxDecompiler decompiler, JadxPluginsData pluginsData, JadxPlugin plugin) {
-		this.decompiler = decompiler;
+	PluginContext(JadxArgs args, JadxPluginsData pluginsData, JadxPlugin plugin) {
+		this.args = args;
 		this.pluginsData = pluginsData;
 		this.plugin = plugin;
 		this.pluginInfo = plugin.getPluginInfo();
 		this.pluginClassLoader = plugin.getClass().getClassLoader();
 	}
 
-	public void init() {
+	void init(JadxPluginContext context) {
 		classLoaderWrap(() -> {
-			plugin.init(this);
+			plugin.init(context);
 			initialized = true;
 		});
 	}
@@ -89,22 +84,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return initialized;
 	}
 
-	@Override
-	public JadxArgs getArgs() {
-		return decompiler.getArgs();
-	}
-
-	@Override
-	public JadxDecompiler getDecompiler() {
-		return decompiler;
-	}
-
-	@Override
-	public void addPass(JadxPass pass) {
-		decompiler.addCustomPass(pass);
-	}
-
-	@Override
 	public void addCodeInput(JadxCodeInput codeInput) {
 		this.codeInputs.add(codeInput);
 	}
@@ -114,20 +93,18 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return codeInputs;
 	}
 
-	@Override
 	public void registerOptions(@Nullable JadxPluginOptions options) {
 		if (options == null) {
 			return;
 		}
 		this.options = options;
 		try {
-			options.setOptions(getArgs().getPluginOptions());
+			options.setOptions(args.getPluginOptions());
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to apply options for plugin: " + getPluginId(), e);
 		}
 	}
 
-	@Override
 	public void registerInputsHashSupplier(Supplier<String> supplier) {
 		this.inputsHashSupplier = supplier;
 	}
@@ -148,7 +125,7 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		if (options == null) {
 			return "";
 		}
-		Map<String, String> allOptions = getArgs().getPluginOptions();
+		Map<String, String> allOptions = args.getPluginOptions();
 		StringBuilder sb = new StringBuilder();
 		for (OptionDescription optDesc : options.getOptionsDescriptions()) {
 			if (!optDesc.getFlags().contains(OptionFlag.NOT_CHANGING_CODE)) {
@@ -156,16 +133,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 			}
 		}
 		return FileUtils.md5Sum(sb.toString());
-	}
-
-	@Override
-	public IJadxEvents events() {
-		return decompiler.events();
-	}
-
-	@Override
-	public IResourcesLoader getResourcesLoader() {
-		return decompiler.getResourcesLoader();
 	}
 
 	public AppContext getAppContext() {
@@ -176,7 +143,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		this.appContext = appContext;
 	}
 
-	@Override
 	public @Nullable JadxGuiContext getGuiContext() {
 		return appContext.getGuiContext();
 	}
@@ -201,12 +167,10 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return options;
 	}
 
-	@Override
 	public IJadxPlugins plugins() {
 		return pluginsData;
 	}
 
-	@Override
 	public IJadxFiles files() {
 		return new JadxFilesData(pluginInfo, appContext.getFilesGetter());
 	}
@@ -216,11 +180,6 @@ public class PluginContext implements JadxPluginContext, JadxPluginRuntimeData, 
 		return new MergeCodeLoader(
 				Utils.collectionMap(codeInputs, codeInput -> codeInput.loadFiles(files)),
 				closeable);
-	}
-
-	@Override
-	public ZipReader getZipReader() {
-		return decompiler.getZipReader();
 	}
 
 	@Override
