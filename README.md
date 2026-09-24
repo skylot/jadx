@@ -11,6 +11,12 @@
 ![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
+> [!NOTE]
+> **This is an unofficial fork of [skylot/jadx](https://github.com/skylot/jadx)** that adds a full Hebrew (`he_IL`) translation of the jadx-gui interface.
+> It is not affiliated with or endorsed by the original jadx project or its maintainers.
+> All original jadx source code, functionality and credits belong to the upstream project — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+> The Hebrew translation strings (`jadx-gui/src/main/resources/i18n/Messages_he_IL.properties`) are Copyright (c) 2025 the fork's contributors, licensed under the same Apache 2.0 License as the rest of the project.
+
 **jadx** - Dex to Java decompiler
 
 Command line and GUI tools for producing Java source code from Android Dex and Apk files
@@ -255,3 +261,5 @@ To support this project you can:
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
+
+This repository is a fork of [skylot/jadx](https://github.com/skylot/jadx) with an added Hebrew translation. See the [LICENSE](LICENSE) and [NOTICE](NOTICE) files for the full original license text and third-party attributions, which are kept unmodified as required by the Apache 2.0 License.
