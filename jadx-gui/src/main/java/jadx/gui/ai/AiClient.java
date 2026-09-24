@@ -146,8 +146,9 @@ public class AiClient {
 		}
 
 		String caCertPath = settings.getCustomCaCertPath();
-		if (caCertPath != null && !caCertPath.isBlank()) {
-			builder.sslContext(buildSslContextWithExtraCa(caCertPath.trim()));
+		boolean useCustomCa = caCertPath != null && !caCertPath.isBlank();
+		if (useCustomCa || settings.isTrustSystemCertStore()) {
+			builder.sslContext(buildSslContext(useCustomCa ? caCertPath.trim() : null, settings.isTrustSystemCertStore()));
 		}
 		return builder.build();
 	}
@@ -164,35 +165,75 @@ public class AiClient {
 	}
 
 	/**
-	 * Builds an SSLContext that trusts both the JVM default CA set and an additional
-	 * user-provided CA certificate (needed for network filters/proxies that perform
-	 * TLS interception with their own root certificate, e.g. parental-control/content filters).
+	 * Builds an SSLContext that trusts the JVM default CA set plus, optionally, a user-provided
+	 * CA certificate file and/or the OS certificate store (Windows-ROOT). Needed for network
+	 * filters/proxies that perform TLS interception with their own root certificate
+	 * (e.g. NetFree and similar parental-control/content filters).
 	 */
-	private static SSLContext buildSslContextWithExtraCa(String caCertPath) {
+	private static SSLContext buildSslContext(@Nullable String caCertPath, boolean trustSystemCertStore) {
 		try {
-			TrustManagerFactory defaultTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			defaultTmf.init((KeyStore) null);
-			X509TrustManager defaultTm = findX509TrustManager(defaultTmf);
-
-			KeyStore extraKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			extraKeyStore.load(null, null);
-			try (InputStream in = new FileInputStream(caCertPath)) {
-				CertificateFactory cf = CertificateFactory.getInstance("X.509");
-				int i = 0;
-				for (Certificate cert : cf.generateCertificates(in)) {
-					extraKeyStore.setCertificateEntry("ai-custom-ca-" + (i++), cert);
-				}
+			List<X509TrustManager> trustManagers = new ArrayList<>();
+			trustManagers.add(loadDefaultTrustManager());
+			if (caCertPath != null) {
+				trustManagers.add(loadCustomCaTrustManager(caCertPath));
 			}
-			TrustManagerFactory extraTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			extraTmf.init(extraKeyStore);
-			X509TrustManager extraTm = findX509TrustManager(extraTmf);
-
-			X509TrustManager combined = new CompositeTrustManager(defaultTm, extraTm);
+			if (trustSystemCertStore) {
+				X509TrustManager systemTm = tryLoadSystemCertStoreTrustManager();
+				if (systemTm == null) {
+					throw new JadxRuntimeException(
+							"AI Assistant: system certificate store trust is only supported on Windows");
+				}
+				trustManagers.add(systemTm);
+			}
+			X509TrustManager combined = new CompositeTrustManager(trustManagers);
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, new TrustManager[] { combined }, new SecureRandom());
 			return sslContext;
+		} catch (JadxRuntimeException e) {
+			throw e;
 		} catch (Exception e) {
+			throw new JadxRuntimeException("AI Assistant: failed to set up TLS trust", e);
+		}
+	}
+
+	private static X509TrustManager loadDefaultTrustManager() throws Exception {
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init((KeyStore) null);
+		return findX509TrustManager(tmf);
+	}
+
+	private static X509TrustManager loadCustomCaTrustManager(String caCertPath) throws Exception {
+		KeyStore extraKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		extraKeyStore.load(null, null);
+		try (InputStream in = new FileInputStream(caCertPath)) {
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			int i = 0;
+			for (Certificate cert : cf.generateCertificates(in)) {
+				extraKeyStore.setCertificateEntry("ai-custom-ca-" + (i++), cert);
+			}
+		} catch (IOException e) {
 			throw new JadxRuntimeException("AI Assistant: failed to load custom CA certificate from: " + caCertPath, e);
+		}
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init(extraKeyStore);
+		return findX509TrustManager(tmf);
+	}
+
+	/**
+	 * Uses the JDK's built-in SunMSCAPI provider to read the Windows "Trusted Root Certification
+	 * Authorities" store, where filters like NetFree install their interception root certificate.
+	 * Returns null on non-Windows platforms or if the provider isn't available.
+	 */
+	private static @Nullable X509TrustManager tryLoadSystemCertStoreTrustManager() {
+		try {
+			KeyStore systemStore = KeyStore.getInstance("Windows-ROOT");
+			systemStore.load(null, null);
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init(systemStore);
+			return findX509TrustManager(tmf);
+		} catch (Exception e) {
+			LOG.warn("Windows system certificate store is not available", e);
+			return null;
 		}
 	}
 
@@ -217,32 +258,37 @@ public class AiClient {
 	}
 
 	private static final class CompositeTrustManager implements X509TrustManager {
-		private final X509TrustManager first;
-		private final X509TrustManager second;
+		private final List<X509TrustManager> delegates;
 
-		private CompositeTrustManager(X509TrustManager first, X509TrustManager second) {
-			this.first = first;
-			this.second = second;
+		private CompositeTrustManager(List<X509TrustManager> delegates) {
+			this.delegates = delegates;
 		}
 
 		@Override
 		public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-			first.checkClientTrusted(chain, authType);
+			delegates.get(0).checkClientTrusted(chain, authType);
 		}
 
 		@Override
 		public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-			try {
-				first.checkServerTrusted(chain, authType);
-			} catch (CertificateException e) {
-				second.checkServerTrusted(chain, authType);
+			CertificateException lastError = null;
+			for (X509TrustManager delegate : delegates) {
+				try {
+					delegate.checkServerTrusted(chain, authType);
+					return;
+				} catch (CertificateException e) {
+					lastError = e;
+				}
 			}
+			throw lastError != null ? lastError : new CertificateException("No trust managers configured");
 		}
 
 		@Override
 		public X509Certificate[] getAcceptedIssuers() {
-			List<X509Certificate> result = new ArrayList<>(List.of(first.getAcceptedIssuers()));
-			result.addAll(List.of(second.getAcceptedIssuers()));
+			List<X509Certificate> result = new ArrayList<>();
+			for (X509TrustManager delegate : delegates) {
+				result.addAll(List.of(delegate.getAcceptedIssuers()));
+			}
 			return result.toArray(new X509Certificate[0]);
 		}
 	}

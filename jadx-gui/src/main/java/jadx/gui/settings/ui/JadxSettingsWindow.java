@@ -37,11 +37,13 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.Nullable;
@@ -87,6 +89,7 @@ import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
+import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.ActionHandler;
@@ -417,6 +420,17 @@ public class JadxSettingsWindow extends JDialog {
 		JTextField modelFld = new JTextField(ai.getModel(), 20);
 		JPasswordField apiKeyFld = new JPasswordField(ai.getApiKey(), 30);
 
+		Link getApiKeyLink = new Link(NLS.str("preferences.ai.get_api_key"), "");
+		Runnable updateApiKeyLink = () -> {
+			AiProvider provider = ai.getProvider();
+			String url = provider.getApiKeyUrl();
+			getApiKeyLink.setVisible(url != null);
+			if (url != null) {
+				getApiKeyLink.setUrl(url);
+			}
+		};
+		updateApiKeyLink.run();
+
 		providerCb.addActionListener(e -> {
 			AiProvider provider = (AiProvider) providerCb.getSelectedItem();
 			ai.setProvider(provider);
@@ -426,6 +440,7 @@ public class JadxSettingsWindow extends JDialog {
 				ai.setBaseUrl(provider.getDefaultBaseUrl());
 				ai.setModel(provider.getDefaultModel());
 			}
+			updateApiKeyLink.run();
 		});
 
 		baseUrlFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setBaseUrl(baseUrlFld.getText())));
@@ -465,12 +480,27 @@ public class JadxSettingsWindow extends JDialog {
 		caCertPanel.add(caCertFld);
 		caCertPanel.add(caCertBrowseBtn);
 
+		JCheckBox netfreeChb = new JCheckBox();
+		netfreeChb.setSelected(ai.isTrustSystemCertStore());
+		netfreeChb.addItemListener(e -> ai.setTrustSystemCertStore(e.getStateChange() == ItemEvent.SELECTED));
+
 		JButton testBtn = new JButton(NLS.str("preferences.ai.test"));
 		testBtn.addActionListener(ev -> testAiConnection(ai));
 
+		JTextArea helpText = new JTextArea(NLS.str("preferences.ai.help_text"));
+		helpText.setEditable(false);
+		helpText.setLineWrap(true);
+		helpText.setWrapStyleWord(true);
+		helpText.setOpaque(false);
+		helpText.setFocusable(false);
+		helpText.setFont(UIManager.getFont("Label.font"));
+		helpText.setPreferredSize(new Dimension(450, 90));
+
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.ai"));
+		group.addRow("", helpText);
 		group.addRow(NLS.str("preferences.ai.enabled"), aiEnabled);
 		group.addRow(NLS.str("preferences.ai.provider"), providerCb);
+		group.addRow(NLS.str("preferences.ai.get_api_key"), getApiKeyLink);
 		group.addRow(NLS.str("preferences.ai.base_url"), baseUrlFld);
 		group.addRow(NLS.str("preferences.ai.model"), modelFld);
 		group.addRow(NLS.str("preferences.ai.api_key"), apiKeyFld);
@@ -479,6 +509,7 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.ai.proxy.username"), proxyUserFld);
 		group.addRow(NLS.str("preferences.ai.proxy.password"), proxyPassFld);
 		group.addRow(NLS.str("preferences.ai.proxy.ca_cert"), NLS.str("preferences.ai.proxy.ca_cert.tooltip"), caCertPanel);
+		group.addRow(NLS.str("preferences.ai.proxy.netfree"), NLS.str("preferences.ai.proxy.netfree.tooltip"), netfreeChb);
 		group.addRow(NLS.str("preferences.ai.test"), testBtn);
 		return group;
 	}

@@ -17,6 +17,7 @@ public class AiSettings {
 	private String proxyUsername = "";
 	private String proxyPassword = "";
 	private String customCaCertPath = "";
+	private boolean trustSystemCertStore = false;
 
 	public boolean isEnabled() {
 		return enabled;
@@ -96,5 +97,13 @@ public class AiSettings {
 
 	public void setCustomCaCertPath(String customCaCertPath) {
 		this.customCaCertPath = customCaCertPath;
+	}
+
+	public boolean isTrustSystemCertStore() {
+		return trustSystemCertStore;
+	}
+
+	public void setTrustSystemCertStore(boolean trustSystemCertStore) {
+		this.trustSystemCertStore = trustSystemCertStore;
 	}
 }

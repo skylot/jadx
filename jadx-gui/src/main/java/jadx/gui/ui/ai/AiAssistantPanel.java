@@ -40,6 +40,9 @@ public class AiAssistantPanel extends JPanel {
 	public AiAssistantPanel(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 		initUI();
+		if (!mainWindow.getSettings().getAiSettings().isEnabled()) {
+			chatArea.setText(NLS.str("ai_assistant.welcome_not_enabled") + "\n");
+		}
 	}
 
 	private void initUI() {
@@ -77,11 +80,11 @@ public class AiAssistantPanel extends JPanel {
 		sendBtn.addActionListener(ev -> send());
 		JButton clearBtn = new JButton(NLS.str("ai_assistant.clear"));
 		clearBtn.addActionListener(ev -> clear());
-		JButton settingsBtn = new JButton(NLS.str("preferences.ai"));
-		settingsBtn.addActionListener(ev -> mainWindow.openSettings(NLS.str("preferences.ai")));
+		JButton connectBtn = new JButton(NLS.str("ai_assistant.connect_provider"));
+		connectBtn.addActionListener(ev -> mainWindow.openSettings(NLS.str("preferences.ai")));
 
 		JPanel buttonsPanel = new JPanel();
-		buttonsPanel.add(settingsBtn);
+		buttonsPanel.add(connectBtn);
 		buttonsPanel.add(clearBtn);
 		buttonsPanel.add(sendBtn);
 

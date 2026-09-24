@@ -1347,6 +1347,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		toolbar.add(deobfToggleBtn);
 		toolbar.add(quarkAction);
 		toolbar.add(debuggerAction);
+		toolbar.add(aiAssistantAction);
 		toolbar.addSeparator();
 		toolbar.add(showLogAction);
 		toolbar.addSeparator();
