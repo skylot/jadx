@@ -146,6 +146,7 @@ import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
+import jadx.gui.ui.dialog.AiAssistantDialog;
 import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
@@ -1210,6 +1211,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 				() -> new QuarkDialog(MainWindow.this).setVisible(true));
 		JadxGuiAction debuggerAction = new JadxGuiAction(ActionModel.OPEN_DEVICE,
 				() -> new ADBDialog(MainWindow.this).setVisible(true));
+		JadxGuiAction aiAssistantAction = new JadxGuiAction(ActionModel.AI_ASSISTANT,
+				() -> AiAssistantDialog.open(MainWindow.this));
 
 		JMenu file = new JadxMenu(NLS.str("menu.file"), shortcutsController);
 		file.setMnemonic(KeyEvent.VK_F);
@@ -1269,6 +1272,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		tools.add(deobfMenuItem);
 		tools.add(quarkAction);
 		tools.add(debuggerAction);
+		tools.add(aiAssistantAction);
 
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
@@ -1572,7 +1576,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		openSettings(null);
 	}
 
-	private void openSettings(@Nullable String navigateTo) {
+	public void openSettings(@Nullable String navigateTo) {
 		settingsOpen = true;
 
 		JadxSettingsWindow settingsWindow = new JadxSettingsWindow(MainWindow.this, settings);

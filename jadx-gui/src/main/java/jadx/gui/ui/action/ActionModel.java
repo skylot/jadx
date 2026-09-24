@@ -63,6 +63,8 @@ public enum ActionModel {
 	FORWARD_V(MENU_TOOLBAR, NLS.str("action.variant", NLS.str("nav.forward")), null, "ui/right", null),
 	QUARK(MENU_TOOLBAR, NLS.str("menu.quark"), null, "ui/quark", null),
 	OPEN_DEVICE(MENU_TOOLBAR, NLS.str("debugger.process_selector"), null, "ui/startDebugger", null),
+	AI_ASSISTANT(MENU_TOOLBAR, NLS.str("menu.ai_assistant"), null, null,
+			keyboard(KeyEvent.VK_I, ctrlButton() | SHIFT_DOWN_MASK)),
 
 	FIND_USAGE(CODE_AREA, NLS.str("popup.find_usage"), null, null, keyboard(KeyEvent.VK_X)),
 	FIND_USAGE_PLUS(CODE_AREA, NLS.str("popup.usage_dialog_plus"), null, null, keyboard(KeyEvent.VK_C)),
@@ -81,6 +83,7 @@ public enum ActionModel {
 	XPOSED_COPY(CODE_AREA, NLS.str("popup.xposed"), null, null, keyboard(KeyEvent.VK_Y)),
 	COPY_REFERENCE(CODE_AREA, NLS.str("popup.copy_reference"), null, null, keyboard(KeyEvent.VK_R)),
 	JSON_PRETTIFY(CODE_AREA, NLS.str("popup.json_prettify"), null, null, null),
+	ASK_AI(CODE_AREA, NLS.str("popup.ask_ai"), NLS.str("popup.ask_ai_desc"), null, keyboard(KeyEvent.VK_I)),
 
 	SCRIPT_RUN(PLUGIN_SCRIPT, NLS.str("script.run"), null, "ui/run", keyboard(KeyEvent.VK_F8)),
 	SCRIPT_SAVE(PLUGIN_SCRIPT, NLS.str("script.save"), null, "ui/menu-saveall", keyboard(KeyEvent.VK_S, ctrlButton())),

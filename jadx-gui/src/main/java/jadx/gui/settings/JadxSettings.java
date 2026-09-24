@@ -32,6 +32,7 @@ import jadx.api.args.UserRenamesMappingsMode;
 import jadx.cli.config.JadxConfigAdapter;
 import jadx.cli.config.JadxConfigExclude;
 import jadx.core.utils.GsonUtils;
+import jadx.gui.ai.AiSettings;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
@@ -328,6 +329,10 @@ public class JadxSettings {
 
 	public void setAutoStartJobs(boolean autoStartJobs) {
 		settingsData.setAutoStartJobs(autoStartJobs);
+	}
+
+	public AiSettings getAiSettings() {
+		return settingsData.getAiSettings();
 	}
 
 	public ShortcutsWrapper getShortcuts() {

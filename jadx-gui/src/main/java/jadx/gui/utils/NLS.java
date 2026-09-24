@@ -118,11 +118,16 @@ public class NLS {
 		return currentLocale;
 	}
 
+	private static final LangLocale PREFERRED_DEFAULT_LOCALE = new LangLocale("he", "IL");
+
 	public static LangLocale defaultLocale() {
 		if (LANG_LOCALES_MAP.containsKey(LOCAL_LOCALE)) {
 			return LOCAL_LOCALE;
 		}
-		// fallback to English if unsupported
+		// this fork defaults to Hebrew instead of English when the system locale isn't supported
+		if (LANG_LOCALES_MAP.containsKey(PREFERRED_DEFAULT_LOCALE)) {
+			return PREFERRED_DEFAULT_LOCALE;
+		}
 		return LANG_LOCALES.get(0);
 	}
 }

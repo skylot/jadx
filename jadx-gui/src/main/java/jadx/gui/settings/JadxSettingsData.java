@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import com.google.gson.annotations.SerializedName;
 
 import jadx.cli.LogHelper;
+import jadx.gui.ai.AiSettings;
 import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
@@ -106,6 +107,8 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	private XposedCodegenLanguage xposedCodegenLanguage = XposedCodegenLanguage.JAVA;
 
+	private AiSettings aiSettings = new AiSettings();
+
 	private int treeWidth = 130;
 	private boolean dockLogViewer = true;
 	private boolean dockQuickTabs = false;
@@ -155,6 +158,14 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setAutoStartJobs(boolean autoStartJobs) {
 		this.autoStartJobs = autoStartJobs;
+	}
+
+	public AiSettings getAiSettings() {
+		return aiSettings;
+	}
+
+	public void setAiSettings(AiSettings aiSettings) {
+		this.aiSettings = aiSettings;
 	}
 
 	public @Nullable String getCacheDir() {

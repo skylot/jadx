@@ -7,6 +7,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -21,9 +22,12 @@ import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.StringUtils;
@@ -68,6 +72,8 @@ class CustomFileChooser extends JFileChooser {
 		if (data.isOpen()) {
 			installFileListPasteAction(this);
 		}
+		// the filename field doesn't get focus by default, so a path can't be pasted right after the dialog opens
+		focusFileNameField(this);
 		MainWindow mainWindow = data.getMainWindow();
 		int ret = data.isOpen() ? showOpenDialog(mainWindow) : showSaveDialog(mainWindow);
 		if (ret != JFileChooser.APPROVE_OPTION) {
@@ -143,6 +149,38 @@ class CustomFileChooser extends JFileChooser {
 				installFileListPasteAction(child);
 			}
 		}
+	}
+
+	/**
+	 * JFileChooser doesn't focus its filename field by default, so pasting a path
+	 * (e.g. with Ctrl+V) right after opening the dialog silently does nothing.
+	 */
+	private void focusFileNameField(Component component) {
+		JTextField field = findFileNameField(component);
+		if (field == null) {
+			return;
+		}
+		field.addHierarchyListener(e -> {
+			if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && field.isShowing()) {
+				field.requestFocusInWindow();
+				field.selectAll();
+			}
+		});
+	}
+
+	private @Nullable JTextField findFileNameField(Component component) {
+		if (component instanceof JTextField) {
+			return (JTextField) component;
+		}
+		if (component instanceof Container) {
+			for (Component child : ((Container) component).getComponents()) {
+				JTextField found = findFileNameField(child);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	private boolean pasteFileListFromClipboard(JTextComponent textComponent) {

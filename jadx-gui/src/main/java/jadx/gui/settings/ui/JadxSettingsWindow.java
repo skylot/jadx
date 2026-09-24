@@ -12,10 +12,12 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -27,12 +29,15 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
@@ -57,6 +62,10 @@ import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.ai.AiChatMessage;
+import jadx.gui.ai.AiClient;
+import jadx.gui.ai.AiProvider;
+import jadx.gui.ai.AiSettings;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsData;
 import jadx.gui.settings.JadxUpdateChannel;
@@ -72,6 +81,8 @@ import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.codearea.theme.ThemeIdAndName;
+import jadx.gui.ui.filedialog.FileDialogWrapper;
+import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
@@ -79,6 +90,7 @@ import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.ui.ActionHandler;
+import jadx.gui.utils.ui.DocumentUpdateListener;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -143,6 +155,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(new ShortcutsSettingsGroup(this, settings));
 		groups.add(makeProjectGroup());
 		groups.add(new PluginSettings(mainWindow, settings).build());
+		groups.add(makeAiGroup());
 		groups.add(makeOtherGroup());
 
 		tree = new SettingsTree(this);
@@ -388,6 +401,113 @@ public class JadxSettingsWindow extends JDialog {
 		group.addRow(NLS.str("preferences.saveOption"), dropdown);
 
 		return group;
+	}
+
+	private SettingsGroup makeAiGroup() {
+		AiSettings ai = settings.getAiSettings();
+
+		JCheckBox aiEnabled = new JCheckBox();
+		aiEnabled.setSelected(ai.isEnabled());
+		aiEnabled.addItemListener(e -> ai.setEnabled(e.getStateChange() == ItemEvent.SELECTED));
+
+		JComboBox<AiProvider> providerCb = new JComboBox<>(AiProvider.values());
+		providerCb.setSelectedItem(ai.getProvider());
+
+		JTextField baseUrlFld = new JTextField(ai.getBaseUrl(), 30);
+		JTextField modelFld = new JTextField(ai.getModel(), 20);
+		JPasswordField apiKeyFld = new JPasswordField(ai.getApiKey(), 30);
+
+		providerCb.addActionListener(e -> {
+			AiProvider provider = (AiProvider) providerCb.getSelectedItem();
+			ai.setProvider(provider);
+			if (provider != AiProvider.CUSTOM) {
+				baseUrlFld.setText(provider.getDefaultBaseUrl());
+				modelFld.setText(provider.getDefaultModel());
+				ai.setBaseUrl(provider.getDefaultBaseUrl());
+				ai.setModel(provider.getDefaultModel());
+			}
+		});
+
+		baseUrlFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setBaseUrl(baseUrlFld.getText())));
+		modelFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setModel(modelFld.getText())));
+		apiKeyFld.getDocument().addDocumentListener(
+				new DocumentUpdateListener(ev -> ai.setApiKey(new String(apiKeyFld.getPassword()))));
+
+		JTextField proxyHostFld = new JTextField(ai.getProxyHost(), 15);
+		proxyHostFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setProxyHost(proxyHostFld.getText())));
+
+		JTextField proxyPortFld = new JTextField(ai.getProxyPort(), 6);
+		proxyPortFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setProxyPort(proxyPortFld.getText())));
+
+		JTextField proxyUserFld = new JTextField(ai.getProxyUsername(), 15);
+		proxyUserFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setProxyUsername(proxyUserFld.getText())));
+
+		JPasswordField proxyPassFld = new JPasswordField(ai.getProxyPassword(), 15);
+		proxyPassFld.getDocument().addDocumentListener(
+				new DocumentUpdateListener(ev -> ai.setProxyPassword(new String(proxyPassFld.getPassword()))));
+
+		JTextField caCertFld = new JTextField(ai.getCustomCaCertPath(), 22);
+		caCertFld.getDocument().addDocumentListener(new DocumentUpdateListener(ev -> ai.setCustomCaCertPath(caCertFld.getText())));
+		JButton caCertBrowseBtn = new JButton(NLS.str("preferences.ai.proxy.ca_cert.browse"));
+		caCertBrowseBtn.addActionListener(ev -> {
+			FileDialogWrapper fd = new FileDialogWrapper(mainWindow, FileOpenMode.CUSTOM_OPEN);
+			fd.setTitle(NLS.str("preferences.ai.proxy.ca_cert"));
+			fd.setFileExtList(List.of("pem", "crt", "cer", "der"));
+			fd.setSelectionMode(JFileChooser.FILES_ONLY);
+			List<Path> files = fd.show();
+			if (files.size() == 1) {
+				String path = files.get(0).toAbsolutePath().toString();
+				caCertFld.setText(path);
+				ai.setCustomCaCertPath(path);
+			}
+		});
+		JPanel caCertPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		caCertPanel.add(caCertFld);
+		caCertPanel.add(caCertBrowseBtn);
+
+		JButton testBtn = new JButton(NLS.str("preferences.ai.test"));
+		testBtn.addActionListener(ev -> testAiConnection(ai));
+
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.ai"));
+		group.addRow(NLS.str("preferences.ai.enabled"), aiEnabled);
+		group.addRow(NLS.str("preferences.ai.provider"), providerCb);
+		group.addRow(NLS.str("preferences.ai.base_url"), baseUrlFld);
+		group.addRow(NLS.str("preferences.ai.model"), modelFld);
+		group.addRow(NLS.str("preferences.ai.api_key"), apiKeyFld);
+		group.addRow(NLS.str("preferences.ai.proxy.host"), proxyHostFld);
+		group.addRow(NLS.str("preferences.ai.proxy.port"), proxyPortFld);
+		group.addRow(NLS.str("preferences.ai.proxy.username"), proxyUserFld);
+		group.addRow(NLS.str("preferences.ai.proxy.password"), proxyPassFld);
+		group.addRow(NLS.str("preferences.ai.proxy.ca_cert"), NLS.str("preferences.ai.proxy.ca_cert.tooltip"), caCertPanel);
+		group.addRow(NLS.str("preferences.ai.test"), testBtn);
+		return group;
+	}
+
+	private void testAiConnection(AiSettings ai) {
+		AtomicReference<String> resultText = new AtomicReference<>();
+		AtomicReference<Boolean> success = new AtomicReference<>(false);
+		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.ai.testing"), () -> {
+			try {
+				AiClient client = new AiClient(ai);
+				String reply = client.sendMessage(List.of(new AiChatMessage(AiChatMessage.ROLE_USER,
+						"Reply with just the word OK if you can read this.")));
+				resultText.set(reply);
+				success.set(true);
+			} catch (Exception e) {
+				resultText.set(e.getMessage());
+				success.set(false);
+			}
+		}, status -> {
+			if (Boolean.TRUE.equals(success.get())) {
+				JOptionPane.showMessageDialog(this,
+						NLS.str("preferences.ai.test_success", resultText.get()),
+						NLS.str("preferences.ai.test"), JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(this,
+						resultText.get(),
+						NLS.str("preferences.ai.test_failed"), JOptionPane.ERROR_MESSAGE);
+			}
+		});
 	}
 
 	private SettingsGroup makeAppearanceGroup() {

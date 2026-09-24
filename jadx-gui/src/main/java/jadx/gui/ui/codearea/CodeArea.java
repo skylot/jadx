@@ -37,6 +37,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
+import jadx.gui.ui.action.AskAiAction;
 import jadx.gui.ui.action.CommentSearchAction;
 import jadx.gui.ui.action.CopyReferenceAction;
 import jadx.gui.ui.action.FindUsageAction;
@@ -202,6 +203,8 @@ public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAb
 		popup.add(new ViewControlFlowGraphAction(ActionModel.VIEW_CONTROL_FLOW_GRAPH, this));
 		popup.addSeparator();
 		popup.add(new ConvertNumberAction(this));
+		popup.addSeparator();
+		popup.add(new AskAiAction(this));
 
 		getMainWindow().getGuiPluginsManager().getPluginsContext().appendPopupMenus(this, popup);
 
