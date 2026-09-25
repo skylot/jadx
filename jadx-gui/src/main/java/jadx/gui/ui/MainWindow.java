@@ -251,7 +251,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
-	private boolean loaded;
+	private volatile boolean loaded;
 	private boolean settingsOpen = false;
 	private boolean showUndisplayedCharsDialog;
 
@@ -524,24 +524,28 @@ public class MainWindow extends JFrame implements IMainWindow {
 		return loadedFile.resolveSibling(fileName);
 	}
 
-	public void reloadMenuShortcuts() {
-		menuBar.reloadShortcuts();
-	}
-
 	public void reopen() {
 		LOG.debug("starting reopen");
 		UiUtils.bgRun(() -> {
 			getBackgroundExecutor().waitForComplete();
 			synchronized (ReloadProject.EVENT) {
+				if (!loaded && project.getFilePaths().isEmpty()) {
+					reopenComplete();
+					return;
+				}
 				saveAll();
 				closeAll();
 				System.gc();
-				loadFiles(() -> {
-					reloadMenuShortcuts();
-					events().send(ReloadSettingsWindow.INSTANCE);
-					LOG.debug("reopen complete");
-				});
+				loadFiles(this::reopenComplete);
 			}
+		});
+	}
+
+	private void reopenComplete() {
+		UiUtils.uiRunAndWait(() -> {
+			menuBar.reloadShortcuts();
+			events().send(ReloadSettingsWindow.INSTANCE);
+			LOG.debug("reopen complete");
 		});
 	}
 
