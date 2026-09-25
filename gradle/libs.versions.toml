@@ -4,6 +4,8 @@ bined = "0.2.2"
 # @pin from version 11 require Java 17
 checkstyle = "10.26.1"
 flatlaf = "3.7.2"
+# @pin not compatible version
+j2v8 = "4.6.0"
 kotlin = "2.4.20"
 raung = "0.1.1"
 smali = "3.0.10"
@@ -51,8 +53,8 @@ gson = "com.google.code.gson:gson:2.14.0"
 guava-jre = "com.google.guava:guava:23.0"
 image-viewer = "hu.kazocsaba:image-viewer:1.2.3"
 imageio-webp = "com.twelvemonkeys.imageio:imageio-webp:3.15.0"
-j2v8-linux = "com.eclipsesource.j2v8:j2v8_linux_x86_64:4.8.0"
-j2v8-win32 = "com.eclipsesource.j2v8:j2v8_win32_x86_64:4.6.0"
+j2v8-linux = { module = "com.eclipsesource.j2v8:j2v8_linux_x86_64", version.ref = "j2v8" }
+j2v8-win32 = { module = "com.eclipsesource.j2v8:j2v8_win32_x86_64", version.ref = "j2v8" }
 # @pin from 3.0 compiled with Java 17
 jcommander = "org.jcommander:jcommander:2.0"
 jdwp = "io.github.skylot:jdwp:2.0.0"
