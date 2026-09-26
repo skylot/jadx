@@ -59,6 +59,12 @@ public class FallbackZipParser implements IZipParser {
 			}
 			return new ZipContent(this, list);
 		} catch (Exception e) {
+			// content was not built, so nobody can close this parser anymore
+			try {
+				close();
+			} catch (Exception closeExc) {
+				LOG.warn("Failed to close zip file: {}", file.getAbsolutePath(), closeExc);
+			}
 			throw new FallbackException("Error opening zip file: " + file.getAbsolutePath(), e);
 		}
 	}

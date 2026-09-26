@@ -46,8 +46,23 @@ public class ZipReader {
 		}
 		try {
 			JadxZipParser jadxParser = new JadxZipParser(zipFile, options);
-			IZipParser detectedParser = detectParser(zipFile, jadxParser);
-			return detectedParser.open();
+			IZipParser detectedParser;
+			try {
+				detectedParser = detectParser(zipFile, jadxParser);
+			} catch (Exception e) {
+				jadxParser.close();
+				throw e;
+			}
+			try {
+				if (detectedParser != jadxParser) {
+					// the 'canOpen' check may leave the jadx parser loaded, release it since it won't be used
+					jadxParser.close();
+				}
+				return detectedParser.open();
+			} catch (Exception e) {
+				detectedParser.close();
+				throw e;
+			}
 		} catch (FallbackException e) {
 			throw e;
 		} catch (Exception e) {

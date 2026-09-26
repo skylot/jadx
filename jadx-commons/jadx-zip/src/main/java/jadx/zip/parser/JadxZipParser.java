@@ -86,7 +86,13 @@ public final class JadxZipParser implements IZipParser {
 				throw new IOException("Failed to open zip: " + zipFile + ", error: " + e.getMessage(), e);
 			}
 			LOG.warn("Zip open failed, switching to fallback parser, zip: {}", zipFile, e);
-			return initFallbackParser();
+			// this parser is abandoned here, so release own file resources first: after the
+			// fallback content is handed to the caller, close() can no longer reach them
+			releaseFile();
+			ZipContent fallbackContent = initFallbackParser();
+			// the returned content is owned by the caller now
+			fallbackZipContent = null;
+			return fallbackContent;
 		}
 	}
 
@@ -133,23 +139,33 @@ public final class JadxZipParser implements IZipParser {
 			return;
 		}
 		RandomAccessFile raFile = new RandomAccessFile(zipFile, "r");
-		long size = raFile.length();
-		if (size >= Integer.MAX_VALUE) {
-			throw new IOException("Zip file is too big");
-		}
-		int fileLen = (int) size;
-		if (fileLen < 100 * 1024 * 1024) {
-			// load files smaller than 100MB directly into memory
-			byte[] bytes = new byte[fileLen];
-			raFile.readFully(bytes);
-			byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
-			raFile.close();
-		} else {
-			// for big files - use a memory mapped file
-			file = raFile;
-			fileChannel = raFile.getChannel();
-			byteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
-			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		boolean keepFile = false;
+		try {
+			long size = raFile.length();
+			if (size >= Integer.MAX_VALUE) {
+				throw new IOException("Zip file is too big");
+			}
+			int fileLen = (int) size;
+			if (fileLen < 100 * 1024 * 1024) {
+				// load files smaller than 100MB directly into memory
+				byte[] bytes = new byte[fileLen];
+				raFile.readFully(bytes);
+				byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+			} else {
+				// for big files - use a memory mapped file
+				file = raFile;
+				fileChannel = raFile.getChannel();
+				byteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+				byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+				keepFile = true;
+			}
+		} finally {
+			if (!keepFile) {
+				// on failure the fields are not set yet, so close() can't release the file
+				file = null;
+				fileChannel = null;
+				raFile.close();
+			}
 		}
 	}
 
@@ -421,21 +437,31 @@ public final class JadxZipParser implements IZipParser {
 	@Override
 	public void close() throws IOException {
 		try {
+			if (fallbackZipContent != null) {
+				fallbackZipContent.close();
+			}
+		} finally {
+			fallbackZipContent = null;
+			releaseFile();
+		}
+	}
+
+	/**
+	 * Release the file resources of this parser (not the fallback parser content)
+	 */
+	private void releaseFile() throws IOException {
+		try {
 			if (fileChannel != null) {
 				fileChannel.close();
 			}
 			if (file != null) {
 				file.close();
 			}
-			if (fallbackZipContent != null) {
-				fallbackZipContent.close();
-			}
 		} finally {
 			fileChannel = null;
 			file = null;
 			byteBuffer = null;
 			endOfCDStart = -2;
-			fallbackZipContent = null;
 		}
 	}
 
