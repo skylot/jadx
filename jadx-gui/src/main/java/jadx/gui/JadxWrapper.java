@@ -73,7 +73,7 @@ public class JadxWrapper {
 				JadxAppCommon.applyEnvVars(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);
-				guiPluginsManager.initGuiPluginsContext(decompiler, false);
+				guiPluginsManager.initGuiPluginsContext(decompiler);
 				guiPluginsManager.injectGlobalPlugins(decompiler);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);

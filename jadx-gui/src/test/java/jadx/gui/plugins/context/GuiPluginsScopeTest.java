@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
+import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
@@ -23,35 +25,33 @@ public class GuiPluginsScopeTest {
 	public void globalEntriesSurviveProjectClose() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
-			registerEntries(buildContext(context, globalDecompiler, "global-plugin", true), "global");
-			assertEntriesCount(context, 1);
+		JadxPluginManager globalPluginManager = new JadxPluginManager(new JadxArgs());
+		registerEntries(buildContext(context, globalPluginManager, "global-plugin", true), "global");
+		assertEntriesCount(context, 1);
 
-			try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-				registerEntries(buildContext(context, projectDecompiler, "project-plugin", false), "project");
-				assertEntriesCount(context, 2);
-			}
-			context.resetProjectScope();
-			assertEntriesCount(context, 1);
-			assertThat(context.getCodePopupActionList()).hasSize(1);
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			registerEntries(buildContext(context, projectDecompiler.getPluginManager(), "project-plugin", false), "project");
+			assertEntriesCount(context, 2);
 		}
+		context.resetProjectScope();
+		assertEntriesCount(context, 1);
+		assertThat(context.getCodePopupActionList()).hasSize(1);
 	}
 
 	@Test
 	public void severalProjectsDontDuplicateOrAccumulateEntries() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
-			registerEntries(buildContext(context, globalDecompiler, "global-plugin", true), "global");
+		JadxPluginManager globalPluginManager = new JadxPluginManager(new JadxArgs());
+		registerEntries(buildContext(context, globalPluginManager, "global-plugin", true), "global");
 
-			for (int i = 0; i < 3; i++) {
-				try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-					registerEntries(buildContext(context, projectDecompiler, "project-plugin-" + i, false), "project");
-					assertEntriesCount(context, 2);
-				}
-				context.resetProjectScope();
-				assertEntriesCount(context, 1);
+		for (int i = 0; i < 3; i++) {
+			try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+				registerEntries(buildContext(context, projectDecompiler.getPluginManager(), "project-plugin-" + i, false), "project");
+				assertEntriesCount(context, 2);
 			}
+			context.resetProjectScope();
+			assertEntriesCount(context, 1);
 		}
 	}
 
@@ -59,20 +59,19 @@ public class GuiPluginsScopeTest {
 	public void projectScopeResetKeepsGlobalMenuActions() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
-		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
-			buildContext(context, globalDecompiler, "global-plugin", true)
-					.addMenuAction("global-menu", () -> {
-					});
-			context.resetProjectScope();
-			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
-			context.resetProjectScope();
-			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
-		}
+		JadxPluginManager globalPluginManager = new JadxPluginManager(new JadxArgs());
+		buildContext(context, globalPluginManager, "global-plugin", true)
+				.addMenuAction("global-menu", () -> {
+				});
+		context.resetProjectScope();
+		assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
+		context.resetProjectScope();
+		assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
 	}
 
 	private static GuiPluginContext buildContext(CommonGuiPluginsContext context,
-			JadxDecompiler decompiler, String pluginId, boolean global) {
-		PluginContext pluginContext = decompiler.getPluginManager().register(new TestPlugin(pluginId));
+			JadxPluginManager pluginManager, String pluginId, boolean global) {
+		PluginContext pluginContext = pluginManager.register(new TestPlugin(pluginId));
 		assertThat(pluginContext).isNotNull();
 		return context.buildForPlugin(pluginContext, global);
 	}

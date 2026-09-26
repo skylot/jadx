@@ -1,6 +1,5 @@
 package jadx.core.plugins;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.data.IJadxPlugins;
 import jadx.api.plugins.data.JadxPluginRuntimeData;
@@ -8,11 +7,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JadxPluginsData implements IJadxPlugins {
 
-	private final JadxDecompiler decompiler;
 	private final JadxPluginManager pluginManager;
 
-	public JadxPluginsData(JadxDecompiler decompiler, JadxPluginManager pluginManager) {
-		this.decompiler = decompiler;
+	public JadxPluginsData(JadxPluginManager pluginManager) {
 		this.pluginManager = pluginManager;
 	}
 

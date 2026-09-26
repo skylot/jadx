@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.input.JadxCodeInput;
@@ -22,11 +23,13 @@ import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.core.plugins.versions.VerifyRequiredVersion;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
 
-	private final JadxDecompiler decompiler;
+	private final JadxArgs args;
+	private final @Nullable JadxDecompiler decompiler;
 	private final JadxPluginsData pluginsData;
 	private final Set<String> disabledPlugins;
 	private final SortedSet<PluginContext> allPlugins = new TreeSet<>();
@@ -36,9 +39,18 @@ public class JadxPluginManager {
 	private final List<Consumer<PluginContext>> addPluginListeners = new ArrayList<>();
 
 	public JadxPluginManager(JadxDecompiler decompiler) {
+		this(decompiler.getArgs(), decompiler);
+	}
+
+	public JadxPluginManager(JadxArgs args) {
+		this(args, null);
+	}
+
+	private JadxPluginManager(JadxArgs args, @Nullable JadxDecompiler decompiler) {
+		this.args = args;
 		this.decompiler = decompiler;
-		this.pluginsData = new JadxPluginsData(decompiler, this);
-		this.disabledPlugins = decompiler.getArgs().getDisabledPlugins();
+		this.pluginsData = new JadxPluginsData(this);
+		this.disabledPlugins = args.getDisabledPlugins();
 	}
 
 	/**
@@ -77,7 +89,7 @@ public class JadxPluginManager {
 	}
 
 	private @Nullable PluginContext addPlugin(JadxPlugin plugin, VerifyRequiredVersion verifyRequiredVersion) {
-		PluginContext pluginContext = new PluginContext(decompiler, pluginsData, plugin);
+		PluginContext pluginContext = new PluginContext(args, pluginsData, plugin);
 		if (disabledPlugins.contains(pluginContext.getPluginId())) {
 			return null;
 		}
@@ -148,13 +160,16 @@ public class JadxPluginManager {
 	}
 
 	public void init(SortedSet<PluginContext> pluginContexts) {
+		if (decompiler == null) {
+			throw new JadxRuntimeException("Plugins init not available without decompiler instance");
+		}
 		AppContext defAppContext = buildDefaultAppContext();
 		for (PluginContext context : pluginContexts) {
 			try {
 				if (context.getAppContext() == null) {
 					context.setAppContext(defAppContext);
 				}
-				context.init();
+				context.init(new DecompilerPluginContext(decompiler, context));
 			} catch (Exception e) {
 				LOG.error("Failed to init plugin: {}", context.getPluginId(), e);
 			}
@@ -188,7 +203,7 @@ public class JadxPluginManager {
 	private AppContext buildDefaultAppContext() {
 		AppContext appContext = new AppContext();
 		appContext.setGuiContext(null);
-		appContext.setFilesGetter(decompiler.getArgs().getFilesGetter());
+		appContext.setFilesGetter(args.getFilesGetter());
 		return appContext;
 	}
 
