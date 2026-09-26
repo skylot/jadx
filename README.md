@@ -50,6 +50,10 @@ On Windows run `.bat` files with double-click\
 **Note:** ensure you have installed Java 11 or later 64-bit version.
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
+**Windows path with non-ASCII characters:** the portable `jadx-gui-*.exe` (Launch4j) cannot start if the folder path contains non-ASCII characters (emoji, CJK, accented letters, etc.) and fails with a generic JNI error.
+Workarounds: use `jadx-gui.cmd` from the same Windows zip, install the MSI package, use the cross-platform zip (`bin/jadx-gui.bat`), or move jadx to a path with only ASCII characters.
+See [issue #2926](https://github.com/skylot/jadx/issues/2926).
+
 ### Install
 - Arch Linux
   [![Arch Linux package](https://img.shields.io/archlinux/v/extra/any/jadx)](https://archlinux.org/packages/extra/any/jadx/)
