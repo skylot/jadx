@@ -1,5 +1,7 @@
 package jadx.core.utils;
 
+import java.util.Objects;
+
 public class Pair<T> {
 
 	private final T first;
@@ -27,12 +29,12 @@ public class Pair<T> {
 			return false;
 		}
 		Pair<?> other = (Pair<?>) o;
-		return first.equals(other.first) && second.equals(other.second);
+		return Objects.equals(first, other.first) && Objects.equals(second, other.second);
 	}
 
 	@Override
 	public int hashCode() {
-		return first.hashCode() + 31 * second.hashCode();
+		return Objects.hashCode(first) + 31 * Objects.hashCode(second);
 	}
 
 	@Override

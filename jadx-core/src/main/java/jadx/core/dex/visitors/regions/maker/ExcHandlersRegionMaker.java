@@ -50,7 +50,12 @@ public class ExcHandlersRegionMaker {
 				BlockNode handlerBlock = handler.getHandlerBlock();
 				if (handlerBlock != null) {
 					blocks.add(handlerBlock);
-					splitters.add(BlockUtils.getTopSplitterForHandler(handlerBlock));
+					BlockNode splitter = BlockUtils.searchTopSplitterForHandler(handlerBlock);
+					if (splitter != null) {
+						splitters.add(splitter);
+					} else {
+						mth.addDebugComment("Can't find top splitter block for handler: " + handlerBlock);
+					}
 				} else {
 					mth.addDebugComment("No exception handler block: " + handler);
 				}
@@ -124,7 +129,11 @@ public class ExcHandlersRegionMaker {
 		RegionStack stack = regionMaker.getStack().clear();
 		BlockNode dom;
 		if (handler.isFinally()) {
-			dom = BlockUtils.getTopSplitterForHandler(start);
+			dom = BlockUtils.searchTopSplitterForHandler(start);
+			if (dom == null) {
+				mth.addDebugComment("Can't find top splitter block for finally handler: " + start);
+				dom = start;
+			}
 		} else {
 			dom = start;
 			stack.addExits(exits);

@@ -140,7 +140,9 @@ public class BlockProcessor extends AbstractVisitor {
 						fixed = true;
 						break;
 					}
-					throw new JadxRuntimeException("Unreachable block: " + block);
+					removeUnreachableBlock(block, mth);
+					fixed = true;
+					break;
 				}
 			}
 			if (!fixed) {

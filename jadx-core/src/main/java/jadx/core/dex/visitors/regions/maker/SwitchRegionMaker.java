@@ -158,13 +158,13 @@ public final class SwitchRegionMaker {
 		outs.clear(mth.getExitBlock().getId());
 
 		BlockNode out = null;
+		LoopInfo loop = mth.getLoopForBlock(block);
 		if (outs.cardinality() == 1) {
 			// single exit
 			out = BlockUtils.bitSetToOneBlock(mth, outs);
 		} else {
 			// several switch exits
 			// possible 'return', 'continue' or fallthrough in one of the cases
-			LoopInfo loop = mth.getLoopForBlock(block);
 			if (loop != null) {
 				outs.andNot(loop.getStart().getPostDoms());
 				outs.andNot(loop.getEnd().getPostDoms());
@@ -220,10 +220,25 @@ public final class SwitchRegionMaker {
 			// 'out' block already processed, prevent endless loop
 			// in this case it might be that 'out' is the LOOP_START of a loop and occurs before 'block'
 			// just try the immediate post dominator as a fallback
-			mth.addWarnComment("Switch 'out' block " + out + " for " + block + " already processed. Defaulting to fallback option.");
-			out = block.getIPostDom();
+			BlockNode fallbackOut = block.getIPostDom();
+			if (isLoopBackEdgeOut(loop, out, fallbackOut)) {
+				// Dominance frontier can point to the current loop header instead of the switch exit.
+				out = fallbackOut;
+			} else {
+				mth.addWarnComment("Switch 'out' block " + out + " for " + block
+						+ " already processed. Defaulting to fallback option.");
+				out = fallbackOut;
+			}
 		}
 		return out;
+	}
+
+	private boolean isLoopBackEdgeOut(@Nullable LoopInfo loop, BlockNode out, @Nullable BlockNode fallbackOut) {
+		return loop != null
+				&& out == loop.getStart()
+				&& fallbackOut != null
+				&& fallbackOut != out
+				&& !regionMaker.isProcessed(fallbackOut);
 	}
 
 	private BlockNode allSameReturns(RegionStack stack) {
@@ -416,7 +431,7 @@ public final class SwitchRegionMaker {
 					}
 				}
 				if (insertBreak && canAppendBreak(region)) {
-					region.getSubBlocks().add(buildBreakContainer(switchRegion));
+					appendBreak(mth, region, switchRegion);
 				}
 			}
 		});
@@ -424,6 +439,30 @@ public final class SwitchRegionMaker {
 
 	public static boolean canAppendBreak(IRegion region) {
 		return !region.contains(AFlag.FALL_THROUGH) && !RegionUtils.hasExitBlock(region);
+	}
+
+	public static boolean appendBreak(MethodNode mth, IRegion region, SwitchRegion switchRegion) {
+		return appendToRegion(mth, region, buildBreakContainer(switchRegion));
+	}
+
+	private static boolean appendToRegion(MethodNode mth, IRegion region, IContainer container) {
+		if (region instanceof Region) {
+			((Region) region).add(container);
+			return true;
+		}
+		IRegion parent = region.getParent();
+		if (parent == null) {
+			mth.addWarnComment("Failed to append 'break' to region without parent");
+			return false;
+		}
+		Region wrapper = new Region(parent);
+		if (!parent.replaceSubBlock(region, wrapper)) {
+			mth.addWarnComment("Failed to append 'break' to region: parent doesn't support replacement");
+			return false;
+		}
+		wrapper.add(region);
+		wrapper.add(container);
+		return true;
 	}
 
 	public static InsnContainer buildBreakContainer(SwitchRegion switchRegion) {
