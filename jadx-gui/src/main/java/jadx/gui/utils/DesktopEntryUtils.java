@@ -25,6 +25,8 @@ public class DesktopEntryUtils {
 			256, "jadx-logo.png");
 	private static final Path XDG_DESKTOP_MENU_COMMAND_PATH = findExecutablePath("xdg-desktop-menu");
 	private static final Path XDG_ICON_RESOURCE_COMMAND_PATH = findExecutablePath("xdg-icon-resource");
+	private static final Path XDG_MIME_COMMAND_PATH = findExecutablePath("xdg-mime");
+	private static final String LINK_HANDLER_DESKTOP_FILE = "jadx-gui-link.desktop";
 
 	public static boolean createDesktopEntry() {
 		if (XDG_DESKTOP_MENU_COMMAND_PATH == null) {
@@ -64,10 +66,48 @@ public class DesktopEntryUtils {
 				return false;
 			}
 		}
-		if (!writeDesktopFile(launchScriptPath, desktopTempFile)) {
+		if (!writeDesktopFile("/files/jadx-gui.desktop.tmpl", launchScriptPath, desktopTempFile)) {
 			return false;
 		}
-		return installDesktopEntry(desktopTempFile);
+		if (!installDesktopEntry(desktopTempFile)) {
+			return false;
+		}
+		return installLinkHandler(launchScriptPath);
+	}
+
+	/**
+	 * Register jadx-gui as handler for jadx:// links
+	 */
+	private static boolean installLinkHandler(String launchScriptPath) {
+		if (XDG_MIME_COMMAND_PATH == null) {
+			LOG.error("xdg-mime was not found in $PATH");
+			return false;
+		}
+		Path linkDesktopFile = FileUtils.createTempFileNonPrefixed(LINK_HANDLER_DESKTOP_FILE);
+		try {
+			if (!writeDesktopFile("/files/jadx-gui-link.desktop.tmpl", launchScriptPath, linkDesktopFile)
+					|| !installDesktopEntry(linkDesktopFile)) {
+				return false;
+			}
+			Process process = new ProcessBuilder(XDG_MIME_COMMAND_PATH.toString(),
+					"default", LINK_HANDLER_DESKTOP_FILE, "x-scheme-handler/jadx").start();
+			int statusCode = process.waitFor();
+			if (statusCode != 0) {
+				LOG.error("Got error code {} while registering jadx:// link handler", statusCode);
+				return false;
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to register jadx:// link handler", e);
+			return false;
+		} finally {
+			try {
+				FileUtils.deleteFileIfExists(linkDesktopFile);
+			} catch (IOException e) {
+				LOG.error("Failed to clean up temp files", e);
+			}
+		}
+		LOG.info("Successfully registered jadx:// link handler");
+		return true;
 	}
 
 	private static boolean installDesktopEntry(Path desktopTempFile) {
@@ -118,9 +158,9 @@ public class DesktopEntryUtils {
 		return null;
 	}
 
-	private static boolean writeDesktopFile(String launchScriptPath, Path desktopFilePath) {
+	private static boolean writeDesktopFile(String templatePath, String launchScriptPath, Path desktopFilePath) {
 		try {
-			TemplateFile tmpl = TemplateFile.fromResources("/files/jadx-gui.desktop.tmpl");
+			TemplateFile tmpl = TemplateFile.fromResources(templatePath);
 			tmpl.add("launchScriptPath", launchScriptPath);
 			FileUtils.writeFile(desktopFilePath, tmpl.build());
 		} catch (Exception e) {

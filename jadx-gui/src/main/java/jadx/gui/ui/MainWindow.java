@@ -117,6 +117,7 @@ import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.jobs.TaskWithExtraOnFinish;
+import jadx.gui.links.JadxLinkController;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
@@ -146,6 +147,7 @@ import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
+import jadx.gui.ui.dialog.ApkHashesDialog;
 import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
@@ -204,6 +206,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
 	private final transient CacheManager cacheManager;
+	private final transient JadxLinkController linkController;
 	private final transient BackgroundExecutor backgroundExecutor;
 	private final transient JadxGuiEventsImpl events = new JadxGuiEventsImpl();
 	private final transient TreeExpansionService treeExpansionService;
@@ -275,6 +278,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		this.liveReloadWorker = new LiveReloadWorker(this);
 		this.renameMappings = new RenameMappingsGui(this);
 		this.cacheManager = new CacheManager(settings);
+		this.linkController = new JadxLinkController(this);
 		this.shortcutsController = new ShortcutsController(settings);
 		this.tabsController = new TabsController(this);
 		this.navController = new NavigationController(this);
@@ -486,6 +490,17 @@ public class MainWindow extends JFrame implements IMainWindow {
 		open(paths, UiUtils.EMPTY_RUNNABLE);
 	}
 
+	/**
+	 * Open file for jadx:// link, ask to save current project first
+	 */
+	public void openForLink(Path path, Runnable onFinish) {
+		saveAll();
+		if (!ensureProjectIsSaved()) {
+			return;
+		}
+		open(Collections.singletonList(path), onFinish);
+	}
+
 	private void open(List<Path> paths, Runnable onFinish) {
 		saveAll();
 		UiUtils.bgRun(() -> {
@@ -563,6 +578,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 				() -> {
 					try {
 						wrapper.open();
+						linkController.onFilesLoaded(project.getFilePaths());
 					} catch (Exception e) {
 						LOG.error("Project load error", e);
 						closeAll();
@@ -602,6 +618,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 			update();
 		});
 		wrapper.close();
+		linkController.reset();
 		LogCollector.getInstance().reset();
 		resetCache();
 		notifyLoadListeners(false);
@@ -1269,6 +1286,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 		tools.add(deobfMenuItem);
 		tools.add(quarkAction);
 		tools.add(debuggerAction);
+		tools.addSeparator();
+		tools.add(new JadxGuiAction(ActionModel.APK_HASHES, () -> new ApkHashesDialog(this).setVisible(true)));
 
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
@@ -1946,6 +1965,10 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	public CacheManager getCacheManager() {
 		return cacheManager;
+	}
+
+	public JadxLinkController getLinkController() {
+		return linkController;
 	}
 
 	public EditorThemeManager getEditorThemeManager() {
