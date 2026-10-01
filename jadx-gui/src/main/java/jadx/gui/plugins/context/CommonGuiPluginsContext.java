@@ -9,7 +9,7 @@ import javax.swing.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.Utils;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
@@ -25,21 +25,21 @@ public class CommonGuiPluginsContext {
 	private final GuiPluginsRegistry globalScope = new GuiPluginsRegistry();
 	private final GuiPluginsRegistry projectScope = new GuiPluginsRegistry();
 
-	private final Map<PluginContext, GuiPluginContext> globalPlugins = new HashMap<>();
-	private final Map<PluginContext, GuiPluginContext> projectPlugins = new HashMap<>();
+	private final Map<PluginRuntime, GuiPluginContext> globalPlugins = new HashMap<>();
+	private final Map<PluginRuntime, GuiPluginContext> projectPlugins = new HashMap<>();
 
 	public CommonGuiPluginsContext(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 	}
 
-	public GuiPluginContext buildForPlugin(PluginContext pluginContext, boolean isGlobalPlugin) {
+	public GuiPluginContext buildForPlugin(PluginRuntime pluginRuntime, boolean isGlobalPlugin) {
 		GuiPluginsRegistry registry = isGlobalPlugin ? globalScope : projectScope;
-		GuiPluginContext guiPluginContext = new GuiPluginContext(this, registry, pluginContext);
-		(isGlobalPlugin ? globalPlugins : projectPlugins).put(pluginContext, guiPluginContext);
+		GuiPluginContext guiPluginContext = new GuiPluginContext(this, registry, pluginRuntime);
+		(isGlobalPlugin ? globalPlugins : projectPlugins).put(pluginRuntime, guiPluginContext);
 		return guiPluginContext;
 	}
 
-	public void copyGlobalPluginData(PluginContext globalContext, PluginContext projectContext) {
+	public void copyGlobalPluginData(PluginRuntime globalContext, PluginRuntime projectContext) {
 		GuiPluginContext globalGuiContext = globalPlugins.get(globalContext);
 		GuiPluginContext projectGuiContext = projectPlugins.get(projectContext);
 		if (globalGuiContext != null && projectGuiContext != null) {

@@ -10,7 +10,7 @@ import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
@@ -72,9 +72,9 @@ public class GuiPluginsScopeTest {
 
 	private static GuiPluginContext buildContext(CommonGuiPluginsContext context,
 			JadxDecompiler decompiler, String pluginId, boolean global) {
-		PluginContext pluginContext = decompiler.getPluginManager().register(new TestPlugin(pluginId));
-		assertThat(pluginContext).isNotNull();
-		return context.buildForPlugin(pluginContext, global);
+		PluginRuntime pluginRuntime = decompiler.getPluginManager().register(new TestPlugin(pluginId));
+		assertThat(pluginRuntime).isNotNull();
+		return context.buildForPlugin(pluginRuntime, global);
 	}
 
 	private static void registerEntries(GuiPluginContext guiContext, String name) {

@@ -27,6 +27,7 @@ import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiSettings;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
@@ -43,14 +44,14 @@ public class GuiPluginContext implements JadxGuiContextExt {
 
 	private final CommonGuiPluginsContext commonContext;
 	private final GuiPluginsRegistry registry;
-	private final PluginContext pluginContext;
+	private final PluginRuntime pluginRuntime;
 
 	private @Nullable ISettingsGroup customSettingsGroup;
 
-	GuiPluginContext(CommonGuiPluginsContext commonContext, GuiPluginsRegistry registry, PluginContext pluginContext) {
+	GuiPluginContext(CommonGuiPluginsContext commonContext, GuiPluginsRegistry registry, PluginRuntime pluginRuntime) {
 		this.commonContext = commonContext;
 		this.registry = registry;
-		this.pluginContext = pluginContext;
+		this.pluginRuntime = pluginRuntime;
 	}
 
 	@Override
@@ -60,7 +61,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 
 	@Override
 	public void registerOptions(JadxPluginOptions options) {
-		pluginContext.registerOptions(options);
+		pluginRuntime.registerOptions(options);
 	}
 
 	public CommonGuiPluginsContext getCommonContext() {
@@ -68,10 +69,17 @@ public class GuiPluginContext implements JadxGuiContextExt {
 	}
 
 	public String getPluginId() {
-		return pluginContext.getPluginId();
+		return pluginRuntime.getPluginId();
 	}
 
-	public PluginContext getPluginContext() {
+	/**
+	 * Internal method with plugin load guard
+	 */
+	PluginContext getPluginContext() {
+		PluginContext pluginContext = pluginRuntime.getPluginContext();
+		if (pluginContext == null) {
+			throw new JadxRuntimeException("Plugin not yet loaded");
+		}
 		return pluginContext;
 	}
 

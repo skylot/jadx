@@ -41,10 +41,10 @@ public class JadxPluginManagerLoadTest {
 			TestLoader loader = new TestLoader(new TestPlugin("test-plugin"));
 
 			pluginManager.load(loader);
-			assertThat(pluginManager.getAllPluginContexts()).hasSize(1);
+			assertThat(pluginManager.getAllPlugins()).hasSize(1);
 
 			assertThatCode(() -> pluginManager.load(loader)).doesNotThrowAnyException();
-			assertThat(pluginManager.getAllPluginContexts()).hasSize(1);
+			assertThat(pluginManager.getAllPlugins()).hasSize(1);
 		}
 	}
 
@@ -57,14 +57,14 @@ public class JadxPluginManagerLoadTest {
 
 			pluginManager.load(new TestLoader(new TestPlugin("loaded-plugin")));
 
-			assertThat(pluginManager.getAllPluginContexts())
-					.extracting(PluginContext::getPluginId)
+			assertThat(pluginManager.getAllPlugins())
+					.extracting(PluginRuntime::getPluginId)
 					.containsExactlyInAnyOrder("registered-plugin", "loaded-plugin");
 
 			// and still kept after a repeated load
 			pluginManager.load(new TestLoader(new TestPlugin("loaded-plugin")));
-			assertThat(pluginManager.getAllPluginContexts())
-					.extracting(PluginContext::getPluginId)
+			assertThat(pluginManager.getAllPlugins())
+					.extracting(PluginRuntime::getPluginId)
 					.containsExactlyInAnyOrder("registered-plugin", "loaded-plugin");
 		}
 	}
@@ -90,14 +90,14 @@ public class JadxPluginManagerLoadTest {
 
 		try (JadxDecompiler decompiler = new JadxDecompiler(args)) {
 			decompiler.load();
-			int pluginsCount = decompiler.getPluginManager().getAllPluginContexts().size();
+			int pluginsCount = decompiler.getPluginManager().getAllPlugins().size();
 			assertThat(pluginsCount).isPositive();
 
 			assertThatCode(decompiler::reloadPasses).doesNotThrowAnyException();
-			assertThat(decompiler.getPluginManager().getAllPluginContexts()).hasSize(pluginsCount);
+			assertThat(decompiler.getPluginManager().getAllPlugins()).hasSize(pluginsCount);
 
 			assertThatCode(decompiler::reloadPasses).doesNotThrowAnyException();
-			assertThat(decompiler.getPluginManager().getAllPluginContexts()).hasSize(pluginsCount);
+			assertThat(decompiler.getPluginManager().getAllPlugins()).hasSize(pluginsCount);
 		}
 	}
 

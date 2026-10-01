@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -40,6 +41,7 @@ import jadx.core.deobf.conditions.DeobfWhitelist;
 import jadx.core.deobf.conditions.JadxRenameConditions;
 import jadx.core.export.ExportGradleType;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.plugins.files.IJadxFilesGetter;
 import jadx.core.plugins.files.TempFilesGetter;
 import jadx.core.utils.files.FileUtils;
@@ -870,8 +872,10 @@ public class JadxArgs implements Closeable {
 		if (decompiler == null) {
 			return "";
 		}
-		return decompiler.getPluginManager().getResolvedPluginContexts()
+		return decompiler.getPluginManager().getResolvedPlugins()
 				.stream()
+				.map(PluginRuntime::getPluginContext)
+				.filter(Objects::nonNull)
 				.map(PluginContext::getInputsHash)
 				.collect(Collectors.joining(":"));
 	}

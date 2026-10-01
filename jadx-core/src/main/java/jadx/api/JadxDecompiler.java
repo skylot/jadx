@@ -47,6 +47,7 @@ import jadx.core.export.ExportGradle;
 import jadx.core.export.OutDirs;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.plugins.events.JadxEventsImpl;
 import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
@@ -111,7 +112,7 @@ public final class JadxDecompiler implements Closeable {
 
 	public JadxDecompiler(JadxArgs args) {
 		this.args = Objects.requireNonNull(args);
-		this.pluginManager = new JadxPluginManager(this);
+		this.pluginManager = new JadxPluginManager(args);
 		this.resourcesLoader = new ResourcesLoader(this);
 		this.zipReader = new ZipReader(args.getSecurity());
 	}
@@ -160,15 +161,18 @@ public final class JadxDecompiler implements Closeable {
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		long start = System.currentTimeMillis();
-		for (PluginContext plugin : pluginManager.getResolvedPluginContexts()) {
-			for (JadxCodeInput codeLoader : plugin.getCodeInputs()) {
-				try {
-					ICodeLoader loader = codeLoader.loadFiles(inputFiles);
-					if (loader != null && !loader.isEmpty()) {
-						loadedInputs.add(loader);
+		for (PluginRuntime plugin : pluginManager.getResolvedPlugins()) {
+			PluginContext pluginContext = plugin.getPluginContext();
+			if (pluginContext != null) {
+				for (JadxCodeInput codeLoader : pluginContext.getCodeInputs()) {
+					try {
+						ICodeLoader loader = codeLoader.loadFiles(inputFiles);
+						if (loader != null && !loader.isEmpty()) {
+							loadedInputs.add(loader);
+						}
+					} catch (Exception e) {
+						LOG.warn("Failed to load code for plugin: {}", plugin, e);
 					}
-				} catch (Exception e) {
-					LOG.warn("Failed to load code for plugin: {}", plugin, e);
 				}
 			}
 		}
@@ -216,9 +220,9 @@ public final class JadxDecompiler implements Closeable {
 		pluginManager.providesSuggestion("java-input", args.isUseDxInput() ? "java-convert" : "java-input");
 		pluginManager.load(args.getPluginLoader());
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Resolved plugins: {}", pluginManager.getResolvedPluginContexts());
+			LOG.debug("Resolved plugins: {}", pluginManager.getResolvedPlugins());
 		}
-		pluginManager.initResolved();
+		pluginManager.initResolved(this);
 		if (LOG.isDebugEnabled()) {
 			List<String> passes = customPasses.values().stream().flatMap(Collection::stream)
 					.map(p -> p.getInfo().getName()).collect(Collectors.toList());

@@ -24,6 +24,7 @@ import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.Utils;
 
 public class JCommanderWrapper {
@@ -278,12 +279,15 @@ public class JCommanderWrapper {
 		try (JadxDecompiler decompiler = new JadxDecompiler(argsObj.toJadxArgs())) {
 			JadxPluginManager pluginManager = decompiler.getPluginManager();
 			pluginManager.load(decompiler.getArgs().getPluginLoader());
-			pluginManager.initAll();
+			pluginManager.initAll(decompiler);
 			try {
-				for (PluginContext context : pluginManager.getAllPluginContexts()) {
-					JadxPluginOptions options = context.getOptions();
-					if (options != null) {
-						appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen);
+				for (PluginRuntime plugin : pluginManager.getAllPlugins()) {
+					PluginContext context = plugin.getPluginContext();
+					if (context != null) {
+						JadxPluginOptions options = context.getOptions();
+						if (options != null) {
+							appendPlugin(context.getPluginInfo(), context.getOptions(), sb, maxNamesLen);
+						}
 					}
 				}
 			} finally {

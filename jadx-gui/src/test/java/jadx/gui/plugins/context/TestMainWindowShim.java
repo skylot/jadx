@@ -4,14 +4,16 @@ import java.lang.reflect.Field;
 
 import javax.swing.JMenu;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assumptions;
 
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 
 public class TestMainWindowShim {
 
-	public static MainWindow build() {
+	public static @NotNull MainWindow build() {
 		NLS.setLocale(NLS.defaultLocale());
 		try {
 			Class<?> unsafeCls = Class.forName("sun.misc.Unsafe");
@@ -22,10 +24,21 @@ public class TestMainWindowShim {
 			Field menuField = MainWindow.class.getDeclaredField("pluginsMenu");
 			menuField.setAccessible(true);
 			menuField.set(mainWindow, new JMenu("Plugins"));
+
+			Field settingsField = MainWindow.class.getDeclaredField("settings");
+			settingsField.setAccessible(true);
+			settingsField.set(mainWindow, buildSettings());
+
 			return (MainWindow) mainWindow;
 		} catch (Throwable e) {
 			Assumptions.abort("Can't build MainWindow instance for test: " + e);
 			return null;
 		}
+	}
+
+	static JadxSettings buildSettings() {
+		JadxSettings settings = new JadxSettings(JadxSettings.buildConfigAdapter());
+		settings.loadSettingsFromJsonString("{}");
+		return settings;
 	}
 }

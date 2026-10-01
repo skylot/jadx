@@ -1,8 +1,11 @@
 package jadx.gui.utils.plugins;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
@@ -10,9 +13,8 @@ import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.plugins.AppContext;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.gui.ui.MainWindow;
-
-import static jadx.core.utils.ListUtils.concatSetsToList;
 
 /**
  * Collect all plugins.
@@ -31,10 +33,14 @@ public class CollectPlugins {
 		Optional<JadxDecompiler> currentDecompiler = mainWindow.getWrapper().getCurrentDecompiler();
 		if (currentDecompiler.isPresent()) {
 			JadxDecompiler decompiler = currentDecompiler.get();
-			SortedSet<PluginContext> plugins = decompiler.getPluginManager().getResolvedPluginContexts();
-			return new CloseablePlugins(new ArrayList<>(plugins), null);
+			List<PluginContext> plugins = decompiler.getPluginManager().getResolvedPlugins()
+					.stream()
+					.map(PluginRuntime::getPluginContext)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			return new CloseablePlugins(plugins, null);
 		}
-		SortedSet<PluginContext> globalPlugins = mainWindow.getGuiPluginsManager().getGlobalPluginContexts();
+		SortedSet<PluginRuntime> globalPlugins = mainWindow.getGuiPluginsManager().getGlobalPlugins();
 		// collect and init plugins in new temp context
 		JadxArgs jadxArgs = mainWindow.getSettings().toJadxArgs();
 		jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
@@ -47,10 +53,14 @@ public class CollectPlugins {
 				pluginContext.setAppContext(appContext);
 			});
 			pluginManager.load(mainWindow.getGuiPluginsManager().buildProjectPluginLoader());
-			SortedSet<PluginContext> allPlugins = pluginManager.getAllPluginContexts();
-			pluginManager.init(allPlugins);
+			SortedSet<PluginRuntime> allPlugins = pluginManager.getAllPlugins();
+			pluginManager.init(decompiler, allPlugins);
 			Runnable closeable = () -> pluginManager.unload(allPlugins);
-			return new CloseablePlugins(concatSetsToList(allPlugins, globalPlugins), closeable);
+			List<PluginContext> plugins = Stream.concat(globalPlugins.stream(), allPlugins.stream())
+					.map(PluginRuntime::getPluginContext)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			return new CloseablePlugins(plugins, closeable);
 		}
 	}
 }
