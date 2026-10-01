@@ -1,6 +1,8 @@
 package jadx.gui;
 
 import java.awt.Desktop;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -13,6 +15,8 @@ import jadx.commons.app.JadxSystemInfo;
 import jadx.core.Jadx;
 import jadx.core.utils.JadxBuildInfo;
 import jadx.core.utils.files.FileUtils;
+import jadx.gui.links.JadxLink;
+import jadx.gui.links.JadxLinkServer;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.settings.GuiConfigLocale;
 import jadx.gui.settings.JadxSettings;
@@ -25,9 +29,24 @@ public class JadxGUI {
 
 	public static void main(String[] args) {
 		try {
+			// jadx:// links passed by OS URI handler
+			List<String> links = new ArrayList<>();
+			List<String> otherArgs = new ArrayList<>();
+			for (String arg : args) {
+				if (JadxLink.isJadxLink(arg)) {
+					links.add(arg);
+				} else {
+					otherArgs.add(arg);
+				}
+			}
+			if (!links.isEmpty() && otherArgs.isEmpty() && links.stream().allMatch(JadxLinkServer::sendToRunningInstance)) {
+				// handled by already running jadx-gui
+				return;
+			}
 			GuiConfigLocale.load();
 			JadxConfigAdapter<JadxSettingsData> configAdapter = JadxSettings.buildConfigAdapter();
-			JadxSettingsData settingsData = JadxCLIArgs.processArgs(args, new JadxSettingsData(), configAdapter);
+			JadxSettingsData settingsData =
+					JadxCLIArgs.processArgs(otherArgs.toArray(new String[0]), new JadxSettingsData(), configAdapter);
 			if (settingsData == null) {
 				return;
 			}
@@ -43,6 +62,8 @@ public class JadxGUI {
 				MainWindow mw = new MainWindow(settings);
 				registerOpenFileHandler(mw);
 				mw.init();
+				new JadxLinkServer(link -> SwingUtilities.invokeLater(() -> mw.getLinkController().handleLink(link))).start();
+				links.forEach(link -> mw.getLinkController().handleLink(link));
 			});
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
@@ -56,6 +77,11 @@ public class JadxGUI {
 				Desktop desktop = Desktop.getDesktop();
 				if (desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
 					desktop.setOpenFileHandler(e -> mw.open(FileUtils.toPaths(e.getFiles())));
+				}
+				if (desktop.isSupported(Desktop.Action.APP_OPEN_URI)) {
+					// macOS: jadx:// links (requires URL scheme declared in app bundle)
+					desktop.setOpenURIHandler(e -> SwingUtilities.invokeLater(
+							() -> mw.getLinkController().handleLink(e.getURI().toString())));
 				}
 			}
 		} catch (Throwable e) {

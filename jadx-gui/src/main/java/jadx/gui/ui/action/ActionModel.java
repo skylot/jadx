@@ -63,6 +63,7 @@ public enum ActionModel {
 	FORWARD_V(MENU_TOOLBAR, NLS.str("action.variant", NLS.str("nav.forward")), null, "ui/right", null),
 	QUARK(MENU_TOOLBAR, NLS.str("menu.quark"), null, "ui/quark", null),
 	OPEN_DEVICE(MENU_TOOLBAR, NLS.str("debugger.process_selector"), null, "ui/startDebugger", null),
+	APK_HASHES(MENU_TOOLBAR, NLS.str("menu.apk_hashes"), null, null, null),
 
 	FIND_USAGE(CODE_AREA, NLS.str("popup.find_usage"), null, null, keyboard(KeyEvent.VK_X)),
 	FIND_USAGE_PLUS(CODE_AREA, NLS.str("popup.usage_dialog_plus"), null, null, keyboard(KeyEvent.VK_C)),
@@ -80,6 +81,7 @@ public enum ActionModel {
 	FRIDA_COPY(CODE_AREA, NLS.str("popup.frida"), null, null, keyboard(KeyEvent.VK_F)),
 	XPOSED_COPY(CODE_AREA, NLS.str("popup.xposed"), null, null, keyboard(KeyEvent.VK_Y)),
 	COPY_REFERENCE(CODE_AREA, NLS.str("popup.copy_reference"), null, null, keyboard(KeyEvent.VK_R)),
+	COPY_JADX_LINK(CODE_AREA, NLS.str("popup.copy_jadx_link"), null, null, null),
 	JSON_PRETTIFY(CODE_AREA, NLS.str("popup.json_prettify"), null, null, null),
 
 	SCRIPT_RUN(PLUGIN_SCRIPT, NLS.str("script.run"), null, "ui/run", keyboard(KeyEvent.VK_F8)),
