@@ -34,7 +34,7 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	public static final class CaseInfo {
 		private final List<Object> keys;
-		private final IContainer container;
+		private IContainer container;
 
 		public CaseInfo(List<Object> keys, IContainer container) {
 			this.keys = keys;
@@ -83,6 +83,18 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 	@Override
 	public List<IContainer> getBranches() {
 		return Collections.unmodifiableList(getCaseContainers());
+	}
+
+	@Override
+	public boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock) {
+		for (CaseInfo caseInfo : cases) {
+			if (caseInfo.container == oldBlock) {
+				caseInfo.container = newBlock;
+				updateParent(newBlock, this);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

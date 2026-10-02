@@ -312,7 +312,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			// forcing ternary inline for constructors (will help in moving super call to the top) and enums
 			// skip code style checks
 		} else {
-			if (elseAssign != null && elseAssign.isConstInsn()) {
+			if (canInlineConstAssign(elseAssign)) {
 				if (!verifyLineHints(mth, insn, elseAssign)) {
 					return;
 				}
@@ -330,7 +330,7 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 			return;
 		}
 		InsnArg elseArg;
-		if (elseAssign != null && elseAssign.isConstInsn()) {
+		if (canInlineConstAssign(elseAssign)) {
 			// inline constant
 			elseArg = InsnArg.wrapInsnIntoArg(elseAssign.copyWithoutResult());
 			SSAVar elseVar = elseAssign.getResult().getSVar();
@@ -357,6 +357,10 @@ public class TernaryMod extends AbstractRegionVisitor implements IRegionIterativ
 
 		// shrink method again
 		CodeShrinkVisitor.shrinkMethod(mth);
+	}
+
+	private static boolean canInlineConstAssign(InsnNode insn) {
+		return insn != null && insn.isConstInsn() && insn.getResult() != null;
 	}
 
 	private TernaryMod() {
