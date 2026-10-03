@@ -69,6 +69,28 @@ public class JadxPluginManagerLoadTest {
 		}
 	}
 
+	// Registered plugin (i.e global gui plugin) should not be replaced by loaded plugin with same id
+	@Test
+	public void loadSkipPluginWithRegisteredId() {
+		try (JadxDecompiler decompiler = new JadxDecompiler()) {
+			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			TestPlugin registeredPlugin = new TestPlugin("same-id");
+			assertThat(pluginManager.register(registeredPlugin)).isNotNull();
+
+			TestLoader loader = new TestLoader(new OtherTestPlugin("same-id"));
+			assertThatCode(() -> pluginManager.load(loader)).doesNotThrowAnyException();
+			assertThat(pluginManager.getAllPlugins())
+					.extracting(PluginRuntime::getPluginInstance)
+					.containsExactly(registeredPlugin);
+
+			// and still kept after a repeated load
+			assertThatCode(() -> pluginManager.load(loader)).doesNotThrowAnyException();
+			assertThat(pluginManager.getAllPlugins())
+					.extracting(PluginRuntime::getPluginInstance)
+					.containsExactly(registeredPlugin);
+		}
+	}
+
 	@Test
 	public void duplicatedPluginIdRejected() {
 		try (JadxDecompiler decompiler = new JadxDecompiler()) {
