@@ -35,7 +35,7 @@ public class GlobalGuiPluginLifecycleTest {
 		for (int i = 1; i <= 2; i++) {
 			try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
 				manager.initGuiPluginsContext(projectDecompiler.getPluginManager(), projectDecompiler.getArgs(), false);
-				manager.injectGlobalPlugins(projectDecompiler);
+				projectDecompiler.getPluginManager().load(new GuiPluginsLoader(manager.getGlobalPlugins(), new TestPluginLoader()));
 				projectDecompiler.getPluginManager().initResolved(projectDecompiler);
 
 				assertThat(plugin.projectInitCount).isEqualTo(i);
