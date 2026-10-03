@@ -99,4 +99,8 @@ public class CommonGuiPluginsContext {
 			popup.add(codePopupAction.buildAction(codeArea));
 		}
 	}
+
+	boolean isGlobalPlugin(GuiPluginContext guiPluginContext) {
+		return globalPlugins.containsValue(guiPluginContext);
+	}
 }
