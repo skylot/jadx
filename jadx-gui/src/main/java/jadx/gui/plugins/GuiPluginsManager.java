@@ -122,7 +122,7 @@ public class GuiPluginsManager {
 						plugin.globalInit((JadxGuiContextExt) guiContext);
 					}
 				});
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				LOG.warn("Failed to init global gui plugin: {}", pluginRuntime.getPluginId(), e);
 				failedPlugins.add(pluginRuntime.getPluginId());
 			}
