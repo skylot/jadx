@@ -51,7 +51,7 @@ public class GuiPluginsManagerTest {
 		manager.load();
 
 		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
-			assertThatCode(() -> manager.injectGlobalPlugins(projectDecompiler)).doesNotThrowAnyException();
+			assertThatCode(() -> loadProjectPlugins(manager, projectDecompiler)).doesNotThrowAnyException();
 		}
 		assertThatCode(manager::getGlobalPlugins).doesNotThrowAnyException();
 		assertThat(manager.getGlobalPlugins().stream().filter(PluginRuntime::isInitialized)).isEmpty();
@@ -79,7 +79,7 @@ public class GuiPluginsManagerTest {
 				.containsExactly("good-plugin");
 		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
 			manager.initGuiPluginsContext(projectDecompiler.getPluginManager(), projectDecompiler.getArgs(), false);
-			manager.injectGlobalPlugins(projectDecompiler);
+			loadProjectPlugins(manager, projectDecompiler);
 			projectDecompiler.getPluginManager().initResolved(projectDecompiler);
 			assertThat(projectDecompiler.getPluginManager().getAllPlugins())
 					.extracting(PluginRuntime::getPluginId)
@@ -127,7 +127,7 @@ public class GuiPluginsManagerTest {
 					.extracting(PluginRuntime::getPluginId)
 					.containsExactly("global-plugin");
 
-			manager.injectGlobalPlugins(projectDecompiler);
+			loadProjectPlugins(manager, projectDecompiler);
 
 			assertThat(projectDecompiler.getPluginManager().getAllPlugins())
 					.extracting(PluginRuntime::getPluginId)
@@ -153,7 +153,7 @@ public class GuiPluginsManagerTest {
 			globalGuiContext.settings().setCustomSettingsGroup(settingsGroup);
 
 			manager.initGuiPluginsContext(projectDecompiler.getPluginManager(), projectDecompiler.getArgs(), false);
-			manager.injectGlobalPlugins(projectDecompiler);
+			loadProjectPlugins(manager, projectDecompiler);
 
 			PluginRuntime projectPlugin = projectDecompiler.getPluginManager().getAllPlugins().first();
 			GuiPluginContext projectGuiContext = (GuiPluginContext) projectPlugin.getAppContext().getGuiContext();
@@ -178,7 +178,7 @@ public class GuiPluginsManagerTest {
 			ISettingsGroup ownGroup = new TestSettingsGroup();
 			projectOnlyGui.settings().setCustomSettingsGroup(ownGroup);
 
-			manager.injectGlobalPlugins(projectDecompiler);
+			loadProjectPlugins(manager, projectDecompiler);
 
 			assertThat(projectOnlyGui.getCustomSettingsGroup()).isSameAs(ownGroup);
 		}
@@ -228,23 +228,6 @@ public class GuiPluginsManagerTest {
 		assertThat(reloaded.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	private static final class TestPluginLoader implements JadxPluginLoader {
-		private final JadxPlugin plugin;
-
-		private TestPluginLoader(JadxPlugin plugin) {
-			this.plugin = plugin;
-		}
-
-		@Override
-		public List<JadxPlugin> load() {
-			return Collections.singletonList(plugin);
-		}
-
-		@Override
-		public void close() {
-		}
-	}
-
 	private static final class TestProjectPlugin implements JadxPlugin {
 		private final String pluginId;
 
@@ -277,6 +260,10 @@ public class GuiPluginsManagerTest {
 					.setter(v -> {
 					});
 		}
+	}
+
+	private static void loadProjectPlugins(GuiPluginsManager manager, JadxDecompiler projectDecompiler) {
+		projectDecompiler.getPluginManager().load(new GuiPluginsLoader(manager.getGlobalPlugins(), new TestPluginLoader()));
 	}
 
 	private static final class TestSettingsGroup implements ISettingsGroup {
