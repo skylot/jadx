@@ -55,6 +55,11 @@ public class JResourcePopupMenu extends JPopupMenu {
 				return;
 			}
 
+			if (resource.getType() == JResource.JResType.FILE) {
+				mainWindow.getSettings().setLastSaveFilePath(savePath.toAbsolutePath().getParent());
+			} else {
+				mainWindow.getSettings().setLastSaveFilePath(savePath);
+			}
 			saveJResource(resource, savePath, true);
 
 			LOG.info("Done saving {}", savePath);

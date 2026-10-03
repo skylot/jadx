@@ -100,6 +100,7 @@ public class JPackagePopupMenu extends JPopupMenu {
 			}
 
 			Path savePath = selectedPaths.get(0);
+			mainWindow.getSettings().setLastSaveFilePath(savePath);
 			saveJPackage(pkg, savePath, exportType);
 		});
 
