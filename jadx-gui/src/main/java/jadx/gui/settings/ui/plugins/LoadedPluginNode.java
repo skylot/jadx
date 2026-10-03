@@ -2,12 +2,12 @@ package jadx.gui.settings.ui.plugins;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 
 public class LoadedPluginNode extends BasePluginListNode {
-	private final PluginContext plugin;
+	private final PluginRuntime plugin;
 
-	public LoadedPluginNode(PluginContext plugin) {
+	public LoadedPluginNode(PluginRuntime plugin) {
 		this.plugin = plugin;
 	}
 

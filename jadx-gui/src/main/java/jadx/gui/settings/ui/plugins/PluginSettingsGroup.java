@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.gui.ISettingsGroup;
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.gui.ui.MainWindow;
@@ -137,7 +137,7 @@ class PluginSettingsGroup implements ISettingsGroup {
 			installedSet.add(pluginMetadata.getPluginId());
 			nodes.add(new InstalledPluginNode(pluginMetadata));
 		}
-		for (PluginContext plugin : collectedPlugins.getList()) {
+		for (PluginRuntime plugin : collectedPlugins.getList()) {
 			if (!installedSet.contains(plugin.getPluginId())) {
 				nodes.add(new LoadedPluginNode(plugin));
 			}

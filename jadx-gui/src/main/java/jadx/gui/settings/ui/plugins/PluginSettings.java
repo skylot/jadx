@@ -27,7 +27,8 @@ import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
 import jadx.api.plugins.options.OptionFlag;
 import jadx.api.plugins.options.OptionType;
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.AppContext;
+import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.Utils;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.plugins.context.GuiPluginContext;
@@ -58,10 +59,10 @@ public class PluginSettings {
 	public ISettingsGroup build() {
 		CloseablePlugins collectedPlugins = new CollectPlugins(mainWindow).build();
 		ISettingsGroup pluginsGroup = new PluginSettingsGroup(this, mainWindow, collectedPlugins);
-		for (PluginContext context : collectedPlugins.getList()) {
-			ISettingsGroup pluginGroup = addPluginGroup(context);
+		for (PluginRuntime plugin : collectedPlugins.getList()) {
+			ISettingsGroup pluginGroup = addPluginGroup(plugin);
 			if (pluginGroup != null) {
-				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(context.getPluginId(), pluginGroup));
+				pluginsGroup.getSubGroups().add(new SettingsGroupPluginWrap(plugin.getPluginId(), pluginGroup));
 			}
 		}
 		return pluginsGroup;
@@ -120,8 +121,9 @@ public class PluginSettings {
 		});
 	}
 
-	private @Nullable ISettingsGroup addPluginGroup(PluginContext context) {
-		JadxGuiContext guiContext = context.getGuiContext();
+	private @Nullable ISettingsGroup addPluginGroup(PluginRuntime plugin) {
+		AppContext appContext = plugin.getAppContext();
+		JadxGuiContext guiContext = appContext == null ? null : appContext.getGuiContext();
 		if (guiContext instanceof GuiPluginContext) {
 			GuiPluginContext pluginGuiContext = (GuiPluginContext) guiContext;
 			ISettingsGroup customSettingsGroup = pluginGuiContext.getCustomSettingsGroup();
@@ -129,7 +131,7 @@ public class PluginSettings {
 				return customSettingsGroup;
 			}
 		}
-		JadxPluginOptions options = context.getOptions();
+		JadxPluginOptions options = plugin.getOptions();
 		if (options == null) {
 			return null;
 		}
@@ -137,7 +139,7 @@ public class PluginSettings {
 		if (optionsDescriptions.isEmpty()) {
 			return null;
 		}
-		SettingsGroup settingsGroup = new SettingsGroup(context.getPluginInfo().getName());
+		SettingsGroup settingsGroup = new SettingsGroup(plugin.getPluginInfo().getName());
 		addOptions(settingsGroup, optionsDescriptions);
 		return settingsGroup;
 	}
