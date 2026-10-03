@@ -39,11 +39,10 @@ public class TestUserRenamesMemberOrder extends IntegrationTest {
 		}
 	}
 
-	@ParameterizedTest
-	@CsvSource({ "false, false", "false, true", "true, false", "true, true" })
-	public void test(boolean debugInfo, boolean stableMemberOrder) {
+	@ParameterizedTest(name = "debug info added: {0}")
+	@CsvSource({ "true", "false" })
+	public void test(boolean debugInfo) {
 		getArgs().setDebugInfo(debugInfo);
-		getArgs().setStableMemberOrder(stableMemberOrder);
 		addClsRename(TestCls.A.class.getName(), "Zebra");
 		addClsRename(TestCls.B.class.getName(), "Alpha");
 		addMthRename(TestCls.class.getName(), "first()V", "zeta");
@@ -51,11 +50,12 @@ public class TestUserRenamesMemberOrder extends IntegrationTest {
 
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().getCodeStr();
-		assertThat(code).containsSubsequence("static int z =", "static int a =");
-		if (debugInfo || !stableMemberOrder) {
+		if (debugInfo) {
+			assertThat(code).containsSubsequence("static int z =", "static int a =");
 			assertThat(code).containsSubsequence("(Zebra ", "(Alpha ", "(Zebra[] ", "(Alpha[] ");
 			assertThat(code).containsSubsequence("void zeta()", "void alpha()");
 		} else {
+			assertThat(code).containsSubsequence("static int a =", "static int z =");
 			assertThat(code).containsSubsequence("(Alpha ", "(Zebra ", "(Alpha[] ", "(Zebra[] ");
 			assertThat(code).containsSubsequence("void alpha()", "void zeta()");
 		}

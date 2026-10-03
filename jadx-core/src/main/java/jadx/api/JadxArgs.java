@@ -81,7 +81,6 @@ public class JadxArgs implements Closeable {
 
 	private boolean useImports = true;
 	private boolean debugInfo = true;
-	private boolean stableMemberOrder = false;
 	private boolean insertDebugLines = false;
 	private boolean extractFinally = true;
 	private boolean inlineAnonymousClasses = true;
@@ -342,14 +341,6 @@ public class JadxArgs implements Closeable {
 
 	public void setDebugInfo(boolean debugInfo) {
 		this.debugInfo = debugInfo;
-	}
-
-	public boolean isStableMemberOrder() {
-		return stableMemberOrder;
-	}
-
-	public void setStableMemberOrder(boolean stableMemberOrder) {
-		this.stableMemberOrder = stableMemberOrder;
 	}
 
 	public boolean isInsertDebugLines() {
@@ -868,7 +859,7 @@ public class JadxArgs implements Closeable {
 				+ resourceNameSource + useHeadersForDetectResourceExtensions
 				+ useKotlinMethodsForVarNames
 				+ insertDebugLines + extractFinally
-				+ debugInfo + stableMemberOrder + escapeUnicode + replaceConsts + restoreSwitchOverString
+				+ debugInfo + escapeUnicode + replaceConsts + restoreSwitchOverString
 				+ respectBytecodeAccModifiers + fsCaseSensitive + renameFlags
 				+ commentsLevel + useDxInput + integerFormat + typeUpdatesLimitCount
 				+ "|" + buildPluginsHash(decompiler);
@@ -908,7 +899,6 @@ public class JadxArgs implements Closeable {
 				+ ", sourceNameRepeatLimit=" + sourceNameRepeatLimit
 				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
 				+ ", insertDebugLines=" + insertDebugLines
-				+ ", stableMemberOrder=" + stableMemberOrder
 				+ ", extractFinally=" + extractFinally
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength

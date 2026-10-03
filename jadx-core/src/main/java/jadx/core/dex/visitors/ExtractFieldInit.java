@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.core.codegen.ClassGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.FieldInitInsnAttr;
@@ -285,34 +287,31 @@ public class ExtractFieldInit extends AbstractVisitor {
 
 	private static void fixFieldsOrder(ClassNode cls, List<FieldInitInfo> inits) {
 		List<FieldNode> orderedFields = processFieldsDependencies(cls, inits);
-		applyFieldsOrder(cls, orderedFields);
+
+		// apply source line and alias name sorting (same as for methods and inner classes)
+		List<FieldNode> clsFields = cls.getFields();
+		Map<FieldNode, String> sortingMap = new HashMap<>();
+		clsFields.sort(Comparator.comparingInt(FieldNode::getSourceLine)
+				.thenComparing(f -> sortingMap.computeIfAbsent(f, ClassGen::getShortAlias)));
+
+		if (!orderedFields.isEmpty()) {
+			// check if already ordered
+			boolean ordered = Collections.indexOfSubList(clsFields, orderedFields) != -1;
+			if (!ordered) {
+				clsFields.removeAll(orderedFields);
+				clsFields.addAll(orderedFields);
+			}
+		}
 	}
 
 	private static List<FieldNode> processFieldsDependencies(ClassNode cls, List<FieldInitInfo> inits) {
-		List<FieldNode> orderedFields = Utils.collectionMap(inits, v -> v.fieldNode);
 		// collect dependant fields
-		Map<FieldNode, List<FieldNode>> deps = new HashMap<>(inits.size());
-		for (FieldInitInfo initInfo : inits) {
-			IndexInsnNode insn = initInfo.putInsn;
-			boolean staticField = insn.getType() == InsnType.SPUT;
-			InsnType useType = staticField ? InsnType.SGET : InsnType.IGET;
-			insn.visitInsns(subInsn -> {
-				if (subInsn.getType() == useType) {
-					FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) subInsn).getIndex();
-					if (fieldInfo.getDeclClass().equals(cls.getClassInfo())) {
-						FieldNode depField = cls.searchField(fieldInfo);
-						if (depField != null) {
-							deps.computeIfAbsent(initInfo.fieldNode, k -> new ArrayList<>())
-									.add(depField);
-						}
-					}
-				}
-			});
-		}
+		Map<FieldNode, List<FieldNode>> deps = buildFieldDeps(cls, inits);
 		if (deps.isEmpty()) {
-			return orderedFields;
+			return Collections.emptyList();
 		}
 		// build new list with deps fields before usage field
+		List<FieldNode> orderedFields = Utils.collectionMap(inits, v -> v.fieldNode);
 		List<FieldNode> result = new ArrayList<>();
 		for (FieldNode field : orderedFields) {
 			int idx = result.indexOf(field);
@@ -345,14 +344,26 @@ public class ExtractFieldInit extends AbstractVisitor {
 		return result;
 	}
 
-	private static void applyFieldsOrder(ClassNode cls, List<FieldNode> orderedFields) {
-		List<FieldNode> clsFields = cls.getFields();
-		// check if already ordered
-		boolean ordered = Collections.indexOfSubList(clsFields, orderedFields) != -1;
-		if (!ordered) {
-			clsFields.removeAll(orderedFields);
-			clsFields.addAll(orderedFields);
+	private static Map<FieldNode, List<FieldNode>> buildFieldDeps(ClassNode cls, List<FieldInitInfo> inits) {
+		Map<FieldNode, List<FieldNode>> deps = new HashMap<>(inits.size());
+		for (FieldInitInfo initInfo : inits) {
+			IndexInsnNode insn = initInfo.putInsn;
+			boolean staticField = insn.getType() == InsnType.SPUT;
+			InsnType useType = staticField ? InsnType.SGET : InsnType.IGET;
+			insn.visitInsns(subInsn -> {
+				if (subInsn.getType() == useType) {
+					FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) subInsn).getIndex();
+					if (fieldInfo.getDeclClass().equals(cls.getClassInfo())) {
+						FieldNode depField = cls.searchField(fieldInfo);
+						if (depField != null) {
+							deps.computeIfAbsent(initInfo.fieldNode, k -> new ArrayList<>())
+									.add(depField);
+						}
+					}
+				}
+			});
 		}
+		return deps;
 	}
 
 	private static boolean compareFieldInits(List<FieldInitInfo> base, List<FieldInitInfo> other) {
@@ -393,5 +404,8 @@ public class ExtractFieldInit extends AbstractVisitor {
 			assignInsn = InsnNode.wrapArg(fldArg);
 		}
 		field.addAttr(new FieldInitInsnAttr(mth, assignInsn));
+		if (putInsn.getSourceLine() != 0) {
+			field.setSourceLine(putInsn.getSourceLine());
+		}
 	}
 }
