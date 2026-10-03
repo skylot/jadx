@@ -95,6 +95,28 @@ public class GuiPluginsManagerTest {
 	}
 
 	@Test
+	public void globalInitErrorDontStopOtherPlugins() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		CountingGlobalPlugin failedPlugin = new CountingGlobalPlugin("a-failed-plugin") {
+			@Override
+			public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+				throw new NoClassDefFoundError("test");
+			}
+		};
+		CountingGlobalPlugin goodPlugin = new CountingGlobalPlugin("b-good-plugin");
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(failedPlugin)).isNotNull();
+		assertThat(manager.getGlobalPluginManager().register(goodPlugin)).isNotNull();
+
+		assertThatCode(() -> manager.runGlobalInit(manager.getGlobalPlugins())).doesNotThrowAnyException();
+		assertThat(goodPlugin.globalInitCount).isEqualTo(1);
+		assertThat(manager.getGlobalPlugins())
+				.extracting(PluginRuntime::getPluginId)
+				.containsExactly("b-good-plugin");
+	}
+
+	@Test
 	public void loadedGlobalPluginsInjectedIntoProject() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
