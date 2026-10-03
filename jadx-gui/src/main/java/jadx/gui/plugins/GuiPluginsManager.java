@@ -1,9 +1,12 @@
 package jadx.gui.plugins;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,7 @@ public class GuiPluginsManager {
 	private final JadxArgs globalArgs;
 	private final JadxPluginManager globalPluginManager;
 	private final CommonGuiPluginsContext guiPluginsContext;
+	private final Set<String> scheduledUnload = ConcurrentHashMap.newKeySet();
 
 	public GuiPluginsManager(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -134,15 +138,41 @@ public class GuiPluginsManager {
 	public synchronized void runGlobalUnload() {
 		try {
 			for (PluginRuntime pluginRuntime : getGlobalPlugins()) {
-				try {
-					JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginRuntime.getPluginInstance();
-					PluginRuntime.classLoaderWrap(plugin.getClass().getClassLoader(), plugin::globalUnload);
-				} catch (Exception e) {
-					LOG.warn("Failed to unload global gui plugin: {}", pluginRuntime.getPluginId(), e);
-				}
+				globalUnload(pluginRuntime);
 			}
 		} catch (Exception e) {
 			LOG.warn("Failed to unload global gui plugins", e);
+		}
+	}
+
+	public void scheduleGlobalUnload(String pluginId) {
+		scheduledUnload.add(pluginId);
+	}
+
+	public synchronized void runScheduledGlobalUnload() {
+		Iterator<String> it = scheduledUnload.iterator();
+		while (it.hasNext()) {
+			String pluginId = it.next();
+			it.remove();
+			PluginRuntime pluginRuntime = globalPluginManager.getAllPlugins().stream()
+					.filter(p -> p.getPluginId().equals(pluginId))
+					.findFirst()
+					.orElse(null);
+			if (pluginRuntime != null) {
+				globalUnload(pluginRuntime);
+				globalPluginManager.unload(pluginId);
+				guiPluginsContext.removeGlobalPlugin(pluginRuntime);
+				LOG.info("Global plugin unloaded: {}", pluginId);
+			}
+		}
+	}
+
+	private void globalUnload(PluginRuntime pluginRuntime) {
+		try {
+			JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginRuntime.getPluginInstance();
+			PluginRuntime.classLoaderWrap(plugin.getClass().getClassLoader(), plugin::globalUnload);
+		} catch (Exception e) {
+			LOG.warn("Failed to unload global gui plugin: {}", pluginRuntime.getPluginId(), e);
 		}
 	}
 

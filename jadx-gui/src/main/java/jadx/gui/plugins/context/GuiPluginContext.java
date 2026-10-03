@@ -68,6 +68,10 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		return commonContext;
 	}
 
+	GuiPluginsRegistry getRegistry() {
+		return registry;
+	}
+
 	public String getPluginId() {
 		return pluginRuntime.getPluginId();
 	}
