@@ -530,11 +530,13 @@ public class MainWindow extends JFrame implements IMainWindow {
 			getBackgroundExecutor().waitForComplete();
 			synchronized (ReloadProject.EVENT) {
 				if (!loaded && project.getFilePaths().isEmpty()) {
+					guiPluginsManager.runScheduledGlobalUnload();
 					reopenComplete();
 					return;
 				}
 				saveAll();
 				closeAll();
+				guiPluginsManager.runScheduledGlobalUnload();
 				System.gc();
 				loadFiles(this::reopenComplete);
 			}

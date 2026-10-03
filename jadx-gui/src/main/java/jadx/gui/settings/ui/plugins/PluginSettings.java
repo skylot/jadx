@@ -95,6 +95,7 @@ public class PluginSettings {
 			boolean success = JadxPluginsTools.getInstance().uninstall(pluginId);
 			if (success) {
 				LOG.info("Uninstall complete");
+				mainWindow.getGuiPluginsManager().scheduleGlobalUnload(pluginId);
 				requestReload();
 			} else {
 				LOG.warn("Uninstall failed");
@@ -105,7 +106,12 @@ public class PluginSettings {
 	public void changeDisableStatus(String pluginId, boolean disabled) {
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("preferences.plugins.task.status"),
-				() -> JadxPluginsTools.getInstance().changeDisabledStatus(pluginId, disabled),
+				() -> {
+					JadxPluginsTools.getInstance().changeDisabledStatus(pluginId, disabled);
+					if (disabled) {
+						mainWindow.getGuiPluginsManager().scheduleGlobalUnload(pluginId);
+					}
+				},
 				s -> requestReload());
 	}
 
