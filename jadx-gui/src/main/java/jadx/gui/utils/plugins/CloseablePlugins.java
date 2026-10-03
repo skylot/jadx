@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.core.plugins.PluginContext;
+import jadx.core.plugins.PluginRuntime;
 
 public class CloseablePlugins {
-	private final List<PluginContext> list;
+	private final List<PluginRuntime> list;
 	private final @Nullable Runnable closeable;
 
-	public CloseablePlugins(List<PluginContext> list, @Nullable Runnable closeable) {
+	public CloseablePlugins(List<PluginRuntime> list, @Nullable Runnable closeable) {
 		this.list = list;
 		this.closeable = closeable;
 	}
@@ -25,7 +25,7 @@ public class CloseablePlugins {
 		return closeable;
 	}
 
-	public List<PluginContext> getList() {
+	public List<PluginRuntime> getList() {
 		return list;
 	}
 }

@@ -7,6 +7,9 @@ import javax.swing.JMenu;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assumptions;
 
+import jadx.gui.JadxWrapper;
+import jadx.gui.events.types.JadxGuiEventsImpl;
+import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
@@ -29,10 +32,28 @@ public class TestMainWindowShim {
 			settingsField.setAccessible(true);
 			settingsField.set(mainWindow, buildSettings());
 
+			Field eventsField = MainWindow.class.getDeclaredField("events");
+			eventsField.setAccessible(true);
+			eventsField.set(mainWindow, new JadxGuiEventsImpl());
+
 			return (MainWindow) mainWindow;
 		} catch (Throwable e) {
 			Assumptions.abort("Can't build MainWindow instance for test: " + e);
 			return null;
+		}
+	}
+
+	public static void setPluginsManager(MainWindow mainWindow, GuiPluginsManager pluginsManager) {
+		try {
+			Field managerField = MainWindow.class.getDeclaredField("guiPluginsManager");
+			managerField.setAccessible(true);
+			managerField.set(mainWindow, pluginsManager);
+
+			Field wrapperField = MainWindow.class.getDeclaredField("wrapper");
+			wrapperField.setAccessible(true);
+			wrapperField.set(mainWindow, new JadxWrapper(mainWindow));
+		} catch (Throwable e) {
+			Assumptions.abort("Can't set plugins manager for test: " + e);
 		}
 	}
 

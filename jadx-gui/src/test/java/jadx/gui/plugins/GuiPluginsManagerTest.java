@@ -2,6 +2,8 @@ package jadx.gui.plugins;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -13,15 +15,22 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.gui.plugins.JadxGlobalGuiPlugin;
 import jadx.api.gui.plugins.JadxGuiContextExt;
+import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
+import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.gui.ISettingsGroup;
+import jadx.api.plugins.loader.JadxPluginLoader;
+import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.impl.BasePluginOptionsBuilder;
 import jadx.core.plugins.JadxPluginManager;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.plugins.context.TestMainWindowShim;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.plugins.CloseablePlugins;
+import jadx.gui.utils.plugins.CollectPlugins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -116,6 +125,105 @@ public class GuiPluginsManagerTest {
 			manager.injectGlobalPlugins(projectDecompiler);
 
 			assertThat(projectOnlyGui.getCustomSettingsGroup()).isSameAs(ownGroup);
+		}
+	}
+
+	@Test
+	public void globalPluginsCollectedForSettingsWithoutProject() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		JadxPlugin projectPlugin = new TestProjectPlugin("project-plugin");
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow) {
+			@Override
+			public JadxPluginLoader buildProjectPluginLoader() {
+				return new TestPluginLoader(projectPlugin);
+			}
+		};
+		TestMainWindowShim.setPluginsManager(mainWindow, manager);
+
+		TestPlugin globalPlugin = new TestPlugin("global-plugin") {
+			@Override
+			public JadxPluginOptions buildOptions() {
+				return new TestOptions("global-plugin");
+			}
+		};
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(globalPlugin)).isNotNull();
+		manager.runGlobalInit(manager.getGlobalPlugins());
+
+		CloseablePlugins plugins = new CollectPlugins(mainWindow).build();
+		try {
+			assertThat(plugins.getList())
+					.extracting(p -> p.getPluginId())
+					.containsExactlyInAnyOrder("global-plugin", "project-plugin");
+			assertThat(plugins.getList())
+					.filteredOn(p -> p.getPluginId().equals("global-plugin"))
+					.allSatisfy(p -> assertThat(p.getOptions()).isNotNull());
+		} finally {
+			plugins.close();
+		}
+	}
+
+	@Test
+	public void settingsWindowReloadedAfterGlobalInit() throws InterruptedException {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		CountDownLatch reloaded = new CountDownLatch(1);
+		mainWindow.events().global().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, ev -> reloaded.countDown());
+
+		assertThat(manager.getGlobalPluginManager().register(new TestPlugin("global-plugin"))).isNotNull();
+		manager.load();
+
+		assertThat(reloaded.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	private static final class TestPluginLoader implements JadxPluginLoader {
+		private final JadxPlugin plugin;
+
+		private TestPluginLoader(JadxPlugin plugin) {
+			this.plugin = plugin;
+		}
+
+		@Override
+		public List<JadxPlugin> load() {
+			return Collections.singletonList(plugin);
+		}
+
+		@Override
+		public void close() {
+		}
+	}
+
+	private static final class TestProjectPlugin implements JadxPlugin {
+		private final String pluginId;
+
+		private TestProjectPlugin(String pluginId) {
+			this.pluginId = pluginId;
+		}
+
+		@Override
+		public JadxPluginInfo getPluginInfo() {
+			return JadxPluginInfoBuilder.pluginId(pluginId).name(pluginId).description("test").build();
+		}
+
+		@Override
+		public void init(JadxPluginContext context) {
+		}
+	}
+
+	private static final class TestOptions extends BasePluginOptionsBuilder {
+		private final String pluginId;
+
+		private TestOptions(String pluginId) {
+			this.pluginId = pluginId;
+		}
+
+		@Override
+		public void registerOptions() {
+			strOption(pluginId + ".test")
+					.description("test option")
+					.defaultValue("")
+					.setter(v -> {
+					});
 		}
 	}
 

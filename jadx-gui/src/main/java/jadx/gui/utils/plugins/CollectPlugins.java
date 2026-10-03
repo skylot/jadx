@@ -1,7 +1,6 @@
 package jadx.gui.utils.plugins;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
@@ -12,7 +11,6 @@ import jadx.api.JadxDecompiler;
 import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.plugins.AppContext;
 import jadx.core.plugins.JadxPluginManager;
-import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.ui.MainWindow;
 
@@ -33,10 +31,9 @@ public class CollectPlugins {
 		Optional<JadxDecompiler> currentDecompiler = mainWindow.getWrapper().getCurrentDecompiler();
 		if (currentDecompiler.isPresent()) {
 			JadxDecompiler decompiler = currentDecompiler.get();
-			List<PluginContext> plugins = decompiler.getPluginManager().getResolvedPlugins()
+			List<PluginRuntime> plugins = decompiler.getPluginManager().getResolvedPlugins()
 					.stream()
-					.map(PluginRuntime::getPluginContext)
-					.filter(Objects::nonNull)
+					.filter(PluginRuntime::isInitialized)
 					.collect(Collectors.toList());
 			return new CloseablePlugins(plugins, null);
 		}
@@ -56,9 +53,10 @@ public class CollectPlugins {
 			SortedSet<PluginRuntime> allPlugins = pluginManager.getAllPlugins();
 			pluginManager.init(decompiler, allPlugins);
 			Runnable closeable = () -> pluginManager.unload(allPlugins);
-			List<PluginContext> plugins = Stream.concat(globalPlugins.stream(), allPlugins.stream())
-					.map(PluginRuntime::getPluginContext)
-					.filter(Objects::nonNull)
+			// global plugins don't have plugin context without opened project
+			List<PluginRuntime> plugins = Stream.concat(
+					globalPlugins.stream(),
+					allPlugins.stream().filter(PluginRuntime::isInitialized))
 					.collect(Collectors.toList());
 			return new CloseablePlugins(plugins, closeable);
 		}
