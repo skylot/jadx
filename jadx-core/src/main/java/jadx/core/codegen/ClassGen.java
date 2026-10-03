@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.args.IntegerFormat;
+import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeEnd;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
@@ -32,12 +35,12 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.FieldInitInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -288,10 +291,13 @@ public class ClassGen {
 	}
 
 	private void addInnerClsAndMethods(ICodeWriter clsCode) {
+		Map<NotificationAttrNode, String> sortingCache = new HashMap<>();
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
 				.filter(node -> !skipNode(node))
-				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
+				.sorted(Comparator.comparingInt(NotificationAttrNode::getSourceLine)
+						.thenComparingInt(n -> n.getAnnType() == ICodeAnnotation.AnnType.CLASS ? 0 : 1) // inner classes first
+						.thenComparing(n -> sortingCache.computeIfAbsent(n, ClassGen::getShortAlias)))
 				.forEach(node -> {
 					if (node instanceof ClassNode) {
 						addInnerClass(clsCode, (ClassNode) node);
@@ -299,6 +305,28 @@ public class ClassGen {
 						addMethod(clsCode, (MethodNode) node);
 					}
 				});
+	}
+
+	public static String getShortAlias(NotificationAttrNode node) {
+		switch (node.getAnnType()) {
+			case CLASS:
+				return ((ClassNode) node).getClassInfo().getAliasShortName();
+			case METHOD: {
+				MethodNode mth = (MethodNode) node;
+				RootNode root = mth.root();
+				String args = mth.getMethodInfo().getArgumentsTypes().stream()
+						.map(type -> TypeGen.signature(ArgType.tryToResolveClassAlias(root, type)))
+						.collect(Collectors.joining());
+				return mth.getAlias() + '(' + args + ')'
+						+ TypeGen.signature(ArgType.tryToResolveClassAlias(root, mth.getMethodInfo().getReturnType()));
+			}
+			case FIELD: {
+				FieldInfo fldInfo = ((FieldNode) node).getFieldInfo();
+				return fldInfo.getAlias() + ':' + TypeGen.signature(ArgType.tryToResolveClassAlias(node.root(), fldInfo.getType()));
+			}
+			default:
+				throw new IllegalArgumentException("Unexpected type: " + node.getAnnType());
+		}
 	}
 
 	private boolean skipNode(NotificationAttrNode node) {
