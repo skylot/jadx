@@ -27,15 +27,14 @@ public class CollectPlugins {
 		this.mainWindow = mainWindow;
 	}
 
-	public CloseablePlugins build() {
+	public List<PluginRuntime> build() {
 		Optional<JadxDecompiler> currentDecompiler = mainWindow.getWrapper().getCurrentDecompiler();
 		if (currentDecompiler.isPresent()) {
 			JadxDecompiler decompiler = currentDecompiler.get();
-			List<PluginRuntime> plugins = decompiler.getPluginManager().getResolvedPlugins()
+			return decompiler.getPluginManager().getResolvedPlugins()
 					.stream()
 					.filter(PluginRuntime::isInitialized)
 					.collect(Collectors.toList());
-			return new CloseablePlugins(plugins, null);
 		}
 		SortedSet<PluginRuntime> globalPlugins = mainWindow.getGuiPluginsManager().getGlobalPlugins();
 		// collect and init plugins in new temp context
@@ -59,6 +58,6 @@ public class CollectPlugins {
 				allPlugins.stream().filter(PluginRuntime::isInitialized))
 				.collect(Collectors.toList());
 		pluginManager.unload(allPlugins);
-		return new CloseablePlugins(plugins, null);
+		return plugins;
 	}
 }

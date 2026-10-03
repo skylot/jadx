@@ -37,8 +37,7 @@ public class CollectPluginsTest {
 		FileUtils.updateTempRootDir(JadxFilesGetter.INSTANCE.getTempDir());
 		Path tempFile = FileUtils.createTempFile(".tmp");
 
-		CloseablePlugins plugins = new CollectPlugins(mainWindow).build();
-		plugins.close();
+		new CollectPlugins(mainWindow).build();
 		assertThat(tempFile).exists();
 		assertThat(plugin.initCount).isEqualTo(1);
 		assertThat(plugin.unloadCount).isEqualTo(1);
