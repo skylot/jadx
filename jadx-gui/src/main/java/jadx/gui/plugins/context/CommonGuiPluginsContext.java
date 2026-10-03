@@ -56,6 +56,15 @@ public class CommonGuiPluginsContext {
 	public void resetProjectScope() {
 		projectScope.clear();
 		projectPlugins.clear();
+		updatePluginsMenu();
+	}
+
+	public void removeGlobalPlugin(PluginRuntime pluginRuntime) {
+		globalPlugins.remove(pluginRuntime);
+		updatePluginsMenu();
+	}
+
+	private void updatePluginsMenu() {
 		mainWindow.resetPluginsMenu();
 		for (Action menuAction : collect(GuiPluginsRegistry::getMenuActions)) {
 			mainWindow.addToPluginsMenu(menuAction);
