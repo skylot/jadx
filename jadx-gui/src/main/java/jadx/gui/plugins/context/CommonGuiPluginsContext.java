@@ -1,8 +1,11 @@
 package jadx.gui.plugins.context;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Function;
 
 import javax.swing.Action;
 
@@ -10,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.plugins.PluginRuntime;
-import jadx.core.utils.Utils;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.CodeArea;
@@ -22,10 +24,10 @@ public class CommonGuiPluginsContext {
 
 	private final MainWindow mainWindow;
 
-	private final GuiPluginsRegistry globalScope = new GuiPluginsRegistry();
 	private final GuiPluginsRegistry projectScope = new GuiPluginsRegistry();
 
-	private final Map<PluginRuntime, GuiPluginContext> globalPlugins = new HashMap<>();
+	// each global plugin has own registry to allow unload
+	private final Map<PluginRuntime, GuiPluginContext> globalPlugins = new ConcurrentSkipListMap<>();
 	private final Map<PluginRuntime, GuiPluginContext> projectPlugins = new HashMap<>();
 
 	public CommonGuiPluginsContext(MainWindow mainWindow) {
@@ -33,9 +35,13 @@ public class CommonGuiPluginsContext {
 	}
 
 	public GuiPluginContext buildForPlugin(PluginRuntime pluginRuntime, boolean isGlobalPlugin) {
-		GuiPluginsRegistry registry = isGlobalPlugin ? globalScope : projectScope;
-		GuiPluginContext guiPluginContext = new GuiPluginContext(this, registry, pluginRuntime);
-		(isGlobalPlugin ? globalPlugins : projectPlugins).put(pluginRuntime, guiPluginContext);
+		if (isGlobalPlugin) {
+			GuiPluginContext guiPluginContext = new GuiPluginContext(this, new GuiPluginsRegistry(), pluginRuntime);
+			globalPlugins.put(pluginRuntime, guiPluginContext);
+			return guiPluginContext;
+		}
+		GuiPluginContext guiPluginContext = new GuiPluginContext(this, projectScope, pluginRuntime);
+		projectPlugins.put(pluginRuntime, guiPluginContext);
 		return guiPluginContext;
 	}
 
@@ -51,7 +57,7 @@ public class CommonGuiPluginsContext {
 		projectScope.clear();
 		projectPlugins.clear();
 		mainWindow.resetPluginsMenu();
-		for (Action menuAction : globalScope.getMenuActions()) {
+		for (Action menuAction : collect(GuiPluginsRegistry::getMenuActions)) {
 			mainWindow.addToPluginsMenu(menuAction);
 		}
 	}
@@ -61,19 +67,28 @@ public class CommonGuiPluginsContext {
 	}
 
 	public List<CodePopupAction> getCodePopupActionList() {
-		return Utils.mergeLists(globalScope.getCodePopupActions(), projectScope.getCodePopupActions());
+		return collect(GuiPluginsRegistry::getCodePopupActions);
 	}
 
 	public List<TreePopupMenuEntry> getTreePopupMenuEntries() {
-		return Utils.mergeLists(globalScope.getTreePopupMenuEntries(), projectScope.getTreePopupMenuEntries());
+		return collect(GuiPluginsRegistry::getTreePopupMenuEntries);
 	}
 
 	public List<ITreeInputCategory> getTreeInputCategories() {
-		return Utils.mergeLists(globalScope.getTreeInputCategories(), projectScope.getTreeInputCategories());
+		return collect(GuiPluginsRegistry::getTreeInputCategories);
 	}
 
 	public List<ITabStatePersist> getTabStatePersistAdapters() {
-		return Utils.mergeLists(globalScope.getTabStatePersistAdapters(), projectScope.getTabStatePersistAdapters());
+		return collect(GuiPluginsRegistry::getTabStatePersistAdapters);
+	}
+
+	private <T> List<T> collect(Function<GuiPluginsRegistry, List<T>> getter) {
+		List<T> list = new ArrayList<>();
+		for (GuiPluginContext globalPlugin : globalPlugins.values()) {
+			list.addAll(getter.apply(globalPlugin.getRegistry()));
+		}
+		list.addAll(getter.apply(projectScope));
+		return list;
 	}
 
 	void addMenuAction(GuiPluginsRegistry registry, String name, Runnable action) {
