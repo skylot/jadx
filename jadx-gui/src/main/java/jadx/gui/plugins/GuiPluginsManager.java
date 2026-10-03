@@ -10,6 +10,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.gui.plugins.JadxGlobalGuiPlugin;
 import jadx.api.gui.plugins.JadxGuiContextExt;
+import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.cli.JadxAppCommon;
@@ -52,6 +53,10 @@ public class GuiPluginsManager {
 			globalPluginManager.load(new JadxExternalPluginsLoader(JadxGlobalGuiPlugin.class::isAssignableFrom));
 			SortedSet<PluginRuntime> globalPlugins = globalPluginManager.getResolvedPlugins();
 			runGlobalInit(globalPlugins);
+			if (!globalPlugins.isEmpty()) {
+				// settings window can be opened before global plugins init
+				mainWindow.events().send(ReloadSettingsWindow.INSTANCE);
+			}
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Initialized {} global gui plugins in {} ms",
