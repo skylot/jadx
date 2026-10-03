@@ -1,7 +1,6 @@
 package jadx.core.plugins;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,7 +31,6 @@ public class JadxPluginManager {
 	private final JadxPluginsData pluginsData;
 	private final SortedSet<PluginRuntime> allPlugins = new TreeSet<>();
 	private final SortedSet<PluginRuntime> resolvedPlugins = new TreeSet<>();
-	private final Set<String> loadedPluginIds = new HashSet<>();
 	private final Map<String, String> provideSuggestions = new TreeMap<>();
 
 	private final List<Consumer<PluginRuntime>> addPluginListeners = new ArrayList<>();
@@ -54,23 +52,14 @@ public class JadxPluginManager {
 		List<JadxPlugin> plugins = pluginLoader.load();
 
 		// allow repeated load (used in passes reload) but keep plugins added by 'register' method
-		allPlugins.removeIf(context -> loadedPluginIds.contains(context.getPluginId()));
-		loadedPluginIds.clear();
-		Set<String> registeredIds = allPlugins.stream()
-				.map(PluginRuntime::getPluginId)
+		Set<String> loadedIds = plugins.stream()
+				.map(p -> p.getPluginInfo().getPluginId())
 				.collect(Collectors.toSet());
+		allPlugins.removeIf(context -> loadedIds.contains(context.getPluginId()));
 
 		VerifyRequiredVersion verifyRequiredVersion = new VerifyRequiredVersion();
 		for (JadxPlugin plugin : plugins) {
-			String pluginId = plugin.getPluginInfo().getPluginId();
-			if (registeredIds.contains(pluginId)) {
-				LOG.warn("Plugin '{}' not loaded: plugin with same id already registered, class: {}", pluginId,
-						plugin.getClass().getName());
-				continue;
-			}
-			if (addPlugin(plugin, verifyRequiredVersion) != null) {
-				loadedPluginIds.add(pluginId);
-			}
+			addPlugin(plugin, verifyRequiredVersion);
 		}
 		resolve();
 	}
@@ -107,7 +96,6 @@ public class JadxPluginManager {
 	}
 
 	public boolean unload(String pluginId) {
-		loadedPluginIds.remove(pluginId);
 		boolean result = allPlugins.removeIf(context -> {
 			if (context.getPluginId().equals(pluginId)) {
 				LOG.debug("Unload plugin: {}", pluginId);
