@@ -60,6 +60,63 @@ public class GuiPluginsManagerTest {
 	}
 
 	@Test
+	public void failedGlobalPluginNotInjectedIntoProject() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		CountingGlobalPlugin failedPlugin = new CountingGlobalPlugin("failed-plugin") {
+			@Override
+			public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+				throw new RuntimeException("test");
+			}
+		};
+		CountingGlobalPlugin goodPlugin = new CountingGlobalPlugin("good-plugin");
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(failedPlugin)).isNotNull();
+		assertThat(manager.getGlobalPluginManager().register(goodPlugin)).isNotNull();
+		manager.runGlobalInit(manager.getGlobalPlugins());
+
+		assertThat(manager.getGlobalPlugins())
+				.extracting(PluginRuntime::getPluginId)
+				.containsExactly("good-plugin");
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			manager.initGuiPluginsContext(projectDecompiler.getPluginManager(), projectDecompiler.getArgs(), false);
+			manager.injectGlobalPlugins(projectDecompiler);
+			projectDecompiler.getPluginManager().initResolved(projectDecompiler);
+			assertThat(projectDecompiler.getPluginManager().getAllPlugins())
+					.extracting(PluginRuntime::getPluginId)
+					.containsExactly("good-plugin");
+		}
+		manager.runGlobalUnload();
+
+		assertThat(failedPlugin.projectInitCount).isZero();
+		assertThat(failedPlugin.globalUnloadCount).isZero();
+		assertThat(goodPlugin.projectInitCount).isEqualTo(1);
+		assertThat(goodPlugin.globalUnloadCount).isEqualTo(1);
+	}
+
+	@Test
+	public void globalInitErrorDontStopOtherPlugins() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		CountingGlobalPlugin failedPlugin = new CountingGlobalPlugin("a-failed-plugin") {
+			@Override
+			public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+				throw new NoClassDefFoundError("test");
+			}
+		};
+		CountingGlobalPlugin goodPlugin = new CountingGlobalPlugin("b-good-plugin");
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(failedPlugin)).isNotNull();
+		assertThat(manager.getGlobalPluginManager().register(goodPlugin)).isNotNull();
+
+		assertThatCode(() -> manager.runGlobalInit(manager.getGlobalPlugins())).doesNotThrowAnyException();
+		assertThat(goodPlugin.globalInitCount).isEqualTo(1);
+		assertThat(manager.getGlobalPlugins())
+				.extracting(PluginRuntime::getPluginId)
+				.containsExactly("b-good-plugin");
+	}
+
+	@Test
 	public void loadedGlobalPluginsInjectedIntoProject() {
 		MainWindow mainWindow = TestMainWindowShim.build();
 		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
@@ -241,6 +298,37 @@ public class GuiPluginsManagerTest {
 		@Override
 		public List<ISettingsGroup> getSubGroups() {
 			return Collections.emptyList();
+		}
+	}
+
+	private static class CountingGlobalPlugin extends JadxGlobalGuiPlugin {
+		private final String pluginId;
+		int globalInitCount;
+		int projectInitCount;
+		int globalUnloadCount;
+
+		private CountingGlobalPlugin(String pluginId) {
+			this.pluginId = pluginId;
+		}
+
+		@Override
+		public JadxPluginInfo getPluginInfo() {
+			return JadxPluginInfoBuilder.pluginId(pluginId).name(pluginId).description("test").build();
+		}
+
+		@Override
+		public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+			globalInitCount++;
+		}
+
+		@Override
+		public void init(JadxPluginContext context, @NotNull JadxGuiContextExt guiContextExt) {
+			projectInitCount++;
+		}
+
+		@Override
+		public void globalUnload() {
+			globalUnloadCount++;
 		}
 	}
 

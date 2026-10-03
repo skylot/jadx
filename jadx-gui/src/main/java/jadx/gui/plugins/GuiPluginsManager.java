@@ -1,5 +1,7 @@
 package jadx.gui.plugins;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 
@@ -109,6 +111,7 @@ public class GuiPluginsManager {
 	}
 
 	void runGlobalInit(SortedSet<PluginRuntime> globalPlugins) {
+		List<String> failedPlugins = new ArrayList<>();
 		for (PluginRuntime pluginRuntime : globalPlugins) {
 			try {
 				JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginRuntime.getPluginInstance();
@@ -119,10 +122,13 @@ public class GuiPluginsManager {
 						plugin.globalInit((JadxGuiContextExt) guiContext);
 					}
 				});
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				LOG.warn("Failed to init global gui plugin: {}", pluginRuntime.getPluginId(), e);
+				failedPlugins.add(pluginRuntime.getPluginId());
 			}
 		}
+		// don't inject failed plugins into projects
+		failedPlugins.forEach(globalPluginManager::unload);
 	}
 
 	public synchronized void runGlobalUnload() {
