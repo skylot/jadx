@@ -2,6 +2,8 @@ package jadx.gui.plugins;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -17,6 +19,7 @@ import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
+import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
@@ -158,6 +161,19 @@ public class GuiPluginsManagerTest {
 		} finally {
 			plugins.close();
 		}
+	}
+
+	@Test
+	public void settingsWindowReloadedAfterGlobalInit() throws InterruptedException {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		CountDownLatch reloaded = new CountDownLatch(1);
+		mainWindow.events().global().addListener(JadxEvents.RELOAD_SETTINGS_WINDOW, ev -> reloaded.countDown());
+
+		assertThat(manager.getGlobalPluginManager().register(new TestPlugin("global-plugin"))).isNotNull();
+		manager.load();
+
+		assertThat(reloaded.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private static final class TestPluginLoader implements JadxPluginLoader {

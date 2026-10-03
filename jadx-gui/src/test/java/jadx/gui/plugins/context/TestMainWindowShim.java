@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assumptions;
 
 import jadx.gui.JadxWrapper;
+import jadx.gui.events.types.JadxGuiEventsImpl;
 import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -30,6 +31,10 @@ public class TestMainWindowShim {
 			Field settingsField = MainWindow.class.getDeclaredField("settings");
 			settingsField.setAccessible(true);
 			settingsField.set(mainWindow, buildSettings());
+
+			Field eventsField = MainWindow.class.getDeclaredField("events");
+			eventsField.setAccessible(true);
+			eventsField.set(mainWindow, new JadxGuiEventsImpl());
 
 			return (MainWindow) mainWindow;
 		} catch (Throwable e) {
