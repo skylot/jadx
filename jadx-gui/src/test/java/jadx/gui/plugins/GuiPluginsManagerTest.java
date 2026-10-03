@@ -29,7 +29,6 @@ import jadx.core.plugins.PluginRuntime;
 import jadx.gui.plugins.context.GuiPluginContext;
 import jadx.gui.plugins.context.TestMainWindowShim;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.plugins.CloseablePlugins;
 import jadx.gui.utils.plugins.CollectPlugins;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -207,17 +206,13 @@ public class GuiPluginsManagerTest {
 		assertThat(manager.getGlobalPluginManager().register(globalPlugin)).isNotNull();
 		manager.runGlobalInit(manager.getGlobalPlugins());
 
-		CloseablePlugins plugins = new CollectPlugins(mainWindow).build();
-		try {
-			assertThat(plugins.getList())
-					.extracting(p -> p.getPluginId())
-					.containsExactlyInAnyOrder("global-plugin", "project-plugin");
-			assertThat(plugins.getList())
-					.filteredOn(p -> p.getPluginId().equals("global-plugin"))
-					.allSatisfy(p -> assertThat(p.getOptions()).isNotNull());
-		} finally {
-			plugins.close();
-		}
+		List<PluginRuntime> plugins = new CollectPlugins(mainWindow).build();
+		assertThat(plugins)
+				.extracting(PluginRuntime::getPluginId)
+				.containsExactlyInAnyOrder("global-plugin", "project-plugin");
+		assertThat(plugins)
+				.filteredOn(p -> p.getPluginId().equals("global-plugin"))
+				.allSatisfy(p -> assertThat(p.getOptions()).isNotNull());
 	}
 
 	@Test

@@ -40,7 +40,6 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
-import jadx.gui.utils.plugins.CloseablePlugins;
 import jadx.plugins.tools.JadxPluginsList;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
@@ -52,11 +51,11 @@ class PluginSettingsGroup implements ISettingsGroup {
 	private final MainWindow mainWindow;
 	private final String title;
 	private final List<ISettingsGroup> subGroups = new ArrayList<>();
-	private final CloseablePlugins collectedPlugins;
+	private final List<PluginRuntime> collectedPlugins;
 
 	private JPanel detailsPanel;
 
-	public PluginSettingsGroup(PluginSettings pluginSettings, MainWindow mainWindow, CloseablePlugins collectedPlugins) {
+	public PluginSettingsGroup(PluginSettings pluginSettings, MainWindow mainWindow, List<PluginRuntime> collectedPlugins) {
 		this.pluginsSettings = pluginSettings;
 		this.mainWindow = mainWindow;
 		this.title = NLS.str("preferences.plugins");
@@ -82,7 +81,6 @@ class PluginSettingsGroup implements ISettingsGroup {
 	@Override
 	public void close(boolean save) {
 		subGroups.forEach(subGroup -> subGroup.close(save));
-		collectedPlugins.close();
 	}
 
 	private JPanel buildMainSettingsPage() {
@@ -131,13 +129,13 @@ class PluginSettingsGroup implements ISettingsGroup {
 
 	private void applyData(DefaultListModel<BasePluginListNode> listModel) {
 		List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().getInstalled();
-		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + collectedPlugins.getList().size());
+		List<BasePluginListNode> nodes = new ArrayList<>(installed.size() + collectedPlugins.size());
 		Set<String> installedSet = new HashSet<>(installed.size());
 		for (JadxPluginMetadata pluginMetadata : installed) {
 			installedSet.add(pluginMetadata.getPluginId());
 			nodes.add(new InstalledPluginNode(pluginMetadata));
 		}
-		for (PluginRuntime plugin : collectedPlugins.getList()) {
+		for (PluginRuntime plugin : collectedPlugins) {
 			if (!installedSet.contains(plugin.getPluginId())) {
 				nodes.add(new LoadedPluginNode(plugin));
 			}
