@@ -114,8 +114,12 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 				case MOVE:
 					// remove redundant moves: unused result and same args names (a = a;)
+					// check for non-null result and sVar, and positive args count (PR/issue #2951)
 					RegisterArg result = insn.getResult();
-					if (result.getSVar().getUseCount() == 0
+					if (result != null
+							&& result.getSVar() != null
+							&& insn.getArgsCount() > 0
+							&& result.getSVar().getUseCount() == 0
 							&& result.isNameEquals(insn.getArg(0))) {
 						it.remove();
 					}
@@ -133,6 +137,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			InsnNode insn = list.get(i);
 			// replace 'move' with inner wrapped instruction
 			if (insn.getType() == InsnType.MOVE
+					&& insn.getArgsCount() > 0
 					&& insn.getArg(0).isInsnWrap()) {
 				InsnNode wrapInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
 				wrapInsn.setResult(insn.getResult());
@@ -233,17 +238,19 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					&& !insn.contains(AFlag.ARITH_ONEARG)
 					&& !insn.contains(AFlag.DECLARE_VAR)) {
 				RegisterArg res = insn.getResult();
-				InsnArg arg = insn.getArg(0);
-				boolean replace = false;
-				if (res.equals(arg)) {
-					replace = true;
-				} else if (arg.isRegister()) {
-					RegisterArg regArg = (RegisterArg) arg;
-					replace = res.sameCodeVar(regArg);
-				}
-				if (replace) {
-					insn.setResult(null);
-					insn.add(AFlag.ARITH_ONEARG);
+				if (res != null && insn.getArgsCount() > 0) {
+					InsnArg arg = insn.getArg(0);
+					boolean replace = false;
+					if (res.equals(arg)) {
+						replace = true;
+					} else if (arg.isRegister()) {
+						RegisterArg regArg = (RegisterArg) arg;
+						replace = res.sameCodeVar(regArg);
+					}
+					if (replace) {
+						insn.setResult(null);
+						insn.add(AFlag.ARITH_ONEARG);
+					}
 				}
 			}
 		}

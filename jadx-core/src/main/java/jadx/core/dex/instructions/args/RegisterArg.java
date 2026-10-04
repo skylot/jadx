@@ -190,7 +190,14 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public boolean sameCodeVar(RegisterArg arg) {
-		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
+		// check non-null sVar and initialized codeVar (PR/issue #2951)
+		if (arg == null || this.sVar == null || arg.getSVar() == null) {
+			return false;
+		}
+		if (!this.sVar.isCodeVarSet() || !arg.getSVar().isCodeVarSet()) {
+			return false;
+		}
+		return this.sVar.getCodeVar() == arg.getSVar().getCodeVar();
 	}
 
 	public boolean isLinkedToOtherSsaVars() {
