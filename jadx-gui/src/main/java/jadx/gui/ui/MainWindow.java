@@ -1850,7 +1850,9 @@ public class MainWindow extends JFrame implements IMainWindow {
 				quickTabsTree = new QuickTabsTree(this);
 			}
 
-			quickTabsAndCodeSplitPane.setLeftComponent(quickTabsTree);
+			JScrollPane quickTabsScrollPane = new JScrollPane(quickTabsTree);
+			quickTabsScrollPane.setMinimumSize(new Dimension(100, 150));
+			quickTabsAndCodeSplitPane.setLeftComponent(quickTabsScrollPane);
 			quickTabsAndCodeSplitPane.setDividerSize(5);
 		} else {
 			quickTabsAndCodeSplitPane.setLeftComponent(null);
