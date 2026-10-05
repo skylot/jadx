@@ -122,6 +122,8 @@ public class AdjustForIfMergeVisitor extends AbstractVisitor {
 		for (InsnNode insn : movableInstructions) {
 			target.getInstructions().remove(insn);
 			for (BlockNode succ : bottomIf.getCleanSuccessors()) {
+				// TODO: using same insn instance in several places not allowed.
+				// Proper fix will require to create new SSA var and PHI insn at correct place
 				succ.getInstructions().add(0, insn); // add at start
 
 				if (succ.contains(AFlag.LOOP_START)) {
