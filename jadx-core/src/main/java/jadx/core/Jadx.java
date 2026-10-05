@@ -11,7 +11,6 @@ import jadx.api.JadxArgs;
 import jadx.core.deobf.DeobfuscatorVisitor;
 import jadx.core.deobf.SaveDeobfMapping;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.visitors.AdjustForIfMergeVisitor;
 import jadx.core.dex.visitors.AnonymousClassVisitor;
 import jadx.core.dex.visitors.ApplyVariableNames;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
@@ -154,7 +153,8 @@ public class Jadx {
 		passes.add(new FixTypesVisitor());
 		passes.add(new FinishTypeInference());
 
-		passes.add(new AdjustForIfMergeVisitor());
+		// TODO: disabled until issue resolved, check TODO comment inside
+		// passes.add(new AdjustForIfMergeVisitor());
 
 		if (args.getUseKotlinMethodsForVarNames() != JadxArgs.UseKotlinMethodsForVarNames.DISABLE) {
 			passes.add(new ProcessKotlinInternals());

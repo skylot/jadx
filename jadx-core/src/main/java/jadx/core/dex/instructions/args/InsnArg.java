@@ -146,7 +146,6 @@ public abstract class InsnArg extends Typed {
 		if (resArg != null && !insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 			// result not needed in wrapped insn
 			InsnRemover.unbindResult(mth, insn);
-			insn.setResult(null);
 		}
 		return arg;
 	}

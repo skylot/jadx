@@ -2,7 +2,9 @@ package jadx.core.utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -38,11 +40,12 @@ public class DebugChecks {
 	public static List<IDexTreeVisitor> insertPasses(List<IDexTreeVisitor> passes) {
 		int size = passes.size();
 		List<IDexTreeVisitor> list = new ArrayList<>(size * 2);
+		int k = 0;
 		for (IDexTreeVisitor pass : passes) {
 			list.add(pass);
 			String name = pass.getName();
 			if (!IGNORE_CHECKS.contains(name)) {
-				list.add(new DebugChecksPass(name));
+				list.add(new DebugChecksPass(name + ':' + k++));
 			}
 		}
 		return list;
@@ -61,6 +64,7 @@ public class DebugChecks {
 		if (Utils.isEmpty(basicBlocks)) {
 			return;
 		}
+		// checkInsnsUnique(mth);
 		for (BlockNode block : basicBlocks) {
 			for (InsnNode insn : block.getInstructions()) {
 				checkInsn(mth, block, insn);
@@ -71,9 +75,11 @@ public class DebugChecks {
 		// checkPHI(mth);
 	}
 
-	private static void checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
+	public static void checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getResult() != null) {
 			checkVar(mth, insn, insn.getResult());
+		} else if (insn.getType() == InsnType.MOVE) {
+			throw new JadxRuntimeException("Missing result for MOVE: " + insn);
 		}
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg instanceof RegisterArg) {
@@ -314,6 +320,22 @@ public class DebugChecks {
 				}
 				if (!found) {
 					throw new JadxRuntimeException("Used in phi incorrect");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Verify that all instructions are unique (i.e. same insn object not used in several places).
+	 * Expensive check, disabled by default!
+	 */
+	private static void checkInsnsUnique(MethodNode mth) {
+		Map<InsnNode, BlockNode> insns = new IdentityHashMap<>();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				BlockNode prevBlock = insns.put(insn, block);
+				if (prevBlock != null) {
+					throw new JadxRuntimeException("Duplicate insn: " + insn + ", block: " + block + ", other block: " + prevBlock);
 				}
 			}
 		}
