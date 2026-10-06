@@ -50,7 +50,6 @@ import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.RegionUtils;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -312,11 +311,6 @@ public class RegionGen extends InsnGen {
 
 	public void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
 		code.startLine("try {");
-
-		InsnNode insn = BlockUtils.getFirstInsn(Utils.first(region.getTryCatchBlock().getBlocks()));
-		InsnCodeOffset.attach(code, insn);
-		CodeGenUtils.addCodeComments(code, mth, insn);
-
 		makeRegionIndent(code, region.getTryRegion());
 		// TODO: move search of 'allHandler' to 'TryCatchRegion'
 		ExceptionHandler allHandler = null;
