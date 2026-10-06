@@ -36,7 +36,8 @@ public class CleanRegions extends AbstractVisitor {
 		}
 
 		private static boolean canRemoveRegion(IContainer container) {
-			if (container.contains(AFlag.DONT_GENERATE)) {
+			// Issue #2949: remove containers marked with DONT_GENERATE or REMOVE
+			if (container.contains(AFlag.DONT_GENERATE) || container.contains(AFlag.REMOVE)) {
 				return true;
 			}
 			if (container instanceof BlockNode) {
