@@ -1872,16 +1872,20 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	public void resetPluginsMenu() {
-		pluginsMenu.removeAll();
-		pluginsMenu.add(new ActionHandler(() -> openSettings("PluginSettingsGroup.class"))
-				.withNameAndDesc(NLS.str("preferences.plugins.manage")));
+		UiUtils.uiRun(() -> {
+			pluginsMenu.removeAll();
+			pluginsMenu.add(new ActionHandler(() -> openSettings("PluginSettingsGroup.class"))
+					.withNameAndDesc(NLS.str("preferences.plugins.manage")));
+		});
 	}
 
 	public void addToPluginsMenu(Action item) {
-		if (pluginsMenu.getMenuComponentCount() == 1) {
-			pluginsMenu.addSeparator();
-		}
-		pluginsMenu.add(item);
+		UiUtils.uiRun(() -> {
+			if (pluginsMenu.getMenuComponentCount() == 1) {
+				pluginsMenu.addSeparator();
+			}
+			pluginsMenu.add(item);
+		});
 	}
 
 	private void createDesktopEntry() {
