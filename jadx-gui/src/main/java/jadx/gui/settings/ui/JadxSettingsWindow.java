@@ -88,7 +88,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient MainWindow mainWindow;
 	private final transient JadxSettings settings;
 	private final transient String startSettings;
-	private final transient String startSettingsHash;
+	private transient String startSettingsHash;
 	private final transient LangLocale prevLang;
 	private final transient Consumer<ReloadSettingsWindow> reloadListener;
 
@@ -120,6 +120,8 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private void reloadUI() {
+		// project already reloaded with current settings and plugins
+		startSettingsHash = calcSettingsHash();
 		int[] selection = tree.getSelectionRows();
 		closeGroups(false);
 		getContentPane().removeAll();
