@@ -73,7 +73,8 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 
 	}
 
-	private void loadFromClsLoader(Map<String, JadxPlugin> map, ClassLoader classLoader) {
+	private boolean loadFromClsLoader(Map<String, JadxPlugin> map, ClassLoader classLoader) {
+		boolean added = false;
 		ServiceLoader<JadxPlugin> serviceLoader = ServiceLoader.load(JadxPlugin.class, classLoader);
 		for (ServiceLoader.Provider<JadxPlugin> provider : serviceLoader.stream().collect(Collectors.toList())) {
 			Class<? extends JadxPlugin> pluginClass = provider.type();
@@ -82,8 +83,10 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 					&& pluginClass.getClassLoader() == classLoader
 					&& pluginClassFilter.test(pluginClass)) {
 				map.put(clsName, provider.get());
+				added = true;
 			}
 		}
+		return added;
 	}
 
 	private void loadInstalledPlugins(Map<String, JadxPlugin> map) {
@@ -116,7 +119,10 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 			String clsLoaderName = JADX_PLUGIN_CLASSLOADER_PREFIX + pluginPath.getFileName();
 			URLClassLoader pluginClsLoader = new URLClassLoader(clsLoaderName, urls, thisClassLoader());
 			classLoaders.add(pluginClsLoader);
-			loadFromClsLoader(map, pluginClsLoader);
+			if (!loadFromClsLoader(map, pluginClsLoader)) {
+				classLoaders.remove(pluginClsLoader);
+				pluginClsLoader.close();
+			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to load plugins from: " + pluginPath, e);
 		}
