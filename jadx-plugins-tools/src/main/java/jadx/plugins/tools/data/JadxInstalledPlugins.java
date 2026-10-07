@@ -7,6 +7,7 @@ public class JadxInstalledPlugins {
 	private int version;
 	private long updated;
 	private List<JadxPluginMetadata> installed = new ArrayList<>();
+	private List<String> toDelete = new ArrayList<>();
 
 	public int getVersion() {
 		return version;
@@ -30,5 +31,13 @@ public class JadxInstalledPlugins {
 
 	public void setInstalled(List<JadxPluginMetadata> installed) {
 		this.installed = installed;
+	}
+
+	public List<String> getToDelete() {
+		return toDelete;
+	}
+
+	public void setToDelete(List<String> toDelete) {
+		this.toDelete = toDelete;
 	}
 }
