@@ -62,6 +62,7 @@ public class GlobalPluginUnloadTest {
 	}
 
 	private static List<String> getMenuItems(MainWindow mainWindow) {
+		TestMainWindowShim.waitForUiThread();
 		List<String> items = new ArrayList<>();
 		for (Component component : mainWindow.getPluginsMenu().getMenuComponents()) {
 			if (component instanceof JMenuItem) {

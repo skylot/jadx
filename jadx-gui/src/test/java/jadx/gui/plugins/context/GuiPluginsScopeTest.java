@@ -2,6 +2,11 @@ package jadx.gui.plugins.context;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,9 +69,27 @@ public class GuiPluginsScopeTest {
 					.addMenuAction("global-menu", () -> {
 					});
 			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
 			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
 			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
 			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
+		}
+	}
+
+	@Test
+	public void pluginsMenuChangedInUiThread() {
+		UiThreadCheckMenu pluginsMenu = new UiThreadCheckMenu();
+		MainWindow mainWindow = TestMainWindowShim.build(pluginsMenu);
+		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
+		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
+			buildContext(context, globalDecompiler, "global-plugin", true)
+					.addMenuAction("global-menu", () -> {
+					});
+			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
+			assertThat(pluginsMenu.getMenuComponentCount()).isEqualTo(3);
+			assertThat(pluginsMenu.getNonUiThreads()).isEmpty();
 		}
 	}
 
@@ -107,6 +130,38 @@ public class GuiPluginsScopeTest {
 
 		@Override
 		public void init(JadxPluginContext context) {
+		}
+	}
+
+	private static final class UiThreadCheckMenu extends JMenu {
+		private final List<String> nonUiThreads = new CopyOnWriteArrayList<>();
+
+		@Override
+		public JMenuItem add(JMenuItem menuItem) {
+			checkThread();
+			return super.add(menuItem);
+		}
+
+		@Override
+		public void addSeparator() {
+			checkThread();
+			super.addSeparator();
+		}
+
+		@Override
+		public void removeAll() {
+			checkThread();
+			super.removeAll();
+		}
+
+		private void checkThread() {
+			if (!SwingUtilities.isEventDispatchThread()) {
+				nonUiThreads.add(Thread.currentThread().getName());
+			}
+		}
+
+		public List<String> getNonUiThreads() {
+			return nonUiThreads;
 		}
 	}
 
