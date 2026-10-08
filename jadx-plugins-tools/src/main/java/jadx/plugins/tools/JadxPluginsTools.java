@@ -340,6 +340,10 @@ public class JadxPluginsTools {
 		}
 	}
 
+	public void deleteLeftoverFiles() {
+		deleteLeftoverFiles(loadPluginsJson());
+	}
+
 	private void deleteLeftoverFiles(JadxInstalledPlugins plugins) {
 		if (plugins.getToDelete().removeIf(JadxPluginsTools::deletePluginFiles)) {
 			savePluginsJson(plugins);
