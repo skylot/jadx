@@ -2,7 +2,9 @@ package jadx.gui.plugins.context;
 
 import java.lang.reflect.Field;
 
+import javax.swing.JFrame;
 import javax.swing.JMenu;
+import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +42,12 @@ public class TestMainWindowShim {
 			Field eventsField = MainWindow.class.getDeclaredField("events");
 			eventsField.setAccessible(true);
 			eventsField.set(mainWindow, new JadxGuiEventsImpl());
+
+			// JFrame field not accessible by reflection
+			Field rootPaneField = JFrame.class.getDeclaredField("rootPane");
+			Object rootPaneOffset = unsafeCls.getMethod("objectFieldOffset", Field.class).invoke(unsafe, rootPaneField);
+			unsafeCls.getMethod("putObject", Object.class, long.class, Object.class)
+					.invoke(unsafe, mainWindow, rootPaneOffset, new JRootPane());
 
 			return (MainWindow) mainWindow;
 		} catch (Throwable e) {
