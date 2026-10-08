@@ -32,6 +32,8 @@ import jadx.plugins.tools.JadxExternalPluginsLoader;
 public class GuiPluginsManager {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginsManager.class);
 
+	private static final long SLOW_GLOBAL_INIT_MS = 1000;
+
 	private final MainWindow mainWindow;
 	private final JadxArgs globalArgs;
 	private final JadxPluginManager globalPluginManager;
@@ -126,6 +128,7 @@ public class GuiPluginsManager {
 	void runGlobalInit(SortedSet<PluginRuntime> globalPlugins) {
 		List<PluginRuntime> failedPlugins = new ArrayList<>();
 		for (PluginRuntime pluginRuntime : globalPlugins) {
+			long start = System.currentTimeMillis();
 			try {
 				JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginRuntime.getPluginInstance();
 				PluginRuntime.classLoaderWrap(plugin.getClass().getClassLoader(), () -> {
@@ -138,6 +141,12 @@ public class GuiPluginsManager {
 			} catch (Throwable e) {
 				LOG.warn("Failed to init global gui plugin: {}", pluginRuntime.getPluginId(), e);
 				failedPlugins.add(pluginRuntime);
+			}
+			long time = System.currentTimeMillis() - start;
+			if (time > SLOW_GLOBAL_INIT_MS) {
+				LOG.warn("Slow global init of plugin '{}': {} ms, project loading waits for it", pluginRuntime.getPluginId(), time);
+			} else {
+				LOG.debug("Global init of plugin '{}' done in {} ms", pluginRuntime.getPluginId(), time);
 			}
 		}
 		// don't inject failed plugins into projects and remove added gui entries
