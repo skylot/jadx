@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -71,6 +72,29 @@ public class JadxExternalPluginsLoader implements JadxPluginLoader {
 		}
 		return plugin;
 
+	}
+
+	public List<JadxPlugin> loadPluginsFromPath(Path pluginPath) {
+		Map<String, JadxPlugin> map = new HashMap<>();
+		loadFromPath(map, pluginPath);
+		return new ArrayList<>(map.values());
+	}
+
+	public void closeClassLoader(JadxPlugin plugin) {
+		ClassLoader pluginClsLoader = plugin.getClass().getClassLoader();
+		Iterator<URLClassLoader> it = classLoaders.iterator();
+		while (it.hasNext()) {
+			URLClassLoader classLoader = it.next();
+			if (classLoader == pluginClsLoader) {
+				it.remove();
+				try {
+					classLoader.close();
+				} catch (Exception e) {
+					LOG.warn("Failed to close class loader of plugin: {}", plugin.getPluginInfo().getPluginId(), e);
+				}
+				return;
+			}
+		}
 	}
 
 	private boolean loadFromClsLoader(Map<String, JadxPlugin> map, ClassLoader classLoader) {
