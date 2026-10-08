@@ -11,6 +11,7 @@ import jadx.api.plugins.JadxPluginContext;
  * - created and initialized with main window
  * - unloaded on main window destroy
  * - project init and unload events still can be used
+ * - options with {@link jadx.api.plugins.options.OptionFlag#PER_PROJECT} flag not allowed
  */
 @SuppressWarnings("unused")
 public abstract class JadxGlobalGuiPlugin extends JadxGuiPlugin {

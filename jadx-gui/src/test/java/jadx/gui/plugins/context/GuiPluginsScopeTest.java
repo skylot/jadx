@@ -2,6 +2,13 @@ package jadx.gui.plugins.context;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,9 +71,62 @@ public class GuiPluginsScopeTest {
 					.addMenuAction("global-menu", () -> {
 					});
 			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
 			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
 			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
 			assertThat(mainWindow.getPluginsMenu().getMenuComponentCount()).isEqualTo(3);
+		}
+	}
+
+	@Test
+	public void pluginsMenuChangedInUiThread() {
+		UiThreadCheckMenu pluginsMenu = new UiThreadCheckMenu();
+		MainWindow mainWindow = TestMainWindowShim.build(pluginsMenu);
+		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
+		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
+			buildContext(context, globalDecompiler, "global-plugin", true)
+					.addMenuAction("global-menu", () -> {
+					});
+			context.resetProjectScope();
+			TestMainWindowShim.waitForUiThread();
+			assertThat(pluginsMenu.getMenuComponentCount()).isEqualTo(3);
+			assertThat(pluginsMenu.getNonUiThreads()).isEmpty();
+		}
+	}
+
+	@Test
+	public void pluginKeyBindingsFollowPluginScope() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		JComponent mainPanel = (JComponent) mainWindow.getContentPane();
+		KeyStroke globalKey = KeyStroke.getKeyStroke("ctrl alt shift G");
+		KeyStroke projectKey = KeyStroke.getKeyStroke("ctrl alt shift P");
+		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
+		try (JadxDecompiler globalDecompiler = new JadxDecompiler()) {
+			PluginRuntime globalPlugin = globalDecompiler.getPluginManager().register(new TestPlugin("global-plugin"));
+			assertThat(globalPlugin).isNotNull();
+			GuiPluginContext globalContext = context.buildForPlugin(globalPlugin, true);
+			assertThat(globalContext.registerGlobalKeyBinding("global-key", "ctrl alt shift G", () -> {
+			})).isTrue();
+			for (int i = 0; i < 2; i++) {
+				try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+					GuiPluginContext projectContext = buildContext(context, projectDecompiler, "project-plugin", false);
+					assertThat(projectContext.registerGlobalKeyBinding("project-key", "ctrl alt shift P", () -> {
+					})).isTrue();
+					assertThat(projectContext.registerGlobalKeyBinding("other-key", "ctrl alt shift G", () -> {
+					})).isFalse();
+					TestMainWindowShim.waitForUiThread();
+					assertThat(mainPanel.getInputMap().get(globalKey)).isEqualTo("global-key");
+					assertThat(mainPanel.getInputMap().get(projectKey)).isEqualTo("project-key");
+				}
+				context.resetProjectScope();
+				TestMainWindowShim.waitForUiThread();
+				assertThat(mainPanel.getInputMap().get(globalKey)).isEqualTo("global-key");
+				assertThat(mainPanel.getInputMap().get(projectKey)).isNull();
+			}
+			context.removeGlobalPlugin(globalPlugin);
+			TestMainWindowShim.waitForUiThread();
+			assertThat(mainPanel.getInputMap().get(globalKey)).isNull();
 		}
 	}
 
@@ -107,6 +167,38 @@ public class GuiPluginsScopeTest {
 
 		@Override
 		public void init(JadxPluginContext context) {
+		}
+	}
+
+	private static final class UiThreadCheckMenu extends JMenu {
+		private final List<String> nonUiThreads = new CopyOnWriteArrayList<>();
+
+		@Override
+		public JMenuItem add(JMenuItem menuItem) {
+			checkThread();
+			return super.add(menuItem);
+		}
+
+		@Override
+		public void addSeparator() {
+			checkThread();
+			super.addSeparator();
+		}
+
+		@Override
+		public void removeAll() {
+			checkThread();
+			super.removeAll();
+		}
+
+		private void checkThread() {
+			if (!SwingUtilities.isEventDispatchThread()) {
+				nonUiThreads.add(Thread.currentThread().getName());
+			}
+		}
+
+		public List<String> getNonUiThreads() {
+			return nonUiThreads;
 		}
 	}
 

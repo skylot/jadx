@@ -2,7 +2,10 @@ package jadx.gui.plugins.context;
 
 import java.lang.reflect.Field;
 
+import javax.swing.JFrame;
 import javax.swing.JMenu;
+import javax.swing.JRootPane;
+import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assumptions;
@@ -17,6 +20,10 @@ import jadx.gui.utils.NLS;
 public class TestMainWindowShim {
 
 	public static @NotNull MainWindow build() {
+		return build(new JMenu("Plugins"));
+	}
+
+	public static @NotNull MainWindow build(JMenu pluginsMenu) {
 		NLS.setLocale(NLS.defaultLocale());
 		try {
 			Class<?> unsafeCls = Class.forName("sun.misc.Unsafe");
@@ -26,7 +33,7 @@ public class TestMainWindowShim {
 			Object mainWindow = unsafeCls.getMethod("allocateInstance", Class.class).invoke(unsafe, MainWindow.class);
 			Field menuField = MainWindow.class.getDeclaredField("pluginsMenu");
 			menuField.setAccessible(true);
-			menuField.set(mainWindow, new JMenu("Plugins"));
+			menuField.set(mainWindow, pluginsMenu);
 
 			Field settingsField = MainWindow.class.getDeclaredField("settings");
 			settingsField.setAccessible(true);
@@ -35,6 +42,12 @@ public class TestMainWindowShim {
 			Field eventsField = MainWindow.class.getDeclaredField("events");
 			eventsField.setAccessible(true);
 			eventsField.set(mainWindow, new JadxGuiEventsImpl());
+
+			// JFrame field not accessible by reflection
+			Field rootPaneField = JFrame.class.getDeclaredField("rootPane");
+			Object rootPaneOffset = unsafeCls.getMethod("objectFieldOffset", Field.class).invoke(unsafe, rootPaneField);
+			unsafeCls.getMethod("putObject", Object.class, long.class, Object.class)
+					.invoke(unsafe, mainWindow, rootPaneOffset, new JRootPane());
 
 			return (MainWindow) mainWindow;
 		} catch (Throwable e) {
@@ -54,6 +67,15 @@ public class TestMainWindowShim {
 			wrapperField.set(mainWindow, new JadxWrapper(mainWindow));
 		} catch (Throwable e) {
 			Assumptions.abort("Can't set plugins manager for test: " + e);
+		}
+	}
+
+	public static void waitForUiThread() {
+		try {
+			SwingUtilities.invokeAndWait(() -> {
+			});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 

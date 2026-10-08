@@ -14,6 +14,7 @@ public class GuiPluginsRegistry {
 	private final List<TreePopupMenuEntry> treePopupMenuEntries = new ArrayList<>();
 	private final List<ITreeInputCategory> treeInputCategories = new ArrayList<>();
 	private final List<ITabStatePersist> tabStatePersistAdapters = new ArrayList<>();
+	private final List<KeyBindingEntry> keyBindings = new ArrayList<>();
 
 	public List<Action> getMenuActions() {
 		return menuActions;
@@ -35,11 +36,16 @@ public class GuiPluginsRegistry {
 		return tabStatePersistAdapters;
 	}
 
+	public List<KeyBindingEntry> getKeyBindings() {
+		return keyBindings;
+	}
+
 	public void clear() {
 		menuActions.clear();
 		codePopupActions.clear();
 		treePopupMenuEntries.clear();
 		treeInputCategories.clear();
 		tabStatePersistAdapters.clear();
+		keyBindings.clear();
 	}
 }

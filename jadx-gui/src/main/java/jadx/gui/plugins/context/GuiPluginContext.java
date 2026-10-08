@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +25,8 @@ import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.api.plugins.gui.ISettingsGroup;
 import jadx.api.plugins.gui.JadxGuiSettings;
 import jadx.api.plugins.options.JadxPluginOptions;
+import jadx.api.plugins.options.OptionDescription;
+import jadx.api.plugins.options.OptionFlag;
 import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -61,11 +62,18 @@ public class GuiPluginContext implements JadxGuiContextExt {
 
 	@Override
 	public void registerOptions(JadxPluginOptions options) {
+		if (options != null && commonContext.isGlobalPlugin(this)) {
+			verifyGlobalOptions(options);
+		}
 		pluginRuntime.registerOptions(options);
 	}
 
 	public CommonGuiPluginsContext getCommonContext() {
 		return commonContext;
+	}
+
+	GuiPluginsRegistry getRegistry() {
+		return registry;
 	}
 
 	public String getPluginId() {
@@ -123,13 +131,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		if (keyStroke == null) {
 			throw new IllegalArgumentException("Failed to parse key binding: " + keyBinding);
 		}
-		JPanel mainPanel = (JPanel) commonContext.getMainWindow().getContentPane();
-		Object prevBinding = mainPanel.getInputMap().get(keyStroke);
-		if (prevBinding != null) {
-			return false;
-		}
-		UiUtils.addKeyBinding(mainPanel, keyStroke, id, action);
-		return true;
+		return commonContext.addKeyBinding(registry, new KeyBindingEntry(id, keyStroke, action));
 	}
 
 	@Override
@@ -275,5 +277,13 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		}
 		IJadxEvents events = commonContext.getMainWindow().events();
 		events.send(new NodeRenamedByUser(nodeRef, "", newName));
+	}
+
+	private static void verifyGlobalOptions(JadxPluginOptions options) {
+		for (OptionDescription option : options.getOptionsDescriptions()) {
+			if (option.getFlags().contains(OptionFlag.PER_PROJECT)) {
+				throw new IllegalArgumentException("Per project option not allowed in global plugin: " + option.name());
+			}
+		}
 	}
 }

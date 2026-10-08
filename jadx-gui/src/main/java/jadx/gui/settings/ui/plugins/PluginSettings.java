@@ -71,6 +71,11 @@ public class PluginSettings {
 		new InstallPluginDialog(mainWindow, this).setVisible(true);
 	}
 
+	private void scheduleGlobalReload(String pluginId) {
+		mainWindow.getGuiPluginsManager().scheduleGlobalUnload(pluginId);
+		mainWindow.getGuiPluginsManager().scheduleGlobalLoad(pluginId);
+	}
+
 	private void requestReload() {
 		mainWindow.events().send(ReloadProject.EVENT);
 	}
@@ -81,6 +86,7 @@ public class PluginSettings {
 					try {
 						JadxPluginMetadata metadata = JadxPluginsTools.getInstance().install(locationId);
 						LOG.info("Plugin installed: {}", metadata);
+						scheduleGlobalReload(metadata.getPluginId());
 						requestReload();
 					} catch (Exception e) {
 						LOG.error("Plugin install failed", e);
@@ -94,6 +100,7 @@ public class PluginSettings {
 			boolean success = JadxPluginsTools.getInstance().uninstall(pluginId);
 			if (success) {
 				LOG.info("Uninstall complete");
+				mainWindow.getGuiPluginsManager().scheduleGlobalUnload(pluginId);
 				requestReload();
 			} else {
 				LOG.warn("Uninstall failed");
@@ -104,7 +111,14 @@ public class PluginSettings {
 	public void changeDisableStatus(String pluginId, boolean disabled) {
 		mainWindow.getBackgroundExecutor().execute(
 				NLS.str("preferences.plugins.task.status"),
-				() -> JadxPluginsTools.getInstance().changeDisabledStatus(pluginId, disabled),
+				() -> {
+					JadxPluginsTools.getInstance().changeDisabledStatus(pluginId, disabled);
+					if (disabled) {
+						mainWindow.getGuiPluginsManager().scheduleGlobalUnload(pluginId);
+					} else {
+						mainWindow.getGuiPluginsManager().scheduleGlobalLoad(pluginId);
+					}
+				},
 				s -> requestReload());
 	}
 
@@ -112,6 +126,7 @@ public class PluginSettings {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.updating"), () -> {
 			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
 			if (!updates.isEmpty()) {
+				updates.forEach(update -> scheduleGlobalReload(update.getPluginId()));
 				LOG.info("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
 				requestReload();
 			} else {

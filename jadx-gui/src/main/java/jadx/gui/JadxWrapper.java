@@ -67,14 +67,13 @@ public class JadxWrapper {
 				JadxProject project = getProject();
 				GuiPluginsManager guiPluginsManager = mainWindow.getGuiPluginsManager();
 				JadxArgs jadxArgs = getSettings().toJadxArgs();
-				jadxArgs.setPluginLoader(guiPluginsManager.buildProjectPluginLoader());
+				jadxArgs.setPluginLoader(guiPluginsManager.buildGuiPluginsLoader());
 				jadxArgs.setFilesGetter(JadxFilesGetter.INSTANCE);
 				project.fillJadxArgs(jadxArgs);
 				JadxAppCommon.applyEnvVars(jadxArgs);
 
 				decompiler = new JadxDecompiler(jadxArgs);
 				guiPluginsManager.initGuiPluginsContext(decompiler.getPluginManager(), jadxArgs, false);
-				guiPluginsManager.injectGlobalPlugins(decompiler);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
