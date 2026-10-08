@@ -16,6 +16,7 @@ public class TestSynchronized7 extends IntegrationTest {
 			switch (this.i) {
 				case 42:
 					doSomething2();
+					// fallthrough
 				default:
 					break;
 			}
