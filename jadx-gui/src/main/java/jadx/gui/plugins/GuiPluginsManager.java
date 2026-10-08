@@ -28,6 +28,7 @@ import jadx.gui.plugins.context.CommonGuiPluginsContext;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
+import jadx.plugins.tools.JadxPluginsTools;
 
 public class GuiPluginsManager {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginsManager.class);
@@ -38,6 +39,8 @@ public class GuiPluginsManager {
 	private final JadxArgs globalArgs;
 	private final JadxPluginManager globalPluginManager;
 	private final CommonGuiPluginsContext guiPluginsContext;
+	private final JadxExternalPluginsLoader globalPluginsLoader =
+			new JadxExternalPluginsLoader(JadxGlobalGuiPlugin.class::isAssignableFrom);
 	private final Set<String> scheduledUnload = ConcurrentHashMap.newKeySet();
 
 	public GuiPluginsManager(MainWindow mainWindow) {
@@ -59,7 +62,7 @@ public class GuiPluginsManager {
 			long start = System.currentTimeMillis();
 
 			initGuiPluginsContextForGlobalScope();
-			globalPluginManager.load(new JadxExternalPluginsLoader(JadxGlobalGuiPlugin.class::isAssignableFrom));
+			globalPluginManager.load(globalPluginsLoader);
 			SortedSet<PluginRuntime> globalPlugins = globalPluginManager.getResolvedPlugins();
 			runGlobalInit(globalPlugins);
 			if (!globalPlugins.isEmpty()) {
@@ -171,6 +174,7 @@ public class GuiPluginsManager {
 	}
 
 	public synchronized void runScheduledGlobalUnload() {
+		boolean unloaded = false;
 		Iterator<String> it = scheduledUnload.iterator();
 		while (it.hasNext()) {
 			String pluginId = it.next();
@@ -183,8 +187,14 @@ public class GuiPluginsManager {
 				globalUnload(pluginRuntime);
 				globalPluginManager.unload(pluginId);
 				guiPluginsContext.removeGlobalPlugin(pluginRuntime);
+				globalPluginsLoader.closeClassLoader(pluginRuntime.getPluginInstance());
 				LOG.info("Global plugin unloaded: {}", pluginId);
+				unloaded = true;
 			}
+		}
+		if (unloaded) {
+			// plugin files released after class loader close
+			JadxPluginsTools.getInstance().deleteLeftoverFiles();
 		}
 	}
 
