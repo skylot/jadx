@@ -78,6 +78,43 @@ public class GlobalPluginUnloadTest {
 		assertThat(manager.getPluginsContext().getCodePopupActionList()).hasSize(1);
 	}
 
+	@Test
+	public void globalPluginLoadedWithoutRestart() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		TestPlugin startPlugin = new TestPlugin("start-plugin");
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(startPlugin)).isNotNull();
+		manager.runGlobalInit(manager.getGlobalPlugins());
+
+		TestPlugin addedPlugin = new TestPlugin("added-plugin");
+		manager.addGlobalPlugin(addedPlugin);
+
+		assertThat(startPlugin.globalInitCount).isEqualTo(1);
+		assertThat(addedPlugin.globalInitCount).isEqualTo(1);
+		assertThat(getMenuItems(mainWindow)).contains("start-plugin action", "added-plugin action");
+		try (JadxDecompiler projectDecompiler = new JadxDecompiler()) {
+			projectDecompiler.getPluginManager().load(new GuiPluginsLoader(manager.getGlobalPlugins(), new TestPluginLoader()));
+			assertThat(projectDecompiler.getPluginManager().getAllPlugins())
+					.extracting(PluginRuntime::getPluginId)
+					.containsExactly("added-plugin", "start-plugin");
+		}
+		manager.runGlobalUnload();
+		assertThat(addedPlugin.globalUnloadCount).isEqualTo(1);
+	}
+
+	@Test
+	public void failedAddedGlobalPluginNotKept() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		manager.initGuiPluginsContextForGlobalScope();
+
+		manager.addGlobalPlugin(new TestPlugin("failed-plugin", true));
+
+		assertThat(manager.getGlobalPlugins()).isEmpty();
+		assertThat(getMenuItems(mainWindow)).doesNotContain("failed-plugin action");
+	}
+
 	private static List<String> getMenuItems(MainWindow mainWindow) {
 		TestMainWindowShim.waitForUiThread();
 		List<String> items = new ArrayList<>();
@@ -92,6 +129,7 @@ public class GlobalPluginUnloadTest {
 	private static final class TestPlugin extends JadxGlobalGuiPlugin {
 		private final String pluginId;
 		private final boolean failGlobalInit;
+		int globalInitCount;
 		int globalUnloadCount;
 
 		private TestPlugin(String pluginId) {
@@ -110,6 +148,7 @@ public class GlobalPluginUnloadTest {
 
 		@Override
 		public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+			globalInitCount++;
 			guiContext.addMenuAction(pluginId + " action", () -> {
 			});
 			guiContext.addPopupMenuAction(pluginId + " popup", null, null, ref -> {
