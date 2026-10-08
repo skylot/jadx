@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
@@ -132,13 +131,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		if (keyStroke == null) {
 			throw new IllegalArgumentException("Failed to parse key binding: " + keyBinding);
 		}
-		JPanel mainPanel = (JPanel) commonContext.getMainWindow().getContentPane();
-		Object prevBinding = mainPanel.getInputMap().get(keyStroke);
-		if (prevBinding != null) {
-			return false;
-		}
-		UiUtils.addKeyBinding(mainPanel, keyStroke, id, action);
-		return true;
+		return commonContext.addKeyBinding(registry, new KeyBindingEntry(id, keyStroke, action));
 	}
 
 	@Override
