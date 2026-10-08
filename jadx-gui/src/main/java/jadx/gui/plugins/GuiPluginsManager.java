@@ -3,6 +3,7 @@ package jadx.gui.plugins;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
@@ -17,6 +18,7 @@ import jadx.api.gui.plugins.JadxGuiContextExt;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.loader.JadxPluginLoader;
+import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.cli.JadxAppCommon;
 import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.plugins.AppContext;
@@ -183,6 +185,21 @@ public class GuiPluginsManager {
 			PluginRuntime.classLoaderWrap(plugin.getClass().getClassLoader(), plugin::globalUnload);
 		} catch (Exception e) {
 			LOG.warn("Failed to unload global gui plugin: {}", pluginRuntime.getPluginId(), e);
+		}
+	}
+
+	public void updateGlobalPluginsOptions() {
+		Map<String, String> pluginOptions = mainWindow.getSettings().getPluginOptions();
+		globalArgs.setPluginOptions(pluginOptions);
+		for (PluginRuntime pluginRuntime : getGlobalPlugins()) {
+			JadxPluginOptions options = pluginRuntime.getOptions();
+			if (options != null) {
+				try {
+					pluginRuntime.classLoaderWrap(() -> options.setOptions(pluginOptions));
+				} catch (Exception e) {
+					LOG.warn("Failed to update options of global gui plugin: {}", pluginRuntime.getPluginId(), e);
+				}
+			}
 		}
 	}
 

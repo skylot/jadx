@@ -767,6 +767,7 @@ public class JadxSettingsWindow extends JDialog {
 	private void save() {
 		closeGroups(true);
 		settings.sync();
+		mainWindow.getGuiPluginsManager().updateGlobalPluginsOptions();
 		enableComponents(this, false);
 		SwingUtilities.invokeLater(() -> {
 			if (shouldReload()) {
