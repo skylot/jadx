@@ -266,26 +266,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		if (!(cutHandlerBlocks.isEmpty() || BlockUtils.isAllBlocksEmpty(cutHandlerBlocks))) {
 			return false;
 		}
-		// remove empty catch (Issue #2949: mark rethrow, handler, and cut blocks with DONT_GENERATE so orphaned throw is not emitted)
+		// remove empty catch
 		tryInfo.finallyHandler.getTryBlock().removeHandler(tryInfo.finallyHandler);
-		for (BlockNode rethrowBlock : tryInfo.rethrowBlocks) {
-			rethrowBlock.add(AFlag.DONT_GENERATE);
-			for (InsnNode insn : rethrowBlock.getInstructions()) {
-				insn.add(AFlag.DONT_GENERATE);
-			}
-		}
-		for (BlockNode block : tryInfo.finallyHandler.getBlocks()) {
-			block.add(AFlag.DONT_GENERATE);
-			for (InsnNode insn : block.getInstructions()) {
-				insn.add(AFlag.DONT_GENERATE);
-			}
-		}
-		for (BlockNode block : cutHandlerBlocks) {
-			block.add(AFlag.DONT_GENERATE);
-			for (InsnNode insn : block.getInstructions()) {
-				insn.add(AFlag.DONT_GENERATE);
-			}
-		}
 		return true;
 	}
 

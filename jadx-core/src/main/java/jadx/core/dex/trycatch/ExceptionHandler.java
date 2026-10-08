@@ -196,7 +196,10 @@ public class ExceptionHandler {
 
 	public void markForRemove() {
 		this.removed = true;
-		this.blocks.forEach(b -> b.add(AFlag.REMOVE));
+		this.blocks.forEach(b -> {
+			b.add(AFlag.REMOVE);
+			b.add(AFlag.DONT_GENERATE);
+		});
 	}
 
 	@Override
