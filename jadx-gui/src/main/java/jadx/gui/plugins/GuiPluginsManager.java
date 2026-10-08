@@ -122,7 +122,7 @@ public class GuiPluginsManager {
 	}
 
 	void runGlobalInit(SortedSet<PluginRuntime> globalPlugins) {
-		List<String> failedPlugins = new ArrayList<>();
+		List<PluginRuntime> failedPlugins = new ArrayList<>();
 		for (PluginRuntime pluginRuntime : globalPlugins) {
 			try {
 				JadxGlobalGuiPlugin plugin = (JadxGlobalGuiPlugin) pluginRuntime.getPluginInstance();
@@ -135,11 +135,14 @@ public class GuiPluginsManager {
 				});
 			} catch (Throwable e) {
 				LOG.warn("Failed to init global gui plugin: {}", pluginRuntime.getPluginId(), e);
-				failedPlugins.add(pluginRuntime.getPluginId());
+				failedPlugins.add(pluginRuntime);
 			}
 		}
-		// don't inject failed plugins into projects
-		failedPlugins.forEach(globalPluginManager::unload);
+		// don't inject failed plugins into projects and remove added gui entries
+		for (PluginRuntime failedPlugin : failedPlugins) {
+			globalPluginManager.unload(failedPlugin.getPluginId());
+			guiPluginsContext.removeGlobalPlugin(failedPlugin);
+		}
 	}
 
 	public synchronized void runGlobalUnload() {
