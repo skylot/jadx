@@ -228,6 +228,47 @@ public class GuiPluginsManagerTest {
 		assertThat(reloaded.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	@Test
+	public void globalPluginOptionsUpdated() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		GuiPluginsManager manager = new GuiPluginsManager(mainWindow);
+		OptionsGlobalPlugin plugin = new OptionsGlobalPlugin();
+		manager.initGuiPluginsContextForGlobalScope();
+		assertThat(manager.getGlobalPluginManager().register(plugin)).isNotNull();
+		manager.runGlobalInit(manager.getGlobalPlugins());
+		assertThat(plugin.value).isEqualTo("default");
+
+		mainWindow.getSettings().getPluginOptions().put("options-plugin.value", "changed");
+		manager.updateGlobalPluginsOptions();
+		assertThat(plugin.value).isEqualTo("changed");
+	}
+
+	private static final class OptionsGlobalPlugin extends JadxGlobalGuiPlugin {
+		private String value;
+
+		@Override
+		public JadxPluginInfo getPluginInfo() {
+			return JadxPluginInfoBuilder.pluginId("options-plugin").name("options-plugin").description("test").build();
+		}
+
+		@Override
+		public JadxPluginOptions buildOptions() {
+			return new BasePluginOptionsBuilder() {
+				@Override
+				public void registerOptions() {
+					strOption("options-plugin.value")
+							.description("test option")
+							.defaultValue("default")
+							.setter(v -> value = v);
+				}
+			};
+		}
+
+		@Override
+		public void pluginGlobalInit(@NotNull JadxGuiContextExt guiContext) {
+		}
+	}
+
 	private static final class TestProjectPlugin implements JadxPlugin {
 		private final String pluginId;
 
