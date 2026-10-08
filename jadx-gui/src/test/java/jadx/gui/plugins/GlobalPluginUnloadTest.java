@@ -36,7 +36,7 @@ public class GlobalPluginUnloadTest {
 		assertThat(manager.getPluginsContext().getCodePopupActionList()).hasSize(2);
 
 		manager.scheduleGlobalUnload("removed-plugin");
-		manager.runScheduledGlobalUnload();
+		manager.runScheduledGlobalChanges();
 
 		assertThat(removedPlugin.globalUnloadCount).isEqualTo(1);
 		assertThat(keptPlugin.globalUnloadCount).isZero();
