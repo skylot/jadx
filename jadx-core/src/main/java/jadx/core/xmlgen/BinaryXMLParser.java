@@ -300,6 +300,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		String shortNsName = null;
 		if (attributeNS != -1) {
 			shortNsName = getAttributeNS(attributeNS, newLine);
+		} else if (isAndroidAttribute(attributeName)) {
+			// namespace can be removed by obfuscators, restore it for framework attributes
+			shortNsName = getNSName(ANDROID_NS_URL, newLine);
 		}
 		String attrName = getValidTagAttributeName(getAttributeName(attributeName));
 		String attrFullName = shortNsName != null ? shortNsName + ":" + attrName : attrName;
@@ -345,11 +348,23 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				attrUrl = ANDROID_NS_URL;
 			}
 		}
+		return getNSName(attrUrl, newLine);
+	}
+
+	private String getNSName(String attrUrl, boolean newLine) {
 		String attrName = nsMap.get(attrUrl);
 		if (attrName == null) {
 			attrName = generateNameForNS(attrUrl, newLine);
 		}
 		return attrName;
+	}
+
+	private boolean isAndroidAttribute(int id) {
+		if (resourceIds != null && 0 <= id && id < resourceIds.length) {
+			// android framework resources use package id 0x01
+			return resourceIds[id] >>> 24 == 0x01;
+		}
+		return false;
 	}
 
 	private String generateNameForNS(String attrUrl, boolean newLine) {
