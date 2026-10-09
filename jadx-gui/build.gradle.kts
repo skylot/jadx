@@ -111,6 +111,10 @@ tasks.shadowJar {
 		// allow to merge service files
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
+	filesMatching("logback.xml") {
+		// CLI and GUI each ship their own Logback config; keep the GUI one from the project resources
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	}
 	mergeServiceFiles()
 
 	filesMatching("META-INF/*.kotlin_module") {
