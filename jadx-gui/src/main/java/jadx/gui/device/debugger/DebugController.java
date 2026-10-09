@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaClass;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -118,7 +119,12 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 			debuggerPanel.log("Failed to set breakpoint at onCreate, you have to do it yourself.");
 			return;
 		}
-		JClass mainActivity = DbgUtils.getJClass(appData.getMainActivityCls(), debuggerPanel.getMainWindow());
+		JavaClass mainActivityCls = appData.getMainActivityCls();
+		if (mainActivityCls == null) {
+			debuggerPanel.log("App has no launcher activity, breakpoint at onCreate not set, you have to set breakpoints yourself.");
+			return;
+		}
+		JClass mainActivity = DbgUtils.getJClass(mainActivityCls, debuggerPanel.getMainWindow());
 		lazyQueue.execute(() -> openMainActivityTab(mainActivity));
 		String clsSig = DbgUtils.getRawFullName(mainActivity);
 		try {
@@ -222,7 +228,8 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		if (appData == null) {
 			return "";
 		}
-		return appData.getProcessName();
+		String processName = appData.getProcessName();
+		return processName != null ? processName : "";
 	}
 
 	private RuntimeType castType(ArgType type) {
