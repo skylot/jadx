@@ -12,10 +12,12 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ import jadx.gui.ui.filedialog.FileOpenMode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
+import jadx.plugins.tools.resolvers.ResolversRegistry;
 
 public class InstallPluginDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(InstallPluginDialog.class);
@@ -116,7 +119,26 @@ public class InstallPluginDialog extends JDialog {
 	}
 
 	private void install() {
-		pluginsSettings.install(locationFld.getText());
+		String text = locationFld.getText();
+		String locationId = checkLocationId(text);
+		if (locationId == null) {
+			JOptionPane.showMessageDialog(this,
+					NLS.str("preferences.plugins.install_bad_location", text.trim()),
+					NLS.str("message.errorTitle"),
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		pluginsSettings.install(locationId);
 		dispose();
+	}
+
+	static @Nullable String checkLocationId(String text) {
+		String locationId = text.trim();
+		try {
+			ResolversRegistry.getResolver(locationId);
+			return locationId;
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 }
