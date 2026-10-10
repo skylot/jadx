@@ -13,7 +13,7 @@
 
 **jadx** - Dex to Java decompiler
 
-Command line and GUI tools for producing Java source code from Android Dex and APK files
+Command-line and GUI tools for producing Java source code from Android Dex and APK files
 
 > [!WARNING]
 > Please note that in most cases **jadx** can't decompile 100% of the code, so errors will occur.<br />
@@ -25,13 +25,13 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - deobfuscator included
 
 **jadx-gui features:**
-- view decompiled code with highlighted syntax
+- view decompiled code with syntax highlighting
 - jump to declaration
 - find usage
-- full text search
-- smali debugger, check [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
+- full-text search
+- smali debugger, see the [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
 
-Jadx-gui key bindings can be found [here](https://github.com/skylot/jadx/wiki/JADX-GUI-Key-bindings)
+Key bindings for jadx-gui can be found [here](https://github.com/skylot/jadx/wiki/JADX-GUI-Key-bindings)
 
 See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
@@ -43,18 +43,18 @@ See these features in action here: [jadx-gui features overview](https://github.c
 - latest [unstable build ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/skylot/jadx/latest/master)](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
 Release files:
-- `jadx-<version>.zip` - command line and UI versions for any OS
+- `jadx-<version>.zip` - command-line and UI versions for any OS
 - `jadx-gui-<version>-win.zip` - UI version for Windows (`.exe`)
 - `jadx-gui-<version>-with-jre-win.zip` - UI version for Windows (`.exe`) with bundled Java
 
 For `jadx-<version>.zip`, unpack it, go to the `bin` directory and run:
-- `jadx` - command line version
+- `jadx` - command-line version
 - `jadx-gui` - UI version
 
 On Windows, run the `.bat` files with a double-click.
 For the Windows bundles, unpack and run `jadx-gui-<version>.exe`.
 
-**Note:** ensure you have installed Java 11 or later 64-bit version (not needed for the `with-jre` bundle).
+**Note:** make sure you have 64-bit Java 11 or later installed (not needed for the `with-jre` bundle).
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select the x64 Installer).
 
 ### Install
@@ -257,8 +257,8 @@ Please check the wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/
 ### Contributing
 To support this project, you can:
   - Post thoughts about new features/optimizations that are important to you
-  - Submit decompilation issues, please read before proceeding: [Open issue](CONTRIBUTING.md#Open-Issue)
-  - Open a pull request, please follow these rules: [Pull Request Process](CONTRIBUTING.md#Pull-Request-Process)
+  - Submit decompilation issues (please read [how to open an issue](CONTRIBUTING.md#Open-Issue) first)
+  - Open pull requests (please follow the [pull request rules](CONTRIBUTING.md#Pull-Request-Process))
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
