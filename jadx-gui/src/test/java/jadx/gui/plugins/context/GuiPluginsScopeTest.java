@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -98,7 +99,7 @@ public class GuiPluginsScopeTest {
 	@Test
 	public void pluginKeyBindingsFollowPluginScope() {
 		MainWindow mainWindow = TestMainWindowShim.build();
-		JComponent mainPanel = (JComponent) mainWindow.getContentPane();
+		InputMap keys = ((JComponent) mainWindow.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		KeyStroke globalKey = KeyStroke.getKeyStroke("ctrl alt shift G");
 		KeyStroke projectKey = KeyStroke.getKeyStroke("ctrl alt shift P");
 		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
@@ -116,17 +117,17 @@ public class GuiPluginsScopeTest {
 					assertThat(projectContext.registerGlobalKeyBinding("other-key", "ctrl alt shift G", () -> {
 					})).isFalse();
 					TestMainWindowShim.waitForUiThread();
-					assertThat(mainPanel.getInputMap().get(globalKey)).isEqualTo("global-key");
-					assertThat(mainPanel.getInputMap().get(projectKey)).isEqualTo("project-key");
+					assertThat(keys.get(globalKey)).isEqualTo("global-key");
+					assertThat(keys.get(projectKey)).isEqualTo("project-key");
 				}
 				context.resetProjectScope();
 				TestMainWindowShim.waitForUiThread();
-				assertThat(mainPanel.getInputMap().get(globalKey)).isEqualTo("global-key");
-				assertThat(mainPanel.getInputMap().get(projectKey)).isNull();
+				assertThat(keys.get(globalKey)).isEqualTo("global-key");
+				assertThat(keys.get(projectKey)).isNull();
 			}
 			context.removeGlobalPlugin(globalPlugin);
 			TestMainWindowShim.waitForUiThread();
-			assertThat(mainPanel.getInputMap().get(globalKey)).isNull();
+			assertThat(keys.get(globalKey)).isNull();
 		}
 	}
 
