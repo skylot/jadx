@@ -153,6 +153,7 @@ public class JCommanderWrapper {
 		out.println("Environment variables:");
 		out.println("  JADX_DISABLE_XML_SECURITY - set to 'true' to disable all security checks for XML files");
 		out.println("  JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files");
+		out.println("  JADX_DISABLE_ALL_SECURITY_FLAGS - set to 'true' to disable all security flags (xml, string, app package)");
 		out.println("  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)");
 		out.println("  JADX_CONFIG_DIR - custom config directory, using system by default");
 		out.println("  JADX_CACHE_DIR - custom cache directory, using system by default");
