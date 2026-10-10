@@ -7,7 +7,7 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/skylot/jadx/total)
 ![GitHub downloads (latest release)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
 ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://search.maven.org/search?q=g:io.github.skylot%20AND%20jadx)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://central.sonatype.com/namespace/io.github.skylot)
 ![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)
 [![License](https://img.shields.io/github/license/skylot/jadx)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
