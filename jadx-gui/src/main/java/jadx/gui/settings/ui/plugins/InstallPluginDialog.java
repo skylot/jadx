@@ -137,6 +137,10 @@ public class InstallPluginDialog extends JDialog {
 
 	static @Nullable String checkLocationId(String text) {
 		String locationId = text.trim();
+		if (locationId.length() > 1 && locationId.startsWith("\"") && locationId.endsWith("\"")) {
+			// path copied from Windows Explorer with "Copy as path"
+			locationId = locationId.substring(1, locationId.length() - 1).trim();
+		}
 		try {
 			ResolversRegistry.getResolver(locationId);
 			return locationId;
