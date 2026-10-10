@@ -69,7 +69,7 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
-	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
+	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count, default: half of CPU threads")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
 	@JadxConfigExclude

@@ -96,7 +96,7 @@ options:
   -dr, --output-dir-res                         - output directory for resources
   -r, --no-res                                  - do not decode resources
   -s, --no-src                                  - do not decompile source code
-  -j, --threads-count                           - processing threads count, default: 16
+  -j, --threads-count                           - processing threads count, default: half of CPU threads
   --single-class                                - decompile a single class, full name, raw or alias
   --single-class-output                         - file or dir for write if decompile a single class
   --output-format                               - can be 'java' or 'json', default: java
