@@ -19,9 +19,11 @@ import org.slf4j.LoggerFactory;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.JNodePopupBuilder;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 
 public class CommonGuiPluginsContext {
@@ -100,9 +102,22 @@ public class CommonGuiPluginsContext {
 			// used by jadx-gui
 			return false;
 		}
+		if (isJadxShortcut(keyStroke)) {
+			return false;
+		}
 		registry.getKeyBindings().add(keyBinding);
 		UiUtils.uiRun(() -> applyKeyBinding(keyBinding));
 		return true;
+	}
+
+	private boolean isJadxShortcut(KeyStroke keyStroke) {
+		ShortcutsController shortcutsController = mainWindow.getShortcutsController();
+		for (ActionModel actionModel : ActionModel.values()) {
+			if (keyStroke.equals(shortcutsController.getKeyStroke(actionModel))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void applyKeyBinding(KeyBindingEntry keyBinding) {
