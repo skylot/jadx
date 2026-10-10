@@ -13,11 +13,11 @@
 
 **jadx** - Dex to Java decompiler
 
-Command line and GUI tools for producing Java source code from Android Dex and Apk files
+Command line and GUI tools for producing Java source code from Android Dex and APK files
 
 > [!WARNING]
-> Please note that in most cases **jadx** can't decompile all 100% of the code, so errors will occur.<br />
-> Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds.
+> Please note that in most cases **jadx** can't decompile 100% of the code, so errors will occur.<br />
+> Check the [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds.
 
 **Main features:**
 - decompile Dalvik bytecode to Java code from APK, dex, aar, aab and zip files
@@ -39,7 +39,7 @@ See these features in action here: [jadx-gui features overview](https://github.c
 
 ### Download
 - release
-  from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
+  from [GitHub: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 - latest [unstable build ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/skylot/jadx/latest/master)](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
 Release files:
@@ -55,7 +55,7 @@ On Windows, run the `.bat` files with a double-click.
 For the Windows bundles, unpack and run `jadx-gui-<version>.exe`.
 
 **Note:** ensure you have installed Java 11 or later 64-bit version (not needed for the `with-jre` bundle).
-For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select x64 Installer).
+For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select the x64 Installer).
 
 ### Install
 - Arch Linux
@@ -76,7 +76,7 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
   ```
 
 ### Use jadx as a library
-You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
+You can use jadx in your Java projects, see the details on the [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
 
 ### Build from source
 JDK 17 or higher must be installed:
@@ -88,8 +88,8 @@ cd jadx
 
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
-Scripts for run jadx will be placed in `build/jadx/bin`
-and also packed to `build/jadx-<version>.zip`
+Scripts to run jadx will be placed in `build/jadx/bin`
+and also packed into `build/jadx-<version>.zip`
 
 ### Usage
 ```
@@ -231,9 +231,9 @@ Examples:
   jadx --log-level ERROR app.apk
   jadx -Pdex-input.verify-checksum=no app.apk
 ```
-These options also work in jadx-gui running from command line and override options from preferences' dialog
+These options also work in jadx-gui when it is run from the command line, and they override the options from the preferences dialog
 
-Usage for `plugins` command
+Usage for the `plugins` command
 ```
 usage: plugins [options]
 options:
@@ -252,13 +252,13 @@ options:
 
 
 ### Troubleshooting
-Please check wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
+Please check the wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
 
 ### Contributing
-To support this project you can:
-  - Post thoughts about new features/optimizations that important to you
-  - Submit decompilation issues, please read before proceed: [Open issue](CONTRIBUTING.md#Open-Issue)
-  - Open pull request, please follow these rules: [Pull Request Process](CONTRIBUTING.md#Pull-Request-Process)
+To support this project, you can:
+  - Post thoughts about new features/optimizations that are important to you
+  - Submit decompilation issues, please read before proceeding: [Open issue](CONTRIBUTING.md#Open-Issue)
+  - Open a pull request, please follow these rules: [Pull Request Process](CONTRIBUTING.md#Pull-Request-Process)
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
