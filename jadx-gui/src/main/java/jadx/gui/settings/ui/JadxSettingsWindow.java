@@ -12,6 +12,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -107,7 +109,13 @@ public class JadxSettingsWindow extends JDialog {
 		initUI();
 
 		setTitle(NLS.str("preferences.title"));
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				cancel();
+			}
+		});
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		pack();
 		UiUtils.setWindowIcons(this);
