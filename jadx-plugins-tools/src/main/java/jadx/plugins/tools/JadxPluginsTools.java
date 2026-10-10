@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -259,13 +260,12 @@ public class JadxPluginsTools {
 		String pluginPathStr = metadata.getPath();
 		Path pluginPath = Paths.get(pluginPathStr);
 		if (pluginPathStr.endsWith(".jar")) {
-			Path pluginJar = INSTALLED_DIR.resolve(pluginBaseName + ".jar");
+			Path pluginJar = newPluginPath(pluginBaseName, ".jar");
 			copyJar(pluginPath, pluginJar);
 			metadata.setPath(INSTALLED_DIR.relativize(pluginJar).toString());
 		} else if (Files.isDirectory(pluginPath)) {
-			Path pluginDir = INSTALLED_DIR.resolve(pluginBaseName);
+			Path pluginDir = newPluginPath(pluginBaseName, "");
 			try {
-				FileUtils.deleteDirIfExists(pluginDir);
 				org.apache.commons.io.FileUtils.moveDirectory(pluginPath.toFile(), pluginDir.toFile());
 			} catch (IOException e) {
 				throw new JadxRuntimeException("Failed to install plugin: " + pluginBaseName, e);
@@ -280,6 +280,16 @@ public class JadxPluginsTools {
 		plugins.getInstalled().add(metadata);
 		plugins.setUpdated(System.currentTimeMillis());
 		savePluginsJson(plugins);
+	}
+
+	private static Path newPluginPath(String baseName, String ext) {
+		while (true) {
+			String suffix = String.format("%06x", ThreadLocalRandom.current().nextInt(0x1000000));
+			Path path = INSTALLED_DIR.resolve(baseName + '-' + suffix + ext);
+			if (!Files.exists(path)) {
+				return path;
+			}
+		}
 	}
 
 	private void fillMetadata(JadxPluginMetadata metadata) {
