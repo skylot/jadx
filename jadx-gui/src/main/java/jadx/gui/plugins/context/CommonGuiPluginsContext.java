@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 
 import javax.swing.Action;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
@@ -80,7 +81,8 @@ public class CommonGuiPluginsContext {
 		UiUtils.uiRun(() -> {
 			JComponent mainPanel = getMainPanel();
 			for (KeyBindingEntry keyBinding : appliedKeyBindings.values()) {
-				UiUtils.removeKeyBinding(mainPanel, keyBinding.getKeyStroke(), keyBinding.getId());
+				getInputMap().remove(keyBinding.getKeyStroke());
+				mainPanel.getActionMap().remove(keyBinding.getId());
 			}
 			appliedKeyBindings.clear();
 			keyBindings.forEach(this::applyKeyBinding);
@@ -94,7 +96,7 @@ public class CommonGuiPluginsContext {
 				return false;
 			}
 		}
-		if (getMainPanel().getInputMap().get(keyStroke) != null && !appliedKeyBindings.containsKey(keyStroke)) {
+		if (getInputMap().get(keyStroke) != null && !appliedKeyBindings.containsKey(keyStroke)) {
 			// used by jadx-gui
 			return false;
 		}
@@ -104,12 +106,17 @@ public class CommonGuiPluginsContext {
 	}
 
 	private void applyKeyBinding(KeyBindingEntry keyBinding) {
-		UiUtils.addKeyBinding(getMainPanel(), keyBinding.getKeyStroke(), keyBinding.getId(), keyBinding.getAction());
+		getInputMap().put(keyBinding.getKeyStroke(), keyBinding.getId());
+		getMainPanel().getActionMap().put(keyBinding.getId(), new ActionHandler(keyBinding.getAction()));
 		appliedKeyBindings.put(keyBinding.getKeyStroke(), keyBinding);
 	}
 
 	private JComponent getMainPanel() {
 		return (JComponent) mainWindow.getContentPane();
+	}
+
+	private InputMap getInputMap() {
+		return getMainPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	public MainWindow getMainWindow() {
