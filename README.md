@@ -1,15 +1,15 @@
-<img src="https://raw.githubusercontent.com/skylot/jadx/master/jadx-gui/src/main/resources/logos/jadx-logo.png" width="64" align="left" />
+<img src="https://raw.githubusercontent.com/skylot/jadx/master/jadx-gui/src/main/resources/logos/jadx-logo.png" width="64" align="left" alt="jadx logo" />
 
 ## JADX
 
 ![Build status](https://img.shields.io/github/actions/workflow/status/skylot/jadx/build-artifacts.yml)
 ![GitHub contributors](https://img.shields.io/github/contributors/skylot/jadx)
 ![GitHub all releases](https://img.shields.io/github/downloads/skylot/jadx/total)
-![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
+![GitHub downloads (latest release)](https://img.shields.io/github/downloads/skylot/jadx/latest/total)
 ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://search.maven.org/search?q=g:io.github.skylot%20AND%20jadx)
 ![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)
-[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![License](https://img.shields.io/github/license/skylot/jadx)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 **jadx** - Dex to Java decompiler
 
@@ -36,7 +36,7 @@ Key bindings for jadx-gui can be found [here](https://github.com/skylot/jadx/wik
 
 See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
-<img src="https://user-images.githubusercontent.com/118523/142730720-839f017e-38db-423e-b53f-39f5f0a0316f.png" width="700"/>
+<img src="https://user-images.githubusercontent.com/118523/142730720-839f017e-38db-423e-b53f-39f5f0a0316f.png" width="700" alt="jadx-gui screenshot"/>
 
 ### Download
 - release
@@ -66,7 +66,7 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
   sudo pacman -S jadx
   ```
 - macOS
-  [![homebrew version](https://img.shields.io/homebrew/v/jadx)](https://formulae.brew.sh/formula/jadx)
+  [![Homebrew Version](https://img.shields.io/homebrew/v/jadx)](https://formulae.brew.sh/formula/jadx)
   ```bash
   brew install jadx
   ```
@@ -251,15 +251,14 @@ options:
   -h, --help                      - print this help
 ```
 
-
 ### Troubleshooting
 Please check the wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
 
 ### Contributing
 To support this project, you can:
-  - Post thoughts about new features/optimizations that are important to you
-  - Submit decompilation issues (please read [how to open an issue](CONTRIBUTING.md#Open-Issue) first)
-  - Open pull requests (please follow the [pull request rules](CONTRIBUTING.md#Pull-Request-Process))
+- Post thoughts about new features/optimizations that are important to you
+- Submit decompilation issues (please read [how to open an issue](CONTRIBUTING.md#Open-Issue) first)
+- Open pull requests (please follow the [pull request rules](CONTRIBUTING.md#Pull-Request-Process))
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
