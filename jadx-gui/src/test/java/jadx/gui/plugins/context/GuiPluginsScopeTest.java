@@ -131,6 +131,20 @@ public class GuiPluginsScopeTest {
 		}
 	}
 
+	@Test
+	public void pluginKeyBindingSkipsJadxShortcut() {
+		MainWindow mainWindow = TestMainWindowShim.build();
+		CommonGuiPluginsContext context = new CommonGuiPluginsContext(mainWindow);
+		try (JadxDecompiler decompiler = new JadxDecompiler()) {
+			GuiPluginContext pluginContext = buildContext(context, decompiler, "plugin", false);
+			// F1 is the default shortcut for jadx-gui 'About' action
+			assertThat(pluginContext.registerGlobalKeyBinding("about-key", "F1", () -> {
+			})).isFalse();
+			assertThat(pluginContext.registerGlobalKeyBinding("plugin-key", "ctrl alt shift K", () -> {
+			})).isTrue();
+		}
+	}
+
 	private static GuiPluginContext buildContext(CommonGuiPluginsContext context,
 			JadxDecompiler decompiler, String pluginId, boolean global) {
 		PluginRuntime pluginRuntime = decompiler.getPluginManager().register(new TestPlugin(pluginId));
