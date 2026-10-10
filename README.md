@@ -48,7 +48,7 @@ After download unpack zip file go to `bin` directory and run:
 
 On Windows run `.bat` files with double-click\
 **Note:** ensure you have installed Java 11 or later 64-bit version.
-For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
+For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select x64 Installer).
 
 ### Install
 - Arch Linux
