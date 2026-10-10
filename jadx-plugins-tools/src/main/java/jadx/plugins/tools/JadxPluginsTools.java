@@ -161,18 +161,22 @@ public class JadxPluginsTools {
 	}
 
 	public boolean uninstall(String pluginId) {
+		return uninstallPlugin(pluginId) != null;
+	}
+
+	private @Nullable JadxPluginMetadata uninstallPlugin(String pluginId) {
 		JadxInstalledPlugins plugins = loadPluginsJson();
 		Optional<JadxPluginMetadata> found = plugins.getInstalled().stream()
 				.filter(p -> p.getPluginId().equals(pluginId))
 				.findFirst();
 		if (found.isEmpty()) {
-			return false;
+			return null;
 		}
 		JadxPluginMetadata plugin = found.get();
 		deletePlugin(plugins, plugin);
 		plugins.getInstalled().remove(plugin);
 		savePluginsJson(plugins);
-		return true;
+		return plugin;
 	}
 
 	public List<JadxPluginMetadata> getInstalled() {
