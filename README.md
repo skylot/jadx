@@ -43,13 +43,13 @@ See these features in action here: [jadx-gui features overview](https://github.c
 - latest [unstable build ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/skylot/jadx/latest/master)](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
 Release files:
-- `jadx-<version>.zip` - command-line and UI versions for any OS
-- `jadx-gui-<version>-win.zip` - UI version for Windows (`.exe`)
-- `jadx-gui-<version>-with-jre-win.zip` - UI version for Windows (`.exe`) with bundled Java
+- `jadx-<version>.zip` - command-line and GUI versions for any OS
+- `jadx-gui-<version>-win.zip` - GUI version for Windows (`.exe`)
+- `jadx-gui-<version>-with-jre-win.zip` - GUI version for Windows (`.exe`) with bundled Java
 
 For `jadx-<version>.zip`, unpack it, go to the `bin` directory and run:
 - `jadx` - command-line version
-- `jadx-gui` - UI version
+- `jadx-gui` - GUI version
 
 On Windows, run the `.bat` files with a double-click.
 For the Windows bundles, unpack and run `jadx-gui-<version>.exe`.
