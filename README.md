@@ -86,7 +86,7 @@ and also packed to `build/jadx-<version>.zip`
 
 ### Usage
 ```
-jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)
+jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .apks, .jadx.kts)
 commands (use '<command> --help' for command options):
   plugins	  - manage jadx plugins
 
@@ -96,7 +96,7 @@ options:
   -dr, --output-dir-res                         - output directory for resources
   -r, --no-res                                  - do not decode resources
   -s, --no-src                                  - do not decompile source code
-  -j, --threads-count                           - processing threads count, default: 16
+  -j, --threads-count                           - processing threads count, default: half of CPU threads
   --single-class                                - decompile a single class, full name, raw or alias
   --single-class-output                         - file or dir for write if decompile a single class
   --output-format                               - can be 'java' or 'json', default: java
@@ -213,6 +213,8 @@ Environment variables:
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
   JADX_DISABLE_ALL_SECURITY_FLAGS - set to 'true' to disable all security flags (xml, string, app package)
   JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
+  JADX_ZIP_BOMB_MIN_UNCOMPRESSED_SIZE - min size of zip entry to check compression ratio, in bytes (default: 25 MB)
+  JADX_ZIP_BOMB_DETECTION_FACTOR - maximum allowed compression ratio of zip entry (default: 100)
   JADX_CONFIG_DIR - custom config directory, using system by default
   JADX_CACHE_DIR - custom cache directory, using system by default
   JADX_TMP_DIR - custom temp directory, using system by default

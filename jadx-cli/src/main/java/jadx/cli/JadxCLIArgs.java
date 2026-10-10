@@ -48,7 +48,7 @@ public class JadxCLIArgs implements IJadxConfig {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLIArgs.class);
 
 	@JadxConfigExclude
-	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)")
+	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .apks, .jadx.kts)")
 	protected List<String> files = Collections.emptyList();
 
 	@JadxConfigExclude
@@ -69,7 +69,7 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
-	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
+	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count, default: half of CPU threads")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
 	@JadxConfigExclude
