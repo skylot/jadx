@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.args.UserRenamesMappingsMode;
+
 import static jadx.core.utils.Utils.newConstStringMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,6 +33,15 @@ public class JadxCLIArgsTest {
 		assertThat(parse("--no-src").isSkipSources()).isTrue();
 		assertThat(parse("-s").isSkipSources()).isTrue();
 		assertThat(parse("").isSkipSources()).isFalse();
+	}
+
+	@Test
+	public void testMappingsModeOption() {
+		assertThat(parse("--mappings-mode", "read-and-autosave-before-closing").getUserRenamesMappingsMode())
+				.isEqualTo(UserRenamesMappingsMode.READ_AND_AUTOSAVE_BEFORE_CLOSING);
+		assertThat(parse("--mappings-mode", "ignore").getUserRenamesMappingsMode())
+				.isEqualTo(UserRenamesMappingsMode.IGNORE);
+		assertThat(parse("").getUserRenamesMappingsMode()).isEqualTo(UserRenamesMappingsMode.READ);
 	}
 
 	@Test
