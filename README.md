@@ -20,7 +20,8 @@ Command-line and GUI tools for producing Java source code from Android Dex and A
 > Check the [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds.
 
 **Main features:**
-- decompile Dalvik bytecode to Java code from APK, dex, aar, aab and zip files
+- decompile Dalvik bytecode to Java code from APK, dex, aab, apks, apkm, xapk and zip files
+- also decompile Java bytecode (jar, class, aar) and smali files
 - decode `AndroidManifest.xml` and other resources from `resources.arsc`
 - deobfuscator included
 
