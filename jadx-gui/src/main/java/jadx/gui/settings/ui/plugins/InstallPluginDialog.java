@@ -2,7 +2,10 @@ package jadx.gui.settings.ui.plugins;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -138,7 +141,16 @@ public class InstallPluginDialog extends JDialog {
 			ResolversRegistry.getResolver(locationId);
 			return locationId;
 		} catch (IllegalArgumentException e) {
-			return null;
+			// not a location id, check for plain file path
 		}
+		try {
+			Path path = Paths.get(locationId);
+			if (Files.isRegularFile(path)) {
+				return "file:" + path.toAbsolutePath();
+			}
+		} catch (InvalidPathException e) {
+			// ignore
+		}
+		return null;
 	}
 }
