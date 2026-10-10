@@ -161,22 +161,18 @@ public class JadxPluginsTools {
 	}
 
 	public boolean uninstall(String pluginId) {
-		return uninstallPlugin(pluginId) != null;
-	}
-
-	private @Nullable JadxPluginMetadata uninstallPlugin(String pluginId) {
 		JadxInstalledPlugins plugins = loadPluginsJson();
 		Optional<JadxPluginMetadata> found = plugins.getInstalled().stream()
 				.filter(p -> p.getPluginId().equals(pluginId))
 				.findFirst();
 		if (found.isEmpty()) {
-			return null;
+			return false;
 		}
 		JadxPluginMetadata plugin = found.get();
 		deletePlugin(plugins, plugin);
 		plugins.getInstalled().remove(plugin);
 		savePluginsJson(plugins);
-		return plugin;
+		return true;
 	}
 
 	public List<JadxPluginMetadata> getInstalled() {
@@ -256,13 +252,8 @@ public class JadxPluginsTools {
 					+ " is not compatible with current jadx version: " + Jadx.getVersion());
 		}
 		// remove previous version
-		JadxPluginMetadata prevPlugin = uninstallPlugin(metadata.getPluginId());
-		try {
-			copyPluginFiles(metadata);
-		} catch (RuntimeException e) {
-			restorePlugin(prevPlugin);
-			throw e;
-		}
+		uninstall(metadata.getPluginId());
+		copyPluginFiles(metadata);
 		// update plugins json
 		JadxInstalledPlugins plugins = loadPluginsJson();
 		plugins.getToDelete().remove(metadata.getPath());
@@ -292,17 +283,6 @@ public class JadxPluginsTools {
 		} else {
 			throw new JadxRuntimeException("Unexpected plugin path type: " + pluginPathStr);
 		}
-	}
-
-	private void restorePlugin(@Nullable JadxPluginMetadata plugin) {
-		if (plugin == null || !Files.exists(INSTALLED_DIR.resolve(plugin.getPath()))) {
-			return;
-		}
-		JadxInstalledPlugins plugins = loadPluginsJson();
-		plugins.getToDelete().remove(plugin.getPath());
-		plugins.getInstalled().add(plugin);
-		savePluginsJson(plugins);
-		LOG.warn("Plugin install failed, previous version kept: {}", plugin.getPluginId());
 	}
 
 	private void fillMetadata(JadxPluginMetadata metadata) {
