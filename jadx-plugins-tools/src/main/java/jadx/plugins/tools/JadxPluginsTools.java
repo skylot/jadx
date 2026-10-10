@@ -256,8 +256,13 @@ public class JadxPluginsTools {
 					+ " is not compatible with current jadx version: " + Jadx.getVersion());
 		}
 		// remove previous version
-		uninstall(metadata.getPluginId());
-		copyPluginFiles(metadata);
+		JadxPluginMetadata prevPlugin = uninstallPlugin(metadata.getPluginId());
+		try {
+			copyPluginFiles(metadata);
+		} catch (RuntimeException e) {
+			restorePlugin(prevPlugin);
+			throw e;
+		}
 		// update plugins json
 		JadxInstalledPlugins plugins = loadPluginsJson();
 		plugins.getToDelete().remove(metadata.getPath());
@@ -287,6 +292,17 @@ public class JadxPluginsTools {
 		} else {
 			throw new JadxRuntimeException("Unexpected plugin path type: " + pluginPathStr);
 		}
+	}
+
+	private void restorePlugin(@Nullable JadxPluginMetadata plugin) {
+		if (plugin == null || !Files.exists(INSTALLED_DIR.resolve(plugin.getPath()))) {
+			return;
+		}
+		JadxInstalledPlugins plugins = loadPluginsJson();
+		plugins.getToDelete().remove(plugin.getPath());
+		plugins.getInstalled().add(plugin);
+		savePluginsJson(plugins);
+		LOG.warn("Plugin install failed, previous version kept: {}", plugin.getPluginId());
 	}
 
 	private void fillMetadata(JadxPluginMetadata metadata) {
