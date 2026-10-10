@@ -42,12 +42,19 @@ See these features in action here: [jadx-gui features overview](https://github.c
   from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 - latest [unstable build ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/skylot/jadx/latest/master)](https://nightly.link/skylot/jadx/workflows/build-artifacts/master)
 
-After download unpack zip file go to `bin` directory and run:
+Release files:
+- `jadx-<version>.zip` - command line and UI versions for any OS
+- `jadx-gui-<version>-win.zip` - UI version for Windows (`.exe`)
+- `jadx-gui-<version>-with-jre-win.zip` - UI version for Windows (`.exe`) with bundled Java
+
+For `jadx-<version>.zip`, unpack it, go to the `bin` directory and run:
 - `jadx` - command line version
 - `jadx-gui` - UI version
 
-On Windows run `.bat` files with double-click\
-**Note:** ensure you have installed Java 11 or later 64-bit version.
+On Windows, run the `.bat` files with a double-click.
+For the Windows bundles, unpack and run `jadx-gui-<version>.exe`.
+
+**Note:** ensure you have installed Java 11 or later 64-bit version (not needed for the `with-jre` bundle).
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select x64 Installer).
 
 ### Install
