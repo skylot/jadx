@@ -76,22 +76,6 @@ For Windows, you can download it from [oracle.com](https://www.oracle.com/java/t
   flatpak install flathub com.github.skylot.jadx
   ```
 
-### Use jadx as a library
-You can use jadx in your Java projects, see the details on the [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
-
-### Build from source
-JDK 17 or higher must be installed:
-```
-git clone https://github.com/skylot/jadx.git
-cd jadx
-./gradlew dist
-```
-
-(on Windows, use `gradlew.bat` instead of `./gradlew`)
-
-Scripts to run jadx will be placed in `build/jadx/bin`
-and also packed into `build/jadx-<version>.zip`
-
 ### Usage
 ```
 jadx[-gui] [command] [options] <input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab, .xapk, .apkm, .jadx.kts)
@@ -250,6 +234,22 @@ options:
   --list-versions <locationId>    - fetch latest versions of plugin from locationId (will download all artefacts, limited to 10)
   -h, --help                      - print this help
 ```
+
+### Use jadx as a library
+You can use jadx in your Java projects, see the details on the [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
+
+### Build from source
+JDK 17 or higher must be installed:
+```
+git clone https://github.com/skylot/jadx.git
+cd jadx
+./gradlew dist
+```
+
+(on Windows, use `gradlew.bat` instead of `./gradlew`)
+
+Scripts to run jadx will be placed in `build/jadx/bin`
+and also packed into `build/jadx-<version>.zip`
 
 ### Troubleshooting
 Please check the wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
