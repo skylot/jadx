@@ -16,6 +16,7 @@ import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.shortcut.ShortcutsController;
 
 public class TestMainWindowShim {
 
@@ -35,9 +36,16 @@ public class TestMainWindowShim {
 			menuField.setAccessible(true);
 			menuField.set(mainWindow, pluginsMenu);
 
+			JadxSettings settings = buildSettings();
 			Field settingsField = MainWindow.class.getDeclaredField("settings");
 			settingsField.setAccessible(true);
-			settingsField.set(mainWindow, buildSettings());
+			settingsField.set(mainWindow, settings);
+
+			ShortcutsController shortcutsController = new ShortcutsController(settings);
+			shortcutsController.loadSettings();
+			Field shortcutsField = MainWindow.class.getDeclaredField("shortcutsController");
+			shortcutsField.setAccessible(true);
+			shortcutsField.set(mainWindow, shortcutsController);
 
 			Field eventsField = MainWindow.class.getDeclaredField("events");
 			eventsField.setAccessible(true);
