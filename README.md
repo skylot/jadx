@@ -213,6 +213,8 @@ Environment variables:
   JADX_DISABLE_ZIP_SECURITY - set to 'true' to disable all security checks for zip files
   JADX_DISABLE_ALL_SECURITY_FLAGS - set to 'true' to disable all security flags (xml, string, app package)
   JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)
+  JADX_ZIP_BOMB_MIN_UNCOMPRESSED_SIZE - min size of zip entry to check compression ratio, in bytes (default: 25 MB)
+  JADX_ZIP_BOMB_DETECTION_FACTOR - maximum allowed compression ratio of zip entry (default: 100)
   JADX_CONFIG_DIR - custom config directory, using system by default
   JADX_CACHE_DIR - custom cache directory, using system by default
   JADX_TMP_DIR - custom temp directory, using system by default
