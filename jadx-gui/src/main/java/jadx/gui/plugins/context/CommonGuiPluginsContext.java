@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 
 import javax.swing.Action;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
@@ -18,9 +19,11 @@ import org.slf4j.LoggerFactory;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.JNodePopupBuilder;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
 
 public class CommonGuiPluginsContext {
@@ -80,7 +83,8 @@ public class CommonGuiPluginsContext {
 		UiUtils.uiRun(() -> {
 			JComponent mainPanel = getMainPanel();
 			for (KeyBindingEntry keyBinding : appliedKeyBindings.values()) {
-				UiUtils.removeKeyBinding(mainPanel, keyBinding.getKeyStroke(), keyBinding.getId());
+				getInputMap().remove(keyBinding.getKeyStroke());
+				mainPanel.getActionMap().remove(keyBinding.getId());
 			}
 			appliedKeyBindings.clear();
 			keyBindings.forEach(this::applyKeyBinding);
@@ -94,8 +98,11 @@ public class CommonGuiPluginsContext {
 				return false;
 			}
 		}
-		if (getMainPanel().getInputMap().get(keyStroke) != null && !appliedKeyBindings.containsKey(keyStroke)) {
+		if (getInputMap().get(keyStroke) != null && !appliedKeyBindings.containsKey(keyStroke)) {
 			// used by jadx-gui
+			return false;
+		}
+		if (isJadxShortcut(keyStroke)) {
 			return false;
 		}
 		registry.getKeyBindings().add(keyBinding);
@@ -103,13 +110,28 @@ public class CommonGuiPluginsContext {
 		return true;
 	}
 
+	private boolean isJadxShortcut(KeyStroke keyStroke) {
+		ShortcutsController shortcutsController = mainWindow.getShortcutsController();
+		for (ActionModel actionModel : ActionModel.values()) {
+			if (keyStroke.equals(shortcutsController.getKeyStroke(actionModel))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void applyKeyBinding(KeyBindingEntry keyBinding) {
-		UiUtils.addKeyBinding(getMainPanel(), keyBinding.getKeyStroke(), keyBinding.getId(), keyBinding.getAction());
+		getInputMap().put(keyBinding.getKeyStroke(), keyBinding.getId());
+		getMainPanel().getActionMap().put(keyBinding.getId(), new ActionHandler(keyBinding.getAction()));
 		appliedKeyBindings.put(keyBinding.getKeyStroke(), keyBinding);
 	}
 
 	private JComponent getMainPanel() {
 		return (JComponent) mainWindow.getContentPane();
+	}
+
+	private InputMap getInputMap() {
+		return getMainPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	public MainWindow getMainWindow() {
