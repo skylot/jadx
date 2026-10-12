@@ -139,7 +139,7 @@ public class JPackagePopupMenu extends JPopupMenu {
 	private JMenuItem makeSearchItem(JPackage pkg) {
 		JMenuItem searchItem = new JMenuItem(NLS.str("menu.text_search"));
 		searchItem.addActionListener(e -> {
-			String fullName = pkg.getPkg().getFullName();
+			String fullName = pkg.getFullName();
 			LOG.debug("Searching package: {}", fullName);
 			SearchDialog.searchPackage(mainWindow, fullName);
 		});
