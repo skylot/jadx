@@ -523,6 +523,10 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			return;
 		}
 		String processName = appData.getProcessName();
+		if (processName == null) {
+			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.no_launcher_activity"));
+			return;
+		}
 		ADBDevice device = lastSelectedDeviceNode == null ? deviceNodes.get(0).device : lastSelectedDeviceNode.device;
 		if (device != null) {
 			try {

@@ -135,9 +135,9 @@ public class DbgUtils {
 
 	public static final class AppData {
 		private final String appPackage;
-		private final JavaClass mainActivityCls;
+		private final @Nullable JavaClass mainActivityCls;
 
-		public AppData(String appPackage, JavaClass mainActivityCls) {
+		public AppData(String appPackage, @Nullable JavaClass mainActivityCls) {
 			this.appPackage = appPackage;
 			this.mainActivityCls = mainActivityCls;
 		}
@@ -146,11 +146,21 @@ public class DbgUtils {
 			return appPackage;
 		}
 
-		public JavaClass getMainActivityCls() {
+		/**
+		 * Can be null for apps without a launcher activity (e.g. system apps with only services or
+		 * providers)
+		 */
+		public @Nullable JavaClass getMainActivityCls() {
 			return mainActivityCls;
 		}
 
-		public String getProcessName() {
+		/**
+		 * Component name used to start the app with 'am start' or null if app has no launcher activity
+		 */
+		public @Nullable String getProcessName() {
+			if (mainActivityCls == null) {
+				return null;
+			}
 			return appPackage + '/' + mainActivityCls.getClassNode().getClassInfo().getFullName();
 		}
 	}
@@ -173,8 +183,8 @@ public class DbgUtils {
 		ApplicationParams results = parser.parse();
 		String mainActivityName = results.getMainActivity();
 		if (mainActivityName == null) {
-			UiUtils.errorMessage(mw, NLS.str("adb_dialog.msg_read_mani_fail"));
-			return null;
+			// still possible to attach to already running process
+			return new AppData(appPkg, null);
 		}
 		if (!NameMapper.isValidFullIdentifier(mainActivityName)) {
 			UiUtils.errorMessage(mw, "Invalid main activity name");
