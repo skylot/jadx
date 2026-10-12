@@ -412,19 +412,6 @@ public class SimplifyVisitor extends AbstractVisitor {
 				args.add(arg);
 			}
 
-			boolean stringArgFound = false;
-			for (InsnArg arg : args) {
-				if (arg.getType().equals(ArgType.STRING)) {
-					stringArgFound = true;
-					break;
-				}
-			}
-			if (!stringArgFound) {
-				String argStr = Utils.listToString(args, InsnArg::toShortString);
-				mth.addDebugComment("TODO: convert one arg to string using `String.valueOf()`, args: " + argStr);
-				return null;
-			}
-
 			// all check passed
 			List<InsnArg> dupArgs = Utils.collectionMap(args, InsnArg::duplicate);
 			List<InsnArg> simplifiedArgs = concatConstArgs(dupArgs);
