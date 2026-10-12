@@ -126,6 +126,7 @@ public class PackageHelper {
 			if (parentJPkg == null) {
 				parentJPkg = buildJPackage(currentJPkg.getPkg(), true);
 				parentJPkg.setName(current.getName());
+				parentJPkg.setFullName(current.getFullName());
 				pkgMap.put(current, parentJPkg);
 				if (current.isRoot()) {
 					root.getSubPackages().add(parentJPkg);
