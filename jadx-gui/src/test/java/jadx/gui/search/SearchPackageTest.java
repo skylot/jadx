@@ -19,9 +19,13 @@ import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
+import jadx.gui.JadxWrapper;
 import jadx.gui.plugins.context.TestMainWindowShim;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,6 +82,21 @@ class SearchPackageTest {
 		load("Root", "a.Other");
 
 		assertThat(search("defpackage")).containsExactly("Root");
+	}
+
+	@Test
+	void syntheticPackage() throws IOException {
+		renamePkg("a.b", "com.x");
+		renamePkg("p.q", "com.y");
+		load("a.b.First", "p.q.Left");
+
+		JadxWrapper wrapper = mainWindow.getWrapper();
+		List<JPackage> roots = new PackageHelper(wrapper, new JNodeCache(wrapper)).getRoots(false);
+		JPackage comPkg = roots.stream().filter(p -> p.getName().equals("com")).findFirst().orElseThrow();
+		assertThat(comPkg.isSynthetic()).isTrue();
+		assertThat(comPkg.getFullName()).isEqualTo("com");
+		assertThat(comPkg.getSubPackages()).extracting(JPackage::getFullName).containsExactlyInAnyOrder("com.x", "com.y");
+		assertThat(search(comPkg.getFullName())).containsExactlyInAnyOrder("a.b.First", "p.q.Left");
 	}
 
 	private List<String> search(String pkg) {
