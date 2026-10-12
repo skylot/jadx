@@ -599,6 +599,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 		UiUtils.notUiThreadGuard();
 		cancelBackgroundJobs();
 		UiUtils.uiRunAndWait(() -> {
+			// before decompiler close, listeners may still need loaded data
+			notifyLoadListeners(false);
 			tabsController.forceCloseAllTabs();
 			tabbedPane.reset();
 			navController.reset();
@@ -610,7 +612,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 		wrapper.close();
 		LogCollector.getInstance().reset();
 		resetCache();
-		notifyLoadListeners(false);
 	}
 
 	private void checkLoadedStatus() {
@@ -1718,6 +1719,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	public void notifyLoadListeners(boolean loaded) {
+		UiUtils.uiThreadGuard();
 		this.loaded = loaded;
 		loadListeners.removeIf(listener -> listener.update(loaded));
 	}

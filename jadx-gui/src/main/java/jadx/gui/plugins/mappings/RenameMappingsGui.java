@@ -100,7 +100,7 @@ public class RenameMappingsGui {
 			JadxSettings settings = mainWindow.getSettings();
 			if (project.getMappingsPath() != null
 					&& settings.getUserRenamesMappingsMode() == UserRenamesMappingsMode.READ_AND_AUTOSAVE_BEFORE_CLOSING) {
-				saveMappings();
+				saveMappingsBeforeClose();
 			}
 		}
 		return false;
@@ -243,9 +243,21 @@ public class RenameMappingsGui {
 
 	private void saveInBackground(MappingFormat mappingFormat, Path savePath, Consumer<TaskStatus> onFinishUiRunnable) {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.save_mappings"),
-				() -> new MappingExporter(mainWindow.getWrapper().getRootNode())
-						.exportMappings(savePath, mainWindow.getProject().getCodeData(), mappingFormat),
+				() -> exportMappings(mappingFormat, savePath),
 				onFinishUiRunnable);
+	}
+
+	private void saveMappingsBeforeClose() {
+		try {
+			exportMappings(getCurrentMappingFormat(), mainWindow.getProject().getMappingsPath());
+		} catch (Exception e) {
+			LOG.error("Failed to save mappings before close", e);
+		}
+	}
+
+	private void exportMappings(MappingFormat mappingFormat, Path savePath) {
+		new MappingExporter(mainWindow.getWrapper().getRootNode())
+				.exportMappings(savePath, mainWindow.getProject().getCodeData(), mappingFormat);
 	}
 
 	private MappingFormat getCurrentMappingFormat() {
