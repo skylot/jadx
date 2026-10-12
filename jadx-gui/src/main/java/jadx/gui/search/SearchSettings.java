@@ -1,19 +1,20 @@
 package jadx.gui.search;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
-import jadx.core.dex.nodes.PackageNode;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.gui.search.providers.ResourceFilter;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 public class SearchSettings {
 	private final String searchString;
@@ -27,7 +28,7 @@ public class SearchSettings {
 	private JResource activeResource;
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
-	private JavaPackage searchPackage;
+	private @Nullable String searchPackage;
 	private ResourceFilter resourceFilter;
 
 	public SearchSettings(String searchString) {
@@ -44,12 +45,11 @@ public class SearchSettings {
 			}
 		}
 		if (!searchPkgStr.isBlank()) {
-			JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
-			PackageNode pkg = decompiler.getRoot().resolvePackage(searchPkgStr);
-			if (pkg == null) {
+			List<JavaPackage> packages = mainWindow.getWrapper().getPackages();
+			if (ListUtils.noneMatch(packages, p -> PackageHelper.isPkgMatch(p.getFullName(), searchPkgStr))) {
 				return NLS.str("search_dialog.package_not_found");
 			}
-			searchPackage = pkg.getJavaNode();
+			searchPackage = searchPkgStr;
 		}
 		searchMethod = ISearchMethod.build(this);
 		try {
@@ -80,12 +80,12 @@ public class SearchSettings {
 		this.ignoreCase = ignoreCase;
 	}
 
-	public JavaPackage getSearchPackage() {
+	public @Nullable String getSearchPackage() {
 		return this.searchPackage;
 	}
 
 	public boolean isInSearchPkg(JavaClass cls) {
-		return cls.getJavaPackage().isDescendantOf(searchPackage);
+		return PackageHelper.isPkgMatch(cls.getPackage(), searchPackage);
 	}
 
 	public void setSearchPkgStr(String searchPkgStr) {
