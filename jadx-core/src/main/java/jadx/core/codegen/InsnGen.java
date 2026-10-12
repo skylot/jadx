@@ -503,9 +503,6 @@ public class InsnGen {
 				if (wrap) {
 					code.add('(');
 				}
-				if (isStrConcatPrefixNeeded(insn)) {
-					code.add("\"\" + ");
-				}
 				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext();) {
 					addArg(code, it.next());
 					if (it.hasNext()) {
@@ -1172,18 +1169,6 @@ public class InsnGen {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * '+' is evaluated from left to right, so without a string in the first two args
-	 * they will be added as numbers (or not compile for objects)
-	 */
-	private static boolean isStrConcatPrefixNeeded(InsnNode insn) {
-		if (insn.getArgsCount() < 2) {
-			return false;
-		}
-		return !insn.getArg(0).getType().equals(ArgType.STRING)
-				&& !insn.getArg(1).getType().equals(ArgType.STRING);
 	}
 
 	private void makeTernary(TernaryInsn insn, ICodeWriter code, Set<Flags> state) throws CodegenException {
