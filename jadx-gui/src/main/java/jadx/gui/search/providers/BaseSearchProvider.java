@@ -33,7 +33,7 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		if (searchSettings.getSearchPackage() != null) {
 			this.classes = classes
 					.stream()
-					.filter(c -> c.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage()))
+					.filter(searchSettings::isInSearchPkg)
 					.collect(Collectors.toList());
 		} else {
 			this.classes = classes;
