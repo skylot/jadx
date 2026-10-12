@@ -162,7 +162,8 @@ public class JadxCLIArgs implements IJadxConfig {
 					+ "\n 'read' - just read, user can always save manually (default)"
 					+ "\n 'read-and-autosave-every-change' - read and autosave after every change"
 					+ "\n 'read-and-autosave-before-closing' - read and autosave before exiting the app or closing the project"
-					+ "\n 'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)"
+					+ "\n 'ignore' - don't read or save (can be used to skip loading mapping files referenced in the project file)",
+			converter = UserRenamesMappingsModeConverter.class
 	)
 	protected UserRenamesMappingsMode userRenamesMappingsMode = UserRenamesMappingsMode.getDefault();
 
@@ -992,6 +993,12 @@ public class JadxCLIArgs implements IJadxConfig {
 	public static class UseKotlinMethodsForVarNamesConverter extends BaseEnumConverter<UseKotlinMethodsForVarNames> {
 		public UseKotlinMethodsForVarNamesConverter() {
 			super(UseKotlinMethodsForVarNames::valueOf, UseKotlinMethodsForVarNames::values);
+		}
+	}
+
+	public static class UserRenamesMappingsModeConverter extends BaseEnumConverter<UserRenamesMappingsMode> {
+		public UserRenamesMappingsModeConverter() {
+			super(UserRenamesMappingsMode::valueOf, UserRenamesMappingsMode::values);
 		}
 	}
 
