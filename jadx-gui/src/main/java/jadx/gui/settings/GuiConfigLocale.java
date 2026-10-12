@@ -29,7 +29,7 @@ public final class GuiConfigLocale {
 		if (localeConfig != null) {
 			NLS.setLocale(localeConfig.langLocale);
 		} else {
-			LOG.warn("Can't load locale from config, using default");
+			LOG.debug("Config file not found, using default locale");
 			NLS.setLocale(NLS.defaultLocale());
 		}
 		LOG.debug("Loaded locale config: {}", NLS.currentLocale());
