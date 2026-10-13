@@ -231,7 +231,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
-		if (isArithWideUpCast(parentInsn, argType, castToType)) {
+		if (isArithWideUpCast(parentInsn, argType, castToType)
+				|| isStrConcatTypeChange(parentInsn, argType, castToType)) {
 			return null;
 		}
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
@@ -257,6 +258,18 @@ public class SimplifyVisitor extends AbstractVisitor {
 				&& parentInsn.getType() == InsnType.ARITH
 				&& argType.isPrimitive() && castToType.isPrimitive()) {
 			return castToType.getRegCount() > argType.getRegCount();
+		}
+		return false;
+	}
+
+	/**
+	 * Keep primitive casts in string concatenation if they change printed value: "" + (double) f
+	 */
+	private static boolean isStrConcatTypeChange(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
+		if (parentInsn != null
+				&& parentInsn.getType() == InsnType.STR_CONCAT
+				&& argType.isPrimitive() && castToType.isPrimitive()) {
+			return castToType == ArgType.FLOAT || castToType == ArgType.DOUBLE || argType == ArgType.CHAR;
 		}
 		return false;
 	}
