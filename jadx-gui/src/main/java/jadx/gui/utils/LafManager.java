@@ -17,6 +17,7 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.utils.ui.TextCaretActions;
 
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
@@ -83,6 +84,7 @@ public class LafManager {
 	private static boolean applyLaf(String theme) {
 		try {
 			UIManager.setLookAndFeel(theme);
+			TextCaretActions.install();
 			return true;
 		} catch (Exception e) {
 			LOG.error("Failed to set laf to {}", theme, e);
