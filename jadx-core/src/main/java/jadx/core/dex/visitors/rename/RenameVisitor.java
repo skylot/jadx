@@ -2,8 +2,10 @@ package jadx.core.dex.visitors.rename;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -64,13 +66,16 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			// check for package directory conflicts on case insensitive filesystems
-			Set<String> pkgPaths = new HashSet<>();
+			// packages with exactly the same name are merged, so not a conflict
+			Map<String, String> pkgPaths = new HashMap<>();
 			for (PackageNode pkg : root.getPackages()) {
-				String pkgPath = pkg.getAliasPkgInfo().getFullName().toLowerCase();
-				if (!pkgPaths.add(pkgPath)) {
+				String pkgPath = pkg.getAliasPkgInfo().getFullName();
+				String prevPath = pkgPaths.putIfAbsent(pkgPath.toLowerCase(), pkgPath);
+				if (prevPath != null && !prevPath.equals(pkgPath)) {
 					pkg.setLeafAlias(aliasProvider.forPackage(pkg), true);
 					// verify the new name also doesn't conflict
-					if (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
+					String newPath = pkg.getAliasPkgInfo().getFullName();
+					if (pkgPaths.putIfAbsent(newPath.toLowerCase(), newPath) != null) {
 						pkg.setLeafAlias(aliasProvider.forPackage(pkg), true);
 					}
 				}
