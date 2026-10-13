@@ -1161,6 +1161,10 @@ public class InsnGen {
 			return false;
 		}
 		int count = insn.getArgsCount();
+		if (count == 1 && isArrayLikeVarArg(insn.getArg(0))) {
+			// single element will be used as varargs array itself, keep array creation
+			return false;
+		}
 		for (int i = 0; i < count; i++) {
 			InsnArg elemArg = insn.getArg(i);
 			addArg(code, elemArg, false);
@@ -1169,6 +1173,14 @@ public class InsnGen {
 			}
 		}
 		return true;
+	}
+
+	private static boolean isArrayLikeVarArg(InsnArg arg) {
+		ArgType type = arg.getType();
+		if (arg.isZeroConst()) {
+			return type.isObject();
+		}
+		return type.isArray() && !type.getArrayElement().isPrimitive();
 	}
 
 	private void makeTernary(TernaryInsn insn, ICodeWriter code, Set<Flags> state) throws CodegenException {
