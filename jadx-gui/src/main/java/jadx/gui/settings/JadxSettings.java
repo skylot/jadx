@@ -38,7 +38,6 @@ import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.data.ShortcutsWrapper;
 import jadx.gui.settings.font.FontSettings;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.PathTypeAdapter;
 import jadx.gui.utils.RectangleTypeAdapter;
@@ -334,14 +333,6 @@ public class JadxSettings {
 		return shortcutsWrapper;
 	}
 
-	public int getTreeWidth() {
-		return settingsData.getTreeWidth();
-	}
-
-	public void setTreeWidth(int treeWidth) {
-		settingsData.setTreeWidth(treeWidth);
-	}
-
 	public float getUiZoom() {
 		return settingsData.getUiZoom();
 	}
@@ -436,14 +427,6 @@ public class JadxSettings {
 
 	public boolean isKeepCommonDialogOpen() {
 		return settingsData.isKeepCommonDialogOpen();
-	}
-
-	public int getMainWindowVerticalSplitterLoc() {
-		return settingsData.getMainWindowVerticalSplitterLoc();
-	}
-
-	public void setMainWindowVerticalSplitterLoc(int location) {
-		settingsData.setMainWindowVerticalSplitterLoc(location);
 	}
 
 	public int getDebuggerStackFrameSplitterLoc() {
@@ -542,15 +525,6 @@ public class JadxSettings {
 		settingsData.setJumpOnDoubleClick(jumpOnDoubleClick);
 	}
 
-	public boolean isDockLogViewer() {
-		return settingsData.isDockLogViewer();
-	}
-
-	public void saveDockLogViewer(boolean dockLogViewer) {
-		settingsData.setDockLogViewer(dockLogViewer);
-		sync();
-	}
-
 	public boolean isDockQuickTabs() {
 		return settingsData.isDockQuickTabs();
 	}
@@ -574,14 +548,6 @@ public class JadxSettings {
 
 	public void setJadxUpdateChannel(JadxUpdateChannel channel) {
 		settingsData.setJadxUpdateChannel(channel);
-	}
-
-	public TabDndGhostType getTabDndGhostType() {
-		return settingsData.getTabDndGhostType();
-	}
-
-	public void setTabDndGhostType(TabDndGhostType tabDndGhostType) {
-		settingsData.setTabDndGhostType(tabDndGhostType);
 	}
 
 	public boolean isRestoreSwitchOverString() {

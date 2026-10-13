@@ -30,6 +30,8 @@ dependencies {
 	implementation(libs.imageio.webp) // WebP support for image viewer
 
 	implementation(libs.bundles.flatlaf)
+	implementation(libs.moderndocking.single.app)
+	implementation(libs.moderndocking.ui)
 
 	implementation(libs.gson)
 	implementation(libs.commons.lang3)

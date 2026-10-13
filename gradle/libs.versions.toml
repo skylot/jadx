@@ -7,6 +7,7 @@ flatlaf = "3.7.2"
 # @pin not compatible version
 j2v8 = "4.6.0"
 kotlin = "2.4.20"
+moderndocking = "1.4.9"
 raung = "0.1.1"
 smali = "3.0.10"
 
@@ -48,6 +49,8 @@ flatlaf-fonts-inter = "com.formdev:flatlaf-fonts-inter:4.1"
 flatlaf-fonts-jetbrains-mono = "com.formdev:flatlaf-fonts-jetbrains-mono:2.304"
 flatlaf-intellij-themes = { module = "com.formdev:flatlaf-intellij-themes", version.ref = "flatlaf" }
 fontchooser = "org.drjekyll:fontchooser:3.1.0"
+moderndocking-single-app = { module = "io.github.andrewauclair:modern-docking-single-app", version.ref = "moderndocking" }
+moderndocking-ui = { module = "io.github.andrewauclair:modern-docking-ui", version.ref = "moderndocking" }
 graphviz = "guru.nidi:graphviz-java:0.18.1"
 gson = "com.google.code.gson:gson:2.14.0"
 guava-jre = "com.google.guava:guava:23.0"

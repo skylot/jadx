@@ -50,12 +50,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -148,8 +148,9 @@ import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.CharsetDialog;
 import jadx.gui.ui.dialog.GotoAddressDialog;
-import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.SearchDialog;
+import jadx.gui.ui.dock.DockingManager;
+import jadx.gui.ui.dock.DockingManager.Panel;
 import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
@@ -169,7 +170,6 @@ import jadx.gui.ui.tab.NavigationController;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
-import jadx.gui.ui.tab.dnd.TabDndController;
 import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.ui.treenodes.UndisplayedStringsNode;
 import jadx.gui.update.JadxUpdate;
@@ -198,7 +198,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private static final double BORDER_RATIO = 0.15;
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
-	public static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -219,10 +218,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private transient JadxGuiAction saveProjectAction;
 
 	private transient JPanel mainPanel;
-	private transient JSplitPane treeSplitPane;
-	private transient JSplitPane rightSplitPane;
-	private transient JSplitPane bottomSplitPane;
-	private transient JSplitPane quickTabsAndCodeSplitPane;
+	private transient DockingManager docking;
 
 	private JTree tree;
 	private FilterableTreeModel treeModel;
@@ -248,6 +244,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private transient @Nullable LogPanel logPanel;
 	private transient @Nullable JDebuggerPanel debuggerPanel;
 	private transient @Nullable QuickTabsTree quickTabsTree;
+	private transient ActionHandler quickTabsAction;
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
@@ -300,9 +297,14 @@ public class MainWindow extends JFrame implements IMainWindow {
 	public void init() {
 		pack();
 		setLocationAndPosition();
-		treeSplitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
+		if (settings.isDockQuickTabs()) {
+			initQuickTabs();
+			docking.restoreLayout(Panel.QUICK_TABS);
+		} else {
+			docking.restoreLayout();
+		}
 		UiUtils.bgRun(guiPluginsManager::load);
 		processCommandLineArgs();
 	}
@@ -1169,11 +1171,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 			}
 		});
 
-		JCheckBoxMenuItem dockLog = new JCheckBoxMenuItem(NLS.str("menu.dock_log"));
-		dockLog.setState(settings.isDockLogViewer());
-		dockLog.addActionListener(event -> settings.saveDockLogViewer(!settings.isDockLogViewer()));
-
-		ActionHandler quickTabsAction = new ActionHandler(ev -> {
+		quickTabsAction = new ActionHandler(ev -> {
 			boolean visible = quickTabsTree == null;
 			setQuickTabsVisibility(visible);
 			settings.saveDockQuickTabs(visible);
@@ -1181,7 +1179,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 		quickTabsAction.setNameAndDesc(NLS.str("menu.dock_quick_tabs"));
 		quickTabsAction.setIcon(Icons.QUICK_TABS);
 		quickTabsAction.setSelected(settings.isDockQuickTabs());
-		setQuickTabsVisibility(settings.isDockQuickTabs());
 
 		JadxGuiAction syncAction = new JadxGuiAction(ActionModel.SYNC, this.editorSyncManager::sync);
 		JadxGuiAction textSearchAction = new JadxGuiAction(ActionModel.TEXT_SEARCH, this::textSearch);
@@ -1249,8 +1246,11 @@ public class MainWindow extends JFrame implements IMainWindow {
 		view.add(syncAction);
 		view.add(alwaysSelectOpened);
 		view.addSeparator();
-		view.add(dockLog);
 		view.add(heapUsageBarMenuItem);
+		view.addSeparator();
+		JMenuItem resetLayout = new JMenuItem(NLS.str("menu.reset_layout"));
+		resetLayout.addActionListener(ev -> docking.resetLayout());
+		view.add(resetLayout);
 
 		JMenu nav = new JadxMenu(NLS.str("menu.navigation"), shortcutsController);
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -1392,9 +1392,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private void initUI() {
 		setMinimumSize(new Dimension(200, 150));
 		mainPanel = new JPanel(new BorderLayout());
-		treeSplitPane = new JSplitPane();
-		treeSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
-		mainPanel.add(treeSplitPane);
+		docking = new DockingManager(this);
+		mainPanel.add(docking.createRootPanel(), BorderLayout.CENTER);
 
 		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
 
@@ -1515,34 +1514,25 @@ public class MainWindow extends JFrame implements IMainWindow {
 		leftPane.add(filterPanel, BorderLayout.PAGE_START);
 		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
+		leftPane.setMinimumSize(new Dimension(100, 150));
 
-		treeSplitPane.setLeftComponent(leftPane);
-
-		tabbedPane = new TabbedPane(this, tabsController);
-		tabbedPane.setMinimumSize(new Dimension(150, 150));
-		new TabDndController(tabbedPane, settings);
-
-		quickTabsAndCodeSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		quickTabsAndCodeSplitPane.setResizeWeight(0.15);
-		quickTabsAndCodeSplitPane.setDividerSize(0);
-		quickTabsAndCodeSplitPane.setRightComponent(tabbedPane);
-
-		rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		rightSplitPane.setTopComponent(quickTabsAndCodeSplitPane);
-		rightSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
-
-		treeSplitPane.setRightComponent(rightSplitPane);
+		docking.setContent(Panel.TREE, leftPane);
+		docking.setContent(Panel.EDITORS, emptyEditorsHint());
+		tabbedPane = new TabbedPane(this, tabsController, docking.get(Panel.EDITORS));
+		docking.setEditors(tabbedPane);
+		docking.onClose(Panel.LOG, p -> hideDockedLog());
+		docking.onClose(Panel.DEBUGGER, p -> destroyDebuggerPanel());
+		docking.onClose(Panel.QUICK_TABS, p -> {
+			setQuickTabsVisibility(false);
+			settings.saveDockQuickTabs(false);
+			quickTabsAction.setSelected(false);
+		});
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
 
 		heapUsageBar = new HeapUsageBar();
 		mainPanel.add(heapUsageBar, BorderLayout.SOUTH);
 
-		bottomSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		bottomSplitPane.setTopComponent(treeSplitPane);
-		bottomSplitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
-
-		mainPanel.add(bottomSplitPane, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
 
@@ -1644,12 +1634,12 @@ public class MainWindow extends JFrame implements IMainWindow {
 		}
 		UiUtils.bgRun(() -> {
 			try {
-				settings.setTreeWidth(treeSplitPane.getDividerLocation());
 				settings.saveWindowPos(this);
 				settings.setMainWindowExtendedState(getExtendedState());
 				if (debuggerPanel != null) {
 					saveSplittersInfo();
 				}
+				UiUtils.uiRunAndWait(docking::saveLayout);
 				// block UI thread to avoid settings data changes during sync
 				UiUtils.uiRunAndWait(settings::sync);
 
@@ -1661,6 +1651,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 						editorThemeManager.unload();
 						treeFilterDisposable.dispose();
 						treeScrollDisposable.dispose();
+						docking.shutdown();
 					} finally {
 						dispose();
 					}
@@ -1704,7 +1695,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	private void saveSplittersInfo() {
-		settings.setMainWindowVerticalSplitterLoc(bottomSplitPane.getDividerLocation());
 		if (debuggerPanel != null) {
 			settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
 			settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
@@ -1790,8 +1780,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 	public void destroyDebuggerPanel() {
 		saveSplittersInfo();
 		if (debuggerPanel != null) {
-			debuggerPanel.setVisible(false);
 			debuggerPanel = null;
+			docking.hide(Panel.DEBUGGER);
 		}
 	}
 
@@ -1804,37 +1794,21 @@ public class MainWindow extends JFrame implements IMainWindow {
 		if (debuggerPanel == null) {
 			debuggerPanel = new JDebuggerPanel(this);
 			debuggerPanel.loadSettings();
-			bottomSplitPane.setBottomComponent(debuggerPanel);
-			int loc = settings.getMainWindowVerticalSplitterLoc();
-			if (loc == 0) {
-				loc = 300;
-			}
-			bottomSplitPane.setDividerLocation(loc);
+			docking.setContent(Panel.DEBUGGER, debuggerPanel);
 		}
+		docking.show(Panel.DEBUGGER);
 	}
 
 	public void showLogViewer(LogOptions logOptions) {
 		UiUtils.uiRun(() -> {
-			if (settings.isDockLogViewer()) {
-				showDockedLog(logOptions);
+			if (logPanel == null) {
+				logPanel = new LogPanel(this, logOptions);
+				docking.setContent(Panel.LOG, logPanel);
 			} else {
-				LogViewerDialog.open(this, logOptions);
+				logPanel.applyLogOptions(logOptions);
 			}
+			docking.show(Panel.LOG);
 		});
-	}
-
-	private void showDockedLog(LogOptions logOptions) {
-		if (logPanel != null) {
-			logPanel.applyLogOptions(logOptions);
-			return;
-		}
-		Runnable undock = () -> {
-			hideDockedLog();
-			settings.saveDockLogViewer(false);
-			LogViewerDialog.open(this, logOptions);
-		};
-		logPanel = new LogPanel(this, logOptions, undock, this::hideDockedLog);
-		rightSplitPane.setBottomComponent(logPanel);
 	}
 
 	private void hideDockedLog() {
@@ -1843,23 +1817,30 @@ public class MainWindow extends JFrame implements IMainWindow {
 		}
 		logPanel.dispose();
 		logPanel = null;
-		rightSplitPane.setBottomComponent(null);
+		docking.hide(Panel.LOG);
+	}
+
+	private JComponent emptyEditorsHint() {
+		JLabel hint = new JLabel(NLS.str("dock.editors_empty"), SwingConstants.CENTER);
+		hint.setForeground(UIManager.getColor("Label.disabledForeground"));
+		return hint;
+	}
+
+	private void initQuickTabs() {
+		if (quickTabsTree == null) {
+			quickTabsTree = new QuickTabsTree(this);
+			JScrollPane quickTabsScrollPane = new JScrollPane(quickTabsTree);
+			quickTabsScrollPane.setMinimumSize(new Dimension(100, 150));
+			docking.setContent(Panel.QUICK_TABS, quickTabsScrollPane);
+		}
 	}
 
 	private void setQuickTabsVisibility(boolean visible) {
 		if (visible) {
-			if (quickTabsTree == null) {
-				quickTabsTree = new QuickTabsTree(this);
-			}
-
-			JScrollPane quickTabsScrollPane = new JScrollPane(quickTabsTree);
-			quickTabsScrollPane.setMinimumSize(new Dimension(100, 150));
-			quickTabsAndCodeSplitPane.setLeftComponent(quickTabsScrollPane);
-			quickTabsAndCodeSplitPane.setDividerSize(5);
+			initQuickTabs();
+			docking.show(Panel.QUICK_TABS);
 		} else {
-			quickTabsAndCodeSplitPane.setLeftComponent(null);
-			quickTabsAndCodeSplitPane.setDividerSize(0);
-
+			docking.hide(Panel.QUICK_TABS);
 			if (quickTabsTree != null) {
 				quickTabsTree.dispose();
 				quickTabsTree = null;

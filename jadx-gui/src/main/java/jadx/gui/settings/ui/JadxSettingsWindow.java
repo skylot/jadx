@@ -72,7 +72,6 @@ import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.theme.EditorThemeManager;
 import jadx.gui.ui.codearea.theme.ThemeIdAndName;
-import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
@@ -446,14 +445,6 @@ public class JadxSettingsWindow extends JDialog {
 
 		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
-
-		JComboBox<TabDndGhostType> tabDndGhostTypeCbx = new JComboBox<>(TabDndGhostType.values());
-		tabDndGhostTypeCbx.setSelectedItem(settings.getTabDndGhostType());
-		tabDndGhostTypeCbx.addActionListener(e -> {
-			settings.setTabDndGhostType((TabDndGhostType) tabDndGhostTypeCbx.getSelectedItem());
-			mainWindow.loadSettings();
-		});
-		group.addRow(NLS.str("preferences.tab_dnd_appearance"), tabDndGhostTypeCbx);
 
 		return group;
 	}

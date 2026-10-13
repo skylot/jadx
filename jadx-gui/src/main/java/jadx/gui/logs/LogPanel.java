@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import ch.qos.logback.classic.Level;
 
-import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -31,8 +30,6 @@ public class LogPanel extends JPanel {
 	private static final Level[] LEVEL_ITEMS = { Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF };
 
 	private final MainWindow mainWindow;
-	private final Runnable dockAction;
-	private final Runnable hideAction;
 
 	private RSyntaxTextArea textPane;
 	private JComboBox<LogMode> modeCb;
@@ -40,10 +37,8 @@ public class LogPanel extends JPanel {
 
 	private ChangeListener activeTabListener;
 
-	public LogPanel(MainWindow mainWindow, LogOptions logOptions, Runnable dockAction, Runnable hideAction) {
+	public LogPanel(MainWindow mainWindow, LogOptions logOptions) {
 		this.mainWindow = mainWindow;
-		this.dockAction = dockAction;
-		this.hideAction = hideAction;
 		initUI(logOptions);
 		applyLogOptions(logOptions);
 	}
@@ -72,7 +67,6 @@ public class LogPanel extends JPanel {
 	}
 
 	private void initUI(LogOptions logOptions) {
-		JadxSettings settings = mainWindow.getSettings();
 		textPane = AbstractCodeArea.getDefaultArea(mainWindow);
 		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
@@ -94,12 +88,6 @@ public class LogPanel extends JPanel {
 			textPane.setText("");
 		});
 
-		JButton dockBtn = new JButton(settings.isDockLogViewer() ? NLS.str("log_viewer.undock") : NLS.str("log_viewer.dock"));
-		dockBtn.addActionListener(ev -> dockAction.run());
-
-		JButton hideBtn = new JButton(NLS.str("log_viewer.hide"));
-		hideBtn.addActionListener(ev -> hideAction.run());
-
 		JPanel start = new JPanel();
 		start.setLayout(new BoxLayout(start, BoxLayout.LINE_AXIS));
 		start.add(modeLabel);
@@ -114,10 +102,6 @@ public class LogPanel extends JPanel {
 		JPanel end = new JPanel();
 		end.setLayout(new BoxLayout(end, BoxLayout.LINE_AXIS));
 		end.add(clearBtn);
-		end.add(Box.createRigidArea(new Dimension(15, 0)));
-		end.add(dockBtn);
-		end.add(Box.createRigidArea(new Dimension(15, 0)));
-		end.add(hideBtn);
 
 		JPanel controlPane = new JPanel();
 		controlPane.setLayout(new BorderLayout());
