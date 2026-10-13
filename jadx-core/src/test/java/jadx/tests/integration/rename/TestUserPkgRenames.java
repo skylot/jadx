@@ -26,6 +26,24 @@ public class TestUserPkgRenames extends SmaliTest {
 		assertThat(first.getClassInfo().getAliasPkg()).isEqualTo("com.foo");
 	}
 
+	@Test
+	public void testMoveClassToRenamedPkg() {
+		args.setFsCaseSensitive(false);
+		addPkgRename("a.b", "com.foo");
+		addClsRename("x.Mover", "com.foo.Mover");
+		List<ClassNode> classes = loadFromSmaliFiles();
+
+		ClassNode first = searchCls(classes, "a.b.First");
+		ClassNode mover = searchCls(classes, "x.Mover");
+		assertThat(mover).code().containsOne("package com.foo;");
+		assertThat(first.getClassInfo().getAliasPkg()).isEqualTo("com.foo");
+		assertThat(mover.getClassInfo().getAliasPkg()).isEqualTo("com.foo");
+
+		jadxDecompiler.reloadCodeData();
+		assertThat(first.getClassInfo().getAliasPkg()).isEqualTo("com.foo");
+		assertThat(mover.getClassInfo().getAliasPkg()).isEqualTo("com.foo");
+	}
+
 	private void addPkgRename(String pkg, String newName) {
 		getCodeData().getRenames().add(new JadxCodeRename(JadxNodeRef.forPkg(pkg), newName));
 	}
