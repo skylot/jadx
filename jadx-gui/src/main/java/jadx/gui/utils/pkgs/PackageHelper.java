@@ -78,6 +78,9 @@ public class PackageHelper {
 		for (JavaPackage javaPkg : wrapper.getPackages()) {
 			if (javaPkg.isLeaf() || !javaPkg.getClasses().isEmpty()) {
 				JPackage pkg = buildJPackage(javaPkg, false);
+				if (addToSameNamePkg(pkg)) {
+					continue;
+				}
 				pkg.setName(javaPkg.getFullName());
 				list.add(pkg);
 				pkgInfoMap.put(javaPkg.getPkgNode().getAliasPkgInfo(), pkg);
@@ -90,23 +93,27 @@ public class PackageHelper {
 	private List<JPackage> prepareHierarchyPackages() {
 		JPackage root = JPackage.makeTmpRoot();
 		List<JavaPackage> packages = wrapper.getPackages();
-		List<JPackage> jPackages = new ArrayList<>(packages.size());
+		List<JPackage> leafPackages = new ArrayList<>();
 		// create nodes for exists packages
 		for (JavaPackage javaPkg : packages) {
-			JPackage jPkg = buildJPackage(javaPkg, false);
-			jPackages.add(jPkg);
 			PackageInfo aliasPkgInfo = javaPkg.getPkgNode().getAliasPkgInfo();
-			jPkg.setName(aliasPkgInfo.getName());
-			pkgInfoMap.put(aliasPkgInfo, jPkg);
-			if (aliasPkgInfo.isRoot()) {
-				root.getSubPackages().add(jPkg);
+			JPackage jPkg = buildJPackage(javaPkg, false);
+			if (addToSameNamePkg(jPkg)) {
+				jPkg = pkgInfoMap.get(aliasPkgInfo);
+			} else {
+				jPkg.setName(aliasPkgInfo.getName());
+				pkgInfoMap.put(aliasPkgInfo, jPkg);
+				if (aliasPkgInfo.isRoot()) {
+					root.getSubPackages().add(jPkg);
+				}
+			}
+			if (javaPkg.isLeaf()) {
+				leafPackages.add(jPkg);
 			}
 		}
 		// link subpackages, create missing packages created by renames
-		for (JPackage jPkg : jPackages) {
-			if (jPkg.getPkg().isLeaf()) {
-				buildLeafPath(jPkg, root, pkgInfoMap);
-			}
+		for (JPackage jPkg : leafPackages) {
+			buildLeafPath(jPkg, root, pkgInfoMap);
 		}
 		List<JPackage> toMerge = new ArrayList<>();
 		traverseMiddlePackages(root, toMerge);
@@ -166,6 +173,17 @@ public class PackageHelper {
 			jPkg.setName(Utils.listToString(merged, ".", JPackage::getName));
 		}
 		return jPkg;
+	}
+
+	// several packages can have the same alias (like after moving a class into a renamed package)
+	private boolean addToSameNamePkg(JPackage jPkg) {
+		JPackage samePkg = pkgInfoMap.get(jPkg.getPkg().getPkgNode().getAliasPkgInfo());
+		if (samePkg == null) {
+			return false;
+		}
+		samePkg.getClasses().addAll(jPkg.getClasses());
+		samePkg.getClasses().sort(CLASS_COMPARATOR);
+		return true;
 	}
 
 	private JPackage buildJPackage(JavaPackage javaPkg, boolean synthetic) {
