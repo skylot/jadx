@@ -38,19 +38,19 @@ public class DockingManager {
 	private static final String LAYOUT_FILE = "gui-layout.xml";
 
 	public enum Panel {
-		TREE("tree", "dock.tree", false),
-		EDITORS("editors", "dock.editors", false),
-		QUICK_TABS("quick-tabs", "dock.quick_tabs", true),
-		LOG("log", "log_viewer.title", true),
-		DEBUGGER("debugger", "dock.debugger", true);
+		TREE("tree", NLS.str("dock.tree"), false),
+		EDITORS("editors", NLS.str("dock.editors"), false),
+		QUICK_TABS("quick-tabs", NLS.str("dock.quick_tabs"), true),
+		LOG("log", NLS.str("log_viewer.title"), true),
+		DEBUGGER("debugger", NLS.str("dock.debugger"), true);
 
 		final String id;
-		final String titleKey;
+		final String title;
 		final boolean closable;
 
-		Panel(String id, String titleKey, boolean closable) {
+		Panel(String id, String title, boolean closable) {
 			this.id = id;
-			this.titleKey = titleKey;
+			this.title = title;
 			this.closable = closable;
 		}
 	}
@@ -67,7 +67,7 @@ public class DockingManager {
 		Settings.setDefaultTabPreference(DockableTabPreference.TOP_ALWAYS);
 		Settings.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		for (Panel panel : Panel.values()) {
-			docks.put(panel, new DockPanel(panel.id, NLS.str(panel.titleKey), panel.closable, new JPanel()).register());
+			docks.put(panel, new DockPanel(panel.id, panel.title, panel.closable, new JPanel()).register());
 		}
 		docks.get(Panel.EDITORS).setHeadless(true);
 		Docking.addDockingListener(dockingListener);
