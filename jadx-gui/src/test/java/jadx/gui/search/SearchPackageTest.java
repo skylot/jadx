@@ -53,8 +53,28 @@ class SearchPackageTest {
 		assertThat(search("com.foo")).containsExactlyInAnyOrder("a.b.First", "a.b.First$Inner", "a.b.sub.Second");
 		assertThat(search("com.foo.sub")).containsExactly("a.b.sub.Second");
 		assertThat(search("com")).containsExactlyInAnyOrder("a.b.First", "a.b.First$Inner", "a.b.sub.Second");
-		assertNotFound("a.b");
+		assertThat(search("a.b")).containsExactlyInAnyOrder("a.b.First", "a.b.First$Inner", "a.b.sub.Second");
 		assertNotFound("com.fo");
+	}
+
+	@Test
+	void originalAndRenamedTrees() throws IOException {
+		renamePkg("a.b", "com.foo");
+		renamePkg("a.b.sub", "zzz.sub");
+		load("a.b.First", "a.b.sub.Second");
+
+		assertThat(search("a.b")).containsExactlyInAnyOrder("a.b.First", "a.b.sub.Second");
+		assertThat(search("com.foo")).containsExactly("a.b.First");
+		assertThat(search("zzz")).containsExactly("a.b.sub.Second");
+	}
+
+	@Test
+	void nameInBothTrees() throws IOException {
+		renamePkg("a.b.sub", "zzz.sub");
+		load("a.b.First", "a.b.sub.Second");
+
+		assertThat(search("a.b")).containsExactlyInAnyOrder("a.b.First", "a.b.sub.Second");
+		assertThat(search("zzz.sub")).containsExactly("a.b.sub.Second");
 	}
 
 	@Test
@@ -64,17 +84,18 @@ class SearchPackageTest {
 
 		assertThat(search("p.qq")).containsExactly("p.q.Left");
 		assertThat(search("p")).containsExactlyInAnyOrder("p.q.Left", "p.r.Right");
-		assertNotFound("p.q");
+		assertThat(search("p.q")).containsExactly("p.q.Left");
 	}
 
 	@Test
 	void classMovedToRenamedPackage() throws IOException {
 		renamePkg("a.b", "com.foo");
 		renameCls("x.Mover", "com.foo.Mover");
-		load("a.b.First", "x.Mover", "x.Other");
+		load("a.b.First", "x.Mover", "x.Mover$Inner", "x.Other");
 
-		assertThat(search("com.foo")).containsExactlyInAnyOrder("a.b.First", "x.Mover");
+		assertThat(search("com.foo")).containsExactlyInAnyOrder("a.b.First", "x.Mover", "x.Mover$Inner");
 		assertThat(search("x")).containsExactly("x.Other");
+		assertThat(search("a.b")).containsExactly("a.b.First");
 	}
 
 	@Test
