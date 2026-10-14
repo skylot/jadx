@@ -899,4 +899,60 @@ public class JadxSettings {
 	public void setSaveOption(SaveOptionEnum saveOption) {
 		settingsData.setSaveOption(saveOption);
 	}
+
+	public boolean isMcpServerEnabled() {
+		return settingsData.isMcpServerEnabled();
+	}
+
+	public void setMcpServerEnabled(boolean enabled) {
+		settingsData.setMcpServerEnabled(enabled);
+	}
+
+	public String getMcpServerHost() {
+		return settingsData.getMcpServerHost();
+	}
+
+	public void setMcpServerHost(String host) {
+		settingsData.setMcpServerHost(host);
+	}
+
+	public int getMcpServerPort() {
+		return settingsData.getMcpServerPort();
+	}
+
+	public void setMcpServerPort(int port) {
+		settingsData.setMcpServerPort(port);
+	}
+
+	public boolean isMcpRequireToken() {
+		return settingsData.isMcpRequireToken();
+	}
+
+	public void setMcpRequireToken(boolean requireToken) {
+		settingsData.setMcpRequireToken(requireToken);
+	}
+
+	public String getMcpToken() {
+		return settingsData.getMcpToken();
+	}
+
+	public void setMcpToken(String token) {
+		settingsData.setMcpToken(token);
+	}
+
+	public boolean isMcpWriteToolsEnabled() {
+		return settingsData.isMcpWriteToolsEnabled();
+	}
+
+	public void setMcpWriteToolsEnabled(boolean enabled) {
+		settingsData.setMcpWriteToolsEnabled(enabled);
+	}
+
+	public int getMcpToolTimeout() {
+		return settingsData.getMcpToolTimeout();
+	}
+
+	public void setMcpToolTimeout(int timeoutSeconds) {
+		settingsData.setMcpToolTimeout(timeoutSeconds);
+	}
 }

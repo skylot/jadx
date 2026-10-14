@@ -15,6 +15,7 @@ dependencies {
 	implementation(project(":jadx-gui-api"))
 	implementation(project(":jadx-cli"))
 	implementation(project(":jadx-plugins-tools"))
+	implementation(project(":jadx-mcp"))
 	implementation(project(":jadx-commons:jadx-app-commons"))
 
 	// import mappings
@@ -200,6 +201,8 @@ runtime {
 		// needed for "https" protocol to download plugins and updates
 		"jdk.crypto.cryptoki",
 		"jdk.accessibility",
+		// built-in MCP server (Streamable HTTP)
+		"jdk.httpserver",
 	)
 	jpackage {
 		val os = DefaultNativePlatform.getCurrentOperatingSystem()

@@ -29,6 +29,7 @@ include("jadx-core")
 include("jadx-cli")
 include("jadx-gui-api")
 include("jadx-gui")
+include("jadx-mcp")
 
 include("jadx-plugins-tools")
 

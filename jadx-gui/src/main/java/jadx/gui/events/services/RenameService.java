@@ -3,17 +3,22 @@ package jadx.gui.events.services;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
@@ -46,27 +51,68 @@ import jadx.gui.utils.UiUtils;
 public class RenameService {
 	private static final Logger LOG = LoggerFactory.getLogger(RenameService.class);
 
-	public static void init(MainWindow mainWindow) {
+	public static RenameService init(MainWindow mainWindow) {
 		RenameService renameService = new RenameService(mainWindow);
 		mainWindow.events().global().addListener(JadxEvents.NODE_RENAMED_BY_USER, renameService::process);
+		return renameService;
+	}
+
+	/**
+	 * Rename processing result: status of code refresh task and refreshed top classes
+	 */
+	public static final class RenameResult {
+		private final TaskStatus status;
+		private final List<JavaClass> updatedClasses;
+
+		RenameResult(TaskStatus status, List<JavaClass> updatedClasses) {
+			this.status = status;
+			this.updatedClasses = updatedClasses;
+		}
+
+		public TaskStatus getStatus() {
+			return status;
+		}
+
+		public List<JavaClass> getUpdatedClasses() {
+			return updatedClasses;
+		}
 	}
 
 	private final MainWindow mainWindow;
+	private final Map<NodeRenamedByUser, CompletableFuture<RenameResult>> pending =
+			Collections.synchronizedMap(new IdentityHashMap<>());
 
 	private RenameService(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 	}
 
+	/**
+	 * Send rename event (processed as user rename, plugins listeners notified)
+	 * and track completion of project data update and code refresh.
+	 * Errors are reported through returned future instead of error dialog.
+	 */
+	public CompletableFuture<RenameResult> sendRename(NodeRenamedByUser event) {
+		CompletableFuture<RenameResult> future = new CompletableFuture<>();
+		pending.put(event, future);
+		mainWindow.events().send(event);
+		return future;
+	}
+
 	private void process(NodeRenamedByUser event) {
+		CompletableFuture<RenameResult> future = pending.remove(event);
 		try {
 			LOG.debug("Applying rename event: {}", event);
 			long timeStarted = System.nanoTime();
 			JRenameNode node = getRenameNode(event);
 			updateCodeRenames(set -> processRename(node, event, set));
-			refreshState(node, timeStarted);
+			refreshState(node, timeStarted, future);
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
-			UiUtils.errorMessage(mainWindow, "Rename failed:\n" + Utils.getStackTrace(e));
+			if (future != null) {
+				future.completeExceptionally(e);
+			} else {
+				UiUtils.errorMessage(mainWindow, "Rename failed:\n" + Utils.getStackTrace(e));
+			}
 		}
 	}
 
@@ -110,7 +156,7 @@ public class RenameService {
 		project.setCodeData(codeData);
 	}
 
-	private void refreshState(JRenameNode node, long timeStarted) {
+	private void refreshState(JRenameNode node, long timeStarted, @Nullable CompletableFuture<RenameResult> future) {
 		List<JavaNode> toUpdate = new ArrayList<>();
 		node.addUpdateNodes(toUpdate);
 
@@ -123,7 +169,13 @@ public class RenameService {
 				.collect(Collectors.toSet());
 
 		LOG.debug("Classes to update: {}", updatedTopClasses);
+		List<JavaClass> updatedClasses = updatedTopClasses.stream()
+				.map(JClass::getCls)
+				.collect(Collectors.toList());
 		if (updatedTopClasses.isEmpty()) {
+			if (future != null) {
+				future.complete(new RenameResult(TaskStatus.COMPLETE, updatedClasses));
+			}
 			return;
 		}
 		mainWindow.getBackgroundExecutor().execute("Refreshing",
@@ -143,11 +195,17 @@ public class RenameService {
 					LOG.debug("Finished rename, took " + (System.nanoTime() - timeStarted) + " ns");
 				},
 				(status) -> {
-					if (status == TaskStatus.CANCEL_BY_MEMORY) {
-						mainWindow.showHeapUsageBar();
-						UiUtils.errorMessage(mainWindow, NLS.str("message.memoryLow"));
+					try {
+						if (status == TaskStatus.CANCEL_BY_MEMORY) {
+							mainWindow.showHeapUsageBar();
+							UiUtils.errorMessage(mainWindow, NLS.str("message.memoryLow"));
+						}
+						node.reload(mainWindow);
+					} finally {
+						if (future != null) {
+							future.complete(new RenameResult(status, updatedClasses));
+						}
 					}
-					node.reload(mainWindow);
 				});
 	}
 

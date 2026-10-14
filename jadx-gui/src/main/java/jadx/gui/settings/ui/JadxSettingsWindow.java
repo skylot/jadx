@@ -69,6 +69,7 @@ import jadx.gui.settings.font.FontAdapter;
 import jadx.gui.settings.font.FontSettings;
 import jadx.gui.settings.ui.cache.CacheSettingsGroup;
 import jadx.gui.settings.ui.font.JadxFontDialog;
+import jadx.gui.settings.ui.mcp.McpSettingsGroup;
 import jadx.gui.settings.ui.plugins.PluginSettings;
 import jadx.gui.settings.ui.shortcut.ShortcutsSettingsGroup;
 import jadx.gui.ui.MainWindow;
@@ -152,6 +153,7 @@ public class JadxSettingsWindow extends JDialog {
 		groups.add(makeAppearanceGroup());
 		groups.add(new ShortcutsSettingsGroup(this, settings));
 		groups.add(makeProjectGroup());
+		groups.add(new McpSettingsGroup(this, settings));
 		groups.add(new PluginSettings(mainWindow, settings).build());
 		groups.add(makeOtherGroup());
 

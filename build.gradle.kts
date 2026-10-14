@@ -170,6 +170,16 @@ val distWin =
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
 
+val distWinWithJreDir =
+	tasks.register<Sync>("distWinWithJreDir") {
+		description = "Unpacked Windows with JRE bundle (ready to run without extraction)"
+
+		from(distWinWithJreConfiguration)
+
+		into(layout.buildDirectory.dir("distWinWithJre/jadx-gui-$jadxVersion-with-jre-win"))
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	}
+
 val distWinWithJre =
 	tasks.register<Zip>("distWinWithJre") {
 		description = "Build Windows with JRE bundle"
@@ -179,6 +189,7 @@ val distWinWithJre =
 		destinationDirectory.set(layout.buildDirectory.dir("distWinWithJre"))
 		archiveFileName.set("jadx-gui-$jadxVersion-with-jre-win.zip")
 		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+		finalizedBy(distWinWithJreDir)
 	}
 
 val distMac =

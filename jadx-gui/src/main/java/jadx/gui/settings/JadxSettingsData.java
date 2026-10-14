@@ -111,6 +111,15 @@ public class JadxSettingsData extends JadxGUIArgs {
 	private boolean dockQuickTabs = false;
 	private TabDndGhostType tabDndGhostType = TabDndGhostType.OUTLINE;
 
+	private boolean mcpServerEnabled = false;
+	private String mcpServerHost = "127.0.0.1";
+	private int mcpServerPort = 8650;
+	private boolean mcpRequireToken = true;
+	@JadxConfigExcludeExport
+	private String mcpToken = "";
+	private boolean mcpWriteToolsEnabled = true;
+	private int mcpToolTimeout = 60;
+
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
 
 	public JadxSettingsData() {
@@ -493,4 +502,59 @@ public class JadxSettingsData extends JadxGUIArgs {
 		this.xposedCodegenLanguage = xposedCodegenLanguage;
 	}
 
+	public boolean isMcpServerEnabled() {
+		return mcpServerEnabled;
+	}
+
+	public void setMcpServerEnabled(boolean mcpServerEnabled) {
+		this.mcpServerEnabled = mcpServerEnabled;
+	}
+
+	public String getMcpServerHost() {
+		return mcpServerHost;
+	}
+
+	public void setMcpServerHost(String mcpServerHost) {
+		this.mcpServerHost = mcpServerHost;
+	}
+
+	public int getMcpServerPort() {
+		return mcpServerPort;
+	}
+
+	public void setMcpServerPort(int mcpServerPort) {
+		this.mcpServerPort = mcpServerPort;
+	}
+
+	public boolean isMcpRequireToken() {
+		return mcpRequireToken;
+	}
+
+	public void setMcpRequireToken(boolean mcpRequireToken) {
+		this.mcpRequireToken = mcpRequireToken;
+	}
+
+	public String getMcpToken() {
+		return mcpToken;
+	}
+
+	public void setMcpToken(String mcpToken) {
+		this.mcpToken = mcpToken;
+	}
+
+	public boolean isMcpWriteToolsEnabled() {
+		return mcpWriteToolsEnabled;
+	}
+
+	public void setMcpWriteToolsEnabled(boolean mcpWriteToolsEnabled) {
+		this.mcpWriteToolsEnabled = mcpWriteToolsEnabled;
+	}
+
+	public int getMcpToolTimeout() {
+		return mcpToolTimeout;
+	}
+
+	public void setMcpToolTimeout(int mcpToolTimeout) {
+		this.mcpToolTimeout = mcpToolTimeout;
+	}
 }

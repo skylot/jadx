@@ -6,8 +6,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -28,8 +26,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.data.CommentStyle;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.impl.JadxCodeComment;
-import jadx.api.data.impl.JadxCodeData;
-import jadx.gui.settings.JadxProject;
+import jadx.gui.events.services.CommentService;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
@@ -46,17 +43,7 @@ public class CommentDialog extends CommonDialog {
 
 	public static void updateCommentsData(CodeArea codeArea, Consumer<List<ICodeComment>> updater) {
 		try {
-			JadxProject project = codeArea.getProject();
-			JadxCodeData codeData = project.getCodeData();
-			if (codeData == null) {
-				codeData = new JadxCodeData();
-			}
-			List<ICodeComment> list = new ArrayList<>(codeData.getComments());
-			updater.accept(list);
-			Collections.sort(list);
-			codeData.setComments(list);
-			project.setCodeData(codeData);
-			codeArea.getMainWindow().getWrapper().reloadCodeData();
+			CommentService.updateCommentsData(codeArea.getMainWindow(), updater);
 		} catch (Exception e) {
 			LOG.error("Comment action failed", e);
 		}

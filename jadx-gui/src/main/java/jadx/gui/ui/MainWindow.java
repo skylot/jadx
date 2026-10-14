@@ -120,6 +120,7 @@ import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
+import jadx.gui.mcp.McpService;
 import jadx.gui.plugins.GuiPluginsManager;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
@@ -130,6 +131,7 @@ import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.JadxSettingsWindow;
+import jadx.gui.settings.ui.mcp.McpSettingsGroup;
 import jadx.gui.tree.TreeExpansionService;
 import jadx.gui.treemodel.ApkSignatureNode;
 import jadx.gui.treemodel.JClass;
@@ -207,6 +209,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private final transient BackgroundExecutor backgroundExecutor;
 	private final transient JadxGuiEventsImpl events = new JadxGuiEventsImpl();
 	private final transient TreeExpansionService treeExpansionService;
+	private final transient McpService mcpService;
+	private transient RenameService renameService;
 
 	private final TabsController tabsController;
 	private final NavigationController navController;
@@ -287,6 +291,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
 		this.treeExpansionService = new TreeExpansionService(this, tree);
+		this.mcpService = new McpService(this);
 		initMenuAndToolbar();
 		UiUtils.setWindowIcons(this);
 		this.shortcutsController.registerMouseEventListener(this);
@@ -304,6 +309,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		UiUtils.bgRun(guiPluginsManager::load);
+		mcpService.init();
 		processCommandLineArgs();
 	}
 
@@ -565,6 +571,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 			onFinish.run();
 			return;
 		}
+		mcpService.projectLoading();
 		backgroundExecutor.execute(NLS.str("progress.load"),
 				() -> {
 					try {
@@ -576,11 +583,13 @@ public class MainWindow extends JFrame implements IMainWindow {
 				},
 				status -> {
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
+						mcpService.projectLoadFailed();
 						showHeapUsageBar();
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						return;
 					}
 					if (status != TaskStatus.COMPLETE) {
+						mcpService.projectLoadFailed();
 						LOG.warn("Loading task incomplete, status: {}", status);
 						return;
 					}
@@ -597,6 +606,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private void closeAll() {
 		UiUtils.notUiThreadGuard();
+		// stop MCP requests before cancel of background jobs and decompiler close
+		mcpService.projectClosing();
 		cancelBackgroundJobs();
 		UiUtils.uiRunAndWait(() -> {
 			// before decompiler close, listeners may still need loaded data
@@ -645,6 +656,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 					restoreOpenTabs(openTabs);
 					update();
 					notifyLoadListeners(true);
+					mcpService.projectLoaded();
 					onFinish.run();
 					checkIfCodeHasNonPrintableChars();
 					runInitialBackgroundJobs();
@@ -675,7 +687,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private void initEvents() {
 		events().global().addListener(JadxEvents.RELOAD_PROJECT, ev -> UiUtils.uiRun(this::reopen));
-		RenameService.init(this);
+		renameService = RenameService.init(this);
 	}
 
 	public void updateLiveReload(boolean state) {
@@ -1276,6 +1288,9 @@ public class MainWindow extends JFrame implements IMainWindow {
 		tools.add(deobfMenuItem);
 		tools.add(quarkAction);
 		tools.add(debuggerAction);
+		tools.addSeparator();
+		tools.add(new ActionHandler(() -> openSettings(McpSettingsGroup.class.getSimpleName() + ".class"))
+				.withNameAndDesc(NLS.str("menu.mcp_server")));
 
 		JMenu help = new JadxMenu(NLS.str("menu.help"), shortcutsController);
 		help.setMnemonic(KeyEvent.VK_H);
@@ -1655,6 +1670,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 				UiUtils.uiRunAndWait(settings::sync);
 
 				closeAll();
+				mcpService.shutdown();
 				guiPluginsManager.runGlobalUnload();
 				UiUtils.uiRunAndWait(() -> {
 					try {
@@ -1726,6 +1742,14 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	public void addTreeUpdateListener(Consumer<JRoot> listener) {
 		treeUpdateListener.add(listener);
+	}
+
+	public McpService getMcpService() {
+		return mcpService;
+	}
+
+	public RenameService getRenameService() {
+		return renameService;
 	}
 
 	public JadxWrapper getWrapper() {
