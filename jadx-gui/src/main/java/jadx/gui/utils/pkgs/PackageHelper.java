@@ -185,7 +185,7 @@ public class PackageHelper {
 		return excludedPackages.isEmpty() || excludedPackages.stream().noneMatch(p -> isPkgMatch(fullPkgName, p));
 	}
 
-	public static boolean isPkgMatch(String fullPkgName, String filterPkg) {
+	private static boolean isPkgMatch(String fullPkgName, String filterPkg) {
 		if (fullPkgName.equals(filterPkg)) {
 			return true;
 		}
