@@ -16,6 +16,8 @@ import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 
+import io.github.andrewauclair.moderndocking.ext.ui.DockingUI;
+
 import jadx.gui.settings.JadxSettings;
 
 public class LafManager {
@@ -83,6 +85,7 @@ public class LafManager {
 	private static boolean applyLaf(String theme) {
 		try {
 			UIManager.setLookAndFeel(theme);
+			DockingUI.initialize();
 			return true;
 		} catch (Exception e) {
 			LOG.error("Failed to set laf to {}", theme, e);

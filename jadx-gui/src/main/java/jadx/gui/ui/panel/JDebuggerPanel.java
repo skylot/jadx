@@ -58,6 +58,7 @@ import jadx.gui.utils.UiUtils;
 public class JDebuggerPanel extends JPanel {
 	private static final long serialVersionUID = -1111111202102181631L;
 	private static final Logger LOG = LoggerFactory.getLogger(LogcatPanel.class);
+	private static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private static final ImageIcon ICON_RUN = UiUtils.openSvgIcon("debugger/execute");
 	private static final ImageIcon ICON_RERUN = UiUtils.openSvgIcon("debugger/rerun");
@@ -149,11 +150,11 @@ public class JDebuggerPanel extends JPanel {
 
 		leftSplitter.setLeftComponent(stackFramePanel);
 		leftSplitter.setRightComponent(rightSplitter);
-		leftSplitter.setResizeWeight(MainWindow.SPLIT_PANE_RESIZE_WEIGHT);
+		leftSplitter.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 
 		rightSplitter.setLeftComponent(variablePanel);
 		rightSplitter.setRightComponent(loggerPanel);
-		rightSplitter.setResizeWeight(MainWindow.SPLIT_PANE_RESIZE_WEIGHT);
+		rightSplitter.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 
 		JPanel headerPanel = new JPanel(new BorderLayout());
 		headerPanel.add(new Label(), BorderLayout.WEST);

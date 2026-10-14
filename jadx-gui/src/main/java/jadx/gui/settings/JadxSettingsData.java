@@ -18,7 +18,6 @@ import jadx.gui.cache.code.CodeCacheMode;
 import jadx.gui.cache.usage.UsageCacheMode;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.ui.action.ActionModel;
-import jadx.gui.ui.tab.dnd.TabDndGhostType;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
@@ -82,7 +81,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 	private boolean keepCommonDialogOpen = false;
 	private LineNumbersMode lineNumbersMode = LineNumbersMode.AUTO;
 
-	private int mainWindowVerticalSplitterLoc = 300;
 	private int debuggerStackFrameSplitterLoc = 300;
 	private int debuggerVarTreeSplitterLoc = 700;
 
@@ -106,10 +104,7 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	private XposedCodegenLanguage xposedCodegenLanguage = XposedCodegenLanguage.JAVA;
 
-	private int treeWidth = 130;
-	private boolean dockLogViewer = true;
 	private boolean dockQuickTabs = false;
-	private TabDndGhostType tabDndGhostType = TabDndGhostType.OUTLINE;
 
 	private int settingsVersion = CURRENT_SETTINGS_VERSION;
 
@@ -211,14 +206,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setDisableTooltipOnHover(boolean disableTooltipOnHover) {
 		this.disableTooltipOnHover = disableTooltipOnHover;
-	}
-
-	public boolean isDockLogViewer() {
-		return dockLogViewer;
-	}
-
-	public void setDockLogViewer(boolean dockLogViewer) {
-		this.dockLogViewer = dockLogViewer;
 	}
 
 	public boolean isDockQuickTabs() {
@@ -341,14 +328,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 		this.mainWindowExtendedState = mainWindowExtendedState;
 	}
 
-	public int getMainWindowVerticalSplitterLoc() {
-		return mainWindowVerticalSplitterLoc;
-	}
-
-	public void setMainWindowVerticalSplitterLoc(int mainWindowVerticalSplitterLoc) {
-		this.mainWindowVerticalSplitterLoc = mainWindowVerticalSplitterLoc;
-	}
-
 	public List<Path> getRecentProjects() {
 		return recentProjects;
 	}
@@ -419,22 +398,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setSmaliFontStr(String smaliFontStr) {
 		this.smaliFontStr = smaliFontStr;
-	}
-
-	public TabDndGhostType getTabDndGhostType() {
-		return tabDndGhostType;
-	}
-
-	public void setTabDndGhostType(TabDndGhostType tabDndGhostType) {
-		this.tabDndGhostType = tabDndGhostType;
-	}
-
-	public int getTreeWidth() {
-		return treeWidth;
-	}
-
-	public void setTreeWidth(int treeWidth) {
-		this.treeWidth = treeWidth;
 	}
 
 	public float getUiZoom() {
