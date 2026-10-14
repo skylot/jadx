@@ -638,7 +638,7 @@ public class SearchDialog extends CommonSearchDialog {
 			searchClasses = includedClsCache.get(mainWindow.getSettings().getExcludedPackages(),
 					exc -> mainWindow.getWrapper().getIncludedClassesWithInners());
 		}
-		if (searchSettings.getSearchPackage() != null) {
+		if (searchSettings.hasSearchPackage()) {
 			searchClasses = searchClasses.stream()
 					.filter(searchSettings::isInSearchPkg)
 					.collect(Collectors.toList());
