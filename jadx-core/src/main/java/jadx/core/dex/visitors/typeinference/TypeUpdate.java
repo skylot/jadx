@@ -268,6 +268,9 @@ public final class TypeUpdate {
 	}
 
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
+		if (updateInfo.isProcessed(ssaVar.getAssign())) {
+			return CHANGED;
+		}
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
 		ArgType immutableType = ssaVar.getImmutableType();
 		if (immutableType != null && !Objects.equals(immutableType, candidateType)) {
@@ -448,6 +451,9 @@ public final class TypeUpdate {
 
 	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		InsnArg changeArg = isAssign(insn, arg) ? insn.getArg(0) : insn.getResult();
+		if (changeArg == null) {
+			return CHANGED;
+		}
 		if (updateInfo.hasUpdateWithType(changeArg, candidateType)) {
 			return CHANGED;
 		}
