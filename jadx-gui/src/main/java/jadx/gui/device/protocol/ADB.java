@@ -276,7 +276,9 @@ public class ADB {
 		return rst;
 	}
 
-	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w-]{8,20}$");
+	// Serial can be any non-empty token, e.g. 'b4f013dc' (usb), '192.168.240.112:5555' (network),
+	// 'adb-XXXXXXXX-YYYYYY._adb-tls-connect._tcp' (mdns)
+	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w.:-]+$");
 
 	private static void checkSerial(String serial) {
 		if (!SERIAL_PATTERN.matcher(serial).matches()) {
