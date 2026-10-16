@@ -24,6 +24,7 @@ import jadx.api.impl.SimpleCodeWriter;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarRef;
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
@@ -137,6 +138,7 @@ public class ClassNode extends NotificationAttrNode
 			cls.visitFieldsAndMethods(fieldsConsumer, methodsConsumer);
 			this.fields = fieldsConsumer.getResult();
 			this.methods = methodsConsumer.getResult();
+			checkStaticMemberClass(cls);
 			if (reloading) {
 				restoreUsageData();
 			}
@@ -222,6 +224,39 @@ public class ClassNode extends NotificationAttrNode
 			}
 		}
 		return cls.getAccessFlags();
+	}
+
+	/**
+	 * Restore 'static' flag for member class if it was removed (for example, by R8).
+	 * Constructors of non-static member class always have outer class instance as a first argument.
+	 */
+	private void checkStaticMemberClass(IClassData cls) {
+		if (accessFlags.isStatic()) {
+			return;
+		}
+		InnerClassesAttr innerClassesAttr = get(JadxAttrType.INNER_CLASSES);
+		if (innerClassesAttr == null) {
+			return;
+		}
+		InnerClsInfo innerClsInfo = innerClassesAttr.getMap().get(cls.getType());
+		if (innerClsInfo == null || innerClsInfo.getOuterCls() == null) {
+			// not a member class (local or anonymous classes can't be static)
+			return;
+		}
+		ArgType outerType = ArgType.object(innerClsInfo.getOuterCls());
+		boolean hasConstructor = false;
+		for (MethodNode mth : methods) {
+			if (mth.isConstructor()) {
+				List<ArgType> argTypes = mth.getMethodInfo().getArgumentsTypes();
+				if (!argTypes.isEmpty() && argTypes.get(0).equals(outerType)) {
+					return;
+				}
+				hasConstructor = true;
+			}
+		}
+		if (hasConstructor) {
+			this.accessFlags = accessFlags.add(AccessFlags.STATIC);
+		}
 	}
 
 	public static ClassNode addSyntheticClass(RootNode root, String name, int accessFlags) {
