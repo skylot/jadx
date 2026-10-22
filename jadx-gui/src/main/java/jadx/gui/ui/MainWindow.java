@@ -151,6 +151,7 @@ import jadx.gui.ui.dialog.GotoAddressDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.dock.DockingManager;
 import jadx.gui.ui.dock.DockingManager.Panel;
+import jadx.gui.ui.dock.PluginDock;
 import jadx.gui.ui.export.ExportProjectDialog;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
@@ -167,6 +168,7 @@ import jadx.gui.ui.popupmenu.RecentProjectsMenuListener;
 import jadx.gui.ui.startpage.StartPageNode;
 import jadx.gui.ui.tab.EditorSyncManager;
 import jadx.gui.ui.tab.NavigationController;
+import jadx.gui.ui.tab.PluginEventsTabStates;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
@@ -255,6 +257,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private final ShortcutsController shortcutsController;
 	private JadxMenuBar menuBar;
 	private JMenu pluginsMenu;
+	private JMenu viewMenu;
+	private final List<JComponent> pluginDockableMenuItems = new ArrayList<>();
 	public JMenu hexViewerMenu;
 
 	private final transient RenameMappingsGui renameMappings;
@@ -274,6 +278,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		this.cacheManager = new CacheManager(settings);
 		this.shortcutsController = new ShortcutsController(settings);
 		this.tabsController = new TabsController(this);
+		this.tabsController.addListener(new PluginEventsTabStates(events()));
 		this.navController = new NavigationController(this);
 		this.editorThemeManager = new EditorThemeManager(settings);
 
@@ -1252,6 +1257,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		JMenuItem resetLayout = new JMenuItem(NLS.str("menu.reset_layout"));
 		resetLayout.addActionListener(ev -> docking.resetLayout());
 		view.add(resetLayout);
+		viewMenu = view;
 
 		JMenu nav = new JadxMenu(NLS.str("menu.navigation"), shortcutsController);
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -1393,7 +1399,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private void initUI() {
 		setMinimumSize(new Dimension(200, 150));
 		mainPanel = new JPanel(new BorderLayout());
-		docking = new DockingManager(this);
+		docking = new DockingManager(this, events());
 		mainPanel.add(docking.createRootPanel(), BorderLayout.CENTER);
 
 		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
@@ -1852,6 +1858,38 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	public JMenu getPluginsMenu() {
 		return pluginsMenu;
+	}
+
+	public DockingManager getDocking() {
+		return docking;
+	}
+
+	public void setPluginDockablesMenu(List<PluginDock> docks) {
+		UiUtils.uiRun(() -> {
+			for (JComponent item : pluginDockableMenuItems) {
+				viewMenu.remove(item);
+			}
+			pluginDockableMenuItems.clear();
+			if (docks.isEmpty()) {
+				return;
+			}
+			JPopupMenu.Separator separator = new JPopupMenu.Separator();
+			viewMenu.add(separator);
+			pluginDockableMenuItems.add(separator);
+			for (PluginDock dock : docks) {
+				JCheckBoxMenuItem item = new JCheckBoxMenuItem(dock.getOptions().getTitle(), dock.getOptions().getIcon());
+				item.addActionListener(ev -> {
+					if (dock.isShown()) {
+						dock.hide();
+					} else {
+						dock.show();
+					}
+				});
+				viewMenu.add(item);
+				pluginDockableMenuItems.add(item);
+				docking.onPluginDockChange(dock, shown -> item.setSelected(shown));
+			}
+		});
 	}
 
 	public void resetPluginsMenu() {

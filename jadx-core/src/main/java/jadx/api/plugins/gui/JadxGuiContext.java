@@ -3,8 +3,10 @@ package jadx.api.plugins.gui;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
@@ -114,4 +116,12 @@ public interface JadxGuiContext {
 	 * Save node rename in a project and run all needed UI updates
 	 */
 	void applyNodeRename(ICodeNodeRef node);
+
+	/**
+	 * Add dockable panel to main window.
+	 * Panel position is saved between runs.
+	 *
+	 * @param content panel content, created on first show
+	 */
+	JadxDockable addDockable(DockableOptions options, Supplier<JComponent> content);
 }

@@ -3,9 +3,15 @@ package jadx.gui.ui.dock;
 import java.awt.Component;
 import java.io.File;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -25,9 +31,14 @@ import io.github.andrewauclair.moderndocking.event.DockingEvent;
 import io.github.andrewauclair.moderndocking.event.DockingListener;
 import io.github.andrewauclair.moderndocking.settings.Settings;
 
+import jadx.api.plugins.events.IJadxEvents;
+import jadx.api.plugins.events.types.DockableHidden;
+import jadx.api.plugins.events.types.DockableShown;
+import jadx.api.plugins.gui.DockableOptions;
 import jadx.commons.app.JadxCommonFiles;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 /**
  * Owns the main window dockables: their default placement, show/hide, layout persistence and the
@@ -56,13 +67,19 @@ public class DockingManager {
 	}
 
 	private final JFrame frame;
+	private final IJadxEvents events;
 	private final Map<Panel, DockPanel> docks = new EnumMap<>(Panel.class);
 	private final Map<Panel, Consumer<Panel>> closeListeners = new EnumMap<>(Panel.class);
+	private final Map<String, PluginDock> pluginDocks = new LinkedHashMap<>();
+	private final Set<String> shownPluginDocks = new HashSet<>();
+	private final Map<String, Consumer<Boolean>> pluginDockListeners = new HashMap<>();
 	private final DockingListener dockingListener = this::onDockingEvent;
 	private @Nullable TabbedPane editors;
+	private boolean layoutRestored;
 
-	public DockingManager(JFrame frame) {
+	public DockingManager(JFrame frame, IJadxEvents events) {
 		this.frame = frame;
+		this.events = events;
 		Docking.initialize(frame);
 		Settings.setDefaultTabPreference(DockableTabPreference.TOP_ALWAYS);
 		Settings.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -112,6 +129,105 @@ public class DockingManager {
 		}
 	}
 
+	/**
+	 * Register a plugin panel; shown on first run if requested, afterwards by the saved layout.
+	 */
+	public PluginDock registerPlugin(String persistentId, DockableOptions options, Supplier<JComponent> content) {
+		PluginDock[] result = new PluginDock[1];
+		UiUtils.uiRunAndWait(() -> result[0] = registerPluginOnUi(persistentId, options, content));
+		return result[0];
+	}
+
+	private PluginDock registerPluginOnUi(String persistentId, DockableOptions options, Supplier<JComponent> content) {
+		PluginDock dock = findRegistered(persistentId);
+		if (dock != null) {
+			shownPluginDocks.remove(persistentId);
+			dock.bind(this, options, content);
+			if (dock.isVisibleInLayout()) {
+				onPluginDockEvent(dock, DockingEvent.ID.SHOWN);
+			}
+		} else {
+			dock = new PluginDock(this, persistentId, options, content);
+			dock.register();
+		}
+		pluginDocks.put(persistentId, dock);
+		if (!dock.isDocked() && layoutRestored && options.isShowOnStartup() && !layoutFile().exists()) {
+			show(dock);
+		}
+		return dock;
+	}
+
+	private @Nullable PluginDock findRegistered(String persistentId) {
+		PluginDock known = pluginDocks.get(persistentId);
+		if (known != null) {
+			return known;
+		}
+		for (Dockable dockable : Docking.getDockables()) {
+			if (dockable instanceof PluginDock && dockable.getPersistentID().equals(persistentId)) {
+				return (PluginDock) dockable;
+			}
+		}
+		return null;
+	}
+
+	public void onPluginDockChange(PluginDock dock, Consumer<Boolean> listener) {
+		pluginDockListeners.put(dock.getPersistentID(), listener);
+		listener.accept(dock.isDocked());
+	}
+
+	public void show(PluginDock dock) {
+		dock.getContent();
+		if (!dock.isDocked()) {
+			dockDefault(dock);
+		}
+		Docking.bringToFront(dock);
+	}
+
+	public void hide(PluginDock dock) {
+		if (dock.isDocked()) {
+			Docking.undock(dock);
+		}
+	}
+
+	public void remove(PluginDock dock) {
+		UiUtils.uiRunAndWait(() -> {
+			if (pluginDocks.get(dock.getPersistentID()) != dock) {
+				return;
+			}
+			hide(dock);
+			pluginDocks.remove(dock.getPersistentID());
+			shownPluginDocks.remove(dock.getPersistentID());
+			pluginDockListeners.remove(dock.getPersistentID());
+			Docking.deregisterDockable(dock);
+		});
+	}
+
+	private void dockDefault(PluginDock dock) {
+		switch (dock.getOptions().getDefaultArea()) {
+			case LEFT:
+				Docking.dock(dock, frame, DockingRegion.WEST, 0.2);
+				break;
+			case RIGHT:
+				Docking.dock(dock, frame, DockingRegion.EAST, 0.25);
+				break;
+			case BOTTOM:
+				DockPanel log = docks.get(Panel.LOG);
+				if (Docking.isDocked(log)) {
+					Docking.dock(dock, log, DockingRegion.CENTER);
+				} else {
+					Docking.dock(dock, frame, DockingRegion.SOUTH, 0.3);
+				}
+				break;
+			case EDITORS:
+				if (editors != null) {
+					editors.dockWithEditors(dock);
+				} else {
+					Docking.dock(dock, docks.get(Panel.EDITORS), DockingRegion.CENTER);
+				}
+				break;
+		}
+	}
+
 	private void dockDefault(Panel panel) {
 		DockPanel dock = docks.get(panel);
 		switch (panel) {
@@ -138,8 +254,9 @@ public class DockingManager {
 	 */
 	public void restoreLayout(Panel... shown) {
 		File file = layoutFile();
+		boolean firstRun = !file.exists();
 		boolean restored = false;
-		if (file.exists()) {
+		if (!firstRun) {
 			try {
 				DockingState.restoreApplicationLayout(LayoutPersistence.loadApplicationLayoutFromFile(file));
 				restored = isShown(Panel.TREE) && isShown(Panel.EDITORS);
@@ -161,6 +278,14 @@ public class DockingManager {
 				hide(panel);
 			}
 		}
+		layoutRestored = true;
+		for (PluginDock dock : pluginDocks.values()) {
+			if (firstRun && dock.getOptions().isShowOnStartup()) {
+				show(dock);
+			} else if (dock.isVisibleInLayout()) {
+				onPluginDockEvent(dock, DockingEvent.ID.SHOWN);
+			}
+		}
 	}
 
 	public void resetLayout() {
@@ -169,6 +294,9 @@ public class DockingManager {
 		}
 		for (Panel panel : Panel.values()) {
 			hide(panel);
+		}
+		for (PluginDock dock : pluginDocks.values()) {
+			hide(dock);
 		}
 		dockDefault(Panel.TREE);
 		dockDefault(Panel.EDITORS);
@@ -202,10 +330,17 @@ public class DockingManager {
 	}
 
 	private void onDockingEvent(DockingEvent event) {
-		if (event.getID() != DockingEvent.ID.UNDOCKED || event.isTemporary()) {
+		if (event.isTemporary()) {
 			return;
 		}
 		Dockable dockable = event.getDockable();
+		if (dockable instanceof PluginDock) {
+			onPluginDockEvent((PluginDock) dockable, event.getID());
+			return;
+		}
+		if (event.getID() != DockingEvent.ID.UNDOCKED) {
+			return;
+		}
 		for (Map.Entry<Panel, DockPanel> e : docks.entrySet()) {
 			if (e.getValue() == dockable) {
 				Consumer<Panel> listener = closeListeners.get(e.getKey());
@@ -214,6 +349,36 @@ public class DockingManager {
 				}
 				return;
 			}
+		}
+	}
+
+	private void onPluginDockEvent(PluginDock dock, DockingEvent.ID id) {
+		String key = dock.getPersistentID();
+		switch (id) {
+			case DOCKED:
+			case SHOWN:
+				if (shownPluginDocks.add(key)) {
+					dock.getContent();
+					events.send(new DockableShown(dock.getId()));
+				}
+				notifyPluginDock(key, true);
+				break;
+			case UNDOCKED:
+			case HIDDEN:
+				if (shownPluginDocks.remove(key)) {
+					events.send(new DockableHidden(dock.getId()));
+				}
+				notifyPluginDock(key, dock.isDocked());
+				break;
+			default:
+				break;
+		}
+	}
+
+	private void notifyPluginDock(String key, boolean docked) {
+		Consumer<Boolean> listener = pluginDockListeners.get(key);
+		if (listener != null) {
+			listener.accept(docked);
 		}
 	}
 

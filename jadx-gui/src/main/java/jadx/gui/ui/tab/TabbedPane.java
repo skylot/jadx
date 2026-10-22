@@ -779,6 +779,23 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		}
 	}
 
+	/**
+	 * Dock a non-editor panel into the editors tab group
+	 */
+	public void dockWithEditors(DockPanel dock) {
+		EditorDock current = curTab == null ? null : docks.get(curTab);
+		updating = true;
+		try {
+			if (current != null && isLive(current)) {
+				Docking.dock(dock, current, DockingRegion.CENTER);
+			} else {
+				Docking.dock(dock, anchor, DockingRegion.CENTER);
+			}
+		} finally {
+			updating = false;
+		}
+	}
+
 	public void dockAll() {
 		bulk = true;
 		updating = true;

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.Action;
 import javax.swing.InputMap;
@@ -16,12 +17,15 @@ import javax.swing.KeyStroke;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.gui.DockableOptions;
+import jadx.api.plugins.gui.JadxDockable;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.JNodePopupBuilder;
+import jadx.gui.ui.dock.PluginDock;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
@@ -70,8 +74,40 @@ public class CommonGuiPluginsContext {
 	}
 
 	public void removeGlobalPlugin(PluginRuntime pluginRuntime) {
-		globalPlugins.remove(pluginRuntime);
+		GuiPluginContext context = globalPlugins.remove(pluginRuntime);
+		if (context != null) {
+			context.getRegistry().clear();
+		}
 		updatePluginEntries();
+	}
+
+	JadxDockable addDockable(GuiPluginsRegistry registry, String pluginId, DockableOptions options, Supplier<JComponent> content) {
+		PluginDock dock = mainWindow.getDocking().registerPlugin(pluginId + ':' + options.getId(), options, content);
+		registry.getDockables().add(dock);
+		if (options.getKeyBinding() != null) {
+			addKeyBinding(registry, new KeyBindingEntry(dock.getPersistentID(), KeyStroke.getKeyStroke(options.getKeyBinding()),
+					() -> toggle(dock)));
+		}
+		updateDockablesMenu();
+		return dock;
+	}
+
+	private static void toggle(PluginDock dock) {
+		if (dock.isShown()) {
+			dock.hide();
+		} else {
+			dock.show();
+		}
+	}
+
+	private void updateDockablesMenu() {
+		List<PluginDock> docks = new ArrayList<>();
+		for (PluginDock dock : collect(GuiPluginsRegistry::getDockables)) {
+			if (dock.getOptions().isMenuEntry()) {
+				docks.add(dock);
+			}
+		}
+		mainWindow.setPluginDockablesMenu(docks);
 	}
 
 	private void updatePluginEntries() {
@@ -79,6 +115,7 @@ public class CommonGuiPluginsContext {
 		for (Action menuAction : collect(GuiPluginsRegistry::getMenuActions)) {
 			mainWindow.addToPluginsMenu(menuAction);
 		}
+		updateDockablesMenu();
 		List<KeyBindingEntry> keyBindings = collect(GuiPluginsRegistry::getKeyBindings);
 		UiUtils.uiRun(() -> {
 			JComponent mainPanel = getMainPanel();
