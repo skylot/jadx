@@ -1,12 +1,14 @@
-package jadx.api.plugins.gui;
+package jadx.api.gui.dock;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.plugins.JadxGuiContextExt;
+
 /**
- * Plugin dockable panel, see {@link JadxGuiContext#addDockable}.
+ * Plugin dockable panel, see {@link JadxGuiContextExt#addDockable}.
  * Methods should be called in UI thread.
  */
 public interface JadxDockable {

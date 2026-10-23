@@ -2,11 +2,11 @@ package jadx.gui.ui.tab;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.editor.events.EditorClosed;
+import jadx.api.gui.editor.events.EditorOpened;
+import jadx.api.gui.editor.events.EditorSelected;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvents;
-import jadx.api.plugins.events.types.EditorClosed;
-import jadx.api.plugins.events.types.EditorOpened;
-import jadx.api.plugins.events.types.EditorSelected;
 import jadx.gui.treemodel.JNode;
 
 /**

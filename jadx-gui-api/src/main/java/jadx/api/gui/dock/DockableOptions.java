@@ -1,4 +1,4 @@
-package jadx.api.plugins.gui;
+package jadx.api.gui.dock;
 
 import java.util.regex.Pattern;
 
@@ -7,8 +7,10 @@ import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.plugins.JadxGuiContextExt;
+
 /**
- * Dockable panel options for {@link JadxGuiContext#addDockable}
+ * Dockable panel options for {@link JadxGuiContextExt#addDockable}
  */
 public final class DockableOptions {
 	private static final Pattern ID_PATTERN = Pattern.compile("[a-z0-9][a-z0-9-]*");

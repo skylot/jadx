@@ -1,9 +1,9 @@
-package jadx.api.plugins.events.types;
+package jadx.api.gui.editor.events;
 
+import jadx.api.gui.JadxGuiEvents;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
-import jadx.api.plugins.events.JadxEvents;
 
 /**
  * Code tab closed.
@@ -21,7 +21,7 @@ public class EditorClosed implements IJadxEvent {
 
 	@Override
 	public JadxEventType<EditorClosed> getType() {
-		return JadxEvents.EDITOR_CLOSED;
+		return JadxGuiEvents.EDITOR_CLOSED;
 	}
 
 	@Override

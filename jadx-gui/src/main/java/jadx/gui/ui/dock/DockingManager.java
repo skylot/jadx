@@ -31,10 +31,10 @@ import io.github.andrewauclair.moderndocking.event.DockingEvent;
 import io.github.andrewauclair.moderndocking.event.DockingListener;
 import io.github.andrewauclair.moderndocking.settings.Settings;
 
+import jadx.api.gui.dock.DockableOptions;
+import jadx.api.gui.dock.events.DockableHidden;
+import jadx.api.gui.dock.events.DockableShown;
 import jadx.api.plugins.events.IJadxEvents;
-import jadx.api.plugins.events.types.DockableHidden;
-import jadx.api.plugins.events.types.DockableShown;
-import jadx.api.plugins.gui.DockableOptions;
 import jadx.commons.app.JadxCommonFiles;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;

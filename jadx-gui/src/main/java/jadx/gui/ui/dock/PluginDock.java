@@ -13,8 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import io.github.andrewauclair.moderndocking.DynamicDockableParameters;
 import io.github.andrewauclair.moderndocking.app.Docking;
 
-import jadx.api.plugins.gui.DockableOptions;
-import jadx.api.plugins.gui.JadxDockable;
+import jadx.api.gui.dock.DockableOptions;
+import jadx.api.gui.dock.JadxDockable;
 
 public class PluginDock extends DockPanel implements JadxDockable {
 	private @Nullable DockingManager manager;

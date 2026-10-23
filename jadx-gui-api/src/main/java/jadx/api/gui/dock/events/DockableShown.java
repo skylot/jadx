@@ -1,8 +1,8 @@
-package jadx.api.plugins.events.types;
+package jadx.api.gui.dock.events;
 
+import jadx.api.gui.JadxGuiEvents;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
-import jadx.api.plugins.events.JadxEvents;
 
 /**
  * Plugin dockable panel shown.
@@ -20,7 +20,7 @@ public class DockableShown implements IJadxEvent {
 
 	@Override
 	public JadxEventType<DockableShown> getType() {
-		return JadxEvents.DOCKABLE_SHOWN;
+		return JadxGuiEvents.DOCKABLE_SHOWN;
 	}
 
 	@Override

@@ -17,8 +17,8 @@ import javax.swing.KeyStroke;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.plugins.gui.DockableOptions;
-import jadx.api.plugins.gui.JadxDockable;
+import jadx.api.gui.dock.DockableOptions;
+import jadx.api.gui.dock.JadxDockable;
 import jadx.core.plugins.PluginRuntime;
 import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;

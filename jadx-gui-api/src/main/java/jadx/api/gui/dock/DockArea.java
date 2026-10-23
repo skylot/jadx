@@ -1,4 +1,4 @@
-package jadx.api.plugins.gui;
+package jadx.api.gui.dock;
 
 /**
  * Main window area for dockable panel

@@ -1,8 +1,8 @@
-package jadx.api.plugins.events.types;
+package jadx.api.gui.dock.events;
 
+import jadx.api.gui.JadxGuiEvents;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
-import jadx.api.plugins.events.JadxEvents;
 
 /**
  * Plugin dockable panel hidden.
@@ -20,7 +20,7 @@ public class DockableHidden implements IJadxEvent {
 
 	@Override
 	public JadxEventType<DockableHidden> getType() {
-		return JadxEvents.DOCKABLE_HIDDEN;
+		return JadxGuiEvents.DOCKABLE_HIDDEN;
 	}
 
 	@Override

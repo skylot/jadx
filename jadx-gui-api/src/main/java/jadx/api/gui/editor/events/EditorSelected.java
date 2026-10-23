@@ -1,11 +1,11 @@
-package jadx.api.plugins.events.types;
+package jadx.api.gui.editor.events;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.JadxGuiEvents;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
-import jadx.api.plugins.events.JadxEvents;
 
 /**
  * Active code tab changed, node is null if no code tab active.
@@ -23,7 +23,7 @@ public class EditorSelected implements IJadxEvent {
 
 	@Override
 	public JadxEventType<EditorSelected> getType() {
-		return JadxEvents.EDITOR_SELECTED;
+		return JadxGuiEvents.EDITOR_SELECTED;
 	}
 
 	@Override

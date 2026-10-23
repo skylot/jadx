@@ -1,9 +1,9 @@
-package jadx.api.plugins.events.types;
+package jadx.api.gui.editor.events;
 
+import jadx.api.gui.JadxGuiEvents;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvent;
 import jadx.api.plugins.events.JadxEventType;
-import jadx.api.plugins.events.JadxEvents;
 
 /**
  * Code tab opened.
@@ -21,7 +21,7 @@ public class EditorOpened implements IJadxEvent {
 
 	@Override
 	public JadxEventType<EditorOpened> getType() {
-		return JadxEvents.EDITOR_OPENED;
+		return JadxGuiEvents.EDITOR_OPENED;
 	}
 
 	@Override
