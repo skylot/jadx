@@ -37,10 +37,26 @@ public class CollectConstValues extends AbstractVisitor {
 			try {
 				Object value = getFieldConstValue(fld);
 				if (value != null) {
-					constStorage.addConstField(fld, value, fld.getAccessFlags().isPublic());
+					constStorage.addConstField(fld, value, isAccessibleGlobally(fld));
 				}
 			} catch (Exception e) {
 				cls.addWarnComment("Failed to process value of field: " + fld, e);
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Field can be used from any class only if it and all its enclosing classes are public.
+	 * (fields of interfaces are implicitly public, so check declaring classes too)
+	 */
+	private static boolean isAccessibleGlobally(FieldNode fld) {
+		if (!fld.getAccessFlags().isPublic()) {
+			return false;
+		}
+		for (ClassNode cls = fld.getParentClass(); cls != null; cls = cls.getDeclaringClass()) {
+			if (!cls.getAccessFlags().isPublic()) {
+				return false;
 			}
 		}
 		return true;
