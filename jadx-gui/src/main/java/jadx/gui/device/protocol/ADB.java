@@ -17,7 +17,6 @@ import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -118,7 +117,6 @@ public class ADB {
 	}
 
 	static boolean setSerial(String serial, OutputStream outputStream, InputStream inputStream) throws IOException {
-		checkSerial(serial);
 		LOG.trace("setSerial({})", serial);
 		String setSerialCmd = String.format("host:tport:serial:%s", serial);
 		setSerialCmd = String.format("%04x%s", setSerialCmd.length(), setSerialCmd);
@@ -274,14 +272,6 @@ public class ADB {
 		System.arraycopy(dest, 0, rst, 0, dest.length);
 		System.arraycopy(src, 0, rst, dest.length, realSrcSize);
 		return rst;
-	}
-
-	private static final Pattern SERIAL_PATTERN = Pattern.compile("^[\\w-]{8,20}$");
-
-	private static void checkSerial(String serial) {
-		if (!SERIAL_PATTERN.matcher(serial).matches()) {
-			throw new IllegalArgumentException("Invalid serial: " + serial);
-		}
 	}
 
 	/**
