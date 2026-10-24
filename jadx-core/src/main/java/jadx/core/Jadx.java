@@ -53,6 +53,7 @@ import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
 import jadx.core.dex.visitors.debuginfo.DebugInfoAttachVisitor;
 import jadx.core.dex.visitors.finaly.MarkFinallyVisitor;
 import jadx.core.dex.visitors.fixaccessmodifiers.FixAccessModifiers;
+import jadx.core.dex.visitors.fixaccessmodifiers.PrepareAccessFlags;
 import jadx.core.dex.visitors.gradle.NonFinalResIdsVisitor;
 import jadx.core.dex.visitors.kotlin.ProcessKotlinInternals;
 import jadx.core.dex.visitors.prepare.AddAndroidConstants;
@@ -100,6 +101,7 @@ public class Jadx {
 
 	public static List<IDexTreeVisitor> getPreDecompilePassesList() {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
+		passes.add(new PrepareAccessFlags());
 		passes.add(new SignatureProcessor());
 		passes.add(new OverrideMethodVisitor());
 		passes.add(new AddAndroidConstants());

@@ -268,6 +268,20 @@ public class AccessInfo {
 	}
 
 	@Override
+	public final boolean equals(Object o) {
+		if (o instanceof AccessInfo) {
+			AccessInfo that = (AccessInfo) o;
+			return accFlags == that.accFlags && type == that.type;
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * type.hashCode() + accFlags;
+	}
+
+	@Override
 	public String toString() {
 		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + makeString(true) + ')';
 	}
