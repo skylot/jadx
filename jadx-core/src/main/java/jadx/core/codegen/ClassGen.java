@@ -70,6 +70,8 @@ public class ClassGen {
 	private int clsDeclOffset;
 
 	private boolean bodyGenStarted;
+	// own member classes are not in scope in class header (JLS 6.3)
+	private boolean inClassHeader;
 
 	@Nullable
 	private NameGen outerNameGen;
@@ -195,6 +197,7 @@ public class ClassGen {
 		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getClassInfo().getAliasShortName());
 
+		inClassHeader = true;
 		addGenericTypeParameters(clsCode, cls.getGenericTypeParameters(), true);
 		clsCode.add(' ');
 
@@ -224,6 +227,7 @@ public class ClassGen {
 				clsCode.add(' ');
 			}
 		}
+		inClassHeader = false;
 	}
 
 	public boolean addGenericTypeParameters(ICodeWriter code, List<ArgType> generics, boolean classDeclaration) {
@@ -760,6 +764,9 @@ public class ClassGen {
 		boolean addImport = true;
 		while (parentCls != null) {
 			if (parentCls == useCls || isClassInnerFor(useCls, parentCls)) {
+				if (inClassHeader && parentCls == useCls) {
+					clsList.add(parentCls);
+				}
 				addImport = false;
 				break;
 			}
