@@ -24,7 +24,6 @@ import jadx.api.impl.SimpleCodeWriter;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.annotations.NodeDeclareRef;
 import jadx.api.metadata.annotations.VarRef;
-import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
@@ -32,8 +31,6 @@ import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultClassAttr;
-import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
-import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.api.usage.IUsageInfoData;
@@ -71,7 +68,7 @@ public class ClassNode extends NotificationAttrNode
 	/**
 	 * This class' super class
 	 */
-	private ArgType superClass;
+	private @Nullable ArgType superClass;
 
 	/**
 	 * Interfaces this class implements
@@ -128,7 +125,7 @@ public class ClassNode extends NotificationAttrNode
 	private void load(IClassData cls, boolean reloading) {
 		try {
 			addAttrs(cls.getAttributes());
-			this.accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
+			this.accessFlags = new AccessInfo(cls.getAccessFlags(), AFType.CLASS);
 			this.superClass = checkSuperType(cls);
 			this.interfaces = Utils.collectionMap(cls.getInterfacesTypes(), ArgType::object);
 			setInputFileName(cls.getInputFileName());
@@ -138,7 +135,6 @@ public class ClassNode extends NotificationAttrNode
 			cls.visitFieldsAndMethods(fieldsConsumer, methodsConsumer);
 			this.fields = fieldsConsumer.getResult();
 			this.methods = methodsConsumer.getResult();
-			checkStaticMemberClass(cls);
 			if (reloading) {
 				restoreUsageData();
 			}
@@ -165,7 +161,7 @@ public class ClassNode extends NotificationAttrNode
 		}
 	}
 
-	private ArgType checkSuperType(IClassData cls) {
+	private @Nullable ArgType checkSuperType(IClassData cls) {
 		String superType = cls.getSuperType();
 		if (superType == null) {
 			if (clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
@@ -212,50 +208,6 @@ public class ClassNode extends NotificationAttrNode
 		// check source file attribute
 		if (!cls.checkSourceFilenameAttr()) {
 			cls.remove(JadxAttrType.SOURCE_FILE);
-		}
-	}
-
-	private int getAccessFlags(IClassData cls) {
-		InnerClassesAttr innerClassesAttr = get(JadxAttrType.INNER_CLASSES);
-		if (innerClassesAttr != null) {
-			InnerClsInfo innerClsInfo = innerClassesAttr.getMap().get(cls.getType());
-			if (innerClsInfo != null) {
-				return innerClsInfo.getAccessFlags();
-			}
-		}
-		return cls.getAccessFlags();
-	}
-
-	/**
-	 * Restore 'static' flag for member class if it was removed (for example, by R8).
-	 * Constructors of non-static member class always have outer class instance as a first argument.
-	 */
-	private void checkStaticMemberClass(IClassData cls) {
-		if (accessFlags.isStatic()) {
-			return;
-		}
-		InnerClassesAttr innerClassesAttr = get(JadxAttrType.INNER_CLASSES);
-		if (innerClassesAttr == null) {
-			return;
-		}
-		InnerClsInfo innerClsInfo = innerClassesAttr.getMap().get(cls.getType());
-		if (innerClsInfo == null || innerClsInfo.getOuterCls() == null) {
-			// not a member class (local or anonymous classes can't be static)
-			return;
-		}
-		ArgType outerType = ArgType.object(innerClsInfo.getOuterCls());
-		boolean hasConstructor = false;
-		for (MethodNode mth : methods) {
-			if (mth.isConstructor()) {
-				List<ArgType> argTypes = mth.getMethodInfo().getArgumentsTypes();
-				if (!argTypes.isEmpty() && argTypes.get(0).equals(outerType)) {
-					return;
-				}
-				hasConstructor = true;
-			}
-		}
-		if (hasConstructor) {
-			this.accessFlags = accessFlags.add(AccessFlags.STATIC);
 		}
 	}
 
