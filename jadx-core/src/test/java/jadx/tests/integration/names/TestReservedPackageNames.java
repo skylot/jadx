@@ -26,6 +26,7 @@ public class TestReservedPackageNames extends SmaliTest {
 		for (ClassNode cls : clsList) {
 			assertThat(cls).code().doesNotContain("package do.if;");
 		}
+		assertThat(searchCls(clsList, "do.sub.B")).code().containsOne("package p000do.sub;");
 	}
 
 	@Test
