@@ -2,8 +2,6 @@ package jadx.api;
 
 import java.util.List;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.info.AccessInfo;
@@ -80,10 +78,6 @@ public final class JavaField implements JavaNode {
 		return field;
 	}
 
-	/**
-	 * Internal API. Not Stable!
-	 */
-	@ApiStatus.Internal
 	public FieldNode getFieldNode() {
 		return field;
 	}
