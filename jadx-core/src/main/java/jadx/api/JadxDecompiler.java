@@ -501,10 +501,6 @@ public final class JadxDecompiler implements Closeable {
 		root.getErrorsCounter().printReport();
 	}
 
-	/**
-	 * Internal API. Not Stable!
-	 */
-	@ApiStatus.Internal
 	public RootNode getRoot() {
 		return root;
 	}
