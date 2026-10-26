@@ -188,10 +188,14 @@ final class IfRegionMaker {
 			return info;
 		}
 		// init outblock, which will be used in isBadBranchBlock to compare with branch block
-		info.setOutBlock(findOutBlock(mth, thenBlock, elseBlock));
+		BlockNode outBlock = findOutBlock(mth, thenBlock, elseBlock);
+		if (!isOutBlockInCurrentScope(outBlock)) {
+			outBlock = null;
+		}
+		info.setOutBlock(outBlock);
 
-		boolean badThen = isBadBranchBlock(info, thenBlock);
-		boolean badElse = isBadBranchBlock(info, elseBlock);
+		boolean badThen = isBadBranchBlock(block, info, thenBlock, elseBlock);
+		boolean badElse = isBadBranchBlock(block, info, elseBlock, thenBlock);
 		if (badThen && badElse) {
 			if (Consts.DEBUG_RESTRUCTURE) {
 				LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getMergedBlocks(), mth);
@@ -225,6 +229,18 @@ final class IfRegionMaker {
 			info.setOutBlock(null);
 		}
 		return info;
+	}
+
+	private boolean isOutBlockInCurrentScope(@Nullable BlockNode outBlock) {
+		if (outBlock == null) {
+			return true;
+		}
+		for (BlockNode exit : regionMaker.getStack().getExits()) {
+			if (BlockUtils.isPathExists(exit, outBlock)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	static @Nullable BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock) {
@@ -321,12 +337,12 @@ final class IfRegionMaker {
 		return true;
 	}
 
-	private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
+	private boolean isBadBranchBlock(BlockNode ifBlock, IfInfo info, BlockNode branchBlock, BlockNode siblingBlock) {
 		// check if block at end of loop edge
-		if (block.contains(AFlag.LOOP_START) && block.getPredecessors().size() == 1) {
-			BlockNode pred = block.getPredecessors().get(0);
+		if (branchBlock.contains(AFlag.LOOP_START) && branchBlock.getPredecessors().size() == 1) {
+			BlockNode pred = branchBlock.getPredecessors().get(0);
 			if (pred.contains(AFlag.LOOP_END)) {
-				List<LoopInfo> startLoops = block.getAll(AType.LOOP);
+				List<LoopInfo> startLoops = branchBlock.getAll(AType.LOOP);
 				List<LoopInfo> endLoops = pred.getAll(AType.LOOP);
 				// search for same loop
 				for (LoopInfo startLoop : startLoops) {
@@ -340,9 +356,15 @@ final class IfRegionMaker {
 		}
 		// if branch block itself is outblock
 		if (info.getOutBlock() != null) {
-			return block == info.getOutBlock();
+			return branchBlock == info.getOutBlock();
 		}
-		return !allPathsFromIf(block, info);
+		if (allPathsFromIf(branchBlock, info)) {
+			return false;
+		}
+		// An incoming edge from outside the condition doesn't make a branch an out block by itself.
+		// Promote it only when every sibling path which can fall through stays inside this if's
+		// dominated scope until it reaches the branch. Other paths may terminate or loop.
+		return isBranchContinuation(ifBlock, siblingBlock, branchBlock);
 	}
 
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
@@ -355,6 +377,37 @@ final class IfRegionMaker {
 			}
 			BlockNode top = BlockUtils.skipSyntheticPredecessor(pred);
 			if (!ifBlocks.contains(top)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isBranchContinuation(BlockNode ifBlock, BlockNode siblingBlock, BlockNode branchBlock) {
+		BitSet visited = newBlocksBitSet(mth);
+		return allFallThroughPathsLeadToBranch(ifBlock, siblingBlock, branchBlock, visited);
+	}
+
+	private boolean allFallThroughPathsLeadToBranch(
+			BlockNode ifBlock, BlockNode block, BlockNode branchBlock, BitSet visited) {
+		if (block == branchBlock || BlockUtils.isExitBlock(mth, block)) {
+			return true;
+		}
+		// Reaching a block not dominated by this if means this path escaped through a different
+		// shared target, so moving branchBlock after the if would add execution to that path.
+		if (!block.isDominator(ifBlock)) {
+			return false;
+		}
+		int pos = block.getPos();
+		if (visited.get(pos)) {
+			return true;
+		}
+		visited.set(pos);
+		for (BlockNode successor : block.getCleanSuccessors()) {
+			if (BlockUtils.isBackEdge(block, successor)) {
+				continue;
+			}
+			if (!allFallThroughPathsLeadToBranch(ifBlock, successor, branchBlock, visited)) {
 				return false;
 			}
 		}
