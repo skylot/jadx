@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -67,12 +68,12 @@ public class RenameVisitor extends AbstractVisitor {
 			// check for package directory conflicts on case insensitive filesystems
 			Set<String> pkgPaths = new HashSet<>();
 			for (PackageNode pkg : root.getPackages()) {
-				String pkgPath = pkg.getAliasPkgInfo().getFullName().toLowerCase();
+				String pkgPath = pkg.getAliasPkgInfo().getFullName().toLowerCase(Locale.ROOT);
 				if (!pkgPaths.add(pkgPath)) {
 					pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
 					pkgUpdated = true;
 					// verify the new name also doesn't conflict
-					if (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
+					if (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase(Locale.ROOT))) {
 						pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
 					}
 				}
@@ -86,11 +87,11 @@ public class RenameVisitor extends AbstractVisitor {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
 			for (ClassNode cls : classes) {
 				ClassInfo clsInfo = cls.getClassInfo();
-				if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
+				if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase(Locale.ROOT))) {
 					clsInfo.changeShortName(aliasProvider.forClass(cls));
 					cls.addAttr(new RenameReasonAttr(cls).append("case insensitive filesystem"));
 					// verify the new name also doesn't conflict
-					if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
+					if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase(Locale.ROOT))) {
 						clsInfo.changeShortName(aliasProvider.forClass(cls));
 					}
 				}
