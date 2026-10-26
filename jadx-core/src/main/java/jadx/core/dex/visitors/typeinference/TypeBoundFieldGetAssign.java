@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.List;
+
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -44,7 +46,38 @@ public final class TypeBoundFieldGetAssign implements ITypeBoundDynamic {
 		if (resultGeneric != null && !resultGeneric.isWildcard()) {
 			return resultGeneric;
 		}
-		return initType; // TODO: check if this type is allowed in current scope
+		if (initType.isGenericType() || initType.isArray()) {
+			// type variable unresolvable from the (raw) instance type: erase it (arrays element-wise)
+			// to its leftmost bound, like javac, so the result type is valid in the current scope
+			return eraseTypeVar(initType);
+		}
+		return initType;
+	}
+
+	private static ArgType eraseTypeVar(ArgType type) {
+		if (type.isArray()) {
+			// erase element, keep rank (T[] -> Object[])
+			return ArgType.array(eraseTypeVar(type.getArrayElement()));
+		}
+		if (type.isGenericType()) {
+			List<ArgType> bounds = type.getExtendTypes();
+			if (bounds.isEmpty()) {
+				return ArgType.OBJECT;
+			}
+			ArgType bound = bounds.get(0);
+			if (bound.isGenericType()) {
+				// bound is itself a type variable (<S extends T>)
+				return ArgType.OBJECT;
+			}
+			// drop type args so we don't reintroduce an out-of-scope variable (Comparable<T> -> Comparable)
+			return bound.isGeneric() ? ArgType.object(bound.getObject()) : bound;
+		}
+		if (type.isGeneric()) {
+			// parameterized element (List<T>[]) -> raw
+			return ArgType.object(type.getObject());
+		}
+		// already concrete (array element)
+		return type;
 	}
 
 	private InsnArg getInstanceArg() {
