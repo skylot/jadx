@@ -2,8 +2,10 @@ package jadx.core.dex.visitors.rename;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -59,27 +61,25 @@ public class RenameVisitor extends AbstractVisitor {
 			checkFields(aliasProvider, cls, args);
 			checkMethods(aliasProvider, cls, args);
 		}
-		boolean pkgUpdated = false;
 		for (PackageNode pkg : root.getPackages()) {
-			pkgUpdated |= checkPackage(args, aliasProvider, pkg);
+			checkPackage(args, aliasProvider, pkg);
 		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			// check for package directory conflicts on case insensitive filesystems
-			Set<String> pkgPaths = new HashSet<>();
+			// packages with exactly the same name are merged, so not a conflict
+			Map<String, String> pkgPaths = new HashMap<>();
 			for (PackageNode pkg : root.getPackages()) {
-				String pkgPath = pkg.getAliasPkgInfo().getFullName().toLowerCase();
-				if (!pkgPaths.add(pkgPath)) {
-					pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
-					pkgUpdated = true;
+				String pkgPath = pkg.getAliasPkgInfo().getFullName();
+				String prevPath = pkgPaths.putIfAbsent(pkgPath.toLowerCase(), pkgPath);
+				if (prevPath != null && !prevPath.equals(pkgPath)) {
+					pkg.setLeafAlias(aliasProvider.forPackage(pkg), true);
 					// verify the new name also doesn't conflict
-					if (!pkgPaths.add(pkg.getAliasPkgInfo().getFullName().toLowerCase())) {
-						pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
+					String newPath = pkg.getAliasPkgInfo().getFullName();
+					if (pkgPaths.putIfAbsent(newPath.toLowerCase(), newPath) != null) {
+						pkg.setLeafAlias(aliasProvider.forPackage(pkg), true);
 					}
 				}
 			}
-		}
-		if (pkgUpdated) {
-			root.runPackagesUpdate();
 		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			// check for class file conflicts on case insensitive filesystems (run after package rename)
@@ -131,19 +131,17 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean checkPackage(JadxArgs args, IAliasProvider aliasProvider, PackageNode pkg) {
+	private static void checkPackage(JadxArgs args, IAliasProvider aliasProvider, PackageNode pkg) {
 		if (args.isRenameValid() && pkg.getAliasPkgInfo().isDefaultPkg()) {
-			pkg.setFullAlias(Consts.DEFAULT_PACKAGE_NAME, false);
-			return true;
+			pkg.setFullAlias(Consts.DEFAULT_PACKAGE_NAME, true);
+			return;
 		}
 		String pkgName = pkg.getAliasPkgInfo().getName();
 		boolean notValid = args.isRenameValid() && !NameMapper.isValidIdentifier(pkgName);
 		boolean notPrintable = args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(pkgName);
 		if (notValid || notPrintable) {
-			pkg.setLeafAlias(aliasProvider.forPackage(pkg), false);
-			return true;
+			pkg.setLeafAlias(aliasProvider.forPackage(pkg), true);
 		}
-		return false;
 	}
 
 	@Nullable
