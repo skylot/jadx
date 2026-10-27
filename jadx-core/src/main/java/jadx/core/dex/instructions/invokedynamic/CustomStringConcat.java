@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import jadx.api.plugins.input.data.IMethodHandle;
+import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.api.plugins.input.data.annotations.EncodedType;
@@ -53,7 +54,7 @@ public class CustomStringConcat {
 			int argsCount = values.size() - 3 + insn.getRegsCount();
 			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount);
 			String recipe = (String) values.get(3).getValue();
-			processRecipe(recipe, concat, values, insn);
+			processRecipe(recipe, concat, values, insn, isRange);
 			int resReg = insn.getResultReg();
 			if (resReg != -1) {
 				concat.setResult(InsnArg.reg(resReg, ArgType.STRING));
@@ -67,10 +68,12 @@ public class CustomStringConcat {
 		}
 	}
 
-	private static void processRecipe(String recipe, InsnNode concat, List<EncodedValue> values, InsnData insn) {
+	private static void processRecipe(String recipe, InsnNode concat, List<EncodedValue> values, InsnData insn, boolean isRange) {
+		List<String> argTypes = ((IMethodProto) values.get(2).getValue()).getArgTypes();
 		int len = recipe.length();
 		int offset = 0;
 		int argNum = 0;
+		int regNum = 0;
 		int constNum = 4;
 		StringBuilder sb = new StringBuilder(len);
 		while (offset < len) {
@@ -84,7 +87,11 @@ public class CustomStringConcat {
 					sb.setLength(0);
 				}
 				if (argTag) {
-					concat.addArg(InsnArg.reg(insn, argNum++, ArgType.UNKNOWN));
+					int reg = isRange ? insn.getReg(0) + regNum : insn.getReg(regNum);
+					concat.addArg(InsnArg.reg(reg, ArgType.UNKNOWN));
+					// long and double arguments take two registers
+					String argType = argTypes.get(argNum++);
+					regNum += argType.equals("J") || argType.equals("D") ? 2 : 1;
 				} else {
 					InsnArg constArg = buildInsnArgFromEncodedValue(values.get(constNum++));
 					concat.addArg(constArg);
