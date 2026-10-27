@@ -33,11 +33,10 @@ class PluginApiScanTest {
 	@Test
 	void scanPlugin() throws Exception {
 		try (JadxDecompiler jadx = new JadxDecompiler(buildArgs(true))) {
-			PluginApiScan scan = new PluginApiScan();
-			scan.register(jadx);
+			PluginApiScan.register(jadx);
 			jadx.load();
 
-			ApiScanResult result = scan.getResult();
+			ApiScanResult result = ApiScanNode.getScanResult(jadx);
 			assertThat(result).isNotNull();
 			assertThat(result.getUsages())
 					.extracting(u -> u.getMth().getName(), ApiUsage::getCategory, ApiUsage::getApi)
@@ -58,11 +57,11 @@ class PluginApiScanTest {
 	@Test
 	void skipNotPlugin() throws Exception {
 		try (JadxDecompiler jadx = new JadxDecompiler(buildArgs(false))) {
-			PluginApiScan scan = new PluginApiScan();
-			scan.register(jadx);
+			PluginApiScan.register(jadx);
 			jadx.load();
 
-			assertThat(scan.getResult()).isNull();
+			ApiScanResult result = ApiScanNode.getScanResult(jadx);
+			assertThat(result).isNull();
 			JavaClass cls = jadx.searchJavaClassByOrigFullName("evil.EvilPlugin");
 			assertThat(cls.getCode()).doesNotContain("Dangerous API");
 		}

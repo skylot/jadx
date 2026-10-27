@@ -55,7 +55,6 @@ public class JadxWrapper {
 	private static final Object DECOMPILER_UPDATE_SYNC = new Object();
 
 	private final MainWindow mainWindow;
-	private final PluginApiScan pluginApiScan = new PluginApiScan();
 	private volatile @Nullable JadxDecompiler decompiler;
 
 	public JadxWrapper(MainWindow mainWindow) {
@@ -78,7 +77,7 @@ public class JadxWrapper {
 				guiPluginsManager.initGuiPluginsContext(decompiler.getPluginManager(), jadxArgs, false);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);
-				pluginApiScan.register(decompiler);
+				PluginApiScan.register(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
 				decompiler.load();
 			}
@@ -106,7 +105,6 @@ public class JadxWrapper {
 					decompiler.close();
 					decompiler = null;
 				}
-				pluginApiScan.reset();
 				mainWindow.getGuiPluginsManager().resetProjectScope();
 			}
 		} catch (Exception e) {
@@ -304,10 +302,6 @@ public class JadxWrapper {
 
 	public CacheObject getCache() {
 		return mainWindow.getCacheObject();
-	}
-
-	public PluginApiScan getPluginApiScan() {
-		return pluginApiScan;
 	}
 
 	/**

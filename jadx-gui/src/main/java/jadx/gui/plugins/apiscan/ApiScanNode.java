@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import javax.swing.Icon;
@@ -15,8 +16,10 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.plugins.JadxPluginManager;
 import jadx.core.utils.Utils;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -26,6 +29,8 @@ import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.UiUtils;
 
+// TODO: result search will be not needed after implementing plugins API for adding tree nodes,
+// and this node will be added from plugin
 public class ApiScanNode extends JNode {
 	private static final long serialVersionUID = 2381706245318843452L;
 
@@ -36,11 +41,25 @@ public class ApiScanNode extends JNode {
 	private final String html;
 
 	public static @Nullable ApiScanNode build(MainWindow mainWindow) {
-		ApiScanResult result = mainWindow.getWrapper().getPluginApiScan().getResult();
+		Optional<JadxDecompiler> decompilerOptional = mainWindow.getWrapper().getCurrentDecompiler();
+		if (decompilerOptional.isEmpty()) {
+			return null;
+		}
+		ApiScanResult result = getScanResult(decompilerOptional.get());
 		if (result == null) {
 			return null;
 		}
 		return new ApiScanNode(mainWindow, result);
+	}
+
+	public static @Nullable ApiScanResult getScanResult(JadxDecompiler decompiler) {
+		JadxPluginManager pluginManager = decompiler.getPluginManager();
+		return pluginManager.getResolvedPlugins().stream()
+				.filter(p -> p.getPluginInstance().getClass().equals(PluginApiScan.class))
+				.findFirst()
+				.map(p -> (PluginApiScan) p.getPluginInstance())
+				.map(PluginApiScan::getResult)
+				.orElse(null);
 	}
 
 	private ApiScanNode(MainWindow mainWindow, ApiScanResult result) {

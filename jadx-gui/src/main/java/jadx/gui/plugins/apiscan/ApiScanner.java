@@ -2,17 +2,20 @@ package jadx.gui.plugins.apiscan;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodRef;
@@ -75,6 +78,8 @@ public final class ApiScanner {
 			rule(EXIT, "java.lang.System", "exit"),
 			rule(EXIT, "java.lang.Runtime", "exit", "halt"));
 
+	private static final Map<String, List<ApiRule>> RULES_MAP = RULES.stream().collect(Collectors.groupingBy(rule -> rule.cls));
+
 	private final RootNode root;
 	private final Map<String, List<ApiRule>> rulesCache = new HashMap<>();
 	private final Set<ApiUsage> usages = new LinkedHashSet<>();
@@ -124,8 +129,15 @@ public final class ApiScanner {
 			}
 			case CALL_SITE: {
 				insn.decode();
-				IMethodHandle methodHandle = InsnDataUtils.getMethodHandleAt(InsnDataUtils.getCallSite(insn), 4);
-				return methodHandle != null ? methodHandle.getMethodRef() : null;
+				ICallSite callSite = InsnDataUtils.getCallSite(insn);
+				if (callSite == null) {
+					return null;
+				}
+				IMethodHandle methodHandle = InsnDataUtils.getMethodHandleAt(callSite, 4);
+				if (methodHandle == null) {
+					return null;
+				}
+				return methodHandle.getMethodRef();
 			}
 			default:
 				return null;
@@ -134,28 +146,34 @@ public final class ApiScanner {
 
 	private void checkCall(MethodNode mth, MethodInfo calledMth) {
 		ClassInfo declCls = calledMth.getDeclClass();
-		String mthName = calledMth.getName();
 		for (ApiRule rule : getRules(declCls.getRawName())) {
-			if (rule.matches(mthName)) {
+			if (rule.matches(calledMth.getName())) {
 				String api = calledMth.isConstructor()
 						? "new " + declCls.getFullName()
-						: declCls.getFullName() + '.' + mthName;
+						: declCls.getFullName() + '.' + calledMth.getName();
 				usages.add(new ApiUsage(mth, rule.getCategory(), api));
 			}
 		}
 	}
 
+	/**
+	 * Assume rules contains only classes and not interfaces,
+	 * so one app class can match only to one rule class (from current or super class),
+	 * but since one class can be used in several rules we still needs a list.
+	 */
 	private List<ApiRule> getRules(String clsName) {
 		return rulesCache.computeIfAbsent(clsName, name -> {
-			Set<String> types = new HashSet<>(root.getClsp().getSuperTypes(name));
-			types.add(name);
-			List<ApiRule> list = new ArrayList<>();
-			for (ApiRule rule : RULES) {
-				if (types.contains(rule.getCls())) {
-					list.add(rule);
+			List<ApiRule> baseRules = RULES_MAP.get(name);
+			if (baseRules != null) {
+				return baseRules;
+			}
+			for (String superType : root.getClsp().getSuperTypes(name)) {
+				List<ApiRule> rules = RULES_MAP.get(superType);
+				if (rules != null) {
+					return rules;
 				}
 			}
-			return list;
+			return Collections.emptyList();
 		});
 	}
 
