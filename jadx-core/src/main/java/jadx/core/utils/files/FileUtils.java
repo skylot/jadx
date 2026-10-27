@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -450,7 +451,7 @@ public class FileUtils {
 
 	public static boolean hasExtension(Path path, String extension) {
 		String fileName = path.getFileName().toString();
-		return fileName.toLowerCase().endsWith(extension);
+		return fileName.toLowerCase(Locale.ROOT).endsWith(extension);
 	}
 
 	public static File toFile(String path) {

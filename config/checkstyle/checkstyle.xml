@@ -137,6 +137,13 @@
 			<property name="message"
 					  value="Using Throwable.printStackTrace() is forbidden. Use logger to print exception"/>
 		</module>
+		<module name="RegexpSinglelineJava">
+			<property name="id" value="string-change-case"/>
+			<property name="format" value="\.(toLowerCase|toUpperCase)\(\)"/>
+			<property name="ignoreComments" value="true"/>
+			<property name="message"
+					  value="Use Locale.ROOT as an argument for toLowerCase() or toUpperCase()."/>
+		</module>
 	</module>
 
 	<module name="NewlineAtEndOfFile"/>

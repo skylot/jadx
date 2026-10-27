@@ -3,6 +3,7 @@ package jadx.core.deobf;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,7 +78,7 @@ public class FileTypeDetector {
 		}
 		Matcher m = DOCTYPE_PATTERN.matcher(text);
 		if (m.lookingAt()) {
-			return "." + m.group(1).toLowerCase();
+			return "." + m.group(1).toLowerCase(Locale.ROOT);
 		}
 
 		try {

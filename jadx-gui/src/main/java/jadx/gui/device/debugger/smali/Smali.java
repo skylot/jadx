@@ -547,7 +547,7 @@ public class Smali {
 				.add(" ");
 		AnnotationVisibility vby = anno.getVisibility();
 		if (vby != null) {
-			smali.add(vby.toString().toLowerCase()).add(" ");
+			smali.add(vby.toString().toLowerCase(Locale.ROOT)).add(" ");
 		}
 		smali.add(anno.getAnnotationClass());
 		anno.getValues().forEach((k, v) -> {

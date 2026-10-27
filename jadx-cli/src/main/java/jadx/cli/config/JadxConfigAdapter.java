@@ -2,6 +2,7 @@ package jadx.cli.config;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -98,7 +99,7 @@ public class JadxConfigAdapter<T extends IJadxConfig> {
 			return JadxCommonFiles.getConfigDir().resolve(defaultConfigFileName);
 		}
 		if (configRef.contains("/") || configRef.contains("\\")) {
-			if (!configRef.toLowerCase().endsWith(".json")) {
+			if (!configRef.toLowerCase(Locale.ROOT).endsWith(".json")) {
 				throw new JadxArgsValidateException("Config file extension should be '.json'");
 			}
 			return Path.of(configRef);

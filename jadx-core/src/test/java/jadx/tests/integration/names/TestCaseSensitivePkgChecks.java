@@ -1,6 +1,7 @@
 package jadx.tests.integration.names;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +26,7 @@ public class TestCaseSensitivePkgChecks extends SmaliTest {
 
 		// all package paths must be distinct when lowercased (no two classes share same dir)
 		long distinctPkgPaths = classes.stream()
-				.map(cls -> cls.getClassInfo().getAliasFullPath().toLowerCase())
+				.map(cls -> cls.getClassInfo().getAliasFullPath().toLowerCase(Locale.ROOT))
 				.distinct()
 				.count();
 		assertThat(distinctPkgPaths).isEqualTo(2L);

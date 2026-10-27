@@ -1,6 +1,7 @@
 package jadx.tests.integration.names;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ public class TestCaseSensitiveChecks extends SmaliTest {
 		for (ClassNode cls : classes) {
 			assertThat(cls.getPackage()).isEqualTo(Consts.DEFAULT_PACKAGE_NAME);
 		}
-		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase()).distinct().count();
+		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase(Locale.ROOT)).distinct().count();
 		assertThat(namesCount).isEqualTo(2L);
 	}
 
@@ -50,7 +51,7 @@ public class TestCaseSensitiveChecks extends SmaliTest {
 			assertThat(cls.getPackage()).isNotEmpty();
 			assertThat(cls.getPackage()).isNotEqualTo(Consts.DEFAULT_PACKAGE_NAME);
 		}
-		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase()).distinct().count();
+		long namesCount = classes.stream().map(cls -> cls.getAlias().toLowerCase(Locale.ROOT)).distinct().count();
 		assertThat(namesCount).isEqualTo(2L);
 	}
 }
