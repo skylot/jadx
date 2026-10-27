@@ -5,6 +5,7 @@ import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.exbin.auxiliary.binary_data.BinaryData;
@@ -170,7 +171,7 @@ public class BinarySearchServiceImpl implements BinarySearchService {
 		if (searchParameters.isMatchCase()) {
 			findText = condition.getSearchText();
 		} else {
-			findText = condition.getSearchText().toLowerCase();
+			findText = condition.getSearchText().toLowerCase(Locale.ROOT);
 		}
 		long searchDataSize = findText.length();
 		BinaryData data = codeArea.getContentData();

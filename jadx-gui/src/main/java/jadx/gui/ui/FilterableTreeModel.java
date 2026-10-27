@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -205,7 +206,7 @@ class FilterableTreeModel extends DefaultTreeModel {
 				LOG.warn("Node {} has null UI string", node);
 				return false;
 			}
-			return name.toLowerCase().contains(filter.toLowerCase());
+			return name.toLowerCase(Locale.ROOT).contains(filter.toLowerCase(Locale.ROOT));
 		}
 		return false;
 	}
