@@ -497,11 +497,19 @@ public class SimplifyVisitor extends AbstractVisitor {
 	 * Remove and unbind all instructions with StringBuilder
 	 */
 	private static void removeStringBuilderInsns(MethodNode mth, InvokeNode toStrInsn, List<InsnNode> chain) {
+		BlockNode block = BlockUtils.getBlockByInsn(mth, toStrInsn);
+		InsnRemover insnRemover;
+		if (block != null && chain.stream().allMatch(insn -> BlockUtils.blockContains(block, insn))) {
+			// The entire chain is replaced in the same block, including all its duplicated occurrences.
+			insnRemover = new InsnRemover(mth, block);
+		} else {
+			// Keep removal diagnostics for chains spanning multiple blocks or wrapped instructions.
+			insnRemover = new InsnRemover(mth);
+		}
 		InsnRemover.unbindAllArgs(mth, toStrInsn);
 		for (InsnNode insnNode : chain) {
 			InsnRemover.unbindAllArgs(mth, insnNode);
 		}
-		InsnRemover insnRemover = new InsnRemover(mth);
 		for (InsnNode insnNode : chain) {
 			if (insnNode != toStrInsn) {
 				insnRemover.addAndUnbind(insnNode);

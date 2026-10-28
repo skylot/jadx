@@ -1,0 +1,37 @@
+.version 52
+.class public others/TestStringBuilderCrossBlock
+.auto frames
+
+.method public static test(ZZLjava/lang/String;)Ljava/lang/String;
+    iload 0
+    ifne :body
+    aload 2
+    astore 3
+    iload 1
+    ifeq :end
+  :body
+    new java/lang/StringBuilder
+    dup
+    invokespecial java/lang/StringBuilder <init> ()V
+    astore 3
+    aload 3
+    aload 2
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    pop
+    aload 3
+    ldc ".bin"
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    pop
+    iload 1
+    ifeq :toString
+    getstatic java/lang/System out Ljava/io/PrintStream;
+    ldc "side effect"
+    invokevirtual java/io/PrintStream println (Ljava/lang/String;)V
+  :toString
+    aload 3
+    invokevirtual java/lang/StringBuilder toString ()Ljava/lang/String;
+    astore 3
+  :end
+    aload 3
+    areturn
+.end method
