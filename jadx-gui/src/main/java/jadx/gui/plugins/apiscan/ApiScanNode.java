@@ -70,15 +70,33 @@ public class ApiScanNode extends JNode {
 	private String buildHtml(ApiScanResult result) {
 		StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 		builder.append("<html><body>");
-		builder.append("<h2>Dangerous API usage</h2>");
+		builder.append("<h1>Dangerous API usage</h1>");
 		builder.append("<p>Opened file is a jadx plugin, check these calls during plugin review.<br>");
-		builder.append("This is a simple scan: it can miss calls hidden by reflection or obfuscation,"
-				+ " and calls from bundled libraries are included.</p>");
-		Map<ApiCategory, Map<String, List<MethodNode>>> usages = groupUsages(result);
-		if (usages.isEmpty()) {
+		builder.append("Calls reachable from plugin entry classes are listed first,"
+				+ " but malicious code can be added into any class, so check other code too.<br>");
+		builder.append("This is a simple scan: it can miss calls hidden by reflection or obfuscation.</p>");
+		List<ApiUsage> reachable = new ArrayList<>();
+		List<ApiUsage> other = new ArrayList<>();
+		for (ApiUsage usage : result.getUsages()) {
+			if (result.isReachable(usage)) {
+				reachable.add(usage);
+			} else {
+				other.add(usage);
+			}
+		}
+		addSection(builder, "Reachable from plugin entry", reachable);
+		addSection(builder, "Other code", other);
+		builder.append("</body></html>");
+		return builder.toString();
+	}
+
+	private void addSection(StringEscapeUtils.Builder builder, String title, List<ApiUsage> usages) {
+		builder.append("<h2>").escape(title).append("</h2>");
+		Map<ApiCategory, Map<String, List<MethodNode>>> groupedUsages = groupUsages(usages);
+		if (groupedUsages.isEmpty()) {
 			builder.append("<p>No dangerous API calls found</p>");
 		}
-		usages.forEach((category, apiMap) -> {
+		groupedUsages.forEach((category, apiMap) -> {
 			builder.append("<h3>").escape(category.getTitle()).append("</h3>");
 			builder.append("<ul>");
 			apiMap.forEach((api, methods) -> {
@@ -94,13 +112,11 @@ public class ApiScanNode extends JNode {
 			});
 			builder.append("</ul>");
 		});
-		builder.append("</body></html>");
-		return builder.toString();
 	}
 
-	private static Map<ApiCategory, Map<String, List<MethodNode>>> groupUsages(ApiScanResult result) {
+	private static Map<ApiCategory, Map<String, List<MethodNode>>> groupUsages(List<ApiUsage> usages) {
 		Map<ApiCategory, Map<String, List<MethodNode>>> map = new EnumMap<>(ApiCategory.class);
-		for (ApiUsage usage : result.getUsages()) {
+		for (ApiUsage usage : usages) {
 			map.computeIfAbsent(usage.getCategory(), c -> new TreeMap<>())
 					.computeIfAbsent(usage.getApi(), a -> new ArrayList<>())
 					.add(usage.getMth());
