@@ -42,6 +42,8 @@ public class BlockProcessor extends AbstractVisitor {
 
 	private static final boolean DEBUG_MODS = false;
 
+	private static final int LOOP_EXIT_TAIL_MAX_INSNS = 4;
+
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
@@ -646,6 +648,8 @@ public class BlockProcessor extends AbstractVisitor {
 		for (BlockNode preExitBlock : mth.getPreExitBlocks()) {
 			if (splitReturn(mth, preExitBlock)) {
 				changed = true;
+			} else if (splitLoopExitTail(mth, preExitBlock)) {
+				changed = true;
 			} else if (splitThrow(mth, preExitBlock)) {
 				changed = true;
 			}
@@ -709,6 +713,120 @@ public class BlockProcessor extends AbstractVisitor {
 					newRetBlock.getInstructions().add(copyInsn);
 				}
 				BlockSplitter.replaceConnection(pred, returnBlock, newRetBlock);
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Copy a short tail ending with return for predecessors inside a loop
+	 * if the same tail is also reached from outside that loop.
+	 * Such exit can't be expressed with 'break' (shared code from optimized dex).
+	 */
+	private static boolean splitLoopExitTail(MethodNode mth, BlockNode returnBlock) {
+		if (returnBlock.contains(AFlag.SYNTHETIC) || returnBlock.contains(AType.EXC_HANDLER)
+				|| !returnBlock.isReturnBlock()) {
+			return false;
+		}
+		List<BlockNode> tail = new ArrayList<>();
+		tail.add(returnBlock);
+		int insnsCount = returnBlock.getInstructions().size();
+		BlockNode tailStart = returnBlock;
+		while (tailStart.getPredecessors().size() == 1) {
+			BlockNode pred = tailStart.getPredecessors().get(0);
+			insnsCount += pred.getInstructions().size();
+			if (pred.getSuccessors().size() != 1
+					|| pred == mth.getEnterBlock()
+					|| pred.contains(AFlag.SYNTHETIC)
+					|| pred.contains(AType.EXC_HANDLER)
+					|| insnsCount > LOOP_EXIT_TAIL_MAX_INSNS) {
+				return false;
+			}
+			tail.add(0, pred);
+			tailStart = pred;
+		}
+		List<BlockNode> preds = tailStart.getPredecessors();
+		if (tail.size() < 2 || preds.size() < 2) {
+			return false;
+		}
+		List<BlockNode> inLoopPreds = new ArrayList<>();
+		for (BlockNode pred : preds) {
+			if (isLoopBodyExit(mth, pred, tailStart)) {
+				inLoopPreds.add(pred);
+			}
+		}
+		if (inLoopPreds.isEmpty() || inLoopPreds.size() == preds.size()) {
+			return false;
+		}
+		for (BlockNode pred : inLoopPreds) {
+			BlockNode tailCopyStart = null;
+			BlockNode prevCopy = null;
+			for (BlockNode block : tail) {
+				BlockNode copy = BlockSplitter.startNewBlock(mth, -1);
+				copy.add(AFlag.SYNTHETIC);
+				if (block == returnBlock) {
+					copy.add(AFlag.RETURN);
+				}
+				for (InsnNode oldInsn : block.getInstructions()) {
+					InsnNode copyInsn = oldInsn.copyWithoutSsa();
+					copyInsn.add(AFlag.SYNTHETIC);
+					copy.getInstructions().add(copyInsn);
+				}
+				if (prevCopy == null) {
+					tailCopyStart = copy;
+				} else {
+					connect(prevCopy, copy);
+				}
+				prevCopy = copy;
+			}
+			BlockSplitter.replaceConnection(pred, tailStart, tailCopyStart);
+		}
+		return true;
+	}
+
+	/**
+	 * Check if the straight path ending at {@code block} leaves a loop from its body
+	 * (not by the loop condition) while {@code tailStart} is also reachable bypassing that loop.
+	 */
+	private static boolean isLoopBodyExit(MethodNode mth, BlockNode block, BlockNode tailStart) {
+		BlockNode cur = block;
+		for (int i = 0; i < LOOP_EXIT_TAIL_MAX_INSNS; i++) {
+			for (BlockNode loopStart : mth.getBasicBlocks()) {
+				if (!loopStart.contains(AFlag.LOOP_START)) {
+					continue;
+				}
+				for (LoopInfo loop : loopStart.getAll(AType.LOOP)) {
+					Set<BlockNode> loopBlocks = loop.getLoopBlocks();
+					if (loopBlocks.contains(tailStart) || tailStart.isDominator(loop.getStart())
+							|| isLoopConditionExitTo(loop, tailStart)) {
+						continue;
+					}
+					for (BlockNode pred : cur.getPredecessors()) {
+						if (loopBlocks.contains(pred) && pred != loop.getStart() && pred != loop.getEnd()) {
+							return true;
+						}
+					}
+				}
+			}
+			List<BlockNode> preds = cur.getPredecessors();
+			if (preds.size() != 1) {
+				return false;
+			}
+			cur = preds.get(0);
+			if (cur.getSuccessors().size() != 1) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * All loop exits lead to the same tail, so it is a normal loop exit and 'break' can be used
+	 */
+	private static boolean isLoopConditionExitTo(LoopInfo loop, BlockNode tailStart) {
+		for (Edge exitEdge : loop.getExitEdges()) {
+			if (!BlockUtils.isAnyPathExists(exitEdge.getTarget(), tailStart)) {
+				return false;
 			}
 		}
 		return true;
