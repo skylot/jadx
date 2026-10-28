@@ -157,23 +157,16 @@ public final class ApiScanner {
 	}
 
 	/**
-	 * Assume rules contains only classes and not interfaces,
-	 * so one app class can match only to one rule class (from current or super class),
-	 * but since one class can be used in several rules we still needs a list.
+	 * Rule classes can extend each other (like {@code Method} and {@code AccessibleObject}),
+	 * so collect rules from current class and all super classes.
 	 */
 	private List<ApiRule> getRules(String clsName) {
 		return rulesCache.computeIfAbsent(clsName, name -> {
-			List<ApiRule> baseRules = RULES_MAP.get(name);
-			if (baseRules != null) {
-				return baseRules;
-			}
+			List<ApiRule> list = new ArrayList<>(RULES_MAP.getOrDefault(name, Collections.emptyList()));
 			for (String superType : root.getClsp().getSuperTypes(name)) {
-				List<ApiRule> rules = RULES_MAP.get(superType);
-				if (rules != null) {
-					return rules;
-				}
+				list.addAll(RULES_MAP.getOrDefault(superType, Collections.emptyList()));
 			}
-			return Collections.emptyList();
+			return list;
 		});
 	}
 
