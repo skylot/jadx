@@ -44,6 +44,7 @@ class PluginApiScanTest {
 							tuple("run", PROCESS, "java.lang.Runtime.exec"),
 							tuple("run", PROCESS, "java.lang.ProcessBuilder.start"),
 							tuple("run", REFLECTION, "java.lang.reflect.Field.setAccessible"),
+							tuple("run", REFLECTION, "java.lang.reflect.Method.setAccessible"),
 							tuple("run", FILES, "java.nio.file.Files.readAllBytes"),
 							tuple("exitLater", EXIT, "java.lang.System.exit"));
 
@@ -73,6 +74,7 @@ class PluginApiScanTest {
 		Files.write(srcFile, Arrays.asList(
 				"package evil;",
 				"import java.lang.reflect.Field;",
+				"import java.lang.reflect.Method;",
 				"import java.nio.file.Files;",
 				"import java.nio.file.Paths;",
 				"import java.util.function.IntConsumer;",
@@ -82,6 +84,8 @@ class PluginApiScanTest {
 				"		new ProcessBuilder(\"calc\").start();",
 				"		Field field = String.class.getDeclaredField(\"value\");",
 				"		field.setAccessible(true);",
+				"		Method method = Object.class.getDeclaredMethod(\"clone\");",
+				"		method.setAccessible(true);",
 				"		Files.readAllBytes(Paths.get(\"secret\"));",
 				"	}",
 				"	public IntConsumer exitLater() {",
