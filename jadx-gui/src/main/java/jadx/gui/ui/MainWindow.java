@@ -121,6 +121,7 @@ import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
 import jadx.gui.plugins.GuiPluginsManager;
+import jadx.gui.plugins.apiscan.ApiScanNode;
 import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
@@ -703,6 +704,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private void addTreeCustomNodes() {
 		treeRoot.replaceCustomNode(ApkSignatureNode.getApkSignature(wrapper));
 		treeRoot.replaceCustomNode(new SummaryNode(this));
+		treeRoot.replaceCustomNode(ApiScanNode.build(this));
 	}
 
 	private boolean ensureProjectIsSaved() {
