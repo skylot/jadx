@@ -1,8 +1,10 @@
 package jadx.gui.plugins.apiscan;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -81,11 +83,13 @@ public final class ApiScanner {
 	private static final Map<String, List<ApiRule>> RULES_MAP = RULES.stream().collect(Collectors.groupingBy(rule -> rule.cls));
 
 	private final RootNode root;
+	private final List<String> entryClasses;
 	private final Map<String, List<ApiRule>> rulesCache = new HashMap<>();
 	private final Set<ApiUsage> usages = new LinkedHashSet<>();
 
-	public ApiScanner(RootNode root) {
+	public ApiScanner(RootNode root, List<String> entryClasses) {
 		this.root = root;
+		this.entryClasses = entryClasses;
 	}
 
 	public ApiScanResult scan() {
@@ -98,7 +102,43 @@ public final class ApiScanner {
 				}
 			}
 		}
-		return new ApiScanResult(new ArrayList<>(usages));
+		return new ApiScanResult(new ArrayList<>(usages), collectReachable());
+	}
+
+	/**
+	 * Methods reachable by calls from plugin entry classes.
+	 * Anonymous class constructor also reach all class methods to include callbacks.
+	 */
+	private Set<MethodNode> collectReachable() {
+		Set<MethodNode> reachable = new HashSet<>();
+		Deque<MethodNode> queue = new ArrayDeque<>();
+		for (String clsName : entryClasses) {
+			ClassNode cls = root.resolveRawClass(clsName);
+			if (cls != null) {
+				addClass(cls, reachable, queue);
+			}
+		}
+		while (!queue.isEmpty()) {
+			for (MethodNode used : queue.poll().getUsed()) {
+				addMethod(used, reachable, queue);
+				ClassNode usedCls = used.getParentClass();
+				if (usedCls.isAnonymous() && used.getMethodInfo().isConstructor()) {
+					usedCls.getMethods().forEach(mth -> addMethod(mth, reachable, queue));
+				}
+			}
+		}
+		return reachable;
+	}
+
+	private static void addClass(ClassNode cls, Set<MethodNode> reachable, Deque<MethodNode> queue) {
+		cls.getMethods().forEach(mth -> addMethod(mth, reachable, queue));
+		cls.getInnerClasses().forEach(innerCls -> addClass(innerCls, reachable, queue));
+	}
+
+	private static void addMethod(MethodNode mth, Set<MethodNode> reachable, Deque<MethodNode> queue) {
+		if (reachable.add(mth)) {
+			queue.add(mth);
+		}
 	}
 
 	private void scanMethod(MethodNode mth) {

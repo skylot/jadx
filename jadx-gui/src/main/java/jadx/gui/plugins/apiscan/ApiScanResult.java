@@ -5,20 +5,28 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jadx.core.dex.nodes.MethodNode;
 
 public final class ApiScanResult {
 	private final List<ApiUsage> usages;
+	private final Set<MethodNode> reachable;
 	private final Map<MethodNode, List<String>> comments;
 
-	public ApiScanResult(List<ApiUsage> usages) {
+	public ApiScanResult(List<ApiUsage> usages, Set<MethodNode> reachable) {
 		this.usages = Collections.unmodifiableList(usages);
+		this.reachable = reachable;
 		this.comments = buildComments(usages);
 	}
 
 	public List<ApiUsage> getUsages() {
 		return usages;
+	}
+
+	// Check if usage is reachable by calls from plugin entry classes
+	public boolean isReachable(ApiUsage usage) {
+		return reachable.contains(usage.getMth());
 	}
 
 	public List<String> getComments(MethodNode mth) {
