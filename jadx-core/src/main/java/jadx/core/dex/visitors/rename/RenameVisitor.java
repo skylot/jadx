@@ -268,11 +268,12 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private static String makeFieldAlias(FieldNode field, Set<String> occupied) {
-		String base = NameMapper.removeInvalidChars(field.getAlias(), "f") + "$field";
-		String alias = base;
-		int index = 2;
+		String name = NameMapper.removeInvalidCharsMiddle(field.getAlias());
+		// Probe per name so other field repairs don't affect the index.
+		int index = 0;
+		String alias = "f" + index++ + name;
 		while (!occupied.add(alias)) {
-			alias = base + index++;
+			alias = "f" + index++ + name;
 		}
 		return alias;
 	}

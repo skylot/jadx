@@ -38,15 +38,15 @@ public class TestClassLocalNames extends SmaliTest {
 		JadxCodeData mappings = new JadxCodeData();
 		mappings.setRenames(Arrays.asList(
 				new JadxCodeRename(new JadxNodeRef(RefType.CLASS, rawName, null), "local.Subject"),
-				new JadxCodeRename(new JadxNodeRef(RefType.FIELD, rawName, "mapped:I"), "i2$field3")));
+				new JadxCodeRename(new JadxNodeRef(RefType.FIELD, rawName, "mapped:I"), "f2i2")));
 		args.setCodeData(mappings);
 
 		List<File> inputs = new ArrayList<>();
 		inputs.add(smali("Subject", ".class public L" + pkg + "/Subject;\n"
 				+ ".super Ljava/lang/Object;\n"
 				+ ".field public c:I\n.field public g:I\n.field public j:I\n"
-				+ ".field public i2:I\n.field public i2$field:I\n.field public i2$field2:I\n.field public mapped:I\n"
-				+ ".field public duplicate:I\n.field public duplicate:J\n.field public duplicate$field:I\n"
+				+ ".field public i2:I\n.field public f0i2:I\n.field public f1i2:I\n.field public mapped:I\n"
+				+ ".field public duplicate:I\n.field public duplicate:J\n.field public f0duplicate:I\n"
 				+ ".method public static factory(ILjava/lang/String;IIII)I\n"
 				+ "    .registers 7\n"
 				+ "    invoke-virtual {p1}, Ljava/lang/String;->length()I\n"
@@ -92,12 +92,12 @@ public class TestClassLocalNames extends SmaliTest {
 				.containsOne("public int c;")
 				.containsOne("public int g;")
 				.containsOne("public int j;")
-				.containsOne("public int i2$field4;")
-				.containsOne("public int i2$field3;")
-				.containsOne("public long duplicate$field2;")
-				.containsOne(".i2$field;")
+				.containsOne("public int f3i2;")
+				.containsOne("public int f2i2;")
+				.containsOne("public long f1duplicate;")
+				.containsOne(".f0i2;")
 				.containsOne("return i2.Helper.call();");
-		assertThat(caller).code().containsOne(".i2$field4;");
+		assertThat(caller).code().containsOne(".f3i2;");
 	}
 
 	@ParameterizedTest
@@ -151,11 +151,11 @@ public class TestClassLocalNames extends SmaliTest {
 		decompileAndCheck(root.getClasses(false));
 		assertThat(root.resolveClass("local.Scope")).code()
 				.containsOne("literal(int i, int i6, int i7, int i8)")
-				.containsOne("public int i2$field;")
-				.containsOne("public int i3$field;")
-				.containsOne("public int i4$field;")
-				.containsOne("public int i5$field;")
-				.containsOne(imports ? "public int Long$field;" : "public int Long;")
+				.containsOne("public int f0i2;")
+				.containsOne("public int f0i3;")
+				.containsOne("public int f0i4;")
+				.containsOne("public int f0i5;")
+				.containsOne(imports ? "public int f0Long;" : "public int Long;")
 				.containsOne("Long.MAX_VALUE");
 	}
 

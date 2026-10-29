@@ -41,9 +41,9 @@ public class TestDuplicatedNames extends SmaliTest {
 		assertThat(getClassNodeFromSmaliWithPath("names", "TestDuplicatedNames"))
 				.code()
 				.containsOne("Object fieldName;")
-				.containsOne("String fieldName$field")
-				.containsOne("this.fieldName;")
-				.containsOne("this.fieldName$field")
+				.containsOne("String f0fieldName")
+				.containsOne("this.fieldName")
+				.containsOne("this.f0fieldName")
 				.containsOne("public Object run() {")
 				.containsOne("public String m0run() {");
 	}
