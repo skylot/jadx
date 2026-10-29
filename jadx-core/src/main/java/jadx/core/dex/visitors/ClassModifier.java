@@ -59,7 +59,9 @@ public class ClassModifier extends AbstractVisitor {
 			visit(inner);
 		}
 		if (isEmptySyntheticClass(cls)) {
-			cls.add(AFlag.DONT_GENERATE);
+			if (!cls.root().getArgs().isShowEmptySyntheticClasses()) {
+				cls.add(AFlag.DONT_GENERATE);
+			}
 			return false;
 		}
 		removeSyntheticFields(cls);
@@ -68,6 +70,9 @@ public class ClassModifier extends AbstractVisitor {
 		return false;
 	}
 
+	/**
+	 * Structural check also used for constructor cleanup, independent of class output settings.
+	 */
 	private static boolean isEmptySyntheticClass(ClassNode cls) {
 		return cls.getAccessFlags().isSynthetic()
 				&& cls.getFields().isEmpty()

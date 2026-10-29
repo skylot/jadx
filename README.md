@@ -99,6 +99,7 @@ options:
                                                    'simple' - simplified instructions (linear, with goto's)
                                                    'fallback' - raw instructions without modifications
   --show-bad-code                               - show inconsistent code (incorrectly decompiled)
+  --show-empty-synthetic-classes                - show empty synthetic classes (hidden by default)
   --no-xml-pretty-print                         - do not prettify XML
   --no-imports                                  - disable use of imports, always write entire package name
   --no-debug-info                               - disable debug info parsing and processing
@@ -214,6 +215,12 @@ Examples:
   jadx -Pdex-input.verify-checksum=no app.apk
 ```
 These options also work in jadx-gui when it is run from the command line, and they override the options from the preferences dialog
+
+Use `--show-empty-synthetic-classes` to include declarations for synthetic classes with no fields, methods or inner classes.
+This is useful when comparing mapped source trees between application versions. Declarations use the normal class names,
+mappings, modifiers and hierarchy. Inner classes appear inside their parent by default; combine with
+`--no-move-inner-classes` to save them as separate source files. Synthetic constructor cleanup still applies.
+The option is disabled by default and is also available as **Show empty synthetic classes** in the GUI decompilation preferences.
 
 Usage for the `plugins` command
 ```
