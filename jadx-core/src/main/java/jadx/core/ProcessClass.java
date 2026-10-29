@@ -13,6 +13,7 @@ import jadx.api.DecompilationMode;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.core.codegen.ClassNames;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -124,6 +125,7 @@ public class ProcessClass {
 					process(codegenDep, false);
 				}
 			}
+			prepareNames(cls);
 			ICodeInfo code = process(cls, true);
 			if (code == null) {
 				throw new JadxRuntimeException("Codegen failed");
@@ -132,6 +134,36 @@ public class ProcessClass {
 		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}
+	}
+
+	private void prepareNames(ClassNode cls) {
+		ClassNames names = collectNames(cls);
+		// Collection depends on type names, not on the aliases of referenced fields.
+		// Only direct field owners need finalizing before emitting this compilation unit.
+		// No class lock is held here, and cyclic field references need no recursive processing.
+		for (ClassNode owner : names.getFieldOwners()) {
+			collectNames(owner);
+		}
+	}
+
+	private ClassNames collectNames(ClassNode cls) {
+		cls = cls.getTopParentClass();
+		ClassNames names = cls.root().getCacheStorage().getClassNames(cls);
+		if (names == null) {
+			process(cls, false);
+			// Anonymous and inlined code must be ready before walking the renderer.
+			for (ClassNode dep : cls.getCodegenDeps()) {
+				process(dep, false);
+			}
+			synchronized (cls.getClassInfo()) {
+				names = cls.root().getCacheStorage().getClassNames(cls);
+				if (names == null) {
+					ClassNames.collect(cls);
+					names = cls.root().getCacheStorage().getClassNames(cls);
+				}
+			}
+		}
+		return names;
 	}
 
 	/**
@@ -155,6 +187,7 @@ public class ProcessClass {
 	 */
 	public @Nullable ICodeInfo forceGenerateCode(ClassNode cls) {
 		try {
+			prepareNames(cls);
 			return process(cls, true);
 		} catch (StackOverflowError | Exception e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
