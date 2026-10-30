@@ -414,6 +414,10 @@ public class ModVisitor extends AbstractVisitor {
 		ArgType castType = (ArgType) insn.getIndex();
 		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)) {
 			RegisterArg result = insn.getResult();
+			if (!canUpdateCastResultType(result, castArg.getType())) {
+				insn.add(AFlag.EXPLICIT_CAST);
+				return;
+			}
 			result.setType(castArg.getType());
 
 			InsnNode move = new InsnNode(InsnType.MOVE, 1);
@@ -430,6 +434,14 @@ public class ModVisitor extends AbstractVisitor {
 			move.addArg(prevCast.getArg(0));
 			replaceInsn(mth, block, prevCast, move);
 		}
+	}
+
+	private static boolean canUpdateCastResultType(@Nullable RegisterArg result, ArgType type) {
+		if (result == null || result.getSVar() == null) {
+			return false;
+		}
+		ArgType immutableType = result.getImmutableType();
+		return immutableType == null || Objects.equals(immutableType, type);
 	}
 
 	private static @Nullable InsnNode isCastDuplicate(IndexInsnNode castInsn) {
@@ -520,19 +532,29 @@ public class ModVisitor extends AbstractVisitor {
 			int argsCount = Math.min(callMth.getMethodInfo().getArgsCount(), co.getArgsCount());
 			for (int i = 0; i < argsCount; i++) {
 				if (attr.isSkip(i)) {
-					anonymousCallArgMod(co.getArg(i));
+					anonymousCallArgMod(mth, co.getArg(i));
 				}
 			}
 		} else {
 			// additional info not available apply mods to all args (the safest solution)
-			co.getArguments().forEach(ModVisitor::anonymousCallArgMod);
+			co.getArguments().forEach(arg -> anonymousCallArgMod(mth, arg));
 		}
 	}
 
-	private static void anonymousCallArgMod(InsnArg arg) {
+	private static void anonymousCallArgMod(MethodNode mth, InsnArg arg) {
 		arg.add(AFlag.DONT_INLINE);
 		if (arg.isRegister()) {
-			((RegisterArg) arg).getSVar().getCodeVar().setFinal(true);
+			RegisterArg regArg = (RegisterArg) arg;
+			SSAVar ssaVar = regArg.getSVar();
+			if (ssaVar == null) {
+				InitCodeVariables.initCodeVar(mth, regArg);
+				ssaVar = regArg.getSVar();
+			} else if (!ssaVar.isCodeVarSet()) {
+				InitCodeVariables.initCodeVar(ssaVar);
+			}
+			if (ssaVar != null) {
+				ssaVar.getCodeVar().setFinal(true);
+			}
 		}
 	}
 

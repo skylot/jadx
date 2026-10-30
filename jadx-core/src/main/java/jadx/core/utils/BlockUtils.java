@@ -1473,11 +1473,16 @@ public class BlockUtils {
 	}
 
 	public static BlockNode getTopSplitterForHandler(BlockNode handlerBlock) {
-		BlockNode block = getBlockWithFlag(handlerBlock.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
+		BlockNode block = searchTopSplitterForHandler(handlerBlock);
 		if (block == null) {
 			throw new JadxRuntimeException("Can't find top splitter block for handler:" + handlerBlock);
 		}
 		return block;
+	}
+
+	@Nullable
+	public static BlockNode searchTopSplitterForHandler(BlockNode handlerBlock) {
+		return getBlockWithFlag(handlerBlock.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
 	}
 
 	/**
@@ -1492,7 +1497,10 @@ public class BlockUtils {
 	@Nullable
 	public static BlockNode getTryAndHandlerCrossBlock(MethodNode mth, ExceptionHandler handler) {
 		BlockNode start = handler.getHandlerBlock();
-		BlockNode topSplitter = BlockUtils.getTopSplitterForHandler(start);
+		BlockNode topSplitter = BlockUtils.searchTopSplitterForHandler(start);
+		if (topSplitter == null) {
+			return null;
+		}
 		List<ExceptionHandler> allHandlers = handler.getTryBlock().getHandlers();
 		List<BlockNode> handlerExitsCandidate = new ArrayList<>(BlockUtils.bitSetToBlocks(mth, start.getDomFrontier()));
 		BitSet visited = newBlocksBitSet(mth);
