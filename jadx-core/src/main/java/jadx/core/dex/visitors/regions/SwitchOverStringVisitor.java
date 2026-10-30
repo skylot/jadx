@@ -270,7 +270,8 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 			SwitchRegion part1Region = (SwitchRegion) data.getPart1Region();
 			SwitchInsn swInsn = (SwitchInsn) BlockUtils.getLastInsnWithType(part1Region.getHeader(), InsnType.SWITCH);
 			BlockNode defBlock = Objects.requireNonNull(swInsn).getDefTargetBlock();
-			if (defBlock != null) {
+			// issue #2884: only add default case if container was not pruned
+			if (defBlock != null && RegionUtils.getBlockContainer(part1Region, defBlock) != null) {
 				cases.add(new CaseData(SwitchRegion.DEFAULT_CASE_KEY, DEFAULT_NUM_VALUE, defBlock));
 			}
 			CaseData lastCaseData = null;
