@@ -70,6 +70,7 @@ public class ClassGen {
 	private int clsDeclOffset;
 
 	private boolean bodyGenStarted;
+	private ClassNames collectNames;
 
 	@Nullable
 	private NameGen outerNameGen;
@@ -91,12 +92,69 @@ public class ClassGen {
 		this.useImports = useImports;
 		this.showInconsistentCode = showBadCode;
 		this.integerFormat = integerFormat;
+		this.collectNames = parentClsGen == null ? null : parentClsGen.collectNames;
 
 		this.annotationGen = new AnnotationGen(cls, this);
 	}
 
 	public ClassNode getClassNode() {
 		return cls;
+	}
+
+	public void setCollectNames(ClassNames names) {
+		this.collectNames = names;
+	}
+
+	public boolean isCollectingNames() {
+		return collectNames != null;
+	}
+
+	public Set<String> getReservedNames() {
+		ClassNames names = cls.root().getCacheStorage().getClassNames(cls);
+		return names == null ? Collections.emptySet() : names.getReserved();
+	}
+
+	public void useField(FieldNode field) {
+		if (collectNames != null) {
+			collectNames.addField(field);
+		}
+	}
+
+	private void collectClassName(ClassInfo type) {
+		if (collectNames != null) {
+			collectNames.add(cls, type);
+			if (parentGen != null) {
+				parentGen.collectClassName(type);
+			}
+		}
+	}
+
+	private void collectQualifier(String name) {
+		if (collectNames != null) {
+			collectNames.addQualifier(cls, name);
+			if (parentGen != null) {
+				parentGen.collectQualifier(name);
+			}
+		}
+	}
+
+	public void useClassQualifier(ICodeWriter code, ClassInfo type) {
+		useClass(code, type);
+		collectQualifier(useClassInternal(cls.getClassInfo(), type));
+	}
+
+	/** Route generated numeric constants through the same type-name resolution as instructions. */
+	public String useLiteral(String literal) {
+		if (literal.startsWith("Short.") || literal.startsWith("Integer.") || literal.startsWith("Long.")
+				|| literal.startsWith("Float.") || literal.startsWith("Double.")) {
+			int dot = literal.indexOf('.');
+			ClassInfo type = ClassInfo.fromName(cls.root(), "java.lang." + literal.substring(0, dot));
+			String name = useClassInternal(cls.getClassInfo(), type);
+			collectClassName(type);
+			collectQualifier(name);
+			return name + literal.substring(dot);
+		}
+		return literal;
 	}
 
 	public ICodeInfo makeClass() throws CodegenException {
@@ -385,6 +443,9 @@ public class ClassGen {
 	 * Additional checks for inlined methods
 	 */
 	private boolean skipMethod(MethodNode mth) {
+		if (isCollectingNames()) {
+			return mth.contains(AFlag.DONT_GENERATE);
+		}
 		if (cls.root().getArgs().getDecompilationMode().isSpecial()) {
 			// show all methods for special decompilation modes
 			return false;
@@ -436,7 +497,7 @@ public class ClassGen {
 			}
 			MethodGen mthGen;
 			if (badCode || fallback || mth.contains(AType.JADX_ERROR)) {
-				mthGen = MethodGen.getFallbackMethodGen(mth);
+				mthGen = MethodGen.getFallbackMethodGen(mth, this);
 			} else {
 				mthGen = new MethodGen(this, mth);
 			}
@@ -460,9 +521,11 @@ public class ClassGen {
 	}
 
 	public void addField(ICodeWriter code, FieldNode f) {
-		if (f.contains(AFlag.DONT_GENERATE)) {
+		if (f.contains(AFlag.DONT_GENERATE)
+				|| (isCollectingNames() && cls.isAnonymous() && f.contains(AFlag.INLINE_INSTANCE_FIELD))) {
 			return;
 		}
+		useField(f);
 		if (f.contains(JadxAttrType.ANNOTATION_LIST)
 				|| f.contains(AType.JADX_COMMENTS)
 				|| f.contains(AType.CODE_COMMENTS)
@@ -514,7 +577,7 @@ public class ClassGen {
 			return String.format("0x%08x", lit);
 		}
 		// force literal type to be same as field (java bytecode can use different type)
-		return TypeGen.literalToString(lit, type, cls, fallback);
+		return useLiteral(TypeGen.literalToString(lit, type, cls, fallback));
 	}
 
 	private boolean isFieldsPresents() {
@@ -691,10 +754,12 @@ public class ClassGen {
 
 	public void addClsName(ICodeWriter code, ClassInfo classInfo) {
 		String clsName = useClassInternal(cls.getClassInfo(), classInfo);
+		collectClassName(classInfo);
 		code.add(clsName);
 	}
 
 	public void addClsShortNameForced(ICodeWriter code, ClassInfo classInfo) {
+		collectClassName(classInfo);
 		code.add(classInfo.getAliasShortName());
 		if (!isBothClassesInOneTopClass(cls.getClassInfo(), classInfo)) {
 			addImport(classInfo);

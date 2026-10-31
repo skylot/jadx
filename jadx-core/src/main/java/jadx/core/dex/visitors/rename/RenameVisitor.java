@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.rename;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +43,7 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void process(RootNode root) {
+		root.getCacheStorage().clearClassNames();
 		UserRenames.apply(root);
 		checkNames(root);
 	}
@@ -57,7 +59,7 @@ public class RenameVisitor extends AbstractVisitor {
 		List<ClassNode> classes = root.getClasses(true);
 		for (ClassNode cls : classes) {
 			checkClassName(aliasProvider, cls, args);
-			checkFields(aliasProvider, cls, args);
+			checkFields(cls, args);
 			checkMethods(aliasProvider, cls, args);
 		}
 		boolean pkgUpdated = false;
@@ -97,7 +99,6 @@ public class RenameVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		processRootPackages(aliasProvider, root, classes);
 	}
 
 	private static void checkClassName(IAliasProvider aliasProvider, ClassNode cls, JadxArgs args) {
@@ -178,16 +179,21 @@ public class RenameVisitor extends AbstractVisitor {
 		return cleanClsName;
 	}
 
-	private static void checkFields(IAliasProvider aliasProvider, ClassNode cls, JadxArgs args) {
+	private static void checkFields(ClassNode cls, JadxArgs args) {
 		Set<String> names = new HashSet<>();
-		for (FieldNode field : cls.getFields()) {
+		Set<String> occupied = fieldNames(cls);
+		List<FieldNode> fields = new ArrayList<>(cls.getFields());
+		// Keep explicit aliases in preference to colliding original names.
+		fields.sort(Comparator.comparing(f -> !f.getFieldInfo().hasAlias()));
+		for (FieldNode field : fields) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
 			boolean notUnique = !names.add(fieldName);
 			boolean notValid = args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName);
 			boolean notPrintable = args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(fieldName);
 			if (notUnique || notValid || notPrintable) {
-				field.rename(aliasProvider.forField(field));
+				field.rename(makeFieldAlias(field, occupied));
+				names.add(field.getAlias());
 				field.addAttr(new RenameReasonAttr(field, notValid, notPrintable));
 				if (notUnique) {
 					field.addAttr(new RenameReasonAttr(field).append("collision with other field name"));
@@ -242,31 +248,34 @@ public class RenameVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private static void processRootPackages(IAliasProvider aliasProvider, RootNode root, List<ClassNode> classes) {
-		Set<String> rootPkgs = collectRootPkgs(root);
-		root.getCacheStorage().setRootPkgs(rootPkgs);
-
-		if (root.getArgs().isRenameValid()) {
-			// rename field if collide with any root package
-			for (ClassNode cls : classes) {
-				for (FieldNode field : cls.getFields()) {
-					if (rootPkgs.contains(field.getAlias())) {
-						field.rename(aliasProvider.forField(field));
-						field.addAttr(new RenameReasonAttr("collision with root package name"));
-					}
-				}
+	public static void checkFieldNames(ClassNode cls, Set<String> reserved) {
+		Set<String> occupied = fieldNames(cls);
+		occupied.addAll(reserved);
+		for (FieldNode field : cls.getFields()) {
+			if (reserved.contains(field.getAlias()) && !field.contains(AFlag.DONT_RENAME)) {
+				field.rename(makeFieldAlias(field, occupied));
+				field.addAttr(new RenameReasonAttr("collision with referenced class name"));
 			}
 		}
 	}
 
-	private static Set<String> collectRootPkgs(RootNode root) {
-		Set<String> rootPkgs = new HashSet<>();
-		for (PackageNode pkg : root.getPackages()) {
-			if (pkg.isRoot()) {
-				rootPkgs.add(pkg.getPkgInfo().getName());
-			}
+	private static Set<String> fieldNames(ClassNode cls) {
+		Set<String> names = new HashSet<>();
+		for (FieldNode field : cls.getFields()) {
+			names.add(field.getAlias());
 		}
-		return rootPkgs;
+		return names;
+	}
+
+	private static String makeFieldAlias(FieldNode field, Set<String> occupied) {
+		String name = NameMapper.removeInvalidCharsMiddle(field.getAlias());
+		// Probe per name so other field repairs don't affect the index.
+		int index = 0;
+		String alias = "f" + index++ + name;
+		while (!occupied.add(alias)) {
+			alias = "f" + index++ + name;
+		}
+		return alias;
 	}
 
 	@Override
