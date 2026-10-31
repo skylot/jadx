@@ -4,10 +4,10 @@ import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
-import jadx.api.JavaPackage;
+import jadx.core.dex.info.PackageInfo;
 import jadx.core.dex.nodes.PackageNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.gui.search.providers.ResourceFilter;
 import jadx.gui.treemodel.JClass;
@@ -27,7 +27,8 @@ public class SearchSettings {
 	private JResource activeResource;
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
-	private JavaPackage searchPackage;
+	private @Nullable PackageInfo searchAliasPkg;
+	private @Nullable PackageInfo searchRawPkg;
 	private ResourceFilter resourceFilter;
 
 	public SearchSettings(String searchString) {
@@ -44,12 +45,11 @@ public class SearchSettings {
 			}
 		}
 		if (!searchPkgStr.isBlank()) {
-			JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
-			PackageNode pkg = decompiler.getRoot().resolvePackage(searchPkgStr);
-			if (pkg == null) {
+			RootNode root = mainWindow.getWrapper().getDecompiler().getRoot();
+			resolveSearchPackage(root, searchPkgStr);
+			if (!hasSearchPackage()) {
 				return NLS.str("search_dialog.package_not_found");
 			}
-			searchPackage = pkg.getJavaNode();
 		}
 		searchMethod = ISearchMethod.build(this);
 		try {
@@ -58,6 +58,46 @@ public class SearchSettings {
 			return "Invalid resource file filter: " + e.getMessage();
 		}
 		return null;
+	}
+
+	// renamed and original packages trees can differ, so search in both
+	private void resolveSearchPackage(RootNode root, String pkgName) {
+		for (PackageNode pkg : root.getPackages()) {
+			PackageInfo aliasPkg = findInPath(pkg.getAliasPkgInfo(), pkgName);
+			if (aliasPkg != null) {
+				searchAliasPkg = aliasPkg;
+				break;
+			}
+		}
+		PackageNode rawPkg = root.resolvePackage(pkgName);
+		if (rawPkg != null) {
+			searchRawPkg = rawPkg.getPkgInfo();
+		}
+	}
+
+	private static @Nullable PackageInfo findInPath(PackageInfo pkg, String fullName) {
+		PackageInfo current = pkg;
+		while (current != null) {
+			if (current.getFullName().equals(fullName)) {
+				return current;
+			}
+			current = current.getParentPkg();
+		}
+		return null;
+	}
+
+	private static boolean isInPath(PackageInfo pkg, @Nullable PackageInfo searchPkg) {
+		if (searchPkg == null) {
+			return false;
+		}
+		PackageInfo current = pkg;
+		while (current != null) {
+			if (current.equals(searchPkg)) {
+				return true;
+			}
+			current = current.getParentPkg();
+		}
+		return false;
 	}
 
 	public boolean isMatch(String searchArea) {
@@ -80,12 +120,15 @@ public class SearchSettings {
 		this.ignoreCase = ignoreCase;
 	}
 
-	public JavaPackage getSearchPackage() {
-		return this.searchPackage;
+	public boolean hasSearchPackage() {
+		return searchAliasPkg != null || searchRawPkg != null;
 	}
 
 	public boolean isInSearchPkg(JavaClass cls) {
-		return cls.getJavaPackage().isDescendantOf(searchPackage);
+		// inner classes keep original package node, use top class one
+		PackageNode pkg = cls.getClassNode().getTopParentClass().getPackageNode();
+		return isInPath(pkg.getAliasPkgInfo(), searchAliasPkg)
+				|| isInPath(pkg.getPkgInfo(), searchRawPkg);
 	}
 
 	public void setSearchPkgStr(String searchPkgStr) {
