@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.cli.config.JadxConfigAdapter;
 
 import static jadx.core.utils.Utils.newConstStringMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +28,41 @@ public class JadxCLIArgsTest {
 	public void testEscapeUnicodeOption() {
 		assertThat(parse("--escape-unicode").isEscapeUnicode()).isTrue();
 		assertThat(parse("").isEscapeUnicode()).isFalse();
+	}
+
+	@Test
+	public void testShowEmptySyntheticClassesOption() {
+		JadxCLIArgs defaults = parse();
+		assertThat(defaults.isShowEmptySyntheticClasses()).isFalse();
+		assertThat(defaults.toJadxArgs().isShowEmptySyntheticClasses()).isFalse();
+		JadxCLIArgs enabled = parse("--show-empty-synthetic-classes");
+		assertThat(enabled.isShowEmptySyntheticClasses()).isTrue();
+		assertThat(enabled.toJadxArgs().isShowEmptySyntheticClasses()).isTrue();
+		assertThat(override(defaults, "--show-empty-synthetic-classes").isShowEmptySyntheticClasses()).isTrue();
+		assertThat(override(enabled).isShowEmptySyntheticClasses()).isTrue();
+	}
+
+	@Test
+	public void testShowEmptySyntheticClassesConfig() {
+		JadxConfigAdapter<JadxCLIArgs> adapter = new JadxConfigAdapter<>(JadxCLIArgs.class, "cli");
+		assertThat(adapter.jsonStringToObject("{}").toJadxArgs().isShowEmptySyntheticClasses()).isFalse();
+		JadxCLIArgs args = new JadxCLIArgs();
+		args.setShowEmptySyntheticClasses(true);
+		String json = adapter.objectToJsonString(args);
+		assertThat(json).contains("\"showEmptySyntheticClasses\": true");
+		assertThat(adapter.jsonStringToObject(json).toJadxArgs().isShowEmptySyntheticClasses()).isTrue();
+	}
+
+	@Test
+	public void testShowEmptySyntheticClassesCodeArgsHash() {
+		JadxArgs args = new JadxArgs();
+		assertThat(args.isShowEmptySyntheticClasses()).isFalse();
+		String defaultHash = args.makeCodeArgsHash(null);
+		args.setShowEmptySyntheticClasses(true);
+		assertThat(args.makeCodeArgsHash(null)).isNotEqualTo(defaultHash);
+		assertThat(args.toString()).contains("showEmptySyntheticClasses=true");
+		args.setShowEmptySyntheticClasses(false);
+		assertThat(args.makeCodeArgsHash(null)).isEqualTo(defaultHash);
 	}
 
 	@Test

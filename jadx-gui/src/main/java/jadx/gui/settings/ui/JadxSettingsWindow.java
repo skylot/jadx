@@ -507,6 +507,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox showEmptySyntheticClasses = new JCheckBox();
+		showEmptySyntheticClasses.setSelected(settings.isShowEmptySyntheticClasses());
+		showEmptySyntheticClasses.addItemListener(e -> {
+			settings.setShowEmptySyntheticClasses(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox resourceDecode = new JCheckBox();
 		resourceDecode.setSelected(settings.isSkipResources());
 		resourceDecode.addItemListener(e -> {
@@ -666,6 +673,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.decompilationMode"), decompilationModeComboBox);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
+		other.addRow(NLS.str("preferences.showEmptySyntheticClasses"), showEmptySyntheticClasses);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
