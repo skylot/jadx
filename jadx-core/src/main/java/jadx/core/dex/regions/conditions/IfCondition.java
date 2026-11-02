@@ -219,7 +219,7 @@ public final class IfCondition extends AttrNode {
 		switch (wrapInsn.getType()) {
 			case CMP_L:
 			case CMP_G:
-				if (lit == 0) {
+				if (lit == 0 && !isFloatCmp(wrapInsn)) {
 					IfNode insn = c.getInsn();
 					insn.changeCondition(insn.getOp(), wrapInsn.getArg(0), wrapInsn.getArg(1));
 				}
@@ -251,6 +251,16 @@ public final class IfCondition extends AttrNode {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Floating point 'cmp' result for NaN arguments is 1 ('cmpg') or -1 ('cmpl'),
+	 * so 'cmp(a, b) op 0' can't be replaced with 'a op b' and then inverted as a usual compare.
+	 * Such conditions are kept as is and converted at code generation.
+	 */
+	public static boolean isFloatCmp(InsnNode cmpInsn) {
+		ArgType type = cmpInsn.getArg(0).getType();
+		return type.equals(ArgType.FLOAT) || type.equals(ArgType.DOUBLE);
 	}
 
 	public List<RegisterArg> getRegisterArgs() {

@@ -294,6 +294,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 			InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
 			if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
 				if (insn.getArg(1).isZeroLiteral()) {
+					if (IfCondition.isFloatCmp(wi)) {
+						// keep 'cmp' to not lose NaN handling, see ConditionGen.addFloatCmpCompare()
+						return;
+					}
 					insn.changeCondition(insn.getOp(), wi.getArg(0).duplicate(), wi.getArg(1).duplicate());
 					InsnRemover.unbindInsn(mth, wi);
 				} else {
