@@ -102,6 +102,14 @@ public class ConditionGen extends InsnGen {
 		IfOp op = compare.getOp();
 		InsnArg firstArg = compare.getA();
 		InsnArg secondArg = compare.getB();
+		if (firstArg.isInsnWrap() && secondArg.isZeroLiteral()) {
+			InsnNode wrapInsn = ((InsnWrapArg) firstArg).getWrapInsn();
+			InsnType wrapType = wrapInsn.getType();
+			if ((wrapType == InsnType.CMP_L || wrapType == InsnType.CMP_G) && IfCondition.isFloatCmp(wrapInsn)) {
+				addFloatCmpCompare(code, op, wrapInsn);
+				return;
+			}
+		}
 		if (firstArg.getType().equals(ArgType.BOOLEAN)
 				&& secondArg.isLiteral()
 				&& secondArg.getType().equals(ArgType.BOOLEAN)) {
@@ -129,6 +137,30 @@ public class ConditionGen extends InsnGen {
 		addArg(code, firstArg, isArgWrapNeeded(firstArg));
 		code.add(' ').add(op.getSymbol()).add(' ');
 		addArg(code, secondArg, isArgWrapNeeded(secondArg));
+	}
+
+	/**
+	 * Generate 'cmp(a, b) op 0' for float or double args.
+	 * 'cmpg' returns 1 and 'cmpl' returns -1 if any arg is NaN,
+	 * but 'a < b', 'a <= b', 'a > b' and 'a >= b' are all false for NaN,
+	 * so use '!(a inverted_op b)' if the condition must be true for NaN.
+	 */
+	private void addFloatCmpCompare(ICodeWriter code, IfOp op, InsnNode cmpInsn) throws CodegenException {
+		boolean trueForNaN = cmpInsn.getType() == InsnType.CMP_G
+				? op == IfOp.GT || op == IfOp.GE
+				: op == IfOp.LT || op == IfOp.LE;
+		IfOp resultOp = trueForNaN ? op.invert() : op;
+		if (trueForNaN) {
+			code.add("!(");
+		}
+		InsnArg firstArg = cmpInsn.getArg(0);
+		InsnArg secondArg = cmpInsn.getArg(1);
+		addArg(code, firstArg, isArgWrapNeeded(firstArg));
+		code.add(' ').add(resultOp.getSymbol()).add(' ');
+		addArg(code, secondArg, isArgWrapNeeded(secondArg));
+		if (trueForNaN) {
+			code.add(')');
+		}
 	}
 
 	private void addTernary(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
