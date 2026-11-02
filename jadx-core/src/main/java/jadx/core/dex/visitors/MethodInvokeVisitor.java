@@ -123,6 +123,30 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		List<ArgType> castTypes = searchCastTypes(parentMth, effectiveMthDetails, effectiveOverloadMethods, compilerVarTypes);
 		List<ArgType> resultCastTypes = expandTypes(parentMth, effectiveMthDetails, castTypes);
 		applyArgsCast(invokeInsn, argsOffset, compilerVarTypes, resultCastTypes);
+		keepOverloadPrimitiveCasts(invokeInsn, argsOffset, effectiveMthDetails, effectiveOverloadMethods, resultCastTypes);
+	}
+
+	/**
+	 * Keep primitive casts used to select overloaded method, {@link SimplifyVisitor} drops them
+	 */
+	private void keepOverloadPrimitiveCasts(BaseInvokeNode invokeInsn, int argsOffset, IMethodDetails mthDetails,
+			List<IMethodDetails> overloadedMethods, List<ArgType> argTypes) {
+		int argsCount = argTypes.size();
+		for (int i = 0; i < argsCount; i++) {
+			InsnArg arg = invokeInsn.getArg(argsOffset + i);
+			if (!InsnUtils.isWrapped(arg, InsnType.CAST)) {
+				continue;
+			}
+			InsnNode castInsn = ((InsnWrapArg) arg).getWrapInsn();
+			if (castInsn.contains(AFlag.EXPLICIT_CAST)) {
+				continue;
+			}
+			List<ArgType> types = new ArrayList<>(argTypes);
+			types.set(i, getCompilerVarType(castInsn.getArg(0)));
+			if (!isOverloadResolved(mthDetails, overloadedMethods, types)) {
+				castInsn.add(AFlag.EXPLICIT_CAST);
+			}
+		}
 	}
 
 	/**
