@@ -3,16 +3,12 @@ package jadx.commons.app;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dev.dirs.ProjectDirectories;
 import dev.dirs.impl.Windows;
-import dev.dirs.impl.WindowsPowerShell;
-import dev.dirs.jni.WindowsJni;
 
 public class JadxCommonFiles {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCommonFiles.class);
@@ -20,9 +16,14 @@ public class JadxCommonFiles {
 	private static final String ORG_DIR_NAME = "skylot";
 	private static final String APP_DIR_NAME = "jadx";
 
-	private static final String OS_NAME = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
-	private static final boolean IS_WINDOWS = OS_NAME.startsWith("windows");
-	private static final boolean IS_MAC = OS_NAME.contains("mac");
+	/**
+	 * 'FOLDERID_RoamingAppData', requested by 'dev.dirs' to build config dir path
+	 */
+	private static final String FOLDERID_ROAMING_APP_DATA = "3EB685DB-65F9-4CF6-A03A-E3EF65729F3D";
+	/**
+	 * 'FOLDERID_LocalAppData', requested by 'dev.dirs' to build cache dir path
+	 */
+	private static final String FOLDERID_LOCAL_APP_DATA = "F1B32785-6FBA-4FCF-9D55-7B8E7F157091";
 
 	private static final Path CONFIG_DIR;
 	private static final Path CACHE_DIR;
@@ -47,16 +48,13 @@ public class JadxCommonFiles {
 
 		DirsLoader() {
 			try {
-				String configDirEnv = JadxCommonEnv.get("JADX_CONFIG_DIR", null);
-				String cacheDirEnv = JadxCommonEnv.get("JADX_CACHE_DIR", null);
-				ProjectDirectories dirs = null;
-				if (configDirEnv == null || cacheDirEnv == null) {
-					dirs = loadDirs();
-				}
-				configDir = prepareDir(configDirEnv != null ? configDirEnv
-						: dirs != null ? dirs.configDir : defaultConfigDir());
-				cacheDir = prepareDir(cacheDirEnv != null ? cacheDirEnv
-						: dirs != null ? dirs.cacheDir : defaultCacheDir());
+				long start = System.currentTimeMillis();
+				ProjectDirectories dirs = ProjectDirectories.from("io.github", ORG_DIR_NAME, APP_DIR_NAME,
+						DirsLoader::getWinDirs);
+				LOG.debug("Loaded system dirs ({}ms): config: {}, cache: {}",
+						System.currentTimeMillis() - start, dirs.configDir, dirs.cacheDir);
+				configDir = prepareDir(JadxCommonEnv.get("JADX_CONFIG_DIR", dirs.configDir));
+				cacheDir = prepareDir(JadxCommonEnv.get("JADX_CACHE_DIR", dirs.cacheDir));
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to init common directories", e);
 			}
@@ -68,87 +66,8 @@ public class JadxCommonFiles {
 			return path;
 		}
 
-		/**
-		 * Load system dirs.
-		 * Return null if not possible, so caller can use default locations.
-		 */
-		private static @Nullable ProjectDirectories loadDirs() {
-			if (IS_WINDOWS) {
-				/*
-				 * On Windows 'dev.dirs' resolves known folders by running 'cmd' or 'powershell'
-				 * (when JNI is not available) and reading their output. If such a process doesn't
-				 * finish, jadx hangs on startup without any error. Locations returned by 'dev.dirs'
-				 * on Windows are just '%APPDATA%' and '%LOCALAPPDATA%' based, so use them directly.
-				 */
-				LOG.debug("Skip system dirs loading on Windows, use environment variables");
-				return null;
-			}
-			LOG.debug("Loading system dirs ...");
-			long start = System.currentTimeMillis();
-
-			ProjectDirectories loadedDirs = ProjectDirectories.from("io.github", ORG_DIR_NAME, APP_DIR_NAME,
-					DirsLoader::getWinDirs);
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Loaded system dirs ({}ms): config: {}, cache: {}",
-						System.currentTimeMillis() - start, loadedDirs.configDir, loadedDirs.cacheDir);
-			}
-			return loadedDirs;
-		}
-
-		/**
-		 * Same location as returned by 'dev.dirs', used when it is not available.
-		 */
-		private static String defaultConfigDir() {
-			if (IS_WINDOWS) {
-				return defaultWinAppDir("APPDATA", "Roaming").resolve("config").toString();
-			}
-			if (IS_MAC) {
-				return Path.of(userHome(), "Library", "Application Support", APP_DIR_NAME).toString();
-			}
-			String xdgDir = JadxCommonEnv.get("XDG_CONFIG_HOME", null);
-			return (xdgDir != null ? Path.of(xdgDir) : Path.of(userHome(), ".config")).resolve(APP_DIR_NAME).toString();
-		}
-
-		/**
-		 * Same location as returned by 'dev.dirs', used when it is not available.
-		 */
-		private static String defaultCacheDir() {
-			if (IS_WINDOWS) {
-				return defaultWinAppDir("LOCALAPPDATA", "Local").resolve("cache").toString();
-			}
-			if (IS_MAC) {
-				return Path.of(userHome(), "Library", "Caches", APP_DIR_NAME).toString();
-			}
-			String xdgDir = JadxCommonEnv.get("XDG_CACHE_HOME", null);
-			return (xdgDir != null ? Path.of(xdgDir) : Path.of(userHome(), ".cache")).resolve(APP_DIR_NAME).toString();
-		}
-
-		private static Path defaultWinAppDir(String envVar, String appDataSubDir) {
-			String appDataDir = JadxCommonEnv.get(envVar, null);
-			Path baseDir = appDataDir != null
-					? Path.of(appDataDir)
-					: Path.of(userHome(), "AppData", appDataSubDir);
-			return baseDir.resolve(ORG_DIR_NAME).resolve(APP_DIR_NAME);
-		}
-
-		private static String userHome() {
-			return System.getProperty("user.home", ".");
-		}
-
-		/**
-		 * Return JNI, Foreign or PowerShell implementation
-		 */
 		private static Windows getWinDirs() {
-			Windows impl = Windows.getDefaultSupplier().get();
-			if (impl instanceof WindowsPowerShell) {
-				if (JadxSystemInfo.IS_AMD64) {
-					// JNI library compiled only for x86-64
-					impl = new WindowsJni();
-				}
-			}
-			LOG.debug("Using win dirs implementation: {}", impl.getClass().getSimpleName());
-			return impl;
+			return EnvWinDirs.INSTANCE;
 		}
 
 		Path getCacheDir() {
@@ -157,6 +76,48 @@ public class JadxCommonFiles {
 
 		Path getConfigDir() {
 			return configDir;
+		}
+	}
+
+	/**
+	 * Resolve known folders on Windows using environment variables.
+	 * <p>
+	 * Default implementation returned by {@link Windows#getDefaultSupplier()} uses JNI or an
+	 * external process ('cmd' or 'powershell'). If such a process doesn't finish (blocked by
+	 * a policy, for example), jadx hangs on startup without any error and without a window.
+	 * Both folders requested by 'dev.dirs' are always available as environment variables,
+	 * so they can be read directly. Everything else (project path, 'config' and 'cache'
+	 * sub directories) is still done by 'dev.dirs', so paths stay the same as on other systems.
+	 */
+	private static final class EnvWinDirs implements Windows {
+		private static final EnvWinDirs INSTANCE = new EnvWinDirs();
+
+		@Override
+		public String[] winDirs(String... guids) {
+			String[] paths = new String[guids.length];
+			for (int i = 0; i < guids.length; i++) {
+				paths[i] = getKnownFolder(guids[i]);
+			}
+			return paths;
+		}
+
+		private static String getKnownFolder(String guid) {
+			switch (guid) {
+				case FOLDERID_ROAMING_APP_DATA:
+					return envDir("APPDATA", "Roaming");
+				case FOLDERID_LOCAL_APP_DATA:
+					return envDir("LOCALAPPDATA", "Local");
+				default:
+					throw new IllegalArgumentException("Unexpected known folder id: " + guid);
+			}
+		}
+
+		private static String envDir(String envVar, String appDataSubDir) {
+			String dir = JadxCommonEnv.get(envVar, null);
+			if (dir != null) {
+				return dir;
+			}
+			return Path.of(System.getProperty("user.home", "."), "AppData", appDataSubDir).toString();
 		}
 	}
 
