@@ -30,6 +30,12 @@ import jadx.zip.ZipReader;
 public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
 
+	/**
+	 * Entries bigger than this are checked for the DEX magic using a stream,
+	 * so their content is not fully unpacked into memory.
+	 */
+	private static final int MAX_BYTES_FOR_DEX_SNIFF = 4 * 1024 * 1024;
+
 	// sharing between all instances (can be used in other plugins) // TODO:
 	private static int dexUniqId = 1;
 
@@ -136,9 +142,15 @@ public class DexFileLoader {
 				}
 				try {
 					List<DexReader> readers;
-					if (entry.preferBytes()) {
+					boolean readToBytes = entry.preferBytes()
+							&& entry.getUncompressedSize() <= MAX_BYTES_FOR_DEX_SNIFF;
+					if (readToBytes) {
 						readers = loadFromZipEntry(entry.getBytes(), entry.getName());
 					} else {
+						// Unpack only the first bytes to check the magic, instead of
+						// decompressing the whole entry. Some protected APKs contain
+						// entries with huge uncompressed sizes (e.g. padded manifests)
+						// which are not worth unpacking just to reject them.
 						readers = load(null, entry.getInputStream(), entry.getName());
 					}
 					if (!readers.isEmpty()) {
