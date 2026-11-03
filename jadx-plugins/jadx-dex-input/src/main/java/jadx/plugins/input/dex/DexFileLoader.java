@@ -31,10 +31,14 @@ public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
 
 	/**
-	 * Entries bigger than this are checked for the DEX magic using a stream,
-	 * so their content is not fully unpacked into memory.
+	 * Max size of a zip entry to read it at once, bigger entries are checked for the DEX magic
+	 * using a stream, see {@link #readWholeEntry(IZipEntry)}.
+	 * <p>
+	 * Such size is big enough for any real DEX file (a few MB in common case, so reading it
+	 * at once is faster and requires less memory), and small enough to not allocate a lot
+	 * of memory for entries which are not a DEX at all.
 	 */
-	private static final int MAX_BYTES_FOR_DEX_SNIFF = 4 * 1024 * 1024;
+	private static final int MAX_BYTES_FOR_DEX_SNIFF = 32 * 1024 * 1024;
 
 	// sharing between all instances (can be used in other plugins) // TODO:
 	private static int dexUniqId = 1;
@@ -133,6 +137,24 @@ public class DexFileLoader {
 		return loadSingleDex(fileName, content, 0);
 	}
 
+	/**
+	 * Check if an entry should be read at once using {@link IZipEntry#getBytes()}.
+	 * <p>
+	 * A DEX file is a few MB at most, for such size reading all content at once is faster
+	 * than reading it from a stream. A big entry is most likely not a DEX file at all
+	 * (assets, padded resources), and {@code getBytes()} will unpack all of it into memory
+	 * just to check the magic and reject it. Such entries are checked on a stream instead:
+	 * only the first bytes are unpacked for the magic. Entries with unknown size are also
+	 * checked on a stream, to not allocate memory based on a guess.
+	 */
+	private static boolean readWholeEntry(IZipEntry entry) {
+		if (!entry.preferBytes()) {
+			return false;
+		}
+		long size = entry.getUncompressedSize();
+		return size >= 0 && size <= MAX_BYTES_FOR_DEX_SNIFF;
+	}
+
 	private List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
 		try (ZipContent zip = zipReader.open(file)) {
@@ -142,15 +164,9 @@ public class DexFileLoader {
 				}
 				try {
 					List<DexReader> readers;
-					boolean readToBytes = entry.preferBytes()
-							&& entry.getUncompressedSize() <= MAX_BYTES_FOR_DEX_SNIFF;
-					if (readToBytes) {
+					if (readWholeEntry(entry)) {
 						readers = loadFromZipEntry(entry.getBytes(), entry.getName());
 					} else {
-						// Unpack only the first bytes to check the magic, instead of
-						// decompressing the whole entry. Some protected APKs contain
-						// entries with huge uncompressed sizes (e.g. padded manifests)
-						// which are not worth unpacking just to reject them.
 						readers = load(null, entry.getInputStream(), entry.getName());
 					}
 					if (!readers.isEmpty()) {
