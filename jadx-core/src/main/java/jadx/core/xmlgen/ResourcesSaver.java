@@ -116,7 +116,7 @@ public class ResourcesSaver implements Runnable {
 	 * 'ANDROIDMANIFEST.XML' placed after 'AndroidManifest.xml' will overwrite the manifest
 	 * on Windows and macOS. Such entries are saved under a different name.
 	 */
-	private static Path resolveNameConflict(Path outFile) {
+	static Path resolveNameConflict(Path outFile) {
 		if (!hasNameConflict(outFile)) {
 			return outFile;
 		}
@@ -126,7 +126,9 @@ public class ResourcesSaver implements Runnable {
 		String extension = dotPos > 0 ? name.substring(dotPos) : "";
 		for (int i = 1; i < 100; i++) {
 			Path candidate = outFile.resolveSibling(baseName + '_' + i + extension);
-			if (!hasNameConflict(candidate)) {
+			// any existing file can be overwritten by a resource with the same name,
+			// so check existence here instead of looking for a name conflict
+			if (!Files.exists(candidate)) {
 				LOG.warn("Resource '{}' conflicts with already saved file (case insensitive), saved as: {}",
 						name, candidate.getFileName());
 				return candidate;
@@ -144,7 +146,7 @@ public class ResourcesSaver implements Runnable {
 	 * case sensitive file system (including case sensitive directories on Windows) a file with
 	 * the same name in another case doesn't exist at all.
 	 */
-	private static boolean hasNameConflict(Path outFile) {
+	static boolean hasNameConflict(Path outFile) {
 		try {
 			if (!Files.exists(outFile)) {
 				return false;
