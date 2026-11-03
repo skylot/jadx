@@ -182,6 +182,7 @@ public class ClassGen {
 		CodeGenUtils.addSourceFileInfo(clsCode, cls);
 		CodeGenUtils.addInputFileInfo(clsCode, cls);
 
+		inClassHeader = true;
 		annotationGen.addForClass(clsCode);
 		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString(cls.checkCommentsLevel(CommentsLevel.INFO)));
 		if (af.isInterface()) {
@@ -197,7 +198,6 @@ public class ClassGen {
 		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getClassInfo().getAliasShortName());
 
-		inClassHeader = true;
 		addGenericTypeParameters(clsCode, cls.getGenericTypeParameters(), true);
 		clsCode.add(' ');
 

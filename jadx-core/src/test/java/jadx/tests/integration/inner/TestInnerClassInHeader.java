@@ -1,5 +1,7 @@
 package jadx.tests.integration.inner;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,29 @@ public class TestInnerClassInHeader extends IntegrationTest {
 			public static class Item {
 			}
 		}
+
+		@Retention(RetentionPolicy.RUNTIME)
+		public @interface Type {
+			Class<?> value();
+		}
+
+		@Type(AnnOuter.Results.class)
+		public static class AnnOuter {
+			public static class Results {
+			}
+		}
+
+		@Retention(RetentionPolicy.RUNTIME)
+		public @interface EAnn {
+			EnumOuter.E value();
+		}
+
+		@EAnn(EnumOuter.E.X)
+		public static class EnumOuter {
+			public enum E {
+				X
+			}
+		}
 	}
 
 	@Test
@@ -44,7 +69,9 @@ public class TestInnerClassInHeader extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("extends Gen<Outer.Results> implements Comparable<Outer.A.B> {")
-				.containsOne("class Bounded<T extends List<Bounded.Item>> {");
+				.containsOne("class Bounded<T extends List<Bounded.Item>> {")
+				.containsOne("@Type(AnnOuter.Results.class)")
+				.containsOne("@EAnn(EnumOuter.E.X)");
 	}
 
 	@Test
@@ -53,6 +80,8 @@ public class TestInnerClassInHeader extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("extends Gen<Outer.Results> implements Comparable<Outer.A.B> {")
-				.containsOne("class Bounded<T extends List<Bounded.Item>> {");
+				.containsOne("class Bounded<T extends List<Bounded.Item>> {")
+				.containsOne("@Type(AnnOuter.Results.class)")
+				.containsOne("@EAnn(EnumOuter.E.X)");
 	}
 }
