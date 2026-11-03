@@ -95,12 +95,30 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	void decode() throws IOException {
 		int size = is.readInt32();
+		long prevChunkPos = -1;
 		while (is.getPos() < size) {
+			long chunkPos = is.getPos();
+			if (chunkPos == prevChunkPos) {
+				// protect against malformed chunks which are parsed without consuming any data
+				die("No progress in binary XML parsing");
+			}
+			prevChunkPos = chunkPos;
 			int type = is.readInt16();
+			if (type == RES_NULL_TYPE) {
+				// Zero filled area, usually padding at the end of the file.
+				// Some files contain real chunks after it, so don't stop at the first null chunk
+				// (Android ends parsing here, because such node header fails chunk validation).
+				long zeroStart = is.getPos();
+				int nextType = skipZeroFilledArea(size);
+				if (nextType < 0) {
+					LOG.debug("Zero filling at the end of binary XML, skipped: {} bytes", is.getPos() - zeroStart);
+					return;
+				}
+				LOG.warn("Zero filled area inside binary XML, size: {} bytes, continue parsing",
+						is.getPos() - zeroStart - 2);
+				type = nextType;
+			}
 			switch (type) {
-				case RES_NULL_TYPE:
-					// NullType is just doing nothing
-					break;
 				case RES_STRING_POOL_TYPE:
 					strings = parseStringPoolNoType();
 					valuesParser = new ValuesParser(strings, resNames);
@@ -133,6 +151,25 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 			}
 		}
+	}
+
+	/**
+	 * Skip zero filling inside binary XML data.
+	 * <p>
+	 * Values are read in 16 bits to keep alignment with chunk boundaries: header of all XML chunk
+	 * types starts with a zero byte (0x0100, 0x0102, ...), so a byte wise scan would stop inside
+	 * such header and break the alignment.
+	 *
+	 * @return first non-zero value (already consumed) or -1 if only zeros remain before chunk end
+	 */
+	private int skipZeroFilledArea(int chunkEnd) throws IOException {
+		while (is.getPos() + 2 <= chunkEnd) {
+			int value = is.readInt16();
+			if (value != 0) {
+				return value;
+			}
+		}
+		return -1;
 	}
 
 	private void parseResourceMap() throws IOException {

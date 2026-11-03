@@ -200,9 +200,32 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 					parseStagedAliasChunk(chunkStart);
 					break;
 				default:
-					LOG.warn("Unknown chunk type {} encountered at offset {}", type, chunkStart);
+					skipUnknownChunk(chunkStart, type);
+					break;
+			}
+			if (is.getPos() <= chunkStart) {
+				// protect against malformed chunks which are parsed without consuming any data
+				throw new IOException(String.format("No progress in package chunk parsing at offset 0x%x", chunkStart));
 			}
 		}
+	}
+
+	/**
+	 * Skip a chunk of an unknown type using the chunk header.
+	 * Without this, the parser would continue reading the same chunk header
+	 * again and again, advancing only 2 bytes per iteration.
+	 */
+	private void skipUnknownChunk(long chunkStart, int type) throws IOException {
+		is.readInt16(); // header size
+		long chunkSize = is.readUInt32();
+		if (chunkSize < 8) {
+			throw new IOException(String.format(
+					"Invalid size of unknown chunk 0x%x at offset 0x%x: %d", type, chunkStart, chunkSize));
+		}
+		long chunkEnd = chunkStart + chunkSize;
+		LOG.warn("Unknown chunk type 0x{} encountered at offset 0x{}, skipping to 0x{}",
+				Integer.toHexString(type), Long.toHexString(chunkStart), Long.toHexString(chunkEnd));
+		is.skipToPos(chunkEnd, "Skip to unknown chunk end");
 	}
 
 	@SuppressWarnings("unused")
