@@ -180,12 +180,13 @@ public class InsnGen {
 	}
 
 	private String lit(LiteralArg arg) {
-		return TypeGen.literalToString(arg, mth, fallback);
+		return mgen.getClassGen().useLiteral(TypeGen.literalToString(arg, mth, fallback));
 	}
 
 	private void instanceField(ICodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		ClassNode pCls = mth.getParentClass();
 		FieldNode fieldNode = pCls.root().resolveField(field);
+		mgen.getClassGen().useField(fieldNode);
 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
@@ -221,7 +222,9 @@ public class InsnGen {
 			if (initInsnAttr != null) {
 				InsnNode insn = initInsnAttr.getInsn();
 				if (insn instanceof ConstructorInsn) {
-					fieldNode.add(AFlag.DONT_GENERATE);
+					if (!mgen.getClassGen().isCollectingNames()) {
+						fieldNode.add(AFlag.DONT_GENERATE);
+					}
 					inlineAnonymousConstructor(code, fieldNode.getParentClass(), (ConstructorInsn) insn);
 					return;
 				}
@@ -237,13 +240,14 @@ public class InsnGen {
 
 	private static void makeStaticFieldAccess(ICodeWriter code,
 			FieldInfo field, @Nullable FieldNode fieldNode, ClassGen clsGen) {
+		clsGen.useField(fieldNode);
 		ClassInfo declClass = field.getDeclClass();
 		// TODO
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
 		if (!fieldFromThisClass || !clsGen.isBodyGenStarted()) {
 			// Android specific resources class handler
 			if (!handleAppResField(code, clsGen, declClass)) {
-				clsGen.useClass(code, declClass);
+				clsGen.useClassQualifier(code, declClass);
 			}
 			code.add('.');
 		}
@@ -824,7 +828,7 @@ public class InsnGen {
 		code.add("new ");
 		useClass(code, parent);
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
-		if (callMth != null) {
+		if (callMth != null && !mgen.getClassGen().isCollectingNames()) {
 			// copy var names
 			List<RegisterArg> mthArgs = callMth.getArgRegs();
 			int argsCount = Math.min(insn.getArgsCount(), mthArgs.size());
@@ -844,7 +848,9 @@ public class InsnGen {
 		classGen.setOuterNameGen(mgen.getNameGen());
 		classGen.addClassBody(code, true);
 
-		mth.getParentClass().addInlinedClass(cls);
+		if (!mgen.getClassGen().isCollectingNames()) {
+			mth.getParentClass().addInlinedClass(cls);
+		}
 	}
 
 	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {
@@ -890,7 +896,7 @@ public class InsnGen {
 				ClassInfo insnCls = mth.getParentClass().getClassInfo();
 				ClassInfo declClass = callMth.getDeclClass();
 				if (!insnCls.equals(declClass)) {
-					useClass(code, declClass);
+					mgen.getClassGen().useClassQualifier(code, declClass);
 					code.add('.');
 				}
 				break;
@@ -974,7 +980,7 @@ public class InsnGen {
 			InvokeNode invokeInsn = (InvokeNode) callInsn;
 			MethodInfo callMth = invokeInsn.getCallMth();
 			if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {
-				useClass(code, callMth.getDeclClass());
+				mgen.getClassGen().useClassQualifier(code, callMth.getDeclClass());
 			} else {
 				addArg(code, customNode.getArg(0));
 			}
@@ -1064,7 +1070,9 @@ public class InsnGen {
 			if (arg.isRegister()) {
 				RegisterArg extArg = (RegisterArg) arg;
 				RegisterArg callRegArg = callArgs.get(callArg++);
-				callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
+				if (!mgen.getClassGen().isCollectingNames()) {
+					callRegArg.getSVar().setCodeVar(extArg.getSVar().getCodeVar());
+				}
 			} else {
 				throw new JadxRuntimeException("Unexpected argument type in lambda call: " + arg.getClass().getSimpleName());
 			}
