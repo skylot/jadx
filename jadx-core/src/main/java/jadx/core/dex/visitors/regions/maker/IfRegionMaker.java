@@ -68,17 +68,15 @@ final class IfRegionMaker {
 		IfInfo mergedIf = mergeNestedIfNodes(currentIf);
 		if (mergedIf != null) {
 			currentIf = mergedIf;
-		} else {
+		} else if (!block.contains(AFlag.DONT_INVERT)) {
 			// invert simple condition (compiler often do it)
-			// ensure that we only ever invert once, because if multiple regions contain this block
-			// we'll change the block after it's already been included in a region, which can cause
-			// other regions containing the block to believe the condition has been flipped when it
-			// has not, or vice versa.
-			if (!block.contains(AFlag.DONT_INVERT)) {
-				currentIf = IfInfo.invert(currentIf);
-				block.add(AFlag.DONT_INVERT);
-			}
+			currentIf = IfInfo.invert(currentIf);
 		}
+		// Guard the simple inversion above from being applied again on a later region-head pass over
+		// this shared block (see AFlag.DUPLICATED): its 'if' instruction is inverted in place, so a
+		// second inversion would flip an operand of the condition already built here. Set the flag
+		// after a merge too, since that branch skips the simple inversion above.
+		block.add(AFlag.DONT_INVERT);
 		IfInfo modifiedIf = restructureIf(block, currentIf);
 		if (modifiedIf != null) {
 			currentIf = modifiedIf;
