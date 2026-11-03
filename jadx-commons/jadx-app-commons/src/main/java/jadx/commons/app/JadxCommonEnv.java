@@ -25,6 +25,14 @@ public class JadxCommonEnv {
 		return Integer.parseInt(strValue);
 	}
 
+	public static long getLong(String varName, long defValue) {
+		String strValue = System.getenv(varName);
+		if (isNullOrEmpty(strValue)) {
+			return defValue;
+		}
+		return Long.parseLong(strValue);
+	}
+
 	private static boolean isNullOrEmpty(@Nullable String value) {
 		return value == null || value.isEmpty();
 	}

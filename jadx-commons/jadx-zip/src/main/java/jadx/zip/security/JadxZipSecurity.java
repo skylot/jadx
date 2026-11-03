@@ -16,16 +16,24 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 	private static final Path CWD = Paths.get(".").toAbsolutePath().normalize();
 
 	/**
-	 * The size of uncompressed zip entry shouldn't be bigger of compressed in zipBombDetectionFactor
-	 * times
+	 * Entries with a compression ratio better than this factor are reported as suspicious.
+	 * Used for logging only, see {@link #isZipBomb(IZipEntry)} for details.
 	 */
 	private int zipBombDetectionFactor = 100;
 
 	/**
-	 * Zip entries that have an uncompressed size of less than zipBombMinUncompressedSize are considered
-	 * safe
+	 * Uncompressed size below which the compression ratio is not even checked.
 	 */
 	private int zipBombMinUncompressedSize = 25 * 1024 * 1024;
+
+	/**
+	 * Limit on the declared uncompressed size of an entry, applied only to entries which are
+	 * also highly compressible.
+	 * <p>
+	 * A plain size limit can't be used here: split APK files inside APKS/XAPK archives are often
+	 * bigger than this, but they are not compressed that well, so they are safe to unpack.
+	 */
+	private long maxUncompressedEntrySize = 512L * 1024 * 1024;
 
 	private int maxEntriesCount = 100_000;
 
@@ -93,14 +101,29 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 	public boolean isZipBomb(IZipEntry entry) {
 		long compressedSize = entry.getCompressedSize();
 		long uncompressedSize = entry.getUncompressedSize();
-		boolean invalidSize = compressedSize < 0 || uncompressedSize < 0;
-		boolean possibleZipBomb = uncompressedSize >= zipBombMinUncompressedSize
-				&& compressedSize * zipBombDetectionFactor < uncompressedSize;
-		if (invalidSize || possibleZipBomb) {
+		if (compressedSize < 0 || uncompressedSize < 0) {
 			LOG.error("Potential zip bomb attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
 					compressedSize, uncompressedSize, entry.getName());
 			return true;
 		}
+		boolean highCompressionRatio = uncompressedSize >= zipBombMinUncompressedSize
+				&& compressedSize * zipBombDetectionFactor < uncompressedSize;
+		if (!highCompressionRatio) {
+			return false;
+		}
+		if (uncompressedSize > maxUncompressedEntrySize) {
+			// Reject only an entry which is big AND highly compressible. Size alone is not enough:
+			// split APK files inside APKS/XAPK archives often exceed any reasonable limit.
+			LOG.error("Potential zip bomb attack detected, entry is too big: uncompressed {}, limit {}, name {}",
+					uncompressedSize, maxUncompressedEntrySize, entry.getName());
+			return true;
+		}
+		// A high ratio alone is not a reliable bomb indicator: protected APKs often pad binary XML
+		// (e.g. AndroidManifest.xml) with huge zero filled areas, which are very compressible but
+		// harmless. Rejecting such entries silently drops required files (like the manifest) from
+		// the APK, so such entries are unpacked and only reported.
+		LOG.warn("High compression ratio detected (compressed {}, uncompressed {}), entry will be unpacked: {}",
+				compressedSize, uncompressedSize, entry.getName());
 		return false;
 	}
 
@@ -127,6 +150,10 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 
 	public void setZipBombMinUncompressedSize(int zipBombMinUncompressedSize) {
 		this.zipBombMinUncompressedSize = zipBombMinUncompressedSize;
+	}
+
+	public void setMaxUncompressedEntrySize(long maxUncompressedEntrySize) {
+		this.maxUncompressedEntrySize = maxUncompressedEntrySize;
 	}
 
 	public void setUseLimitedDataStream(boolean useLimitedDataStream) {

@@ -45,6 +45,10 @@ public class JadxAppCommon {
 			if (setZipBombDetectionFactor != -2) {
 				jadxZipSecurity.setZipBombDetectionFactor(setZipBombDetectionFactor);
 			}
+			long maxUncompressedEntrySize = JadxCommonEnv.getLong("JADX_ZIP_MAX_UNCOMPRESSED_ENTRY_SIZE", -2);
+			if (maxUncompressedEntrySize != -2) {
+				jadxZipSecurity.setMaxUncompressedEntrySize(maxUncompressedEntrySize);
+			}
 			zipSecurity = jadxZipSecurity;
 		}
 		jadxArgs.setSecurity(new JadxSecurity(flags, zipSecurity));
