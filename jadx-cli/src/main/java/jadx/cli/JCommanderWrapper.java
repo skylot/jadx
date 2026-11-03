@@ -156,9 +156,9 @@ public class JCommanderWrapper {
 		out.println("  JADX_DISABLE_ALL_SECURITY_FLAGS - set to 'true' to disable all security flags (xml, string, app package)");
 		out.println("  JADX_ZIP_MAX_ENTRIES_COUNT - maximum allowed number of entries in zip files (default: 100 000)");
 		out.println(
-				"  JADX_ZIP_MAX_UNCOMPRESSED_ENTRY_SIZE - max size of zip entry after unpacking, in bytes, checked only for entries with a high compression ratio (default: 512 MB)");
+				"  JADX_ZIP_MAX_UNCOMPRESSED_ENTRY_SIZE - max size after unpacking, in bytes, for zip entries with a high compression ratio (default: 512 MB)");
 		out.println("  JADX_ZIP_BOMB_MIN_UNCOMPRESSED_SIZE - min size of zip entry to check compression ratio, in bytes (default: 25 MB)");
-		out.println("  JADX_ZIP_BOMB_DETECTION_FACTOR - compression ratio of zip entry reported as suspicious (default: 100)");
+		out.println("  JADX_ZIP_BOMB_DETECTION_FACTOR - compression ratio above which a zip entry is treated as suspicious (default: 100)");
 		out.println("  JADX_CONFIG_DIR - custom config directory, using system by default");
 		out.println("  JADX_CACHE_DIR - custom cache directory, using system by default");
 		out.println("  JADX_TMP_DIR - custom temp directory, using system by default");

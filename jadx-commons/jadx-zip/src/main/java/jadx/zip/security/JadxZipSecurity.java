@@ -16,8 +16,9 @@ public class JadxZipSecurity implements IJadxZipSecurity {
 	private static final Path CWD = Paths.get(".").toAbsolutePath().normalize();
 
 	/**
-	 * Entries with a compression ratio better than this factor are reported as suspicious.
-	 * Used for logging only, see {@link #isZipBomb(IZipEntry)} for details.
+	 * Entries with a compression ratio better than this factor are treated as suspicious:
+	 * such entries are rejected if they are also bigger than {@link #maxUncompressedEntrySize}
+	 * and unpacked (with a warning) otherwise, see {@link #isZipBomb(IZipEntry)} for details.
 	 */
 	private int zipBombDetectionFactor = 100;
 
