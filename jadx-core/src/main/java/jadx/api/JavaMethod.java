@@ -101,6 +101,10 @@ public final class JavaMethod implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		MethodNode currentMth = mth.getParentClass().searchMethod(mth.getMethodInfo());
+		if (currentMth != null) {
+			return currentMth.getDefPosition();
+		}
 		return mth.getDefPosition();
 	}
 
