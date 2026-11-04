@@ -72,6 +72,7 @@ application {
 		listOf(
 			"-Xms128M",
 			"-XX:MaxRAMPercentage=70.0",
+			"-XX:+UseStringDeduplication",
 			"-Dawt.useSystemAAFontSettings=lcd",
 			"-Dswing.aatext=true",
 			"-Djava.util.Arrays.useLegacyMergeSort=true",
@@ -82,6 +83,8 @@ application {
 			"--add-opens=java.base/java.lang=ALL-UNNAMED",
 			// Foreign API access for 'directories' library (Windows only)
 			"--enable-native-access=ALL-UNNAMED",
+			// enable Metal rendering pipeline on macOS
+			"-Dsun.java2d.metal=true",
 			// flags to fix UI ghosting (#2225)
 			"-Dsun.java2d.noddraw=true",
 			"-Dsun.java2d.d3d=false",
