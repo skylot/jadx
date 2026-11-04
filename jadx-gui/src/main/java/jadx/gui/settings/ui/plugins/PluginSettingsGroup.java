@@ -176,9 +176,12 @@ class PluginSettingsGroup implements ISettingsGroup {
 				});
 	}
 
-	private void onSelection(BasePluginListNode node) {
+	void onSelection(@Nullable BasePluginListNode node) {
+		if (detailsPanel == null) {
+			return;
+		}
 		detailsPanel.removeAll();
-		if (node.hasDetails()) {
+		if (node != null && node.hasDetails()) {
 			JLabel nameLbl = new JLabel(node.getTitle());
 			Font baseFont = nameLbl.getFont();
 			nameLbl.setFont(baseFont.deriveFont(Font.BOLD, baseFont.getSize2D() + 2));
@@ -255,7 +258,7 @@ class PluginSettingsGroup implements ISettingsGroup {
 		return null;
 	}
 
-	private static class PluginsListCellRenderer implements ListCellRenderer<BasePluginListNode> {
+	static class PluginsListCellRenderer implements ListCellRenderer<BasePluginListNode> {
 		private final JPanel panel;
 		private final JLabel nameLbl;
 		private final JLabel versionLbl;
@@ -287,7 +290,10 @@ class PluginSettingsGroup implements ISettingsGroup {
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends BasePluginListNode> list,
-				BasePluginListNode plugin, int index, boolean isSelected, boolean cellHasFocus) {
+				@Nullable BasePluginListNode plugin, int index, boolean isSelected, boolean cellHasFocus) {
+			if (plugin == null) {
+				return panel;
+			}
 			if (!plugin.hasDetails()) {
 				titleLbl.setText(plugin.getTitle());
 				return titleLbl;
