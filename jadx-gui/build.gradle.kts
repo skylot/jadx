@@ -19,6 +19,7 @@ dependencies {
 
 	// import mappings
 	implementation(project(":jadx-plugins:jadx-rename-mappings"))
+	implementation(project(":jadx-plugins:jadx-java-input"))
 
 	implementation(libs.jcommander)
 	implementation(libs.logback.classic)
