@@ -19,6 +19,7 @@ import jadx.plugins.input.java.data.attributes.IJavaAttribute;
 import jadx.plugins.input.java.data.attributes.JavaAttrStorage;
 import jadx.plugins.input.java.data.attributes.JavaAttrType;
 import jadx.plugins.input.java.data.attributes.types.JavaAnnotationsAttr;
+import jadx.plugins.input.java.data.attributes.types.JavaSourceFileAttr;
 import jadx.plugins.input.java.utils.DisasmUtils;
 
 public class JavaClassData implements IClassData {
@@ -71,6 +72,58 @@ public class JavaClassData implements IClassData {
 	public List<String> getInterfacesTypes() {
 		data.absPos(offsets.getInterfacesOffset());
 		return data.readClassesList(constPoolReader);
+	}
+
+	public int getMinorVersion() {
+		return data.absPos(4).readU2();
+	}
+
+	public int getMajorVersion() {
+		return data.absPos(6).readU2();
+	}
+
+	public String getJavaVersion() {
+		int major = getMajorVersion();
+		int minor = getMinorVersion();
+		String ver;
+		switch (major) {
+			case 45:
+				ver = "1.1";
+				break;
+			case 46:
+				ver = "1.2";
+				break;
+			case 47:
+				ver = "1.3";
+				break;
+			case 48:
+				ver = "1.4";
+				break;
+			default:
+				if (major >= 49) {
+					ver = Integer.toString(major - 44);
+				} else {
+					ver = "unknown";
+				}
+				break;
+		}
+		if (minor == 65535) {
+			return String.format("Java %s preview (%d.%d)", ver, major, minor);
+		}
+		return String.format("Java %s (%d.%d)", ver, major, minor);
+	}
+
+	public int getFieldsCount() {
+		return data.absPos(offsets.getFieldsOffset()).readU2();
+	}
+
+	public int getMethodsCount() {
+		return data.absPos(offsets.getMethodsOffset()).readU2();
+	}
+
+	public @Nullable String getSourceFile() {
+		JavaSourceFileAttr sourceFileAttr = loadClassAttribute(data.copy(), JavaAttrType.SOURCE_FILE);
+		return sourceFileAttr != null ? sourceFileAttr.getFileName() : null;
 	}
 
 	@Override
