@@ -38,7 +38,7 @@ application {
 			"-XX:+IgnoreUnrecognizedVMOptions",
 			"-Xms256M",
 			"-XX:MaxRAMPercentage=70.0",
-			"-XX:ParallelGCThreads=3",
+			"-XX:+UseStringDeduplication",
 			// disable zip checks (#1962)
 			"-Djdk.util.zip.disableZip64ExtraFieldValidation=true",
 			// Foreign API access for 'directories' library (Windows only)
