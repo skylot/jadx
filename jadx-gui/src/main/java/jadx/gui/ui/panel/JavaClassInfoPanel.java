@@ -46,8 +46,8 @@ public class JavaClassInfoPanel extends ContentPanel {
 
 	public static void buildTabs(JTabbedPane resourceTabbedPane, TabbedPane panel, JResource resource) {
 		JavaClassInfoPanel infoPanel = new JavaClassInfoPanel(panel, resource);
-		resourceTabbedPane.addTab("Info", infoPanel);
-		resourceTabbedPane.addTab("Disassemble", infoPanel.createDisassemblePanel());
+		resourceTabbedPane.addTab(NLS.str("tabs.info"), infoPanel);
+		resourceTabbedPane.addTab(NLS.str("tabs.smali"), infoPanel.createDisassemblePanel());
 		resourceTabbedPane.addTab(NLS.str("tabs.hex"), new BinaryContentPanel(panel, resource));
 	}
 
@@ -63,7 +63,7 @@ public class JavaClassInfoPanel extends ContentPanel {
 			loadedData = new JavaClassData(new JavaClassReader(0, resource.getName(), bytes));
 			String rawName = Utils.cleanObjectName(loadedData.getType());
 			resolvedCls = resolveJClass(panel.getMainWindow(), rawName);
-			html = buildInfoHtml(panel.getMainWindow(), resource, loadedData, rawName, resolvedCls);
+			html = buildInfoHtml(panel.getMainWindow(), resource, loadedData, rawName, resolvedCls, bytes.length);
 		} catch (Exception e) {
 			html = buildErrorHtml(e);
 		}
@@ -96,7 +96,7 @@ public class JavaClassInfoPanel extends ContentPanel {
 	}
 
 	private String buildInfoHtml(MainWindow mainWindow, JResource resource, JavaClassData data,
-			String rawName, @Nullable JClass resolvedCls) {
+			String rawName, @Nullable JClass resolvedCls, int fileSize) {
 		StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 		builder.append("<html><body>");
 		builder.append("<h2>Java class details</h2>");
@@ -146,6 +146,7 @@ public class JavaClassInfoPanel extends ContentPanel {
 		if (sourceFile != null) {
 			addLine(builder, "Source file", sourceFile);
 		}
+		addLine(builder, "File size", fileSize + " B");
 
 		builder.append("</ul>");
 		builder.append("</body></html>");
