@@ -11,6 +11,8 @@ import org.exbin.auxiliary.binary_data.array.ByteArrayData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.gui.tree.ICodeTreeNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
@@ -43,12 +45,12 @@ public class BinaryContentPanel extends AbstractCodeContentPanel implements ILaz
 		if (hexPreviewPanel.isDataLoaded()) {
 			return;
 		}
-		LOG.debug("Loading Hex View of {}", node.getName());
+		LOG.debug("Loading Hex View of {}", getNode().getName());
 		UiUtils.uiRunAndWait(() -> hexPreviewPanel.setData(getNodeData()));
 	}
 
 	private BinaryData getNodeData() {
-		JNode binaryNode = getNode();
+		ITreeNode binaryNode = getNode();
 		if (binaryNode instanceof JResource) {
 			JResource jResource = (JResource) binaryNode;
 			try {
@@ -62,7 +64,11 @@ public class BinaryContentPanel extends AbstractCodeContentPanel implements ILaz
 				LOG.error("Failed to directly load resource binary data {}: {}", jResource.getName(), e.getMessage());
 			}
 		}
-		return new ByteArrayData(binaryNode.getCodeInfo().getCodeStr().getBytes(StandardCharsets.US_ASCII));
+		if (binaryNode instanceof ICodeTreeNode) {
+			String codeStr = ((ICodeTreeNode) binaryNode).getCodeInfo().getCodeStr();
+			return new ByteArrayData(codeStr.getBytes(StandardCharsets.US_ASCII));
+		}
+		return new ByteArrayData();
 	}
 
 	@Override

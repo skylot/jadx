@@ -12,10 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.gui.plugins.JadxGuiContextExt;
+import jadx.api.gui.tree.BaseTreeNodeEnum;
+import jadx.api.gui.tree.IJadxTree;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
+import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.pass.JadxPassInfo;
 import jadx.api.plugins.pass.impl.OrderedJadxPassInfo;
 import jadx.api.plugins.pass.impl.SimpleJadxPassInfo;
@@ -35,13 +39,17 @@ public class PluginApiScan implements JadxPlugin {
 	private static final String PLUGIN_SERVICE_FILE = "META-INF/services/jadx.api.plugins.JadxPlugin";
 
 	private final List<String> entryClasses;
+	private @Nullable JadxGuiContextExt guiContextExt;
 	private volatile @Nullable ApiScanResult result;
 
-	public static void register(JadxDecompiler decompiler) {
+	public static @Nullable PluginApiScan register(JadxDecompiler decompiler) {
 		List<String> entryClasses = getPluginEntryClasses(decompiler);
-		if (entryClasses != null) {
-			decompiler.registerPlugin(new PluginApiScan(entryClasses));
+		if (entryClasses == null) {
+			return null;
 		}
+		PluginApiScan plugin = new PluginApiScan(entryClasses);
+		decompiler.registerPlugin(plugin);
+		return plugin;
 	}
 
 	/**
@@ -94,6 +102,10 @@ public class PluginApiScan implements JadxPlugin {
 	public void init(JadxPluginContext context) {
 		context.addPass(new ScanPass());
 		context.addPass(new CommentsPass());
+		JadxGuiContext guiContext = context.getGuiContext();
+		if (guiContext instanceof JadxGuiContextExt) {
+			guiContextExt = (JadxGuiContextExt) guiContext;
+		}
 	}
 
 	@Override
@@ -101,9 +113,19 @@ public class PluginApiScan implements JadxPlugin {
 		result = null;
 	}
 
-	// Scan result, null if opened files is not a jadx plugin
 	public @Nullable ApiScanResult getResult() {
 		return result;
+	}
+
+	private void showResults() {
+		ApiScanResult scanResult = result;
+		if (scanResult == null || guiContextExt == null) {
+			return;
+		}
+		ApiScanNode scanResultsNode = new ApiScanNode(guiContextExt, scanResult);
+		IJadxTree tree = guiContextExt.getMainWindow().getTree();
+		tree.addNode(BaseTreeNodeEnum.ROOT, scanResultsNode);
+		tree.openTreeNodeContent(scanResultsNode);
 	}
 
 	private final class ScanPass implements JadxPreparePass {
@@ -117,6 +139,7 @@ public class PluginApiScan implements JadxPlugin {
 		@Override
 		public void init(RootNode root) {
 			result = new ApiScanner(root, entryClasses).scan();
+			showResults();
 		}
 	}
 

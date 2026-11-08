@@ -16,7 +16,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 
@@ -129,13 +129,13 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		treeModel.nodesWereRemoved(parentNode, childIndices, objects);
 	}
 
-	private void addJNode(QuickTabsParentNode parentNode, JNode node) {
-		if (parentNode.addJNode(node)) {
+	private void addNode(QuickTabsParentNode parentNode, ITreeNode node) {
+		if (parentNode.addNode(node)) {
 			treeModel.nodesWereInserted(parentNode, new int[] { parentNode.getChildCount() - 1 });
 		}
 	}
 
-	private void removeJNode(QuickTabsParentNode parentNode, JNode node) {
+	private void removeJNode(QuickTabsParentNode parentNode, ITreeNode node) {
 		QuickTabsChildNode child = parentNode.getQuickTabsNode(node);
 		if (child != null) {
 			int removedIndex = parentNode.getIndex(child);
@@ -151,7 +151,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 		if (selectedNode != null) {
 			if (selectedNode instanceof QuickTabsChildNode) {
 				QuickTabsChildNode childNode = (QuickTabsChildNode) selectedNode;
-				JNode jNode = childNode.getJNode();
+				ITreeNode jNode = childNode.getJNode();
 
 				TabsController tabsController = mainWindow.getTabsController();
 				tabsController.selectTab(jNode);
@@ -170,7 +170,7 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 	@Override
 	public void onTabOpen(TabBlueprint blueprint) {
 		if (!blueprint.isHidden() && blueprint.getNode().supportsQuickTabs()) {
-			addJNode(openParentNode, blueprint.getNode());
+			addNode(openParentNode, blueprint.getNode());
 		}
 	}
 
@@ -183,9 +183,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabPinChange(TabBlueprint blueprint) {
-		JNode node = blueprint.getNode();
+		ITreeNode node = blueprint.getNode();
 		if (blueprint.isPinned()) {
-			addJNode(pinParentNode, node);
+			addNode(pinParentNode, node);
 		} else {
 			removeJNode(pinParentNode, node);
 		}
@@ -193,9 +193,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabBookmarkChange(TabBlueprint blueprint) {
-		JNode node = blueprint.getNode();
+		ITreeNode node = blueprint.getNode();
 		if (blueprint.isBookmarked()) {
-			addJNode(bookmarkParentNode, node);
+			addNode(bookmarkParentNode, node);
 		} else {
 			removeJNode(bookmarkParentNode, node);
 		}
@@ -203,9 +203,9 @@ public class QuickTabsTree extends JTree implements ITabStatesListener, TreeSele
 
 	@Override
 	public void onTabVisibilityChange(TabBlueprint blueprint) {
-		JNode node = blueprint.getNode();
+		ITreeNode node = blueprint.getNode();
 		if (!blueprint.isHidden()) {
-			addJNode(openParentNode, node);
+			addNode(openParentNode, node);
 		} else {
 			removeJNode(openParentNode, node);
 		}

@@ -38,6 +38,7 @@ public class ShortcutsController {
 
 	public ShortcutsController(JadxSettings settings) {
 		this.settings = settings;
+		loadSettings();
 	}
 
 	public void loadSettings() {
@@ -46,19 +47,20 @@ public class ShortcutsController {
 		boundActions.forEach((actionModel, actions) -> {
 			if (actions != null) {
 				Shortcut shortcut = get(actionModel);
-				for (IShortcutAction action : actions) {
-					action.setShortcut(shortcut);
+				if (shortcut != null) {
+					for (IShortcutAction action : actions) {
+						action.setShortcut(shortcut);
+					}
 				}
 			}
 		});
 	}
 
-	@Nullable
-	public Shortcut get(ActionModel actionModel) {
+	public @Nullable Shortcut get(ActionModel actionModel) {
 		return shortcuts.get(actionModel);
 	}
 
-	public KeyStroke getKeyStroke(ActionModel actionModel) {
+	public @Nullable KeyStroke getKeyStroke(ActionModel actionModel) {
 		Shortcut shortcut = get(actionModel);
 		if (shortcut != null && shortcut.isKeyboard()) {
 			return shortcut.toKeyStroke();

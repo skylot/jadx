@@ -3,8 +3,6 @@ package jadx.gui.ui.tab;
 import java.awt.Component;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -33,6 +31,9 @@ import io.github.andrewauclair.moderndocking.app.Docking;
 import io.github.andrewauclair.moderndocking.event.DockingEvent;
 import io.github.andrewauclair.moderndocking.event.DockingListener;
 
+import jadx.api.gui.code.IScrollableContentPanel;
+import jadx.api.gui.code.JadxContentPanel;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.SilentTask;
@@ -50,11 +51,7 @@ import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.ui.dock.DockPanel;
 import jadx.gui.ui.dock.EditorDock;
 import jadx.gui.ui.dock.SplitSync;
-import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.ui.panel.FontPanel;
-import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.panel.IViewStateSupport;
-import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.Icons;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -69,13 +66,13 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	private final transient MainWindow mainWindow;
 	private final transient TabsController controller;
 	private final DockPanel anchor;
-	private final Map<ContentPanel, EditorDock> docks = new IdentityHashMap<>();
-	private final Map<JNode, List<ContentPanel>> byNode = new LinkedHashMap<>();
+	private final Map<JadxContentPanel, EditorDock> docks = new IdentityHashMap<>();
+	private final Map<ITreeNode, List<JadxContentPanel>> byNode = new LinkedHashMap<>();
 	private final List<ChangeListener> changeListeners = new ArrayList<>();
 	private final SplitSync splitSync = new SplitSync();
 
-	private @Nullable ContentPanel curTab;
-	private @Nullable ContentPanel lastTab;
+	private @Nullable JadxContentPanel curTab;
+	private @Nullable JadxContentPanel lastTab;
 	private boolean dragging;
 	private boolean bulk;
 	private boolean updating;
@@ -127,7 +124,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent e) {
 				long cur = System.currentTimeMillis();
-				if (!FocusManager.isActive()) {
+				if (!TabsFocusManager.isActive()) {
 					return false;
 				}
 				int code = e.getKeyCode();
@@ -167,7 +164,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent e) {
-				if (!FocusManager.isActive()) {
+				if (!TabsFocusManager.isActive()) {
 					return false;
 				}
 				if (e.getKeyCode() != closeKey) {
@@ -187,24 +184,26 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		});
 	}
 
-	private @Nullable ContentPanel showCode(JumpPosition jumpPos) {
+	private @Nullable JadxContentPanel showCode(JumpPosition jumpPos) {
 		UiUtils.uiThreadGuard();
 		JNode jumpNode = jumpPos.getNode();
-		ContentPanel contentPanel = getTabByNode(jumpNode);
+		JadxContentPanel contentPanel = getTabByNode(jumpNode);
 		if (contentPanel == null) {
 			return null;
 		}
 		selectTab(contentPanel);
-		int pos = jumpPos.getPos();
-		if (pos <= 0) {
-			LOG.warn("Invalid jump: {}", jumpPos, new JadxRuntimeException());
-			pos = Math.max(0, jumpNode.getPos());
+		if (contentPanel instanceof IScrollableContentPanel) {
+			int pos = jumpPos.getPos();
+			if (pos <= 0) {
+				LOG.warn("Invalid jump: {}", jumpPos, new JadxRuntimeException());
+				pos = Math.max(0, jumpNode.getPos());
+			}
+			((IScrollableContentPanel) contentPanel).scrollToPos(pos);
 		}
-		contentPanel.scrollToPos(pos);
 		return contentPanel;
 	}
 
-	public void selectTab(ContentPanel contentPanel) {
+	public void selectTab(JadxContentPanel contentPanel) {
 		if (curTab != contentPanel && docks.containsKey(contentPanel)) {
 			activate(contentPanel);
 		}
@@ -212,7 +211,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	}
 
 	private void smaliJump(JClass cls, int pos, boolean debugMode) {
-		ContentPanel panel = getTabByNode(cls);
+		JadxContentPanel panel = getTabByNode(cls);
 		if (panel == null) {
 			panel = showCode(new JumpPosition(cls, 1));
 			if (panel == null) {
@@ -232,7 +231,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	}
 
 	public @Nullable JumpPosition getCurrentPosition() {
-		ContentPanel selectedCodePanel = getSelectedContentPanel();
+		JadxContentPanel selectedCodePanel = getSelectedContentPanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea();
 			if (codeArea != null) {
@@ -242,12 +241,12 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		return null;
 	}
 
-	public void closeCodePanel(ContentPanel contentPanel) {
+	public void closeCodePanel(JadxContentPanel contentPanel) {
 		closeCodePanel(contentPanel, false);
 	}
 
-	public void closeCodePanel(ContentPanel contentPanel, boolean considerPins) {
-		List<ContentPanel> panels = byNode.get(contentPanel.getNode());
+	public void closeCodePanel(JadxContentPanel contentPanel, boolean considerPins) {
+		List<JadxContentPanel> panels = byNode.get(contentPanel.getNode());
 		if (panels != null && panels.size() > 1) {
 			removePanel(contentPanel);
 			return;
@@ -258,8 +257,8 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	/**
 	 * Open panels in tab order of their groups.
 	 */
-	public List<ContentPanel> getTabs() {
-		List<ContentPanel> ordered = new ArrayList<>();
+	public List<JadxContentPanel> getTabs() {
+		List<JadxContentPanel> ordered = new ArrayList<>();
 		Set<JTabbedPane> seen = new HashSet<>();
 		for (EditorDock dock : docks.values()) {
 			JTabbedPane tabs = dock.enclosingTabs();
@@ -273,7 +272,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 				}
 			}
 		}
-		for (ContentPanel panel : docks.keySet()) {
+		for (JadxContentPanel panel : docks.keySet()) {
 			if (!ordered.contains(panel)) {
 				ordered.add(panel);
 			}
@@ -291,8 +290,8 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		return null;
 	}
 
-	public @Nullable ContentPanel getTabByNode(JNode node) {
-		List<ContentPanel> panels = byNode.get(node);
+	public @Nullable JadxContentPanel getTabByNode(ITreeNode node) {
+		List<JadxContentPanel> panels = byNode.get(node);
 		if (panels == null || panels.isEmpty()) {
 			return null;
 		}
@@ -311,12 +310,12 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		return false;
 	}
 
-	public void refresh(JNode node) {
-		List<ContentPanel> panels = byNode.get(node);
+	public void refresh(ITreeNode node) {
+		List<JadxContentPanel> panels = byNode.get(node);
 		if (panels == null) {
 			return;
 		}
-		for (ContentPanel panel : panels) {
+		for (JadxContentPanel panel : panels) {
 			updateTab(panel);
 		}
 		fireStateChanged();
@@ -327,7 +326,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		if (docks.size() <= 1) {
 			return;
 		}
-		for (ContentPanel oldPanel : new ArrayList<>(docks.keySet())) {
+		for (JadxContentPanel oldPanel : new ArrayList<>(docks.keySet())) {
 			if (oldPanel == curTab) {
 				continue;
 			}
@@ -336,15 +335,15 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 				continue;
 			}
 			EditorViewState viewState = controller.getEditorViewState(tab);
-			JNode node = oldPanel.getNode();
-			ContentPanel panel = node.getContentPanel(this);
+			ITreeNode node = oldPanel.getNode();
+			JadxContentPanel panel = node.getContentPanel(mainWindow);
 			if (panel == null) {
 				continue;
 			}
 			EditorDock dock = docks.remove(oldPanel);
 			replaceInNode(node, oldPanel, panel);
 			oldPanel.dispose();
-			FocusManager.listen(panel);
+			TabsFocusManager.listen(panel);
 			dock.setContent(panel);
 			docks.put(panel, replaceDock(dock, panel));
 			controller.restoreEditorViewState(viewState);
@@ -352,7 +351,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		fireStateChanged();
 	}
 
-	private EditorDock replaceDock(EditorDock old, ContentPanel panel) {
+	private EditorDock replaceDock(EditorDock old, JadxContentPanel panel) {
 		EditorDock dock = new EditorDock(old.getPersistentID() + "r", panel);
 		dock.setMenuBuilder(menu -> buildMenu(menu, panel));
 		dock.setCloseRequest(() -> closeCodePanel(panel, true));
@@ -365,8 +364,8 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		return dock;
 	}
 
-	private void replaceInNode(JNode node, ContentPanel oldPanel, ContentPanel panel) {
-		List<ContentPanel> panels = byNode.get(node);
+	private void replaceInNode(ITreeNode node, JadxContentPanel oldPanel, JadxContentPanel panel) {
+		List<JadxContentPanel> panels = byNode.get(node);
 		if (panels != null) {
 			int i = panels.indexOf(oldPanel);
 			if (i >= 0) {
@@ -381,7 +380,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		}
 	}
 
-	public @Nullable ContentPanel getSelectedContentPanel() {
+	public @Nullable JadxContentPanel getSelectedContentPanel() {
 		return curTab;
 	}
 
@@ -390,13 +389,13 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	}
 
 	public void closeAllTabs(boolean considerPins) {
-		for (ContentPanel panel : getTabs()) {
+		for (JadxContentPanel panel : getTabs()) {
 			closeCodePanel(panel, considerPins);
 		}
 	}
 
 	public void loadSettings() {
-		for (ContentPanel panel : docks.keySet()) {
+		for (JadxContentPanel panel : docks.keySet()) {
 			panel.loadSettings();
 			updateTab(panel);
 		}
@@ -404,27 +403,27 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 	public void reset() {
 		closeAllTabs();
-		for (ContentPanel panel : new ArrayList<>(docks.keySet())) {
+		for (JadxContentPanel panel : new ArrayList<>(docks.keySet())) {
 			removePanel(panel);
 		}
 		byNode.clear();
 		curTab = null;
 		lastTab = null;
-		FocusManager.reset();
+		TabsFocusManager.reset();
 	}
 
 	@Nullable
 	public Component getFocusedComp() {
-		return FocusManager.getFocusedComp();
+		return TabsFocusManager.getFocusedComp();
 	}
 
-	public void split(ContentPanel panel, DockingRegion region) {
+	public void split(JadxContentPanel panel, DockingRegion region) {
 		EditorDock source = docks.get(panel);
 		if (source == null) {
 			return;
 		}
-		JNode node = panel.getNode();
-		ContentPanel copy = node.getContentPanel(this);
+		ITreeNode node = panel.getNode();
+		JadxContentPanel copy = node.getContentPanel(mainWindow);
 		if (copy == null) {
 			return;
 		}
@@ -437,8 +436,8 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		activate(copy);
 	}
 
-	private EditorDock addPanel(ContentPanel panel, @Nullable EditorDock near, DockingRegion region) {
-		FocusManager.listen(panel);
+	private EditorDock addPanel(JadxContentPanel panel, @Nullable EditorDock near, DockingRegion region) {
+		TabsFocusManager.listen(panel);
 		EditorDock dock = new EditorDock(ID_PREFIX + nextId++, panel);
 		dock.setMenuBuilder(menu -> buildMenu(menu, panel));
 		dock.setCloseRequest(() -> closeCodePanel(panel, true));
@@ -466,13 +465,13 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		return Docking.isDockableRegistered(dock.getPersistentID()) && Docking.isDocked(dock);
 	}
 
-	private void removePanel(ContentPanel panel) {
+	private void removePanel(JadxContentPanel panel) {
 		EditorDock dock = docks.remove(panel);
 		if (dock == null) {
 			return;
 		}
 		splitSync.unlink(panel);
-		List<ContentPanel> panels = byNode.get(panel.getNode());
+		List<JadxContentPanel> panels = byNode.get(panel.getNode());
 		if (panels != null) {
 			panels.remove(panel);
 			if (panels.isEmpty()) {
@@ -505,7 +504,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		fireStateChanged();
 	}
 
-	private void activate(ContentPanel panel) {
+	private void activate(JadxContentPanel panel) {
 		if (curTab == panel) {
 			return;
 		}
@@ -515,14 +514,14 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		if (dock != null && Docking.isDocked(dock)) {
 			Docking.bringToFront(dock);
 		}
-		FocusManager.focusOnCodePanel(panel);
+		TabsFocusManager.focusOnCodePanel(panel);
 		fireStateChanged();
 	}
 
 	private void onFocus(Component comp) {
-		for (Map.Entry<ContentPanel, EditorDock> e : docks.entrySet()) {
+		for (Map.Entry<JadxContentPanel, EditorDock> e : docks.entrySet()) {
 			if (SwingUtilities.isDescendingFrom(comp, e.getValue())) {
-				ContentPanel panel = e.getKey();
+				JadxContentPanel panel = e.getKey();
 				if (curTab != panel) {
 					lastTab = curTab;
 					curTab = panel;
@@ -572,13 +571,13 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		});
 	}
 
-	private void updateTab(ContentPanel panel) {
+	private void updateTab(JadxContentPanel panel) {
 		EditorDock dock = docks.get(panel);
 		TabBlueprint blueprint = controller.getTabByNode(panel.getNode());
 		if (dock == null || blueprint == null) {
 			return;
 		}
-		JNode node = panel.getNode();
+		ITreeNode node = panel.getNode();
 		String title = buildTabTitle(node);
 		if (node instanceof JEditableNode && ((JEditableNode) node).isChanged()) {
 			title = "*" + title;
@@ -596,33 +595,37 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		dock.update(title, icon, !blueprint.isPinned());
 	}
 
-	private String buildTabTitle(JNode node) {
-		String tabTitle = node.makeString();
+	private String buildTabTitle(ITreeNode node) {
+		String tabTitle = node.getName();
 		int count = 0;
-		for (ContentPanel other : docks.keySet()) {
-			if (other.getNode() != node && other.getNode().makeString().equals(tabTitle)) {
+		for (JadxContentPanel other : docks.keySet()) {
+			if (other.getNode() != node && other.getNode().getName().equals(tabTitle)) {
 				count++;
 			}
 		}
 		if (count > 0) {
-			tabTitle = node.makeLongString();
+			tabTitle = node.getLongName();
 		}
 		return UiUtils.limitStringLength(tabTitle, TAB_TITLE_MAX_LENGTH);
 	}
 
-	private void buildMenu(JPopupMenu menu, ContentPanel panel) {
-		JNode node = panel.getNode();
+	private void buildMenu(JPopupMenu menu, JadxContentPanel panel) {
+		ITreeNode node = panel.getNode();
 		TabBlueprint blueprint = controller.getTabByNode(node);
 		if (blueprint == null) {
 			return;
 		}
-		JClass rootClass = node.getRootClass();
-		String nodeFullName = rootClass != null ? rootClass.getFullName() : node.getName();
-		if (nodeFullName != null) {
-			JMenuItem copyRootClassName = new JMenuItem(NLS.str("tabs.copy_class_name"));
-			copyRootClassName.addActionListener(ev -> UiUtils.setClipboardString(nodeFullName));
-			menu.add(copyRootClassName);
-			menu.addSeparator();
+		String nodeFullName = node.getName();
+		if (node instanceof JNode) {
+			JClass rootClass = ((JNode) node).getRootClass();
+			nodeFullName = rootClass != null ? rootClass.getFullName() : node.getName();
+			if (nodeFullName != null) {
+				JMenuItem copyRootClassName = new JMenuItem(NLS.str("tabs.copy_class_name"));
+				String finalNodeFullName = nodeFullName;
+				copyRootClassName.addActionListener(ev -> UiUtils.setClipboardString(finalNodeFullName));
+				menu.add(copyRootClassName);
+				menu.addSeparator();
+			}
 		}
 		if (node instanceof JClass) {
 			JMenuItem splitRight = new JMenuItem(NLS.str("tabs.split_right"));
@@ -665,11 +668,11 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		closeTab.setEnabled(!blueprint.isPinned());
 		menu.add(closeTab);
 
-		List<ContentPanel> group = groupOf(panel);
+		List<JadxContentPanel> group = groupOf(panel);
 		if (docks.size() > 1) {
 			JMenuItem closeOther = new JMenuItem(NLS.str("tabs.closeOthers"));
 			closeOther.addActionListener(ev -> {
-				for (ContentPanel other : getTabs()) {
+				for (JadxContentPanel other : getTabs()) {
 					if (other != panel) {
 						closeCodePanel(other, true);
 					}
@@ -699,12 +702,12 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 				menu.add(closeAllRight);
 			}
 			menu.addSeparator();
-			for (ContentPanel other : getTabs()) {
+			for (JadxContentPanel other : getTabs()) {
 				if (other == panel) {
 					continue;
 				}
-				JNode otherNode = other.getNode();
-				JMenuItem item = new JMenuItem(otherNode.makeLongString());
+				ITreeNode otherNode = other.getNode();
+				JMenuItem item = new JMenuItem(otherNode.getLongName());
 				item.addActionListener(ev -> selectTab(other));
 				item.setIcon(otherNode.getIcon());
 				menu.add(item);
@@ -712,10 +715,10 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		}
 	}
 
-	private List<ContentPanel> groupOf(ContentPanel panel) {
+	private List<JadxContentPanel> groupOf(JadxContentPanel panel) {
 		EditorDock dock = docks.get(panel);
 		JTabbedPane tabs = dock == null ? null : dock.enclosingTabs();
-		List<ContentPanel> group = new ArrayList<>();
+		List<JadxContentPanel> group = new ArrayList<>();
 		if (tabs == null) {
 			group.add(panel);
 			return group;
@@ -748,9 +751,9 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		if (event.getID() != DockingEvent.ID.UNDOCKED || bulk) {
 			return;
 		}
-		for (Map.Entry<ContentPanel, EditorDock> e : docks.entrySet()) {
+		for (Map.Entry<JadxContentPanel, EditorDock> e : docks.entrySet()) {
 			if (e.getValue() == event.getDockable()) {
-				ContentPanel panel = e.getKey();
+				JadxContentPanel panel = e.getKey();
 				SwingUtilities.invokeLater(() -> {
 					if (docks.containsKey(panel)) {
 						closeCodePanel(panel, false);
@@ -800,7 +803,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		bulk = true;
 		updating = true;
 		try {
-			for (ContentPanel panel : getTabs()) {
+			for (JadxContentPanel panel : getTabs()) {
 				Docking.dock(docks.get(panel), anchor, DockingRegion.CENTER);
 			}
 			if (curTab != null && docks.get(curTab) != null) {
@@ -817,24 +820,26 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		if (blueprint.isHidden()) {
 			return;
 		}
-		JNode node = blueprint.getNode();
+		ITreeNode node = blueprint.getNode();
 		if (byNode.containsKey(node)) {
 			blueprint.setCreated(true);
 			return;
 		}
-		ContentPanel newPanel = node.getContentPanel(this);
-		if (newPanel != null) {
-			if (node != newPanel.getNode()) {
-				throw new JadxRuntimeException("Incorrect node found in content panel");
+		if (node.hasContent()) {
+			JadxContentPanel newPanel = node.getContentPanel(this.getMainWindow());
+			if (newPanel != null) {
+				if (node != newPanel.getNode()) {
+					throw new JadxRuntimeException("Incorrect node found in content panel");
+				}
+				addPanel(newPanel, null, DockingRegion.CENTER);
+				blueprint.setCreated(true);
 			}
-			addPanel(newPanel, null, DockingRegion.CENTER);
-			blueprint.setCreated(true);
 		}
 	}
 
 	@Override
 	public void onTabSelect(TabBlueprint blueprint) {
-		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		JadxContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel != null && !dragging) {
 			activate(contentPanel);
 		}
@@ -847,7 +852,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 	@Override
 	public void onTabSmaliJump(TabBlueprint blueprint, int pos, boolean debugMode) {
-		JNode node = blueprint.getNode();
+		ITreeNode node = blueprint.getNode();
 		if (node instanceof JClass) {
 			smaliJump((JClass) node, pos, debugMode);
 		}
@@ -855,18 +860,18 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 	@Override
 	public void onTabClose(TabBlueprint blueprint) {
-		List<ContentPanel> panels = byNode.get(blueprint.getNode());
+		List<JadxContentPanel> panels = byNode.get(blueprint.getNode());
 		if (panels == null) {
 			return;
 		}
-		for (ContentPanel panel : new ArrayList<>(panels)) {
+		for (JadxContentPanel panel : new ArrayList<>(panels)) {
 			removePanel(panel);
 		}
 	}
 
 	@Override
 	public void onTabPositionFirst(TabBlueprint blueprint) {
-		ContentPanel panel = getTabByNode(blueprint.getNode());
+		JadxContentPanel panel = getTabByNode(blueprint.getNode());
 		EditorDock dock = panel == null ? null : docks.get(panel);
 		JTabbedPane tabs = dock == null ? null : dock.enclosingTabs();
 		if (tabs == null) {
@@ -911,7 +916,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 	@Override
 	public void onTabRestore(TabBlueprint blueprint, EditorViewState viewState) {
-		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		JadxContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel instanceof IViewStateSupport) {
 			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
 		}
@@ -920,7 +925,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 	@Override
 	public void onTabsReorder(List<TabBlueprint> blueprints) {
 		List<TabBlueprint> newBlueprints = new ArrayList<>(blueprints.size());
-		for (ContentPanel contentPanel : getTabs()) {
+		for (JadxContentPanel contentPanel : getTabs()) {
 			TabBlueprint blueprint = controller.getTabByNode(contentPanel.getNode());
 			if (blueprint != null && !newBlueprints.contains(blueprint)) {
 				newBlueprints.add(blueprint);
@@ -935,73 +940,10 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 
 	@Override
 	public void onTabSave(TabBlueprint blueprint, EditorViewState viewState) {
-		ContentPanel contentPanel = getTabByNode(blueprint.getNode());
+		JadxContentPanel contentPanel = getTabByNode(blueprint.getNode());
 		if (contentPanel instanceof IViewStateSupport) {
 			((IViewStateSupport) contentPanel).saveEditorViewState(viewState);
 		}
 	}
 
-	private static class FocusManager implements FocusListener {
-		private static final FocusManager INSTANCE = new FocusManager();
-		private static @Nullable Component focusedComp;
-
-		static boolean isActive() {
-			return focusedComp != null;
-		}
-
-		static void reset() {
-			focusedComp = null;
-		}
-
-		static Component getFocusedComp() {
-			return focusedComp;
-		}
-
-		@Override
-		public void focusGained(FocusEvent e) {
-			focusedComp = (Component) e.getSource();
-		}
-
-		@Override
-		public void focusLost(FocusEvent e) {
-			focusedComp = null;
-		}
-
-		static void listen(ContentPanel pane) {
-			if (pane instanceof ClassCodeContentPanel) {
-				((ClassCodeContentPanel) pane).getCodeArea().addFocusListener(INSTANCE);
-				((ClassCodeContentPanel) pane).getSmaliCodeArea().addFocusListener(INSTANCE);
-				return;
-			}
-			if (pane instanceof AbstractCodeContentPanel) {
-				((AbstractCodeContentPanel) pane).getChildrenComponent().addFocusListener(INSTANCE);
-				return;
-			}
-			if (pane instanceof HtmlPanel) {
-				((HtmlPanel) pane).getHtmlArea().addFocusListener(INSTANCE);
-				return;
-			}
-			if (pane instanceof ImagePanel || pane instanceof FontPanel) {
-				pane.addFocusListener(INSTANCE);
-			}
-		}
-
-		static void focusOnCodePanel(ContentPanel pane) {
-			if (pane instanceof ClassCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> ((ClassCodeContentPanel) pane).getCurrentCodeArea().requestFocus());
-				return;
-			}
-			if (pane instanceof AbstractCodeContentPanel) {
-				SwingUtilities.invokeLater(() -> ((AbstractCodeContentPanel) pane).getChildrenComponent().requestFocus());
-				return;
-			}
-			if (pane instanceof HtmlPanel) {
-				SwingUtilities.invokeLater(() -> ((HtmlPanel) pane).getHtmlArea().requestFocusInWindow());
-				return;
-			}
-			if (pane instanceof ImagePanel || pane instanceof FontPanel) {
-				SwingUtilities.invokeLater(pane::requestFocusInWindow);
-			}
-		}
-	}
 }

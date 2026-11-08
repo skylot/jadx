@@ -5,12 +5,12 @@ import java.util.Map;
 
 import javax.swing.JPopupMenu;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.ui.MainWindow;
 
 abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 	private final TabsController tabsController;
-	private final Map<JNode, QuickTabsChildNode> childrenMap = new HashMap<>();
+	private final Map<ITreeNode, QuickTabsChildNode> childrenMap = new HashMap<>();
 
 	protected QuickTabsParentNode(TabsController tabsController) {
 		super();
@@ -18,7 +18,7 @@ abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 		this.tabsController = tabsController;
 	}
 
-	public boolean addJNode(JNode node) {
+	public boolean addNode(ITreeNode node) {
 		if (childrenMap.containsKey(node)) {
 			return false;
 		}
@@ -28,7 +28,7 @@ abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 		return true;
 	}
 
-	public boolean removeJNode(JNode node) {
+	public boolean removeJNode(ITreeNode node) {
 		QuickTabsChildNode childNode = childrenMap.remove(node);
 		if (childNode == null) {
 			return false;
@@ -41,7 +41,7 @@ abstract class QuickTabsParentNode extends QuickTabsBaseNode {
 		removeAllChildren();
 	}
 
-	public QuickTabsChildNode getQuickTabsNode(JNode node) {
+	public QuickTabsChildNode getQuickTabsNode(ITreeNode node) {
 		return childrenMap.get(node);
 	}
 

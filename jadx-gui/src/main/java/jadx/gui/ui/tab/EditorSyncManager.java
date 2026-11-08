@@ -1,7 +1,7 @@
 package jadx.gui.ui.tab;
 
+import jadx.api.gui.code.JadxContentPanel;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.panel.ContentPanel;
 
 public class EditorSyncManager implements ITabStatesListener {
 	private final MainWindow mainWindow;
@@ -14,7 +14,7 @@ public class EditorSyncManager implements ITabStatesListener {
 	}
 
 	public void sync() {
-		ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
+		JadxContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
 		if (selectedContentPanel != null) {
 			mainWindow.selectNodeInTree(selectedContentPanel.getNode());
 		}
@@ -25,7 +25,7 @@ public class EditorSyncManager implements ITabStatesListener {
 		mainWindow.updateHexViewMenuEnabled();
 		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
 			// verify that tab opened for this blueprint (some nodes don't open tab with content)
-			ContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
+			JadxContentPanel selectedContentPanel = tabbedPane.getSelectedContentPanel();
 			if (selectedContentPanel != null && selectedContentPanel.getNode().equals(blueprint.getNode())) {
 				sync();
 			}

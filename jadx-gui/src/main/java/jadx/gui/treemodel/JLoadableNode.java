@@ -4,12 +4,11 @@ import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.gui.tree.ILoadableTreeNode;
 import jadx.gui.jobs.IBackgroundTask;
 
-public abstract class JLoadableNode extends JNode {
+public abstract class JLoadableNode extends JNode implements ILoadableTreeNode {
 	private static final long serialVersionUID = 5543590584166374958L;
-
-	public abstract void loadNode();
 
 	public abstract @Nullable IBackgroundTask getLoadTask();
 

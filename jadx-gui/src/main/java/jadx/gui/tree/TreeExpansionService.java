@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -153,12 +154,12 @@ public class TreeExpansionService {
 		if (ref == null) {
 			return null;
 		}
-		JNode node = nodeCache.makeFrom(ref);
+		ITreeNode node = nodeCache.makeFrom(ref);
 		if (node.getParent() == null) {
 			if (DEBUG) {
 				LOG.warn("Resolving node not from tree: {}", node);
 			}
-			JNode treeNode = ((JRoot) tree.getModel().getRoot()).searchNode(node);
+			ITreeNode treeNode = ((JRoot) tree.getModel().getRoot()).searchNode(node);
 			if (treeNode == null) {
 				if (DEBUG) {
 					LOG.error("Node not found in tree: {}", node);

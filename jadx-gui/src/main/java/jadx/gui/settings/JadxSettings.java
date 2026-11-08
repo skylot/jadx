@@ -29,6 +29,7 @@ import jadx.api.args.IntegerFormat;
 import jadx.api.args.ResourceNameSource;
 import jadx.api.args.UseSourceNameAsClassNameAlias;
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.api.gui.IJadxSettings;
 import jadx.cli.config.JadxConfigAdapter;
 import jadx.cli.config.JadxConfigExclude;
 import jadx.core.utils.GsonUtils;
@@ -44,7 +45,7 @@ import jadx.gui.utils.RectangleTypeAdapter;
 
 import static jadx.gui.settings.JadxSettingsData.CURRENT_SETTINGS_VERSION;
 
-public class JadxSettings {
+public class JadxSettings implements IJadxSettings {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final int RECENT_PROJECTS_COUNT = 30;
@@ -355,6 +356,7 @@ public class JadxSettings {
 		return fontSettings;
 	}
 
+	@Override
 	public Font getUiFont() {
 		return fontSettings.getUiFontAdapter().getEffectiveFont();
 	}
@@ -363,6 +365,7 @@ public class JadxSettings {
 		fontSettings.getUiFontAdapter().setFont(font);
 	}
 
+	@Override
 	public Font getCodeFont() {
 		return fontSettings.getCodeFontAdapter().getEffectiveFont();
 	}

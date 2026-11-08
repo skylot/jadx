@@ -12,13 +12,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.gui.code.JadxContentPanel;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncee;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncer;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncerAbstractFactory;
 import jadx.gui.ui.codearea.sync.fallback.FallbackSyncer;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.ui.ListenersHelper;
 
 /**
@@ -83,7 +83,7 @@ public class SplitSync {
 			b.removeViewChangeListener(viewChange);
 		}
 
-		boolean has(ContentPanel panel) {
+		boolean has(JadxContentPanel panel) {
 			return a == panel || b == panel;
 		}
 
@@ -95,13 +95,13 @@ public class SplitSync {
 		}
 	}
 
-	public void link(ContentPanel a, ContentPanel b) {
+	public void link(JadxContentPanel a, JadxContentPanel b) {
 		if (a instanceof ClassCodeContentPanel && b instanceof ClassCodeContentPanel) {
 			links.add(new Link((ClassCodeContentPanel) a, (ClassCodeContentPanel) b));
 		}
 	}
 
-	public void unlink(ContentPanel panel) {
+	public void unlink(JadxContentPanel panel) {
 		links.removeIf(link -> {
 			if (link.has(panel)) {
 				link.dispose();

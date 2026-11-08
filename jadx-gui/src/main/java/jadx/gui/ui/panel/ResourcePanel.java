@@ -14,7 +14,9 @@ import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ResourceType;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.resources.ResourceContentType;
+import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
@@ -30,7 +32,7 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 
 	/**
 	 * Store the tab references that have been loaded so far.
-	 * As we only want to track refernces we can use IdentityHashSet which does not make calls
+	 * As we only want to track references we can use IdentityHashSet which does not make calls
 	 * to hashCode() and equals() which make sit faster for large objects.
 	 */
 	private final Set<Component> initializedTabs = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -117,7 +119,8 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 			selectedCodePanel.scrollToPos(pos);
 			return;
 		}
-		if (node.getContentType() == ResourceContentType.CONTENT_BINARY) {
+		ITreeNode node = getNode();
+		if (node instanceof JNode && ((JNode) node).getContentType() == ResourceContentType.CONTENT_BINARY) {
 			for (int i = 0; i < tabbedPane.getTabCount(); i++) {
 				Component component = tabbedPane.getComponentAt(i);
 				if (component instanceof BinaryContentPanel) {

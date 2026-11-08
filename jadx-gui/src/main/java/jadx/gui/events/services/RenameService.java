@@ -17,6 +17,8 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.impl.JadxCodeData;
+import jadx.api.gui.code.JadxContentPanel;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.NodeRenamedByUser;
 import jadx.core.utils.Utils;
@@ -29,7 +31,6 @@ import jadx.gui.treemodel.JRenameNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JNodeCache;
@@ -132,10 +133,13 @@ public class RenameService {
 					// Reload all the classes in the background process, rather than using the UI thread for
 					// decompilation. We don't just use codeArea.backgroundRefreshClass because it would spawn a
 					// separate background process, whereas we would like it to happen in this one.
-					for (ContentPanel tab : mainWindow.getTabbedPane().getTabs()) {
-						JClass rootClass = tab.getNode().getRootClass();
-						if (updatedTopClasses.contains(rootClass)) {
-							rootClass.reload(mainWindow.getCacheObject());
+					for (JadxContentPanel tab : mainWindow.getTabbedPane().getTabs()) {
+						ITreeNode tabNode = tab.getNode();
+						if (tabNode instanceof JClass) {
+							JClass rootClass = ((JClass) tabNode).getRootClass();
+							if (updatedTopClasses.contains(rootClass)) {
+								rootClass.reload(mainWindow.getCacheObject());
+							}
 						}
 					}
 					UiUtils.uiRunAndWait(() -> refreshTabs(mainWindow.getTabbedPane(), updatedTopClasses));
@@ -177,12 +181,15 @@ public class RenameService {
 	}
 
 	private void refreshTabs(TabbedPane tabbedPane, Set<JClass> updatedClasses) {
-		for (ContentPanel tab : tabbedPane.getTabs()) {
-			JClass rootClass = tab.getNode().getRootClass();
-			if (updatedClasses.remove(rootClass)) {
-				ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) tab;
-				CodeArea codeArea = (CodeArea) contentPanel.getJavaCodePanel().getCodeArea();
-				codeArea.refreshClass(true);
+		for (JadxContentPanel tab : tabbedPane.getTabs()) {
+			ITreeNode node = tab.getNode();
+			if (node instanceof JClass) {
+				JClass rootClass = ((JClass) node).getRootClass();
+				if (updatedClasses.remove(rootClass)) {
+					ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) tab;
+					CodeArea codeArea = (CodeArea) contentPanel.getJavaCodePanel().getCodeArea();
+					codeArea.refreshClass(true);
+				}
 			}
 		}
 	}

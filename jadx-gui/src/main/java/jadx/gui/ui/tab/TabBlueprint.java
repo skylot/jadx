@@ -2,21 +2,21 @@ package jadx.gui.ui.tab;
 
 import java.util.Objects;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 
 public class TabBlueprint {
-	private final JNode node;
+	private final ITreeNode node;
 	private boolean created;
 	private boolean pinned;
 	private boolean bookmarked;
 	private boolean hidden;
 	private boolean previewTab;
 
-	public TabBlueprint(JNode node) {
+	public TabBlueprint(ITreeNode node) {
 		this.node = Objects.requireNonNull(node);
 	}
 
-	public JNode getNode() {
+	public ITreeNode getNode() {
 		return node;
 	}
 

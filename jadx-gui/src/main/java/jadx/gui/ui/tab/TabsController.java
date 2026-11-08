@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.metadata.annotations.NodeDeclareRef;
@@ -28,7 +29,7 @@ public class TabsController {
 	private static final Logger LOG = LoggerFactory.getLogger(TabsController.class);
 
 	private final MainWindow mainWindow;
-	private final Map<JNode, TabBlueprint> tabsMap = new HashMap<>();
+	private final Map<ITreeNode, TabBlueprint> tabsMap = new HashMap<>();
 	private final List<ITabStatesListener> listeners = new ArrayList<>();
 
 	private boolean forceClose;
@@ -53,15 +54,15 @@ public class TabsController {
 		listeners.remove(listener);
 	}
 
-	public @Nullable TabBlueprint getTabByNode(JNode node) {
+	public @Nullable TabBlueprint getTabByNode(ITreeNode node) {
 		return tabsMap.get(node);
 	}
 
-	public TabBlueprint openTab(JNode node) {
+	public TabBlueprint openTab(ITreeNode node) {
 		return openTab(node, false, false);
 	}
 
-	public TabBlueprint openTab(JNode node, boolean hidden, boolean preview) {
+	public TabBlueprint openTab(ITreeNode node, boolean hidden, boolean preview) {
 		if (!node.hasContent()) {
 			LOG.warn("Can't open tab for node without content, node: {}", node);
 		}
@@ -85,7 +86,7 @@ public class TabsController {
 		return blueprint;
 	}
 
-	public TabBlueprint previewTab(JNode node) {
+	public TabBlueprint previewTab(ITreeNode node) {
 		TabBlueprint blueprint = getPreviewTab();
 		if (blueprint != null) {
 			closeTab(blueprint.getNode());
@@ -93,11 +94,11 @@ public class TabsController {
 		return openTab(node, false, true);
 	}
 
-	public void selectTab(JNode node) {
+	public void selectTab(ITreeNode node) {
 		selectTab(node, false);
 	}
 
-	public void selectTab(JNode node, boolean fromTree) {
+	public void selectTab(ITreeNode node, boolean fromTree) {
 		if (selectedTab != null && selectedTab.getNode() == node) {
 			// already selected
 			return;
@@ -198,11 +199,11 @@ public class TabsController {
 		listeners.forEach(l -> l.onTabSmaliJump(blueprint, pos, debugMode));
 	}
 
-	public void closeTab(JNode node) {
+	public void closeTab(ITreeNode node) {
 		closeTab(node, false);
 	}
 
-	public void closeTab(JNode node, boolean considerPins) {
+	public void closeTab(ITreeNode node, boolean considerPins) {
 		TabBlueprint blueprint = getTabByNode(node);
 		if (blueprint != null) {
 			closeTab(blueprint, considerPins);
@@ -238,12 +239,12 @@ public class TabsController {
 		setTabHidden(blueprint.getNode(), true);
 	}
 
-	public void setTabPositionFirst(JNode node) {
+	public void setTabPositionFirst(ITreeNode node) {
 		TabBlueprint blueprint = openTab(node);
 		listeners.forEach(l -> l.onTabPositionFirst(blueprint));
 	}
 
-	public void setTabPinned(JNode node, boolean pinned) {
+	public void setTabPinned(ITreeNode node, boolean pinned) {
 		TabBlueprint blueprint = openTab(node);
 		setTabPinnedInternal(blueprint, pinned);
 	}
@@ -256,7 +257,7 @@ public class TabsController {
 		}
 	}
 
-	public void setTabBookmarked(JNode node, boolean bookmarked) {
+	public void setTabBookmarked(ITreeNode node, boolean bookmarked) {
 		TabBlueprint blueprint = openTab(node);
 		setTabBookmarkedInternal(blueprint, bookmarked);
 	}
@@ -270,12 +271,12 @@ public class TabsController {
 		}
 	}
 
-	public void setTabHidden(JNode node, boolean hidden) {
+	public void setTabHidden(ITreeNode node, boolean hidden) {
 		TabBlueprint blueprint = getTabByNode(node);
 		setTabHiddenInternal(blueprint, hidden);
 	}
 
-	private void setTabHiddenInternal(TabBlueprint blueprint, boolean hidden) {
+	private void setTabHiddenInternal(@Nullable TabBlueprint blueprint, boolean hidden) {
 		if (blueprint != null && blueprint.isHidden() != hidden) {
 			blueprint.setPreviewTab(false);
 			blueprint.setHidden(hidden);
@@ -283,12 +284,12 @@ public class TabsController {
 		}
 	}
 
-	public void setTabPreview(JNode node, boolean isPreview) {
+	public void setTabPreview(ITreeNode node, boolean isPreview) {
 		TabBlueprint blueprint = getTabByNode(node);
 		setTabPreviewInternal(blueprint, isPreview);
 	}
 
-	private void setTabPreviewInternal(TabBlueprint blueprint, boolean isPreview) {
+	private void setTabPreviewInternal(@Nullable TabBlueprint blueprint, boolean isPreview) {
 		if (blueprint != null && blueprint.isPreviewTab() != isPreview) {
 			blueprint.setPreviewTab(isPreview);
 			listeners.forEach(l -> l.onTabPreviewChange(blueprint));
@@ -352,13 +353,15 @@ public class TabsController {
 				.collect(Collectors.toUnmodifiableList());
 	}
 
-	public TabBlueprint getPreviewTab() {
+	public @Nullable TabBlueprint getPreviewTab() {
 		return tabsMap.values().stream()
-				.filter(TabBlueprint::isPreviewTab).findFirst().orElse(null);
+				.filter(TabBlueprint::isPreviewTab)
+				.findFirst()
+				.orElse(null);
 	}
 
 	public void restoreEditorViewState(EditorViewState viewState) {
-		JNode node = viewState.getNode();
+		ITreeNode node = viewState.getNode();
 		TabBlueprint blueprint = openTab(node, viewState.isHidden(), viewState.isPreviewTab());
 		setTabPinnedInternal(blueprint, viewState.isPinned());
 		setTabBookmarkedInternal(blueprint, viewState.isBookmarked());
@@ -370,7 +373,7 @@ public class TabsController {
 
 	public void notifyRestoreEditorViewStateDone() {
 		if (selectedTab == null && !tabsMap.isEmpty()) {
-			JNode node = tabsMap.values().iterator().next().getNode();
+			ITreeNode node = tabsMap.values().iterator().next().getNode();
 			LOG.warn("No active tab found, select {}", node); // TODO: find the reason of this issue
 			selectTab(node);
 		}

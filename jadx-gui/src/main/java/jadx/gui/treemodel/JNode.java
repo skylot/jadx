@@ -15,7 +15,11 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JavaNode;
-import jadx.api.gui.tree.ITreeNode;
+import jadx.api.gui.IMainWindow;
+import jadx.api.gui.code.JadxContentPanel;
+import jadx.api.gui.tree.ICodeTreeNode;
+import jadx.api.gui.tree.ILoadableTreeNode;
+import jadx.api.gui.tree.ITreeNodeDetails;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.resources.ResourceContentType;
 import jadx.core.utils.ListUtils;
@@ -23,11 +27,12 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
 
-public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode, Comparable<JNode> {
+public abstract class JNode extends DefaultMutableTreeNode
+		implements ICodeTreeNode, ITreeNodeDetails, ILoadableTreeNode, Comparable<JNode> {
 
 	private static final long serialVersionUID = -5154479091781041008L;
 
-	public abstract JClass getJParent();
+	public abstract @Nullable JClass getJParent();
 
 	/**
 	 * Return top level JClass or self if already at top.
@@ -36,21 +41,27 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 		return null;
 	}
 
-	public JavaNode getJavaNode() {
+	public @Nullable JavaNode getJavaNode() {
+		return null;
+	}
+
+	public @Nullable ICodeNodeRef getCodeNodeRef() {
 		return null;
 	}
 
 	@Override
-	public ICodeNodeRef getCodeNodeRef() {
-		return null;
-	}
-
 	public boolean hasContent() {
 		return false;
 	}
 
+	@Deprecated
 	public @Nullable ContentPanel getContentPanel(TabbedPane tabbedPane) {
 		return null;
+	}
+
+	@Override
+	public @Nullable JadxContentPanel getContentPanel(IMainWindow mainWindow) {
+		return getContentPanel(((MainWindow) mainWindow).getTabbedPane());
 	}
 
 	public String getSyntaxName() {
@@ -59,6 +70,11 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 
 	public ICodeInfo getCodeInfo() {
 		return ICodeInfo.EMPTY;
+	}
+
+	@Override
+	public void loadNode() {
+		getCodeInfo();
 	}
 
 	public ResourceContentType getContentType() {
@@ -72,14 +88,10 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 	@Override
 	public String getName() {
 		JavaNode javaNode = getJavaNode();
-		if (javaNode == null) {
-			return null;
+		if (javaNode != null) {
+			return javaNode.getName();
 		}
-		return javaNode.getName();
-	}
-
-	public boolean supportsQuickTabs() {
-		return true;
+		return makeString();
 	}
 
 	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
@@ -93,14 +105,17 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 
 	public abstract String makeString();
 
+	@Override
 	public String makeStringHtml() {
 		return makeString();
 	}
 
+	@Override
 	public String makeDescString() {
 		return null;
 	}
 
+	@Override
 	public boolean hasDescString() {
 		return false;
 	}
@@ -109,10 +124,12 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 		return makeString();
 	}
 
+	@Override
 	public String makeLongStringHtml() {
 		return makeLongString();
 	}
 
+	@Override
 	public boolean disableHtml() {
 		return true;
 	}
@@ -125,6 +142,7 @@ public abstract class JNode extends DefaultMutableTreeNode implements ITreeNode,
 		return javaNode.getDefPos();
 	}
 
+	@Override
 	public String getTooltip() {
 		return makeLongStringHtml();
 	}

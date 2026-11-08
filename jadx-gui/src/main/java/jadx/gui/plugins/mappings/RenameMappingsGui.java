@@ -21,6 +21,7 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 import jadx.api.args.UserRenamesMappingsMode;
+import jadx.api.gui.code.JadxContentPanel;
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
@@ -32,7 +33,6 @@ import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.filedialog.FileDialogWrapper;
 import jadx.gui.ui.filedialog.FileOpenMode;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -140,7 +140,7 @@ public class RenameMappingsGui {
 		if (currentNode != null) {
 			// close opened tab
 			TabbedPane tabbedPane = mainWindow.getTabbedPane();
-			ContentPanel openedTab = tabbedPane.getTabByNode(currentNode);
+			JadxContentPanel openedTab = tabbedPane.getTabByNode(currentNode);
 			if (openedTab != null) {
 				tabbedPane.closeCodePanel(openedTab);
 			}

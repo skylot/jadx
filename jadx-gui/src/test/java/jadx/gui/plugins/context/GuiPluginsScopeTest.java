@@ -11,15 +11,17 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.gui.code.IContentStatePersist;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginContext;
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.JadxPluginInfoBuilder;
 import jadx.core.plugins.PluginRuntime;
-import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 
@@ -158,7 +160,7 @@ public class GuiPluginsScopeTest {
 		guiContext.addTreePopupMenuEntry(name, node -> true, node -> {
 		});
 		guiContext.registerTreeInputCategory(new TestInputCategory());
-		guiContext.registerTabStatePersistAdapter(new TestTabState());
+		guiContext.registerTabStatePersistAdapter(new TestContentState());
 	}
 
 	private static void assertEntriesCount(CommonGuiPluginsContext context, int expected) {
@@ -229,19 +231,19 @@ public class GuiPluginsScopeTest {
 		}
 	}
 
-	private static final class TestTabState implements ITabStatePersist {
+	private static final class TestContentState implements IContentStatePersist {
 		@Override
-		public Class<? extends JNode> getNodeClass() {
+		public Class<? extends ITreeNode> getNodeClass() {
 			return JNode.class;
 		}
 
 		@Override
-		public String save(JNode node) {
+		public String save(ITreeNode node) {
 			return "";
 		}
 
 		@Override
-		public JNode load(String stateStr) {
+		public @Nullable JNode load(String stateStr) {
 			return null;
 		}
 	}
