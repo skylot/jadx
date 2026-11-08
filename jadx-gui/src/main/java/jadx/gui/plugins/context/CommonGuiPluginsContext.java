@@ -17,10 +17,10 @@ import javax.swing.KeyStroke;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.gui.code.IContentStatePersist;
 import jadx.api.gui.dock.DockableOptions;
 import jadx.api.gui.dock.JadxDockable;
 import jadx.core.plugins.PluginRuntime;
-import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.codearea.CodeArea;
@@ -187,7 +187,7 @@ public class CommonGuiPluginsContext {
 		return collect(GuiPluginsRegistry::getTreeInputCategories);
 	}
 
-	public List<ITabStatePersist> getTabStatePersistAdapters() {
+	public List<IContentStatePersist> getTabStatePersistAdapters() {
 		return collect(GuiPluginsRegistry::getTabStatePersistAdapters);
 	}
 

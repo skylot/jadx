@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,6 +35,10 @@ public class ListUtils {
 
 	public static <T> List<T> mutableListOf(T... objs) {
 		return new ArrayList<>(Arrays.asList(objs));
+	}
+
+	public static <T> Set<T> mutableSetOf(T... objs) {
+		return new HashSet<>(Arrays.asList(objs));
 	}
 
 	public static <T> boolean isSingleElement(@Nullable List<T> list, T obj) {

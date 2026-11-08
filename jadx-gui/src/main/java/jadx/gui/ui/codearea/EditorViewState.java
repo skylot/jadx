@@ -2,12 +2,12 @@ package jadx.gui.ui.codearea;
 
 import java.awt.Point;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 
 public class EditorViewState {
 	public static final Point ZERO = new Point(0, 0);
 
-	private final JNode node;
+	private final ITreeNode node;
 	private int caretPos;
 	private Point viewPoint;
 	private String subPath;
@@ -19,18 +19,18 @@ public class EditorViewState {
 	private boolean hidden;
 	private boolean previewTab;
 
-	public EditorViewState(JNode node) {
+	public EditorViewState(ITreeNode node) {
 		this(node, "", 0, EditorViewState.ZERO);
 	}
 
-	public EditorViewState(JNode node, String subPath, int caretPos, Point viewPoint) {
+	public EditorViewState(ITreeNode node, String subPath, int caretPos, Point viewPoint) {
 		this.node = node;
 		this.subPath = subPath;
 		this.caretPos = caretPos;
 		this.viewPoint = viewPoint;
 	}
 
-	public JNode getNode() {
+	public ITreeNode getNode() {
 		return node;
 	}
 

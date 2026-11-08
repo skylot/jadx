@@ -9,13 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
+import jadx.api.gui.code.IContentStatePersist;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.plugins.mappings.JInputMapping;
-import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.settings.data.ViewPoint;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.JRoot;
 import jadx.gui.treemodel.JSubResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
@@ -24,12 +25,12 @@ import jadx.gui.utils.UiUtils;
 public class TabStateViewAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(TabStateViewAdapter.class);
 
-	private final Map<String, ITabStatePersist> customAdaptersMap = new HashMap<>();
+	private final Map<String, IContentStatePersist> customAdaptersMap = new HashMap<>();
 
 	public @Nullable TabViewState build(EditorViewState viewState) {
 		TabViewState tvs = new TabViewState();
 		tvs.setSubPath(viewState.getSubPath());
-		if (!saveJNode(tvs, viewState.getNode())) {
+		if (!saveNode(tvs, viewState.getNode())) {
 			if (UiUtils.JADX_GUI_DEBUG) {
 				LOG.warn("Can't save view state: {}", viewState);
 			}
@@ -47,7 +48,7 @@ public class TabStateViewAdapter {
 
 	public @Nullable EditorViewState load(MainWindow mw, TabViewState tvs) {
 		try {
-			JNode node = loadJNode(mw, tvs);
+			ITreeNode node = loadNode(mw, tvs);
 			if (node == null) {
 				if (UiUtils.JADX_GUI_DEBUG) {
 					LOG.warn("Can't restore view for {}", tvs);
@@ -67,39 +68,41 @@ public class TabStateViewAdapter {
 		}
 	}
 
-	public void setCustomAdapters(List<ITabStatePersist> customAdapters) {
+	public void setCustomAdapters(List<IContentStatePersist> customAdapters) {
 		customAdaptersMap.clear();
-		for (ITabStatePersist customAdapter : customAdapters) {
+		for (IContentStatePersist customAdapter : customAdapters) {
 			customAdaptersMap.put(customAdapter.getNodeClass().getName(), customAdapter);
 		}
 	}
 
-	@Nullable
-	private JNode loadJNode(MainWindow mw, TabViewState tvs) {
-		switch (tvs.getType()) {
-			case "class":
-				JavaClass javaClass = mw.getWrapper().searchJavaClassByRawName(tvs.getTabPath());
-				if (javaClass != null) {
-					return mw.getCacheObject().getNodeCache().makeFrom(javaClass);
-				}
-				break;
+	private @Nullable ITreeNode loadNode(MainWindow mw, TabViewState tvs) {
+		JRoot treeRoot = mw.getTree().getTreeRoot();
+		if (treeRoot != null) {
+			switch (tvs.getType()) {
+				case "class":
+					JavaClass javaClass = mw.getWrapper().searchJavaClassByRawName(tvs.getTabPath());
+					if (javaClass != null) {
+						return mw.getCacheObject().getNodeCache().makeFrom(javaClass);
+					}
+					break;
 
-			case "resource":
-				return mw.getTreeRoot().searchResourceByName(tvs.getTabPath());
+				case "resource":
+					return treeRoot.searchResourceByName(tvs.getTabPath());
 
-			case "sub-resource":
-				String[] parts = tvs.getTabPath().split(JSubResource.SUB_RES_PREFIX);
-				JResource baseRes = mw.getTreeRoot().searchResourceByName(parts[0]);
-				if (baseRes != null) {
-					String subName = parts[1];
-					return baseRes.searchDepthNode(n -> n.getName().equals(subName)); // will load node before search
-				}
-				return null;
+				case "sub-resource":
+					String[] parts = tvs.getTabPath().split(JSubResource.SUB_RES_PREFIX);
+					JResource baseRes = treeRoot.searchResourceByName(parts[0]);
+					if (baseRes != null) {
+						String subName = parts[1];
+						return baseRes.searchDepthNode(n -> n.getName().equals(subName)); // will load node before search
+					}
+					return null;
 
-			case "mapping":
-				return mw.getTreeRoot().followStaticPath("JInputs").searchNode(node -> node instanceof JInputMapping);
+				case "mapping":
+					return treeRoot.followStaticPath("JInputs").searchNode(node -> node instanceof JInputMapping);
+			}
 		}
-		ITabStatePersist statePersist = customAdaptersMap.get(tvs.getType());
+		IContentStatePersist statePersist = customAdaptersMap.get(tvs.getType());
 		if (statePersist != null) {
 			try {
 				return statePersist.load(tvs.getTabPath());
@@ -110,7 +113,8 @@ public class TabStateViewAdapter {
 		return null;
 	}
 
-	private boolean saveJNode(TabViewState tvs, JNode node) {
+	private boolean saveNode(TabViewState tvs, ITreeNode node) {
+		// TODO: move per class implementation to custom adapters (via IContentStatePersist)
 		if (node instanceof JClass) {
 			tvs.setType("class");
 			tvs.setTabPath(((JClass) node).getCls().getRawName());
@@ -133,7 +137,7 @@ public class TabStateViewAdapter {
 		}
 
 		String typeName = node.getClass().getName();
-		ITabStatePersist statePersist = customAdaptersMap.get(typeName);
+		IContentStatePersist statePersist = customAdaptersMap.get(typeName);
 		if (statePersist != null) {
 			try {
 				tvs.setTabPath(statePersist.save(node));

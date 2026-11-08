@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.tree;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultTreeModel;
@@ -28,6 +29,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.treemodel.TextNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 
 /**
@@ -92,7 +94,7 @@ class FilterableTreeModel extends DefaultTreeModel {
 		applyFilterFieldOutline("");
 		collectFilteredPaths();
 		SwingUtilities.invokeLater(() -> this.nodeStructureChanged((TreeNode) getRoot()));
-		SwingUtilities.invokeLater(() -> expandVisibleFilteredNodes(mainWindow.getTree()));
+		SwingUtilities.invokeLater(this::expandVisibleFilteredNodes);
 	}
 
 	/**
@@ -107,10 +109,11 @@ class FilterableTreeModel extends DefaultTreeModel {
 	/**
 	 * If filter enabled, expand all visible nodes.
 	 */
-	public void expandVisibleFilteredNodes(JTree tree) {
+	public void expandVisibleFilteredNodes() {
 		if (filter.isEmpty()) {
 			return;
 		}
+		JTree tree = mainWindow.getTree().getTreeComponent();
 		Rectangle rect = tree.getVisibleRect();
 		int startRow = tree.getClosestRowForLocation(0, rect.y);
 		int bottom = rect.y + rect.height - 1;
@@ -137,7 +140,10 @@ class FilterableTreeModel extends DefaultTreeModel {
 	}
 
 	private void applyFilterFieldOutline(String outlineType) {
-		UiUtils.uiRun(() -> mainWindow.getTreeFilterField().putClientProperty("JComponent.outline", outlineType));
+		UiUtils.uiRun(() -> {
+			JTextField treeFilterField = mainWindow.getTree().getTreeFilterField();
+			treeFilterField.putClientProperty("JComponent.outline", outlineType);
+		});
 	}
 
 	private void collectFilteredPaths() {

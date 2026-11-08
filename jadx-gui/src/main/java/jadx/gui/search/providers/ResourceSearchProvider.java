@@ -160,7 +160,10 @@ public class ResourceSearchProvider implements ISearchProvider {
 	}
 
 	private static Deque<JResource> initResQueue(MainWindow mw) {
-		JRoot jRoot = mw.getTreeRoot();
+		JRoot jRoot = mw.getTree().getTreeRoot();
+		if (jRoot == null) {
+			return new ArrayDeque<>(0);
+		}
 		Deque<JResource> deque = new ArrayDeque<>(jRoot.getChildCount());
 		Enumeration<TreeNode> children = jRoot.children();
 		while (children.hasMoreElements()) {

@@ -22,6 +22,7 @@ import com.android.apksig.ApkVerifier;
 import jadx.api.ICodeInfo;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
+import jadx.api.gui.code.JadxContentPanel;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.gui.JadxWrapper;
 import jadx.gui.ui.panel.ContentPanel;
@@ -289,7 +290,7 @@ public class ApkSignatureNode extends JNode {
 			try {
 				node.content = get();
 				if (tabbedPane != null) {
-					ContentPanel panel = tabbedPane.getTabByNode(node);
+					JadxContentPanel panel = tabbedPane.getTabByNode(node);
 					if (panel instanceof HtmlPanel) {
 						((HtmlPanel) panel).loadContent(node);
 					}
@@ -308,7 +309,7 @@ public class ApkSignatureNode extends JNode {
 				node.content = new SimpleCodeInfo(builder.toString());
 
 				if (tabbedPane != null) {
-					ContentPanel panel = tabbedPane.getTabByNode(node);
+					JadxContentPanel panel = tabbedPane.getTabByNode(node);
 					if (panel instanceof HtmlPanel) {
 						((HtmlPanel) panel).loadContent(node);
 					}

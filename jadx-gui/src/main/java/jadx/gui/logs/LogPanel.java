@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import ch.qos.logback.classic.Level;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.tab.TabBlueprint;
@@ -35,7 +35,7 @@ public class LogPanel extends JPanel {
 	private JComboBox<LogMode> modeCb;
 	private JComboBox<Level> levelCb;
 
-	private ChangeListener activeTabListener;
+	private @Nullable ChangeListener activeTabListener;
 
 	public LogPanel(MainWindow mainWindow, LogOptions logOptions) {
 		this.mainWindow = mainWindow;
@@ -126,7 +126,7 @@ public class LogPanel extends JPanel {
 	private @Nullable String getCurrentScriptName() {
 		TabBlueprint selectedTab = mainWindow.getTabsController().getSelectedTab();
 		if (selectedTab != null) {
-			JNode node = selectedTab.getNode();
+			ITreeNode node = selectedTab.getNode();
 			if (node.getClass().getSimpleName().equals("JInputScript")) { // TODO: register custom log filters
 				return node.getName();
 			}

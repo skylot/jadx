@@ -4,14 +4,14 @@ import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 
 public class QuickTabsChildNode extends QuickTabsBaseNode {
-	private final JNode node;
+	private final ITreeNode node;
 
-	public QuickTabsChildNode(JNode node) {
+	public QuickTabsChildNode(ITreeNode node) {
 		this.node = node;
 	}
 
@@ -20,7 +20,7 @@ public class QuickTabsChildNode extends QuickTabsBaseNode {
 		return node.toString();
 	}
 
-	public JNode getJNode() {
+	public ITreeNode getJNode() {
 		return node;
 	}
 

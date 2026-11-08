@@ -12,12 +12,7 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
@@ -32,12 +27,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -50,23 +43,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import org.exbin.bined.swing.section.SectCodeArea;
 import org.jetbrains.annotations.NotNull;
@@ -74,22 +56,21 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import com.formdev.flatlaf.util.UIScale;
 
 import ch.qos.logback.classic.Level;
-import hu.akarnokd.rxjava3.swing.SwingSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.api.gui.IMainWindow;
+import jadx.api.gui.code.JadxContentPanel;
+import jadx.api.gui.tree.ILoadableTreeNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.plugins.events.JadxEvents;
 import jadx.api.plugins.events.types.ReloadProject;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
@@ -114,15 +95,11 @@ import jadx.gui.events.types.JadxGuiEventsImpl;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
-import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.jobs.TaskStatus;
-import jadx.gui.jobs.TaskWithExtraOnFinish;
 import jadx.gui.logs.LogCollector;
 import jadx.gui.logs.LogOptions;
 import jadx.gui.logs.LogPanel;
 import jadx.gui.plugins.GuiPluginsManager;
-import jadx.gui.plugins.apiscan.ApiScanNode;
-import jadx.gui.plugins.context.TreePopupMenuEntry;
 import jadx.gui.plugins.mappings.RenameMappingsGui;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.report.ExceptionDialog;
@@ -131,12 +108,8 @@ import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.data.SaveOptionEnum;
 import jadx.gui.settings.ui.JadxSettingsWindow;
-import jadx.gui.tree.TreeExpansionService;
-import jadx.gui.treemodel.ApkSignatureNode;
+import jadx.gui.tree.JadxTree;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JLoadableNode;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.action.ActionModel;
@@ -161,7 +134,6 @@ import jadx.gui.ui.hexviewer.HexPreviewPanel;
 import jadx.gui.ui.menu.HiddenMenuItem;
 import jadx.gui.ui.menu.JadxMenu;
 import jadx.gui.ui.menu.JadxMenuBar;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
@@ -173,7 +145,6 @@ import jadx.gui.ui.tab.PluginEventsTabStates;
 import jadx.gui.ui.tab.QuickTabsTree;
 import jadx.gui.ui.tab.TabbedPane;
 import jadx.gui.ui.tab.TabsController;
-import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.ui.treenodes.UndisplayedStringsNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.utils.CacheObject;
@@ -184,15 +155,12 @@ import jadx.gui.utils.Icons;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.dbg.UIWatchDog;
 import jadx.gui.utils.fileswatcher.LiveReloadWorker;
-import jadx.gui.utils.rx.RxUtils;
 import jadx.gui.utils.shortcut.ShortcutsController;
 import jadx.gui.utils.ui.ActionHandler;
-import jadx.gui.utils.ui.FileOpenerHelper;
-import jadx.gui.utils.ui.NodeLabel;
+import jadx.gui.utils.ui.ZoomActions;
 
 public class MainWindow extends JFrame implements IMainWindow {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
@@ -208,7 +176,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private final transient CacheManager cacheManager;
 	private final transient BackgroundExecutor backgroundExecutor;
 	private final transient JadxGuiEventsImpl events = new JadxGuiEventsImpl();
-	private final transient TreeExpansionService treeExpansionService;
 
 	private final TabsController tabsController;
 	private final NavigationController navController;
@@ -223,14 +190,10 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private transient JPanel mainPanel;
 	private transient DockingManager docking;
 
-	private JTree tree;
-	private FilterableTreeModel treeModel;
-	private JRoot treeRoot;
+	private JadxTree jadxTree;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
-	private transient boolean treeReloading;
 
-	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
 	private JCheckBoxMenuItem flatPkgMenuItem;
 
@@ -250,7 +213,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 	private transient ActionHandler quickTabsAction;
 
 	private final List<ILoadListener> loadListeners = new ArrayList<>();
-	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 	private volatile boolean loaded;
 	private boolean settingsOpen = false;
 	private boolean showUndisplayedCharsDialog;
@@ -264,9 +226,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private final transient RenameMappingsGui renameMappings;
 	private final transient GuiPluginsManager guiPluginsManager;
-	private JTextField treeFilterField;
-	private Disposable treeFilterDisposable;
-	private Disposable treeScrollDisposable;
 
 	public MainWindow(JadxSettings settings) {
 		this.settings = settings;
@@ -275,7 +234,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 		this.guiPluginsManager = new GuiPluginsManager(this);
 		this.cacheObject = new CacheObject(wrapper);
 		this.liveReloadWorker = new LiveReloadWorker(this);
-		this.renameMappings = new RenameMappingsGui(this);
 		this.cacheManager = new CacheManager(settings);
 		this.shortcutsController = new ShortcutsController(settings);
 		this.tabsController = new TabsController(this);
@@ -289,7 +247,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		initUI();
 		this.editorSyncManager = new EditorSyncManager(this, tabbedPane);
 		this.backgroundExecutor = new BackgroundExecutor(settings, progressPane);
-		this.treeExpansionService = new TreeExpansionService(this, tree);
+		this.renameMappings = new RenameMappingsGui(this);
 		initMenuAndToolbar();
 		UiUtils.setWindowIcons(this);
 		this.shortcutsController.registerMouseEventListener(this);
@@ -599,7 +557,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	private void saveAll() {
 		saveOpenTabs();
-		project.setTreeExpansions(treeExpansionService.save());
+		project.setTreeExpansions(jadxTree.getTreeState());
 		BreakpointManager.saveAndExit();
 	}
 
@@ -613,7 +571,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 			tabbedPane.reset();
 			navController.reset();
 			shortcutsController.reset();
-			clearTree();
+			jadxTree.clearTree();
 			UiUtils.resetClipboardOwner();
 			update();
 		});
@@ -643,7 +601,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	private void onOpen(Runnable onFinish) {
-		initTree();
+		jadxTree.initTree();
 		updateLiveReload(project.isEnableLiveReload());
 		BreakpointManager.init(project.getFilePaths().get(0).toAbsolutePath().getParent());
 		List<EditorViewState> openTabs = project.getOpenTabs(this);
@@ -659,7 +617,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 					prepareInitialView();
 				});
 		// queue tree state restore after loading task
-		treeExpansionService.load(project.getTreeExpansions());
+		jadxTree.loadTreeState(project.getTreeExpansions());
 	}
 
 	private void prepareInitialView() {
@@ -678,7 +636,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	public void passesReloaded() {
 		UiUtils.uiThreadGuard();
 		tabbedPane.reloadInactiveTabs();
-		reloadTreePreservingState();
+		jadxTree.reloadTreePreservingState();
 	}
 
 	private void initEvents() {
@@ -699,12 +657,6 @@ public class MainWindow extends JFrame implements IMainWindow {
 					liveReloadMenuItem.setState(state);
 					liveReloadMenuItem.setEnabled(true);
 				});
-	}
-
-	private void addTreeCustomNodes() {
-		treeRoot.replaceCustomNode(ApkSignatureNode.getApkSignature(wrapper));
-		treeRoot.replaceCustomNode(new SummaryNode(this));
-		treeRoot.replaceCustomNode(ApiScanNode.build(this));
 	}
 
 	private boolean ensureProjectIsSaved() {
@@ -846,60 +798,29 @@ public class MainWindow extends JFrame implements IMainWindow {
 		dialog.setVisible(true);
 	}
 
-	public void initTree() {
-		treeRoot = new JRoot(this);
-		treeRoot.setFlatPackages(isFlattenPackage);
-		treeModel.setRoot(treeRoot);
-		treeFilterField.setText("");
-		addTreeCustomNodes();
-		treeRoot.update();
-		reloadTree();
-	}
-
-	private void clearTree() {
-		treeRoot = null;
-		treeModel.setRoot(null);
-		treeModel.reload();
-	}
-
 	public void reloadTree() {
-		treeReloading = true;
-		treeUpdateListener.forEach(listener -> listener.accept(treeRoot));
-		treeModel.reload();
-		treeReloading = false;
+		jadxTree.reloadTree();
 	}
 
 	public void rebuildPackagesTree() {
-		treeRoot.update();
+		jadxTree.rebuildPackagesTree();
 	}
 
-	/**
-	 * Simple save and restore tree state after renaming.
-	 * TODO: maybe need improve for find and update only changed node
-	 */
 	public void reloadTreePreservingState() {
-		List<String> treePath = treeExpansionService.save();
-		reloadTree();
-		treeExpansionService.load(treePath);
+		jadxTree.reloadTreePreservingState();
 	}
 
 	private void toggleFlattenPackage() {
-		setFlattenPackage(!isFlattenPackage);
+		setFlattenPackage(!settings.isFlattenPackage());
 	}
 
-	private void setFlattenPackage(boolean value) {
-		isFlattenPackage = value;
+	private void setFlattenPackage(boolean isFlattenPackage) {
 		settings.setFlattenPackage(isFlattenPackage);
+		UiUtils.bgRun(settings::sync);
 
 		flatPkgButton.setSelected(isFlattenPackage);
 		flatPkgMenuItem.setState(isFlattenPackage);
-
-		Object root = treeModel.getRoot();
-		if (root instanceof JRoot) {
-			JRoot treeRoot = (JRoot) root;
-			treeRoot.setFlatPackages(isFlattenPackage);
-			reloadTree();
-		}
+		jadxTree.setFlattenPackage(isFlattenPackage);
 	}
 
 	private void toggleDeobfuscation() {
@@ -912,90 +833,12 @@ public class MainWindow extends JFrame implements IMainWindow {
 		reopen();
 	}
 
-	private boolean nodeClickAction(@Nullable Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		try {
-			if (obj instanceof JResource) {
-				JResource res = (JResource) obj;
-				ResourceFile resFile = res.getResFile();
-				if (resFile != null) {
-					if (JResource.isOpenInExternalTool(resFile.getType())) {
-						FileOpenerHelper.openFile(this, res);
-						return true;
-					}
-					if (JResource.isSupportedForView(resFile.getType())) {
-						tabsController.selectTab(res, true);
-						return true;
-					}
-				}
-			} else if (obj instanceof JNode) {
-				JNode treeNode = (JNode) obj;
-				if (treeNode.hasContent() || treeNode.getJParent() != null) {
-					tabsController.codeJump(treeNode, true);
-					return true;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("Content loading error", e);
-		}
-		return false;
-	}
-
-	private void treeRightClickAction(MouseEvent e) {
-		JNode node = getJNodeUnderMouse(e);
-		if (node == null) {
-			return;
-		}
-		JPopupMenu menu = node.onTreePopupMenu(this);
-		for (TreePopupMenuEntry entry : guiPluginsManager.getPluginsContext().getTreePopupMenuEntries()) {
-			JMenuItem menuItem = entry.buildEntry(node);
-			if (menuItem != null) {
-				if (menu == null) {
-					menu = new JPopupMenu();
-				}
-				menu.add(menuItem);
-			}
-		}
-		if (menu != null) {
-			menu.show(e.getComponent(), e.getX(), e.getY());
-		}
-	}
-
-	@Nullable
-	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
-		TreeNode treeNode = UiUtils.getTreeNodeUnderMouse(tree, mouseEvent);
-		if (treeNode instanceof JNode) {
-			return (JNode) treeNode;
-		}
-
-		return null;
-	}
-
-	// TODO: extract tree component into new class
-	public void selectNodeInTree(JNode node) {
-		if (node.getParent() == null && treeRoot != null) {
-			// node not register in tree
-			node = treeRoot.searchNode(node);
-			if (node == null) {
-				LOG.error("Class not found in tree");
-				return;
-			}
-		}
-		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
-		if (pathNodes == null) {
-			return;
-		}
-		TreePath path = new TreePath(pathNodes);
-		tree.setSelectionPath(path);
-		tree.makeVisible(path);
-		tree.scrollPathToVisible(path);
-		tree.requestFocus();
+	public void selectNodeInTree(ITreeNode node) {
+		jadxTree.selectNodeInTree(node);
 	}
 
 	public void textSearch() {
-		ContentPanel panel = tabbedPane.getSelectedContentPanel();
+		JadxContentPanel panel = tabbedPane.getSelectedContentPanel();
 		if (panel instanceof AbstractCodeContentPanel) {
 			AbstractCodeArea codeArea = ((AbstractCodeContentPanel) panel).getCodeArea();
 			if (codeArea != null) {
@@ -1038,7 +881,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	public HexPreviewPanel getCurrentHexViewTab() {
-		ContentPanel panel = tabbedPane.getSelectedContentPanel();
+		JadxContentPanel panel = tabbedPane.getSelectedContentPanel();
 		if (panel instanceof AbstractCodeContentPanel) {
 			Component childrenComponent = ((AbstractCodeContentPanel) panel).getChildrenComponent();
 			if (childrenComponent instanceof HexPreviewPanel) {
@@ -1154,9 +997,8 @@ public class MainWindow extends JFrame implements IMainWindow {
 		JadxGuiAction prefsAction = new JadxGuiAction(ActionModel.PREFS, () -> openSettings());
 		JadxGuiAction exitAction = new JadxGuiAction(ActionModel.EXIT, this::closeWindow);
 
-		isFlattenPackage = settings.isFlattenPackage();
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), Icons.FLAT_PKG);
-		flatPkgMenuItem.setState(isFlattenPackage);
+		flatPkgMenuItem.setState(settings.isFlattenPackage());
 
 		JadxGuiAction enablePreviewTabAction = new JadxGuiAction(ActionModel.PREVIEW_TAB, () -> {
 			settings.setEnablePreviewTab(!settings.isEnablePreviewTab());
@@ -1321,7 +1163,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		setJMenuBar(menuBar);
 
 		flatPkgButton = new JToggleButton(Icons.FLAT_PKG);
-		flatPkgButton.setSelected(isFlattenPackage);
+		flatPkgButton.setSelected(settings.isFlattenPackage());
 		ActionListener flatPkgAction = e -> toggleFlattenPackage();
 		flatPkgMenuItem.addActionListener(flatPkgAction);
 		flatPkgButton.addActionListener(flatPkgAction);
@@ -1426,124 +1268,17 @@ public class MainWindow extends JFrame implements IMainWindow {
 		docking = new DockingManager(this, events());
 		mainPanel.add(docking.createRootPanel(), BorderLayout.CENTER);
 
-		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
-
-		treeModel = new FilterableTreeModel(this, treeRootNode);
-		tree = new JTree(treeModel);
-		tree.setLargeModel(true);
-		ToolTipManager.sharedInstance().registerComponent(tree);
-
-		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.setFocusable(false);
-		tree.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				tree.setFocusable(false);
-			}
-		});
-		tree.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (SwingUtilities.isLeftMouseButton(e)) {
-					if (!nodeClickAction(getJNodeUnderMouse(e))) {
-						// click ignored -> switch to focusable mode
-						tree.setFocusable(true);
-						tree.requestFocus();
-					}
-				} else if (SwingUtilities.isRightMouseButton(e)) {
-					treeRightClickAction(e);
-				}
-			}
-		});
-		tree.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					nodeClickAction(tree.getLastSelectedPathComponent());
-				}
-			}
-		});
-		tree.setCellRenderer(new DefaultTreeCellRenderer() {
-			@Override
-			public Component getTreeCellRendererComponent(JTree tree,
-					Object value, boolean selected, boolean expanded,
-					boolean isLeaf, int row, boolean focused) {
-				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
-				if (value instanceof JNode) {
-					JNode jNode = (JNode) value;
-					NodeLabel.disableHtml(this, jNode.disableHtml());
-					setText(jNode.makeStringHtml());
-					setIcon(jNode.getIcon());
-					setToolTipText(jNode.getTooltip());
-				} else {
-					setToolTipText(null);
-				}
-				if (value instanceof JPackage) {
-					setEnabled(((JPackage) value).isEnabled());
-				}
-				return c;
-			}
-		});
-		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
-			@Override
-			public void treeWillExpand(TreeExpansionEvent event) {
-				TreePath path = event.getPath();
-				Object node = path.getLastPathComponent();
-				if (node instanceof JLoadableNode) {
-					JLoadableNode treeNode = (JLoadableNode) node;
-					IBackgroundTask loadTask = treeNode.getLoadTask();
-					if (loadTask != null) {
-						backgroundExecutor.execute(new TaskWithExtraOnFinish(loadTask,
-								status -> {
-									if (!treeReloading) {
-										treeModel.nodeStructureChanged(treeNode);
-									}
-								}));
-					}
-				}
-			}
-
-			@Override
-			public void treeWillCollapse(TreeExpansionEvent event) {
-				if (!treeReloading) {
-					update();
-				}
-			}
-		});
-
+		jadxTree = new JadxTree(this);
 		progressPane = new ProgressPanel(this, true);
 		issuesPanel = new IssuesPanel(this);
-
-		treeFilterField = new JTextField();
-		TextStandardActions.attach(treeFilterField);
-		treeFilterField.setToolTipText(NLS.str("tree.filter"));
-		treeFilterField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
-		treeFilterField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, NLS.str("tree.filter"));
-		treeFilterField.registerKeyboardAction(ev -> treeFilterField.setText(""),
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED);
-
-		treeFilterDisposable = RxUtils.textFieldChanges(treeFilterField)
-				.debounce(300, TimeUnit.MILLISECONDS)
-				.observeOn(Schedulers.newThread())
-				.subscribe(t -> treeModel.setFilter(treeFilterField.getText()));
-
-		JPanel filterPanel = new JPanel(new BorderLayout());
-		filterPanel.setBorder(BorderFactory.createEmptyBorder(5, 2, 2, 2));
-		filterPanel.add(treeFilterField, BorderLayout.CENTER);
-
-		JPanel leftPane = new JPanel(new BorderLayout());
-		JScrollPane treeScrollPane = new JScrollPane(tree);
-		treeScrollPane.setMinimumSize(new Dimension(100, 150));
-		treeScrollDisposable = RxUtils.scrollBarEvents(treeScrollPane.getVerticalScrollBar())
-				.observeOn(SwingSchedulers.edt())
-				.subscribe(v -> treeModel.expandVisibleFilteredNodes(tree));
 
 		JPanel bottomPane = new JPanel(new BorderLayout());
 		bottomPane.add(issuesPanel, BorderLayout.PAGE_START);
 		bottomPane.add(progressPane, BorderLayout.PAGE_END);
 
-		leftPane.add(filterPanel, BorderLayout.PAGE_START);
-		leftPane.add(treeScrollPane, BorderLayout.CENTER);
+		JPanel leftPane = new JPanel(new BorderLayout());
+		leftPane.add(jadxTree.getFilterPanel(), BorderLayout.PAGE_START);
+		leftPane.add(jadxTree.getTreeScrollPane(), BorderLayout.CENTER);
 		leftPane.add(bottomPane, BorderLayout.PAGE_END);
 		leftPane.setMinimumSize(new Dimension(100, 150));
 
@@ -1641,9 +1376,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		if (UIScale.setZoomFactor(settings.getUiZoom())) {
 			needUpdateUI = true;
 		}
-		tree.setFont(settings.getCodeFont());
-		tree.setRowHeight(-1);
-
+		jadxTree.loadSettings();
 		tabbedPane.loadSettings();
 		if (logPanel != null) {
 			logPanel.loadSettings();
@@ -1680,8 +1413,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 					try {
 						heapUsageBar.reset();
 						editorThemeManager.unload();
-						treeFilterDisposable.dispose();
-						treeScrollDisposable.dispose();
+						jadxTree.unload();
 						docking.shutdown();
 					} finally {
 						dispose();
@@ -1716,11 +1448,13 @@ public class MainWindow extends JFrame implements IMainWindow {
 			if (tabState.isHidden()) {
 				continue;
 			}
-			JNode node = tabState.getNode();
-			try {
-				node.getCodeInfo();
-			} catch (Exception e) {
-				LOG.warn("Failed to preload code for node: {}", node, e);
+			ITreeNode node = tabState.getNode();
+			if (node instanceof ILoadableTreeNode) {
+				try {
+					((ILoadableTreeNode) node).loadNode();
+				} catch (Exception e) {
+					LOG.warn("Failed to preload code for node: {}", node, e);
+				}
 			}
 		}
 	}
@@ -1745,7 +1479,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 	}
 
 	public void addTreeUpdateListener(Consumer<JRoot> listener) {
-		treeUpdateListener.add(listener);
+		jadxTree.addTreeUpdateListener(listener);
 	}
 
 	public JadxWrapper getWrapper() {
@@ -1772,6 +1506,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		return guiPluginsManager;
 	}
 
+	@Override
 	public JadxSettings getSettings() {
 		return settings;
 	}
@@ -1784,16 +1519,9 @@ public class MainWindow extends JFrame implements IMainWindow {
 		return backgroundExecutor;
 	}
 
-	public JTree getTree() {
-		return tree;
-	}
-
-	public JRoot getTreeRoot() {
-		return treeRoot;
-	}
-
-	public JTextField getTreeFilterField() {
-		return treeFilterField;
+	@Override
+	public JadxTree getTree() {
+		return jadxTree;
 	}
 
 	public JDebuggerPanel getDebuggerPanel() {
@@ -2011,6 +1739,11 @@ public class MainWindow extends JFrame implements IMainWindow {
 
 	public JadxGuiEventsImpl events() {
 		return events;
+	}
+
+	@Override
+	public void registerZoomActions(JComponent component, Runnable update) {
+		ZoomActions.register(component, settings, update);
 	}
 
 	private void initHexViewMenu() {

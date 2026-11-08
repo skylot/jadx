@@ -16,11 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
+import jadx.api.gui.tree.BaseTreeNodeEnum;
 import jadx.commons.app.JadxSystemInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.logs.LogOptions;
-import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.UiUtils;
 
@@ -110,11 +110,8 @@ public class QuarkManager {
 	private void loadReport() {
 		try {
 			QuarkReportNode quarkNode = new QuarkReportNode(reportFile);
-			JRoot root = mainWindow.getTreeRoot();
-			root.replaceCustomNode(quarkNode);
-			root.update();
-			mainWindow.reloadTree();
-			mainWindow.getTabsController().selectTab(quarkNode);
+			mainWindow.getTree().addNode(BaseTreeNodeEnum.ROOT, quarkNode);
+			mainWindow.getTree().openTreeNodeContent(quarkNode);
 		} catch (Exception e) {
 			UiUtils.errorMessage(mainWindow, "Failed to load Quark report.");
 			LOG.error("Failed to load Quark report.", e);

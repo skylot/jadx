@@ -14,6 +14,7 @@ import javax.swing.tree.TreeNode;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ResourceFile;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.JadxWrapper;
 import jadx.gui.settings.JadxProject;
@@ -49,9 +50,7 @@ public class JRoot extends JNode {
 		if (!resources.isEmpty()) {
 			add(getHierarchyResources(resources));
 		}
-		for (JNode customNode : customNodes) {
-			add(customNode);
-		}
+		mainWindow.getTree().addTreeCustomNodes();
 	}
 
 	private JResource getHierarchyResources(List<ResourceFile> resources) {
@@ -102,12 +101,12 @@ public class JRoot extends JNode {
 		return null;
 	}
 
-	public @Nullable JNode searchNode(JNode node) {
+	public @Nullable ITreeNode searchNode(ITreeNode node) {
 		Enumeration<?> en = this.breadthFirstEnumeration();
 		while (en.hasMoreElements()) {
 			Object obj = en.nextElement();
 			if (node.equals(obj)) {
-				return (JNode) obj;
+				return (ITreeNode) obj;
 			}
 		}
 		return null;

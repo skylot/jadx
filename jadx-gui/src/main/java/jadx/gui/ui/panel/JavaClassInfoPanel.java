@@ -92,7 +92,7 @@ public class JavaClassInfoPanel extends ContentPanel {
 	}
 
 	public ContentPanel createDisassemblePanel() {
-		return new CodeContentPanel(tabbedPane, new DisasmNode(node.getName(), clsData), false);
+		return new CodeContentPanel(tabbedPane, new DisasmNode(getNode().getName(), clsData), false);
 	}
 
 	private String buildInfoHtml(MainWindow mainWindow, JResource resource, JavaClassData data,

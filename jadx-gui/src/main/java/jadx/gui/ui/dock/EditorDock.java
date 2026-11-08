@@ -11,23 +11,23 @@ import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.gui.ui.panel.ContentPanel;
+import jadx.api.gui.code.JadxContentPanel;
 
 public class EditorDock extends DockPanel {
-	private final ContentPanel panel;
+	private final JadxContentPanel panel;
 	private @Nullable String tabText;
 	private @Nullable Icon tabIcon;
 	private boolean closable = true;
 	private @Nullable Consumer<JPopupMenu> menuBuilder;
 	private @Nullable Runnable closeRequest;
 
-	public EditorDock(String id, ContentPanel panel) {
+	public EditorDock(String id, JadxContentPanel panel) {
 		super(id, "", true, panel);
 		this.panel = panel;
 		register();
 	}
 
-	public ContentPanel getPanel() {
+	public JadxContentPanel getPanel() {
 		return panel;
 	}
 
@@ -70,7 +70,11 @@ public class EditorDock extends DockPanel {
 
 	@Override
 	public String getTabText() {
-		return tabText != null ? tabText : panel.getNode().makeString();
+		String text = tabText != null ? tabText : panel.getNode().getName();
+		if (text == null) {
+			return "?";
+		}
+		return text;
 	}
 
 	@Override

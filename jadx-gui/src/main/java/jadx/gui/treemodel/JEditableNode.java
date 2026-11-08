@@ -4,22 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class JEditableNode extends JNode {
+import jadx.api.gui.tree.IEditableTreeNode;
+
+/**
+ * Migrate to {@link jadx.gui.tree.JadxEditableTreeNode}
+ */
+@Deprecated
+public abstract class JEditableNode extends JNode implements IEditableTreeNode {
 
 	private volatile boolean changed = false;
 	private final List<Consumer<Boolean>> changeListeners = new ArrayList<>();
-
-	public abstract void save(String newContent);
 
 	@Override
 	public boolean isEditable() {
 		return true;
 	}
 
+	@Override
 	public boolean isChanged() {
 		return changed;
 	}
 
+	@Override
 	public void setChanged(boolean changed) {
 		if (this.changed != changed) {
 			this.changed = changed;

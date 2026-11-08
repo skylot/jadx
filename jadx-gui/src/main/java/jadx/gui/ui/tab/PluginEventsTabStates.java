@@ -5,9 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.gui.editor.events.EditorClosed;
 import jadx.api.gui.editor.events.EditorOpened;
 import jadx.api.gui.editor.events.EditorSelected;
+import jadx.api.gui.tree.ICodeTreeNode;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.api.plugins.events.IJadxEvents;
-import jadx.gui.treemodel.JNode;
 
 /**
  * Forward code tab changes to plugins
@@ -56,7 +57,13 @@ public class PluginEventsTabStates implements ITabStatesListener {
 		}
 	}
 
-	private static @Nullable ICodeNodeRef codeRef(JNode node) {
-		return node.getCodeNodeRef();
+	private static @Nullable ICodeNodeRef codeRef(ITreeNode node) {
+		if (node instanceof ICodeNodeRef) {
+			return (ICodeNodeRef) node;
+		}
+		if (node instanceof ICodeTreeNode) {
+			return ((ICodeTreeNode) node).getCodeNodeRef();
+		}
+		return null;
 	}
 }

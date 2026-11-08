@@ -19,6 +19,8 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.gui.IMainWindow;
+import jadx.api.gui.code.IContentStatePersist;
+import jadx.api.gui.code.JadxContentPanel;
 import jadx.api.gui.dock.DockableOptions;
 import jadx.api.gui.dock.JadxDockable;
 import jadx.api.gui.plugins.JadxGuiContextExt;
@@ -34,13 +36,11 @@ import jadx.api.plugins.options.OptionFlag;
 import jadx.core.plugins.PluginContext;
 import jadx.core.plugins.PluginRuntime;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.settings.data.ITabStatePersist;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.dialog.UsageDialog;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.IconsCache;
 import jadx.gui.utils.UiUtils;
 
@@ -125,7 +125,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		registry.getTreeInputCategories().add(inputCategory);
 	}
 
-	public void registerTabStatePersistAdapter(ITabStatePersist tabStatePersist) {
+	public void registerTabStatePersistAdapter(IContentStatePersist tabStatePersist) {
 		registry.getTabStatePersistAdapters().add(tabStatePersist);
 	}
 
@@ -259,7 +259,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 	@Override
 	public void reloadAllTabs() {
 		UiUtils.uiRun(() -> {
-			for (ContentPanel contentPane : commonContext.getMainWindow().getTabbedPane().getTabs()) {
+			for (JadxContentPanel contentPane : commonContext.getMainWindow().getTabbedPane().getTabs()) {
 				if (contentPane instanceof AbstractCodeContentPanel) {
 					AbstractCodeArea codeArea = ((AbstractCodeContentPanel) contentPane).getCodeArea();
 					if (codeArea instanceof CodeArea) {

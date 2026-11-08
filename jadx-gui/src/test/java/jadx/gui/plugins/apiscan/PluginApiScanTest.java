@@ -19,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
+import jadx.core.utils.ListUtils;
 
 import static jadx.gui.plugins.apiscan.ApiCategory.EXIT;
 import static jadx.gui.plugins.apiscan.ApiCategory.FILES;
@@ -88,10 +89,11 @@ class PluginApiScanTest {
 	@Test
 	void scanPlugin() throws Exception {
 		try (JadxDecompiler jadx = new JadxDecompiler(buildArgs(PLUGIN_SRC, true))) {
-			PluginApiScan.register(jadx);
+			PluginApiScan apiScan = PluginApiScan.register(jadx);
+			assertThat(apiScan).isNotNull();
 			jadx.load();
 
-			ApiScanResult result = ApiScanNode.getScanResult(jadx);
+			ApiScanResult result = apiScan.getResult();
 			assertThat(result).isNotNull();
 			assertThat(result.getUsages())
 					.extracting(u -> u.getMth().getName(), ApiUsage::getCategory, ApiUsage::getApi)
@@ -113,10 +115,11 @@ class PluginApiScanTest {
 	@Test
 	void reachableFromEntry() throws Exception {
 		try (JadxDecompiler jadx = new JadxDecompiler(buildArgs(REACH_PLUGIN_SRC, true))) {
-			PluginApiScan.register(jadx);
+			PluginApiScan apiScan = PluginApiScan.register(jadx);
+			assertThat(apiScan).isNotNull();
 			jadx.load();
 
-			ApiScanResult result = ApiScanNode.getScanResult(jadx);
+			ApiScanResult result = apiScan.getResult();
 			assertThat(result).isNotNull();
 			assertThat(result.getUsages())
 					.extracting(ApiUsage::getApi, result::isReachable)
@@ -130,11 +133,9 @@ class PluginApiScanTest {
 	@Test
 	void skipNotPlugin() throws Exception {
 		try (JadxDecompiler jadx = new JadxDecompiler(buildArgs(PLUGIN_SRC, false))) {
-			PluginApiScan.register(jadx);
+			PluginApiScan apiScan = PluginApiScan.register(jadx);
+			assertThat(apiScan).isNull();
 			jadx.load();
-
-			ApiScanResult result = ApiScanNode.getScanResult(jadx);
-			assertThat(result).isNull();
 			JavaClass cls = jadx.searchJavaClassByOrigFullName("evil.EvilPlugin");
 			assertThat(cls.getCode()).doesNotContain("Dangerous API");
 		}
@@ -165,6 +166,8 @@ class PluginApiScanTest {
 		}
 		JadxArgs args = new JadxArgs();
 		args.setInputFile(jar.toFile());
+		// disable test plugins from autoloading to reduce noise in logs
+		args.setDisabledPlugins(ListUtils.mutableSetOf("test-gui-global-plugin", "test-gui-plugin"));
 		return args;
 	}
 }
