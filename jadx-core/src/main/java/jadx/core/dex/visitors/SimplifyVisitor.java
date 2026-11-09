@@ -28,6 +28,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -231,7 +232,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
-		if (isArithWideUpCast(parentInsn, argType, castToType)) {
+		if (isArithTypeChangingCast(parentInsn, argType, castToType)) {
 			return null;
 		}
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
@@ -247,18 +248,36 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * Keep cast to wide types in arith instructions,
+	 * Keep cast that changes the operand arithmetic type in arith instructions,
 	 * because arguments type determine instruction used in result bytecode.
-	 * Example: (long) i << 32 - without 'long' cast will be used 'int shift' instruction and result
-	 * will be incorrect
+	 * Examples:
+	 * (long) i << 32 - without 'long' cast will be used 'int shift' instruction and result
+	 * will be incorrect;
+	 * (float) i / (float) j - without 'float' casts will be used 'int division' instruction.
 	 */
-	private static boolean isArithWideUpCast(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
+	private static boolean isArithTypeChangingCast(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
 		if (parentInsn != null
 				&& parentInsn.getType() == InsnType.ARITH
 				&& argType.isPrimitive() && castToType.isPrimitive()) {
-			return castToType.getRegCount() > argType.getRegCount();
+			return getArithPrimitiveType(argType) != getArithPrimitiveType(castToType);
 		}
 		return false;
+	}
+
+	/**
+	 * Arithmetic type used by bytecode arith instructions: int, long, float or double.
+	 * Types narrower than int (boolean, byte, char and short) are treated as int.
+	 */
+	private static PrimitiveType getArithPrimitiveType(ArgType type) {
+		PrimitiveType primitiveType = type.getPrimitiveType();
+		switch (primitiveType) {
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+				return primitiveType;
+			default:
+				return PrimitiveType.INT;
+		}
 	}
 
 	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
