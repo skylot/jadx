@@ -220,6 +220,11 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			MethodNode ctrMth = mth.root().getMethodUtils().resolveMethod((ConstructorInsn) parentInsn);
 			if (ctrMth != null
 					&& (ctrMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) || ctrMth.contains(AFlag.ANONYMOUS_CONSTRUCTOR))) {
+				// Enum constant arguments must not reference locals in the static initializer.
+				if (mth.getMethodInfo().isClassInit() && mth.getParentClass().isEnum()
+						&& mth.getParentClass().getType().equals(ctrMth.getParentClass().getSuperClass())) {
+					return true;
+				}
 				return false;
 			}
 		}
