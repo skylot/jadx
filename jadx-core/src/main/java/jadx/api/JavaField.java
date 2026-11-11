@@ -56,6 +56,10 @@ public final class JavaField implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		FieldNode currentFld = field.getParentClass().searchField(field.getFieldInfo());
+		if (currentFld != null) {
+			return currentFld.getDefPosition();
+		}
 		return field.getDefPosition();
 	}
 

@@ -522,6 +522,10 @@ public final class JadxDecompiler implements Closeable {
 
 	@ApiStatus.Internal
 	synchronized JavaField convertFieldNode(FieldNode fld) {
+		FieldNode currentFld = fld.getParentClass().searchField(fld.getFieldInfo());
+		if (currentFld != null) {
+			fld = currentFld;
+		}
 		JavaField javaField = fld.getJavaNode();
 		if (javaField == null) {
 			JavaClass parentCls = convertClassNode(fld.getParentClass());
@@ -533,6 +537,10 @@ public final class JadxDecompiler implements Closeable {
 
 	@ApiStatus.Internal
 	synchronized JavaMethod convertMethodNode(MethodNode mth) {
+		MethodNode currentMth = mth.getParentClass().searchMethod(mth.getMethodInfo());
+		if (currentMth != null) {
+			mth = currentMth;
+		}
 		JavaMethod javaMethod = mth.getJavaNode();
 		if (javaMethod == null) {
 			javaMethod = new JavaMethod(convertClassNode(mth.getParentClass()), mth);
