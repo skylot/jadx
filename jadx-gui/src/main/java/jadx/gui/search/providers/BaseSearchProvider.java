@@ -30,10 +30,10 @@ public abstract class BaseSearchProvider implements ISearchProvider {
 		this.decompiler = mw.getWrapper().getDecompiler();
 		this.searchMth = searchSettings.getSearchMethod();
 		this.searchStr = searchSettings.getSearchString();
-		if (searchSettings.getSearchPackage() != null) {
+		if (searchSettings.hasSearchPackage()) {
 			this.classes = classes
 					.stream()
-					.filter(c -> c.getJavaPackage().isDescendantOf(searchSettings.getSearchPackage()))
+					.filter(searchSettings::isInSearchPkg)
 					.collect(Collectors.toList());
 		} else {
 			this.classes = classes;

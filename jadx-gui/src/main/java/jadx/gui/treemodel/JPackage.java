@@ -34,6 +34,7 @@ public class JPackage extends JNode {
 	private final boolean synthetic;
 
 	private String name;
+	private String fullName;
 
 	/**
 	 * Should be called only from JNodeCache!
@@ -84,6 +85,17 @@ public class JPackage extends JNode {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getFullName() {
+		if (synthetic) {
+			return fullName;
+		}
+		return pkg.getFullName();
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 
 	public List<JPackage> getSubPackages() {
