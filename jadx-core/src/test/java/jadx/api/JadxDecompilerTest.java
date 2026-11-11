@@ -143,7 +143,7 @@ public class JadxDecompilerTest {
 
 		try (JadxDecompiler jadx = new JadxDecompiler(args)) {
 			jadx.load();
-			JavaClass mainActivity = jadx.searchJavaClassByOrigFullName("com.github.skylot.testapp.MainActivity");
+			JavaClass mainActivity = jadx.searchJavaClassByOrigFullName("com.github.skylot.simple.MainActivity");
 			assertThat(mainActivity).isNotNull();
 			assertThat(mainActivity.getSuperClass()).isNotNull();
 			assertThat(mainActivity.getSuperClass().getObject()).isEqualTo("android.app.Activity");
@@ -159,7 +159,7 @@ public class JadxDecompilerTest {
 			assertThat(onCreate.getShortId()).startsWith("onCreate(");
 			assertThat(mainActivity.searchMethodByShortId(onCreate.getShortId())).isEqualTo(onCreate);
 
-			JavaClass rClass = jadx.searchJavaClassByOrigFullName("com.github.skylot.testapp.R");
+			JavaClass rClass = jadx.searchJavaClassByOrigFullName("com.github.skylot.simple.R");
 			assertThat(rClass).isNotNull();
 			JavaClass rIdClass = rClass.getInnerClasses().stream()
 					.filter(c -> c.getRawName().endsWith("$id") || c.getName().equals("id"))
