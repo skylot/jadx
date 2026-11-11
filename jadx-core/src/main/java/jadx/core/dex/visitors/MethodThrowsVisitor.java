@@ -63,7 +63,9 @@ public class MethodThrowsVisitor extends AbstractVisitor {
 			attr = new MethodThrowsAttr(new HashSet<>());
 			mth.addAttr(attr);
 		}
-		if (!attr.isVisited()) {
+		if (!attr.isVisited() && (mth.isNoCode() || mth.getBasicBlocks() != null)) {
+			// a callee from a class that isn't processed yet has no blocks,
+			// it is analyzed later when its own class is processed
 			attr.setVisited(true);
 			processInstructions(mth);
 		}

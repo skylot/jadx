@@ -25,6 +25,12 @@ public interface ITabStatesListener {
 	}
 
 	/**
+	 * No tab is active
+	 */
+	default void onTabDeselect() {
+	}
+
+	/**
 	 * Caret position changes.
 	 *
 	 * @param prevPos previous caret position; can be null if unknown; can be from another tab

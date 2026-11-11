@@ -2,6 +2,7 @@ package jadx.plugins.input.aab.factories;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +33,7 @@ public class ProtoXmlResContainerFactory implements IResContainerFactory {
 		if (zipEntry == null) {
 			return null;
 		}
-		boolean isFromAab = zipEntry.getZipFile().getPath().toLowerCase().endsWith(".aab");
+		boolean isFromAab = zipEntry.getZipFile().getPath().toLowerCase(Locale.ROOT).endsWith(".aab");
 		if (!isFromAab) {
 			return null;
 		}

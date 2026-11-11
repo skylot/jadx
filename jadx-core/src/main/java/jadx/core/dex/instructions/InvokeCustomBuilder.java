@@ -31,7 +31,7 @@ public class InvokeCustomBuilder {
 				return CustomLambdaCall.buildLambdaMethodCall(mth, insn, isRange, values);
 			}
 			if (CustomStringConcat.isStringConcat(values)) {
-				return CustomStringConcat.buildStringConcat(insn, isRange, values);
+				return CustomStringConcat.buildStringConcat(mth, insn, isRange, values);
 			}
 			try {
 				return CustomRawCall.build(mth, insn, isRange, values);

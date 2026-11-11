@@ -6,6 +6,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.api.JadxInternalAccess;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
 import jadx.api.data.CodeRefType;
 import jadx.api.data.ICodeRename;
 import jadx.api.data.IJavaCodeRef;
@@ -15,6 +19,8 @@ import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -74,6 +80,13 @@ public class TestUserRenames extends IntegrationTest {
 				.containsOne("int renamedZ = renamedY + 1;")
 				.containsOne("return renamedZ;");
 
+		FieldNode oldFieldNode = cls.searchFieldByName("intField");
+		MethodNode oldMethodNode = cls.searchMethodByShortName("test");
+		JavaField oldJavaField = JadxInternalAccess.convertFieldNode(jadxDecompiler, oldFieldNode);
+		JavaMethod oldJavaMethod = JadxInternalAccess.convertMethodNode(jadxDecompiler, oldMethodNode);
+		int initialMthDefPos = oldJavaMethod.getDefPos();
+		assertThat(initialMthDefPos).isPositive();
+
 		String code = cls.getCode().getCodeStr();
 		assertThat(cls)
 				.reloadCode(this)
@@ -87,5 +100,30 @@ public class TestUserRenames extends IntegrationTest {
 				.containsOne("int anotherZ = y + 1;")
 				.doesNotContain("int z")
 				.doesNotContain("int renamedZ");
+
+		ICodeRename updFieldRename = new JadxCodeRename(
+				new JadxNodeRef(RefType.FIELD, baseClsId, "intField:I"), "muchLongerRenamedFieldName");
+		codeData.setRenames(Collections.singletonList(updFieldRename));
+		jadxDecompiler.reloadCodeData();
+		assertThat(cls)
+				.reloadCode(this)
+				.containsOne("private int muchLongerRenamedFieldName");
+
+		FieldNode newFieldNode = cls.searchFieldByName("intField");
+		MethodNode newMethodNode = cls.searchMethodByShortName("test");
+		assertThat(newMethodNode).isNotSameAs(oldMethodNode);
+		assertThat(oldMethodNode.getDefPosition()).isEqualTo(initialMthDefPos);
+		assertThat(newMethodNode.getDefPosition()).isNotEqualTo(initialMthDefPos);
+
+		// Stale node refs (e.g. from another open tab's cachedCodeInfo) and existing JavaNodes
+		// must resolve to the updated definition position after class reload
+		JavaNode resolvedMth = jadxDecompiler.getJavaNodeByRef(oldMethodNode);
+		JavaNode resolvedFld = jadxDecompiler.getJavaNodeByRef(oldFieldNode);
+		assertThat(resolvedMth).isNotNull();
+		assertThat(resolvedFld).isNotNull();
+		assertThat(resolvedMth.getDefPos()).isEqualTo(newMethodNode.getDefPosition());
+		assertThat(resolvedFld.getDefPos()).isEqualTo(newFieldNode.getDefPosition());
+		assertThat(oldJavaMethod.getDefPos()).isEqualTo(newMethodNode.getDefPosition());
+		assertThat(oldJavaField.getDefPos()).isEqualTo(newFieldNode.getDefPosition());
 	}
 }

@@ -1,6 +1,7 @@
 package jadx.tests.integration.names;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ public class TestCaseSensitiveClassInPkgChecks extends SmaliTest {
 		assertThat(classes).hasSize(2);
 
 		long distinct = classes.stream()
-				.map(cls -> cls.getClassInfo().getAliasFullPath().toLowerCase())
+				.map(cls -> cls.getClassInfo().getAliasFullPath().toLowerCase(Locale.ROOT))
 				.distinct()
 				.count();
 		assertThat(distinct).isEqualTo(2L);

@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.attributes.AType;
@@ -103,6 +101,10 @@ public final class JavaMethod implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		MethodNode currentMth = mth.getParentClass().searchMethod(mth.getMethodInfo());
+		if (currentMth != null) {
+			return currentMth.getDefPosition();
+		}
 		return mth.getDefPosition();
 	}
 
@@ -128,10 +130,6 @@ public final class JavaMethod implements JavaNode {
 		return mth;
 	}
 
-	/**
-	 * Internal API. Not Stable!
-	 */
-	@ApiStatus.Internal
 	public MethodNode getMethodNode() {
 		return mth;
 	}

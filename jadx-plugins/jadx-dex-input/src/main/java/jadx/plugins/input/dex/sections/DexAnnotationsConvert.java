@@ -45,14 +45,15 @@ public class DexAnnotationsConvert {
 		}
 		for (IAnnotation annotation : annotations) {
 			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM) {
-				convertSystemAnnotations(cls, attributes, annotation);
+				convertSystemAnnotations(cls, attributes, annotation, annotations);
 			}
 		}
 		Utils.addToList(attributes, AnnotationsAttr.pack(annotations));
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void convertSystemAnnotations(@Nullable String cls, List<IJadxAttribute> attributes, IAnnotation annotation) {
+	private static void convertSystemAnnotations(@Nullable String cls, List<IJadxAttribute> attributes,
+			IAnnotation annotation, List<IAnnotation> annotations) {
 		switch (annotation.getAnnotationClass()) {
 			case "Ldalvik/annotation/Signature;":
 				attributes.add(new SignatureAttr(extractSignature(annotation)));
@@ -63,7 +64,9 @@ public class DexAnnotationsConvert {
 					String name = AnnotationsUtils.getValue(annotation, "name", EncodedType.ENCODED_STRING, null);
 					int accFlags = AnnotationsUtils.getValue(annotation, "accessFlags", EncodedType.ENCODED_INT, 0);
 					if (name != null || accFlags != 0) {
-						InnerClsInfo innerClsInfo = new InnerClsInfo(cls, null, name, accFlags);
+						// outer class set only for member classes (not local or anonymous)
+						String outerCls = getEnclosingClass(annotations);
+						InnerClsInfo innerClsInfo = new InnerClsInfo(cls, outerCls, name, accFlags);
 						attributes.add(new InnerClassesAttr(Collections.singletonMap(cls, innerClsInfo)));
 					}
 				} catch (Exception e) {
@@ -113,6 +116,16 @@ public class DexAnnotationsConvert {
 				}
 				break;
 		}
+	}
+
+	private static @Nullable String getEnclosingClass(List<IAnnotation> annotations) {
+		for (IAnnotation annotation : annotations) {
+			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM
+					&& annotation.getAnnotationClass().equals("Ldalvik/annotation/EnclosingClass;")) {
+				return AnnotationsUtils.getValue(annotation, "value", EncodedType.ENCODED_TYPE, null);
+			}
+		}
+		return null;
 	}
 
 	@SuppressWarnings({ "unchecked", "ConstantConditions" })

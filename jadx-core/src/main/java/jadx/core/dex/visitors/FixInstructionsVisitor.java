@@ -48,11 +48,12 @@ public class FixInstructionsVisitor extends AbstractVisitor implements IRegionVi
 	}
 
 	private static boolean forceStringConcat(InsnNode insn) {
-		if (insn.getArgsCount() < 2) {
+		int argsCount = insn.getArgsCount();
+		if (argsCount == 0 || insn.getArg(0).getType().equals(ArgType.STRING)) {
 			return false;
 		}
-		return !insn.getArg(0).getType().equals(ArgType.STRING)
-				&& !insn.getArg(1).getType().equals(ArgType.STRING);
+		// a single non-string arg (`c + ""`) also needs the empty string to stay a string
+		return argsCount == 1 || !insn.getArg(1).getType().equals(ArgType.STRING);
 	}
 
 	@Override

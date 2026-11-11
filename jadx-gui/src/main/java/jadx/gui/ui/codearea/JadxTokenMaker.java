@@ -49,12 +49,18 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 		Token prev = null;
 		Token current = tokens;
 		while (current != null && current.getType() != TokenTypes.NULL) {
+			switch (current.getType()) {
+				case TokenTypes.RESERVED_WORD:
+				case TokenTypes.RESERVED_WORD_2:
+				case TokenTypes.DATA_TYPE:
+					fixContextualKeyword(current);
+					break;
+
+				default:
+					break;
+			}
 			if (prev != null) {
 				switch (current.getType()) {
-					case TokenTypes.RESERVED_WORD:
-						fixContextualKeyword(current);
-						break;
-
 					case TokenTypes.FUNCTION:
 						fixIdentifierWithTheSameNameAsJavaLangClass(current);
 						break;
@@ -65,6 +71,9 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 
 					case TokenTypes.ANNOTATION:
 						current = mergeLongClassNames(prev, current, true);
+						break;
+
+					default:
 						break;
 				}
 			}
@@ -77,7 +86,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 			"exports", "module", "non-sealed", "open", "opens", "permits", "provides", "record",
 			"requires", "sealed", "to", "transitive", "uses", "var", "with", "yield");
 
-	private static void fixContextualKeyword(Token token) {
+	static void fixContextualKeyword(Token token) {
 		String lexeme = token.getLexeme(); // TODO: create new string every call, better to avoid
 		if (lexeme != null && CONTEXTUAL_KEYWORDS.contains(lexeme)) {
 			token.setType(TokenTypes.IDENTIFIER);

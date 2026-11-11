@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import jadx.api.metadata.ICodeAnnotation;
@@ -107,7 +106,6 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 		return pkgNode;
 	}
 
-	@Internal
 	public PackageNode getPkgNode() {
 		return pkgNode;
 	}

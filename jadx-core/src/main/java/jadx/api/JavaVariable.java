@@ -3,7 +3,6 @@ package jadx.api;
 import java.util.Collections;
 import java.util.List;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.metadata.ICodeAnnotation;
@@ -43,7 +42,6 @@ public class JavaVariable implements JavaNode {
 		return varNode;
 	}
 
-	@ApiStatus.Internal
 	public VarNode getVarNode() {
 		return varNode;
 	}

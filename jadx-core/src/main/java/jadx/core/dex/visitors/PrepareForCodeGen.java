@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -267,7 +268,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			// move not needed
 			return;
 		}
-		String callType = ctrInsn.getCallType().toString().toLowerCase();
+		String callType = ctrInsn.getCallType().toString().toLowerCase(Locale.ROOT);
 		BlockNode blockByInsn = BlockUtils.getBlockByInsn(mth, ctrInsn);
 		if (blockByInsn == null) {
 			mth.addWarn("Failed to move " + callType + " instruction to top");

@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -160,7 +161,7 @@ public class ApplyVariableNames extends AbstractVisitor {
 
 	private String makeNameForType(ArgType type) {
 		if (type.isPrimitive()) {
-			return type.getPrimitiveType().getShortName().toLowerCase();
+			return type.getPrimitiveType().getShortName().toLowerCase(Locale.ROOT);
 		}
 		if (type.isArray()) {
 			return makeNameForType(type.getArrayRootElement()) + "Arr";
@@ -170,7 +171,7 @@ public class ApplyVariableNames extends AbstractVisitor {
 
 	private String makeNameForObject(ArgType type) {
 		if (type.isGenericType()) {
-			return StringUtils.escape(type.getObject().toLowerCase());
+			return StringUtils.escape(type.getObject().toLowerCase(Locale.ROOT));
 		}
 		if (type.isObject()) {
 			String alias = getAliasForObject(type.getObject());
@@ -188,7 +189,7 @@ public class ApplyVariableNames extends AbstractVisitor {
 		if (vName != null) {
 			return vName;
 		}
-		String lower = StringUtils.escape(shortName.toLowerCase());
+		String lower = StringUtils.escape(shortName.toLowerCase(Locale.ROOT));
 		if (shortName.equals(lower)) {
 			return lower + "Var";
 		}
@@ -207,9 +208,9 @@ public class ApplyVariableNames extends AbstractVisitor {
 		if (name == null || name.isEmpty()) {
 			return null;
 		}
-		if (name.toUpperCase().equals(name)) {
+		if (name.toUpperCase(Locale.ROOT).equals(name)) {
 			// all characters are upper case
-			return name.toLowerCase();
+			return name.toLowerCase(Locale.ROOT);
 		}
 		String v1 = Character.toLowerCase(name.charAt(0)) + name.substring(1);
 		if (!v1.equals(name)) {

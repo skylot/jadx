@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import jadx.api.plugins.input.data.IMethodHandle;
+import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.api.plugins.input.data.annotations.EncodedType;
@@ -19,6 +20,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.EncodedValueUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -48,12 +50,12 @@ public class CustomStringConcat {
 		return true;
 	}
 
-	public static InsnNode buildStringConcat(InsnData insn, boolean isRange, List<EncodedValue> values) {
+	public static InsnNode buildStringConcat(MethodNode mth, InsnData insn, boolean isRange, List<EncodedValue> values) {
 		try {
 			int argsCount = values.size() - 3 + insn.getRegsCount();
 			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount);
 			String recipe = (String) values.get(3).getValue();
-			processRecipe(recipe, concat, values, insn);
+			processRecipe(mth, recipe, concat, values, insn, isRange);
 			int resReg = insn.getResultReg();
 			if (resReg != -1) {
 				concat.setResult(InsnArg.reg(resReg, ArgType.STRING));
@@ -67,10 +69,13 @@ public class CustomStringConcat {
 		}
 	}
 
-	private static void processRecipe(String recipe, InsnNode concat, List<EncodedValue> values, InsnData insn) {
+	private static void processRecipe(MethodNode mth, String recipe, InsnNode concat, List<EncodedValue> values, InsnData insn,
+			boolean isRange) {
+		List<String> argTypes = ((IMethodProto) values.get(2).getValue()).getArgTypes();
 		int len = recipe.length();
 		int offset = 0;
 		int argNum = 0;
+		int regNum = 0;
 		int constNum = 4;
 		StringBuilder sb = new StringBuilder(len);
 		while (offset < len) {
@@ -84,7 +89,17 @@ public class CustomStringConcat {
 					sb.setLength(0);
 				}
 				if (argTag) {
-					concat.addArg(InsnArg.reg(insn, argNum++, ArgType.UNKNOWN));
+					int reg = isRange ? insn.getReg(0) + regNum : insn.getReg(regNum);
+					String argTypeStr = argTypes.get(argNum++);
+					ArgType argType;
+					try {
+						argType = ArgType.parse(argTypeStr);
+					} catch (Exception e) {
+						mth.addWarnComment("Failed to parse type '" + argTypeStr + "' in string concat insn", e);
+						argType = ArgType.UNKNOWN;
+					}
+					concat.addArg(InsnArg.reg(reg, argType));
+					regNum += argType.getRegCount();
 				} else {
 					InsnArg constArg = buildInsnArgFromEncodedValue(values.get(constNum++));
 					concat.addArg(constArg);

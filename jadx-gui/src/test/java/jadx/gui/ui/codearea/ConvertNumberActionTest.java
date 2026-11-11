@@ -2,6 +2,7 @@ package jadx.gui.ui.codearea;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ public class ConvertNumberActionTest {
 	@Test
 	public void negativeLongDecimalToHex() {
 		List<String> expected = new ArrayList<>();
-		expected.add("0xFFFFFFE8B7891800".toLowerCase());
+		expected.add("0xFFFFFFE8B7891800".toLowerCase(Locale.ROOT));
 		expected.add("0b1111111111111111111111111110100010110111100010010001100000000000");
 
 		List<String> result = ConvertNumberAction.getConversionsFromWord("-100000000000");

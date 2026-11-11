@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,10 +115,6 @@ public final class JavaClass implements JavaNode {
 		return cls;
 	}
 
-	/**
-	 * Internal API. Not Stable!
-	 */
-	@ApiStatus.Internal
 	public ClassNode getClassNode() {
 		return cls;
 	}

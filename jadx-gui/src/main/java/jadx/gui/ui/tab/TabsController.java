@@ -111,7 +111,10 @@ public class TabsController {
 	}
 
 	public void deselectTab() {
-		selectedTab = null;
+		if (selectedTab != null) {
+			selectedTab = null;
+			listeners.forEach(ITabStatesListener::onTabDeselect);
+		}
 	}
 
 	/**

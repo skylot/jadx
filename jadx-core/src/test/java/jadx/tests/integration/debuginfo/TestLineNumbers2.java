@@ -2,6 +2,7 @@ package jadx.tests.integration.debuginfo;
 
 import java.lang.ref.WeakReference;
 
+import jadx.api.CommentsLevel;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 import jadx.tests.api.extensions.profiles.TestProfile;
@@ -14,7 +15,8 @@ public class TestLineNumbers2 extends IntegrationTest {
 	public static class TestCls {
 		private WeakReference<TestCls> f;
 
-		// keep constructor at line 18
+		// keep constructor at line 20
+		// ---
 		public TestCls(TestCls s) {
 		}
 
@@ -34,14 +36,15 @@ public class TestLineNumbers2 extends IntegrationTest {
 
 	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
 	public void test() {
+		getArgs().setCommentsLevel(CommentsLevel.NONE);
 		printLineNumbers();
 
 		ClassNode cls = getClassNode(TestCls.class);
 		String linesMapStr = cls.getCode().getCodeMetadata().getLineMapping().toString();
 		if (isJavaInput()) {
-			assertThat(linesMapStr).isEqualTo("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 18=27, 21=30, 22=31}");
+			assertThat(linesMapStr).isEqualTo("{5=18, 8=19, 11=23, 12=24, 13=25, 14=26, 15=27, 17=29, 20=32, 21=33}");
 		} else {
-			assertThat(linesMapStr).isEqualTo("{6=16, 9=17, 12=21, 13=22, 14=23, 15=24, 16=25, 17=27, 19=27, 22=30, 23=31}");
+			assertThat(linesMapStr).isEqualTo("{5=18, 8=19, 11=23, 12=24, 13=25, 14=26, 15=27, 16=29, 18=29, 21=32, 22=33}");
 		}
 	}
 }

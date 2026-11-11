@@ -165,6 +165,14 @@ public class DeboxingVisitor extends AbstractVisitor {
 						return false;
 					}
 				}
+				if (parentInsn.getType() == InsnType.IF) {
+					// `==` between two boxes compares references; unboxing one would compare values
+					for (InsnArg other : parentInsn.getArguments()) {
+						if (other != useArg && other.getType().isObject()) {
+							return false;
+						}
+					}
+				}
 			}
 		}
 		return true;

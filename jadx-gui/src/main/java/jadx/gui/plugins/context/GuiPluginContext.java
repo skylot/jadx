@@ -4,8 +4,10 @@ import java.awt.Container;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
@@ -17,6 +19,8 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.gui.IMainWindow;
+import jadx.api.gui.dock.DockableOptions;
+import jadx.api.gui.dock.JadxDockable;
 import jadx.api.gui.plugins.JadxGuiContextExt;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
@@ -123,6 +127,11 @@ public class GuiPluginContext implements JadxGuiContextExt {
 
 	public void registerTabStatePersistAdapter(ITabStatePersist tabStatePersist) {
 		registry.getTabStatePersistAdapters().add(tabStatePersist);
+	}
+
+	@Override
+	public JadxDockable addDockable(DockableOptions options, Supplier<JComponent> content) {
+		return commonContext.addDockable(registry, getPluginId(), options, content);
 	}
 
 	@Override

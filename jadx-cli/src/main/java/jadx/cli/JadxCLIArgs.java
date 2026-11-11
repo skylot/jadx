@@ -467,7 +467,7 @@ public class JadxCLIArgs implements IJadxConfig {
 		args.setOutDir(FileUtils.toFile(outDir));
 		args.setOutDirSrc(FileUtils.toFile(outDirSrc));
 		args.setOutDirRes(FileUtils.toFile(outDirRes));
-		args.setOutputFormat(JadxArgs.OutputFormatEnum.valueOf(outputFormat.toUpperCase()));
+		args.setOutputFormat(JadxArgs.OutputFormatEnum.valueOf(outputFormat.toUpperCase(Locale.ROOT)));
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
 		args.setSkipResources(skipResources);

@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +118,7 @@ public final class ResourcesLoader implements IResourcesLoader {
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
 			ICodeWriter cw = jadxRef.getRoot().makeCodeWriter();
-			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
+			cw.add("Error decode ").add(rf.getType().toString().toLowerCase(Locale.ROOT));
 			Utils.appendStackTrace(cw, e.getCause());
 			return ResContainer.textResource(rf.getDeobfName(), cw.finish());
 		}

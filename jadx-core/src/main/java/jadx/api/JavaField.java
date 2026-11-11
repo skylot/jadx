@@ -2,8 +2,6 @@ package jadx.api;
 
 import java.util.List;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import jadx.api.metadata.ICodeAnnotation;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.info.AccessInfo;
@@ -54,6 +52,10 @@ public final class JavaField implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		FieldNode currentFld = field.getParentClass().searchField(field.getFieldInfo());
+		if (currentFld != null) {
+			return currentFld.getDefPosition();
+		}
 		return field.getDefPosition();
 	}
 
@@ -80,10 +82,6 @@ public final class JavaField implements JavaNode {
 		return field;
 	}
 
-	/**
-	 * Internal API. Not Stable!
-	 */
-	@ApiStatus.Internal
 	public FieldNode getFieldNode() {
 		return field;
 	}

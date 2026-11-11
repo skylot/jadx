@@ -38,6 +38,7 @@ import jadx.gui.cache.code.disk.BufferCodeCache;
 import jadx.gui.cache.code.disk.DiskCodeCache;
 import jadx.gui.cache.usage.UsageInfoCache;
 import jadx.gui.plugins.GuiPluginsManager;
+import jadx.gui.plugins.apiscan.PluginApiScan;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.MainWindow;
@@ -76,6 +77,7 @@ public class JadxWrapper {
 				guiPluginsManager.initGuiPluginsContext(decompiler.getPluginManager(), jadxArgs, false);
 				initUsageCache(jadxArgs);
 				registerCodeCache(decompiler);
+				PluginApiScan.register(decompiler);
 				decompiler.setEventsImpl(mainWindow.events());
 				decompiler.load();
 			}

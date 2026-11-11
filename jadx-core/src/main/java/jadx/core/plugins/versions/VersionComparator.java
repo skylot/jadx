@@ -1,5 +1,7 @@
 package jadx.core.plugins.versions;
 
+import java.util.Locale;
+
 public class VersionComparator {
 
 	private VersionComparator() {
@@ -13,7 +15,7 @@ public class VersionComparator {
 		if (str == null || str.isEmpty()) {
 			return "";
 		}
-		String result = str.trim().toLowerCase();
+		String result = str.trim().toLowerCase(Locale.ROOT);
 		if (result.startsWith("jadx-gui-")) {
 			result = result.substring(9);
 		}

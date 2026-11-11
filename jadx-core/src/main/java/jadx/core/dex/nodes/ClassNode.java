@@ -31,8 +31,6 @@ import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultClassAttr;
-import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
-import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.api.usage.IUsageInfoData;
@@ -70,7 +68,7 @@ public class ClassNode extends NotificationAttrNode
 	/**
 	 * This class' super class
 	 */
-	private ArgType superClass;
+	private @Nullable ArgType superClass;
 
 	/**
 	 * Interfaces this class implements
@@ -127,7 +125,7 @@ public class ClassNode extends NotificationAttrNode
 	private void load(IClassData cls, boolean reloading) {
 		try {
 			addAttrs(cls.getAttributes());
-			this.accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
+			this.accessFlags = new AccessInfo(cls.getAccessFlags(), AFType.CLASS);
 			this.superClass = checkSuperType(cls);
 			this.interfaces = Utils.collectionMap(cls.getInterfacesTypes(), ArgType::object);
 			setInputFileName(cls.getInputFileName());
@@ -163,7 +161,7 @@ public class ClassNode extends NotificationAttrNode
 		}
 	}
 
-	private ArgType checkSuperType(IClassData cls) {
+	private @Nullable ArgType checkSuperType(IClassData cls) {
 		String superType = cls.getSuperType();
 		if (superType == null) {
 			if (clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
@@ -211,17 +209,6 @@ public class ClassNode extends NotificationAttrNode
 		if (!cls.checkSourceFilenameAttr()) {
 			cls.remove(JadxAttrType.SOURCE_FILE);
 		}
-	}
-
-	private int getAccessFlags(IClassData cls) {
-		InnerClassesAttr innerClassesAttr = get(JadxAttrType.INNER_CLASSES);
-		if (innerClassesAttr != null) {
-			InnerClsInfo innerClsInfo = innerClassesAttr.getMap().get(cls.getType());
-			if (innerClsInfo != null) {
-				return innerClsInfo.getAccessFlags();
-			}
-		}
-		return cls.getAccessFlags();
 	}
 
 	public static ClassNode addSyntheticClass(RootNode root, String name, int accessFlags) {
