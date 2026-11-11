@@ -2,6 +2,7 @@ package jadx.gui.settings.ui.font;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 
@@ -13,6 +14,8 @@ import javax.swing.WindowConstants;
 
 import org.drjekyll.fontchooser.FontChooser;
 import org.jetbrains.annotations.Nullable;
+
+import com.formdev.flatlaf.util.UIScale;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.utils.FontUtils;
@@ -30,8 +33,13 @@ public class JadxFontDialog extends JDialog {
 		this.settings = settings;
 		initComponents();
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setMinimumSize(new Dimension(UIScale.scale(480), UIScale.scale(320)));
 		if (!settings.loadWindowPos(this)) {
 			pack();
+		} else {
+			if (getWidth() < getMinimumSize().width || getHeight() < getMinimumSize().height) {
+				setSize(Math.max(getWidth(), getMinimumSize().width), Math.max(getHeight(), getMinimumSize().height));
+			}
 		}
 	}
 
@@ -49,6 +57,8 @@ public class JadxFontDialog extends JDialog {
 	}
 
 	private void initComponents() {
+		FontChooserHack.fixSizePane(fontChooser);
+
 		JPanel chooserPanel = new JPanel();
 		chooserPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
 		chooserPanel.setLayout(new BorderLayout(0, 10));

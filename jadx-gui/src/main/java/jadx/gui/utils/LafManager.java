@@ -18,12 +18,13 @@ import com.formdev.flatlaf.themes.FlatMacLightLaf;
 
 import io.github.andrewauclair.moderndocking.ext.ui.DockingUI;
 
+import jadx.commons.app.JadxSystemInfo;
 import jadx.gui.settings.JadxSettings;
 
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
 
-	public static final String INITIAL_THEME_NAME = FlatLightLaf.NAME;
+	public static final String INITIAL_THEME_NAME = JadxSystemInfo.IS_MAC ? FlatMacLightLaf.NAME : FlatLightLaf.NAME;
 
 	private static final Map<String, String> THEMES_MAP = initThemesMap();
 
@@ -39,7 +40,7 @@ public class LafManager {
 		if (setupLaf(preferredThemeClass)) {
 			return;
 		}
-		setupLaf(INITIAL_THEME_NAME);
+		setupLaf(THEMES_MAP.get(INITIAL_THEME_NAME));
 		settings.setLafTheme(INITIAL_THEME_NAME);
 		settings.sync();
 	}
