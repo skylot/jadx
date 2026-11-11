@@ -32,6 +32,10 @@ public final class JavaField implements JavaNode {
 		return field.getName();
 	}
 
+	public String getShortId() {
+		return field.getFieldInfo().getShortId();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;

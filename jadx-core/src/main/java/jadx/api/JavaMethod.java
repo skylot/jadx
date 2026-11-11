@@ -33,6 +33,14 @@ public final class JavaMethod implements JavaNode {
 		return mth.getMethodInfo().getFullName();
 	}
 
+	public String getRawName() {
+		return mth.getName();
+	}
+
+	public String getShortId() {
+		return mth.getMethodInfo().getShortId();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
