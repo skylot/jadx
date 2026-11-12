@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -98,6 +99,119 @@ public class JadxPluginManagerLoadTest {
 
 			assertThatCode(decompiler::reloadPasses).doesNotThrowAnyException();
 			assertThat(decompiler.getPluginManager().getAllPlugins()).hasSize(pluginsCount);
+		}
+	}
+
+	@Test
+	public void dependencyAndParentInitUnloadOrder() {
+		List<String> initOrder = new ArrayList<>();
+		List<String> unloadOrder = new ArrayList<>();
+
+		JadxPlugin grandParent = new OrderedPlugin("z-base", null, List.of(), initOrder, unloadOrder);
+		JadxPlugin parent = new OrderedPlugin("m-parent", "z-base", List.of(), initOrder, unloadOrder);
+		JadxPlugin extraDep = new OrderedPlugin("x-helper", null, List.of("z-base"), initOrder, unloadOrder);
+		JadxPlugin child = new OrderedPlugin("a-child", "m-parent", List.of("x-helper"), initOrder, unloadOrder);
+
+		try (JadxDecompiler decompiler = new JadxDecompiler()) {
+			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			pluginManager.load(new TestLoader(child, parent, grandParent, extraDep));
+			pluginManager.initResolved(decompiler);
+
+			assertThat(pluginManager.getResolvedPlugins())
+					.extracting(PluginRuntime::getPluginId)
+					.containsExactly("a-child", "m-parent", "x-helper", "z-base");
+			assertThat(initOrder).containsExactly("z-base", "m-parent", "x-helper", "a-child");
+
+			pluginManager.unloadResolved();
+			assertThat(unloadOrder).containsExactly("a-child", "x-helper", "m-parent", "z-base");
+		}
+	}
+
+	@Test
+	public void disabledParentPrunesDependentsTransitively() {
+		JadxArgs args = new JadxArgs();
+		args.getDisabledPlugins().add("base");
+		try (JadxDecompiler decompiler = new JadxDecompiler(args)) {
+			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			JadxPlugin base = new OrderedPlugin("base", null, List.of(), null, null);
+			JadxPlugin child = new OrderedPlugin("child", "base", List.of(), null, null);
+			JadxPlugin grandChild = new OrderedPlugin("grand-child", null, List.of("child"), null, null);
+			JadxPlugin independent = new TestPlugin("independent");
+
+			pluginManager.load(new TestLoader(base, child, grandChild, independent));
+			assertThat(pluginManager.getResolvedPlugins())
+					.extracting(PluginRuntime::getPluginId)
+					.containsExactly("independent");
+		}
+	}
+
+	@Test
+	public void cyclicDependenciesRejected() {
+		try (JadxDecompiler decompiler = new JadxDecompiler()) {
+			JadxPluginManager pluginManager = decompiler.getPluginManager();
+			JadxPlugin p1 = new OrderedPlugin("p1", null, List.of("p2"), null, null);
+			JadxPlugin p2 = new OrderedPlugin("p2", "p1", List.of(), null, null);
+			assertThatThrownBy(() -> pluginManager.load(new TestLoader(p1, p2)))
+					.isInstanceOf(IllegalArgumentException.class)
+					.hasMessageContaining("Cyclic plugin dependency detected");
+		}
+	}
+
+	@Test
+	public void selfDependencyAndParentRejectedInBuilder() {
+		assertThatThrownBy(() -> JadxPluginInfoBuilder.pluginId("p1")
+				.name("P1")
+				.description("test")
+				.parentPlugin("p1")
+				.build())
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("own parent");
+
+		assertThatThrownBy(() -> JadxPluginInfoBuilder.pluginId("p1")
+				.name("P1")
+				.description("test")
+				.dependencyPlugin("p1")
+				.build())
+						.isInstanceOf(IllegalArgumentException.class)
+						.hasMessageContaining("depend on itself");
+	}
+
+	private static final class OrderedPlugin implements JadxPlugin {
+		private final String pluginId;
+		private final String parentPlugin;
+		private final List<String> deps;
+		private final Consumer<String> onInit;
+		private final Consumer<String> onUnload;
+
+		private OrderedPlugin(String pluginId, String parentPlugin, List<String> deps,
+				List<String> initOrder, List<String> unloadOrder) {
+			this.pluginId = pluginId;
+			this.parentPlugin = parentPlugin;
+			this.deps = deps;
+			this.onInit = initOrder != null ? initOrder::add : id -> {
+			};
+			this.onUnload = unloadOrder != null ? unloadOrder::add : id -> {
+			};
+		}
+
+		@Override
+		public JadxPluginInfo getPluginInfo() {
+			return JadxPluginInfoBuilder.pluginId(pluginId)
+					.name(pluginId)
+					.description("test")
+					.parentPlugin(parentPlugin)
+					.dependencyPlugins(deps)
+					.build();
+		}
+
+		@Override
+		public void init(JadxPluginContext context) {
+			onInit.accept(pluginId);
+		}
+
+		@Override
+		public void unload() {
+			onUnload.accept(pluginId);
 		}
 	}
 
