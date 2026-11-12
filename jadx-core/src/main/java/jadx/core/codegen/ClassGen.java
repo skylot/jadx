@@ -105,9 +105,15 @@ public class ClassGen {
 		if (cls.contains(AFlag.PACKAGE_INFO)) {
 			return makePackageInfo();
 		}
+		if (cls.contains(AFlag.DONT_GENERATE) || checkEmptySyntheticClass()) {
+			cls.add(AFlag.DONT_GENERATE);
+			return ICodeInfo.EMPTY;
+		}
 		ICodeWriter clsBody = cls.root().makeCodeWriter();
 		addClassCode(clsBody);
-
+		if (cls.contains(AFlag.DONT_GENERATE)) {
+			return ICodeInfo.EMPTY;
+		}
 		ICodeWriter clsCode = cls.root().makeCodeWriter();
 		addPackage(clsCode);
 		clsCode.newLine();
@@ -155,7 +161,8 @@ public class ClassGen {
 	}
 
 	public void addClassCode(ICodeWriter code) throws CodegenException {
-		if (cls.contains(AFlag.DONT_GENERATE)) {
+		if (cls.contains(AFlag.DONT_GENERATE) || checkEmptySyntheticClass()) {
+			cls.add(AFlag.DONT_GENERATE);
 			return;
 		}
 		if (Consts.DEBUG_USAGE) {
@@ -348,6 +355,10 @@ public class ClassGen {
 	private void addInnerClass(ICodeWriter code, ClassNode innerCls) {
 		try {
 			ClassGen inClGen = new ClassGen(innerCls, getParentGen());
+			if (inClGen.checkEmptySyntheticClass()) {
+				innerCls.add(AFlag.DONT_GENERATE);
+				return;
+			}
 			code.newLine();
 			inClGen.addClassCode(code);
 			imports.addAll(inClGen.getImports());
@@ -383,6 +394,28 @@ public class ClassGen {
 			CodeGenUtils.addErrors(code, mth);
 			code.setIndent(savedIndent);
 		}
+	}
+
+	private boolean checkEmptySyntheticClass() {
+		if (!cls.getAccessFlags().isSynthetic()) {
+			return false;
+		}
+		for (FieldNode field : cls.getFields()) {
+			if (!field.contains(AFlag.DONT_GENERATE)) {
+				return false;
+			}
+		}
+		for (ClassNode inner : cls.getInnerClasses()) {
+			if (!inner.contains(AFlag.DONT_GENERATE)) {
+				return false;
+			}
+		}
+		for (MethodNode mth : cls.getMethods()) {
+			if (!mth.contains(AFlag.DONT_GENERATE) && !skipMethod(mth)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
