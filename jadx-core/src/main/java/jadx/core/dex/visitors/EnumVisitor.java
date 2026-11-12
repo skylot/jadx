@@ -512,17 +512,33 @@ public class EnumVisitor extends AbstractVisitor {
 		List<RegisterArg> regs = new ArrayList<>();
 		resCo.getRegisterArgs(regs);
 		for (RegisterArg reg : regs) {
+			InsnNode enumUse;
 			FieldInfo enumField = checkExternalRegUsage(data, reg);
-			if (enumField == null) {
-				return null;
+			if (enumField != null) {
+				enumUse = new IndexInsnNode(InsnType.SGET, enumField, 0);
+			} else {
+				// enum field can also be initialized from an external static value read (SGET),
+				// e.g. a constant of another enum reused across several fields (issue #2618)
+				enumUse = inlineExternalSget(reg);
+				if (enumUse == null) {
+					return null;
+				}
 			}
-			InsnNode enumUse = new IndexInsnNode(InsnType.SGET, enumField, 0);
 			boolean replaced = resCo.replaceArg(reg, InsnArg.wrapArg(enumUse));
 			if (!replaced) {
 				return null;
 			}
 		}
 		return resCo;
+	}
+
+	private static @Nullable InsnNode inlineExternalSget(RegisterArg reg) {
+		InsnNode assignInsn = checkInsnType(reg.getSVar().getAssignInsn(), InsnType.SGET);
+		if (assignInsn == null) {
+			return null;
+		}
+		FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) assignInsn).getIndex();
+		return new IndexInsnNode(InsnType.SGET, fieldInfo, 0);
 	}
 
 	private static FieldInfo checkExternalRegUsage(EnumData data, RegisterArg reg) {
