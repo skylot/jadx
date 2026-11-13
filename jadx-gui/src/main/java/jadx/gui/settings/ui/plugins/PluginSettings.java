@@ -4,8 +4,10 @@ import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -84,9 +86,11 @@ public class PluginSettings {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.installing"),
 				() -> {
 					try {
-						JadxPluginMetadata metadata = JadxPluginsTools.getInstance().install(locationId);
-						LOG.info("Plugin installed: {}", metadata);
-						scheduleGlobalReload(metadata.getPluginId());
+						List<JadxPluginMetadata> installed = JadxPluginsTools.getInstance().installPlugins(locationId);
+						for (JadxPluginMetadata metadata : installed) {
+							LOG.info("Plugin installed: {}", metadata);
+							scheduleGlobalReload(metadata.getPluginId());
+						}
 						requestReload();
 					} catch (Exception e) {
 						LOG.error("Plugin install failed", e);
@@ -124,9 +128,18 @@ public class PluginSettings {
 
 	void updateAll() {
 		mainWindow.getBackgroundExecutor().execute(NLS.str("preferences.plugins.task.updating"), () -> {
-			List<JadxPluginUpdate> updates = JadxPluginsTools.getInstance().updateAll();
+			JadxPluginsTools tools = JadxPluginsTools.getInstance();
+			Set<String> prevEnabledIds = tools.getEnabledInstalled().stream()
+					.map(JadxPluginMetadata::getPluginId)
+					.collect(Collectors.toSet());
+			List<JadxPluginUpdate> updates = tools.updateAll();
 			if (!updates.isEmpty()) {
 				updates.forEach(update -> scheduleGlobalReload(update.getPluginId()));
+				for (JadxPluginMetadata metadata : tools.getEnabledInstalled()) {
+					if (!prevEnabledIds.contains(metadata.getPluginId())) {
+						scheduleGlobalReload(metadata.getPluginId());
+					}
+				}
 				LOG.info("Updates: {}\n  ", Utils.listToString(updates, "\n  "));
 				requestReload();
 			} else {

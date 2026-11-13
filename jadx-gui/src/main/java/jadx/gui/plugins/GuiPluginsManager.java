@@ -1,16 +1,21 @@
 package jadx.gui.plugins;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +23,7 @@ import jadx.api.JadxArgs;
 import jadx.api.gui.plugins.JadxGlobalGuiPlugin;
 import jadx.api.gui.plugins.JadxGuiContextExt;
 import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.events.types.ReloadSettingsWindow;
 import jadx.api.plugins.gui.JadxGuiContext;
 import jadx.api.plugins.loader.JadxPluginLoader;
@@ -33,7 +39,6 @@ import jadx.gui.ui.MainWindow;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 import jadx.plugins.tools.JadxPluginsTools;
 import jadx.plugins.tools.data.JadxPluginMetadata;
-import jadx.plugins.tools.utils.PluginFiles;
 
 public class GuiPluginsManager {
 	private static final Logger LOG = LoggerFactory.getLogger(GuiPluginsManager.class);
@@ -41,16 +46,23 @@ public class GuiPluginsManager {
 	private static final long SLOW_GLOBAL_INIT_MS = 1000;
 
 	private final MainWindow mainWindow;
+	private final JadxPluginsTools pluginsTools;
 	private final JadxArgs globalArgs;
 	private final JadxPluginManager globalPluginManager;
 	private final CommonGuiPluginsContext guiPluginsContext;
-	private final JadxExternalPluginsLoader globalPluginsLoader =
-			new JadxExternalPluginsLoader(JadxGlobalGuiPlugin.class::isAssignableFrom);
-	private final Set<String> scheduledUnload = ConcurrentHashMap.newKeySet();
-	private final Set<String> scheduledLoad = ConcurrentHashMap.newKeySet();
+	private final JadxExternalPluginsLoader globalPluginsLoader;
+	private final Set<String> scheduledUnload = Collections.synchronizedSet(new LinkedHashSet<>());
+	private final Set<String> scheduledLoad = Collections.synchronizedSet(new LinkedHashSet<>());
 
 	public GuiPluginsManager(MainWindow mainWindow) {
+		this(mainWindow, JadxPluginsTools.getInstance());
+	}
+
+	GuiPluginsManager(MainWindow mainWindow, JadxPluginsTools pluginsTools) {
 		this.mainWindow = mainWindow;
+		this.pluginsTools = pluginsTools;
+		this.globalPluginsLoader = new JadxExternalPluginsLoader(
+				JadxGlobalGuiPlugin.class::isAssignableFrom, pluginsTools);
 		this.guiPluginsContext = new CommonGuiPluginsContext(mainWindow);
 		this.globalArgs = buildJadxArgs(mainWindow.getSettings());
 		this.globalPluginManager = new JadxPluginManager(globalArgs);
@@ -86,7 +98,14 @@ public class GuiPluginsManager {
 	}
 
 	public JadxPluginLoader buildProjectPluginLoader() {
-		return new JadxExternalPluginsLoader(cls -> !JadxGlobalGuiPlugin.class.isAssignableFrom(cls));
+		JadxExternalPluginsLoader loader = new JadxExternalPluginsLoader(
+				cls -> !JadxGlobalGuiPlugin.class.isAssignableFrom(cls), pluginsTools);
+		List<JadxPlugin> globalPlugins = new ArrayList<>();
+		for (PluginRuntime pluginRuntime : getGlobalPlugins()) {
+			globalPlugins.add(pluginRuntime.getPluginInstance());
+		}
+		loader.addExternalPlugins(globalPlugins);
+		return loader;
 	}
 
 	/**
@@ -184,53 +203,178 @@ public class GuiPluginsManager {
 	}
 
 	public synchronized void runScheduledGlobalChanges() {
+		Set<String> unloadRequested = drainScheduled(scheduledUnload);
+		Set<String> loadRequested = drainScheduled(scheduledLoad);
+
 		boolean unloaded = false;
-		Iterator<String> it = scheduledUnload.iterator();
-		while (it.hasNext()) {
-			String pluginId = it.next();
-			it.remove();
-			PluginRuntime pluginRuntime = globalPluginManager.getAllPlugins().stream()
-					.filter(p -> p.getPluginId().equals(pluginId))
-					.findFirst()
-					.orElse(null);
-			if (pluginRuntime != null) {
-				globalUnload(pluginRuntime);
-				globalPluginManager.unload(pluginId);
-				guiPluginsContext.removeGlobalPlugin(pluginRuntime);
-				globalPluginsLoader.closeClassLoader(pluginRuntime.getPluginInstance());
-				LOG.info("Global plugin unloaded: {}", pluginId);
-				unloaded = true;
+		if (!unloadRequested.isEmpty()) {
+			Map<String, List<String>> loadedDeps = new HashMap<>();
+			for (PluginRuntime runtime : globalPluginManager.getAllPlugins()) {
+				loadedDeps.put(runtime.getPluginId(), collectRequiredIds(runtime.getPluginInfo()));
+			}
+			Set<String> toUnload = collectCascadeDependents(unloadRequested, loadedDeps);
+			for (String pluginId : toUnload) {
+				if (!unloadRequested.contains(pluginId)
+						&& areUnloadedDepsReloaded(loadedDeps.get(pluginId), toUnload, loadRequested)) {
+					loadRequested.add(pluginId);
+				}
+			}
+			List<String> orderedUnload = sortPluginIdsByDependencies(toUnload, loadedDeps::get);
+			Collections.reverse(orderedUnload);
+			for (String pluginId : orderedUnload) {
+				PluginRuntime pluginRuntime = globalPluginManager.getAllPlugins().stream()
+						.filter(p -> p.getPluginId().equals(pluginId))
+						.findFirst()
+						.orElse(null);
+				if (pluginRuntime != null) {
+					globalUnload(pluginRuntime);
+					globalPluginManager.unload(pluginId);
+					guiPluginsContext.removeGlobalPlugin(pluginRuntime);
+					globalPluginsLoader.closeClassLoader(pluginRuntime.getPluginInstance());
+					LOG.info("Global plugin unloaded: {}", pluginId);
+					unloaded = true;
+				}
 			}
 		}
 		if (unloaded) {
 			// plugin files released after class loader close
-			JadxPluginsTools.getInstance().deleteLeftoverFiles();
+			pluginsTools.deleteLeftoverFiles();
 		}
-		Iterator<String> loadIt = scheduledLoad.iterator();
-		while (loadIt.hasNext()) {
-			String pluginId = loadIt.next();
-			loadIt.remove();
-			loadGlobalPlugin(pluginId);
+		if (!loadRequested.isEmpty()) {
+			Map<String, JadxPluginMetadata> enabledById = new HashMap<>();
+			Map<String, List<String>> metadataDeps = new HashMap<>();
+			for (JadxPluginMetadata metadata : pluginsTools.getEnabledInstalled()) {
+				enabledById.put(metadata.getPluginId(), metadata);
+				metadataDeps.put(metadata.getPluginId(), collectRequiredIds(metadata));
+			}
+			Set<String> currentlyLoadedIds = globalPluginManager.getAllPlugins().stream()
+					.map(PluginRuntime::getPluginId)
+					.collect(Collectors.toSet());
+			Set<String> toLoad = new LinkedHashSet<>(loadRequested);
+			for (String dependentId : collectCascadeDependents(loadRequested, metadataDeps)) {
+				if (!currentlyLoadedIds.contains(dependentId)) {
+					toLoad.add(dependentId);
+				}
+			}
+			List<String> orderedLoad = sortPluginIdsByDependencies(toLoad, metadataDeps::get);
+			for (String pluginId : orderedLoad) {
+				loadGlobalPlugin(pluginId, enabledById.get(pluginId));
+			}
 		}
 	}
 
-	private void loadGlobalPlugin(String pluginId) {
-		JadxPluginMetadata metadata = JadxPluginsTools.getInstance().getInstalled().stream()
-				.filter(p -> p.getPluginId().equals(pluginId) && !p.isDisabled())
-				.findFirst()
-				.orElse(null);
-		if (metadata == null) {
+	private void loadGlobalPlugin(String pluginId, @Nullable JadxPluginMetadata metadata) {
+		if (metadata == null || metadata.isDisabled()) {
 			return;
 		}
 		List<JadxPlugin> plugins;
 		try {
-			plugins = globalPluginsLoader.loadPluginsFromPath(PluginFiles.INSTALLED_DIR.resolve(metadata.getPath()));
+			plugins = globalPluginsLoader.loadPluginsFromPath(pluginsTools.getInstalledPluginPath(metadata));
 		} catch (Exception e) {
 			LOG.warn("Failed to load global gui plugin: {}", pluginId, e);
 			return;
 		}
 		// empty for project plugins
 		plugins.forEach(this::addGlobalPlugin);
+	}
+
+	private static Set<String> drainScheduled(Set<String> set) {
+		synchronized (set) {
+			Set<String> drained = new LinkedHashSet<>(set);
+			set.clear();
+			return drained;
+		}
+	}
+
+	private static Set<String> collectCascadeDependents(
+			Set<String> roots, Map<String, List<String>> depsById) {
+		Set<String> result = new LinkedHashSet<>(roots);
+		boolean added;
+		do {
+			added = false;
+			for (Map.Entry<String, List<String>> entry : depsById.entrySet()) {
+				if (!result.contains(entry.getKey())) {
+					for (String reqId : entry.getValue()) {
+						if (result.contains(reqId)) {
+							result.add(entry.getKey());
+							added = true;
+							break;
+						}
+					}
+				}
+			}
+		} while (added);
+		return result;
+	}
+
+	private static boolean areUnloadedDepsReloaded(
+			@Nullable List<String> deps, Set<String> toUnload, Set<String> loadRequested) {
+		if (deps == null) {
+			return false;
+		}
+		for (String dep : deps) {
+			if (toUnload.contains(dep) && !loadRequested.contains(dep)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static List<String> collectRequiredIds(JadxPluginInfo info) {
+		return collectRequiredIds(info.getParentPlugin(), info.getDependencyPlugins());
+	}
+
+	private static List<String> collectRequiredIds(JadxPluginMetadata metadata) {
+		return collectRequiredIds(metadata.getParentPlugin(), metadata.getDependencyPlugins());
+	}
+
+	private static List<String> collectRequiredIds(
+			@Nullable String parentPlugin, @Nullable Collection<String> dependencyPlugins) {
+		List<String> reqs = new ArrayList<>();
+		if (parentPlugin != null && !parentPlugin.isBlank()) {
+			reqs.add(parentPlugin);
+		}
+		if (dependencyPlugins != null) {
+			for (String dep : dependencyPlugins) {
+				if (dep.indexOf(':') == -1 && !reqs.contains(dep)) {
+					reqs.add(dep);
+				}
+			}
+		}
+		return reqs;
+	}
+
+	private static List<String> sortPluginIdsByDependencies(
+			Collection<String> ids, Function<String, @Nullable List<String>> depsLookup) {
+		Set<String> targetSet = new LinkedHashSet<>(ids);
+		List<String> ordered = new ArrayList<>(ids.size());
+		Set<String> visiting = new HashSet<>();
+		Set<String> visited = new HashSet<>();
+		for (String id : ids) {
+			visitPluginId(id, targetSet, depsLookup, visiting, visited, ordered);
+		}
+		return ordered;
+	}
+
+	private static void visitPluginId(
+			String id,
+			Set<String> targetSet,
+			Function<String, @Nullable List<String>> depsLookup,
+			Set<String> visiting,
+			Set<String> visited,
+			List<String> ordered) {
+		if (!targetSet.contains(id) || visited.contains(id) || !visiting.add(id)) {
+			return;
+		}
+		List<String> deps = depsLookup.apply(id);
+		if (deps != null) {
+			for (String dep : deps) {
+				visitPluginId(dep, targetSet, depsLookup, visiting, visited, ordered);
+			}
+		}
+		visiting.remove(id);
+		visited.add(id);
+		ordered.add(id);
 	}
 
 	void addGlobalPlugin(JadxPlugin plugin) {

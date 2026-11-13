@@ -1,6 +1,11 @@
 package jadx.core.plugins;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.JadxPlugin;
+import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.loader.JadxPluginLoader;
 import jadx.api.plugins.options.JadxPluginOptions;
 import jadx.api.plugins.options.OptionDescription;
@@ -135,8 +141,98 @@ public class JadxPluginManager {
 				}
 			}
 		});
+		pruneMissingDependencies(resolved);
+		sortByDependencies(resolved);
 		resolvedPlugins.clear();
 		resolvedPlugins.addAll(resolved);
+	}
+
+	private static void pruneMissingDependencies(List<PluginRuntime> resolved) {
+		boolean removed;
+		do {
+			removed = false;
+			Set<String> availableIds = resolved.stream()
+					.map(PluginRuntime::getPluginId)
+					.collect(Collectors.toSet());
+			Iterator<PluginRuntime> it = resolved.iterator();
+			while (it.hasNext()) {
+				PluginRuntime plugin = it.next();
+				String missing = findMissingRequirement(plugin.getPluginInfo(), availableIds);
+				if (missing != null) {
+					LOG.warn("Plugin '{}' disabled: required plugin '{}' is not loaded",
+							plugin.getPluginId(), missing);
+					it.remove();
+					removed = true;
+				}
+			}
+		} while (removed);
+	}
+
+	private static @Nullable String findMissingRequirement(JadxPluginInfo info, Set<String> availableIds) {
+		for (String reqId : collectRequiredPluginIds(info)) {
+			if (!availableIds.contains(reqId)) {
+				return reqId;
+			}
+		}
+		return null;
+	}
+
+	private static Set<String> collectRequiredPluginIds(JadxPluginInfo info) {
+		String parent = info.getParentPlugin();
+		List<String> deps = info.getDependencyPlugins();
+		if (parent == null && deps.isEmpty()) {
+			return Collections.emptySet();
+		}
+		Set<String> required = new LinkedHashSet<>();
+		if (parent != null) {
+			required.add(parent);
+		}
+		for (String dep : deps) {
+			if (dep.indexOf(':') == -1) {
+				required.add(dep);
+			}
+		}
+		return required;
+	}
+
+	private static List<PluginRuntime> sortByDependencies(Collection<PluginRuntime> plugins) {
+		Map<String, PluginRuntime> byId = new TreeMap<>();
+		for (PluginRuntime plugin : plugins) {
+			byId.put(plugin.getPluginId(), plugin);
+		}
+		List<PluginRuntime> ordered = new ArrayList<>(plugins.size());
+		Map<String, Integer> visitState = new HashMap<>(plugins.size());
+		List<String> stack = new ArrayList<>();
+		for (PluginRuntime plugin : byId.values()) {
+			visitPlugin(plugin, byId, visitState, stack, ordered);
+		}
+		return ordered;
+	}
+
+	private static void visitPlugin(PluginRuntime plugin, Map<String, PluginRuntime> byId,
+			Map<String, Integer> visitState, List<String> stack, List<PluginRuntime> ordered) {
+		String id = plugin.getPluginId();
+		int state = visitState.getOrDefault(id, 0);
+		if (state == 2) {
+			return;
+		}
+		if (state == 1) {
+			int cycleStart = stack.indexOf(id);
+			List<String> cycle = new ArrayList<>(stack.subList(cycleStart, stack.size()));
+			cycle.add(id);
+			throw new IllegalArgumentException("Cyclic plugin dependency detected: " + String.join(" -> ", cycle));
+		}
+		visitState.put(id, 1);
+		stack.add(id);
+		for (String reqId : collectRequiredPluginIds(plugin.getPluginInfo())) {
+			PluginRuntime req = byId.get(reqId);
+			if (req != null) {
+				visitPlugin(req, byId, visitState, stack, ordered);
+			}
+		}
+		stack.remove(stack.size() - 1);
+		visitState.put(id, 2);
+		ordered.add(plugin);
 	}
 
 	public void initAll(JadxDecompiler decompiler) {
@@ -148,8 +244,9 @@ public class JadxPluginManager {
 	}
 
 	public void init(JadxDecompiler decompiler, SortedSet<PluginRuntime> plugins) {
+		List<PluginRuntime> orderedPlugins = sortByDependencies(plugins);
 		AppContext defAppContext = buildDefaultAppContext();
-		for (PluginRuntime pluginRuntime : plugins) {
+		for (PluginRuntime pluginRuntime : orderedPlugins) {
 			try {
 				if (pluginRuntime.getAppContext() == null) {
 					pluginRuntime.setAppContext(defAppContext);
@@ -159,7 +256,7 @@ public class JadxPluginManager {
 				LOG.error("Failed to init plugin: {}", pluginRuntime.getPluginId(), e);
 			}
 		}
-		for (PluginRuntime pluginRuntime : plugins) {
+		for (PluginRuntime pluginRuntime : orderedPlugins) {
 			PluginContext context = pluginRuntime.getPluginContext();
 			if (context != null) {
 				JadxPluginOptions options = context.getOptions();
@@ -179,7 +276,9 @@ public class JadxPluginManager {
 	}
 
 	public void unload(SortedSet<PluginRuntime> pluginContexts) {
-		for (PluginRuntime context : pluginContexts) {
+		List<PluginRuntime> orderedPlugins = sortByDependencies(pluginContexts);
+		Collections.reverse(orderedPlugins);
+		for (PluginRuntime context : orderedPlugins) {
 			try {
 				context.unload();
 			} catch (Exception e) {

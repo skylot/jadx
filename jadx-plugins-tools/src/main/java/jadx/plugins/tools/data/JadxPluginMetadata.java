@@ -1,5 +1,8 @@
 package jadx.plugins.tools.data;
 
+import java.util.List;
+import java.util.Map;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +14,9 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 	private String description;
 	private String homepage;
 	private @Nullable String requiredJadxVersion;
+	private @Nullable String parentPlugin;
+	private @Nullable List<String> dependencyPlugins;
+	private @Nullable Map<String, String> dependencyLocations;
 
 	private @Nullable String version;
 
@@ -70,6 +76,30 @@ public class JadxPluginMetadata implements Comparable<JadxPluginMetadata> {
 
 	public void setRequiredJadxVersion(@Nullable String requiredJadxVersion) {
 		this.requiredJadxVersion = requiredJadxVersion;
+	}
+
+	public @Nullable String getParentPlugin() {
+		return parentPlugin;
+	}
+
+	public void setParentPlugin(@Nullable String parentPlugin) {
+		this.parentPlugin = parentPlugin;
+	}
+
+	public @Nullable List<String> getDependencyPlugins() {
+		return dependencyPlugins;
+	}
+
+	public void setDependencyPlugins(@Nullable List<String> dependencyPlugins) {
+		this.dependencyPlugins = dependencyPlugins;
+	}
+
+	public @Nullable Map<String, String> getDependencyLocations() {
+		return dependencyLocations;
+	}
+
+	public void setDependencyLocations(@Nullable Map<String, String> dependencyLocations) {
+		this.dependencyLocations = dependencyLocations;
 	}
 
 	public String getLocationId() {
