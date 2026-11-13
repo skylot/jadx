@@ -409,8 +409,11 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 
 		RawValue simpleValue = null;
+		// Same entries as the simple value branch below. A 16-byte header is a ResTable_map_entry
+		// (key, parent and count), which is read as a map even without FLAG_COMPLEX (#487).
+		// A Res_value smaller than 8 bytes can't hold a value (#1911), so the entry is skipped
+		// here, before buildResourceEntry() adds or renames anything.
 		if (!isCompact && !isComplex && size != 16) {
-			// Skip undersized values before adding or renaming entries.
 			if (is.readInt16() < 8) {
 				return false;
 			}
