@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import javax.swing.JComponent;
 
 import jadx.api.gui.IMainWindow;
+import jadx.api.gui.code.IContentStatePersist;
 import jadx.api.gui.dock.DockableOptions;
 import jadx.api.gui.dock.JadxDockable;
 import jadx.api.gui.tree.ITreeNode;
@@ -43,4 +44,9 @@ public interface JadxGuiContextExt extends JadxGuiContext {
 	 * @param addPredicate check if entry should be added for provided node, called on popup creation
 	 */
 	void addTreePopupMenuEntry(String name, Predicate<ITreeNode> addPredicate, Consumer<ITreeNode> action);
+
+	/**
+	 * Register adapter to save and restore tab state for custom tree nodes
+	 */
+	void registerTabStatePersistAdapter(IContentStatePersist tabStatePersist);
 }

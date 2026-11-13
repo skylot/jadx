@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.swing.JTree;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.gui.tree.ILoadableTreeNode;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.api.metadata.ICodeNodeRef;
 import jadx.core.dex.nodes.RootNode;
@@ -24,7 +26,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.LoadTask;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.MainWindow;
@@ -102,8 +103,8 @@ public class TreeExpansionService {
 		}
 	}
 
-	private String savePath(TreePath path) {
-		JNode node = (JNode) path.getLastPathComponent();
+	String savePath(TreePath path) {
+		Object node = path.getLastPathComponent();
 		if (node instanceof JPackage) {
 			return "p:" + ((JPackage) node).getPkg().getRawFullName();
 		}
@@ -111,12 +112,13 @@ public class TreeExpansionService {
 			return "c:" + ((JClass) node).getCls().getRawName();
 		}
 		return Arrays.stream(path.getPath())
-				.map(p -> ((JNode) p).getID())
+				.map(p -> p instanceof ITreeNode ? ((ITreeNode) p).getID() : Objects.toString(p))
 				.skip(1) // skip root
 				.collect(Collectors.joining("//", "t:", ""));
 	}
 
-	private @Nullable TreePath loadPath(String pathStr) {
+	@Nullable
+	TreePath loadPath(String pathStr) {
 		String pathData = pathStr.substring(2);
 		switch (pathStr.charAt(0)) {
 			case 'c':
@@ -132,22 +134,51 @@ public class TreeExpansionService {
 	}
 
 	private @Nullable TreePath resolveTreePath(String[] pathArr) {
-		JNode current = (JNode) tree.getModel().getRoot();
+		Object root = tree.getModel().getRoot();
+		if (!(root instanceof TreeNode)) {
+			return null;
+		}
+		TreeNode current = (TreeNode) root;
+		List<TreeNode> resolved = new ArrayList<>();
+		resolved.add(current);
 		for (String nodeStr : pathArr) {
-			JNode node = current.searchNode(n -> n.getID().equals(nodeStr));
-			if (node == null) {
+			TreeNode match = findChildById(current, nodeStr);
+			if (match == null) {
 				if (DEBUG) {
-					List<String> children = current.childrenList().stream()
-							.map(n -> ((JNode) n).getID())
-							.collect(Collectors.toList());
+					List<String> children = collectChildIds(current);
 					LOG.warn("Failed to restore path: {}, node '{}' not found in '{}' children: {}",
 							Arrays.toString(pathArr), nodeStr, current, children);
 				}
 				return null;
 			}
-			current = node;
+			resolved.add(match);
+			current = match;
 		}
-		return new TreePath(current.getPath());
+		return new TreePath(resolved.toArray());
+	}
+
+	private static @Nullable TreeNode findChildById(TreeNode parent, String id) {
+		if (parent instanceof ILoadableTreeNode) {
+			((ILoadableTreeNode) parent).loadNode();
+		}
+		Enumeration<? extends TreeNode> en = parent.children();
+		while (en.hasMoreElements()) {
+			TreeNode child = en.nextElement();
+			if (child instanceof ITreeNode && ((ITreeNode) child).getID().equals(id)) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	private static List<String> collectChildIds(TreeNode parent) {
+		List<String> ids = new ArrayList<>();
+		Enumeration<? extends TreeNode> en = parent.children();
+		while (en.hasMoreElements()) {
+			TreeNode child = en.nextElement();
+			ids.add(child instanceof ITreeNode ? ((ITreeNode) child).getID() : Objects.toString(child));
+		}
+		return ids;
 	}
 
 	private @Nullable TreePath getTreePathForRef(@Nullable ICodeNodeRef ref) {

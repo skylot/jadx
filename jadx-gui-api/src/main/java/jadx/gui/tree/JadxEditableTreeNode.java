@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import jadx.api.gui.tree.IEditableTreeNode;
 
-public abstract class JadxEditableTreeNode implements IEditableTreeNode {
+public abstract class JadxEditableTreeNode extends JadxTreeNode implements IEditableTreeNode {
 	private volatile boolean changed = false;
 	private final List<Consumer<Boolean>> changeListeners = new ArrayList<>();
 

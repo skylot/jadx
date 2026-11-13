@@ -125,6 +125,7 @@ public class GuiPluginContext implements JadxGuiContextExt {
 		registry.getTreeInputCategories().add(inputCategory);
 	}
 
+	@Override
 	public void registerTabStatePersistAdapter(IContentStatePersist tabStatePersist) {
 		registry.getTabStatePersistAdapters().add(tabStatePersist);
 	}

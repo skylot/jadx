@@ -94,6 +94,14 @@ public abstract class JNode extends DefaultMutableTreeNode
 		return makeString();
 	}
 
+	@Override
+	public @Nullable JPopupMenu onTreePopupMenu(IMainWindow mainWindow) {
+		if (mainWindow instanceof MainWindow) {
+			return onTreePopupMenu((MainWindow) mainWindow);
+		}
+		return null;
+	}
+
 	public @Nullable JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
 		return null;
 	}
@@ -150,9 +158,12 @@ public abstract class JNode extends DefaultMutableTreeNode
 	public @Nullable JNode searchNode(Predicate<JNode> filter) {
 		Enumeration<?> en = this.children();
 		while (en.hasMoreElements()) {
-			JNode node = (JNode) en.nextElement();
-			if (filter.test(node)) {
-				return node;
+			Object obj = en.nextElement();
+			if (obj instanceof JNode) {
+				JNode node = (JNode) obj;
+				if (filter.test(node)) {
+					return node;
+				}
 			}
 		}
 		return null;
@@ -161,9 +172,12 @@ public abstract class JNode extends DefaultMutableTreeNode
 	public @Nullable JNode searchDepthNode(Predicate<JNode> filter) {
 		Enumeration<?> en = this.breadthFirstEnumeration();
 		while (en.hasMoreElements()) {
-			JNode node = (JNode) en.nextElement();
-			if (filter.test(node)) {
-				return node;
+			Object obj = en.nextElement();
+			if (obj instanceof JNode) {
+				JNode node = (JNode) obj;
+				if (filter.test(node)) {
+					return node;
+				}
 			}
 		}
 		return null;
@@ -175,10 +189,13 @@ public abstract class JNode extends DefaultMutableTreeNode
 	public @Nullable JNode removeNode(Predicate<JNode> filter) {
 		Enumeration<?> en = this.children();
 		while (en.hasMoreElements()) {
-			JNode node = (JNode) en.nextElement();
-			if (filter.test(node)) {
-				this.remove(node);
-				return node;
+			Object obj = en.nextElement();
+			if (obj instanceof JNode) {
+				JNode node = (JNode) obj;
+				if (filter.test(node)) {
+					this.remove(node);
+					return node;
+				}
 			}
 		}
 		return null;

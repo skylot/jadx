@@ -9,6 +9,7 @@ import javax.swing.*;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.gui.code.JadxContentPanel;
+import jadx.gui.code.HtmlContentPanel;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.panel.FontPanel;
@@ -55,6 +56,10 @@ class TabsFocusManager implements FocusListener {
 			((HtmlPanel) pane).getHtmlArea().addFocusListener(INSTANCE);
 			return;
 		}
+		if (pane instanceof HtmlContentPanel) {
+			((HtmlContentPanel) pane).getHtmlArea().addFocusListener(INSTANCE);
+			return;
+		}
 		if (pane instanceof ImagePanel || pane instanceof FontPanel) {
 			pane.addFocusListener(INSTANCE);
 		}
@@ -71,6 +76,10 @@ class TabsFocusManager implements FocusListener {
 		}
 		if (pane instanceof HtmlPanel) {
 			SwingUtilities.invokeLater(() -> ((HtmlPanel) pane).getHtmlArea().requestFocusInWindow());
+			return;
+		}
+		if (pane instanceof HtmlContentPanel) {
+			SwingUtilities.invokeLater(() -> ((HtmlContentPanel) pane).getHtmlArea().requestFocusInWindow());
 			return;
 		}
 		if (pane instanceof ImagePanel || pane instanceof FontPanel) {

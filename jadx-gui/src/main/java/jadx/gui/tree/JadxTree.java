@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import jadx.api.ResourceFile;
 import jadx.api.gui.tree.BaseTreeNodeEnum;
 import jadx.api.gui.tree.IJadxTree;
+import jadx.api.gui.tree.ILoadableTreeNode;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.api.gui.tree.ITreeNodeDetails;
 import jadx.gui.jobs.IBackgroundTask;
@@ -83,15 +85,15 @@ public class JadxTree implements IJadxTree {
 	private final JPanel filterPanel;
 	private final JScrollPane treeScrollPane;
 
-	private @Nullable JRoot treeRoot;
-	private boolean treeReloading;
+	private @Nullable volatile JRoot treeRoot;
+	private volatile boolean treeReloading;
 
 	private final List<Consumer<JRoot>> treeUpdateListener = new ArrayList<>();
 
 	/**
 	 * Custom tree nodes stored in ordered map to keep nodes per ID
 	 */
-	private final Map<String, CustomTreeNode> customTreeNodes = new LinkedHashMap<>();
+	private final Map<String, CustomTreeNode> customTreeNodes = Collections.synchronizedMap(new LinkedHashMap<>());
 
 	public JadxTree(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
@@ -175,6 +177,14 @@ public class JadxTree implements IJadxTree {
 									}
 								}));
 					}
+				} else if (node instanceof ILoadableTreeNode) {
+					ILoadableTreeNode loadableNode = (ILoadableTreeNode) node;
+					mainWindow.getBackgroundExecutor().execute("Loading node", loadableNode::loadNode,
+							status -> {
+								if (!treeReloading && node instanceof TreeNode) {
+									treeModel.nodeStructureChanged((TreeNode) node);
+								}
+							});
 				}
 			}
 
@@ -216,12 +226,17 @@ public class JadxTree implements IJadxTree {
 	}
 
 	public void initTree() {
-		treeRoot = new JRoot(mainWindow);
-		treeRoot.setFlatPackages(mainWindow.getSettings().isFlattenPackage());
-		treeModel.setRoot(treeRoot);
-		treeFilterField.setText("");
-		registerCustomNodes();
-		treeRoot.update();
+		treeReloading = true;
+		try {
+			treeRoot = new JRoot(mainWindow);
+			treeRoot.setFlatPackages(mainWindow.getSettings().isFlattenPackage());
+			treeModel.setRoot(treeRoot);
+			treeFilterField.setText("");
+			registerCustomNodes();
+			treeRoot.update();
+		} finally {
+			treeReloading = false;
+		}
 		reloadTree();
 	}
 
@@ -318,7 +333,10 @@ public class JadxTree implements IJadxTree {
 	}
 
 	public void selectNodeInTree(ITreeNode node) {
-		if (node.getParent() == null && treeRoot != null) {
+		if (treeRoot == null) {
+			return;
+		}
+		if (node.getParent() == null) {
 			// node not registered in tree
 			ITreeNode treeNode = treeRoot.searchNode(node);
 			if (treeNode == null) {
@@ -366,7 +384,9 @@ public class JadxTree implements IJadxTree {
 	}
 
 	public void addTreeCustomNodes() {
-		customTreeNodes.forEach((id, node) -> insertCustomTreeNode(node));
+		synchronized (customTreeNodes) {
+			customTreeNodes.forEach((id, node) -> insertCustomTreeNode(node));
+		}
 	}
 
 	@Override
@@ -375,15 +395,38 @@ public class JadxTree implements IJadxTree {
 			return;
 		}
 		CustomTreeNode customTreeNode = new CustomTreeNode(parent, treeNode);
-		customTreeNodes.put(treeNode.getID(), customTreeNode);
-		insertCustomTreeNode(customTreeNode);
+		CustomTreeNode prev = customTreeNodes.put(treeNode.getID(), customTreeNode);
+		if (!treeReloading && treeRoot != null) {
+			UiUtils.uiRunAndWait(() -> {
+				if (prev != null) {
+					removeCustomTreeNode(prev);
+				}
+				insertCustomTreeNode(customTreeNode, true);
+			});
+		}
+	}
+
+	private void removeCustomTreeNode(CustomTreeNode customTreeNode) {
+		ITreeNode node = customTreeNode.getNode();
+		TreeNode parent = node.getParent();
+		if (parent != null) {
+			node.removeFromParent();
+			treeModel.nodeStructureChanged(parent);
+		}
 	}
 
 	private void insertCustomTreeNode(CustomTreeNode customTreeNode) {
+		insertCustomTreeNode(customTreeNode, false);
+	}
+
+	private void insertCustomTreeNode(CustomTreeNode customTreeNode, boolean notifyModel) {
 		JNode parent = resolveParent(customTreeNode.getParent());
 		if (parent != null) {
 			parent.add(customTreeNode.getNode());
-		} else {
+			if (notifyModel) {
+				treeModel.nodeStructureChanged(parent);
+			}
+		} else if (treeRoot != null) {
 			LOG.debug("Can't find parent for custom tree node: {}", customTreeNode);
 		}
 	}
@@ -407,7 +450,11 @@ public class JadxTree implements IJadxTree {
 
 	@Override
 	public void openTreeNodeContent(ITreeNode node) {
-		nodeClickAction(node);
+		if (SwingUtilities.isEventDispatchThread()) {
+			nodeClickAction(node);
+		} else {
+			UiUtils.uiRun(() -> nodeClickAction(node));
+		}
 	}
 
 	public JTree getTreeComponent() {

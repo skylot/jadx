@@ -177,6 +177,7 @@ public class JadxProject {
 	}
 
 	public void saveOpenTabs(List<EditorViewState> tabs) {
+		syncCustomTabAdapters(mainWindow);
 		List<TabViewState> tabStateList = tabs.stream()
 				.map(tabStateViewAdapter::build)
 				.filter(Objects::nonNull)
@@ -187,12 +188,16 @@ public class JadxProject {
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
-		CommonGuiPluginsContext pluginsContext = mw.getGuiPluginsManager().getPluginsContext();
-		tabStateViewAdapter.setCustomAdapters(pluginsContext.getTabStatePersistAdapters());
+		syncCustomTabAdapters(mw);
 		return data.getOpenTabs().stream()
 				.map(s -> tabStateViewAdapter.load(mw, s))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
+	}
+
+	private void syncCustomTabAdapters(MainWindow mw) {
+		CommonGuiPluginsContext pluginsContext = mw.getGuiPluginsManager().getPluginsContext();
+		tabStateViewAdapter.setCustomAdapters(pluginsContext.getTabStatePersistAdapters());
 	}
 
 	public Path getMappingsPath() {

@@ -1,5 +1,7 @@
 package jadx.gui.ui.tab;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.gui.editor.events.EditorClosed;
@@ -43,7 +45,7 @@ public class PluginEventsTabStates implements ITabStatesListener {
 	public void onTabClose(TabBlueprint blueprint) {
 		ICodeNodeRef ref = codeRef(blueprint.getNode());
 		if (ref != null) {
-			if (ref == selected) {
+			if (Objects.equals(ref, selected)) {
 				select(null);
 			}
 			events.send(new EditorClosed(ref));
@@ -51,7 +53,7 @@ public class PluginEventsTabStates implements ITabStatesListener {
 	}
 
 	private void select(@Nullable ICodeNodeRef ref) {
-		if (ref != selected) {
+		if (!Objects.equals(ref, selected)) {
 			selected = ref;
 			events.send(new EditorSelected(ref));
 		}

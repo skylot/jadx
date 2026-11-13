@@ -33,12 +33,12 @@ import io.github.andrewauclair.moderndocking.event.DockingListener;
 
 import jadx.api.gui.code.IScrollableContentPanel;
 import jadx.api.gui.code.JadxContentPanel;
+import jadx.api.gui.tree.IEditableTreeNode;
 import jadx.api.gui.tree.ITreeNode;
 import jadx.core.utils.ListUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.SilentTask;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.ActionModel;
@@ -579,7 +579,7 @@ public class TabbedPane implements ITabStatesListener, DockingListener {
 		}
 		ITreeNode node = panel.getNode();
 		String title = buildTabTitle(node);
-		if (node instanceof JEditableNode && ((JEditableNode) node).isChanged()) {
+		if (node instanceof IEditableTreeNode && ((IEditableTreeNode) node).isChanged()) {
 			title = "*" + title;
 		}
 		if (blueprint.isPreviewTab()) {
