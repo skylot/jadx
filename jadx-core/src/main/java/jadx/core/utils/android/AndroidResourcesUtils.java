@@ -65,7 +65,7 @@ public class AndroidResourcesUtils {
 	public static boolean handleAppResField(ICodeWriter code, ClassGen clsGen, ClassInfo declClass) {
 		ClassInfo parentClass = declClass.getParentClass();
 		if (parentClass != null && parentClass.getShortName().equals("R")) {
-			clsGen.useClass(code, parentClass);
+			clsGen.useClassQualifier(code, parentClass);
 			code.add('.');
 			code.add(declClass.getAliasShortName());
 			return true;
