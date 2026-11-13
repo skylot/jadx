@@ -33,6 +33,14 @@ public final class JavaMethod implements JavaNode {
 		return mth.getMethodInfo().getFullName();
 	}
 
+	public String getRawName() {
+		return mth.getName();
+	}
+
+	public String getShortId() {
+		return mth.getMethodInfo().getShortId();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
@@ -101,6 +109,10 @@ public final class JavaMethod implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		MethodNode currentMth = mth.getParentClass().searchMethod(mth.getMethodInfo());
+		if (currentMth != null) {
+			return currentMth.getDefPosition();
+		}
 		return mth.getDefPosition();
 	}
 

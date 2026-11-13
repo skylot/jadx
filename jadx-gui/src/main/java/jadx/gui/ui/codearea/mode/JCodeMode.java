@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.DecompilationMode;
 import jadx.api.ICodeInfo;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 
@@ -43,8 +42,7 @@ public class JCodeMode extends JNode {
 		if (codeInfo != null) {
 			return codeInfo;
 		}
-		ClassNode cls = jCls.getCls().getClassNode();
-		codeInfo = cls.decompileWithMode(mode);
+		codeInfo = jCls.getCls().decompileWithMode(mode);
 		return codeInfo;
 	}
 
