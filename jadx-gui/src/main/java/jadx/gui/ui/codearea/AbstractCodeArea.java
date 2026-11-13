@@ -44,12 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.gui.tree.IEditableTreeNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.IBackgroundTask;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JEditableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.action.JNodeAction;
@@ -102,8 +102,8 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 		ZoomActions.register(this, settings, this::loadSettings);
 
-		if (node instanceof JEditableNode) {
-			JEditableNode editableNode = (JEditableNode) node;
+		if (node instanceof IEditableTreeNode) {
+			IEditableTreeNode editableNode = (IEditableTreeNode) node;
 			addSaveActions(editableNode);
 			addChangeUpdates(editableNode);
 		} else {
@@ -261,7 +261,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		return rc;
 	}
 
-	private void addSaveActions(JEditableNode node) {
+	private void addSaveActions(IEditableTreeNode node) {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -273,7 +273,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		});
 	}
 
-	private void addChangeUpdates(JEditableNode editableNode) {
+	private void addChangeUpdates(IEditableTreeNode editableNode) {
 		getDocument().addDocumentListener(new DocumentUpdateListener(ev -> {
 			if (loaded.get()) {
 				editableNode.setChanged(true);

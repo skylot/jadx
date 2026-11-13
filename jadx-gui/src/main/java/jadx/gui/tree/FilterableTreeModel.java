@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceType;
+import jadx.api.gui.tree.ITreeNode;
 import jadx.gui.jobs.SimpleTask;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.JClass;
@@ -59,7 +60,7 @@ class FilterableTreeModel extends DefaultTreeModel {
 	/**
 	 * Store nodes expanded automatically to prevent re-expand for nodes collapsed by user
 	 */
-	private final Set<JNode> autoExpandedNodes;
+	private final Set<ITreeNode> autoExpandedNodes;
 
 	/**
 	 * Very often 'getChild' method called for all children after 'getChildCount' call.
@@ -126,10 +127,11 @@ class FilterableTreeModel extends DefaultTreeModel {
 			int last = Math.min(startRow + 20, lastRow);
 			for (int i = startRow; i <= lastRow; i++) {
 				TreePath path = tree.getPathForRow(i);
-				JNode node = (JNode) path.getLastPathComponent();
-				if (node instanceof JClass) {
+				Object component = path.getLastPathComponent();
+				if (component instanceof JClass) {
 					// don't auto expand methods
-				} else {
+				} else if (component instanceof ITreeNode) {
+					ITreeNode node = (ITreeNode) component;
 					if (autoExpandedNodes.add(node)) {
 						tree.expandPath(path);
 					}
@@ -205,9 +207,8 @@ class FilterableTreeModel extends DefaultTreeModel {
 				loadInnerResources(res);
 			}
 		}
-		if (node instanceof JNode) {
-			JNode jNode = (JNode) node;
-			String name = jNode.makeString();
+		if (node instanceof ITreeNode) {
+			String name = node instanceof JNode ? ((JNode) node).makeString() : ((ITreeNode) node).getName();
 			if (name == null) {
 				LOG.warn("Node {} has null UI string", node);
 				return false;

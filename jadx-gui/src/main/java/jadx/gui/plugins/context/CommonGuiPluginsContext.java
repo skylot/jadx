@@ -82,11 +82,18 @@ public class CommonGuiPluginsContext {
 	}
 
 	JadxDockable addDockable(GuiPluginsRegistry registry, String pluginId, DockableOptions options, Supplier<JComponent> content) {
+		KeyStroke keyStroke = null;
+		String keyBinding = options.getKeyBinding();
+		if (keyBinding != null) {
+			keyStroke = KeyStroke.getKeyStroke(keyBinding);
+			if (keyStroke == null) {
+				throw new IllegalArgumentException("Failed to parse key binding: " + keyBinding);
+			}
+		}
 		PluginDock dock = mainWindow.getDocking().registerPlugin(pluginId + ':' + options.getId(), options, content);
 		registry.getDockables().add(dock);
-		if (options.getKeyBinding() != null) {
-			addKeyBinding(registry, new KeyBindingEntry(dock.getPersistentID(), KeyStroke.getKeyStroke(options.getKeyBinding()),
-					() -> toggle(dock)));
+		if (keyStroke != null && !addKeyBinding(registry, new KeyBindingEntry(dock.getPersistentID(), keyStroke, () -> toggle(dock)))) {
+			LOG.warn("Failed to register key binding '{}' for dockable '{}'", keyBinding, dock.getPersistentID());
 		}
 		updateDockablesMenu();
 		return dock;

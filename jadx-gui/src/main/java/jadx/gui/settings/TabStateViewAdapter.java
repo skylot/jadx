@@ -76,7 +76,7 @@ public class TabStateViewAdapter {
 	}
 
 	private @Nullable ITreeNode loadNode(MainWindow mw, TabViewState tvs) {
-		JRoot treeRoot = mw.getTree().getTreeRoot();
+		JRoot treeRoot = mw.getTree() == null ? null : mw.getTree().getTreeRoot();
 		if (treeRoot != null) {
 			switch (tvs.getType()) {
 				case "class":
@@ -136,17 +136,29 @@ public class TabStateViewAdapter {
 			return true;
 		}
 
-		String typeName = node.getClass().getName();
-		IContentStatePersist statePersist = customAdaptersMap.get(typeName);
+		IContentStatePersist statePersist = findCustomAdapter(node);
 		if (statePersist != null) {
 			try {
 				tvs.setTabPath(statePersist.save(node));
 				tvs.setType(statePersist.getNodeClass().getName());
 				return true;
 			} catch (Exception e) {
-				LOG.error("Failed to save state for custom node: {}", typeName, e);
+				LOG.error("Failed to save state for custom node: {}", node.getClass().getName(), e);
 			}
 		}
 		return false;
+	}
+
+	private @Nullable IContentStatePersist findCustomAdapter(ITreeNode node) {
+		IContentStatePersist exact = customAdaptersMap.get(node.getClass().getName());
+		if (exact != null) {
+			return exact;
+		}
+		for (IContentStatePersist adapter : customAdaptersMap.values()) {
+			if (adapter.getNodeClass().isInstance(node)) {
+				return adapter;
+			}
+		}
+		return null;
 	}
 }

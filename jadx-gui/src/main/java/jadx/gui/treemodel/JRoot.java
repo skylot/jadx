@@ -128,9 +128,9 @@ public class JRoot extends JNode {
 		String clsName = path.get(pos);
 		Enumeration<TreeNode> en = start.children();
 		while (en.hasMoreElements()) {
-			JNode node = (JNode) en.nextElement();
-			if (node.getClass().getSimpleName().equals(clsName)) {
-				return getNodeByClsPath(node, pos + 1, path);
+			TreeNode child = en.nextElement();
+			if (child instanceof JNode && child.getClass().getSimpleName().equals(clsName)) {
+				return getNodeByClsPath((JNode) child, pos + 1, path);
 			}
 		}
 		return null;
