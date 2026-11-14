@@ -32,6 +32,7 @@ public class RegionMaker {
 	private final LoopRegionMaker loopMaker;
 
 	private final BlockSet processedBlocks;
+	private final BlockSet activeBlocks;
 	private final int regionsLimit;
 
 	private int regionsCount;
@@ -42,6 +43,7 @@ public class RegionMaker {
 		this.ifMaker = new IfRegionMaker(mth, this);
 		this.loopMaker = new LoopRegionMaker(mth, this, ifMaker);
 		this.processedBlocks = BlockSet.empty(mth);
+		this.activeBlocks = BlockSet.empty(mth);
 		this.regionsLimit = mth.getBasicBlocks().size() * 400;
 	}
 
@@ -66,10 +68,20 @@ public class RegionMaker {
 		}
 		BlockNode next = startBlock;
 		while (next != null) {
-			next = traverse(region, next);
+			if (activeBlocks.addChecked(next)) {
+				mth.addWarnComment("Cycle in region maker at block: " + next + ' ' + next.getAttributesString());
+				break;
+			}
 			regionsCount++;
 			if (regionsCount > regionsLimit) {
+				activeBlocks.remove(next);
 				throw new JadxOverflowException("Regions count limit reached at block " + startBlock);
+			}
+			BlockNode current = next;
+			try {
+				next = traverse(region, current);
+			} finally {
+				activeBlocks.remove(current);
 			}
 		}
 		return region;
@@ -164,5 +176,6 @@ public class RegionMaker {
 
 	void clearBlockProcessedState(BlockNode block) {
 		processedBlocks.remove(block);
+		activeBlocks.remove(block);
 	}
 }
