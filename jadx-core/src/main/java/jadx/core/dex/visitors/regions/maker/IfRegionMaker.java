@@ -31,7 +31,10 @@ import jadx.core.dex.regions.conditions.IfInfo;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
+import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.blocks.BlockSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -382,6 +385,20 @@ final class IfRegionMaker {
 			if (startBlock.isDominator(topSplitter)) {
 				scopeOutBlock = BlockUtils.getTryAndHandlerCrossBlock(mth, handler.getHandler());
 				break;
+			}
+		}
+		if (scopeOutBlock == null) {
+			// branch inside try can also end at the block where try and handler paths merge
+			TryCatchBlockAttr tryBlock = startBlock.get(AType.TRY_BLOCK);
+			if (tryBlock != null) {
+				for (ExceptionHandler handler : tryBlock.getHandlers()) {
+					BlockNode crossBlock = BlockUtils.getTryAndHandlerCrossBlock(mth, handler);
+					if (crossBlock != null && domFrontiers.contains(crossBlock)
+							&& ListUtils.anyMatch(crossBlock.getPredecessors(), tryBlock.getBlocks()::contains)) {
+						scopeOutBlock = crossBlock;
+						break;
+					}
+				}
 			}
 		}
 		if (scopeOutBlock != null) {
