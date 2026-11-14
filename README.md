@@ -99,6 +99,7 @@ options:
                                                    'simple' - simplified instructions (linear, with goto's)
                                                    'fallback' - raw instructions without modifications
   --show-bad-code                               - show inconsistent code (incorrectly decompiled)
+  --show-empty-synthetic-classes                - show empty synthetic classes (hidden by default)
   --no-xml-pretty-print                         - do not prettify XML
   --no-imports                                  - disable use of imports, always write entire package name
   --no-debug-info                               - disable debug info parsing and processing
