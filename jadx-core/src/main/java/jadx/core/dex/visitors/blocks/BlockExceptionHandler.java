@@ -434,7 +434,8 @@ public class BlockExceptionHandler {
 
 	private static BlockNode searchTopBlock(MethodNode mth, List<BlockNode> blocks) {
 		BlockNode top = BlockUtils.getTopBlock(blocks);
-		if (top != null) {
+		// top must dominate all try blocks, a path to each is not enough
+		if (top != null && blocks.stream().allMatch(b -> b == top || b.isDominator(top))) {
 			return adjustTopBlock(top);
 		}
 		BlockNode topDom = BlockUtils.getCommonDominator(mth, blocks);
