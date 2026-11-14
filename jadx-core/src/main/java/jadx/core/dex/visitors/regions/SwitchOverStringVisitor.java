@@ -3,10 +3,12 @@ package jadx.core.dex.visitors.regions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +79,9 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 	private boolean restoreSwitchOverString(MethodNode mth, IRegion part1Region) {
 		try {
 			InsnNode strHashInsn = BlockUtils.getLastInsn(RegionUtils.getFirstBlockNode(part1Region));
-			InvokeNode hashcodeInv = strHashInsn == null ? null : getStrHashcodeInvokeInsn(strHashInsn.getArg(0));
+			InvokeNode hashcodeInv = strHashInsn != null && strHashInsn.getArgsCount() > 0
+					? getStrHashcodeInvokeInsn(strHashInsn.getArg(0))
+					: null;
 			InsnArg strArg = hashcodeInv == null ? null : hashcodeInv.getInstanceArg();
 			if (strArg == null || !strArg.isRegister()) {
 				return false;
@@ -129,56 +133,72 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 	private static boolean collectPart1RegionCases(SwitchData data) {
 		// a map of hashcode keys and case blocks
 		Map<Integer, BlockNode> hashCases = new LinkedHashMap<>();
-		if (data.getType() == SwitchStringType.IF_SWITCH) {
-			IfRegion part1If = (IfRegion) data.getPart1Region();
-			BlockNode part2Header = Objects.requireNonNull(data.getPart2Region()).getHeader();
-			RegisterArg strHashArg = null;
-			BlockNode ifStartBlock = part1If.getConditionBlocks().get(0);
-			BlockNode hashCmpBlock = getOnlyOneInsnBlock(ifStartBlock);
-			do {
-				IfNode ifNode = (IfNode) BlockUtils.getLastInsnWithType(hashCmpBlock, InsnType.IF);
-				if (ifNode == null || (ifNode.getOp() != IfOp.NE && ifNode.getOp() != IfOp.EQ)) {
-					return false;
-				}
-				boolean isNE = ifNode.getOp() == IfOp.NE;
-				BlockNode thenBlock = getOnlyOneInsnBlock(isNE ? ifNode.getElseBlock() : ifNode.getThenBlock());
-				BlockNode elseBlock = getOnlyOneInsnBlock(isNE ? ifNode.getThenBlock() : ifNode.getElseBlock());
-				if (thenBlock == null || elseBlock == null || !ifNode.getArg(0).isRegister() || !ifNode.getArg(1).isLiteral()) {
-					return false;
-				}
-				RegisterArg tmpStrHashArg = (RegisterArg) ifNode.getArg(0);
-				LiteralArg literalArg = (LiteralArg) ifNode.getArg(1);
-				if (strHashArg == null) {
-					strHashArg = tmpStrHashArg;
-				} else if (!strHashArg.sameCodeVar(tmpStrHashArg)) {
-					return false;
-				}
-				hashCases.put((int) literalArg.getLiteral(), thenBlock);
-				hashCmpBlock = elseBlock;
-				// end of part1If: no further hash compare, next block is part2switch
-				Integer fallbackNum = extractConstNumber(data, BlockUtils.getLastInsn(hashCmpBlock));
-				BlockNode nextBlock = BlockUtils.getNextBlock(hashCmpBlock);
-				if (elseBlock == part2Header || (DEFAULT_NUM_VALUE.equals(fallbackNum) && nextBlock == part2Header)) {
-					break;
-				}
-			} while (true);
-		} else {
-			SwitchRegion part1Switch = (SwitchRegion) data.getPart1Region();
-			SwitchInsn swInsn = (SwitchInsn) BlockUtils.getLastInsnWithType(part1Switch.getHeader(), InsnType.SWITCH);
-			Objects.requireNonNull(swInsn);
-			for (int i = 0; i < swInsn.getKeys().length; i++) {
-				BlockNode caseBlock = getOnlyOneInsnBlock(swInsn.getTargetBlocks()[i]);
-				if (caseBlock == null) {
-					return false;
-				}
-				hashCases.put(swInsn.getKeys()[i], caseBlock);
+		boolean collected = data.getType() == SwitchStringType.IF_SWITCH
+				? collectIfSwitchHashes(data, hashCases)
+				: collectSwitchHashes(data, hashCases);
+		if (!collected) {
+			return false;
+		}
+		return collectStringCases(data, hashCases);
+	}
+
+	private static boolean collectIfSwitchHashes(SwitchData data, Map<Integer, BlockNode> hashCases) {
+		IfRegion part1If = (IfRegion) data.getPart1Region();
+		BlockNode part2Header = Objects.requireNonNull(data.getPart2Region()).getHeader();
+		RegisterArg strHashArg = null;
+		BlockNode ifStartBlock = part1If.getConditionBlocks().get(0);
+		BlockNode hashCmpBlock = getOnlyOneInsnBlock(ifStartBlock);
+		Set<BlockNode> visited = new HashSet<>();
+		while (hashCmpBlock != null && visited.add(hashCmpBlock)) {
+			IfNode ifNode = (IfNode) BlockUtils.getLastInsnWithType(hashCmpBlock, InsnType.IF);
+			if (ifNode == null || (ifNode.getOp() != IfOp.NE && ifNode.getOp() != IfOp.EQ)) {
+				return false;
+			}
+			boolean isNE = ifNode.getOp() == IfOp.NE;
+			BlockNode thenBlock = getOnlyOneInsnBlock(isNE ? ifNode.getElseBlock() : ifNode.getThenBlock());
+			BlockNode elseBlock = getOnlyOneInsnBlock(isNE ? ifNode.getThenBlock() : ifNode.getElseBlock());
+			if (thenBlock == null || elseBlock == null || !ifNode.getArg(0).isRegister() || !ifNode.getArg(1).isLiteral()) {
+				return false;
+			}
+			RegisterArg tmpStrHashArg = (RegisterArg) ifNode.getArg(0);
+			LiteralArg literalArg = (LiteralArg) ifNode.getArg(1);
+			if (strHashArg == null) {
+				strHashArg = tmpStrHashArg;
+			} else if (!strHashArg.sameCodeVar(tmpStrHashArg)) {
+				return false;
+			}
+			hashCases.put((int) literalArg.getLiteral(), thenBlock);
+			hashCmpBlock = elseBlock;
+			// end of part1If: no further hash compare, next block is part2switch
+			Integer fallbackNum = extractConstNumber(data, BlockUtils.getLastInsn(hashCmpBlock));
+			BlockNode nextBlock = BlockUtils.getNextBlock(hashCmpBlock);
+			if (elseBlock == part2Header || (DEFAULT_NUM_VALUE.equals(fallbackNum) && nextBlock == part2Header)) {
+				return true;
 			}
 		}
+		return false;
+	}
 
-		// save to switchData
+	private static boolean collectSwitchHashes(SwitchData data, Map<Integer, BlockNode> hashCases) {
+		SwitchRegion part1Switch = (SwitchRegion) data.getPart1Region();
+		SwitchInsn swInsn = (SwitchInsn) BlockUtils.getLastInsnWithType(part1Switch.getHeader(), InsnType.SWITCH);
+		Objects.requireNonNull(swInsn);
+		for (int i = 0; i < swInsn.getKeys().length; i++) {
+			BlockNode caseBlock = getOnlyOneInsnBlock(swInsn.getTargetBlocks()[i]);
+			if (caseBlock == null) {
+				return false;
+			}
+			hashCases.put(swInsn.getKeys()[i], caseBlock);
+		}
+		return true;
+	}
+
+	private static boolean collectStringCases(SwitchData data, Map<Integer, BlockNode> hashCases) {
 		data.setCases(new ArrayList<>(hashCases.size()));
-		for (Integer hashcode : hashCases.keySet()) {
-			BlockNode caseBlock = hashCases.get(hashcode);
+		Set<BlockNode> visited = new HashSet<>();
+		for (Map.Entry<Integer, BlockNode> entry : hashCases.entrySet()) {
+			int hashcode = entry.getKey();
+			BlockNode caseBlock = entry.getValue();
 			IfNode ifStrEqualsInsn = (IfNode) BlockUtils.getLastInsnWithType(caseBlock, InsnType.IF);
 			if (!isIfStringEqualsInsn(ifStrEqualsInsn)) {
 				return false;
@@ -195,36 +215,51 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 				boolean isCmpNE = (ifStrEqualsInsn.getOp() == IfOp.EQ) != ifStrEqualsInsn.getArg(1).isTrue();
 				BlockNode thenBlock = isCmpNE ? ifStrEqualsInsn.getElseBlock() : ifStrEqualsInsn.getThenBlock();
 				BlockNode elseBlock = isCmpNE ? ifStrEqualsInsn.getThenBlock() : ifStrEqualsInsn.getElseBlock();
-				Integer numValue = null;
-				if (data.getType() == SwitchStringType.SWITCH_SWITCH || data.getType() == SwitchStringType.IF_SWITCH) {
-					InsnNode numInsn = BlockUtils.getLastInsn(getOnlyOneInsnBlock(thenBlock));
-					RegisterArg numArg = Objects.requireNonNull(data.getNumArg());
-					if (thenBlock != null && (numInsn == null || numInsn.getType() == InsnType.SWITCH)) {
-						// num is assigned before 1st region. find nearest assign
-						BlockNode iDom = thenBlock.getIDom();
-						while (iDom != null && numValue == null) {
-							for (InsnNode insn : iDom.getInstructions()) {
-								numValue = extractConstNumber(data, insn);
-							}
-							iDom = iDom.getIDom();
-						}
-						if (numValue == null) {
-							return false;
-						}
-					} else if (numInsn != null && numArg.sameCodeVar(numInsn.getResult())) {
-						numValue = extractConstNumber(data, numInsn);
-					} else {
-						return false;
-					}
+				Integer numValue = resolveCaseNumValue(data, thenBlock);
+				if (numValue == null && (data.getType() == SwitchStringType.SWITCH_SWITCH || data.getType() == SwitchStringType.IF_SWITCH)) {
+					return false;
 				}
 				// store str and num assign in switchData
 				data.getCases().add(new CaseData(strValue, numValue, thenBlock));
 				// there may be more string compare (same hashcode)
 				BlockNode nextIfBlock = getOnlyOneInsnBlock(elseBlock);
+				if (nextIfBlock == null || !visited.add(nextIfBlock)) {
+					break;
+				}
 				ifStrEqualsInsn = (IfNode) BlockUtils.getLastInsnWithType(nextIfBlock, InsnType.IF);
 			} while (isIfStringEqualsInsn(ifStrEqualsInsn));
 		}
 		return true;
+	}
+
+	private static @Nullable Integer resolveCaseNumValue(SwitchData data, @Nullable BlockNode thenBlock) {
+		if (data.getType() != SwitchStringType.SWITCH_SWITCH && data.getType() != SwitchStringType.IF_SWITCH) {
+			return null;
+		}
+		InsnNode numInsn = BlockUtils.getLastInsn(getOnlyOneInsnBlock(thenBlock));
+		RegisterArg numArg = Objects.requireNonNull(data.getNumArg());
+		if (thenBlock != null && (numInsn == null || numInsn.getType() == InsnType.SWITCH)) {
+			// num is assigned before 1st region. find nearest assign in dominators
+			BlockNode iDom = thenBlock.getIDom();
+			while (iDom != null) {
+				Integer numValue = null;
+				for (InsnNode insn : iDom.getInstructions()) {
+					Integer val = extractConstNumber(data, insn);
+					if (val != null) {
+						numValue = val;
+					}
+				}
+				if (numValue != null) {
+					return numValue;
+				}
+				iDom = iDom.getIDom();
+			}
+			return null;
+		}
+		if (numInsn != null && numArg.sameCodeVar(numInsn.getResult())) {
+			return extractConstNumber(data, numInsn);
+		}
+		return null;
 	}
 
 	/**
@@ -413,10 +448,19 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 	}
 
 	private static @Nullable BlockNode getOnlyOneInsnBlock(BlockNode b) {
+		BlockNode slow = b;
+		boolean advanceSlow = false;
 		while (b != null) {
 			int size = b.getInstructions().size();
 			if (size == 0) {
 				b = BlockUtils.getNextBlock(b);
+				if (advanceSlow && slow != null) {
+					slow = BlockUtils.getNextBlock(slow);
+				}
+				advanceSlow = !advanceSlow;
+				if (b != null && b == slow) {
+					return null;
+				}
 				continue;
 			}
 			return size == 1 ? b : null;
