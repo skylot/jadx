@@ -617,7 +617,7 @@ final class LoopRegionMaker {
 		return false;
 	}
 
-	private boolean canInsertBreak(BlockNode exit) {
+	private boolean canInsertBreak(LoopInfo loop, BlockNode exit) {
 		if (BlockUtils.containsExitInsn(exit)) {
 			return false;
 		}
@@ -631,7 +631,8 @@ final class LoopRegionMaker {
 			}
 		}
 		// check if there no outer switch (TODO: very expensive check)
-		Set<BlockNode> paths = BlockUtils.getAllPathsBlocks(mth.getEnterBlock(), exit);
+		// only a switch inside the loop can capture the 'break', so don't look before the loop start
+		Set<BlockNode> paths = BlockUtils.getAllPathsBlocks(loop.getStart(), exit);
 		for (BlockNode block : paths) {
 			if (BlockUtils.checkLastInsnType(block, InsnType.SWITCH)) {
 				return false;
@@ -678,7 +679,7 @@ final class LoopRegionMaker {
 				visited.add(exit);
 				if (insertBlock != null && isPathExists(loopExit, exit)) {
 					// found cross
-					if (canInsertBreak(insertBlock)) {
+					if (canInsertBreak(loop, insertBlock)) {
 						insertEdge = new Edge(insertBlock, exit);
 						confirm = true;
 						break;
