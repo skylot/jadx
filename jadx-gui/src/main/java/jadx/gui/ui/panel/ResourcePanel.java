@@ -71,6 +71,13 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 				tabbedPane.addTab(NLS.str("tabs.font"), new FontPanel(panel, resource));
 				tabbedPane.addTab(NLS.str("tabs.hex"), new BinaryContentPanel(panel, resource));
 				return;
+
+			case CODE:
+				if (resource.getName().endsWith(".class")) {
+					JavaClassInfoPanel.buildTabs(tabbedPane, panel, resource);
+					return;
+				}
+				break;
 		}
 
 		if (resource.getContentType() == ResourceContentType.CONTENT_BINARY) {
@@ -109,6 +116,16 @@ public class ResourcePanel extends AbstractCodeContentPanel {
 		if (selectedCodePanel != null) {
 			selectedCodePanel.scrollToPos(pos);
 			return;
+		}
+		if (node.getContentType() == ResourceContentType.CONTENT_BINARY) {
+			for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+				Component component = tabbedPane.getComponentAt(i);
+				if (component instanceof BinaryContentPanel) {
+					tabbedPane.setSelectedIndex(i);
+					((BinaryContentPanel) component).scrollToPos(pos);
+					return;
+				}
+			}
 		}
 		for (int i = 0; i < tabbedPane.getTabCount(); i++) {
 			Component component = tabbedPane.getComponentAt(i);

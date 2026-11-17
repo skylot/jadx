@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.plugins.input.ICodeLoader;
+import jadx.plugins.input.java.data.JavaClassData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -108,6 +109,22 @@ class CustomLoadTest {
 						.satisfiesOnlyOnce(inner -> assertThat(inner.getName()).isEqualTo("HelloInner")));
 
 		jadx.getClassesWithInners().forEach(cls -> System.out.println(cls.getCode()));
+	}
+
+	@Test
+	void testClassDataMetadata() throws IOException {
+		String fileName = "HelloWorld.class";
+		byte[] content = Files.readAllBytes(getSample(fileName));
+		JavaClassData clsData = new JavaClassData(new JavaClassReader(0, fileName, content));
+		assertThat(clsData.getType()).isEqualTo("LHelloWorld;");
+		assertThat(clsData.getSuperType()).isEqualTo("Ljava/lang/Object;");
+		assertThat(clsData.getMajorVersion()).isGreaterThanOrEqualTo(45);
+		assertThat(clsData.getMinorVersion()).isGreaterThanOrEqualTo(0);
+		assertThat(clsData.getJavaVersion()).startsWith("Java ");
+		assertThat(clsData.getFieldsCount()).isGreaterThanOrEqualTo(0);
+		assertThat(clsData.getMethodsCount()).isGreaterThan(0);
+		assertThat(clsData.getSourceFile()).isEqualTo("HelloWorld.java");
+		assertThat(clsData.getDisassembledCode()).contains("HelloWorld");
 	}
 
 	public void loadDecompiler(ICodeLoader codeLoader) {

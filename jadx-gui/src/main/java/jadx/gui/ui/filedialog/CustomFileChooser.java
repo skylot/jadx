@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,8 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.core.utils.StringUtils;
@@ -73,7 +76,10 @@ class CustomFileChooser extends JFileChooser {
 		if (ret != JFileChooser.APPROVE_OPTION) {
 			return Collections.emptyList();
 		}
-		data.setCurrentDir(getCurrentDirectory().toPath());
+		Path currentDir = toPathOrNull(getCurrentDirectory());
+		if (currentDir != null) {
+			data.setCurrentDir(currentDir);
+		}
 		File[] selectedFiles = getSelectedFiles();
 		if (selectedFiles.length != 0) {
 			return FileUtils.toPathsWithTrim(selectedFiles);
@@ -103,6 +109,22 @@ class CustomFileChooser extends JFileChooser {
 
 	@Override
 	public void approveSelection() {
+		File[] files = getSelectedFiles();
+		if (files.length == 0) {
+			files = new File[] { getSelectedFile() };
+		}
+		for (File file : files) {
+			if (file != null && toPathOrNull(new File(file.getPath().trim())) == null) {
+				// No file system path, e.g. a name typed while in the "This PC" shell folder on Windows
+				// or a file on a phone: open it if it is a folder, else keep the dialog open
+				if (isTraversable(file)) {
+					this.setCurrentDirectory(file);
+				} else {
+					UIManager.getLookAndFeel().provideErrorFeedback(this);
+				}
+				return;
+			}
+		}
 		if (data.getSelectionMode() == FILES_AND_DIRECTORIES) {
 			File currentFile = getSelectedFile();
 			if (currentFile.isDirectory()) {
@@ -164,6 +186,18 @@ class CustomFileChooser extends JFileChooser {
 			return true;
 		} catch (Exception e) {
 			return false;
+		}
+	}
+
+	/**
+	 * Return null for files without a file system path,
+	 * like the "This PC" shell folder on Windows ("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}")
+	 */
+	static @Nullable Path toPathOrNull(File file) {
+		try {
+			return file.toPath();
+		} catch (InvalidPathException e) {
+			return null;
 		}
 	}
 }

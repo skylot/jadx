@@ -8,10 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.panel.ILazyLoad;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.tab.TabbedPane;
 
-public final class CodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport {
+public final class CodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport, ILazyLoad {
 	private static final long serialVersionUID = 5310536092010045565L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CodeContentPanel.class);
@@ -19,10 +20,21 @@ public final class CodeContentPanel extends AbstractCodeContentPanel implements 
 	private final CodePanel codePanel;
 
 	public CodeContentPanel(TabbedPane panel, JNode jnode) {
+		this(panel, jnode, true);
+	}
+
+	public CodeContentPanel(TabbedPane panel, JNode jnode, boolean immediateLoad) {
 		super(panel, jnode);
 		setLayout(new BorderLayout());
 		codePanel = new CodePanel(new CodeArea(this, jnode));
 		add(codePanel, BorderLayout.CENTER);
+		if (immediateLoad) {
+			codePanel.load();
+		}
+	}
+
+	@Override
+	public void loadData() {
 		codePanel.load();
 	}
 

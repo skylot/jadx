@@ -37,6 +37,7 @@ public class JadxGUI {
 
 			LogCollector.register();
 			printSystemInfo();
+			setupDesktopEnvironment();
 			SwingUtilities.invokeLater(() -> {
 				LafManager.init(settings);
 				settings.getFontSettings().updateDefaultFont();
@@ -47,6 +48,14 @@ public class JadxGUI {
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);
+		}
+	}
+
+	private static void setupDesktopEnvironment() {
+		if (JadxSystemInfo.IS_MAC) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+			System.setProperty("apple.awt.application.name", "jadx-gui");
+			System.setProperty("apple.awt.application.appearance", "system");
 		}
 	}
 

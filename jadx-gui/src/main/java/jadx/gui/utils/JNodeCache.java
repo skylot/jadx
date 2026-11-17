@@ -35,9 +35,20 @@ public class JNodeCache {
 		}
 		// don't use 'computeIfAbsent' method here, it will cause 'Recursive update' exception
 		JNode jNode = cache.get(nodeRef);
-		if (jNode == null || jNode.getJavaNode().getCodeNodeRef() != nodeRef) {
+		if (jNode == null) {
 			jNode = convert(nodeRef);
-			cache.put(nodeRef, jNode);
+			if (jNode != null) {
+				cache.put(jNode.getJavaNode().getCodeNodeRef(), jNode);
+			}
+		} else if (jNode.getJavaNode().getCodeNodeRef() != nodeRef) {
+			JavaNode javaNode = wrapper.getDecompiler().getJavaNodeByRef(nodeRef);
+			if (javaNode == null) {
+				return null;
+			}
+			if (jNode.getJavaNode() != javaNode) {
+				jNode = convert(javaNode);
+				cache.put(javaNode.getCodeNodeRef(), jNode);
+			}
 		}
 		return jNode;
 	}

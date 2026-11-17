@@ -35,6 +35,7 @@ public class UndisplayedStringsPanel extends ContentPanel {
 		fontChooser.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		fontChooser.setSelectedFont(selectedFont);
 		FontChooserHack.hidePreview(fontChooser);
+		FontChooserHack.fixSizePane(fontChooser);
 
 		fontChooser.addChangeListener(event -> {
 			FontSelectionModel model = (FontSelectionModel) event.getSource();

@@ -32,6 +32,10 @@ public final class JavaField implements JavaNode {
 		return field.getName();
 	}
 
+	public String getShortId() {
+		return field.getFieldInfo().getShortId();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
@@ -52,6 +56,10 @@ public final class JavaField implements JavaNode {
 
 	@Override
 	public int getDefPos() {
+		FieldNode currentFld = field.getParentClass().searchField(field.getFieldInfo());
+		if (currentFld != null) {
+			return currentFld.getDefPosition();
+		}
 		return field.getDefPosition();
 	}
 

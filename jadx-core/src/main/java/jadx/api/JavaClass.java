@@ -18,6 +18,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.InlinedAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -63,6 +64,10 @@ public final class JavaClass implements JavaNode {
 
 	public void decompile() {
 		load();
+	}
+
+	public ICodeInfo decompileWithMode(DecompilationMode mode) {
+		return cls.decompileWithMode(mode);
 	}
 
 	/**
@@ -307,6 +312,19 @@ public final class JavaClass implements JavaNode {
 		return cls.getAccessFlags();
 	}
 
+	@Nullable
+	public ArgType getSuperClass() {
+		ArgType superClass = cls.getSuperClass();
+		if (superClass == null) {
+			return null;
+		}
+		return ArgType.tryToResolveClassAlias(cls.root(), superClass);
+	}
+
+	public List<ArgType> getInterfaces() {
+		return ArgType.tryToResolveClassAlias(cls.root(), cls.getInterfaces());
+	}
+
 	public List<JavaClass> getInnerClasses() {
 		load();
 		return innerClasses;
@@ -334,6 +352,15 @@ public final class JavaClass implements JavaNode {
 			return null;
 		}
 		return getRootDecompiler().convertMethodNode(methodNode);
+	}
+
+	@Nullable
+	public JavaField searchFieldByShortId(String shortId) {
+		FieldNode fieldNode = cls.searchFieldByShortId(shortId);
+		if (fieldNode == null) {
+			return null;
+		}
+		return getRootDecompiler().convertFieldNode(fieldNode);
 	}
 
 	public List<JavaClass> getDependencies() {

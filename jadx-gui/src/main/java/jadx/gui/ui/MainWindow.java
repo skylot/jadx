@@ -1306,8 +1306,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 		}
 
 		if (JadxSystemInfo.IS_MAC) {
-			System.setProperty("apple.laf.useScreenMenuBar", "true");
-			Desktop.getDesktop().setAboutHandler(e -> aboutAction.actionPerformed(null));
+			registerMacDesktopHandlers(aboutAction, prefsAction);
 		} else {
 			help.add(aboutAction);
 		}
@@ -1396,6 +1395,29 @@ public class MainWindow extends JFrame implements IMainWindow {
 			resetCacheAction.setEnabled(loaded);
 			return false;
 		});
+	}
+
+	private void registerMacDesktopHandlers(JadxGuiAction aboutAction, JadxGuiAction prefsAction) {
+		try {
+			if (!Desktop.isDesktopSupported()) {
+				return;
+			}
+			Desktop desktop = Desktop.getDesktop();
+			if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
+				desktop.setAboutHandler(e -> aboutAction.actionPerformed(null));
+			}
+			if (desktop.isSupported(Desktop.Action.APP_PREFERENCES)) {
+				desktop.setPreferencesHandler(e -> prefsAction.actionPerformed(null));
+			}
+			if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
+				desktop.setQuitHandler((e, response) -> {
+					response.cancelQuit();
+					UiUtils.uiRun(this::closeWindow);
+				});
+			}
+		} catch (Throwable e) {
+			LOG.error("Failed to register macOS desktop handlers", e);
+		}
 	}
 
 	private void initUI() {

@@ -176,9 +176,9 @@ class PluginSettingsGroup implements ISettingsGroup {
 				});
 	}
 
-	private void onSelection(BasePluginListNode node) {
+	private void onSelection(@Nullable BasePluginListNode node) {
 		detailsPanel.removeAll();
-		if (node.hasDetails()) {
+		if (node != null && node.hasDetails()) {
 			JLabel nameLbl = new JLabel(node.getTitle());
 			Font baseFont = nameLbl.getFont();
 			nameLbl.setFont(baseFont.deriveFont(Font.BOLD, baseFont.getSize2D() + 2));

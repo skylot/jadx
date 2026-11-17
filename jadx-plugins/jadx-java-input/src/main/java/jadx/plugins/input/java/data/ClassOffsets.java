@@ -5,6 +5,7 @@ public class ClassOffsets {
 	private final int[] constPoolOffsets;
 	private final int constPoolEnd;
 	private final int interfacesEnd;
+	private final int methodsOffset;
 	private final int attributesOffset;
 
 	public ClassOffsets(DataReader data) {
@@ -14,6 +15,7 @@ public class ClassOffsets {
 		data.skip(interfacesCount * 2);
 		this.interfacesEnd = data.getOffset();
 		skipFields(data);
+		this.methodsOffset = data.getOffset();
 		skipMethods(data);
 		this.attributesOffset = data.getOffset();
 	}
@@ -91,6 +93,10 @@ public class ClassOffsets {
 
 	public int getFieldsOffset() {
 		return interfacesEnd;
+	}
+
+	public int getMethodsOffset() {
+		return methodsOffset;
 	}
 
 	public int getAttributesOffset() {

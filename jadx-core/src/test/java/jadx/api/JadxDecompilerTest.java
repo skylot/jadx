@@ -134,4 +134,42 @@ public class JadxDecompilerTest {
 		assertThat(jadx.getJavaNodeByRef(pkgNode)).isSameAs(javaNode);
 		assertThat(jadx.convertPackageNode(pkgNode)).isSameAs(javaNode);
 	}
+
+	@Test
+	public void testClassAndMemberApiMethods() {
+		File sampleApk = getFileFromSampleDir("app-with-fake-dex.apk");
+		JadxArgs args = new JadxArgs();
+		args.getInputFiles().add(sampleApk);
+
+		try (JadxDecompiler jadx = new JadxDecompiler(args)) {
+			jadx.load();
+			JavaClass mainActivity = jadx.searchJavaClassByOrigFullName("com.github.skylot.simple.MainActivity");
+			assertThat(mainActivity).isNotNull();
+			assertThat(mainActivity.getSuperClass()).isNotNull();
+			assertThat(mainActivity.getSuperClass().getObject()).isEqualTo("android.app.Activity");
+			assertThat(mainActivity.getInterfaces()).isEmpty();
+
+			ICodeInfo fallbackCode = mainActivity.decompileWithMode(DecompilationMode.FALLBACK);
+			assertThat(fallbackCode.getCodeStr()).isNotEmpty();
+
+			JavaMethod onCreate = mainActivity.getMethods().stream()
+					.filter(m -> m.getRawName().equals("onCreate"))
+					.findFirst()
+					.orElseThrow();
+			assertThat(onCreate.getShortId()).startsWith("onCreate(");
+			assertThat(mainActivity.searchMethodByShortId(onCreate.getShortId())).isEqualTo(onCreate);
+
+			JavaClass rClass = jadx.searchJavaClassByOrigFullName("com.github.skylot.simple.R");
+			assertThat(rClass).isNotNull();
+			JavaClass rIdClass = rClass.getInnerClasses().stream()
+					.filter(c -> c.getRawName().endsWith("$id") || c.getName().equals("id"))
+					.findFirst()
+					.orElse(null);
+			if (rIdClass != null && !rIdClass.getFields().isEmpty()) {
+				JavaField field = rIdClass.getFields().get(0);
+				assertThat(field.getShortId()).isNotEmpty();
+				assertThat(rIdClass.searchFieldByShortId(field.getShortId())).isEqualTo(field);
+			}
+		}
+	}
 }

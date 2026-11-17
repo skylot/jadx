@@ -1,12 +1,10 @@
 package jadx.core.dex.visitors.regions.variables;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -289,23 +287,28 @@ public class ProcessVariables extends AbstractVisitor {
 	 * Check if all {@code usePlaces} are after {@code checkPlace}
 	 */
 	private static boolean isAllUseAfter(UsePlace checkPlace, List<UsePlace> usePlaces) {
-
-		IRegion region = checkPlace.getRegion();
-		IBlock block = checkPlace.getBlock();
-		Set<UsePlace> toCheck = new HashSet<>(usePlaces);
-		boolean blockFound = false;
-		for (IContainer subBlock : region.getSubBlocks()) {
-			if (!blockFound && subBlock == block) {
-				blockFound = true;
-			}
-			if (blockFound) {
-				toCheck.removeIf(usePlace -> isContainerContainsUsePlace(subBlock, usePlace));
-				if (toCheck.isEmpty()) {
-					return true;
-				}
+		List<IContainer> subBlocks = checkPlace.getRegion().getSubBlocks();
+		int blockIndex = indexOfContainer(subBlocks, checkPlace.getBlock());
+		if (blockIndex == -1) {
+			return false;
+		}
+		List<IContainer> blocksAfter = subBlocks.subList(blockIndex, subBlocks.size());
+		for (UsePlace usePlace : usePlaces) {
+			if (!ListUtils.anyMatch(blocksAfter, subBlock -> isContainerContainsUsePlace(subBlock, usePlace))) {
+				return false;
 			}
 		}
-		return false;
+		return true;
+	}
+
+	private static int indexOfContainer(List<IContainer> containers, IContainer container) {
+		int size = containers.size();
+		for (int i = 0; i < size; i++) {
+			if (containers.get(i) == container) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private static boolean isContainerContainsUsePlace(IContainer subBlock, UsePlace usePlace) {
