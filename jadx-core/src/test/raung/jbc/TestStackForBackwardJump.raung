@@ -1,0 +1,43 @@
+.version 50  # Java 6, no StackMapTable
+.class public super jbc/TestStackForBackwardJump
+
+.method public static test(Ljava/lang/String;)Ljava/lang/String;
+    .max stack 3
+    .max locals 1
+
+    goto :L1
+  :L0
+    # reachable only by jump from later instruction, stack: [StringBuilder]
+    ldc "!"
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invokevirtual java/lang/StringBuilder toString ()Ljava/lang/String;
+    areturn
+  :L1
+    new java/lang/StringBuilder
+    dup
+    aload 0
+    invokespecial java/lang/StringBuilder <init> (Ljava/lang/String;)V
+    goto :L0
+.end method
+
+.method public static test2(Ljava/lang/String;I)Ljava/lang/String;
+    .max stack 3
+    .max locals 2
+
+    goto :L2
+  :L0
+    # reachable only by jump from L1, stack: [StringBuilder]
+    invokevirtual java/lang/StringBuilder toString ()Ljava/lang/String;
+    areturn
+  :L1
+    # reachable only by jump from L2, stack: [StringBuilder]
+    iload 1
+    invokevirtual java/lang/StringBuilder append (I)Ljava/lang/StringBuilder;
+    goto :L0
+  :L2
+    new java/lang/StringBuilder
+    dup
+    aload 0
+    invokespecial java/lang/StringBuilder <init> (Ljava/lang/String;)V
+    goto :L1
+.end method

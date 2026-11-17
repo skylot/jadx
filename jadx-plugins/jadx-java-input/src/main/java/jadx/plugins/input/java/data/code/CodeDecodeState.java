@@ -1,11 +1,15 @@
 package jadx.plugins.input.java.data.code;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.core.utils.Utils;
 import jadx.plugins.input.java.data.DataReader;
@@ -23,9 +27,14 @@ public class CodeDecodeState {
 	private final StackMapTableAttr stackMapTable;
 	private final Map<Integer, StackState> jumpStack = new HashMap<>(); // save current stack for jump target
 
+	private @Nullable Supplier<Map<Integer, StackState>> jumpStackCollector;
+	private @Nullable Map<Integer, StackState> collectedJumpStack;
+	private @Nullable Consumer<Integer> newJumpListener;
+
 	private JavaInsnData insn;
 	private StackState stack;
 	private boolean excHandler;
+	private boolean fallThrough = true;
 
 	public CodeDecodeState(JavaClassData clsData, DataReader reader, int maxStack,
 			Set<Integer> excHandlers, @Nullable StackMapTableAttr stackMapTable) {
@@ -41,7 +50,14 @@ public class CodeDecodeState {
 		StackState newStack = loadStack(offset);
 		if (newStack != null) {
 			this.stack = newStack;
+		} else if (!fallThrough && !excHandlers.contains(offset)) {
+			// instruction reachable only by jumps from later instructions (or unreachable)
+			StackState collectedStack = getCollectedJumpStack().get(offset);
+			if (collectedStack != null) {
+				this.stack = collectedStack.copy();
+			}
 		}
+		fallThrough = isFallThrough(insn.getOpcode());
 		if (excHandlers.contains(offset)) {
 			clear();
 			stack.push(StackValueType.NARROW); // push exception
@@ -63,10 +79,72 @@ public class CodeDecodeState {
 		return null;
 	}
 
+	private Map<Integer, StackState> getCollectedJumpStack() {
+		Map<Integer, StackState> collected = collectedJumpStack;
+		if (collected == null) {
+			collected = jumpStackCollector != null ? jumpStackCollector.get() : Collections.emptyMap();
+			collectedJumpStack = collected;
+		}
+		return collected;
+	}
+
+	private static boolean isFallThrough(Opcode opcode) {
+		switch (opcode) {
+			case GOTO:
+			case RETURN:
+			case RETURN_VOID:
+			case THROW:
+			case PACKED_SWITCH:
+			case SPARSE_SWITCH:
+			case JAVA_RET:
+				return false;
+			default:
+				return true;
+		}
+	}
+
 	public void registerJump(int jumpOffset) {
 		Integer key = jumpOffset;
 		if (!jumpStack.containsKey(key)) {
 			jumpStack.put(key, stack.copy());
+			if (newJumpListener != null) {
+				newJumpListener.accept(key);
+			}
+		}
+	}
+
+	/**
+	 * Set lazy provider of stack for jump targets, used if target visited before jump instruction
+	 */
+	public void setJumpStackCollector(Supplier<Map<Integer, StackState>> jumpStackCollector) {
+		this.jumpStackCollector = jumpStackCollector;
+	}
+
+	public void setNewJumpListener(Consumer<Integer> newJumpListener) {
+		this.newJumpListener = newJumpListener;
+	}
+
+	public Map<Integer, StackState> getJumpStack() {
+		return jumpStack;
+	}
+
+	/**
+	 * Start decoding from method start, jump target or exception handler
+	 */
+	public void startBlock() {
+		stack = new StackState(maxStack);
+		fallThrough = true;
+	}
+
+	public boolean isFallThrough() {
+		return fallThrough;
+	}
+
+	public static void decodeForStack(InsnData insnData) {
+		try {
+			insnData.decode();
+		} catch (Exception e) {
+			// ignore, error will be reported at main decoding
 		}
 	}
 
