@@ -296,6 +296,7 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		}
 		is.skipToPos(entriesStart, "Failed to skip to entries start");
 		int ignoredEoc = 0; // ignored entries because they are located after end of chunk
+		int ignoredInvalid = 0;
 		Set<Integer> processedIndices = new HashSet<>(offsets.size() * 2);
 		for (EntryOffset entryOffset : offsets) {
 			int offset = entryOffset.getOffset();
@@ -321,11 +322,16 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 				is.reset();
 			}
 			is.skipToPos(entryStartOffset, "Expected start of entry " + index);
-			parseEntry(pkg, typeId, index, config.getQualifiers());
+			if (!parseEntry(pkg, typeId, index, config.getQualifiers())) {
+				ignoredInvalid++;
+			}
 		}
 		if (ignoredEoc > 0) {
 			// invalid = data offset is after the chunk end
 			LOG.warn("{} entries of type {} has been ignored (invalid offset)", ignoredEoc, typeName);
+		}
+		if (ignoredInvalid > 0) {
+			LOG.warn("{} entries of type {} has been ignored (invalid entry)", ignoredInvalid, typeName);
 		}
 		is.skipToPos(chunkEnd, "End of chunk");
 	}
@@ -388,7 +394,10 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 		is.skipToPos(expectedEndPos, "staged alias chunk end");
 	}
 
-	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
+	/**
+	 * @return false if the entry was ignored because of an invalid value
+	 */
+	private boolean parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
 		int size = is.readInt16();
 		int flags = is.readInt16();
 		boolean isComplex = (flags & FLAG_COMPLEX) != 0;
@@ -396,7 +405,19 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 		int key = isCompact ? size : is.readInt32();
 		if (key == -1) {
-			return;
+			return true;
+		}
+
+		RawValue simpleValue = null;
+		// Same entries as the simple value branch below. A 16-byte header is a ResTable_map_entry
+		// (key, parent and count), which is read as a map even without FLAG_COMPLEX (#487).
+		// A Res_value smaller than 8 bytes can't hold a value (#1911), so the entry is skipped
+		// here, before buildResourceEntry() adds or renames anything.
+		if (!isCompact && !isComplex && size != 16) {
+			if (is.readInt16() < 8) {
+				return false;
+			}
+			simpleValue = parseValue();
 		}
 
 		// resourceID as defined in AOSP make_resid()
@@ -419,8 +440,9 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 			}
 			newResEntry.setNamedValues(values);
 		} else {
-			newResEntry.setSimpleValue(parseValue());
+			newResEntry.setSimpleValue(simpleValue);
 		}
+		return true;
 	}
 
 	private static final ResourceEntry STUB_ENTRY = new ResourceEntry(-1, "stub", "stub", "stub", "");
@@ -523,12 +545,12 @@ public class ResTableBinaryParser extends CommonBinaryParser implements IResTabl
 
 	private RawNamedValue parseValueMap() throws IOException {
 		int nameRef = is.readInt32();
+		is.readInt16(); // ignore value size
 		return new RawNamedValue(nameRef, parseValue());
 	}
 
 	private RawValue parseValue() throws IOException {
-		is.checkInt16(8, "value size");
-		is.checkInt8(0, "value res0 not 0");
+		is.readInt8(); // ignore reserved value
 		int dataType = is.readInt8();
 		int data = is.readInt32();
 		return new RawValue(dataType, data);
