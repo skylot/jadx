@@ -212,7 +212,9 @@ public class CommandPlugins implements ICommand {
 	}
 
 	private void installPlugin(String locationId) {
-		JadxPluginMetadata plugin = JadxPluginsTools.getInstance().install(locationId);
-		System.out.println("Plugin installed: " + plugin.getPluginId() + ":" + plugin.getVersion());
+		List<JadxPluginMetadata> plugins = JadxPluginsTools.getInstance().installPlugins(locationId);
+		for (JadxPluginMetadata plugin : plugins) {
+			System.out.println("Plugin installed: " + plugin.getPluginId() + ":" + plugin.getVersion());
+		}
 	}
 }

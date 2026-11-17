@@ -1,7 +1,10 @@
 package jadx.plugins.input.java.data.code;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,41 +62,84 @@ public class JavaCodeReader implements ICodeReader {
 		int maxStack = readMaxStack();
 		reader.skip(2);
 		int codeSize = reader.readU4();
+		int codeStart = reader.getOffset();
 
 		CodeDecodeState state = new CodeDecodeState(clsData, reader, maxStack, excHandlers, stackMapTable);
 		JavaInsnData insn = new JavaInsnData(state);
 		state.setInsn(insn);
+		state.setJumpStackCollector(() -> collectJumpStack(excHandlers, stackMapTable, maxStack, codeStart, codeSize));
 		int offset = 0;
 		while (offset < codeSize) {
-			insn.setDecoded(false);
-			insn.setOffset(offset);
-			insn.setInsnStart(reader.getOffset());
+			offset = visitInsn(state, insn, offset, insnConsumer);
+		}
+	}
 
-			int opcode = reader.readU1();
-			JavaInsnInfo insnInfo = JavaInsnsRegister.get(opcode);
-			if (insnInfo == null) {
-				throw new JavaClassParseException("Unknown opcode: 0x" + Integer.toHexString(opcode));
+	private int visitInsn(CodeDecodeState state, JavaInsnData insn, int offset, Consumer<InsnData> insnConsumer) {
+		insn.setDecoded(false);
+		insn.setOffset(offset);
+		insn.setInsnStart(reader.getOffset());
+
+		int opcode = reader.readU1();
+		JavaInsnInfo insnInfo = JavaInsnsRegister.get(opcode);
+		if (insnInfo == null) {
+			throw new JavaClassParseException("Unknown opcode: 0x" + Integer.toHexString(opcode));
+		}
+		insn.setOpcodeUnit(opcode);
+		insn.setInsnInfo(insnInfo);
+		insn.setRegsCount(insnInfo.getRegsCount());
+		insn.setOpcode(insnInfo.getApiOpcode());
+		insn.setPayloadSize(insnInfo.getPayloadSize());
+		insn.setPayload(null);
+
+		state.onInsn(offset);
+		insnConsumer.accept(insn);
+
+		int payloadSize = insn.getPayloadSize();
+		if (!insn.isDecoded()) {
+			if (payloadSize == -1) {
+				insn.skip();
+				payloadSize = insn.getPayloadSize();
+			} else {
+				reader.skip(payloadSize);
 			}
-			insn.setOpcodeUnit(opcode);
-			insn.setInsnInfo(insnInfo);
-			insn.setRegsCount(insnInfo.getRegsCount());
-			insn.setOpcode(insnInfo.getApiOpcode());
-			insn.setPayloadSize(insnInfo.getPayloadSize());
-			insn.setPayload(null);
+		}
+		return offset + 1 + payloadSize;
+	}
 
-			state.onInsn(offset);
-			insnConsumer.accept(insn);
-
-			int payloadSize = insn.getPayloadSize();
-			if (!insn.isDecoded()) {
-				if (payloadSize == -1) {
-					insn.skip();
-					payloadSize = insn.getPayloadSize();
-				} else {
-					reader.skip(payloadSize);
+	/**
+	 * Without StackMapTable, stack is unknown for instructions reachable only by jumps from later
+	 * instructions.
+	 * To get it, decode instructions in control flow order and collect stack for all jump targets.
+	 */
+	private Map<Integer, StackState> collectJumpStack(Set<Integer> excHandlers, @Nullable StackMapTableAttr stackMapTable,
+			int maxStack, int codeStart, int codeSize) {
+		int savedPos = reader.getOffset();
+		try {
+			CodeDecodeState state = new CodeDecodeState(clsData, reader, maxStack, excHandlers, stackMapTable);
+			JavaInsnData insn = new JavaInsnData(state);
+			state.setInsn(insn);
+			Deque<Integer> queue = new ArrayDeque<>();
+			state.setNewJumpListener(queue::add);
+			queue.add(0);
+			queue.addAll(excHandlers);
+			BitSet visited = new BitSet(codeSize);
+			while (!queue.isEmpty()) {
+				int offset = queue.poll();
+				if (offset < 0 || offset >= codeSize || visited.get(offset)) {
+					continue;
 				}
+				state.startBlock();
+				reader.absPos(codeStart + offset);
+				do {
+					visited.set(offset);
+					offset = visitInsn(state, insn, offset, CodeDecodeState::decodeForStack);
+				} while (state.isFallThrough() && offset < codeSize && !visited.get(offset));
 			}
-			offset += 1 + payloadSize;
+			return state.getJumpStack();
+		} catch (Exception e) {
+			return Collections.emptyMap();
+		} finally {
+			reader.absPos(savedPos);
 		}
 	}
 
