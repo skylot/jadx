@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
@@ -43,7 +44,50 @@ public class IfRegionVisitor extends AbstractVisitor {
 	private static void process(MethodNode mth) {
 		TernaryMod.process(mth);
 		DepthRegionTraversal.traverse(mth, PROCESS_IF_REGION_VISITOR);
-		DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
+		removeRedundantElseBlocks(mth);
+	}
+
+	/**
+	 * Same result as iterative traversal with {@link RemoveRedundantElseVisitor},
+	 * but without restart from the method region after each change.
+	 * <br>
+	 * Removing 'else' changes only the 'if' region and its place in the parent region,
+	 * so already visited regions stay unchanged, except parents of this 'if'.
+	 * Parents are checked again, and traversal continues with the region added instead of the 'if'.
+	 * If one of the parents can be changed now, fall back to the iterative traversal.
+	 */
+	private static void removeRedundantElseBlocks(MethodNode mth) {
+		List<IRegion> parents = new ArrayList<>();
+		List<IRegion> stack = new ArrayList<>();
+		List<Integer> depthStack = new ArrayList<>();
+		stack.add(mth.getRegion());
+		depthStack.add(0);
+		while (!stack.isEmpty()) {
+			int last = stack.size() - 1;
+			IRegion region = stack.remove(last);
+			int depth = depthStack.remove(last);
+			parents.subList(depth, parents.size()).clear();
+			if (region instanceof IfRegion && removeRedundantElseBlock(mth, (IfRegion) region)) {
+				for (IRegion parent : parents) {
+					if (parent instanceof IfRegion && removeRedundantElseBlock(mth, (IfRegion) parent)) {
+						DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
+						return;
+					}
+				}
+				// new region with 'if' and former 'else' content
+				region = region.getParent();
+			}
+			parents.add(region);
+			List<IContainer> subBlocks = region.getSubBlocks();
+			// add in reverse order to keep original order during visit
+			for (int i = subBlocks.size() - 1; i >= 0; i--) {
+				IContainer subBlock = subBlocks.get(i);
+				if (subBlock instanceof IRegion) {
+					stack.add((IRegion) subBlock);
+					depthStack.add(depth + 1);
+				}
+			}
+		}
 	}
 
 	private static class ProcessIfRegionVisitor extends AbstractRegionVisitor {
