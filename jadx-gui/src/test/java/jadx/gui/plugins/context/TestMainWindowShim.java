@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assumptions;
 
+import jadx.api.JadxDecompiler;
 import jadx.gui.JadxWrapper;
 import jadx.gui.events.types.JadxGuiEventsImpl;
 import jadx.gui.plugins.GuiPluginsManager;
@@ -75,6 +76,21 @@ public class TestMainWindowShim {
 			wrapperField.set(mainWindow, new JadxWrapper(mainWindow));
 		} catch (Throwable e) {
 			Assumptions.abort("Can't set plugins manager for test: " + e);
+		}
+	}
+
+	public static void setDecompiler(MainWindow mainWindow, JadxDecompiler decompiler) {
+		try {
+			JadxWrapper wrapper = new JadxWrapper(mainWindow);
+			Field decompilerField = JadxWrapper.class.getDeclaredField("decompiler");
+			decompilerField.setAccessible(true);
+			decompilerField.set(wrapper, decompiler);
+
+			Field wrapperField = MainWindow.class.getDeclaredField("wrapper");
+			wrapperField.setAccessible(true);
+			wrapperField.set(mainWindow, wrapper);
+		} catch (Exception e) {
+			throw new RuntimeException("Can't set decompiler for test", e);
 		}
 	}
 
