@@ -80,6 +80,7 @@ public class JadxArgs implements Closeable {
 	private boolean rawCFGOutput = false;
 
 	private boolean showInconsistentCode = false;
+	private boolean showEmptySyntheticClasses = false;
 
 	private boolean useImports = true;
 	private boolean debugInfo = true;
@@ -327,6 +328,18 @@ public class JadxArgs implements Closeable {
 
 	public void setShowInconsistentCode(boolean showInconsistentCode) {
 		this.showInconsistentCode = showInconsistentCode;
+	}
+
+	public boolean isShowEmptySyntheticClasses() {
+		return showEmptySyntheticClasses;
+	}
+
+	/**
+	 * Generate declarations for synthetic classes with no fields, methods or inner classes.
+	 * Synthetic constructor cleanup is unaffected.
+	 */
+	public void setShowEmptySyntheticClasses(boolean showEmptySyntheticClasses) {
+		this.showEmptySyntheticClasses = showEmptySyntheticClasses;
 	}
 
 	public boolean isUseImports() {
@@ -854,7 +867,7 @@ public class JadxArgs implements Closeable {
 	 * Hash of all options that can change result code
 	 */
 	public String makeCodeArgsHash(@Nullable JadxDecompiler decompiler) {
-		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode
+		String argStr = "args:" + decompilationMode + useImports + showInconsistentCode + showEmptySyntheticClasses
 				+ inlineAnonymousClasses + inlineMethods + moveInnerClasses + allowInlineKotlinLambda
 				+ deobfuscationOn + deobfuscationMinLength + deobfuscationMaxLength + deobfuscationWhitelist
 				+ useSourceNameAsClassNameAlias + sourceNameRepeatLimit
@@ -889,6 +902,7 @@ public class JadxArgs implements Closeable {
 				+ ", threadsCount=" + threadsCount
 				+ ", decompilationMode=" + decompilationMode
 				+ ", showInconsistentCode=" + showInconsistentCode
+				+ ", showEmptySyntheticClasses=" + showEmptySyntheticClasses
 				+ ", useImports=" + useImports
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources

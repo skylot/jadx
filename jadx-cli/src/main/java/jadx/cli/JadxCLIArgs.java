@@ -111,6 +111,9 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "--show-bad-code" }, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
+	@Parameter(names = { "--show-empty-synthetic-classes" }, description = "show empty synthetic classes (hidden by default)")
+	protected boolean showEmptySyntheticClasses = false;
+
 	@Parameter(names = { "--no-xml-pretty-print" }, description = "do not prettify XML")
 	protected boolean skipXmlPrettyPrint = false;
 
@@ -477,6 +480,7 @@ public class JadxCLIArgs implements IJadxConfig {
 			args.setDecompilationMode(decompilationMode);
 		}
 		args.setShowInconsistentCode(showInconsistentCode);
+		args.setShowEmptySyntheticClasses(showEmptySyntheticClasses);
 		args.setCfgOutput(cfgOutput);
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
@@ -606,6 +610,14 @@ public class JadxCLIArgs implements IJadxConfig {
 
 	public void setShowInconsistentCode(boolean showInconsistentCode) {
 		this.showInconsistentCode = showInconsistentCode;
+	}
+
+	public boolean isShowEmptySyntheticClasses() {
+		return showEmptySyntheticClasses;
+	}
+
+	public void setShowEmptySyntheticClasses(boolean showEmptySyntheticClasses) {
+		this.showEmptySyntheticClasses = showEmptySyntheticClasses;
 	}
 
 	public boolean isUseImports() {
