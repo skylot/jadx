@@ -11,6 +11,7 @@ import jadx.api.DecompilationMode;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.args.IntegerFormat;
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.api.metadata.annotations.InsnCodeOffset;
 import jadx.api.metadata.annotations.VarNode;
 import jadx.api.plugins.input.data.AccessFlags;
@@ -210,7 +211,7 @@ public class MethodGen {
 			CodeVar var;
 			if (ssaVar == null) {
 				// abstract or interface methods
-				var = CodeVar.fromMthArg(mthArg, classGen.isFallbackMode());
+				var = CodeVar.fromMthArg(mthArg, classGen.isFallbackMode() && !classGen.isCollectingNames());
 			} else {
 				var = ssaVar.getCodeVar();
 			}
@@ -310,7 +311,9 @@ public class MethodGen {
 			return;
 		}
 		JadxArgs args = mth.root().getArgs();
-		ICodeWriter tmpCode = args.getCodeWriterProvider().apply(args);
+		ICodeWriter tmpCode = classGen.isCollectingNames()
+				? new SimpleCodeWriter(args)
+				: args.getCodeWriterProvider().apply(args);
 		try {
 			tmpCode.setIndent(code.getIndent());
 			generateSimpleCode(tmpCode);
@@ -340,8 +343,12 @@ public class MethodGen {
 					if (insn.getResult() != null) {
 						CodeVar codeVar = insn.getResult().getSVar().getCodeVar();
 						if (!codeVar.isDeclared()) {
-							insn.add(AFlag.DECLARE_VAR);
-							codeVar.setDeclared(true);
+							if (classGen.isCollectingNames()) {
+								classGen.useType(code, codeVar.getType());
+							} else {
+								insn.add(AFlag.DECLARE_VAR);
+								codeVar.setDeclared(true);
+							}
 						}
 					}
 					InsnCodeOffset.attach(code, insn);
@@ -357,12 +364,14 @@ public class MethodGen {
 	}
 
 	public void dumpInstructions(ICodeWriter code) {
-		if (mth.checkCommentsLevel(CommentsLevel.ERROR)) {
+		if (!classGen.isCollectingNames() && mth.checkCommentsLevel(CommentsLevel.ERROR)) {
 			code.startLine("/*");
 			addFallbackMethodCode(code, COMMENTED_DUMP);
 			code.startLine("*/");
 		}
-		code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
+		code.startLine("throw new ");
+		classGen.useClass(code, "java.lang.UnsupportedOperationException");
+		code.add("(\"Method not decompiled: ")
 				.add(mth.getParentClass().getClassInfo().getAliasFullName())
 				.add('.')
 				.add(mth.getAlias())
@@ -539,7 +548,11 @@ public class MethodGen {
 	 * Return fallback variant of method codegen
 	 */
 	public static MethodGen getFallbackMethodGen(MethodNode mth) {
-		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, false, true, true, IntegerFormat.AUTO);
+		return getFallbackMethodGen(mth, null);
+	}
+
+	public static MethodGen getFallbackMethodGen(MethodNode mth, @Nullable ClassGen parent) {
+		ClassGen clsGen = new ClassGen(mth.getParentClass(), parent, false, true, true, IntegerFormat.AUTO);
 		return new MethodGen(clsGen, mth);
 	}
 
