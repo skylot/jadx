@@ -216,7 +216,8 @@ public class SwitchOverStringVisitor extends AbstractVisitor implements IRegionI
 				BlockNode thenBlock = isCmpNE ? ifStrEqualsInsn.getElseBlock() : ifStrEqualsInsn.getThenBlock();
 				BlockNode elseBlock = isCmpNE ? ifStrEqualsInsn.getThenBlock() : ifStrEqualsInsn.getElseBlock();
 				Integer numValue = resolveCaseNumValue(data, thenBlock);
-				if (numValue == null && (data.getType() == SwitchStringType.SWITCH_SWITCH || data.getType() == SwitchStringType.IF_SWITCH)) {
+				if (numValue == null
+						&& (data.getType() == SwitchStringType.SWITCH_SWITCH || data.getType() == SwitchStringType.IF_SWITCH)) {
 					return false;
 				}
 				// store str and num assign in switchData
