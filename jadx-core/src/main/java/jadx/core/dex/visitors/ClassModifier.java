@@ -296,11 +296,17 @@ public class ClassModifier extends AbstractVisitor {
 		}
 		String alias = mth.getAlias();
 		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
+			if (wrappedMth.contains(AType.METHOD_OVERRIDE)) {
+				// Avoid mutating an existing override hierarchy across classes during per-class codegen
+				return false;
+			}
 			wrappedMth.rename(alias);
 			RenameReasonAttr.forNode(wrappedMth).append("merged with bridge method [inline-methods]");
 		}
 		wrappedMth.addAttr(new MethodReplaceAttr(mth));
-		wrappedMth.copyAttributeFrom(mth, AType.METHOD_OVERRIDE);
+		if (!wrappedMth.contains(AType.METHOD_OVERRIDE)) {
+			wrappedMth.copyAttributeFrom(mth, AType.METHOD_OVERRIDE);
+		}
 		wrappedMth.addDebugComment("Method merged with bridge method: " + mth.getMethodInfo().getShortId());
 		return true;
 	}
