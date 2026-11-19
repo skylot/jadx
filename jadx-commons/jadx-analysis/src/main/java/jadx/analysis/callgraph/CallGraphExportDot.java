@@ -26,10 +26,16 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class CallGraphExportDot {
 	private final JadxArgs args;
 	private final ICallGraph callGraph;
+	private final boolean useAlias;
 
 	public CallGraphExportDot(JadxArgs args, ICallGraph callGraph) {
+		this(args, callGraph, callGraph.isUseAlias());
+	}
+
+	public CallGraphExportDot(JadxArgs args, ICallGraph callGraph, boolean useAlias) {
 		this.args = args;
 		this.callGraph = callGraph;
+		this.useAlias = useAlias;
 	}
 
 	public void writeTo(Path path) {
@@ -38,7 +44,7 @@ public class CallGraphExportDot {
 			Files.writeString(path, writeToString(), StandardCharsets.UTF_8,
 					WRITE, TRUNCATE_EXISTING, CREATE);
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to save JSON file: " + path, e);
+			throw new RuntimeException("Failed to save DOT file: " + path, e);
 		}
 	}
 
@@ -80,7 +86,7 @@ public class CallGraphExportDot {
 		nodeMap.computeIfAbsent(cgNode.getId(), id -> {
 			Node node = new Node();
 			node.id = id;
-			node.method = cgNode.getMethodInfo().getRawFullId();
+			node.method = CallGraph.formatMethodId(cgNode, useAlias);
 			return node;
 		});
 	}

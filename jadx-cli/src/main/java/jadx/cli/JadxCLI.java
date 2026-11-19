@@ -1,6 +1,7 @@
 package jadx.cli;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.analysis.callgraph.JadxCallGraph;
 import jadx.analysis.callgraph.api.ICallGraph;
+import jadx.analysis.callgraph.api.ICallGraphBuilder;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.impl.AnnotatedCodeWriter;
@@ -149,9 +151,16 @@ public class JadxCLI {
 			return;
 		}
 		Path outPath = jadx.getArgs().getOutDir().toPath();
-		ICallGraph callGraph = JadxCallGraph.builder(jadx)
-				.resolvedOnly(true)
-				.build();
+		ICallGraphBuilder builder = JadxCallGraph.builder(jadx)
+				.resolvedOnly(!cliArgs.callGraphUnresolved)
+				.useAlias(cliArgs.callGraphUseAlias);
+		if (cliArgs.callGraphIncludePackages != null && !cliArgs.callGraphIncludePackages.isEmpty()) {
+			builder.includePackages(Arrays.asList(cliArgs.callGraphIncludePackages.split(",")));
+		}
+		if (cliArgs.callGraphExcludePackages != null && !cliArgs.callGraphExcludePackages.isEmpty()) {
+			builder.excludePackages(Arrays.asList(cliArgs.callGraphExcludePackages.split(",")));
+		}
+		ICallGraph callGraph = builder.build();
 		Path cgPath;
 		switch (mode) {
 			case JSON:
