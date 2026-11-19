@@ -1,13 +1,7 @@
 package jadx.gui.settings;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import javax.swing.JFrame;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -24,30 +18,14 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.shortcut.Shortcut;
 
 /**
- * Data class to hold all jadx-gui settings.
+ * Data class to hold persistent jadx-gui settings.
  * Also inherit all options from jadx-cli.
  * Serialized/deserialized as JSON in {@link jadx.cli.config.JadxConfigAdapter}.
- * Annotation {@link JadxConfigExcludeExport} used to exclude environment (files, window states)
- * fields from copy/export.
+ * Volatile settings (files, recent projects, window states) are stored separately in
+ * {@link JadxVolatileSettingsData}.
  */
 public class JadxSettingsData extends JadxGUIArgs {
 	public static final int CURRENT_SETTINGS_VERSION = 23;
-
-	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
-
-	@JadxConfigExcludeExport
-	private Path lastSaveProjectPath = USER_HOME;
-	@JadxConfigExcludeExport
-	private Path lastOpenFilePath = USER_HOME;
-	@JadxConfigExcludeExport
-	private Path lastSaveFilePath = USER_HOME;
-	@JadxConfigExcludeExport
-	private List<Path> recentProjects = new ArrayList<>();
-
-	@JadxConfigExcludeExport
-	private Map<String, WindowLocation> windowPos = new HashMap<>();
-	@JadxConfigExcludeExport
-	private int mainWindowExtendedState = JFrame.NORMAL;
 
 	private boolean flattenPackage = false;
 	private boolean checkForUpdates = true;
@@ -288,52 +266,12 @@ public class JadxSettingsData extends JadxGUIArgs {
 		this.langLocale = langLocale;
 	}
 
-	public Path getLastOpenFilePath() {
-		return lastOpenFilePath;
-	}
-
-	public void setLastOpenFilePath(Path lastOpenFilePath) {
-		this.lastOpenFilePath = lastOpenFilePath;
-	}
-
-	public Path getLastSaveFilePath() {
-		return lastSaveFilePath;
-	}
-
-	public void setLastSaveFilePath(Path lastSaveFilePath) {
-		this.lastSaveFilePath = lastSaveFilePath;
-	}
-
-	public Path getLastSaveProjectPath() {
-		return lastSaveProjectPath;
-	}
-
-	public void setLastSaveProjectPath(Path lastSaveProjectPath) {
-		this.lastSaveProjectPath = lastSaveProjectPath;
-	}
-
 	public LineNumbersMode getLineNumbersMode() {
 		return lineNumbersMode;
 	}
 
 	public void setLineNumbersMode(LineNumbersMode lineNumbersMode) {
 		this.lineNumbersMode = lineNumbersMode;
-	}
-
-	public int getMainWindowExtendedState() {
-		return mainWindowExtendedState;
-	}
-
-	public void setMainWindowExtendedState(int mainWindowExtendedState) {
-		this.mainWindowExtendedState = mainWindowExtendedState;
-	}
-
-	public List<Path> getRecentProjects() {
-		return recentProjects;
-	}
-
-	public void setRecentProjects(List<Path> recentProjects) {
-		this.recentProjects = recentProjects;
 	}
 
 	public SaveOptionEnum getSaveOption() {
@@ -438,14 +376,6 @@ public class JadxSettingsData extends JadxGUIArgs {
 
 	public void setUseAutoSearch(boolean useAutoSearch) {
 		this.useAutoSearch = useAutoSearch;
-	}
-
-	public Map<String, WindowLocation> getWindowPos() {
-		return windowPos;
-	}
-
-	public void setWindowPos(Map<String, WindowLocation> windowPos) {
-		this.windowPos = windowPos;
 	}
 
 	public XposedCodegenLanguage getXposedCodegenLanguage() {
