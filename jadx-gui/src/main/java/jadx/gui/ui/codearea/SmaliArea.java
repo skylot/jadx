@@ -2,17 +2,21 @@ package jadx.gui.ui.codearea;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
@@ -34,6 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
+import jadx.api.JavaNode;
+import jadx.commons.app.JadxSystemInfo;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.jobs.IBackgroundTask;
@@ -67,8 +74,71 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 		setCodeFoldingEnabled(true);
 		this.textNode = new TextNode(node.getName());
 		this.model = showBytecode ? new DebugModel() : new NormalModel();
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (isDisposed() || !SwingUtilities.isLeftMouseButton(e)) {
+					return;
+				}
+				if (isJumpModifierDown(e) || jumpOnDoubleClick(e)) {
+					navToDecl(e.getPoint());
+				}
+			}
+		});
 		setUnLoaded();
 		load();
+	}
+
+	private static boolean isJumpModifierDown(MouseEvent e) {
+		return e.isControlDown() || (JadxSystemInfo.IS_MAC && e.isMetaDown());
+	}
+
+	private boolean jumpOnDoubleClick(MouseEvent e) {
+		return e.getClickCount() == 2 && getMainWindow().getSettings().isJumpOnDoubleClick();
+	}
+
+	private MainWindow getMainWindow() {
+		return contentPanel.getMainWindow();
+	}
+
+	private void navToDecl(Point point) {
+		if (isDisposed()) {
+			return;
+		}
+		int offs = viewToModel2D(point);
+		if (offs < 0) {
+			return;
+		}
+		try {
+			int lineIdx = getLineOfOffset(offs);
+			int lineStart = getLineStartOffset(lineIdx);
+			int lineEnd = getLineEndOffset(lineIdx);
+			String lineText = getText(lineStart, lineEnd - lineStart);
+			int column = offs - lineStart;
+			JadxDecompiler decompiler = getMainWindow().getWrapper().getCurrentDecompiler().orElse(null);
+			if (decompiler == null) {
+				return;
+			}
+			JavaNode target = SmaliReferenceResolver.resolve(decompiler, lineText, column);
+			if (target == null) {
+				return;
+			}
+			JNode targetNode = getMainWindow().getCacheObject().getNodeCache().makeFrom(target);
+			if (targetNode != null) {
+				JClass currentCls = getJClass();
+				if (contentPanel instanceof ClassCodeContentPanel
+						&& currentCls != null
+						&& Objects.equals(targetNode.getRootClass(), currentCls.getRootClass())) {
+					ClassCodeContentPanel codePanel = (ClassCodeContentPanel) contentPanel;
+					if (codePanel.getCurrentCodeArea() == this) {
+						codePanel.switchPanel();
+					}
+				}
+				contentPanel.getTabsController().codeJump(targetNode);
+			}
+		} catch (BadLocationException e) {
+			LOG.debug("Failed to resolve smali reference at offset: {}", offs, e);
+		}
 	}
 
 	@Override
