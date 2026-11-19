@@ -1,16 +1,11 @@
 package jadx.cli;
 
-import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.analysis.callgraph.JadxCallGraph;
-import jadx.analysis.callgraph.api.ICallGraph;
-import jadx.analysis.callgraph.api.ICallGraphBuilder;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.impl.AnnotatedCodeWriter;
@@ -22,7 +17,6 @@ import jadx.cli.LogHelper.LogLevelEnum;
 import jadx.cli.config.JadxConfigAdapter;
 import jadx.cli.plugins.JadxFilesGetter;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.plugins.tools.JadxExternalPluginsLoader;
 
 public class JadxCLI {
@@ -80,7 +74,6 @@ public class JadxCLI {
 			if (checkForErrors(jadx)) {
 				return 2;
 			}
-			writeCallGraph(jadx, cliArgs);
 			if (!SingleClassMode.process(jadx, cliArgs)) {
 				save(jadx);
 			}
@@ -143,37 +136,5 @@ public class JadxCLI {
 			// dumb line clear :)
 			System.out.print("                                                             \r");
 		}
-	}
-
-	private static void writeCallGraph(JadxDecompiler jadx, JadxCLIArgs cliArgs) {
-		JadxCLIArgs.CallGraphSaveMode mode = cliArgs.callGraphSaveMode;
-		if (mode == null || mode == JadxCLIArgs.CallGraphSaveMode.NONE) {
-			return;
-		}
-		Path outPath = jadx.getArgs().getOutDir().toPath();
-		ICallGraphBuilder builder = JadxCallGraph.builder(jadx)
-				.resolvedOnly(!cliArgs.callGraphUnresolved)
-				.useAlias(cliArgs.callGraphUseAlias);
-		if (cliArgs.callGraphIncludePackages != null && !cliArgs.callGraphIncludePackages.isEmpty()) {
-			builder.includePackages(Arrays.asList(cliArgs.callGraphIncludePackages.split(",")));
-		}
-		if (cliArgs.callGraphExcludePackages != null && !cliArgs.callGraphExcludePackages.isEmpty()) {
-			builder.excludePackages(Arrays.asList(cliArgs.callGraphExcludePackages.split(",")));
-		}
-		ICallGraph callGraph = builder.build();
-		Path cgPath;
-		switch (mode) {
-			case JSON:
-				cgPath = outPath.resolve("callgraph.json");
-				callGraph.writeJson(cgPath);
-				break;
-			case DOT:
-				cgPath = outPath.resolve("callgraph.dot");
-				callGraph.writeDot(cgPath);
-				break;
-			default:
-				throw new JadxRuntimeException("Unexpected call graph save mode: " + mode);
-		}
-		LOG.info("Call graph saved: {}", cgPath.toAbsolutePath());
 	}
 }
