@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -546,44 +548,10 @@ final class LoopRegionMaker {
 				}
 			}
 		} else {
-			loop0: for (Edge exitEdge : exitEdges) {
-				BlockNode exit = exitEdge.getTarget();
-				List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, BlockUtils.getDomFrontierThroughEdge(exitEdge));
-
-				// Only select the method exit if there is no other valid outblock
-				BlockNode methodExit = mth.getExitBlock();
-				if (blocks.contains(methodExit)) {
-					blocks.remove(methodExit);
-					blocks.add(methodExit);
-				}
-				for (BlockNode block : blocks) {
-					if (BlockUtils.isPathExists(exit, block)) {
-						if (validOutBlock(block, loop)) {
-							out = block;
-							break loop0;
-						}
-					} else if (block.contains(AFlag.LOOP_START)) {
-						// Special case if there is no joining control flow before an outer loop back edge
-						if (validOutBlock(exit, loop)) {
-							out = exit;
-							break loop0;
-						}
-					}
-				}
-			}
-
-			// Add breaks
+			out = resolveMultiExitEndlessLoopOut(loop, exitEdges);
 			stack.addExit(out);
 			if (out != null && out != mth.getExitBlock()) {
-				// Add a break on every incoming edge where the predecessor is reachable from the loop
-				for (BlockNode predecessor : out.getPredecessors()) {
-					for (Edge exitEdge : loop.getExitEdges()) {
-						BlockNode target = exitEdge.getTarget();
-						if (BlockUtils.isPathExists(exitEdge.getTarget(), predecessor) || target == out) {
-							insertLoopBreak(stack, loop, out, exitEdge.getSource(), new Edge(predecessor, out));
-						}
-					}
-				}
+				insertMultiExitBreaks(stack, loop, exitEdges, out);
 			}
 		}
 
@@ -603,6 +571,44 @@ final class LoopRegionMaker {
 		stack.pop();
 		loopStart.addAttr(AType.LOOP, loop);
 		return out;
+	}
+
+	private @Nullable BlockNode resolveMultiExitEndlessLoopOut(LoopInfo loop, List<Edge> exitEdges) {
+		BlockNode methodExit = mth.getExitBlock();
+		for (Edge exitEdge : exitEdges) {
+			BlockNode exit = exitEdge.getTarget();
+			List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, BlockUtils.getDomFrontierThroughEdge(exitEdge));
+
+			// Only select the method exit if there is no other valid outblock
+			if (blocks.remove(methodExit)) {
+				blocks.add(methodExit);
+			}
+			for (BlockNode block : blocks) {
+				if (BlockUtils.isPathExists(exit, block)) {
+					if (validOutBlock(block, loop)) {
+						return block;
+					}
+				} else if (block.contains(AFlag.LOOP_START)) {
+					// Special case if there is no joining control flow before an outer loop back edge
+					if (validOutBlock(exit, loop)) {
+						return exit;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private void insertMultiExitBreaks(RegionStack stack, LoopInfo loop, List<Edge> exitEdges, BlockNode out) {
+		// Add a break on every incoming edge where the predecessor is reachable from the loop
+		for (BlockNode predecessor : out.getPredecessors()) {
+			for (Edge exitEdge : exitEdges) {
+				BlockNode target = exitEdge.getTarget();
+				if (target == out || BlockUtils.isPathExists(target, predecessor)) {
+					insertLoopBreak(stack, loop, out, exitEdge.getSource(), new Edge(predecessor, out));
+				}
+			}
+		}
 	}
 
 	private boolean inExceptionHandlerBlocks(BlockNode loopEnd) {
