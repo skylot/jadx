@@ -40,6 +40,7 @@ import jadx.gui.ui.action.ActionModel;
 import jadx.gui.ui.action.CommentSearchAction;
 import jadx.gui.ui.action.CopyReferenceAction;
 import jadx.gui.ui.action.CopySmaliReferenceAction;
+import jadx.gui.ui.action.FindImplementationsAction;
 import jadx.gui.ui.action.FindUsageAction;
 import jadx.gui.ui.action.FridaAction;
 import jadx.gui.ui.action.GoToDeclarationAction;
@@ -188,6 +189,7 @@ public final class CodeArea extends AbstractCodeArea implements CodeAreaSyncerAb
 		popup.addSeparator();
 		popup.add(new FindUsageAction(this));
 		popup.add(new UsageDialogPlusAction(this));
+		popup.add(new FindImplementationsAction(this));
 		popup.add(new GoToDeclarationAction(this));
 		popup.add(new CommentAction(this));
 		popup.add(new CommentSearchAction(this));

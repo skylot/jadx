@@ -66,6 +66,7 @@ public enum ActionModel {
 
 	FIND_USAGE(CODE_AREA, NLS.str("popup.find_usage"), null, null, keyboard(KeyEvent.VK_X)),
 	FIND_USAGE_PLUS(CODE_AREA, NLS.str("popup.usage_dialog_plus"), null, null, keyboard(KeyEvent.VK_C)),
+	FIND_IMPLEMENTATIONS(CODE_AREA, NLS.str("popup.find_implementations"), null, null, keyboard(KeyEvent.VK_I)),
 	GOTO_DECLARATION(CODE_AREA, NLS.str("popup.go_to_declaration"), null, null, keyboard(KeyEvent.VK_D)),
 	CONVERT_NUMBER(CODE_AREA, NLS.str("popup.convert_number"), null, null, null),
 	VIEW_CLASS_INHERITANCE_GRAPH(CODE_AREA, NLS.str("popup.view_class_graph"), NLS.str("popup.view_class_graph_description"), null, null),
