@@ -3,9 +3,11 @@ package jadx.core.dex.visitors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -185,6 +188,7 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		data.valuesField.add(AFlag.DONT_GENERATE);
 		InsnRemover.removeAllAndUnbind(classInitMth, data.toRemove);
+		removeUnusedInlinedConsts(data, classInitMth);
 		if (classInitMth.countInsns() == 0) {
 			classInitMth.add(AFlag.DONT_GENERATE);
 		} else if (!data.toRemove.isEmpty()) {
@@ -512,17 +516,57 @@ public class EnumVisitor extends AbstractVisitor {
 		List<RegisterArg> regs = new ArrayList<>();
 		resCo.getRegisterArgs(regs);
 		for (RegisterArg reg : regs) {
-			FieldInfo enumField = checkExternalRegUsage(data, reg);
-			if (enumField == null) {
+			InsnArg replacement = resolveExternalRegArg(data, reg);
+			if (replacement == null) {
 				return null;
 			}
-			InsnNode enumUse = new IndexInsnNode(InsnType.SGET, enumField, 0);
-			boolean replaced = resCo.replaceArg(reg, InsnArg.wrapArg(enumUse));
-			if (!replaced) {
+			if (!resCo.replaceArg(reg, replacement)) {
 				return null;
 			}
 		}
 		return resCo;
+	}
+
+	@Nullable
+	private InsnArg resolveExternalRegArg(EnumData data, RegisterArg reg) {
+		FieldInfo enumField = checkExternalRegUsage(data, reg);
+		if (enumField != null) {
+			return InsnArg.wrapArg(new IndexInsnNode(InsnType.SGET, enumField, 0));
+		}
+		InsnNode assignInsn = resolveConstAssignInsn(reg);
+		if (assignInsn != null && assignInsn.isConstInsn()) {
+			data.inlinedConstVars.add(reg.getSVar());
+			if (assignInsn.getType() == InsnType.CONST) {
+				LiteralArg lit = (LiteralArg) assignInsn.getArg(0);
+				return InsnArg.lit(lit.getLiteral(), reg.getType());
+			}
+			return InsnArg.wrapArg(assignInsn.copyWithoutResult());
+		}
+		return null;
+	}
+
+	@Nullable
+	private static InsnNode resolveConstAssignInsn(RegisterArg reg) {
+		InsnNode assignInsn = reg.getAssignInsn();
+		while (assignInsn != null && assignInsn.getType() == InsnType.MOVE) {
+			InsnArg arg = assignInsn.getArg(0);
+			if (!arg.isRegister()) {
+				return null;
+			}
+			assignInsn = ((RegisterArg) arg).getAssignInsn();
+		}
+		return assignInsn;
+	}
+
+	private static void removeUnusedInlinedConsts(EnumData data, MethodNode classInitMth) {
+		for (SSAVar ssaVar : data.inlinedConstVars) {
+			if (ssaVar.getUseCount() == 0) {
+				InsnNode assignInsn = ssaVar.getAssignInsn();
+				if (assignInsn != null && !assignInsn.contains(AFlag.REMOVE)) {
+					InsnRemover.remove(classInitMth, assignInsn);
+				}
+			}
+		}
 	}
 
 	private static FieldInfo checkExternalRegUsage(EnumData data, RegisterArg reg) {
@@ -618,7 +662,7 @@ public class EnumVisitor extends AbstractVisitor {
 					superCtrInsn.add(AFlag.DONT_GENERATE);
 					InsnRemover.remove(mth, superCtrInsn);
 				}
-				if (isDefaultConstructor(mth, shortId)) {
+				if (isDefaultConstructor(mth, shortId) || isSyntheticBridgeConstructor(mth)) {
 					mth.add(AFlag.DONT_GENERATE);
 				}
 			} else if (mi.getShortId().equals(valuesMethodShortId)) {
@@ -666,6 +710,21 @@ public class EnumVisitor extends AbstractVisitor {
 			return mth.countInsns() == 0;
 		}
 		return false;
+	}
+
+	private boolean isSyntheticBridgeConstructor(MethodNode mth) {
+		if (!mth.getAccessFlags().isSynthetic()) {
+			return false;
+		}
+		InsnNode insn = BlockUtils.getOnlyOneInsnFromMth(mth);
+		if (insn == null || insn.getType() != InsnType.CONSTRUCTOR) {
+			return false;
+		}
+		ConstructorInsn co = (ConstructorInsn) insn;
+		if (!co.isThis()) {
+			return false;
+		}
+		return mth.getUseIn().stream().allMatch(useMth -> useMth.contains(AFlag.DONT_GENERATE));
 	}
 
 	// TODO: support other method patterns ???
@@ -776,12 +835,9 @@ public class EnumVisitor extends AbstractVisitor {
 	}
 
 	private String getConstString(RootNode root, InsnArg arg) {
-		if (arg.isInsnWrap()) {
-			InsnNode constInsn = ((InsnWrapArg) arg).getWrapInsn();
-			Object constValue = InsnUtils.getConstValueByInsn(root, constInsn);
-			if (constValue instanceof String) {
-				return (String) constValue;
-			}
+		Object constValue = InsnUtils.getConstValueByArg(root, arg);
+		if (constValue instanceof String) {
+			return (String) constValue;
 		}
 		return null;
 	}
@@ -791,6 +847,7 @@ public class EnumVisitor extends AbstractVisitor {
 		final MethodNode classInitMth;
 		final List<BlockNode> staticBlocks;
 		final List<InsnNode> toRemove = new ArrayList<>();
+		final Set<SSAVar> inlinedConstVars = new HashSet<>();
 		FieldNode valuesField;
 		InsnNode valuesInitInsn;
 
