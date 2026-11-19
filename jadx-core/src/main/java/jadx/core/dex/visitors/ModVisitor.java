@@ -34,6 +34,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -615,14 +616,31 @@ public class ModVisitor extends AbstractVisitor {
 			remover.addAndUnbind(insn);
 		} else if (sVar.isUsedInPhi()) {
 			// exception var moved to external variable => replace with 'move' insn
+			resArg.remove(AFlag.CUSTOM_DECLARE);
+			resetDeclaredFlag(mth, sVar.getCodeVar());
 			InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
-			moveInsn.setResult(insn.getResult());
+			moveInsn.setResult(resArg);
 			NamedArg namedArg = new NamedArg(name, type);
 			moveInsn.addArg(namedArg);
 			excHandler.setArg(namedArg);
 			replaceInsn(mth, block, 0, moveInsn);
 		}
 		block.copyAttributeFrom(insn, AType.CODE_COMMENTS); // save comment
+	}
+
+	private static void resetDeclaredFlag(MethodNode mth, CodeVar codeVar) {
+		if (!codeVar.isDeclared() || codeVar.isThis()) {
+			return;
+		}
+		for (SSAVar sVar : mth.getSVars()) {
+			if (sVar.getCodeVar() == codeVar) {
+				RegisterArg assign = sVar.getAssign();
+				if (assign.contains(AFlag.METHOD_ARGUMENT) || assign.contains(AFlag.CUSTOM_DECLARE)) {
+					return;
+				}
+			}
+		}
+		codeVar.setDeclared(false);
 	}
 
 	public static void addFieldUsage(IFieldInfoRef fieldData, MethodNode mth) {

@@ -19,6 +19,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
@@ -43,8 +44,8 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 	public void visit(MethodNode mth) throws JadxException {
 		if (CodeFeaturesAttr.contains(mth, SWITCH)) {
 			runSwitchTraverse(mth, ExtractCommonBreak::new);
-			runSwitchTraverse(mth, RemoveUnreachableBreak::new);
 			IfRegionVisitor.processIfRequested(mth);
+			runSwitchTraverse(mth, RemoveUnreachableBreak::new);
 		}
 	}
 
@@ -144,12 +145,20 @@ public class SwitchBreakVisitor extends AbstractVisitor {
 				prevInsn = insns.get(insns.size() - 2);
 			} else if (subBlocks.size() > 1) {
 				IContainer prev = subBlocks.get(subBlocks.size() - 2);
-				if (prev instanceof IBlock) {
-					List<InsnNode> insns = ((IBlock) prev).getInstructions();
-					prevInsn = ListUtils.last(insns);
-				}
+				prevInsn = getLastSequentialInsn(prev);
 			}
 			return prevInsn != null && prevInsn.isExitEdgeInsn();
+		}
+
+		private @Nullable InsnNode getLastSequentialInsn(IContainer container) {
+			if (container instanceof IBlock) {
+				return ListUtils.last(((IBlock) container).getInstructions());
+			}
+			if (container instanceof Region) {
+				IContainer last = ListUtils.last(((Region) container).getSubBlocks());
+				return last != null ? getLastSequentialInsn(last) : null;
+			}
+			return null;
 		}
 	}
 
