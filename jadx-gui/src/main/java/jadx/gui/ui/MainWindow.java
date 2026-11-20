@@ -1672,7 +1672,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 				}
 				UiUtils.uiRunAndWait(docking::saveLayout);
 				// block UI thread to avoid settings data changes during sync
-				UiUtils.uiRunAndWait(settings::sync);
+				UiUtils.uiRunAndWait(settings::syncAll);
 
 				closeAll();
 				guiPluginsManager.runGlobalUnload();
