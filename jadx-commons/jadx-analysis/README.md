@@ -29,3 +29,14 @@ try (JadxDecompiler jadx = new JadxDecompiler(args)) {
   callGraph.writeJson(Path.of("test.json")); // export to JSON
 }
 ```
+
+CLI plugin options (provided by `jadx-call-graph` plugin):
+```bash
+jadx --no-src --no-res -d out \
+  -Pcall-graph.format=json \
+  -Pcall-graph.unresolved=true \
+  -Pcall-graph.includePackages=com.example \
+  -Pcall-graph.excludePackages=com.example.vendor \
+  -Pcall-graph.useAlias=true \
+  input.apk
+```

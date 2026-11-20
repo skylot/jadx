@@ -15,7 +15,7 @@ public class TestCallGraphCli extends BaseCliIntegrationTest {
 		Path entrySmali = writeMultiPkgSample();
 		int result = execJadxCli(new String[] {
 				"--no-src", "--no-res",
-				"--call-graph", "json",
+				"-Pcall-graph.format=json",
 				"-d", outputDir.toAbsolutePath().toString(),
 				entrySmali.toAbsolutePath().toString()
 		});
@@ -32,8 +32,8 @@ public class TestCallGraphCli extends BaseCliIntegrationTest {
 		Path entrySmali = writeMultiPkgSample();
 		int result = execJadxCli(new String[] {
 				"--no-src", "--no-res",
-				"--call-graph", "json",
-				"--call-graph-unresolved",
+				"-Pcall-graph.format=json",
+				"-Pcall-graph.unresolved=true",
 				"-d", outputDir.toAbsolutePath().toString(),
 				entrySmali.toAbsolutePath().toString()
 		});
@@ -60,10 +60,10 @@ public class TestCallGraphCli extends BaseCliIntegrationTest {
 
 		int result = execJadxCli(new String[] {
 				"--no-src", "--no-res",
-				"--call-graph", "json",
-				"--call-graph-unresolved",
-				"--call-graph-include-packages", "app.core, vendor.sdk",
-				"--call-graph-exclude-packages", "vendor.sdk",
+				"-Pcall-graph.format=json",
+				"-Pcall-graph.unresolved=true",
+				"-Pcall-graph.includePackages=app.core, vendor.sdk",
+				"-Pcall-graph.excludePackages=vendor.sdk",
 				"-d", outputDir.toAbsolutePath().toString(),
 				entrySmali.toAbsolutePath().toString(),
 				vendorSmali.toAbsolutePath().toString()
@@ -98,7 +98,7 @@ public class TestCallGraphCli extends BaseCliIntegrationTest {
 				"--deobf",
 				"--deobf-min", "3",
 				"--deobf-cfg-file-mode", "ignore",
-				"--call-graph", "dot",
+				"-Pcall-graph.format=dot",
 				"-d", outputDir.toAbsolutePath().toString(),
 				obfSmali.toAbsolutePath().toString()
 		});
@@ -112,8 +112,8 @@ public class TestCallGraphCli extends BaseCliIntegrationTest {
 				"--deobf",
 				"--deobf-min", "3",
 				"--deobf-cfg-file-mode", "ignore",
-				"--call-graph", "dot",
-				"--call-graph-use-alias",
+				"-Pcall-graph.format=dot",
+				"-Pcall-graph.useAlias=true",
 				"-d", aliasOutDir.toAbsolutePath().toString(),
 				obfSmali.toAbsolutePath().toString()
 		});

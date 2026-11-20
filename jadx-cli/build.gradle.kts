@@ -11,7 +11,6 @@ dependencies {
 	implementation(project(":jadx-core"))
 	implementation(project(":jadx-plugins-tools"))
 	implementation(project(":jadx-commons:jadx-app-commons"))
-	implementation(project(":jadx-commons:jadx-analysis"))
 
 	runtimeOnly(project(":jadx-plugins:jadx-dex-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-java-input"))
@@ -24,6 +23,7 @@ dependencies {
 	runtimeOnly(project(":jadx-plugins:jadx-aab-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-apkm-input"))
 	runtimeOnly(project(":jadx-plugins:jadx-apks-input"))
+	runtimeOnly(project(":jadx-plugins:jadx-call-graph"))
 
 	implementation(libs.jcommander)
 	implementation(libs.logback.classic)
