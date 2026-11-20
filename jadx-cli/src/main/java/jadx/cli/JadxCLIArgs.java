@@ -284,37 +284,6 @@ public class JadxCLIArgs implements IJadxConfig {
 	@Parameter(names = { "--raw-cfg" }, description = "save methods control flow graph (use raw instructions)")
 	protected boolean rawCfgOutput = false;
 
-	@Parameter(
-			names = { "--call-graph" },
-			description = "save app call graph in format: 'dot' or 'json'",
-			converter = CallGraphSaveModeConverter.class
-	)
-	protected CallGraphSaveMode callGraphSaveMode = CallGraphSaveMode.NONE;
-
-	@Parameter(
-			names = { "--call-graph-unresolved" },
-			description = "include unresolved (framework/library) method calls in call graph"
-	)
-	protected boolean callGraphUnresolved = false;
-
-	@Parameter(
-			names = { "--call-graph-include-packages" },
-			description = "comma separated list of package prefixes to include in call graph"
-	)
-	protected String callGraphIncludePackages = "";
-
-	@Parameter(
-			names = { "--call-graph-exclude-packages" },
-			description = "comma separated list of package prefixes to exclude from call graph"
-	)
-	protected String callGraphExcludePackages = "";
-
-	@Parameter(
-			names = { "--call-graph-use-alias" },
-			description = "use aliased (deobfuscated/renamed) names in call graph"
-	)
-	protected boolean callGraphUseAlias = false;
-
 	@Parameter(names = { "-f", "--fallback" }, description = "set '--decompilation-mode' to 'fallback' (deprecated)")
 	protected boolean fallbackMode = false;
 
@@ -859,46 +828,6 @@ public class JadxCLIArgs implements IJadxConfig {
 		this.rawCfgOutput = rawCfgOutput;
 	}
 
-	public CallGraphSaveMode getCallGraphSaveMode() {
-		return callGraphSaveMode;
-	}
-
-	public void setCallGraphSaveMode(CallGraphSaveMode callGraphSaveMode) {
-		this.callGraphSaveMode = callGraphSaveMode;
-	}
-
-	public boolean isCallGraphUnresolved() {
-		return callGraphUnresolved;
-	}
-
-	public void setCallGraphUnresolved(boolean callGraphUnresolved) {
-		this.callGraphUnresolved = callGraphUnresolved;
-	}
-
-	public String getCallGraphIncludePackages() {
-		return callGraphIncludePackages;
-	}
-
-	public void setCallGraphIncludePackages(String callGraphIncludePackages) {
-		this.callGraphIncludePackages = callGraphIncludePackages;
-	}
-
-	public String getCallGraphExcludePackages() {
-		return callGraphExcludePackages;
-	}
-
-	public void setCallGraphExcludePackages(String callGraphExcludePackages) {
-		this.callGraphExcludePackages = callGraphExcludePackages;
-	}
-
-	public boolean isCallGraphUseAlias() {
-		return callGraphUseAlias;
-	}
-
-	public void setCallGraphUseAlias(boolean callGraphUseAlias) {
-		this.callGraphUseAlias = callGraphUseAlias;
-	}
-
 	public boolean isReplaceConsts() {
 		return replaceConsts;
 	}
@@ -1097,18 +1026,6 @@ public class JadxCLIArgs implements IJadxConfig {
 	public static class IntegerFormatConverter extends BaseEnumConverter<IntegerFormat> {
 		public IntegerFormatConverter() {
 			super(IntegerFormat::valueOf, IntegerFormat::values);
-		}
-	}
-
-	public enum CallGraphSaveMode {
-		NONE,
-		DOT,
-		JSON,
-	}
-
-	public static class CallGraphSaveModeConverter extends BaseEnumConverter<CallGraphSaveMode> {
-		public CallGraphSaveModeConverter() {
-			super(CallGraphSaveMode::valueOf, CallGraphSaveMode::values);
 		}
 	}
 
