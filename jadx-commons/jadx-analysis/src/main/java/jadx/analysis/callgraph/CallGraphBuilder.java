@@ -1,9 +1,12 @@
 package jadx.analysis.callgraph;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +23,9 @@ import jadx.core.dex.nodes.MethodNode;
 class CallGraphBuilder implements ICallGraphBuilder {
 	private final JadxDecompiler decompiler;
 	private boolean resolvedOnly = false;
-	private @Nullable String pkgFilter;
+	private boolean useAlias = false;
+	private final Set<String> includePackages = new LinkedHashSet<>();
+	private final Set<String> excludePackages = new LinkedHashSet<>();
 
 	public CallGraphBuilder(JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
@@ -33,14 +38,46 @@ class CallGraphBuilder implements ICallGraphBuilder {
 	}
 
 	@Override
+	public ICallGraphBuilder useAlias(boolean useAlias) {
+		this.useAlias = useAlias;
+		return this;
+	}
+
+	@Override
 	public ICallGraphBuilder includePackages(String pkgFilter) {
-		this.pkgFilter = pkgFilter.endsWith(".") ? pkgFilter : pkgFilter + '.';
+		addPkgPrefix(includePackages, pkgFilter);
+		return this;
+	}
+
+	@Override
+	public ICallGraphBuilder includePackages(Collection<String> pkgFilters) {
+		if (pkgFilters != null) {
+			for (String pkgFilter : pkgFilters) {
+				addPkgPrefix(includePackages, pkgFilter);
+			}
+		}
+		return this;
+	}
+
+	@Override
+	public ICallGraphBuilder excludePackages(String pkgFilter) {
+		addPkgPrefix(excludePackages, pkgFilter);
+		return this;
+	}
+
+	@Override
+	public ICallGraphBuilder excludePackages(Collection<String> pkgFilters) {
+		if (pkgFilters != null) {
+			for (String pkgFilter : pkgFilters) {
+				addPkgPrefix(excludePackages, pkgFilter);
+			}
+		}
 		return this;
 	}
 
 	@Override
 	public ICallGraph build() {
-		return new CallGraph(decompiler.getArgs(), collectEdges());
+		return new CallGraph(decompiler.getArgs(), collectEdges(), useAlias);
 	}
 
 	private List<ICallGraphEdge> collectEdges() {
@@ -76,10 +113,44 @@ class CallGraphBuilder implements ICallGraphBuilder {
 	}
 
 	private boolean ignorePkg(ClassInfo cls) {
-		if (pkgFilter == null) {
-			return false;
+		String fullName = cls.getFullName();
+		if (!includePackages.isEmpty() && !matchesAny(fullName, includePackages)) {
+			return true;
 		}
-		return !cls.getFullName().startsWith(pkgFilter);
+		if (!excludePackages.isEmpty() && matchesAny(fullName, excludePackages)) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean matchesAny(String fullName, Set<String> prefixes) {
+		for (String prefix : prefixes) {
+			if (fullName.startsWith(prefix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void addPkgPrefix(Set<String> target, @Nullable String pkgFilter) {
+		String normalized = normalizePkgPrefix(pkgFilter);
+		if (normalized != null) {
+			target.add(normalized);
+		}
+	}
+
+	private static @Nullable String normalizePkgPrefix(@Nullable String pkgFilter) {
+		if (pkgFilter == null) {
+			return null;
+		}
+		String trimmed = pkgFilter.trim();
+		if (trimmed.isEmpty()) {
+			return null;
+		}
+		if (trimmed.endsWith(".*")) {
+			trimmed = trimmed.substring(0, trimmed.length() - 1);
+		}
+		return trimmed.endsWith(".") ? trimmed : trimmed + '.';
 	}
 
 	private static CallGraphNode getCallGraphNode(MethodNode mth, Map<MethodInfo, CallGraphNode> nodes, AtomicInteger nodeId) {

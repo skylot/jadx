@@ -45,6 +45,28 @@ public class JadxCLIArgsTest {
 	}
 
 	@Test
+	public void testCallGraphOptions() {
+		JadxCLIArgs defaults = parse("");
+		assertThat(defaults.getCallGraphSaveMode()).isEqualTo(JadxCLIArgs.CallGraphSaveMode.NONE);
+		assertThat(defaults.isCallGraphUnresolved()).isFalse();
+		assertThat(defaults.getCallGraphIncludePackages()).isEmpty();
+		assertThat(defaults.getCallGraphExcludePackages()).isEmpty();
+		assertThat(defaults.isCallGraphUseAlias()).isFalse();
+
+		JadxCLIArgs parsed = parse(
+				"--call-graph", "json",
+				"--call-graph-unresolved",
+				"--call-graph-include-packages", "com.example,com.other",
+				"--call-graph-exclude-packages", "com.vendor",
+				"--call-graph-use-alias");
+		assertThat(parsed.getCallGraphSaveMode()).isEqualTo(JadxCLIArgs.CallGraphSaveMode.JSON);
+		assertThat(parsed.isCallGraphUnresolved()).isTrue();
+		assertThat(parsed.getCallGraphIncludePackages()).isEqualTo("com.example,com.other");
+		assertThat(parsed.getCallGraphExcludePackages()).isEqualTo("com.vendor");
+		assertThat(parsed.isCallGraphUseAlias()).isTrue();
+	}
+
+	@Test
 	public void testOptionsOverride() {
 		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports()).isFalse();
 		assertThat(override(new JadxCLIArgs(), "--no-debug-info").isDebugInfo()).isFalse();

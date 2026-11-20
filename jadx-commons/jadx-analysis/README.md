@@ -14,8 +14,10 @@ try (JadxDecompiler jadx = new JadxDecompiler(args)) {
   jadx.load();
 
   ICallGraph callGraph = JadxCallGraph.builder(jadx)
-    .includePackages("com.example") // filter nodes by package
+    .includePackages("com.example") // filter nodes by package (can be called multiple times or with a Collection)
+    .excludePackages("com.example.vendor") // exclude nodes by package prefix
     .resolvedOnly(true) // add nodes only from app (exclude framework/lib calls)
+    .useAlias(false) // emit deobfuscated/aliased class & method names instead of raw IDs
     .build();
 
   for (ICallGraphEdge edge : callGraph.edges()) {

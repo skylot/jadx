@@ -7,6 +7,10 @@ public interface ICallGraph {
 
 	List<ICallGraphEdge> edges();
 
+	default boolean isUseAlias() {
+		return false;
+	}
+
 	void writeDot(Path path);
 
 	void writeJson(Path path);
