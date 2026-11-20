@@ -286,7 +286,14 @@ public abstract class IntegrationTest extends TestUtils {
 	protected void decompileAndCheck(List<ClassNode> clsList) {
 		clsList.forEach(cls -> cls.add(AFlag.DONT_UNLOAD_CLASS)); // keep error and warning attributes
 		clsList.forEach(ClassNode::decompile);
+		printClassesCode(clsList);
+		if (printDisassemble) {
+			clsList.forEach(this::printDisasm);
+		}
+		runChecks(clsList);
+	}
 
+	protected void printClassesCode(List<ClassNode> clsList) {
 		for (ClassNode cls : clsList) {
 			System.out.println("-----------------------------------------------------------");
 			ICodeInfo code = cls.getCode();
@@ -299,10 +306,6 @@ public abstract class IntegrationTest extends TestUtils {
 			}
 		}
 		System.out.println("-----------------------------------------------------------");
-		if (printDisassemble) {
-			clsList.forEach(this::printDisasm);
-		}
-		runChecks(clsList);
 	}
 
 	public void runChecks(ClassNode cls) {

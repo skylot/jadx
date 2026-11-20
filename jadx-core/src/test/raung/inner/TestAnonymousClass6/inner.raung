@@ -1,0 +1,44 @@
+.version 52  # Java 8
+.class super inner/TestAnonymousClass6$1
+.implements java/lang/Runnable
+
+.outerclass inner/TestAnonymousClass6 test (D)Ljava/lang/Runnable;
+
+.field final synthetic val$d D
+
+.field final synthetic this$0 Linner/TestAnonymousClass6;
+
+.method <init>(Linner/TestAnonymousClass6;D)V
+    .signature ()V
+    .param final mandated null
+    .param final synthetic null
+    .max stack 3
+    .max locals 4
+
+    .local 0 "this" Linner/TestAnonymousClass6$1;
+    .local 1 "this$0" Linner/TestAnonymousClass6;
+    .line 18
+    aload 0
+    dload 2
+    putfield inner/TestAnonymousClass6$1 val$d D
+    aload 0
+    aload 1
+    putfield inner/TestAnonymousClass6$1 this$0 Linner/TestAnonymousClass6;
+    aload 0
+    invokespecial java/lang/Object <init> ()V
+    return
+.end method
+
+.method public run()V
+    .max stack 3
+    .max locals 1
+
+    .local 0 "this" Linner/TestAnonymousClass6$1;
+    .line 21
+    getstatic java/lang/System out Ljava/io/PrintStream;
+    aload 0
+    getfield inner/TestAnonymousClass6$1 val$d D
+    invokevirtual java/io/PrintStream println (D)V
+    .line 22
+    return
+.end method

@@ -16,7 +16,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 				return new Runnable() {
 					@Override
 					public void run() {
-						f = 1;
+						f = 1; // same as Inner.this.f = 1;
 					}
 				};
 			}
