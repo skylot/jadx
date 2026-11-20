@@ -314,7 +314,13 @@ public final class JadxZipParser implements IZipParser {
 			}
 		} else {
 			// treat any other compression methods values as UNCOMPRESSED
-			stream = bufferToStream(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
+			try {
+				verifyStoredEntryBounds(entry);
+				stream = bufferToStream(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
+			} catch (Exception e) {
+				entryParseFailed(entry, e);
+				return useFallbackParser(entry).getInputStream();
+			}
 		}
 		if (useLimitedDataStream) {
 			return new LimitedInputStream(stream, entry.getUncompressedSize());
@@ -335,7 +341,13 @@ public final class JadxZipParser implements IZipParser {
 			}
 		}
 		// treat any other compression methods values as UNCOMPRESSED
-		return bufferToBytes(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
+		try {
+			verifyStoredEntryBounds(entry);
+			return bufferToBytes(getBuffer(), entry.getDataStart(), (int) entry.getUncompressedSize());
+		} catch (Exception e) {
+			entryParseFailed(entry, e);
+			return useFallbackParser(entry).getBytes();
+		}
 	}
 
 	private static void verifyEntry(JadxZipEntry entry) {
@@ -347,6 +359,22 @@ public final class JadxZipParser implements IZipParser {
 			}
 		} else if (compressMethod != 8) {
 			LOG.warn("Unknown compress method: {} in entry: {}", compressMethod, entry);
+		}
+	}
+
+	/**
+	 * A STORED entry is kept uncompressed, so its compressed and uncompressed sizes must be
+	 * equal and its data must physically fit inside the archive. Header sizes can be forged,
+	 * so validate against the real file bounds before allocating or reading the entry.
+	 */
+	private void verifyStoredEntryBounds(JadxZipEntry entry) {
+		long compressedSize = entry.getCompressedSize();
+		long uncompressedSize = entry.getUncompressedSize();
+		long dataEnd = (long) entry.getDataStart() + compressedSize;
+		if (compressedSize < 0
+				|| compressedSize != uncompressedSize
+				|| dataEnd > getBuffer().limit()) {
+			throw new IllegalStateException("Invalid STORED entry sizes: " + entry);
 		}
 	}
 
