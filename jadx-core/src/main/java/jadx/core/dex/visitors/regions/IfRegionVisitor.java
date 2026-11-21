@@ -4,6 +4,7 @@ import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -13,6 +14,7 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 
@@ -21,6 +23,7 @@ import static jadx.core.utils.RegionUtils.insnsCount;
 public class IfRegionVisitor extends AbstractVisitor {
 	private static final ProcessIfRegionVisitor PROCESS_IF_REGION_VISITOR = new ProcessIfRegionVisitor();
 	private static final RemoveRedundantElseVisitor REMOVE_REDUNDANT_ELSE_VISITOR = new RemoveRedundantElseVisitor();
+	private static final ClassInitElseVisitor CLASS_INIT_ELSE_VISITOR = new ClassInitElseVisitor();
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -42,8 +45,46 @@ public class IfRegionVisitor extends AbstractVisitor {
 
 	private static void process(MethodNode mth) {
 		TernaryMod.process(mth);
+		if (mth.getMethodInfo().isClassInit()) {
+			DepthRegionTraversal.traverse(mth, CLASS_INIT_ELSE_VISITOR);
+		}
 		DepthRegionTraversal.traverse(mth, PROCESS_IF_REGION_VISITOR);
 		DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
+	}
+
+	/**
+	 * In static initializers (&lt;clinit&gt;), 'return;' is illegal Java.
+	 * Move trailing siblings after an early-return 'if' into its 'else' branch
+	 * so ReturnVisitor can remove the 'return;' instructions.
+	 */
+	private static class ClassInitElseVisitor extends AbstractRegionVisitor {
+		@Override
+		public void leaveRegion(MethodNode mth, IRegion region) {
+			if (!(region instanceof Region)) {
+				return;
+			}
+			List<IContainer> subBlocks = region.getSubBlocks();
+			for (int i = subBlocks.size() - 2; i >= 0; i--) {
+				IContainer sub = subBlocks.get(i);
+				if (!(sub instanceof IfRegion)) {
+					continue;
+				}
+				IfRegion ifRegion = (IfRegion) sub;
+				if (ifRegion.getElseRegion() != null) {
+					continue;
+				}
+				IContainer thenRegion = ifRegion.getThenRegion();
+				if (!RegionUtils.hasExitBlock(thenRegion) || !containsReturn(thenRegion)) {
+					continue;
+				}
+				Region elseRegion = new Region(ifRegion);
+				for (int j = i + 1; j < subBlocks.size(); j++) {
+					elseRegion.add(subBlocks.get(j));
+				}
+				subBlocks.subList(i + 1, subBlocks.size()).clear();
+				ifRegion.setElseRegion(elseRegion);
+			}
+		}
 	}
 
 	private static class ProcessIfRegionVisitor extends AbstractRegionVisitor {
@@ -85,6 +126,13 @@ public class IfRegionVisitor extends AbstractVisitor {
 		}
 		int thenSize = insnsCount(ifRegion.getThenRegion());
 		int elseSize = insnsCount(ifRegion.getElseRegion());
+		if (mth.getMethodInfo().isClassInit()
+				&& isSingleReturn(ifRegion.getThenRegion(), thenSize)
+				&& !isSingleReturn(ifRegion.getElseRegion(), elseSize)) {
+			// move single 'return;' to 'else' so ReturnVisitor removes it cleanly
+			invertIfRegion(ifRegion);
+			return;
+		}
 		if (isSimpleExitBlock(mth, ifRegion.getElseRegion())) {
 			if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
 				if (elseSize < thenSize) {
@@ -102,6 +150,10 @@ public class IfRegionVisitor extends AbstractVisitor {
 					} else {
 						// single return at method end will be removed later
 					}
+					return;
+				}
+				if (mth.getMethodInfo().isClassInit() && isSingleReturn(ifRegion.getElseRegion(), elseSize)) {
+					// keep single 'return;' in 'else' so ReturnVisitor removes it cleanly
 					return;
 				}
 				if (thenSize > 2 && !(lastRegion && thenSize < 4 /* keep small code block inside else */)) {
@@ -146,7 +198,9 @@ public class IfRegionVisitor extends AbstractVisitor {
 	 */
 	private static void markElseIfChains(MethodNode mth, IfRegion ifRegion) {
 		if (isSimpleExitBlock(mth, ifRegion.getThenRegion())) {
-			return;
+			if (!mth.getMethodInfo().isClassInit() || !containsReturn(ifRegion.getThenRegion())) {
+				return;
+			}
 		}
 		IContainer elsRegion = ifRegion.getElseRegion();
 		if (elsRegion instanceof Region) {
@@ -176,6 +230,10 @@ public class IfRegionVisitor extends AbstractVisitor {
 		if (!RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
 			return false;
 		}
+		if (mth.getMethodInfo().isClassInit() && containsReturn(ifRegion.getThenRegion())) {
+			// 'return;' is illegal in static initializer; keep 'else' so ReturnVisitor can remove 'return;'
+			return false;
+		}
 		InsnNode lastThanInsn = RegionUtils.getLastInsn(ifRegion.getThenRegion());
 		if (InsnUtils.isInsnType(lastThanInsn, InsnType.THROW)) {
 			// always omit else after 'throw'
@@ -202,6 +260,33 @@ public class IfRegionVisitor extends AbstractVisitor {
 			newRegion.add(ifRegion.getElseRegion());
 			ifRegion.setElseRegion(null);
 			return true;
+		}
+		return false;
+	}
+
+	private static boolean isSingleReturn(IContainer container, int insnsCount) {
+		if (insnsCount != 1) {
+			return false;
+		}
+		InsnNode lastInsn = RegionUtils.getLastInsn(container);
+		return InsnUtils.isInsnType(lastInsn, InsnType.RETURN);
+	}
+
+	private static boolean containsReturn(IContainer container) {
+		if (container instanceof IBlock) {
+			IBlock block = (IBlock) container;
+			if (block.contains(AFlag.RETURN)) {
+				return true;
+			}
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			return InsnUtils.isInsnType(lastInsn, InsnType.RETURN);
+		}
+		if (container instanceof IRegion) {
+			for (IContainer subBlock : ((IRegion) container).getSubBlocks()) {
+				if (containsReturn(subBlock)) {
+					return true;
+				}
+			}
 		}
 		return false;
 	}
