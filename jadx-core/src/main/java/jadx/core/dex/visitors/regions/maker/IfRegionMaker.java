@@ -188,7 +188,7 @@ final class IfRegionMaker {
 			return info;
 		}
 		// init outblock, which will be used in isBadBranchBlock to compare with branch block
-		info.setOutBlock(findOutBlock(mth, thenBlock, elseBlock));
+		info.setOutBlock(findOutBlock(mth, thenBlock, elseBlock, regionMaker.getStack()));
 
 		boolean badThen = isBadBranchBlock(info, thenBlock);
 		boolean badElse = isBadBranchBlock(info, elseBlock);
@@ -227,7 +227,7 @@ final class IfRegionMaker {
 		return info;
 	}
 
-	static @Nullable BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock) {
+	static @Nullable BlockNode findOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock, RegionStack stack) {
 		if (thenBlock == elseBlock) {
 			return thenBlock;
 		}
@@ -250,16 +250,18 @@ final class IfRegionMaker {
 		intersection.clear(mth.getExitBlock().getPos());
 		BlockNode oneBlock = bitSetToOneBlock(mth, intersection);
 
-		// Attempt one: there's a unique block in the intersection of dom frontiers, and no path from
-		// then->else or else->then
-		if (oneBlock != null) {
-			return oneBlock;
-		}
-
 		BitSet union = newBlocksBitSet(mth);
 		union.or(thenBlock.getDomFrontier());
 		union.or(elseBlock.getDomFrontier());
 		union.clear(mth.getExitBlock().getPos());
+
+		// Attempt one: there's a unique block in the intersection of dom frontiers, and no path from
+		// then->else or else->then. If a secondary jump in one branch bypasses oneBlock and rejoins
+		// at a later in-scope merge block, prefer that later merge block instead of the intermediate one.
+		if (oneBlock != null) {
+			BlockNode laterMerge = findLaterMergeInScope(mth, thenBlock, elseBlock, oneBlock, union, stack);
+			return laterMerge != null ? laterMerge : oneBlock;
+		}
 
 		// Attempt two: look for a suitable block in the union.
 		BitSet candidates = newBlocksBitSet(mth);
@@ -276,6 +278,32 @@ final class IfRegionMaker {
 
 		// Attempt three: fallback to path cross again
 		return getPathCross(mth, thenBlock, elseBlock);
+	}
+
+	private static @Nullable BlockNode findLaterMergeInScope(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock,
+			BlockNode oneBlock, BitSet union, RegionStack stack) {
+		if (union.cardinality() <= 1) {
+			return null;
+		}
+		List<BlockNode> laterCandidates = null;
+		for (BlockNode candidate : bitSetToBlocks(mth, union)) {
+			if (candidate == oneBlock
+					|| stack.containsExit(candidate)
+					|| candidate.contains(AFlag.LOOP_END)) {
+				continue;
+			}
+			if (isPathExists(oneBlock, candidate)
+					&& isCandidateForOutBlock(mth, thenBlock, elseBlock, candidate)) {
+				if (laterCandidates == null) {
+					laterCandidates = new ArrayList<>();
+				}
+				laterCandidates.add(candidate);
+			}
+		}
+		if (laterCandidates == null) {
+			return null;
+		}
+		return getBottomBlock(laterCandidates, true);
 	}
 
 	static boolean isCandidateForOutBlock(MethodNode mth, BlockNode thenBlock, BlockNode elseBlock, BlockNode candidate) {
