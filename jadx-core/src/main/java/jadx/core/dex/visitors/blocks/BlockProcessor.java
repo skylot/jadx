@@ -20,6 +20,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.CodeFeaturesAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -350,6 +351,9 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean modifyBlocksTree(MethodNode mth) {
+		if (removeDeadIfBranches(mth)) {
+			return true;
+		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (checkLoops(mth, block)) {
 				return true;
@@ -366,6 +370,32 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 		}
 		return splitExitBlocks(mth);
+	}
+
+	/**
+	 * Remove 'if' instructions with both branches targeting the same block.
+	 * Such branch is dead (register reads have no side effects), keeping it confuses
+	 * region maker processing of loop back edges.
+	 */
+	private static boolean removeDeadIfBranches(MethodNode mth) {
+		boolean changed = false;
+		for (BlockNode block : mth.getBasicBlocks()) {
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn instanceof IfNode
+					&& block.contains(AFlag.LOOP_END)
+					&& block.getSuccessors().size() == 1) {
+				IfNode ifNode = (IfNode) lastInsn;
+				BlockNode successor = block.getSuccessors().get(0);
+				if (successor.contains(AFlag.LOOP_START)
+						&& successor != block
+						&& ifNode.getThenBlock() == successor
+						&& ifNode.getElseBlock() == successor) {
+					block.getInstructions().remove(block.getInstructions().size() - 1);
+					changed = true;
+				}
+			}
+		}
+		return changed;
 	}
 
 	private static boolean mergeConstReturn(MethodNode mth) {
