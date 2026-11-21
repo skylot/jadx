@@ -189,6 +189,8 @@ public final class SwitchRegionMaker {
 				BlockNode imPostDom = block.getIPostDom();
 				if (outs.get(imPostDom.getId())) {
 					out = imPostDom;
+				} else if (block.getCleanSuccessors().size() <= 1) {
+					out = imPostDom;
 				} else {
 					outs.andNot(block.getPostDoms());
 					out = BlockUtils.bitSetToOneBlock(mth, outs);
