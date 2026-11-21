@@ -29,6 +29,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
+import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.SwitchBreakVisitor;
@@ -399,6 +400,9 @@ public final class SwitchRegionMaker {
 		DepthRegionTraversal.traverse(mth, caseContainer, new AbstractRegionVisitor() {
 			@Override
 			public void leaveRegion(MethodNode mth, IRegion region) {
+				if (!(region instanceof Region) && !(region instanceof SynchronizedRegion)) {
+					return;
+				}
 				boolean insertBreak = false;
 				if (region == caseContainer) {
 					// top region
@@ -423,7 +427,9 @@ public final class SwitchRegionMaker {
 	}
 
 	public static boolean canAppendBreak(IRegion region) {
-		return !region.contains(AFlag.FALL_THROUGH) && !RegionUtils.hasExitBlock(region);
+		return (region instanceof Region || region instanceof SynchronizedRegion)
+				&& !region.contains(AFlag.FALL_THROUGH)
+				&& !RegionUtils.hasExitBlock(region);
 	}
 
 	public static InsnContainer buildBreakContainer(SwitchRegion switchRegion) {
