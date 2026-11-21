@@ -146,6 +146,7 @@ public final class SwitchRegionMaker {
 	private @Nullable BlockNode calcSwitchOut(BlockNode block, SwitchInsn insn, RegionStack stack) {
 		// union of case blocks dominance frontier
 		// works if no fallthrough cases and no returns inside switch
+		BitSet blockDf = block.getDomFrontier();
 		BitSet outs = BlockUtils.newBlocksBitSet(mth);
 		for (BlockNode s : block.getCleanSuccessors()) {
 			if (s.contains(AFlag.LOOP_END)) {
@@ -153,6 +154,9 @@ public final class SwitchRegionMaker {
 				continue;
 			}
 			outs.or(s.getDomFrontier());
+			if (blockDf.get(s.getId())) {
+				outs.set(s.getId());
+			}
 		}
 		outs.clear(block.getId());
 		outs.clear(mth.getExitBlock().getId());
@@ -195,7 +199,7 @@ public final class SwitchRegionMaker {
 				}
 			}
 		}
-		if (out != null && mth.isPreExitBlock(out)) {
+		if (out != null && mth.isPreExitBlock(out) && !stack.containsExit(out)) {
 			// include 'return' or 'throw' in case blocks
 			out = mth.getExitBlock();
 		}
@@ -235,7 +239,7 @@ public final class SwitchRegionMaker {
 		}
 		if (mth.getReturnType() == ArgType.VOID) {
 			for (BlockNode pred : preds) {
-				InsnNode insn = BlockUtils.getLastInsn(pred);
+				InsnNode insn = Utils.getOne(pred.getInstructions());
 				if (insn == null || insn.getType() != InsnType.RETURN) {
 					return exitBlock;
 				}
@@ -243,7 +247,7 @@ public final class SwitchRegionMaker {
 		} else {
 			List<InsnArg> returnArgs = new ArrayList<>();
 			for (BlockNode pred : preds) {
-				InsnNode insn = BlockUtils.getLastInsn(pred);
+				InsnNode insn = Utils.getOne(pred.getInstructions());
 				if (insn == null || insn.getType() != InsnType.RETURN) {
 					return exitBlock;
 				}
@@ -399,6 +403,9 @@ public final class SwitchRegionMaker {
 		DepthRegionTraversal.traverse(mth, caseContainer, new AbstractRegionVisitor() {
 			@Override
 			public void leaveRegion(MethodNode mth, IRegion region) {
+				if (!(region instanceof Region)) {
+					return;
+				}
 				boolean insertBreak = false;
 				if (region == caseContainer) {
 					// top region
