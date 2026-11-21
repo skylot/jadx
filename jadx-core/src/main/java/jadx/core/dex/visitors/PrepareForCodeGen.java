@@ -40,6 +40,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
@@ -289,7 +290,11 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 		// move confirmed
 		InsnList.remove(blockByInsn, ctrInsn);
-		mth.getRegion().getSubBlocks().add(0, new InsnContainer(ctrInsn));
+		Region oldRootRegion = mth.getRegion();
+		Region newRootRegion = new Region(null);
+		newRootRegion.add(new InsnContainer(ctrInsn));
+		newRootRegion.add(oldRootRegion);
+		mth.setRegion(newRootRegion);
 	}
 
 	private @Nullable ConstructorInsn searchConstructorCall(MethodNode mth) {
