@@ -161,6 +161,10 @@ public class InlineMethods extends AbstractVisitor {
 		List<MethodNode> newUseIn = new ArrayList<>(inlinedMth.getUseIn());
 		newUseIn.remove(mth);
 		inlinedMth.setUseIn(newUseIn);
+		if (newUseIn.isEmpty()) {
+			inlinedMth.add(AFlag.DONT_GENERATE);
+			checkAndHideClass(inlinedMth.getParentClass());
+		}
 		insn.visitInsns(innerInsn -> {
 			// TODO: share code with UsageInfoVisitor
 			switch (innerInsn.getType()) {
@@ -192,5 +196,11 @@ public class InlineMethods extends AbstractVisitor {
 	private void replaceClsUsage(MethodNode mth, MethodNode inlinedMth, ClassNode parentClass) {
 		parentClass.setUseInMth(ListUtils.safeReplace(parentClass.getUseInMth(), inlinedMth, mth));
 		parentClass.setUseIn(ListUtils.safeReplace(parentClass.getUseIn(), inlinedMth.getParentClass(), mth.getParentClass()));
+	}
+
+	private void checkAndHideClass(ClassNode cls) {
+		if (cls != null && ClassModifier.isEmptySyntheticClass(cls)) {
+			cls.add(AFlag.DONT_GENERATE);
+		}
 	}
 }
