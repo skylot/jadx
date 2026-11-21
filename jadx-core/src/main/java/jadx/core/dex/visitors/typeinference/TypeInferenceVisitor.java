@@ -85,7 +85,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	 */
 	void initTypeBounds(MethodNode mth) {
 		List<SSAVar> ssaVars = mth.getSVars();
-		ssaVars.forEach(this::attachBounds);
+		ssaVars.forEach(var -> attachBounds(mth, var));
 		ssaVars.forEach(this::mergePhiBounds);
 		if (Consts.DEBUG_TYPE_INFERENCE) {
 			ssaVars.stream().sorted()
@@ -161,11 +161,11 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				.max(typeUpdate.getTypeCompare().getComparator());
 	}
 
-	private void attachBounds(SSAVar var) {
+	private void attachBounds(MethodNode mth, SSAVar var) {
 		TypeInfo typeInfo = var.getTypeInfo();
 		typeInfo.getBounds().clear();
 		RegisterArg assign = var.getAssign();
-		addAssignBound(typeInfo, assign);
+		addAssignBound(mth, typeInfo, assign);
 
 		for (RegisterArg regArg : var.getUseList()) {
 			addBound(typeInfo, makeUseBound(regArg));
@@ -192,7 +192,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void addAssignBound(TypeInfo typeInfo, RegisterArg assign) {
+	private void addAssignBound(MethodNode mth, TypeInfo typeInfo, RegisterArg assign) {
 		ArgType immutableType = assign.getImmutableType();
 		if (immutableType != null) {
 			addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, immutableType));
@@ -235,7 +235,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				break;
 
 			case IGET:
-				addBound(typeInfo, makeAssignFieldGetBound((IndexInsnNode) insn));
+				addBound(typeInfo, makeAssignFieldGetBound(mth, (IndexInsnNode) insn));
 				break;
 
 			case CHECK_CAST:
@@ -266,10 +266,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return ctr.getClassType().getType();
 	}
 
-	private ITypeBound makeAssignFieldGetBound(IndexInsnNode insn) {
+	private ITypeBound makeAssignFieldGetBound(MethodNode mth, IndexInsnNode insn) {
 		ArgType initType = insn.getResult().getInitType();
 		if (initType.containsTypeVariable()) {
-			return new TypeBoundFieldGetAssign(root, insn, initType);
+			return new TypeBoundFieldGetAssign(root, mth, insn, initType);
 		}
 		return new TypeBoundConst(BoundEnum.ASSIGN, initType);
 	}
