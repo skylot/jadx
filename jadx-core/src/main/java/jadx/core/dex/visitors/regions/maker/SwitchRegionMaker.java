@@ -101,17 +101,17 @@ public final class SwitchRegionMaker {
 				BitSet df = successor.getDomFrontier();
 				if (df.intersects(caseBlocks)) {
 					BlockNode fallThroughBlock = getOneIntersectionBlock(out, caseBlocks, df);
-					fallThroughCases.put(successor, fallThroughBlock);
+					if (fallThroughBlock != null && !fallThroughBlock.equals(successor)) {
+						fallThroughCases.put(successor, fallThroughBlock);
+					}
 				}
 			}
 			// check fallthrough cases order
 			if (!fallThroughCases.isEmpty() && isBadCasesOrder(blocksMap, fallThroughCases)) {
-				Map<BlockNode, List<Object>> newBlocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
-				if (isBadCasesOrder(newBlocksMap, fallThroughCases)) {
+				blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
+				if (isBadCasesOrder(blocksMap, fallThroughCases)) {
 					mth.addWarnComment("Can't fix incorrect switch cases order, some code will duplicate");
-					fallThroughCases.clear();
-				} else {
-					blocksMap = newBlocksMap;
+					filterBadFallThroughCases(blocksMap, fallThroughCases);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ public final class SwitchRegionMaker {
 			}
 			if (out == null) {
 				BlockNode imPostDom = block.getIPostDom();
-				if (outs.get(imPostDom.getId())) {
+				if (imPostDom != null && outs.get(imPostDom.getId())) {
 					out = imPostDom;
 				} else {
 					outs.andNot(block.getPostDoms());
@@ -205,7 +205,8 @@ public final class SwitchRegionMaker {
 			// check if all returns are equals and should be treated as single out block
 			return allSameReturns(stack);
 		}
-		if (imPostDom == insn.getDefTargetBlock()
+		if (imPostDom != null
+				&& imPostDom == insn.getDefTargetBlock()
 				&& block.getCleanSuccessors().contains(imPostDom)
 				&& block.getDomFrontier().get(imPostDom.getId())) {
 			// add exit to stop on empty 'default' block
@@ -214,14 +215,19 @@ public final class SwitchRegionMaker {
 		if (out == null) {
 			mth.addWarnComment("Failed to find 'out' block for switch in " + block + ". Please report as an issue.");
 			// fallback option; should work in most cases
-			out = block.getIPostDom();
+			out = imPostDom;
 		}
-		if (out != null && regionMaker.isProcessed(out)) {
+		if (out != null && regionMaker.isProcessed(out) && BlockUtils.isPathExists(out, block)) {
 			// 'out' block already processed, prevent endless loop
 			// in this case it might be that 'out' is the LOOP_START of a loop and occurs before 'block'
 			// just try the immediate post dominator as a fallback
 			mth.addWarnComment("Switch 'out' block " + out + " for " + block + " already processed. Defaulting to fallback option.");
-			out = block.getIPostDom();
+			stack.addExit(out);
+			if (imPostDom != null && (!regionMaker.isProcessed(imPostDom) || !BlockUtils.isPathExists(imPostDom, block))) {
+				out = imPostDom;
+			} else {
+				out = mth.getExitBlock();
+			}
 		}
 		return out;
 	}
@@ -341,27 +347,100 @@ public final class SwitchRegionMaker {
 		return nextCaseBlock != null;
 	}
 
+	private void filterBadFallThroughCases(Map<BlockNode, List<Object>> blocksMap,
+			Map<BlockNode, BlockNode> fallThroughCases) {
+		BlockNode prevCaseBlock = null;
+		for (BlockNode caseBlock : blocksMap.keySet()) {
+			if (prevCaseBlock != null) {
+				BlockNode expectedNext = fallThroughCases.get(prevCaseBlock);
+				if (expectedNext != null && !expectedNext.equals(caseBlock)) {
+					fallThroughCases.remove(prevCaseBlock);
+				}
+			}
+			prevCaseBlock = caseBlock;
+		}
+		if (prevCaseBlock != null) {
+			fallThroughCases.remove(prevCaseBlock);
+		}
+	}
+
 	private Map<BlockNode, List<Object>> reOrderSwitchCases(Map<BlockNode, List<Object>> blocksMap,
 			Map<BlockNode, BlockNode> fallThroughCases) {
-		List<BlockNode> list = new ArrayList<>(blocksMap.size());
-		list.addAll(blocksMap.keySet());
-		list.sort((a, b) -> {
-			BlockNode nextA = fallThroughCases.get(a);
-			if (nextA != null) {
-				if (b.equals(nextA)) {
-					return -1;
-				}
-			} else if (a.equals(fallThroughCases.get(b))) {
-				return 1;
+		Map<BlockNode, BlockNode> nextMap = new LinkedHashMap<>();
+		Map<BlockNode, BlockNode> prevMap = new LinkedHashMap<>();
+		Map<BlockNode, List<BlockNode>> extraPreds = new LinkedHashMap<>();
+		for (Map.Entry<BlockNode, BlockNode> entry : fallThroughCases.entrySet()) {
+			BlockNode from = entry.getKey();
+			BlockNode to = entry.getValue();
+			if (to == null || from.equals(to) || !blocksMap.containsKey(from) || !blocksMap.containsKey(to)) {
+				continue;
 			}
-			return 0;
-		});
+			if (isChainReachable(nextMap, to, from)) {
+				continue;
+			}
+			if (!prevMap.containsKey(to)) {
+				nextMap.put(from, to);
+				prevMap.put(to, from);
+			} else {
+				extraPreds.computeIfAbsent(to, k -> new ArrayList<>(2)).add(from);
+			}
+		}
 
 		Map<BlockNode, List<Object>> newBlocksMap = new LinkedHashMap<>(blocksMap.size());
-		for (BlockNode key : list) {
-			newBlocksMap.put(key, blocksMap.get(key));
+		Set<BlockNode> inProgress = new HashSet<>();
+		for (BlockNode key : blocksMap.keySet()) {
+			emitFallThroughChain(key, blocksMap, nextMap, prevMap, extraPreds, inProgress, newBlocksMap);
 		}
 		return newBlocksMap;
+	}
+
+	private boolean isChainReachable(Map<BlockNode, BlockNode> nextMap, BlockNode start, BlockNode target) {
+		BlockNode cur = start;
+		while (cur != null) {
+			if (cur.equals(target)) {
+				return true;
+			}
+			cur = nextMap.get(cur);
+		}
+		return false;
+	}
+
+	private void emitFallThroughChain(BlockNode node,
+			Map<BlockNode, List<Object>> blocksMap,
+			Map<BlockNode, BlockNode> nextMap,
+			Map<BlockNode, BlockNode> prevMap,
+			Map<BlockNode, List<BlockNode>> extraPreds,
+			Set<BlockNode> inProgress,
+			Map<BlockNode, List<Object>> newBlocksMap) {
+		if (newBlocksMap.containsKey(node)) {
+			return;
+		}
+		BlockNode head = node;
+		while (prevMap.containsKey(head)) {
+			head = prevMap.get(head);
+		}
+		if (!inProgress.add(head)) {
+			return;
+		}
+		List<BlockNode> chain = new ArrayList<>();
+		BlockNode cur = head;
+		while (cur != null && !newBlocksMap.containsKey(cur)) {
+			chain.add(cur);
+			cur = nextMap.get(cur);
+		}
+		for (BlockNode c : chain) {
+			List<BlockNode> preds = extraPreds.get(c);
+			if (preds != null) {
+				for (BlockNode pred : preds) {
+					emitFallThroughChain(pred, blocksMap, nextMap, prevMap, extraPreds, inProgress, newBlocksMap);
+				}
+			}
+		}
+		for (BlockNode c : chain) {
+			if (!newBlocksMap.containsKey(c)) {
+				newBlocksMap.put(c, blocksMap.get(c));
+			}
+		}
 	}
 
 	private boolean insertContinueInSwitch(BlockNode switchBlock, BlockNode switchOut, BlockNode loopEnd) {
@@ -408,7 +487,8 @@ public final class SwitchRegionMaker {
 					if (lastContainer instanceof BlockNode) {
 						BlockNode lastBlock = (BlockNode) lastContainer;
 						for (BlockNode successor : lastBlock.getSuccessors()) {
-							if (!caseBlocks.contains(successor)) {
+							if (!caseBlocks.contains(successor)
+									&& !(caseContainer.contains(AFlag.FALL_THROUGH) && successor.contains(AFlag.FALL_THROUGH))) {
 								insertBreak = true;
 								break;
 							}
