@@ -42,7 +42,7 @@ public class UsageFileAdapter extends DataAdapterHelper {
 	private static final int USAGE_DATA_VERSION = 3;
 	private static final byte[] JADX_USAGE_HEADER = "jadx.usage".getBytes(StandardCharsets.US_ASCII);
 
-	public static synchronized @Nullable RawUsageData load(RootNode root, Path usageFile, List<File> inputs) {
+	static synchronized @Nullable RawUsageData load(RootNode root, Path usageFile, List<File> inputs) {
 		if (!Files.isRegularFile(usageFile)) {
 			return null;
 		}

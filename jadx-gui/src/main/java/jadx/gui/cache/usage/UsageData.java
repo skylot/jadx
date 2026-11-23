@@ -35,7 +35,11 @@ class UsageData implements IUsageInfoData {
 			String clsRawName = cls.getRawName();
 			ClsUsageData clsUsageData = clsMap.get(clsRawName);
 			if (clsUsageData != null) {
-				applyForClass(clsUsageData, cls);
+				try {
+					applyForClass(clsUsageData, cls);
+				} catch (Exception e) {
+					throw new JadxRuntimeException("Failed to apply usage data for class: " + clsRawName, e);
+				}
 			}
 		}
 	}

@@ -814,6 +814,11 @@ public class MainWindow extends JFrame implements IMainWindow {
 							} catch (Exception e) {
 								LOG.error("Failed to close code cache", e);
 							}
+							try {
+								jadx.getArgs().getUsageInfoCache().close();
+							} catch (Exception e) {
+								LOG.error("Failed to close usage cache", e);
+							}
 						});
 						Path cacheDir = project.getCacheDir();
 						project.resetCacheDir();

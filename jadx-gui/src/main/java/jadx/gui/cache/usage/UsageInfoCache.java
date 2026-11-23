@@ -18,7 +18,6 @@ public class UsageInfoCache implements IUsageInfoCache {
 	private final Path usageFile;
 	private final List<File> inputs;
 	private final InMemoryUsageInfoCache memCache = new InMemoryUsageInfoCache();
-	private @Nullable RawUsageData rawUsageData;
 
 	public UsageInfoCache(Path cacheDir, List<File> inputFiles) {
 		usageFile = cacheDir.resolve("usage");
@@ -32,9 +31,7 @@ public class UsageInfoCache implements IUsageInfoCache {
 			return memData;
 		}
 		synchronized (LOAD_DATA_SYNC) {
-			if (rawUsageData == null) {
-				rawUsageData = UsageFileAdapter.load(root, usageFile, inputs);
-			}
+			RawUsageData rawUsageData = UsageFileAdapter.load(root, usageFile, inputs);
 			if (rawUsageData != null) {
 				UsageData data = new UsageData(root, rawUsageData);
 				memCache.set(root, data);
@@ -52,7 +49,6 @@ public class UsageInfoCache implements IUsageInfoCache {
 
 	@Override
 	public void close() {
-		rawUsageData = null;
 		memCache.close();
 	}
 }

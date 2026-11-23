@@ -34,4 +34,9 @@ final class MthRef {
 	public int hashCode() {
 		return 31 * cls.hashCode() + shortId.hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return "MthRef{" + cls + '.' + shortId + '}';
+	}
 }

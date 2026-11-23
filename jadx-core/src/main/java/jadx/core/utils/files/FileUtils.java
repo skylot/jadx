@@ -14,6 +14,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +22,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -514,8 +514,11 @@ public class FileUtils {
 			data.write(inputPaths.size());
 			data.write(inputFiles.size());
 			for (Path inputFile : inputFiles) {
-				FileTime modifiedTime = Files.getLastModifiedTime(inputFile);
-				data.writeLong(modifiedTime.toMillis());
+				data.writeUTF(inputFile.toAbsolutePath().toString());
+				BasicFileAttributes fileAttributes = Files.readAttributes(inputFile, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+				data.writeLong(fileAttributes.lastModifiedTime().toMillis());
+				data.writeLong(fileAttributes.creationTime().toMillis());
+				data.writeLong(fileAttributes.size());
 			}
 			return FileUtils.md5Sum(bout.toByteArray());
 		} catch (Exception e) {
