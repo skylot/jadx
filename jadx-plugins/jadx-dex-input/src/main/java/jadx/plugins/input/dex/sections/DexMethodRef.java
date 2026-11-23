@@ -19,7 +19,14 @@ public class DexMethodRef implements IMethodRef {
 	private SectionReader sectionReader;
 
 	public void initUniqId(DexReader dexReader, int idx) {
-		this.uniqId = (dexReader.getUniqId() & 0xFFFF) << 16 | (idx & 0xFFFF);
+		int dexId = dexReader.getUniqId();
+		if (dexId > 0x7FFF) {
+			this.uniqId = 0;
+		} else {
+			// dex reader keep high bit to 0, while java reader set it to 1
+			// to prevents collisions if both type of code loaded
+			this.uniqId = (dexId & 0x7FFF) << 16 | idx & 0xFFFF;
+		}
 	}
 
 	@Override
