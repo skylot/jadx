@@ -7,15 +7,22 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import jadx.cli.config.JadxConfigAdapter;
 import jadx.commons.app.JadxCommonFiles;
+import jadx.gui.utils.NLS;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JadxSettingsVolatileTest {
+
+	@BeforeAll
+	static void init() {
+		NLS.setLocale(NLS.defaultLocale());
+	}
 
 	@Test
 	void testIndependentSyncAndReload(@TempDir Path tempDir) throws Exception {
