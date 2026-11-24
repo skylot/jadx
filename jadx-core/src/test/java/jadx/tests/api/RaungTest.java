@@ -41,6 +41,10 @@ public abstract class RaungTest extends IntegrationTest {
 		return getClassNodeFromFiles(Collections.singletonList(raungFile), clsName);
 	}
 
+	protected ClassNode getClassNodeFromRaungFiles() {
+		return searchCls(loadFromRaungFiles(), getTestPkg() + '.' + getTestName());
+	}
+
 	protected List<ClassNode> loadFromRaungFiles() {
 		jadxDecompiler = loadFiles(collectRaungFiles(getTestPkg(), getTestName()));
 		RootNode root = JadxInternalAccess.getRoot(jadxDecompiler);

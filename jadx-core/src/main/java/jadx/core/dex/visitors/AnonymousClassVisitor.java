@@ -10,8 +10,8 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -49,6 +49,7 @@ public class AnonymousClassVisitor extends AbstractVisitor {
 	}
 
 	private static void processAnonymousConstructor(MethodNode mth) {
+		ClassInfo outerCls = mth.getUseIn().get(0).getParentClass().getClassInfo();
 		List<InsnNode> usedInsns = new ArrayList<>();
 		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(mth, usedInsns);
 		if (argsMap.isEmpty()) {
@@ -60,11 +61,15 @@ public class AnonymousClassVisitor extends AbstractVisitor {
 					continue;
 				}
 				InsnArg arg = entry.getKey();
-				field.addAttr(new FieldReplaceAttr(arg));
+				if (field.getType().equals(outerCls.getType())) {
+					field.addAttr(new FieldReplaceAttr(outerCls));
+				} else {
+					field.addAttr(new FieldReplaceAttr(arg));
+				}
 				field.add(AFlag.DONT_GENERATE);
 				if (arg.isRegister()) {
 					arg.add(AFlag.SKIP_ARG);
-					SkipMethodArgsAttr.skipArg(mth, ((RegisterArg) arg));
+					SkipMethodArgsAttr.skipArg(mth, (RegisterArg) arg);
 				}
 			}
 		}
@@ -74,60 +79,50 @@ public class AnonymousClassVisitor extends AbstractVisitor {
 	}
 
 	private static Map<InsnArg, FieldNode> getArgsToFieldsMapping(MethodNode mth, List<InsnNode> usedInsns) {
-		MethodInfo callMth = mth.getMethodInfo();
 		ClassNode cls = mth.getParentClass();
-		List<RegisterArg> argList = mth.getArgRegs();
-		ClassNode outerCls = mth.getUseIn().get(0).getParentClass();
-		int startArg = 0;
-		if (callMth.getArgsCount() != 0 && callMth.getArgumentsTypes().get(0).equals(outerCls.getClassInfo().getType())) {
-			startArg = 1;
-		}
 		Map<InsnArg, FieldNode> map = new LinkedHashMap<>();
-		int argsCount = argList.size();
-		for (int i = startArg; i < argsCount; i++) {
-			RegisterArg arg = argList.get(i);
-			InsnNode useInsn = getParentInsnSkipMove(arg);
-			if (useInsn == null) {
-				return Collections.emptyMap();
-			}
-			switch (useInsn.getType()) {
-				case IPUT:
-					FieldNode fieldNode = cls.searchField((FieldInfo) ((IndexInsnNode) useInsn).getIndex());
-					if (fieldNode == null || !fieldNode.getAccessFlags().isSynthetic()) {
-						return Collections.emptyMap();
-					}
-					map.put(arg, fieldNode);
-					usedInsns.add(useInsn);
-					break;
+		for (RegisterArg arg : mth.getArgRegs()) {
+			for (InsnNode useInsn : getParentInsnsSkipMove(arg)) {
+				switch (useInsn.getType()) {
+					case IPUT:
+						FieldNode fieldNode = cls.searchField((FieldInfo) ((IndexInsnNode) useInsn).getIndex());
+						if (fieldNode == null || !fieldNode.getAccessFlags().isSynthetic()) {
+							// ignore normal fields
+						} else {
+							map.put(arg, fieldNode);
+							usedInsns.add(useInsn);
+						}
+						break;
 
-				case CONSTRUCTOR:
-					ConstructorInsn superConstr = (ConstructorInsn) useInsn;
-					if (!superConstr.isSuper()) {
-						return Collections.emptyMap();
-					}
-					usedInsns.add(useInsn);
-					break;
-
-				default:
-					return Collections.emptyMap();
+					case CONSTRUCTOR:
+						ConstructorInsn superCtr = (ConstructorInsn) useInsn;
+						if (superCtr.isSuper()) {
+							usedInsns.add(useInsn);
+						}
+						break;
+				}
 			}
 		}
 		return map;
 	}
 
-	private static InsnNode getParentInsnSkipMove(RegisterArg arg) {
+	private static List<InsnNode> getParentInsnsSkipMove(RegisterArg arg) {
 		SSAVar sVar = arg.getSVar();
-		if (sVar.getUseCount() != 1) {
-			return null;
+		if (sVar.getUseCount() == 0) {
+			return Collections.emptyList();
 		}
-		RegisterArg useArg = sVar.getUseList().get(0);
-		InsnNode parentInsn = useArg.getParentInsn();
-		if (parentInsn == null) {
-			return null;
+		List<InsnNode> usedInsns = new ArrayList<>(sVar.getUseCount());
+		for (RegisterArg useArg : sVar.getUseList()) {
+			InsnNode parentInsn = useArg.getParentInsn();
+			if (parentInsn == null) {
+				continue;
+			}
+			if (parentInsn.getType() == InsnType.MOVE) {
+				usedInsns.addAll(getParentInsnsSkipMove(parentInsn.getResult()));
+			} else {
+				usedInsns.add(parentInsn);
+			}
 		}
-		if (parentInsn.getType() == InsnType.MOVE) {
-			return getParentInsnSkipMove(parentInsn.getResult());
-		}
-		return parentInsn;
+		return usedInsns;
 	}
 }

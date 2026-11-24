@@ -25,10 +25,16 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 public class CallGraphExportJson {
 	private final ICallGraph callGraph;
+	private final boolean useAlias;
 	private final Gson gson;
 
 	public CallGraphExportJson(ICallGraph callGraph) {
+		this(callGraph, callGraph.isUseAlias());
+	}
+
+	public CallGraphExportJson(ICallGraph callGraph, boolean useAlias) {
 		this.callGraph = callGraph;
+		this.useAlias = useAlias;
 		this.gson = new GsonBuilder()
 				.disableJdkUnsafe()
 				.disableInnerClassSerialization()
@@ -74,7 +80,7 @@ public class CallGraphExportJson {
 		nodeMap.computeIfAbsent(cgNode.getId(), id -> {
 			Node node = new Node();
 			node.id = id;
-			node.method = cgNode.getMethodInfo().getRawFullId();
+			node.method = CallGraph.formatMethodId(cgNode, useAlias);
 			return node;
 		});
 	}

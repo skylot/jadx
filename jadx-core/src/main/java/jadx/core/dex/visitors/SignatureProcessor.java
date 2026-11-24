@@ -224,7 +224,7 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 	}
 
-	private List<ArgType> checkArgTypes(MethodNode mth, SignatureParser sp, List<ArgType> parsedArgTypes) {
+	private @Nullable List<ArgType> checkArgTypes(MethodNode mth, SignatureParser sp, List<ArgType> parsedArgTypes) {
 		MethodInfo mthInfo = mth.getMethodInfo();
 		List<ArgType> mthArgTypes = mthInfo.getArgumentsTypes();
 		int len = parsedArgTypes.size();
@@ -241,7 +241,8 @@ public class SignatureProcessor extends AbstractVisitor {
 					return newArgTypes;
 				}
 			}
-			mth.addDebugComment("Incorrect args count in method signature: " + sp.getSignature());
+			mth.addDebugComment("Incorrect args count in method signature: " + sp.getSignature()
+					+ ", method: " + mthInfo.getShortId());
 			return null;
 		}
 		for (int i = 0; i < len; i++) {

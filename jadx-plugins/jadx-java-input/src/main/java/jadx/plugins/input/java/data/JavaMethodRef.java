@@ -18,12 +18,14 @@ public class JavaMethodRef extends JavaMethodProto implements IMethodRef {
 
 	public void initUniqId(JavaClassReader clsReader, int id, boolean fromConstPool) {
 		int readerId = clsReader.getId();
-		if (readerId > 0xFFFF || id > 0x7FFF) {
-			// loaded more than 65535 classes or more than 32767 methods in this class -> disable caching
+		if (readerId > 0x7FFF || id > 0x7FFF) {
+			// loaded more than 32767 classes or more than 32767 methods in this class -> disable caching
 			this.uniqId = 0;
 		} else {
+			// dex reader keep high bit to 0, while java reader set it to 1
+			// to prevents collisions if both type of code loaded
 			int source = fromConstPool ? 0 : 0x8000;
-			this.uniqId = (readerId & 0xFFFF) << 16 | source | id & 0x7FFF;
+			this.uniqId = 0x1 << 31 | (readerId & 0x7FFF) << 16 | source | id & 0x7FFF;
 		}
 	}
 

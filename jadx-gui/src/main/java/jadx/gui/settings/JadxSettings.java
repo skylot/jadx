@@ -5,8 +5,11 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import jadx.api.CommentsLevel;
 import jadx.api.DecompilationMode;
@@ -50,21 +54,51 @@ public class JadxSettings {
 	private static final int RECENT_PROJECTS_COUNT = 30;
 
 	private final JadxConfigAdapter<JadxSettingsData> configAdapter;
+	private final JadxConfigAdapter<JadxVolatileSettingsData> volatileConfigAdapter;
 	private final Object dataWriteSync = new Object();
+	private final Object volatileWriteSync = new Object();
 	private final ShortcutsWrapper shortcutsWrapper = new ShortcutsWrapper();
 	private final FontSettings fontSettings = new FontSettings();
 
 	private JadxSettingsData settingsData;
+	private JadxVolatileSettingsData volatileSettingsData = new JadxVolatileSettingsData();
+	private boolean volatileLoaded;
 
 	public JadxSettings(JadxConfigAdapter<JadxSettingsData> configAdapter) {
+		this(configAdapter, buildDefaultVolatileConfigAdapter(configAdapter.getConfigPath() != null));
+	}
+
+	public JadxSettings(
+			JadxConfigAdapter<JadxSettingsData> configAdapter,
+			JadxConfigAdapter<JadxVolatileSettingsData> volatileConfigAdapter) {
 		this.configAdapter = configAdapter;
+		this.volatileConfigAdapter = volatileConfigAdapter;
 	}
 
 	public static JadxConfigAdapter<JadxSettingsData> buildConfigAdapter() {
-		return new JadxConfigAdapter<>(JadxSettingsData.class, "gui", gsonBuilder -> {
-			gsonBuilder.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton());
-			gsonBuilder.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton());
-		});
+		return new JadxConfigAdapter<>(JadxSettingsData.class, "gui", JadxSettings::registerTypeAdapters);
+	}
+
+	public static JadxConfigAdapter<JadxVolatileSettingsData> buildVolatileConfigAdapter() {
+		return new JadxConfigAdapter<>(JadxVolatileSettingsData.class, "gui-volatile", JadxSettings::registerTypeAdapters);
+	}
+
+	private static JadxConfigAdapter<JadxVolatileSettingsData> buildDefaultVolatileConfigAdapter(boolean initConfigPath) {
+		JadxConfigAdapter<JadxVolatileSettingsData> adapter = buildVolatileConfigAdapter();
+		if (initConfigPath) {
+			adapter.useConfigRef("");
+		}
+		return adapter;
+	}
+
+	private static void registerTypeAdapters(GsonBuilder gsonBuilder) {
+		gsonBuilder.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton());
+		gsonBuilder.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton());
+	}
+
+	@Nullable
+	Path getVolatileConfigPath() {
+		return volatileConfigAdapter.getConfigPath();
 	}
 
 	public String getSettingsJsonString() {
@@ -77,11 +111,71 @@ public class JadxSettings {
 
 	public void loadSettingsData(JadxSettingsData settingsData) {
 		this.settingsData = settingsData;
-		upgradeSettings(settingsData.getSettingsVersion());
 		fixOnLoad();
+		if (!volatileLoaded) {
+			volatileLoaded = true;
+			loadVolatileSettings();
+		}
+		upgradeSettings(settingsData.getSettingsVersion());
 		// update custom fields
 		shortcutsWrapper.updateShortcuts(settingsData.getShortcuts());
 		fontSettings.bindData(settingsData);
+	}
+
+	private void loadVolatileSettings() {
+		Path volatilePath = volatileConfigAdapter.getConfigPath();
+		if (volatilePath == null) {
+			volatileSettingsData = new JadxVolatileSettingsData();
+			return;
+		}
+		if (Files.isRegularFile(volatilePath)) {
+			try {
+				JadxVolatileSettingsData loaded = volatileConfigAdapter.load();
+				volatileSettingsData = loaded != null ? loaded : new JadxVolatileSettingsData();
+			} catch (Exception e) {
+				LOG.warn("Failed to load volatile settings file: {}", volatilePath, e);
+				volatileSettingsData = new JadxVolatileSettingsData();
+			}
+			fixVolatileOnLoad();
+			return;
+		}
+		// Volatile config not found: migrate from base config if present
+		Path baseConfigPath = configAdapter.getConfigPath();
+		if (baseConfigPath != null && Files.isRegularFile(baseConfigPath)) {
+			try {
+				JadxConfigAdapter<JadxVolatileSettingsData> tempAdapter = buildVolatileConfigAdapter();
+				tempAdapter.useConfigRef(baseConfigPath.toAbsolutePath().toString());
+				JadxVolatileSettingsData migrated = tempAdapter.load();
+				if (migrated != null) {
+					volatileSettingsData = migrated;
+					fixVolatileOnLoad();
+					syncVolatile();
+					sync();
+					return;
+				}
+			} catch (Exception e) {
+				LOG.warn("Failed to migrate volatile settings from: {}", baseConfigPath, e);
+			}
+		}
+		volatileSettingsData = new JadxVolatileSettingsData();
+	}
+
+	private void fixVolatileOnLoad() {
+		if (volatileSettingsData.getRecentProjects() == null) {
+			volatileSettingsData.setRecentProjects(new ArrayList<>());
+		}
+		if (volatileSettingsData.getWindowPos() == null) {
+			volatileSettingsData.setWindowPos(new HashMap<>());
+		}
+		if (volatileSettingsData.getLastOpenFilePath() == null) {
+			volatileSettingsData.setLastOpenFilePath(JadxVolatileSettingsData.USER_HOME);
+		}
+		if (volatileSettingsData.getLastSaveFilePath() == null) {
+			volatileSettingsData.setLastSaveFilePath(JadxVolatileSettingsData.USER_HOME);
+		}
+		if (volatileSettingsData.getLastSaveProjectPath() == null) {
+			volatileSettingsData.setLastSaveProjectPath(JadxVolatileSettingsData.USER_HOME);
+		}
 	}
 
 	private void upgradeSettings(int fromVersion) {
@@ -113,8 +207,23 @@ public class JadxSettings {
 
 	public void sync() {
 		synchronized (dataWriteSync) {
-			configAdapter.save(settingsData);
+			if (configAdapter.getConfigPath() != null) {
+				configAdapter.save(settingsData);
+			}
 		}
+	}
+
+	public void syncVolatile() {
+		synchronized (volatileWriteSync) {
+			if (volatileConfigAdapter.getConfigPath() != null) {
+				volatileConfigAdapter.save(volatileSettingsData);
+			}
+		}
+	}
+
+	public void syncAll() {
+		sync();
+		syncVolatile();
 	}
 
 	public String exportSettingsString() {
@@ -148,27 +257,27 @@ public class JadxSettings {
 	}
 
 	public Path getLastOpenFilePath() {
-		return settingsData.getLastOpenFilePath();
+		return volatileSettingsData.getLastOpenFilePath();
 	}
 
 	public void setLastOpenFilePath(Path lastOpenFilePath) {
-		settingsData.setLastOpenFilePath(lastOpenFilePath);
+		volatileSettingsData.setLastOpenFilePath(lastOpenFilePath);
 	}
 
 	public Path getLastSaveProjectPath() {
-		return settingsData.getLastSaveProjectPath();
+		return volatileSettingsData.getLastSaveProjectPath();
 	}
 
 	public void setLastSaveProjectPath(Path lastSaveProjectPath) {
-		settingsData.setLastSaveProjectPath(lastSaveProjectPath);
+		volatileSettingsData.setLastSaveProjectPath(lastSaveProjectPath);
 	}
 
 	public Path getLastSaveFilePath() {
-		return settingsData.getLastSaveFilePath();
+		return volatileSettingsData.getLastSaveFilePath();
 	}
 
 	public void setLastSaveFilePath(Path lastSaveFilePath) {
-		settingsData.setLastSaveFilePath(lastSaveFilePath);
+		volatileSettingsData.setLastSaveFilePath(lastSaveFilePath);
 	}
 
 	public boolean isFlattenPackage() {
@@ -197,14 +306,14 @@ public class JadxSettings {
 	}
 
 	public List<Path> getRecentProjects() {
-		return Collections.unmodifiableList(settingsData.getRecentProjects());
+		return Collections.unmodifiableList(volatileSettingsData.getRecentProjects());
 	}
 
 	public void addRecentProject(@Nullable Path projectPath) {
 		if (projectPath == null) {
 			return;
 		}
-		List<Path> recentProjects = settingsData.getRecentProjects();
+		List<Path> recentProjects = volatileSettingsData.getRecentProjects();
 		Path normPath = projectPath.toAbsolutePath().normalize();
 		recentProjects.remove(normPath);
 		recentProjects.add(0, normPath);
@@ -215,7 +324,7 @@ public class JadxSettings {
 	}
 
 	public void removeRecentProject(Path projectPath) {
-		List<Path> recentProjects = settingsData.getRecentProjects();
+		List<Path> recentProjects = volatileSettingsData.getRecentProjects();
 		recentProjects.remove(projectPath);
 	}
 
@@ -228,18 +337,18 @@ public class JadxSettings {
 		if (window == null) {
 			return;
 		}
-		synchronized (dataWriteSync) {
+		synchronized (volatileWriteSync) {
 			Rectangle bounds = window.getBounds();
 			if (bounds != null) {
 				WindowLocation pos = new WindowLocation(makeWindowId(window), bounds);
-				settingsData.getWindowPos().put(pos.getWindowId(), pos);
+				volatileSettingsData.getWindowPos().put(pos.getWindowId(), pos);
 			}
 		}
 	}
 
 	public boolean loadWindowPos(Window window) {
 		String windowId = makeWindowId(window);
-		WindowLocation pos = settingsData.getWindowPos().get(windowId);
+		WindowLocation pos = volatileSettingsData.getWindowPos().get(windowId);
 		if (pos == null) {
 			return false;
 		}
@@ -266,11 +375,11 @@ public class JadxSettings {
 	}
 
 	public int getMainWindowExtendedState() {
-		return settingsData.getMainWindowExtendedState();
+		return volatileSettingsData.getMainWindowExtendedState();
 	}
 
 	public void setMainWindowExtendedState(int mainWindowExtendedState) {
-		settingsData.setMainWindowExtendedState(mainWindowExtendedState);
+		volatileSettingsData.setMainWindowExtendedState(mainWindowExtendedState);
 	}
 
 	public boolean isShowHeapUsageBar() {

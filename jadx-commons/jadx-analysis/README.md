@@ -14,8 +14,10 @@ try (JadxDecompiler jadx = new JadxDecompiler(args)) {
   jadx.load();
 
   ICallGraph callGraph = JadxCallGraph.builder(jadx)
-    .includePackages("com.example") // filter nodes by package
+    .includePackages("com.example") // filter nodes by package (can be called multiple times or with a Collection)
+    .excludePackages("com.example.vendor") // exclude nodes by package prefix
     .resolvedOnly(true) // add nodes only from app (exclude framework/lib calls)
+    .useAlias(false) // emit deobfuscated/aliased class & method names instead of raw IDs
     .build();
 
   for (ICallGraphEdge edge : callGraph.edges()) {
@@ -26,4 +28,15 @@ try (JadxDecompiler jadx = new JadxDecompiler(args)) {
   callGraph.writeDot(Path.of("test.dot")); // export to '.dot'
   callGraph.writeJson(Path.of("test.json")); // export to JSON
 }
+```
+
+CLI plugin options (provided by `jadx-call-graph` plugin):
+```bash
+jadx --no-src --no-res -d out \
+  -Pcall-graph.format=json \
+  -Pcall-graph.unresolved=true \
+  -Pcall-graph.includePackages=com.example \
+  -Pcall-graph.excludePackages=com.example.vendor \
+  -Pcall-graph.useAlias=true \
+  input.apk
 ```

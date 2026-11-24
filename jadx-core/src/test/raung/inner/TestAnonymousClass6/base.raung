@@ -1,0 +1,28 @@
+.version 52  # Java 8
+.class public super inner/TestAnonymousClass6
+
+.method public <init>()V
+    .max stack 1
+    .max locals 1
+
+    .local 0 "this" Linner/TestAnonymousClass6;
+    .line 16
+    aload 0
+    invokespecial java/lang/Object <init> ()V
+    return
+.end method
+
+.method public test(D)Ljava/lang/Runnable;
+    .max stack 5
+    .max locals 3
+
+    .local 0 "this" Linner/TestAnonymousClass6;
+    .local 1 "d" D
+    .line 18
+    new inner/TestAnonymousClass6$1
+    dup
+    aload 0
+    dload 1
+    invokespecial inner/TestAnonymousClass6$1 <init> (Linner/TestAnonymousClass6;D)V
+    areturn
+.end method

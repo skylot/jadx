@@ -814,6 +814,11 @@ public class MainWindow extends JFrame implements IMainWindow {
 							} catch (Exception e) {
 								LOG.error("Failed to close code cache", e);
 							}
+							try {
+								jadx.getArgs().getUsageInfoCache().close();
+							} catch (Exception e) {
+								LOG.error("Failed to close usage cache", e);
+							}
 						});
 						Path cacheDir = project.getCacheDir();
 						project.resetCacheDir();
@@ -1672,7 +1677,7 @@ public class MainWindow extends JFrame implements IMainWindow {
 				}
 				UiUtils.uiRunAndWait(docking::saveLayout);
 				// block UI thread to avoid settings data changes during sync
-				UiUtils.uiRunAndWait(settings::sync);
+				UiUtils.uiRunAndWait(settings::syncAll);
 
 				closeAll();
 				guiPluginsManager.runGlobalUnload();

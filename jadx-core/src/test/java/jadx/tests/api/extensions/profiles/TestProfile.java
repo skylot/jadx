@@ -40,6 +40,14 @@ public enum TestProfile implements Consumer<IntegrationTest> {
 		test.useTargetJavaVersion(17);
 		test.useJavaInput();
 	}),
+	JAVA21("java-21", test -> {
+		test.useTargetJavaVersion(21);
+		test.useJavaInput();
+	}),
+	JAVA25("java-25", test -> {
+		test.useTargetJavaVersion(25);
+		test.useJavaInput();
+	}),
 	ECJ_DX_J8("ecj-dx-j8", test -> {
 		test.useEclipseCompiler();
 		test.useTargetJavaVersion(8);

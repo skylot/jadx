@@ -1,6 +1,8 @@
 package jadx.gui;
 
 import java.awt.Desktop;
+import java.awt.Toolkit;
+import java.lang.reflect.Field;
 
 import javax.swing.SwingUtilities;
 
@@ -56,6 +58,21 @@ public class JadxGUI {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
 			System.setProperty("apple.awt.application.name", "jadx-gui");
 			System.setProperty("apple.awt.application.appearance", "system");
+		} else if (JadxSystemInfo.IS_LINUX) {
+			setLinuxAppClassName("com.github.skylot.jadx");
+		}
+	}
+
+	private static void setLinuxAppClassName(String appId) {
+		try {
+			Toolkit toolkit = Toolkit.getDefaultToolkit();
+			if ("sun.awt.X11.XToolkit".equals(toolkit.getClass().getName())) {
+				Field awtAppClassNameField = toolkit.getClass().getDeclaredField("awtAppClassName");
+				awtAppClassNameField.setAccessible(true);
+				awtAppClassNameField.set(toolkit, appId);
+			}
+		} catch (Exception e) {
+			LOG.debug("Failed to set Linux AWT app class name", e);
 		}
 	}
 
