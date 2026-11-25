@@ -22,7 +22,8 @@ public class FontSettings {
 
 	static {
 		if (JadxSystemInfo.IS_MAC) {
-			// workaround: bundled fonts don't support CJK chars (and composite fonts?) on macOS
+			// Workaround (#2856): bundled fonts registered via GraphicsEnvironment.registerFont()
+			// lack macOS CoreText CJK fallback cascade; use native macOS fonts instead.
 		} else {
 			FlatInterFont.install();
 			FlatJetBrainsMonoFont.install();
@@ -38,14 +39,13 @@ public class FontSettings {
 	private boolean applyUiZoomToFonts;
 
 	public FontSettings() {
+		int defFontSize = 13;
 		Font defUiFont;
 		Font defCodeFont;
 		if (JadxSystemInfo.IS_MAC) {
-			Font defaultFont = new JLabel().getFont();
-			defUiFont = defaultFont;
-			defCodeFont = defaultFont;
+			defUiFont = new JLabel().getFont();
+			defCodeFont = getCompositeFont(Font.MONOSPACED, Font.PLAIN, defFontSize);
 		} else {
-			int defFontSize = 13;
 			defUiFont = getCompositeFont(FlatInterFont.FAMILY, Font.PLAIN, defFontSize);
 			defCodeFont = getCompositeFont(FlatJetBrainsMonoFont.FAMILY, Font.PLAIN, defFontSize);
 		}
@@ -68,6 +68,13 @@ public class FontSettings {
 		Font defaultFont = UIManager.getFont("defaultFont");
 		if (defaultFont != null) {
 			uiFontAdapter.setDefaultFont(defaultFont);
+		}
+		if (JadxSystemInfo.IS_MAC) {
+			Font monoFont = UIManager.getFont("monospaced.font");
+			if (monoFont != null) {
+				codeFontAdapter.setDefaultFont(monoFont);
+				smaliFontAdapter.setDefaultFont(monoFont);
+			}
 		}
 	}
 
