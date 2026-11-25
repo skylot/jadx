@@ -2,6 +2,7 @@ package jadx.gui.ui.codearea;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -413,12 +414,15 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
-		JadxSettings settings = mainWindow.getSettings();
+		loadCommonSettings(mainWindow, area, mainWindow.getSettings().getCodeFont());
+	}
+
+	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area, Font font) {
 		mainWindow.getEditorThemeManager().apply(area);
-		area.setFont(settings.getCodeFont());
+		area.setFont(font);
 		Gutter gutter = RSyntaxUtilities.getGutter(area);
 		if (gutter != null) {
-			gutter.setLineNumberFont(settings.getCodeFont());
+			gutter.setLineNumberFont(font);
 		}
 	}
 

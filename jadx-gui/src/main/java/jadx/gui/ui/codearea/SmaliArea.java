@@ -41,6 +41,7 @@ import jadx.gui.jobs.LoadTask;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncee;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncer;
 import jadx.gui.ui.codearea.sync.CodeAreaSyncerAbstractFactory;
@@ -65,7 +66,7 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 		super(contentPanel, node);
 		setCodeFoldingEnabled(true);
 		this.textNode = new TextNode(node.getName());
-		this.model = showBytecode ? new DebugModel() : new NormalModel(this);
+		this.model = showBytecode ? new DebugModel() : new NormalModel();
 		setUnLoaded();
 		load();
 	}
@@ -110,6 +111,12 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 	}
 
 	@Override
+	public void loadSettings() {
+		MainWindow mainWindow = contentPanel.getMainWindow();
+		loadCommonSettings(mainWindow, this, mainWindow.getSettings().getSmaliFont());
+	}
+
+	@Override
 	public Font getFont() {
 		if (model == null || isDisposed()) {
 			return super.getFont();
@@ -119,7 +126,10 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 
 	@Override
 	public Font getFontForTokenType(int type) {
-		return getFont();
+		if (model == null || isDisposed()) {
+			return super.getFontForTokenType(type);
+		}
+		return model.getFontForTokenType(type);
 	}
 
 	private abstract class SmaliModel {
@@ -145,8 +155,7 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 	}
 
 	private class NormalModel extends SmaliModel {
-		private NormalModel(SmaliArea smaliArea) {
-			getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
+		private NormalModel() {
 			setSyntaxEditingStyle(SYNTAX_STYLE_SMALI);
 		}
 
@@ -169,7 +178,7 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 		private KeyStroke bpShortcut;
 		private Gutter gutter;
 		private Object runningHighlightTag = null; // running line
-		private final SmaliV2Style smaliV2Style = new SmaliV2Style(SmaliArea.this);
+		private final SmaliV2Style smaliV2Style = new SmaliV2Style();
 		private final Map<Integer, BreakpointLine> bpMap = new HashMap<>();
 		private final PropertyChangeListener schemeListener = evt -> {
 			if (smaliV2Style.refreshTheme()) {
@@ -195,7 +204,7 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 				gutter = RSyntaxUtilities.getGutter(SmaliArea.this);
 				gutter.setBookmarkingEnabled(true);
 				gutter.setIconRowHeaderInheritsGutterBackground(true);
-				Font baseFont = SmaliArea.super.getFont();
+				Font baseFont = getFont();
 				gutter.setLineNumberFont(baseFont.deriveFont(baseFont.getSize2D() - 1.0f));
 			}
 			setText(code);
@@ -292,9 +301,8 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 		}
 
 		private class SmaliV2Style extends SyntaxScheme {
-			public SmaliV2Style(SmaliArea smaliArea) {
+			public SmaliV2Style() {
 				super(true);
-				smaliArea.getContentPanel().getMainWindow().getEditorThemeManager().apply(smaliArea);
 				updateTheme();
 			}
 
