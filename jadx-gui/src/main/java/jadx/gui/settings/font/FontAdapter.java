@@ -43,7 +43,7 @@ public class FontAdapter {
 		defaultFont = newDefFont;
 		if (font == prevDefaultFont) {
 			// font was set to default => update it also
-			setFont(newDefFont);
+			setFont(null);
 		}
 	}
 
