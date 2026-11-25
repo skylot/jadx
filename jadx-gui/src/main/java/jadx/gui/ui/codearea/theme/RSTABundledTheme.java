@@ -3,6 +3,7 @@ package jadx.gui.ui.codearea.theme;
 import java.io.InputStream;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,11 @@ public class RSTABundledTheme implements IEditorTheme {
 	@Override
 	public void apply(RSyntaxTextArea textArea) {
 		loadedTheme.apply(textArea);
+		SyntaxScheme scheme = textArea.getSyntaxScheme();
+		if (scheme != null) {
+			// Clone shared theme scheme so per-area font updates do not mutate loadedTheme.scheme
+			textArea.setSyntaxScheme((SyntaxScheme) scheme.clone());
+		}
 	}
 
 	@Override
