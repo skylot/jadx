@@ -160,22 +160,22 @@ public class AnnotationGen {
 				code.add(stringUtils.formatByte((Byte) value, false));
 				break;
 			case ENCODED_SHORT:
-				code.add(stringUtils.formatShort((Short) value, false));
+				code.add(classGen.useLiteral(stringUtils.formatShort((Short) value, false)));
 				break;
 			case ENCODED_CHAR:
 				code.add(stringUtils.unescapeChar((Character) value));
 				break;
 			case ENCODED_INT:
-				code.add(stringUtils.formatInteger((Integer) value, false));
+				code.add(classGen.useLiteral(stringUtils.formatInteger((Integer) value, false)));
 				break;
 			case ENCODED_LONG:
-				code.add(stringUtils.formatLong((Long) value, false));
+				code.add(classGen.useLiteral(stringUtils.formatLong((Long) value, false)));
 				break;
 			case ENCODED_FLOAT:
-				code.add(StringUtils.formatFloat((Float) value));
+				code.add(classGen.useLiteral(StringUtils.formatFloat((Float) value)));
 				break;
 			case ENCODED_DOUBLE:
-				code.add(StringUtils.formatDouble((Double) value));
+				code.add(classGen.useLiteral(StringUtils.formatDouble((Double) value)));
 				break;
 			case ENCODED_STRING:
 				code.add(stringUtils.unescapeString((String) value));

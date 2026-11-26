@@ -19,16 +19,19 @@ import jadx.core.dex.nodes.MethodNode;
 public class NameGen {
 	private final MethodNode mth;
 	private final boolean fallback;
+	private final boolean collecting;
 	private final Set<String> varNames = new HashSet<>();
 
 	public NameGen(MethodNode mth, ClassGen classGen) {
 		this.mth = mth;
 		this.fallback = classGen.isFallbackMode();
+		this.collecting = classGen.isCollectingNames();
 		NameGen outerNameGen = classGen.getOuterNameGen();
 		if (outerNameGen != null) {
 			inheritUsedNames(outerNameGen);
 		}
 		addNamesUsedInClass();
+		varNames.addAll(classGen.getReservedNames());
 	}
 
 	public void inheritUsedNames(NameGen otherNameGen) {
@@ -45,11 +48,12 @@ public class NameGen {
 		for (ClassNode innerClass : parentClass.getInnerClasses()) {
 			varNames.add(innerClass.getClassInfo().getAliasShortName());
 		}
-		// add all root package names to avoid collisions with full class names
-		varNames.addAll(mth.root().getCacheStorage().getRootPkgs());
 	}
 
 	public String assignArg(CodeVar var) {
+		if (collecting) {
+			return makeArgName(var);
+		}
 		if (fallback) {
 			return getFallbackName(var);
 		}
@@ -63,7 +67,7 @@ public class NameGen {
 
 	public String assignNamedArg(NamedArg arg) {
 		String name = arg.getName();
-		if (fallback) {
+		if (fallback || collecting) {
 			return name;
 		}
 		String uniqName = getUniqueVarName(name);
