@@ -166,6 +166,7 @@ launch4j {
 	copyConfigurable.set(listOf<Any>())
 	dontWrapJar.set(true)
 	icon.set("$projectDir/dist/windows/jadx-logo.ico")
+	manifest.set("$projectDir/dist/windows/jadx-gui.manifest")
 	outfile.set("jadx-gui-$jadxVersion.exe")
 	version.set(jadxVersion)
 	copyright.set("Skylot")
@@ -176,6 +177,16 @@ launch4j {
 	requires64Bit.set(true)
 	downloadUrl.set("https://www.oracle.com/java/technologies/downloads/#jdk21-windows")
 	supportUrl.set("https://github.com/skylot/jadx")
+	messagesStartupError.set(
+		"An error occurred while starting jadx-gui. " +
+			"If jadx is in a folder with special or Unicode characters in its path, " +
+			"try moving it to a plain ASCII path or using the MSI installer.",
+	)
+	messagesJreNotFoundError.set(
+		"This application requires a Java Runtime Environment (or its bundled JRE could not be found). " +
+			"If jadx is in a folder with special or Unicode characters in its path, " +
+			"try moving it to a plain ASCII path or using the MSI installer.",
+	)
 
 	bundledJrePath.set(if (project.hasProperty("bundleJRE")) "%EXEDIR%/jre" else "%JAVA_HOME%")
 	classpath.set(
