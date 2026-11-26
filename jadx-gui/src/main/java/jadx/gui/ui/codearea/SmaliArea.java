@@ -116,36 +116,12 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 		loadCommonSettings(mainWindow, this, mainWindow.getSettings().getSmaliFont());
 	}
 
-	@Override
-	public Font getFont() {
-		if (model == null || isDisposed()) {
-			return super.getFont();
-		}
-		return model.getFont();
-	}
-
-	@Override
-	public Font getFontForTokenType(int type) {
-		if (model == null || isDisposed()) {
-			return super.getFontForTokenType(type);
-		}
-		return model.getFontForTokenType(type);
-	}
-
 	private abstract class SmaliModel {
 		abstract String loadCode();
 
 		abstract void loadUI(String code);
 
 		abstract void unload();
-
-		Font getFont() {
-			return SmaliArea.super.getFont();
-		}
-
-		Font getFontForTokenType(int type) {
-			return SmaliArea.super.getFontForTokenType(type);
-		}
 
 		void setBreakpoint(int off) {
 		}
@@ -219,16 +195,6 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 			UiUtils.removeKeyBinding(SmaliArea.this, bpShortcut, "set a break point");
 			BreakpointManager.removeListener((JClass) node);
 			bpMap.forEach((k, v) -> v.remove());
-		}
-
-		@Override
-		public Font getFont() {
-			return smaliV2Style.getFont();
-		}
-
-		@Override
-		public Font getFontForTokenType(int type) {
-			return smaliV2Style.getFont();
 		}
 
 		private void loadV2Style() {
@@ -306,10 +272,6 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 				updateTheme();
 			}
 
-			public Font getFont() {
-				return getContentPanel().getMainWindow().getSettings().getSmaliFont();
-			}
-
 			public boolean refreshTheme() {
 				boolean refresh = getSyntaxScheme() != this;
 				if (refresh) {
@@ -326,8 +288,7 @@ public final class SmaliArea extends AbstractCodeArea implements CodeAreaSyncerA
 					if (mainStyle == null) {
 						styles[i] = new Style();
 					} else {
-						// font will be hijacked by getFont & getFontForTokenType,
-						// so it doesn't need to be set here.
+						// Leave style font null so RSyntaxTextArea falls back to the area font (smaliFont).
 						styles[i] = new Style(mainStyle.foreground, mainStyle.background, null);
 					}
 				}

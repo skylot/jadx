@@ -112,6 +112,34 @@ class SmaliAreaFontTest {
 			assertThat(debugArea.getFont().getFamily()).isEqualTo(smaliFont.getFamily());
 			assertThat(debugArea.getFont().getSize()).isEqualTo(smaliFont.getSize());
 			assertTokenFontsMatchMetrics(debugArea, smaliFont);
+
+			debugArea.loadSettings();
+			assertThat(debugArea.getFont().getFamily()).isEqualTo(smaliFont.getFamily());
+			assertThat(debugArea.getFont().getSize()).isEqualTo(smaliFont.getSize());
+			assertTokenFontsMatchMetrics(debugArea, smaliFont);
+
+			// Updating smaliFont and editor theme should update both models consistently
+			Font updatedSmaliFont = FontUtils.getCompositeFont(Font.MONOSPACED, Font.PLAIN, 20);
+			settings.setSmaliFont(updatedSmaliFont);
+			themeManager.setTheme("RSTA:dark");
+
+			normalArea.loadSettings();
+			assertThat(normalArea.getFont().getFamily()).isEqualTo(updatedSmaliFont.getFamily());
+			assertThat(normalArea.getFont().getSize()).isEqualTo(updatedSmaliFont.getSize());
+			assertTokenFontsMatchMetrics(normalArea, updatedSmaliFont);
+
+			debugArea.loadSettings();
+			assertThat(debugArea.getFont().getFamily()).isEqualTo(updatedSmaliFont.getFamily());
+			assertThat(debugArea.getFont().getSize()).isEqualTo(updatedSmaliFont.getSize());
+			assertTokenFontsMatchMetrics(debugArea, updatedSmaliFont);
+
+			// Calling font getters after dispose() should safely return non-null fonts
+			normalArea.dispose();
+			debugArea.dispose();
+			assertThat(normalArea.getFont()).isNotNull();
+			assertThat(normalArea.getFontForTokenType(TokenTypes.RESERVED_WORD)).isNotNull();
+			assertThat(debugArea.getFont()).isNotNull();
+			assertThat(debugArea.getFontForTokenType(TokenTypes.RESERVED_WORD)).isNotNull();
 		}
 	}
 
