@@ -1,0 +1,129 @@
+.version 50
+.class public super conditions/TestOutBlock2
+.super java/lang/Object
+.auto frames
+
+.field public static count I
+.field public static hash I
+
+.method public <init>()V
+    aload 0
+    invokespecial java/lang/Object <init> ()V
+    return
+.end method
+
+.method public static f(ZZI)V
+    iload 0
+    ifne :NOPIC
+    bipush 10
+    istore 3
+    iload 2
+    istore 4
+    iload 1
+    ifeq :TAIL
+    bipush 30
+    istore 3
+    goto :AFTER
+  :NOPIC
+    bipush 20
+    istore 3
+  :AFTER
+    iconst_0
+    istore 4
+  :TAIL
+    iload 4
+    ifeq :T2
+    iload 3
+    invokestatic conditions/TestOutBlock2 sink (I)V
+    goto :T3
+  :T2
+    iload 3
+    ineg
+    invokestatic conditions/TestOutBlock2 sink (I)V
+  :T3
+    iload 3
+    invokestatic conditions/TestOutBlock2 sink (I)V
+    return
+.end method
+
+.method public static sink(I)V
+    getstatic conditions/TestOutBlock2 count I
+    iconst_1
+    iadd
+    putstatic conditions/TestOutBlock2 count I
+    getstatic conditions/TestOutBlock2 hash I
+    bipush 31
+    imul
+    iload 0
+    iadd
+    putstatic conditions/TestOutBlock2 hash I
+    return
+.end method
+
+.method public static run(ZZI)I
+    iconst_0
+    putstatic conditions/TestOutBlock2 count I
+    iconst_0
+    putstatic conditions/TestOutBlock2 hash I
+    iload 0
+    iload 1
+    iload 2
+    invokestatic conditions/TestOutBlock2 f (ZZI)V
+    getstatic conditions/TestOutBlock2 count I
+    sipush 10000
+    imul
+    getstatic conditions/TestOutBlock2 hash I
+    iadd
+    ireturn
+.end method
+
+.method private static assertEq(II)V
+    iload 0
+    iload 1
+    if_icmpeq :OK
+    new java/lang/AssertionError
+    dup
+    iload 0
+    invokespecial java/lang/AssertionError <init> (I)V
+    athrow
+  :OK
+    return
+.end method
+
+.method public check()V
+    iconst_0
+    iconst_0
+    iconst_5
+    invokestatic conditions/TestOutBlock2 run (ZZI)I
+    sipush 20320
+    invokestatic conditions/TestOutBlock2 assertEq (II)V
+
+    iconst_0
+    iconst_0
+    iconst_0
+    invokestatic conditions/TestOutBlock2 run (ZZI)I
+    sipush 19700
+    invokestatic conditions/TestOutBlock2 assertEq (II)V
+
+    iconst_0
+    iconst_1
+    iconst_5
+    invokestatic conditions/TestOutBlock2 run (ZZI)I
+    sipush 19100
+    invokestatic conditions/TestOutBlock2 assertEq (II)V
+
+    iconst_1
+    iconst_0
+    iconst_5
+    invokestatic conditions/TestOutBlock2 run (ZZI)I
+    sipush 19400
+    invokestatic conditions/TestOutBlock2 assertEq (II)V
+
+    iconst_1
+    iconst_1
+    iconst_5
+    invokestatic conditions/TestOutBlock2 run (ZZI)I
+    sipush 19400
+    invokestatic conditions/TestOutBlock2 assertEq (II)V
+    return
+.end method
