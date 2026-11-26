@@ -51,7 +51,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import jadx.api.JavaClass;
-import jadx.api.JavaPackage;
 import jadx.api.resources.ResourceContentType;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.utils.ListUtils;
@@ -434,7 +433,7 @@ public class SearchDialog extends CommonSearchDialog {
 		}
 		int max = 1;
 		for (PackageNode pkg : mainWindow.getWrapper().getRootNode().getPackages()) {
-			int len = pkg.getPkgInfo().getFullName().length();
+			int len = Math.max(pkg.getPkgInfo().getFullName().length(), pkg.getAliasPkgInfo().getFullName().length());
 			if (len > max) {
 				max = len;
 			}
@@ -639,8 +638,7 @@ public class SearchDialog extends CommonSearchDialog {
 			searchClasses = includedClsCache.get(mainWindow.getSettings().getExcludedPackages(),
 					exc -> mainWindow.getWrapper().getIncludedClassesWithInners());
 		}
-		JavaPackage searchPkg = searchSettings.getSearchPackage();
-		if (searchPkg != null) {
+		if (searchSettings.hasSearchPackage()) {
 			searchClasses = searchClasses.stream()
 					.filter(searchSettings::isInSearchPkg)
 					.collect(Collectors.toList());
