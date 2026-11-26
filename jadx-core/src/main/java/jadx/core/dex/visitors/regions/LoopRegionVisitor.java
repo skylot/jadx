@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
@@ -58,6 +59,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	@Override
 	public boolean enterRegion(MethodNode mth, IRegion region) {
+		if (mth.isNoCode()) {
+			return false;
+		}
 		if (region instanceof LoopRegion) {
 			if (processLoopRegion(mth, (LoopRegion) region)) {
 				// optimize `if` block after instructions remove
@@ -69,6 +73,11 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	private static boolean processLoopRegion(MethodNode mth, LoopRegion loopRegion) {
 		if (loopRegion.isConditionAtEnd()) {
+			return false;
+		}
+		// Issue #2799: Guard against irregular or endless loops lacking valid end block
+		LoopInfo loopInfo = loopRegion.getInfo();
+		if (loopInfo == null || loopInfo.getEnd() == null) {
 			return false;
 		}
 		IfCondition condition = loopRegion.getCondition();
@@ -107,14 +116,25 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		RegisterArg arg = phiInsn.getResult();
+		if (arg == null || arg.getSVar() == null) {
+			return false;
+		}
 		List<RegisterArg> condArgs = condition.getRegisterArgs();
 		if (!condArgs.contains(arg) || arg.getSVar().isUsedInPhi()) {
 			return false;
 		}
 		RegisterArg initArg = phiInsn.getArg(0);
+		// Issue #2799: Handle swapped PhiInsn backedge predecessor argument ordering
+		if (initArg.sameRegAndSVar(incrArg)) {
+			initArg = phiInsn.getArg(1);
+		}
+		if (initArg.sameRegAndSVar(incrArg)) {
+			return false;
+		}
 		InsnNode initInsn = initArg.getAssignInsn();
 		if (initInsn == null
 				|| initInsn.contains(AFlag.DONT_GENERATE)
+				|| initArg.getSVar() == null
 				|| initArg.getSVar().getUseCount() != 1) {
 			return false;
 		}
@@ -145,6 +165,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	private static LoopType checkArrayForEach(MethodNode mth, LoopRegion loopRegion, InsnNode initInsn, InsnNode incrInsn,
 			IfCondition condition) {
+		// Issue #2799: Ensure loop CFG can support for-each injection before modifying AST
+		if (!canInjectForEach(loopRegion)) {
+			return null;
+		}
 		if (!(incrInsn instanceof ArithNode)) {
 			return null;
 		}
@@ -167,8 +191,11 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return null;
 		}
 		SSAVar sVar = ((RegisterArg) condArg).getSVar();
+		if (sVar == null) {
+			return null;
+		}
 		List<RegisterArg> args = sVar.getUseList();
-		if (args.size() != 3) {
+		if (args == null || args.size() != 3) {
 			return null;
 		}
 		condArg = InsnUtils.getRegFromInsn(args, InsnType.IF);
@@ -208,6 +235,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		RegisterArg iterVar = arrGetInsn.getResult();
 		if (iterVar != null) {
+			if (iterVar.getSVar() == null || iterVar.getSVar().getCodeVar() == null) {
+				return null;
+			}
 			if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
 				return null;
 			}
@@ -228,7 +258,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		// array for each loop confirmed
-		incrInsn.getResult().add(AFlag.DONT_GENERATE);
+		RegisterArg incrRes = incrInsn.getResult();
+		if (incrRes != null) {
+			incrRes.add(AFlag.DONT_GENERATE);
+		}
 		condArg.add(AFlag.DONT_GENERATE);
 		bCondArg.add(AFlag.DONT_GENERATE);
 		arrGetInsn.add(AFlag.DONT_GENERATE);
@@ -236,7 +269,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 		ForEachLoop forEachLoop = new ForEachLoop(iterVar, len.getArg(0));
 		forEachLoop.injectFakeInsns(loopRegion);
-		if (InsnUtils.dontGenerateIfNotUsed(len)) {
+		if (!len.contains(AFlag.WRAPPED) && InsnUtils.dontGenerateIfNotUsed(len)) {
 			InsnRemover.remove(mth, len);
 		}
 		CodeShrinkVisitor.shrinkMethod(mth);
@@ -244,26 +277,41 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	private static boolean checkIterableForEach(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
+		// Issue #2799: Ensure loop CFG can support for-each injection before modifying AST
+		if (!canInjectForEach(loopRegion)) {
+			return false;
+		}
 		List<RegisterArg> condArgs = condition.getRegisterArgs();
-		if (condArgs.size() != 1) {
+		if (condArgs == null || condArgs.size() != 1) {
 			return false;
 		}
 		RegisterArg iteratorArg = condArgs.get(0);
+		if (iteratorArg == null) {
+			return false;
+		}
 		SSAVar sVar = iteratorArg.getSVar();
 		if (sVar == null || sVar.isUsedInPhi()) {
 			return false;
 		}
 		List<RegisterArg> itUseList = sVar.getUseList();
 		InsnNode assignInsn = iteratorArg.getAssignInsn();
-		if (itUseList.size() != 2) {
+		if (itUseList == null || itUseList.size() != 2) {
+			return false;
+		}
+		if (assignInsn == null) {
 			return false;
 		}
 		if (!checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;")) {
 			return false;
 		}
 		InsnArg iterableArg = assignInsn.getArg(0);
-		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
-		InsnNode nextCall = itUseList.get(1).getParentInsn();
+		RegisterArg itUse0 = itUseList.get(0);
+		RegisterArg itUse1 = itUseList.get(1);
+		if (itUse0 == null || itUse1 == null) {
+			return false;
+		}
+		InsnNode hasNextCall = itUse0.getParentInsn();
+		InsnNode nextCall = itUse1.getParentInsn();
 		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
@@ -283,19 +331,25 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				}
 				if (parentInsn.getType() == InsnType.CHECK_CAST) {
 					iterVar = parentInsn.getResult();
-					if (iterVar == null || !fixIterableType(mth, iterableArg, iterVar)) {
+					if (iterVar == null || iterVar.getSVar() == null || iterVar.getSVar().getCodeVar() == null
+							|| !fixIterableType(mth, iterableArg, iterVar)) {
 						return false;
 					}
 					InsnArg castArg = BlockUtils.searchWrappedInsnParent(mth, parentInsn);
 					if (castArg != null && castArg.getParentInsn() != null) {
-						castArg.getParentInsn().replaceArg(castArg, iterVar);
+						InsnNode castParentInsn = castArg.getParentInsn();
+						BlockNode castBlock = BlockUtils.getBlockByInsn(mth, castParentInsn);
+						if (castBlock == null || !RegionUtils.isRegionContainsBlock(loopRegion, castBlock)) {
+							return false;
+						}
+						castParentInsn.replaceArg(castArg, iterVar);
 					} else {
 						// cast not inlined
 						toSkip.add(parentInsn);
 					}
 				} else {
 					iterVar = nextCall.getResult();
-					if (iterVar == null) {
+					if (iterVar == null || iterVar.getSVar() == null || iterVar.getSVar().getCodeVar() == null) {
 						return false;
 					}
 					iterVar.remove(AFlag.REMOVE); // restore variable from inlined insn
@@ -311,7 +365,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			}
 		} else {
 			iterVar = nextCall.getResult();
-			if (iterVar == null) {
+			if (iterVar == null || iterVar.getSVar() == null || iterVar.getSVar().getCodeVar() == null) {
 				return false;
 			}
 			if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
@@ -324,7 +378,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		assignInsn.add(AFlag.DONT_GENERATE);
-		assignInsn.getResult().add(AFlag.DONT_GENERATE);
+		RegisterArg assignRes = assignInsn.getResult();
+		if (assignRes != null) {
+			assignRes.add(AFlag.DONT_GENERATE);
+		}
 
 		for (InsnNode insnNode : toSkip) {
 			insnNode.setResult(null);
@@ -409,13 +466,14 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (assignInsn == null) {
 			return true;
 		}
-		if (!argInLoop(mth, loopRegion, assignInsn.getResult())) {
+		// Issue #2799: assignInsn may have no result (void calls, monitor-enter), check insn containment directly
+		if (!insnInLoop(mth, loopRegion, assignInsn)) {
 			return false;
 		}
 		if (assignInsn instanceof PhiInsn) {
 			PhiInsn phiInsn = (PhiInsn) assignInsn;
 			for (InsnArg phiArg : phiInsn.getArguments()) {
-				if (!assignOnlyInLoop(mth, loopRegion, (RegisterArg) phiArg)) {
+				if (!phiArg.isRegister() || !assignOnlyInLoop(mth, loopRegion, (RegisterArg) phiArg)) {
 					return false;
 				}
 			}
@@ -424,7 +482,14 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	private static boolean usedOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
-		List<RegisterArg> useList = arg.getSVar().getUseList();
+		if (arg == null || arg.getSVar() == null) {
+			return false;
+		}
+		SSAVar sVar = arg.getSVar();
+		List<RegisterArg> useList = sVar.getUseList();
+		if (useList == null) {
+			return false;
+		}
 		for (RegisterArg useArg : useList) {
 			if (!argInLoop(mth, loopRegion, useArg)) {
 				return false;
@@ -434,16 +499,51 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	private static boolean argInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
+		if (arg == null) {
+			return false;
+		}
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn == null) {
 			return false;
 		}
-		BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);
+		return insnInLoop(mth, loopRegion, parentInsn);
+	}
+
+	private static boolean insnInLoop(MethodNode mth, LoopRegion loopRegion, InsnNode insn) {
+		if (insn == null) {
+			return false;
+		}
+		BlockNode block = BlockUtils.getBlockByInsn(mth, insn);
 		if (block == null) {
-			LOG.debug(" LoopRegionVisitor: instruction not found: {}, mth: {}", parentInsn, mth);
+			LOG.debug(" LoopRegionVisitor: instruction not found: {}, mth: {}", insn, mth);
 			return false;
 		}
 		return RegionUtils.isRegionContainsBlock(loopRegion, block);
+	}
+
+	// Issue #2799: Validate that CFG structure allows injecting for-each loop before mutating AST
+	private static boolean canInjectForEach(LoopRegion loopRegion) {
+		BlockNode header = loopRegion.getHeader();
+		if (header == null) {
+			return false;
+		}
+		LoopInfo info = loopRegion.getInfo();
+		if (info == null) {
+			return false;
+		}
+		BlockNode start = info.getStart();
+		BlockNode end = info.getEnd();
+		if (start == null || end == null) {
+			return false;
+		}
+		List<BlockNode> preds = start.getPredecessors();
+		List<BlockNode> clean = new ArrayList<>(preds.size());
+		for (BlockNode p : preds) {
+			if (!BlockUtils.isExceptionHandlerPath(p)) {
+				clean.add(p);
+			}
+		}
+		return clean.size() == 2 && clean.contains(end) && info.getPreHeader() != null;
 	}
 
 	@Override
