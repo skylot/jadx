@@ -467,13 +467,21 @@ public class InsnGen {
 				code.add(']');
 				break;
 
-			case APUT:
+			case APUT: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
 				addArg(code, insn.getArg(0));
 				code.add('[');
 				addArg(code, insn.getArg(1), false);
 				code.add("] = ");
 				addArg(code, insn.getArg(2), false);
+				if (wrap) {
+					code.add(')');
+				}
 				break;
+			}
 
 			case IGET: {
 				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
@@ -481,22 +489,37 @@ public class InsnGen {
 				break;
 			}
 			case IPUT: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
 				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
 				instanceField(code, fieldInfo, insn.getArg(1));
 				code.add(" = ");
 				addArg(code, insn.getArg(0), false);
+				if (wrap) {
+					code.add(')');
+				}
 				break;
 			}
 
 			case SGET:
 				staticField(code, (FieldInfo) ((IndexInsnNode) insn).getIndex());
 				break;
-			case SPUT:
+			case SPUT: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
 				FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
 				staticField(code, field);
 				code.add(" = ");
 				addArg(code, insn.getArg(0), false);
+				if (wrap) {
+					code.add(')');
+				}
 				break;
+			}
 
 			case STR_CONCAT:
 				boolean wrap = state.contains(Flags.BODY_ONLY);
