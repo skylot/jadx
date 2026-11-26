@@ -231,7 +231,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
-		if (isArithWideUpCast(parentInsn, argType, castToType)) {
+		if (isArithWideUpCast(parentInsn, argType, castToType)
+				|| isValueChangingInnerCast(parentInsn, argType, castToType)) {
 			return null;
 		}
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
@@ -259,6 +260,22 @@ public class SimplifyVisitor extends AbstractVisitor {
 			return castToType.getRegCount() > argType.getRegCount();
 		}
 		return false;
+	}
+
+	/**
+	 * Keep inner cast which can round or saturate the value before outer cast.
+	 * Examples: (long) (float) l - without 'float' cast result will be just 'l';
+	 * (int) (long) d - without 'long' cast 'd' will be saturated to int range instead of truncated
+	 */
+	private static boolean isValueChangingInnerCast(@Nullable InsnNode parentInsn, ArgType argType, ArgType castToType) {
+		if (parentInsn != null && parentInsn.getType() == InsnType.CAST) {
+			return isFloatingPoint(castToType) || (isFloatingPoint(argType) && castToType.equals(ArgType.LONG));
+		}
+		return false;
+	}
+
+	private static boolean isFloatingPoint(ArgType type) {
+		return type.equals(ArgType.FLOAT) || type.equals(ArgType.DOUBLE);
 	}
 
 	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
