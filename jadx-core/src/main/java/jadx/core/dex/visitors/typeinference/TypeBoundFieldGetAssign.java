@@ -5,6 +5,7 @@ import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
 /**
@@ -13,12 +14,14 @@ import jadx.core.dex.nodes.RootNode;
  */
 public final class TypeBoundFieldGetAssign implements ITypeBoundDynamic {
 	private final RootNode root;
+	private final MethodNode mth;
 	private final IndexInsnNode getNode;
 	private final FieldInfo fieldInfo;
 	private final ArgType initType;
 
-	public TypeBoundFieldGetAssign(RootNode root, IndexInsnNode getNode, ArgType initType) {
+	public TypeBoundFieldGetAssign(RootNode root, MethodNode mth, IndexInsnNode getNode, ArgType initType) {
 		this.root = root;
+		this.mth = mth;
 		this.getNode = getNode;
 		this.fieldInfo = (FieldInfo) getNode.getIndex();
 		this.initType = initType;
@@ -41,10 +44,14 @@ public final class TypeBoundFieldGetAssign implements ITypeBoundDynamic {
 
 	private ArgType getResultType(ArgType instanceType) {
 		ArgType resultGeneric = root.getTypeUtils().replaceClassGenerics(instanceType, initType);
-		if (resultGeneric != null && !resultGeneric.isWildcard()) {
+		if (resultGeneric != null && !resultGeneric.isWildcard()
+				&& !root.getTypeUtils().containsUnknownTypeVar(mth, resultGeneric)) {
 			return resultGeneric;
 		}
-		return initType; // TODO: check if this type is allowed in current scope
+		if (!root.getTypeUtils().containsUnknownTypeVar(mth, initType)) {
+			return initType;
+		}
+		return fieldInfo.getType();
 	}
 
 	private InsnArg getInstanceArg() {
