@@ -79,6 +79,7 @@ public class PackageHelper {
 			if (javaPkg.isLeaf() || !javaPkg.getClasses().isEmpty()) {
 				JPackage pkg = buildJPackage(javaPkg, false);
 				pkg.setName(javaPkg.getFullName());
+				pkg.setFullName(javaPkg.getFullName());
 				list.add(pkg);
 				pkgInfoMap.put(javaPkg.getPkgNode().getAliasPkgInfo(), pkg);
 			}
@@ -97,6 +98,7 @@ public class PackageHelper {
 			jPackages.add(jPkg);
 			PackageInfo aliasPkgInfo = javaPkg.getPkgNode().getAliasPkgInfo();
 			jPkg.setName(aliasPkgInfo.getName());
+			jPkg.setFullName(aliasPkgInfo.getFullName());
 			pkgInfoMap.put(aliasPkgInfo, jPkg);
 			if (aliasPkgInfo.isRoot()) {
 				root.getSubPackages().add(jPkg);
@@ -126,6 +128,7 @@ public class PackageHelper {
 			if (parentJPkg == null) {
 				parentJPkg = buildJPackage(currentJPkg.getPkg(), true);
 				parentJPkg.setName(current.getName());
+				parentJPkg.setFullName(current.getFullName());
 				pkgMap.put(current, parentJPkg);
 				if (current.isRoot()) {
 					root.getSubPackages().add(parentJPkg);
@@ -184,7 +187,7 @@ public class PackageHelper {
 		return excludedPackages.isEmpty() || excludedPackages.stream().noneMatch(p -> isPkgMatch(fullPkgName, p));
 	}
 
-	private static boolean isPkgMatch(String fullPkgName, String filterPkg) {
+	public static boolean isPkgMatch(String fullPkgName, String filterPkg) {
 		if (fullPkgName.equals(filterPkg)) {
 			return true;
 		}

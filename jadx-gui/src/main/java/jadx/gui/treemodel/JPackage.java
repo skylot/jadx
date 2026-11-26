@@ -7,6 +7,8 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JavaNode;
 import jadx.api.JavaPackage;
 import jadx.gui.ui.MainWindow;
@@ -34,6 +36,7 @@ public class JPackage extends JNode {
 	private final boolean synthetic;
 
 	private String name;
+	private @Nullable String fullName;
 
 	/**
 	 * Should be called only from JNodeCache!
@@ -84,6 +87,17 @@ public class JPackage extends JNode {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getFullName() {
+		if (fullName != null) {
+			return fullName;
+		}
+		return pkg != null ? pkg.getFullName() : name;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 
 	public List<JPackage> getSubPackages() {
@@ -152,7 +166,7 @@ public class JPackage extends JNode {
 
 	@Override
 	public String makeLongString() {
-		return pkg.getFullName();
+		return getFullName();
 	}
 
 	@Override

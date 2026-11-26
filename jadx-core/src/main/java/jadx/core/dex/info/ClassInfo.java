@@ -127,7 +127,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			}
 			return aliasFullName;
 		}
-		if (parentClass != null && parentClass.hasAlias()) {
+		if (parentClass != null && (parentClass.hasAlias() || parentClass.hasAliasPkg())) {
 			return makeAliasFullName();
 		}
 		return getFullName();

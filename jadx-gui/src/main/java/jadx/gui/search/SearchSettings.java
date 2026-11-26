@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
-import jadx.api.JavaPackage;
 import jadx.core.dex.nodes.PackageNode;
 import jadx.core.utils.exceptions.InvalidDataException;
 import jadx.gui.search.providers.ResourceFilter;
@@ -14,20 +13,21 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.pkgs.PackageHelper;
 
 public class SearchSettings {
 	private final String searchString;
 	private boolean useRegex;
 	private boolean ignoreCase;
-	private String searchPkgStr;
-	private String resFilterStr;
+	private String searchPkgStr = "";
+	private String resFilterStr = "";
 	private int resSizeLimit; // in MB
 
 	private JClass activeCls;
 	private JResource activeResource;
 	private Pattern regexPattern;
 	private ISearchMethod searchMethod;
-	private JavaPackage searchPackage;
+	private @Nullable String searchPkgFilter;
 	private ResourceFilter resourceFilter;
 
 	public SearchSettings(String searchString) {
@@ -35,6 +35,10 @@ public class SearchSettings {
 	}
 
 	public @Nullable String prepare(MainWindow mainWindow) {
+		return prepare(mainWindow.getWrapper().getDecompiler());
+	}
+
+	public @Nullable String prepare(JadxDecompiler decompiler) {
 		if (useRegex) {
 			try {
 				int flags = ignoreCase ? Pattern.CASE_INSENSITIVE : 0;
@@ -43,21 +47,33 @@ public class SearchSettings {
 				return "Invalid Regex: " + e.getMessage();
 			}
 		}
-		if (!searchPkgStr.isBlank()) {
-			JadxDecompiler decompiler = mainWindow.getWrapper().getDecompiler();
-			PackageNode pkg = decompiler.getRoot().resolvePackage(searchPkgStr);
-			if (pkg == null) {
+		searchPkgFilter = null;
+		String pkgFilter = searchPkgStr == null ? "" : searchPkgStr.trim();
+		if (!pkgFilter.isEmpty()) {
+			if (!hasMatchingPackage(decompiler, pkgFilter)) {
 				return NLS.str("search_dialog.package_not_found");
 			}
-			searchPackage = pkg.getJavaNode();
+			searchPkgFilter = pkgFilter;
 		}
 		searchMethod = ISearchMethod.build(this);
-		try {
-			resourceFilter = ResourceFilter.parse(resFilterStr);
-		} catch (InvalidDataException e) {
-			return "Invalid resource file filter: " + e.getMessage();
+		if (resFilterStr != null) {
+			try {
+				resourceFilter = ResourceFilter.parse(resFilterStr);
+			} catch (InvalidDataException e) {
+				return "Invalid resource file filter: " + e.getMessage();
+			}
 		}
 		return null;
+	}
+
+	private static boolean hasMatchingPackage(JadxDecompiler decompiler, String pkgFilter) {
+		for (PackageNode pkg : decompiler.getRoot().getPackages()) {
+			if (!pkg.getClasses().isEmpty()
+					&& PackageHelper.isPkgMatch(pkg.getAliasPkgInfo().getFullName(), pkgFilter)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isMatch(String searchArea) {
@@ -80,12 +96,19 @@ public class SearchSettings {
 		this.ignoreCase = ignoreCase;
 	}
 
-	public JavaPackage getSearchPackage() {
-		return this.searchPackage;
+	public boolean hasSearchPackage() {
+		return searchPkgFilter != null;
+	}
+
+	public @Nullable String getSearchPkgFilter() {
+		return searchPkgFilter;
 	}
 
 	public boolean isInSearchPkg(JavaClass cls) {
-		return cls.getJavaPackage().isDescendantOf(searchPackage);
+		if (searchPkgFilter == null) {
+			return true;
+		}
+		return PackageHelper.isPkgMatch(cls.getPackage(), searchPkgFilter);
 	}
 
 	public void setSearchPkgStr(String searchPkgStr) {
