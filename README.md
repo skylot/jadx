@@ -49,6 +49,7 @@ For `jadx-<version>.zip`, unpack it, go to the `bin` directory and run:
 
 On Windows, run the `.bat` files with a double-click.
 For the Windows bundles, unpack and run `jadx-gui-<version>.exe`.
+If `jadx-gui-<version>.exe` fails to launch from a folder containing special or Unicode characters (such as emojis) in its path, move the folder to a plain ASCII path or use the Windows `.msi` installer.
 
 **Note:** make sure you have 64-bit Java 11 or later installed (not needed for the `with-jre` bundle).
 For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) (select the x64 Installer).
