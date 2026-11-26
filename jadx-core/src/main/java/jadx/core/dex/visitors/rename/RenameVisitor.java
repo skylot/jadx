@@ -232,6 +232,9 @@ public class RenameVisitor extends AbstractVisitor {
 		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
 		if (overrideAttr != null) {
 			for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
+				if (relatedMth.contains(AFlag.DONT_RENAME)) {
+					return false;
+				}
 				if (relatedMth != mth && mth.getParentClass().equals(relatedMth.getParentClass())) {
 					// ignore rename if exists related method from same class (bridge method in most cases)
 					// such rename will also rename current method and will not help to resolve name collision
