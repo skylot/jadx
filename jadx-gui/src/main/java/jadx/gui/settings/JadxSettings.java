@@ -767,6 +767,14 @@ public class JadxSettings {
 		settingsData.setShowInconsistentCode(showInconsistentCode);
 	}
 
+	public boolean isShowEmptySyntheticClasses() {
+		return settingsData.isShowEmptySyntheticClasses();
+	}
+
+	public void setShowEmptySyntheticClasses(boolean showEmptySyntheticClasses) {
+		settingsData.setShowEmptySyntheticClasses(showEmptySyntheticClasses);
+	}
+
 	public boolean isCfgOutput() {
 		return settingsData.isCfgOutput();
 	}
