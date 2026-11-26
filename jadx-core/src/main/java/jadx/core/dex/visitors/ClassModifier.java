@@ -65,14 +65,34 @@ public class ClassModifier extends AbstractVisitor {
 		removeSyntheticFields(cls);
 		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
 		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
+		if (isEmptySyntheticClass(cls)) {
+			cls.add(AFlag.DONT_GENERATE);
+			return false;
+		}
 		return false;
 	}
 
-	private static boolean isEmptySyntheticClass(ClassNode cls) {
+	public static boolean isEmptySyntheticClass(ClassNode cls) {
 		return cls.getAccessFlags().isSynthetic()
-				&& cls.getFields().isEmpty()
-				&& cls.getMethods().isEmpty()
-				&& cls.getInnerClasses().isEmpty();
+				&& cls.getFields().stream().allMatch(f -> f.contains(AFlag.DONT_GENERATE))
+				&& cls.getMethods().stream().allMatch(ClassModifier::isMethodIgnored)
+				&& cls.getInnerClasses().stream().allMatch(c -> c.contains(AFlag.DONT_GENERATE));
+	}
+
+	private static boolean isMethodIgnored(MethodNode mth) {
+		if (mth.contains(AFlag.DONT_GENERATE)) {
+			return true;
+		}
+		if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) && mth.getUseIn().isEmpty()) {
+			return true;
+		}
+		if (mth.isDefaultConstructor() && mth.getArgRegs().isEmpty()) {
+			return mth.getBasicBlocks() == null || BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks());
+		}
+		if (mth.getMethodInfo().isClassInit() && mth.getAccessFlags().isStatic()) {
+			return mth.getBasicBlocks() == null || BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks());
+		}
+		return false;
 	}
 
 	/**
@@ -155,6 +175,10 @@ public class ClassModifier extends AbstractVisitor {
 		}
 		AccessInfo af = mth.getAccessFlags();
 		if (!af.isSynthetic()) {
+			return;
+		}
+		if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) && mth.getUseIn().isEmpty()) {
+			mth.add(AFlag.DONT_GENERATE);
 			return;
 		}
 		ClassNode cls = mth.getParentClass();
@@ -326,10 +350,11 @@ public class ClassModifier extends AbstractVisitor {
 			return;
 		}
 		AccessInfo af = mth.getAccessFlags();
-		boolean publicConstructor = mth.isConstructor() && af.isPublic();
+		boolean constructor = mth.isConstructor()
+				&& (af.isPublic() || mth.getParentClass().getAccessFlags().isSynthetic());
 		boolean enumDefConstructor = mth.isConstructor() && mth.getParentClass().contains(AFlag.CONVERTED_ENUM);
 		boolean clsInit = mth.getMethodInfo().isClassInit() && af.isStatic();
-		if (publicConstructor || enumDefConstructor || clsInit) {
+		if (constructor || enumDefConstructor || clsInit) {
 			if (!BlockUtils.isAllBlocksEmpty(mth.getBasicBlocks())) {
 				return;
 			}
