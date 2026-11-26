@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.Icon;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -21,7 +22,10 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.cellrenders.MethodRenderHelper;
+import jadx.gui.ui.dialog.ImplementationsDialog;
+import jadx.gui.ui.dialog.MethodImplementationsFinder;
 import jadx.gui.ui.dialog.RenameDialog;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class JMethod extends JNode implements JRenameNode {
@@ -78,7 +82,12 @@ public class JMethod extends JNode implements JRenameNode {
 
 	@Override
 	public JPopupMenu onTreePopupMenu(MainWindow mainWindow) {
-		return RenameDialog.buildRenamePopup(mainWindow, this);
+		JPopupMenu menu = RenameDialog.buildRenamePopup(mainWindow, this);
+		JMenuItem findImplItem = new JMenuItem(NLS.str("popup.find_implementations"));
+		findImplItem.addActionListener(e -> ImplementationsDialog.open(mainWindow, this));
+		findImplItem.setEnabled(MethodImplementationsFinder.hasImplementations(mth));
+		menu.add(findImplItem);
+		return menu;
 	}
 
 	String makeBaseString() {
