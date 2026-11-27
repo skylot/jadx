@@ -137,6 +137,19 @@ class TestKotlinMetadata : SmaliTest() {
 			.countString(1, "reason: from getter")
 	}
 
+	/**
+	 * Same class with an extra `fun getA(): Int = 7`, so the getter rename of `a()` would collide
+	 */
+	@Test
+	fun testGettersNameCollision() {
+		setupArgs { this[GETTERS_OPT] = true }
+		assertThat(getClassNodeFromSmaliFiles("deobf", "TestKotlinGetterCollision", "a"))
+			.code()
+			.containsOne("\n    public final String a() {")
+			.containsOne("public final int getA() {")
+			.countString(0, "reason: from getter")
+	}
+
 	@Test
 	fun testIgnoreGetters() {
 		setupArgs()
