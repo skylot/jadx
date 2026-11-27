@@ -6,6 +6,7 @@ import jadx.api.plugins.pass.impl.OrderedJadxPassInfo
 import jadx.api.plugins.pass.types.JadxDecompilePass
 import jadx.core.deobf.NameMapper
 import jadx.core.dex.attributes.AFlag
+import jadx.core.dex.attributes.AType
 import jadx.core.dex.attributes.nodes.RenameReasonAttr
 import jadx.core.dex.nodes.ClassNode
 import jadx.core.dex.nodes.MethodNode
@@ -123,9 +124,18 @@ class KotlinMetadataDecompilePass(
 	private fun renameGetters(wrapper: KmClassWrapper) {
 		val getters = wrapper.getGetters()
 		getters.forEach { (mth, alias) ->
-			if (AFlag.DONT_RENAME !in mth) {
+			if (AFlag.DONT_RENAME !in mth && !hasGetterCollision(mth, alias)) {
 				RenameReasonAttr.forNode(mth).append(GETTER_REASON)
 				mth.rename(alias)
+			}
+		}
+	}
+
+	private fun hasGetterCollision(mth: MethodNode, alias: String): Boolean {
+		val renamedMethods = mth.get(AType.METHOD_OVERRIDE)?.relatedMthNodes ?: setOf(mth)
+		return renamedMethods.any { target ->
+			target.parentClass.methods.any { other ->
+				other.alias == alias && other.methodInfo.argsCount == 0 && other !in renamedMethods
 			}
 		}
 	}
