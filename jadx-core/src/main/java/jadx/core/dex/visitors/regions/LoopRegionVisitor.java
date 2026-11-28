@@ -384,7 +384,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	/**
-	 * Check if instruction is a interface invoke with corresponding parameters.
+	 * Check if instruction is an interface invoke with corresponding parameters.
 	 */
 	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId) {
 		if (insn == null) {
