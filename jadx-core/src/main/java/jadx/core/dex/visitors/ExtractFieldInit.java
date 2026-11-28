@@ -305,7 +305,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static List<FieldNode> processFieldsDependencies(ClassNode cls, List<FieldInitInfo> inits) {
-		// collect dependant fields
+		// collect dependent fields
 		Map<FieldNode, List<FieldNode>> deps = buildFieldDeps(cls, inits);
 		if (deps.isEmpty()) {
 			return Collections.emptyList();
